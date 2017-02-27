@@ -33,7 +33,7 @@ The Django project is created with: `django-admin startproject physionet` (Pytho
 For each of the three Physionet servers: 
 
 - The bare git repository (of this project) is stored in: `/physionet/git/physionet-build.git`. Must be initialized once for each server: `mkdir -p /physionet/git/physionet-build.git && cd /physionet/git/physionet-build.git && git init --bare`. The *post-receive* hook file must be manually added and made executable. 
-- The implemented Django project is stored in: `/physionet/www/physionet-build`. Must be initialized once for each server: `mkdir /physionet/www/physionet-build`
+- The implemented Django project is stored in: `/physionet/www/physionet-django`. Must be initialized once for each server: `mkdir /physionet/www/physionet-django`
 - The apache settings files are stored in the standard debian location: `/etc/apache2/`. The *physionet.conf* apache configuration file must be enabled once for each server: `sudo a2ensite physionet.conf`
 - When changes are pushed, the bare repository's contents are cloned into a temporary working directory in: `/physionet/tmp/physionet-build-tmp`. The base directory must be initialized once for each server: `mkdir -p /physionet/tmp`
 
