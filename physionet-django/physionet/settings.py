@@ -25,7 +25,7 @@ SECRET_KEY = '8)o29mp21sk*4y1q04y8pw8%jdyzc6)4&r_9n1jqa2bb0!q=06'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['192.168.11.101', 'localhost','physionet-dev.ecg.mit.edu','127.0.0.1']
 
 
 # Application definition
