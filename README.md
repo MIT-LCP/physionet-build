@@ -30,7 +30,7 @@ The Django project is created with: `django-admin startproject physionet` (Pytho
 
 ### Server File Locations ###
 
-For each of the three Physionet servers: 
+For each of the three Physionet servers:
 
 - The bare git repository (of this project) is stored in: `/physionet/git/physionet-build.git`. Must be initialized once for each server: `mkdir -p /physionet/git/physionet-build.git && cd /physionet/git/physionet-build.git && git init --bare`. The *post-receive* hook file must be manually added and made executable. 
 - The implemented Django project is stored in: `/physionet/www/physionet-django`. Must be initialized once for each server: `mkdir /physionet/www/physionet-django`
