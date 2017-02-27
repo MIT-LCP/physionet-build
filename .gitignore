@@ -92,3 +92,7 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# Configuration files
+apache2/
+git-deployment/
