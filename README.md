@@ -14,7 +14,7 @@ sudo apt-get install apache2		// 2.4.25
 sudo apt-get install libapache2-mod-wsgi	// 4.5.11-1
 ```
 
-### Python ###
+### Python ### 
 
 Default installed Python versions:
 - Python 2.7.13
