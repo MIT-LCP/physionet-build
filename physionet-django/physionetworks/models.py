@@ -1,13 +1,16 @@
 from __future__ import unicode_literals
 
 from django.db import models
-from sharing.models import BaseProject, license
+from catalog.models import BaseProject, License, Keyword
 # from users.models import User
 from ckeditor.fields import RichTextField
 
 
 # Physionetworks project
-class Project(Baseproject):
+class Project(BaseProject):
+
+    # Any keywords tagged by the user
+    keywords = models.ManyToManyField(Keyword, related_name='project', blank=True)
 
     #owner  = models.ForeignKey(User, related_name='project', blank=True)
     #collaborators = models.ManyToManyField(User, related_name='project', blank=True)
@@ -25,6 +28,9 @@ class Project(Baseproject):
     # Storage allowance in MB
     storage = models.SmallIntegerField(default=1024)
 
+
+
+    
 
     # Full description
     description = RichTextField()

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  	{% load static %}
+    <link href="{% static 'css/bootstrap.css' %}" rel="stylesheet" type='text/css'>
+  </head>
+
+  <body>
+    {% include 'navbar.html' %}
+    
+    {% block content %}
+    {% endblock %}
+    
+    {% include 'footer.html' %}
+  </body>
+</html>

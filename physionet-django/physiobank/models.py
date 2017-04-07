@@ -1,16 +1,19 @@
 from __future__ import unicode_literals
 from django.db import models
-from sharing.models import BaseProject, BasePublishedProject
+from catalog.models import BaseProject, BasePublishedProject, Keyword
+from physionetworks.models import Project
 
 # A Physiobank database
-# Consider making this a subclass of a physionetworks.Project class. 
 class Database(BaseProject, BasePublishedProject):
+    # Any keywords tagged by the user
+    keywords = models.ManyToManyField(Keyword, related_name='database', blank=True)
+    # The project from which this item originated (if any)
+    originproject = models.ForeignKey(Project, related_name='database', blank=True)
 
-    
-    datatypes = models.ManyToManyField(DataType, related_name='database')
 
+    datatypes = models.ManyToManyField('DataType', related_name='database')
     # All the signal types contained in this database
-    signaltypes = models.ManyToManyField(SignalType,related_name='database', blank=True)
+    signaltypes = models.ManyToManyField('SignalType',related_name='database', blank=True)
 
 
     

@@ -37,8 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # The rich text editor
     'ckeditor',
-    'sharing',
+    'catalog',
     'physiobank',
     'physiotoolkit',
     'physionetworks'

@@ -7,7 +7,7 @@ class Keyword(models.Model):
     # Not sure if we need this actually. 
     slug = models.CharField(max_length=50, unique=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.word
 
 # A published paper
@@ -34,8 +34,10 @@ class BaseProject(models.Model):
     slug = models.SlugField(max_length=50, unique=True)
     # The date the database was released into Physiobank. auto_now_add should not equal to True. 
     publishdate = models.DateField()
-    # Any keywords tagged by the user
-    keywords = models.ManyToManyField(sharingKeyword, related_name='database', blank=True)
+
+
+    # This is not here because each model needs its own related_name
+    #keywords = models.ManyToManyField(Keyword, related_name='database', blank=True)
 
 
     # An overview description. To be shown in index lists and news, not the page itself.
@@ -54,7 +56,9 @@ class BasePublishedProject(models.Model):
 
     DOI = models.CharField(max_length=50, unique=True)
     version = models.CharField(max_length=50)
-    originproject = models.ForeignKey(Project, related_name='project', blank=True)
+
+    # This is not here because each model needs its own related_name. 
+    #originproject = models.ForeignKey('physionetworks.Project', related_name='project', blank=True)
 
     class Meta:
         abstract = True
