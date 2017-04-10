@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 from django.db import models
+# from users.models import User
+from ckeditor.fields import RichTextField
 
 # Generic keywords for tagging projects and pages
 class Keyword(models.Model):
@@ -25,6 +27,7 @@ class Contact():
     email = models.EmailField(blank=True)
     institution = models.CharField(max_length=100)
 
+
 # Inherited by all - pnw projects, pb databases, ptoolkits, plibraries
 class BaseProject(models.Model):
 
@@ -36,9 +39,11 @@ class BaseProject(models.Model):
     publishdate = models.DateField()
 
 
-    # This is not here because each model needs its own related_name
-    #keywords = models.ManyToManyField(Keyword, related_name='database', blank=True)
-
+    # The license for the content. # Will use this when filled in: default=License.objects.get(name='GPL3')
+    license = models.ForeignKey(License, default=None, related_name="%(app_label)s_%(class)s",)
+    
+    # Any keywords tagged by the user
+    keywords = models.ManyToManyField(Keyword, related_name="%(app_label)s_%(class)s", blank=True)
 
     # An overview description. To be shown in index lists and news, not the page itself.
     overview = models.TextField(max_length=1500)
@@ -54,11 +59,19 @@ class BaseProject(models.Model):
 # Inherited by published content - databases, toolkits, and documentation
 class BasePublishedProject(models.Model):
 
-    DOI = models.CharField(max_length=50, unique=True)
+    DOI = models.CharField(max_length=100, unique=True)
     version = models.CharField(max_length=50)
 
-    # This is not here because each model needs its own related_name. 
-    #originproject = models.ForeignKey('physionetworks.Project', related_name='project', blank=True)
+    # Who can access the main page and the files. 0 = protected, 1 = open.
+    accesspolicy = models.SmallIntegerField(default=1)
+    # Users who have access to the project for protected projects
+    #members = models.ManyToManyField(User, related_name="%(app_label)s_%(class)s")
+    # The data usage agreement
+    DUA = RichTextField(default=None)
+    
+    # The pnw project this published project came from
+    originproject = models.ForeignKey('physionetworks.Project', related_name="%(app_label)s_%(class)s", blank=True)
+
 
     class Meta:
         abstract = True

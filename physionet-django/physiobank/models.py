@@ -1,16 +1,10 @@
 from __future__ import unicode_literals
 from django.db import models
-from catalog.models import BaseProject, BasePublishedProject, Keyword
-from physionetworks.models import Project
+from catalog.models import BaseProject, BasePublishedProject
 
 # A Physiobank database
 class Database(BaseProject, BasePublishedProject):
-    # Any keywords tagged by the user
-    keywords = models.ManyToManyField(Keyword, related_name='database', blank=True)
-    # The project from which this item originated (if any)
-    originproject = models.ForeignKey(Project, related_name='database', blank=True)
-
-
+    
     datatypes = models.ManyToManyField('DataType', related_name='database')
     
     # All the signal types contained in this database
@@ -18,8 +12,6 @@ class Database(BaseProject, BasePublishedProject):
 
 
     
-
-
 
 
 # Type of data. ie: clinical, waveform, image. For entire database.

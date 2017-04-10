@@ -7,11 +7,6 @@ from physionetworks.models import Project
 # Physiotoolkit software package
 class Toolkit(BaseProject, BasePublishedProject):
     
-    # Any keywords tagged by the user
-    keywords = models.ManyToManyField(Keyword, related_name='toolkit', blank=True)
-    # The project from which this item originated (if any)
-    originproject = models.ForeignKey(Project, related_name='toolkit', blank=True)
-
     # Programming languages used
     languages = models.ManyToManyField('Language', related_name='toolkit')
 
