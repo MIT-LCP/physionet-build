@@ -1,4 +1,4 @@
-<nav class="navbar navbar-inverted">
+<nav class="navbar navbar-inverse" name="top">
   <div class="container-fluid">
     <!-- Brand and toggle get grouped for better mobile display -->
     <div class="navbar-header">
@@ -8,45 +8,113 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="#">Brand</a>
+      <a class="navbar-brand" href="/">PhysioNet</a>
     </div>
 
     <!-- Collect the nav links, forms, and other content for toggling -->
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
       <ul class="nav navbar-nav">
-        <li class="active"><a href="#">Link <span class="sr-only">(current)</span></a></li>
-        <li><a href="#">Link</a></li>
-        <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown <span class="caret"></span></a>
+
+
+      	<li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="glyphicon glyphicon-briefcase"></span> PhysioBank <span class="caret"></span></a>
           <ul class="dropdown-menu">
-            <li><a href="#">Action</a></li>
-            <li><a href="#">Another action</a></li>
-            <li><a href="#">Something else here</a></li>
+            <li><a href="/physiobank">Home</a></li>
             <li role="separator" class="divider"></li>
-            <li><a href="#">Separated link</a></li>
+            <li><a href="/physiobank/about">About</a></li>
             <li role="separator" class="divider"></li>
-            <li><a href="#">One more separated link</a></li>
+            <li><a href="#">Database Index</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="#">Record Search</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="/lightwave">Lightwave</a></li>
           </ul>
         </li>
+
+      	<li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="glyphicon glyphicon-wrench"></span> PhysioToolKit <span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a href="/physiobank">Home</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="/physiobank/about">About</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="#">Software Index</a></li>
+          </ul>
+        </li>
+
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="glyphicon glyphicon-book"></span> PhysioLibrary <span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a href="/physiobank">Home</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="/physiobank/about">About</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="#">Library Index</a></li>
+          </ul>
+        </li>
+
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="glyphicon glyphicon-lock"></span> PhysioNetWorks <span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a href="/physiobank">Home</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="/physiobank/about">About</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="#">Project Index</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="#">User Home</a></li>
+          </ul>
+        </li>
+
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="glyphicon glyphicon-king"></span> Challenge <span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a href="/challenge/2018">Challenge 2018</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="/challenge/about">About</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="challenge/">Challenge Index</a></li>
+          </ul>
+        </li>
+
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="glyphicon glyphicon-plus"></span> MIMIC <span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a href="/physiobank">Home</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="/physiobank/about">Clinical Database</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="#">Waveform Database</a></li>
+          </ul>
+        </li>
+
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="glyphicon glyphicon-user"></span> Support <span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a href="/faq">FAQs</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="/forum">Forums</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="#">Site Map</a></li>
+            <li role="separator" class="divider"></li>
+            <li><a href="#">Contact</a></li>
+          </ul>
+        </li>
+
       </ul>
-      <form class="navbar-form navbar-left">
+
+
+      <form class="navbar-form navbar-right">
         <div class="form-group">
           <input type="text" class="form-control" placeholder="Search">
+          <button class="btn btn-default" type="submit"><i class="glyphicon glyphicon-search"></i></button>
         </div>
-        <button type="submit" class="btn btn-default">Submit</button>
       </form>
+      
       <ul class="nav navbar-nav navbar-right">
-        <li><a href="#">Link</a></li>
-        <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown <span class="caret"></span></a>
-          <ul class="dropdown-menu">
-            <li><a href="#">Action</a></li>
-            <li><a href="#">Another action</a></li>
-            <li><a href="#">Something else here</a></li>
-            <li role="separator" class="divider"></li>
-            <li><a href="#">Separated link</a></li>
-          </ul>
-        </li>
+        <li><a href="/login"><span class="glyphicon glyphicon-log-in"></span> Log In</a></li>
+	<li><a href="/signup"><span class="glyphicon glyphicon-user"></span> Sign Up</a></li>
+	
       </ul>
     </div><!-- /.navbar-collapse -->
   </div><!-- /.container-fluid -->

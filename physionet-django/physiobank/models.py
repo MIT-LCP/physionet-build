@@ -12,6 +12,7 @@ class Database(BaseProject, BasePublishedProject):
 
 
     datatypes = models.ManyToManyField('DataType', related_name='database')
+    
     # All the signal types contained in this database
     signaltypes = models.ManyToManyField('SignalType',related_name='database', blank=True)
 

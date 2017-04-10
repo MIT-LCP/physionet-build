@@ -61,7 +61,7 @@ ROOT_URLCONF = 'physionet.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -125,7 +125,14 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# Where all the static files are collected to and ultimately served from by the server software.
+# This is necessary for actual deployment with apache, but not necessary with django runserver.
+STATIC_ROOT = '/physionet/www/static'
+# Where the staticfinder searches for static files, in addition to the static/ directories in the installed apps
+# This is also where django runserver searches for files to serve them.
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+
+
 
 
 
