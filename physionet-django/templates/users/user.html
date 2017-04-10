@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block title %}Login{% endblock %}
+
+{% block content %}
+  {% if register %}   
+    <h2 align="center">Register</h2>
+    <div class='row'>
+      <form method="post" action="{% url 'register' %}" class="form-horizontal uniForm" enctype="multipart/form-data">
+  {% elif edit %}
+    <h2 align="center">Edit User</h2>
+    <div class='row'>
+      <form method="post" action="/home/{{ user.email }}/edit/" class="form-horizontal uniForm" enctype="multipart/form-data">
+  {% endif %}
+
+  {% csrf_token %}
+<div class="col-md-3"></div>
+<div class="col-md-6">
+    {% for field in form %}
+      {% if field.errors %}
+          <div class="form-group has-error has-feedback" id="d_{{ field.label }}">
+        {% else %}
+          <div class="form-group" id="d_c_{{ field.label }}">
+        {% endif %}
+          <div class="col-sm-2"><label class="control-label" for="{{ field.label }}" style="text-align:left !important">{{ field.label }}:</label></div>
+          <div class="col-sm-10">{{ field }}
+          {% if field.errors %}
+            <span class="text-danger pull-right" id="l_{{ field.label }}">{{ field.errors }}</span>
+          {% endif %}
+          </div>
+      </div>
+    {% endfor %}
+    {% if register %}   
+      <input class="btn btn-success btn-md pull-right col-sm-2" type="submit" value="Register" />
+    {% elif edit %}
+      <input class="btn btn-success btn-md pull-right col-sm-2" type="submit" value="Submit" />
+    {% endif %}
+
+</div>
+<div class="col-md-3"></div>
+
+{% if messages %}
+    {% for message in messages %}
+    <script>
+    $(document).ready(function(){
+        {% if message.tags %}
+            console.log("{{ message.tags }}");
+        {% endif %}
+        console.log('{{ message }}');
+        $('#myModal').modal({ keyboard: true })
+        $("#myModal").modal("show");
+    });
+    </script>
+
+<div id="myModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+<!--         <h4 class="modal-title">No login information</h4>
+ -->
+            <h4 class="modal-title">{{ message.tags }}</h4>
+       </div>
+      <div class="modal-body">
+<!--         <p>Either you havent logged in or your connection timed out.</p>
+ -->
+        <p>{{message}}</p>
+
+       </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+    {% endfor %}
+{% endif %}
+
+<script>
+{% for field in form %}
+
+  $("#{{ field.auto_id }}").change(function(){
+    console.log("{{ field.auto_id }}");
+});
+{% endfor %}
+
+</script>
+
+{% endblock %}

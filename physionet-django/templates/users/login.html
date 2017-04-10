@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+    {% if login %}
+      <h2 align="center">Login to Physionet Works</h2><br>
+    {% elif reset %}
+      <h2 align="center">Reset the password for Physionet Works</h2><br>
+    {% elif reset_password %}
+      <h2 align="center">Reset the password for Physionet Works</h2><br>
+    {% endif %}
+
+{% if user.is_authenticated %}
+    
+{% endif %}
+
+<div class='row'>
+    {% if login %}
+<form method="post" action="{% url 'login' %}" class="form-horizontal">
+    {% elif reset %}
+<form method="post" action="{% url 'reset' %}" class="form-horizontal">
+    {% else %}
+<form method="post" class="form-horizontal">
+    {% endif %}
+    {% csrf_token %}
+<div class="col-md-4"></div>
+<div class="col-md-4">
+    {% for field in form %}
+      {% if field.errors %}
+          <div class="form-group has-error has-feedback" id="d_{{ field.label }}">
+        {% else %}
+          <div class="form-group" id="d_c_{{ field.label }}">
+        {% endif %}
+          <div class="col-sm-2"><label class="control-label" for="{{ field.label }}" style="text-align:left !important">{{ field.label }}:</label></div>
+          <div class="col-sm-10">{{ field }}
+          {% if field.errors %}
+            <span class="text-danger pull-right" id="l_{{ field.label }}">{{ field.errors }}</span>
+          {% endif %}
+          </div>
+      </div>
+    {% endfor %}
+    {% if login %}
+    <a href="/users/reset" class="btn btn-warning btn-sm"> Forgot Password </a>
+    <input class="btn btn-success btn-sm col-sm-2 pull-right" type="submit" value="Login" />
+    {% else %}
+    <input class="btn btn-success btn-sm col-sm-2 pull-right" type="submit" value="Submit" />
+    {% endif %}
+</div>
+<div class="col-md-4"></div>
+
+{% if messages %}
+  {% for message in messages %}
+    {% if message %}
+    <script> $(document).ready(function(){ $('#myModal').modal({ keyboard: true }, "show") }); </script>
+    <div id="myModal" class="modal fade" role="dialog">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title" style="text-align:center;">{{ message.extra_tags }}</h4>
+          </div>
+          <div class="modal-body">
+            <p>{{ message }}</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  {% endfor %}
+{% endif %}
+
+{% endblock %}
