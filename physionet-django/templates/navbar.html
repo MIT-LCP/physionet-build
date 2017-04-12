@@ -112,9 +112,13 @@
       </form>
       
       <ul class="nav navbar-nav navbar-right">
+      {% if user.is_authenticated %}
+        <li><a href="/home/{{user.email}}"><span class="glyphicon glyphicon-home"></span> Home</a></li>
+        <li><a href="/logout"><span class="glyphicon glyphicon-log-out"></span> Log Out</a></li>
+	    {% else %}
         <li><a href="/login"><span class="glyphicon glyphicon-log-in"></span> Log In</a></li>
-	<li><a href="/signup"><span class="glyphicon glyphicon-user"></span> Sign Up</a></li>
-	
+        <li><a href="/register"><span class="glyphicon glyphicon-user"></span> Sign Up</a></li>
+      {% endif %}
       </ul>
     </div><!-- /.navbar-collapse -->
   </div><!-- /.container-fluid -->

@@ -42,8 +42,8 @@ INSTALLED_APPS = [
     'catalog',
     'physiobank',
     'physiotoolkit',
-    'physionetworks'
-
+    'physionetworks',
+    'users.apps.UsersConfig',
 ]
 
 MIDDLEWARE = [
@@ -97,6 +97,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': { 'min_length': 8, }
     },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
@@ -105,7 +106,6 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
@@ -132,9 +132,21 @@ STATIC_ROOT = '/physionet/www/static'
 # This is also where django runserver searches for files to serve them.
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
+# Custom user model
+AUTH_USER_MODEL = 'users.User'
 
+# Media
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-
+# Mail config
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = '192.168.11.160'
+EMAIL_PORT = 25
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = 'Physionet Help <help@dev.physionet.org>'
 
 # Additional Installed Package Settings
 

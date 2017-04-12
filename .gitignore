@@ -1,6 +1,7 @@
 # Temporary: migrations
 *_initial.py*
 *_auto_*
+0*_*.py
 
 # sqlite file
 db.sqlite3

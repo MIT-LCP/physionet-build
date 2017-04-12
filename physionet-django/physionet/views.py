@@ -1,8 +1,6 @@
 from django.http import HttpResponse
-from django.template.loader import get_template
+from django.template import loader, RequestContext
 
 # Physionet home Page
 def home(request):
-    template = get_template('home.html')
-    html = template.render()
-    return HttpResponse(html)
+    return HttpResponse(loader.get_template('home.html').render(RequestContext(request, {'user': request.user})))
