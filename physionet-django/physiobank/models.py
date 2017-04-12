@@ -1,9 +1,9 @@
 from __future__ import unicode_literals
 from django.db import models
-from catalog.models import BaseProject, BasePublishedProject
+from catalog.models import BaseProject, BasePublishedProject, ProjectDatabase
 
 # A Physiobank database
-class Database(BaseProject, BasePublishedProject):
+class Database(BaseProject, BasePublishedProject, ProjectDatabase):
     
     datatypes = models.ManyToManyField('DataType', related_name='database')
     
@@ -12,8 +12,6 @@ class Database(BaseProject, BasePublishedProject):
 
 
     
-
-
 # Type of data. ie: clinical, waveform, image. For entire database.
 class DataType(models.Model):
     name = models.CharField(max_length=50, unique=True)
