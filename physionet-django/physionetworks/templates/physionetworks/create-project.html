@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block content %}
+
+<div class='row'>
+    <form method="post" action="{% url 'create' %}" class="form-horizontal uniForm">
+    <div class="col-md-3"></div>
+    <div class="col-md-6">
+        {% for field in form %}
+
+            <div class="col-sm-2">
+                <label class="control-label" for="{{ field.label }}" style="text-align:left !important">{{ field.label }}:</label>
+            </div>
+            <div class="col-sm-10">
+                {{ field }}
+            </div>
+        {% endfor %}
+         <input class="btn btn-success btn-md pull-right col-sm-2" type="submit" value="Create" />
+    </div>
+    </form>
+
+</div>
+
+{% endblock %}
+

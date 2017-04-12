@@ -8,7 +8,7 @@ from ckeditor.fields import RichTextField
 # Physionetworks project
 class Project(BaseProject):
 
-        
+    
     # There will only be owner and collaborators who can all edit content. No reviewers.
     # pnw projects will be purely for publishing, not lingering, not for protected projects.
 

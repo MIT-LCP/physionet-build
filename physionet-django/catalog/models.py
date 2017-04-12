@@ -13,18 +13,35 @@ class Keyword(models.Model):
         return self.word
 
 # A published paper
-class Paper(models.Model):
+class Paper():
     title = models.CharField(max_length=100, unique=True)
+
+
 
 class License(models.Model):
     name = models.CharField(max_length=50, unique=True)
     content = models.TextField()
 
-# A contact 
-class Contact():
-    # The person's name
+
+# Generic contributor
+class Contributor():
     name = models.CharField(max_length=100)
-    email = models.EmailField(blank=True)
+    institution = models.CharField(max_length=100)
+
+
+class HandField(models.Field):
+
+    description = "A hand of cards (bridge style)"
+
+    def __init__(self, *args, **kwargs):
+        kwargs['max_length'] = 104
+        super(HandField, self).__init__(*args, **kwargs)
+
+
+# Generic contact person
+class Contact():
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
     institution = models.CharField(max_length=100)
 
 
@@ -46,9 +63,11 @@ class BaseProject(models.Model):
     keywords = models.ManyToManyField(Keyword, related_name="%(app_label)s_%(class)s", blank=True)
 
     # An overview description. To be shown in index lists and news, not the page itself.
-    overview = models.TextField(max_length=1500)
+    overview = models.CharField(max_length=1500)
 
-    # contributors = <figure this out>
+    contributors = Contact()
+
+
     # contact = <figure this out>
     # references = <figure this out>
 
