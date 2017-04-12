@@ -15,9 +15,7 @@ urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', views.user_home, name='user_home'), 
     url(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+/edit/$', views.edit, name='edit'),
-    url(r'^activate/[0-9a-z-]+/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', views.activate, name='activate'),
     url(r'^reset_password/[0-9a-z-]+/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', views.reset_password, name='reset_password'),
-]
+    url(r'^reset/$', views.reset, name='reset'),
 
-    # url(r'^reset_password/[0-9a-z-]+/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', views.reset_password, name='reset_password'),
-    # url(r'^edit_user/$', views.edit_user, name='edit_user'),
+]

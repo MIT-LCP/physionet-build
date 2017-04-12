@@ -2,7 +2,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.contrib.auth.models import Group
 from django.contrib import admin
-from models import User
+from models import User, user_action
 from django import forms
 
 #
@@ -81,8 +81,10 @@ class UserAdmin(BaseUserAdmin):
     ordering = ('email',)
     filter_horizontal = ()
 
+
 #After defining a class, for it to be used, it has to be registered.
 admin.site.register(User, UserAdmin)
+admin.site.register(user_action)
 
 #Groups are On by default, you remove form the admin page them by unregistering them.
 admin.site.unregister(Group)

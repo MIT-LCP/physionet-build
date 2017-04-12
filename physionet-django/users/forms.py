@@ -1,16 +1,10 @@
-from django.forms import *
-import re
-from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError
-from django import forms
-from .models import User
-from urllib import urlopen
-# from bootstrap.forms import BootstrapForm
-from django.core.validators import MaxValueValidator, MinValueValidator
-from django.forms.extras.widgets import SelectDateWidget
-import re
 from operator import itemgetter
+from urllib import urlopen
+from django.forms import *
+from .models import User
+import re
 
 CONTIGUOUS_STATES = (('N/A','       '), ('AL', 'Alabama'), ('AZ', 'Arizona'), ('AR', 'Arkansas'), ('CA', 'California'), ('CO', 'Colorado'), ('CT', 'Connecticut'), ('DE', 'Delaware'), ('DC', 'District of Columbia'), ('FL', 'Florida'), ('GA', 'Georgia'), ('ID', 'Idaho'), ('IL', 'Illinois'), ('IN', 'Indiana'), ('IA', 'Iowa'), ('KS', 'Kansas'), ('KY', 'Kentucky'), ('LA', 'Louisiana'), ('ME', 'Maine'), ('MD', 'Maryland'), ('MA', 'Massachusetts'), ('MI', 'Michigan'), ('MN', 'Minnesota'), ('MS', 'Mississippi'), ('MO', 'Missouri'), ('MT', 'Montana'), ('NE', 'Nebraska'), ('NV', 'Nevada'), ('NH', 'New Hampshire'), ('NJ', 'New Jersey'), ('NM', 'New Mexico'), ('NY', 'New York'), ('NC', 'North Carolina'), ('ND', 'North Dakota'), ('OH', 'Ohio'), ('OK', 'Oklahoma'), ('OR', 'Oregon'), ('PA', 'Pennsylvania'), ('RI', 'Rhode Island'), ('SC', 'South Carolina'), ('SD', 'South Dakota'), ('TN', 'Tennessee'), ('TX', 'Texas'), ('UT', 'Utah'), ('VT', 'Vermont'), ('VA', 'Virginia'), ('WA', 'Washington'), ('WV', 'West Virginia'), ('WI', 'Wisconsin'), ('WY', 'Wyoming'))
 NON_CONTIGUOUS_STATES = (('AK', 'Alaska'), ('HI', 'Hawaii'))
@@ -68,9 +62,10 @@ class BaseUserForm():
             except ObjectDoesNotExist:
                 Exists = False
             if Exists:
-                raise forms.ValidationError({'email': ['The email is already registered.',]})
+                print 1
+                raise ValidationError({'email': ['The email is already registered.',]})
             if not re.match(r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+', email):
-                raise forms.ValidationError({'email': ['Invalid email.',]})
+                raise ValidationError({'email': ['Invalid email.',]})
             return email
 
     def clean_logged_email(self):
@@ -78,15 +73,17 @@ class BaseUserForm():
             Email = self.cleaned_data['email']
             Exists = True
             try:
-                User.objects.get(email=Email)
+                Person = User.objects.get(email=Email)
+                print Person
             except ObjectDoesNotExist:
                 Exists = False
             if not Exists:
-                raise forms.ValidationError({'email': ['The email is already registered.',]})
+                print 2
+                raise ValidationError({'email': ['The email is already registered.',]})
             if " " in Email:
-                raise forms.ValidationError({'email': ['The Email cannot contain spaces.',]})
+                raise ValidationError({'email': ['The Email cannot contain spaces.',]})
             if "@" not in Email or '.' not in Email:
-                raise forms.ValidationError({'email': ['Invalid email.',]})
+                raise ValidationError({'email': ['Invalid email.',]})
             return Email
 
     def clean_url(self):
@@ -96,7 +93,7 @@ class BaseUserForm():
             if url != None or url != "None" or url != "":
                 return    
             if int(urlopen(url).getcode()) >= 400:
-                raise forms.ValidationError({'url': ['The URL is invalid',]})
+                raise ValidationError({'url': ['The URL is invalid',]})
             return url
 
 class RegistrationForm(BaseUserForm, ModelForm):
@@ -108,16 +105,15 @@ class RegistrationForm(BaseUserForm, ModelForm):
     organization=CharField(label="Organization",max_length=30,required=True,widget=TextInput(attrs={'class': 'form-control', 'name': 'Organization'}))
     department=CharField(label="Department",max_length=30,required=True,widget=TextInput(attrs={'class':'form-control','name':'department'}))
     city=CharField(label="City",max_length=30,required=True,widget=TextInput(attrs={'class': 'form-control', 'name': 'city'}))
-    # State=ChoiceField(label="State",required=False,choices=USA,initial={'N/A': 'N/A'},widget=forms.Select(attrs={'class': 'form-control', 'name': 'State'}))
-    state=ChoiceField(label="State",required=False,choices=USA,initial={'N/A': 'N/A'},widget=forms.Select(attrs={'class': 'form-control', 'name': 'state'}))
+    state=ChoiceField(label="State",required=False,choices=USA,initial={'N/A': 'N/A'},widget=Select(attrs={'class': 'form-control', 'name': 'state'}))
     country=CharField(label="Country",max_length=30,required=True,widget=TextInput(attrs={'class': 'form-control', 'name': 'country'}))
     url=CharField(label="Url",max_length=30,required=False,widget=TextInput(attrs={'class': 'form-control', 'name': 'Uul'}))
     photo=FileField(label="Photo",required=False,widget=FileInput(attrs={'class': 'form-control', 'name': 'photo'}))
 
     def clean(self):
-        Email = BaseUserForm.clean_new_email(self)
-        Pass  = BaseUserForm.clean_2_password(self)
-        Url   = BaseUserForm.clean_url(self)
+        Email = self.clean_new_email()
+        Pass  = self.clean_2_password()
+        Url   = self.clean_url()
         super(RegistrationForm, self).clean()
 
     class Meta:
@@ -135,8 +131,12 @@ class RegistrationForm(BaseUserForm, ModelForm):
         user.city=self.cleaned_data['city']
         user.state=self.cleaned_data['state']
         user.country=self.cleaned_data['country']
-        user.url=self.cleaned_data['url']
-        user.photo=self.cleaned_data['photo']
+        if self.cleaned_data['url'] != None:
+            if self.cleaned_data['url'] != '':
+                user.url=self.cleaned_data['url']
+        if self.cleaned_data['photo'] != None:
+            if self.cleaned_data['photo'] != '':
+                user.photo="Profile." + self.cleaned_data['photo'].name.split('.')[-1]
         user.set_password(self.cleaned_data['Password'])
         if commit:
             user.save()
@@ -151,7 +151,7 @@ class UserForm(BaseUserForm, ModelForm):
     organization=CharField(label="Organization",max_length=30,required=True,widget=TextInput(attrs={'class': 'form-control', 'name': 'Organization'}))
     department=CharField(label="Department",max_length=30,required=True,widget=TextInput(attrs={'class':'form-control','name':'department'}))
     city=CharField(label="City",max_length=30,required=True,widget=TextInput(attrs={'class': 'form-control', 'name': 'city'}))
-    state=ChoiceField(label="State",required=False,choices=USA,initial={'N/A': 'N/A'},widget=forms.Select(attrs={'class': 'form-control', 'name': 'state'}))
+    state=ChoiceField(label="State",required=False,choices=USA,initial={'N/A': 'N/A'},widget=Select(attrs={'class': 'form-control', 'name': 'state'}))
     country=CharField(label="Country",max_length=30,required=True,widget=TextInput(attrs={'class': 'form-control', 'name': 'country'}))
     url=CharField(label="Url",max_length=30,required=False,widget=TextInput(attrs={'class': 'form-control', 'name': 'Uul'}))
     photo=FileField(label="Photo",required=False,widget=FileInput(attrs={'class': 'form-control', 'name': 'photo'}))
@@ -180,7 +180,8 @@ class UserForm(BaseUserForm, ModelForm):
         if self.cleaned_data['url'] != None:
             user.url=self.cleaned_data['url']
         if self.cleaned_data['photo'] != None:
-            user.photo=self.cleaned_data['email'] + '.' + self.cleaned_data['photo'].name.split('.')[-1]
+            if self.cleaned_data['photo'] != '':
+                user.photo="Profile." + self.cleaned_data['photo'].name.split('.')[-1]
         if self.cleaned_data['Password'] != '':
             if self.cleaned_data['Password'] != None:
                 user.set_password(self.cleaned_data['Password'])        
@@ -242,17 +243,6 @@ class ResetPassForm(Form):
             user.save()
         return user
 
-class NewProjectForm(Form):
-    import datetime
-    Access1 = (('0', 'Interested members may obtain access to this project.'),('1', 'Interested members may apply for access to this project.'),('2','Access to this project is not available at this time.'),)
-    project_name = CharField(label="Project Name",max_length=150,required=True,widget=TextInput(attrs={'class': 'form-control', 'name': 'project_name'}))
-    project_abstract = CharField(label="Project Abstract",required=True,widget=TextInput(attrs={'class': 'form-control', 'name': 'project_abstract'}))
-    access_policy=ChoiceField(label="Access Policy",required=True,initial=Access1[1],choices=Access1, widget=forms.Select(attrs={'class': 'form-control', 'name': 'access_policy'}))
-    has_dua=ChoiceField(label="Has DUA",required=True,initial={'1': 'Yes'}, choices=(('1', 'Yes'),('0', 'No'),),widget=forms.Select(attrs={'class': 'form-control', 'name': 'has_dua'}))
-    completition_date=forms.DateField(label="Estimated completion date",initial=datetime.date.today,required=True,widget=SelectDateWidget(attrs={'class': 'form-control form-inline col-md-4', 'name': 'completition_date'},empty_label=("Choose Year", "Choose Month", "Choose Day") ))
-
-    storage_limit = IntegerField(label="Storage Limit",required=True,widget=NumberInput(attrs={'class': 'form-control', 'name': 'storage_limit'}), validators=[MaxValueValidator(100),MinValueValidator(1)])
-    
 
 
 

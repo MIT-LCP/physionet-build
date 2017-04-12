@@ -17,7 +17,7 @@ from django.conf import settings
 from django.conf.urls import include, url                                             
 from django.conf.urls.static import static                                      
 from django.contrib import admin
-from users.views import login, logout, register
+from users.views import login, logout, register, reset_password, activate
 
 
 from . import views             
@@ -30,7 +30,8 @@ urlpatterns = [
     url(r'^logout/$', logout, name='logout'),
     url(r'^login/$', login, name='login'),
     url(r'^register/$', register, name='register'),
-       
+    url(r'^reset_password/[0-9a-z-]+/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', reset_password, name='reset_password'),
+    url(r'^activate/[0-9a-z-]+/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', activate, name='activate'),
 
 
 

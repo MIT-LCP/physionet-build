@@ -3,23 +3,28 @@ from django.contrib.auth.decorators import login_required
 from django.template import Context, loader, RequestContext
 from django.http import HttpResponse, HttpResponseRedirect 
 from django.contrib import auth, messages
-from .forms import UserForm, LoginForm, RegistrationForm
+from .forms import UserForm, LoginForm, RegistrationForm, ResetForm, ResetPassForm
 from django.middleware import csrf
+from django.core.mail import send_mail
 from .models import User, user_action
 from uuid import uuid4
+from time import strftime
+#from IPython.display import display
 
-# @login_required(login_url="/login/")#If the User is not logged in it will be redirected to the login URL.
+DEFAULT_FROM_EMAIL = 'Physionet Help <ftorres@dev.physionet.org>'
+host = 'http://127.0.0.1:8000/'
+
 def index(request):
-    template = loader.get_template("users/user.html")
-    return HttpResponse(template.render())
+    return HttpResponse(loader.get_template('users/user.html').render(RequestContext(request, {'user': request.user})))
 
 def handle_uploaded_file(file, email):
     import os
     if not os.path.exists('media/Users/' + email + '/'):
         os.makedirs('media/Users/' + email + '/')
-    with open('media/Users/' + email + '/'+ email + '.' + file.name.split('.')[-1], 'wb+') as destination:
+    with open('media/Users/' + email + '/Profile.' + file.name.split('.')[-1], 'wb+') as destination:
         for chunk in file.chunks():
             destination.write(chunk)
+    print file.name
 
 @login_required(login_url="/login/")#If the User is not logged in it will be redirected to the login URL.
 def user_home(request):
@@ -29,6 +34,7 @@ def user_home(request):
             return HttpResponseRedirect('/home/' + request.user.email)
     except:#Redirect the user to registration if the EMAIL doesn't exist
         return HttpResponseRedirect('/home/' + request.user.email)
+
     user = request.user #Here we get the user information.
     storage = messages.get_messages(request)
     template = loader.get_template('users/home.html')#args['form']
@@ -43,7 +49,6 @@ def login(request):
         form = LoginForm(request.POST) #Assign the information from the post into the form variable
         try:
             if form.is_valid():#Check if the content of the form is valid
-                print "IS VALID"
                 user = auth.authenticate(email=request.POST['email'], password=request.POST.get('Password'))#If the content is a post, check it can authenticate
                 if user is not None and user.is_active:#If the account is activated and it could be authenticated
                     auth.login(request, user)#Mark the login and redirect home
@@ -62,6 +67,7 @@ def login(request):
     c = RequestContext(request, {'form': form, 'csrf_token': csrf.get_token(request), 'messages':storage, 'login':1})
     return HttpResponse(template.render(c))
 
+
 def logout(request):
     auth.logout(request)#Force the user to logout
     return HttpResponseRedirect("/")
@@ -79,52 +85,147 @@ def edit(request):
                 form.save()
                 return HttpResponseRedirect("/home/" + user.email)
             else:
-                messages.add_message(request, messages.INFO, "There was an error with the information entered, please verify and try again.", extra_tags='Error Submitting')
+                messages.add_message(request, messages.INFO, "1There was an error with the information entered, please verify and try again.", extra_tags='Error Submitting')
         except Exception as e:
-            messages.add_message(request, messages.INFO, "There was an error with the information entered, please verify and try again.", extra_tags='Error Submitting')
+            print e
+            messages.add_message(request, messages.INFO, e, extra_tags='Error Submitting')#)"2There was an error with the information entered, please verify and try again.", extra_tags='Error Submitting')
     try:
         form#If we received the post before, then form will be set
     except:
         form = UserForm(instance=user)#If no post request, then initialize the form
     template = loader.get_template('users/user.html')
     storage = messages.get_messages(request)
+
     c = RequestContext(request, {'form': form, 'user': user, 'csrf_token': csrf.get_token(request), 'messages':storage, 'edit':1})
     return HttpResponse(template.render(c))
 
 def register(request):
-    user = request.user
+    user = request.user #Request the user
+    if user.is_authenticated():
+        return HttpResponseRedirect('/home/' + user.email)
     if request.method == 'POST':#If we receive a post in the web request
-        form = RegistrationForm(request.POST)#Assign the information from the post into the form variable
+        form = RegistrationForm(request.POST, request.FILES)#Assign the information from the post into the form variable
+        if request.FILES:
+            if request.FILES['photo']:
+                handle_uploaded_file(request.FILES['photo'], request.POST['email'])
         if form.is_valid():#If the form is valid it means it passed the checks
             form.save()#Save the user in the database
             UUID = uuid4()#Set a UUID to be sent to the email and added to the activation table
-            Activate = user_action(activation_code=UUID,email=request.POST['email'],action='Activation')#Add the line with the UUID and email to the activation table
+            Activate = user_action(code=UUID,email=request.POST['email'],action='Activation')#Add the line with the UUID and email to the activation table
             Activate.save()#Save the input
-            Message = "An account has been created\n\r please activate the account by clicking or copy pasting the following link in the URL of the web browser\n\r\n\r %s%s/%s\n\r\n\rThanks!" % (host, str(UUID), request.POST['email'])#Generate the email to be sent
+            Message = "An account has been created\n\r please activate the account by clicking or copy pasting the following link in the URL of the web browser\n\r\n\r %sactivate/%s/%s\n\r\n\rThanks!" % (host, str(UUID), request.POST['email'])#Generate the email to be sent
             Subject = "Activate the account"
             send_mail(Subject, Message, DEFAULT_FROM_EMAIL, [request.POST['email']], fail_silently=False)#Send the email
+            return HttpResponseRedirect('/login/')
         else:
             print "*** Form is invalid ***"
             print form.errors.as_data(), 1
-    args = {}#Variable to get all the arguments and not have to fill the form again.
+
     template = loader.get_template('users/user.html')
     storage = messages.get_messages(request)
     try:
-        args['form'] = form#If we received the post before, then form will be set
+        form #= RegistrationForm(request.POST)#Assign the information from the post into the form variable
     except:
-        args['form'] = RegistrationForm()#If no post request, then initialize the form
-    c = RequestContext(request, {'form':args['form'], 'csrf_token': csrf.get_token(request), 'messages': storage, "register":True})
+        form = RegistrationForm()#If no post request, then initialize the form
+    c = RequestContext(request, {'form':form, 'csrf_token': csrf.get_token(request), 'messages': storage, "register":True})
     return HttpResponse(template.render(c))
 
-###
 
 def activate(request):
-    template = loader.get_template("users/register.html")
-    return HttpResponse(template.render())
+    path = request.path.split('/')#Here we split the path to get the UUID and the email to see if the email is activated
+    print path
+    try:#If the EMAIL doesnt exist
+        Temp_User = User.objects.get(email=path[3])
+    except:#Redirect the user to registration if the EMAIL doesn't exist
+        return HttpResponseRedirect('/register/')
+    form = LoginForm()#Create the login form
+    template=loader.get_template('users/login.html')#Create the template to render
+    if not Temp_User.is_active:#If the user is not active, then we check the table for the activation.
+        Found = 0#Variable for message to see if the user is found or not
+        for line in user_action.objects.all():#From all the lines in the table of activations:
+            if str(line.code) == path[2] and str(line.email) == path[3]:#Check if the UUID and the EMAIL are the same as the URL
+                Found = 1#If they are the same mark as found
+                user_action.objects.get(id=line.id).delete() #Delete the line that was found 
+                Person = User.objects.get(email=line.email)#get the user from the database
+                Person.is_active = True #Set the user as active
+                Person.save()#Save all the changes
+                messages.add_message(request, messages.INFO, "The user was activated successfully.", extra_tags='Account Activation')
+                return HttpResponseRedirect("/login")
+        if Found == 0:
+            messages.add_message(request, messages.INFO, "Please verify that the URL was entered properly.", extra_tags='Wrong activation link')
+    else:
+        messages.add_message(request, messages.INFO, "The user has already been activated.", extra_tags='Account Activated')
+    storage = messages.get_messages(request)
+    c = RequestContext(request, {'form': form, 'csrf_token': csrf.get_token(request), 'messages': storage})
+    return HttpResponse(template.render(c))
+
+def reset(request):
+    user = request.user
+    if request.method == 'POST':#If we receive a post in the web request
+        form = ResetForm(request.POST) #Assign the information from the post into the form variable
+        try:#If the EMAIL doesn't exist
+            Temp_User = User.objects.get(email=request.POST['email'])
+            UUID = uuid4() #Set a UUID to be sent to the email and added to the activation table
+            OLD_UUID = user_action.objects.filter(email=request.POST['email'])#get the user from the database
+            for item in OLD_UUID:
+                user_action.objects.get(id=item.id).delete()
+            Reset = user_action(code=UUID,email=Temp_User,action="Password_Reset")#Add the line with the UUID and email to the activation table
+            Reset.save()
+            Message = "Password recovery requested.\n\r To change the password please click\n\r\n\r %sreset_password/%s/%s\n\r\n\rThanks!" % (host, str(UUID), request.POST['email'])#Generate the email to be sent
+            Subject = "Password Reset"
+            send_mail(Subject, Message, DEFAULT_FROM_EMAIL, [Temp_User], fail_silently=False)#Send the email
+            messages.add_message(request, messages.INFO, "An email has been sent to the address entered.", extra_tags='Email Sent')
+        except:#Redirect the user to registration if the EMAIL doesn't exist
+            messages.add_message(request, messages.INFO, "There was an error with he account, please verify the information.", extra_tags='Email Sent')
+    else:
+        form = ResetForm()
+    template = loader.get_template('users/login.html')
+    storage = messages.get_messages(request)
+    c = RequestContext(request, {'form': form, 'csrf_token': csrf.get_token(request), 'messages': storage, 'reset':1})
+    return HttpResponse(template.render(c))
+
 
 
 def reset_password(request):
-    template = loader.get_template("users/register.html")
-    return HttpResponse(template.render())
+    path = request.path.split('/')#Here we split the path to get the UUID and the email to see if the email is activated
+    try:#If the EMAIL doesn't exist
+        Temp_User = User.objects.get(email=path[3])
+    except:#Redirect the user to registration if the EMAIL doesn't exist
+        messages.add_message(request, messages.INFO, "Please verify that the URL was entered properly.", extra_tags='Wrong link')
+        return HttpResponseRedirect('/login/')
+    form = LoginForm()#Create the login form
+    Found = reset_password = 0
+    login = 1
+    if Temp_User.is_active: #If the user is not active, then we check the table for the activation.
+        for line in user_action.objects.all():#From all the lines in the table of activations:
+            if str(line.code) == path[2] and str(line.email) == path[3]:#Check if the UUID and the EMAIL are the same as the URL
+                reset_password = Found = 1#If they are the same mark as found
+                login = 0
+                if request.method == 'POST':
+                    form = ResetPassForm(request.POST) #Assign the information from the post into the form variable
+                    try:
+                        if form.is_valid():
+                            Person = User.objects.get(email=line.email)#get the user from the database
+                            Person.set_password(request.POST['Password'])#Set the user as active
+                            Person.save()#Save all
+                            user_action.objects.get(id=line.id).delete()#Delete the line that was found 
+                            messages.add_message(request, messages.INFO, "Password changed successfully", extra_tags='Password changed.')
+                            return HttpResponseRedirect('/login/')
+                    except Exception as e:
+                        messages.add_message(request, messages.INFO, "Please verify that the URL was entered properly.", extra_tags='Wrong link')
+                        print e
+                else:
+                    form = ResetPassForm()#Create the login form
+                    template=loader.get_template('users/login.html')#Create the template to render
+                    storage = messages.get_messages(request)
+                    c = RequestContext(request, {'form': form, 'email':path[3], 'uuid':path[2],'csrf_token': csrf.get_token(request), 'messages': storage, 'login':login, 'reset_password':reset_password})
+                    return HttpResponse(template.render(c))
+    else:
+        messages.add_message(request, messages.INFO, "User not found, please register the account or activate the account before resetting the password", extra_tags='User not found or inactive')
+    if Found == 0:
+        messages.add_message(request, messages.INFO, "Please verify that the URL was entered properly.", extra_tags='Wrong link')
+    return HttpResponseRedirect("/login")
+
+
 
 

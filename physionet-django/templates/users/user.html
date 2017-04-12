@@ -12,7 +12,9 @@
       <form method="post" action="/home/{{ user.email }}/edit/" class="form-horizontal uniForm" enctype="multipart/form-data">
   {% endif %}
 
+{% if edit or register %}
   {% csrf_token %}
+
 <div class="col-md-3"></div>
 <div class="col-md-6">
     {% for field in form %}
@@ -37,7 +39,7 @@
 
 </div>
 <div class="col-md-3"></div>
-
+{% endif %}
 {% if messages %}
     {% for message in messages %}
     <script>

@@ -5,24 +5,20 @@
 {% block content %}
     {% if login %}
       <h2 align="center">Login to Physionet Works</h2><br>
+      
+        <form method="post" action="{% url 'login' %}" class="form-horizontal">
+
     {% elif reset %}
       <h2 align="center">Reset the password for Physionet Works</h2><br>
+      <div class='row'>
+        <form method="post" action="{% url 'reset' %}" class="form-horizontal">
+
     {% elif reset_password %}
       <h2 align="center">Reset the password for Physionet Works</h2><br>
+      <div class='row'>
+      <form method="post" action="/reset_password/{{uuid}}/{{email}}" class="form-horizontal">
     {% endif %}
 
-{% if user.is_authenticated %}
-    
-{% endif %}
-
-<div class='row'>
-    {% if login %}
-<form method="post" action="{% url 'login' %}" class="form-horizontal">
-    {% elif reset %}
-<form method="post" action="{% url 'reset' %}" class="form-horizontal">
-    {% else %}
-<form method="post" class="form-horizontal">
-    {% endif %}
     {% csrf_token %}
 <div class="col-md-4"></div>
 <div class="col-md-4">
@@ -41,7 +37,7 @@
       </div>
     {% endfor %}
     {% if login %}
-    <a href="/users/reset" class="btn btn-warning btn-sm"> Forgot Password </a>
+    <a href="{% url 'reset' %}" class="btn btn-warning btn-sm"> Forgot Password </a>
     <input class="btn btn-success btn-sm col-sm-2 pull-right" type="submit" value="Login" />
     {% else %}
     <input class="btn btn-success btn-sm col-sm-2 pull-right" type="submit" value="Submit" />

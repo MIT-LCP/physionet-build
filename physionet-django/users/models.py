@@ -19,6 +19,11 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
+def user_directory_path(self, filename):
+    # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
+    location = 'media/Users/%s/%s.%s' % (self.email, "Profile", filename.split('.')[-1]) 
+    return location
+
 # Definition of the user
 # This is a custom class becuase the default user doesnt allow email authentication.
 # So we removed the username and added all the things for physionet.
@@ -36,9 +41,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     state = models.CharField(max_length=40, default='',blank=True, null=True)   
     country = models.CharField(max_length=50, default='',)
     url = models.URLField(default='', blank=True, null=True)
-    photo = models.ImageField(upload_to="media/Users/photo/", default='', blank=True, null=True)
+    photo = models.ImageField(upload_to=user_directory_path, default='', blank=True, null=True)
 
     objects = UserManager()
+
 
     def get_full_name(self):
         # The user is identified by their email address
@@ -71,10 +77,10 @@ class User(AbstractBaseUser, PermissionsMixin):
 # Actions could be Activation or password reset
 # A UUID will be automaticly generated with the current time and the users email
 class user_action(models.Model):
-    reset_code = models.UUIDField(unique=True, default=uuid4, editable=False)
-    reset_date = models.DateTimeField(editable=False, default=timezone.now)
-    email      = models.EmailField(verbose_name='email address',max_length=255, default='',blank=False, null=False)
-    action     = models.CharField(max_length=15, default='',)
+    code   = models.UUIDField(unique=True, default=uuid4, editable=False)
+    date   = models.DateTimeField(editable=False, default=timezone.now)
+    email  = models.EmailField(verbose_name='email address',max_length=255, default='',blank=False, null=False)
+    action = models.CharField(max_length=15, default='',)
 
 
 
