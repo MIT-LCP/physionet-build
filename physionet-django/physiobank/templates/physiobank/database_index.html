@@ -1,1 +1,98 @@
-<h1>Database Index</h1>
+{% extends 'base.html' %}
+{% block title %}Database Index{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="row row-offcanvas row-offcanvas-right">
+
+        <div class="col-12 col-md-9">
+          
+          <div class="jumbotron">
+            <h1>Database Index</h1>
+            <p>This is an example to show the potential of an offcanvas layout pattern in Bootstrap. Try some responsive-range viewport sizes to see it in action.</p>
+            <p>
+                <a class="btn btn-primary btn-lg" href="#" role="button">About</a>
+                <a class="btn btn-primary btn-lg" href="#" role="button">Search</a>
+            </p>
+          </div>
+          
+          <div class="row">
+            <div class="col-6 col-lg-4">
+              <h2>Heading</h2>
+              <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
+              <p><a class="btn btn-secondary" href="#" role="button">View details &raquo;</a></p>
+            </div><!--/span-->
+            <div class="col-6 col-lg-4">
+              <h2>Heading</h2>
+              <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
+              <p><a class="btn btn-secondary" href="#" role="button">View details &raquo;</a></p>
+            </div><!--/span-->
+            <div class="col-6 col-lg-4">
+              <h2>Heading</h2>
+              <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
+              <p><a class="btn btn-secondary" href="#" role="button">View details &raquo;</a></p>
+            </div><!--/span-->
+            
+          </div><!--/row-->
+
+
+          <div class="panel panel-primary">
+              <div class="panel-heading">Panel Heading</div>
+              <div class="panel-body">Panel Content</div>
+          </div>
+
+
+          <div class="container">
+            <div class="row">
+                <!-- <div class="col-md-6 col-md-offset-3"> -->
+                <div class="col-6 col-lg-4">
+                    <div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Panel title</h3>
+                            <span class="pull-right">
+                                <!-- Tabs -->
+                                <ul class="nav panel-tabs">
+                                    <li class="active"><a href="#tab1" data-toggle="tab">Tab 1</a></li>
+                                    <li><a href="#tab2" data-toggle="tab">Tab 2</a></li>
+                                    <li><a href="#tab3" data-toggle="tab">Tab 3</a></li>
+                                    <li><a href="#tab4" data-toggle="tab">Tab 4</a></li>
+                                </ul>
+                            </span>
+                        </div>
+                        <div class="panel-body">
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="tab1">Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At</div>
+                                <div class="tab-pane" id="tab2">Tab 2 stuff</div>
+                                <div class="tab-pane" id="tab3">Tag 3 stuff</div>
+                                <div class="tab-pane" id="tab4">Final tab stuff</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+          </div>
+
+
+
+        </div><!--/span-->
+
+        <div class="col-6 col-md-3 sidebar-offcanvas" id="sidebar">
+          <div class="list-group">
+            <a href="#" class="list-group-item active">Link</a>
+            <a href="#" class="list-group-item">Link</a>
+            <a href="#" class="list-group-item">Link</a>
+            <a href="#" class="list-group-item">Link</a>
+            <a href="#" class="list-group-item">Link</a>
+            <a href="#" class="list-group-item">Link</a>
+            <a href="#" class="list-group-item">Link</a>
+            <a href="#" class="list-group-item">Link</a>
+            <a href="#" class="list-group-item">Link</a>
+            <a href="#" class="list-group-item">Link</a>
+          </div>
+        </div><!--/span-->
+    </div><!--/row-->
+</div><!--/.container-->
+
+{% endblock %}

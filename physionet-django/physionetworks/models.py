@@ -20,7 +20,6 @@ class Project(BaseProject):
     # The requested storage allowance in MB
     requestedstorage = models.SmallIntegerField(default=None)
 
-
     # Depending on the project type, there will be additional info
     databaseinfo = models.OneToOneField(ProjectDatabase, blank=True)
     toolkitinfo = models.OneToOneField(ProjectToolkit, blank=True)

@@ -9,3 +9,6 @@ class Toolkit(BaseProject, BasePublishedProject, ProjectToolkit):
     
 
 
+# Programming language. ie. C, Matlab, Python.
+class Language(models.Model):
+    name = models.CharField(max_length=50, unique=True)

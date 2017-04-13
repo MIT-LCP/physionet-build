@@ -2,6 +2,7 @@
 *_initial.py*
 *_auto_*
 0*_*.py
+rmmigrations.sh
 
 # sqlite file
 db.sqlite3

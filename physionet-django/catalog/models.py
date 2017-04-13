@@ -19,7 +19,8 @@ class Reference(models.Model):
 class License(models.Model):
     name = models.CharField(max_length=50, unique=True)
     content = models.TextField()
-
+    def __str__(self):
+        return self.name
 
 # Generic contributor
 class Contributor(models.Model):
@@ -36,11 +37,6 @@ class Link(models.Model):
     description = models.CharField(max_length=100)
     url = models.CharField(max_length=150)
 
-
-
-# Programming language. ie. C, Matlab, Python.
-class Language(models.Model):
-    name = models.CharField(max_length=50, unique=True)
 
 # Inherited by all - pnw projects, pb databases, ptoolkits, plibraries
 class BaseProject(models.Model):
@@ -73,8 +69,15 @@ class BaseProject(models.Model):
     # Acknowledgements
     acknowledgements = models.TextField(blank=True)
 
+
+    #files = models.ManyToManyField('catalog.File', related_name="%(app_label)s_%(class)s")
+
+    def __str__(self):
+        return self.name
+        
     class Meta:
         abstract = True
+
 
 
 # Inherited by published content - databases, toolkits, and documentation
@@ -95,6 +98,11 @@ class BasePublishedProject(models.Model):
     # The pnw project this published project came from
     originproject = models.ForeignKey('physionetworks.Project', related_name="%(app_label)s_%(class)s", blank=True)
 
+    # The number of visits
+    visits = models.IntegerField(default=0)
+    # The volume of downloads
+    downloads = models.IntegerField(default=0)
+
     class Meta:
         abstract = True
 
@@ -105,11 +113,12 @@ class ProjectDatabase(models.Model):
     collection = models.TextField()
     # Describing the names and layout of files
     filedescription = models.TextField()
+    datatypes = models.ManyToManyField('physiobank.DataType', related_name="%(app_label)s_%(class)s")
 
 
 class ProjectToolkit(models.Model):
     # Programming languages used
-    languages = models.ManyToManyField('catalog.Language', related_name="%(app_label)s_%(class)s")
+    languages = models.ManyToManyField('physiotoolkit.Language', related_name="%(app_label)s_%(class)s")
     # Usage instructions
     usage = models.TextField()
     # Platforms tested
