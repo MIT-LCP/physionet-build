@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 from django.template import Context, Template
 from django.template.loader import get_template
-from .models import *
+from .models import Database, DataType
 
 
 # Physiobank home page
@@ -16,12 +16,12 @@ def home(request):
 # Database index page
 def database_index(request):
     
-    # Get the list of databses
-    dblist=Database.objects.order_by('-posted')
+    # The list of data types
+    datatypes=DataType.objects.order_by('name')
 
     # Retrieve and render the template
     template = get_template('physiobank/database_index.html')
-    context = Context({'dblist': dblist})
+    context = Context({'datatypes': datatypes})
     html = template.render(context)
 
     return HttpResponse(html)
@@ -30,7 +30,6 @@ def database_index(request):
 def database(request, dbslug):
     
     # Get the database descriptors
-
 
     # Retrieve and render the template
     template = get_template('physiobank/home.html')

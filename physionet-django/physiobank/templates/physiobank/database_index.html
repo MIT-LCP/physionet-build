@@ -11,87 +11,95 @@
     <div class="row row-offcanvas row-offcanvas-right">
 
         <div class="col-12 col-md-9">
+
+
+            <div class="jumbotron">
+                <h1>Database Index</h1>
+                <p>PhysioBank's data archives</p>
+                <p>
+                  <a class="btn btn-primary btn-lg" href="#" role="button">About PhysioBank</a>
+                  <a class="btn btn-primary btn-lg" href="#" role="button">Database Search</a>
+                </p>
+            </div>
           
-          <div class="jumbotron">
-            <h1>Database Index</h1>
-            <p>
-                <a class="btn btn-primary btn-lg" href="#" role="button">About PhysioBank</a>
-                <a class="btn btn-primary btn-lg" href="#" role="button">Database Search</a>
+          
+            <h1>Organization</h1>
+            <p>This index lists the databases contributed to PhysioBank, sorted by the category of data they contain. Each panel contains databases that fall into its category. Databases that contain more than one of the defined categories are also listed in the <code>multicategory</code> panel. Click on a panel heading to open or close it.
             </p>
-          </div>
-          
-          
-            <h1>Explanation</h1>
-            <p>The PhysioBank database index lists the contributed databases by the category of data they contain.</p>
+            <p>Content can be sorted by its recency, popularity, or name. If you are looking for a specific type of data, see also the <a href="/physiobank/search">physiobank search tool</a>. This allows the filtering of databases by specific features such as waveform signal type and channel number, keywords, and much more.
+            </p>
             
             <br>
 
-
-          <!-- These data type panels will be dynamically generated in the future -->
-            <div class="panel panel-primary" id="waveform">
-                <div class="panel-heading">
-                    <h3 class="panel-title"><a data-toggle="collapse" href="#collapse-waveform"><strong>Waveform Databases</strong></a></h3>
-                    <span class="pull-right">
-                        <!-- Tabs -->
-                        <ul class="nav panel-tabs">
-                            <li class="active"><a href="#tab1-recent-waveform" data-toggle="tab">Recent</a></li>
-                            <li><a href="#tab-popular-waveform" data-toggle="tab">Popular</a></li>
-                            <li><a href="#tab-alphabetical-waveform" data-toggle="tab">Alphabetical</a></li>
-                        </ul>
-                    </span>
-                </div>
-
-                <div id="collapse-waveform" class="panel-collapse collapse">
-                    <div class="panel-body">
-                        <p>This should be in all tabs</p>
-                        <div class="tab-content">
-                            <div class="tab-pane active" id="tab-recent-waveform">
-                            Tab 1 content</div>
-                            <div class="tab-pane" id="tab-popular-waveform">Tab 2 stuff</div>
-                            <div class="tab-pane" id="tab-alphabetical-waveform">Tab 3 stuff</div>
+            <!-- One panel generated per datatype -->
+            {% for type in datatypes %}
+                <div class="panel panel-primary" id="{{ type.name }}">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><a data-toggle="collapse" href="#collapse-{{ type.name }}"><strong>{{ type.name|title }} Databases</strong></a></h3>
+                        <span class="pull-right">
+                            <!-- Tabs -->
+                            <ul class="nav panel-tabs">
+                                <li class="active"><a href="#tab1-recent-{{ type.name }}" data-toggle="tab">Recent</a></li>
+                                <li><a href="#tab-popular-{{ type.name }}" data-toggle="tab">Popular</a></li>
+                                <li><a href="#tab-alphabetical-{{ type.name }}" data-toggle="tab">Alphabetical</a></li>
+                            </ul>
+                        </span>
+                    </div>
+                    <!-- The collapsible body content -->
+                    <div id="collapse-{{ type.name }}" class="panel-collapse collapse">
+                        <div class="panel-body">
+                            <p>{{ type.description }}</p>
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="tab-recent-{{ type.name }}">Recency sorted</div>
+                                <div class="tab-pane" id="tab-popular-{{ type.name }}">Popularity sorted</div>
+                                <div class="tab-pane" id="tab-alphabetical-{{ type.name }}">Alphabetically sorted</div>
+                            </div>
+                        </div>
+                        <div class="panel-footer">
+                            <p>{{ type.description }}</p>
+                            
                         </div>
                     </div>
                 </div>
+            {% endfor %}
 
-
-            </div>
-
-            <div class="panel panel-primary" id="clinical">
+            <!-- Extra panel for multicategory -->
+            <div class="panel panel-primary" id="multi">
                 <div class="panel-heading">
-                    <h3 class="panel-title"><strong>Clinical Databases</strong></h3>
+                    <h3 class="panel-title"><a data-toggle="collapse" href="#collapse-multi"><strong>Multi-Category Databases</strong></a></h3>
                     <span class="pull-right">
                         <!-- Tabs -->
                         <ul class="nav panel-tabs">
-                            <li class="active"><a href="#tab1-recent" data-toggle="tab">Recent</a></li>
-                            <li><a href="#tab-popular" data-toggle="tab">Popular</a></li>
-                            <li><a href="#tab-alphabetical-clinical" data-toggle="tab">Alphabetical</a></li>
+                            <li class="active"><a href="#tab1-recent-multi" data-toggle="tab">Recent</a></li>
+                            <li><a href="#tab-popular-multi" data-toggle="tab">Popular</a></li>
+                            <li><a href="#tab-alphabetical-multi" data-toggle="tab">Alphabetical</a></li>
                         </ul>
                     </span>
                 </div>
-                <div class="panel-body">
-                <p>This should be in all tabs</p>
-                    <div class="tab-content">
-                        <div class="tab-pane active" id="tab-recent">
-                        Tab 1 content</div>
-                        <div class="tab-pane" id="tab-popular">Tab 2 stuff</div>
+                <!-- The collapsible body content -->
+                <div id="collapse-multi" class="panel-collapse collapse">
+                    <div class="panel-body">
+                        <p>Databases with more than one of the above types of data.</p>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="tab-recent-multi">Recency sorted</div>
+                            <div class="tab-pane" id="tab-popular-multi">Popularity sorted</div>
+                            <div class="tab-pane" id="tab-alphabetical-multi">Alphabetically sorted</div>
+                        </div>
                     </div>
-
-
                 </div>
             </div>
-        
 
+        
         </div><!--/span-->
 
-        <!-- This will also be dynamically generated in the future -->
+        <!-- The contents sidebar -->
         <div class="col-6 col-md-3 sidebar-offcanvas" id="sidebar">
           <div class="list-group">
             <a class="list-group-item active"><strong>Database Categories</strong></a>
-            <a href="#waveform" class="list-group-item">Waveform Databases</a>
-            <a href="#clinical" class="list-group-item">Clinical Databases</a>
-            <a href="#image" class="list-group-item">Image Databases</a>
-            <a href="#other" class="list-group-item">Other Databases</a>
-            <a href="#other" class="list-group-item">Multicategory Databases</a>
+            {% for type in datatypes %}
+                <a href="#{{ type.name }}" class="list-group-item">{{ type.name|title }} Databases</a>
+            {% endfor %}
+            <a href="#multi" class="list-group-item">Multicategory Databases</a>
 
           </div>
         </div><!--/span-->
