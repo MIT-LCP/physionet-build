@@ -1,8 +1,8 @@
+from django.forms import CharField, ModelForm, EmailInput, PasswordInput, TextInput, ChoiceField, Select, FileField, FileInput, Form
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError
 from operator import itemgetter
 from urllib import urlopen
-from django.forms import *
 from .models import User
 import re
 

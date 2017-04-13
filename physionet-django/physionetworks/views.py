@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from django.template import Context, Template
 from django.template.loader import get_template
 from .models import *
-from .forms import CreateProjectForm
+from .forms import CreateProjectForm, ProjectTypeForm, ProjectLicenseForm, FileFieldForm
 
 from IPython.display import display
 
@@ -10,27 +10,16 @@ from IPython.display import display
 def home(request):
     
     # Retrieve and render the template
-    template = get_template('physionetworks/home.html')
-    html = template.render()
+    template = get_template('physionetworks/home.html').render(Context({'home': True}))
 
-    return HttpResponse(html)
+    return HttpResponse(template)
 
 # Create new project page
 def create_project(request):
-
-
-    display(CreateProjectForm.__dict__)
-    print('im here')
-
-    # Get the form
-    form = CreateProjectForm()
-
-
-
+    
     # Retrieve and render the template
-    template = get_template('physionetworks/create-project.html')
-    context = Context({'form': form})
-    html = template.render(context)
+    context = Context({'form': CreateProjectForm(), 'FileForm' :FileFieldForm(),  'typeform': ProjectTypeForm(), 'accessform':ProjectLicenseForm(), 'create': True})
+    html = get_template('physionetworks/create-project.html').render(context)
 
     return HttpResponse(html)
 

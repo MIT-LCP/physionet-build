@@ -13,3 +13,9 @@
 .table-borderless tfoot tr td {
     border: none;
 }
+
+footer important{
+	background-color: #555;
+    color: white;
+    padding: 15px;
+}

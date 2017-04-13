@@ -73,8 +73,21 @@ class BaseProject(models.Model):
     # Acknowledgements
     acknowledgements = models.TextField(blank=True)
 
+    associated_files = models.ManyToManyField('catalog.BaseFile', related_name="%(app_label)s_%(class)s", blank=True)
+
     class Meta:
         abstract = True
+
+def user_directory_path(self, filename):
+    return 'media/projects/%s/%s' % (self.id, filename) 
+
+class BaseFile(models.Model):
+    id   = models.AutoField(primary_key = True, unique = True, editable = False,)
+    name = models.CharField(max_length = 80)  
+    file = models.FileField(upload_to = user_directory_path, default = '', blank = True, null = True)  
+    size = models.CharField(max_length = 6, default = '',blank = True, null = True)  
+    extension = models.CharField(max_length = 10, default = '',blank = True, null = True)  
+    
 
 
 # Inherited by published content - databases, toolkits, and documentation
@@ -102,18 +115,18 @@ class BasePublishedProject(models.Model):
 # Extra models for specific project types
 class ProjectDatabase(models.Model):
     # A description of the data collection
-    collection = models.TextField()
+    collection = models.TextField(default='', blank=True, null=True)
     # Describing the names and layout of files
-    filedescription = models.TextField()
+    filedescription = models.TextField(default='', blank=True, null=True)
 
 
 class ProjectToolkit(models.Model):
     # Programming languages used
     languages = models.ManyToManyField('catalog.Language', related_name="%(app_label)s_%(class)s")
     # Usage instructions
-    usage = models.TextField()
+    usage = models.TextField(default = '',blank = True, null = True)
     # Platforms tested
-    testedplatforms = models.TextField()
+    testedplatforms = models.TextField(default = '',blank = True, null = True)
 
 
 #class ProjectGuide(models.Model):

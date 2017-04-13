@@ -34,7 +34,7 @@ urlpatterns = [
     url(r'^reset_password/[0-9a-z-]+/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', reset_password, name='reset_password'),
     url(r'^activate/[0-9a-z-]+/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', activate, name='activate'),
 
-
+    #Physionetworks
     url(r'^physioworks/', include('physionetworks.urls')),
 
 

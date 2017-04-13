@@ -1,8 +1,9 @@
-from __future__ import unicode_literals
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
-from django.db import models
 from django.utils import timezone
+from django.db import models
 from uuid import uuid4
+# from __future__ import unicode_literals
+
 
 # We have to alter the UserManager class in order to make it use email for authentication.
 # Both functions have to be created, create_user (mere mortal) and create_superuser (god like person).

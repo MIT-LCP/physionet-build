@@ -3,13 +3,17 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-<h2 align="center">PhysioNetWorks Home Page for {{user.first_name}} {{user.last_name}}</h2>
+<h2 align="center">Home Page for {{user.first_name}} {{user.last_name}}</h2>
 <div class="container">
     <div class="row">
         <div class="col-md-2"></div>
         <div class="col-md-4">
-            <div class="Person row">
+            <div class="Person row">  
+            {% if user.photo %}
                 <div class="col-md-6"><img src="/media/Users/{{user.email}}/{{user.photo}}" style="width:180px;height:180px;"></div><br>
+            {% else %}    
+                <div class="col-md-6"><img src="/media/Users/Blank_Picture.png" style="width:180px;height:180px;"></div><br>
+            {% endif %}
                 <div class="col-md-6">
                     <div class="row">
                         <div class="col-md-12"><b>{{user.first_name}} {{user.last_name}}</b></div>
@@ -29,8 +33,7 @@
         </div>
         <div class="col-md-4" style="padding-top:25px;">
             <a href="/home/{{ user.email }}/edit"><div class="panel panel-warning"><div class="panel-heading" align="center" style="cursor:pointer;">Edit Profile</div></div></a>
-
-            <div class="panel panel-info"><div class="panel-heading" align="center" data-toggle="modal" data-target="#Project" style="cursor:pointer;">Create New Project</div>
+            <a href="{% url 'create' %}"><div class="panel panel-info"><div class="panel-heading" align="center" style="cursor:pointer;">Create New Project</div></div></a>
             </div>
         </div>
         </div>

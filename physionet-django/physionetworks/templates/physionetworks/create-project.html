@@ -1,27 +1,112 @@
 {% extends "base.html" %}
 {% load static %}
 
-
 {% block content %}
 
 <div class='row'>
     <form method="post" action="{% url 'create' %}" class="form-horizontal uniForm">
-    <div class="col-md-3"></div>
-    <div class="col-md-6">
-        {% for field in form %}
-
-            <div class="col-sm-2">
-                <label class="control-label" for="{{ field.label }}" style="text-align:left !important">{{ field.label }}:</label>
+        <div class="col-md-3"></div>
+        <div class="col-md-6">
+            <div class="panel-group" id="accordion">
+                <div class="panel panel-default">
+                    <div class="panel-heading" data-toggle="collapse" href="#Basic" onclick="change('basic-glyphicon')">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" href="#Basic">Basic Info</a><i id="basic-glyphicon" class="glyphicon glyphicon-chevron-down pull-right"></i>
+                        </h4>
+                    </div>
+                    <div id="Basic" class="panel-collapse collapse in">
+                        <div class="panel-body">
+                         {% for field in form %}
+                            <div class="form-group" id="d_c_{{ field.label }}">
+                                <div class="col-sm-3">
+                                    <label class="control-label pull-right" for="{{ field.label }}" style="text-align:left !important"><i class="fa fa-fw {{field.id_for_label}}"></i> {{ field.label }}:</label>
+                                </div>
+                                <div class="col-sm-9">
+                                    {{ field }}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading" data-toggle="collapse" href="#Type" onclick="change('type-glyphicon')">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" href="#Type">Project Type</a><i id="type-glyphicon" class="glyphicon glyphicon-chevron-down pull-right"></i>
+                        </h4>
+                    </div>
+                    <div id="Type" class="panel-collapse collapse in">
+                        <div class="panel-body">
+                    
+                            <div class="form-group" id="d_c_{{ typeform.projecttype.label }}">
+                                <div class="col-sm-3">
+                                    <label class="control-label pull-right" for="{{ typeform.projecttype.label }}" style="text-align:left !important">
+                                        {{ typeform.projecttype.0.label }}<i class="fa fa-table fa-2x fa-fw"></i>{{ typeform.projecttype.0 }}
+                                    </label>
+                                </div>
+                                <div class="col-sm-3">
+                                    <label class="control-label pull-right" align="center" for="{{ typeform.projecttype.label }}" style="text-align:left !important">
+                                        {{ typeform.projecttype.1.id_for_label }}<i class="fa fa-code fa-2x fa-fw"></i>{{ typeform.projecttype.1 }}
+                                    </label>
+                                </div>
+                                <div class="col-sm-3">
+                                    <label class="control-label pull-right" for="{{ typeform.projecttype.label }}" style="text-align:left !important">
+                                        {{ typeform.projecttype.2.label }}<i class="fa fa-graduation-cap fa-2x fa-fw"></i>{{ typeform.projecttype.2 }}
+                                    </label>
+                                </div>
+                                <div class="col-sm-9">
+                                     
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading" data-toggle="collapse" href="#Files" onclick="change('files-glyphicon')">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" href="#Files">Files</a><i id="files-glyphicon" class="glyphicon glyphicon-chevron-down pull-right"></i>
+                        </h4>
+                    </div>
+                    <div id="Files" class="panel-collapse collapse in">
+                        <div class="panel-body">
+                        {{FileForm}}
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading" data-toggle="collapse" href="#License" onclick="change('license-glyphicon')">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" href="#License">License</a><i id="license-glyphicon" class="glyphicon glyphicon-chevron-down pull-right"></i>
+                        </h4>
+                    </div>
+                    <div id="License" class="panel-collapse collapse in">
+                        <div class="panel-body">
+                         {% for field in accessform %}
+                            <div class="form-group" id="d_c_{{ field.label }}">
+                                <div class="col-sm-3">
+                                    <label class="control-label pull-right" for="{{ field.label }}" style="text-align:left !important"><i class="fa fa-fw {{field.id_for_label}}"></i>  {{ field.label }}:</label>
+                                </div>
+                                <div class="col-sm-9">
+                                    {{ field }}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="col-sm-10">
-                {{ field }}
-            </div>
-        {% endfor %}
-         <input class="btn btn-success btn-md pull-right col-sm-2" type="submit" value="Create" />
-    </div>
+            <input class="btn btn-success btn-md pull-right col-sm-2" type="submit" value="Create" />
+        </div>
+        <div class="col-md-3"></div>
     </form>
-
 </div>
 
-{% endblock %}
+<script>
+function change(item){ 
+    glyphicon = document.getElementById(item);
+    console.log(glyphicon)
+
+}
+</script>
+    {% endblock %}
 
