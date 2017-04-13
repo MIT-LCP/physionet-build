@@ -20,7 +20,7 @@ def database_index(request):
     dblist=Database.objects.order_by('-posted')
 
     # Retrieve and render the template
-    template = get_template('physiobank/home.html')
+    template = get_template('physiobank/database_index.html')
     context = Context({'dblist': dblist})
     html = template.render(context)
 

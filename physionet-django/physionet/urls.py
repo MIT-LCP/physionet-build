@@ -36,6 +36,8 @@ urlpatterns = [
 
     #Physionetworks
     url(r'^physioworks/', include('physionetworks.urls')),
+    url(r'^physiobank/', include('physiobank.urls')),
+    url(r'^physiotools/', include('physiotoolkit.urls'))
 
 
 ]+static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
