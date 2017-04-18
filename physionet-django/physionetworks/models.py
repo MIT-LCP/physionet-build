@@ -15,14 +15,13 @@ class Project(BaseProject):
     
     # 0, 1, 2 = database, toolkit, documentation
     projecttype = models.SmallIntegerField()
-    # Storage allowance in MB
-    storage = models.SmallIntegerField(default=1024)
-    # The requested storage allowance in MB
+    # Storage allowance in GB
+    storage = models.SmallIntegerField(default=1)
+    # The requested storage allowance in GB
     requestedstorage = models.SmallIntegerField(default=None)
 
     # Depending on the project type, there will be additional info
     databaseinfo = models.OneToOneField(ProjectDatabase, default='', blank=True, null=True)
-
     toolkitinfo = models.OneToOneField(ProjectToolkit, default='', blank=True, null=True)
     #guideinfo = models.OneToOneField(blank=True)
 

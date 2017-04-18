@@ -99,14 +99,14 @@ class BasePublishedProject(models.Model):
     # Who can access the main page and the files. 0 = protected, 1 = open.
     accesspolicy = models.SmallIntegerField(default=1)
     # Users who control access to the project for protected projects
-    authorizers = models.ManyToManyField(User, related_name="%(app_label)s_%(class)s_authorizer")
+    authorizers = models.ManyToManyField(User, related_name="%(app_label)s_%(class)s_authorizer", blank=True)
     # Users who have access to the project for protected projects
-    members = models.ManyToManyField(User, related_name="%(app_label)s_%(class)s_member")
+    members = models.ManyToManyField(User, related_name="%(app_label)s_%(class)s_member", blank=True)
     # The data usage agreement
-    DUA = RichTextField(default=None)
+    DUA = RichTextField(blank=True, default='')
     
     # The pnw project this published project came from
-    originproject = models.ForeignKey('physionetworks.Project', related_name="%(app_label)s_%(class)s", blank=True)
+    originproject = models.ForeignKey('physionetworks.Project', related_name="%(app_label)s_%(class)s", blank=True, null=True)
 
     # The number of visits
     visits = models.IntegerField(default=0)
@@ -132,10 +132,12 @@ class ProjectDatabase(models.Model):
 class ProjectToolkit(models.Model):
     # Programming languages used
     languages = models.ManyToManyField('physiotoolkit.Language', related_name="%(app_label)s_%(class)s")
+    # Install instructions
+    installation = RichTextField()
     # Usage instructions
-    usage = models.TextField(default = '',blank = True, null = True)
+    usage = RichTextField(default = '',blank = True, null = True)
     # Platforms tested
-    testedplatforms = models.TextField(default = '',blank = True, null = True)
+    testedplatforms = RichTextField(default = '',blank = True, null = True)
 
 
 #class ProjectGuide(models.Model):
