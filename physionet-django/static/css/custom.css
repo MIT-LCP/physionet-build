@@ -23,7 +23,7 @@ footer important{
 
 
 
-/* For panels with tabs */
+/* For panels with tabs (database index)*/
 .panel-tabs {
     position: relative;
     bottom: 30px;
@@ -66,10 +66,7 @@ footer important{
 
 
 
-
-
-
-
+/*Forgot if this was needed. For pb index? */
 .trash { color:rgb(209, 91, 71); }
 .flag { color:rgb(248, 148, 6); }
 
@@ -79,3 +76,27 @@ footer important{
 .panel-body input[type=checkbox]:checked + label { text-decoration: line-through;color: rgb(128, 144, 160); }
 .list-group-item:hover, a.list-group-item:focus {text-decoration: none;background-color: rgb(245, 245, 245);}
 .list-group { margin-bottom:0px; }
+
+
+/* For physiobank database pages (adapted from bootstrap's blog.css */
+.database-title {
+  margin-bottom: 0;
+  font-size: 5rem;
+  font-weight: normal;
+}
+.sidebar-module {
+  padding: 1rem;
+  /*margin: 0 -1rem 1rem;*/
+}
+.sidebar-module-inset {
+  padding: 1rem;
+  background-color: #f5f5f5;
+  border-radius: .25rem;
+  border: 1px solid black;
+}
+.sidebar-module-inset p:last-child,
+.sidebar-module-inset ul:last-child,
+.sidebar-module-inset ol:last-child {
+  margin-bottom: 1;
+}
+

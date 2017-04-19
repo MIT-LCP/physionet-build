@@ -18,7 +18,7 @@ class Reference(models.Model):
 
 class License(models.Model):
     name = models.CharField(max_length=50, unique=True)
-    content = models.TextField()
+    link = models.URLField()
     def __str__(self):
         return self.name
 
@@ -55,7 +55,7 @@ class BaseProject(models.Model):
     keywords = models.ManyToManyField('catalog.Keyword', related_name="%(app_label)s_%(class)s", blank=True)
 
     # An overview description. To be shown in index lists and news, not the page itself.
-    overview = models.CharField(max_length=1500)
+    overview = models.TextField(max_length=1500)
     # People who own/contribute the content
     contributors = models.ManyToManyField('catalog.Contributor', related_name="%(app_label)s_%(class)s", blank=True)
 

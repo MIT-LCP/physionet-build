@@ -38,7 +38,7 @@ def database_index(request):
         pop_dbs[dt] = dbtype.order_by('visits')
         name_dbs[dt] = dbtype.order_by('name')
 
-    # For multicategory databases
+    # For multicategory databases. Do >1
     dbmulti = databases.annotate(num_datatypes=Count('datatypes')).filter(num_datatypes=2)
     date_dbs['multi'] = dbmulti.order_by('-publishdate')
     pop_dbs['multi'] = dbmulti.order_by('visits')
@@ -46,20 +46,24 @@ def database_index(request):
 
     # Retrieve and render the template
     template = get_template('physiobank/database_index.html')
+
     context = Context({'datatypes': datatypes, 'date_dbs': date_dbs, 
                        'pop_dbs': pop_dbs, 'name_dbs': name_dbs, 'multi':'multi'})
 
     html = template.render(context)
+
     return HttpResponse(html)
 
 # Individual database page
 def database(request, dbslug):
-    
     # Get the database descriptors
+    database = Database.objects.get(slug=dbslug)
 
     # Retrieve and render the template
     template = get_template('physiobank/database.html')
-    #context = Context({'bloglist': bloglist})
-    html = template.render()
+
+    context = Context({'database': database})
+
+    html = template.render(context)
 
     return HttpResponse(html)

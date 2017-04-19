@@ -4,7 +4,7 @@
 {% load static %}
 <link rel="stylesheet" type="text/css" href="{% static 'css/custom.css' %}" />
 
-<!-- custom template filters -->
+<!-- custom template filters for dictionary value -->
 {% load catalog_tags %}
 
 {% block content %}
@@ -27,7 +27,7 @@
           
           
             <h1>Organization</h1>
-            <p>This index lists the databases contributed to PhysioBank, sorted by the category of data they contain. Each panel contains databases that fall into its category. Databases that contain more than one of the defined categories are also listed in the <code>multicategory</code> panel. Click on a panel heading to open or close it.
+            <p>This index lists the databases contributed to PhysioBank, sorted by the category of data they contain. Each panel contains databases that fall into its category. Databases that contain more than one type of data are also listed in the <code>multicategory</code> panel. Click on a panel heading to open or close it.
             </p>
             <p>Content can be sorted by its recency, popularity, or name. If you are looking for a specific type of data, see also the <a href="/physiobank/search">physiobank search tool</a>. This allows the filtering of databases by specific features such as waveform signal type and channel number, keywords, and much more.
             </p>
