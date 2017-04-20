@@ -55,39 +55,29 @@
     </div><!-- /.blog-main -->
 
     <div class="col-sm-3 offset-sm-1 blog-sidebar">
+      <!-- first box - essential information -->
       <div class="sidebar-module sidebar-module-inset">
         <h4><strong>Publication Date</strong></h4>
         {{ database.publishdate }}
+        <h4><strong>Version Number</strong></h4>
+        {{ database.version }}
         <h4><strong>DOI</strong></h4>
         {{ database.DOI }}
         <h4><strong>License</strong></h4>
         <a href="{{ database.license.link }}" target="_blank">{{ database.license.name }}</a>
 
       </div>
-
+      <!-- second box - sharing information -->
       <div class="sidebar-module sidebar-module-inset">
-        <h4><strong>Version</strong></h4>
-        {{ database.version }}
+        
         <h4><strong>Keywords</strong></h4>
         {% for keyword in database.keywords.all %}
         <button type="button" class="btn btn-default">{{ keyword.word }}</button>
         {% endfor %}
 
       </div>
-
-      <div class="sidebar-module">
-        <h4>Archives</h4>
-        <ol class="list-unstyled">
-          <li><a href="#">March 2014</a></li>
-          <li><a href="#">February 2014</a></li>
-          <li><a href="#">January 2014</a></li>
-          <li><a href="#">December 2013</a></li>
-          <li><a href="#">November 2013</a></li>
-        </ol>
-      </div>
-
-
-
+      <!-- third box - exporting -->
+      
 
       <div class="sidebar-module">
         <h4>Elsewhere</h4>

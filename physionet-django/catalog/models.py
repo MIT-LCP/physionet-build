@@ -113,6 +113,9 @@ class BasePublishedProject(models.Model):
     # The volume of downloads
     downloads = models.IntegerField(default=0)
 
+    # Changelog
+    changelog = RichTextField(blank=True, default='')
+
     class Meta:
         abstract = True
 
