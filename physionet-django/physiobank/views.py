@@ -64,12 +64,13 @@ def database(request, dbslug, sublink=''):
     if sublink=='':
         # Directory in which to search for files
         filedir = os.path.join(STATIC_ROOT, 'database', dbslug)
+        insubdir = False
     else:
         # Test whether the sublink points to a file or directory
         filedir = os.path.join(STATIC_ROOT, 'database', dbslug, sublink)
         # Points to a valid directory
         if os.path.isdir(filedir):
-            pass
+            insubdir=True
         # Just return the single file to download
         elif os.path.isfile(filedir):
             return downloadfile(request, filedir)
@@ -82,10 +83,12 @@ def database(request, dbslug, sublink=''):
     # The further subdirectories in the directory
     dirnames = [f for f in os.listdir(filedir) if not os.path.isfile(os.path.join(filedir, f)) and not f.endswith('~')]
     
+
+
     # Retrieve and render the template
     template = get_template('physiobank/database.html')
 
-    context = Context({'database': database, 'filedir': filedir, 'filenames': filenames, 'dirnames': dirnames})
+    context = Context({'database': database, 'insubdir': insubdir, 'filenames': filenames, 'dirnames': dirnames})
 
     html = template.render(context)
 

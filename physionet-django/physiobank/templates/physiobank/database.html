@@ -54,37 +54,40 @@
         <br>
         {% endif %}
 
+        
+        <!-- The file panel -->
         <hr>
-        <div class="panel panel-primary" id="files">
+        <div class="panel-group" id="files">
+          <div class="panel panel-primary">
             <div class="panel-heading">
-                <h3 class="panel-title"><a data-toggle="collapse" href="#collapse-filebody"><strong>Files</strong></a></h3>
-                <span class="pull-right">
-                    <!-- Tabs -->
-                    <!-- <ul class="nav panel-tabs">
-                        <li class="active"><a href="#tab-recent" data-toggle="tab">Recent</a></li>
-                        <li><a href="#tab-popular" data-toggle="tab">Popular</a></li>
-                        <li><a href="#tab-alphabetical" data-toggle="tab">Alphabetical</a></li>
-                    </ul> -->
-                </span>
+              <h4 class="panel-title">
+                <a data-toggle="collapse" href="#collapse-files"><strong>Files</strong></a>
+              </h4>
             </div>
-            <!-- The collapsible body content -->
-            <div id="collapse-filebody" class="panel-collapse collapse">
-                <div class="panel-body">
-                    {% if filenames %}
-                      {% for file in filenames %}
-                        <a href="{{ file }}">{{ file }}</a><br>
-                      {% endfor %}
-                    {% endif %}
+            <div id="collapse-files" class="panel-collapse collapse">
+              {% if insubdir %}
+                  <ul class="list-group">
+                    <li class="list-group-item"><span class="glyphicon glyphicon-chevron-up"></span> <a href="../#files">Parent Directory</a></li>
+                  </ul>
+              {% endif %}
+              {% if dirnames %}
+                <ul class="list-group">
+                {% for dir in dirnames %}
+                  <li class="list-group-item"><span class="glyphicon glyphicon-folder-open"></span> <a href="{{ dir }}/#files">{{ dir }}</a></li>
+                {% endfor %}
+                </ul>
+              {% endif %}
+              {% if filenames %}
+                <ul class="list-group">
+                {% for file in filenames %}
+                    <li class="list-group-item"><span class="glyphicon glyphicon-file"></span> <a href="{{ file }}">{{ file }}</a></li>
+                {% endfor %}
+                </ul>
+              {% endif %}
 
-                    {% if dirnames %}
-                    <h4>Directories</h4>
-                    {% for dir in dirnames %}
-                      <a href="{{ dir }}/#files">{{ dir }}</a><br>
-                    {% endfor %}
-                    {% endif %}
-                </div>
             </div>
-        </div>
+          </div>
+        </div> <!-- end file panel -->
 
 
 
