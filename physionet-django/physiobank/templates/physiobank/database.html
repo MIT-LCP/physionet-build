@@ -60,9 +60,14 @@
         <div class="panel-group" id="files">
           <div class="panel panel-primary">
             <div class="panel-heading">
-              <h4 class="panel-title">
-                <a data-toggle="collapse" href="#collapse-files"><strong>Files</strong></a>
-              </h4>
+
+              <div class="panel-title pull-left"><a data-toggle="collapse" href="#collapse-files">
+                <strong>Files</strong></a>
+              </div>
+              <div class="panel-title pull-right"><button type="button" class="btn btn-default btn-sm">
+                <strong><span class="glyphicon glyphicon glyphicon-download-alt"></span> Download All</strong></button>
+              </div>
+              <div class="clearfix"></div>
             </div>
             <div id="collapse-files" class="panel-collapse collapse">
               {% if insubdir %}
