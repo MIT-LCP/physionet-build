@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 from django.db import models
 from users.models import User
 from ckeditor.fields import RichTextField
+from uuid import uuid4
 
 # Generic keywords for tagging projects and pages
 class Keyword(models.Model):
@@ -40,7 +41,6 @@ class Link(models.Model):
 
 # Inherited by all - pnw projects, pb databases, ptoolkits, plibraries
 class BaseProject(models.Model):
-
     # The full name of the project
     name = models.CharField(max_length=100, unique=True)
     # The url or directory slug
@@ -78,11 +78,13 @@ class BaseProject(models.Model):
         abstract = True
 
 def user_directory_path(self, filename):
-    return 'media/projects/%s/%s' % (self.id, filename) 
+    print 'media/projects/%s/%s' % (self.Pid, filename) 
+    return 'media/projects/%s/%s' % (self.Pid, filename) 
 
 class BaseFile(models.Model):
-    id   = models.AutoField(primary_key = True, unique = True, editable = False,)
-    name = models.CharField(max_length = 80)  
+    id   = models.AutoField(primary_key = True, unique = True, editable = False)
+    pid  = models.ForeignKey('physionetworks.Project', blank=True)
+    name = models.CharField(max_length = 80)
     file = models.FileField(upload_to = user_directory_path, default = '', blank = True, null = True)  
     size = models.CharField(max_length = 6, default = '',blank = True, null = True)  
     extension = models.CharField(max_length = 10, default = '',blank = True, null = True)  

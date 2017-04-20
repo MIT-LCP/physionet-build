@@ -1,6 +1,6 @@
 from django import forms
 from ckeditor.fields import RichTextField
-
+from models import Project
 
 
 projecttypes = ((1, 'Data'),(2,'Software'),(3,'Tutorial'))
@@ -12,12 +12,20 @@ licenses = ((1,'GPL'),(2,'MIT'))
 class CreateProjectForm(forms.Form):
     name = forms.CharField(label='Project Name', max_length=100, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'name': 'name', 'id':'fa-book'}))
     overview = forms.CharField(label='Overview', max_length=1500, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'name': 'overview', 'id':'fa-pencil'}))
-
     # This will be changed into a js object with autocomplete
     keywords = forms.CharField(label='Keywords', max_length=50, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'name': 'keywords', 'id':'fa-tags'}))
     contributors = forms.CharField(label='Contributors', max_length=50, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'name': 'contributors', 'id':'fa-users'}))
     contacts = forms.CharField(label='Contact', max_length=50, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'name': 'contacts', 'id':'fa-envelope'}))
     required_size = forms.FloatField(label='Required Space (GB)', min_value=1, required=True, widget=forms.NumberInput(attrs={'class': 'form-control', 'name': 'required_size', 'id':'fa-archive'}))
+
+    def clean(self):
+        name = self.clean_name()
+        super(CreateProjectForm, self).clean()
+
+    def clean_name(self):
+        if 'name' in self.cleaned_data:
+            name = self.cleaned_data['name']
+            return name
 
 
 class ProjectTypeForm(forms.Form):
@@ -30,5 +38,5 @@ class ProjectLicenseForm(forms.Form):
 
 
 class FileFieldForm(forms.Form):
-    file_field = forms.FileField(widget=forms.ClearableFileInput(attrs={'multiple': True}))
+    file_field = forms.FileField(required=False, widget=forms.ClearableFileInput(attrs={'multiple': True}))
 

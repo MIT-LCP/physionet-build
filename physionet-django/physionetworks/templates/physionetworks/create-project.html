@@ -4,9 +4,10 @@
 {% block content %}
 
 <div class='row'>
-    <form method="post" action="{% url 'create' %}" class="form-horizontal uniForm">
+    <form method="post" action="{% url 'create' %}" class="form-horizontal uniForm" enctype="multipart/form-data">
         <div class="col-md-3"></div>
         <div class="col-md-6">
+        {% csrf_token %}
             <div class="panel-group" id="accordion">
                 <div class="panel panel-default">
                     <div class="panel-heading" data-toggle="collapse" href="#Basic" onclick="change('basic-glyphicon')">
@@ -16,7 +17,7 @@
                     </div>
                     <div id="Basic" class="panel-collapse collapse in">
                         <div class="panel-body">
-                         {% for field in form %}
+                        {% for field in CreateForm %}
                             <div class="form-group" id="d_c_{{ field.label }}">
                                 <div class="col-sm-3">
                                     <label class="control-label pull-right" for="{{ field.label }}" style="text-align:left !important"><i class="fa fa-fw {{field.id_for_label}}"></i> {{ field.label }}:</label>
@@ -24,6 +25,9 @@
                                 <div class="col-sm-9">
                                     {{ field }}
                                 </div>
+                                  {% if field.errors %}
+                                    <span class="text-danger pull-right" id="l_{{ field.label }}">{{ field.errors }}</span>
+                                  {% endif %}
                             </div>
                             {% endfor %}
                         </div>
@@ -38,20 +42,29 @@
                     <div id="Type" class="panel-collapse collapse in">
                         <div class="panel-body">
                     
-                            <div class="form-group" id="d_c_{{ typeform.projecttype.label }}">
+                            <div class="form-group" id="d_c_{{ TypeForm.projecttype.label }}">
                                 <div class="col-sm-3">
-                                    <label class="control-label pull-right" for="{{ typeform.projecttype.label }}" style="text-align:left !important">
-                                        {{ typeform.projecttype.0.label }}<i class="fa fa-table fa-2x fa-fw"></i>{{ typeform.projecttype.0 }}
+                                    <label class="control-label pull-right" for="{{ TypeForm.projecttype.label }}" style="text-align:left !important">
+                                        {{ TypeForm.projecttype.0.label }}<i class="fa fa-table fa-2x fa-fw"></i>{{ TypeForm.projecttype.0 }}
                                     </label>
+                                  {% if TypeForm.projecttype.0.errors %}
+                                    <span class="text-danger pull-right" id="0_{{ TypeForm.projecttype.label }}">{{ TypeForm.projecttype.0.errors }}</span>
+                                  {% endif %}
                                 </div>
                                 <div class="col-sm-3">
-                                    <label class="control-label pull-right" align="center" for="{{ typeform.projecttype.label }}" style="text-align:left !important"><i class="fa fa-code fa-2x fa-fw"></i>{{ typeform.projecttype.1 }}
+                                    <label class="control-label pull-right" align="center" for="{{ TypeForm.projecttype.label }}" style="text-align:left !important"><i class="fa fa-code fa-2x fa-fw"></i>{{ TypeForm.projecttype.1 }}
                                     </label>
+                                  {% if TypeForm.projecttype.1.errors %}
+                                    <span class="text-danger pull-right" id="1_{{ TypeForm.projecttype.label }}">{{ TypeForm.projecttype.1.errors }}</span>
+                                  {% endif %}
                                 </div>
                                 <div class="col-sm-3">
-                                    <label class="control-label pull-right" for="{{ typeform.projecttype.label }}" style="text-align:left !important">
-                                        {{ typeform.projecttype.2.label }}<i class="fa fa-graduation-cap fa-2x fa-fw"></i>{{ typeform.projecttype.2 }}
+                                    <label class="control-label pull-right" for="{{ TypeForm.projecttype.label }}" style="text-align:left !important">
+                                        {{ TypeForm.projecttype.2.label }}<i class="fa fa-graduation-cap fa-2x fa-fw"></i>{{ TypeForm.projecttype.2 }}
                                     </label>
+                                  {% if TypeForm.projecttype.2.errors %}
+                                    <span class="text-danger pull-right" id="2_{{ TypeForm.projecttype.label }}">{{ TypeForm.projecttype.2.errors }}</span>
+                                  {% endif %}
                                 </div>
                                 <div class="col-sm-9">
                                      
@@ -68,7 +81,12 @@
                     </div>
                     <div id="Files" class="panel-collapse collapse in">
                         <div class="panel-body">
-                        {{FileForm}}
+                        {% for field in FileForm %}
+                            {{ field }}
+                              {% if field.errors %}
+                                <span class="text-danger pull-right" id="l_{{ field.label }}">{{ field.errors }}</span>
+                              {% endif %}
+                        {% endfor %}
                         </div>
                     </div>
                 </div>
@@ -80,13 +98,16 @@
                     </div>
                     <div id="License" class="panel-collapse collapse in">
                         <div class="panel-body">
-                         {% for field in accessform %}
+                         {% for field in AccessForm %}
                             <div class="form-group" id="d_c_{{ field.label }}">
                                 <div class="col-sm-3">
                                     <label class="control-label pull-right" for="{{ field.label }}" style="text-align:left !important"><i class="fa fa-fw {{field.id_for_label}}"></i>  {{ field.label }}:</label>
                                 </div>
                                 <div class="col-sm-9">
                                     {{ field }}
+                                    {% if field.errors %}
+                                    <span class="text-danger pull-right" id="l_{{ field.label }}">{{ field.errors }}</span>
+                                  {% endif %}
                                 </div>
                             </div>
                             {% endfor %}

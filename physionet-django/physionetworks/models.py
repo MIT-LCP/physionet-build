@@ -15,8 +15,13 @@ class Project(BaseProject):
     
     # 0, 1, 2 = database, toolkit, documentation
     projecttype = models.SmallIntegerField()
+
+    # 0, 1, 2 = open, colab+, owner
+    projectaccess = models.SmallIntegerField()
+
     # Storage allowance in MB
     storage = models.SmallIntegerField(default=1024)
+
     # The requested storage allowance in MB
     requestedstorage = models.SmallIntegerField(default=None)
 
@@ -25,4 +30,5 @@ class Project(BaseProject):
 
     toolkitinfo = models.OneToOneField(ProjectToolkit, default='', blank=True, null=True)
     #guideinfo = models.OneToOneField(blank=True)
+
 
