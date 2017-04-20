@@ -2,6 +2,94 @@
 
 {% block content %}
 
+<!-- custom template filters for returning access button -->
+{% load catalog_tags %}
+
+<div class="container">
+<h1 class="database-title">{{ database.name }}</h1>
+<br>
+
+<p class="lead">
+{{ database.contributors.all|contributorstring|safe }}
+</p>
+
+<p class="lead">
+{% for datatype in database.datatypes.all %}
+<button type="button" class="btn btn-primary">{{ datatype.name|title }} Data</button>
+{% endfor %}
+
+{{ database.accesspolicy|access_button|safe }}
+
+</p>
+</div>
 
 
+<div class="container">
+
+  <div class="row">
+
+    <div class="col-sm-8 blog-main">
+        <hr>
+        <h2>Overview</h2>
+        <p>{{ database.overview }}</p>
+        <br>
+        
+        <!-- to do: show the rest of the content depending on access -->
+
+        <hr>
+        <h2>Data Collection</h2>
+        {{ database.collection }}
+        <br>
+
+        <hr>
+        <h2>File Description</h2>
+        {{ database.filedescription }}
+        <br>
+
+        {% if database.acknowledgements %}
+        <hr>
+        <h2>Acknowledgements</h2>
+        {{ database.acknowledgements}}
+        {% endif %}
+
+    </div><!-- /.blog-main -->
+
+    <div class="col-sm-3 offset-sm-1 blog-sidebar">
+      <!-- first box - essential information -->
+      <div class="sidebar-module sidebar-module-inset">
+        <h4><strong>Publication Date</strong></h4>
+        {{ database.publishdate }}
+        <h4><strong>Version Number</strong></h4>
+        {{ database.version }}
+        <h4><strong>DOI</strong></h4>
+        {{ database.DOI }}
+        <h4><strong>License</strong></h4>
+        <a href="{{ database.license.link }}" target="_blank">{{ database.license.name }}</a>
+
+      </div>
+      <!-- second box - sharing information -->
+      <div class="sidebar-module sidebar-module-inset">
+        
+        <h4><strong>Keywords</strong></h4>
+        {% for keyword in database.keywords.all %}
+        <button type="button" class="btn btn-default">{{ keyword.word }}</button>
+        {% endfor %}
+
+      </div>
+      <!-- third box - exporting -->
+      
+
+      <div class="sidebar-module">
+        <h4>Elsewhere</h4>
+        <ol class="list-unstyled">
+          <li><a href="#">GitHub</a></li>
+          <li><a href="#">Twitter</a></li>
+          <li><a href="#">Facebook</a></li>
+        </ol>
+      </div>
+    </div><!-- /.blog-sidebar -->
+
+  </div><!-- /.row -->
+
+</div><!-- /.container -->
 {% endblock %}

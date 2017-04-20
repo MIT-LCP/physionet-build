@@ -13,7 +13,7 @@ class Database(BaseProject, BasePublishedProject, ProjectDatabase):
 # Type of data. clinical, waveform, image, or other. For entire database.
 class DataType(models.Model):
     name = models.CharField(max_length=50, unique=True)
-
+    description = models.CharField(max_length=1000)
     def __str__(self):
         return self.name
 

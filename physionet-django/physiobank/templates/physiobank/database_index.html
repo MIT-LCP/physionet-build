@@ -1,6 +1,12 @@
 {% extends 'base.html' %}
 {% block title %}Database Index{% endblock %}
 
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/custom.css' %}" />
+
+<!-- custom template filters for dictionary value -->
+{% load catalog_tags %}
+
 {% block content %}
 
 <div class="container">
@@ -8,88 +14,188 @@
     <div class="row row-offcanvas row-offcanvas-right">
 
         <div class="col-12 col-md-9">
+
+
+            <div class="jumbotron">
+                <h1>Database Index</h1>
+                <p>PhysioBank's data archives</p>
+                <p>
+                  <a class="btn btn-primary btn-lg" href="#" role="button">About PhysioBank</a>
+                  <a class="btn btn-primary btn-lg" href="#" role="button">Database Search</a>
+                </p>
+            </div>
           
-          <div class="jumbotron">
-            <h1>Database Index</h1>
-            <p>This is an example to show the potential of an offcanvas layout pattern in Bootstrap. Try some responsive-range viewport sizes to see it in action.</p>
-            <p>
-                <a class="btn btn-primary btn-lg" href="#" role="button">About</a>
-                <a class="btn btn-primary btn-lg" href="#" role="button">Search</a>
+          
+            <h1>Organization</h1>
+            <p>This index lists the databases contributed to PhysioBank, sorted by the category of data they contain. Each panel contains databases that fall into its category. Databases that contain more than one type of data are also listed in the <code>multicategory</code> panel. Click on a panel heading to open or close it.
             </p>
-          </div>
-          
-          <div class="row">
-            <div class="col-6 col-lg-4">
-              <h2>Heading</h2>
-              <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
-              <p><a class="btn btn-secondary" href="#" role="button">View details &raquo;</a></p>
-            </div><!--/span-->
-            <div class="col-6 col-lg-4">
-              <h2>Heading</h2>
-              <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
-              <p><a class="btn btn-secondary" href="#" role="button">View details &raquo;</a></p>
-            </div><!--/span-->
-            <div class="col-6 col-lg-4">
-              <h2>Heading</h2>
-              <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
-              <p><a class="btn btn-secondary" href="#" role="button">View details &raquo;</a></p>
-            </div><!--/span-->
-            
-          </div><!--/row-->
-
-
-          <div class="panel panel-primary">
-              <div class="panel-heading">Panel Heading</div>
-              <div class="panel-body">Panel Content</div>
-          </div>
-
-
-          <div class="container">
-            <div class="row">
-                <!-- <div class="col-md-6 col-md-offset-3"> -->
-                <div class="col-6 col-lg-4">
-                    <div class="panel panel-primary">
-                        <div class="panel-heading">
-                            <h3 class="panel-title">Panel title</h3>
-                            <span class="pull-right">
-                                <!-- Tabs -->
-                                <ul class="nav panel-tabs">
-                                    <li class="active"><a href="#tab1" data-toggle="tab">Tab 1</a></li>
-                                    <li><a href="#tab2" data-toggle="tab">Tab 2</a></li>
-                                    <li><a href="#tab3" data-toggle="tab">Tab 3</a></li>
-                                    <li><a href="#tab4" data-toggle="tab">Tab 4</a></li>
-                                </ul>
-                            </span>
-                        </div>
+            <p>Content can be sorted by its recency, popularity, or name. If you are looking for a specific type of data, see also the <a href="/physiobank/search">physiobank search tool</a>. This allows the filtering of databases by specific features such as waveform signal type and channel number, keywords, and much more.
+            </p>
+            <br>
+            <!-- One panel generated per datatype -->
+            {% for datatype in datatypes %}
+                <div class="panel panel-primary" id="{{ datatype.name }}">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><a data-toggle="collapse" href="#collapse-{{ datatype.name }}"><strong>{{ datatype.name|title }} Databases</strong></a></h3>
+                        <span class="pull-right">
+                            <!-- Tabs -->
+                            <ul class="nav panel-tabs">
+                                <li class="active"><a href="#tab-recent-{{ datatype.name }}" data-toggle="tab">Recent</a></li>
+                                <li><a href="#tab-popular-{{ datatype.name }}" data-toggle="tab">Popular</a></li>
+                                <li><a href="#tab-alphabetical-{{ datatype.name }}" data-toggle="tab">Alphabetical</a></li>
+                            </ul>
+                        </span>
+                    </div>
+                    <!-- The collapsible body content -->
+                    <div id="collapse-{{ datatype.name }}" class="panel-collapse collapse">
                         <div class="panel-body">
+                            <p>{{ datatype.description }}</p>
+                            <hr class="featurette-divider">
+
                             <div class="tab-content">
-                                <div class="tab-pane active" id="tab1">Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At</div>
-                                <div class="tab-pane" id="tab2">Tab 2 stuff</div>
-                                <div class="tab-pane" id="tab3">Tag 3 stuff</div>
-                                <div class="tab-pane" id="tab4">Final tab stuff</div>
+
+
+                                <div class="tab-pane active" id="tab-recent-{{ datatype.name }}">
+                                {% for database in date_dbs|dict_item:datatype.name %} 
+                                    <a href="{{ database.slug }}"><h3>{{ database.name }}</h3></a>
+                                    <p>{{ database.overview }}</p>
+                                    <em>Published {{ database.publishdate }}</em>
+                                    <hr class="featurette-divider">
+                                {% endfor %}
+                                </div>
+
+                                <div class="tab-pane" id="tab-popular-{{ datatype.name }}">
+                                {% for database in pop_dbs|dict_item:datatype.name %} 
+                                    <a href="{{ database.slug }}"><h3>{{ database.name }}</h3></a>
+                                    <p>{{ database.overview }}</p>
+                                    <em>Published {{ database.publishdate }}</em>
+                                    <hr class="featurette-divider">
+                                {% endfor %}
+                                </div>
+
+                                <div class="tab-pane" id="tab-alphabetical-{{ datatype.name }}">
+                                {% for database in name_dbs|dict_item:datatype.name %} 
+                                    <a href="{{ database.slug }}"><h3>{{ database.name }}</h3></a>
+                                    <p>{{ database.overview }}</p>
+                                    <em>Published {{ database.publishdate }}</em>
+                                    <hr class="featurette-divider">
+                                {% endfor %}
+                                </div>
+                            
+                            </div>
+
+                        </div>
+                        
+
+                        <div class="panel-footer">
+                            <div class="row">
+                              <div class="col col-xs-4"><h6>Total Count <span class="label label-info">25</span></h6>
+                              </div>
+                              <div class="col col-xs-8">
+                                <ul class="pagination hidden-xs pull-right">
+                                  <li><a href="#">«</a></li>
+                                  <li><a href="#">1</a></li>
+                                  <li><a href="#">2</a></li>
+                                  <li><a href="#">3</a></li>
+                                  <li><a href="#">4</a></li>
+                                  <li><a href="#">5</a></li>
+                                  <li><a href="#">»</a></li>
+                                </ul>
+                                <ul class="pagination visible-xs pull-right">
+                                    <li><a href="#">«</a></li>
+                                    <li><a href="#">»</a></li>
+                                </ul>
+                              </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            {% endfor %}
+
+            <!-- Extra panel for multicategory -->
+            <div class="panel panel-primary" id="multi">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><a data-toggle="collapse" href="#collapse-multi"><strong>Multi-Category Databases</strong></a></h3>
+                    <span class="pull-right">
+                        <!-- Tabs -->
+                        <ul class="nav panel-tabs">
+                            <li class="active"><a href="#tab-recent-multi" data-toggle="tab">Recent</a></li>
+                            <li><a href="#tab-popular-multi" data-toggle="tab">Popular</a></li>
+                            <li><a href="#tab-alphabetical-multi" data-toggle="tab">Alphabetical</a></li>
+                        </ul>
+                    </span>
+                </div>
+                <!-- The collapsible body content -->
+                <div id="collapse-multi" class="panel-collapse collapse">
+                    <div class="panel-body">
+                        <p>Databases with more than one of the above types of data.</p>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="tab-recent-multi">
+                            {% for database in date_dbs|dict_item:multi %} 
+                                <a href="{{ database.slug }}"><h3>{{ database.name }}</h3></a>
+                                <p>{{ database.overview }}</p>
+                                <em>Published {{ database.publishdate }}</em>
+                                <hr class="featurette-divider">
+                            {% endfor %}
+                            </div>
+                            <div class="tab-pane" id="tab-popular-multi">
+                            {% for database in pop_dbs|dict_item:multi %} 
+                                <a href="{{ database.slug }}"><h3>{{ database.name }}</h3></a>
+                                <p>{{ database.overview }}</p>
+                                <em>Published {{ database.publishdate }}</em>
+                                <hr class="featurette-divider">
+                            {% endfor %}
+                            </div>
+                            <div class="tab-pane" id="tab-alphabetical-multi">
+                            {% for database in name_dbs|dict_item:multi %} 
+                                <a href="{{ database.slug }}"><h3>{{ database.name }}</h3></a>
+                                <p>{{ database.overview }}</p>
+                                <em>Published {{ database.publishdate }}</em>
+                                <hr class="featurette-divider">
+                            {% endfor %}
                             </div>
                         </div>
                     </div>
+                    <div class="panel-footer">
+                            <div class="row">
+                              <div class="col col-xs-4"><h6>Total Count <span class="label label-info">25</span></h6>
+                              </div>
+                              <div class="col col-xs-8">
+                                <ul class="pagination hidden-xs pull-right">
+                                  <li><a href="#">«</a></li>
+                                  <li><a href="#">1</a></li>
+                                  <li><a href="#">2</a></li>
+                                  <li><a href="#">3</a></li>
+                                  <li><a href="#">4</a></li>
+                                  <li><a href="#">5</a></li>
+                                  <li><a href="#">»</a></li>
+                                </ul>
+                                <ul class="pagination visible-xs pull-right">
+                                    <li><a href="#">«</a></li>
+                                    <li><a href="#">»</a></li>
+                                </ul>
+                              </div>
+                            </div>
+                        </div>
+
                 </div>
+
+
             </div>
-          </div>
 
-
-
+        
         </div><!--/span-->
 
+        <!-- The contents sidebar -->
         <div class="col-6 col-md-3 sidebar-offcanvas" id="sidebar">
           <div class="list-group">
-            <a href="#" class="list-group-item active">Link</a>
-            <a href="#" class="list-group-item">Link</a>
-            <a href="#" class="list-group-item">Link</a>
-            <a href="#" class="list-group-item">Link</a>
-            <a href="#" class="list-group-item">Link</a>
-            <a href="#" class="list-group-item">Link</a>
-            <a href="#" class="list-group-item">Link</a>
-            <a href="#" class="list-group-item">Link</a>
-            <a href="#" class="list-group-item">Link</a>
-            <a href="#" class="list-group-item">Link</a>
+            <a class="list-group-item active"><strong>Database Categories</strong></a>
+            {% for datatype in datatypes %}
+                <a href="#{{ datatype.name }}" class="list-group-item">{{ datatype.name|title }} Databases</a>
+            {% endfor %}
+            <a href="#multi" class="list-group-item">Multicategory Databases</a>
+
           </div>
         </div><!--/span-->
     </div><!--/row-->
