@@ -9,4 +9,5 @@ urlpatterns = [
     # Individual database page
     url(r'^database/(?P<dbslug>[\w-]+)/$', views.database),
     
+    url(r'^database/(?P<dbslug>[\w-]+)/(?P<sublink>.*)$', views.database),
 ]

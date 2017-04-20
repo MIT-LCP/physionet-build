@@ -7,7 +7,7 @@ register = template.Library()
 def dict_item(dictionary, key):
     return dictionary.get(key)
 
-# Return appropriate button html for access
+# Return appropriate button html for protected or open access
 @register.filter
 def access_button(accesscode):
 
@@ -18,12 +18,9 @@ def access_button(accesscode):
 
     return buttonhtml
 
-# Return the html string list of contributors
+# Return the html string list of contributors with institution hover
 @register.filter
 def contributorstring(contributors):
-
-    #cnames = [c.name for c in contributors]
-    #cinstitutions = [c.institution for c in contributors]
 
     contributorstring = ''
 

@@ -1,10 +1,11 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.template import Context, Template
 from django.template.loader import get_template
 from django.db.models import Count
 from .models import Database, DataType
-
-
+from physionet.settings import STATIC_ROOT
+import os
+from catalog.views import downloadfile
 
 # Physiobank home page
 def home(request):
@@ -54,16 +55,39 @@ def database_index(request):
 
     return HttpResponse(html)
 
-# Individual database page
-def database(request, dbslug):
+# Individual database page - returns the index with the list of files, or an individual file to download
+def database(request, dbslug, sublink=''):
     # Get the database descriptors
     database = Database.objects.get(slug=dbslug)
 
+    # Index page - show files and subdirectories in index
+    if sublink=='':
+        # Directory in which to search for files
+        filedir = os.path.join(STATIC_ROOT, 'database', dbslug)
+    else:
+        # Test whether the sublink points to a file or directory
+        filedir = os.path.join(STATIC_ROOT, 'database', dbslug, sublink)
+        # Points to a valid directory
+        if os.path.isdir(filedir):
+            pass
+        # Just return the single file to download
+        elif os.path.isfile(filedir):
+            return downloadfile(request, filedir)
+        # No target
+        else:
+            raise Http404
+
+    # The file names in the directory
+    filenames = [f for f in os.listdir(filedir) if os.path.isfile(os.path.join(filedir, f)) and not f.endswith('~')]
+    # The further subdirectories in the directory
+    dirnames = [f for f in os.listdir(filedir) if not os.path.isfile(os.path.join(filedir, f)) and not f.endswith('~')]
+    
     # Retrieve and render the template
     template = get_template('physiobank/database.html')
 
-    context = Context({'database': database})
+    context = Context({'database': database, 'filedir': filedir, 'filenames': filenames, 'dirnames': dirnames})
 
     html = template.render(context)
 
     return HttpResponse(html)
+

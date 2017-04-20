@@ -130,7 +130,7 @@ STATIC_URL = '/static/'
 STATIC_ROOT = '/physionet/www/static'
 # Where the staticfinder searches for static files, in addition to the static/ directories in the installed apps
 # This is also where django runserver searches for files to serve them.
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static"), '/physiobank/']
 
 # Custom user model
 AUTH_USER_MODEL = 'users.User'
@@ -138,7 +138,7 @@ AUTH_USER_MODEL = 'users.User'
 # Media
 MEDIA_URL = '/media/'
 MEDIA_ROOT = '/physionet/www/media'
-MEDIAFILES_DIRS = [os.path.join(BASE_DIR, 'media')]
+MEDIAFILES_DIRS = [os.path.join(BASE_DIR, 'media'), '/physionetworks/']
 
 
 

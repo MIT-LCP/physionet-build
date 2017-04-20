@@ -16,6 +16,8 @@ class Reference(models.Model):
     title = models.CharField(max_length=100, unique=True)
     link = models.CharField(max_length=100, unique=True)
 
+    def __str__(self):
+        return self.title
 
 class License(models.Model):
     name = models.CharField(max_length=50, unique=True)
@@ -28,15 +30,24 @@ class Contributor(models.Model):
     name = models.CharField(max_length=100)
     institution = models.CharField(max_length=100)
 
+    def __str__(self):
+        return self.name
+
 # Generic contact person
 class Contact(models.Model):
     name = models.CharField(max_length=100)
     email = models.EmailField()
     institution = models.CharField(max_length=100)
 
+    def __str__(self):
+        return self.name
+
 class Link(models.Model):
     description = models.CharField(max_length=100)
     url = models.CharField(max_length=150)
+
+    def __str__(self):
+        return self.url
 
 
 # Inherited by all - pnw projects, pb databases, ptoolkits, plibraries
@@ -125,10 +136,10 @@ class BasePublishedProject(models.Model):
 # Extra models for specific project types
 class ProjectDatabase(models.Model):
     # A description of the data collection
-    collection = models.TextField(default='', blank=True, null=True)
+    collection = RichTextField(default='', blank=True, null=True)
     
     # Describing the names and layout of files
-    filedescription = models.TextField(default='', blank=True, null=True)
+    filedescription = RichTextField(default='', blank=True, null=True)
 
     datatypes = models.ManyToManyField('physiobank.DataType', related_name="%(app_label)s_%(class)s")
 
