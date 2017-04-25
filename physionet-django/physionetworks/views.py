@@ -5,7 +5,7 @@ from django.template.loader import get_template
 from django.template import Context, Template
 from django.http import HttpResponse
 from django.middleware import csrf
-from catalog.models import BaseFile
+from catalog.models import File
 from uuid import uuid4
 from .models import Project
 
@@ -42,7 +42,7 @@ def create_project(request):
     # publishdate = models.DateField(blank=True)
     # associated_pages = models.ManyToManyField('catalog.Link', related_name="%(app_label)s_%(class)s", blank=True)
     # acknowledgements = models.TextField(blank=True)
-    # associated_files = models.ManyToManyField('catalog.BaseFile', related_name="%(app_label)s_%(class)s", blank=True)
+    # associated_files = models.ManyToManyField('catalog.File', related_name="%(app_label)s_%(class)s", blank=True)
 
     # collaborators = models.ManyToManyField(User, related_name='project_collaborator', blank=True)
     # databaseinfo = models.OneToOneField(ProjectDatabase, default='', blank=True, null=True)
@@ -58,14 +58,14 @@ def create_project(request):
                         result = None
                         while result is None:
                             try:
-                                BaseFile.objects.get(id=uuid)
+                                File.objects.get(id=uuid)
                                 uuid = uuid4()
                             except:
                                 result = True
                                 #
                                 # What is this form ID
                                 #
-                        File = BaseFile(Pid=form.id,name = item.name, size = item.size, file = item, extension = item.name.split('.')[-1])
+                        File = File(Pid=form.id,name = item.name, size = item.size, file = item, extension = item.name.split('.')[-1])
                         File.save()
                         #
                         # Add file to many to many - associated_files

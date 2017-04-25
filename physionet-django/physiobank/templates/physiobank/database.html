@@ -62,14 +62,17 @@
             <div class="panel-heading">
 
               <div class="panel-title pull-left"><a data-toggle="collapse" href="#collapse-files">
-                <strong>Files</strong></a>
+                <strong><span title="Click to toggle">Files</span></strong></a>
               </div>
-              <div class="panel-title pull-right"><button type="button" class="btn btn-default btn-sm">
-                <strong><span class="glyphicon glyphicon glyphicon-download-alt"></span> Download All</strong></button>
+              <div class="panel-title pull-right">
+                <button title="Download all files in current directory" type="button" class="btn btn-default btn-sm">
+                <strong><span class="glyphicon glyphicon glyphicon-download-alt"></span> Download Directory</strong></button>
+                <button title="Download entire database" type="button" class="btn btn-default btn-sm">
+                <strong><span class="glyphicon glyphicon glyphicon-download-alt"></span> Download Database</strong></button>
               </div>
               <div class="clearfix"></div>
             </div>
-            <div id="collapse-files" class="panel-collapse collapse">
+            <div id="collapse-files" class="panel-collapse collapse in">
               {% if insubdir %}
                   <ul class="list-group">
                     <li class="list-group-item"><span class="glyphicon glyphicon-chevron-up"></span> <a href="../#files">Parent Directory</a></li>
@@ -78,7 +81,7 @@
               {% if dirnames %}
                 <ul class="list-group">
                 {% for dir in dirnames %}
-                  <li class="list-group-item"><span class="glyphicon glyphicon-folder-open"></span> <a href="{{ dir }}/#files">{{ dir }}</a></li>
+                  <li class="list-group-item"><span class="glyphicon glyphicon-folder-open" style="color:#FF0000"></span> <a href="{{ dir }}/#files">{{ dir }}</a></li>
                 {% endfor %}
                 </ul>
               {% endif %}

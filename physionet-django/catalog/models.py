@@ -49,6 +49,16 @@ class Link(models.Model):
     def __str__(self):
         return self.url
 
+def user_directory_path(self, filename):
+    print 'media/projects/%s/%s' % (self.Pid, filename) 
+    return 'media/projects/%s/%s' % (self.Pid, filename) 
+
+class File(models.Model):
+    id   = models.AutoField(primary_key = True, unique = True, editable = False)
+    name = models.CharField(max_length = 80)
+    file = models.FileField(upload_to = user_directory_path, default = '', blank = True, null = True) 
+    size = models.BigIntegerField(default=0, blank = True, null = True)
+    extension = models.CharField(max_length = 10, default = '',blank = True, null = True)  
 
 # Inherited by all - pnw projects, pb databases, ptoolkits, plibraries
 class BaseProject(models.Model):
@@ -80,27 +90,13 @@ class BaseProject(models.Model):
     # Acknowledgements
     acknowledgements = models.TextField(blank=True)
 
-    associated_files = models.ManyToManyField('catalog.BaseFile', related_name="%(app_label)s_%(class)s", blank=True)
+    associated_files = models.ManyToManyField('catalog.File', related_name="%(app_label)s_%(class)s", blank=True)
 
     def __str__(self):
         return self.name
         
     class Meta:
         abstract = True
-
-def user_directory_path(self, filename):
-    print 'media/projects/%s/%s' % (self.Pid, filename) 
-    return 'media/projects/%s/%s' % (self.Pid, filename) 
-
-class BaseFile(models.Model):
-    id   = models.AutoField(primary_key = True, unique = True, editable = False)
-    pid  = models.ForeignKey('physionetworks.Project', blank=True)
-    name = models.CharField(max_length = 80)
-    file = models.FileField(upload_to = user_directory_path, default = '', blank = True, null = True)  
-    size = models.CharField(max_length = 6, default = '',blank = True, null = True)  
-    extension = models.CharField(max_length = 10, default = '',blank = True, null = True)  
-    
-
 
 
 # Inherited by published content - databases, toolkits, and documentation

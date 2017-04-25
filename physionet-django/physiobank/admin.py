@@ -5,5 +5,5 @@ from .models import *
 admin.site.register(Database)
 admin.site.register(DataType)
 admin.site.register(SignalType)
+admin.site.register(ClinicalType)
 admin.site.register(Signal)
-admin.site.register(ClinicalDataType)
