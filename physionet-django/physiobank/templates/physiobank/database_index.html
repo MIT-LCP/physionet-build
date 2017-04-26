@@ -89,7 +89,7 @@
 
                         <div class="panel-footer">
                             <div class="row">
-                              <div class="col col-xs-4"><h6>Total Count <span class="label label-info">25</span></h6>
+                              <div class="col col-xs-4"><h6>Total Count: <span class="label label-info">{{ date_dbs|dict_item:datatype|length }}</span></h6>
                               </div>
                               <div class="col col-xs-8">
                                 <ul class="pagination hidden-xs pull-right">
@@ -127,7 +127,7 @@
                     </span>
                 </div>
                 <!-- The collapsible body content -->
-                <div id="collapse-multi" class="panel-collapse collapse">
+                <div id="collapse-multi" class="panel-collapse collapse in">
                     <div class="panel-body">
                         <p>Databases with more than one of the above types of data.</p>
                         <div class="tab-content">
@@ -159,7 +159,7 @@
                     </div>
                     <div class="panel-footer">
                             <div class="row">
-                              <div class="col col-xs-4"><h6>Total Count <span class="label label-info">25</span></h6>
+                              <div class="col col-xs-4"><h6>Total Count: <span class="label label-info">{{ date_dbs|dict_item:multi|length }}</span></h6>
                               </div>
                               <div class="col col-xs-8">
                                 <ul class="pagination hidden-xs pull-right">

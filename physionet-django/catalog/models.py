@@ -14,14 +14,14 @@ class Keyword(models.Model):
 # A published paper
 class Reference(models.Model):
     title = models.CharField(max_length=100, unique=True)
-    link = models.CharField(max_length=100, unique=True)
+    url = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
         return self.title
 
 class License(models.Model):
     name = models.CharField(max_length=50, unique=True)
-    link = models.URLField()
+    url = models.URLField()
     def __str__(self):
         return self.name
 
@@ -50,15 +50,15 @@ class Link(models.Model):
         return self.url
 
 def user_directory_path(self, filename):
-    print 'media/projects/%s/%s' % (self.Pid, filename) 
-    return 'media/projects/%s/%s' % (self.Pid, filename) 
+    print 'media/projects/%s/%s' % (self.Pid, filename)
+    return 'media/projects/%s/%s' % (self.Pid, filename)
 
 class File(models.Model):
     id   = models.AutoField(primary_key = True, unique = True, editable = False)
     name = models.CharField(max_length = 80)
-    file = models.FileField(upload_to = user_directory_path, default = '', blank = True, null = True) 
+    file = models.FileField(upload_to = user_directory_path, default = '', blank = True, null = True)
     size = models.BigIntegerField(default=0, blank = True, null = True)
-    extension = models.CharField(max_length = 10, default = '',blank = True, null = True)  
+    extension = models.CharField(max_length = 10, default = '',blank = True, null = True)
 
 # Inherited by all - pnw projects, pb databases, ptoolkits, plibraries
 class BaseProject(models.Model):
@@ -90,7 +90,7 @@ class BaseProject(models.Model):
     # Acknowledgements
     acknowledgements = models.TextField(blank=True)
 
-    associated_files = models.ManyToManyField('catalog.File', related_name="%(app_label)s_%(class)s", blank=True)
+    files = models.ManyToManyField('catalog.File', related_name="%(app_label)s_%(class)s", blank=True)
 
     def __str__(self):
         return self.name
@@ -121,10 +121,10 @@ class BasePublishedProject(models.Model):
     visits = models.IntegerField(default=0)
     # The volume of downloads
     downloads = models.IntegerField(default=0)
-
+    
     # Changelog
     changelog = RichTextField(blank=True, default='')
-
+    
     class Meta:
         abstract = True
 
