@@ -35,7 +35,7 @@ Contributor.objects.create(name='Jose Vicente', institution='FDA')
 Contact.objects.create(name='Tom Pollard', email = 'tpollard@mit.edu', institution='MIT')
 Contact.objects.create(name='Alistair Johnson', email = 'aewj@mit.edu', institution='MIT')
 Contact.objects.create(name='Roger Mark', email = 'rgmark@mit.edu', institution='MIT')
-Contact.objects.create(name='Jose Vicente', email = '@mit.edu', institution='MIT')
+Contact.objects.create(name='Jose Vicente', email = 'jvicente@mit.edu', institution='FDA')
 
 
 # Add datatypes

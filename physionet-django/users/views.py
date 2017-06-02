@@ -9,7 +9,6 @@ from django.core.mail import send_mail
 from .models import User, user_action
 from uuid import uuid4
 from time import strftime
-#from IPython.display import display
 
 DEFAULT_FROM_EMAIL = 'Physionet Help <ftorres@dev.physionet.org>'
 host = 'http://127.0.0.1:8000/'
