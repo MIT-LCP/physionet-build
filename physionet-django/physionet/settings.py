@@ -138,14 +138,7 @@ AUTH_USER_MODEL = 'users.User'
 # Media
 MEDIA_URL = '/media/'
 MEDIA_ROOT = '/physionet/www/media'
-MEDIAFILES_DIRS = [os.path.join(BASE_DIR, 'media'), '/physionetworks/']
-
-
-
-
-
-
-
+MEDIAFILES_DIRS = [os.path.join(BASE_DIR, 'media'), '/media/']
 
 # Mail config
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

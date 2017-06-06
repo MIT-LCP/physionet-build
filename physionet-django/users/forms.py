@@ -1,15 +1,9 @@
 from django.forms import CharField, ModelForm, EmailInput, PasswordInput, TextInput, ChoiceField, Select, FileField, FileInput, Form
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError
-from operator import itemgetter
 from urllib import urlopen
-from .models import User
+from .models import User, USA
 import re
-
-CONTIGUOUS_STATES = (('N/A','       '), ('AL', 'Alabama'), ('AZ', 'Arizona'), ('AR', 'Arkansas'), ('CA', 'California'), ('CO', 'Colorado'), ('CT', 'Connecticut'), ('DE', 'Delaware'), ('DC', 'District of Columbia'), ('FL', 'Florida'), ('GA', 'Georgia'), ('ID', 'Idaho'), ('IL', 'Illinois'), ('IN', 'Indiana'), ('IA', 'Iowa'), ('KS', 'Kansas'), ('KY', 'Kentucky'), ('LA', 'Louisiana'), ('ME', 'Maine'), ('MD', 'Maryland'), ('MA', 'Massachusetts'), ('MI', 'Michigan'), ('MN', 'Minnesota'), ('MS', 'Mississippi'), ('MO', 'Missouri'), ('MT', 'Montana'), ('NE', 'Nebraska'), ('NV', 'Nevada'), ('NH', 'New Hampshire'), ('NJ', 'New Jersey'), ('NM', 'New Mexico'), ('NY', 'New York'), ('NC', 'North Carolina'), ('ND', 'North Dakota'), ('OH', 'Ohio'), ('OK', 'Oklahoma'), ('OR', 'Oregon'), ('PA', 'Pennsylvania'), ('RI', 'Rhode Island'), ('SC', 'South Carolina'), ('SD', 'South Dakota'), ('TN', 'Tennessee'), ('TX', 'Texas'), ('UT', 'Utah'), ('VT', 'Vermont'), ('VA', 'Virginia'), ('WA', 'Washington'), ('WV', 'West Virginia'), ('WI', 'Wisconsin'), ('WY', 'Wyoming'))
-NON_CONTIGUOUS_STATES = (('AK', 'Alaska'), ('HI', 'Hawaii'))
-US_TERRITORIES = (('AS', 'American Samoa'), ('GU', 'Guam'), ('MP', 'Northern Mariana Islands'), ('PR', 'Puerto Rico'), ('VI', 'Virgin Islands'))
-USA = sorted(CONTIGUOUS_STATES + NON_CONTIGUOUS_STATES + US_TERRITORIES, key=itemgetter(1))
 
 class BaseUserForm():
     def clean_2_password(self):
@@ -62,7 +56,7 @@ class BaseUserForm():
             except ObjectDoesNotExist:
                 Exists = False
             if Exists:
-                print 1
+                # print 1
                 raise ValidationError({'email': ['The email is already registered.',]})
             if not re.match(r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+', email):
                 raise ValidationError({'email': ['Invalid email.',]})
@@ -74,11 +68,11 @@ class BaseUserForm():
             Exists = True
             try:
                 Person = User.objects.get(email=Email)
-                print Person
+                # print Person
             except ObjectDoesNotExist:
                 Exists = False
             if not Exists:
-                print 2
+                # print 2
                 raise ValidationError({'email': ['The email is already registered.',]})
             if " " in Email:
                 raise ValidationError({'email': ['The Email cannot contain spaces.',]})
@@ -97,18 +91,8 @@ class BaseUserForm():
             return url
 
 class RegistrationForm(BaseUserForm, ModelForm):
-    email=CharField(label="Email",max_length=50,required=True,widget=EmailInput(attrs={'class': 'form-control', 'name': 'email'}))
     Password=CharField(label="Password",max_length=15,required=True,widget=PasswordInput(attrs={'class':'form-control','name':'Password'}))
     Password2=CharField(label="Confirm Password",max_length=15,required=True,widget=PasswordInput(attrs={'class':'form-control','name': 'Password2'}))
-    first_name=CharField(label="First Name",max_length=40,required=True,widget=TextInput(attrs={'class': 'form-control', 'name': 'first_name'}))
-    last_name=CharField(label="Last Name",max_length=40,required=True,widget=TextInput(attrs={'class': 'form-control', 'name': 'last_name'}))
-    organization=CharField(label="Organization",max_length=30,required=True,widget=TextInput(attrs={'class': 'form-control', 'name': 'Organization'}))
-    department=CharField(label="Department",max_length=30,required=True,widget=TextInput(attrs={'class':'form-control','name':'department'}))
-    city=CharField(label="City",max_length=30,required=True,widget=TextInput(attrs={'class': 'form-control', 'name': 'city'}))
-    state=ChoiceField(label="State",required=False,choices=USA,initial={'N/A': 'N/A'},widget=Select(attrs={'class': 'form-control', 'name': 'state'}))
-    country=CharField(label="Country",max_length=30,required=True,widget=TextInput(attrs={'class': 'form-control', 'name': 'country'}))
-    url=CharField(label="Url",max_length=30,required=False,widget=TextInput(attrs={'class': 'form-control', 'name': 'Uul'}))
-    photo=FileField(label="Photo",required=False,widget=FileInput(attrs={'class': 'form-control', 'name': 'photo'}))
 
     def clean(self):
         Email = self.clean_new_email()
@@ -118,9 +102,19 @@ class RegistrationForm(BaseUserForm, ModelForm):
 
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email', 'Password', 'Password2', ]
-        required_css_class = 'required'
-
+        fields = ['first_name', 'last_name', 'email', 'organization', 'department', 'city', 'state', 'country', 'url', 'photo']
+        widgets = {
+            'email' : EmailInput(attrs={'class': 'form-control', 'name': 'email', 'required':'True'}),
+            'first_name' : TextInput(attrs={'class': 'form-control', 'name': 'first_name', 'required' : 'True'}),
+            'last_name' : TextInput(attrs={'class': 'form-control', 'name': 'last_name', 'required' : 'True'}),
+            'organization' : TextInput(attrs={'class': 'form-control', 'name': 'Organization', 'required' : 'True'}),
+            'department' : TextInput(attrs={'class':'form-control','name':'department', 'required' : 'True'}),
+            'city' : TextInput(attrs={'class': 'form-control', 'name': 'city', 'required' : 'True'}),
+            'state' :  Select(attrs={'class': 'form-control', 'name': 'state', 'choices' : USA}),
+            'country' : TextInput(attrs={'class': 'form-control', 'name': 'country', 'required' : 'True'}),
+            'url' : TextInput(attrs={'class': 'form-control', 'name': 'Url'}),
+            'photo' : FileInput(attrs={'class': 'form-control', 'name': 'photo'}),
+        }
     def save(self,commit=True): 
         user=super(RegistrationForm, self).save(commit=False)
         user.email=self.cleaned_data['email']
@@ -143,18 +137,8 @@ class RegistrationForm(BaseUserForm, ModelForm):
         return user
 
 class UserForm(BaseUserForm, ModelForm):
-    email=CharField(label="Email",max_length=50,required=False,disabled=True,widget=EmailInput(attrs={'class': 'form-control', 'name': 'email'}))
     Password=CharField(label="Password",max_length=15,required=False,widget=PasswordInput(attrs={'class':'form-control','name':'Password'}))
     Password2=CharField(label="Confirm Password",max_length=15,required=False,widget=PasswordInput(attrs={'class':'form-control','name': 'Password2'}))
-    first_name=CharField(label="First Name",max_length=40,required=True,widget=TextInput(attrs={'class': 'form-control', 'name': 'first_name'}))
-    last_name=CharField(label="Last Name",max_length=40,required=True,widget=TextInput(attrs={'class': 'form-control', 'name': 'last_name'}))
-    organization=CharField(label="Organization",max_length=30,required=True,widget=TextInput(attrs={'class': 'form-control', 'name': 'Organization'}))
-    department=CharField(label="Department",max_length=30,required=True,widget=TextInput(attrs={'class':'form-control','name':'department'}))
-    city=CharField(label="City",max_length=30,required=True,widget=TextInput(attrs={'class': 'form-control', 'name': 'city'}))
-    state=ChoiceField(label="State",required=False,choices=USA,initial={'N/A': 'N/A'},widget=Select(attrs={'class': 'form-control', 'name': 'state'}))
-    country=CharField(label="Country",max_length=30,required=True,widget=TextInput(attrs={'class': 'form-control', 'name': 'country'}))
-    url=CharField(label="Url",max_length=30,required=False,widget=TextInput(attrs={'class': 'form-control', 'name': 'Uul'}))
-    photo=FileField(label="Photo",required=False,widget=FileInput(attrs={'class': 'form-control', 'name': 'photo'}))
 
     def clean(self):
         Pass  = BaseUserForm.clean_2_password(self)
@@ -164,8 +148,19 @@ class UserForm(BaseUserForm, ModelForm):
 
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email', 'Password', 'Password2', 'organization', 'department', 'city', 'state', 'country', 'url', 'photo']#, ]
-        required_css_class = 'required'
+        fields = ['first_name', 'last_name', 'email', 'organization', 'department', 'city', 'state', 'country', 'url', 'photo']
+        widgets = {
+            'email' : EmailInput(attrs={'class': 'form-control', 'name': 'email', 'readonly':'True'}),
+            'first_name' : TextInput(attrs={'class': 'form-control', 'name': 'first_name', 'required' : 'True'}),
+            'last_name' : TextInput(attrs={'class': 'form-control', 'name': 'last_name', 'required' : 'True'}),
+            'organization' : TextInput(attrs={'class': 'form-control', 'name': 'Organization', 'required' : 'True'}),
+            'department' : TextInput(attrs={'class':'form-control','name':'department', 'required' : 'True'}),
+            'city' : TextInput(attrs={'class': 'form-control', 'name': 'city', 'required' : 'True'}),
+            'state' :  Select(attrs={'class': 'form-control', 'name': 'state', 'choices' : USA}),
+            'country' : TextInput(attrs={'class': 'form-control', 'name': 'country', 'required' : 'True'}),
+            'url' : TextInput(attrs={'class': 'form-control', 'name': 'Url'}),
+            'photo' : FileInput(attrs={'class': 'form-control', 'name': 'photo', 'accept': 'image/*'}),
+        }
 
     def save(self,commit=True):
         user=super(UserForm, self).save(commit=False)

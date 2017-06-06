@@ -1,8 +1,17 @@
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
+from django.core.files.storage import FileSystemStorage
 from django.utils import timezone
+from django.conf import settings
+from operator import itemgetter
 from django.db import models
 from uuid import uuid4
+import os
 # from __future__ import unicode_literals
+
+CONTIGUOUS_STATES = (('N/A','       '), ('AL', 'Alabama'), ('AZ', 'Arizona'), ('AR', 'Arkansas'), ('CA', 'California'), ('CO', 'Colorado'), ('CT', 'Connecticut'), ('DE', 'Delaware'), ('DC', 'District of Columbia'), ('FL', 'Florida'), ('GA', 'Georgia'), ('ID', 'Idaho'), ('IL', 'Illinois'), ('IN', 'Indiana'), ('IA', 'Iowa'), ('KS', 'Kansas'), ('KY', 'Kentucky'), ('LA', 'Louisiana'), ('ME', 'Maine'), ('MD', 'Maryland'), ('MA', 'Massachusetts'), ('MI', 'Michigan'), ('MN', 'Minnesota'), ('MS', 'Mississippi'), ('MO', 'Missouri'), ('MT', 'Montana'), ('NE', 'Nebraska'), ('NV', 'Nevada'), ('NH', 'New Hampshire'), ('NJ', 'New Jersey'), ('NM', 'New Mexico'), ('NY', 'New York'), ('NC', 'North Carolina'), ('ND', 'North Dakota'), ('OH', 'Ohio'), ('OK', 'Oklahoma'), ('OR', 'Oregon'), ('PA', 'Pennsylvania'), ('RI', 'Rhode Island'), ('SC', 'South Carolina'), ('SD', 'South Dakota'), ('TN', 'Tennessee'), ('TX', 'Texas'), ('UT', 'Utah'), ('VT', 'Vermont'), ('VA', 'Virginia'), ('WA', 'Washington'), ('WV', 'West Virginia'), ('WI', 'Wisconsin'), ('WY', 'Wyoming'))
+NON_CONTIGUOUS_STATES = (('AK', 'Alaska'), ('HI', 'Hawaii'))
+US_TERRITORIES = (('AS', 'American Samoa'), ('GU', 'Guam'), ('MP', 'Northern Mariana Islands'), ('PR', 'Puerto Rico'), ('VI', 'Virgin Islands'))
+USA = sorted(CONTIGUOUS_STATES + NON_CONTIGUOUS_STATES + US_TERRITORIES, key=itemgetter(1))
 
 
 # We have to alter the UserManager class in order to make it use email for authentication.
@@ -20,10 +29,22 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-def user_directory_path(self, filename):
-    # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
-    location = 'media/Users/%s/%s.%s' % (self.email, "Profile", filename.split('.')[-1]) 
+def user_directory_path(instance, filename):
+    location = 'Users/%s/%s.%s' % (instance.email, "Profile", filename.split('.')[-1])    
+    print location
     return location
+
+class OverwriteStorage(FileSystemStorage):
+    
+    def get_available_name(self, name, max_length=None):
+        """
+        Returns a filename that's free on the target storage system, and
+        available for new content to be written to.
+        """
+        # If the filename already exists, remove it as if it was a true file system
+        if self.exists(name):
+            os.remove(os.path.join(settings.MEDIA_ROOT, name))
+        return name
 
 # Definition of the user
 # This is a custom class becuase the default user doesnt allow email authentication.
@@ -39,10 +60,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     organization = models.CharField(max_length=50,  default='',)
     department = models.CharField(max_length=50, default='',)
     city = models.CharField(max_length=50, default='',)
-    state = models.CharField(max_length=40, default='',blank=True, null=True)   
+    state = models.CharField(max_length=40, default='',blank=True, null=True, choices=USA)   
     country = models.CharField(max_length=50, default='',)
     url = models.URLField(default='', blank=True, null=True)
-    photo = models.ImageField(upload_to=user_directory_path, default='', blank=True, null=True)
+    photo = models.FileField(upload_to=user_directory_path, storage=OverwriteStorage(), default='', blank=True, null=True)
 
     objects = UserManager()
 
