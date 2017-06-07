@@ -31,11 +31,9 @@ class UserManager(BaseUserManager):
 
 def user_directory_path(instance, filename):
     location = 'Users/%s/%s.%s' % (instance.email, "Profile", filename.split('.')[-1])    
-    print location
     return location
 
 class OverwriteStorage(FileSystemStorage):
-    
     def get_available_name(self, name, max_length=None):
         """
         Returns a filename that's free on the target storage system, and
@@ -63,7 +61,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     state = models.CharField(max_length=40, default='',blank=True, null=True, choices=USA)   
     country = models.CharField(max_length=50, default='',)
     url = models.URLField(default='', blank=True, null=True)
-    photo = models.FileField(upload_to=user_directory_path, storage=OverwriteStorage(), default='', blank=True, null=True)
+    photo = models.ImageField(upload_to=user_directory_path, storage=OverwriteStorage(), default='', blank=True, null=True)
 
     objects = UserManager()
 

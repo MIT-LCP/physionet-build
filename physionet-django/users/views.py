@@ -16,7 +16,7 @@ host = 'http://127.0.0.1:8000/' #This is here becuase I use my local computer to
 def index(request):
     user = request.user #Request the user
     if user.is_authenticated():
-        return HttpResponseRedirect(user.email)
+        return HttpResponseRedirect('/home/' + user.email)
     else:
         return HttpResponseRedirect('/login')
     return HttpResponse(loader.get_template('users/user.html').render(RequestContext(request, {'user': request.user})))
@@ -26,24 +26,25 @@ def user_home(request):
     user = request.user #Here we get the user information.
     try:
         if user.email != request.path.split('/')[2]:#If the user is not who he says he is, redirect him.
-            return HttpResponseRedirect(user.email)
+            return HttpResponseRedirect('/home/' + user.email)
     except:#If the URL path is malformed redirect
-        return HttpResponseRedirect(user.email)
+        return HttpResponseRedirect('/home/' + user.email)
     c = RequestContext(request, {'form' : UserForm(instance=user), 'user': user, 'csrf_token': csrf.get_token(request), 'messages': messages.get_messages(request)})
     return HttpResponse(loader.get_template('users/home.html').render(c))
 
 def login(request):
     user = request.user #Request the user
     if user.is_authenticated():
-        return HttpResponseRedirect(user.email)
+        return HttpResponseRedirect('/home/' + user.email)
     if request.method == 'POST':
         form = LoginForm(request.POST) #Assign the information from the post into the form variable
         try:
+            print form, form.is_valid(), "valid"
             if form.is_valid():#Check if the content of the form is valid
                 user = auth.authenticate(email=request.POST['email'], password=request.POST.get('Password'))#If the content is a post, check it can authenticate
                 if user is not None and user.is_active:#If the account is activated and it could be authenticated
                     auth.login(request, user)#Mark the login and redirect home
-                    return HttpResponseRedirect(user.email)
+                    return HttpResponseRedirect('/home/' + user.email)
                 else:
                     messages.add_message(request, messages.INFO, "Please verify that the Username/Password is correct, or, that the account is activated.", extra_tags='Login Information')
                     return HttpResponseRedirect('/login')
@@ -65,15 +66,17 @@ def edit(request):
         form = UserForm(request.POST, request.FILES, instance=user)#Assign the information from the post into the form variable
         try:
             if form.is_valid():#Check if the content of the form is valid
+                form.clean()
                 form.save()
                 instance = User.objects.get(email=user.email)
                 if form.cleaned_data['photo']:
                     instance.photo = form.cleaned_data['photo']
                     instance.save()
-                return HttpResponseRedirect(user.email)
+                return HttpResponseRedirect('/home/' + user.email)
             else:
                 messages.add_message(request, messages.INFO, "There was an error with the information entered, please verify and try again.", extra_tags='Error Submitting')
         except Exception as e:
+            print e
             messages.add_message(request, messages.INFO, e, extra_tags='Error Submitting')
     try:
         form#If we received the post before, then form will be set
@@ -85,7 +88,7 @@ def edit(request):
 def register(request):
     user = request.user #Request the user
     if user.is_authenticated():
-        return HttpResponseRedirect(user.email)
+        return HttpResponseRedirect('/home/' + user.email)
     if request.method == 'POST':#If we receive a post in the web request
         form = RegistrationForm(request.POST, request.FILES)#Assign the information from the post into the form variable
         if form.is_valid():#Check if the content of the form is valid
@@ -181,23 +184,18 @@ def reset_password(request):
                             Person.set_password(request.POST['Password'])#Set the user as active
                             Person.save()#Save all
                             user_action.objects.get(id=line.id).delete()#Delete the line that was found 
-                            messages.add_message(request, messages.INFO, "Password changed successfully", extra_tags='Password changed.')
+                            messages.add_message(request, messages.INFO, "Password changed successfully.", extra_tags='Password changed.')
                             return HttpResponseRedirect('/login/')
                     except Exception as e:
                         messages.add_message(request, messages.INFO, "Please verify that the URL was entered properly.", extra_tags='Wrong link')
                         print e
                 else:
                     form = ResetPassForm()#Create the login form
-                    template=loader.get_template('users/login.html')#Create the template to render
-                    storage = messages.get_messages(request)
-                    c = RequestContext(request, {'form': form, 'email':path[3], 'uuid':path[2],'csrf_token': csrf.get_token(request), 'messages': storage, 'login':login, 'reset_password':reset_password})
-                    return HttpResponse(template.render(c))
     else:
         messages.add_message(request, messages.INFO, "User not found, please register the account or activate the account before resetting the password", extra_tags='User not found or inactive')
     if Found == 0:
         messages.add_message(request, messages.INFO, "Please verify that the URL was entered properly.", extra_tags='Wrong link')
-    return HttpResponseRedirect("/login")
 
-
-
+    c = RequestContext(request, {'form': form, 'email':path[3], 'uuid':path[2],'csrf_token': csrf.get_token(request), 'messages': messages.get_messages(request), 'login':login, 'reset_password':reset_password})
+    return HttpResponse(loader.get_template('users/login.html').render(c))
 

@@ -139,6 +139,17 @@ AUTH_USER_MODEL = 'users.User'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = '/physionet/www/media'
 MEDIAFILES_DIRS = [os.path.join(BASE_DIR, 'media'), '/media/']
+# 2.5MB - 2621440
+# 5MB - 5242880
+# 4MB - 4194304
+# 10MB - 10485760
+# 20MB - 20971520
+# 50MB - 5242880
+# 100MB 104857600
+# 250MB - 214958080
+# 500MB - 429916160
+CONTENT_TYPES = ['image']
+MAX_UPLOAD_SIZE = "4194304"
 
 # Mail config
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
