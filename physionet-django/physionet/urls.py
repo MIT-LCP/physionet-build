@@ -22,7 +22,7 @@ from users.views import login, logout, register, reset_password, activate
 
 from . import views             
                                                                                 
-urlpatterns = [                                                                 
+urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^$', views.home),
 
@@ -41,3 +41,22 @@ urlpatterns = [
 
 
 ]+static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
+
+"""
+Site-wide URLs:
+
+physionet.org
+physionet.org/database
+physionet.org/search
+physionet.org/cwave
+physionet.org/works
+physionet.org/software
+physionet.org/challenge
+physionet.org/home
+physionet.org/about
+physionet.org/news
+physionet.org/faq
+physionet.org/forum
+"""

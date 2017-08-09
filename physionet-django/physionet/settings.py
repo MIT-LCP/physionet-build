@@ -175,3 +175,8 @@ CKEDITOR_CONFIGS = {
         ]
     }
 }
+
+# The directory to find physiobank databases.
+# It will be changed to outside of the project root when we decide how to mount the filesystems. 
+# This directory is temporary, for convenient testing.
+PHYSIOBANK_ROOT = os.path.join(BASE_DIR, 'example_physiobank_root')
