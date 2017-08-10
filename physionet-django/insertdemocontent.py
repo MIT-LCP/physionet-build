@@ -46,6 +46,12 @@ DataType.objects.create(name='Clinical', description = 'Detailed patient informa
 DataType.objects.create(name='Image', description = 'Visual medical images such as x-rays and MRIs')
 
 
+# Add signal types
+SignalType.objects.create(name='ECG')
+SignalType.objects.create(name='BP')
+SignalType.objects.create(name='RESP')
+SignalType.objects.create(name='O2')
+SignalType.objects.create(name='CO2')
 
 
 # Add databases

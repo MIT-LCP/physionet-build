@@ -31,7 +31,7 @@ class SignalType(models.Model):
     def __str__(self):
         return self.name
 
-# Individual waveform signals. For individual records or their channels.
+# Individual waveform signals. For individual records or their channels. ie: name='II', signaltype = ECG
 class Signal(models.Model):
     # Store the name and the signal type it belongs to
     name = models.CharField(max_length=50, unique=True)
@@ -40,6 +40,9 @@ class Signal(models.Model):
         return self.name
 
 # Waveform annotation types. To add...
+
+
+
 
 
 
