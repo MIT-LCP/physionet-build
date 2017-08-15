@@ -49,6 +49,11 @@ class Link(models.Model):
     def __str__(self):
         return self.url
 
+class DUA(models.Model):
+    name = models.CharField(max_length=100)
+    content = RichTextField()
+    
+
 def user_directory_path(self, filename):
     print 'media/projects/%s/%s' % (self.Pid, filename)
     return 'media/projects/%s/%s' % (self.Pid, filename)
@@ -135,10 +140,8 @@ class BasePublishedProject(models.Model):
 class ProjectDatabase(models.Model):
     # A description of the data collection
     collection = RichTextField(default='', blank=True, null=True)
-    
     # Describing the names and layout of files
     filedescription = RichTextField(default='', blank=True, null=True)
-
     datatypes = models.ManyToManyField('physiobank.DataType', related_name="%(app_label)s_%(class)s")
 
 
