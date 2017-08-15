@@ -4,19 +4,14 @@ from catalog.models import BaseProject, BasePublishedProject, ProjectDatabase
 
 # A Physiobank database
 class Database(BaseProject, BasePublishedProject, ProjectDatabase):
-
-
-
     # Total file size in bytes
     size = models.IntegerField()
-        
     # All the signal types contained in this database. Redundant, but useful for search.
     signaltypes = models.ManyToManyField('SignalType',related_name='database', blank=True, default=None)
     # All the clinical data types contained in this database
     clinicaltypes = models.ManyToManyField('ClinicalType',related_name='database', blank=True, default=None)
     # The wfdb records contained
     #wfdbrecords = models.OneToManyField('WFDB_Record',related_name='database', blank=True, default=None)
-
 
 # Type of data. clinical, waveform, image, or other. For entire database.
 class DataType(models.Model):

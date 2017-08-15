@@ -15,7 +15,6 @@ def get_display_file(filepath):
 
     return DisplayFile(name, size, lastmtime, description)
 
-
 def get_display_directory(dirpath):
     name = os.path.split(dirpath)[-1]
     size = ''
@@ -23,6 +22,15 @@ def get_display_directory(dirpath):
     description = ''
 
     return DisplayDirectory(name, size, lastmtime, description)
+
+# Total size of a directory
+def get_dir_size(basedir):
+    total_size = 0
+    for (path, dirs, files) in os.walk(basedir):
+        for file in files:
+            filename = os.path.join(path, file)
+            total_size += os.path.getsize(filename)
+    return total_size
 
 def readable_size(num, suffix='B'):
     for unit in ['','K','M','G','T','P','E','Z']:
