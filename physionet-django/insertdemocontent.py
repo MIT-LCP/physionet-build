@@ -55,11 +55,11 @@ DataType.objects.create(name='Image', description = 'Visual medical images such 
 
 
 # Add signal types
-SignalType.objects.create(name='ECG')
-SignalType.objects.create(name='BP')
-SignalType.objects.create(name='RESP')
-SignalType.objects.create(name='O2')
-SignalType.objects.create(name='CO2')
+WFDB_Signal_Type.objects.create(name='ECG')
+WFDB_Signal_Type.objects.create(name='BP')
+WFDB_Signal_Type.objects.create(name='RESP')
+WFDB_Signal_Type.objects.create(name='O2')
+WFDB_Signal_Type.objects.create(name='CO2')
 
 
 # Add databases
@@ -111,3 +111,5 @@ db3.save()
 # Add record info
 for dbslug in ['mimic3cdb', 'mitdb', 'staffiii', 'mghdb']:
 	log_wfdb_records(dbslug)
+
+

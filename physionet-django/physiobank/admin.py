@@ -4,7 +4,7 @@ from .models import *
 # Registering the models
 admin.site.register(Database)
 admin.site.register(DataType)
-admin.site.register(SignalType)
+admin.site.register(WFDB_Signal_Type)
 admin.site.register(ClinicalType)
-admin.site.register(Signal)
+admin.site.register(WFDB_Signal)
 admin.site.register(WFDB_Record)

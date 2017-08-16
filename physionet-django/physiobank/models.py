@@ -7,7 +7,7 @@ class Database(BaseProject, BasePublishedProject, ProjectDatabase):
     # Total file size in bytes
     size = models.IntegerField()
     # All the signal types contained in this database. Redundant, but useful for search.
-    signaltypes = models.ManyToManyField('SignalType',related_name='database', blank=True, default=None)
+    signaltypes = models.ManyToManyField('WFDB_Signal_Type',related_name='database', blank=True, default=None)
     # All the clinical data types contained in this database
     clinicaltypes = models.ManyToManyField('ClinicalType',related_name='database', blank=True, default=None)
     # The wfdb records contained
@@ -27,7 +27,7 @@ class ClinicalType(models.Model):
         return self.name
 
 # Waveform signal categories. ie: ecg, eeg, abp. For databases with waveforms. Why not define in wfdb?
-class SignalType(models.Model):
+class WFDB_Signal_Type(models.Model):
     name = models.CharField(max_length=50, unique=True)
     def __str__(self):
         return self.name
@@ -37,7 +37,6 @@ class WFDB_Record(models.Model):
     name = models.CharField(max_length=80)
     basefs = models.FloatField(blank=True)
     sigduration = models.IntegerField(blank=True)  # In seconds
-
     database = models.ForeignKey('Database', related_name='record')
 
     # Other Metadata
@@ -47,11 +46,11 @@ class WFDB_Record(models.Model):
     def __str__(self):
         return self.name
 
-# Individual waveform signals. For individual records or their channels. ie: name='II', signaltype = ECG
-class Signal(models.Model):
+# Individual single-channel waveform signals. ie: name='II', signaltype = ECG
+class WFDB_Signal(models.Model):
     record = models.ForeignKey('WFDB_Record')
     name = models.CharField(max_length=50)
-    signaltype = models.ForeignKey(SignalType, related_name='signal')
+    signaltype = models.ForeignKey(WFDB_Signal_Type, related_name='wfdb_signal')
     # full fs = basefs * sampsperframe
     full_fs = models.FloatField()
 
