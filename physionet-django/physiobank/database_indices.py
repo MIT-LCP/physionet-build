@@ -86,7 +86,7 @@ def log_signals(recordname, dbslug, logmissingrec=True):
 		return 
 	try:
 		r = WFDB_Record_Info.objects.get(database=dbslug, name=recordname)
-	except WFDB_Records_Info.DoesNotExist:
+	except WFDB_Record_Info.DoesNotExist:
 		if logmissingrec is True:
 			log_record(recordname, dbslug)
 			r = WFDB_Record_Info.objects.get(database=dbslug, name=recordname)
@@ -178,3 +178,8 @@ def unlog_all_signals(dbslug):
 @foralldbs
 def log_all_r_s(dbslug):
 	return log_db_r_s(dbslug)
+
+def relog_all_r_s(dbslug):
+	unlog_all_records()
+	log_all_r_s()
+	return

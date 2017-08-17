@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'physiobank',
     'physiotoolkit',
     'physionetworks',
+    'search',
     'users.apps.UsersConfig',
 ]
 
