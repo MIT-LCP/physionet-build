@@ -3,13 +3,14 @@
 
 from catalog.models import *
 from physiobank.models import *
-from physiobank.database_indices import log_wfdb_records
+from physiobank.database_indices import log_record
 from physiotoolkit.models import *
 from physionetworks.models import *
 from users.models import User
 from physionet.settings import PHYSIOBANK_ROOT
 from catalog.utility import get_dir_size
 import os
+import wfdb
 
 # Add superuser
 User.objects.create_superuser(email="tester@mit.edu", password="Tester1!")
@@ -53,14 +54,9 @@ DataType.objects.create(name='Waveform', description = 'High resolution regularl
 DataType.objects.create(name='Clinical', description = 'Detailed patient information')
 DataType.objects.create(name='Image', description = 'Visual medical images such as x-rays and MRIs')
 
-
 # Add signal types
-WFDB_Signal_Type.objects.create(name='ECG')
-WFDB_Signal_Type.objects.create(name='BP')
-WFDB_Signal_Type.objects.create(name='RESP')
-WFDB_Signal_Type.objects.create(name='O2')
-WFDB_Signal_Type.objects.create(name='CO2')
-
+for signame in wfdb.signaltypes:
+	WFDB_Signal_Type.objects.create(name=signame)
 
 # Add databases
 mimicoverview = "MIMIC is an openly available dataset developed by the MIT Lab for Computational Physiology, comprising deidentified health data associated with ~40,000 critical care patients. It includes demographics, vital signs, laboratory tests, medications, and more."
@@ -108,8 +104,8 @@ db3.keywords.add(Keyword.objects.get(word="ABP"), Keyword.objects.get(word="ECG"
 db3.contacts.add(Contact.objects.get(name="Jeffrey Cooper"))
 db3.save()
 
-# Add record info
-for dbslug in ['mimic3cdb', 'mitdb', 'staffiii', 'mghdb']:
-	log_wfdb_records(dbslug)
+# Add record and signal info
+# for dbslug in ['mimic3cdb', 'mitdb', 'staffiii', 'mghdb']:
+# 	log_wfdb_records(dbslug)
 
 
