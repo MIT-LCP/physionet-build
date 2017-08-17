@@ -31,9 +31,10 @@ def classify_sigtype(signame):
 		if signame.lower() in wfdb.signaltypes[sigtype].signalnames:
 			s = WFDB_Signal_Type.objects.get(name=sigtype)
 			return s
-	# Failed to find
-	return None
-wfdb.signaltypes['ECG'].signalnames
+
+	# Failed to find. Classify as unknown.
+	s = WFDB_Signal_Type.objects.get(name='UNKNOWN')
+	return s
 
 
 
@@ -83,7 +84,6 @@ def log_signals(recordname, dbslug, logmissingrec=True):
 	
 	if record.nsig == 0:
 		return 
-	
 	try:
 		r = WFDB_Record_Info.objects.get(database=dbslug, name=recordname)
 	except WFDB_Records_Info.DoesNotExist:
@@ -96,16 +96,38 @@ def log_signals(recordname, dbslug, logmissingrec=True):
 	for ch in range(record.nsig):
 		# Try to get a signaltype
 		sigtype = classify_sigtype(record.signame[ch])
-		s = WFDB_Signal(record=r, name=, signaltype=sigtype, fs=record.fs*record.samsperframe[ch])
+		s = WFDB_Signal_Info(record=r, name=record.signame[ch], signaltype=sigtype, fs=record.fs*record.sampsperframe[ch])
 		s.save()
 
 	return
+
 # Remove info about all signals from a record from the relational database
 def unlog_signals(recordname, dbslug):
 	WFDB_Signal_Info.objects.filter(record__name=recordname, record__database__slug=dbslug).delete()
 	return
 
+# Add info about a record and its signals to the relational database
+def log_r_s(recordname, dbslug):
+	# Calling log_record and log_signals works but contains redundant
+	# header reading and database queries
 
+	recordpath = os.path.join(PHYSIOBANK_ROOT, dbslug, recordname)
+	record = wfdb.rdheader(recordpath)
+	r = WFDB_Record_Info(name=record.recordname, basefs=record.fs, sigduration=int(record.siglen/record.fs), database=Database.objects.get(slug=dbslug))
+	r.save()
+
+	if record.nsig == 0:
+		return 
+
+	for ch in range(record.nsig):
+		# Try to get a signaltype
+		sigtype = classify_sigtype(record.signame[ch])
+		s = WFDB_Signal_Info(record=r, name=record.signame[ch], signaltype=sigtype, fs=record.fs*record.sampsperframe[ch])
+		s.save()
+
+	return
+
+# Note: No need for an unlog_r_s function or derivatives. Removing record entries also removes signal entries.
 
 
 # Add info about all records in a database to the relational database
@@ -113,7 +135,7 @@ def unlog_signals(recordname, dbslug):
 def log_db_records(recordname, dbslug):
 	return log_record(recordname, dbslug)
 
-# Remove info about all records in a database from the relational database
+# Remove info about all records (and their signals) in a database from the relational database
 @fordb
 def unlog_db_records(recordname, dbslug):
 	return unlog_record(recordname, dbslug)
@@ -123,12 +145,15 @@ def unlog_db_records(recordname, dbslug):
 def log_db_signals(recordname, dbslug):
 	return log_signals(recordname, dbslug)
 
-# Remove info about all records in a database from the relational database
+# Remove info about all signals from all records in a database from the relational database
 @fordb
 def unlog_db_signals(recordname, dbslug):
 	return unlog_signals(recordname, dbslug)
 
-
+# Add info about all records in a database to the relational database
+@fordb
+def log_db_r_s(recordname, dbslug):
+	return log_r_s(recordname, dbslug)
 
 
 # Add info about all records in every database to the relational database
@@ -141,4 +166,15 @@ def log_all_records(dbslug):
 def unlog_all_records(dbslug):
 	return unlog_db_records(dbslug)
 
+@foralldbs
+def log_all_signals(dbslug):
+	return log_db_signals(dbslug)
 
+# Remove info about all records in every database from the relational database
+@foralldbs
+def unlog_all_signals(dbslug):
+	return unlog_db_signals(dbslug)
+
+@foralldbs
+def log_all_r_s(dbslug):
+	return log_db_r_s(dbslug)

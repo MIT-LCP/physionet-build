@@ -3,7 +3,7 @@
 
 from catalog.models import *
 from physiobank.models import *
-from physiobank.database_indices import log_record
+from physiobank.database_indices import log_all_r_s
 from physiotoolkit.models import *
 from physionetworks.models import *
 from users.models import User
@@ -105,7 +105,6 @@ db3.contacts.add(Contact.objects.get(name="Jeffrey Cooper"))
 db3.save()
 
 # Add record and signal info
-# for dbslug in ['mimic3cdb', 'mitdb', 'staffiii', 'mghdb']:
-# 	log_wfdb_records(dbslug)
+log_all_r_s()
 
 
