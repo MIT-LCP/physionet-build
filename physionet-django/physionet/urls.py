@@ -18,11 +18,12 @@ from django.conf.urls import include, url
 from django.conf.urls.static import static                                      
 from django.contrib import admin
 from users.views import login, logout, register, reset_password, activate
+from search.views import recordsearch, dbsearch
 
 
 from . import views             
                                                                                 
-urlpatterns = [                                                                 
+urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^$', views.home),
 
@@ -37,7 +38,32 @@ urlpatterns = [
     #Physionetworks
     url(r'^physioworks/', include('physionetworks.urls')),
     url(r'^physiobank/', include('physiobank.urls')),
-    url(r'^physiotools/', include('physiotoolkit.urls'))
+    url(r'^physiotools/', include('physiotoolkit.urls')),
+
+    # Search
+    url(r'^recordsearch/', recordsearch),
+    url(r'^dbsearch', dbsearch),
+
 
 
 ]+static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
+
+"""
+Site-wide URLs:
+
+physionet.org
+physionet.org/database
+physionet.org/recordsearch
+physionet.org/dbsearch
+physionet.org/cwave
+physionet.org/works
+physionet.org/software
+physionet.org/challenge
+physionet.org/home
+physionet.org/about
+physionet.org/news
+physionet.org/faq
+physionet.org/forum
+"""

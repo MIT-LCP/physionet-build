@@ -1,0 +1,34 @@
+mgh003 8 360 100000
+mgh003.dat 212x1 1191.0(-15)/mV 12 0 -788 47856 0 ECG_lead_I
+mgh003.dat 212x1 1170.0(-163)/mV 12 0 -871 22283 0 ECG_lead_II
+mgh003.dat 212x1 1180.0(97)/mV 12 0 -725 1172 0 ECG_lead_V
+mgh003.dat 212x1 12.08(-1227)/mmHg 12 0 -768 21983 0 ART
+mgh003.dat 212x1 19.48(-992)/mmHg 12 0 -812 53799 0 PAP
+mgh003.dat 212x1 20.06(-992)/mmHg 12 0 -1370 57018 0 CVP
+mgh003.dat 212x1 1000.0(0)/mV 12 0 -668 35568 0 Resp_Imp
+mgh003.dat 212x1 1000.0(0)/mV 12 0 -87 52821 0 CO2
+# <age>: 47 <sex>: F <diagnoses>: Exploratory laporatomy for small bowel obstruction
+# PERTINENT HISTORY:
+# Terminal condition
+# ELECTROCARDIOGRAPHIC DATA:
+# UNDERLYING RHYTHM:
+# Sinus tachycardia @ 140 bpm
+# ECG_INTERPRETATION:
+# Low voltage ECG
+# Poor R wave progression consistent with counterclockwise rotation
+# Old antero-septal infarction less likely
+# Non-specific ST segment and T wave abnormalities
+# HEMODYNAMIC DATA:
+# ART: 120/80 (pre-recording: hypotensive during recording)
+# PAP: 48/28    PCW: 19 (@ 21 min, 24 min)
+# RAP: 9
+# WAVEFORM PATTERNS:
+# Hypotension
+# Pulsus paradox
+# Marked respiratory variation
+# RESPIRATORY DATA:
+# RATE:   36 bpm
+# MODE OF VENTILATION:
+# Spontaneous
+# COMMENTS:
+# Respiratory pattern is rapid and labored

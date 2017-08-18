@@ -49,6 +49,11 @@ class Link(models.Model):
     def __str__(self):
         return self.url
 
+class DUA(models.Model):
+    name = models.CharField(max_length=100)
+    content = RichTextField()
+    
+
 def user_directory_path(self, filename):
     print 'media/projects/%s/%s' % (self.Pid, filename)
     return 'media/projects/%s/%s' % (self.Pid, filename)
@@ -56,8 +61,10 @@ def user_directory_path(self, filename):
 class File(models.Model):
     id   = models.AutoField(primary_key = True, unique = True, editable = False)
     name = models.CharField(max_length = 80)
+    directory = models.CharField(max_length = 200)
     file = models.FileField(upload_to = user_directory_path, default = '', blank = True, null = True)
     size = models.BigIntegerField(default=0, blank = True, null = True)
+    lastmtime = models.DateField()
     extension = models.CharField(max_length = 10, default = '',blank = True, null = True)
 
 # Inherited by all - pnw projects, pb databases, ptoolkits, plibraries
@@ -105,8 +112,8 @@ class BasePublishedProject(models.Model):
     DOI = models.CharField(max_length=100, unique=True)
     version = models.CharField(max_length=50)
 
-    # Who can access the main page and the files. 0 = protected, 1 = open.
-    accesspolicy = models.SmallIntegerField(default=1)
+    # Open or protected
+    isopen = models.BooleanField(default=True)
     # Users who control access to the project for protected projects
     authorizers = models.ManyToManyField(User, related_name="%(app_label)s_%(class)s_authorizer", blank=True)
     # Users who have access to the project for protected projects
@@ -133,10 +140,8 @@ class BasePublishedProject(models.Model):
 class ProjectDatabase(models.Model):
     # A description of the data collection
     collection = RichTextField(default='', blank=True, null=True)
-    
     # Describing the names and layout of files
     filedescription = RichTextField(default='', blank=True, null=True)
-
     datatypes = models.ManyToManyField('physiobank.DataType', related_name="%(app_label)s_%(class)s")
 
 
@@ -153,3 +158,30 @@ class ProjectToolkit(models.Model):
 
 
 #class ProjectGuide(models.Model):
+
+
+
+
+
+# ---------- Non-model Classes ---------- #
+
+# For displaying lists of files in project pages
+# All attributes are human readable strings
+class DisplayFile(object):
+
+    def __init__(self, name, size, lastmtime, description):
+        # name is also the (relative) url
+        self.name = name
+        self.size = size
+        self.lastmtime = lastmtime
+        self.description = description
+
+class DisplayDirectory(object):
+
+     def __init__(self, name, size, lastmtime, description):
+        # name is also the (relative) url
+        self.name = name
+        self.size = size
+        self.lastmtime = lastmtime
+        self.description = description   
+

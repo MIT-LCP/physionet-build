@@ -4,13 +4,14 @@ from catalog.models import BaseProject, BasePublishedProject, ProjectDatabase
 
 # A Physiobank database
 class Database(BaseProject, BasePublishedProject, ProjectDatabase):
-    
-    # All the signal types contained in this database
-    signaltypes = models.ManyToManyField('SignalType',related_name='database', blank=True, default=None)
+    # Total file size in bytes
+    size = models.IntegerField()
+    # All the signal types contained in this database. Redundant, but useful for search.
+    signaltypes = models.ManyToManyField('WFDB_Signal_Type',related_name='database', blank=True, default=None)
     # All the clinical data types contained in this database
     clinicaltypes = models.ManyToManyField('ClinicalType',related_name='database', blank=True, default=None)
-    # The wfdb files contained in the database. File or record? Point to one header file? Should be one to many, but what about symlinks and sharing files?
-    #wfdbrecords = models.ManyToManyField('catalog.File', related_name='database', blank=True, default=None)
+    # The wfdb records contained
+    #wfdbrecords = models.OneToManyField('WFDB_Record',related_name='database', blank=True, default=None)
 
 # Type of data. clinical, waveform, image, or other. For entire database.
 class DataType(models.Model):
@@ -25,22 +26,38 @@ class ClinicalType(models.Model):
     def __str__(self):
         return self.name
 
-# Waveform signal categories. ie: ecg, eeg, abp. For databases with waveforms.
-class SignalType(models.Model):
+# Waveform signal categories. ie: ecg, eeg, abp. For databases with waveforms. Why not define in wfdb?
+class WFDB_Signal_Type(models.Model):
     name = models.CharField(max_length=50, unique=True)
     def __str__(self):
         return self.name
 
-# Individual waveform signals. For individual records or their channels.
-class Signal(models.Model):
-    # Store the name and the signal type it belongs to
-    name = models.CharField(max_length=50, unique=True)
-    signaltype = models.ForeignKey(SignalType, related_name='signal')
+# Information about WFDB records. Used for database search and wfdb record search.
+class WFDB_Record_Info(models.Model):
+    name = models.CharField(max_length=80)
+    basefs = models.FloatField(blank=True)
+    sigduration = models.IntegerField(blank=True)  # In seconds
+    database = models.ForeignKey('Database', related_name='record', on_delete=models.CASCADE)
+
+    # Other Metadata
+    gender = models.BinaryField(blank=True, null=True)
+    age = models.SmallIntegerField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+# Information about individual single-channel waveform signals. ie: name='II', signaltype = ECG
+class WFDB_Signal_Info(models.Model):
+    record = models.ForeignKey('WFDB_Record_Info', on_delete=models.CASCADE)
+    name = models.CharField(max_length=50)
+    signaltype = models.ForeignKey(WFDB_Signal_Type, related_name='wfdb_signal')
+    # fs = basefs * sampsperframe
+    fs = models.FloatField()
+
     def __str__(self):
         return self.name
 
 # Waveform annotation types. To add...
-
 
 
 

@@ -3,9 +3,12 @@ from django.template import Context, Template
 from django.template.loader import get_template
 from django.db.models import Count
 from .models import Database, DataType
-from physionet.settings import STATIC_ROOT
+from physionet.settings import PHYSIOBANK_ROOT
 import os
+import datetime
 from catalog.views import downloadfile
+from catalog.models import File
+from catalog.utility import get_display_file, get_display_directory
 
 # Physiobank home page
 def home(request):
@@ -48,26 +51,26 @@ def database_index(request):
     # Retrieve and render the template
     template = get_template('physiobank/database_index.html')
 
-    context = Context({'datatypes': datatypes, 'date_dbs': date_dbs, 
+    context = Context({'datatypes': datatypes, 'date_dbs': date_dbs,
                        'pop_dbs': pop_dbs, 'name_dbs': name_dbs, 'multi':'multi'})
 
     html = template.render(context)
 
     return HttpResponse(html)
 
-# Individual database page - returns the index with the list of files, or an individual file to download
+# Individual database page: index, subdirectory, or individual file to download
 def database(request, dbslug, sublink=''):
-    # Get the database descriptors
-    database = Database.objects.get(slug=dbslug)
+    
+    db = Database.objects.get(slug=dbslug)
 
-    # Index page - show files and subdirectories in index
+    # Index page
     if sublink=='':
         # Directory in which to search for files
-        filedir = os.path.join(STATIC_ROOT, 'database', dbslug)
+        filedir = os.path.join(PHYSIOBANK_ROOT, dbslug)
         insubdir = False
     else:
         # Test whether the sublink points to a file or directory
-        filedir = os.path.join(STATIC_ROOT, 'database', dbslug, sublink)
+        filedir = os.path.join(PHYSIOBANK_ROOT, dbslug, sublink)
         # Points to a valid directory
         if os.path.isdir(filedir):
             insubdir=True
@@ -78,18 +81,26 @@ def database(request, dbslug, sublink=''):
         else:
             raise Http404
 
-    # The file names in the directory
-    filenames = [f for f in os.listdir(filedir) if os.path.isfile(os.path.join(filedir, f)) and not f.endswith('~')]
-    # The further subdirectories in the directory
-    dirnames = [f for f in os.listdir(filedir) if not os.path.isfile(os.path.join(filedir, f)) and not f.endswith('~')]
-    
+    # Show subdirectories if any.
+    # Show files if any: name, last modified, size, description (based on extension) 
 
+    filenames = sorted([f for f in os.listdir(filedir) if os.path.isfile(os.path.join(filedir, f)) and not f.endswith('~')])
+    dirnames = sorted([d for d in os.listdir(filedir) if os.path.isdir(os.path.join(filedir, d))])
+    
+    if filenames != []:
+        displayfiles = [get_display_file(os.path.join(filedir, f)) for f in filenames]
+    else:
+        displayfiles = []
+    if dirnames != []:
+        displaydirs = [get_display_directory(os.path.join(filedir, d)) for d in dirnames]
+    else:
+        displaydirs = []
+
+    print(db.license.url)
 
     # Retrieve and render the template
     template = get_template('physiobank/database.html')
-
-    context = Context({'database': database, 'insubdir': insubdir, 'filenames': filenames, 'dirnames': dirnames})
-
+    context = Context({'database': db, 'insubdir': insubdir, 'displayfiles': displayfiles, 'displaydirs': displaydirs})
     html = template.render(context)
 
     return HttpResponse(html)
