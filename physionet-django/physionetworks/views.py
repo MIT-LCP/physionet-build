@@ -1,4 +1,4 @@
-from .forms import CreateProjectForm, ProjectTypeForm, ProjectLicenseForm, FileFieldForm
+from .forms import CreateProjectForm, ProjectTypeForm, ProjectLicenseForm, FileFieldForm, ProjectDatabaseForm, ProjectToolkitForm
 from django.contrib.auth.decorators import login_required
 from django.core.files.storage import FileSystemStorage
 from django.template.loader import get_template
@@ -27,17 +27,21 @@ def create_project(request):
         CreateForm = CreateProjectForm(request.POST, prefix="Create")
         TypeForm   = ProjectTypeForm(request.POST, prefix="Type")
         AccessForm = ProjectLicenseForm(request.POST, prefix="Access")
+        DatabaseForm = ProjectDatabaseForm(request.POST, prefix="Database")
         try:
-            if CreateForm.is_valid() and TypeForm.is_valid() and AccessForm.is_valid():
+            if DatabaseForm.is_valid():
+                print DatabaseForm.cleaned_data['datatypes']
+                print DatabaseForm.cleaned_data['filedescription']
+                print DatabaseForm.cleaned_data['collection']
+        #     if CreateForm.is_valid() and TypeForm.is_valid() and AccessForm.is_valid():
 
-                New_Project = Project(owner=user, projecttype=TypeForm.cleaned_data['projecttype'],storage=1,
-                    requestedstorage=CreateForm.cleaned_data['required_size'], name=CreateForm.cleaned_data['name'], 
-                    license=AccessForm.cleaned_data['license'], keywords=CreateForm.cleaned_data['keywords'], 
-                    overview=CreateForm.cleaned_data['overview'], contributors=CreateForm.cleaned_data['contributors'], 
-                    contacts=CreateForm.cleaned_data['contacts'], projectaccess=AccessForm.cleaned_data['access'])
-                New_Project.save()
+        #         New_Project = Project(owner=user, projecttype=TypeForm.cleaned_data['projecttype'],storage=1,
+        #             requestedstorage=CreateForm.cleaned_data['required_size'], name=CreateForm.cleaned_data['name'], 
+        #             license=AccessForm.cleaned_data['license'], keywords=CreateForm.cleaned_data['keywords'], 
+        #             overview=CreateForm.cleaned_data['overview'], contributors=CreateForm.cleaned_data['contributors'], 
+        #             contacts=CreateForm.cleaned_data['contacts'], projectaccess=AccessForm.cleaned_data['access'])
+        #         New_Project.save()
 
-    
     # slug = models.SlugField(max_length=50, unique=True)
     # publishdate = models.DateField(blank=True)
     # associated_pages = models.ManyToManyField('catalog.Link', related_name="%(app_label)s_%(class)s", blank=True)
@@ -77,22 +81,22 @@ def create_project(request):
             #
             # Create errror
             #
-    try:
-        CreateForm
-    except:
-        CreateForm = CreateProjectForm(prefix="Create")
-    try:
-        TypeForm
-    except:
-        TypeForm   = ProjectTypeForm(prefix="Type")
-    try:
-        AccessForm
-    except:
-        AccessForm = ProjectLicenseForm(prefix="Access")
+    else:
+        CreateForm   = CreateProjectForm(prefix="Create")
+        TypeForm     = ProjectTypeForm(prefix="Type")
+        AccessForm   = ProjectLicenseForm(prefix="Access")
+        DatabaseForm = ProjectDatabaseForm(prefix="Database")
+        ToolkitForm  = ProjectToolkitForm(prefix="Tool")
+    # if 'CreateForm'   not in locals(): CreateForm   = CreateProjectForm(prefix="Create")
+    # if 'TypeForm'     not in locals(): TypeForm     = ProjectTypeForm(prefix="Type")
+    # if 'AccessForm'   not in locals(): AccessForm   = ProjectLicenseForm(prefix="Access")
+    # if 'DatabaseForm' not in locals(): DatabaseForm = ProjectDatabaseForm(prefix="Database")
+    # if 'ToolkitForm'  not in locals(): ToolkitForm  = ProjectToolkitForm(prefix="Tool")
+
     FileForm   = FileFieldForm(prefix="File")
 
     # Retrieve and render the template
-    context = Context({'CreateForm':CreateForm, 'FileForm':FileForm, 'TypeForm':TypeForm, 'AccessForm':AccessForm, 'csrf_token': csrf.get_token(request), 'user':user})
+    context = Context({'CreateForm':CreateForm, 'FileForm':FileForm, 'TypeForm':TypeForm, 'ToolkitForm':ToolkitForm, 'DatabaseForm':DatabaseForm, 'AccessForm':AccessForm, 'csrf_token': csrf.get_token(request), 'user':user})
     html = get_template('physionetworks/create-project.html').render(context)
 
     return HttpResponse(html)

@@ -14,7 +14,6 @@ User.objects.create_superuser(email="tester@mit.edu", password="Tester1!")
 Link.objects.create(url="http://physionet.org/physiobank/database/mimic2wdb/", description="MIMIC-III Waveform Database")
 #Link.objects.create(url="http://physionet.org/physiobank/database/mimic2wdb/", description="MIMIC-III Waveform Database")
 
-
 # Add licenses
 License.objects.create(name='GPL3', url='https://www.gnu.org/licenses/gpl-3.0.en.html')
 License.objects.create(name='MIT', url='https://opensource.org/licenses/MIT')

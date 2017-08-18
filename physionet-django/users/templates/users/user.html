@@ -36,7 +36,6 @@
     {% elif edit %}
       <input class="btn btn-success btn-md pull-right col-sm-2" type="submit" value="Submit" />
     {% endif %}
-
 </div>
 <div class="col-md-3"></div>
 {% endif %}
@@ -59,15 +58,10 @@
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal">&times;</button>
-<!--         <h4 class="modal-title">No login information</h4>
- -->
             <h4 class="modal-title">{{ message.tags }}</h4>
        </div>
       <div class="modal-body">
-<!--         <p>Either you havent logged in or your connection timed out.</p>
- -->
         <p>{{message}}</p>
-
        </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>

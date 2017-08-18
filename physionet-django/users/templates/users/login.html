@@ -28,8 +28,8 @@
         {% else %}
           <div class="form-group" id="d_c_{{ field.label }}">
         {% endif %}
-          <div class="col-sm-2"><label class="control-label" for="{{ field.label }}" style="text-align:left !important">{{ field.label }}:</label></div>
-          <div class="col-sm-10">{{ field }}
+          <div class="col-xs-2 col-sm-2 col-md-2"><label class="control-label" for="{{ field.label }}" style="text-align:left !important">{{ field.label }}:</label></div>
+          <div class="col-xs-10 col-sm-10 col-md-10">{{ field }}
           {% if field.errors %}
             <span class="text-danger pull-right" id="l_{{ field.label }}">{{ field.errors }}</span>
           {% endif %}
