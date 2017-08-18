@@ -11,29 +11,151 @@
 
 <div class="container">
 
-    <div class="row row-offcanvas row-offcanvas-right">
-
-        <div class="col-12 col-md-9">
 
 
-            <div class="jumbotron">
-                <h1>Physionet Record Search</h1>
-                <p>PhysioBank's data archives</p>
-                <p>
-                  <a class="btn btn-primary btn-lg" href="#" role="button">About PhysioBank</a>
-                  <a class="btn btn-primary btn-lg" href="#" role="button">Database Search</a>
-                </p>
+    <div class="jumbotron">
+        <h1>Physionet Record Search</h1>
+        <p>Detailed waveform and annotation</p>
+        <p>
+          <a class="btn btn-primary btn-lg" href="#" role="button">Database Index</a>
+          <a class="btn btn-primary btn-lg" href="#" role="button">C-Wave</a>
+        </p>
+    </div>
+  
+  
+    <h1>Instructions</h1>
+    <p>This index lists the databases contributed to PhysioBank, sorted by the category of data they contain. Each panel contains databases that fall into its category. Databases that contain more than one type of data are also listed in the <code>multicategory</code> panel. Click on a panel heading to open or close it.
+    </p>
+    <p>Content can be sorted by its recency, popularity, or name. If you are looking for a specific type of data, see also the <a href="/physiobank/search">physiobank search tool</a>. This allows the filtering of databases by specific features such as waveform signal type and channel number, keywords, and much more.
+    </p>
+    <br>
+
+    <hr class="featurette-divider">
+
+    <div class="panel-group" id="recordgroup">
+        <div class="panel panel-default">
+            <div class="panel-heading" data-toggle="collapse" href="#recordpanel" onclick="change('basic-glyphicon')">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" href="#recordpanel">Record Info</a><i id="basic-glyphicon" class="glyphicon glyphicon-chevron-down pull-right"></i>
+                </h4>
             </div>
-          
-          
-            <h1>Organization</h1>
-            <p>This index lists the databases contributed to PhysioBank, sorted by the category of data they contain. Each panel contains databases that fall into its category. Databases that contain more than one type of data are also listed in the <code>multicategory</code> panel. Click on a panel heading to open or close it.
-            </p>
-            <p>Content can be sorted by its recency, popularity, or name. If you are looking for a specific type of data, see also the <a href="/physiobank/search">physiobank search tool</a>. This allows the filtering of databases by specific features such as waveform signal type and channel number, keywords, and much more.
-            </p>
-            <br>
+            <div id="recordpanel" class="panel-collapse collapse in">
+                <div class="panel-body">
 
-    </div><!--/row-->
+                    <div class="form-group" id="recordname">
+                        <div class="col-sm-2">
+                            <span class="glyphicon glyphicon-question-sign" title='{{ helpmsg|dict_item:"recordname" }}'></span>
+                            <label class="control-label pull-right" for="{{ recform.recordname.label }}" style="text-align:left !important">{{ recform.recordname.label }}</label>
+                        </div>
+
+                        <div class="col-sm-6">
+                            {{ recform.recordname }}
+                        </div>
+                    </div>
+                    <br>
+
+                    <div class="form-group" id="duration">
+                        <div class="col-sm-2">
+                            <span class="glyphicon glyphicon-question-sign" title='{{ helpmsg|dict_item:"duration" }}'></span>
+                            <label class="control-label pull-right" for="{{ recform.duration_0.label }}" style="text-align:left !important">{{ recform.duration_0.label }}</label>
+                        </div>
+                        <div class="col-sm-2">
+                            {{ recform.duration_comparitor }}
+                        </div>
+                        <div class="col-sm-2">
+                            {{ recform.duration_0 }}
+                        </div>
+
+                        <div class="col-sm-2">
+                            {{ recform.duration_1 }}
+                        </div>
+                    </div>
+                    <br>
+
+                    <div class="form-group" id="fs">
+                        <div class="col-sm-2">
+                            <span class="glyphicon glyphicon-question-sign" title='{{ helpmsg|dict_item:"fs" }}'></span>
+                            <label class="control-label pull-right" for="{{ recform.fs_0.label }}" style="text-align:left !important">{{ recform.fs_0.label }}</label>
+                        </div>
+                        <div class="col-sm-2">
+                            {{ recform.fs_comparitor }}
+                        </div>
+                        <div class="col-sm-2">
+                            {{ recform.fs_0 }}
+                        </div>
+
+                        <div class="col-sm-2">
+                            {{ recform.fs_1 }}
+                        </div>
+                    </div>
+
+                    <br><br><br>
+
+                    <div class="form-group" id="age">
+                        <div class="col-sm-2">
+                            <span class="glyphicon glyphicon-question-sign" title='{{ helpmsg|dict_item:"age" }}'></span>
+                            <label class="control-label pull-right" for="{{ recform.age_0.label }}" style="text-align:left !important">{{ recform.age_0.label }}</label>
+                        </div>
+                        <div class="col-sm-2">
+                            {{ recform.age_comparitor }}
+                        </div>
+                        <div class="col-sm-2">
+                            {{ recform.age_0 }}
+                        </div>
+
+                        <div class="col-sm-2">
+                            {{ recform.age_1 }}
+                        </div>
+                    </div>
+                    <br>
+                    <div class="form-group" id="gender">
+                        <div class="col-sm-2">
+                            <span class="glyphicon glyphicon-question-sign" title='{{ helpmsg|dict_item:"gender" }}'></span>
+                            <label class="control-label pull-right" for="{{ recform.gender.label }}" style="text-align:left !important">{{ recform.gender.label }}</label>
+                        </div>
+                        <div class="col-sm-2">
+                            {{ recform.gender }}
+                        </div>
+                          
+                    </div>                      
+
+
+
+                    
+                </div>
+            </div>
+        </div>
+    </div><!--/.panel group-->
+
+    <div class="panel-group" id="signalgroup">
+        <div class="panel panel-default">
+            <div class="panel-heading" data-toggle="collapse" href="#signalpanel" onclick="change('basic-glyphicon')">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" href="#signalpanel">Signal Info</a><i id="basic-glyphicon" class="glyphicon glyphicon-chevron-down pull-right"></i>
+                </h4>
+            </div>
+            <div id="recordpanel" class="panel-collapse collapse in">
+                <div class="panel-body">
+
+                    <div class="form-group" id="signame">
+                        <div class="col-sm-2">
+                            <span class="glyphicon glyphicon-question-sign" title='{{ helpmsg|dict_item:"signame" }}'></span>
+                            <label class="control-label pull-right" for="{{ sigform.signame.label }}" style="text-align:left !important">{{ sigform.signame.label }}</label>
+                        </div>
+
+                        <div class="col-sm-6">
+                            {{ sigform.signame }}
+                        </div>
+                    </div>
+                    <br>
+
+
+
+                </div>
+            </div>
+        </div>
+    </div><!--/.panel group-->
+
 </div><!--/.container-->
 
 {% endblock %}
