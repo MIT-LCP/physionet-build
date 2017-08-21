@@ -53,9 +53,10 @@ DataType.objects.create(name='Waveform', description = 'High resolution regularl
 DataType.objects.create(name='Clinical', description = 'Detailed patient information')
 DataType.objects.create(name='Image', description = 'Visual medical images such as x-rays and MRIs')
 
+
 # Add signal types
 for signame in wfdb.signaltypes:
-	WFDB_Signal_Type.objects.create(name=signame)
+    WFDB_Signal_Type.objects.create(name=signame)
 
 # Add databases
 mimicoverview = "MIMIC is an openly available dataset developed by the MIT Lab for Computational Physiology, comprising deidentified health data associated with ~40,000 critical care patients. It includes demographics, vital signs, laboratory tests, medications, and more."
