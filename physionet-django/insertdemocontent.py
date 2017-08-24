@@ -3,6 +3,7 @@
 
 from catalog.models import *
 from physiobank.models import *
+from physiobank.database_indices import *
 from physiobank.database_indices import log_all_r_s
 from physiotoolkit.models import *
 from physionetworks.models import *
@@ -55,8 +56,12 @@ DataType.objects.create(name='Clinical', description = 'Detailed patient informa
 DataType.objects.create(name='Image', description = 'Visual medical images such as x-rays and MRIs')
 
 # Add signal types
-for signame in wfdb.signaltypes:
-    WFDB_Signal_Type.objects.create(name=signame)
+import_signal_classes()
+# Add annotation types
+import_annotation_classes()
+# Add annotation labels
+import_annotation_labels()
+
 
 # Add databases
 mimicoverview = "MIMIC is an openly available dataset developed by the MIT Lab for Computational Physiology, comprising deidentified health data associated with ~40,000 critical care patients. It includes demographics, vital signs, laboratory tests, medications, and more."
@@ -104,7 +109,10 @@ db3.keywords.add(Keyword.objects.get(word="ABP"), Keyword.objects.get(word="ECG"
 db3.contacts.add(Contact.objects.get(name="Jeffrey Cooper"))
 db3.save()
 
+
 # Add record and signal info
 log_all_r_s()
+
+
 
 

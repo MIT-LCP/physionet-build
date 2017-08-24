@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     # The rich text editor
     'ckeditor',
     'catalog',
+    #'cwave',
     'physiobank',
     'physiotoolkit',
     'physionetworks',

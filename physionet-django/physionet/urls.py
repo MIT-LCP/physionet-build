@@ -19,6 +19,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from users.views import login, logout, register, reset_password, activate
 from search.views import recordsearch, dbsearch
+from cwave.views import cwave
 
 
 from . import views             
@@ -43,6 +44,9 @@ urlpatterns = [
     # Search
     url(r'^recordsearch/', recordsearch),
     url(r'^dbsearch', dbsearch),
+
+    # Wave View
+    url(r'^cwave', cwave),
 
 
 

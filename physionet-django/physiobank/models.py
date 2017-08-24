@@ -6,12 +6,11 @@ from catalog.models import BaseProject, BasePublishedProject, ProjectDatabase
 class Database(BaseProject, BasePublishedProject, ProjectDatabase):
     # Total file size in bytes
     size = models.IntegerField()
-    # All the signal types contained in this database. Redundant, but useful for search.
-    signaltypes = models.ManyToManyField('WFDB_Signal_Type',related_name='database', blank=True, default=None)
+    # All the signal classes contained in this database. Redundant, but useful for search.
+    signalclasses = models.ManyToManyField('SignalClass',related_name='database', blank=True, default=None)
     # All the clinical data types contained in this database
     clinicaltypes = models.ManyToManyField('ClinicalType',related_name='database', blank=True, default=None)
-    # The wfdb records contained
-    #wfdbrecords = models.OneToManyField('WFDB_Record',related_name='database', blank=True, default=None)
+
 
 # Type of data. clinical, waveform, image, or other. For entire database.
 class DataType(models.Model):
@@ -27,13 +26,32 @@ class ClinicalType(models.Model):
         return self.name
 
 # Waveform signal categories. ie: ecg, eeg, abp. For databases with waveforms. Why not define in wfdb?
-class WFDB_Signal_Type(models.Model):
-    name = models.CharField(max_length=50, unique=True)
+class SignalClass(models.Model):
+    name = models.CharField(max_length=30, unique=True)
+    description = models.CharField(max_length=50, unique=True)
     def __str__(self):
-        return self.name
+        return self.name+' ('+self.description+')'
+
+# Annotation extension categories
+class AnnotationClass(models.Model):
+    extension = models.CharField(max_length=20)
+    description = models.CharField(max_length=50, unique=True)
+    human_reviewed = models.BooleanField()
+
+    def __str__(self):
+        return self.extension+' ('+self.description+')'
+
+class AnnotationLabel(models.Model):
+    storevalue = models.SmallIntegerField()
+    symbol = models.CharField(max_length=5)
+    description = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.symbol+' ('+self.description+')'
+
 
 # Information about WFDB records. Used for database search and wfdb record search.
-class WFDB_Record_Info(models.Model):
+class Record(models.Model):
     name = models.CharField(max_length=80)
     basefs = models.FloatField(blank=True)
     sigduration = models.IntegerField(blank=True)  # In seconds
@@ -44,22 +62,22 @@ class WFDB_Record_Info(models.Model):
     age = models.SmallIntegerField(blank=True, null=True)
 
     def __str__(self):
-        return self.name
+        return self.name+' from database '+self.database.name
 
 # Information about individual single-channel waveform signals. ie: name='II', signaltype = ECG
-class WFDB_Signal_Info(models.Model):
-    record = models.ForeignKey('WFDB_Record_Info', on_delete=models.CASCADE)
+class Signal(models.Model):
+    record = models.ForeignKey('Record', on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
-    signaltype = models.ForeignKey(WFDB_Signal_Type, related_name='wfdb_signal')
-    # fs = basefs * sampsperframe
+    sig_class = models.ForeignKey('SignalClass', related_name='signal', on_delete=models.CASCADE)
     fs = models.FloatField()
 
     def __str__(self):
-        return self.name
+        return self.name+' from record '+self.record.__str__()
 
-# Waveform annotation types. To add...
+class Annotation(models.Model):
+    record = models.ForeignKey('Record', on_delete=models.CASCADE)
+    ann_class = models.ForeignKey('AnnotationClass', related_name='annotation')
+    labels = models.ManyToManyField('AnnotationLabel', related_name='annotation', on_delete=models.CASCADE)
 
-
-
-
-
+    def __str__(self):
+        return self.name+' from record '+self.record.__str__()
