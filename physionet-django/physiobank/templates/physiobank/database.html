@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<!-- custom template filters for returning access button -->
+{% load catalog_tags %}
+
+<div class="container">
+<h1 class="database-title">{{ database.name }}</h1>
+<br>
+
+<p class="lead">
+{{ database.contributors.all|contributorstring|safe }}
+</p>
+
+<p class="lead">
+{% for datatype in database.datatypes.all %}
+<button type="button" class="btn btn-primary">{{ datatype.name|title }} Data</button>
+{% endfor %}
+
+{{ database.isopen|access_button|safe }}
+
+</p>
+</div>
+
+
+<div class="container">
+
+  <div class="row">
+
+    <!-- main body content   -->
+    <div class="col-sm-8 blog-main">
+        <hr>
+        <h2>Overview</h2>
+        <p>{{ database.overview }}</p>
+        <br>
+        
+        <!-- to do: show the rest of the content depending on access -->
+
+        <hr>
+        <h2>Data Collection</h2>
+        {{ database.collection|safe }}
+        <br>
+
+        <hr>
+        <h2>File Description</h2>
+        {{ database.filedescription|safe }}
+        <br>
+
+        {% if database.acknowledgements %}
+        <hr>
+        <h2>Acknowledgements</h2>
+        {{ database.acknowledgements|safe}}
+        <br>
+        {% endif %}
+
+        
+        <!-- The file panel -->
+<!-- 
+        <hr>
+        <div class="panel-group" id="ffiles">
+          <div class="panel panel-primary">
+            <div class="panel-heading">
+
+              <div class="panel-title pull-left"><a data-toggle="collapse" href="#collapse-ffiles">
+                <strong><span title="Click to toggle">Files</span></strong></a>
+              </div>
+              <div class="panel-title pull-right">
+                <button title="Download entire database" type="button" class="btn btn-default btn-sm">
+                <strong><span class="glyphicon glyphicon glyphicon-download-alt"></span> Download Database</strong></button>
+              </div>
+              <div class="clearfix"></div>
+            </div>
+            <div id="collapse-ffiles" class="panel-collapse collapse in">
+              {% if insubdir %}
+                  <ul class="list-group">
+                    <li class="list-group-item"><span class="glyphicon glyphicon-chevron-up"></span> <a href="../#files">Parent Directory</a></li>
+                  </ul>
+              {% endif %}
+              {% if dirnames %}
+                <ul class="list-group">
+                {% for dir in dirnames %}
+                  <li class="list-group-item"><span class="glyphicon glyphicon-folder-open" style="color:#ffdb4d"></span> <a href="{{ dir }}/#files">{{ dir }}</a></li>
+                {% endfor %}
+                </ul>
+              {% endif %}
+              {% if displayfiles %}
+                <ul class="list-group">
+                {% for file in displayfiles %}
+                    <li class="list-group-item"><span class="glyphicon glyphicon-file"></span> <a href="{{ file }}">{{ file }}</a></li>
+                {% endfor %}
+                </ul>
+              {% endif %}
+
+            </div>
+          </div>
+        </div> -->
+        <!-- end file panel -->
+
+        <!-- The file panel -->
+        <hr>
+        <div class="panel-group" id="files">
+          <div class="panel panel-primary">
+            <div class="panel-heading">
+              <div class="panel-title pull-left"><a data-toggle="collapse" href="#collapse-files">
+                <strong><span title="Click to toggle">Files</span></strong></a>
+              </div>
+              <div class="panel-title pull-right">
+                <button title="Download entire database" type="button" class="btn btn-default btn-sm">
+                <strong><span class="glyphicon glyphicon glyphicon-download-alt"></span> Download Database</strong></button>
+              </div>
+              <div class="clearfix"></div>
+            </div>
+
+            <div id="collapse-files" class="panel-collapse collapse in">
+              <table class="table">
+                <tr>
+                  <th>Name</th>
+                  <th>Last Modified</th>
+                  <th>Size</th>
+                  <th>Description</th>
+                </tr>
+                {% if insubdir %}
+                  <tr>
+                    <td><span class="glyphicon glyphicon-chevron-up"></span> <a href="../#files">Parent Directory</a></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                {% endif %}
+                {% if displaydirs %}
+                  {% for dir in displaydirs %}
+                    <tr>
+                      <td><span class="glyphicon glyphicon-folder-open" style="color:#ffdb4d"></span> <a href="{{ dir.name }}/#files">{{ dir.name }}</a></td>
+                      <td>{{ dir.lastmtime }}</td>
+                      <td>{{ dir.size }}</td>
+                      <td>{{ dir.description }}</td>
+                    </tr>
+                  {% endfor %}
+                {% endif %}
+                {% if displayfiles %}
+                  {% for file in displayfiles %}
+                    <tr>
+                      <td><span class="glyphicon glyphicon-file"></span> <a href="{{ file.name }}">{{ file.name }}</a></td>
+                      <td>{{ file.lastmtime }}</td>
+                      <td>{{ file.size }}</td>
+                      <td>{{ file.description }}</td>
+                    </tr>
+                  {% endfor %}
+                {% endif %}
+
+              </table>
+            </div>
+
+          </div>
+        </div> <!-- end file panel -->
+
+        <!-- The metadata panel -->
+        <!-- <div class="panel-group" id="metadata">
+          <div class="panel panel-primary">
+            <div class="panel-heading">
+
+              <div class="panel-title pull-left"><a data-toggle="collapse" href="#collapse-metadata">
+                <strong><span title="Click to toggle">Metadata</span></strong></a>
+              </div>
+              <div class="clearfix"></div>
+            </div>
+            <div id="collapse-metadata" class="panel-collapse collapse in">
+
+              {% if displayfiles %}
+                <ul class="list-group">
+                {% for file in displayfiles %}
+                    <li class="list-group-item"><span class="glyphicon glyphicon-file"></span> <a href="{{ file }}">{{ file }}</a> <div class="pull-right"><button type="button" class="btn btn-danger btn-rad btn-xs"><span class="glyphicon glyphicon-record"></span></button></li>
+                {% endfor %}
+                </ul>
+              {% endif %}
+
+            </div>
+          </div>
+        </div> -->
+        <!-- end file panel -->
+
+
+
+    </div><!-- /.blog-main -->
+
+
+    <!-- Side Boxes -->
+
+    <div class="col-sm-3 offset-sm-1 blog-sidebar">
+      <!-- first box - essential information -->
+      <div class="sidebar-module sidebar-module-inset">
+        <h4><strong>Publication Date</strong></h4>
+        {{ database.publishdate }}
+        <h4><strong>Version Number</strong></h4>
+        {{ database.version }}
+        <h4><strong>DOI</strong></h4>
+        {{ database.DOI }}
+        <h4><strong>License</strong></h4>
+        <a href="{{ database.license.url }}" target="_blank">{{ database.license.name }}</a>
+
+      </div>
+
+      <!-- second box - citing -->
+      <div class="sidebar-module sidebar-module-inset">
+        
+        <h4><strong>Cite As</strong></h4>
+        
+      </div>
+
+      <!-- third box - contributors and contact -->
+      <div class="sidebar-module sidebar-module-inset">
+        
+        <h4><strong>Database Contributors</strong></h4>
+        
+        {% for contributor in database.contributors.all %}
+        {{ contributor.name }} - {{ contributor.institution }}<br>
+        {% endfor %}
+        
+        {% if database.contacts.all %}
+        <h4><strong>Contact Info</strong></h4>
+        {% for contact in database.contacts.all %}
+        <span title="{{ contact.institution }}">{{ contact.name }}</span> - {{ contact.email }}<br>
+        {% endfor %}
+        {% endif %}
+        
+      </div>
+
+
+      <!-- 4th box - information about the database -->
+      <div class="sidebar-module sidebar-module-inset">
+        
+        <h4><strong>Keywords</strong></h4>
+        {% for keyword in database.keywords.all %}
+        <button type="button" class="btn btn-default">{{ keyword.word }}</button>
+        {% endfor %}
+        {% if database.associated_pages %}
+        <h4><strong>Associated Pages</strong></h4>
+        {% for page in database.associated_pages.all %}
+        <a href="{{ page.url }}">{{ page.description }}</a><br>
+        {% endfor %}
+        {% endif %}
+
+
+      </div>
+      
+
+      <!-- <div class="sidebar-module">
+        <h4>Elsewhere</h4>
+        <ol class="list-unstyled">
+          <li><a href="#">GitHub</a></li>
+          <li><a href="#">Twitter</a></li>
+          <li><a href="#">Facebook</a></li>
+        </ol>
+      </div> -->
+    </div><!-- /.blog-sidebar -->
+
+  </div><!-- /.row -->
+
+</div><!-- /.container -->
+{% endblock %}

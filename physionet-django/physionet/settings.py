@@ -37,6 +37,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # The rich text editor
+    'ckeditor',
+    'catalog',
+    #'cwave',
+    'physiobank',
+    'physiotoolkit',
+    'physionetworks',
+    'search',
+    'users.apps.UsersConfig',
 ]
 
 MIDDLEWARE = [
@@ -54,7 +63,7 @@ ROOT_URLCONF = 'physionet.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -90,6 +99,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': { 'min_length': 8, }
     },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
@@ -98,7 +108,6 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
@@ -118,4 +127,59 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# Where all the static files are collected to and ultimately served from by the server software.
+# This is necessary for actual deployment with apache, but not necessary with django runserver.
+STATIC_ROOT = '/physionet/www/static'
+# Where the staticfinder searches for static files, in addition to the static/ directories in the installed apps
+# This is also where django runserver searches for files to serve them.
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static"), '/physiobank/']
+
+# Custom user model
+AUTH_USER_MODEL = 'users.User'
+
+# Media
+MEDIA_URL = '/media/'
+MEDIA_ROOT = '/physionet/www/media'
+MEDIAFILES_DIRS = [os.path.join(BASE_DIR, 'media'), '/media/']
+# 2.5MB - 2621440
+# 5MB - 5242880
+# 4MB - 4194304
+# 10MB - 10485760
+# 20MB - 20971520
+# 50MB - 5242880
+# 100MB 104857600
+# 250MB - 214958080
+# 500MB - 429916160
+CONTENT_TYPES = ['image']
+MAX_UPLOAD_SIZE = "4194304"
+
+# Mail config
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = '192.168.11.160'
+EMAIL_PORT = 25
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = 'Physionet Help <help@dev.physionet.org>'
+
+# Additional Installed Package Settings
+
+# ckeditor - wysiwyg form entry
+CKEDITOR_JQUERY_URL = 'https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js'
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'Custom',
+        'toolbar_Custom': [
+            ['Bold', 'Italic', 'Underline'],
+            ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
+            ['Link', 'Unlink'],
+            ['RemoveFormat', 'Source']
+        ]
+    }
+}
+
+# The directory to find physiobank databases.
+# It will be changed to outside of the project root when we decide how to mount the filesystems. 
+# This directory is temporary, for convenient testing.
+PHYSIOBANK_ROOT = os.path.join(BASE_DIR, 'example_physiobank_root')
+

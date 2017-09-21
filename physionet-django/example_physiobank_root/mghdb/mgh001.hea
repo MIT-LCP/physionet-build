@@ -1,0 +1,35 @@
+mgh001 8 360 100000
+mgh001.dat 212x1 1167.0(-127)/mV 12 0 -1949 51439 0 ECG_lead_I
+mgh001.dat 212x1 1208.0(-573)/mV 12 0 -1951 5737 0 ECG_lead_II
+mgh001.dat 212x1 1121.0(-1070)/mV 12 0 -1955 50602 0 ECG_lead_V
+mgh001.dat 212x1 12.06(-1215)/mmHg 12 0 -869 42104 0 ART
+mgh001.dat 212x1 20.72(-1015)/mmHg 12 0 1023 25668 0 PAP
+mgh001.dat 212x1 20.08(-1006)/mmHg 12 0 -1537 38749 0 CVP
+mgh001.dat 212x1 1000.0(0)/mV 12 0 -784 26768 0 Resp_Imp
+mgh001.dat 212x1 1000.0(0)/mV 12 0 -258 56607 0 CO2
+# <age>: 80 <sex>: F <diagnoses>: Carotid endartarectomy
+# PERTINENT HISTORY:
+# Congenital complete heart block
+# ELECTROCARDIOGRAPHIC DATA:
+# UNDERLYING RHYTHM:
+# Third degree heart block with junctional escape rhythm and intra-ventricular conduction defect @ 40 bpm
+# RHYTHM DISTURBANCES:
+# Unifocal ventricular ectopy
+# ECG_INTERPRETATION:
+# Left atrial hypertrophy
+# Left ventricular hypertrophy
+# Intraventricular conduction defect
+# Possible old lateral myocardial infarction
+# Nonspecific ST segment and T wave abnormalities
+# HEMODYNAMIC DATA:
+# ART: 140/50
+# PAP: 56/16
+# RAP: 10
+# WAVEFORM PATTERNS:
+# "Cannon waves" in CVP due to A-V asynchrony with CHB
+# Retrograde cannon wave effect in pulmonary arterial trace.
+# Pulmonary hypertension.
+# RESPIRATORY DATA:
+# RATE:   16 bpm
+# MODE OF VENTILATION:
+# Spontaneous

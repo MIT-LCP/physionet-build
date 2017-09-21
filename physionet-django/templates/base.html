@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    {% include 'js_css.html' %}
+  </head>
+
+  <body>
+    {% include 'navbar.html' %}
+    <div class="container-fluid">
+    {% block content %}
+    {% endblock %}
+    </div>
+  </body>
+  <br>
+    {% include 'footer.html' %}
+ </html>

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block content %}
+
+<div class="jumbotron">
+  <div class="container" style="text-align: center">
+    <h1 class="display-3">PhysioNet</h1>
+    <p>The online resource for complex physiological signals.</p>
+  
+   
+    <p><a class="btn btn-primary btn-lg" href="#" role="button">About</a>
+        <a class="btn btn-primary btn-lg" href="#" role="button">News</a>
+    </p>
+  
+  </div>
+</div>
+
+
+<div class="container marketing">
+
+  <!-- Three columns  -->
+  <div class="row">
+    <div class="col-lg-4" style="text-align: center">
+      <img class="img-circle" src="{% static "images/frontpage/ecg.png" %}" alt="Physiobank" width="140" height="140">
+      <h2>PhysioBank</h2>
+      <p>Openly accessible physiological data.</p>
+      <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+    </div><!-- /.col-lg-4 -->
+    <div class="col-lg-4" style="text-align: center">
+      <img class="img-circle" src="{% static "images/frontpage/code.jpg" %}" alt="Generic placeholder image" width="140" height="140">
+      <h2>PhysioTookit</h2>
+      <p>Open source software contributed by the community.</p>
+      <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+    </div><!-- /.col-lg-4 -->
+    <div class="col-lg-4" style="text-align: center">
+      <img class="img-circle" src="{% static "images/frontpage/database.jpg" %}" alt="Generic placeholder image" width="140" height="140">
+      <h2>PhysioNetWorks</h2>
+      <p>Protected projects for uploading and sharing data. The first step to publishing content on PhysioNet.</p>
+      <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+    </div><!-- /.col-lg-4 -->
+  </div><!-- /.row -->
+
+
+  <!-- Three columns  -->
+  <div class="row">
+    <div class="col-lg-4" style="text-align: center">
+      <img class="img-circle" src="{% static "images/frontpage/books.jpg" %}" alt="Generic placeholder image" width="140" height="140">
+      <h2>PhysioLibrary</h2>
+      <p>Documentation and tutorials regarding physiological data analysis.</p>
+      <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+    </div><!-- /.col-lg-4 -->
+    <div class="col-lg-4" style="text-align: center">
+      <img class="img-circle" src="{% static "images/frontpage/equation.jpg" %}" alt="Generic placeholder image" width="140" height="140">
+      <h2>PhysioNet/CinC Challenge</h2>
+      <p>Tackle clinically interesting problems by PhysioNet and Computing in Cardiology.</p>
+      <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+    </div><!-- /.col-lg-4 -->
+    <div class="col-lg-4" style="text-align: center">
+      <img class="img-circle" src="{% static "images/frontpage/hospital.jpg" %}" alt="Generic placeholder image" width="140" height="140">
+      <h2>MIMIC-III</h2>
+      <p>The highly rich critical care database with over 46000 patients.</p>
+      <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+    </div><!-- /.col-lg-4 -->
+  </div><!-- /.row -->
+  <br>
+{% include 'featured-news.html' %} <!-- featured news items  -->
+
+</div><!-- /.container -->
+
+
+
+
+{% endblock %}

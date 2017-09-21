@@ -1,3 +1,11 @@
+# Temporary: migrations
+*_initial.py*
+*_auto_*
+0*_*.py
+
+# sqlite file
+db.sqlite3
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

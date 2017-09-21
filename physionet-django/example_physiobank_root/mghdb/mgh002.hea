@@ -1,0 +1,37 @@
+mgh002 8 360 100000
+mgh002.dat 212x1 1184.0(-48)/mV 12 0 -730 41247 0 ECG_lead_I
+mgh002.dat 212x1 1173.0(50)/mV 12 0 -883 10741 0 ECG_lead_II
+mgh002.dat 212x1 1123.0(102)/mV 12 0 -617 54119 0 ECG_lead_V
+mgh002.dat 212x1 12.18(-1227)/mmHg 12 0 -903 32536 0 ART
+mgh002.dat 212x1 20.26(-991)/mmHg 12 0 -1024 42899 0 PAP
+mgh002.dat 212x1 20.06(-1007)/mmHg 12 0 -1239 40430 0 CVP
+mgh002.dat 212x1 1000.0(0)/mV 12 0 -609 14068 0 Resp_Imp
+mgh002.dat 212x1 1000.0(0)/mV 12 0 -88 43351 0 CO2
+# <age>: 71 <sex>: M <diagnoses>: Resection and grafting of abdominal aortic aneurysm; Aorto-bifemoral graft
+# ELECTROCARDIOGRAPHIC DATA:
+# UNDERLYING RHYTHM:
+# Normal sinus rhythm with right bundle branch block @ 80 bpm
+# RHYTHM DISTURBANCES:
+# Junctional ectopy, occasional aberrant conduction
+# Onset of junctional rhythm @ 1 min
+# Conversion to NSR @ 24 min (carotid sinus massage and verapamil)
+# Unifocal ventricular ectopy
+# ECG_INTERPRETATION:
+# Left atrial enlargement
+# Left anterior hemiblock
+# Old inferior infarct
+# TECHNICAL COMMENTS:
+# Chest lead_= V2
+# HEMODYNAMIC DATA:
+# ART: 130/60    MEAN: 85
+# PAP: 32/8    PCW: 6 (@ 68 min)
+# RAP: 4
+# WAVEFORM PATTERNS:
+# Cannon waves in CVP with junctional rhythm due to A-V asynchrony
+# Ventricular ectopy produces "V waves" in the CVP trace
+# TECHNICAL COMMENTS:
+# Zero, cal and pop-tests @ 24 min - 377 min
+# RESPIRATORY DATA:
+# RATE:   14 bpm
+# MODE OF VENTILATION:
+# Spontaneous

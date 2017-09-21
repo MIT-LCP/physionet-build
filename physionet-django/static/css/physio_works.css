@@ -1,0 +1,14 @@
+.add-row {
+/*display:block;*/
+margin-top:15px;
+}
+.add-row:before{
+font-family: FontAwesome;
+content: "\f055";
+margin-right: 0.3em;
+}
+.delete-row:before{
+font-family: FontAwesome;
+content: "\f056";
+margin-right: 0.3em;
+}

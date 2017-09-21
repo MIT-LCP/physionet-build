@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/physio_works.css' %}" />
+
+<div class='row'>
+    <form method="post" action="{% url 'create' %}" class="form-horizontal uniForm" enctype="multipart/form-data">
+        <div class="col-md-2"></div>
+        <div class="col-md-8">
+        {% csrf_token %}
+            <div class="panel-group" id="accordion">
+            <!-- BASIC INFO -->
+            {% include "physionetworks/Basic_Info.html" %}    
+            <!-- BASIC INFO -->
+            <!-- Project Type -->
+            {% include "physionetworks/Project_Type.html" %}    
+            <!-- Project Type -->
+            <!-- Files -->
+            {% include "physionetworks/Files.html" %}
+            <!-- Files -->
+            <!-- License -->
+            {% include "physionetworks/License.html" %}
+            <!-- License -->
+            <!-- Database -->
+            {% include "physionetworks/Database.html" %}
+            <!-- Database -->
+            <!-- Toolkit -->
+            {% include "physionetworks/Toolkit.html" %}
+            <!-- Toolkit -->
+            <!-- Miscellaneous -->
+            {% include "physionetworks/Miscellaneous.html" %}
+            <!-- Miscellaneous -->
+<!-- TEST -->
+                <div class="panel panel-default" id="TEST-Panel"><!-- style='display: block;' -->
+                    <div class="panel-heading" data-toggle="collapse" href="#TEST" onclick="change('TEST-glyphicon')">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" href="#TEST">Tools</a><i id="TEST-glyphicon" class="glyphicon glyphicon-chevron-down pull-right"></i>
+                        </h4>
+                    </div>
+                    <div id="TEST" class="panel-collapse collapse in">
+                        <div class="panel-body">
+                        </div>
+                    </div>
+                </div>
+<!-- TEST -->
+            </div>
+            <input class="btn btn-success btn-md pull-right col-sm-2" type="submit" value="Create" />
+        </div>
+        <div class="col-md-2"></div>
+    </form>
+</div>
+
+<script src="{% static 'js/jquery.formset.js' %}"></script>
+<script src="{% static 'js/physio_works.js' %}"></script>
+
+    {% endblock %}
+
