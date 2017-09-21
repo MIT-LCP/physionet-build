@@ -58,12 +58,21 @@ urlpatterns = [
 Site-wide URLs:
 
 physionet.org
-physionet.org/database
-physionet.org/recordsearch
-physionet.org/dbsearch
-physionet.org/cwave
+
 physionet.org/works
+
+physionet.org/database
+
 physionet.org/software
+
+physionet.org/recordsearch
+
+physionet.org/dbsearch
+
+physionet.org/cwave
+
+
+
 physionet.org/challenge
 physionet.org/home
 physionet.org/about

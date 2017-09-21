@@ -32,19 +32,28 @@ class SignalClass(models.Model):
     def __str__(self):
         return self.name+' ('+self.description+')'
 
-# Annotation extension categories
+
 class AnnotationClass(models.Model):
+    """
+    Annotation file class categories.
+    The ANNOTATORS file in every database must have: extension, description, human_reviewed columns.
+
+    """
     extension = models.CharField(max_length=20)
     description = models.CharField(max_length=50, unique=True)
     human_reviewed = models.BooleanField()
+    #standard_wfdb = models.BooleanField()
+
 
     def __str__(self):
         return self.extension+' ('+self.description+')'
 
 class AnnotationLabel(models.Model):
-    storevalue = models.SmallIntegerField()
-    symbol = models.CharField(max_length=5)
-    description = models.CharField(max_length=50)
+    #storevalue = models.SmallIntegerField()
+    #symbol = models.CharField(max_length=5)
+    #short_description = models.CharField(max_length=15)
+
+    description = models.CharField(max_length=60)
 
     def __str__(self):
         return self.symbol+' ('+self.description+')'
@@ -54,7 +63,7 @@ class AnnotationLabel(models.Model):
 class Record(models.Model):
     name = models.CharField(max_length=80)
     basefs = models.FloatField(blank=True)
-    sigduration = models.IntegerField(blank=True)  # In seconds
+    sig_duration = models.IntegerField(blank=True)  # In seconds
     database = models.ForeignKey('Database', related_name='record', on_delete=models.CASCADE)
 
     # Other Metadata
@@ -77,7 +86,7 @@ class Signal(models.Model):
 class Annotation(models.Model):
     record = models.ForeignKey('Record', on_delete=models.CASCADE)
     ann_class = models.ForeignKey('AnnotationClass', related_name='annotation')
-    labels = models.ManyToManyField('AnnotationLabel', related_name='annotation', on_delete=models.CASCADE)
+    labels = models.ManyToManyField('AnnotationLabel', related_name='annotation')
 
     def __str__(self):
         return self.name+' from record '+self.record.__str__()

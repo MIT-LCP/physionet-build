@@ -1,7 +1,7 @@
 from django import forms
 from ckeditor.fields import RichTextField
 from physionetworks.models import Project
-from physiobank.models import WFDB_Signal_Class
+from physiobank.models import SignalClass
 
 
 comparitors = (('EQ','=='), ('GTE','>='), ('LTE','<='), ('BTW','a<=X<=b'))
@@ -52,7 +52,7 @@ class SignalSearchForm(forms.Form):
     signame = forms.CharField(label='Signal Name', max_length=100, required=False, widget=forms.TextInput(attrs={'class':'form-control', 'name':'signame'}))
 
     # sigtype and nsigclass go together
-    sigclass = forms.ModelChoiceField(queryset=WFDB_Signal_Class.objects.order_by('name'), label='Signal Class', initial='Your name', required=False, widget=forms.Select(attrs={'class':'form-control'}))
+    sigclass = forms.ModelChoiceField(queryset=SignalClass.objects.order_by('name'), label='Signal Class', initial='Your name', required=False, widget=forms.Select(attrs={'class':'form-control'}))
     
     nsigclass_0 = forms.IntegerField(label='N. Class Signals', min_value=0, required=False, widget=forms.NumberInput(attrs={'class':'form-control'}))
     nsigclass_1 = forms.IntegerField(label='N. Class Signals', min_value=1, required=False, widget=forms.NumberInput(attrs={'class':'form-control'}))

@@ -15,7 +15,7 @@ class Project(BaseProject):
     
     # 0, 1, 2 = database, toolkit, documentation
     projecttype = models.SmallIntegerField()
-
+    
     # Storage allowance in GB
     storage = models.SmallIntegerField(default=1)
     # The requested storage allowance in GB

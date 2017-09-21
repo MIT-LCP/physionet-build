@@ -3,8 +3,7 @@
 
 from catalog.models import *
 from physiobank.models import *
-from physiobank.database_indices import *
-from physiobank.database_indices import log_all_r_s
+from physiobank.database_indices import import_standard_signal_classes, log_all_records, log_all_signals
 from physiotoolkit.models import *
 from physionetworks.models import *
 from users.models import User
@@ -55,12 +54,12 @@ DataType.objects.create(name='Waveform', description = 'High resolution regularl
 DataType.objects.create(name='Clinical', description = 'Detailed patient information')
 DataType.objects.create(name='Image', description = 'Visual medical images such as x-rays and MRIs')
 
-# Add signal types
-import_signal_classes()
+
+
 # Add annotation types
-import_annotation_classes()
+#import_annotation_classes()
 # Add annotation labels
-import_annotation_labels()
+#import_annotation_labels()
 
 
 # Add databases
@@ -111,8 +110,15 @@ db3.save()
 
 
 # Add record and signal info
-log_all_r_s()
+#log_all_r_s()
 
+
+# Add signal 
+import_standard_signal_classes()
+
+
+log_all_records()
+log_all_signals()
 
 
 
