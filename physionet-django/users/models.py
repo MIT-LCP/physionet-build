@@ -99,3 +99,9 @@ class user_action(models.Model):
 
 
 
+class Profile():
+    """
+    Information about the person, not to do with login/registration
+    """
+    
+    
