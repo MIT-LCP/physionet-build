@@ -19,7 +19,6 @@ User.objects.create_superuser(email="tester@mit.edu", password="Tester1!")
 Link.objects.create(url="http://physionet.org/physiobank/database/mimic2wdb/", description="MIMIC-III Waveform Database")
 #Link.objects.create(url="http://physionet.org/physiobank/database/mimic2wdb/", description="MIMIC-III Waveform Database")
 
-
 # Add licenses
 License.objects.create(name='GPL3', url='https://www.gnu.org/licenses/gpl-3.0.en.html')
 License.objects.create(name='MIT', url='https://opensource.org/licenses/MIT')
@@ -56,10 +55,16 @@ DataType.objects.create(name='Image', description = 'Visual medical images such 
 
 
 
+
 # Add annotation types
 #import_annotation_classes()
 # Add annotation labels
 #import_annotation_labels()
+
+
+# Add signal types
+# for signame in wfdb.signaltypes:
+#    WFDB_Signal_Type.objects.create(name=signame)
 
 
 # Add databases

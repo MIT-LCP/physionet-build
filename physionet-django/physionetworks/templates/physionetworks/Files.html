@@ -1,0 +1,17 @@
+<div class="panel panel-default">
+    <div class="panel-heading" data-toggle="collapse" href="#Files" onclick="change('files-glyphicon')">
+        <h4 class="panel-title">
+            <a data-toggle="collapse" href="#Files">Files</a><i id="files-glyphicon" class="glyphicon glyphicon-chevron-down pull-right"></i>
+        </h4>
+    </div>
+    <div id="Files" class="panel-collapse collapse in">
+        <div class="panel-body">
+        {% for field in FileForm %}
+            {{ field }}
+              {% if field.errors %}
+                <span class="text-danger pull-right" id="l_{{ field.label }}">{{ field.errors }}</span>
+              {% endif %}
+        {% endfor %}
+        </div>
+    </div>
+</div>

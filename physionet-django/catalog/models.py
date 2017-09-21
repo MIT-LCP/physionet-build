@@ -84,20 +84,25 @@ class BaseProject(models.Model):
 
     # An overview description. To be shown in index lists and news, not the page itself.
     overview = models.TextField(max_length=1500)
+    
     # People who own/contribute the content
     contributors = models.ManyToManyField('catalog.Contributor', related_name="%(app_label)s_%(class)s", blank=True)
 
     contacts = models.ManyToManyField('catalog.Contact', related_name="%(app_label)s_%(class)s", blank=True)
 
-    # references = models.ManyToManyField('Reference')
     # additional_references
+    # references = models.ManyToManyField('Reference')
+
+    # Open or protected
+    isopen = models.BooleanField(default=True)
     
     # Links to other pages 
     associated_pages = models.ManyToManyField('catalog.Link', related_name="%(app_label)s_%(class)s", blank=True)
+    
     # Acknowledgements
     acknowledgements = models.TextField(blank=True)
 
-    files = models.ManyToManyField('catalog.File', related_name="%(app_label)s_%(class)s", blank=True)
+    # files = models.ManyToManyField('catalog.File', related_name="%(app_label)s_%(class)s", blank=True)
 
     def __str__(self):
         return self.name
@@ -112,12 +117,12 @@ class BasePublishedProject(models.Model):
     DOI = models.CharField(max_length=100, unique=True)
     version = models.CharField(max_length=50)
 
-    # Open or protected
-    isopen = models.BooleanField(default=True)
     # Users who control access to the project for protected projects
     authorizers = models.ManyToManyField(User, related_name="%(app_label)s_%(class)s_authorizer", blank=True)
+    
     # Users who have access to the project for protected projects
     members = models.ManyToManyField(User, related_name="%(app_label)s_%(class)s_member", blank=True)
+    
     # The data usage agreement
     DUA = RichTextField(blank=True, default='')
     

@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.conf import settings
 from .models import User, USA
 from urllib import urlopen
-import re
+from re import search, match
 
 class BaseUserForm():
     def clean_2_password(self):
@@ -12,23 +12,18 @@ class BaseUserForm():
         Password2 = self.cleaned_data.get('Password2' , False)
         if Password and Password2:
             if (Password == "" and Password2 == "") or (Password == None and Password2 == None):
-                print "_1_"
                 return Password
             if Password != Password2:
-                print "2"
                 raise ValidationError({'Password': ["The passwords do not match.",], 'Password2': ["The passwords do not match.",]})
             if len(Password) < 8:
-                print "3"
                 raise ValidationError({'Password': ["The password is too short.",], 'Password2': ["The password is too short.",]})
             if len(Password) > 15:
-                print "4"
                 raise ValidationError({'Password': ["The password is too long, it cannot have more than 15 characters.",], 'Password2': ["The password is too long, it cannot have more than 15 characters.",]})
-            if not bool(re.search(r'\d', Password)):
-                print "5"
+            if not bool(search(r'\d', Password)):
                 raise ValidationError({'Password': ["The password must contain at least 1 digit.",], 'Password2': ["The password must contain at least 1 digit.",]})
-            if not bool(re.search(r'[a-zA-Z]', Password)):
+            if not bool(search(r'[a-zA-Z]', Password)):
                 raise ValidationError({'Password': ["Password must contain at least 1 letter.",], 'Password2': ["Password must contain at least 1 letter.",]})
-            if not bool(re.search(r'[~!@#$%.&?^*]', Password)):
+            if not bool(search(r'[~!@#$%.&?^*]', Password)):
                 raise ValidationError({'Password': ["Password must contain at least 1 special character. Acccepted are: ~ ! @ # $ % & ? ^ *",], 'Password2': ["Password must contain at least 1 special character. Acccepted are: ~ ! @ # $ % & ? ^ *.",]})
             if Password.isupper() or Password.islower():
                 raise ValidationError({'Password': ["The password must contain upper and lower case letters.",], 'Password2': ["The password must contain upper and lower case letters.",]})
@@ -41,11 +36,11 @@ class BaseUserForm():
                 raise ValidationError({'Password': ["The password is too short.",]})
             if len(Password) > 15:
                 raise ValidationError({'Password': ["The password is too long, it cannot have more than 15 characters.",]})
-            if not bool(re.search(r'\d', Password)):
+            if not bool(search(r'\d', Password)):
                 raise ValidationError({'Password': ["The password must contain at least 1 digit.",]})
-            if not bool(re.search(r'[a-zA-Z]', Password)):
+            if not bool(search(r'[a-zA-Z]', Password)):
                 raise ValidationError({'Password': ["Password must contain at least 1 letter.",]})
-            if not bool(re.search(r'[~!@#$.%&?^*]', Password)):
+            if not bool(search(r'[~!@#$.%&?^*]', Password)):
                 raise ValidationError({'Password': ["Password must contain at least 1 special character. Acccepted are: ~ ! @ # $ % & ? ^ *",]})
             if Password.isupper() or Password.islower():
                 raise ValidationError({'Password': ["The password must contain upper and lower case letters.",]})
@@ -62,9 +57,8 @@ class BaseUserForm():
             except ObjectDoesNotExist:
                 Exists = False
             if Exists:
-                # print 1
                 raise ValidationError({'email': ['The email is already registered.',]})
-            if not re.match(r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+', Email):
+            if not match(r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+', Email):
                 raise ValidationError({'email': ['Invalid email.',]})
             return Email
 
@@ -74,11 +68,9 @@ class BaseUserForm():
             Exists = True
             try:
                 Person = User.objects.get(email=Email)
-                # print Person
             except ObjectDoesNotExist:
                 Exists = False
             if not Exists:
-                # print 2
                 raise ValidationError({'email': ['The email is already registered.',]})
             if " " in Email:
                 raise ValidationError({'email': ['The Email cannot contain spaces.',]})
@@ -140,12 +132,10 @@ class RegistrationForm(BaseUserForm, ModelForm):
         user.city       = self.cleaned_data['city']
         user.state      = self.cleaned_data['state']
         user.country    = self.cleaned_data['country']
-        if self.cleaned_data['url'] != None:
-            if self.cleaned_data['url'] != '':
-                user.url = self.cleaned_data['url']
-        if self.cleaned_data['photo'] != None:
-            if self.cleaned_data['photo'] != '':
-                user.photo="Profile." + self.cleaned_data['photo'].name.split('.')[-1]
+        if self.cleaned_data['url'] != None and self.cleaned_data['url'] != '':
+            user.url = self.cleaned_data['url']
+        if self.cleaned_data['photo'] != None and self.cleaned_data['photo'] != '':
+            user.photo="Profile." + self.cleaned_data['photo'].name.split('.')[-1]
         user.set_password(self.cleaned_data['Password'])
         if commit:
             user.save()
@@ -156,7 +146,6 @@ class UserForm(BaseUserForm, ModelForm):
     Password2 = CharField(label="Confirm Password",max_length=15,required=False,widget=PasswordInput(attrs={'class':'form-control','name': 'Password2'}))
 
     def clean(self):
-        # print self.fields['first_name'].run_validators(self)
         Pass  = BaseUserForm.clean_2_password(self)
         Url   = BaseUserForm.clean_url(self)
         Email = BaseUserForm.clean_logged_email(self)
@@ -166,16 +155,16 @@ class UserForm(BaseUserForm, ModelForm):
         model   = User
         fields  = ['first_name', 'last_name', 'email', 'organization', 'department', 'city', 'state', 'country', 'url', 'photo']
         widgets = {
-            'email' : EmailInput(attrs={'class': 'form-control', 'name': 'email', 'readonly':'True'}),
-            'first_name' : TextInput(attrs={'class': 'form-control', 'name': 'first_name', 'required' : 'True'}),
-            'last_name' : TextInput(attrs={'class': 'form-control', 'name': 'last_name', 'required' : 'True'}),
+            'email'       : EmailInput(attrs={'class': 'form-control', 'name': 'email', 'readonly':'True'}),
+            'first_name'   : TextInput(attrs={'class': 'form-control', 'name': 'first_name', 'required' : 'True'}),
+            'last_name'    : TextInput(attrs={'class': 'form-control', 'name': 'last_name', 'required' : 'True'}),
             'organization' : TextInput(attrs={'class': 'form-control', 'name': 'Organization', 'required' : 'True'}),
-            'department' : TextInput(attrs={'class':'form-control','name':'department', 'required' : 'True'}),
-            'city' : TextInput(attrs={'class': 'form-control', 'name': 'city', 'required' : 'True'}),
-            'state' :  Select(attrs={'class': 'form-control', 'name': 'state', 'choices' : USA}),
-            'country' : TextInput(attrs={'class': 'form-control', 'name': 'country', 'required' : 'True'}),
-            'url' : TextInput(attrs={'class': 'form-control', 'name': 'Url'}),
-            'photo' : FileInput(attrs={'class': 'form-control', 'name': 'photo', 'accept': 'image/*'}),}
+            'department'   : TextInput(attrs={'class': 'form-control', 'name': 'department', 'required' : 'True'}),
+            'city'         : TextInput(attrs={'class': 'form-control', 'name': 'city', 'required' : 'True'}),
+            'state'        :    Select(attrs={'class': 'form-control', 'name': 'state', 'choices' : USA}),
+            'country'      : TextInput(attrs={'class': 'form-control', 'name': 'country', 'required' : 'True'}),
+            'url'          : TextInput(attrs={'class': 'form-control', 'name': 'Url'}),
+            'photo'        : FileInput(attrs={'class': 'form-control', 'name': 'photo', 'accept': 'image/*'}),}
 
     def save(self,commit=True):
         user = super(UserForm, self).save(commit=False)
@@ -187,13 +176,11 @@ class UserForm(BaseUserForm, ModelForm):
         user.city       = self.cleaned_data['city']
         user.state      = self.cleaned_data['state']
         user.country    = self.cleaned_data['country']
-        if self.cleaned_data['url'] != None:
+        if self.cleaned_data['url'] != None and self.cleaned_data['url'] != '' :
             user.url = self.cleaned_data['url']
-        if self.cleaned_data['photo'] != None:
-            if self.cleaned_data['photo'] != '':
+        if self.cleaned_data['photo'] != None and self.cleaned_data['photo'] != '':
                 user.photo="Profile." + self.cleaned_data['photo'].name.split('.')[-1]
-        if self.cleaned_data['Password'] != '':
-            if self.cleaned_data['Password'] != None:
+        if self.cleaned_data['Password'] != '' and self.cleaned_data['Password'] != None:
                 user.set_password(self.cleaned_data['Password'])        
         if commit:
             user.save()

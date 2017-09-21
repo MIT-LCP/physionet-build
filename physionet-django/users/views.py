@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from django.template import Context, loader, RequestContext
+from django.template import loader, RequestContext #Context
 from django.http import HttpResponse, HttpResponseRedirect 
 from django.contrib import auth, messages
 from .forms import UserForm, LoginForm, RegistrationForm, ResetForm, ResetPassForm
@@ -8,7 +8,6 @@ from django.middleware import csrf
 from django.core.mail import send_mail
 from .models import User, user_action
 from uuid import uuid4
-from time import strftime
 
 DEFAULT_FROM_EMAIL = 'Physionet Help <ftorres@dev.physionet.org>'
 host = 'http://127.0.0.1:8000/' #This is here becuase I use my local computer to test all the things
@@ -27,7 +26,8 @@ def user_home(request):
     try:
         if user.email != request.path.split('/')[2]:#If the user is not who he says he is, redirect him.
             return HttpResponseRedirect('/home/' + user.email)
-    except:#If the URL path is malformed redirect
+    except Exception as e:#If the URL path is malformed redirect
+        print "USER HOME EXCEPTION 1", e
         return HttpResponseRedirect('/home/' + user.email)
     c = RequestContext(request, {'form' : UserForm(instance=user), 'user': user, 'csrf_token': csrf.get_token(request), 'messages': messages.get_messages(request)})
     return HttpResponse(loader.get_template('users/home.html').render(c))
@@ -39,7 +39,6 @@ def login(request):
     if request.method == 'POST':
         form = LoginForm(request.POST) #Assign the information from the post into the form variable
         try:
-            print form, form.is_valid(), "valid"
             if form.is_valid():#Check if the content of the form is valid
                 user = auth.authenticate(email=request.POST['email'], password=request.POST.get('Password'))#If the content is a post, check it can authenticate
                 if user is not None and user.is_active:#If the account is activated and it could be authenticated
@@ -48,9 +47,9 @@ def login(request):
                 else:
                     messages.add_message(request, messages.INFO, "Please verify that the Username/Password is correct, or, that the account is activated.", extra_tags='Login Information')
                     return HttpResponseRedirect('/login')
-            else:
-                messages.add_message(request, messages.INFO, "Please verify that the Username/Password is correct.", extra_tags='Login Information')
+            messages.add_message(request, messages.INFO, "Please verify that the Username/Password is correct.", extra_tags='Login Information')
         except Exception as e:
+            print "LOGIN EXCEPTION 1", e
             messages.add_message(request, messages.INFO, "Please verify that the Username/Password is correct.", extra_tags='Login Information')
     c = RequestContext(request, {'form': LoginForm(), 'csrf_token': csrf.get_token(request), 'messages':messages.get_messages(request), 'login':1})
     return HttpResponse(loader.get_template('users/login.html').render(c))
@@ -73,15 +72,11 @@ def edit(request):
                     instance.photo = form.cleaned_data['photo']
                     instance.save()
                 return HttpResponseRedirect('/home/' + user.email)
-            else:
-                messages.add_message(request, messages.INFO, "There was an error with the information entered, please verify and try again.", extra_tags='Error Submitting')
+            messages.add_message(request, messages.INFO, "There was an error with the information entered, please verify and try again.", extra_tags='Error Submitting')
         except Exception as e:
-            print e
+            print "EDIT EXCEPTION 1", e
             messages.add_message(request, messages.INFO, e, extra_tags='Error Submitting')
-    try:
-        form#If we received the post before, then form will be set
-    except:
-        form = UserForm(instance=user)#If no post request, then initialize the form
+    if 'form' not in locals(): form = UserForm(instance=user)
     c = RequestContext(request, {'form': form, 'user': user, 'csrf_token': csrf.get_token(request), 'messages':messages.get_messages(request), 'edit':1})
     return HttpResponse(loader.get_template('users/user.html').render(c))
 
@@ -106,10 +101,8 @@ def register(request):
             return HttpResponseRedirect('/login/')
         else:
             print form.errors.as_data(), 1
-    try:
-        form #= RegistrationForm(request.POST)#Assign the information from the post into the form variable
-    except:
-        form = RegistrationForm()#If no post request, then initialize the form
+    
+    if 'form' not in locals(): form = RegistrationForm()
     c = RequestContext(request, {'form':form, 'csrf_token': csrf.get_token(request), 'messages': messages.get_messages(request), "register":1})
     return HttpResponse(loader.get_template('users/user.html').render(c))
 
@@ -117,7 +110,8 @@ def activate(request):
     path = request.path.split('/')#Here we split the path to get the UUID and the email to see if the email is activated
     try:#If the EMAIL doesnt exist
         Temp_User = User.objects.get(email=path[3])
-    except:#Redirect the user to registration if the EMAIL doesn't exist
+    except Exception as e:#Redirect the user to registration if the EMAIL doesn't exist
+        print "ACTIVATE EXCEPTION 1", e
         return HttpResponseRedirect('/register/')
     form = LoginForm()#Create the login form
     if not Temp_User.is_active:#If the user is not active, then we check the table for the activation.
@@ -154,7 +148,8 @@ def reset(request):
             Subject = "Password Reset"
             send_mail(Subject, Message, DEFAULT_FROM_EMAIL, [Temp_User], fail_silently=False)#Send the email
             messages.add_message(request, messages.INFO, "An email has been sent to the address entered.", extra_tags='Email Sent')
-        except:#Redirect the user to registration if the EMAIL doesn't exist
+        except Exception as e:#Redirect the user to registration if the EMAIL doesn't exist
+            print "RESET EXCEPTION 1", e
             messages.add_message(request, messages.INFO, "There was an error with he account, please verify the information.", extra_tags='Email Sent')
     else:
         form = ResetForm()
@@ -165,16 +160,17 @@ def reset_password(request):
     path = request.path.split('/')#Here we split the path to get the UUID and the email to see if the email is activated
     try:#If the EMAIL doesn't exist
         Temp_User = User.objects.get(email=path[3])
-    except:#Redirect the user to registration if the EMAIL doesn't exist
+    except Exception as e:#Redirect the user to registration if the EMAIL doesn't exist
+        print "RESET PASSWORD EXCEPTION 1", e
         messages.add_message(request, messages.INFO, "Please verify that the URL was entered properly.", extra_tags='Wrong link')
         return HttpResponseRedirect('/login/')
-    form = LoginForm()#Create the login form
-    Found = reset_password = 0
+    form  = LoginForm()#Create the login form
+    Found = 0
     login = 1
     if Temp_User.is_active: #If the user is not active, then we check the table for the activation.
         for line in user_action.objects.all():#From all the lines in the table of activations:
             if str(line.code) == path[2] and str(line.email) == path[3]:#Check if the UUID and the EMAIL are the same as the URL
-                reset_password = Found = 1#If they are the same mark as found
+                Found = 1#If they are the same mark as found
                 login = 0
                 if request.method == 'POST':
                     form = ResetPassForm(request.POST) #Assign the information from the post into the form variable
@@ -187,8 +183,8 @@ def reset_password(request):
                             messages.add_message(request, messages.INFO, "Password changed successfully.", extra_tags='Password changed.')
                             return HttpResponseRedirect('/login/')
                     except Exception as e:
+                        print "RESET PASSWORD EXCEPTION 2", e
                         messages.add_message(request, messages.INFO, "Please verify that the URL was entered properly.", extra_tags='Wrong link')
-                        print e
                 else:
                     form = ResetPassForm()#Create the login form
     else:
@@ -196,6 +192,6 @@ def reset_password(request):
     if Found == 0:
         messages.add_message(request, messages.INFO, "Please verify that the URL was entered properly.", extra_tags='Wrong link')
 
-    c = RequestContext(request, {'form': form, 'email':path[3], 'uuid':path[2],'csrf_token': csrf.get_token(request), 'messages': messages.get_messages(request), 'login':login, 'reset_password':reset_password})
+    c = RequestContext(request, {'form': form, 'email':path[3], 'uuid':path[2],'csrf_token': csrf.get_token(request), 'messages': messages.get_messages(request), 'login':login, 'reset_password':Found})
     return HttpResponse(loader.get_template('users/login.html').render(c))
 

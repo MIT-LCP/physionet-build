@@ -13,7 +13,6 @@ NON_CONTIGUOUS_STATES = (('AK', 'Alaska'), ('HI', 'Hawaii'))
 US_TERRITORIES = (('AS', 'American Samoa'), ('GU', 'Guam'), ('MP', 'Northern Mariana Islands'), ('PR', 'Puerto Rico'), ('VI', 'Virgin Islands'))
 USA = sorted(CONTIGUOUS_STATES + NON_CONTIGUOUS_STATES + US_TERRITORIES, key=itemgetter(1))
 
-
 # We have to alter the UserManager class in order to make it use email for authentication.
 # Both functions have to be created, create_user (mere mortal) and create_superuser (god like person).
 class UserManager(BaseUserManager):
@@ -33,12 +32,9 @@ def user_directory_path(instance, filename):
     location = 'Users/%s/%s.%s' % (instance.email, "Profile", filename.split('.')[-1])    
     return location
 
+# Function to overwrite of the picture if already exists
 class OverwriteStorage(FileSystemStorage):
     def get_available_name(self, name, max_length=None):
-        """
-        Returns a filename that's free on the target storage system, and
-        available for new content to be written to.
-        """
         # If the filename already exists, remove it as if it was a true file system
         if self.exists(name):
             os.remove(os.path.join(settings.MEDIA_ROOT, name))
@@ -64,7 +60,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     photo = models.ImageField(upload_to=user_directory_path, storage=OverwriteStorage(), default='', blank=True, null=True)
 
     objects = UserManager()
-
 
     def get_full_name(self):
         # The user is identified by their email address

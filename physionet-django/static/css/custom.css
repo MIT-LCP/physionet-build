@@ -20,7 +20,9 @@ footer important{
     padding: 15px;
 }
 
-
+.django-ckeditor-widget {
+  width: 100%;
+}
 
 
 /* For panels with tabs (database index)*/
