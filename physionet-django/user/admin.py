@@ -2,13 +2,13 @@ from django.contrib import admin
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin as DefaultUserAdmin
 
-from .models import User
+from .models import User, Profile
 from .forms import UserCreationForm, UserChangeForm
 
 
 class UserAdmin(DefaultUserAdmin):
     """
-    The class for enabling the django admin interface to 
+    The class for enabling the django admin interface to
     interact with the custom User.
 
     Many fields are inherited from the built-in django
@@ -39,14 +39,16 @@ class UserAdmin(DefaultUserAdmin):
             'fields': ('email', 'password1', 'password2', 'is_admin')}
         ),
     )
-    
+
     search_fields = ('email',)
     ordering = ('email',)
     filter_horizontal = ()
 
 
-# Since we're not using Django's built-in permissions, unregister the Group model from admin.
+# Not using Django's built-in permissions. Unregister the model from admin.
 admin.site.unregister(Group)
 
 # Register the custom User model with the custom UserAdmin model
 admin.site.register(User, UserAdmin)
+
+admin.site.register(Profile)

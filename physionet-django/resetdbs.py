@@ -3,7 +3,7 @@ from subprocess import call
 from django.core.management import execute_from_command_line
 
 from physionet import settings
-from user.models import User
+from user.models import User, Profile
 
 
 installed_apps = [a for a in settings.INSTALLED_APPS if 'django' not in a]
@@ -33,5 +33,14 @@ for app in installed_apps:
     if os.path.isdir(app_fixtures_dir) and os.path.isfile(os.path.join(app_fixtures_dir, app+'.json')):
         execute_from_command_line(['manage.py', 'loaddata', app])
 
-# Create a superuser account
-User.objects.create_superuser(email="tester@mit.edu", password="Tester1!")
+# Create some accounts
+user = User.objects.create_superuser(email="tester@mit.edu", password="Tester1!")
+user.profile = Profile.objects.get(first_name='Tester')
+user.save()
+user = User.objects.create_user(email="rgmark@mit.edu", password="Tester1!")
+user.profile = Profile.objects.get(first_name='Roger Greenwood')
+user.save()
+user = User.objects.create_user(email="george@mit.edu", password="Tester1!")
+user.profile = Profile.objects.get(first_name='George')
+user.save()
+

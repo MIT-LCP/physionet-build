@@ -2,17 +2,19 @@ from django import forms
 from .models import User
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 
+
 class UserCreationForm(forms.ModelForm):
     """A form for creating new users. Includes all the required
     fields, plus a repeated password.
 
     This is a ModelForm which takes attributes from the User model.
     """
-    
+
     # Since password is not a field in the User model, these form fields
     # must be specified here
     password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
-    password2 = forms.CharField(label='Password confirmation', widget=forms.PasswordInput)
+    password2 = forms.CharField(label='Password confirmation',
+                                widget=forms.PasswordInput)
 
     class Meta:
         model = User
@@ -34,6 +36,7 @@ class UserCreationForm(forms.ModelForm):
             user.save()
         return user
 
+
 class UserChangeForm(forms.ModelForm):
     """A form for updating users. Includes all the fields on
     the user, but replaces the password field with admin's
@@ -50,6 +53,7 @@ class UserChangeForm(forms.ModelForm):
         # This is done here, rather than on the field, because the
         # field does not have access to the initial value
         return self.initial["password"]
+
 
 class LoginForm(forms.ModelForm):
     pass
