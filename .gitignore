@@ -1,3 +1,7 @@
+# Django database and migration files
+db.sqlite3
+physionet-django/*/migrations/0*.py
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -1,0 +1,16 @@
+[
+  {
+    "model": "project.Project",
+    "fields": {
+      "title": "MIT-BIH Arrhythmia Database",
+      "slug": "mitdb"
+    }
+  },
+  {
+    "model": "project.Project",
+    "fields": {
+      "title": "MIMIC-III Clinical Database",
+      "slug": "mimic3cdb"
+    }
+  }
+]
