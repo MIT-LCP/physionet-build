@@ -3,14 +3,16 @@
     "model": "project.Project",
     "fields": {
       "title": "MIT-BIH Arrhythmia Database",
-      "slug": "mitdb"
+      "slug": "mitdb",
+      "owner": "tester@mit.edu"
     }
   },
   {
     "model": "project.Project",
     "fields": {
       "title": "MIMIC-III Clinical Database",
-      "slug": "mimic3cdb"
+      "slug": "mimic3cdb",
+      "owner": "rgmark@mit.edu"
     }
   }
 ]

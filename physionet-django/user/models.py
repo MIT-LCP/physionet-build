@@ -30,7 +30,7 @@ class User(AbstractBaseUser):
     """
     The user authentication model
     """
-    email = models.EmailField(max_length=255, unique=True)
+    email = models.EmailField(max_length=255, unique=True, primary_key=True)
     join_date = models.DateField(auto_now_add=True)
     last_login = models.DateField(null=True, blank=True)
     profile = models.OneToOneField('user.Profile', related_name='User', blank=True, null=True)
@@ -87,6 +87,8 @@ class Profile(models.Model):
 
     organization = models.CharField(max_length=100, default='',)
     url = models.URLField(default='', blank=True, null=True)
+
+    identity_verification_date = models.DateField(null=True)
 
     def __str__(self):
         return ' '.join([self.first_name, self.last_name])

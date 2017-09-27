@@ -27,20 +27,22 @@ except:
 execute_from_command_line(['manage.py', 'makemigrations'])
 execute_from_command_line(['manage.py', 'migrate'])
 
+# Create some accounts
+user0 = User.objects.create_superuser(email="tester@mit.edu", password="Tester1!")
+user1 = User.objects.create_user(email="rgmark@mit.edu", password="Tester1!")
+user2 = User.objects.create_user(email="george@mit.edu", password="Tester1!")
+
 # Insert the demo content from the fixtures files
 for app in installed_apps:
     app_fixtures_dir = os.path.join(settings.BASE_DIR, app, 'fixtures')
     if os.path.isdir(app_fixtures_dir) and os.path.isfile(os.path.join(app_fixtures_dir, app+'.json')):
         execute_from_command_line(['manage.py', 'loaddata', app])
 
-# Create some accounts
-user = User.objects.create_superuser(email="tester@mit.edu", password="Tester1!")
-user.profile = Profile.objects.get(first_name='Tester')
-user.save()
-user = User.objects.create_user(email="rgmark@mit.edu", password="Tester1!")
-user.profile = Profile.objects.get(first_name='Roger Greenwood')
-user.save()
-user = User.objects.create_user(email="george@mit.edu", password="Tester1!")
-user.profile = Profile.objects.get(first_name='George')
-user.save()
+user0.profile = Profile.objects.get(first_name='Tester')
+user0.save()
 
+user1.profile = Profile.objects.get(first_name='Roger Greenwood')
+user1.save()
+
+user2.profile = Profile.objects.get(first_name='George')
+user2.save()
