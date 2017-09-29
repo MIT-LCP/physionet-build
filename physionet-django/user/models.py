@@ -82,13 +82,26 @@ class Profile(models.Model):
     https://schema.datacite.org/
     https://schema.datacite.org/meta/kernel-4.0/doc/DataCite-MetadataKernel_v4.0.pdf
     """
-    first_name = models.CharField(max_length=200)
+    first_name = models.CharField(max_length=100)
+    middle_names = models.CharField(max_length=200)
     last_name = models.CharField(max_length=100)
 
-    organization = models.CharField(max_length=100, default='',)
+    affiliations = models.ForeignKey('user.Affiliation', related_name='profile', null=True)
     url = models.URLField(default='', blank=True, null=True)
 
     identity_verification_date = models.DateField(null=True)
 
+    phone = models.CharField(max_length=20, null=True)
+
     def __str__(self):
         return ' '.join([self.first_name, self.last_name])
+
+
+class Affiliation(models.Model):
+    institution = models.CharField(max_length=100)
+    department = models.CharField(max_length=100)
+    address = models.CharField(max_length=100, null=True)
+    city = models.CharField(max_length=100)
+    #country = models.ForeignKey(max_length=100)
+    post_code = models.CharField(max_length=20)
+
