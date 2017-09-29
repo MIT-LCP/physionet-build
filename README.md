@@ -10,7 +10,7 @@ Project URL: https://github.com/MIT-LCP/physionet-build
 - Install python packages in `requirements.txt`.
 - Install sqlite3: `sudo apt-get install sqlite3`
 - Activate virtual environment
-- Within the `physionet-django` directory, run: `python manage.py shell < resetdbs.py`
+- Within the `physionet-django` directory, run: `python manage.py resetdb` to reset the database
 - Within the `physionet-django` directory, run: `python manage.py runserver`
 
 ## Contribution Guidelines
