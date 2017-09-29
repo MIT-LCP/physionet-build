@@ -100,3 +100,7 @@ ENV/
 # Configuration files
 apache2/
 git-deployment/
+
+# OSX .DS_Store
+.DS_Store
+
