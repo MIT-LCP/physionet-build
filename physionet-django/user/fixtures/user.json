@@ -4,7 +4,6 @@
     "fields": {
       "first_name": "Tester",
       "last_name": "Bot",
-      "organization": "MIT",
       "url": "https://github.com/MIT-LCP/physionet-build"
     }
   },
@@ -13,7 +12,6 @@
     "fields": {
       "first_name": "Roger Greenwood",
       "last_name": "Mark",
-      "organization": "MIT",
       "url": "http://imes.mit.edu/people/faculty/mark-roger/"
     }
   },
@@ -22,7 +20,6 @@
     "fields": {
       "first_name": "George",
       "last_name": "Moody",
-      "organization": "MIT",
       "url": "http://ecg.mit.edu/george/"
     }
   }
