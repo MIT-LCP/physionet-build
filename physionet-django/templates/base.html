@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>{% block title %}{% endblock %}</title>
+    
+    {% include "base_css.html" %}
+    {% block local_css %}{% endblock %}
+    
+  </head>
+
+  <body>
+    {% include "navbar.html" %}
+
+    {% block content %}{% endblock %}
+
+    {% include "base_js.html" %}
+    {% block local_js %}{% endblock %}
+
+    {% include 'footer.html' %}
+  </body>
+
+</html>
