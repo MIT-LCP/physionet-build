@@ -16,8 +16,10 @@ Project URL: https://github.com/MIT-LCP/physionet-build
 ## Contribution Guidelines
 
 - Create a branch originating from the `dev` branch, titled after the new feature/change to be implemented.
-- Submit a pull request to the `dev` branch.
 - Follow PEP8 style guidelines: https://www.python.org/dev/peps/pep-0008/
+- After implementing the change on the feature branch, consider updating the unit tests at `physionet-django/tests`.
+- Within the `physionet-django` directory, confirm that tests pass by running `python manage.py test tests`.
+- Submit a pull request to the `dev` branch.
 
 ## Database Content During Development
 
