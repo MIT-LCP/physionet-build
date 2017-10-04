@@ -100,6 +100,6 @@ class Affiliation(models.Model):
     institution = models.CharField(max_length=100)
     department = models.CharField(max_length=100)
     city = models.CharField(max_length=50)
-    #country = models.ForeignKey(max_length=100)
+    country = models.CharField(max_length=100)
     post_code = models.CharField(max_length=20)
 
