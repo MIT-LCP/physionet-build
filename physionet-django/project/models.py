@@ -3,7 +3,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from ckeditor.fields import RichTextField
 
-from user.models import Affiliation
+from user.models import BaseAffiliation
 
 
 class BaseProject(models.Model):
@@ -11,12 +11,12 @@ class BaseProject(models.Model):
     Base class for project models to inherit from
     """
     title = models.CharField(max_length=200, unique=True)
-    slug = models.SlugField(max_length=20, unique=True)
+    slug = models.SlugField(max_length=20, unique=True, null=True)
 
     # Access policy 
     dua = models.ForeignKey('project.DUA', null=True, blank=True, related_name='%(class)s')
     training_course = models.ForeignKey('project.TrainingCourse', null=True, blank=True, related_name='%(class)s')
-    id_verification = models.BooleanField(default=False)
+    id_verification_required = models.BooleanField(default=False)
 
     # Project metadata
     doi = models.CharField(max_length=50, default='')
@@ -55,6 +55,7 @@ class Project(BaseProject):
     status = models.SmallIntegerField(default=0)
 
     owner = models.ForeignKey('user.User', related_name='owned_projects')
+    collaborators = models.ManyToManyField('user.User', related_name='collaborating_projects')
     editor = models.ForeignKey('user.User', related_name='editing_projects', null=True)
     reviewers = models.ManyToManyField('user.User', related_name='reviewing_projects')
 
@@ -67,11 +68,10 @@ class PublishedProject(BaseProject):
 
     size = models.IntegerField()
     release_date = models.DateField(auto_now_add=True)
-    version_number = models.SmallIntegerField()
+    version_number = models.FloatField(default=1.0)
 
 
-
-class AuthorInfo(Affiliation):
+class AuthorInfo(models.Model):
     """
     Data owners/authors. Credited for contributing/owning the data
     
@@ -94,6 +94,10 @@ class AuthorInfo(Affiliation):
     last_name = models.CharField(max_length=100)
 
 
+class AffiliationInfo(BaseAffiliation):
+    author_info = models.ForeignKey('project.AuthorInfo', related_name='affiliations')
+
+
 class ResourceType(models.Model):
     """
     The general resource class of the project
@@ -110,7 +114,8 @@ class Topic(models.Model):
 
 
 class Reference(models.Model):
-    title= models.CharField(max_length=100)
+    title = models.CharField(max_length=100)
+    url = models.URLField()
 
 
 class DUA(models.Model):
