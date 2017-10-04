@@ -95,6 +95,9 @@ class AuthorInfo(models.Model):
 
 
 class AffiliationInfo(BaseAffiliation):
+    """
+    Author affiliation snapshot upon project publication.
+    """
     author_info = models.ForeignKey('project.AuthorInfo', related_name='affiliations')
 
 
