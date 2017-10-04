@@ -93,13 +93,26 @@ class Profile(models.Model):
         return ' '.join([self.first_name, self.last_name])
 
 
-class Affiliation(models.Model):
-
-    profile = models.ForeignKey('user.Profile', related_name='affiliations')
-
+class BaseAffiliation(models.Model):
+    """
+    Base class inherited by profile affiliations and static snapshot
+    affiliation info.
+    """
+    order = models.SmallIntegerField(default=0)
     institution = models.CharField(max_length=100)
     department = models.CharField(max_length=100)
     city = models.CharField(max_length=50)
     country = models.CharField(max_length=100)
     post_code = models.CharField(max_length=20)
+    
+    class Meta:
+        abstract = True
+
+class Affiliation(BaseAffiliation):
+    """
+    Affiliations belonging to a profile.
+    """
+    profile = models.ForeignKey('user.Profile', related_name='affiliations')
+
+
 
