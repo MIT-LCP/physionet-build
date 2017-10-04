@@ -33,7 +33,7 @@ class User(AbstractBaseUser):
     email = models.EmailField(max_length=255, unique=True, primary_key=True)
     join_date = models.DateField(auto_now_add=True)
     last_login = models.DateField(null=True, blank=True)
-    profile = models.OneToOneField('user.Profile', related_name='User', blank=True, null=True)
+    profile = models.OneToOneField('user.Profile', related_name='user', blank=True, null=True)
 
     # Mandatory fields for the default authentication backend
     is_active = models.BooleanField(default=True)
@@ -82,15 +82,11 @@ class Profile(models.Model):
     https://schema.datacite.org/
     https://schema.datacite.org/meta/kernel-4.0/doc/DataCite-MetadataKernel_v4.0.pdf
     """
-    first_name = models.CharField(max_length=100)
-    middle_names = models.CharField(max_length=200)
-    last_name = models.CharField(max_length=100)
-
-    affiliations = models.ForeignKey('user.Affiliation', related_name='profile', null=True)
+    first_name = models.CharField(max_length=50)
+    middle_names = models.CharField(max_length=150)
+    last_name = models.CharField(max_length=50)
     url = models.URLField(default='', blank=True, null=True)
-
     identity_verification_date = models.DateField(null=True)
-
     phone = models.CharField(max_length=20, null=True)
 
     def __str__(self):
@@ -98,10 +94,12 @@ class Profile(models.Model):
 
 
 class Affiliation(models.Model):
+
+    profile = models.ForeignKey('user.Profile', related_name='affiliations')
+
     institution = models.CharField(max_length=100)
     department = models.CharField(max_length=100)
-    address = models.CharField(max_length=100, null=True)
-    city = models.CharField(max_length=100)
-    #country = models.ForeignKey(max_length=100)
+    city = models.CharField(max_length=50)
+    country = models.CharField(max_length=100)
     post_code = models.CharField(max_length=20)
 
