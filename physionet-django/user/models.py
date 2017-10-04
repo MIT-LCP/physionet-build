@@ -95,7 +95,8 @@ class Profile(models.Model):
 
 class BaseAffiliation(models.Model):
     """
-    Class to import the affiliation in both user profile and projects.
+    Base class inherited by profile affiliations and static snapshot
+    affiliation info.
     """
     order = models.SmallIntegerField(default=0)
     institution = models.CharField(max_length=100)
@@ -109,7 +110,7 @@ class BaseAffiliation(models.Model):
 
 class Affiliation(BaseAffiliation):
     """
-    Affiliations belonging profile.
+    Affiliations belonging to a profile.
     """
     profile = models.ForeignKey('user.Profile', related_name='affiliations')
 
