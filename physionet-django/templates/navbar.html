@@ -25,6 +25,11 @@
 
     </ul>
     <form class="form-inline mt-2 mt-md-0">
+    {% if user.is_authenticated %}
+      <ul class="navbar-nav"><li class='nav-item'><a class="nav-link btn" href="/logout">Logout</a></li></ul>
+    {% else %}      
+      <ul class="navbar-nav"><li class='nav-item'><a class="nav-link btn" href="/login">Login</a></li></ul>
+    {% endif %}
       <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
       <button class="btn my-2 my-sm-0" type="submit">Search</button>
     </form>
