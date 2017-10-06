@@ -1,9 +1,7 @@
+from django.template import loader, RequestContext
+from django.contrib import messages
 from django.http import HttpResponse, Http404
-from django.template.loader import get_template
-
 
 def home(request):
-
-    template = get_template('home.html')
-    html = template.render()
-    return HttpResponse(html)
+    c = RequestContext(request, {'user': request.user, 'messages': messages.get_messages(request)})
+    return HttpResponse(loader.get_template('home.html').render(c))

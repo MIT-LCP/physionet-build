@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+PhysioNet
+{% endblock %}
+
+
+{% block local_css %}
+{% endblock %}
+
+
+{% block content %}
+{% if user.is_authenticated %}
+<h1 align="center">Hi {{user.profile.first_name}} {{user.profile.middle_name}} {{user.profile.last_name}}</h1>
+{% endif %}
+{% endblock %}
+
+
+{% block local_js %}
+{% endblock %}

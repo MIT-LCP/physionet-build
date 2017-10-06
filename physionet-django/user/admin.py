@@ -21,16 +21,15 @@ class UserAdmin(DefaultUserAdmin):
     add_form = UserCreationForm
 
     # The fields to be used in displaying the User model.
-    list_display = ('email', 'is_admin')
+    list_display = ('email', 'is_admin', 'profile')
     list_filter = ('is_admin',)
 
     # Controls the layout of 'add' and 'change' pages.
     # List of tuple pairs. Element 1 is name, 2 is dict of field options.
     # For editing users
     fieldsets = (
-        (None, {'fields': ('email', 'password', 'is_admin')}),
+        (None, {'fields': ('email', 'password', 'is_admin', 'is_active', 'profile', 'last_login', 'join_date')}),
     )
-
     # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
     # overrides get_fieldsets to use this attribute when creating a user.
     add_fieldsets = (
@@ -43,6 +42,7 @@ class UserAdmin(DefaultUserAdmin):
     search_fields = ('email',)
     ordering = ('email',)
     filter_horizontal = ()
+    readonly_fields = ('join_date',)
 
 
 # Not using Django's built-in permissions. Unregister the model from admin.
