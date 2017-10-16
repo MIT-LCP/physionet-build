@@ -1,6 +1,6 @@
 from django import forms
 from .models import User
-from django.contrib.auth.forms import ReadOnlyPasswordHashField
+from django.contrib.auth.forms import ReadOnlyPasswordHashField, AuthenticationForm, UsernameField
 
 
 class UserCreationForm(forms.ModelForm):
@@ -55,5 +55,18 @@ class UserChangeForm(forms.ModelForm):
         return self.initial["password"]
 
 
-class LoginForm(forms.ModelForm):
-    pass
+class LoginForm(AuthenticationForm):
+    """
+    Form for logging in.
+    """
+    username = UsernameField(
+        max_length=254,
+        widget=forms.TextInput(attrs={'autofocus': True, 'class':'form-control', 'placeholder':'Email Address'}),
+    )
+    password = forms.CharField(
+        label= 'Password',
+        strip=False,
+        widget=forms.PasswordInput(attrs={'class':'form-control', 'placeholder':'Password'}),
+    )
+
+    remember = forms.BooleanField(label='Remember Me', required=False)

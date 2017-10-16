@@ -1,15 +1,12 @@
-
-
-<!-- <link href="navbar-top.css" rel="stylesheet"> -->
-
-
 <nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
-  <a class="navbar-brand" href="#">PhysioNet</a>
+  <a class="navbar-brand" href="/">Physionet</a>
   <div class="collapse navbar-collapse" id="navbarCollapse">
+
     <ul class="navbar-nav mr-auto">
       <li class="nav-item active">
-        <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+        <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
       </li>
+    
       <li class="nav-item">
         <a class="nav-link" href="#">Link</a>
       </li>
@@ -22,12 +19,29 @@
           <a class="dropdown-item" href="#">Something else here</a>
         </div>
       </li>
-
     </ul>
+
     <form class="form-inline mt-2 mt-md-0">
       <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
-      <button class="btn my-2 my-sm-0" type="submit">Search</button>
     </form>
+
+    <ul class="navbar-nav">
+      <li class="nav-item active dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="account_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i class="fa fa-user"></i> Account</a>
+        <div class="dropdown-menu" aria-labelledby="account_dropdown">
+          {% if user.is_authenticated %}
+            <a class="dropdown-item" href="/users/{{ user.get_username }}/">Profile</a>
+            <a class="dropdown-item" href="/settings/profile/">Settings</a>
+            <a class="dropdown-item" href="/logout/">Logout</a>
+          {% else %}
+            <a class="dropdown-item" href="/login/">Login</a>
+            <a class="dropdown-item" href="/register/">Register</a>
+          {% endif %}
+        </div>
+      </li>
+    </ul>
+
   </div>
 </nav>
 

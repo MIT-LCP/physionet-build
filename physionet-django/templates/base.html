@@ -1,11 +1,12 @@
+<!-- The base template used for the site -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <title>{% block title %}{% endblock %}</title>
-    
+
     {% include "base_css.html" %}
     {% block local_css %}{% endblock %}
-    
+    {% block local_js_top %}{% endblock %}
   </head>
 
   <body>
@@ -14,7 +15,7 @@
     {% block content %}{% endblock %}
 
     {% include "base_js.html" %}
-    {% block local_js %}{% endblock %}
+    {% block local_js_bottom %}{% endblock %}
 
     {% include 'footer.html' %}
   </body>
