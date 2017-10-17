@@ -17,6 +17,7 @@ Login
     <form action="{% url 'login' %}" method="post" class="form-signin">
         <h2 class="form-signin-heading">Account Login</h2>
         {% csrf_token %}
+
         {{ form.username }}
         {{ form.password }}
         {% for error in form.non_field_errors %}
@@ -25,7 +26,7 @@ Login
             </div>
         {% endfor %}
         <div class="checkbox">
-        <label>{{ form.remember }} {{ form.remember.label }}</label><a href="{% url 'resetpassword' %}" style="float:right">Forgot password</a>
+        <label>{{ form.remember }} {{ form.remember.label }}</label><a href="{% url 'password_reset' %}" style="float:right">Forgot password</a>
         </div>
     
         <button class="btn btn-lg btn-primary btn-block" type="submit">Log In</button>

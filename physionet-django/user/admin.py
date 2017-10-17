@@ -28,7 +28,7 @@ class UserAdmin(DefaultUserAdmin):
     # List of tuple pairs. Element 1 is name, 2 is dict of field options.
     # For editing users
     fieldsets = (
-        (None, {'fields': ('email', 'password', 'is_admin')}),
+        (None, {'fields': ('email', 'password', 'is_admin', 'last_login', 'is_active')}),
     )
 
     # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
