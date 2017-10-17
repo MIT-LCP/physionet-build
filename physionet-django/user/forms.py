@@ -6,19 +6,26 @@ from django.contrib.auth.forms import ReadOnlyPasswordHashField, AuthenticationF
 class UserCreationForm(forms.ModelForm):
     """A form for creating new users. Includes all the required
     fields, plus a repeated password.
-
-    This is a ModelForm which takes attributes from the User model.
     """
 
-    # Since password is not a field in the User model, these form fields
-    # must be specified here
-    password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
-    password2 = forms.CharField(label='Password confirmation',
-                                widget=forms.PasswordInput)
+    first_name = forms.CharField(max_length = 30, label='First Name',
+                    widget=forms.TextInput(attrs={'class':'form-control'}))
+    middle_names = forms.CharField(max_length = 100, label='Middle Names',
+                    widget=forms.TextInput(attrs={'class':'form-control'}),
+                    required=False)
+    last_name = forms.CharField(max_length = 30, label='Last Name',
+                    widget=forms.TextInput(attrs={'class':'form-control'}))
+    password1 = forms.CharField(label='Password',
+                    widget=forms.PasswordInput(attrs={'class':'form-control'}))
+    password2 = forms.CharField(label='Password Confirmation',
+                    widget=forms.PasswordInput(attrs={'class':'form-control'}))
 
     class Meta:
         model = User
         fields = ('email',)
+        widgets = {
+            'email':forms.EmailInput(attrs={'class':'form-control dropemail'}),
+        }
 
     def clean_password2(self):
         # Check that the two password entries match
@@ -33,7 +40,13 @@ class UserCreationForm(forms.ModelForm):
         user = super(UserCreationForm, self).save(commit=False)
         user.set_password(self.cleaned_data["password1"])
         if commit:
+            # This should trigger profile creation
             user.save()
+            # Save additional fields in Profile model
+            user.profile.first_name = self.cleaned_data.get("first_name")
+            user.profile.middle_names = self.cleaned_data.get("middle_names")
+            user.profile.last_name = self.cleaned_data.get("last_name")
+            user.profile.save()
         return user
 
 

@@ -11,11 +11,11 @@ from django.core.management.base import BaseCommand, CommandError
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
-        installed_apps = [a for a in settings.INSTALLED_APPS if 'django' not in a]
+        installed_apps = [a for a in settings.INSTALLED_APPS if not any(noncustom in a for noncustom in ['django', 'ckeditor'])]
         self.deletedb(installed_apps)
         user0,user1,user2 = self.createusers(installed_apps)
         self.loadfixtures(installed_apps)
-        self.adduserprofiles(user0,user1,user2)
+        #self.adduserprofiles(user0,user1,user2)
 
     def remove_migration_files(self,app):
         '''Remove all python migration files from registered apps'''
@@ -50,6 +50,10 @@ class Command(BaseCommand):
         user0 = User.objects.create_superuser(email="tester@mit.edu", password="Tester1!")
         user1 = User.objects.create_user(email="rgmark@mit.edu", password="Tester1!")
         user2 = User.objects.create_user(email="george@mit.edu", password="Tester1!")
+        # Delete the empty profiles created from triggers
+        user0.profile.delete()
+        user1.profile.delete()
+        user2.profile.delete()
 
         return user0,user1,user2
 
@@ -63,15 +67,3 @@ class Command(BaseCommand):
             management.call_command('loaddata', app, verbosity=1)
 
 
-    def adduserprofiles(self,user0,user1,user2):
-        """
-        Add user profiles
-        """
-        user0.profile = Profile.objects.get(first_name='Tester')
-        user0.save()
-
-        user1.profile = Profile.objects.get(first_name='Roger Greenwood')
-        user1.save()
-
-        user2.profile = Profile.objects.get(first_name='George')
-        user2.save()
