@@ -1,10 +1,10 @@
 <nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
-  <a class="navbar-brand" href="/">Physionet</a>
+  <a class="navbar-brand" href="{% url 'home' %}">Physionet</a>
   <div class="collapse navbar-collapse" id="navbarCollapse">
 
     <ul class="navbar-nav mr-auto">
       <li class="nav-item active">
-        <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+        <a class="nav-link" href="{% url 'home' %}">Home <span class="sr-only">(current)</span></a>
       </li>
     
       <li class="nav-item">
@@ -31,12 +31,12 @@
           <i class="fa fa-user"></i> Account</a>
         <div class="dropdown-menu" aria-labelledby="account_dropdown">
           {% if user.is_authenticated %}
-            <a class="dropdown-item" href="/users/{{ user.get_username }}/">Profile</a>
-            <a class="dropdown-item" href="/settings/profile/">Settings</a>
-            <a class="dropdown-item" href="/logout/">Logout</a>
+            <a class="dropdown-item" href="{% url 'public_profile' user.get_username %}">Profile</a>
+            <a class="dropdown-item" href="{% url 'edit_profile' %}">Settings</a>
+            <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
           {% else %}
-            <a class="dropdown-item" href="/login/">Login</a>
-            <a class="dropdown-item" href="/register/">Register</a>
+            <a class="dropdown-item" href="{% url 'login' %}">Login</a>
+            <a class="dropdown-item" href="{% url 'register' %}">Register</a>
           {% endif %}
         </div>
       </li>

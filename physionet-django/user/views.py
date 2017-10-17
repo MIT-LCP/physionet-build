@@ -4,7 +4,6 @@ from django.middleware import csrf
 from django.shortcuts import render
 from django.urls import reverse
 
-
 from .forms import UserCreationForm
 
 @login_required
@@ -43,3 +42,24 @@ def register_done(request, email):
     Page shown after registration is complete
     """
     return render(request, 'user/register_done.html', {'email':email})
+
+
+def reset_password(request):
+    """
+    Placeholder to clean up templates. Please replace when ready!
+    """
+    pass
+
+
+def edit_profile(request):
+    """
+    Placeholder to clean up templates. Please replace when ready!
+    """
+    pass
+
+
+def public_profile(request):
+    """
+    Placeholder to clean up templates. Please replace when ready!
+    """
+    pass
