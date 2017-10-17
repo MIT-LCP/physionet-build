@@ -11,6 +11,7 @@ urlpatterns = [
         authentication_form=LoginForm,
         redirect_authenticated_user=True), name='login'),
     url(r'^logout/$', LogoutView.as_view(), name='logout'),
+    url(r'^register/$', views.register, name='register'),
     # Individual home page/dashboard
     url(r'^home/$', views.user_home, name='userhome'),
 

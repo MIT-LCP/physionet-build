@@ -1,6 +1,7 @@
-from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-
+from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 class UserManager(BaseUserManager):
     """
@@ -33,7 +34,6 @@ class User(AbstractBaseUser):
     email = models.EmailField(max_length=255, unique=True, primary_key=True)
     join_date = models.DateField(auto_now_add=True)
     last_login = models.DateField(null=True, blank=True)
-    profile = models.OneToOneField('user.Profile', related_name='user', blank=True, null=True)
 
     # Mandatory fields for the default authentication backend
     is_active = models.BooleanField(default=True)
@@ -82,15 +82,29 @@ class Profile(models.Model):
     https://schema.datacite.org/
     https://schema.datacite.org/meta/kernel-4.0/doc/DataCite-MetadataKernel_v4.0.pdf
     """
-    first_name = models.CharField(max_length=50)
-    middle_names = models.CharField(max_length=150)
-    last_name = models.CharField(max_length=50)
+    user = models.OneToOneField('user.User', related_name='profile')
+
+    first_name = models.CharField(max_length=30)
+    middle_names = models.CharField(max_length=100, blank=True, default='')
+    last_name = models.CharField(max_length=30)
     url = models.URLField(default='', blank=True, null=True)
-    identity_verification_date = models.DateField(null=True)
-    phone = models.CharField(max_length=20, null=True)
+    identity_verification_date = models.DateField(blank=True, null=True)
+    phone = models.CharField(max_length=20, blank=True, default='')
 
     def __str__(self):
         return ' '.join([self.first_name, self.last_name])
+
+
+@receiver(post_save, sender=User)
+def create_profile(sender, **kwargs):
+    """
+    The receiver function for receiving post_save signals of User objects.
+    Creates and attaches an empty Profile when a User object is created.
+    """
+    user = kwargs["instance"]
+    if kwargs["created"]:
+        profile = Profile(user=user)
+        profile.save()
 
 
 class BaseAffiliation(models.Model):
