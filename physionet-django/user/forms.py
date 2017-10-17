@@ -70,3 +70,14 @@ class LoginForm(AuthenticationForm):
     )
 
     remember = forms.BooleanField(label='Remember Me', required=False)
+
+class ResetForm(AuthenticationForm):
+    """
+    Form to reset the password.
+    """
+    email = forms.EmailField(
+        label='Email',
+        max_length=254,
+        widget=forms.TextInput(attrs={'autofocus': True, 'class':'form-control', 'placeholder':'Email Address'}),
+    )
+
