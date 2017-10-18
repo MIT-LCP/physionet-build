@@ -26,8 +26,9 @@ build:
     # npm mirrors can sometimes be flacky, better to use shippable_retry
     # http://docs.shippable.com/ci/advancedOptions/retry/
     - "pip install -r requirements.txt"
-    - "cd physionet-django; ./manage.py test tests --verbosity=3"
-
+    - "cd physionet-django"
+    - "./manage.py resetdb"
+    - "./manage.py test tests --verbosity=3"
 
 # Integrations are used to connect external resources to CI
 # http://docs.shippable.com/integrations/overview/
