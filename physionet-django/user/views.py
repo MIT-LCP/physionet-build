@@ -37,11 +37,15 @@ def register(request):
             uid     = urlsafe_base64_encode(force_bytes(user.pk))
             token   = default_token_generator.make_token(user)
             Subject = "Activate the account"
-            Message = """An account has been created\n\r please activate the 
-            account by clicking or copy pasting the following link in the URL of
-             the web browser\n\r\n\r http://{0}/activate/{1}/{2}\n\r\n\rThanks!""".format(request.META['HTTP_HOST'], uid, token)
+            Message = """Dear {0} {1} {2}, 
+            An account has been created for you on PhysioNet.\n\r 
+            Please activate the account by clicking or copy pasting the 
+            following link in the URL of the web browser\n\r\n\r 
+            http://{3}/activate/{4}/{5}\n\r\n\rThanks!""".format(
+                user.profile.first_name, user.profile.middle_names, 
+                user.profile.last_name, request.META['HTTP_HOST'], uid, token)
             send_mail(Subject, Message, settings.DEFAULT_FROM_EMAIL, 
-                [request.POST['email']], fail_silently=False)
+                [form.cleaned_data['email']], fail_silently=False)
             # To do: send the activation email
 
             return register_done(request, email=user.email)
