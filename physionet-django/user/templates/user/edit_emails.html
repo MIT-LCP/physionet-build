@@ -1,0 +1,14 @@
+{% extends "user/settings.html" %}
+
+{% block title %}
+Edit Emails
+{% endblock %}
+
+{% block form %}
+<form action="{% url 'edit_emails' %}" method="post" class="form-signin">
+  <h2 class="form-signin-heading">Emails</h2>
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button class="btn btn-lg btn-primary btn-block" type="submit">Edit Emails</button>
+</form>
+{% endblock %}

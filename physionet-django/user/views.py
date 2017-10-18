@@ -1,23 +1,18 @@
-from django.contrib.auth.tokens import default_token_generator
-from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseRedirect
-from django.middleware import csrf
-from django.shortcuts import render, resolve_url
-from django.urls import reverse
-from django.core.mail import send_mail
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes, force_text
+from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import PasswordResetConfirmView
+from django.contrib.auth.decorators import login_required
+from django.utils.encoding import force_bytes, force_text
+from .forms import UserCreationForm, ProfileForm
+from django.shortcuts import render, resolve_url
+from django.forms import inlineformset_factory
+from django.http import HttpResponseRedirect
+from django.core.mail import send_mail
 from django.contrib import messages
+from django.middleware import csrf
+from .models import User, Profile
 from django.conf import settings
-
-from .forms import UserCreationForm
-
-from .models import User
-
-
-host = 'http://127.0.0.1:8000/' #This is here becuase I use my local computer to test all the things
-
+from django.urls import reverse
 
 @login_required
 def user_home(request):
@@ -32,7 +27,7 @@ def register(request):
     """
     user = request.user
     if user.is_authenticated():
-        return HttpResponseRedirect(reverse('userhome'))
+        return HttpResponseRedirect(reverse('user_home'))
 
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
@@ -80,3 +75,44 @@ def activate_user(request, *args, **kwargs):
 
     return render(request, 'user/registration_complete.html', {'messages': messages.get_messages(request)})
 
+
+@login_required
+def edit_profile(request):
+    """
+    Edit the profile fields
+    """
+    user = request.user
+    form = ProfileForm(instance=user.profile)
+
+    if request.method == 'POST':
+        # Update the profile and return to the same page. Place a message
+        # at the top of the page: 'your profile has been updated'
+        pass
+    else:
+        return render(request, 'user/edit_profile.html',
+            {'user':user, 'form':form,
+             'csrf_token':csrf.get_token(request)})
+
+
+@login_required
+def edit_password(request):
+    """
+    Edit password page
+    """
+    user = request.user
+    pass
+
+
+@login_required
+def edit_emails(request):
+    """
+    Edit emails page
+    """
+    pass
+
+
+def public_profile(request, email):
+    """
+    Placeholder to clean up templates. Please replace when ready!
+    """
+    return render(request, 'user/public_profile.html', {'email':email})

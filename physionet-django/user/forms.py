@@ -1,7 +1,8 @@
-from django import forms
-from .models import User
 from django.contrib.auth import forms as auth_forms
-from django.contrib.auth import  password_validation
+from django.contrib.auth import password_validation
+from .models import User, Profile
+from django import forms
+
 
 class UserCreationForm(forms.ModelForm):
     """A form for creating new users. Includes all the required
@@ -112,3 +113,26 @@ class SetResetPasswordForm(auth_forms.SetPasswordForm):
         strip=False,
         widget=forms.PasswordInput(attrs={'autofocus': True, 'class':'form-control', 'placeholder':'Password'}),
     )
+
+class ProfileForm(forms.ModelForm):
+    """
+    For editing the profile
+    """
+    class Meta:
+        model = Profile
+        exclude = ('user', 'identity_verification_date')
+        widgets = {
+            'first_name':forms.TextInput(attrs={'class':'form-control'}),
+            'middle_names':forms.TextInput(attrs={'class':'form-control'}),
+            'last_name':forms.TextInput(attrs={'class':'form-control'}),
+            'url':forms.TextInput(attrs={'class':'form-control'}),
+            'phone':forms.TextInput(attrs={'class':'form-control'}),
+        }
+
+    #     first_name = models.CharField(max_length=30)
+    # middle_names = models.CharField(max_length=100, blank=True, default='')
+    # last_name = models.CharField(max_length=30)
+    # url = models.URLField(default='', blank=True, null=True)
+    # identity_verification_date = models.DateField(blank=True, null=True)
+    # phone = models.CharField(max_length=20, blank=True, default='')
+
