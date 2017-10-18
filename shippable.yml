@@ -23,8 +23,6 @@ build:
 
   # http://docs.shippable.com/ci/shippableyml/#ci
   ci:
-    # npm mirrors can sometimes be flacky, better to use shippable_retry
-    # http://docs.shippable.com/ci/advancedOptions/retry/
     - "pip install -r requirements.txt"
     - "cd physionet-django"
     - "./manage.py resetdb"
