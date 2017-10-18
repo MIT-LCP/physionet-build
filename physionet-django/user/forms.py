@@ -1,5 +1,5 @@
 from django import forms
-from .models import User
+from .models import User, Profile
 from django.contrib.auth.forms import ReadOnlyPasswordHashField, AuthenticationForm, UsernameField
 
 
@@ -83,3 +83,26 @@ class LoginForm(AuthenticationForm):
     )
 
     remember = forms.BooleanField(label='Remember Me', required=False)
+
+
+class ProfileForm(forms.ModelForm):
+    """
+    For editing the profile
+    """
+    class Meta:
+        model = Profile
+        exclude = ('user', 'identity_verification_date')
+        widgets = {
+            'first_name':forms.TextInput(attrs={'class':'form-control'}),
+            'middle_names':forms.TextInput(attrs={'class':'form-control'}),
+            'last_name':forms.TextInput(attrs={'class':'form-control'}),
+            'url':forms.TextInput(attrs={'class':'form-control'}),
+            'phone':forms.TextInput(attrs={'class':'form-control'}),
+        }
+
+    #     first_name = models.CharField(max_length=30)
+    # middle_names = models.CharField(max_length=100, blank=True, default='')
+    # last_name = models.CharField(max_length=30)
+    # url = models.URLField(default='', blank=True, null=True)
+    # identity_verification_date = models.DateField(blank=True, null=True)
+    # phone = models.CharField(max_length=20, blank=True, default='')

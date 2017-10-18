@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+Public Profile
+{% endblock %}
+
+
+{% block local_css %}
+{% endblock %}
+
+
+{% block content %}
+<div class="container">
+    <p>Public profile for {{ user.get_username }}</p>
+</div>
+{% endblock %}

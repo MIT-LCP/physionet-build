@@ -16,7 +16,11 @@ urlpatterns = [
     url(r'^resetpassword/$', views.reset_password, name='reset_password'),
     
     url(r'^home/$', views.user_home, name='user_home'),
+
+    url(r'^settings/$', views.edit_profile, name='settings'),
     url(r'^settings/profile/$', views.edit_profile, name='edit_profile'),
+    url(r'^settings/password/$', views.edit_password, name='edit_password'),
+    url(r'^settings/emails/$', views.edit_emails, name='edit_emails'),
 
     url(r'^users/(?P<email>[\w\-\.]+@[\w\-\.]+)/$', views.public_profile,
         name='public_profile'),
