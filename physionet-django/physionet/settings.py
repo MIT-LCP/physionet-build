@@ -131,8 +131,8 @@ USE_TZ = True
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = '192.168.11.160'
 EMAIL_PORT = 25
-EMAIL_HOST_USER = ''
-EMAIL_HOST_PASSWORD = ''
+# EMAIL_HOST_USER = ''
+# EMAIL_HOST_PASSWORD = ''
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = 'Physionet Help <help@dev.physionet.org>'
 

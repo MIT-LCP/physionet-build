@@ -33,10 +33,10 @@ class User(AbstractBaseUser):
     """
     email = models.EmailField(max_length=255, unique=True, primary_key=True)
     join_date = models.DateField(auto_now_add=True)
-    last_login = models.DateField(null=True, blank=True)
+    last_login = models.DateTimeField(null=True, blank=True)
 
     # Mandatory fields for the default authentication backend
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
     USERNAME_FIELD = 'email'
     EMAIL_FIELD = 'email'

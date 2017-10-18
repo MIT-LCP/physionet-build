@@ -1,7 +1,7 @@
 from django import forms
 from .models import User
-from django.contrib.auth.forms import ReadOnlyPasswordHashField, AuthenticationForm, UsernameField, PasswordResetForm
-
+from django.contrib.auth import forms as auth_forms
+from django.contrib.auth import  password_validation
 
 class UserCreationForm(forms.ModelForm):
     """A form for creating new users. Includes all the required
@@ -33,6 +33,8 @@ class UserCreationForm(forms.ModelForm):
         password2 = self.cleaned_data.get("password2")
         if password1 and password2 and password1 != password2:
             raise forms.ValidationError("Passwords don't match")
+        self.instance.username = self.cleaned_data.get('username')
+        password_validation.validate_password(self.cleaned_data.get('password2'), self.instance)
         return password2
 
     def save(self, commit=True):
@@ -55,7 +57,7 @@ class UserChangeForm(forms.ModelForm):
     the user, but replaces the password field with admin's
     password hash display field.
     """
-    password = ReadOnlyPasswordHashField()
+    password = auth_forms.ReadOnlyPasswordHashField()
 
     class Meta:
         model = User
@@ -68,11 +70,11 @@ class UserChangeForm(forms.ModelForm):
         return self.initial["password"]
 
 
-class LoginForm(AuthenticationForm):
+class LoginForm(auth_forms.AuthenticationForm):
     """
     Form for logging in.
     """
-    username = UsernameField(
+    username = auth_forms.UsernameField(
         label='Email',
         max_length=254,
         widget=forms.TextInput(attrs={'autofocus': True, 'class':'form-control', 'placeholder':'Email Address'}),
@@ -85,9 +87,9 @@ class LoginForm(AuthenticationForm):
 
     remember = forms.BooleanField(label='Remember Me', required=False)
 
-class ResetForm(PasswordResetForm):
+class ResetForm(auth_forms.PasswordResetForm):
     """
-    Form to reset the password.
+    Form to send the email to reset the password.
     """
     email = forms.EmailField(
         label='Email',
@@ -95,3 +97,18 @@ class ResetForm(PasswordResetForm):
         widget=forms.TextInput(attrs={'autofocus': True, 'class':'form-control', 'placeholder':'Email Address'}),
     )
 
+class SetResetPasswordForm(auth_forms.SetPasswordForm):
+    """
+    Form to reset the password.
+    """
+    new_password1 = forms.CharField(
+        label="New password",
+        widget=forms.PasswordInput(attrs={'autofocus': True, 'class':'form-control', 'placeholder':'Password'}),
+        strip=False,
+        help_text=password_validation.password_validators_help_text_html(),
+    )
+    new_password2 = forms.CharField(
+        label="New password confirmation",
+        strip=False,
+        widget=forms.PasswordInput(attrs={'autofocus': True, 'class':'form-control', 'placeholder':'Password'}),
+    )
