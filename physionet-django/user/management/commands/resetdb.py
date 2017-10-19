@@ -11,7 +11,7 @@ from django.core.management.base import BaseCommand, CommandError
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
-        installed_apps = [a for a in settings.INSTALLED_APPS if 'django' not in a]
+        installed_apps = [a for a in settings.INSTALLED_APPS if not any(noncustom in a for noncustom in ['django', 'ckeditor'])]
         self.deletedb(installed_apps)
         user0,user1,user2 = self.createusers(installed_apps)
         self.loadfixtures(installed_apps)
