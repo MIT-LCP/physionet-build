@@ -23,7 +23,6 @@ class UserManager(BaseUserManager):
             password=password,
         )
         user.is_admin = True
-        user.is_active = True
         user.save(using=self._db)
         return user
 
@@ -47,7 +46,7 @@ class User(AbstractBaseUser):
 
     # Mandatory methods for default authentication backend
     def get_full_name(self):
-        if self.profile.middle_name:
+        if self.profile.middle_names:
             return ' '.join([self.profile.first_name, self.profile.last_name])
         else:
             return ' '.join([self.profile.first_name, self.profile.middle_names,

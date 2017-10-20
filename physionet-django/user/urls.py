@@ -31,7 +31,7 @@ urlpatterns = [
 
     # Page shown after reset email has been sent
     url(r'^resetpassword/sent/$', auth_views.PasswordResetDoneView.as_view(
-        template_name='user/reset_password_sent.html'), 
+        template_name='user/reset_password_sent.html'),
         name='reset_password_sent'),
 
     # Prompt user to enter new password and carry out password reset (if url is valid)
@@ -48,7 +48,7 @@ urlpatterns = [
         name='reset_password_done'),
 
     # Settings
-    url(r'^settings/$', views.settings, name='settings'),
+    url(r'^settings/$', views.user_settings, name='user_settings'),
     url(r'^settings/profile/$', views.edit_profile, name='edit_profile'),
     url(r'^settings/password/$', views.edit_password, name='edit_password'),
     url(r'^settings/emails/$', views.edit_emails, name='edit_emails'),

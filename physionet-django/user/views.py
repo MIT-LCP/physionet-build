@@ -1,19 +1,22 @@
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import PasswordResetConfirmView
-from django.contrib.auth.decorators import login_required
-from django.utils.encoding import force_bytes, force_text
-from django.shortcuts import render, resolve_url
+from django.contrib.sites.shortcuts import get_current_site
+from django.core.mail import send_mail
 from django.forms import inlineformset_factory
 from django.http import HttpResponseRedirect
-from django.core.mail import send_mail
-from django.contrib import messages
 from django.middleware import csrf
-from django.conf import settings
+from django.shortcuts import render
+from django.template import loader
 from django.urls import reverse
+from django.utils.encoding import force_bytes, force_text
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
 from .forms import UserCreationForm, ProfileForm
 from .models import User, Profile
+
 
 @login_required
 def user_home(request):
@@ -42,18 +45,15 @@ def register(request):
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             token = default_token_generator.make_token(user)
             subject = "PhysioNet Account Activation"
-            activation_url = ('http://%s/activate/%s/%s' % 
-                              request.META['HTTP_HOST'], uid, token)
-            #body = loader.render_to_string(email_template_name, context)
-            body = '\n'.join(['Dear %s' % user.get_full_name(), '',
-                'An account has been created for you on PhysioNet. Please activate your account by clicking the following activation link, or copying and pasting the link into your web browser:',
-                activation_url, '','Thank You'])
-            
-            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, 
+            context = {'name':user.get_full_name(),
+                'site_name':get_current_site(request),
+                'activation_url':'http://%s/activate/%s/%s' % (request.META['HTTP_HOST'], uid, token)}
+            body = loader.render_to_string('user/register_email.html', context)
+            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, 
                 [form.cleaned_data['email']], fail_silently=False)
 
             # Registration successful
-            return render(request, 'user/register_done.html', {'email':email})
+            return render(request, 'user/register_done.html', {'email':user.email})
     else:
         form = UserCreationForm()
 
@@ -81,9 +81,10 @@ def activate_user(request, *args, **kwargs):
 
 
 @login_required
-def settings(request):
+def user_settings(request):
     """
     Settings. Redirect to default - settings/profile
+    Don't call this 'settings' because there's an import called 'settings'
     """
     return HttpResponseRedirect(reverse('edit_profile'))
 
