@@ -47,10 +47,10 @@ class User(AbstractBaseUser):
     # Mandatory methods for default authentication backend
     def get_full_name(self):
         if self.profile.middle_names:
-            return ' '.join([self.profile.first_name, self.profile.last_name])
-        else:
             return ' '.join([self.profile.first_name, self.profile.middle_names,
                            self.profile.last_name])
+        else:
+            return ' '.join([self.profile.first_name, self.profile.last_name])
 
     def get_short_name(self):
         return self.email

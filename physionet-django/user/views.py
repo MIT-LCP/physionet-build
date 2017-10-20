@@ -42,12 +42,12 @@ def register(request):
             user.is_active = False
             user.save()
             # Send an email with the activation link
-            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            uid = urlsafe_base64_encode(force_bytes(user.pk)).decode('utf-8')
             token = default_token_generator.make_token(user)
             subject = "PhysioNet Account Activation"
             context = {'name':user.get_full_name(),
                 'site_name':get_current_site(request),
-                'activation_url':'http://%s/activate/%s/%s' % (request.META['HTTP_HOST'], uid, token)}
+                'activation_url':'http://%s/activate/%s/%s/' % (request.META['HTTP_HOST'], uid, token)}
             body = loader.render_to_string('user/register_email.html', context)
             send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, 
                 [form.cleaned_data['email']], fail_silently=False)
@@ -64,7 +64,7 @@ def activate_user(request, *args, **kwargs):
     """
     Page to active the account of a newly registered user.
     """
-    try: # Get the UID created from the user pk 
+    try:
         user = User.objects.get(pk=force_text(urlsafe_base64_decode(kwargs['uidb64'])))
         if default_token_generator.check_token(user, kwargs['token']):
             user.is_active = True
@@ -76,7 +76,6 @@ def activate_user(request, *args, **kwargs):
         user = None
         messages.error(request, 'There was an error with your link. Please try again or contact the site administrator.')
 
-    # Single view for success and fail?
     return render(request, 'user/activate.html', {'messages': messages.get_messages(request)})
 
 

@@ -38,7 +38,7 @@ urlpatterns = [
     url(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
         auth_views.PasswordResetConfirmView.as_view(
         form_class=SetResetPasswordForm,
-        template_name='user/reset_password_enter.html'),
+        template_name='user/reset_password_confirm.html'),
         name='password_reset_confirm'),
 
     # Password reset successfully carried out
