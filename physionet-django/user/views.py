@@ -3,16 +3,17 @@ from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import PasswordResetConfirmView
 from django.contrib.auth.decorators import login_required
 from django.utils.encoding import force_bytes, force_text
-from .forms import UserCreationForm, ProfileForm
 from django.shortcuts import render, resolve_url
 from django.forms import inlineformset_factory
 from django.http import HttpResponseRedirect
 from django.core.mail import send_mail
 from django.contrib import messages
 from django.middleware import csrf
-from .models import User, Profile
 from django.conf import settings
 from django.urls import reverse
+
+from .forms import UserCreationForm, ProfileForm
+from .models import User, Profile
 
 @login_required
 def user_home(request):
@@ -20,6 +21,7 @@ def user_home(request):
     Home page/dashboard for individual users
     """
     return render(request, 'user/user_home.html', {'user':request.user})
+
 
 def register(request):
     """
@@ -33,37 +35,34 @@ def register(request):
         form = UserCreationForm(request.POST)
         if form.is_valid():
             # Create the new user (triggers profile creation)
-            user    = form.save()
-            uid     = urlsafe_base64_encode(force_bytes(user.pk))
-            token   = default_token_generator.make_token(user)
-            Subject = "Activate the account"
-            Message = """Dear {0} {1} {2}, 
-            An account has been created for you on PhysioNet.\n\r 
-            Please activate the account by clicking or copy pasting the 
-            following link in the URL of the web browser\n\r\n\r 
-            http://{3}/activate/{4}/{5}\n\r\n\rThanks!""".format(
-                user.profile.first_name, user.profile.middle_names, 
-                user.profile.last_name, request.META['HTTP_HOST'], uid, token)
-            send_mail(Subject, Message, settings.DEFAULT_FROM_EMAIL, 
+            user = form.save()
+            user.is_active = False
+            user.save()
+            # Send an email with the activation link
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+            subject = "PhysioNet Account Activation"
+            activation_url = ('http://%s/activate/%s/%s' % 
+                              request.META['HTTP_HOST'], uid, token)
+            #body = loader.render_to_string(email_template_name, context)
+            body = '\n'.join(['Dear %s' % user.get_full_name(), '',
+                'An account has been created for you on PhysioNet. Please activate your account by clicking the following activation link, or copying and pasting the link into your web browser:',
+                activation_url, '','Thank You'])
+            
+            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, 
                 [form.cleaned_data['email']], fail_silently=False)
-            # To do: send the activation email
 
-            return register_done(request, email=user.email)
+            # Registration successful
+            return render(request, 'user/register_done.html', {'email':email})
     else:
         form = UserCreationForm()
 
     return render(request, 'user/register.html', {'form':form, 'csrf_token': csrf.get_token(request)})
 
 
-def register_done(request, email):
-    """
-    Page shown after registration is complete.
-    """
-    return render(request, 'user/register_done.html', {'email':email})
-
 def activate_user(request, *args, **kwargs):
     """
-    Page to active a newly registered user.
+    Page to active the account of a newly registered user.
     """
     try: # Get the UID created from the user pk 
         user = User.objects.get(pk=force_text(urlsafe_base64_decode(kwargs['uidb64'])))
@@ -72,12 +71,21 @@ def activate_user(request, *args, **kwargs):
             user.save()
             messages.info(request, 'Your account has been activated, to login click below.')
         else:
-            messages.error(request, 'There was an error with your link, please try again or contact the site administrator.')
+            messages.error(request, 'There was an error with your link. Please try again or contact the site administrator.')
     except (TypeError, ValueError, OverflowError, UserModel.DoesNotExist):
         user = None
-        messages.error(request, 'There was an error with your link, please try again or contact the site administrator.')
+        messages.error(request, 'There was an error with your link. Please try again or contact the site administrator.')
 
-    return render(request, 'user/registration_complete.html', {'messages': messages.get_messages(request)})
+    # Single view for success and fail?
+    return render(request, 'user/activate.html', {'messages': messages.get_messages(request)})
+
+
+@login_required
+def settings(request):
+    """
+    Settings. Redirect to default - settings/profile
+    """
+    return HttpResponseRedirect(reverse('edit_profile'))
 
 
 @login_required
