@@ -2,22 +2,17 @@
 
 {% load static %}
 
-{% block title %}
-Login
-{% endblock %}
-
+{% block title %}Login{% endblock %}
 
 {% block local_css %}
 <link rel="stylesheet" type="text/css" href="{% static 'custom/css/login_register.css' %}"/>
 {% endblock %}
-
 
 {% block content %}
 <div class="container">
     <form action="{% url 'login' %}" method="post" class="form-signin">
         <h2 class="form-signin-heading">Account Login</h2>
         {% csrf_token %}
-
         {{ form.username }}
         {{ form.password }}
         {% for error in form.non_field_errors %}
@@ -26,13 +21,9 @@ Login
             </div>
         {% endfor %}
         <div class="checkbox">
-
             <label>{{ form.remember }} {{ form.remember.label }}</label><a href="{% url 'reset_password_request' %}" style="float:right">Forgot password</a>
-
         </div>
-    
         <button class="btn btn-lg btn-primary btn-block" type="submit">Log In</button>
-        
     </form>
     <div class="form-signin">
         <p>New user? <a href="{% url 'register' %}">Create an account</a></p>
