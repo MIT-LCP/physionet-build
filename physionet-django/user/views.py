@@ -42,13 +42,12 @@ def register(request):
             user.is_active = False
             user.save()
             # Send an email with the activation link
-            uid = urlsafe_base64_encode(force_bytes(user.pk)).decode('utf-8')
+            uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
             token = default_token_generator.make_token(user)
             subject = "PhysioNet Account Activation"
             context = {'name':user.get_full_name(),
-                'site_name':get_current_site(request),
-                'activation_url':'http://{0}/activate/{1}/{2}/'.format(request.META['HTTP_HOST'], uid, token)}
-            body = loader.render_to_string('user/register_email.html', context)
+                'domain':get_current_site(request), 'uidb64':uidb64, 'token':token}
+            body = loader.render_to_string('user/email/register_email.html', context)
             send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, 
                 [form.cleaned_data['email']], fail_silently=False)
 
@@ -60,23 +59,24 @@ def register(request):
     return render(request, 'user/register.html', {'form':form, 'csrf_token': csrf.get_token(request)})
 
 
-def activate_user(request, *args, **kwargs):
+def activate_user(request, uidb64, token):
     """
     Page to active the account of a newly registered user.
     """
     try:
-        user = User.objects.get(pk=force_text(urlsafe_base64_decode(kwargs['uidb64'])))
-        if default_token_generator.check_token(user, kwargs['token']):
-            user.is_active = True
-            user.save()
-            messages.info(request, 'Your account has been activated, to login click below.')
-        else:
-            messages.error(request, 'There was an error with your link. Please try again or contact the site administrator.')
-    except (TypeError, ValueError, OverflowError, UserModel.DoesNotExist):
+        uid = force_text(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
         user = None
-        messages.error(request, 'There was an error with your link. Please try again or contact the site administrator.')
 
-    return render(request, 'user/activate.html', {'messages': messages.get_messages(request)})
+    if user is not None and not user.is_active and default_token_generator.check_token(user, token):
+        user.is_active = True
+        user.save()
+        context = {'title':'Activation Successful', 'isvalid':True}
+    else:
+        context = {'title':'Invalid Activation Link', 'isvalid':False}
+
+    return render(request, 'user/activate_user.html', context)
 
 
 @login_required
@@ -100,10 +100,11 @@ def edit_profile(request):
         # Update the profile and return to the same page. Place a message
         # at the top of the page: 'your profile has been updated'
         form = ProfileForm(request.POST, instance=user.profile)
-        if form.is_valid():
-            form.save()
-        else:
-            messages.error(request, 'There was an error with the information entered, please verify and try again.')
+        # if form.is_valid():
+        #     form.save()
+        #     messages.ingo(request, 'Your profile has been updated.')
+        # else:
+        #     messages.error(request, 'There was an error with the information entered, please verify and try again.')
     return render(request, 'user/edit_profile.html', {'user':user, 'form':form,
         'csrf_token':csrf.get_token(request), 'messages':messages.get_messages(request)})
 
