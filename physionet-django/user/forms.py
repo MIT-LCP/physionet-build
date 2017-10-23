@@ -88,7 +88,8 @@ class LoginForm(auth_forms.AuthenticationForm):
 
     remember = forms.BooleanField(label='Remember Me', required=False)
 
-class ResetForm(auth_forms.PasswordResetForm):
+
+class ResetPasswordForm(auth_forms.PasswordResetForm):
     """
     Form to send the email to reset the password.
     """
@@ -98,20 +99,20 @@ class ResetForm(auth_forms.PasswordResetForm):
         widget=forms.TextInput(attrs={'autofocus': True, 'class':'form-control', 'placeholder':'Email Address'}),
     )
 
-class SetResetPasswordForm(auth_forms.SetPasswordForm):
+class SetPasswordForm(auth_forms.SetPasswordForm):
     """
-    Form to reset the password.
+    Form to set or reset the password. Used in user creation and password reset.
     """
     new_password1 = forms.CharField(
         label="New password",
-        widget=forms.PasswordInput(attrs={'autofocus': True, 'class':'form-control', 'placeholder':'Password'}),
+        widget=forms.PasswordInput(attrs={'autofocus': True, 'class':'form-control'}),
         strip=False,
-        help_text=password_validation.password_validators_help_text_html(),
     )
     new_password2 = forms.CharField(
         label="New password confirmation",
         strip=False,
-        widget=forms.PasswordInput(attrs={'autofocus': True, 'class':'form-control', 'placeholder':'Password'}),
+        widget=forms.PasswordInput(attrs={'autofocus': True, 'class':'form-control'}),
+        help_text=password_validation.password_validators_help_text_html(),
     )
 
 class ProfileForm(forms.ModelForm):
@@ -129,3 +130,13 @@ class ProfileForm(forms.ModelForm):
             'phone':forms.TextInput(attrs={'class':'form-control'}),
         }
 
+
+class EditPasswordForm(SetPasswordForm, auth_forms.PasswordChangeForm):
+    """
+    For editing password
+    """
+    old_password = forms.CharField(
+        label="Old password",
+        strip=False,
+        widget=forms.PasswordInput(attrs={'autofocus': True, 'class':'form-control'}),
+    )

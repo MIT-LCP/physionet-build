@@ -100,22 +100,13 @@ def edit_profile(request):
         # Update the profile and return to the same page. Place a message
         # at the top of the page: 'your profile has been updated'
         form = ProfileForm(request.POST, instance=user.profile)
-        # if form.is_valid():
-        #     form.save()
-        #     messages.ingo(request, 'Your profile has been updated.')
-        # else:
-        #     messages.error(request, 'There was an error with the information entered, please verify and try again.')
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your profile has been updated.')
+        else:
+            messages.error(request, 'There was an error with the information entered, please verify and try again.')
     return render(request, 'user/edit_profile.html', {'user':user, 'form':form,
         'csrf_token':csrf.get_token(request), 'messages':messages.get_messages(request)})
-
-
-@login_required
-def edit_password(request):
-    """
-    Edit password page
-    """
-    user = request.user
-    pass
 
 
 @login_required
