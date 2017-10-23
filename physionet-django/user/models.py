@@ -23,7 +23,6 @@ class UserManager(BaseUserManager):
             password=password,
         )
         user.is_admin = True
-        user.is_active = True
         user.save(using=self._db)
         return user
 
@@ -37,7 +36,7 @@ class User(AbstractBaseUser):
     last_login = models.DateTimeField(null=True, blank=True)
 
     # Mandatory fields for the default authentication backend
-    is_active = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
     USERNAME_FIELD = 'email'
     EMAIL_FIELD = 'email'
@@ -47,7 +46,11 @@ class User(AbstractBaseUser):
 
     # Mandatory methods for default authentication backend
     def get_full_name(self):
-        return self.email
+        if self.profile.middle_names:
+            return ' '.join([self.profile.first_name, self.profile.middle_names,
+                           self.profile.last_name])
+        else:
+            return ' '.join([self.profile.first_name, self.profile.last_name])
 
     def get_short_name(self):
         return self.email
