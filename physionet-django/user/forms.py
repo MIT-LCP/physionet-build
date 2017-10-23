@@ -2,7 +2,7 @@ from django.contrib.auth import forms as auth_forms
 from django.contrib.auth import password_validation
 from .models import User, Profile
 from django import forms
-
+from re import search
 
 class UserCreationForm(forms.ModelForm):
     """A form for creating new users. Includes all the required
@@ -33,9 +33,22 @@ class UserCreationForm(forms.ModelForm):
         password1 = self.cleaned_data.get("password1")
         password2 = self.cleaned_data.get("password2")
         if password1 and password2 and password1 != password2:
-            raise forms.ValidationError("Passwords don't match")
+            raise forms.ValidationError("The passwords don't match")
+        if len(password1) < 8:
+            raise forms.ValidationError("The password is too short.")
+        if len(password1) > 25:
+            raise forms.ValidationError("The password is too long, it cannot have more than 25 characters.")
+        if not bool(search(r'\d', password1)):
+            raise forms.ValidationError("The password must contain at least 1 digit.")
+        if not bool(search(r'[a-zA-Z]', password1)):
+            raise forms.ValidationError("The password must contain at least 1 letter.")
+        if not bool(search(r'[~!@#$%.&?^*]', password1)):
+            raise forms.ValidationError("Password must contain at least 1 special character. Acccepted are: ~ ! @ # $ % & ? ^ *")
+        if password1.isupper() or password1.islower():
+            raise forms.ValidationError("The password must contain upper and lower case letters.")
+
         self.instance.username = self.cleaned_data.get('username')
-        password_validation.validate_password(self.cleaned_data.get('password2'), self.instance)
+        password_validation.validate_password(password1, self.instance)
         return password2
 
     def save(self, commit=True):
@@ -128,11 +141,4 @@ class ProfileForm(forms.ModelForm):
             'url':forms.TextInput(attrs={'class':'form-control'}),
             'phone':forms.TextInput(attrs={'class':'form-control'}),
         }
-
-    #     first_name = models.CharField(max_length=30)
-    # middle_names = models.CharField(max_length=100, blank=True, default='')
-    # last_name = models.CharField(max_length=30)
-    # url = models.URLField(default='', blank=True, null=True)
-    # identity_verification_date = models.DateField(blank=True, null=True)
-    # phone = models.CharField(max_length=20, blank=True, default='')
 
