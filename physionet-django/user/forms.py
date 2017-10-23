@@ -34,21 +34,8 @@ class UserCreationForm(forms.ModelForm):
         password2 = self.cleaned_data.get("password2")
         if password1 and password2 and password1 != password2:
             raise forms.ValidationError("The passwords don't match")
-        if len(password1) < 8:
-            raise forms.ValidationError("The password is too short.")
-        if len(password1) > 25:
-            raise forms.ValidationError("The password is too long, it cannot have more than 25 characters.")
-        if not bool(search(r'\d', password1)):
-            raise forms.ValidationError("The password must contain at least 1 digit.")
-        if not bool(search(r'[a-zA-Z]', password1)):
-            raise forms.ValidationError("The password must contain at least 1 letter.")
-        if not bool(search(r'[~!@#$%.&?^*]', password1)):
-            raise forms.ValidationError("Password must contain at least 1 special character. Acccepted are: ~ ! @ # $ % & ? ^ *")
-        if password1.isupper() or password1.islower():
-            raise forms.ValidationError("The password must contain upper and lower case letters.")
-
         self.instance.username = self.cleaned_data.get('username')
-        password_validation.validate_password(password1, self.instance)
+        password_validation.validate_password(self.cleaned_data.get('password2'), self.instance)
         return password2
 
     def save(self, commit=True):
