@@ -3,9 +3,9 @@
 <html lang="en">
   <head>
     <title>{% block title %}{% endblock %}</title>
-
     {% include "base_css.html" %}
     {% block local_css %}{% endblock %}
+    {% include "base_js_top.html" %}
     {% block local_js_top %}{% endblock %}
   </head>
 
@@ -14,10 +14,10 @@
 
     {% block content %}{% endblock %}
 
-    {% include "base_js.html" %}
-    {% block local_js_bottom %}{% endblock %}
-
     {% include 'footer.html' %}
+
+    {% include "base_js_bottom.html" %}
+    {% block local_js_bottom %}{% endblock %}
   </body>
 
 </html>

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/settings.css' %}"/>
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container">
+
+  <div class="row row-offcanvas row-offcanvas-right">
+    <div class="col-6 col-md-3 sidebar-offcanvas" id="sidebar">
+      <div class="list-group">
+        <a href="{% url 'edit_profile' %}" class="list-group-item active">Profile</a>
+        <a href="{% url 'edit_password' %}"  class="list-group-item">Password</a>
+        <a href="{% url 'edit_emails' %}"  class="list-group-item">Emails</a>
+        <a href="#" class="list-group-item">Notifications</a>
+
+      </div>
+    </div><!--/span-->
+
+    <div class="col-10 col-md-9">
+      
+      <div class="container">
+        {% block form %}
+        {% endblock %}
+      </div><!--/row-->
+    </div><!--/span-->
+
+  </div><!--/row-->
+
+
+</div><!--/.container-->
+{% endblock %}
+
+
+{% block local_js_bottom %}
+<script type="text/javascript" src="{% static 'bootstrap/js/offcanvas.js' %}"></script>
+{% endblock %}

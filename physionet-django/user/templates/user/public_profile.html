@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block title %}
-PhysioNet
+Public Profile
 {% endblock %}
 
 
@@ -13,7 +13,6 @@ PhysioNet
 
 {% block content %}
 <div class="container">
-    <h1>Welcome to the new Physionet</h1>
-    <p>We hope you enjoy your stay</p>
+    <p>Public profile for {{ user.get_username }}</p>
 </div>
 {% endblock %}

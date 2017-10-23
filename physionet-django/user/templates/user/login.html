@@ -14,9 +14,10 @@ Login
 
 {% block content %}
 <div class="container">
-    <form action="/login/" method="post" class="form-signin">
+    <form action="{% url 'login' %}" method="post" class="form-signin">
         <h2 class="form-signin-heading">Account Login</h2>
         {% csrf_token %}
+
         {{ form.username }}
         {{ form.password }}
         {% for error in form.non_field_errors %}
@@ -25,18 +26,16 @@ Login
             </div>
         {% endfor %}
         <div class="checkbox">
-        <label>{{ form.remember }} {{ form.remember.label }}</label><a href="/resetpassword" style="float:right">Forgot password</a>
+
+            <label>{{ form.remember }} {{ form.remember.label }}</label><a href="{% url 'reset_password_request' %}" style="float:right">Forgot password</a>
+
         </div>
     
         <button class="btn btn-lg btn-primary btn-block" type="submit">Log In</button>
         
     </form>
     <div class="form-signin">
-        <p>New user? <a href="/register">Create an account</a></p>
+        <p>New user? <a href="{% url 'register' %}">Create an account</a></p>
     </div>
 </div>
-{% endblock %}
-
-
-{% block local_js %}
 {% endblock %}

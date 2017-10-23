@@ -27,13 +27,13 @@ body {
 .form-signin .form-control:focus {
   z-index: 2;
 }
-.form-signin input[type="password"] {
-  margin-bottom: 10px;
+.form-signin .bottom-ten {
   border-top-left-radius: 0;
   border-top-right-radius: 0;
 }
-.form-signin .bottom-ten {
+.btn {
+  margin-top: 10px;
+}
+.form-signin input[name="password"]{
   margin-bottom: 10px;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
 }
