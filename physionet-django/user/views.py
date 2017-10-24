@@ -99,20 +99,24 @@ def edit_profile(request):
     if request.method == 'POST':
         # Update the profile and return to the same page. Place a message
         # at the top of the page: 'your profile has been updated'
-        pass
-    else:
-        return render(request, 'user/edit_profile.html',
-            {'user':user, 'form':form,
-             'csrf_token':csrf.get_token(request)})
+        form = ProfileForm(request.POST, instance=user.profile)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your profile has been updated.')
+        else:
+            messages.error(request, 'There was an error with the information entered, please verify and try again.')
+    return render(request, 'user/edit_profile.html', {'user':user, 'form':form,
+        'csrf_token':csrf.get_token(request), 'messages':messages.get_messages(request)})
 
 
 @login_required
-def edit_password(request):
+def edit_password_done(request):
     """
-    Edit password page
+    After password has successfully been changed. Need this view because we
+    can't control the edit password view to show a success message.
     """
-    user = request.user
-    pass
+    return render(request, 'user/edit_password_done.html')
+
 
 
 @login_required
