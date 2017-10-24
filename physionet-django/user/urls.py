@@ -62,5 +62,7 @@ urlpatterns = [
     # Public user profile
     url(r'^users/(?P<email>[\w\-\.]+@[\w\-\.]+)/$', views.public_profile,
         name='public_profile'),
+
+    url(r'^test/$', views.test, name='test'),
 ]
 

@@ -153,3 +153,20 @@ class EditPasswordForm(SetPasswordForm, auth_forms.PasswordChangeForm):
     )
 
 
+class EmailChoiceForm(forms.Form):
+    """
+    For letting users choose one of their AssociatedEmails.
+    Ie. primary email, contact email.
+    """
+    email_choice = forms.ModelChoiceField(queryset=None)
+
+    def __init__(self, user):
+        super(EmailChoiceForm, self).__init__()
+        emails = user.associated_emails
+        self.fields['email_choice'].queryset = emails
+        self.fields['email_choice'].initial = emails.get(is_primary_email=True)
+        self.fields['email_choice'].to_field_name = 'email'
+
+class TestForm(forms.Form):
+    schools = forms.ChoiceField(choices=(('1','one'),('2','two')))
+

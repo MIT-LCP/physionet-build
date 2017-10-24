@@ -15,10 +15,10 @@ from django.urls import reverse
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
-from .forms import UserCreationForm, ProfileForm
+from .forms import UserCreationForm, ProfileForm, EmailChoiceForm, TestForm
 from .models import AssociatedEmail, Profile, User
 
-
+import pdb
 @login_required
 def user_home(request):
     """
@@ -128,11 +128,22 @@ def edit_emails(request):
     user = request.user
     primary_email = user.associated_emails.filter(is_primary_email=True).first()
     other_emails = user.associated_emails.filter(is_primary_email=False)
+    
     associated_emails_formset = inlineformset_factory(User, AssociatedEmail,
         fields=('email','is_primary_email'))(instance=user)
     
+    # <class 'django.forms.models.ModelChoiceIterator'>
+    primary_email_choices = EmailChoiceForm(user).fields['email_choice'].choices
+    #primary_email_choices = EmailChoiceForm(user).fields['email_choice']
+
+    email_choice_form = EmailChoiceForm(user)
+
     context = {'primary_email':primary_email, 'other_emails':other_emails,
-        'associated_emails_formset':associated_emails_formset}
+        'associated_emails_formset':associated_emails_formset,
+        'primary_email_choices':primary_email_choices, 'email_choice_form':email_choice_form}
+
+    print('still alive')
+    print(type(email_choice_form))
 
     if request.method == 'POST':
         """
@@ -187,3 +198,8 @@ def public_profile(request, email):
     Placeholder to clean up templates. Please replace when ready!
     """
     return render(request, 'user/public_profile.html', {'email':email})
+
+def test(request):
+    form = TestForm()
+    context = {'form':form}
+    return render(request, 'test.html', context)

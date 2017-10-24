@@ -1,7 +1,9 @@
+from datetime import datetime
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+
 
 class UserManager(BaseUserManager):
     """
@@ -121,17 +123,21 @@ class AssociatedEmail(models.Model):
     verification_date = models.DateTimeField(null=True)
     is_primary_email = models.BooleanField(default=False)
     is_public = models.BooleanField(default=False)
-    is_backup_email = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.email
 
 
 @receiver(post_save, sender=User)
 def create_associated_email(sender, **kwargs):
     """
-    Creates and attaches an unverified AssociatedEmail when a User object is created.
+    Creates and attaches an AssociatedEmail when a User object is created.
     """
     user = kwargs["instance"]
     if kwargs["created"]:
         email = AssociatedEmail(user=user, email=user.email, is_primary_email=True)
+        if user.is_active:
+            email.verification_date = datetime.now()
         email.save()
 
 
@@ -149,6 +155,7 @@ class BaseAffiliation(models.Model):
     
     class Meta:
         abstract = True
+
 
 class Affiliation(BaseAffiliation):
     """

@@ -1,7 +1,7 @@
 {% extends "user/settings.html" %}
 
 {% block title %}Edit Emails{% endblock %}
-
+<br>
 
 
 {% block form %}
@@ -14,6 +14,18 @@
     {% endfor %}
   </ul>
 </div>
+
+
+
+
+
+<hr>
+<form action="{% url 'edit_emails' %}" method="post" class="form-signin">
+  {% csrf_token %}
+  {{ email_choice_form }}
+  <button class="btn btn-lg btn-primary btn-block" name="change_primary_email" type="submit">Make Primary Email</button>
+</form>
+
 
 
 <form action="{% url 'edit_emails' %}" method="post" class="form-signin">
