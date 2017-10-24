@@ -110,6 +110,16 @@ def edit_profile(request):
 
 
 @login_required
+def edit_password_done(request):
+    """
+    After password has successfully been changed. Need this view because we
+    can't control the edit password view to show a success message.
+    """
+    return render(request, 'user/edit_password_done.html')
+
+
+
+@login_required
 def edit_emails(request):
     """
     Edit emails page

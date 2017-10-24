@@ -99,6 +99,7 @@ class ResetPasswordForm(auth_forms.PasswordResetForm):
         widget=forms.TextInput(attrs={'autofocus': True, 'class':'form-control', 'placeholder':'Email Address'}),
     )
 
+
 class SetPasswordForm(auth_forms.SetPasswordForm):
     """
     Form to set or reset the password. Used in user creation and password reset.
@@ -114,6 +115,7 @@ class SetPasswordForm(auth_forms.SetPasswordForm):
         widget=forms.PasswordInput(attrs={'autofocus': True, 'class':'form-control'}),
         help_text=password_validation.password_validators_help_text_html(),
     )
+
 
 class ProfileForm(forms.ModelForm):
     """

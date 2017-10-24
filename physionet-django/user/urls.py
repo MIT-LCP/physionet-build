@@ -46,10 +46,12 @@ urlpatterns = [
     url(r'^settings/$', views.user_settings, name='user_settings'),
     url(r'^settings/profile/$', views.edit_profile, name='edit_profile'),
     url(r'^settings/password/$', auth_views.PasswordChangeView.as_view(
-        template_name='user/edit_password.html',
         form_class=EditPasswordForm,
+        success_url = reverse_lazy('edit_password_done'),
+        template_name='user/edit_password.html',
         ),
         name='edit_password'),
+    url(r'^settings/password/changed/$', views.edit_password_done, name='edit_password_done'),
     url(r'^settings/emails/$', views.edit_emails, name='edit_emails'),
     
     # Individual home page/dashboard
