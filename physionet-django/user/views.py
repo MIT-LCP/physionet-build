@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -15,7 +16,7 @@ from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
 from .forms import UserCreationForm, ProfileForm
-from .models import User, Profile
+from .models import AssociatedEmail, Profile, User
 
 
 @login_required
@@ -37,10 +38,8 @@ def register(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
-            # Create the new user (triggers profile creation)
+            # Create the new user
             user = form.save()
-            user.is_active = False
-            user.save()
             # Send an email with the activation link
             uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
             token = default_token_generator.make_token(user)
@@ -72,6 +71,9 @@ def activate_user(request, uidb64, token):
     if user is not None and not user.is_active and default_token_generator.check_token(user, token):
         user.is_active = True
         user.save()
+        email = user.associated_emails.first()
+        email.verification_date = datetime.now()
+        email.save()
         context = {'title':'Activation Successful', 'isvalid':True}
     else:
         context = {'title':'Invalid Activation Link', 'isvalid':False}
@@ -118,13 +120,62 @@ def edit_password_done(request):
     return render(request, 'user/edit_password_done.html')
 
 
-
 @login_required
 def edit_emails(request):
     """
     Edit emails page
     """
-    pass
+    user = request.user
+    primary_email = user.verified_emails.filter(is_primary_email=True).first()
+    other_emails = user.verified_emails.filter(is_primary_email=False)
+
+    if request.method == 'POST':
+        """
+        Actions:
+        - add email
+        - 
+        """
+        if add_email:
+            form = EmailForm(request.POST)
+            # Possible that email is already associated. Check.
+            email = AssociatedEmail.objects.create(user=user, email=form.cleaned_data['email'])
+
+            # Send an email to the newly added email with a verification link
+            uidb64 = urlsafe_base64_encode(force_bytes(email.pk))
+            token = default_token_generator.make_token(user)
+            subject = "PhysioNet Email Verification"
+            context = {'name':user.get_full_name(),
+                'domain':get_current_site(request), 'uidb64':uidb64, 'token':token}
+            body = loader.render_to_string('user/email/verify_email_email.html', context)
+            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, 
+                [form.cleaned_data['email']], fail_silently=False)
+        elif change_primary_email:
+            pass
+
+    return render(request, 'user/edit_emails.html', {'primary_email':primary_email,
+        'other_emails':other_emails})
+
+
+def verify_email(request, uidb64, token):
+    """
+    Page to verify an email
+    """
+    try:
+        uid = force_text(urlsafe_base64_decode(uidb64))
+        email = AssociatedEmail.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, AssociatedEmail.DoesNotExist):
+        email = None
+
+    if email is not None:
+        # Test the token with the user
+        user = email.user
+        if default_token_generator.check_token(user, token):
+            email.verification_date = datetime.now()
+            email.save()
+            return render(request, 'user/verify_email.html', {'title':'Verification Successful', 'isvalid':True})
+
+    return render(request, 'user/verify_email.html', {'title':'Invalid Verification Link', 'isvalid':False})
+
 
 
 def public_profile(request, email):

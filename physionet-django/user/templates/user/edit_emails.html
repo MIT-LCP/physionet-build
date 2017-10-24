@@ -1,14 +1,32 @@
 {% extends "user/settings.html" %}
 
-{% block title %}
-Edit Emails
-{% endblock %}
+{% block title %}Edit Emails{% endblock %}
+
+
 
 {% block form %}
+<h2 class="form-signin-heading">Emails</h2>
+<div class="card"">
+  <ul class="list-group list-group-flush">
+    <li class="list-group-item">Cras justo odio</li>
+    <li class="list-group-item">Dapibus ac facilisis in</li>
+    <li class="list-group-item">Vestibulum at eros</li>
+  </ul>
+</div>
+
+
 <form action="{% url 'edit_emails' %}" method="post" class="form-signin">
-  <h2 class="form-signin-heading">Emails</h2>
   {% csrf_token %}
-  {{ form.as_p }}
+
+
+  {% for email in other_emails %}
+
+  <!-- Make primary email, delete email -->
+
+  {% endfor %}
+
+  <!-- add email form -->
+
   <button class="btn btn-lg btn-primary btn-block" type="submit">Edit Emails</button>
 </form>
 {% endblock %}

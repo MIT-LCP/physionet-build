@@ -1,8 +1,9 @@
+from django import forms
 from django.contrib.auth import forms as auth_forms
 from django.contrib.auth import password_validation
+
 from .models import User, Profile
-from django import forms
-from re import search
+
 
 class UserCreationForm(forms.ModelForm):
     """A form for creating new users. Includes all the required
@@ -43,6 +44,7 @@ class UserCreationForm(forms.ModelForm):
         user = super(UserCreationForm, self).save(commit=False)
         user.set_password(self.cleaned_data["password1"])
         if commit:
+            user.is_active = False
             # This should trigger profile creation
             user.save()
             # Save additional fields in Profile model

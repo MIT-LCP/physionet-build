@@ -8,9 +8,10 @@ class UserManager(BaseUserManager):
     Manager object with methods to create
     User instances.
     """
-    def create_user(self, email, password):
+    def create_user(self, email, password, is_active=True):
         user = self.model(
             email=self.normalize_email(email),
+            is_active=is_active,
         )
 
         user.set_password(password)
@@ -109,6 +110,27 @@ def create_profile(sender, **kwargs):
     if kwargs["created"]:
         profile = Profile(user=user)
         profile.save()
+
+
+class AssociatedEmail(models.Model):
+    """
+    An email the user associates with their account
+    """
+    user = models.ForeignKey('user.User', related_name='associated_emails')
+    email = models.EmailField(max_length=255, unique=True)
+    verification_date = models.DateTimeField(null=True)
+    is_primary_email = models.BooleanField(default=False)
+
+
+@receiver(post_save, sender=User)
+def create_associated_email(sender, **kwargs):
+    """
+    Creates and attaches an unverified AssociatedEmail when a User object is created.
+    """
+    user = kwargs["instance"]
+    if kwargs["created"]:
+        email = AssociatedEmail(user=user, email=user.email, is_primary_email=True)
+        email.save()
 
 
 class BaseAffiliation(models.Model):
