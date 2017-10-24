@@ -8,25 +8,28 @@
 <h2 class="form-signin-heading">Emails</h2>
 <div class="card"">
   <ul class="list-group list-group-flush">
-    <li class="list-group-item">Cras justo odio</li>
-    <li class="list-group-item">Dapibus ac facilisis in</li>
-    <li class="list-group-item">Vestibulum at eros</li>
+    <li class="list-group-item">{{ primary_email }}</li>
+    {% for email in other_emails %}
+      <li class="list-group-item">{{ email }}</li>
+    {% endfor %}
   </ul>
 </div>
 
 
 <form action="{% url 'edit_emails' %}" method="post" class="form-signin">
   {% csrf_token %}
-
-
-  {% for email in other_emails %}
-
-  <!-- Make primary email, delete email -->
-
+  {% for form in associated_emails_formset %}
+    {{ form.email }} {{ form.is_primary_email }}
   {% endfor %}
-
-  <!-- add email form -->
-
-  <button class="btn btn-lg btn-primary btn-block" type="submit">Edit Emails</button>
+  <button class="btn btn-lg btn-primary btn-block" name="change_primary_email" type="submit">Make Primary Email</button>
 </form>
+
+
+<form action="{% url 'edit_emails' %}" method="post" class="form-signin">
+  {% csrf_token %}
+  <button class="btn btn-lg btn-primary btn-block" name="add_email" type="submit">Add Emails</button>
+</form>
+
+
+
 {% endblock %}

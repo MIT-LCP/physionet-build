@@ -5,6 +5,17 @@ from django.contrib.auth import password_validation
 from .models import User, Profile
 
 
+class EmailForm(forms.Form):
+    """
+    Simple form with just an email. Used for adding emails and inheriting.
+    """
+    email = forms.EmailField(
+        label='Email',
+        max_length=254,
+        widget=forms.TextInput(attrs={'autofocus': True, 'class':'form-control', 'placeholder':'Email Address'}),
+    )
+
+
 class UserCreationForm(forms.ModelForm):
     """A form for creating new users. Includes all the required
     fields, plus a repeated password.
@@ -91,15 +102,11 @@ class LoginForm(auth_forms.AuthenticationForm):
     remember = forms.BooleanField(label='Remember Me', required=False)
 
 
-class ResetPasswordForm(auth_forms.PasswordResetForm):
+class ResetPasswordForm(auth_forms.PasswordResetForm, EmailForm):
     """
     Form to send the email to reset the password.
     """
-    email = forms.EmailField(
-        label='Email',
-        max_length=254,
-        widget=forms.TextInput(attrs={'autofocus': True, 'class':'form-control', 'placeholder':'Email Address'}),
-    )
+    pass
 
 
 class SetPasswordForm(auth_forms.SetPasswordForm):
@@ -144,3 +151,5 @@ class EditPasswordForm(SetPasswordForm, auth_forms.PasswordChangeForm):
         strip=False,
         widget=forms.PasswordInput(attrs={'autofocus': True, 'class':'form-control'}),
     )
+
+

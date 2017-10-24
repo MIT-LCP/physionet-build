@@ -126,8 +126,13 @@ def edit_emails(request):
     Edit emails page
     """
     user = request.user
-    primary_email = user.verified_emails.filter(is_primary_email=True).first()
-    other_emails = user.verified_emails.filter(is_primary_email=False)
+    primary_email = user.associated_emails.filter(is_primary_email=True).first()
+    other_emails = user.associated_emails.filter(is_primary_email=False)
+    associated_emails_formset = inlineformset_factory(User, AssociatedEmail,
+        fields=('email','is_primary_email'))(instance=user)
+    
+    context = {'primary_email':primary_email, 'other_emails':other_emails,
+        'associated_emails_formset':associated_emails_formset}
 
     if request.method == 'POST':
         """
@@ -135,7 +140,7 @@ def edit_emails(request):
         - add email
         - 
         """
-        if add_email:
+        if request.POST.get("add_email"):
             form = EmailForm(request.POST)
             # Possible that email is already associated. Check.
             email = AssociatedEmail.objects.create(user=user, email=form.cleaned_data['email'])
@@ -149,11 +154,11 @@ def edit_emails(request):
             body = loader.render_to_string('user/email/verify_email_email.html', context)
             send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, 
                 [form.cleaned_data['email']], fail_silently=False)
-        elif change_primary_email:
+
+        elif request.POST.get("change_primary_email"):
             pass
 
-    return render(request, 'user/edit_emails.html', {'primary_email':primary_email,
-        'other_emails':other_emails})
+    return render(request, 'user/edit_emails.html', context)
 
 
 def verify_email(request, uidb64, token):
@@ -175,7 +180,6 @@ def verify_email(request, uidb64, token):
             return render(request, 'user/verify_email.html', {'title':'Verification Successful', 'isvalid':True})
 
     return render(request, 'user/verify_email.html', {'title':'Invalid Verification Link', 'isvalid':False})
-
 
 
 def public_profile(request, email):

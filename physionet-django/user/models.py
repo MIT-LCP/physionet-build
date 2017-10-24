@@ -120,6 +120,8 @@ class AssociatedEmail(models.Model):
     email = models.EmailField(max_length=255, unique=True)
     verification_date = models.DateTimeField(null=True)
     is_primary_email = models.BooleanField(default=False)
+    is_public = models.BooleanField(default=False)
+    is_backup_email = models.BooleanField(default=False)
 
 
 @receiver(post_save, sender=User)
