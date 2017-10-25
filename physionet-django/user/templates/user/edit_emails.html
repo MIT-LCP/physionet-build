@@ -32,13 +32,13 @@
 <form action="{% url 'edit_emails' %}" method="post" class="form-signin">
   {% csrf_token %}
   {{ primary_email_form.email_choice }}
-  <button class="btn btn-primary btn-fixed" name="change_primary_email" type="submit">Make Primary Email</button>
+  <button class="btn btn-primary btn-fixed" name="set_primary_email" type="submit">Make Primary Email</button>
 </form>
 
 <hr>
 <h4>Add Email</h4>
 <p>Associate another email with your account. Verification required</p>
-<form action="{% url 'edit_emails' %}" method="post" class="form-signin">
+<form action="{% url 'edit_emails' %}" method="post" class="form-signin" name="add_email">
   {% csrf_token %}
   {{ add_email_form.email }}
   <button class="btn btn-primary btn-fixed" name="add_email" type="submit">Add Email</button>
@@ -49,7 +49,7 @@
 <p>Dissociate a non-primary email from your account</p>
 <form action="{% url 'edit_emails' %}" method="post" class="form-signin">
   {% csrf_token %}
-  {{ remove_email_form.email_choice }}
+  {{ remove_email_form.email }}
   <button class="btn btn-danger btn-fixed" name="remove_email" type="submit">Remove Email</button>
 </form>
 

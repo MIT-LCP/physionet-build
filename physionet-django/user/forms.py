@@ -153,25 +153,52 @@ class EditPasswordForm(SetPasswordForm, auth_forms.PasswordChangeForm):
     )
 
 
+# class EmailChoiceForm(forms.Form):
+#     """
+#     For letting users choose one of their AssociatedEmails.
+#     Ie. primary email, contact email.
+#     """
+#     email = forms.ModelChoiceField(queryset=None, to_field_name = 'email', 
+#         widget=forms.Select(attrs={'class':'form-control'}))
+
+#     def __init__(self, user, label='email', include_primary=True):
+#         """
+#         Can include or exclude the primary email
+#         """
+#         super(EmailChoiceForm, self).__init__()
+#         emails = user.associated_emails
+
+#         if include_primary:
+#             self.fields['email'].queryset = emails.order_by('-is_primary_email')
+#             self.fields['email'].initial = emails.get(is_primary_email=True)
+#         else:
+#             self.fields['email'].queryset = emails.filter(is_primary_email=False)
+
+#         self.fields['email'].label = label
+
 class EmailChoiceForm(forms.Form):
     """
     For letting users choose one of their AssociatedEmails.
     Ie. primary email, contact email.
     """
-    email_choice = forms.ModelChoiceField(queryset=None, to_field_name = 'email', 
+    email = forms.ModelChoiceField(queryset=None, to_field_name = 'email', 
         widget=forms.Select(attrs={'class':'form-control'}))
 
-    def __init__(self, user, label, include_primary=True):
+    def __init__(self, label='email'):
+        super(EmailChoiceForm, self).__init__()
+        self.fields['email'].label = label
+
+    def get_associated_emails(self, user, include_primary=True):
         """
+        Populate the queryset with a user's associated emails
         Can include or exclude the primary email
         """
-        super(EmailChoiceForm, self).__init__()
         emails = user.associated_emails
 
         if include_primary:
-            self.fields['email_choice'].queryset = emails.order_by('-is_primary_email')
-            self.fields['email_choice'].initial = emails.get(is_primary_email=True)
+            self.fields['email'].queryset = emails.order_by('-is_primary_email')
+            self.fields['email'].initial = emails.get(is_primary_email=True)
         else:
-            self.fields['email_choice'].queryset = emails.filter(is_primary_email=False)
+            self.fields['email'].queryset = emails.filter(is_primary_email=False)
 
-        self.fields['email_choice'].label = label
+        

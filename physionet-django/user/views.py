@@ -127,44 +127,54 @@ def edit_emails(request):
     """
     user = request.user
     
+    
+
+    #pdb.set_trace()
+
+    if request.method == 'POST':
+        if 'set_primary_email' in request.POST:
+            pass
+        elif 'add_email' in request.POST:
+            form = EmailForm(request.POST)
+
+            # Possible that email is already associated. Check.
+            if form.is_valid():
+                
+                email = AssociatedEmail.objects.create(user=user, email=form.cleaned_data['email'])
+
+                # Send an email to the newly added email with a verification link
+                uidb64 = urlsafe_base64_encode(force_bytes(email.pk))
+                token = default_token_generator.make_token(user)
+                subject = "PhysioNet Email Verification"
+                context = {'name':user.get_full_name(),
+                    'domain':get_current_site(request), 'uidb64':uidb64, 'token':token}
+                body = loader.render_to_string('user/email/verify_email_email.html', context)
+                send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                    [form.cleaned_data['email']], fail_silently=False)
+
+        elif 'remove_email' in request.POST:
+            form = EmailForm(request.POST)
+            #pdb.set_trace()
+            if form.is_valid():
+                email = form.cleaned_data['email']
+                remove_email = AssociatedEmail.objects.get(email=email)
+                remove_email.delete()
+                messages.success(request, 'Your email: %s has been removed from your account.' % email)
+    
+    # Email forms to display
     associated_emails_formset = inlineformset_factory(User, AssociatedEmail,
         fields=('email','is_primary_email'), extra=0)(instance=user)
-    primary_email_form = EmailChoiceForm(user=user, label='Primary Email')
+    primary_email_form = EmailChoiceForm(label='Primary Email')
+    primary_email_form.get_associated_emails(user=user)
     add_email_form = EmailForm()
-    remove_email_form = EmailChoiceForm(user=user, label='Primary Email', include_primary=False)
+    remove_email_form = EmailChoiceForm(label='Remove Email')
+    remove_email_form.get_associated_emails(user=user, include_primary=False)
 
     context = {'associated_emails_formset':associated_emails_formset,
         'primary_email_form':primary_email_form,
         'add_email_form':add_email_form, 'remove_email_form':remove_email_form}
 
-    #pdb.set_trace()
-
-    if request.method == 'POST':
-        """
-        Actions:
-        - add email
-        - 
-        """
-        if request.POST.get("add_email"):
-            form = EmailForm(request.POST)
-            # Possible that email is already associated. Check.
-            email = AssociatedEmail.objects.create(user=user, email=form.cleaned_data['email'])
-
-            # Send an email to the newly added email with a verification link
-            uidb64 = urlsafe_base64_encode(force_bytes(email.pk))
-            token = default_token_generator.make_token(user)
-            subject = "PhysioNet Email Verification"
-            context = {'name':user.get_full_name(),
-                'domain':get_current_site(request), 'uidb64':uidb64, 'token':token}
-            body = loader.render_to_string('user/email/verify_email_email.html', context)
-            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, 
-                [form.cleaned_data['email']], fail_silently=False)
-
-        elif request.POST.get("change_primary_email"):
-            pass
-
-        elif request.POST.get("add_email"):
-            pass
+    context['messages'] = messages.get_messages(request)
 
     return render(request, 'user/edit_emails.html', context)
 
