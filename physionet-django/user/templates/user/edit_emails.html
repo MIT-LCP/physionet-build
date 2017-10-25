@@ -1,47 +1,56 @@
 {% extends "user/settings.html" %}
 
 {% block title %}Edit Emails{% endblock %}
-<br>
-
 
 {% block form %}
 <h2 class="form-signin-heading">Emails</h2>
+<hr>
+
+<hr>
+<h4>Your Emails</h4>
 <div class="card"">
   <ul class="list-group list-group-flush">
-    <li class="list-group-item">{{ primary_email }}</li>
-    {% for email in other_emails %}
-      <li class="list-group-item">{{ email }}</li>
+    {% for form in associated_emails_formset %}
+      <li class="list-group-item">{{ form.email.value }}
+        <a class="float-right">
+        {% if form.is_primary_email.value %}<span class="badge badge-success">Primary</span>{% endif %}
+        {% if form.is_public.value %}
+          <span class="badge badge-primary">Public</span>
+        {% else %}
+          <span class="badge badge-secondary">Private</span>
+        {% endif %}
+        
+        </a>
+      </li>
     {% endfor %}
   </ul>
 </div>
 
-
-
-
+<hr>
+<h4>Primary Email</h4>
+<p>The email used for authentication.</p>
+<form action="{% url 'edit_emails' %}" method="post" class="form-signin">
+  {% csrf_token %}
+  {{ primary_email_form.email_choice }}
+  <button class="btn btn-primary btn-fixed" name="change_primary_email" type="submit">Make Primary Email</button>
+</form>
 
 <hr>
+<h4>Add Email</h4>
+<p>Associate another email with your account. Verification required</p>
 <form action="{% url 'edit_emails' %}" method="post" class="form-signin">
   {% csrf_token %}
-  {{ email_choice_form }}
-  <button class="btn btn-lg btn-primary btn-block" name="change_primary_email" type="submit">Make Primary Email</button>
+  {{ add_email_form.email }}
+  <button class="btn btn-primary btn-fixed" name="add_email" type="submit">Add Email</button>
 </form>
 
-
-
+<hr>
+<h4>Remove Email</h4>
+<p>Dissociate a non-primary email from your account</p>
 <form action="{% url 'edit_emails' %}" method="post" class="form-signin">
   {% csrf_token %}
-  {% for form in associated_emails_formset %}
-    {{ form.email }} {{ form.is_primary_email }}
-  {% endfor %}
-  <button class="btn btn-lg btn-primary btn-block" name="change_primary_email" type="submit">Make Primary Email</button>
+  {{ remove_email_form.email_choice }}
+  <button class="btn btn-danger btn-fixed" name="remove_email" type="submit">Remove Email</button>
 </form>
-
-
-<form action="{% url 'edit_emails' %}" method="post" class="form-signin">
-  {% csrf_token %}
-  <button class="btn btn-lg btn-primary btn-block" name="add_email" type="submit">Add Emails</button>
-</form>
-
-
 
 {% endblock %}

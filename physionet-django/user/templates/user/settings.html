@@ -8,18 +8,17 @@
 {% endblock %}
 
 
-
 {% block content %}
-
 <div class="container">
-
   <div class="row row-offcanvas row-offcanvas-right">
     <div class="col-6 col-md-3 sidebar-offcanvas" id="sidebar">
       <div class="list-group">
-        <a href="{% url 'edit_profile' %}" class="list-group-item active">Profile</a>
-        <a href="{% url 'edit_password' %}"  class="list-group-item">Password</a>
-        <a href="{% url 'edit_emails' %}"  class="list-group-item">Emails</a>
-        <a href="#" class="list-group-item">Notifications</a>
+        {% with 'profile password emails' as setting_options %}
+            {% for setting in setting_options.split %}
+              {% url 'edit_'|add:setting as settings_url %}
+              <a href={{ settings_url }}  class="list-group-item {% if settings_url == request.path %}active{% endif %}">{{ setting|title }}</a>
+            {% endfor %}
+        {% endwith %}
       </div>
     </div><!--/span-->
 

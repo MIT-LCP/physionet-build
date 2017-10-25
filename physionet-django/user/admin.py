@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin as DefaultUserAdmin
 
-from .models import User, Profile
+from .models import AssociatedEmail, Profile, User
 from .forms import UserCreationForm, UserChangeForm
 
 
@@ -53,3 +53,4 @@ admin.site.unregister(Group)
 admin.site.register(User, UserAdmin)
 
 admin.site.register(Profile)
+admin.site.register(AssociatedEmail)

@@ -15,7 +15,7 @@ from django.urls import reverse
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
-from .forms import UserCreationForm, ProfileForm, EmailChoiceForm, TestForm
+from .forms import EmailForm, EmailChoiceForm, ProfileForm, UserCreationForm
 from .models import AssociatedEmail, Profile, User
 
 import pdb
@@ -126,24 +126,18 @@ def edit_emails(request):
     Edit emails page
     """
     user = request.user
-    primary_email = user.associated_emails.filter(is_primary_email=True).first()
-    other_emails = user.associated_emails.filter(is_primary_email=False)
     
     associated_emails_formset = inlineformset_factory(User, AssociatedEmail,
-        fields=('email','is_primary_email'))(instance=user)
-    
-    # <class 'django.forms.models.ModelChoiceIterator'>
-    primary_email_choices = EmailChoiceForm(user).fields['email_choice'].choices
-    #primary_email_choices = EmailChoiceForm(user).fields['email_choice']
+        fields=('email','is_primary_email'), extra=0)(instance=user)
+    primary_email_form = EmailChoiceForm(user=user, label='Primary Email')
+    add_email_form = EmailForm()
+    remove_email_form = EmailChoiceForm(user=user, label='Primary Email', include_primary=False)
 
-    email_choice_form = EmailChoiceForm(user)
+    context = {'associated_emails_formset':associated_emails_formset,
+        'primary_email_form':primary_email_form,
+        'add_email_form':add_email_form, 'remove_email_form':remove_email_form}
 
-    context = {'primary_email':primary_email, 'other_emails':other_emails,
-        'associated_emails_formset':associated_emails_formset,
-        'primary_email_choices':primary_email_choices, 'email_choice_form':email_choice_form}
-
-    print('still alive')
-    print(type(email_choice_form))
+    #pdb.set_trace()
 
     if request.method == 'POST':
         """
@@ -167,6 +161,9 @@ def edit_emails(request):
                 [form.cleaned_data['email']], fail_silently=False)
 
         elif request.POST.get("change_primary_email"):
+            pass
+
+        elif request.POST.get("add_email"):
             pass
 
     return render(request, 'user/edit_emails.html', context)
@@ -199,7 +196,8 @@ def public_profile(request, email):
     """
     return render(request, 'user/public_profile.html', {'email':email})
 
-def test(request):
-    form = TestForm()
-    context = {'form':form}
-    return render(request, 'test.html', context)
+# def test(request):
+#     form = TestForm()
+#     context = {'form':form}
+#     return render(request, 'test.html', context)
+#url(r'^test/$', views.test, name='test'),

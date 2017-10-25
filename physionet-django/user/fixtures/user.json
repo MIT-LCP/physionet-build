@@ -25,5 +25,24 @@
       "last_name": "Moody",
       "url": "http://ecg.mit.edu/george/"
     }
+  },
+
+  {
+    "model": "user.AssociatedEmail",
+    "fields": {
+      "user": "tester@mit.edu",
+      "email": "tester2@mit.edu",
+      "is_primary_email": "False",
+      "is_public": "False"
+    }
+  },
+  {
+    "model": "user.AssociatedEmail",
+    "fields": {
+      "user": "tester@mit.edu",
+      "email": "tester3@mit.edu",
+      "is_primary_email": "False",
+      "is_public": "False"
+    }
   }
 ]

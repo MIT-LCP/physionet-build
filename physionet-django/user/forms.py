@@ -158,15 +158,20 @@ class EmailChoiceForm(forms.Form):
     For letting users choose one of their AssociatedEmails.
     Ie. primary email, contact email.
     """
-    email_choice = forms.ModelChoiceField(queryset=None)
+    email_choice = forms.ModelChoiceField(queryset=None, to_field_name = 'email', 
+        widget=forms.Select(attrs={'class':'form-control'}))
 
-    def __init__(self, user):
+    def __init__(self, user, label, include_primary=True):
+        """
+        Can include or exclude the primary email
+        """
         super(EmailChoiceForm, self).__init__()
         emails = user.associated_emails
-        self.fields['email_choice'].queryset = emails
-        self.fields['email_choice'].initial = emails.get(is_primary_email=True)
-        self.fields['email_choice'].to_field_name = 'email'
 
-class TestForm(forms.Form):
-    schools = forms.ChoiceField(choices=(('1','one'),('2','two')))
+        if include_primary:
+            self.fields['email_choice'].queryset = emails.order_by('-is_primary_email')
+            self.fields['email_choice'].initial = emails.get(is_primary_email=True)
+        else:
+            self.fields['email_choice'].queryset = emails.filter(is_primary_email=False)
 
+        self.fields['email_choice'].label = label
