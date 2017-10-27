@@ -64,11 +64,7 @@ class User(AbstractBaseUser):
 
     # Mandatory methods for default authentication backend
     def get_full_name(self):
-        if self.profile.middle_names:
-            return ' '.join([self.profile.first_name, self.profile.middle_names,
-                           self.profile.last_name])
-        else:
-            return ' '.join([self.profile.first_name, self.profile.last_name])
+        return self.profile.get_full_name()
 
     def get_short_name(self):
         return self.email
@@ -114,11 +110,11 @@ class Profile(models.Model):
     phone = models.CharField(max_length=20, blank=True, default='')
 
     def get_full_name(self):
-        if self.profile.middle_names:
-            return ' '.join([self.profile.first_name, self.profile.middle_names,
-                           self.profile.last_name])
+        if self.middle_names:
+            return ' '.join([self.first_name, self.middle_names,
+                           self.last_name])
         else:
-            return ' '.join([self.profile.first_name, self.profile.last_name])
+            return ' '.join([self.first_name, self.last_name])
 
     def __str__(self):
         return self.get_full_name()

@@ -136,7 +136,6 @@ def edit_emails(request):
     remove_email_form = EmailChoiceForm(label='Remove Email')
     remove_email_form.get_associated_emails(user=user, include_primary=False)
 
-    # Have to update the forms depending on action
     if request.method == 'POST':
         if 'set_primary_email' in request.POST:
             form = EmailForm(request.POST)
@@ -144,7 +143,10 @@ def edit_emails(request):
                 email = form.cleaned_data['email']
                 user.email = email
                 user.save(update_fields=['email'])
+                # Reload the forms to show updated content
                 primary_email_form.get_associated_emails(user=user)
+                remove_email_form.get_associated_emails(user=user, include_primary=False)
+                associated_emails_formset = AssociatedEmailsFormset(instance=user, queryset=AssociatedEmail.objects.filter(verification_date__isnull=False))
                 messages.success(request, 'Your email: %s has been set as your new primary email.' % email)
         elif 'add_email' in request.POST:
             add_email_form = AssociatedEmailForm(request.POST)
@@ -162,13 +164,16 @@ def edit_emails(request):
                 send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                     [form.cleaned_data['email']], fail_silently=False)
                 messages.success(request, 'A verification link has been sent to: %s' % email)
-
         elif 'remove_email' in request.POST:
             form = EmailForm(request.POST)
             if form.is_valid():
                 email = form.cleaned_data['email']
                 remove_email = AssociatedEmail.objects.get(email=email)
                 remove_email.delete()
+                # Reload forms
+                primary_email_form.get_associated_emails(user=user)
+                remove_email_form.get_associated_emails(user=user, include_primary=False)
+                associated_emails_formset = AssociatedEmailsFormset(instance=user, queryset=AssociatedEmail.objects.filter(verification_date__isnull=False))
                 messages.success(request, 'Your email: %s has been removed from your account.' % email)
 
     context = {'associated_emails_formset':associated_emails_formset,
