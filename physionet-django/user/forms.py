@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth import forms as auth_forms
 from django.contrib.auth import password_validation
 
-from .models import User, Profile
+from .models import AssociatedEmail, User, Profile
 
 
 class EmailForm(forms.Form):
@@ -14,7 +14,6 @@ class EmailForm(forms.Form):
         max_length=254,
         widget=forms.TextInput(attrs={'autofocus': True, 'class':'form-control', 'placeholder':'Email Address'}),
     )
-
 
 class UserCreationForm(forms.ModelForm):
     """A form for creating new users. Includes all the required
@@ -153,6 +152,9 @@ class EditPasswordForm(SetPasswordForm, auth_forms.PasswordChangeForm):
     )
 
 
+
+
+
 # class EmailChoiceForm(forms.Form):
 #     """
 #     For letting users choose one of their AssociatedEmails.
@@ -201,4 +203,14 @@ class EmailChoiceForm(forms.Form):
         else:
             self.fields['email'].queryset = emails.filter(is_primary_email=False)
 
-        
+
+class AssociatedEmailForm(forms.ModelForm):
+    """
+    For adding/editing new associated emails
+    """
+    class Meta:
+        model = AssociatedEmail
+        fields = ('email',)
+        widgets = {
+            'email':forms.EmailInput(attrs={'class':'form-control dropemail'}),
+        }

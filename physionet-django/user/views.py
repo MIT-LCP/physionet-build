@@ -15,7 +15,7 @@ from django.urls import reverse
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
-from .forms import EmailForm, EmailChoiceForm, ProfileForm, UserCreationForm
+from .forms import AssociatedEmailForm, EmailForm, EmailChoiceForm, ProfileForm, UserCreationForm
 from .models import AssociatedEmail, Profile, User
 
 import pdb
@@ -126,21 +126,31 @@ def edit_emails(request):
     Edit emails page
     """
     user = request.user
-    
-    
+    # Email forms to display
+    AssociatedEmailsFormset = inlineformset_factory(User, AssociatedEmail,
+        fields=('email','is_primary_email', 'is_public'), extra=0)
+    associated_emails_formset = AssociatedEmailsFormset(instance=user, queryset=AssociatedEmail.objects.filter(verification_date__isnull=False))
+    primary_email_form = EmailChoiceForm(label='Primary Email')
+    primary_email_form.get_associated_emails(user=user)
+    add_email_form = AssociatedEmailForm()
+    remove_email_form = EmailChoiceForm(label='Remove Email')
+    remove_email_form.get_associated_emails(user=user, include_primary=False)
 
-    #pdb.set_trace()
-
+    # Have to update the forms depending on action
     if request.method == 'POST':
         if 'set_primary_email' in request.POST:
-            pass
-        elif 'add_email' in request.POST:
             form = EmailForm(request.POST)
-
-            # Possible that email is already associated. Check.
             if form.is_valid():
-                
-                email = AssociatedEmail.objects.create(user=user, email=form.cleaned_data['email'])
+                email = form.cleaned_data['email']
+                user.email = email
+                user.save(update_fields=['email'])
+                primary_email_form.get_associated_emails(user=user)
+                messages.success(request, 'Your email: %s has been set as your new primary email.' % email)
+        elif 'add_email' in request.POST:
+            add_email_form = AssociatedEmailForm(request.POST)
+            if add_email_form.is_valid():
+                # Possible that email is already associated. Check.
+                email = AssociatedEmail.objects.create(user=user, email=add_email_form.cleaned_data['email'])
 
                 # Send an email to the newly added email with a verification link
                 uidb64 = urlsafe_base64_encode(force_bytes(email.pk))
@@ -151,24 +161,15 @@ def edit_emails(request):
                 body = loader.render_to_string('user/email/verify_email_email.html', context)
                 send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                     [form.cleaned_data['email']], fail_silently=False)
+                messages.success(request, 'A verification link has been sent to: %s' % email)
 
         elif 'remove_email' in request.POST:
             form = EmailForm(request.POST)
-            #pdb.set_trace()
             if form.is_valid():
                 email = form.cleaned_data['email']
                 remove_email = AssociatedEmail.objects.get(email=email)
                 remove_email.delete()
                 messages.success(request, 'Your email: %s has been removed from your account.' % email)
-    
-    # Email forms to display
-    associated_emails_formset = inlineformset_factory(User, AssociatedEmail,
-        fields=('email','is_primary_email'), extra=0)(instance=user)
-    primary_email_form = EmailChoiceForm(label='Primary Email')
-    primary_email_form.get_associated_emails(user=user)
-    add_email_form = EmailForm()
-    remove_email_form = EmailChoiceForm(label='Remove Email')
-    remove_email_form.get_associated_emails(user=user, include_primary=False)
 
     context = {'associated_emails_formset':associated_emails_formset,
         'primary_email_form':primary_email_form,
@@ -205,9 +206,3 @@ def public_profile(request, email):
     Placeholder to clean up templates. Please replace when ready!
     """
     return render(request, 'user/public_profile.html', {'email':email})
-
-# def test(request):
-#     form = TestForm()
-#     context = {'form':form}
-#     return render(request, 'test.html', context)
-#url(r'^test/$', views.test, name='test'),

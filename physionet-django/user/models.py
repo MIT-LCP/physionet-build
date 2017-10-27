@@ -1,9 +1,11 @@
 from datetime import datetime
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+import pdb
 
 class UserManager(BaseUserManager):
     """
@@ -29,12 +31,15 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
+    def get_by_natural_key(self, email):
+        return self.get(email=email)
+
 
 class User(AbstractBaseUser):
     """
     The user authentication model
     """
-    email = models.EmailField(max_length=255, unique=True, primary_key=True)
+    email = models.EmailField(max_length=255, unique=True)
     join_date = models.DateField(auto_now_add=True)
     last_login = models.DateTimeField(null=True, blank=True)
 
@@ -44,8 +49,18 @@ class User(AbstractBaseUser):
     USERNAME_FIELD = 'email'
     EMAIL_FIELD = 'email'
 
-    # For createsuperuser. Don't include USERNAME_FIELD or password
-    # REQUIRED_FIELDS = ['username']
+    def natural_key(self):
+        return (self.email,)
+
+    def validate_unique(self, *args, **kwargs):
+        """
+        Add additional check to the non-primary AssociatedEmail objects.
+        The email field in User should be in sync with primary AssociatedEmails.
+        """
+        super(User, self).validate_unique(*args, **kwargs)
+
+        if AssociatedEmail.objects.filter(email=self.email, is_primary_email=False):
+            raise ValidationError({'email':'The email is already associated with another user'})
 
     # Mandatory methods for default authentication backend
     def get_full_name(self):
@@ -98,8 +113,15 @@ class Profile(models.Model):
     identity_verification_date = models.DateField(blank=True, null=True)
     phone = models.CharField(max_length=20, blank=True, default='')
 
+    def get_full_name(self):
+        if self.profile.middle_names:
+            return ' '.join([self.profile.first_name, self.profile.middle_names,
+                           self.profile.last_name])
+        else:
+            return ' '.join([self.profile.first_name, self.profile.last_name])
+
     def __str__(self):
-        return ' '.join([self.first_name, self.last_name])
+        return self.get_full_name()
 
 
 @receiver(post_save, sender=User)
@@ -120,8 +142,9 @@ class AssociatedEmail(models.Model):
     """
     user = models.ForeignKey('user.User', related_name='associated_emails')
     email = models.EmailField(max_length=255, unique=True)
-    verification_date = models.DateTimeField(null=True)
     is_primary_email = models.BooleanField(default=False)
+    association_date = models.DateTimeField(auto_now_add=True, null=True)
+    verification_date = models.DateTimeField(null=True)
     is_public = models.BooleanField(default=False)
 
     def __str__(self):
@@ -131,14 +154,31 @@ class AssociatedEmail(models.Model):
 @receiver(post_save, sender=User)
 def create_associated_email(sender, **kwargs):
     """
-    Creates and attaches an AssociatedEmail when a User object is created.
+    Creates and attaches a primary AssociatedEmail when a User object is created.
     """
-    user = kwargs["instance"]
-    if kwargs["created"]:
+    user = kwargs['instance']
+    if kwargs['created']:
         email = AssociatedEmail(user=user, email=user.email, is_primary_email=True)
         if user.is_active:
             email.verification_date = datetime.now()
         email.save()
+
+
+@receiver(post_save, sender=User)
+def update_associated_emails(sender, **kwargs):
+    """
+    Updates the primary/non-primary status of AssociatedEmails when the User
+    object's email field is updated.
+    """
+    user = kwargs['instance']
+    if not kwargs['created']:
+        if kwargs['update_fields'] and 'email' in kwargs['update_fields']:
+            old_primary_email = AssociatedEmail.objects.get(user=user, is_primary_email=True)
+            new_primary_email = AssociatedEmail.objects.get(user=user, email=user.email)
+            old_primary_email.is_primary_email = False
+            new_primary_email.is_primary_email = True
+            old_primary_email.save()
+            new_primary_email.save()
 
 
 class BaseAffiliation(models.Model):
@@ -162,6 +202,4 @@ class Affiliation(BaseAffiliation):
     Affiliations belonging to a profile.
     """
     profile = models.ForeignKey('user.Profile', related_name='affiliations')
-
-
 

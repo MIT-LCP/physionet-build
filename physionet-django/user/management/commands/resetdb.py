@@ -13,9 +13,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         installed_apps = [a for a in settings.INSTALLED_APPS if not any(noncustom in a for noncustom in ['django', 'ckeditor'])]
         self.deletedb(installed_apps)
-        user0,user1,user2 = self.createusers(installed_apps)
+        self.createusers(installed_apps)
         self.loadfixtures(installed_apps)
-        #self.adduserprofiles(user0,user1,user2)
+
 
     def remove_migration_files(self,app):
         '''Remove all python migration files from registered apps'''
@@ -54,8 +54,6 @@ class Command(BaseCommand):
         user0.profile.delete()
         user1.profile.delete()
         user2.profile.delete()
-
-        return user0,user1,user2
 
 
     def loadfixtures(self,installed_apps):

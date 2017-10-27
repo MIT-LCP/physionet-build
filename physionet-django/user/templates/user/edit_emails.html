@@ -4,7 +4,6 @@
 
 {% block form %}
 <h2 class="form-signin-heading">Emails</h2>
-<hr>
 
 <hr>
 <h4>Your Emails</h4>
@@ -31,7 +30,7 @@
 <p>The email used for authentication.</p>
 <form action="{% url 'edit_emails' %}" method="post" class="form-signin">
   {% csrf_token %}
-  {{ primary_email_form.email_choice }}
+  {{ primary_email_form.email }}
   <button class="btn btn-primary btn-fixed" name="set_primary_email" type="submit">Make Primary Email</button>
 </form>
 
@@ -40,7 +39,21 @@
 <p>Associate another email with your account. Verification required</p>
 <form action="{% url 'edit_emails' %}" method="post" class="form-signin" name="add_email">
   {% csrf_token %}
-  {{ add_email_form.email }}
+  {% for field in add_email_form %}
+      <div class="form-group">
+          {{ field }}
+          {% for error in field.errors %}
+              <div class="alert alert-danger">
+                  <strong>{{ error|escape }}</strong>
+              </div>
+          {% endfor %}
+      </div>
+  {% endfor %}
+  {% for error in form.non_field_errors %}
+      <div class="alert alert-danger">
+          <strong>{{ error|escape }}</strong>
+      </div>
+  {% endfor %}
   <button class="btn btn-primary btn-fixed" name="add_email" type="submit">Add Email</button>
 </form>
 
