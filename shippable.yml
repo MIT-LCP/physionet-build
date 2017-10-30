@@ -27,6 +27,8 @@ build:
     - "cd physionet-django"
     - "./manage.py resetdb"
     - "./manage.py test tests --verbosity=3"
+    - "coverage run --source='.' manage.py test tests"
+    - "coverage xml -o $CODE_COVERAGE_DIR/coverage.xml"
 
 # Integrations are used to connect external resources to CI
 # http://docs.shippable.com/integrations/overview/
