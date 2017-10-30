@@ -59,7 +59,7 @@ class User(AbstractBaseUser):
         super(User, self).validate_unique(*args, **kwargs)
 
         if AssociatedEmail.objects.filter(email=self.email, is_primary_email=False):
-            raise ValidationError({'email':'The email is already associated with another user'})
+            raise ValidationError({'email':'User with this Email already exists.'})
 
     # Mandatory methods for default authentication backend
     def get_full_name(self):
@@ -138,7 +138,7 @@ class AssociatedEmail(models.Model):
     user = models.ForeignKey('user.User', related_name='associated_emails')
     email = models.EmailField(max_length=255, unique=True)
     is_primary_email = models.BooleanField(default=False)
-    association_date = models.DateTimeField(auto_now_add=True, null=True)
+    added_date = models.DateTimeField(auto_now_add=True, null=True)
     verification_date = models.DateTimeField(null=True)
     is_public = models.BooleanField(default=False)
 
