@@ -1,11 +1,10 @@
-from datetime import datetime
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils import timezone
 
-import pdb
 
 class UserManager(BaseUserManager):
     """
@@ -156,7 +155,7 @@ def create_associated_email(sender, **kwargs):
     if kwargs['created']:
         email = AssociatedEmail(user=user, email=user.email, is_primary_email=True)
         if user.is_active:
-            email.verification_date = datetime.now()
+            email.verification_date = timezone.now()
         email.save()
 
 

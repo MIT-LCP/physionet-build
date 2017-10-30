@@ -33,7 +33,8 @@
       "user": ["tester@mit.edu"],
       "email": "tester2@mit.edu",
       "is_primary_email": "False",
-      "is_public": "False"
+      "is_public": "False",
+      "verification_date": "2017-10-30T09:30:30-05:00"
     }
   },
   {
@@ -42,7 +43,8 @@
       "user": ["tester@mit.edu"],
       "email": "tester3@mit.edu",
       "is_primary_email": "False",
-      "is_public": "False"
+      "is_public": "False",
+      "verification_date": "2017-10-30T10:15:20-05:00"
     }
   }
 ]

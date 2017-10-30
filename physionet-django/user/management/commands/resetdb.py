@@ -1,12 +1,12 @@
+from django.core.management import call_command, execute_from_command_line
+from django.core.management.base import BaseCommand, CommandError
+from django.core.management.commands import loaddata
 import os
-from subprocess import call
-from django.core.management import execute_from_command_line
+
 from physionet import settings
 from user.models import User, Profile
 
-from django.core import management
-from django.core.management.commands import loaddata
-from django.core.management.base import BaseCommand, CommandError
+
 
 class Command(BaseCommand):
 
@@ -62,6 +62,6 @@ class Command(BaseCommand):
         """ 
         for app in installed_apps:
             app_fixtures_dir = os.path.join(settings.BASE_DIR, app, 'fixtures')
-            management.call_command('loaddata', app, verbosity=1)
+            call_command('loaddata', app, verbosity=1)
 
 

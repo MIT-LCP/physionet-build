@@ -1,4 +1,3 @@
-from datetime import datetime
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -12,13 +11,14 @@ from django.middleware import csrf
 from django.shortcuts import render
 from django.template import loader
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
 from .forms import AssociatedEmailForm, EmailForm, EmailChoiceForm, ProfileForm, UserCreationForm
 from .models import AssociatedEmail, Profile, User
 
-import pdb
+
 @login_required
 def user_home(request):
     """
@@ -72,7 +72,7 @@ def activate_user(request, uidb64, token):
         user.is_active = True
         user.save()
         email = user.associated_emails.first()
-        email.verification_date = datetime.now()
+        email.verification_date = timezone.now()
         email.save()
         context = {'title':'Activation Successful', 'isvalid':True}
     else:
@@ -205,7 +205,7 @@ def verify_email(request, uidb64, token):
         # Test the token with the user
         user = email.user
         if default_token_generator.check_token(user, token):
-            email.verification_date = datetime.now()
+            email.verification_date = timezone.now()
             email.save()
             return render(request, 'user/verify_email.html', {'title':'Verification Successful', 'isvalid':True})
 
