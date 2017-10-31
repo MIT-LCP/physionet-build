@@ -2,7 +2,7 @@
   {
     "model": "user.Profile",
     "fields": {
-      "user": "tester@mit.edu",
+      "user": ["tester@mit.edu"],
       "first_name": "Tester",
       "last_name": "Bot",
       "url": "https://github.com/MIT-LCP/physionet-build"
@@ -11,7 +11,7 @@
   {
     "model": "user.Profile",
     "fields": {
-      "user": "rgmark@mit.edu",
+      "user": ["rgmark@mit.edu"],
       "first_name": "Roger Greenwood",
       "last_name": "Mark",
       "url": "http://imes.mit.edu/people/faculty/mark-roger/"
@@ -20,10 +20,31 @@
   {
     "model": "user.Profile",
     "fields": {
-      "user": "george@mit.edu",
+      "user": ["george@mit.edu"],
       "first_name": "George",
       "last_name": "Moody",
       "url": "http://ecg.mit.edu/george/"
+    }
+  },
+
+  {
+    "model": "user.AssociatedEmail",
+    "fields": {
+      "user": ["tester@mit.edu"],
+      "email": "tester2@mit.edu",
+      "is_primary_email": "False",
+      "is_public": "False",
+      "verification_date": "2017-10-30T09:30:30-05:00"
+    }
+  },
+  {
+    "model": "user.AssociatedEmail",
+    "fields": {
+      "user": ["tester@mit.edu"],
+      "email": "tester3@mit.edu",
+      "is_primary_email": "False",
+      "is_public": "False",
+      "verification_date": "2017-10-30T10:15:20-05:00"
     }
   }
 ]

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/login_register.css' %}"/>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>{{ title }}</h2>
+    {% if isvalid %}
+        <p>Your email has been successfully verified and associated with your account. You may return to your <a href="{% url 'user_settings' %}">settings</a> or your <a href="{% url 'user_home' %}">user home page</a>.</p>
+    {% else %}
+        <p>There was an error with your link. Please try again or contact the site administrator.</a>.
+    {% endif %}
+</div>
+{% endblock %}

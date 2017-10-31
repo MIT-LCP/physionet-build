@@ -1,14 +1,68 @@
 {% extends "user/settings.html" %}
 
-{% block title %}
-Edit Emails
-{% endblock %}
+{% block title %}Edit Emails{% endblock %}
 
 {% block form %}
+<h2 class="form-signin-heading">Emails</h2>
+
+<hr>
+<h4>Your Emails</h4>
+<div class="card"">
+  <ul class="list-group list-group-flush">
+    {% for form in associated_emails_formset %}
+      <li class="list-group-item">{{ form.email.value }}
+        <a class="float-right">
+        {% if form.is_primary_email.value %}<span class="badge badge-success">Primary</span>{% endif %}
+        {% if form.is_public.value %}
+          <span class="badge badge-primary">Public</span>
+        {% else %}
+          <span class="badge badge-secondary">Private</span>
+        {% endif %}
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+</div>
+
+<hr>
+<h4>Primary Email</h4>
+<p>The email address used for logging into your account.</p>
 <form action="{% url 'edit_emails' %}" method="post" class="form-signin">
-  <h2 class="form-signin-heading">Emails</h2>
   {% csrf_token %}
-  {{ form.as_p }}
-  <button class="btn btn-lg btn-primary btn-block" type="submit">Edit Emails</button>
+  {{ primary_email_form.email }}
+  <button class="btn btn-primary btn-fixed" name="set_primary_email" type="submit">Make Primary Email</button>
 </form>
+
+<hr>
+<h4>Add Email</h4>
+<p>Add another email address. A message will be sent to the address for verification. </p>
+<form action="{% url 'edit_emails' %}" method="post" class="form-signin" name="add_email">
+  {% csrf_token %}
+  {% for field in add_email_form %}
+      <div class="form-group">
+          {{ field }}
+          {% for error in field.errors %}
+              <div class="alert alert-danger">
+                  <strong>{{ error|escape }}</strong>
+              </div>
+          {% endfor %}
+      </div>
+  {% endfor %}
+  {% for error in form.non_field_errors %}
+      <div class="alert alert-danger">
+          <strong>{{ error|escape }}</strong>
+      </div>
+  {% endfor %}
+  <button class="btn btn-primary btn-fixed" name="add_email" type="submit">Add Email</button>
+</form>
+
+<hr>
+<h4>Remove Email</h4>
+<p>Remove an email address from your account. You may not remove your primary email address.</p>
+<form action="{% url 'edit_emails' %}" method="post" class="form-signin">
+  {% csrf_token %}
+  {{ remove_email_form.email }}
+  <button class="btn btn-danger btn-fixed" name="remove_email" type="submit">Remove Email</button>
+</form>
+
 {% endblock %}

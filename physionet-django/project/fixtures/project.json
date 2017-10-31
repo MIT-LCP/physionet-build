@@ -4,7 +4,7 @@
     "fields": {
       "title": "MIT-BIH Arrhythmia Database",
       "slug": "mitdb",
-      "owner": "tester@mit.edu"
+      "owner": ["tester@mit.edu"]
     }
   },
   {
@@ -12,7 +12,7 @@
     "fields": {
       "title": "MIMIC-III Clinical Database",
       "slug": "mimic3cdb",
-      "owner": "rgmark@mit.edu"
+      "owner": ["rgmark@mit.edu"]
     }
   }
 ]

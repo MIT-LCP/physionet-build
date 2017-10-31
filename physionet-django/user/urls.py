@@ -53,6 +53,8 @@ urlpatterns = [
         name='edit_password'),
     url(r'^settings/password/changed/$', views.edit_password_done, name='edit_password_done'),
     url(r'^settings/emails/$', views.edit_emails, name='edit_emails'),
+    url(r'^verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
+        views.verify_email, name='verify_email'),
     
     # Individual home page/dashboard
     url(r'^home/$', views.user_home, name='user_home'),
