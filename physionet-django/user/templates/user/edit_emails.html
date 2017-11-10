@@ -26,7 +26,7 @@
 
 <hr>
 <h4>Primary Email</h4>
-<p>The email used for authentication.</p>
+<p>The email address used for logging into your account.</p>
 <form action="{% url 'edit_emails' %}" method="post" class="form-signin">
   {% csrf_token %}
   {{ primary_email_form.email }}
@@ -35,7 +35,7 @@
 
 <hr>
 <h4>Add Email</h4>
-<p>Associate another email with your account. Verification required</p>
+<p>Add another email address. A message will be sent to the address for verification. </p>
 <form action="{% url 'edit_emails' %}" method="post" class="form-signin" name="add_email">
   {% csrf_token %}
   {% for field in add_email_form %}
@@ -58,7 +58,7 @@
 
 <hr>
 <h4>Remove Email</h4>
-<p>Dissociate a non-primary email from your account</p>
+<p>Remove an email address from your account. You may not remove your primary email address.</p>
 <form action="{% url 'edit_emails' %}" method="post" class="form-signin">
   {% csrf_token %}
   {{ remove_email_form.email }}

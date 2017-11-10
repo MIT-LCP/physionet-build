@@ -36,7 +36,8 @@ class UserCreationForm(forms.ModelForm):
         if password1 and password2 and password1 != password2:
             raise forms.ValidationError("The passwords don't match")
         self.instance.username = self.cleaned_data.get('username')
-        password_validation.validate_password(self.cleaned_data.get('password2'), self.instance)
+        password_validation.validate_password(self.cleaned_data.get('password2'), 
+            self.instance)
         return password2
 
     def save(self, commit=True):
@@ -79,7 +80,8 @@ class LoginForm(auth_forms.AuthenticationForm):
     username = auth_forms.UsernameField(
         label='Email',
         max_length=254,
-        widget=forms.TextInput(attrs={'autofocus': True, 'class':'form-control', 'placeholder':'Email Address'}),
+        widget=forms.TextInput(attrs={'autofocus': True, 'class':'form-control', 
+            'placeholder':'Email Address'}),
     )
     password = forms.CharField(
         label= 'Password',
@@ -97,7 +99,8 @@ class ResetPasswordForm(auth_forms.PasswordResetForm):
     email = forms.EmailField(
         label='Email',
         max_length=254,
-        widget=forms.TextInput(attrs={'autofocus': True, 'class':'form-control', 'placeholder':'Email Address'}),
+        widget=forms.TextInput(attrs={'autofocus': True, 'class':'form-control',
+            'placeholder':'Email Address'}),
     )
 
 
