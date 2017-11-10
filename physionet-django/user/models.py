@@ -11,7 +11,7 @@ class UserManager(BaseUserManager):
     Manager object with methods to create
     User instances.
     """
-    def create_user(self, email, password, is_active=True):
+    def create_user(self, email, password, is_active=False):
         user = self.model(
             email=self.normalize_email(email),
             is_active=is_active,
@@ -21,10 +21,11 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, password):
+    def create_superuser(self, email, password, is_active=True):
         user = self.create_user(
             email=email,
             password=password,
+            is_active=is_active,
         )
         user.is_admin = True
         user.save(using=self._db)
@@ -43,7 +44,7 @@ class User(AbstractBaseUser):
     last_login = models.DateTimeField(null=True, blank=True)
 
     # Mandatory fields for the default authentication backend
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
     USERNAME_FIELD = 'email'
     EMAIL_FIELD = 'email'
@@ -197,4 +198,3 @@ class Affiliation(BaseAffiliation):
     Affiliations belonging to a profile.
     """
     profile = models.ForeignKey('user.Profile', related_name='affiliations')
-

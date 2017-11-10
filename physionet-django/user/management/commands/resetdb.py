@@ -48,8 +48,8 @@ class Command(BaseCommand):
         Create some demo users
         """
         user0 = User.objects.create_superuser(email="tester@mit.edu", password="Tester1!")
-        user1 = User.objects.create_user(email="rgmark@mit.edu", password="Tester1!")
-        user2 = User.objects.create_user(email="george@mit.edu", password="Tester1!")
+        user1 = User.objects.create_user(email="rgmark@mit.edu", password="Tester1!", is_active=True)
+        user2 = User.objects.create_user(email="george@mit.edu", password="Tester1!", is_active=True)
         # Delete the empty profiles created from triggers
         user0.profile.delete()
         user1.profile.delete()

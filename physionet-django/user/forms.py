@@ -5,16 +5,6 @@ from django.contrib.auth import password_validation
 from .models import AssociatedEmail, User, Profile
 
 
-class EmailForm(forms.Form):
-    """
-    Simple form with just an email. Used for adding emails and inheriting.
-    """
-    email = forms.EmailField(
-        label='Email',
-        max_length=254,
-        widget=forms.TextInput(attrs={'autofocus': True, 'class':'form-control', 'placeholder':'Email Address'}),
-    )
-
 class UserCreationForm(forms.ModelForm):
     """A form for creating new users. Includes all the required
     fields, plus a repeated password.
@@ -54,7 +44,6 @@ class UserCreationForm(forms.ModelForm):
         user = super(UserCreationForm, self).save(commit=False)
         user.set_password(self.cleaned_data["password1"])
         if commit:
-            user.is_active = False
             # This should trigger profile creation
             user.save()
             # Save additional fields in Profile model
@@ -101,11 +90,15 @@ class LoginForm(auth_forms.AuthenticationForm):
     remember = forms.BooleanField(label='Remember Me', required=False)
 
 
-class ResetPasswordForm(auth_forms.PasswordResetForm, EmailForm):
+class ResetPasswordForm(auth_forms.PasswordResetForm):
     """
     Form to send the email to reset the password.
     """
-    pass
+    email = forms.EmailField(
+        label='Email',
+        max_length=254,
+        widget=forms.TextInput(attrs={'autofocus': True, 'class':'form-control', 'placeholder':'Email Address'}),
+    )
 
 
 class SetPasswordForm(auth_forms.SetPasswordForm):
@@ -152,38 +145,12 @@ class EditPasswordForm(SetPasswordForm, auth_forms.PasswordChangeForm):
     )
 
 
-
-
-
-# class EmailChoiceForm(forms.Form):
-#     """
-#     For letting users choose one of their AssociatedEmails.
-#     Ie. primary email, contact email.
-#     """
-#     email = forms.ModelChoiceField(queryset=None, to_field_name = 'email', 
-#         widget=forms.Select(attrs={'class':'form-control'}))
-
-#     def __init__(self, user, label='email', include_primary=True):
-#         """
-#         Can include or exclude the primary email
-#         """
-#         super(EmailChoiceForm, self).__init__()
-#         emails = user.associated_emails
-
-#         if include_primary:
-#             self.fields['email'].queryset = emails.order_by('-is_primary_email')
-#             self.fields['email'].initial = emails.get(is_primary_email=True)
-#         else:
-#             self.fields['email'].queryset = emails.filter(is_primary_email=False)
-
-#         self.fields['email'].label = label
-
 class EmailChoiceForm(forms.Form):
     """
     For letting users choose one of their AssociatedEmails.
     Ie. primary email, contact email.
     """
-    email = forms.ModelChoiceField(queryset=None, to_field_name = 'email', 
+    email = forms.ModelChoiceField(queryset=None, to_field_name = 'email',
         widget=forms.Select(attrs={'class':'form-control'}))
 
     def __init__(self, label='email'):
