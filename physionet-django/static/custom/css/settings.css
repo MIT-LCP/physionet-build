@@ -16,6 +16,10 @@ footer {
   padding: 10px 0;
 }
 
+.btn-fixed {
+    min-width: 200px;
+    max-width: 200px;
+}
 /*
  * Off Canvas
  * --------------------------------------------------
