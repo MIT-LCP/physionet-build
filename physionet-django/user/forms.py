@@ -5,6 +5,11 @@ from django.contrib.auth import password_validation
 from .models import AssociatedEmail, User, Profile
 
 
+class EmailForm(forms.Form):
+    "Generic form for cleaning form email fields"
+    email = forms.EmailField(label='Email', max_length=254)
+
+
 class UserCreationForm(forms.ModelForm):
     """A form for creating new users. Includes all the required
     fields, plus a repeated password.
@@ -165,7 +170,7 @@ class EmailChoiceForm(forms.Form):
         Populate the queryset with a user's associated emails
         Can include or exclude the primary email
         """
-        emails = user.associated_emails
+        emails = user.associated_emails.filter(verification_date__isnull=False)
 
         if include_primary:
             self.fields['email'].queryset = emails.order_by('-is_primary_email')

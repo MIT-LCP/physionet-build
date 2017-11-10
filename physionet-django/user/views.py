@@ -15,9 +15,9 @@ from django.utils import timezone
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
-from .forms import AssociatedEmailForm, EmailChoiceForm, ProfileForm, UserCreationForm
+from .forms import AssociatedEmailForm, EmailChoiceForm, EmailForm, ProfileForm, UserCreationForm
 from .models import AssociatedEmail, Profile, User
-import pdb
+
 
 @login_required
 def user_home(request):
@@ -139,16 +139,17 @@ def edit_emails(request):
 
     if request.method == 'POST':
         if 'set_primary_email' in request.POST:
-            form = AssociatedEmailForm(request.POST)
+            form = EmailForm(request.POST)
             if form.is_valid():
                 email = form.cleaned_data['email']
-                # Only do something if a different email was selected
-                if email != user.email:
+                associated_email = AssociatedEmail.objects.get(email=email)
+                if associated_email.user == user and not associated_email.is_primary_email:
                     user.email = email
                     user.save(update_fields=['email'])
-                    # Reload primary email select form to make new primary the default selection
+                    # Reload primary email select form to make the new primary the default selection
                     primary_email_form.get_associated_emails(user=user)
                     messages.success(request, 'Your email: %s has been set as your new primary email.' % email)
+
         elif 'add_email' in request.POST:
             form = AssociatedEmailForm(request.POST)
             if form.is_valid():
@@ -163,15 +164,17 @@ def edit_emails(request):
                 send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                     [form.cleaned_data['email']], fail_silently=False)
                 messages.success(request, 'A verification link has been sent to: %s' % email)
+                
         elif 'remove_email' in request.POST:
-            form = AssociatedEmailForm(request.POST)
+            form = EmailForm(request.POST)
             if form.is_valid():
                 email = form.cleaned_data['email']
                 remove_email = AssociatedEmail.objects.get(email=email)
-                remove_email.delete()
-                # Reload primary email select form to make new primary the default selection
-                primary_email_form.get_associated_emails(user=user)
-                messages.success(request, 'Your email: %s has been removed from your account.' % email)
+                if remove_email.user == user and not remove_email.is_primary_email:
+                    remove_email.delete()
+                    # Reload primary email select form to make the new primary the default selection
+                    primary_email_form.get_associated_emails(user=user)
+                    messages.success(request, 'Your email: %s has been removed from your account.' % email)
 
     context = {'associated_emails_formset':associated_emails_formset,
         'primary_email_form':primary_email_form,
