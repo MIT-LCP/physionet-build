@@ -5,7 +5,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import PasswordResetConfirmView
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
-from django.forms import inlineformset_factory
+from django.forms import inlineformset_factory, HiddenInput
 from django.http import HttpResponseRedirect
 from django.middleware import csrf
 from django.shortcuts import render
@@ -131,6 +131,10 @@ def edit_emails(request):
         fields=('email','is_primary_email', 'is_public'), extra=0)
     associated_emails_formset = AssociatedEmailsFormset(instance=user,
         queryset=AssociatedEmail.objects.filter(verification_date__isnull=False))
+    PublicAssociatedEmailsFormset = inlineformset_factory(User, AssociatedEmail,
+        fields=('email','is_public'), extra=0, widgets={'email': HiddenInput})
+    public_associated_emails_formset = PublicAssociatedEmailsFormset(instance=user,
+        queryset=AssociatedEmail.objects.filter(verification_date__isnull=False))
     primary_email_form = EmailChoiceForm(label='Primary Email')
     primary_email_form.get_associated_emails(user=user)
     add_email_form = AssociatedEmailForm()
@@ -138,7 +142,13 @@ def edit_emails(request):
     remove_email_form.get_associated_emails(user=user, include_primary=False)
 
     if request.method == 'POST':
-        if 'set_primary_email' in request.POST:
+        if 'set_public_emails' in request.POST:
+            formset = PublicAssociatedEmailsFormset(request.POST, instance=user)
+            if formset.is_valid():
+                formset.save()
+                messages.success(request, 'Your email privacy settings have been updated.')
+
+        elif 'set_primary_email' in request.POST:
             form = EmailForm(request.POST)
             if form.is_valid():
                 email = form.cleaned_data['email']
@@ -172,11 +182,10 @@ def edit_emails(request):
                 remove_email = AssociatedEmail.objects.get(email=email)
                 if remove_email.user == user and not remove_email.is_primary_email:
                     remove_email.delete()
-                    # Reload primary email select form to make the new primary the default selection
-                    primary_email_form.get_associated_emails(user=user)
                     messages.success(request, 'Your email: %s has been removed from your account.' % email)
 
     context = {'associated_emails_formset':associated_emails_formset,
+        'public_associated_emails_formset':public_associated_emails_formset,
         'primary_email_form':primary_email_form,
         'add_email_form':add_email_form, 'remove_email_form':remove_email_form}
 
