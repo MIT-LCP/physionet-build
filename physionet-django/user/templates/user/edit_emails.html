@@ -25,6 +25,23 @@
 </div>
 
 <hr>
+<h4>Public Emails</h4>
+<p>The email addresses shown in your <a href="{% url 'public_profile' user.email %}">public profile</a>.</p>
+<form action="{% url 'edit_emails' %}" method="post" class="form-signin">
+  {% csrf_token %}
+  <div class="card"">
+    <ul class="list-group list-group-flush">
+      {{  public_associated_emails_formset.management_form }}
+      {% for form in public_associated_emails_formset %}
+        <li class="list-group-item">{{ form.is_public }} {{ form.email.value }} {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  <button class="btn btn-primary btn-fixed" name="set_public_emails" type="submit">Set Public Emails</button>
+</form>
+<form>
+
+<hr>
 <h4>Primary Email</h4>
 <p>The email address used for logging into your account.</p>
 <form action="{% url 'edit_emails' %}" method="post" class="form-signin">
