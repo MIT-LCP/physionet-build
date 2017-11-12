@@ -7,24 +7,24 @@ Dev branch: [![Run Status](https://api.shippable.com/projects/59e7d1baaf0a170700
 ## Running Local Instance Using Django Server
 
 - Create python environment with python 3.6.
-- Install python packages in `requirements.txt`
-- Install sqlite3: `sudo apt-get install sqlite3`
-- Activate virtual environment
-- Within the `physionet-django` directory, run: `python manage.py resetdb` to reset the database
-- Within the `physionet-django` directory, run: `python manage.py runserver`
+- Install python packages in `requirements.txt`.
+- Install sqlite3: `sudo apt-get install sqlite3`.
+- Activate virtual python environment.
+- Within the `physionet-django` directory, run: `python manage.py resetdb` to reset the database and load demo data.
+- Within the `physionet-django` directory, run: `python manage.py runserver`.
 
 ## Contribution Guidelines
 
 - Familiarise yourself with the PEP8 style guidelines: https://www.python.org/dev/peps/pep-0008/
-- Create a branch originating from the `dev` branch, titled after the new feature/change to be implemented
-- Write tests for your code where possible (see "Testing" section below)
+- Create a branch originating from the `dev` branch, titled after the new feature/change to be implemented.
+- Write tests for your code where possible (see "Testing" section below). Confirm that all tests pass before making a pull request.
 - Make a pull request to the `dev` branch with a clear title and description of the changes. Tips for a good pull request: http://blog.ploeh.dk/2015/01/15/10-tips-for-better-pull-requests/
 
 ## Testing  
 
-- Unit tests are kept in the `physionet-django/tests` directory
-- To run the unit tests, change to the `physionet-django` directory then run `python manage.py test tests -v2`
-- To check test coverage, change to the `physionet-django` directory then run `coverage run --source='.' manage.py test tests`. Next run `coverage html` to generate an html output of the coverage results. You may need to `pip install coverage` beforehand.
+- Unit tests for each app are kept in their `test*.py` files.
+- To run the unit tests, change to the `physionet-django` directory and run `python manage.py test`.
+- To check test coverage, change to the `physionet-django` directory and run `coverage run --source='.' manage.py test`. Next run `coverage html` to generate an html output of the coverage results. You may need to `pip install coverage` beforehand.
 
 ## Database Content During Development
 
