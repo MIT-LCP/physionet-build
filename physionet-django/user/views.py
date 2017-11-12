@@ -217,6 +217,6 @@ def verify_email(request, uidb64, token):
 
 def public_profile(request, email):
     """
-    Placeholder to clean up templates. Please replace when ready!
+    A user's public profile
     """
     return render(request, 'user/public_profile.html', {'email':email})
