@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 
-from user.models import User
+from user.models import User, AssociatedEmail
 from user.management.commands.resetdb import load_fixture_profiles
 
 import pdb
@@ -39,13 +39,29 @@ class TestAuth(TestCase):
         self.assertEqual(True, known_user_status)
         self.assertEqual(True, known_admin_user_status)
 
+    def test_emails(self):
+        """
+        Test email changing functionality
+        """
+
+        user = User.objects.get(email='tester@mit.edu')
+
+        # Change primary email
+        secondary_email = AssociatedEmail.objects.filter(user=user,
+            is_primary_email=False).first()
+
+        user.email = secondary_email.email
+        new_primary_email = AssociatedEmail.objects.get(email=secondary_email.email)
+
+        self.assertTrue(new_primary_email.is_primary_email)
+
     def test_admin_home(self):
         """
         Test that the admin page redirects to a login page.
         """
         response = self.client.get('/admin/')
         redirect_url = response['Location'].split('?')[0]
-        
+
         self.assertEqual('/admin/login/', redirect_url)
         self.assertEqual(302, response.status_code)
         self.assertRedirects(response,'/admin/login/?next=/admin/',
