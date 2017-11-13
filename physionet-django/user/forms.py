@@ -23,7 +23,8 @@ class UserCreationForm(forms.ModelForm):
     last_name = forms.CharField(max_length = 30, label='Last Name',
                     widget=forms.TextInput(attrs={'class':'form-control'}))
     password1 = forms.CharField(label='Password',
-                    widget=forms.PasswordInput(attrs={'class':'form-control'}))
+                    widget=forms.PasswordInput(attrs={'class':'form-control', 
+                        'id':'id_password'}))
     password2 = forms.CharField(label='Password Confirmation',
                     widget=forms.PasswordInput(attrs={'class':'form-control'}))
 
@@ -115,7 +116,8 @@ class SetPasswordForm(auth_forms.SetPasswordForm):
     """
     new_password1 = forms.CharField(
         label="New password",
-        widget=forms.PasswordInput(attrs={'autofocus': True, 'class':'form-control'}),
+        widget=forms.PasswordInput(attrs={'autofocus': True, 'class':'form-control',
+                                    'id':'id_password'}),
         strip=False,
     )
     new_password2 = forms.CharField(

@@ -1,7 +1,32 @@
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext as _
+from zxcvbn import zxcvbn
 import re
 
+class ComplexityValidator(object):
+    """
+    Require at least one symbol
+    """
+    def __init__(self):
+        self.minimum_complexity = 2
+        self.maximum_complexity = 4
+
+    def validate(self, password, user=None):
+        if zxcvbn(password,[])['score'] < self.minimum_complexity:
+            raise ValidationError(
+                _("This password is too weak."),
+                code='password_weak_password',
+            )
+        elif zxcvbn(password,[])['score'] > self.maximum_complexity:
+            raise ValidationError(
+                _("This password is incompatible."),
+                code='password_incompatible',
+            )
+
+    def get_help_text(self):
+        return _(
+            "Your password is too weak."
+        )
 
 class MaximumLengthValidator(object):
     """
