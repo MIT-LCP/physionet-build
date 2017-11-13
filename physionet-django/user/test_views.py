@@ -39,6 +39,9 @@ class TestAuth(TestCase):
         self.assertEqual(True, known_user_status)
         self.assertEqual(True, known_admin_user_status)
 
+    # def test_register(self):
+    #     pass
+
     def test_emails(self):
         """
         Test email changing functionality
@@ -49,8 +52,8 @@ class TestAuth(TestCase):
         # Change primary email
         secondary_email = AssociatedEmail.objects.filter(user=user,
             is_primary_email=False).first()
-
         user.email = secondary_email.email
+        user.save(update_fields=['email'])
         new_primary_email = AssociatedEmail.objects.get(email=secondary_email.email)
 
         self.assertTrue(new_primary_email.is_primary_email)
@@ -69,6 +72,7 @@ class TestAuth(TestCase):
 
 
 class TestPublic(TestCase):
+
     def test_public_pages(self):
         """
         Test that public pages are reached and return '200' codes.
