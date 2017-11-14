@@ -45,7 +45,7 @@
 <p>The email address used for logging into your account.</p>
 <form action="{% url 'edit_emails' %}" method="post" class="form-signin">
   {% csrf_token %}
-  {{ primary_email_form.email }}
+  {{ primary_email_form.associated_email }}
   <button class="btn btn-primary btn-fixed" name="set_primary_email" type="submit">Make Primary Email</button>
 </form>
 
@@ -77,7 +77,7 @@
 <p>Remove an email address from your account. You may not remove your primary email address.</p>
 <form action="{% url 'edit_emails' %}" method="post" class="form-signin">
   {% csrf_token %}
-  {{ remove_email_form.email }}
+  {{ remove_email_form.associated_email }}
   <button class="btn btn-danger btn-fixed" name="remove_email" type="submit">Remove Email</button>
 </form>
 
