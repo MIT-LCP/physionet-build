@@ -212,7 +212,6 @@ def public_profile(request, email):
     return render(request, 'user/public_profile.html', {'email':email})
 
 
-
 def test(request):
     """
     For testing
