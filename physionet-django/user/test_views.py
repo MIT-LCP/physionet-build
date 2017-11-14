@@ -14,7 +14,7 @@ class TestAuth(TestCase):
 
     def setUp(self):
         load_fixture_profiles()
-        
+
     def test_profile_fixtures(self):
         """
         Test that the demo profiles in the fixtures are successfully loaded and
