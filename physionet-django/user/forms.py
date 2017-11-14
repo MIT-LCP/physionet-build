@@ -89,10 +89,9 @@ class LoginForm(auth_forms.AuthenticationForm):
 
 
 class UserChangeForm(forms.ModelForm):
-    """A form for updating users. Includes all the fields on
-    the user, but replaces the password field with admin's
-    password hash display field.
-
+    """A form for updating user objects in the admin interface. Includes all
+    fields on the user, but replaces the password field with the password hash
+    display field. Use the admin interface to change passwords.
     """
     password = auth_forms.ReadOnlyPasswordHashField()
 
