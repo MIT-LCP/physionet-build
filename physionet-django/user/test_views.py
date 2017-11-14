@@ -70,6 +70,10 @@ class TestAuth(TestCase):
         self.assertRedirects(response,'/admin/login/?next=/admin/',
             status_code=302)
 
+# def test_forms(self):
+#         response = self.client.post("/my/form/", {'something':'something'})
+#         self.assertFormError(response, 'form', 'something', 'This field is required.')
+
 
 class TestPublic(TestCase):
 
