@@ -155,30 +155,31 @@ class EditPasswordForm(SetPasswordForm, auth_forms.PasswordChangeForm):
     )
 
 
-class EmailChoiceForm(forms.Form):
+class AssociatedEmailChoiceForm(forms.Form):
     """
     For letting users choose one of their AssociatedEmails.
-    Ie. primary email, contact email.
+    Ie. primary email, contact email, remove email.
     """
-    email = forms.ModelChoiceField(queryset=None, to_field_name = 'email',
-        widget=forms.Select(attrs={'class':'form-control'}))
+    associated_email = forms.ModelChoiceField(queryset=None, to_field_name='email',
+        label='email', widget=forms.Select(attrs={'class':'form-control'}))
 
-    def __init__(self, label='email'):
-        super(EmailChoiceForm, self).__init__()
-        self.fields['email'].label = label
+    def __init__(self, *args, **kwargs):
+        super(AssociatedEmailChoiceForm, self).__init__(*args, **kwargs)
 
     def get_associated_emails(self, user, include_primary=True):
         """
         Populate the queryset with a user's associated emails
         Can include or exclude the primary email
         """
-        emails = user.associated_emails.filter(verification_date__isnull=False)
+        associated_emails = user.associated_emails.filter(verification_date__isnull=False)
 
         if include_primary:
-            self.fields['email'].queryset = emails.order_by('-is_primary_email')
-            self.fields['email'].initial = emails.get(is_primary_email=True)
+            self.fields['associated_email'].queryset = associated_emails.order_by('-is_primary_email')
         else:
-            self.fields['email'].queryset = emails.filter(is_primary_email=False)
+            self.fields['associated_email'].queryset = associated_emails.filter(is_primary_email=False)
+
+    def set_label(self, label):
+        self.fields['email'].label = label
 
 
 class AssociatedEmailForm(forms.ModelForm):
@@ -191,3 +192,4 @@ class AssociatedEmailForm(forms.ModelForm):
         widgets = {
             'email':forms.EmailInput(attrs={'class':'form-control dropemail'}),
         }
+
