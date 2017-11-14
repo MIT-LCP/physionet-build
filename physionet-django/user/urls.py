@@ -63,6 +63,7 @@ urlpatterns = [
     url(r'^users/(?P<email>[\w\-\.]+@[\w\-\.]+)/$', views.public_profile,
         name='public_profile'),
 
+    # Just for tests
     url(r'^test/$', views.test, name='test'),
 ]
 

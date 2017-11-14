@@ -1,25 +1,12 @@
 from django.test import TestCase
 from django.urls import reverse
 
-from user.forms import (AssociatedEmailForm, EditPasswordForm, AssociatedEmailChoiceForm,
-    LoginForm, ProfileForm, ResetPasswordForm, SetPasswordForm,
+from user.forms import (AssociatedEmailChoiceForm, AssociatedEmailForm,
+    EditPasswordForm, LoginForm, ProfileForm, ResetPasswordForm, SetPasswordForm,
     UserCreationForm)
 from user.management.commands.resetdb import load_fixture_profiles
 from user.models import User
 
-import pdb
-
-#pdb.set_trace()
-#self.invalid_form.is_valid()
-#self.invalid_form.errors
-
-#         print('\n\n')
-#         invalid_form.is_valid()
-#         print(dict(invalid_form.errors))
-#         print('\n\n')
-
-# self.invalid_form.is_valid()
-# self.invalid_form.errors
 
 class TestForms(TestCase):
 
@@ -52,12 +39,21 @@ class TestForms(TestCase):
         self.assertFalse(self.invalid_form.is_valid())
         self.assertEqual(self.invalid_form.errors, invalid_form_errors)
 
+    def test_associated_email_choice_form(self):
+        """
+        Choice field in form, cannot use create helper function
+        """
+        user = User.objects.get(email='tester@mit.edu')
+        self.valid_form = AssociatedEmailChoiceForm(user=user,
+            include_primary=True, data={'associated_email':'tester2@mit.edu'})
+        self.invalid_form = AssociatedEmailChoiceForm(user=user,
+            include_primary=True, data={'associated_email':'nonexistent@mit.edu'})
+        self.run_test_forms({'associated_email':['Select a valid choice. That choice is not one of the available choices.']})
 
     def test_associated_email_form(self):
         self.create_test_forms(AssociatedEmailForm, {'email':'tester0@mit.edu'},
             {'email':'nonexistent'})
         self.run_test_forms({'email': ['Enter a valid email address.']})
-
 
     def test_edit_password_form(self):
         user = User.objects.get(email='tester@mit.edu')
@@ -65,36 +61,34 @@ class TestForms(TestCase):
             'new_password1':'Very5trongt0t@11y', 'new_password2':'Very5trongt0t@11y'},
             {'old_password':'Tester1!',
             'new_password1':'weak', 'new_password2':'weak1'}, user=user)
-        self.run_test_forms({'new_password2': ["The two password fields didn't match."]})
-
-
-    def test_associated_email_choice_form(self):
-        """
-        Special choice form, cannot use helper functions
-        """
-        user = User.objects.get(email='tester@mit.edu')
-        self.valid_form_1 = AssociatedEmailChoiceForm()
-        self.valid_form_1.get_associated_emails(user=user, include_primary=True)
-        self.valid_form_2 = AssociatedEmailChoiceForm()
-        self.valid_form_2.get_associated_emails(user=user, include_primary=False)
-        pdb.set_trace()
-        self.assertTrue(self.valid_form_1.is_valid())
-        self.assertTrue(self.valid_form_2.is_valid())
-
-        #self.invalid_form = AssociatedEmailChoiceForm()
-
+        self.run_test_forms({'new_password2':["The two password fields didn't match."]})
 
     def test_login_form(self):
         self.create_test_forms(LoginForm, {'username':'tester@mit.edu','password':'Tester1!'},
             {'username':'tester@mit.edu', 'password':'wrong'})
         self.run_test_forms({'__all__':['Please enter a correct email and password. Note that both fields may be case-sensitive.']})
 
+    def test_profile_form(self):
+        self.create_test_forms(ProfileForm, {'first_name':'Tester',
+            'middle_names':'Mid', 'last_name':'Bot',
+            'url':'http://physionet.org'},
+            {'first_name':'Tester','middle_names':'Mid',
+            'last_name':'', 'phone':'0'})
+        self.run_test_forms({'last_name': ['This field is required.']})
 
     def test_reset_password_form(self):
         self.create_test_forms(ResetPasswordForm, {'email':'tester@mit.edu'},
             {'email':'nonexistent'})
         self.run_test_forms({'email': ['Enter a valid email address.']})
 
+    def test_set_password_form(self):
+        user = User.objects.get(email='tester@mit.edu')
+        self.create_test_forms(SetPasswordForm, {
+            'new_password1':'Very5trongt0t@11y',
+            'new_password2':'Very5trongt0t@11y'},
+            {'new_password1':'weak', 'new_password2':'weak'}, user=user)
+        self.run_test_forms(
+            {'new_password2':['This password is too short. It must contain at least 8 characters.']})
 
     def test_user_creation_form(self):
         self.create_test_forms(UserCreationForm, {'email':'tester0@mit.edu',
@@ -104,5 +98,3 @@ class TestForms(TestCase):
             'last_name':'Bot', 'password1':'weak', 'password2':'weak'})
         self.run_test_forms({'first_name':['This field is required.'],
             'password2':['This password is too short. It must contain at least 8 characters.']})
-
-
