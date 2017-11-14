@@ -15,10 +15,10 @@ from django.utils import timezone
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
-from .forms import AssociatedEmailForm, EmailChoiceForm, EmailForm, ProfileForm, UserCreationForm
+from .forms import AssociatedEmailForm, AssociatedEmailChoiceForm, EmailForm, ProfileForm, UserCreationForm
 from .models import AssociatedEmail, Profile, User
 
-
+import pdb
 @login_required
 def user_home(request):
     """
@@ -126,39 +126,44 @@ def edit_emails(request):
     Edit emails page
     """
     user = request.user
+
     # Email forms to display
     AssociatedEmailsFormset = inlineformset_factory(User, AssociatedEmail,
-        fields=('email','is_primary_email', 'is_public'), extra=0)
+        fields=('email','is_primary_email', 'is_public'), extra=0,
+        widgets={'email': HiddenInput, 'is_primary_email':HiddenInput})
     associated_emails_formset = AssociatedEmailsFormset(instance=user,
         queryset=AssociatedEmail.objects.filter(verification_date__isnull=False))
-    PublicAssociatedEmailsFormset = inlineformset_factory(User, AssociatedEmail,
-        fields=('email','is_public'), extra=0, widgets={'email': HiddenInput})
-    public_associated_emails_formset = PublicAssociatedEmailsFormset(instance=user,
-        queryset=AssociatedEmail.objects.filter(verification_date__isnull=False))
-    primary_email_form = EmailChoiceForm(label='Primary Email')
-    primary_email_form.get_associated_emails(user=user)
+    primary_email_form = AssociatedEmailChoiceForm()
+    primary_email_form.get_associated_emails(user=user, include_primary=True)
     add_email_form = AssociatedEmailForm()
-    remove_email_form = EmailChoiceForm(label='Remove Email')
+    remove_email_form = AssociatedEmailChoiceForm()
     remove_email_form.get_associated_emails(user=user, include_primary=False)
+
+    #pdb.set_trace()
 
     if request.method == 'POST':
         if 'set_public_emails' in request.POST:
-            formset = PublicAssociatedEmailsFormset(request.POST, instance=user)
+            formset = AssociatedEmailsFormset(request.POST, instance=user)
             if formset.is_valid():
                 formset.save()
                 messages.success(request, 'Your email privacy settings have been updated.')
 
         elif 'set_primary_email' in request.POST:
-            form = EmailForm(request.POST)
-            if form.is_valid():
-                email = form.cleaned_data['email']
-                associated_email = AssociatedEmail.objects.get(email=email)
-                if associated_email.user == user and not associated_email.is_primary_email:
-                    user.email = email
-                    user.save(update_fields=['email'])
-                    # Reload primary email select form to make the new primary the default selection
-                    primary_email_form.get_associated_emails(user=user)
-                    messages.success(request, 'Your email: %s has been set as your new primary email.' % email)
+            # form = EmailForm(request.POST)
+            # if form.is_valid():
+            #     email = form.cleaned_data['email']
+            #     associated_email = AssociatedEmail.objects.get(email=email)
+            #     if associated_email.user == user and not associated_email.is_primary_email:
+            #         user.email = email
+            #         user.save(update_fields=['email'])
+            #         messages.success(request, 'Your email: %s has been set as your new primary email.' % email)
+
+            primary_email_form.data = request.POST
+            if primary_email_form.is_valid():
+                associated_email = primary_email_form.cleaned_data['associated_email']
+                user.email = associated_email.email
+                user.save(update_fields=['email'])
+                messages.success(request, 'Your email: %s has been set as your new primary email.' % user.email)
 
         elif 'add_email' in request.POST:
             form = AssociatedEmailForm(request.POST)
@@ -176,16 +181,21 @@ def edit_emails(request):
                 messages.success(request, 'A verification link has been sent to: %s' % email)
                 
         elif 'remove_email' in request.POST:
-            form = EmailForm(request.POST)
-            if form.is_valid():
-                email = form.cleaned_data['email']
-                remove_email = AssociatedEmail.objects.get(email=email)
-                if remove_email.user == user and not remove_email.is_primary_email:
-                    remove_email.delete()
-                    messages.success(request, 'Your email: %s has been removed from your account.' % email)
+            # form = EmailForm(request.POST)
+            # if form.is_valid():
+            #     email = form.cleaned_data['email']
+            #     remove_email = AssociatedEmail.objects.get(email=email)
+            #     if remove_email.user == user and not remove_email.is_primary_email:
+            #         remove_email.delete()
+            #         messages.success(request, 'Your email: %s has been removed from your account.' % email)
+
+            remove_email_form.data = request.POST
+            if remove_email_form.is_valid():
+                associated_email = remove_email_form.cleaned_data['associated_email']
+                associated_email.delete()
+                messages.success(request, 'Your email: %s has been removed from your account.' % email)
 
     context = {'associated_emails_formset':associated_emails_formset,
-        'public_associated_emails_formset':public_associated_emails_formset,
         'primary_email_form':primary_email_form,
         'add_email_form':add_email_form, 'remove_email_form':remove_email_form}
 
@@ -220,3 +230,20 @@ def public_profile(request, email):
     A user's public profile
     """
     return render(request, 'user/public_profile.html', {'email':email})
+
+
+
+def test(request):
+    """
+    For testing
+    """
+    user = request.user
+    primary_email_form = AssociatedEmailChoiceForm(label='Primary Email')
+    primary_email_form.get_associated_emails(user=user)
+
+    if request.method == 'POST':
+        form = AssociatedEmailChoiceForm(request.POST)
+
+        pdb.set_trace()
+
+    return render(request,'user/test.html', {'user':user, 'form':primary_email_form, 'csrf_token': csrf.get_token(request)})
