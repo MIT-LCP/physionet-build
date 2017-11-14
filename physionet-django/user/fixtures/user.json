@@ -1,4 +1,5 @@
-[ {
+[ 
+  {
     "model": "user.User",
     "fields": {
       "password": "pbkdf2_sha256$36000$hrff9gKPggd1$6A044c72UsUzwl+aK/oWlKeg5LFeJu8xiSwRPg+2qTc=",
@@ -35,7 +36,7 @@
       "user": ["tester@mit.edu"],
       "email": "tester2@mit.edu",
       "is_primary_email": "False",
-      "is_public": "False",
+      "is_public": "True",
       "verification_date": "2017-10-30T09:30:30-05:00"
     }
   },

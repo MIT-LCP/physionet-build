@@ -9,7 +9,7 @@
 <h4>Your Emails</h4>
 <div class="card"">
   <ul class="list-group list-group-flush">
-    {% for form in associated_emails_formset %}
+    {% for form in associated_email_formset %}
       <li class="list-group-item">{{ form.email.value }}
         <a class="float-right">
         {% if form.is_primary_email.value %}<span class="badge badge-success">Primary</span>{% endif %}
@@ -31,8 +31,8 @@
   {% csrf_token %}
   <div class="card"">
     <ul class="list-group list-group-flush">
-      {{  associated_emails_formset.management_form }}
-      {% for form in associated_emails_formset %}
+      {{  associated_email_formset.management_form }}
+      {% for form in associated_email_formset %}
         <li class="list-group-item">{{ form.is_public }} {{ form.email.value }} {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}</li>
       {% endfor %}
     </ul>
