@@ -6,6 +6,29 @@ from django.dispatch import receiver
 from django.utils import timezone
 
 
+class BaseAffiliation(models.Model):
+    """
+    Base class inherited by profile affiliations and static snapshot
+    affiliation info.
+    """
+    order = models.SmallIntegerField(default=0)
+    institution = models.CharField(max_length=100)
+    department = models.CharField(max_length=100)
+    city = models.CharField(max_length=50)
+    country = models.CharField(max_length=100)
+    post_code = models.CharField(max_length=20)
+    
+    class Meta:
+        abstract = True
+
+
+class Affiliation(BaseAffiliation):
+    """
+    Affiliations belonging to a profile.
+    """
+    profile = models.ForeignKey('user.Profile', related_name='affiliations')
+
+
 class UserManager(BaseUserManager):
     """
     Manager object with methods to create
@@ -89,6 +112,49 @@ class User(AbstractBaseUser):
         return self.is_admin
 
 
+class AssociatedEmail(models.Model):
+    """
+    An email the user associates with their account
+    """
+    user = models.ForeignKey('user.User', related_name='associated_emails')
+    email = models.EmailField(max_length=255, unique=True)
+    is_primary_email = models.BooleanField(default=False)
+    added_date = models.DateTimeField(auto_now_add=True, null=True)
+    verification_date = models.DateTimeField(null=True)
+    is_public = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.email
+
+@receiver(post_save, sender=User)
+def create_associated_email(sender, **kwargs):
+    """
+    Creates and attaches a primary AssociatedEmail when a User object is created.
+    """
+    user = kwargs['instance']
+    if kwargs['created']:
+        email = AssociatedEmail(user=user, email=user.email, is_primary_email=True)
+        if user.is_active:
+            email.verification_date = timezone.now()
+        email.save()
+
+@receiver(post_save, sender=User)
+def update_associated_emails(sender, **kwargs):
+    """
+    Updates the primary/non-primary status of AssociatedEmails when the User
+    object's email field is updated.
+    """
+    user = kwargs['instance']
+    if not kwargs['created']:
+        if kwargs['update_fields'] and 'email' in kwargs['update_fields']:
+            old_primary_email = AssociatedEmail.objects.get(user=user, is_primary_email=True)
+            new_primary_email = AssociatedEmail.objects.get(user=user, email=user.email)
+            old_primary_email.is_primary_email = False
+            new_primary_email.is_primary_email = True
+            old_primary_email.save()
+            new_primary_email.save()
+
+
 class Profile(models.Model):
     """
     Class storing profile information which is
@@ -119,7 +185,6 @@ class Profile(models.Model):
     def __str__(self):
         return self.get_full_name()
 
-
 @receiver(post_save, sender=User)
 def create_profile(sender, **kwargs):
     """
@@ -130,71 +195,3 @@ def create_profile(sender, **kwargs):
     if kwargs["created"]:
         profile = Profile(user=user)
         profile.save()
-
-
-class AssociatedEmail(models.Model):
-    """
-    An email the user associates with their account
-    """
-    user = models.ForeignKey('user.User', related_name='associated_emails')
-    email = models.EmailField(max_length=255, unique=True)
-    is_primary_email = models.BooleanField(default=False)
-    added_date = models.DateTimeField(auto_now_add=True, null=True)
-    verification_date = models.DateTimeField(null=True)
-    is_public = models.BooleanField(default=False)
-
-    def __str__(self):
-        return self.email
-
-
-@receiver(post_save, sender=User)
-def create_associated_email(sender, **kwargs):
-    """
-    Creates and attaches a primary AssociatedEmail when a User object is created.
-    """
-    user = kwargs['instance']
-    if kwargs['created']:
-        email = AssociatedEmail(user=user, email=user.email, is_primary_email=True)
-        if user.is_active:
-            email.verification_date = timezone.now()
-        email.save()
-
-
-@receiver(post_save, sender=User)
-def update_associated_emails(sender, **kwargs):
-    """
-    Updates the primary/non-primary status of AssociatedEmails when the User
-    object's email field is updated.
-    """
-    user = kwargs['instance']
-    if not kwargs['created']:
-        if kwargs['update_fields'] and 'email' in kwargs['update_fields']:
-            old_primary_email = AssociatedEmail.objects.get(user=user, is_primary_email=True)
-            new_primary_email = AssociatedEmail.objects.get(user=user, email=user.email)
-            old_primary_email.is_primary_email = False
-            new_primary_email.is_primary_email = True
-            old_primary_email.save()
-            new_primary_email.save()
-
-
-class BaseAffiliation(models.Model):
-    """
-    Base class inherited by profile affiliations and static snapshot
-    affiliation info.
-    """
-    order = models.SmallIntegerField(default=0)
-    institution = models.CharField(max_length=100)
-    department = models.CharField(max_length=100)
-    city = models.CharField(max_length=50)
-    country = models.CharField(max_length=100)
-    post_code = models.CharField(max_length=20)
-    
-    class Meta:
-        abstract = True
-
-
-class Affiliation(BaseAffiliation):
-    """
-    Affiliations belonging to a profile.
-    """
-    profile = models.ForeignKey('user.Profile', related_name='affiliations')

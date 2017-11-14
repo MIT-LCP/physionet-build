@@ -22,6 +22,7 @@ class UserAdmin(DefaultUserAdmin):
 
     # The fields to be used in displaying the User model.
     list_display = ('email', 'is_active', 'is_admin', 'profile')
+    # Filtering options when displaying objects
     list_filter = ('is_admin',)
 
     # Controls the layout of 'add' and 'change' pages.
