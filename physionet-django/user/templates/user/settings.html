@@ -37,7 +37,6 @@
           </div>
         {% endfor %}
       {% endif %}
-
       <div class="container">
         {% block form %}
         {% endblock %}
@@ -53,4 +52,7 @@
 
 {% block local_js_bottom %}
 <script type="text/javascript" src="{% static 'bootstrap/js/offcanvas.js' %}"></script>
+<script type="text/javascript" src="{% static 'zxcvbn/zxcvbn.js' %}"></script>
+<script type="text/javascript" src="{% static 'zxcvbn/zxcvbn-bootstrap-strength-meter.js' %}"></script>
+<script type="text/javascript" src="{% static 'zxcvbn/zxcvbn_ProgressBar_Change.js' %}"></script>
 {% endblock %}

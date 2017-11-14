@@ -9,18 +9,30 @@ Register
 
 {% block local_css %}
 <link rel="stylesheet" type="text/css" href="{% static 'custom/css/login_register.css' %}"/>
+
 {% endblock %}
 
 
+
 {% block content %}
+
 <div class="container">
     <form action="{% url 'register' %}" method="post" class="form-signin">
         <h2 class="form-signin-heading">Create Account</h2>
         {% include "form_snippet.html" %}
+		<div class="progress">
+			<div id="StrengthProgressBar" class="progress-bar"></div>
+		</div>
         <button class="btn btn-lg btn-primary btn-block" type="submit">Register</button>
     </form>
     <div class="form-signin">
         <p>Already have an account? <a href="{% url 'login' %}">Log In</a></p>
     </div>
 </div>
+{% endblock %}
+
+{% block local_js_bottom %}
+<script type="text/javascript" src="{% static 'zxcvbn/zxcvbn.js' %}"></script>
+<script type="text/javascript" src="{% static 'zxcvbn/zxcvbn-bootstrap-strength-meter.js' %}"></script>
+<script type="text/javascript" src="{% static 'zxcvbn/zxcvbn_ProgressBar_Register.js' %}"></script>
 {% endblock %}
