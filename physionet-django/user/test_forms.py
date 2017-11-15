@@ -88,13 +88,14 @@ class TestForms(TestCase):
             'new_password2':'Very5trongt0t@11y'},
             {'new_password1':'weak', 'new_password2':'weak'}, user=user)
         self.run_test_forms(
-            {'new_password2':['This password is too short. It must contain at least 8 characters.']})
+            {'new_password2':['This password is too short. It must contain at least 8 characters.',
+            'This password is too weak.']})
 
     def test_user_creation_form(self):
         self.create_test_forms(UserCreationForm, {'email':'tester0@mit.edu',
             'first_name':'Tester', 'middle_names':'Mid', 'last_name':'Bot',
             'password1':'Very5trongt0t@11y', 'password2':'Very5trongt0t@11y'},
             {'email':'tester0@mit.edu', 'first_name':'', 'middle_names':'Mid',
-            'last_name':'Bot', 'password1':'weak', 'password2':'weak'})
+            'last_name':'Bot', 'password1':'weakweak', 'password2':'weakweak'})
         self.run_test_forms({'first_name':['This field is required.'],
-            'password2':['This password is too short. It must contain at least 8 characters.']})
+            'password2':['This password is too weak.']})
