@@ -26,8 +26,8 @@ build:
     - "pip install -r requirements.txt"
     - "cd physionet-django"
     - "./manage.py resetdb"
-    - "./manage.py test tests --verbosity=3"
-    - "coverage run --source='.' manage.py test tests"
+    - "./manage.py test --verbosity=3"
+    - "coverage run --source='.' manage.py test"
     - "coverage xml -o $CODE_COVERAGE_DIR/coverage.xml"
 
 # Integrations are used to connect external resources to CI
