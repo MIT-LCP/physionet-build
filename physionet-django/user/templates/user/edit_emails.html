@@ -9,7 +9,7 @@
 <h4>Your Emails</h4>
 <div class="card"">
   <ul class="list-group list-group-flush">
-    {% for form in associated_emails_formset %}
+    {% for form in associated_email_formset %}
       <li class="list-group-item">{{ form.email.value }}
         <a class="float-right">
         {% if form.is_primary_email.value %}<span class="badge badge-success">Primary</span>{% endif %}
@@ -25,11 +25,27 @@
 </div>
 
 <hr>
+<h4>Public Emails</h4>
+<p>The email addresses shown in your <a href="{% url 'public_profile' user.email %}">public profile</a>.</p>
+<form action="{% url 'edit_emails' %}" method="post" class="form-signin">
+  {% csrf_token %}
+  <div class="card"">
+    <ul class="list-group list-group-flush">
+      {{  associated_email_formset.management_form }}
+      {% for form in associated_email_formset %}
+        <li class="list-group-item">{{ form.is_public }} {{ form.email.value }} {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  <button class="btn btn-primary btn-fixed" name="set_public_emails" type="submit">Set Public Emails</button>
+</form>
+
+<hr>
 <h4>Primary Email</h4>
 <p>The email address used for logging into your account.</p>
 <form action="{% url 'edit_emails' %}" method="post" class="form-signin">
   {% csrf_token %}
-  {{ primary_email_form.email }}
+  {{ primary_email_form.associated_email }}
   <button class="btn btn-primary btn-fixed" name="set_primary_email" type="submit">Make Primary Email</button>
 </form>
 
@@ -61,7 +77,7 @@
 <p>Remove an email address from your account. You may not remove your primary email address.</p>
 <form action="{% url 'edit_emails' %}" method="post" class="form-signin">
   {% csrf_token %}
-  {{ remove_email_form.email }}
+  {{ remove_email_form.associated_email }}
   <button class="btn btn-danger btn-fixed" name="remove_email" type="submit">Remove Email</button>
 </form>
 

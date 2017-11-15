@@ -5,7 +5,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import PasswordResetConfirmView
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
-from django.forms import inlineformset_factory
+from django.forms import inlineformset_factory, HiddenInput
 from django.http import HttpResponseRedirect
 from django.middleware import csrf
 from django.shortcuts import render
@@ -15,16 +15,155 @@ from django.utils import timezone
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
-from .forms import AssociatedEmailForm, EmailChoiceForm, EmailForm, ProfileForm, UserCreationForm
+from .forms import AssociatedEmailForm, AssociatedEmailChoiceForm, ProfileForm, UserCreationForm
 from .models import AssociatedEmail, Profile, User
 
 
+def activate_user(request, uidb64, token):
+    """
+    Page to active the account of a newly registered user.
+    """
+    try:
+        uid = force_text(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and not user.is_active and default_token_generator.check_token(user, token):
+        user.is_active = True
+        user.save()
+        email = user.associated_emails.first()
+        email.verification_date = timezone.now()
+        email.save()
+        context = {'title':'Activation Successful', 'isvalid':True}
+    else:
+        context = {'title':'Invalid Activation Link', 'isvalid':False}
+
+    return render(request, 'user/activate_user.html', context)
+
+
+# Helper functions for edit_emails view
+def set_public_emails(request, formset):
+    "Set public/private status of associated emails"
+    if formset.is_valid():
+        formset.save()
+        messages.success(request, 'Your email privacy settings have been updated.')
+
+def set_primary_email(request, primary_email_form):
+    "Set the selected email as the primary email"
+    user = request.user
+    if primary_email_form.is_valid():
+        associated_email = primary_email_form.cleaned_data['associated_email']
+        # Only do something if they selected a different email
+        if associated_email.email != user.email:
+            user.email = associated_email.email
+            user.save(update_fields=['email'])
+            messages.success(request, 'Your email: %s has been set as your new primary email.' % user.email)
+
+def add_email(request, add_email_form):
+    user = request.user
+    if add_email_form.is_valid():
+        associated_email = AssociatedEmail.objects.create(user=user,
+            email=add_email_form.cleaned_data['email'])
+        # Send an email to the newly added email with a verification link
+        uidb64 = urlsafe_base64_encode(force_bytes(associated_email.pk))
+        token = default_token_generator.make_token(user)
+        subject = "PhysioNet Email Verification"
+        context = {'name':user.get_full_name(),
+            'domain':get_current_site(request), 'uidb64':uidb64, 'token':token}
+        body = loader.render_to_string('user/email/verify_email_email.html', context)
+        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+            [add_email_form.cleaned_data['email']], fail_silently=False)
+        messages.success(request, 'A verification link has been sent to: %s' % associated_email.email)
+
+def remove_email(request, remove_email_form):
+    "Remove a non-primary email associated with a user"
+    user = request.user
+    if remove_email_form.is_valid():
+        associated_email = remove_email_form.cleaned_data['associated_email']
+        associated_email.delete()
+        messages.success(request, 'Your email: %s has been removed from your account.' % user.email)
+
 @login_required
-def user_home(request):
+def edit_emails(request):
     """
-    Home page/dashboard for individual users
+    Edit emails page
     """
-    return render(request, 'user/user_home.html', {'user':request.user})
+    user = request.user
+    # Email forms to display
+    AssociatedEmailFormset = inlineformset_factory(User, AssociatedEmail,
+        fields=('email','is_primary_email', 'is_public'), extra=0,
+        widgets={'email': HiddenInput, 'is_primary_email':HiddenInput})
+    associated_email_formset = AssociatedEmailFormset(instance=user,
+        queryset=AssociatedEmail.objects.filter(verification_date__isnull=False))
+    primary_email_form = AssociatedEmailChoiceForm(user=user, include_primary=True)
+    add_email_form = AssociatedEmailForm()
+    remove_email_form = AssociatedEmailChoiceForm(user=user, include_primary=False)
+
+    if request.method == 'POST':
+        if 'set_public_emails' in request.POST:
+            formset = AssociatedEmailFormset(request.POST, instance=user)
+            set_public_emails(request, formset)
+
+        elif 'set_primary_email' in request.POST:
+            primary_email_form = AssociatedEmailChoiceForm(user=user,
+                include_primary=True, data=request.POST)
+            set_primary_email(request, primary_email_form)
+
+        elif 'add_email' in request.POST:
+            add_email_form = AssociatedEmailForm(request.POST)
+            add_email(request, add_email_form)
+                
+        elif 'remove_email' in request.POST:
+            remove_email_form = AssociatedEmailChoiceForm(user=user,
+                include_primary=False, data=request.POST)
+            remove_email(request, remove_email_form)
+
+    context = {'associated_email_formset':associated_email_formset,
+        'primary_email_form':primary_email_form,
+        'add_email_form':add_email_form, 'remove_email_form':remove_email_form}
+
+    context['messages'] = messages.get_messages(request)
+
+    return render(request, 'user/edit_emails.html', context)
+
+
+@login_required
+def edit_profile(request):
+    """
+    Edit the profile fields
+    """
+    user = request.user
+    form = ProfileForm(instance=user.profile)
+
+    if request.method == 'POST':
+        # Update the profile and return to the same page. Place a message
+        # at the top of the page: 'your profile has been updated'
+        form = ProfileForm(request.POST, instance=user.profile)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your profile has been updated.')
+        else:
+            messages.error(request,
+                'There was an error with the information entered, please verify and try again.')
+    return render(request, 'user/edit_profile.html', {'user':user, 'form':form,
+        'csrf_token':csrf.get_token(request), 'messages':messages.get_messages(request)})
+
+
+@login_required
+def edit_password_done(request):
+    """
+    After password has successfully been changed. Need this view because we
+    can't control the edit password view to show a success message.
+    """
+    return render(request, 'user/edit_password_done.html')
+
+
+def public_profile(request, email):
+    """
+    A user's public profile
+    """
+    return render(request, 'user/public_profile.html', {'email':email})
 
 
 def register(request):
@@ -55,30 +194,16 @@ def register(request):
     else:
         form = UserCreationForm()
 
-    return render(request, 'user/register.html', {'form':form, 'csrf_token': csrf.get_token(request)})
+    return render(request, 'user/register.html',
+        {'form':form, 'csrf_token': csrf.get_token(request)})
 
 
-def activate_user(request, uidb64, token):
+@login_required
+def user_home(request):
     """
-    Page to active the account of a newly registered user.
+    Home page/dashboard for individual users
     """
-    try:
-        uid = force_text(urlsafe_base64_decode(uidb64))
-        user = User.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-        user = None
-
-    if user is not None and not user.is_active and default_token_generator.check_token(user, token):
-        user.is_active = True
-        user.save()
-        email = user.associated_emails.first()
-        email.verification_date = timezone.now()
-        email.save()
-        context = {'title':'Activation Successful', 'isvalid':True}
-    else:
-        context = {'title':'Invalid Activation Link', 'isvalid':False}
-
-    return render(request, 'user/activate_user.html', context)
+    return render(request, 'user/user_home.html', {'user':request.user})
 
 
 @login_required
@@ -90,124 +215,41 @@ def user_settings(request):
     return HttpResponseRedirect(reverse('edit_profile'))
 
 
-@login_required
-def edit_profile(request):
-    """
-    Edit the profile fields
-    """
-    user = request.user
-    form = ProfileForm(instance=user.profile)
-
-    if request.method == 'POST':
-        # Update the profile and return to the same page. Place a message
-        # at the top of the page: 'your profile has been updated'
-        form = ProfileForm(request.POST, instance=user.profile)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Your profile has been updated.')
-        else:
-            messages.error(request, 'There was an error with the information entered, please verify and try again.')
-    return render(request, 'user/edit_profile.html', {'user':user, 'form':form,
-        'csrf_token':csrf.get_token(request), 'messages':messages.get_messages(request)})
-
-
-@login_required
-def edit_password_done(request):
-    """
-    After password has successfully been changed. Need this view because we
-    can't control the edit password view to show a success message.
-    """
-    return render(request, 'user/edit_password_done.html')
-
-
-@login_required
-def edit_emails(request):
-    """
-    Edit emails page
-    """
-    user = request.user
-    # Email forms to display
-    AssociatedEmailsFormset = inlineformset_factory(User, AssociatedEmail,
-        fields=('email','is_primary_email', 'is_public'), extra=0)
-    associated_emails_formset = AssociatedEmailsFormset(instance=user,
-        queryset=AssociatedEmail.objects.filter(verification_date__isnull=False))
-    primary_email_form = EmailChoiceForm(label='Primary Email')
-    primary_email_form.get_associated_emails(user=user)
-    add_email_form = AssociatedEmailForm()
-    remove_email_form = EmailChoiceForm(label='Remove Email')
-    remove_email_form.get_associated_emails(user=user, include_primary=False)
-
-    if request.method == 'POST':
-        if 'set_primary_email' in request.POST:
-            form = EmailForm(request.POST)
-            if form.is_valid():
-                email = form.cleaned_data['email']
-                associated_email = AssociatedEmail.objects.get(email=email)
-                if associated_email.user == user and not associated_email.is_primary_email:
-                    user.email = email
-                    user.save(update_fields=['email'])
-                    # Reload primary email select form to make the new primary the default selection
-                    primary_email_form.get_associated_emails(user=user)
-                    messages.success(request, 'Your email: %s has been set as your new primary email.' % email)
-
-        elif 'add_email' in request.POST:
-            form = AssociatedEmailForm(request.POST)
-            if form.is_valid():
-                email = AssociatedEmail.objects.create(user=user, email=form.cleaned_data['email'])
-                # Send an email to the newly added email with a verification link
-                uidb64 = urlsafe_base64_encode(force_bytes(email.pk))
-                token = default_token_generator.make_token(user)
-                subject = "PhysioNet Email Verification"
-                context = {'name':user.get_full_name(),
-                    'domain':get_current_site(request), 'uidb64':uidb64, 'token':token}
-                body = loader.render_to_string('user/email/verify_email_email.html', context)
-                send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                    [form.cleaned_data['email']], fail_silently=False)
-                messages.success(request, 'A verification link has been sent to: %s' % email)
-                
-        elif 'remove_email' in request.POST:
-            form = EmailForm(request.POST)
-            if form.is_valid():
-                email = form.cleaned_data['email']
-                remove_email = AssociatedEmail.objects.get(email=email)
-                if remove_email.user == user and not remove_email.is_primary_email:
-                    remove_email.delete()
-                    # Reload primary email select form to make the new primary the default selection
-                    primary_email_form.get_associated_emails(user=user)
-                    messages.success(request, 'Your email: %s has been removed from your account.' % email)
-
-    context = {'associated_emails_formset':associated_emails_formset,
-        'primary_email_form':primary_email_form,
-        'add_email_form':add_email_form, 'remove_email_form':remove_email_form}
-
-    context['messages'] = messages.get_messages(request)
-
-    return render(request, 'user/edit_emails.html', context)
-
-
 def verify_email(request, uidb64, token):
     """
-    Page to verify an email
+    Page to verify an associated email
     """
     try:
         uid = force_text(urlsafe_base64_decode(uidb64))
-        email = AssociatedEmail.objects.get(pk=uid)
+        associated_email = AssociatedEmail.objects.get(pk=uid)
     except (TypeError, ValueError, OverflowError, AssociatedEmail.DoesNotExist):
-        email = None
+        associated_email = None
 
-    if email is not None:
+    if associated_email is not None:
         # Test the token with the user
-        user = email.user
+        user = associated_email.user
         if default_token_generator.check_token(user, token):
-            email.verification_date = timezone.now()
-            email.save()
-            return render(request, 'user/verify_email.html', {'title':'Verification Successful', 'isvalid':True})
+            associated_email.verification_date = timezone.now()
+            associated_email.save()
+            return render(request, 'user/verify_email.html',
+                {'title':'Verification Successful', 'isvalid':True})
 
-    return render(request, 'user/verify_email.html', {'title':'Invalid Verification Link', 'isvalid':False})
+    return render(request, 'user/verify_email.html',
+        {'title':'Invalid Verification Link', 'isvalid':False})
 
 
-def public_profile(request, email):
+def test(request):
     """
-    Placeholder to clean up templates. Please replace when ready!
+    For testing
     """
-    return render(request, 'user/public_profile.html', {'email':email})
+    user = request.user
+    primary_email_form = AssociatedEmailChoiceForm(label='Primary Email')
+    primary_email_form.get_associated_emails(user=user)
+
+    if request.method == 'POST':
+        form = AssociatedEmailChoiceForm(request.POST)
+
+        pdb.set_trace()
+
+    return render(request,'user/test.html', {'user':user,
+        'form':primary_email_form, 'csrf_token': csrf.get_token(request)})
