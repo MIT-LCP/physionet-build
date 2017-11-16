@@ -17,7 +17,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from .forms import AssociatedEmailForm, AssociatedEmailChoiceForm, ProfileForm, UserCreationForm
 from .models import AssociatedEmail, Profile, User
 
-import pdb
+
 def activate_user(request, uidb64, token):
     """
     Page to active the account of a newly registered user.

@@ -11,11 +11,6 @@ from user.views import (activate_user, edit_emails, edit_profile,
     edit_password_done, public_profile, register, user_home, user_settings,
     verify_email)
 
-import pdb
-
-# Add decorator to test invalid users
-
-
 
 class TestMixin(object):
     """
@@ -131,9 +126,18 @@ class TestAuthViews(TestCase, TestMixin):
         self.tst_get_request(edit_password_done)
 
     def test_edit_emails(self):
+        """
+        Test all functions of the edit_emails view:
+        - setting email public status
+        - set primary email
+        - add email
+        - remove email
+
+        In addition, also test verification of added email
+        """
         self.make_get_request('edit_emails')
         self.tst_get_request(edit_emails)
-        # Test 1: change public email status
+        # Test 1: set public emails
         self.make_post_request('edit_emails',
             data={'associated_emails-TOTAL_FORMS': ['3'],
             'associated_emails-0-id': ['1'],
@@ -157,25 +161,31 @@ class TestAuthViews(TestCase, TestMixin):
         self.tst_post_request(edit_emails)
         public_status = [ae.is_public for ae in AssociatedEmail.objects.filter(user=self.user)]
         self.assertFalse(False in public_status)
-        # Test 2: change primary email
+        # Test 2: set primary email
         self.make_post_request('edit_emails',
             data={'set_primary_email':[''],'associated_email': 'tester2@mit.edu'})
         self.tst_post_request(edit_emails)
         self.assertEqual(self.user.email, 'tester2@mit.edu')
-        # Test 3: add email, and subsequent verify email
+        # Test 3: add email
         self.make_post_request('edit_emails',
-            data={'add_email':[''],'associated_email': 'tester0@mit.edu'})
+            data={'add_email':[''],'email': 'tester0@mit.edu'})
         self.tst_post_request(edit_emails)
         self.assertIsNotNone(AssociatedEmail.objects.filter(email='tester0@mit.edu'))
-
-
-
         # Test 4: remove email
         self.make_post_request('edit_emails',
             data={'remove_email':[''],'associated_email': 'tester3@mit.edu'})
         self.tst_post_request(edit_emails)
         remaining_associated_emails = [ae.email for ae in AssociatedEmail.objects.filter(user=self.user)]
         self.assertFalse('tester3@mit.edu' in remaining_associated_emails)
+
+        # Verify the newly added email
+        # Get the activation info from the sent email
+        uidb64, token = re.findall('http://testserver/verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
+            mail.outbox[0].body)[0]
+        self.make_get_request('verify_email', {'uidb64':uidb64, 'token':token})
+        self.tst_get_request(verify_email,
+            view_kwargs={'uidb64':uidb64, 'token':token})
+        self.assertTrue(bool(AssociatedEmail.objects.get(email='tester0@mit.edu').verification_date))
 
 
 class TestPublicViews(TestCase, TestMixin):
@@ -210,12 +220,12 @@ class TestPublicViews(TestCase, TestMixin):
         # Check user object was created
         self.assertIsNotNone(User.objects.filter(email='jackreacher@mit.edu'))
         self.assertFalse(User.objects.get(email='jackreacher@mit.edu').is_active)
+        
+        # Activation
         # Get the activation info from the sent email
         uidb64, token = re.findall('http://testserver/activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
             mail.outbox[0].body)[0]
-        # Activation
         self.make_get_request('activate_user', {'uidb64':uidb64, 'token':token})
         self.tst_get_request(activate_user,
             view_kwargs={'uidb64':uidb64, 'token':token})
         self.assertTrue(User.objects.get(email='jackreacher@mit.edu').is_active)
-
