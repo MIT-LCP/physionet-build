@@ -2,12 +2,10 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
-from django.contrib.auth.views import PasswordResetConfirmView
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
 from django.forms import inlineformset_factory, HiddenInput
-from django.http import HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.template import loader
 from django.urls import reverse
 from django.utils import timezone
@@ -17,7 +15,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from .forms import AssociatedEmailForm, AssociatedEmailChoiceForm, ProfileForm, UserCreationForm
 from .models import AssociatedEmail, Profile, User
 
-import pdb
+
 def activate_user(request, uidb64, token):
     """
     Page to active the account of a newly registered user.
@@ -91,7 +89,7 @@ def edit_emails(request):
     user = request.user
     # Email forms to display
     AssociatedEmailFormset = inlineformset_factory(User, AssociatedEmail,
-        fields=('email','is_primary_email', 'is_public'), extra=0,
+        fields=('email','is_primary_email', 'is_public'), extra=0, max_num=3,
         widgets={'email': HiddenInput, 'is_primary_email':HiddenInput})
     associated_email_formset = AssociatedEmailFormset(instance=user,
         queryset=AssociatedEmail.objects.filter(verification_date__isnull=False))
@@ -150,12 +148,12 @@ def edit_profile(request):
 
 
 @login_required
-def edit_password_done(request):
+def edit_password_complete(request):
     """
     After password has successfully been changed. Need this view because we
     can't control the edit password view to show a success message.
     """
-    return render(request, 'user/edit_password_done.html')
+    return render(request, 'user/edit_password_complete.html')
 
 
 def public_profile(request, email):
@@ -171,7 +169,7 @@ def register(request):
     """
     user = request.user
     if user.is_authenticated():
-        return HttpResponseRedirect(reverse('user_home'))
+        return redirect('user_home')
 
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
@@ -210,7 +208,7 @@ def user_settings(request):
     Settings. Redirect to default - settings/profile
     Don't call this 'settings' because there's an import called 'settings'
     """
-    return HttpResponseRedirect(reverse('edit_profile'))
+    return redirect('edit_profile')
 
 
 def verify_email(request, uidb64, token):
@@ -236,18 +234,18 @@ def verify_email(request, uidb64, token):
         {'title':'Invalid Verification Link', 'isvalid':False})
 
 
-def test(request):
-    """
-    For testing
-    """
-    user = request.user
-    primary_email_form = AssociatedEmailChoiceForm(label='Primary Email')
-    primary_email_form.get_associated_emails(user=user)
+# def test(request):
+#     """
+#     For testing
+#     """
+#     user = request.user
+#     primary_email_form = AssociatedEmailChoiceForm(label='Primary Email')
+#     primary_email_form.get_associated_emails(user=user)
 
-    if request.method == 'POST':
-        form = AssociatedEmailChoiceForm(request.POST)
+#     if request.method == 'POST':
+#         form = AssociatedEmailChoiceForm(request.POST)
 
-        pdb.set_trace()
+#         pdb.set_trace()
 
-    return render(request,'user/test.html', {'user':user,
-        'form':primary_email_form})
+#     return render(request,'user/test.html', {'user':user,
+#         'form':primary_email_form, 'csrf_token': csrf.get_token(request)})

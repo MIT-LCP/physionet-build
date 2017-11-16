@@ -64,6 +64,6 @@ urlpatterns = [
         name='public_profile'),
 
     # Just for tests
-    url(r'^test/$', views.test, name='test'),
+    # url(r'^test/$', views.test, name='test'),
 ]
 
