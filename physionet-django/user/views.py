@@ -99,6 +99,7 @@ def edit_emails(request):
 
     if request.method == 'POST':
         if 'set_public_emails' in request.POST:
+            pdb.set_trace()
             formset = AssociatedEmailFormset(request.POST, instance=user)
             set_public_emails(request, formset)
 
