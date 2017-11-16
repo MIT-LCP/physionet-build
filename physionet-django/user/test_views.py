@@ -1,7 +1,9 @@
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.messages.storage.fallback import FallbackStorage
+from django.core import mail
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
+import re
 
 from user.models import AssociatedEmail, User
 from user.management.commands.resetdb import load_fixture_profiles
@@ -113,7 +115,8 @@ class TestAuthViews(TestCase, TestMixin):
 
     def test_user_settings(self):
         self.make_get_request('user_settings')
-        self.tst_get_request(user_settings, status_code=302, redirect_viewname='edit_profile')
+        self.tst_get_request(user_settings, status_code=302,
+            redirect_viewname='edit_profile')
 
     def test_edit_profile(self):
         self.make_get_request('edit_profile')
@@ -159,11 +162,14 @@ class TestAuthViews(TestCase, TestMixin):
             data={'set_primary_email':[''],'associated_email': 'tester2@mit.edu'})
         self.tst_post_request(edit_emails)
         self.assertEqual(self.user.email, 'tester2@mit.edu')
-        # Test 3: add email
+        # Test 3: add email, and subsequent verify email
         self.make_post_request('edit_emails',
             data={'add_email':[''],'associated_email': 'tester0@mit.edu'})
         self.tst_post_request(edit_emails)
         self.assertIsNotNone(AssociatedEmail.objects.filter(email='tester0@mit.edu'))
+
+
+
         # Test 4: remove email
         self.make_post_request('edit_emails',
             data={'remove_email':[''],'associated_email': 'tester3@mit.edu'})
@@ -176,7 +182,6 @@ class TestPublicViews(TestCase, TestMixin):
     """
     Test views that do not require authentication
     """
-
     fixtures = ['user']
 
     def setUp(self):
@@ -186,21 +191,31 @@ class TestPublicViews(TestCase, TestMixin):
 
     def test_public_profile(self):
         self.make_get_request('public_profile', {'email':'tester@mit.edu'})
-        self.tst_get_request(public_profile, view_kwargs={'email':'tester@mit.edu'}, status_code=200)
+        self.tst_get_request(public_profile,
+            view_kwargs={'email':'tester@mit.edu'}, status_code=200)
 
-    def test_register(self):
+    def test_register_activate(self):
         """
-        Goes along with 
+        Test user account registration and activation
         """
+        # Registration
         self.make_get_request('register')
         self.tst_get_request(register, status_code=200)
         self.make_post_request('register',
             data={'email':'jackreacher@mit.edu', 'first_name': 'Jack',
-            'last_name': 'Reacher','password1':'Very5trongt0t@11y', 'password2':'Very5trongt0t@11y'})
+            'last_name': 'Reacher','password1':'Very5trongt0t@11y',
+            'password2':'Very5trongt0t@11y'})
         # Recall that register uses same view upon success, so not 302
         self.tst_post_request(register, status_code=200)
         # Check user object was created
         self.assertIsNotNone(User.objects.filter(email='jackreacher@mit.edu'))
+        self.assertFalse(User.objects.get(email='jackreacher@mit.edu').is_active)
+        # Get the activation info from the sent email
+        uidb64, token = re.findall('http://testserver/activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
+            mail.outbox[0].body)[0]
+        # Activation
+        self.make_get_request('activate_user', {'uidb64':uidb64, 'token':token})
+        self.tst_get_request(activate_user,
+            view_kwargs={'uidb64':uidb64, 'token':token})
+        self.assertTrue(User.objects.get(email='jackreacher@mit.edu').is_active)
 
-    def test_verify_email(self):
-        pass
