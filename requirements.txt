@@ -4,3 +4,4 @@ django-js-asset==0.1.1
 pep8==1.7.0
 pytz==2017.2
 zxcvbn-python==4.4.18
+coverage==4.4.2

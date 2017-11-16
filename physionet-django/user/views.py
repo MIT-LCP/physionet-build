@@ -238,18 +238,18 @@ def verify_email(request, uidb64, token):
         {'title':'Invalid Verification Link', 'isvalid':False})
 
 
-def test(request):
-    """
-    For testing
-    """
-    user = request.user
-    primary_email_form = AssociatedEmailChoiceForm(label='Primary Email')
-    primary_email_form.get_associated_emails(user=user)
+# def test(request):
+#     """
+#     For testing
+#     """
+#     user = request.user
+#     primary_email_form = AssociatedEmailChoiceForm(label='Primary Email')
+#     primary_email_form.get_associated_emails(user=user)
 
-    if request.method == 'POST':
-        form = AssociatedEmailChoiceForm(request.POST)
+#     if request.method == 'POST':
+#         form = AssociatedEmailChoiceForm(request.POST)
 
-        pdb.set_trace()
+#         pdb.set_trace()
 
-    return render(request,'user/test.html', {'user':user,
-        'form':primary_email_form, 'csrf_token': csrf.get_token(request)})
+#     return render(request,'user/test.html', {'user':user,
+#         'form':primary_email_form, 'csrf_token': csrf.get_token(request)})
