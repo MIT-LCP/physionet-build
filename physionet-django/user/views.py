@@ -7,7 +7,6 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
 from django.forms import inlineformset_factory, HiddenInput
 from django.http import HttpResponseRedirect
-from django.middleware import csrf
 from django.shortcuts import render
 from django.template import loader
 from django.urls import reverse
@@ -18,7 +17,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from .forms import AssociatedEmailForm, AssociatedEmailChoiceForm, ProfileForm, UserCreationForm
 from .models import AssociatedEmail, Profile, User
 
-
+import pdb
 def activate_user(request, uidb64, token):
     """
     Page to active the account of a newly registered user.
@@ -147,7 +146,7 @@ def edit_profile(request):
             messages.error(request,
                 'There was an error with the information entered, please verify and try again.')
     return render(request, 'user/edit_profile.html', {'user':user, 'form':form,
-        'csrf_token':csrf.get_token(request), 'messages':messages.get_messages(request)})
+        'messages':messages.get_messages(request)})
 
 
 @login_required
@@ -194,8 +193,7 @@ def register(request):
     else:
         form = UserCreationForm()
 
-    return render(request, 'user/register.html',
-        {'form':form, 'csrf_token': csrf.get_token(request)})
+    return render(request, 'user/register.html', {'form':form})
 
 
 @login_required
@@ -252,4 +250,4 @@ def test(request):
         pdb.set_trace()
 
     return render(request,'user/test.html', {'user':user,
-        'form':primary_email_form, 'csrf_token': csrf.get_token(request)})
+        'form':primary_email_form})
