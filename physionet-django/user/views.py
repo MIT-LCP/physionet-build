@@ -91,7 +91,7 @@ def edit_emails(request):
     user = request.user
     # Email forms to display
     AssociatedEmailFormset = inlineformset_factory(User, AssociatedEmail,
-        fields=('email','is_primary_email', 'is_public'), extra=0,
+        fields=('email','is_primary_email', 'is_public'), extra=0, max_num=3,
         widgets={'email': HiddenInput, 'is_primary_email':HiddenInput})
     associated_email_formset = AssociatedEmailFormset(instance=user,
         queryset=AssociatedEmail.objects.filter(verification_date__isnull=False))
@@ -101,6 +101,7 @@ def edit_emails(request):
 
     if request.method == 'POST':
         if 'set_public_emails' in request.POST:
+            pdb.set_trace()
             formset = AssociatedEmailFormset(request.POST, instance=user)
             set_public_emails(request, formset)
 
