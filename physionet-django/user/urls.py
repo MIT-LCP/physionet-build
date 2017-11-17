@@ -46,11 +46,11 @@ urlpatterns = [
     url(r'^settings/profile/$', views.edit_profile, name='edit_profile'),
     url(r'^settings/password/$', auth_views.PasswordChangeView.as_view(
         form_class=EditPasswordForm,
-        success_url = reverse_lazy('edit_password_done'),
+        success_url = reverse_lazy('edit_password_complete'),
         template_name='user/edit_password.html',
         ),
         name='edit_password'),
-    url(r'^settings/password/changed/$', views.edit_password_done, name='edit_password_done'),
+    url(r'^settings/password/changed/$', views.edit_password_complete, name='edit_password_complete'),
     url(r'^settings/emails/$', views.edit_emails, name='edit_emails'),
     url(r'^verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
         views.verify_email, name='verify_email'),

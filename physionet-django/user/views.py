@@ -5,8 +5,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
 from django.forms import inlineformset_factory, HiddenInput
-from django.http import HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.template import loader
 from django.urls import reverse
 from django.utils import timezone
@@ -149,12 +148,12 @@ def edit_profile(request):
 
 
 @login_required
-def edit_password_done(request):
+def edit_password_complete(request):
     """
     After password has successfully been changed. Need this view because we
     can't control the edit password view to show a success message.
     """
-    return render(request, 'user/edit_password_done.html')
+    return render(request, 'user/edit_password_complete.html')
 
 
 def public_profile(request, email):
@@ -170,7 +169,7 @@ def register(request):
     """
     user = request.user
     if user.is_authenticated():
-        return HttpResponseRedirect(reverse('user_home'))
+        return redirect('user_home')
 
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
@@ -209,7 +208,7 @@ def user_settings(request):
     Settings. Redirect to default - settings/profile
     Don't call this 'settings' because there's an import called 'settings'
     """
-    return HttpResponseRedirect(reverse('edit_profile'))
+    return redirect('edit_profile')
 
 
 def verify_email(request, uidb64, token):

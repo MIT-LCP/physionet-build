@@ -8,7 +8,7 @@ import re
 from .management.commands.resetdb import load_fixture_profiles
 from .models import AssociatedEmail, User
 from .views import (activate_user, edit_emails, edit_profile,
-    edit_password_done, public_profile, register, user_home, user_settings,
+    edit_password_complete, public_profile, register, user_home, user_settings,
     verify_email)
 
 
@@ -121,9 +121,9 @@ class TestAuth(TestCase, TestMixin):
             data={'first_name': 'Roger', 'last_name': 'Federer'})
         self.tst_post_request(edit_profile)
 
-    def test_edit_password_done(self):
-        self.make_get_request('edit_password_done')
-        self.tst_get_request(edit_password_done)
+    def test_edit_password_complete(self):
+        self.make_get_request('edit_password_complete')
+        self.tst_get_request(edit_password_complete)
 
     def test_edit_emails(self):
         """
