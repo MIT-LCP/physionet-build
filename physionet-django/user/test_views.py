@@ -5,9 +5,9 @@ from django.test import RequestFactory, TestCase
 from django.urls import reverse
 import re
 
-from user.models import AssociatedEmail, User
-from user.management.commands.resetdb import load_fixture_profiles
-from user.views import (activate_user, edit_emails, edit_profile,
+from .management.commands.resetdb import load_fixture_profiles
+from .models import AssociatedEmail, User
+from .views import (activate_user, edit_emails, edit_profile,
     edit_password_done, public_profile, register, user_home, user_settings,
     verify_email)
 
@@ -161,16 +161,19 @@ class TestAuth(TestCase, TestMixin):
         self.tst_post_request(edit_emails)
         public_status = [ae.is_public for ae in AssociatedEmail.objects.filter(user=self.user)]
         self.assertNotIn(False, public_status)
+
         # Test 2: set primary email
         self.make_post_request('edit_emails',
             data={'set_primary_email':[''],'associated_email': 'tester2@mit.edu'})
         self.tst_post_request(edit_emails)
         self.assertEqual(self.user.email, 'tester2@mit.edu')
+
         # Test 3: add email
         self.make_post_request('edit_emails',
             data={'add_email':[''],'email': 'tester0@mit.edu'})
         self.tst_post_request(edit_emails)
         self.assertIsNotNone(AssociatedEmail.objects.filter(email='tester0@mit.edu'))
+        
         # Test 4: remove email
         self.make_post_request('edit_emails',
             data={'remove_email':[''],'associated_email': 'tester3@mit.edu'})
@@ -208,7 +211,7 @@ class TestPublic(TestCase, TestMixin):
         """
         Test user account registration and activation
         """
-        # Registration
+        # Register the new user
         self.make_get_request('register')
         self.tst_get_request(register, status_code=200)
         self.make_post_request('register',
@@ -221,11 +224,12 @@ class TestPublic(TestCase, TestMixin):
         self.assertIsNotNone(User.objects.filter(email='jackreacher@mit.edu'))
         self.assertFalse(User.objects.get(email='jackreacher@mit.edu').is_active)
         
-        # Activation
         # Get the activation info from the sent email
         uidb64, token = re.findall('http://testserver/activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
             mail.outbox[0].body)[0]
+        # Visit the activation link
         self.make_get_request('activate_user', {'uidb64':uidb64, 'token':token})
         self.tst_get_request(activate_user,
             view_kwargs={'uidb64':uidb64, 'token':token})
+        # Test that the user is active
         self.assertTrue(User.objects.get(email='jackreacher@mit.edu').is_active)
