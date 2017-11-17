@@ -5,9 +5,133 @@ from django.contrib.auth import password_validation
 from .models import AssociatedEmail, User, Profile
 
 
-class EmailForm(forms.Form):
-    "Generic form for cleaning form email fields"
-    email = forms.EmailField(label='Email', max_length=254)
+class AssociatedEmailChoiceForm(forms.Form):
+    """
+    For letting users choose one of their AssociatedEmails.
+    Ie. primary email, contact email, remove email.
+    """
+    associated_email = forms.ModelChoiceField(queryset=None, to_field_name='email',
+        label='email', widget=forms.Select(attrs={'class':'form-control'}))
+
+    def __init__(self, user, include_primary=True, *args, **kwargs):
+        # Email choices are those belonging to a user
+        super(AssociatedEmailChoiceForm, self).__init__(*args, **kwargs)
+
+        associated_emails = user.associated_emails.filter(verification_date__isnull=False)
+        if include_primary:
+            self.fields['associated_email'].queryset = associated_emails.order_by('-is_primary_email')
+        else:
+            self.fields['associated_email'].queryset = associated_emails.filter(is_primary_email=False)
+
+    def set_label(self, label):
+        self.fields['email'].label = label
+
+
+class AssociatedEmailForm(forms.ModelForm):
+    """
+    For adding/editing new associated emails
+    """
+    class Meta:
+        model = AssociatedEmail
+        fields = ('email',)
+        widgets = {
+            'email':forms.EmailInput(attrs={'class':'form-control dropemail'}),
+        }
+
+
+class SetPasswordForm(auth_forms.SetPasswordForm):
+    """
+    Form to set or reset the password.
+    Inherited by edit password, and directly used in password reset.
+    """
+    new_password1 = forms.CharField(
+        label="New password",
+        widget=forms.PasswordInput(attrs={'autofocus': True, 'class':'form-control'}),
+        strip=False,
+    )
+    new_password2 = forms.CharField(
+        label="New password confirmation",
+        strip=False,
+        widget=forms.PasswordInput(attrs={'autofocus': True, 'class':'form-control'}),
+        help_text=password_validation.password_validators_help_text_html(),
+    )
+
+
+class EditPasswordForm(SetPasswordForm, auth_forms.PasswordChangeForm):
+    """
+    For editing password
+    """
+    old_password = forms.CharField(
+        label="Old password",
+        strip=False,
+        widget=forms.PasswordInput(attrs={'autofocus': True, 'class':'form-control'}),
+    )
+
+
+class LoginForm(auth_forms.AuthenticationForm):
+    """
+    Form for logging in.
+    """
+    username = auth_forms.UsernameField(
+        label='Email',
+        max_length=254,
+        widget=forms.TextInput(attrs={'autofocus': True, 'class':'form-control', 
+            'placeholder':'Email Address'}),
+    )
+    password = forms.CharField(
+        label= 'Password',
+        strip=False,
+        widget=forms.PasswordInput(attrs={'class':'form-control',
+            'placeholder':'Password'}),
+    )
+
+    remember = forms.BooleanField(label='Remember Me', required=False)
+
+
+class UserChangeForm(forms.ModelForm):
+    """A form for updating user objects in the admin interface. Includes all
+    fields on the user, but replaces the password field with the password hash
+    display field. Use the admin interface to change passwords.
+    """
+    password = auth_forms.ReadOnlyPasswordHashField()
+
+    class Meta:
+        model = User
+        fields = ('email', 'password', 'is_active', 'is_admin')
+
+    def clean_password(self):
+        # Regardless of what the user provides, return the initial value.
+        # This is done here, rather than on the field, because the
+        # field does not have access to the initial value
+        return self.initial["password"]
+
+
+class ProfileForm(forms.ModelForm):
+    """
+    For editing the profile
+    """
+    class Meta:
+        model = Profile
+        exclude = ('user', 'identity_verification_date')
+        widgets = {
+            'first_name':forms.TextInput(attrs={'class':'form-control'}),
+            'middle_names':forms.TextInput(attrs={'class':'form-control'}),
+            'last_name':forms.TextInput(attrs={'class':'form-control'}),
+            'url':forms.TextInput(attrs={'class':'form-control'}),
+            'phone':forms.TextInput(attrs={'class':'form-control'}),
+        }
+
+
+class ResetPasswordForm(auth_forms.PasswordResetForm):
+    """
+    Form to send the email to reset the password.
+    """
+    email = forms.EmailField(
+        label='Email',
+        max_length=254,
+        widget=forms.TextInput(attrs={'autofocus': True, 'class':'form-control',
+            'placeholder':'Email Address'}),
+    )
 
 
 class UserCreationForm(forms.ModelForm):
@@ -23,8 +147,7 @@ class UserCreationForm(forms.ModelForm):
     last_name = forms.CharField(max_length = 30, label='Last Name',
                     widget=forms.TextInput(attrs={'class':'form-control'}))
     password1 = forms.CharField(label='Password',
-                    widget=forms.PasswordInput(attrs={'class':'form-control', 
-                        'id':'id_password'}))
+                    widget=forms.PasswordInput(attrs={'class':'form-control'}))
     password2 = forms.CharField(label='Password Confirmation',
                     widget=forms.PasswordInput(attrs={'class':'form-control'}))
 
@@ -59,135 +182,3 @@ class UserCreationForm(forms.ModelForm):
             user.profile.last_name = self.cleaned_data.get("last_name")
             user.profile.save()
         return user
-
-
-class UserChangeForm(forms.ModelForm):
-    """A form for updating users. Includes all the fields on
-    the user, but replaces the password field with admin's
-    password hash display field.
-    """
-    password = auth_forms.ReadOnlyPasswordHashField()
-
-    class Meta:
-        model = User
-        fields = ('email', 'password', 'is_active', 'is_admin')
-
-    def clean_password(self):
-        # Regardless of what the user provides, return the initial value.
-        # This is done here, rather than on the field, because the
-        # field does not have access to the initial value
-        return self.initial["password"]
-
-
-class LoginForm(auth_forms.AuthenticationForm):
-    """
-    Form for logging in.
-    """
-    username = auth_forms.UsernameField(
-        label='Email',
-        max_length=254,
-        widget=forms.TextInput(attrs={'autofocus': True, 'class':'form-control', 
-            'placeholder':'Email Address'}),
-    )
-    password = forms.CharField(
-        label= 'Password',
-        strip=False,
-        widget=forms.PasswordInput(attrs={'class':'form-control', 'placeholder':'Password'}),
-    )
-
-    remember = forms.BooleanField(label='Remember Me', required=False)
-
-
-class ResetPasswordForm(auth_forms.PasswordResetForm):
-    """
-    Form to send the email to reset the password.
-    """
-    email = forms.EmailField(
-        label='Email',
-        max_length=254,
-        widget=forms.TextInput(attrs={'autofocus': True, 'class':'form-control',
-            'placeholder':'Email Address'}),
-    )
-
-
-class SetPasswordForm(auth_forms.SetPasswordForm):
-    """
-    Form to set or reset the password. Used in user creation and password reset.
-    """
-    new_password1 = forms.CharField(
-        label="New password",
-        widget=forms.PasswordInput(attrs={'autofocus': True, 'class':'form-control',
-                                    'id':'id_password'}),
-        strip=False,
-    )
-    new_password2 = forms.CharField(
-        label="New password confirmation",
-        strip=False,
-        widget=forms.PasswordInput(attrs={'autofocus': True, 'class':'form-control'}),
-        help_text=password_validation.password_validators_help_text_html(),
-    )
-
-
-class ProfileForm(forms.ModelForm):
-    """
-    For editing the profile
-    """
-    class Meta:
-        model = Profile
-        exclude = ('user', 'identity_verification_date')
-        widgets = {
-            'first_name':forms.TextInput(attrs={'class':'form-control'}),
-            'middle_names':forms.TextInput(attrs={'class':'form-control'}),
-            'last_name':forms.TextInput(attrs={'class':'form-control'}),
-            'url':forms.TextInput(attrs={'class':'form-control'}),
-            'phone':forms.TextInput(attrs={'class':'form-control'}),
-        }
-
-
-class EditPasswordForm(SetPasswordForm, auth_forms.PasswordChangeForm):
-    """
-    For editing password
-    """
-    old_password = forms.CharField(
-        label="Old password",
-        strip=False,
-        widget=forms.PasswordInput(attrs={'autofocus': True, 'class':'form-control'}),
-    )
-
-
-class EmailChoiceForm(forms.Form):
-    """
-    For letting users choose one of their AssociatedEmails.
-    Ie. primary email, contact email.
-    """
-    email = forms.ModelChoiceField(queryset=None, to_field_name = 'email',
-        widget=forms.Select(attrs={'class':'form-control'}))
-
-    def __init__(self, label='email'):
-        super(EmailChoiceForm, self).__init__()
-        self.fields['email'].label = label
-
-    def get_associated_emails(self, user, include_primary=True):
-        """
-        Populate the queryset with a user's associated emails
-        Can include or exclude the primary email
-        """
-        emails = user.associated_emails.filter(verification_date__isnull=False)
-
-        if include_primary:
-            self.fields['email'].queryset = emails.order_by('-is_primary_email')
-            self.fields['email'].initial = emails.get(is_primary_email=True)
-        else:
-            self.fields['email'].queryset = emails.filter(is_primary_email=False)
-
-
-class AssociatedEmailForm(forms.ModelForm):
-    """
-    For adding/editing new associated emails
-    """
-    class Meta:
-        model = AssociatedEmail
-        fields = ('email',)
-        widgets = {
-            'email':forms.EmailInput(attrs={'class':'form-control dropemail'}),
-        }
