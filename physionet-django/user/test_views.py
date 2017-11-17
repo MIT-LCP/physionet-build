@@ -92,7 +92,7 @@ class TestMixin(object):
                 kwargs=redirect_reverse_kwargs))
 
 
-class TestAuthViews(TestCase, TestMixin):
+class TestAuth(TestCase, TestMixin):
     """
     Test views that require authentication
     """
@@ -160,7 +160,7 @@ class TestAuthViews(TestCase, TestMixin):
             'associated_emails-0-is_primary_email': ['True']})
         self.tst_post_request(edit_emails)
         public_status = [ae.is_public for ae in AssociatedEmail.objects.filter(user=self.user)]
-        self.assertFalse(False in public_status)
+        self.assertNotIn(False, public_status)
         # Test 2: set primary email
         self.make_post_request('edit_emails',
             data={'set_primary_email':[''],'associated_email': 'tester2@mit.edu'})
@@ -176,7 +176,7 @@ class TestAuthViews(TestCase, TestMixin):
             data={'remove_email':[''],'associated_email': 'tester3@mit.edu'})
         self.tst_post_request(edit_emails)
         remaining_associated_emails = [ae.email for ae in AssociatedEmail.objects.filter(user=self.user)]
-        self.assertFalse('tester3@mit.edu' in remaining_associated_emails)
+        self.assertNotIn('tester3@mit.edu', remaining_associated_emails)
 
         # Verify the newly added email
         # Get the activation info from the sent email
@@ -188,7 +188,7 @@ class TestAuthViews(TestCase, TestMixin):
         self.assertTrue(bool(AssociatedEmail.objects.get(email='tester0@mit.edu').verification_date))
 
 
-class TestPublicViews(TestCase, TestMixin):
+class TestPublic(TestCase, TestMixin):
     """
     Test views that do not require authentication
     """
