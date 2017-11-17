@@ -35,7 +35,7 @@ class TestAuth(TestCase):
             'new_password1':'Very5trongt0t@11y',
             'new_password2':'Very5trongt0t@11y'})
         self.assertRedirects(response, reverse('edit_password_done'))
-        # Try to log in using the new password
+        # Log in using the new password
         self.client.logout()
         self.assertTrue(self.client.login(username='rgmark@mit.edu',
             password='Very5trongt0t@11y'))
@@ -57,12 +57,10 @@ class TestAuth(TestCase):
             'Federer')
 
 
-
 class TestPublic(TestCase):
     """
     Test views that do not require authentication
     """
-
     fixtures = ['user']
 
     def setUp(self):
@@ -91,19 +89,21 @@ class TestPublic(TestCase):
             data={'email':'rgmark@mit.edu'})
         self.assertRedirects(response, reverse('reset_password_sent'))
 
-        # Reset the password
         # Get the reset info from the email
         uidb64, token = re.findall('reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
             mail.outbox[0].body)[0]
 
-        response = self.client.post(reverse('reset_password_confirm',
-            kwargs={'uidb64':uidb64,'token':token}), follow=True,
+        # Visit the reset url which redirects to the password set form
+        response = self.client.get(reverse('reset_password_confirm',
+            kwargs={'uidb64':uidb64,'token':token}))
+        self.assertRedirects(response, reverse('reset_password_confirm',
+            kwargs={'uidb64':uidb64, 'token':'set-password'}))
+
+        # Set the new password
+        response = self.client.post(response.url,
             data={'new_password1':'Very5trongt0t@11y',
                 'new_password2':'Very5trongt0t@11y'})
-
-        pdb.set_trace()
-
         self.assertRedirects(response, reverse('reset_password_complete'))
-
-
-        
+        # Log in using the new password
+        self.assertTrue(self.client.login(username='rgmark@mit.edu',
+            password='Very5trongt0t@11y'))
