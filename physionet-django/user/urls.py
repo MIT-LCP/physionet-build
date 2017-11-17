@@ -21,7 +21,6 @@ urlpatterns = [
     # Request password reset
     url(r'^resetpassword/$', auth_views.PasswordResetView.as_view(
         form_class=ResetPasswordForm, template_name='user/reset_password_request.html',
-        #success_url=reverse('reset_password_sent')), name='reset_password_request'),
         success_url=reverse_lazy('reset_password_sent'),
         email_template_name='user/email/reset_password_email.html'),
         name='reset_password_request'),
@@ -35,7 +34,7 @@ urlpatterns = [
         form_class=SetPasswordForm,
         template_name='user/reset_password_confirm.html',
         success_url=reverse_lazy('reset_password_complete')),
-        name='password_reset_confirm'),
+        name='reset_password_confirm'),
     # Password reset successfully carried out
     url(r'^reset/complete/$',
         auth_views.PasswordResetCompleteView.as_view(
