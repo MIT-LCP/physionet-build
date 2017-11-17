@@ -33,7 +33,6 @@
     }
   },
 
-
   {
     "model": "project.Topic",
     "fields": {
