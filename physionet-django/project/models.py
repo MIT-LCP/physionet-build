@@ -18,17 +18,36 @@ class Project(models.Model):
     owner = models.ForeignKey('user.User', related_name='owned_%(class)s')
     collaborators = models.ManyToManyField('user.User', related_name='collaborating_%(class)s')
     
-    # 0=prepublish, 1=under review (unable to edit), 2=published static,
-    # Projects cycle back and forth between 0-1 until editor agrees to
-    # publish.
+    # 0=prepublish, 1=under review (unable to edit), 2=published
+    # Projects cycle between 0-1 or 2-1 until editor agrees to publish.
     status = models.SmallIntegerField(default=0)
 
+    # The type of resource: data, software, tutorial, challenge
     resource_type = models.ForeignKey('project.ResourceType')
-    # Generic foreign key to the information for the project type
-    project_metadata = models.OneToOneField()
+    
+    # Generic foreign key to the information for the project type. Allowed
+    # models should be DatabaseMetadata, SoftwareMetaData
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    project_metadata = GenericForeignKey('content_type', 'object_id')
 
-    class Meta:
-        unique_together = (('project_metadata.title', 'owner'),)
+    def validate_unique(self, *args, **kwargs):
+        super(Project, self).validate_unique(*args, **kwargs)
+        # The same owner cannot have multiple projects with the same name
+        owner_projects = Project.objects.filter(owner=self.owner)
+        if owner_projects.filter(project_metadata__title=self.project_metadata__title):
+            raise ValidationError('You may not own multiple projects with the same name')
+
+        # qs = Room.objects.filter(name=self.name)
+        # if qs.filter(zone__site=self.zone__site).exists():
+        #     raise ValidationError({'name':['Name must be unique per site',]})
+
+
+class ResourceType(models.Model):
+    """
+    A type of resource: data, software, tutorial, challenge
+    """
+    description = models.CharField(max_length=20)
 
 
 class PublishedProjectInfo(models.Model):
@@ -36,14 +55,6 @@ class PublishedProjectInfo(models.Model):
     Fields common to all published projects, that are also not relevant to the
     core variable Project
     """
-    class Meta:
-        abstract = True
-        unique_together = (('title', 'version_number'),)
-
-    # Specify: If the core project is different, then the title must be different
-    # def __unique__(self):
-    #     pass
-
     # The Project object this object was created from
     core_project = models.ForeignKey('project.Project', related_name='published_%(class)s', blank=True, null=True)
     # Total file storage size in bytes
@@ -52,22 +63,23 @@ class PublishedProjectInfo(models.Model):
     is_final_version = models.BooleanField(default=False)
     doi = models.CharField(max_length=50, default='')
 
+    class Meta:
+        abstract = True
+        unique_together = (('title', 'version_number'),)
+
 
 class ProjectMetadata(models.Model):
     """
     Common metadata for all types of projects. Inherited by  published project
-    classes, and project metadata classes, for all resource types.
+    classes, and project metadata classes, of all resource types.
     """
     class Meta:
         abstract = True
 
-    # General description
     title = models.CharField(max_length=200)
     slug = models.SlugField(max_length=30)
-
     abstract = RichTextField(max_length=10000)
-    background = RichTextField()
-    methods = RichTextField()
+    
     acknowledgements = RichTextField()
     paper_citations = models.ManyToManyField('project.Reference', related_name='%(class)s_citations')
     references = models.ManyToManyField('project.Reference', related_name='%(class)s_references')
@@ -84,7 +96,7 @@ class ProjectMetadata(models.Model):
     changelog = RichTextField()
 
 
-class DatabaseMetadata(ProjectMetadata)
+class DatabaseMetadata(ProjectMetadata):
     """
     Model containing information for database projects.
     - Linked to Project.
@@ -95,6 +107,8 @@ class DatabaseMetadata(ProjectMetadata)
     https://schema.datacite.org/
     https://schema.datacite.org/meta/kernel-4.0/doc/DataCite-MetadataKernel_v4.0.pdf
     """
+    background = RichTextField()
+    methods = RichTextField()
     technical_validation = RichTextField()
     data_description = RichTextField()
     usage_notes = RichTextField()
@@ -110,7 +124,7 @@ class SoftwareMetadata(ProjectMetadata):
     usage_notes = RichTextField()
 
 
-class Database(DatabaseInfo, PublishedProjectInfo):
+class Database(DatabaseMetadata, PublishedProjectInfo):
     """
     A published database. The first resource type.
     """
@@ -124,16 +138,15 @@ class SoftwarePackage(SoftwareMetadata, PublishedProjectInfo):
     pass
 
 
-
-
-# class Review(models.Model):
-#     """
-#     Project review
-#     """
-#     project = models.ForeignKey('project.Project', related_name='reviews')
-#     submission_date = models.DateTimeField(null=True)
-#     editor = models.ForeignKey('user.User', related_name='editing_%(class)s', null=True)
-#     reviewers = models.ManyToManyField('user.User', related_name='reviewing_%(class)s')
+class Review(models.Model):
+    """
+    Project review
+    """
+    project = models.ForeignKey('project.Project', related_name='reviews')
+    start_date = models.DateTimeField(auto_now_add=True)
+    submission_date = models.DateTimeField(null=True)
+    editor = models.ForeignKey('user.User', related_name='edits', null=True)
+    reviewers = models.ManyToManyField('user.User', related_name='reviews')
 
 
 class StorageRequest(models.Model):
@@ -157,7 +170,7 @@ class AuthorInfo(models.Model):
     # Do not confuse this built in content_type variable with project resource type.
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
-    project_object = GenericForeignKey('content_type', 'object_id')
+    published_project = GenericForeignKey('content_type', 'object_id')
 
     author = models.ForeignKey('user.User', related_name='author_info')
     is_submitting_author = models.BooleanField(default=False)
@@ -168,18 +181,16 @@ class AuthorInfo(models.Model):
     middle_names = models.CharField(max_length=200)
     last_name = models.CharField(max_length=100)
 
+    order = models.SmallIntegerField(default=0)
+
 
 class AffiliationInfo(BaseAffiliation):
     """
     Author affiliation snapshot upon project publication.
+    An author may have multiple affiliations
     """
     author_info = models.ForeignKey('project.AuthorInfo', related_name='affiliations')
-    order = models.SmallIntegerField(default=0)
-
-
-
-
-
+    
 
 class Topic(models.Model):
     """
