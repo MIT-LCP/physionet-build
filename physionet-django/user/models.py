@@ -8,10 +8,9 @@ from django.utils import timezone
 
 class BaseAffiliation(models.Model):
     """
-    Base class inherited by profile affiliations and static snapshot
-    affiliation info.
+    Base class inherited by profile affiliations (Affiliation) and static
+    snapshot affiliation info (AffiliationInfo).
     """
-    order = models.SmallIntegerField(default=0)
     institution = models.CharField(max_length=100)
     department = models.CharField(max_length=100)
     city = models.CharField(max_length=50)
