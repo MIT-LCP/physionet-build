@@ -1,6 +1,8 @@
-from django.db import models
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 from ckeditor.fields import RichTextField
 
@@ -10,7 +12,7 @@ from user.models import BaseAffiliation
 class Project(models.Model):
     """
     The model for the core variable projects.
-    The descriptive information is stored in its `project_metadata` target.
+    The descriptive information is stored in its `metadata` target.
     """
     creation_date = models.DateTimeField(auto_now_add=True)
     # Maximum allowed storage capacity in GB
@@ -29,18 +31,14 @@ class Project(models.Model):
     # models should be DatabaseMetadata, SoftwareMetaData
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
-    project_metadata = GenericForeignKey('content_type', 'object_id')
+    metadata = GenericForeignKey('content_type', 'object_id')
 
     def validate_unique(self, *args, **kwargs):
         super(Project, self).validate_unique(*args, **kwargs)
         # The same owner cannot have multiple projects with the same name
         owner_projects = Project.objects.filter(owner=self.owner)
-        if owner_projects.filter(project_metadata__title=self.project_metadata__title):
+        if owner_projects.filter(metadata__title=self.metadata__title):
             raise ValidationError('You may not own multiple projects with the same name')
-
-        # qs = Room.objects.filter(name=self.name)
-        # if qs.filter(zone__site=self.zone__site).exists():
-        #     raise ValidationError({'name':['Name must be unique per site',]})
 
 
 class ResourceType(models.Model):
@@ -48,6 +46,9 @@ class ResourceType(models.Model):
     A type of resource: data, software, tutorial, challenge
     """
     description = models.CharField(max_length=20)
+
+    def __str__(self):
+        return self.description
 
 
 class PublishedProjectInfo(models.Model):
@@ -124,6 +125,16 @@ class SoftwareMetadata(ProjectMetadata):
     usage_notes = RichTextField()
 
 
+@receiver(post_save, sender=Project)
+def create_metadata(sender, **kwargs):
+    """
+    Creates and attaches an empty metadata object when a Project is created.
+    """
+    project = kwargs["instance"]
+    if kwargs["created"]:
+        metadata = metadata_models[self.resource_type.description].objects.create(abstract=self.abstract)
+
+
 class Database(DatabaseMetadata, PublishedProjectInfo):
     """
     A published database. The first resource type.
@@ -181,8 +192,6 @@ class AuthorInfo(models.Model):
     middle_names = models.CharField(max_length=200)
     last_name = models.CharField(max_length=100)
 
-    order = models.SmallIntegerField(default=0)
-
 
 class AffiliationInfo(BaseAffiliation):
     """
@@ -232,3 +241,6 @@ class TrainingCourseCompletion(models.Model):
     date = models.DateField(auto_now_add=True)
     training_course = models.ForeignKey('project.TrainingCourse', related_name='training_course_completions')
 
+
+# The metadata models for each resource type description
+metadata_models = {'database':DatabaseMetadata, 'software':SoftwareMetadata}
