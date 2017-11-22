@@ -17,11 +17,12 @@ class Project(models.Model):
     creation_date = models.DateTimeField(auto_now_add=True)
     # Maximum allowed storage capacity in GB
     storage_allowance = models.SmallIntegerField(default=10)
-    owner = models.ForeignKey('user.User', related_name='owned_%(class)s')
+    owner = models.ForeignKey('user.User', related_name='owned_%(class)s', null=True)
     collaborators = models.ManyToManyField('user.User', related_name='collaborating_%(class)s')
     
     # 0=prepublish, 1=under review (unable to edit), 2=published
     # Projects cycle between 0-1 or 2-1 until editor agrees to publish.
+    # Prevent project deletion after publication
     status = models.SmallIntegerField(default=0)
 
     # The type of resource: data, software, tutorial, challenge
@@ -30,8 +31,8 @@ class Project(models.Model):
     # Generic foreign key to the information for the project type. Allowed
     # models should be DatabaseMetadata, SoftwareMetaData
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    metadata = GenericForeignKey('content_type', 'object_id')
+    metadata_object_id = models.PositiveIntegerField()
+    metadata = GenericForeignKey('content_type', 'metadata_object_id')
 
     def validate_unique(self, *args, **kwargs):
         super(Project, self).validate_unique(*args, **kwargs)
@@ -39,6 +40,9 @@ class Project(models.Model):
         owner_projects = Project.objects.filter(owner=self.owner)
         if owner_projects.filter(metadata__title=self.metadata__title):
             raise ValidationError('You may not own multiple projects with the same name')
+
+    def __str__(self):
+        return self.owner.__str__()+': '+self.metadata.title
 
 
 class ResourceType(models.Model):
@@ -56,7 +60,7 @@ class PublishedProjectInfo(models.Model):
     Fields common to all published projects, that are also not relevant to the
     core variable Project
     """
-    # The Project object this object was created from
+    # The Project this object was created from
     core_project = models.ForeignKey('project.Project', related_name='published_%(class)s', blank=True, null=True)
     # Total file storage size in bytes
     storage_size = models.IntegerField(null=True)
@@ -67,6 +71,8 @@ class PublishedProjectInfo(models.Model):
     class Meta:
         abstract = True
         unique_together = (('title', 'version_number'),)
+
+    # Define custom validate_unique function based on core_project
 
 
 class ProjectMetadata(models.Model):
@@ -123,16 +129,6 @@ class SoftwareMetadata(ProjectMetadata):
     """
     technical_validation = RichTextField()
     usage_notes = RichTextField()
-
-
-@receiver(post_save, sender=Project)
-def create_metadata(sender, **kwargs):
-    """
-    Creates and attaches an empty metadata object when a Project is created.
-    """
-    project = kwargs["instance"]
-    if kwargs["created"]:
-        metadata = metadata_models[self.resource_type.description].objects.create(abstract=self.abstract)
 
 
 class Database(DatabaseMetadata, PublishedProjectInfo):

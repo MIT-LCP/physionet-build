@@ -1,8 +1,9 @@
 from django import forms
+from django.template.defaultfilters import slugify
 
 from ckeditor.fields import RichTextField
 
-from.models import Project, StorageRequest
+from.models import Project, StorageRequest, metadata_models
 
 
 class ProjectCreationForm(forms.ModelForm):
@@ -10,18 +11,23 @@ class ProjectCreationForm(forms.ModelForm):
     For creating projects
     """
     title = forms.CharField(max_length=80)
-    abstract = forms.CharField(max_length=10000)
+    abstract = RichTextField(max_length=10000)
 
     class Meta:
         model = Project
         fields = ('resource_type',)
 
-    def save(self):
-        # This should trigger the metadata object creation
+    def save(self, owner):
         project = super(ProjectCreationForm, self).save()
-        # Save title and abstract in metadata model
-        project.metadata.title = self.cleaned_data.get('title')
-        project.metadata.abstract = self.cleaned_data.get('abstract')
+        project.owner=owner
+        # Save title and abstract in the metadata model
+        metadata = metadata_models[self.resource_type.description].objects.create(
+            title = self.cleaned_data['title'],
+            slug = slugify(self.cleaned_data['title']),
+            abstract=self.cleaned_data['abstract']
+            )
+        project.metadata = metadata
+        project.save()
         return project
 
 
