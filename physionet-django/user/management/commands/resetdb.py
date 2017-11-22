@@ -12,8 +12,6 @@ class Command(BaseCommand):
         installed_apps = [a for a in settings.INSTALLED_APPS if not any(noncustom in a for noncustom in ['django', 'ckeditor'])]
         reset_db(installed_apps)
         load_fixtures(installed_apps)
-        load_fixture_profiles()
-
 
 def remove_migration_files(app):
     '''Remove all python migration files from registered apps'''
@@ -50,16 +48,6 @@ def load_fixtures(installed_apps):
     """ 
     for app in installed_apps:
         call_command('loaddata', app, verbosity=1)
-
-def load_fixture_profiles():
-    """
-    Remove empty profiles attached to demo users from triggers.
-    Load profile information from fixtures and attach them to users.
-    """
-    for user in User.objects.all():
-        user.profile.delete()
-
-    call_command('loaddata', 'user_profiles', verbosity=1)
 
 
 

@@ -160,8 +160,8 @@ class UserCreationForm(forms.ModelForm):
 
     def clean_password2(self):
         # Check that the two password entries match
-        password1 = self.cleaned_data.get("password1")
-        password2 = self.cleaned_data.get("password2")
+        password1 = self.cleaned_data.get('password1')
+        password2 = self.cleaned_data.get('password2')
         if password1 and password2 and password1 != password2:
             raise forms.ValidationError("The passwords don't match")
         self.instance.username = self.cleaned_data.get('username')
@@ -172,13 +172,12 @@ class UserCreationForm(forms.ModelForm):
     def save(self, commit=True):
         # Save the provided password in hashed format
         user = super(UserCreationForm, self).save(commit=False)
-        user.set_password(self.cleaned_data["password1"])
+        user.set_password(self.cleaned_data['password1'])
         if commit:
-            # This should trigger profile creation
             user.save()
             # Save additional fields in Profile model
-            user.profile.first_name = self.cleaned_data.get("first_name")
-            user.profile.middle_names = self.cleaned_data.get("middle_names")
-            user.profile.last_name = self.cleaned_data.get("last_name")
-            user.profile.save()
+            profile = Profile.objects.create(user=user,
+                first_name = self.cleaned_data['first_name'],
+                middle_names = self.cleaned_data['middle_names'],
+                last_name = self.cleaned_data['last_name'])
         return user
