@@ -89,7 +89,7 @@ def edit_emails(request):
     user = request.user
     # Email forms to display
     AssociatedEmailFormset = inlineformset_factory(User, AssociatedEmail,
-        fields=('email','is_primary_email', 'is_public'), extra=0, max_num=3,
+        fields=('email','is_primary_email', 'is_public'), extra=0,
         widgets={'email': HiddenInput, 'is_primary_email':HiddenInput})
     associated_email_formset = AssociatedEmailFormset(instance=user,
         queryset=AssociatedEmail.objects.filter(verification_date__isnull=False))
