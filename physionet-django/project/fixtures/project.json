@@ -1,0 +1,34 @@
+[
+  {
+    "model": "project.ResourceType",
+    "fields": {
+      "description": "Database"
+    }
+  },
+  {
+    "model": "project.ResourceType",
+    "fields": {
+      "description": "Software"
+    }
+  },
+
+
+  {
+    "model": "project.Topic",
+    "fields": {
+      "description": "ecg"
+    }
+  },
+  {
+    "model": "project.Topic",
+    "fields": {
+      "description": "arrhythmia"
+    }
+  },
+  {
+    "model": "project.Topic",
+    "fields": {
+      "description": "intensive care unit"
+    }
+  }
+]
