@@ -32,7 +32,7 @@ def reset_db(installed_apps):
             remove_migration_files(app)
 
         # delete the database
-        db_file = os.path.join(os.path.join(settings.BASE_DIR, 'db.sqlite3'))
+        db_file = os.path.join(settings.BASE_DIR, 'db.sqlite3')
         if os.path.isfile(db_file):
             os.remove(db_file)
 
