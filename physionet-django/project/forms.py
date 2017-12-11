@@ -1,30 +1,29 @@
 from django import forms
 from django.template.defaultfilters import slugify
 
-from ckeditor.fields import RichTextField
+from ckeditor.widgets import CKEditorWidget
 
 from.models import Project, StorageRequest, metadata_models
-
+import pdb
 
 class ProjectCreationForm(forms.ModelForm):
     """
     For creating projects
     """
-    title = forms.CharField(max_length=80)
-    abstract = RichTextField(max_length=10000)
+    abstract = forms.CharField(widget=CKEditorWidget())
 
     class Meta:
         model = Project
-        fields = ('resource_type',)
+        fields = ('title', 'resource_type',)
 
     def save(self, owner):
-        project = super(ProjectCreationForm, self).save()
+        project = super(ProjectCreationForm, self).save(commit=False)
         project.owner=owner
         # Save title and abstract in the metadata model
-        metadata = metadata_models[self.resource_type.description].objects.create(
+        metadata = metadata_models[self.cleaned_data['resource_type'].description].objects.create(
             title = self.cleaned_data['title'],
             slug = slugify(self.cleaned_data['title']),
-            abstract=self.cleaned_data['abstract']
+            abstract = self.cleaned_data['abstract']
             )
         project.metadata = metadata
         project.save()

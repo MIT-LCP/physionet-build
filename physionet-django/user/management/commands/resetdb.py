@@ -48,15 +48,3 @@ def load_fixtures(installed_apps):
     """ 
     for app in installed_apps:
         call_command('loaddata', app, verbosity=1)
-
-
-
-
-
-    
-
-    
-
-
-
-

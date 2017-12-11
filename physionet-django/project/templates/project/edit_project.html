@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/settings.css' %}"/>
+{% endblock %}
+
+
+{% block content %}
+<div class="container">
+  <div class="row row-offcanvas row-offcanvas-right">
+    <div class="col-6 col-md-3 sidebar-offcanvas" id="sidebar">
+      <div class="list-group">
+        {% with 'metadata files collaborators' as project_options %}
+            {% for option in project_options.split %}
+              {% url 'project_'|add:setting as project_url %}
+              <a href={{ project_url }}  class="list-group-item {% if project_url == request.path %}active{% endif %}">{{ option|title }}</a>
+            {% endfor %}
+        {% endwith %}
+      </div>
+    </div><!--/span-->
+
+    <div class="col-10 col-md-9">
+      {% if messages %}
+        {% for message in messages %}
+          {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+            <div class="alert alert-danger alert-dismissible">
+          {% else %}
+            <div class="alert alert-success alert-dismissible">
+          {% endif %}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+      <div class="container">
+        {% block form %}
+        {% endblock %}
+      </div><!--/row-->
+    </div><!--/span-->
+
+  </div><!--/row-->
+
+
+</div><!--/.container-->
+{% endblock %}
+

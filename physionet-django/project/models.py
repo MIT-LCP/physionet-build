@@ -3,6 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.template.defaultfilters import slugify
 
 from ckeditor.fields import RichTextField
 
@@ -11,9 +12,12 @@ from user.models import BaseAffiliation
 
 class Project(models.Model):
     """
-    The model for the core variable projects.
+    The model for user-owned projects.
     The descriptive information is stored in its `metadata` target.
     """
+    title = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=30)
+
     creation_date = models.DateTimeField(auto_now_add=True)
     # Maximum allowed storage capacity in GB
     storage_allowance = models.SmallIntegerField(default=10)
@@ -34,15 +38,24 @@ class Project(models.Model):
     metadata_object_id = models.PositiveIntegerField()
     metadata = GenericForeignKey('content_type', 'metadata_object_id')
 
-    def validate_unique(self, *args, **kwargs):
-        super(Project, self).validate_unique(*args, **kwargs)
-        # The same owner cannot have multiple projects with the same name
-        owner_projects = Project.objects.filter(owner=self.owner)
-        if owner_projects.filter(metadata__title=self.metadata__title):
-            raise ValidationError('You may not own multiple projects with the same name')
+    # def validate_unique(self, *args, **kwargs):
+    #     super(Project, self).validate_unique(*args, **kwargs)
+    #     # The same owner cannot have multiple projects with the same name
+    #     owner_projects = Project.objects.filter(owner=self.owner)
+    #     if owner_projects.filter(metadata__title=self.metadata__title):
+    #         raise ValidationError('You may not own multiple projects with the same name')
+    
+    class Meta:
+        # Note: We need another validate unique to make sure no 2 titles
+        # result in the same slug
+        unique_together = (('title', 'owner'),)
 
     def __str__(self):
         return self.owner.__str__()+': '+self.metadata.title
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.title)
+        super(Project, self).save(*args, **kwargs)
 
 
 class ResourceType(models.Model):
@@ -77,7 +90,7 @@ class PublishedProjectInfo(models.Model):
 
 class ProjectMetadata(models.Model):
     """
-    Common metadata for all types of projects. Inherited by  published project
+    Common metadata for all types of projects. Inherited by published project
     classes, and project metadata classes, of all resource types.
     """
     class Meta:
@@ -239,4 +252,4 @@ class TrainingCourseCompletion(models.Model):
 
 
 # The metadata models for each resource type description
-metadata_models = {'database':DatabaseMetadata, 'software':SoftwareMetadata}
+metadata_models = {'Database':DatabaseMetadata, 'Software':SoftwareMetadata}

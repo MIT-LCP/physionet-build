@@ -1,0 +1,60 @@
+[
+  {
+    "model": "project.Database",
+    "fields": {
+      "title": "MIT-BIH Arrhythmia Database",
+      "slug": "mitdb",
+      "owner": ["tester@mit.edu"]
+    }
+  },
+  {
+    "model": "project.Database",
+    "fields": {
+      "title": "MIMIC-III Clinical Database",
+      "slug": "mimic3cdb",
+      "owner": ["rgmark@mit.edu"]
+    }
+  },
+
+  {
+    "model": "project.SoftwarePackage",
+    "fields": {
+      "title": "WFDB Python",
+      "slug": "wfdb-python",
+      "owner": ["tester@mit.edu"]
+    }
+  },
+  {
+    "model": "project.SoftwarePackage",
+    "fields": {
+      "title": "MIMIC-III Code",
+      "slug": "mimic-code",
+      "owner": ["rgmark@mit.edu"]
+    }
+  },
+
+  {
+    "model": "project.Topic",
+    "fields": {
+      "description": "ecg"
+    }
+  },
+  {
+    "model": "project.Topic",
+    "fields": {
+      "description": "arrhythmia"
+    }
+  },
+  {
+    "model": "project.Topic",
+    "fields": {
+      "description": "intensive care unit"
+    }
+  },
+  {
+    "model": "project.Topic",
+    "fields": {
+      "description": ""
+    }
+  }
+]

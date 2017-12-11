@@ -6,66 +6,100 @@
 
     <ul class="navbar-nav mr-auto">
 
-      <!-- Publish --> 
-
       <li class="nav-item active dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="publish_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Publish</a>
-        <div class="dropdown-menu" aria-labelledby="publish_dropdown">
-          <a class="dropdown-item" href="#">Submit</a>
-          <a class="dropdown-item" href="{% url 'author_guidelines' %}">Author guidelines</a>
+        <a class="nav-link dropdown-toggle" href="#" id="resource_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i class="fa fa-server"></i> Resources
+        </a>
+        <div class="dropdown-menu" aria-labelledby="resource_dropdown">
+          <a class="dropdown-item" href="#">
+            <i class="fa fa-database"></i>&nbsp;&nbsp;Data
+          </a>
+          <a class="dropdown-item" href="#">
+            <i class="fa fa-laptop"></i> Software
+          </a>
+          <a class="dropdown-item" href="#">
+            <i class="fa fa-space-shuttle"></i> Challenge
+          </a>
         </div>
       </li>
 
-      <!-- About --> 
-
       <li class="nav-item active dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="about_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">About</a>
-        <div class="dropdown-menu" aria-labelledby="about_dropdown">
-          <a class="dropdown-item" href="{% url 'contact' %}">Contact</a>
-          <a class="dropdown-item" href="{% url 'ourteam' %}">Our Team</a>
-          <a class="dropdown-item" href="{% url 'funding' %}">Funding</a>
+        <a class="nav-link dropdown-toggle" href="#" id="resource_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i class="fa fa-server"></i> Publish
+        </a>
+        <div class="dropdown-menu" aria-labelledby="resource_dropdown">
+          <a class="dropdown-item" href="#">
+            <i class="fa fa-upload"></i>&nbsp;&nbsp;Submit
+          </a>
+          <a class="dropdown-item" href="{% url 'author_guidelines' %}">
+            <i class="fa fa-book"></i>&nbsp;&nbsp;Author Guidelines
+          </a>
         </div>
       </li>
 
-      <!-- Content --> 
-
       <li class="nav-item active dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="content_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Content</a>
-        <div class="dropdown-menu" aria-labelledby="content_dropdown">
-          <a class="dropdown-item" href="{% url 'data' %}">Data</a>
-          <a class="dropdown-item" href="{% url 'software' %}">Software</a>
-          <a class="dropdown-item" href="{% url 'challenges' %}">Challenges</a>
+        <a class="nav-link dropdown-toggle" href="#" id="resource_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i class="fa fa-info-circle"></i> About
+        </a>
+        <div class="dropdown-menu" aria-labelledby="resource_dropdown">
+          <a class="dropdown-item" href="#">
+            <i class="fa fa-upload"></i>&nbsp;&nbsp;About Physionet
+          </a>
+          <a class="dropdown-item" href="#">
+            <i class="fa fa-users"></i> Our Team
+          </a>
         </div>
+      </li>
+
+      <li class="nav-item active">
+        <a class="nav-link" href="#">
+          <i class="fa fa-phone"></i> Contact
+        </a>
       </li>
 
     </ul>
 
-    <ul class="navbar-nav">
+    <ul class="navbar-nav ml-auto">
       {% if user.is_authenticated %}
         <li class="nav-item active">
-          <a class="nav-link" href="#">My Projects <span class="sr-only">(current)</span></a>
+          <a class="nav-link" href="{% url 'project_home' %}">
+            <i class="fa fa-archive"></i> My Projects
+          </a>
         </li>
       {% endif %}
 
       <li class="nav-item active dropdown">
         <a class="nav-link dropdown-toggle" href="#" id="account_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <i class="fa fa-user"></i> Account</a>
+          <i class="fa fa-user"></i> Account
+        </a>
         <div class="dropdown-menu" aria-labelledby="account_dropdown">
           {% if user.is_authenticated %}
-            <a class="dropdown-item" href="{% url 'public_profile' user.get_username %}">Profile</a>
-            <a class="dropdown-item" href="{% url 'edit_profile' %}">Settings</a>
-            <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
+            <a class="dropdown-item" href="{% url 'public_profile' user.get_username %}">
+              <i class="fa fa-address-card"></i>&nbsp;&nbsp;Profile
+            </a>
+            <a class="dropdown-item" href="{% url 'edit_profile' %}">
+              <i class="fa fa-cogs"></i> Settings
+            </a>
+            <a class="dropdown-item" href="{% url 'logout' %}">
+              <i class="fas fa-user-times"></i> Logout
+            </a>
           {% else %}
-            <a class="dropdown-item" href="{% url 'login' %}">Login</a>
-            <a class="dropdown-item" href="{% url 'register' %}">Register</a>
+            <a class="dropdown-item" href="{% url 'login' %}">
+              <i class="fas fa-user-plus"></i> Login
+            </a>
+            <a class="dropdown-item" href="{% url 'register' %}">
+              <i class="fas fa-universal-access"></i>&nbsp;&nbsp;Register
+            </a>
           {% endif %}
         </div>
       </li>
+      <form class="form-inline my-2 my-lg-0 mr-lg-2">
+        <input class="form-control" type="text" placeholder="Search">
+        <span class="input-group-btn">
+          <button class="btn btn-primary  my-2 my-sm-0" type="button"><i class="fa fa-search"></i></button>
+        </span>
+      </form>
     </ul>
-
-    <form class="form-inline mt-2 mt-md-0">
-      <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
-    </form>
 
   </div>
 </nav>

@@ -38,6 +38,6 @@ urlpatterns = [
     url(r'^challenges', views.challenges, name='challenges'),
 
     url(r'^', include('user.urls')),
-    url(r'^', include('project.urls')),
+    url(r'^projects/', include('project.urls')),
 
 ]
