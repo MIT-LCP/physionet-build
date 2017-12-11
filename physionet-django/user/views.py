@@ -78,8 +78,9 @@ def remove_email(request, remove_email_form):
     user = request.user
     if remove_email_form.is_valid():
         associated_email = remove_email_form.cleaned_data['associated_email']
+        remove_email = associated_email.email
         associated_email.delete()
-        messages.success(request, 'Your email: %s has been removed from your account.' % user.email)
+        messages.success(request, 'Your email: %s has been removed from your account.' % remove_email)
 
 @login_required
 def edit_emails(request):
