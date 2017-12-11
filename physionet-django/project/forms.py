@@ -10,15 +10,17 @@ class ProjectCreationForm(forms.ModelForm):
     """
     For creating projects
     """
+    title = forms.CharField(max_length=200)
     abstract = forms.CharField(widget=CKEditorWidget())
 
     class Meta:
         model = Project
-        fields = ('title', 'resource_type',)
+        fields = ('resource_type',)
 
     def save(self, owner):
         project = super(ProjectCreationForm, self).save(commit=False)
-        project.owner=owner
+        project.owner = owner
+        
         # Save title and abstract in the metadata model
         metadata = metadata_models[self.cleaned_data['resource_type'].description].objects.create(
             title = self.cleaned_data['title'],
@@ -27,6 +29,7 @@ class ProjectCreationForm(forms.ModelForm):
             )
         project.metadata = metadata
         project.save()
+        project.collaborators.add(owner)
         return project
 
 

@@ -15,14 +15,11 @@ class Project(models.Model):
     The model for user-owned projects.
     The descriptive information is stored in its `metadata` target.
     """
-    title = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=30)
-
     creation_date = models.DateTimeField(auto_now_add=True)
     # Maximum allowed storage capacity in GB
     storage_allowance = models.SmallIntegerField(default=10)
-    owner = models.ForeignKey('user.User', related_name='owned_%(class)s', null=True)
-    collaborators = models.ManyToManyField('user.User', related_name='collaborating_%(class)s')
+    owner = models.ForeignKey('user.User', related_name='owned_projects')
+    collaborators = models.ManyToManyField('user.User', related_name='collaborating_projects')
     
     # 0=prepublish, 1=under review (unable to edit), 2=published
     # Projects cycle between 0-1 or 2-1 until editor agrees to publish.
@@ -44,18 +41,9 @@ class Project(models.Model):
     #     owner_projects = Project.objects.filter(owner=self.owner)
     #     if owner_projects.filter(metadata__title=self.metadata__title):
     #         raise ValidationError('You may not own multiple projects with the same name')
-    
-    class Meta:
-        # Note: We need another validate unique to make sure no 2 titles
-        # result in the same slug
-        unique_together = (('title', 'owner'),)
 
     def __str__(self):
         return self.owner.__str__()+': '+self.metadata.title
-
-    def save(self, *args, **kwargs):
-        self.slug = slugify(self.title)
-        super(Project, self).save(*args, **kwargs)
 
 
 class ResourceType(models.Model):

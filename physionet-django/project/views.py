@@ -14,11 +14,10 @@ def project_home(request):
     """
     user = request.user
 
-    projects = Project.objects.filter(owner=user)
+    # Get all projects that the user is collaborating in
+    projects = Project.objects.filter(collaborators__in=[user])
 
     return render(request, 'project/project_home.html', {'projects':projects})
-
-
 
 
 @login_required
@@ -32,25 +31,26 @@ def create_project(request):
             print('\n\nvalid!')
             project = form.save(owner=user)
 
-            return render(request, 'project/create_project_done.html', {'email':user.email})
+            #return render(request, 'project/create_project_done.html', {'email':user.email})
 
-            return redirect('edit_project')
+            return redirect('edit_project', project_id=project.id)
 
     return render(request, 'project/create_project.html', {'form':form})
 
 
 @login_required
-def edit_project(request):
-    return redirect('project_metadata')
+def edit_project(request, project_id):
+    return redirect('project_metadata', project_id=project_id)
 
 @login_required
-def project_metadata(request):
-    project = Project.objects.get(slug=slug, owner=request.user)
+def project_metadata(request, project_id):
+    project = Project.objects.get(id=project_id)
+    
 
 @login_required
-def project_files(request):
-    project = Project.objects.get(slug=slug, owner=request.user)
+def project_files(request, project_id):
+    project = Project.objects.get(id=project_id)
 
 @login_required
-def project_collaborators(request):
-    project = Project.objects.get(slug=slug, owner=request.user)
+def project_collaborators(request, project_id):
+    project = Project.objects.get(id=project_id)
