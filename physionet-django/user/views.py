@@ -2,13 +2,10 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
-from django.contrib.auth.views import PasswordResetConfirmView
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
 from django.forms import inlineformset_factory, HiddenInput
-from django.http import HttpResponseRedirect
-from django.middleware import csrf
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.template import loader
 from django.urls import reverse
 from django.utils import timezone
@@ -81,8 +78,9 @@ def remove_email(request, remove_email_form):
     user = request.user
     if remove_email_form.is_valid():
         associated_email = remove_email_form.cleaned_data['associated_email']
+        remove_email = associated_email.email
         associated_email.delete()
-        messages.success(request, 'Your email: %s has been removed from your account.' % user.email)
+        messages.success(request, 'Your email: %s has been removed from your account.' % remove_email)
 
 @login_required
 def edit_emails(request):
@@ -147,16 +145,16 @@ def edit_profile(request):
             messages.error(request,
                 'There was an error with the information entered, please verify and try again.')
     return render(request, 'user/edit_profile.html', {'user':user, 'form':form,
-        'csrf_token':csrf.get_token(request), 'messages':messages.get_messages(request)})
+        'messages':messages.get_messages(request)})
 
 
 @login_required
-def edit_password_done(request):
+def edit_password_complete(request):
     """
     After password has successfully been changed. Need this view because we
     can't control the edit password view to show a success message.
     """
-    return render(request, 'user/edit_password_done.html')
+    return render(request, 'user/edit_password_complete.html')
 
 
 def public_profile(request, email):
@@ -172,7 +170,7 @@ def register(request):
     """
     user = request.user
     if user.is_authenticated():
-        return HttpResponseRedirect(reverse('user_home'))
+        return redirect('user_home')
 
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
@@ -194,8 +192,7 @@ def register(request):
     else:
         form = UserCreationForm()
 
-    return render(request, 'user/register.html',
-        {'form':form, 'csrf_token': csrf.get_token(request)})
+    return render(request, 'user/register.html', {'form':form})
 
 
 @login_required
@@ -212,7 +209,7 @@ def user_settings(request):
     Settings. Redirect to default - settings/profile
     Don't call this 'settings' because there's an import called 'settings'
     """
-    return HttpResponseRedirect(reverse('edit_profile'))
+    return redirect('edit_profile')
 
 
 def verify_email(request, uidb64, token):

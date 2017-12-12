@@ -10,7 +10,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         installed_apps = [a for a in settings.INSTALLED_APPS if not any(noncustom in a for noncustom in ['django', 'ckeditor'])]
-        delete_db(installed_apps)
+        reset_db(installed_apps)
         load_fixtures(installed_apps)
         load_fixture_profiles()
 
@@ -19,23 +19,22 @@ def remove_migration_files(app):
     '''Remove all python migration files from registered apps'''
     app_migrations_dir = os.path.join(settings.BASE_DIR, app, 'migrations')
     if os.path.isdir(app_migrations_dir):
-        migration_files = [file for file in os.listdir(app_migrations_dir) if file.startswith('0') and file.endswith('.py')]
+        migration_files = [file for file in os.listdir(app_migrations_dir) if file != '__init__.py' and file.endswith('.py')]
         for file in migration_files:
             os.remove(os.path.join(app_migrations_dir, file))
 
-def delete_db(installed_apps):
+def reset_db(installed_apps):
         """
-        Delete the database and associated files
+        Delete the database and migration files.
+        Remake and reapply the migrations
         """
         for app in installed_apps:
             remove_migration_files(app)
 
         # delete the database
-        fn = 'db.sqlite3'
-        try:
-            os.remove(os.path.join(settings.BASE_DIR, fn))
-        except:
-            pass
+        db_file = os.path.join(settings.BASE_DIR, 'db.sqlite3')
+        if os.path.isfile(db_file):
+            os.remove(db_file)
 
         # Remake and reapply the migrations
         call_command('makemigrations')
