@@ -1,12 +1,15 @@
+from django.contrib import messages
+from django import forms
+from django.forms import modelformset_factory
 from django.http import Http404
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
 from .forms import ProjectCreationForm
-from .models import Project
+from .models import metadata_models, Project, DatabaseMetadata, SoftwareMetadata
 
 import pdb
-
+from user.forms import ProfileForm
 
 @login_required
 def project_home(request):
@@ -55,7 +58,27 @@ def project_overview(request, project_id):
 @login_required
 def project_metadata(request, project_id):
     project = Project.objects.get(id=project_id)
-    return render(request, 'project/project_metadata.html', {'project':project})
+
+    # Dynamically generate the metadata modelform for the relevant type
+    #MetadataFormset = modelformset_factory(metadata_models[project.resource_type.description],
+    MetadataFormset = modelformset_factory(DatabaseMetadata,
+        exclude=('slug', 'id'))
+
+    form = MetadataFormset(queryset=DatabaseMetadata.objects.filter(id=project.metadata.id))[0]
+
+    if request.method == 'POST':
+        
+        formset = MetadataFormset(request.POST)
+
+        # formset = AssociatedEmailFormset(request.POST, instance=user)
+        #     set_public_emails(request, formset)
+
+        if formset.is_valid():
+            formset.save()
+            messages.success(request, 'Your project metadata has been updated.')
+
+    return render(request, 'project/project_metadata.html', {'project':project,
+        'form':form, 'messages':messages.get_messages(request)})
 
 
 @login_required

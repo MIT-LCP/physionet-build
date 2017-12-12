@@ -33,26 +33,6 @@ class ProjectCreationForm(forms.ModelForm):
         return project
 
 
-# class ProjectForm(forms.ModelForm):
-#     """
-#     For editing projects
-#     """
-#     class Meta:
-#         model = Project
-#         fields = ('title', 'dua', 'training_course', 'id_verification_required',
-#             'topics', 'abstract','background','methods','data_description',
-#             'technical_validation','usage_notes','acknowledgements',
-#             'paper_citations','references', 'owner','collaborators')
-
-#         widgets = {
-#             'first_name':forms.TextInput(attrs={'class':'form-control'}),
-#             'middle_names':forms.TextInput(attrs={'class':'form-control'}),
-#             'last_name':forms.TextInput(attrs={'class':'form-control'}),
-#             'url':forms.TextInput(attrs={'class':'form-control'}),
-#             'phone':forms.TextInput(attrs={'class':'form-control'}),
-#         }
-
-
 class StorageRequestForm(forms.ModelForm):
     """
     Making a request for storage capacity for a project
@@ -66,6 +46,3 @@ class StorageRequestForm(forms.ModelForm):
         widgets = {
             'storage_size':forms.NumberInput(attrs={'class':'form-control'})
         }
-
-
-
