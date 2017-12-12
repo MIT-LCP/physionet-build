@@ -46,6 +46,7 @@ class Project(models.Model):
         return self.owner.__str__() + ': ' + self.metadata.title
 
 
+
 class ResourceType(models.Model):
     """
     A type of resource: data, software, tutorial, challenge
@@ -245,3 +246,19 @@ class TrainingCourseCompletion(models.Model):
 
 # The metadata models for each resource type description
 metadata_models = {'Database':DatabaseMetadata, 'Software':SoftwareMetadata}
+
+# For displaying lists of files in project pages
+# All attributes are human readable strings
+class DisplayFile():
+    def __init__(self, name, size, last_modified, description):
+        self.name = name
+        self.size = size
+        self.last_modified= last_modified
+        self.description = description
+
+class DisplayDirectory():
+     def __init__(self, name, size, last_modified, description):
+        self.name = name
+        self.size = size
+        self.last_modified = last_modified
+        self.description = description 

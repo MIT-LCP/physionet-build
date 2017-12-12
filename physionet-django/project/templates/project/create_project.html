@@ -5,7 +5,7 @@
 {% block title %}New Project{% endblock %}
 
 {% block local_css %}
-<link rel="stylesheet" type="text/css" href="{% static 'custom/css/login_register.css' %}"/>
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/settings.css' %}"/>
 {% endblock %}
 
 
@@ -14,8 +14,9 @@
     <form action="{% url 'create_project' %}" method="post"  class="form-signin">
         <h2 class="form-signin-heading">Create New Project</h2>
         <hr>
+        {{ form.media }}
         {% include "form_snippet.html" %}
-        <button class="btn btn-lg btn-primary btn-block" type="submit">Create Project</button>
+        <button class="btn btn-lg btn-primary" type="submit">Create Project</button>
     </form>
 </div>
 {% endblock %}

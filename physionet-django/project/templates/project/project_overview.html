@@ -3,10 +3,7 @@
 {% block title %}Project Overview{% endblock %}
 
 {% block form %}
-<form action="{% url 'project_metadata' project.id %}" method="post" class="form-signin">
-  <h2 class="form-signin-heading">Overview</h2>
-  <hr>
-  {% include "form_snippet.html" %}
-  <button class="btn btn-lg btn-primary" type="submit">Save Changes</button>
-</form>
+<h2 class="form-signin-heading">Project Overview</h2>
+<hr>
+
 {% endblock %}

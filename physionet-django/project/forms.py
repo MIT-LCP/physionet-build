@@ -1,10 +1,12 @@
 from django import forms
 from django.template.defaultfilters import slugify
+import os
 
 from ckeditor.widgets import CKEditorWidget
 
-from.models import Project, StorageRequest, metadata_models
-import pdb
+from .models import Project, StorageRequest, metadata_models
+from physionet.settings import STATIC_ROOT
+
 
 class ProjectCreationForm(forms.ModelForm):
     """
@@ -16,6 +18,7 @@ class ProjectCreationForm(forms.ModelForm):
     class Meta:
         model = Project
         fields = ('resource_type',)
+
 
     def save(self, owner):
         project = super(ProjectCreationForm, self).save(commit=False)
@@ -30,6 +33,8 @@ class ProjectCreationForm(forms.ModelForm):
         project.metadata = metadata
         project.save()
         project.collaborators.add(owner)
+        # Create file directory
+        os.mkdir(os.path.join(STATIC_ROOT, str(project.id)))
         return project
 
 

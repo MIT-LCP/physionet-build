@@ -1,15 +1,31 @@
 from django.contrib import messages
 from django import forms
 from django.forms import modelformset_factory
-from django.http import Http404
+from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+import os
 
 from .forms import ProjectCreationForm
 from .models import metadata_models, Project, DatabaseMetadata, SoftwareMetadata
+from .utility import get_display_file, get_display_directory
+from physionet.settings import STATIC_ROOT
 
 import pdb
 from user.forms import ProfileForm
+
+
+def download_file(request, file_path):
+    """
+    Serve a file to download. file_path is the full file path of the file on the server
+    """
+    if os.path.exists(filepath):
+        with open(filepath, 'r') as fh:
+            response = HttpResponse(fh.read())
+            response['Content-Disposition'] = 'attachment; filename=' + os.path.basename(file_path)
+            return response
+    else:
+        return Http404()
 
 @login_required
 def project_home(request):
@@ -35,7 +51,7 @@ def create_project(request):
             print('\n\nvalid!')
             project = form.save(owner=user)
 
-            return redirect('edit_project', project_id=project.id)
+            return redirect('project_overview', project_id=project.id)
 
     return render(request, 'project/create_project.html', {'form':form})
 
@@ -82,14 +98,34 @@ def project_metadata(request, project_id):
 
 
 @login_required
-def project_files(request, project_id):
+def project_files(request, project_id, sub_link=''):
+    "View and manipulate files in a project"
     project = Project.objects.get(id=project_id)
-    return render(request, 'project/project_files.html', {'project':project})
+
+    # Directory where files are kept for the project
+    project_file_dir = os.path.join(STATIC_ROOT, project_id)
+
+    # Case of accessing a file or subdirectory
+    if sub_link:
+        item_path = os.path.join(project_file_dir, sub_link)
+        
+
+
+        return download_file(request)
+
+
+    file_names = sorted([f for f in os.listdir(project_file_dir) if os.path.isfile(os.path.join(project_file_dir, f)) and not f.endswith('~')])
+    dir_names = sorted([d for d in os.listdir(project_file_dir) if os.path.isdir(os.path.join(project_file_dir, d))])
+
+    display_files = [get_display_file(os.path.join(project_file_dir, f)) for f in file_names]
+    display_dirs = [get_display_directory(os.path.join(project_file_dir, d)) for d in dir_names]
+
+    return render(request, 'project/project_files.html', {'project':project,
+        'display_files':display_files, 'display_dirs':display_dirs})
 
 
 @login_required
 def project_collaborators(request, project_id):
     project = Project.objects.get(id=project_id)
     return render(request, 'project/project_collaborators.html', {'project':project})
-
 
