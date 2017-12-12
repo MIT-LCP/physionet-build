@@ -1,0 +1,30 @@
+{% extends "project/project.html" %}
+
+{% block title %}Project Files{% endblock %}
+
+{% block form %}
+<h2 class="form-signin-heading">Project Files</h2>
+<hr>
+<div class="card">
+  <div class="card-header">
+      <div class="row">
+        <div class="col-md-8">File Name</div>
+        <div class="col-md-2">Size</div>
+        <div class="col-md-2">Date</div>
+      </div>
+  </div>
+  <ul class="list-group list-group-flush">
+    {% for file in display_files %}
+    <li class="list-group-item">
+      <div class="row">
+        <div class="col-md-8"><a href="{{ file.name }}">{{ file.name }}</a></div>
+        <div class="col-md-2">{{ file.size }}</div>
+        <div class="col-md-2">{{ file.last_modified }}</div>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+
+<!-- https://github.com/MIT-LCP/physionet-build/blob/testing/physionet-django/physiobank/templates/physiobank/database.html -->
+{% endblock %}
