@@ -13,10 +13,10 @@
   <div class="row row-offcanvas row-offcanvas-right">
     <div class="col-6 col-md-3 sidebar-offcanvas" id="sidebar">
       <div class="list-group">
-        {% with 'metadata files collaborators' as project_options %}
-            {% for option in project_options.split %}
-              {% url 'project_'|add:setting as project_url %}
-              <a href={{ project_url }}  class="list-group-item {% if project_url == request.path %}active{% endif %}">{{ option|title }}</a>
+        {% with 'overview metadata files collaborators' as project_settings %}
+            {% for setting in project_settings.split %}
+              {% url 'project_'|add:setting project.id as setting_url %}
+              <a href={{ setting_url }}  class="list-group-item {% if setting_url == request.path %}active{% endif %}">{{ setting|title }}</a>
             {% endfor %}
         {% endwith %}
       </div>
