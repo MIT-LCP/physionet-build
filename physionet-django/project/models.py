@@ -15,16 +15,16 @@ class Project(models.Model):
     The model for user-owned projects.
     The descriptive information is stored in its `metadata` target.
     """
-    creation_date = models.DateTimeField(auto_now_add=True)
+    creation_datetime = models.DateTimeField(auto_now_add=True)
+    modified_datetime = models.DateTimeField(auto_now=True)
+
     # Maximum allowed storage capacity in GB
     storage_allowance = models.SmallIntegerField(default=10)
     owner = models.ForeignKey('user.User', related_name='owned_projects')
     collaborators = models.ManyToManyField('user.User', related_name='collaborating_projects')
     
-    # 0=prepublish, 1=under review (unable to edit), 2=published
-    # Projects cycle between 0-1 or 2-1 until editor agrees to publish.
-    # Prevent project deletion after publication
-    status = models.SmallIntegerField(default=0)
+    published = models.BooleanField(default=False)
+    under_review = models.BooleanField(default=False)
 
     # The type of resource: data, software, tutorial, challenge
     resource_type = models.ForeignKey('project.ResourceType')
@@ -43,7 +43,7 @@ class Project(models.Model):
     #         raise ValidationError('You may not own multiple projects with the same name')
 
     def __str__(self):
-        return self.owner.__str__()+': '+self.metadata.title
+        return self.owner.__str__() + ': ' + self.metadata.title
 
 
 class ResourceType(models.Model):
@@ -103,6 +103,7 @@ class ProjectMetadata(models.Model):
     version_number = models.FloatField(null=True)
     changelog = RichTextField()
 
+    # DateField(auto_now=False) For last modified field
 
 class DatabaseMetadata(ProjectMetadata):
     """
