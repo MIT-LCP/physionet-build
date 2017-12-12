@@ -5,231 +5,74 @@
 {% block title %}Project Home{% endblock %}
 
 {% block local_css %}
-<link rel="stylesheet" type="text/css" href="bootstrap/css/das">
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/project-home.css' %}">
 {% endblock %}
 
 {% block content %}
 <div class="container">
+  
+  <div class="jumbotron">
+    <h1>Project Home</h1>
+    <p class="lead">Welcome to your project home. Here you can create new projects, and access projects that you are working on or reviewing.</p>
+    <p><a class="btn btn-lg btn-success" href="{% url 'create_project' %}" role="button">Create New Project</a></p>
+  </div>
 
-    <table class="table table-bordered table-striped table-responsive">
-      <thead>
-        <tr>
-            <td class="col-md-2"><strong>Role</strong></td>
-            <td class="col-md-8">Project</td>
-            <td class="col-md-1">Published</td>
-            <td class="col-md-1">Last Modified</td>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>animation</td>
-          <td>boolean</td>
-          <td>true</td>
-          <td>Apply a CSS fade transition to the tooltip</td>
-        </tr>
-        <tr>
-          <td>container</td>
-          <td>string | element | false</td>
-          <td>false</td>
-          <td>
-            <p>Appends the tooltip to a specific element. Example: <code>container: 'body'</code>. This option is particularly useful in that it allows you to position the tooltip in the flow of the document near the triggering element - which will prevent the tooltip from floating away from the triggering element during a window resize.</p>
-          </td>
-        </tr>
-        <tr>
-          <td>delay</td>
-          <td>number | object</td>
-          <td>0</td>
-          <td>
-            <p>Delay showing and hiding the tooltip (ms) - does not apply to manual trigger type</p>
-            <p>If a number is supplied, delay is applied to both hide/show</p>
-            <p>Object structure is: <code>delay: { "show": 500, "hide": 100 }</code></p>
-          </td>
-        </tr>
-        <tr>
-          <td>html</td>
-          <td>boolean</td>
-          <td>false</td>
-          <td>
-            <p>Allow HTML in the tooltip.</p>
-            <p>If true, HTML tags in the tooltip's <code>title</code> will be rendered in the tooltip. If false, jQuery's <code>text</code> method will be used to insert content into the DOM.</p>
-            <p>Use text if you're worried about XSS attacks.</p>
-          </td>
-        </tr>
-        <tr>
-          <td>placement</td>
-          <td>string | function</td>
-          <td>'top'</td>
-          <td>
-            <p>How to position the tooltip - auto | top | bottom | left | right.<br />When <code>auto</code> is specified, it will dynamically reorient the tooltip.</p>
-            <p>When a function is used to determine the placement, it is called with the tooltip DOM node as its first argument and the triggering element DOM node as its second. The <code>this</code> context is set to the tooltip instance.</p>
-          </td>
-        </tr>
-        <tr>
-          <td>selector</td>
-          <td>string | false</td>
-          <td>false</td>
-          <td>If a selector is provided, tooltip objects will be delegated to the specified targets. In practice, this is used to enable dynamic HTML content to have popovers added. See <a href="https://github.com/twbs/bootstrap/issues/4215">this</a> and <a href="https://jsbin.com/zopod/1/edit">an informative example</a>.</td>
-        </tr>
-        <tr>
-          <td>template</td>
-          <td>string</td>
-          <td><code>'&lt;div class="tooltip" role="tooltip"&gt;&lt;div class="arrow"&gt;&lt;/div&gt;&lt;div class="tooltip-inner"&gt;&lt;/div&gt;&lt;/div&gt;'</code></td>
-          <td>
-            <p>Base HTML to use when creating the tooltip.</p>
-            <p>The tooltip's <code>title</code> will be injected into the <code>.tooltip-inner</code>.</p>
-            <p><code>.arrow</code> will become the tooltip's arrow.</p>
-            <p>The outermost wrapper element should have the <code>.tooltip</code> class.</p>
-          </td>
-        </tr>
-        <tr>
-          <td>title</td>
-          <td>string | element | function</td>
-          <td>''</td>
-          <td>
-            <p>Default title value if <code>title</code> attribute isn't present.</p>
-            <p>If a function is given, it will be called with its <code>this</code> reference set to the element that the tooltip is attached to.</p>
-          </td>
-        </tr>
-        <tr>
-          <td>trigger</td>
-          <td>string</td>
-          <td>'hover focus'</td>
-          <td>How tooltip is triggered - click | hover | focus | manual. You may pass multiple triggers; separate them with a space. `manual` cannot be combined with any other trigger.</td>
-        </tr>
-        <tr>
-          <td>offset</td>
-          <td>number | string</td>
-          <td>0</td>
-          <td>Offset of the tooltip relative to its target. For more information refer to Popper.js's <a href="https://popper.js.org/popper-documentation.html#modifiers..offset.offset">offset docs</a>.</td>
-        </tr>
-        <tr>
-          <td>fallbackPlacement</td>
-          <td>string | array</td>
-          <td>'flip'</td>
-          <td>Allow to specify which position Popper will use on fallback. For more information refer to
-          Popper.js's <a href="https://popper.js.org/popper-documentation.html#modifiers..flip.behavior">behavior docs</a></td>
-        </tr>
-      </tbody>
-    </table>
+  <div class="card" >
+    <div class="card-header">
+      <h4>Your Projects</h4>
+    </div>
 
-
-      <h1>Bootstrap grid examples</h1>
-      <p class="lead">Basic grid layouts to get you familiar with building within the Bootstrap grid system.</p>
-
-      <h3>Five grid tiers</h3>
-      <p>There are five tiers to the Bootstrap grid system, one for each range of devices we support. Each tier starts at a minimum viewport size and automatically applies to the larger devices unless overridden.</p>
-
-      <div class="row">
-        <div class="col-4">.col-4</div>
-        <div class="col-4">.col-4</div>
-        <div class="col-4">.col-4</div>
-      </div>
-
-      <div class="row">
-        <div class="col-sm-4">.col-sm-4</div>
-        <div class="col-sm-4">.col-sm-4</div>
-        <div class="col-sm-4">.col-sm-4</div>
-      </div>
-
-      <div class="row">
-        <div class="col-md-4">.col-md-4</div>
-        <div class="col-md-4">.col-md-4</div>
-        <div class="col-md-4">.col-md-4</div>
-      </div>
-
-      <div class="row">
-        <div class="col-lg-4">.col-lg-4</div>
-        <div class="col-lg-4">.col-lg-4</div>
-        <div class="col-lg-4">.col-lg-4</div>
-      </div>
-
-      <div class="row">
-        <div class="col-xl-4">.col-xl-4</div>
-        <div class="col-xl-4">.col-xl-4</div>
-        <div class="col-xl-4">.col-xl-4</div>
-      </div>
-
-      <h3>Three equal columns</h3>
-      <p>Get three equal-width columns <strong>starting at desktops and scaling to large desktops</strong>. On mobile devices, tablets and below, the columns will automatically stack.</p>
-      <div class="row">
-        <div class="col-md-4">.col-md-4</div>
-        <div class="col-md-4">.col-md-4</div>
-        <div class="col-md-4">.col-md-4</div>
-      </div>
-
-      <h3>Three unequal columns</h3>
-      <p>Get three columns <strong>starting at desktops and scaling to large desktops</strong> of various widths. Remember, grid columns should add up to twelve for a single horizontal block. More than that, and columns start stacking no matter the viewport.</p>
-      <div class="row">
-        <div class="col-md-3">.col-md-3</div>
-        <div class="col-md-6">.col-md-6</div>
-        <div class="col-md-3">.col-md-3</div>
-      </div>
-
-      <h3>Two columns</h3>
-      <p>Get two columns <strong>starting at desktops and scaling to large desktops</strong>.</p>
-      <div class="row">
-        <div class="col-md-8">.col-md-8</div>
-        <div class="col-md-4">.col-md-4</div>
-      </div>
-
-      <h3>Full width, single column</h3>
-      <p class="text-warning">No grid classes are necessary for full-width elements.</p>
-
-      <hr>
-
-      <h3>Two columns with two nested columns</h3>
-      <p>Per the documentation, nesting is easy—just put a row of columns within an existing column. This gives you two columns <strong>starting at desktops and scaling to large desktops</strong>, with another two (equal widths) within the larger column.</p>
-      <p>At mobile device sizes, tablets and down, these columns and their nested columns will stack.</p>
-      <div class="row">
-        <div class="col-md-8">
-          .col-md-8
-          <div class="row">
-            <div class="col-md-6">.col-md-6</div>
-            <div class="col-md-6">.col-md-6</div>
-          </div>
+    <ul class="list-group list-group-flush">
+      {% if projects %}
+        {% for project in projects %}
+          <li class="list-group-item">
+            <p><span class="badge badge-primary">Primary</span></p>
+            <h4><a href="{% url 'edit_project' project.id %}">{{ project.metadata.title }}</a></h4>
+            <p class="list-group-item-text text-muted">
+            <small>Created {{ project.creation_datetime }}. Modified {{ project.modified_datetime }}</small>
+            </p>
+          </li>
+        {% endfor %}
+      {% else %}
+        <div class="card-body text-center">
+          <h4 class="card-title">No projects to show</h4>
+          <p class="card-text">You are not currently working on any projects.</p>
+          <a href="{% url 'create_project' %}" class="btn btn-success">Create Project</a>
         </div>
-        <div class="col-md-4">.col-md-4</div>
-      </div>
+      {% endif %}
+    </ul>
+  </div>
 
-      <hr>
+  <hr>
+  
+  <div class="card" >
+    <div class="card-header">
+      <h4>Reviewing Projects</h4>
+    </div>
 
-      <h3>Mixed: mobile and desktop</h3>
-      <p>The Bootstrap v4 grid system has five tiers of classes: xs (extra small), sm (small), md (medium), lg (large), and xl (extra large). You can use nearly any combination of these classes to create more dynamic and flexible layouts.</p>
-      <p>Each tier of classes scales up, meaning if you plan on setting the same widths for xs and sm, you only need to specify xs.</p>
-      <div class="row">
-        <div class="col-12 col-md-8">.col-12 .col-md-8</div>
-        <div class="col-6 col-md-4">.col-6 .col-md-4</div>
-      </div>
-      <div class="row">
-        <div class="col-6 col-md-4">.col-6 .col-md-4</div>
-        <div class="col-6 col-md-4">.col-6 .col-md-4</div>
-        <div class="col-6 col-md-4">.col-6 .col-md-4</div>
-      </div>
-      <div class="row">
-        <div class="col-6">.col-6</div>
-        <div class="col-6">.col-6</div>
-      </div>
+    <ul class="list-group list-group-flush">
+      {% if reviewing_projects %}
+        {% for project in reviewing_projects %}
+          <li class="list-group-item">
+            <h4>{{ project.metadata.title }}</h4>
+          </li>
+        {% endfor %}
+      {% else %}
+        <div class="card-body text-center">
+          <h4 class="card-title">No projects to show</h4>
+          <p class="card-text">You have not been currently assigned to review any project.</p>
+        </div>
+      {% endif %}
+    </ul>
+  </div>
 
-      <hr>
-
-      <h3>Mixed: mobile, tablet, and desktop</h3>
-      <p></p>
-      <div class="row">
-        <div class="col-12 col-sm-6 col-lg-8">.col-12 .col-sm-6 .col-lg-8</div>
-        <div class="col-6 col-lg-4">.col-6 .col-lg-4</div>
-      </div>
-      <div class="row">
-        <div class="col-6 col-sm-4">.col-6 .col-sm-4</div>
-        <div class="col-6 col-sm-4">.col-6 .col-sm-4</div>
-        <div class="col-6 col-sm-4">.col-6 .col-sm-4</div>
-      </div>
-
-    </div> <!-- /container -->
+  <hr>
 
 
 
-{% endblock %}
 
-{% block local_js_bottom %}
+</div> <!-- /container -->
+
+
 
 {% endblock %}
