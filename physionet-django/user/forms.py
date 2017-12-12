@@ -113,13 +113,6 @@ class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
         exclude = ('user', 'identity_verification_date')
-        widgets = {
-            'first_name':forms.TextInput(attrs={'class':'form-control'}),
-            'middle_names':forms.TextInput(attrs={'class':'form-control'}),
-            'last_name':forms.TextInput(attrs={'class':'form-control'}),
-            'url':forms.TextInput(attrs={'class':'form-control'}),
-            'phone':forms.TextInput(attrs={'class':'form-control'}),
-        }
 
 
 class ResetPasswordForm(auth_forms.PasswordResetForm):

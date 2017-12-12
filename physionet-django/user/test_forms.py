@@ -4,16 +4,12 @@ from django.urls import reverse
 from user.forms import (AssociatedEmailChoiceForm, AssociatedEmailForm,
     EditPasswordForm, LoginForm, ProfileForm, ResetPasswordForm, SetPasswordForm,
     UserCreationForm)
-from user.management.commands.resetdb import load_fixture_profiles
 from user.models import User
 
 
 class TestForms(TestCase):
 
     fixtures = ['user']
-
-    def setUp(self):
-        load_fixture_profiles()
     
     def create_test_forms(self, FormClass, valid_dict, invalid_dict, user=None):
         """

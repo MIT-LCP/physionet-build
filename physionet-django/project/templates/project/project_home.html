@@ -35,7 +35,7 @@
                 <span class="badge badge-success">Published</span>
               {% endif %}
             </p>
-            <h4><a href="{% url 'edit_project' project.id %}">{{ project.metadata.title }}</a></h4>
+            <h4><a href="{% url 'project_overview' project.id %}">{{ project.metadata.title }}</a></h4>
             <p class="list-group-item-text text-muted">
             <small>Created {{ project.creation_datetime }}. Modified {{ project.modified_datetime }}</small>
             </p>
