@@ -26,7 +26,15 @@
       {% if projects %}
         {% for project in projects %}
           <li class="list-group-item">
-            <p><span class="badge badge-primary">Primary</span></p>
+            <p>
+              <span class="badge badge-primary">{{ project.resource_type }}</span>
+              {% if project.under_review %}
+                <span class="badge badge-info">Under Review</span>
+              {% endif %}
+              {% if project.published %}
+                <span class="badge badge-success">Published</span>
+              {% endif %}
+            </p>
             <h4><a href="{% url 'edit_project' project.id %}">{{ project.metadata.title }}</a></h4>
             <p class="list-group-item-text text-muted">
             <small>Created {{ project.creation_datetime }}. Modified {{ project.modified_datetime }}</small>

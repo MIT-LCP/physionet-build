@@ -10,12 +10,9 @@ import pdb
 
 @login_required
 def project_home(request):
-    """
-    Home page listing projects
-    """
+    "Home page listing projects a user is involved in"
+    
     user = request.user
-
-    # Projects that the user is collaborating in
     projects = Project.objects.filter(collaborators__in=[user])
 
     # Projects that the user is responsible for reviewing
@@ -41,7 +38,8 @@ def create_project(request):
 
 
 @login_required
-def edit_project(request, project_id):
+def project_overview(request, project_id):
+    "Overview page of a project"
     user = request.user
 
     # Only allow access if the user is a collaborator
@@ -51,19 +49,24 @@ def edit_project(request, project_id):
     if user not in collaborators:
         raise Http404("Unable to access project")
 
-    return redirect('project_metadata', project_id=project_id)
-
+    return render(request, 'project/project_overview.html', {'project':project})
 
 
 @login_required
 def project_metadata(request, project_id):
     project = Project.objects.get(id=project_id)
+    return render(request, 'project/project_metadata.html', {'project':project})
 
 
 @login_required
 def project_files(request, project_id):
     project = Project.objects.get(id=project_id)
+    return render(request, 'project/project_files.html', {'project':project})
+
 
 @login_required
 def project_collaborators(request, project_id):
     project = Project.objects.get(id=project_id)
+    return render(request, 'project/project_collaborators.html', {'project':project})
+
+
