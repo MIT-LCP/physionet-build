@@ -8,16 +8,25 @@
 <div class="card">
   <div class="card-header">
       <div class="row">
-        <div class="col-md-8">File Name</div>
+        <div class="col-md-8">&nbsp;&nbsp;&nbsp;&nbsp;Name</div>
         <div class="col-md-2">Size</div>
-        <div class="col-md-2">Date</div>
+        <div class="col-md-2">Modified</div>
       </div>
   </div>
   <ul class="list-group list-group-flush">
+    {% for dir in display_dirs %}
+      <li class="list-group-item">
+        <div class="row">
+          <div class="col-md-8"><i class="far fa-folder-open"></i>&nbsp;<a href="{{ dir.name }}/">{{ dir.name }}</a></div>
+          <div class="col-md-2"></div>
+          <div class="col-md-2"></div>
+        </div>
+      </li>
+    {% endfor %}
     {% for file in display_files %}
     <li class="list-group-item">
       <div class="row">
-        <div class="col-md-8"><a href="{{ file.name }}">{{ file.name }}</a></div>
+        <div class="col-md-8">&nbsp;<i class="far fa-file"></i>&nbsp;&nbsp;<a href="{{ file.name }}">{{ file.name }}</a></div>
         <div class="col-md-2">{{ file.size }}</div>
         <div class="col-md-2">{{ file.last_modified }}</div>
       </div>

@@ -4,8 +4,8 @@ import os
 from .models import DisplayFile, DisplayDirectory
 
 
-# Given a file path, get the information used to display it
 def get_display_file(file_path):
+    "Given a file path, get the information used to display it"
     name = os.path.split(file_path)[-1]
     size = readable_size(os.path.getsize(file_path))
     last_modified = datetime.date.fromtimestamp(os.path.getmtime(file_path)).strftime("%Y-%m-%d")
@@ -13,6 +13,7 @@ def get_display_file(file_path):
     return DisplayFile(name, size, last_modified, description)
 
 def get_display_directory(dir_path):
+    "Given a directory path, get the information used to display it"
     name = os.path.split(dir_path)[-1]
     size = ''
     last_modified = datetime.date.fromtimestamp(os.path.getmtime(dir_path)).strftime("%Y-%m-%d")
