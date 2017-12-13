@@ -54,5 +54,5 @@
 <script type="text/javascript" src="{% static 'bootstrap/js/offcanvas.js' %}"></script>
 <script type="text/javascript" src="{% static 'zxcvbn/zxcvbn.js' %}"></script>
 <script type="text/javascript" src="{% static 'zxcvbn/zxcvbn-bootstrap-strength-meter.js' %}"></script>
-<script type="text/javascript" id="helper" src="{% static 'zxcvbn/zxcvbn_ProgressBar_Change.js' %}" data-last='{{user.profile.last_name}}' data-name='{{user.profile.first_name}}' data-middle='{{user.profile.middle_names}}' data-phone='{{user.profile.phone}}' data-url='{{user.profile.url}}'></script>
+<script type="text/javascript" id="helper" src="{% static 'zxcvbn/zxcvbn_ProgressBar_Change.js' %}" data-last='{{user.profile.last_name}}' data-name='{{user.profile.first_name}}' data-middle='{{user.profile.middle_names}}' data-phone='{{user.profile.phone}}' data-url='{{user.profile.url}}' data-email='{{user.email}}'></script>
 {% endblock %}

@@ -5,10 +5,9 @@ $(document).ready(function()
 	var middle = document.getElementById("helper").getAttribute("data-middle");
 	var url = document.getElementById("helper").getAttribute("data-url");
 	var phone = document.getElementById("helper").getAttribute("data-phone");
+	var email = document.getElementById("helper").getAttribute("data-email");
 	$("#StrengthProgressBar").zxcvbnProgressBar({
 		passwordInput: "#id_new_password1", 
-		userInputs: [name, last, middle, url, phone]
+		userInputs: [name, last, middle, url, phone, email]
 	});
 });
-
-
