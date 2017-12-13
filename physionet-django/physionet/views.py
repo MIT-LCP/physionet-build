@@ -6,9 +6,6 @@ def home(request):
 
 # Publish pages
 
-# def submit(request):
-#     return render(request, 'submit.html')
-
 def author_guidelines(request):
     return render(request, 'author_guidelines.html')
 
@@ -17,7 +14,7 @@ def author_guidelines(request):
 def contact(request):
     return render(request, 'contact.html')
 
-def ourteam(request):
+def our_team(request):
     return render(request, 'ourteam.html')
 
 def funding(request):
@@ -31,5 +28,5 @@ def data(request):
 def software(request):
     return render(request, 'software.html')
 
-def challenges(request):
-    return render(request, 'challenges.html')
+def challenge(request):
+    return render(request, 'challenge.html')

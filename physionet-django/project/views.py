@@ -125,7 +125,7 @@ def project_files(request, project_id, sub_item=''):
     display_dirs = [get_directory_info(os.path.join(file_dir, d)) for d in dir_names]
 
     return render(request, 'project/project_files.html', {'project':project,
-        'display_files':display_files, 'display_dirs':display_dirs})
+        'display_files':display_files, 'display_dirs':display_dirs, 'sub_item':sub_item})
 
 
 @login_required
