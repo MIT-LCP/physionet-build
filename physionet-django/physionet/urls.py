@@ -19,7 +19,7 @@ urlpatterns = [
     # content pages
     url(r'^data', views.data, name='data'),
     url(r'^software', views.software, name='software'),
-    url(r'^challenges', views.challenge, name='challenge'),
+    url(r'^challenge', views.challenge, name='challenge'),
 
     # user account pages
     url(r'^', include('user.urls')),
@@ -27,3 +27,4 @@ urlpatterns = [
     # project pages
     url(r'^projects/', include('project.urls')),
 ]
+
