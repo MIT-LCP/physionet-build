@@ -19,9 +19,9 @@ def download_file(request, file_path):
     """
     Serve a file to download. file_path is the full file path of the file on the server
     """
-    if os.path.exists(filepath):
-        with open(filepath, 'r') as fh:
-            response = HttpResponse(fh.read())
+    if os.path.exists(file_path):
+        with open(file_path, 'r') as f:
+            response = HttpResponse(f.read())
             response['Content-Disposition'] = 'attachment; filename=' + os.path.basename(file_path)
             return response
     else:
@@ -98,27 +98,31 @@ def project_metadata(request, project_id):
 
 
 @login_required
-def project_files(request, project_id, sub_link=''):
+def project_files(request, project_id, sub_item=''):
     "View and manipulate files in a project"
     project = Project.objects.get(id=project_id)
 
     # Directory where files are kept for the project
-    project_file_dir = os.path.join(STATIC_ROOT, project_id)
+    project_file_dir = os.path.join(STATIC_ROOT, 'projects', project_id)
 
     # Case of accessing a file or subdirectory
-    if sub_link:
-        item_path = os.path.join(project_file_dir, sub_link)
-        
+    if sub_item:
+        item_path = os.path.join(project_file_dir, sub_item)
+        # Serve a file
+        if os.path.isfile(item_path):
+            return download_file(request, item_path)
+        # Invalid url
+        elif not os.path.isdir(item_path):
+            return Http404()
 
+    # The url is not pointing to a file. Present the directory.
+    file_dir = os.path.join(project_file_dir, sub_item)
 
-        return download_file(request)
+    file_names = sorted([f for f in os.listdir(file_dir) if os.path.isfile(os.path.join(file_dir, f)) and not f.endswith('~')])
+    dir_names = sorted([d for d in os.listdir(file_dir) if os.path.isdir(os.path.join(file_dir, d))])
 
-
-    file_names = sorted([f for f in os.listdir(project_file_dir) if os.path.isfile(os.path.join(project_file_dir, f)) and not f.endswith('~')])
-    dir_names = sorted([d for d in os.listdir(project_file_dir) if os.path.isdir(os.path.join(project_file_dir, d))])
-
-    display_files = [get_display_file(os.path.join(project_file_dir, f)) for f in file_names]
-    display_dirs = [get_display_directory(os.path.join(project_file_dir, d)) for d in dir_names]
+    display_files = [get_display_file(os.path.join(file_dir, f)) for f in file_names]
+    display_dirs = [get_display_directory(os.path.join(file_dir, d)) for d in dir_names]
 
     return render(request, 'project/project_files.html', {'project':project,
         'display_files':display_files, 'display_dirs':display_dirs})
