@@ -57,7 +57,7 @@ class ResourceType(models.Model):
         return self.description
 
 
-class PublishedProjectInfo(models.Model):
+class PublishedProject(models.Model):
     """
     Fields common to all published projects, that are also not relevant to the
     core variable Project
@@ -134,14 +134,14 @@ class SoftwareMetadata(ProjectMetadata):
     usage_notes = RichTextField()
 
 
-class Database(DatabaseMetadata, PublishedProjectInfo):
+class Database(DatabaseMetadata, PublishedProject):
     """
     A published database. The first resource type.
     """
     pass
 
 
-class SoftwarePackage(SoftwareMetadata, PublishedProjectInfo):
+class SoftwarePackage(SoftwareMetadata, PublishedProject):
     """
     A published software package. The second resource type.
     """

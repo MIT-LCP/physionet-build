@@ -16,11 +16,12 @@
         {% with 'overview metadata files collaborators' as project_settings %}
             {% for setting in project_settings.split %}
               {% if setting == 'files' %}
-                {% url 'project_files' project.id '' as setting_url %}
+                {% url 'project_'|add:setting project.id '' as setting_url %}
+                <a href={{ setting_url }} class="list-group-item{% if setting_url == request.path or sub_item %} active{% endif %}">{{ setting|title }}</a>
               {% else %}
                 {% url 'project_'|add:setting project.id as setting_url %}
+                <a href={{ setting_url }} class="list-group-item{% if setting_url == request.path %} active{% endif %}">{{ setting|title }}</a>
               {% endif %}
-              <a href={{ setting_url }} class="list-group-item{% if setting_url == request.path %} active{% endif %}">{{ setting|title }}</a>
             {% endfor %}
         {% endwith %}
       </div>

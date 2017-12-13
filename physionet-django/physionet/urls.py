@@ -1,5 +1,4 @@
 """physionet URL Configuration
-
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/1.11/topics/http/urls/
 Examples:
@@ -23,7 +22,19 @@ urlpatterns = [
 
     url(r'^$', views.home, name='home'),
 
-    url(r'^', include('user.urls')),
-    url(r'^projects/', include('project.urls')),
+    # publish pages
+    # url(r'^submit', views.submit, name='submit'),
+    url(r'^author_guidelines', views.author_guidelines, name='author_guidelines'),
 
+    # about pages
+    url(r'^contact', views.contact, name='contact'),
+    url(r'^ourteam', views.ourteam, name='ourteam'),
+    url(r'^funding', views.funding, name='funding'),
+
+    # content pages
+    url(r'^data', views.data, name='data'),
+    url(r'^software', views.software, name='software'),
+    url(r'^challenges', views.challenges, name='challenges'),
+
+    url(r'^', include('user.urls')),
 ]
