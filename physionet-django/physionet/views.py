@@ -11,11 +11,17 @@ def author_guidelines(request):
 
 # About pages
 
+def about_physionet(request):
+    return render(request, 'about_physionet.html')
+
+def faq(request):
+    return render(request, 'faq.html')
+
 def contact(request):
     return render(request, 'contact.html')
 
 def our_team(request):
-    return render(request, 'ourteam.html')
+    return render(request, 'our_team.html')
 
 def funding(request):
     return render(request, 'funding.html')

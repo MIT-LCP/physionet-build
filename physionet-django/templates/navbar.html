@@ -1,6 +1,8 @@
 <nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
   
-  <a class="navbar-brand" href="{% url 'home' %}">Physionet</a>
+  <a class="navbar-brand" href="{% url 'home' %}">
+    <i class="fab fa-playstation"></i> Physionet
+  </a>
   
   <div class="collapse navbar-collapse" id="navbarCollapse">
 
@@ -11,24 +13,24 @@
           <i class="fa fa-server"></i> Resources
         </a>
         <div class="dropdown-menu" aria-labelledby="resource_dropdown">
-          <a class="dropdown-item" href="#">
+          <a class="dropdown-item" href="{% url 'data' %}">
             <i class="fa fa-database"></i>&nbsp;&nbsp;Data
           </a>
-          <a class="dropdown-item" href="#">
-            <i class="fa fa-laptop"></i> Software
+          <a class="dropdown-item" href="{% url 'software' %}">
+            <i class="fa fa-keyboard"></i> Software
           </a>
-          <a class="dropdown-item" href="#">
-            <i class="fa fa-space-shuttle"></i> Challenge
+          <a class="dropdown-item" href="{% url 'challenge' %}">
+            <i class="fa fa-university"></i> Challenge
           </a>
         </div>
       </li>
 
       <li class="nav-item active dropdown">
         <a class="nav-link dropdown-toggle" href="#" id="resource_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <i class="fa fa-server"></i> Publish
+          <i class="fa fa-cloud-upload-alt"></i> Publish
         </a>
         <div class="dropdown-menu" aria-labelledby="resource_dropdown">
-          <a class="dropdown-item" href="#">
+          <a class="dropdown-item" href="{% url 'create_project' %}">
             <i class="fa fa-upload"></i>&nbsp;&nbsp;Submit
           </a>
           <a class="dropdown-item" href="{% url 'author_guidelines' %}">
@@ -42,17 +44,23 @@
           <i class="fa fa-info-circle"></i> About
         </a>
         <div class="dropdown-menu" aria-labelledby="resource_dropdown">
-          <a class="dropdown-item" href="#">
-            <i class="fa fa-upload"></i>&nbsp;&nbsp;About Physionet
+          <a class="dropdown-item" href="{% url 'about_physionet' %}">
+            <i class="fab fa-playstation"></i> About Physionet
           </a>
-          <a class="dropdown-item" href="#">
+          <a class="dropdown-item" href="{% url 'faq' %}">
+            <i class="fab fa-playstation"></i> FAQs
+          </a>
+          <a class="dropdown-item" href="{% url 'our_team' %}">
             <i class="fa fa-users"></i> Our Team
+          </a>
+          <a class="dropdown-item" href="{% url 'funding' %}">
+            <i class="fa fa-money-bill-alt"></i> Funding
           </a>
         </div>
       </li>
 
       <li class="nav-item active">
-        <a class="nav-link" href="#">
+        <a class="nav-link" href="{% url 'contact' %}">
           <i class="fa fa-phone"></i> Contact
         </a>
       </li>
@@ -81,14 +89,14 @@
               <i class="fa fa-cogs"></i> Settings
             </a>
             <a class="dropdown-item" href="{% url 'logout' %}">
-              <i class="fas fa-user-times"></i> Logout
+              <i class="fas fa-sign-out-alt"></i>&nbsp;&nbsp;Logout
             </a>
           {% else %}
             <a class="dropdown-item" href="{% url 'login' %}">
-              <i class="fas fa-user-plus"></i> Login
+              <i class="fas fa-sign-in-alt"></i>&nbsp;&nbsp;Login
             </a>
             <a class="dropdown-item" href="{% url 'register' %}">
-              <i class="fas fa-universal-access"></i>&nbsp;&nbsp;Register
+              <i class="fas fa-user-plus"></i> Register
             </a>
           {% endif %}
         </div>
