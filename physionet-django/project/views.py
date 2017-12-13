@@ -8,7 +8,7 @@ import os
 
 from .forms import ProjectCreationForm
 from .models import metadata_models, Project, DatabaseMetadata, SoftwareMetadata
-from .utility import get_display_file, get_display_directory
+from .utility import get_file_info, get_directory_info
 from physionet.settings import STATIC_ROOT
 
 import pdb
@@ -121,8 +121,8 @@ def project_files(request, project_id, sub_item=''):
     file_names = sorted([f for f in os.listdir(file_dir) if os.path.isfile(os.path.join(file_dir, f)) and not f.endswith('~')])
     dir_names = sorted([d for d in os.listdir(file_dir) if os.path.isdir(os.path.join(file_dir, d))])
 
-    display_files = [get_display_file(os.path.join(file_dir, f)) for f in file_names]
-    display_dirs = [get_display_directory(os.path.join(file_dir, d)) for d in dir_names]
+    display_files = [get_file_info(os.path.join(file_dir, f)) for f in file_names]
+    display_dirs = [get_directory_info(os.path.join(file_dir, d)) for d in dir_names]
 
     return render(request, 'project/project_files.html', {'project':project,
         'display_files':display_files, 'display_dirs':display_dirs})
