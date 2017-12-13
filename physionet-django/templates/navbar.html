@@ -25,7 +25,7 @@
 
     </ul>
 
-    <ul class="navbar-nav">
+    <ul class="navbar-nav ml-auto">
       {% if user.is_authenticated %}
         <li class="nav-item active">
           <a class="nav-link" href="{% url 'project_home' %}">My Projects <span class="sr-only">(current)</span></a>
@@ -46,11 +46,13 @@
           {% endif %}
         </div>
       </li>
+      <form class="form-inline my-2 my-lg-0 mr-lg-2">
+        <input class="form-control" type="text" placeholder="Search for...">
+        <span class="input-group-btn">
+          <button class="btn btn-primary  my-2 my-sm-0" type="button"><i class="fa fa-search"></i></button>
+        </span>
+      </form>
     </ul>
-
-    <form class="form-inline mt-2 mt-md-0">
-      <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
-    </form>
 
   </div>
 </nav>
