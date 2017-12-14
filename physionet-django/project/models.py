@@ -4,9 +4,11 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.template.defaultfilters import slugify
+import os
 
 from ckeditor.fields import RichTextField
 
+from physionet.settings import MEDIA_ROOT
 from user.models import BaseAffiliation
 
 
@@ -89,6 +91,10 @@ class Project(CommonMetadata, DatabaseMetadata, SoftwareMetadata):
 
     def __str__(self):
         return self.owner.__str__() + ': ' + self.metadata.title
+
+    def file_root(self):
+        "Root directory containing the project's files"
+        return os.path.join(MEDIA_ROOT, 'projects', self.id)
 
 
 class ResourceType(models.Model):

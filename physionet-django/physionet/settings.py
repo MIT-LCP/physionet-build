@@ -149,6 +149,8 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR,'static')]
 STATIC_ROOT = '/physionet/static/'
 
+MEDIA_ROOT = '/physionet/media/'
+
 CKEDITOR_CONFIGS = {
     'default': {
         'toolbar': 'Custom',

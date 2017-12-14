@@ -3,7 +3,7 @@ from django.template.defaultfilters import slugify
 import os
 
 from .models import Project, StorageRequest
-from physionet.settings import STATIC_ROOT
+from physionet.settings import MEDIA_ROOT
 
 
 class ProjectCreationForm(forms.ModelForm):
@@ -20,7 +20,7 @@ class ProjectCreationForm(forms.ModelForm):
         project.save()
         project.collaborators.add(owner)
         # Create file directory
-        os.mkdir(os.path.join(STATIC_ROOT, 'projects', str(project.id)))
+        os.mkdir(project.file_root())
         return project
 
 

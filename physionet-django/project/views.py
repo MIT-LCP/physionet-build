@@ -7,7 +7,7 @@ import os
 from .forms import ProjectCreationForm, metadata_forms
 from .models import Project, DatabaseMetadata, SoftwareMetadata
 from .utility import get_file_info, get_directory_info
-from physionet.settings import STATIC_ROOT
+from physionet.settings import MEDIA_ROOT
 
 import pdb
 from user.forms import ProfileForm
@@ -96,11 +96,11 @@ def project_files(request, project_id, sub_item=''):
     project = Project.objects.get(id=project_id)
 
     # Directory where files are kept for the project
-    project_file_dir = os.path.join(STATIC_ROOT, 'projects', project_id)
+    project_file_root = project.file_root()
 
     # Case of accessing a file or subdirectory
     if sub_item:
-        item_path = os.path.join(project_file_dir, sub_item)
+        item_path = os.path.join(project_file_root, sub_item)
         # Serve a file
         if os.path.isfile(item_path):
             return download_file(request, item_path)
