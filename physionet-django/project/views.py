@@ -1,13 +1,11 @@
 from django.contrib import messages
-from django import forms
-from django.forms import modelformset_factory
 from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 import os
 
-from .forms import ProjectCreationForm
-from .models import metadata_models, Project, DatabaseMetadata, SoftwareMetadata
+from .forms import ProjectCreationForm, metadata_forms
+from .models import Project, DatabaseMetadata, SoftwareMetadata
 from .utility import get_file_info, get_directory_info
 from physionet.settings import STATIC_ROOT
 
@@ -75,23 +73,18 @@ def project_overview(request, project_id):
 def project_metadata(request, project_id):
     project = Project.objects.get(id=project_id)
 
-    # Dynamically generate the metadata modelform for the relevant type
-    #MetadataFormset = modelformset_factory(metadata_models[project.resource_type.description],
-    MetadataFormset = modelformset_factory(DatabaseMetadata,
-        exclude=('slug', 'id'))
-
-    form = MetadataFormset(queryset=DatabaseMetadata.objects.filter(id=project.metadata.id))[0]
+    form = metadata_forms[project.resource_type.description](instance=project)
 
     if request.method == 'POST':
-        
-        formset = MetadataFormset(request.POST)
+        form = metadata_forms[project.resource_type.description](request.POST,
+            instance=project)
 
-        # formset = AssociatedEmailFormset(request.POST, instance=user)
-        #     set_public_emails(request, formset)
-
-        if formset.is_valid():
-            formset.save()
+        if form.is_valid():
+            form.save()
             messages.success(request, 'Your project metadata has been updated.')
+        else:
+            messages.error(request,
+                'There was an error with the information entered, please verify and try again.')
 
     return render(request, 'project/project_metadata.html', {'project':project,
         'form':form, 'messages':messages.get_messages(request)})

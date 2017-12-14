@@ -10,11 +10,69 @@ from ckeditor.fields import RichTextField
 from user.models import BaseAffiliation
 
 
-class Project(models.Model):
+class CommonMetadata(models.Model):
+    """
+    Common metadata for all types of projects. Inherited by published project
+    classes, and project metadata classes, of all resource types.
+    """
+    class Meta:
+        abstract = True
+
+    title = models.CharField(max_length=200)
+    abstract = RichTextField(max_length=10000, blank=True)
+    
+    acknowledgements = RichTextField(blank=True)
+    paper_citations = models.ManyToManyField('project.Reference', related_name='%(class)s_citations', blank=True)
+    references = models.ManyToManyField('project.Reference', related_name='%(class)s_references', blank=True)
+    topics = models.ManyToManyField('project.Topic', related_name='%(class)s', blank=True)
+
+    # Access policy
+    # Consideration: What happens when dua/training course objects change?
+    dua = models.ForeignKey('project.DUA', null=True, blank=True, related_name='%(class)s')
+    training_course = models.ForeignKey('project.TrainingCourse', null=True, blank=True, related_name='%(class)s')
+    id_verification_required = models.BooleanField(default=False)
+
+    # Version and changes (if any)
+    version_number = models.FloatField(null=True, blank=True)
+    changelog = RichTextField(blank=True)
+
+
+class DatabaseMetadata(models.Model):
+    """
+    Metadata fields only possessed by databases
+
+    This model (including inherited fields) should contain some fields which
+    help map projects to datacite:
+    https://schema.datacite.org/
+    https://schema.datacite.org/meta/kernel-4.0/doc/DataCite-MetadataKernel_v4.0.pdf
+    """
+    class Meta:
+        abstract = True
+
+    background = RichTextField(blank=True)
+    methods = RichTextField(blank=True)
+    data_description = RichTextField(blank=True)
+
+
+class SoftwareMetadata(models.Model):
+    """
+    Metadata fields only possessed by software packages
+    """
+    class Meta:
+        abstract = True
+
+    technical_validation = RichTextField(blank=True)
+    usage_notes = RichTextField(blank=True)
+    source_controlled_location = models.URLField(blank=True)
+
+
+class Project(CommonMetadata, DatabaseMetadata, SoftwareMetadata):
     """
     The model for user-owned projects.
-    The descriptive information is stored in its `metadata` target.
     """
+    # The type of resource: data, software, tutorial, challenge
+    resource_type = models.ForeignKey('project.ResourceType')
+
     creation_datetime = models.DateTimeField(auto_now_add=True)
     modified_datetime = models.DateTimeField(auto_now=True)
 
@@ -26,25 +84,11 @@ class Project(models.Model):
     published = models.BooleanField(default=False)
     under_review = models.BooleanField(default=False)
 
-    # The type of resource: data, software, tutorial, challenge
-    resource_type = models.ForeignKey('project.ResourceType')
-    
-    # Generic foreign key to the information for the project type. Allowed
-    # models should be DatabaseMetadata, SoftwareMetaData
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    metadata_object_id = models.PositiveIntegerField()
-    metadata = GenericForeignKey('content_type', 'metadata_object_id')
-
-    # def validate_unique(self, *args, **kwargs):
-    #     super(Project, self).validate_unique(*args, **kwargs)
-    #     # The same owner cannot have multiple projects with the same name
-    #     owner_projects = Project.objects.filter(owner=self.owner)
-    #     if owner_projects.filter(metadata__title=self.metadata__title):
-    #         raise ValidationError('You may not own multiple projects with the same name')
+    class Meta:
+        unique_together = (('title', 'owner'),)
 
     def __str__(self):
         return self.owner.__str__() + ': ' + self.metadata.title
-
 
 
 class ResourceType(models.Model):
@@ -62,6 +106,7 @@ class PublishedProject(models.Model):
     Fields common to all published projects, that are also not relevant to the
     core variable Project
     """
+    slug = models.SlugField(max_length=30)
     # The Project this object was created from
     core_project = models.ForeignKey('project.Project', related_name='published_%(class)s', blank=True, null=True)
     # Total file storage size in bytes
@@ -74,78 +119,19 @@ class PublishedProject(models.Model):
         abstract = True
         unique_together = (('title', 'version_number'),)
 
-    # Define custom validate_unique function based on core_project
 
-
-class ProjectMetadata(models.Model):
+class Database(CommonMetadata, DatabaseMetadata, PublishedProject):
     """
-    Common metadata for all types of projects. Inherited by published project
-    classes, and project metadata classes, of all resource types.
+    A published database
     """
-    class Meta:
-        abstract = True
+    title = models.CharField(max_length=200, unique=True)
 
-    title = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=30)
-    abstract = RichTextField(max_length=10000)
-    
-    acknowledgements = RichTextField()
-    paper_citations = models.ManyToManyField('project.Reference', related_name='%(class)s_citations')
-    references = models.ManyToManyField('project.Reference', related_name='%(class)s_references')
-    topics = models.ManyToManyField('project.Topic', related_name='%(class)s')
 
-    # Access policy
-    # Consideration: What happens when dua/training course objects change?
-    dua = models.ForeignKey('project.DUA', null=True, blank=True, related_name='%(class)s')
-    training_course = models.ForeignKey('project.TrainingCourse', null=True, blank=True, related_name='%(class)s')
-    id_verification_required = models.BooleanField(default=False)
-
-    # Version and changes (if any)
-    version_number = models.FloatField(null=True)
-    changelog = RichTextField()
-
-    # DateField(auto_now=False) For last modified field
-
-class DatabaseMetadata(ProjectMetadata):
+class SoftwarePackage(CommonMetadata, SoftwareMetadata, PublishedProject):
     """
-    Model containing information for database projects.
-    - Linked to Project.
-    - Fields inherited by Database.
-
-    This model (including inherited fields) should contain some fields which
-    help map projects to datacite:
-    https://schema.datacite.org/
-    https://schema.datacite.org/meta/kernel-4.0/doc/DataCite-MetadataKernel_v4.0.pdf
+    A published software package
     """
-    background = RichTextField()
-    methods = RichTextField()
-    technical_validation = RichTextField()
-    data_description = RichTextField()
-    usage_notes = RichTextField()
-
-
-class SoftwareMetadata(ProjectMetadata):
-    """
-    Model containing information for software projects.
-    - Linked to Project.
-    - Fields inherited by SoftwarePackage.
-    """
-    technical_validation = RichTextField()
-    usage_notes = RichTextField()
-
-
-class Database(DatabaseMetadata, PublishedProject):
-    """
-    A published database. The first resource type.
-    """
-    pass
-
-
-class SoftwarePackage(SoftwareMetadata, PublishedProject):
-    """
-    A published software package. The second resource type.
-    """
-    pass
+    title = models.CharField(max_length=200, unique=True)
 
 
 class Review(models.Model):
@@ -163,9 +149,9 @@ class StorageRequest(models.Model):
     """
     A request for storage capacity for a project
     """
+    project = models.OneToOneField('project.Project')
     # Requested storage size in GB
     storage_size = models.SmallIntegerField()
-    project = models.OneToOneField('project.Project')
     request_date = models.DateTimeField(auto_now_add=True)
 
 
@@ -242,10 +228,6 @@ class TrainingCourseCompletion(models.Model):
     user = models.ForeignKey('user.User', related_name='training_course_completions')
     date = models.DateField(auto_now_add=True)
     training_course = models.ForeignKey('project.TrainingCourse', related_name='training_course_completions')
-
-
-# The metadata models for each resource type description
-metadata_models = {'Database':DatabaseMetadata, 'Software':SoftwareMetadata}
 
 
 class FileInfo():

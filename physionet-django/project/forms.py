@@ -2,9 +2,7 @@ from django import forms
 from django.template.defaultfilters import slugify
 import os
 
-from ckeditor.widgets import CKEditorWidget
-
-from .models import Project, StorageRequest, metadata_models
+from .models import Project, StorageRequest
 from physionet.settings import STATIC_ROOT
 
 
@@ -12,30 +10,46 @@ class ProjectCreationForm(forms.ModelForm):
     """
     For creating projects
     """
-    title = forms.CharField(max_length=200)
-    abstract = forms.CharField(widget=CKEditorWidget())
-
     class Meta:
         model = Project
-        fields = ('resource_type',)
-
+        fields = ('resource_type', 'title', 'abstract')
 
     def save(self, owner):
         project = super(ProjectCreationForm, self).save(commit=False)
         project.owner = owner
-        
-        # Save title and abstract in the metadata model
-        metadata = metadata_models[self.cleaned_data['resource_type'].description].objects.create(
-            title = self.cleaned_data['title'],
-            slug = slugify(self.cleaned_data['title']),
-            abstract = self.cleaned_data['abstract']
-            )
-        project.metadata = metadata
         project.save()
         project.collaborators.add(owner)
         # Create file directory
-        os.mkdir(os.path.join(STATIC_ROOT, str(project.id)))
+        os.mkdir(os.path.join(STATIC_ROOT, 'projects', str(project.id)))
         return project
+
+
+class DatabaseMetadataForm(forms.ModelForm):
+    """
+    Form for editing the metadata of a project with resource_type == database
+    """
+    class Meta:
+        model = Project
+        fields = ('title', 'abstract', 'background', 'methods',
+            'data_description', 'acknowledgements', 'paper_citations',
+            'references', 'topics', 'dua', 'training_course',
+            'id_verification_required', 'version_number', 'changelog',)
+
+
+class SoftwareMetadataForm(forms.ModelForm):
+    """
+    Form for editing the metadata of a project with resource_type == database
+    """
+    class Meta:
+        model = Project
+        fields = ('title', 'abstract', 'technical_validation', 'usage_notes',
+            'source_controlled_location', 'acknowledgements', 'paper_citations',
+            'references', 'topics', 'dua', 'training_course',
+            'id_verification_required', 'version_number', 'changelog',)
+
+
+# The modelform for editing metadata for each resource type
+metadata_forms = {'Database':DatabaseMetadataForm, 'Software':SoftwareMetadataForm}
 
 
 class StorageRequestForm(forms.ModelForm):
