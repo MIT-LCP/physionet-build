@@ -1,9 +1,9 @@
 {% extends "project/project.html" %}
 
-{% block title %}Project Metadata{% endblock %}
+{% block title %}Project Metadata - {{ project }}{% endblock %}
 
 {% block form %}
-<form action="{% url 'project_metadata' project.id %}" method="post" class="form-signin">
+<form action="{% url 'project_metadata' project.id %}" method="post">
   <h2 class="form-signin-heading">Project Metadata</h2>
   <hr>
   {{ form.media }}

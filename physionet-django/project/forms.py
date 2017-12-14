@@ -12,12 +12,13 @@ class ProjectCreationForm(forms.ModelForm):
     """
     class Meta:
         model = Project
-        fields = ('resource_type', 'title', 'abstract')
+        fields = ('resource_type', 'title', 'abstract', 'owner', 'storage_allowance')
+        widgets = {'owner': forms.HiddenInput(),
+        'storage_allowance': forms.HiddenInput()}
 
-    def save(self, owner):
-        project = super(ProjectCreationForm, self).save(commit=False)
-        project.owner = owner
-        project.save()
+    def save(self):
+        project = super(ProjectCreationForm, self).save()
+        owner = self.cleaned_data['owner']
         project.collaborators.add(owner)
         # Create file directory
         os.mkdir(project.file_root())

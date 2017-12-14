@@ -6,7 +6,7 @@ import os
 
 from .forms import ProjectCreationForm, metadata_forms
 from .models import Project, DatabaseMetadata, SoftwareMetadata
-from .utility import get_file_info, get_directory_info
+from .utility import get_file_info, get_directory_info, readable_size
 from physionet.settings import MEDIA_ROOT
 
 import pdb
@@ -45,10 +45,8 @@ def create_project(request):
 
     if request.method == 'POST':
         form = ProjectCreationForm(request.POST)
-        if form.is_valid():
-            print('\n\nvalid!')
-            project = form.save(owner=user)
-
+        if form.is_valid() and form.cleaned_data['owner'] == user:
+            project = form.save()
             return redirect('project_overview', project_id=project.id)
 
     return render(request, 'project/create_project.html', {'form':form})
@@ -109,7 +107,7 @@ def project_files(request, project_id, sub_item=''):
             return Http404()
 
     # The url is not pointing to a file. Present the directory.
-    file_dir = os.path.join(project_file_dir, sub_item)
+    file_dir = os.path.join(project_file_root, sub_item)
 
     file_names = sorted([f for f in os.listdir(file_dir) if os.path.isfile(os.path.join(file_dir, f)) and not f.endswith('~')])
     dir_names = sorted([d for d in os.listdir(file_dir) if os.path.isdir(os.path.join(file_dir, d))])
@@ -117,12 +115,22 @@ def project_files(request, project_id, sub_item=''):
     display_files = [get_file_info(os.path.join(file_dir, f)) for f in file_names]
     display_dirs = [get_directory_info(os.path.join(file_dir, d)) for d in dir_names]
 
+
+    storage_allowance = project.storage_allowance*1024**3
+    storage_used = project.storage_used()
+    storage_remaining = storage_allowance - storage_used
+
+    storage_allowance = readable_size(storage_allowance)
+    storage_used = readable_size(storage_used)
+    storage_remaining = readable_size(storage_remaining)
+
     return render(request, 'project/project_files.html', {'project':project,
-        'display_files':display_files, 'display_dirs':display_dirs, 'sub_item':sub_item})
+        'display_files':display_files, 'display_dirs':display_dirs,
+        'sub_item':sub_item, 'storage_allowance':storage_allowance,
+        'storage_used':storage_used, 'storage_remaining':storage_remaining})
 
 
 @login_required
 def project_collaborators(request, project_id):
     project = Project.objects.get(id=project_id)
     return render(request, 'project/project_collaborators.html', {'project':project})
-

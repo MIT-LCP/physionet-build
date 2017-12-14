@@ -17,17 +17,22 @@
             {% for setting in project_settings.split %}
               {% if setting == 'files' %}
                 {% url 'project_'|add:setting project.id '' as setting_url %}
-                <a href={{ setting_url }} class="list-group-item{% if setting_url == request.path or sub_item %} active{% endif %}">{{ setting|title }}</a>
+                <a href={{ setting_url }} class="list-group-item list-group-item-action{% if setting_url == request.path or sub_item %} active{% endif %}">{{ setting|title }}</a>
               {% else %}
                 {% url 'project_'|add:setting project.id as setting_url %}
-                <a href={{ setting_url }} class="list-group-item{% if setting_url == request.path %} active{% endif %}">{{ setting|title }}</a>
+                <a href={{ setting_url }} class="list-group-item list-group-item-action{% if setting_url == request.path %} active{% endif %}">{{ setting|title }}</a>
               {% endif %}
             {% endfor %}
         {% endwith %}
+
+      </div>
+      <br>
+      <div class="list-group">
+          <a href={% url 'project_home' %} class="list-group-item"><i class="fa fa-archive"></i> My Projects</a>
       </div>
     </div><!--/span-->
 
-    <div class="col-10 col-md-9">
+    <div class="col-10 col-md-10">
       {% if messages %}
         {% for message in messages %}
           {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
@@ -43,6 +48,8 @@
         {% endfor %}
       {% endif %}
       <div class="container">
+        <h1>{{ project }}</h1>
+        <hr>
         {% block form %}
         {% endblock %}
       </div><!--/row-->

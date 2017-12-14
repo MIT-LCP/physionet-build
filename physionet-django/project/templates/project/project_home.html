@@ -2,6 +2,8 @@
 
 {% load static %}
 
+{% load project_templatetags %}
+
 {% block title %}Project Home{% endblock %}
 
 {% block local_css %}
@@ -31,7 +33,7 @@
         {% for project in projects %}
           <li class="list-group-item">
             <p>
-              <span class="badge badge-primary">{{ project.resource_type }}</span>
+              <span class="badge badge-dark">{{ project|resource_icon|safe }} {{ project.resource_type }}</span>
               {% if project.under_review %}
                 <span class="badge badge-info">Under Review</span>
               {% endif %}
@@ -39,7 +41,7 @@
                 <span class="badge badge-success">Published</span>
               {% endif %}
             </p>
-            <h4><a href="{% url 'project_overview' project.id %}">{{ project.metadata.title }}</a></h4>
+            <h4><a href="{% url 'project_overview' project.id %}">{{ project.title }}</a></h4>
             <p class="list-group-item-text text-muted">
             <small>Created {{ project.creation_datetime }}. Modified {{ project.modified_datetime }}</small>
             </p>
@@ -67,7 +69,7 @@
       {% if reviewing_projects %}
         {% for project in reviewing_projects %}
           <li class="list-group-item">
-            <h4>{{ project.metadata.title }}</h4>
+            <h4>{{ project.title }}</h4>
           </li>
         {% endfor %}
       {% else %}

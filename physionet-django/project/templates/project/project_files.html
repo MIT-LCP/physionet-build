@@ -1,10 +1,22 @@
 {% extends "project/project.html" %}
 
-{% block title %}Project Files{% endblock %}
+{% load project_templatetags %}
+
+{% block title %}Project Files - {{ project }}{% endblock %}
 
 {% block form %}
-<h2 class="form-signin-heading">Files for "{{ project.title|title }}"</h2>
+<h2 class="form-signin-heading">Project Files</h2>
 <hr>
+<p>
+  Storage Allowance: {{ storage_allowance }}
+</p>
+<p>
+  Used: {{ storage_used }}
+</p>
+<p>
+  Remaining: {{ storage_remaining }}
+</p>
+
 <p>
   <a href="" class="btn btn-success"><i class="fa fa-arrow-circle-up"></i> Upload Files</a>
   <a href="" class="btn btn-success"><i class="fa fa-folder-open"></i> Create Folder</a>

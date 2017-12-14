@@ -82,6 +82,9 @@
         </a>
         <div class="dropdown-menu" aria-labelledby="account_dropdown">
           {% if user.is_authenticated %}
+            <a class="dropdown-item" href="{% url 'user_home'%}">
+              <i class="fa fa-home"></i> User Home
+            </a>
             <a class="dropdown-item" href="{% url 'public_profile' user.get_username %}">
               <i class="fa fa-address-card"></i>&nbsp;&nbsp;Profile
             </a>

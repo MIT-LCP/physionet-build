@@ -16,7 +16,7 @@
         {% with 'profile password emails' as setting_options %}
             {% for setting in setting_options.split %}
               {% url 'edit_'|add:setting as settings_url %}
-              <a href={{ settings_url }} class="list-group-item {% if settings_url == request.path %}active{% endif %}">{{ setting|title }}</a>
+              <a href={{ settings_url }} class="list-group-item list-group-item-action{% if settings_url == request.path %} active{% endif %}">{{ setting|title }}</a>
             {% endfor %}
         {% endwith %}
       </div>

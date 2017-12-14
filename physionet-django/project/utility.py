@@ -1,7 +1,25 @@
 import datetime
 import os
 
-from .models import FileInfo, DirectoryInfo
+
+class FileInfo():
+    """
+    For displaying lists of files in project pages
+    All attributes are human readable strings
+    """
+    def __init__(self, name, size, last_modified, description):
+        self.name = name
+        self.size = size
+        self.last_modified= last_modified
+        self.description = description
+
+
+class DirectoryInfo():
+     def __init__(self, name, size, last_modified, description):
+        self.name = name
+        self.size = size
+        self.last_modified = last_modified
+        self.description = description 
 
 
 def get_file_info(file_path):
@@ -20,16 +38,15 @@ def get_directory_info(dir_path):
     description = ''
     return DirectoryInfo(name, size, last_modified, description)
 
-
-def get_dir_size(base_dir):
-    "Total size of a directory in bytes"
-    total_size = 0
-    for (path, dirs, files) in os.walk(base_dir):
-        for file in files:
-            filename = os.path.join(path, file)
-            total_size += os.path.getsize(filename)
-    return total_size
-
+def get_tree_size(path):
+    """Return total size of files in given path and subdirs."""
+    total = 0
+    for entry in os.scandir(path):
+        if entry.is_dir(follow_symlinks=False):
+            total += get_tree_size(entry.path)
+        else:
+            total += entry.stat(follow_symlinks=False).st_size
+    return total
 
 def readable_size(num, suffix='B'):
     "Display human readable size of byte number"
@@ -44,3 +61,4 @@ def readable_size(num, suffix='B'):
 
         num /= 1024.0
     return "%.1f%s%s" % (num, 'Y', suffix)
+

@@ -10,6 +10,7 @@ from ckeditor.fields import RichTextField
 
 from physionet.settings import MEDIA_ROOT
 from user.models import BaseAffiliation
+from .utility import get_tree_size
 
 
 class CommonMetadata(models.Model):
@@ -90,11 +91,15 @@ class Project(CommonMetadata, DatabaseMetadata, SoftwareMetadata):
         unique_together = (('title', 'owner'),)
 
     def __str__(self):
-        return self.owner.__str__() + ': ' + self.metadata.title
+        return self.title.title()
 
     def file_root(self):
         "Root directory containing the project's files"
-        return os.path.join(MEDIA_ROOT, 'projects', self.id)
+        return os.path.join(MEDIA_ROOT, 'projects', str(self.id))
+
+    def storage_used(self):
+        "Total storage used in bytes"
+        return get_tree_size(self.file_root())
 
 
 class ResourceType(models.Model):
@@ -234,22 +239,3 @@ class TrainingCourseCompletion(models.Model):
     user = models.ForeignKey('user.User', related_name='training_course_completions')
     date = models.DateField(auto_now_add=True)
     training_course = models.ForeignKey('project.TrainingCourse', related_name='training_course_completions')
-
-
-class FileInfo():
-    """
-    For displaying lists of files in project pages
-    All attributes are human readable strings
-    """
-    def __init__(self, name, size, last_modified, description):
-        self.name = name
-        self.size = size
-        self.last_modified= last_modified
-        self.description = description
-
-class DirectoryInfo():
-     def __init__(self, name, size, last_modified, description):
-        self.name = name
-        self.size = size
-        self.last_modified = last_modified
-        self.description = description 
