@@ -9,7 +9,7 @@ urlpatterns = [
     url(r'^$', views.home, name='home'),
 
     # publish pages
-    url(r'^author_guidelines', views.author_guidelines, name='author_guidelines'),
+    url(r'^author_guidelines/$', views.author_guidelines, name='author_guidelines'),
 
     # about pages
     url(r'^about-physionet/$', views.about_physionet, name='about_physionet'),
@@ -22,9 +22,9 @@ urlpatterns = [
     url(r'^contact/$', views.contact, name='contact'),
 
     # content pages
-    url(r'^data', views.data, name='data'),
-    url(r'^software', views.software, name='software'),
-    url(r'^challenge', views.challenge, name='challenge'),
+    url(r'^data/$', views.data, name='data'),
+    url(r'^software/$', views.software, name='software'),
+    url(r'^challenge/$', views.challenge, name='challenge'),
 
     # user account pages
     url(r'^', include('user.urls')),
