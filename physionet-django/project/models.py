@@ -80,7 +80,7 @@ class Project(CommonMetadata, DatabaseMetadata, SoftwareMetadata):
     modified_datetime = models.DateTimeField(auto_now=True)
 
     # Maximum allowed storage capacity in GB
-    storage_allowance = models.SmallIntegerField(default=10)
+    storage_allowance = models.SmallIntegerField(default=2)
     owner = models.ForeignKey('user.User', related_name='owned_projects')
     collaborators = models.ManyToManyField('user.User', related_name='collaborating_projects')
     

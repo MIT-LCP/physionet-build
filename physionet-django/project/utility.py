@@ -1,6 +1,6 @@
 import datetime
 import os
-
+import pdb
 
 class FileInfo():
     """
@@ -20,6 +20,17 @@ class DirectoryInfo():
         self.size = size
         self.last_modified = last_modified
         self.description = description 
+
+class StorageInfo():
+    """
+    Readable information about storage allowance, usage, and remaining
+    """
+    def __init__(self, allowance, used, remaining, p_used, p_remaining):
+        self.allowance = allowance
+        self.used = used
+        self.remaining = remaining
+        self.p_used = p_used
+        self.p_remaining = p_remaining
 
 
 def get_file_info(file_path):
@@ -62,3 +73,14 @@ def readable_size(num, suffix='B'):
         num /= 1024.0
     return "%.1f%s%s" % (num, 'Y', suffix)
 
+def get_storage_info(allowance, used):
+    """
+    Get readable information about storage allowance, usage, and remaining.
+    Input variables are integers in bytes.
+    """
+    remaining = allowance - used
+    p_used = str(round(used *100 / allowance))
+    p_remaining = str(round(remaining *100 / allowance))
+
+    return StorageInfo(readable_size(allowance), readable_size(used),
+        readable_size(remaining), p_used, p_remaining)

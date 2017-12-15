@@ -7,21 +7,27 @@
 {% block form %}
 <h2 class="form-signin-heading">Project Files</h2>
 <hr>
-<p>
-  Storage Allowance: {{ storage_allowance }}
-</p>
-<p>
-  Used: {{ storage_used }}
-</p>
-<p>
-  Remaining: {{ storage_remaining }}
-</p>
+
+<div class="card">
+  <div class="card-body">
+    <h4 class="card-title">Storage Allowance: {{ storage_info.allowance }}</h4>
+    <p class="card-text">Used: {{ storage_info.used }} ( {{ storage_info.p_used }}% ) <a style="float:right">Remaining: {{ storage_info.remaining }} ( {{ storage_info.p_remaining }}% )</a></p>
+    <div class="progress">
+      <div class="progress-bar progress-bar-striped" role="progressbar" style="width: {{ storage_info.p_used }}%;" aria-valuenow="{{ storage_info.p_used }}" aria-valuemin="0" aria-valuemax="100">
+      </div>
+    </div>
+    <br>
+    <a href="#" class="card-link">Request More Storage</a>
+  </div>
+</div>
+<br>
 
 <p>
   <a href="" class="btn btn-success"><i class="fa fa-arrow-circle-up"></i> Upload Files</a>
   <a href="" class="btn btn-success"><i class="fa fa-folder-open"></i> Create Folder</a>
   <a href="" class="btn btn-danger" style="float:right"><i class="fa fa-search"></i> Delete Files</a>
 </p>
+
 <div class="card">
   <div class="card-header">
     &nbsp;&nbsp;&nbsp;In folder: <strong>/{{ sub_item }}</strong>
@@ -29,13 +35,6 @@
       <a href="{% url 'project_files' project.id '' %}" style="float:right">Return to base folder</a>
     {% endif %}
   </div>
-<!--   <div class="card-header">
-      <div class="row">
-        <div class="col-md-8">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Name</div>
-        <div class="col-md-2">Size</div>
-        <div class="col-md-2">Modified</div>
-      </div>
-  </div> -->
   <ul class="list-group list-group-flush">
     <li class="list-group-item">
       <div class="row">

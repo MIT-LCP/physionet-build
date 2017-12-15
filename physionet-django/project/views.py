@@ -6,7 +6,7 @@ import os
 
 from .forms import ProjectCreationForm, metadata_forms
 from .models import Project, DatabaseMetadata, SoftwareMetadata
-from .utility import get_file_info, get_directory_info, readable_size
+from .utility import get_file_info, get_directory_info, get_storage_info
 from physionet.settings import MEDIA_ROOT
 
 import pdb
@@ -115,19 +115,13 @@ def project_files(request, project_id, sub_item=''):
     display_files = [get_file_info(os.path.join(file_dir, f)) for f in file_names]
     display_dirs = [get_directory_info(os.path.join(file_dir, d)) for d in dir_names]
 
+    storage_info = get_storage_info(project.storage_allowance*1024**3,
+        project.storage_used())
 
-    storage_allowance = project.storage_allowance*1024**3
-    storage_used = project.storage_used()
-    storage_remaining = storage_allowance - storage_used
-
-    storage_allowance = readable_size(storage_allowance)
-    storage_used = readable_size(storage_used)
-    storage_remaining = readable_size(storage_remaining)
-
+    # pdb.set_trace()
     return render(request, 'project/project_files.html', {'project':project,
         'display_files':display_files, 'display_dirs':display_dirs,
-        'sub_item':sub_item, 'storage_allowance':storage_allowance,
-        'storage_used':storage_used, 'storage_remaining':storage_remaining})
+        'sub_item':sub_item, 'storage_info':storage_info})
 
 
 @login_required
