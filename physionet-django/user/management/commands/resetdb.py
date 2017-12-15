@@ -58,10 +58,12 @@ def reset_project_files():
     else:
         os.mkdir(project_root)
 
-    # Create demo project files
-    for project in Project.objects.all():
-        os.mkdir(project.file_root())
-        os.mkdir(os.path.join(project.file_root))
+    # Create demo project files and folders
+    # for project in Project.objects.all():
+    #     os.mkdir(project.file_root())
+    #     os.mkdir(os.path.join(project.file_root(), 'subject_100'))
+    #     os.mkdir(os.path.join(project.file_root(), 'subject_101'))
+    #     os.mkdir(os.path.join(project.file_root(), 'subject_102'))
 
 
 def load_fixtures(installed_apps):

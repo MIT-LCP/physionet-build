@@ -6,6 +6,10 @@ from .models import Project, StorageRequest
 from physionet.settings import MEDIA_ROOT
 
 
+class FileFieldForm(forms.Form):
+    file_field = forms.FileField(widget=forms.ClearableFileInput(attrs={'multiple': True}))
+
+
 class ProjectCreationForm(forms.ModelForm):
     """
     For creating projects

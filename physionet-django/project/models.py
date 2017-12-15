@@ -102,14 +102,25 @@ class Project(CommonMetadata, DatabaseMetadata, SoftwareMetadata):
         return get_tree_size(self.file_root())
 
 
+class ResourceTypeManager(models.Manager):
+    "Manager class for ResourceType"
+    def get_by_natural_key(self, description):
+        return self.get(description=description)
+
+
 class ResourceType(models.Model):
     """
     A type of resource: data, software, tutorial, challenge
     """
     description = models.CharField(max_length=20)
 
+    objects = ResourceTypeManager()
+
     def __str__(self):
         return self.description
+
+    def natural_key(self):
+        return (self.description,)
 
 
 class PublishedProject(models.Model):

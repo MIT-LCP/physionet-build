@@ -147,9 +147,8 @@ DEFAULT_FROM_EMAIL = 'Physionet Help <help@dev.physionet.org>'
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR,'static')]
-STATIC_ROOT = '/physionet/static/'
 
-MEDIA_ROOT = '/physionet/media/'
+MEDIA_ROOT = os.path.join(os.path.abspath(os.path.join(BASE_DIR, os.pardir)), 'media')
 
 CKEDITOR_CONFIGS = {
     'default': {
