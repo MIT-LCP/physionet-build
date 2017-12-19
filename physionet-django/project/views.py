@@ -4,10 +4,10 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 import os
 
-from .forms import ProjectCreationForm, metadata_forms
+from .forms import ProjectCreationForm, metadata_forms, MultiFileFieldForm
 from .models import Project, DatabaseMetadata, SoftwareMetadata
-from .utility import get_file_info, get_directory_info, get_storage_info
-from physionet.settings import MEDIA_ROOT
+from .utility import get_file_info, get_directory_info, get_storage_info, write_uploaded_file
+from physionet.settings import MEDIA_ROOT, project_file_individual_limit
 
 import pdb
 from user.forms import ProfileForm
@@ -24,6 +24,7 @@ def download_file(request, file_path):
             return response
     else:
         return Http404()
+
 
 @login_required
 def project_home(request):
@@ -76,7 +77,6 @@ def project_metadata(request, project_id):
     if request.method == 'POST':
         form = metadata_forms[project.resource_type.description](request.POST,
             instance=project)
-
         if form.is_valid():
             form.save()
             messages.success(request, 'Your project metadata has been updated.')
@@ -105,9 +105,38 @@ def project_files(request, project_id, sub_item=''):
         # Invalid url
         elif not os.path.isdir(item_path):
             return Http404()
+    
+    # The url is not pointing to a file to download.
 
-    # The url is not pointing to a file. Present the directory.
+    # The file directory being examined
     file_dir = os.path.join(project_file_root, sub_item)
+
+    upload_files_form = MultiFileFieldForm()
+
+    storage_info = get_storage_info(project.storage_allowance*1024**3,
+        project.storage_used())
+
+    if request.method == 'POST':
+        if 'upload_files' in request.POST:
+            upload_files_form = MultiFileFieldForm(request.POST, request.FILES)
+            # Check files
+            if upload_files_form.is_valid() and upload_files_form.validate_size(project_file_individual_limit,
+                storage_info.remaining):
+
+                #pdb.set_trace()
+
+                # Write the files
+                files = upload_files_form.files.getlist('file_field')
+
+                for file in files:
+                    write_uploaded_file(file=file,
+                        write_file_path=os.path.join(file_dir, file.name))
+                messages.success(request, 'Your files have been uploaded.')
+
+        elif 'create_folder' in request.POST:
+            pass
+        elif 'delete_files' in request.POST:
+            pass
 
     file_names = sorted([f for f in os.listdir(file_dir) if os.path.isfile(os.path.join(file_dir, f)) and not f.endswith('~')])
     dir_names = sorted([d for d in os.listdir(file_dir) if os.path.isdir(os.path.join(file_dir, d))])
@@ -115,13 +144,10 @@ def project_files(request, project_id, sub_item=''):
     display_files = [get_file_info(os.path.join(file_dir, f)) for f in file_names]
     display_dirs = [get_directory_info(os.path.join(file_dir, d)) for d in dir_names]
 
-    storage_info = get_storage_info(project.storage_allowance*1024**3,
-        project.storage_used())
-
-    # pdb.set_trace()
     return render(request, 'project/project_files.html', {'project':project,
         'display_files':display_files, 'display_dirs':display_dirs,
-        'sub_item':sub_item, 'storage_info':storage_info})
+        'sub_item':sub_item, 'storage_info':storage_info,
+        'upload_files_form':upload_files_form})
 
 
 @login_required

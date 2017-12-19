@@ -23,12 +23,21 @@ class DirectoryInfo():
 
 class StorageInfo():
     """
-    Readable information about storage allowance, usage, and remaining
+    Information about storage allowance, usage, and remaining.
     """
-    def __init__(self, allowance, used, remaining, p_used, p_remaining):
+    def __init__(self, allowance, used, remaining, readable_allowance,
+        readable_used, readable_remaining, p_used, p_remaining):
+        # Integer fields
         self.allowance = allowance
         self.used = used
         self.remaining = remaining
+
+        # Readable string fields
+        self.readable_allowance = readable_allowance
+        self.readable_used = readable_used
+        self.readable_remaining = readable_remaining
+
+        # Integer fields
         self.p_used = p_used
         self.p_remaining = p_remaining
 
@@ -75,12 +84,21 @@ def readable_size(num, suffix='B'):
 
 def get_storage_info(allowance, used):
     """
-    Get readable information about storage allowance, usage, and remaining.
+    Get information about storage allowance, usage, and remaining.
     Input variables are integers in bytes.
     """
     remaining = allowance - used
-    p_used = str(round(used *100 / allowance))
-    p_remaining = str(round(remaining *100 / allowance))
+    p_used = round(used *100 / allowance)
+    p_remaining = round(remaining *100 / allowance)
 
-    return StorageInfo(readable_size(allowance), readable_size(used),
-        readable_size(remaining), p_used, p_remaining)
+    return StorageInfo(allowance, used, remaining, readable_size(allowance),
+        readable_size(used), readable_size(remaining), p_used, p_remaining)
+
+def write_uploaded_file(file, write_file_path):
+    """
+    file: request.FILE
+    write_file_path: full file path to be written
+    """
+    with open(write_file_path, 'wb+') as destination:
+        for chunk in file.chunks():
+            destination.write(chunk)

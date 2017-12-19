@@ -10,8 +10,8 @@
 
 <div class="card">
   <div class="card-body">
-    <h4 class="card-title">Storage Allowance: {{ storage_info.allowance }}</h4>
-    <p class="card-text">Used: {{ storage_info.used }} ( {{ storage_info.p_used }}% ) <a style="float:right">Remaining: {{ storage_info.remaining }} ( {{ storage_info.p_remaining }}% )</a></p>
+    <h4 class="card-title">Storage Allowance: {{ storage_info.readable_allowance }}</h4>
+    <p class="card-text">Used: {{ storage_info.readable_used }} ( {{ storage_info.p_used }}% ) <a style="float:right">Remaining: {{ storage_info.readable_remaining }} ( {{ storage_info.p_remaining }}% )</a></p>
     <div class="progress">
       <div class="progress-bar progress-bar-striped" role="progressbar" style="width: {{ storage_info.p_used }}%;" aria-valuenow="{{ storage_info.p_used }}" aria-valuemin="0" aria-valuemax="100">
       </div>
@@ -23,9 +23,21 @@
 <br>
 
 <p>
-  <a href="" class="btn btn-success"><i class="fa fa-arrow-circle-up"></i> Upload Files</a>
-  <a href="" class="btn btn-success"><i class="fa fa-folder-open"></i> Create Folder</a>
-  <a href="" class="btn btn-danger" style="float:right"><i class="fa fa-search"></i> Delete Files</a>
+  <form action="" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ upload_files_form }}
+    <button class="btn btn-success" name="upload_files" type="submit"><i class="fa fa-arrow-circle-up"></i> Upload Files</button>
+  </form>
+
+
+  <form action="" method="post">
+    {% csrf_token %}
+    <button class="btn btn-success" name="create_folder" type="submit"><i class="fa fa-folder-open"></i> Create Folder</button>
+  </form>
+  <form action="" method="post">
+    {% csrf_token %}
+    <button class="btn btn-danger" name="delete_files" type="submit" style="float:right"><i class="fa fa-search"></i> Delete Files</button>
+  </form>
 </p>
 
 <div class="card">

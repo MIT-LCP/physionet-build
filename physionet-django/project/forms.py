@@ -3,11 +3,32 @@ from django.template.defaultfilters import slugify
 import os
 
 from .models import Project, StorageRequest
+from .utility import readable_size
 from physionet.settings import MEDIA_ROOT
 
 
-class FileFieldForm(forms.Form):
+class MultiFileFieldForm(forms.Form):
+    """
+    Form for uploading multiple files
+    """
     file_field = forms.FileField(widget=forms.ClearableFileInput(attrs={'multiple': True}))
+
+    def validate_size(self, individual_size_limit, total_size_limit):
+        """
+        Validate that individual and total file size does not surpass a limit
+        """
+        files = self.files.getlist('file_field')
+        total_size = 0
+        for file in files:
+            if file:
+                if file._size > individual_size_limit:
+                    raise forms.ValidationError('Individual file size of %s exceeds limit: %s' % (file.name, individual_size_limit))
+                total_size += file._size
+                if total_size > total_size_limit:
+                    raise forms.ValidationError('Total file size exceeds limit: %s' % total_size_limit)
+            else:
+                raise forms.ValidationError("Could not read the uploaded file.")
+        return True
 
 
 class ProjectCreationForm(forms.ModelForm):

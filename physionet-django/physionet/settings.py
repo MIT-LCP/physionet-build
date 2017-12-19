@@ -161,3 +161,6 @@ CKEDITOR_CONFIGS = {
         ]
     }
 }
+
+# Size limit for individual files being uploaded to projects
+project_file_individual_limit = 100 * 1024**2
