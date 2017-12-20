@@ -1,5 +1,6 @@
 import datetime
 import os
+import shutil
 import pdb
 
 class FileInfo():
@@ -21,9 +22,10 @@ class DirectoryInfo():
         self.last_modified = last_modified
         self.description = description 
 
+
 class StorageInfo():
     """
-    Information about storage allowance, usage, and remaining.
+    Information about a project's storage allowance, usage, and remaining.
     """
     def __init__(self, allowance, used, remaining, readable_allowance,
         readable_used, readable_remaining, p_used, p_remaining):
@@ -41,17 +43,33 @@ class StorageInfo():
         self.p_used = p_used
         self.p_remaining = p_remaining
 
+
 def list_files(directory):
     "List files in a directory"
     return sorted([f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f)) and not f.endswith('~')])
+
 
 def list_directories(directory):
     "List directories in a directory"
     return sorted([d for d in os.listdir(directory) if os.path.isdir(os.path.join(directory, d))])
 
-def list_contents(directory):
-    "List files and contents in a directory. Return 2 lists"
+
+def list_items(directory):
+    "List files and directories in a directory. Return 2 lists"
     return (list_files(directory), list_directories(directory))
+
+
+def remove_items(items):
+    """
+    Delete the list of (full file path) files/directories.
+    """
+    for item in items:
+        if os.path.isfile(item):
+            os.remove(item)
+        elif os.path.isdir(item):
+            shutil.rmtree(item)
+    return
+
 
 def get_file_info(file_path):
     "Given a file path, get the information used to display it"
@@ -61,6 +79,7 @@ def get_file_info(file_path):
     description = ''
     return FileInfo(name, size, last_modified, description)
 
+
 def get_directory_info(dir_path):
     "Given a directory path, get the information used to display it"
     name = os.path.split(dir_path)[-1]
@@ -68,6 +87,7 @@ def get_directory_info(dir_path):
     last_modified = datetime.date.fromtimestamp(os.path.getmtime(dir_path)).strftime("%Y-%m-%d")
     description = ''
     return DirectoryInfo(name, size, last_modified, description)
+
 
 def get_tree_size(path):
     """Return total size of files in given path and subdirs."""
@@ -78,6 +98,7 @@ def get_tree_size(path):
         else:
             total += entry.stat(follow_symlinks=False).st_size
     return total
+
 
 def readable_size(num, suffix='B'):
     "Display human readable size of byte number"
@@ -93,6 +114,7 @@ def readable_size(num, suffix='B'):
         num /= 1024.0
     return "%.1f%s%s" % (num, 'Y', suffix)
 
+
 def get_storage_info(allowance, used):
     """
     Get information about storage allowance, usage, and remaining.
@@ -104,6 +126,7 @@ def get_storage_info(allowance, used):
 
     return StorageInfo(allowance, used, remaining, readable_size(allowance),
         readable_size(used), readable_size(remaining), p_used, p_remaining)
+
 
 def write_uploaded_file(file, write_file_path):
     """

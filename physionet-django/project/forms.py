@@ -45,34 +45,90 @@ class MultiFileFieldForm(forms.Form):
                         params={'total_size_limit':readable_size(self.total_size_limit)}
                     )
                 if file.name in self.taken_names:
-                    raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current directory.',
+                    raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
                         code='taken_name', params={'taken_name':file.name})
             else:
                 # Special error
                 raise forms.ValidationError('Could not read the uploaded file')
-        
+
         return data
 
 
 class FolderCreationForm(forms.Form):
     """
-    Form for specifying folder name
+    Form for creating a new folder in a directory
     """
     folder_name = forms.CharField(max_length=50)
 
-    def __init__(self, taken_names, *args, **kwargs):
-        # Email choices are those belonging to a user
+    def __init__(self, taken_names=None, *args, **kwargs):
         super(FolderCreationForm, self).__init__(*args, **kwargs)
         self.taken_names = taken_names
 
-    def clean_folder_name(self,):
+    def clean_folder_name(self):
         """
         Prevent upload when existing file/folder exists in directory
         """
         data = self.cleaned_data['folder_name']
         if data in self.taken_names:
-            raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current directory.',
-                code='taken_name', params={'taken_name':file.name})
+            raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
+                code='taken_name', params={'taken_name':data})
+
+        return data
+
+
+class RenameItemForm(forms.Form):
+    """
+    Form for renaming an item in a directory
+    """
+    item_name = forms.CharField(max_length=50)
+
+    def __init__(self, taken_names=None, *args, **kwargs):
+        super(RenameItemForm, self).__init__(*args, **kwargs)
+        self.taken_names = taken_names
+
+    def clean_item_name(self):
+        """
+        Prevent rename when existing file/folder exists in directory
+        """
+        data = self.cleaned_data['item_name']
+        if data in self.taken_names:
+            raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
+                code='taken_name', params={'taken_name':data})
+
+        return data
+
+
+class MoveItemsForm(forms.Form):
+    """
+    Form for moving items into a target folder
+    """
+    def __init__(self, existing_subfolders=None, selected_items=None, taken_names=None, *args, **kwargs):
+        super(MoveItemsForm, self).__init__(*args, **kwargs)
+        self.existing_subfolders = existing_subfolders
+
+
+        self.fields['target_folder'] = forms.ChoiceField(
+            choices=[(s, s) for s in existing_subfolders]
+        )
+        self.selected_items = selected_items
+        self.taken_names = taken_names
+
+    def clean_target_folder(self):
+        """
+        Target folder must exist, and must not contain items with the same name
+        as the items to be moved
+        """
+        data = self.cleaned_data['target_folder']
+
+        # This should be automatic?
+        # if data not in self.existing_subfolders:
+        #     raise forms.ValidationError('Invalid target folder',
+        #         code='invalid_target_folder')
+
+        clashing_items = set(self.selected_items).intersection(set(self.taken_names))
+        if clashing_items:
+            raise forms.ValidationError('Item named: "%(clashing_item)s" already exists in target folder.',
+                code='taken_name', params={'clashing_items':set(clashing_items)[0]})
 
         return data
 

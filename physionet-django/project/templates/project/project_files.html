@@ -23,6 +23,7 @@
 <br>
 
 <p>
+  <!-- Forms for adding new content -->
   <form action="" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {{ upload_files_form }}
@@ -37,6 +38,16 @@
 
 <form action="" method="post">
   {% csrf_token %}
+  <!-- Forms for manipulating existing content -->
+  <p>
+    {{ move_items_form }}
+    <button class="btn btn-primary" name="move_items" type="submit"><i class="fas fa-arrow-right"></i> Move Items</button>
+    <br>
+    {{ rename_item_form }}
+    <button class="btn btn-primary" name="rename_item" type="submit"><i class="fa fa-trash-alt"></i> Rename Item</button>
+  </p>
+
+
   <div class="card">
     <div class="card-header">
       &nbsp;&nbsp;&nbsp;In folder: <strong>/{{ sub_item }}</strong>
@@ -89,8 +100,7 @@
 
       <div class="card-footer">
         <button class="btn btn-sm btn-danger" name="delete_items" type="submit"><i class="fa fa-trash-alt"></i> Delete Items</button>
-        <button class="btn btn-sm btn-primary" name="move_items" type="submit"><i class="fas fa-arrow-right"></i> Move Items</button>
-        <button class="btn btn-sm btn-primary" name="rename_item" type="submit"><i class="fa fa-trash-alt"></i> Rename Item</button>
+        <br>
       </div>
 
   </div>

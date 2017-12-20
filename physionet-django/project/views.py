@@ -3,11 +3,10 @@ from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 import os
-import shutil
 
-from .forms import ProjectCreationForm, metadata_forms, MultiFileFieldForm, FolderCreationForm
+from .forms import ProjectCreationForm, metadata_forms, MultiFileFieldForm, FolderCreationForm, MoveItemsForm, RenameItemForm
 from .models import Project, DatabaseMetadata, SoftwareMetadata
-from .utility import get_file_info, get_directory_info, get_storage_info, write_uploaded_file, list_contents
+from .utility import get_file_info, get_directory_info, get_storage_info, write_uploaded_file, list_items, remove_items
 from physionet.settings import MEDIA_ROOT, project_file_individual_limit
 
 import pdb
@@ -89,6 +88,21 @@ def project_metadata(request, project_id):
         'form':form, 'messages':messages.get_messages(request)})
 
 
+
+def selected_valid_items(request, selected_items, present_items):
+    """
+    Helper function to ensure selected files/folders are present in the
+    directory
+    """
+    selected_items = request.POST.getlist('checks')
+
+    if set(selected_items).issubset(present_items):
+        return True
+    else:
+        messages.error(request, 'There was an error with the selected items.')
+        return False
+
+
 @login_required
 def project_files(request, project_id, sub_item=''):
     "View and manipulate files in a project"
@@ -112,14 +126,16 @@ def project_files(request, project_id, sub_item=''):
     # The file directory being examined
     file_dir = os.path.join(project_file_root, sub_item)
     # The contents of the directory
-    file_names , dir_names = list_contents(file_dir)
+    file_names , dir_names = list_items(file_dir)
     item_names = file_names+dir_names
     storage_info = get_storage_info(project.storage_allowance*1024**3,
         project.storage_used())
-
+    # Forms
     upload_files_form = MultiFileFieldForm(project_file_individual_limit,
         storage_info.remaining, item_names)
-    folder_creation_form = FolderCreationForm(item_names)
+    folder_creation_form = FolderCreationForm()
+    move_items_form = MoveItemsForm(dir_names)
+    rename_item_form = RenameItemForm()
 
     if request.method == 'POST':
         if 'upload_files' in request.POST:
@@ -134,7 +150,7 @@ def project_files(request, project_id, sub_item=''):
                 messages.success(request, 'Your files have been uploaded.')
 
         elif 'create_folder' in request.POST:
-            folder_creation_form = FolderCreationForm(item_names, request.POST)
+            folder_creation_form = FolderCreationForm(taken_names=item_names, data=request.POST)
 
             if folder_creation_form.is_valid():
                 os.mkdir(os.path.join(file_dir, folder_creation_form.cleaned_data['folder_name']))
@@ -142,25 +158,37 @@ def project_files(request, project_id, sub_item=''):
 
         elif 'delete_items' in request.POST:
             selected_items = request.POST.getlist('checks')
-            if set(selected_items).issubset(item_names):
-                for item in [os.path.join(file_dir, i) for i in selected_items]:
-                    if os.path.isfile(item):
-                        os.remove(item)
-                    elif os.path.isdir(item):
-                        shutil.rmtree(item)
+            if selected_valid_items(request, selected_items, item_names):
+                remove_items([os.path.join(file_dir, i) for i in selected_items])
                 messages.success(request, 'Your items have been deleted.')
-            else:
-                messages.error(request, 'There was an error with the selected items.')
             
         elif 'move_items' in request.POST:
-            # Do we need a form class to check validity?
-            pass
+            selected_items = request.POST.getlist('checks')
+            
+            #file_names , dir_names = list_items(file_dir)
+
+            move_items_form = MoveItemsForm(existing_subfolders=dir_names,
+                selected_items=selected_items, taken_names=None, data=request.POST)
+            
+            
+
+            if selected_valid_items(request, selected_items, item_names):
+                #move_items([os.path.join(file_dir, i) for i in selected_items]):
+                messages.success(request, 'Your items have been moved.')
+
         elif 'rename_item' in request.POST:
-            # Do we need a form class to check validity?
-            pass
+            selected_items = request.POST.getlist('checks')
+            
+            if len(selected_items) != 1:
+                messages.error(request, 'You may only select one item at a time to rename.')
+
+            if selected_valid_items(request, selected_items, item_names):
+                #rename_item([os.path.join(file_dir, i) for i in selected_items]):
+                messages.success(request, 'Your items have been moved.')
+
 
         # Reload the directory contents
-        file_names , dir_names = list_contents(file_dir)
+        file_names , dir_names = list_items(file_dir)
 
     display_files = [get_file_info(os.path.join(file_dir, f)) for f in file_names]
     display_dirs = [get_directory_info(os.path.join(file_dir, d)) for d in dir_names]
@@ -168,7 +196,8 @@ def project_files(request, project_id, sub_item=''):
     return render(request, 'project/project_files.html', {'project':project,
         'display_files':display_files, 'display_dirs':display_dirs,
         'sub_item':sub_item, 'storage_info':storage_info,
-        'upload_files_form':upload_files_form, 'folder_creation_form':folder_creation_form})
+        'upload_files_form':upload_files_form, 'folder_creation_form':folder_creation_form,
+        'move_items_form':move_items_form, 'rename_item_form':rename_item_form})
 
 
 @login_required
