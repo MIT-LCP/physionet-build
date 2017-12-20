@@ -3,7 +3,7 @@ from django.template.defaultfilters import slugify
 import os
 
 from .models import Project, StorageRequest
-from .utility import readable_size
+from .utility import readable_size, list_items
 from physionet.settings import MEDIA_ROOT
 
 
@@ -46,7 +46,7 @@ class MultiFileFieldForm(forms.Form):
                     )
                 if file.name in self.taken_names:
                     raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
-                        code='taken_name', params={'taken_name':file.name})
+                        code='clashing_name', params={'taken_name':file.name})
             else:
                 # Special error
                 raise forms.ValidationError('Could not read the uploaded file')
@@ -71,7 +71,7 @@ class FolderCreationForm(forms.Form):
         data = self.cleaned_data['folder_name']
         if data in self.taken_names:
             raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
-                code='taken_name', params={'taken_name':data})
+                code='clashing_name', params={'taken_name':data})
 
         return data
 
@@ -93,7 +93,7 @@ class RenameItemForm(forms.Form):
         data = self.cleaned_data['item_name']
         if data in self.taken_names:
             raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
-                code='taken_name', params={'taken_name':data})
+                code='clashing_name', params={'taken_name':data})
 
         return data
 
@@ -101,8 +101,9 @@ class RenameItemForm(forms.Form):
 class MoveItemsForm(forms.Form):
     """
     Form for moving items into a target folder
+    Has to check directory contents
     """
-    def __init__(self, existing_subfolders=None, selected_items=None, taken_names=None, *args, **kwargs):
+    def __init__(self, existing_subfolders=None, selected_items=None, current_directory=None, *args, **kwargs):
         super(MoveItemsForm, self).__init__(*args, **kwargs)
         self.existing_subfolders = existing_subfolders
 
@@ -111,7 +112,7 @@ class MoveItemsForm(forms.Form):
             choices=[(s, s) for s in existing_subfolders]
         )
         self.selected_items = selected_items
-        self.taken_names = taken_names
+        self.current_directory = current_directory
 
     def clean_target_folder(self):
         """
@@ -120,15 +121,14 @@ class MoveItemsForm(forms.Form):
         """
         data = self.cleaned_data['target_folder']
 
-        # This should be automatic?
-        # if data not in self.existing_subfolders:
-        #     raise forms.ValidationError('Invalid target folder',
-        #         code='invalid_target_folder')
+        # Check the target directory for clashing names
+        taken_names = list_items(os.path.join(self.current_directory, data), return_separate=False)
 
-        clashing_items = set(self.selected_items).intersection(set(self.taken_names))
-        if clashing_items:
-            raise forms.ValidationError('Item named: "%(clashing_item)s" already exists in target folder.',
-                code='taken_name', params={'clashing_items':set(clashing_items)[0]})
+        clashing_names = set(self.selected_items).intersection(set(taken_names))
+
+        if clashing_names:
+            raise forms.ValidationError('Item named: "%(clashing_name)s" already exists in target folder.',
+                code='clashing_name', params={'clashing_name':list(clashing_names)[0]})
 
         return data
 

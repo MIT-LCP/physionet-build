@@ -4,13 +4,15 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 import os
 
-from .forms import ProjectCreationForm, metadata_forms, MultiFileFieldForm, FolderCreationForm, MoveItemsForm, RenameItemForm
+from .forms import (ProjectCreationForm, metadata_forms, MultiFileFieldForm,
+    FolderCreationForm, MoveItemsForm, RenameItemForm)
 from .models import Project, DatabaseMetadata, SoftwareMetadata
-from .utility import get_file_info, get_directory_info, get_storage_info, write_uploaded_file, list_items, remove_items
+from .utility import (get_file_info, get_directory_info, get_storage_info,
+    write_uploaded_file, list_items, remove_items, move_items)
 from physionet.settings import MEDIA_ROOT, project_file_individual_limit
+from user.forms import ProfileForm
 
 import pdb
-from user.forms import ProfileForm
 
 
 def download_file(request, file_path):
@@ -164,16 +166,13 @@ def project_files(request, project_id, sub_item=''):
             
         elif 'move_items' in request.POST:
             selected_items = request.POST.getlist('checks')
-            
-            #file_names , dir_names = list_items(file_dir)
-
             move_items_form = MoveItemsForm(existing_subfolders=dir_names,
-                selected_items=selected_items, taken_names=None, data=request.POST)
+                selected_items=selected_items, current_directory=file_dir,
+                data=request.POST)
             
-            
-
-            if selected_valid_items(request, selected_items, item_names):
-                #move_items([os.path.join(file_dir, i) for i in selected_items]):
+            if selected_valid_items(request, selected_items, item_names) and move_items_form.is_valid():
+                move_items([os.path.join(file_dir, i) for i in selected_items],
+                    os.path.join(file_dir, move_items_form.cleaned_data['target_folder']))
                 messages.success(request, 'Your items have been moved.')
 
         elif 'rename_item' in request.POST:

@@ -54,9 +54,12 @@ def list_directories(directory):
     return sorted([d for d in os.listdir(directory) if os.path.isdir(os.path.join(directory, d))])
 
 
-def list_items(directory):
-    "List files and directories in a directory. Return 2 lists"
-    return (list_files(directory), list_directories(directory))
+def list_items(directory, return_separate=True):
+    "List files and directories in a directory. Return separate or combine lists"
+    if return_separate:
+        return (list_files(directory), list_directories(directory))
+    else:
+        return list_files(directory)+list_directories(directory)
 
 
 def remove_items(items):
@@ -69,6 +72,14 @@ def remove_items(items):
         elif os.path.isdir(item):
             shutil.rmtree(item)
     return
+
+
+def move_items(items, target_folder):
+    """
+    Move items (full path) into target folder (full path)
+    """
+    for item in items:
+        os.rename(item, os.path.join(target_folder, os.path.split(item)[-1]))
 
 
 def get_file_info(file_path):
