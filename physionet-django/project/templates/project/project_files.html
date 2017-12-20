@@ -32,6 +32,7 @@
 
   <form action="" method="post">
     {% csrf_token %}
+    {{ folder_creation_form }}
     <button class="btn btn-success" name="create_folder" type="submit"><i class="fa fa-folder-open"></i> Create Folder</button>
   </form>
   <form action="" method="post">

@@ -4,9 +4,9 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 import os
 
-from .forms import ProjectCreationForm, metadata_forms, MultiFileFieldForm
+from .forms import ProjectCreationForm, metadata_forms, MultiFileFieldForm, FolderCreationForm
 from .models import Project, DatabaseMetadata, SoftwareMetadata
-from .utility import get_file_info, get_directory_info, get_storage_info, write_uploaded_file
+from .utility import get_file_info, get_directory_info, get_storage_info, write_uploaded_file, list_contents
 from physionet.settings import MEDIA_ROOT, project_file_individual_limit
 
 import pdb
@@ -110,36 +110,42 @@ def project_files(request, project_id, sub_item=''):
 
     # The file directory being examined
     file_dir = os.path.join(project_file_root, sub_item)
-
-    upload_files_form = MultiFileFieldForm()
-
+    # The contents of the directory
+    file_names , dir_names = list_contents(file_dir)
     storage_info = get_storage_info(project.storage_allowance*1024**3,
         project.storage_used())
 
+    upload_files_form = MultiFileFieldForm(project_file_individual_limit,
+        storage_info.remaining, file_names+dir_names)
+    folder_creation_form = FolderCreationForm(file_names+dir_names)
+
+
     if request.method == 'POST':
         if 'upload_files' in request.POST:
-            upload_files_form = MultiFileFieldForm(request.POST, request.FILES)
-            # Check files
-            if upload_files_form.is_valid() and upload_files_form.validate_size(project_file_individual_limit,
-                storage_info.remaining):
+            upload_files_form = MultiFileFieldForm(project_file_individual_limit,
+                storage_info.remaining, file_names+dir_names, request.POST, request.FILES)
 
-                #pdb.set_trace()
-
+            if upload_files_form.is_valid():
                 # Write the files
                 files = upload_files_form.files.getlist('file_field')
-
                 for file in files:
                     write_uploaded_file(file=file,
                         write_file_path=os.path.join(file_dir, file.name))
                 messages.success(request, 'Your files have been uploaded.')
 
         elif 'create_folder' in request.POST:
-            pass
+            folder_creation_form = FolderCreationForm(file_names+dir_names, request.POST)
+
+            # Folder name must conform to restrictions and not clash with current content
+            if folder_creation_form.is_valid():
+                os.mkdir(os.path.join(file_dir, folder_creation_form.cleaned_data['folder_name']))
+                messages.success(request, 'Your folder has been created.')
+
         elif 'delete_files' in request.POST:
             pass
 
-    file_names = sorted([f for f in os.listdir(file_dir) if os.path.isfile(os.path.join(file_dir, f)) and not f.endswith('~')])
-    dir_names = sorted([d for d in os.listdir(file_dir) if os.path.isdir(os.path.join(file_dir, d))])
+        # Reload the directory contents
+        file_names , dir_names = list_contents(file_dir)
 
     display_files = [get_file_info(os.path.join(file_dir, f)) for f in file_names]
     display_dirs = [get_directory_info(os.path.join(file_dir, d)) for d in dir_names]
@@ -147,7 +153,7 @@ def project_files(request, project_id, sub_item=''):
     return render(request, 'project/project_files.html', {'project':project,
         'display_files':display_files, 'display_dirs':display_dirs,
         'sub_item':sub_item, 'storage_info':storage_info,
-        'upload_files_form':upload_files_form})
+        'upload_files_form':upload_files_form, 'folder_creation_form':folder_creation_form})
 
 
 @login_required

@@ -41,6 +41,17 @@ class StorageInfo():
         self.p_used = p_used
         self.p_remaining = p_remaining
 
+def list_files(directory):
+    "List files in a directory"
+    return sorted([f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f)) and not f.endswith('~')])
+
+def list_directories(directory):
+    "List directories in a directory"
+    return sorted([d for d in os.listdir(directory) if os.path.isdir(os.path.join(directory, d))])
+
+def list_contents(directory):
+    "List files and contents in a directory. Return 2 lists"
+    return (list_files(directory), list_directories(directory))
 
 def get_file_info(file_path):
     "Given a file path, get the information used to display it"

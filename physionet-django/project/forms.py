@@ -13,22 +13,57 @@ class MultiFileFieldForm(forms.Form):
     """
     file_field = forms.FileField(widget=forms.ClearableFileInput(attrs={'multiple': True}))
 
-    def validate_size(self, individual_size_limit, total_size_limit):
+    def __init__(self, individual_size_limit, total_size_limit, taken_names, *args, **kwargs):
+        # Email choices are those belonging to a user
+        super(MultiFileFieldForm, self).__init__(*args, **kwargs)
+        self.individual_size_limit = individual_size_limit
+        self.total_size_limit = total_size_limit
+        self.taken_names = taken_names
+
+    def clean_file_field(self):
         """
-        Validate that individual and total file size does not surpass a limit
+        Check for file size limits and prevent upload when existing
+        file/folder exists in directory
         """
+        data = self.cleaned_data['file_field']
+
         files = self.files.getlist('file_field')
         total_size = 0
         for file in files:
             if file:
-                if file._size > individual_size_limit:
-                    raise forms.ValidationError('Individual file size of %s exceeds limit: %s' % (file.name, individual_size_limit))
-                total_size += file._size
-                if total_size > total_size_limit:
-                    raise forms.ValidationError('Total file size exceeds limit: %s' % total_size_limit)
+                if file.size > self.individual_size_limit:
+                    raise forms.ValidationError('Individual file size of %s exceeds limit: %s' % (file.name, self.individual_size_limit))
+                total_size += file.size
+                if total_size > self.total_size_limit:
+                    raise forms.ValidationError('Total file size exceeds limit: %s' % self.total_size_limit)
+                if file.name in self.taken_names:
+                    raise forms.ValidationError("File or folder with same name already exists in current directory.")
             else:
-                raise forms.ValidationError("Could not read the uploaded file.")
-        return True
+                raise forms.ValidationError('Could not read the uploaded file')
+
+        return data
+
+
+class FolderCreationForm(forms.Form):
+    """
+    Form for specifying folder name
+    """
+    folder_name = forms.CharField(max_length=50)
+
+    def __init__(self, taken_names, *args, **kwargs):
+        # Email choices are those belonging to a user
+        super(FolderCreationForm, self).__init__(*args, **kwargs)
+        self.taken_names = taken_names
+
+    def clean_folder_name(self,):
+        """
+        Prevent upload when existing file/folder exists in directory
+        """
+        data = self.cleaned_data['folder_name']
+        if data in self.taken_names:
+            raise forms.ValidationError("File or folder with same name already exists in current directory.")
+
+        return data
 
 
 class ProjectCreationForm(forms.ModelForm):
