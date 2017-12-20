@@ -3,6 +3,7 @@ from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 import os
+import shutil
 
 from .forms import ProjectCreationForm, metadata_forms, MultiFileFieldForm, FolderCreationForm
 from .models import Project, DatabaseMetadata, SoftwareMetadata
@@ -112,21 +113,20 @@ def project_files(request, project_id, sub_item=''):
     file_dir = os.path.join(project_file_root, sub_item)
     # The contents of the directory
     file_names , dir_names = list_contents(file_dir)
+    item_names = file_names+dir_names
     storage_info = get_storage_info(project.storage_allowance*1024**3,
         project.storage_used())
 
     upload_files_form = MultiFileFieldForm(project_file_individual_limit,
-        storage_info.remaining, file_names+dir_names)
-    folder_creation_form = FolderCreationForm(file_names+dir_names)
-
+        storage_info.remaining, item_names)
+    folder_creation_form = FolderCreationForm(item_names)
 
     if request.method == 'POST':
         if 'upload_files' in request.POST:
             upload_files_form = MultiFileFieldForm(project_file_individual_limit,
-                storage_info.remaining, file_names+dir_names, request.POST, request.FILES)
+                storage_info.remaining, item_names, request.POST, request.FILES)
 
             if upload_files_form.is_valid():
-                # Write the files
                 files = upload_files_form.files.getlist('file_field')
                 for file in files:
                     write_uploaded_file(file=file,
@@ -134,14 +134,29 @@ def project_files(request, project_id, sub_item=''):
                 messages.success(request, 'Your files have been uploaded.')
 
         elif 'create_folder' in request.POST:
-            folder_creation_form = FolderCreationForm(file_names+dir_names, request.POST)
+            folder_creation_form = FolderCreationForm(item_names, request.POST)
 
-            # Folder name must conform to restrictions and not clash with current content
             if folder_creation_form.is_valid():
                 os.mkdir(os.path.join(file_dir, folder_creation_form.cleaned_data['folder_name']))
                 messages.success(request, 'Your folder has been created.')
 
-        elif 'delete_files' in request.POST:
+        elif 'delete_items' in request.POST:
+            selected_items = request.POST.getlist('checks')
+            if set(selected_items).issubset(item_names):
+                for item in [os.path.join(file_dir, i) for i in selected_items]:
+                    if os.path.isfile(item):
+                        os.remove(item)
+                    elif os.path.isdir(item):
+                        shutil.rmtree(item)
+                messages.success(request, 'Your items have been deleted.')
+            else:
+                messages.error(request, 'There was an error with the selected items.')
+            
+        elif 'move_items' in request.POST:
+            # Do we need a form class to check validity?
+            pass
+        elif 'rename_item' in request.POST:
+            # Do we need a form class to check validity?
             pass
 
         # Reload the directory contents

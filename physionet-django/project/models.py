@@ -91,7 +91,7 @@ class Project(CommonMetadata, DatabaseMetadata, SoftwareMetadata):
         unique_together = (('title', 'owner'),)
 
     def __str__(self):
-        return self.title.title()
+        return self.title
 
     def file_root(self):
         "Root directory containing the project's files"

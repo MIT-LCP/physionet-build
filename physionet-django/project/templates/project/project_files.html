@@ -28,66 +28,73 @@
     {{ upload_files_form }}
     <button class="btn btn-success" name="upload_files" type="submit"><i class="fa fa-arrow-circle-up"></i> Upload Files</button>
   </form>
-
-
   <form action="" method="post">
     {% csrf_token %}
     {{ folder_creation_form }}
     <button class="btn btn-success" name="create_folder" type="submit"><i class="fa fa-folder-open"></i> Create Folder</button>
   </form>
-  <form action="" method="post">
-    {% csrf_token %}
-    <button class="btn btn-danger" name="delete_files" type="submit" style="float:right"><i class="fa fa-search"></i> Delete Files</button>
-  </form>
 </p>
 
-<div class="card">
-  <div class="card-header">
-    &nbsp;&nbsp;&nbsp;In folder: <strong>/{{ sub_item }}</strong>
-    {% if sub_item %}
-      <a href="{% url 'project_files' project.id '' %}" style="float:right">Return to base folder</a>
-    {% endif %}
-  </div>
-  <ul class="list-group list-group-flush">
-    <li class="list-group-item">
-      <div class="row">
-        <div class="col-md-8">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>Name</strong></div>
-        <div class="col-md-2"><strong>Size</strong></div>
-        <div class="col-md-2"><strong>Modified</strong></div>
+<form action="" method="post">
+  {% csrf_token %}
+  <div class="card">
+    <div class="card-header">
+      &nbsp;&nbsp;&nbsp;In folder: <strong>/{{ sub_item }}</strong>
+      {% if sub_item %}
+        <a href="{% url 'project_files' project.id '' %}" style="float:right">Return to base folder</a>
+      {% endif %}
+    </div>
+
+
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item">
+          <div class="row">
+            <div class="col-md-6">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>Name</strong></div>
+            <div class="col-md-2"><strong>Size</strong></div>
+            <div class="col-md-2"><strong>Modified</strong></div>
+            <div class="col-md-2"><strong>Select</strong></div>
+          </div>
+        </li>
+        {% if sub_item %}
+          <li class="list-group-item">
+            <div class="row">
+              <div class="col-md-6">&nbsp;<i class="fas fa-angle-up"></i>&nbsp;&nbsp;<a href="../">Parent Directory</a></div>
+              <div class="col-md-2"></div>
+              <div class="col-md-2"></div>
+              <div class="col-md-2"></div>
+            </div>
+          </li> 
+        {% endif %}
+        {% for dir in display_dirs %}
+          <li class="list-group-item">
+            <div class="row">
+              <div class="col-md-6"><i class="fas fa-folder-open"></i>&nbsp;&nbsp;<a href="{{ dir.name }}/">{{ dir.name }}</a></div>
+              <div class="col-md-2"></div>
+              <div class="col-md-2"></div>
+              <div class="col-md-2"><input type='checkbox' name="checks" value='{{ dir.name }}'></div>
+            </div>
+          </li>
+        {% endfor %}
+        {% for file in display_files %}
+          <li class="list-group-item">
+            <div class="row">
+              <div class="col-md-6">&nbsp;<i class="far fa-file"></i>&nbsp;&nbsp;&nbsp;<a href="{{ file.name }}">{{ file.name }}</a></div>
+              <div class="col-md-2">{{ file.size }}</div>
+              <div class="col-md-2">{{ file.last_modified }}</div>
+              <div class="col-md-2"><input type='checkbox' name="checks" value='{{ file.name }}'></div>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+
+      <div class="card-footer">
+        <button class="btn btn-sm btn-danger" name="delete_items" type="submit"><i class="fa fa-trash-alt"></i> Delete Items</button>
+        <button class="btn btn-sm btn-primary" name="move_items" type="submit"><i class="fas fa-arrow-right"></i> Move Items</button>
+        <button class="btn btn-sm btn-primary" name="rename_item" type="submit"><i class="fa fa-trash-alt"></i> Rename Item</button>
       </div>
-    </li>
-    {% if sub_item %}
-      <li class="list-group-item">
-        <div class="row">
-          <div class="col-md-8">&nbsp;<i class="fas fa-angle-up"></i>&nbsp;&nbsp;<a href="../">Parent Directory</a></div>
-          <div class="col-md-2"></div>
-          <div class="col-md-2"></div>
-        </div>
-      </li> 
-    {% endif %}
-    {% for dir in display_dirs %}
-      <li class="list-group-item">
-        <div class="row">
-          <div class="col-md-8"><i class="fas fa-folder-open"></i>&nbsp;&nbsp;<a href="{{ dir.name }}/">{{ dir.name }}</a></div>
-          <div class="col-md-2"></div>
-          <div class="col-md-2"></div>
-        </div>
-      </li>
-    {% endfor %}
-    {% for file in display_files %}
-      <li class="list-group-item">
-        <div class="row">
-          <div class="col-md-8">&nbsp;<i class="far fa-file"></i>&nbsp;&nbsp;&nbsp;<a href="{{ file.name }}">{{ file.name }}</a></div>
-          <div class="col-md-2">{{ file.size }}</div>
-          <div class="col-md-2">{{ file.last_modified }}</div>
-        </div>
-      </li>
-    {% endfor %}
-  </ul>
 
-
-
-</div>
+  </div>
+</form>
 
 <!-- https://github.com/MIT-LCP/physionet-build/blob/testing/physionet-django/physiobank/templates/physiobank/database.html -->
 {% endblock %}

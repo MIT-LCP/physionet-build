@@ -32,15 +32,25 @@ class MultiFileFieldForm(forms.Form):
         for file in files:
             if file:
                 if file.size > self.individual_size_limit:
-                    raise forms.ValidationError('Individual file size of %s exceeds limit: %s' % (file.name, self.individual_size_limit))
+                    raise forms.ValidationError(
+                        'File: "%(file_name)s" exceeds individual size limit: %(individual_size_limit)s',
+                        code='exceed_individual_limit',
+                        params={'file_name':file.name, 'individual_size_limit':readable_size(self.individual_size_limit)}
+                    )
                 total_size += file.size
                 if total_size > self.total_size_limit:
-                    raise forms.ValidationError('Total file size exceeds limit: %s' % self.total_size_limit)
+                    raise forms.ValidationError(
+                        'Total upload size exceeds limit: %(total_size_limit)s',
+                        code='exceed_total_limit',
+                        params={'total_size_limit':readable_size(self.total_size_limit)}
+                    )
                 if file.name in self.taken_names:
-                    raise forms.ValidationError("File or folder with same name already exists in current directory.")
+                    raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current directory.',
+                        code='taken_name', params={'taken_name':file.name})
             else:
+                # Special error
                 raise forms.ValidationError('Could not read the uploaded file')
-
+        
         return data
 
 
@@ -61,7 +71,8 @@ class FolderCreationForm(forms.Form):
         """
         data = self.cleaned_data['folder_name']
         if data in self.taken_names:
-            raise forms.ValidationError("File or folder with same name already exists in current directory.")
+            raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current directory.',
+                code='taken_name', params={'taken_name':file.name})
 
         return data
 
