@@ -3,7 +3,7 @@ from django.template.defaultfilters import slugify
 import os
 
 from .models import Project, StorageRequest
-from .utility import readable_size, list_items
+from .utility import readable_size, list_items, list_directories
 from physionet.settings import MEDIA_ROOT
 
 
@@ -13,21 +13,24 @@ class MultiFileFieldForm(forms.Form):
     """
     file_field = forms.FileField(widget=forms.ClearableFileInput(attrs={'multiple': True}))
 
-    def __init__(self, individual_size_limit, total_size_limit, taken_names, *args, **kwargs):
+    def __init__(self, individual_size_limit, total_size_limit, current_directory, *args, **kwargs):
         # Email choices are those belonging to a user
         super(MultiFileFieldForm, self).__init__(*args, **kwargs)
         self.individual_size_limit = individual_size_limit
         self.total_size_limit = total_size_limit
-        self.taken_names = taken_names
+        self.current_directory = current_directory
 
     def clean_file_field(self):
         """
         Check for file size limits and prevent upload when existing
         file/folder exists in directory
         """
+        # Prospective upload content
         data = self.cleaned_data['file_field']
-
         files = self.files.getlist('file_field')
+        
+        self.taken_names = list_items(self.current_directory, return_separate=False)
+
         total_size = 0
         for file in files:
             if file:
@@ -60,37 +63,17 @@ class FolderCreationForm(forms.Form):
     """
     folder_name = forms.CharField(max_length=50)
 
-    def __init__(self, taken_names=None, *args, **kwargs):
+    def __init__(self, current_directory=None, *args, **kwargs):
         super(FolderCreationForm, self).__init__(*args, **kwargs)
-        self.taken_names = taken_names
+        self.current_directory = current_directory
 
     def clean_folder_name(self):
         """
         Prevent upload when existing file/folder exists in directory
         """
         data = self.cleaned_data['folder_name']
-        if data in self.taken_names:
-            raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
-                code='clashing_name', params={'taken_name':data})
+        self.taken_names = list_items(self.current_directory, return_separate=False)
 
-        return data
-
-
-class RenameItemForm(forms.Form):
-    """
-    Form for renaming an item in a directory
-    """
-    item_name = forms.CharField(max_length=50)
-
-    def __init__(self, taken_names=None, *args, **kwargs):
-        super(RenameItemForm, self).__init__(*args, **kwargs)
-        self.taken_names = taken_names
-
-    def clean_item_name(self):
-        """
-        Prevent rename when existing file/folder exists in directory
-        """
-        data = self.cleaned_data['item_name']
         if data in self.taken_names:
             raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
                 code='clashing_name', params={'taken_name':data})
@@ -101,34 +84,67 @@ class RenameItemForm(forms.Form):
 class MoveItemsForm(forms.Form):
     """
     Form for moving items into a target folder
-    Has to check directory contents
+    The target_folder field is created upon form initialization, giving choices
+    of current subdirectories.
     """
-    def __init__(self, existing_subfolders=None, selected_items=None, current_directory=None, *args, **kwargs):
+    def __init__(self, current_directory, in_subdir, selected_items=None, *args, **kwargs):
         super(MoveItemsForm, self).__init__(*args, **kwargs)
-        self.existing_subfolders = existing_subfolders
+        self.current_directory = current_directory
+        self.in_subdir = in_subdir
+        self.selected_items = selected_items
 
+        existing_subfolders = list_directories(self.current_directory)
+
+        target_folder_choices = [(s, s) for s in existing_subfolders]
+        if in_subdir:
+            target_folder_choices = [('../', '*Parent Directory*')] + target_folder_choices
 
         self.fields['target_folder'] = forms.ChoiceField(
-            choices=[(s, s) for s in existing_subfolders]
+            choices=target_folder_choices, required=False
         )
-        self.selected_items = selected_items
-        self.current_directory = current_directory
-
+        
     def clean_target_folder(self):
         """
         Target folder must exist, and must not contain items with the same name
-        as the items to be moved
+        as the items to be moved.
         """
         data = self.cleaned_data['target_folder']
 
+        # The directory contents might have changed between the the time the page was
+        # loaded and when the user submits the form. Recheck directory contents.
+        # TODO
+
         # Check the target directory for clashing names
         taken_names = list_items(os.path.join(self.current_directory, data), return_separate=False)
-
         clashing_names = set(self.selected_items).intersection(set(taken_names))
 
         if clashing_names:
             raise forms.ValidationError('Item named: "%(clashing_name)s" already exists in target folder.',
                 code='clashing_name', params={'clashing_name':list(clashing_names)[0]})
+
+        return data
+
+
+class RenameItemForm(forms.Form):
+    """
+    Form for renaming an item in a directory
+    """
+    item_name = forms.CharField(max_length=50, required=False)
+
+    def __init__(self, current_directory=None, *args, **kwargs):
+        super(RenameItemForm, self).__init__(*args, **kwargs)
+        self.current_directory = current_directory
+
+    def clean_item_name(self):
+        """
+        Prevent rename when existing file/folder exists in directory
+        """
+        data = self.cleaned_data['item_name']
+        self.taken_names = list_items(self.current_directory, return_separate=False)
+
+        if data in self.taken_names:
+            raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
+                code='clashing_name', params={'taken_name':data})
 
         return data
 

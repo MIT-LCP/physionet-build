@@ -44,14 +44,14 @@
     <button class="btn btn-primary" name="move_items" type="submit"><i class="fas fa-arrow-right"></i> Move Items</button>
     <br>
     {{ rename_item_form }}
-    <button class="btn btn-primary" name="rename_item" type="submit"><i class="fa fa-trash-alt"></i> Rename Item</button>
+    <button class="btn btn-primary" name="rename_item" type="submit"><i class="fa fa-edit"></i> Rename Item</button>
   </p>
 
 
   <div class="card">
     <div class="card-header">
       &nbsp;&nbsp;&nbsp;In folder: <strong>/{{ sub_item }}</strong>
-      {% if sub_item %}
+      {% if in_subdir %}
         <a href="{% url 'project_files' project.id '' %}" style="float:right">Return to base folder</a>
       {% endif %}
     </div>
@@ -66,7 +66,7 @@
             <div class="col-md-2"><strong>Select</strong></div>
           </div>
         </li>
-        {% if sub_item %}
+        {% if in_subdir %}
           <li class="list-group-item">
             <div class="row">
               <div class="col-md-6">&nbsp;<i class="fas fa-angle-up"></i>&nbsp;&nbsp;<a href="../">Parent Directory</a></div>
