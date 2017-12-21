@@ -20,7 +20,7 @@ def download_file(request, file_path):
     Serve a file to download. file_path is the full file path of the file on the server
     """
     if os.path.exists(file_path):
-        with open(file_path, 'r') as f:
+        with open(file_path, 'rb') as f:
             response = HttpResponse(f.read())
             response['Content-Disposition'] = 'attachment; filename=' + os.path.basename(file_path)
             return response
@@ -93,14 +93,16 @@ def project_metadata(request, project_id):
 
 def selected_valid_items(request, selected_items, current_directory):
     """
-    Helper function to ensure selected files/folders are present in the
-    directory
+    Ensure selected files/folders are present in the directory.
     """
     present_items = list_items(current_directory, return_separate=False)
     selected_items = request.POST.getlist('checks')
 
     if set(selected_items).issubset(present_items):
-        return True
+        if len(selected_items) > 0:
+            return True
+        else:
+            messages.error(request, 'No items were selected.')
     else:
         messages.error(request, 'There was an error with the selected items.')
         return False
@@ -136,7 +138,7 @@ def project_files(request, project_id, sub_item=''):
     current_directory = os.path.join(project_file_root, sub_item)
     storage_info = get_storage_info(project.storage_allowance*1024**3,
             project.storage_used())
-    
+
     # Forms
     upload_files_form = MultiFileFieldForm(project_file_individual_limit,
         storage_info.remaining, current_directory)
@@ -188,7 +190,7 @@ def project_files(request, project_id, sub_item=''):
         elif 'rename_item' in request.POST:
             selected_items = request.POST.getlist('checks')
             rename_item_form = RenameItemForm(current_directory=current_directory,
-                data=request.POST)
+                selected_items=selected_items, data=request.POST)
 
             if selected_valid_items(request, selected_items, current_directory) and rename_item_form.is_valid():
                 os.rename(os.path.join(current_directory, selected_items[0]),

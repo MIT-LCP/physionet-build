@@ -131,16 +131,21 @@ class RenameItemForm(forms.Form):
     """
     item_name = forms.CharField(max_length=50, required=False)
 
-    def __init__(self, current_directory=None, *args, **kwargs):
+    def __init__(self, current_directory=None, selected_items=None, *args, **kwargs):
         super(RenameItemForm, self).__init__(*args, **kwargs)
         self.current_directory = current_directory
+        self.selected_items = selected_items
 
     def clean_item_name(self):
         """
-        Prevent rename when existing file/folder exists in directory
+        Prevent rename when existing file/folder exists in directory.
+        Prevent selection of multiple items
         """
         data = self.cleaned_data['item_name']
         self.taken_names = list_items(self.current_directory, return_separate=False)
+
+        if len(self.selected_items) != 1:
+            raise forms.ValidationError('Only one item may be renamed at a time.')
 
         if data in self.taken_names:
             raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
