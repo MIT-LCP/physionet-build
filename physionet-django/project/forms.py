@@ -85,8 +85,10 @@ class MoveItemsForm(forms.Form):
     """
     Form for moving items into a target folder
     The target_folder field is created upon form initialization, giving choices
-    of current subdirectories.
+    of current subdirectories, excluding selected folders.
     """
+    selected_items = forms.CharField(max_length=2000)
+
     def __init__(self, current_directory, in_subdir, selected_items=None, *args, **kwargs):
         super(MoveItemsForm, self).__init__(*args, **kwargs)
         self.current_directory = current_directory
@@ -100,7 +102,7 @@ class MoveItemsForm(forms.Form):
             target_folder_choices = [('../', '*Parent Directory*')] + target_folder_choices
 
         self.fields['target_folder'] = forms.ChoiceField(
-            choices=target_folder_choices, required=False
+            choices=target_folder_choices
         )
         
     def clean_target_folder(self):
@@ -129,7 +131,7 @@ class RenameItemForm(forms.Form):
     """
     Form for renaming an item in a directory
     """
-    item_name = forms.CharField(max_length=50, required=False)
+    item_name = forms.CharField(max_length=50)
 
     def __init__(self, current_directory=None, selected_items=None, *args, **kwargs):
         super(RenameItemForm, self).__init__(*args, **kwargs)
