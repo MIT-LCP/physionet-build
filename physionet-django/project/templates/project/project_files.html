@@ -32,14 +32,14 @@
 </button>
 
 <i style="float:right">
-  <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#rename-item-modal" disabled="true" id="rename-item-button"  title="Select one item to rename">
+  <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#rename-item-modal">
     <i class="fa fa-edit"></i> Rename Item
   </button>
-  <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#move-items-modal" disabled="true" id="move-items-button" title="Select item(s) to move">
+  <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#move-items-modal">
     <i class="fas fa-arrow-right"></i> Move Items
   </button>
 
-  <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#delete-items-modal" disabled="true" id="delete-items-button"  title="Select item(s) to delete">
+  <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#delete-items-modal">
     <i class="fa fa-trash-alt"></i> Delete Items
   </button>
 </i>
@@ -176,17 +176,15 @@
   <ul class="list-group list-group-flush">
     <li class="list-group-item">
       <div class="row">
-        <div class="col-md-6">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>Name</strong></div>
+        <div class="col-md-8">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>Name</strong></div>
         <div class="col-md-2"><strong>Size</strong></div>
         <div class="col-md-2"><strong>Modified</strong></div>
-        <div class="col-md-2"><strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Select</strong></div>
       </div>
     </li>
     {% if in_subdir %}
       <li class="list-group-item">
         <div class="row">
-          <div class="col-md-6">&nbsp;<i class="fas fa-angle-up"></i>&nbsp;&nbsp;<a href="../">Parent Directory</a></div>
-          <div class="col-md-2"></div>
+          <div class="col-md-8">&nbsp;<i class="fas fa-angle-up"></i>&nbsp;&nbsp;<a href="../">Parent Directory</a></div>
           <div class="col-md-2"></div>
           <div class="col-md-2"></div>
         </div>
@@ -195,58 +193,21 @@
     {% for dir in display_dirs %}
       <li class="list-group-item">
         <div class="row">
-          <div class="col-md-6"><i class="fas fa-folder-open"></i>&nbsp;&nbsp;<a href="{{ dir.name }}/">{{ dir.name }}</a></div>
+          <div class="col-md-8"><i class="fas fa-folder-open"></i>&nbsp;&nbsp;<a href="{{ dir.name }}/">{{ dir.name }}</a></div>
           <div class="col-md-2"></div>
           <div class="col-md-2"></div>
-          <div class="col-md-2"><input type='checkbox' name="checks" value='{{ dir.name }}'></div>
         </div>
       </li>
     {% endfor %}
     {% for file in display_files %}
       <li class="list-group-item">
         <div class="row">
-          <div class="col-md-6">&nbsp;<i class="far fa-file"></i>&nbsp;&nbsp;&nbsp;<a href="{{ file.name }}">{{ file.name }}</a></div>
+          <div class="col-md-8">&nbsp;<i class="far fa-file"></i>&nbsp;&nbsp;&nbsp;<a href="{{ file.name }}">{{ file.name }}</a></div>
           <div class="col-md-2">{{ file.size }}</div>
           <div class="col-md-2">{{ file.last_modified }}</div>
-          <div class="col-md-2"><input type='checkbox' name="checks" value='{{ file.name }}'></div>
         </div>
       </li>
     {% endfor %}
   </ul>
 </div>
-
-<!-- Use number of checked boxes to enable/disable buttons -->
-<script>
-  var countChecked = function() {
-    var n = $( "input:checked" ).length;
-
-    // document.getElementById("p1").innerHTML =  (n + (n === 1 ? " is" : " are") + " checked!");
-
-    if (n == 1) {
-      document.getElementById("rename-item-button").disabled = false;
-      document.getElementById("rename-item-button").title = "";
-    }
-    else {
-      document.getElementById("rename-item-button").disabled = true;
-      document.getElementById("rename-item-button").title = "Select one item to rename";
-    }
-
-    if (n > 0) {
-      document.getElementById("delete-items-button").disabled = false;
-      document.getElementById("move-items-button").disabled = false;
-      document.getElementById("delete-items-button").title = "";
-      document.getElementById("move-items-button").title = "";
-    }
-    else {
-      document.getElementById("delete-items-button").disabled = true;
-      document.getElementById("move-items-button").disabled = true;
-      document.getElementById("delete-items-button").title = "Select item(s) to delete";
-      document.getElementById("move-items-button").title = "Select item(s) to move";
-    }
-  };
-
-  countChecked();
-  $( "input[type=checkbox]" ).on( "click", countChecked );
-</script>
-
 {% endblock %}

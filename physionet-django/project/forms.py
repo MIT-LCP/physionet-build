@@ -140,9 +140,6 @@ class MoveItemsForm(forms.Form):
             choices=[(i, i) for i in existing_items]
         )
 
-        
-
-        
     def clean_destination_folder(self):
         """
         Target folder must exist, and must not contain items with the same name
@@ -182,20 +179,16 @@ class DeleteItemsForm(forms.Form):
             choices=[(i, i) for i in existing_items]
         )
 
-    def clean_item_name(self):
+    def clean_selected_items(self):
         """
-        Prevent rename when existing file/folder exists in directory.
-        Prevent selection of multiple items
+        Ensure selected items exist in directory
         """
-        data = self.cleaned_data['new_name']
-        self.taken_names = list_items(self.current_directory, return_separate=False)
+        data = self.cleaned_data['selected_items']
+        existing_items = list_items(self.current_directory, return_separate=False)
 
-        if len(self.selected_items) != 1:
-            raise forms.ValidationError('Only one item may be renamed at a time.')
-
-        if data in self.taken_names:
-            raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
-                code='clashing_name', params={'taken_name':data})
+        if data not in existing_items:
+            raise forms.ValidationError('Invalid item selection.',
+                code='invalid_item_selection')
 
         return data
 
