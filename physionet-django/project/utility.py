@@ -82,8 +82,6 @@ def move_items(items, target_folder):
         os.rename(item, os.path.join(target_folder, os.path.split(item)[-1]))
 
 
-
-
 def get_file_info(file_path):
     "Given a file path, get the information used to display it"
     name = os.path.split(file_path)[-1]

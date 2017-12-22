@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 import os
 
 from .forms import (ProjectCreationForm, metadata_forms, MultiFileFieldForm,
-    FolderCreationForm, MoveItemsForm, RenameItemForm)
+    FolderCreationForm, MoveItemsForm, RenameItemForm, DeleteItemsForm)
 from .models import Project, DatabaseMetadata, SoftwareMetadata
 from .utility import (get_file_info, get_directory_info, get_storage_info,
     write_uploaded_file, list_items, remove_items, move_items)
@@ -143,11 +143,11 @@ def project_files(request, project_id, sub_item=''):
     upload_files_form = MultiFileFieldForm(project_file_individual_limit,
         storage_info.remaining, current_directory)
     folder_creation_form = FolderCreationForm()
+    rename_item_form = RenameItemForm(current_directory)
     move_items_form = MoveItemsForm(current_directory, in_subdir)
-    rename_item_form = RenameItemForm()
+    delete_items_form = DeleteItemsForm(current_directory)
 
     if request.method == 'POST':
-        # Creating new content
         if 'upload_files' in request.POST:
             upload_files_form = MultiFileFieldForm(project_file_individual_limit,
                 storage_info.remaining, current_directory, request.POST, request.FILES)
@@ -168,25 +168,6 @@ def project_files(request, project_id, sub_item=''):
                 os.mkdir(os.path.join(current_directory, folder_creation_form.cleaned_data['folder_name']))
                 messages.success(request, 'Your folder has been created.')
 
-        # Manipulating existing content
-        elif 'delete_items' in request.POST:
-            selected_items = request.POST.getlist('checks')
-            if selected_valid_items(request, selected_items, current_directory):
-                remove_items([os.path.join(current_directory, i) for i in selected_items])
-                messages.success(request, 'Your items have been deleted.')
-            
-        elif 'move_items' in request.POST:
-            selected_items = request.POST.getlist('checks')
-            move_items_form = MoveItemsForm(current_directory=current_directory,
-                in_subdir=in_subdir, selected_items=selected_items,
-                data=request.POST)
-            
-            if selected_valid_items(request, selected_items, current_directory) and move_items_form.is_valid():
-                move_items([os.path.join(current_directory, i) for i in selected_items],
-                    os.path.join(current_directory
-                , move_items_form.cleaned_data['target_folder']))
-                messages.success(request, 'Your items have been moved.')
-
         elif 'rename_item' in request.POST:
             selected_items = request.POST.getlist('checks')
             rename_item_form = RenameItemForm(current_directory=current_directory,
@@ -196,12 +177,29 @@ def project_files(request, project_id, sub_item=''):
                 os.rename(os.path.join(current_directory, selected_items[0]),
                     os.path.join(current_directory, rename_item_form.cleaned_data['item_name']))
                 messages.success(request, 'Your item has been renamed.')
+        
+        elif 'move_items' in request.POST:
+            selected_items = request.POST.getlist('checks')
+            move_items_form = MoveItemsForm(current_directory=current_directory,
+                in_subdir=in_subdir, selected_items=selected_items,
+                data=request.POST)
+            
+            if selected_valid_items(request, selected_items, current_directory) and move_items_form.is_valid():
+                move_items([os.path.join(current_directory, i) for i in selected_items],
+                    os.path.join(current_directory, move_items_form.cleaned_data['target_folder']))
+                messages.success(request, 'Your items have been moved.')
+
+        elif 'delete_items' in request.POST:
+            selected_items = request.POST.getlist('checks')
+            if selected_valid_items(request, selected_items, current_directory):
+                remove_items([os.path.join(current_directory, i) for i in selected_items])
+                messages.success(request, 'Your items have been deleted.')
 
         # Project files may have changed. Reload the form options, and the
         # storage info.
         folder_creation_form = FolderCreationForm()
         move_items_form = MoveItemsForm(current_directory, in_subdir)
-        rename_item_form = RenameItemForm()
+        rename_item_form = RenameItemForm(current_directory)
         storage_info = get_storage_info(project.storage_allowance*1024**3,
             project.storage_used())
 
@@ -214,7 +212,8 @@ def project_files(request, project_id, sub_item=''):
         'display_files':display_files, 'display_dirs':display_dirs,
         'sub_item':sub_item, 'in_subdir':in_subdir, 'storage_info':storage_info,
         'upload_files_form':upload_files_form, 'folder_creation_form':folder_creation_form,
-        'move_items_form':move_items_form, 'rename_item_form':rename_item_form})
+        'rename_item_form':rename_item_form, 'move_items_form':move_items_form,
+        'delete_items_form':delete_items_form})
 
 
 @login_required

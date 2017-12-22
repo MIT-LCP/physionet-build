@@ -81,36 +81,74 @@ class FolderCreationForm(forms.Form):
         return data
 
 
+
+class RenameItemForm(forms.Form):
+    """
+    Form for renaming an item in a directory
+    """
+    new_name = forms.CharField(max_length=50)
+
+    def __init__(self, current_directory, *args, **kwargs):
+        super(RenameItemForm, self).__init__(*args, **kwargs)
+        self.current_directory = current_directory
+
+        # Get the available items in the directory to rename
+        existing_items = list_items(current_directory, return_separate=False)
+        self.fields['selected_item'] = forms.ChoiceField(
+            choices=[(i, i) for i in existing_items]
+        )
+
+    def clean_item_name(self):
+        """
+        Prevent rename when existing file/folder exists in directory.
+        Prevent selection of multiple items
+        """
+        data = self.cleaned_data['new_name']
+        self.taken_names = list_items(self.current_directory, return_separate=False)
+
+        if len(self.selected_items) != 1:
+            raise forms.ValidationError('Only one item may be renamed at a time.')
+
+        if data in self.taken_names:
+            raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
+                code='clashing_name', params={'taken_name':data})
+
+        return data
+
 class MoveItemsForm(forms.Form):
     """
     Form for moving items into a target folder
-    The target_folder field is created upon form initialization, giving choices
-    of current subdirectories, excluding selected folders.
     """
-    selected_items = forms.CharField(max_length=2000)
-
-    def __init__(self, current_directory, in_subdir, selected_items=None, *args, **kwargs):
+    def __init__(self, current_directory, in_subdir, *args, **kwargs):
         super(MoveItemsForm, self).__init__(*args, **kwargs)
         self.current_directory = current_directory
         self.in_subdir = in_subdir
-        self.selected_items = selected_items
 
-        existing_subfolders = list_directories(self.current_directory)
+        existing_files, existing_subdirectories = list_items(self.current_directory)
+        existing_items = existing_files + existing_subdirectories
 
-        target_folder_choices = [(s, s) for s in existing_subfolders]
+        # Get the available destination folders
+        destination_folder_choices = [(s, s) for s in existing_subdirectories]
         if in_subdir:
-            target_folder_choices = [('../', '*Parent Directory*')] + target_folder_choices
-
-        self.fields['target_folder'] = forms.ChoiceField(
-            choices=target_folder_choices
+            destination_folder_choices = [('../', '*Parent Directory*')] + destination_folder_choices
+        self.fields['destination_folder'] = forms.ChoiceField(
+            choices=destination_folder_choices
         )
+
+        # Get the available items in the directory to move
+        self.fields['selected_items'] = forms.MultipleChoiceField(
+            choices=[(i, i) for i in existing_items]
+        )
+
         
-    def clean_target_folder(self):
+
+        
+    def clean_destination_folder(self):
         """
         Target folder must exist, and must not contain items with the same name
         as the items to be moved.
         """
-        data = self.cleaned_data['target_folder']
+        data = self.cleaned_data['destination_folder']
 
         # The directory contents might have changed between the the time the page was
         # loaded and when the user submits the form. Recheck directory contents.
@@ -127,23 +165,29 @@ class MoveItemsForm(forms.Form):
         return data
 
 
-class RenameItemForm(forms.Form):
-    """
-    Form for renaming an item in a directory
-    """
-    item_name = forms.CharField(max_length=50)
 
-    def __init__(self, current_directory=None, selected_items=None, *args, **kwargs):
-        super(RenameItemForm, self).__init__(*args, **kwargs)
+
+
+class DeleteItemsForm(forms.Form):
+    """
+    Form for deleting items
+    """
+    def __init__(self, current_directory, *args, **kwargs):
+        super(DeleteItemsForm, self).__init__(*args, **kwargs)
         self.current_directory = current_directory
-        self.selected_items = selected_items
+        
+        # Get the available items in the directory to delete
+        existing_items = list_items(current_directory, return_separate=False)
+        self.fields['selected_items'] = forms.MultipleChoiceField(
+            choices=[(i, i) for i in existing_items]
+        )
 
     def clean_item_name(self):
         """
         Prevent rename when existing file/folder exists in directory.
         Prevent selection of multiple items
         """
-        data = self.cleaned_data['item_name']
+        data = self.cleaned_data['new_name']
         self.taken_names = list_items(self.current_directory, return_separate=False)
 
         if len(self.selected_items) != 1:

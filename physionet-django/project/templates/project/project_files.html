@@ -32,12 +32,13 @@
 </button>
 
 <i style="float:right">
-  <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#move-items-modal" disabled="true" id="move-items-button" title="Select item(s) to move">
-    <i class="fas fa-arrow-right"></i> Move Items
-  </button>
   <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#rename-item-modal" disabled="true" id="rename-item-button"  title="Select one item to rename">
     <i class="fa fa-edit"></i> Rename Item
   </button>
+  <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#move-items-modal" disabled="true" id="move-items-button" title="Select item(s) to move">
+    <i class="fas fa-arrow-right"></i> Move Items
+  </button>
+
   <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#delete-items-modal" disabled="true" id="delete-items-button"  title="Select item(s) to delete">
     <i class="fa fa-trash-alt"></i> Delete Items
   </button>
@@ -67,6 +68,7 @@
     </div>
   </div>
 </div>
+
 <div class="modal fade" id="create-folder-modal" tabindex="-1" role="dialog" aria-labelledby="create-folder-modal" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -90,34 +92,11 @@
   </div>
 </div>
 
-<div class="modal fade" id="move-items-modal" tabindex="-1" role="dialog" aria-labelledby="move-items-modal" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">Move Items</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <form action="" method="post" enctype="multipart/form-data">
-        <div class="modal-body">
-          {% csrf_token %}
-          {{ move_items_form }}
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-primary" name="move_items" type="submit"><i class="fas fa-arrow-right"></i> Move Items</button>
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
 <div class="modal fade" id="rename-item-modal" tabindex="-1" role="dialog" aria-labelledby="rename-item-modal" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">Rename Item</h5>
+        <h5 class="modal-title">Rename Item</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -136,11 +115,34 @@
   </div>
 </div>
 
+<div class="modal fade" id="move-items-modal" tabindex="-1" role="dialog" aria-labelledby="move-items-modal" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Move Items</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form action="" method="post" enctype="multipart/form-data">
+        <div class="modal-body">
+          {% csrf_token %}
+          {{ move_items_form }}
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" name="move_items" type="submit"><i class="fas fa-arrow-right"></i> Move Items</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <div class="modal fade" id="delete-items-modal" tabindex="-1" role="dialog" aria-labelledby="delete-items-modal" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">Delete Items</h5>
+        <h5 class="modal-title">Delete Items</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -148,7 +150,8 @@
       <form action="" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="modal-body">
-            Are you sure you want to delete the selected items?
+          {% csrf_token %}
+          {{ delete_items_form }}
         </div>
         <div class="modal-footer">
           <button class="btn btn-danger" name="delete_item" type="submit"><i class="fa fa-trash-alt"></i> Delete Items</button>
