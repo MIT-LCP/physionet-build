@@ -5,7 +5,7 @@ import os
 from .models import Project, StorageRequest
 from .utility import readable_size, list_items, list_directories
 from physionet.settings import MEDIA_ROOT
-
+import pdb
 
 class MultiFileFieldForm(forms.Form):
     """
@@ -162,22 +162,21 @@ class MoveItemsForm(forms.Form):
         return data
 
 
-
-
-
 class DeleteItemsForm(forms.Form):
     """
     Form for deleting items
     """
+    selected_items = forms.MultipleChoiceField()
+
     def __init__(self, current_directory, *args, **kwargs):
+        """
+        Get the available items in the directory to delete, and set the form
+        field's set of choices.
+        """
         super(DeleteItemsForm, self).__init__(*args, **kwargs)
         self.current_directory = current_directory
-        
-        # Get the available items in the directory to delete
-        existing_items = list_items(current_directory, return_separate=False)
-        self.fields['selected_items'] = forms.MultipleChoiceField(
-            choices=[(i, i) for i in existing_items]
-        )
+        existing_items = list_items(self.current_directory, return_separate=False)
+        self.fields['selected_items'].choices = [(i, i) for i in existing_items]
 
     def clean_selected_items(self):
         """
@@ -186,12 +185,11 @@ class DeleteItemsForm(forms.Form):
         data = self.cleaned_data['selected_items']
         existing_items = list_items(self.current_directory, return_separate=False)
 
-        if data not in existing_items:
-            raise forms.ValidationError('Invalid item selection.',
+        if not set(data).issubset(set(existing_items)):
+            raise forms.ValidationError('Invalid item selection lol.',
                 code='invalid_item_selection')
 
         return data
-
 
 class ProjectCreationForm(forms.ModelForm):
     """
