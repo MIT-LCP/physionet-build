@@ -139,8 +139,6 @@ def project_files(request, project_id, sub_item=''):
     storage_info = get_storage_info(project.storage_allowance*1024**3,
             project.storage_used())
 
-
-
     if request.method == 'POST':
         if 'upload_files' in request.POST:
             upload_files_form = MultiFileFieldForm(project_file_individual_limit,
@@ -163,25 +161,20 @@ def project_files(request, project_id, sub_item=''):
                 messages.success(request, 'Your folder has been created.')
 
         elif 'rename_item' in request.POST:
-            # selected_items = request.POST.getlist('checks')
-            # rename_item_form = RenameItemForm(current_directory=current_directory,
-            #     selected_items=selected_items, data=request.POST)
-
-            # if selected_valid_items(request, selected_items, current_directory) and rename_item_form.is_valid():
-            #     os.rename(os.path.join(current_directory, selected_items[0]),
-            #         os.path.join(current_directory, rename_item_form.cleaned_data['item_name']))
-            #     messages.success(request, 'Your item has been renamed.')
-            rename_item_form = RenameItemForm(current_directory)
+            rename_item_form = RenameItemForm(current_directory, request.POST)
+            if rename_item_form.is_valid():
+                os.rename(os.path.join(current_directory, rename_item_form.cleaned_data['selected_item']),
+                    os.path.join(current_directory, rename_item_form.cleaned_data['new_name']))
+                messages.success(request, 'Your item has been renamed.')
+            else:
+                messages.error(request, rename_item_form.errors)
         
         elif 'move_items' in request.POST:
-            selected_items = request.POST.getlist('checks')
-            move_items_form = MoveItemsForm(current_directory=current_directory,
-                in_subdir=in_subdir, selected_items=selected_items,
-                data=request.POST)
-            
-            if selected_valid_items(request, selected_items, current_directory) and move_items_form.is_valid():
-                move_items([os.path.join(current_directory, i) for i in selected_items],
-                    os.path.join(current_directory, move_items_form.cleaned_data['target_folder']))
+            move_items_form = MoveItemsForm(current_directory, in_subdir,
+                request.POST)
+            if move_items_form.is_valid():
+                move_items([os.path.join(current_directory, i) for i in move_items_form.cleaned_data['selected_items']],
+                    os.path.join(current_directory, move_items_form.cleaned_data['destination_folder']))
                 messages.success(request, 'Your items have been moved.')
 
         elif 'delete_items' in request.POST:
@@ -190,11 +183,7 @@ def project_files(request, project_id, sub_item=''):
                 remove_items([os.path.join(current_directory, i) for i in delete_items_form.cleaned_data['selected_items']])
                 messages.success(request, 'Your items have been deleted.')
 
-        # Project files may have changed. Reload the form options, and the
-        # storage info.
-        #folder_creation_form = FolderCreationForm()
-        #move_items_form = MoveItemsForm(current_directory, in_subdir)
-        #rename_item_form = RenameItemForm(current_directory)
+        # Reload the storage info.
         storage_info = get_storage_info(project.storage_allowance*1024**3,
             project.storage_used())
 

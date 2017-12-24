@@ -7,6 +7,7 @@ from .utility import readable_size, list_items, list_directories
 from physionet.settings import MEDIA_ROOT
 import pdb
 
+
 class MultiFileFieldForm(forms.Form):
     """
     Form for uploading multiple files
@@ -81,85 +82,124 @@ class FolderCreationForm(forms.Form):
         return data
 
 
-
 class RenameItemForm(forms.Form):
     """
     Form for renaming an item in a directory
     """
     new_name = forms.CharField(max_length=50)
+    selected_item = forms.ChoiceField()
 
     def __init__(self, current_directory, *args, **kwargs):
+        """
+        Get the available items in the directory to rename, and set the form
+        field's set of choices.
+        """
         super(RenameItemForm, self).__init__(*args, **kwargs)
         self.current_directory = current_directory
-
-        # Get the available items in the directory to rename
         existing_items = list_items(current_directory, return_separate=False)
-        self.fields['selected_item'] = forms.ChoiceField(
-            choices=[(i, i) for i in existing_items]
-        )
+        self.fields['selected_item'].choices = [(i, i) for i in existing_items]
 
-    def clean_item_name(self):
+    def clean_selected_item(self):
         """
-        Prevent rename when existing file/folder exists in directory.
-        Prevent selection of multiple items
+        Ensure selected item to rename exists in directory
+        """
+        data = self.cleaned_data['selected_item']
+        existing_items = list_items(self.current_directory, return_separate=False)
+
+        if data not in existing_items:
+            raise forms.ValidationError('Invalid item selection.',
+                code='invalid_item_selection')
+
+        return data
+
+    def clean_new_name(self):
+        """
+        Prevent renaming to an already taken name in the current directory.
         """
         data = self.cleaned_data['new_name']
-        self.taken_names = list_items(self.current_directory, return_separate=False)
+        taken_names = list_items(self.current_directory, return_separate=False)
 
-        if len(self.selected_items) != 1:
-            raise forms.ValidationError('Only one item may be renamed at a time.')
-
-        if data in self.taken_names:
+        if data in taken_names:
             raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
                 code='clashing_name', params={'taken_name':data})
 
         return data
 
+
 class MoveItemsForm(forms.Form):
     """
     Form for moving items into a target folder
     """
+    destination_folder = forms.ChoiceField()
+    selected_items = forms.MultipleChoiceField()
+
     def __init__(self, current_directory, in_subdir, *args, **kwargs):
+        """
+        Get the available items in the directory to move, the available
+        target subdirectories, and set the two form fields' set of choices.
+        """
         super(MoveItemsForm, self).__init__(*args, **kwargs)
         self.current_directory = current_directory
         self.in_subdir = in_subdir
 
-        existing_files, existing_subdirectories = list_items(self.current_directory)
+        existing_files, existing_subdirectories = list_items(current_directory)
         existing_items = existing_files + existing_subdirectories
 
-        # Get the available destination folders
         destination_folder_choices = [(s, s) for s in existing_subdirectories]
         if in_subdir:
             destination_folder_choices = [('../', '*Parent Directory*')] + destination_folder_choices
-        self.fields['destination_folder'] = forms.ChoiceField(
-            choices=destination_folder_choices
-        )
 
-        # Get the available items in the directory to move
-        self.fields['selected_items'] = forms.MultipleChoiceField(
-            choices=[(i, i) for i in existing_items]
-        )
+        self.fields['destination_folder'].choices = destination_folder_choices
+        self.fields['selected_items'].choices = [(i, i) for i in existing_items]
+
+    def clean_selected_items(self):
+        """
+        Ensure selected items to move exist in directory
+        """
+        data = self.cleaned_data['selected_items']
+        existing_items = list_items(self.current_directory, return_separate=False)
+
+        if not set(data).issubset(set(existing_items)):
+            raise forms.ValidationError('Invalid item selection.',
+                code='invalid_item_selection')
+
+        return data
 
     def clean_destination_folder(self):
         """
-        Target folder must exist, and must not contain items with the same name
-        as the items to be moved.
+        Selected destination folderm ust exist in current directory
+
         """
         data = self.cleaned_data['destination_folder']
+        existing_items = list_items(self.current_directory, return_separate=False)
 
-        # The directory contents might have changed between the the time the page was
-        # loaded and when the user submits the form. Recheck directory contents.
-        # TODO
-
-        # Check the target directory for clashing names
-        taken_names = list_items(os.path.join(self.current_directory, data), return_separate=False)
-        clashing_names = set(self.selected_items).intersection(set(taken_names))
-
-        if clashing_names:
-            raise forms.ValidationError('Item named: "%(clashing_name)s" already exists in target folder.',
-                code='clashing_name', params={'clashing_name':list(clashing_names)[0]})
+        if data not in existing_items:
+            raise forms.ValidationError('Invalid destination folder selection.',
+                code='invalid_destination_selection')
 
         return data
+
+    def clean(self):
+        """
+        Selected destination folder:
+        - Must not be one of the items selected to be moved
+        - Must not contain items with the same name as the items to be moved
+        """
+        destination_folder = self.cleaned_data['destination_folder']
+        selected_items = self.cleaned_data['selected_items']
+
+        if destination_folder in selected_items:
+            raise forms.ValidationError('Cannot move folder: %(destination_folder)s into itself',
+                code='move_folder_self',
+                params={'destination_folder':destination_folder})
+
+        taken_names = list_items(os.path.join(self.current_directory, destination_folder),
+            return_separate=False)
+        clashing_names = set(selected_items).intersection(set(taken_names))
+
+        if clashing_names:
+            raise forms.ValidationError('Item named: "%(clashing_name)s" already exists in destination folder.',
+                code='clashing_name', params={'clashing_name':list(clashing_names)[0]})
 
 
 class DeleteItemsForm(forms.Form):
@@ -175,21 +215,22 @@ class DeleteItemsForm(forms.Form):
         """
         super(DeleteItemsForm, self).__init__(*args, **kwargs)
         self.current_directory = current_directory
-        existing_items = list_items(self.current_directory, return_separate=False)
+        existing_items = list_items(current_directory, return_separate=False)
         self.fields['selected_items'].choices = [(i, i) for i in existing_items]
 
     def clean_selected_items(self):
         """
-        Ensure selected items exist in directory
+        Ensure selected items to delete exist in directory
         """
         data = self.cleaned_data['selected_items']
         existing_items = list_items(self.current_directory, return_separate=False)
 
         if not set(data).issubset(set(existing_items)):
-            raise forms.ValidationError('Invalid item selection lol.',
+            raise forms.ValidationError('Invalid item selection.',
                 code='invalid_item_selection')
 
         return data
+
 
 class ProjectCreationForm(forms.ModelForm):
     """
