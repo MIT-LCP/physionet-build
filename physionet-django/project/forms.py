@@ -8,6 +8,9 @@ from physionet.settings import MEDIA_ROOT
 import pdb
 
 
+illegal_patterns = ['/','..',]
+
+
 class MultiFileFieldForm(forms.Form):
     """
     Form for uploading multiple files
@@ -79,6 +82,11 @@ class FolderCreationForm(forms.Form):
             raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
                 code='clashing_name', params={'taken_name':data})
 
+        for substring in illegal_patterns:
+            if substring in data:
+                raise forms.ValidationError('Illegal pattern specified in item name: "%(illegal_pattern)s"',
+                code='illegal_pattern', params={'illegal_pattern':substring})
+
         return data
 
 
@@ -114,7 +122,8 @@ class RenameItemForm(forms.Form):
 
     def clean_new_name(self):
         """
-        Prevent renaming to an already taken name in the current directory.
+        - Prevent renaming to an already taken name in the current directory.
+        - Prevent illegal names
         """
         data = self.cleaned_data['new_name']
         taken_names = list_items(self.current_directory, return_separate=False)
@@ -122,6 +131,11 @@ class RenameItemForm(forms.Form):
         if data in taken_names:
             raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
                 code='clashing_name', params={'taken_name':data})
+
+        for substring in illegal_patterns:
+            if substring in data:
+                raise forms.ValidationError('Illegal pattern specified in item name: "%(illegal_pattern)s"',
+                code='illegal_pattern', params={'illegal_pattern':substring})
 
         return data
 
@@ -185,21 +199,33 @@ class MoveItemsForm(forms.Form):
         - Must not be one of the items selected to be moved
         - Must not contain items with the same name as the items to be moved
         """
+        validation_errors = []
+
         destination_folder = self.cleaned_data['destination_folder']
         selected_items = self.cleaned_data['selected_items']
 
         if destination_folder in selected_items:
-            raise forms.ValidationError('Cannot move folder: %(destination_folder)s into itself',
+            # raise forms.ValidationError('Cannot move folder: %(destination_folder)s into itself',
+            #     code='move_folder_self',
+            #     params={'destination_folder':destination_folder})
+
+            validation_errors.append(forms.ValidationError('Cannot move folder: %(destination_folder)s into itself',
                 code='move_folder_self',
-                params={'destination_folder':destination_folder})
+                params={'destination_folder':destination_folder}))
 
         taken_names = list_items(os.path.join(self.current_directory, destination_folder),
             return_separate=False)
         clashing_names = set(selected_items).intersection(set(taken_names))
 
         if clashing_names:
-            raise forms.ValidationError('Item named: "%(clashing_name)s" already exists in destination folder.',
-                code='clashing_name', params={'clashing_name':list(clashing_names)[0]})
+            # raise forms.ValidationError('Item named: "%(clashing_name)s" already exists in destination folder.',
+            #     code='clashing_name', params={'clashing_name':list(clashing_names)[0]})
+            validation_errors.append(forms.ValidationError('Item named: "%(clashing_name)s" already exists in destination folder.',
+                code='clashing_name', params={'clashing_name':list(clashing_names)[0]}))
+        
+        if validation_errors:
+            raise forms.ValidationError(validation_errors)
+
 
 
 class DeleteItemsForm(forms.Form):

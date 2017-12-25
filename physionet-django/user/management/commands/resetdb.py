@@ -13,7 +13,6 @@ class Command(BaseCommand):
         installed_apps = [a for a in settings.INSTALLED_APPS if not any(noncustom in a for noncustom in ['django', 'ckeditor'])]
         clear_db(installed_apps)        
         load_fixtures(installed_apps)
-        reset_project_files()
 
 
 def remove_migration_files(app):
@@ -40,30 +39,6 @@ def clear_db(installed_apps):
     # Remake and reapply the migrations
     call_command('makemigrations')
     call_command('migrate')
-
-
-def reset_project_files():
-    """
-    Delete all project files and directories
-    Insert new demo project files
-
-    The directory /physionet/ and /physionet/media/ must exist
-    """
-    project_root = os.path.join(settings.MEDIA_ROOT, 'projects')
-    
-    # Delete project files
-    if os.path.isdir(project_root):
-        for project_dir in [os.path.join(project_root, d) for d in os.listdir(project_root) if os.path.isdir(os.path.join(project_root, d))]:
-            shutil.rmtree(project_dir)
-    else:
-        os.mkdir(project_root)
-
-    # Create demo project files and folders
-    # for project in Project.objects.all():
-    #     os.mkdir(project.file_root())
-    #     os.mkdir(os.path.join(project.file_root(), 'subject_100'))
-    #     os.mkdir(os.path.join(project.file_root(), 'subject_101'))
-    #     os.mkdir(os.path.join(project.file_root(), 'subject_102'))
 
 
 def load_fixtures(installed_apps):

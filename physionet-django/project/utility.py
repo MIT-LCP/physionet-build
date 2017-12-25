@@ -147,3 +147,13 @@ def write_uploaded_file(file, write_file_path):
     with open(write_file_path, 'wb+') as destination:
         for chunk in file.chunks():
             destination.write(chunk)
+
+
+def get_form_errors(form):
+    """
+    Extract all errors from a form eith errors
+    """
+    all_errors = []
+    for field in form.errors:
+        all_errors += form.errors[field]
+    return all_errors
