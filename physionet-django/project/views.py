@@ -15,6 +15,22 @@ from user.forms import ProfileForm
 import pdb
 
 
+def collaborator_required(base_function):
+    """
+    Decorator to ensure only collaborators can access projects
+    """
+    @login_required
+    def function_wrapper(request, *args, **kwargs):
+        #pdb.set_trace()
+        user = request.user
+        project = Project.objects.get(id=kwargs['project_id'])
+        collaborators = project.collaborators.all()
+        if user not in collaborators:
+            raise Http404("Unable to access project")
+        return base_function(request, *args, **kwargs)
+    return function_wrapper
+
+
 def download_file(request, file_path):
     """
     Serve a file to download. file_path is the full file path of the file on the server
@@ -55,22 +71,15 @@ def create_project(request):
     return render(request, 'project/create_project.html', {'form':form})
 
 
-@login_required
+@collaborator_required
 def project_overview(request, project_id):
     "Overview page of a project"
-    user = request.user
-
-    # Only allow access if the user is a collaborator
-    # Turn this into a decorator, with login decorator
     project = Project.objects.get(id=project_id)
-    collaborators = project.collaborators.all()
-    if user not in collaborators:
-        raise Http404("Unable to access project")
-
+    
     return render(request, 'project/project_overview.html', {'project':project})
 
 
-@login_required
+@collaborator_required
 def project_metadata(request, project_id):
     project = Project.objects.get(id=project_id)
 
@@ -88,24 +97,6 @@ def project_metadata(request, project_id):
 
     return render(request, 'project/project_metadata.html', {'project':project,
         'form':form, 'messages':messages.get_messages(request)})
-
-
-
-def selected_valid_items(request, selected_items, current_directory):
-    """
-    Ensure selected files/folders are present in the directory.
-    """
-    present_items = list_items(current_directory, return_separate=False)
-    selected_items = request.POST.getlist('checks')
-
-    if set(selected_items).issubset(present_items):
-        if len(selected_items) > 0:
-            return True
-        else:
-            messages.error(request, 'No items were selected.')
-    else:
-        messages.error(request, 'There was an error with the selected items.')
-        return False
 
 
 # Helper functions for project files view
@@ -151,7 +142,7 @@ def delete_items(request, delete_items_form):
     else:
         messages.error(request, get_form_errors(delete_items_form))
 
-@login_required
+@collaborator_required
 def project_files(request, project_id, sub_item=''):
     "View and manipulate files in a project"
     project = Project.objects.get(id=project_id)
@@ -231,7 +222,7 @@ def project_files(request, project_id, sub_item=''):
         'delete_items_form':delete_items_form})
 
 
-@login_required
+@collaborator_required
 def project_collaborators(request, project_id):
     project = Project.objects.get(id=project_id)
     return render(request, 'project/project_collaborators.html', {'project':project})
