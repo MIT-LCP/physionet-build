@@ -34,6 +34,17 @@
       "resource_type":["Database"]
     }
   },
+  {
+    "model": "project.Project",
+    "fields": {
+      "title": "WFDB",
+      "owner": ["george@mit.edu"],
+      "collaborators": [["george@mit.edu"]],
+      "creation_datetime":"2017-10-30T09:30:30-05:00",
+      "modified_datetime":"2017-10-30T09:30:30-05:00",
+      "resource_type":["Software"]
+    }
+  },
 
 
   {

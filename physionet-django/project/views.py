@@ -21,13 +21,24 @@ def collaborator_required(base_function):
     """
     @login_required
     def function_wrapper(request, *args, **kwargs):
-        #pdb.set_trace()
         user = request.user
         project = Project.objects.get(id=kwargs['project_id'])
         collaborators = project.collaborators.all()
         if user not in collaborators:
             raise Http404("Unable to access project")
         return base_function(request, *args, **kwargs)
+    return function_wrapper
+
+
+def admin_access(base_function):
+    """
+    Decorator to allow admins to access any view
+    """
+    @login_required
+    def function_wrapper(request, *args, **kwargs):
+        user = request.user
+        if user.is_admin:
+            return base_function(request, *args, **kwargs)
     return function_wrapper
 
 
@@ -183,6 +194,8 @@ def project_files(request, project_id, sub_item=''):
             if storage_request_form.is_valid():
                 storage_request_form.save()
                 messages.success(request, 'Your storage request has been received.')
+            else:
+                messages.error(request, get_form_errors(storage_request_form))
 
         if 'upload_files' in request.POST:
             upload_files_form = MultiFileFieldForm(project_file_individual_limit,

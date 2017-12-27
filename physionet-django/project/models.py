@@ -174,9 +174,8 @@ class StorageRequest(models.Model):
     """
     project = models.OneToOneField('project.Project')
     # Requested storage size in GB
-    storage_size = models.SmallIntegerField(validators=[
-        MaxValueValidator(100), MinValueValidator(1)
-        ])
+    request_allowance = models.SmallIntegerField(validators=[MaxValueValidator(100),
+        MinValueValidator(1)])
     request_date = models.DateTimeField(auto_now_add=True)
 
 

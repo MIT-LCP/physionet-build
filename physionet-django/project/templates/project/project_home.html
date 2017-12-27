@@ -82,29 +82,30 @@
   </div>
   <br>
 
-  <div class="card" >
-    <div class="card-header">
-      <h4>Storage Requests</h4>
+  {% if user.is_admin %}
+    <div class="card" >
+      <div class="card-header">
+        <h4>Storage Requests</h4>
+      </div>
+      <ul class="list-group list-group-flush">
+        {% if storage_requests %}
+          {% for storage_request in storage_requests %}
+            <li class="list-group-item">
+              <h4><a href="{% url 'project_overview' storage_request.project.id %}">{{ storage_request.project.title }}</a></h4>
+              <p class="list-group-item-text text-muted">
+                <small>Requested on {{ storage_request.request_date }}.</small>
+              </p>
+            </li>
+          {% endfor %}
+        {% else %}
+          <div class="card-body text-center">
+            <h4 class="card-title">No outstanding storage requests</h4>
+          </div>
+        {% endif %}
+      </ul>
     </div>
-
-    <ul class="list-group list-group-flush">
-      {% if storage_requests %}
-        {% for storage_request in storage_requests %}
-          <li class="list-group-item">
-            <h4>{{ storage_request.project.title }}</h4>
-          </li>
-        {% endfor %}
-      {% else %}
-        <div class="card-body text-center">
-          <h4 class="card-title">No outstanding storage requests</h4>
-        </div>
-      {% endif %}
-    </ul>
-  </div>
-  <br>
+    <br>
+  {% endif %}
 
 </div> <!-- /container -->
-
-
-
 {% endblock %}
