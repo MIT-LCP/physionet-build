@@ -55,7 +55,6 @@
     }
   },
 
-
   {
     "model": "project.Topic",
     "fields": {

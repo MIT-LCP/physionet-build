@@ -8,6 +8,7 @@
 
 {% block local_css %}
 <link rel="stylesheet" type="text/css" href="{% static 'custom/css/project-home.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/settings.css' %}"/>
 {% endblock %}
 
 {% block content %}
@@ -83,29 +84,65 @@
   <br>
 
   {% if user.is_admin %}
-    <div class="card" >
-      <div class="card-header">
-        <h4>Storage Requests</h4>
-      </div>
-      <ul class="list-group list-group-flush">
-        {% if storage_requests %}
-          {% for storage_request in storage_requests %}
-            <li class="list-group-item">
-              <h4><a href="{% url 'project_overview' storage_request.project.id %}">{{ storage_request.project.title }}</a></h4>
-              <p class="list-group-item-text text-muted">
-                <small>Requested on {{ storage_request.request_datetime }}.</small>
-              </p>
-            </li>
-          {% endfor %}
-        {% else %}
-          <div class="card-body text-center">
-            <h4 class="card-title">No outstanding storage requests</h4>
-          </div>
-        {% endif %}
-      </ul>
+  <div class="card">
+    <div class="card-header">
+      <h4>Storage Requests</h4>
     </div>
-    <br>
+
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item">
+        <div class="row">
+          <div class="col-md-6"><strong>Project</strong></div>
+          <div class="col-md-2"><strong>Request (GB)</strong></div>
+          <div class="col-md-2"><strong>Request Date</strong></div>
+          <div class="col-md-2"></div>
+        </div>
+      </li>
+      {% for storage_request in storage_requests %}
+        <li class="list-group-item">
+          <div class="row">
+            <div class="col-md-6"><a href="{% url 'project_overview' storage_request.project.id %}">{{ storage_request.project.title }}</a></div>
+            <div class="col-md-2">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ storage_request.request_allowance }}</div>
+            <div class="col-md-2">{{ storage_request.request_datetime|date }}</div>
+            <div class="col-md-2"><button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#storage-response-modal-{{ storage_request.project.id }}">
+              <i class="fa fa-reply"></i> Respond</button>
+            </div>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+  <br>
+
+  <!-- A modal and response form for each storage request -->
+  {% for storage_response_form in storage_response_formset %}
+    <div class="modal fade" id="storage-response-modal-{{ storage_response_form.project_id.value }}" tabindex="-1" role="dialog" aria-labelledby="storage-response-modal-{{ storage_response_form.project_id }}" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Respond to Storage Request</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <form action="" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="modal-body">
+              {% csrf_token %}
+              {{ storage_response_form }}
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-primary" name="storage_response" type="submit"><i class="fa fa-reply"></i> Submit Response</button>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+
   {% endif %}
+
 
 </div> <!-- /container -->
 {% endblock %}

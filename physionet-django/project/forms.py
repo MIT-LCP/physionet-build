@@ -332,3 +332,9 @@ class StorageRequestForm(forms.ModelForm):
             raise forms.ValidationError('Project already has the requested capacity.',
                 code='already_has_allowance')
 
+
+class StorageResponseForm(forms.Form):
+    project_id = forms.IntegerField(widget= forms.HiddenInput())
+    response = forms.ChoiceField(choices=[('Approve','Approve'), ('Reject','Reject')])
+    message = forms.CharField(max_length=500, widget = forms.Textarea())
+

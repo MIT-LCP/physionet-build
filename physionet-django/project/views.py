@@ -1,11 +1,13 @@
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.forms import formset_factory
 from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
 import os
 
 from .forms import (ProjectCreationForm, metadata_forms, MultiFileFieldForm,
-    FolderCreationForm, MoveItemsForm, RenameItemForm, DeleteItemsForm, StorageRequestForm)
+    FolderCreationForm, MoveItemsForm, RenameItemForm, DeleteItemsForm,
+    StorageRequestForm, StorageResponseForm)
 from .models import Project, DatabaseMetadata, SoftwareMetadata, StorageRequest
 from .utility import (get_file_info, get_directory_info, get_storage_info,
     write_uploaded_file, list_items, remove_items, move_items, get_form_errors)
@@ -43,10 +45,30 @@ def download_file(request, file_path):
         return Http404()
 
 
+def process_storage_request(request, storage_response_form):
+    "Accept or deny a project's storage request"
+    if storage_response_form.is_valid():
+        project = storage_response_form.cleaned_data['project']
+
+        if storage_response_form.response == 'Approve':
+            project.storage_allowance = storage_response_form.cleaned_data['']
+            messages.success(request, 'The storage request has been granted')
+        else:
+            messages.success(request, 'The storage request has been denied')
+        # Delete the storage request object
+        project.delete()
+    else:
+        messages.error(request, get_form_errors(storage_response_form))
+
+
 @login_required
 def project_home(request):
-    "Home page listing projects a user is involved in"
-    
+    """
+    Home page listing projects a user is involved in:
+    - Collaborating projects
+    - Reviewing projects
+    - If admin, process storage requests
+    """
     user = request.user
     projects = Project.objects.filter(collaborators__in=[user])
 
@@ -54,9 +76,25 @@ def project_home(request):
     review_projects = None
 
     context = {'projects':projects, 'review_projects':review_projects}
+
+    # Storage requests
     if user.is_admin:
+        if request.method == 'POST':
+            storage_response_form = StorageResponseForm(request.POST)
+            if storage_response_form.is_valid():
+                process_storage_request()
+
         storage_requests = StorageRequest.objects.all()
         context['storage_requests'] = storage_requests
+        if storage_requests:
+            StorageResponseFormSet = formset_factory(StorageResponseForm, extra=0)
+            storage_response_formset = StorageResponseFormSet(
+                initial=[{'project_id':sr.project.id} for sr in storage_requests])
+
+        context['storage_response_formset'] = storage_response_formset
+
+    
+
     return render(request, 'project/project_home.html', context)
 
 
@@ -239,23 +277,6 @@ def project_files(request, project_id, sub_item=''):
         'folder_creation_form':folder_creation_form,
         'rename_item_form':rename_item_form, 'move_items_form':move_items_form,
         'delete_items_form':delete_items_form})
-
-@collaborator_required
-def request_storage(request, project_id):
-    """
-    Page to request storage
-    """
-    project = Project.objects.get(id=project_id)
-    storage_info = get_storage_info(project.storage_allowance*1024**3,
-            project.storage_used())
-    if request.method == 'POST':
-        storage_request_form = StorageRequestForm(request.POST)
-
-
-    storage_request_form = StorageRequestForm()
-
-    return render(request, 'project/request_storage.html', 
-        {'storage_request_form':storage_request_form})
 
 
 @collaborator_required
