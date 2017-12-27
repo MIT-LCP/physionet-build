@@ -1,5 +1,6 @@
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -173,7 +174,9 @@ class StorageRequest(models.Model):
     """
     project = models.OneToOneField('project.Project')
     # Requested storage size in GB
-    storage_size = models.SmallIntegerField()
+    storage_size = models.SmallIntegerField(validators=[
+        MaxValueValidator(100), MinValueValidator(1)
+        ])
     request_date = models.DateTimeField(auto_now_add=True)
 
 

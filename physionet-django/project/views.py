@@ -5,8 +5,8 @@ from django.contrib.auth.decorators import login_required
 import os
 
 from .forms import (ProjectCreationForm, metadata_forms, MultiFileFieldForm,
-    FolderCreationForm, MoveItemsForm, RenameItemForm, DeleteItemsForm)
-from .models import Project, DatabaseMetadata, SoftwareMetadata
+    FolderCreationForm, MoveItemsForm, RenameItemForm, DeleteItemsForm, StorageRequestForm)
+from .models import Project, DatabaseMetadata, SoftwareMetadata, StorageRequest
 from .utility import (get_file_info, get_directory_info, get_storage_info,
     write_uploaded_file, list_items, remove_items, move_items, get_form_errors)
 from physionet.settings import MEDIA_ROOT, project_file_individual_limit
@@ -53,8 +53,12 @@ def project_home(request):
 
     # Projects that the user is responsible for reviewing
     review_projects = None
-    return render(request, 'project/project_home.html', {'projects':projects,
-        'review_projects':review_projects})
+
+    context = {'projects':projects, 'review_projects':review_projects}
+    if user.is_admin:
+        storage_requests = StorageRequest.objects.all()
+        context['storage_requests'] = storage_requests
+    return render(request, 'project/project_home.html', context)
 
 
 @login_required
@@ -174,6 +178,12 @@ def project_files(request, project_id, sub_item=''):
             project.storage_used())
 
     if request.method == 'POST':
+        if 'request_storage' in request.POST:
+            storage_request_form = StorageRequestForm(request.POST)
+            if storage_request_form.is_valid():
+                storage_request_form.save()
+                messages.success(request, 'Your storage request has been received.')
+
         if 'upload_files' in request.POST:
             upload_files_form = MultiFileFieldForm(project_file_individual_limit,
                 storage_info.remaining, current_directory, request.POST, request.FILES)
@@ -202,6 +212,11 @@ def project_files(request, project_id, sub_item=''):
             project.storage_used())
 
     # Forms
+    storage_request = StorageRequest.objects.filter(project=project).first()
+    if storage_request:
+        storage_request_form = None
+    else:
+        storage_request_form = StorageRequestForm(initial={'project':project})
     upload_files_form = MultiFileFieldForm(project_file_individual_limit,
         storage_info.remaining, current_directory)
     folder_creation_form = FolderCreationForm()
@@ -217,9 +232,29 @@ def project_files(request, project_id, sub_item=''):
     return render(request, 'project/project_files.html', {'project':project,
         'display_files':display_files, 'display_dirs':display_dirs,
         'sub_item':sub_item, 'in_subdir':in_subdir, 'storage_info':storage_info,
-        'upload_files_form':upload_files_form, 'folder_creation_form':folder_creation_form,
+        'storage_request':storage_request,
+        'storage_request_form':storage_request_form,
+        'upload_files_form':upload_files_form,
+        'folder_creation_form':folder_creation_form,
         'rename_item_form':rename_item_form, 'move_items_form':move_items_form,
         'delete_items_form':delete_items_form})
+
+@collaborator_required
+def request_storage(request, project_id):
+    """
+    Page to request storage
+    """
+    project = Project.objects.get(id=project_id)
+    storage_info = get_storage_info(project.storage_allowance*1024**3,
+            project.storage_used())
+    if request.method == 'POST':
+        storage_request_form = StorageRequestForm(request.POST)
+
+
+    storage_request_form = StorageRequestForm()
+
+    return render(request, 'project/request_storage.html', 
+        {'storage_request_form':storage_request_form})
 
 
 @collaborator_required

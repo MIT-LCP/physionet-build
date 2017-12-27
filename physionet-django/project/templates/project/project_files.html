@@ -17,7 +17,13 @@
       </div>
     </div>
     <br>
-    <a href="#" class="card-link">Request More Storage</a>
+    {% if storage_request %}
+      <em>Storage request for {{ storage_request.storage_size }}GB pending</em>
+    {% else %}
+      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#request-storage-modal">
+        <i class="fa fa-arrow-circle-up"></i> Request more storage
+      </button>
+    {% endif %}
   </div>
 </div>
 <br>
@@ -46,6 +52,31 @@
 
 
 <!-- Modals for manipulating content -->
+{% if not storage_request %}
+  <div class="modal fade" id="request-storage-modal" tabindex="-1" role="dialog" aria-labelledby="request-storage-modal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Request Storage</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form action="" method="post" enctype="multipart/form-data">
+          <div class="modal-body">
+            {% csrf_token %}
+            {{ storage_request_form }}
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-success" name="request_storage" type="submit"><i class="fa fa-arrow-circle-up"></i> Request Storage</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
 <div class="modal fade" id="upload-files-modal" tabindex="-1" role="dialog" aria-labelledby="upload-files-modal" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -128,6 +159,7 @@
         <div class="modal-body">
           {% csrf_token %}
           {{ move_items_form }}
+          Hold <em>ctrl</em> or <em>shift</em> to select multiple
         </div>
         <div class="modal-footer">
           <button class="btn btn-primary" name="move_items" type="submit"><i class="fas fa-arrow-right"></i> Move Items</button>
@@ -152,6 +184,7 @@
         <div class="modal-body">
           {% csrf_token %}
           {{ delete_items_form }}
+          Hold <em>ctrl</em> or <em>shift</em> to select multiple
         </div>
         <div class="modal-footer">
           <button class="btn btn-danger" name="delete_items" type="submit"><i class="fa fa-trash-alt"></i> Delete Items</button>
