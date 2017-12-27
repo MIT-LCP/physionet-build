@@ -81,7 +81,7 @@ class Project(CommonMetadata, DatabaseMetadata, SoftwareMetadata):
     modified_datetime = models.DateTimeField(auto_now=True)
 
     # Maximum allowed storage capacity in GB
-    storage_allowance = models.SmallIntegerField(default=2)
+    storage_allowance = models.SmallIntegerField(default=1)
     owner = models.ForeignKey('user.User', related_name='owned_projects')
     collaborators = models.ManyToManyField('user.User', related_name='collaborating_projects')
     
@@ -176,7 +176,7 @@ class StorageRequest(models.Model):
     # Requested storage size in GB
     request_allowance = models.SmallIntegerField(validators=[MaxValueValidator(100),
         MinValueValidator(1)])
-    request_date = models.DateTimeField(auto_now_add=True)
+    request_datetime = models.DateTimeField(auto_now_add=True)
 
 
 class AuthorInfo(models.Model):

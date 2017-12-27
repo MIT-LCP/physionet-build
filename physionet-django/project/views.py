@@ -24,21 +24,9 @@ def collaborator_required(base_function):
         user = request.user
         project = Project.objects.get(id=kwargs['project_id'])
         collaborators = project.collaborators.all()
-        if user not in collaborators:
+        if not user.is_admin and user not in collaborators:
             raise Http404("Unable to access project")
         return base_function(request, *args, **kwargs)
-    return function_wrapper
-
-
-def admin_access(base_function):
-    """
-    Decorator to allow admins to access any view
-    """
-    @login_required
-    def function_wrapper(request, *args, **kwargs):
-        user = request.user
-        if user.is_admin:
-            return base_function(request, *args, **kwargs)
     return function_wrapper
 
 

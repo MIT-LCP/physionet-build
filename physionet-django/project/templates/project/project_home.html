@@ -93,7 +93,7 @@
             <li class="list-group-item">
               <h4><a href="{% url 'project_overview' storage_request.project.id %}">{{ storage_request.project.title }}</a></h4>
               <p class="list-group-item-text text-muted">
-                <small>Requested on {{ storage_request.request_date }}.</small>
+                <small>Requested on {{ storage_request.request_datetime }}.</small>
               </p>
             </li>
           {% endfor %}

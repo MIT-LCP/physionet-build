@@ -46,6 +46,15 @@
     }
   },
 
+  {
+    "model": "project.StorageRequest",
+    "fields": {
+      "project": "3",
+      "request_allowance":"3",
+      "request_datetime":"2017-10-30T09:30:30-05:00"
+    }
+  },
+
 
   {
     "model": "project.Topic",
