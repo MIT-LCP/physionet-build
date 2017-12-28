@@ -115,8 +115,12 @@
   <br>
 
   <!-- A modal and response form for each storage request -->
+  {% if storage_response_formset %}
+  <form action="" method="post" enctype="multipart/form-data">
+    {{ storage_response_formset.management_form }}
+    {% csrf_token %}
   {% for storage_response_form in storage_response_formset %}
-    <div class="modal fade" id="storage-response-modal-{{ storage_response_form.project_id.value }}" tabindex="-1" role="dialog" aria-labelledby="storage-response-modal-{{ storage_response_form.project_id }}" aria-hidden="true">
+    <div class="modal fade" id="storage-response-modal-{{ storage_response_form.project_id.value }}" tabindex="-1" role="dialog" aria-labelledby="storage-response-modal-{{ storage_response_form.project_id.value }}" aria-hidden="true">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
@@ -125,21 +129,24 @@
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
-          <form action="" method="post" enctype="multipart/form-data">
-            {% csrf_token %}
+          
             <div class="modal-body">
-              {% csrf_token %}
+              
               {{ storage_response_form }}
             </div>
             <div class="modal-footer">
-              <button class="btn btn-primary" name="storage_response" type="submit"><i class="fa fa-reply"></i> Submit Response</button>
+              <button class="btn btn-primary" name="{{ storage_response_form.project_id.value }}" type="submit"><i class="fa fa-reply"></i> Submit Response</button>
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
             </div>
-          </form>
+          
         </div>
       </div>
     </div>
+
+
   {% endfor %}
+    </form>
+  {% endif %}
 
   {% endif %}
 

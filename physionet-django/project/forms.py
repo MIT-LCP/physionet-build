@@ -336,5 +336,5 @@ class StorageRequestForm(forms.ModelForm):
 class StorageResponseForm(forms.Form):
     project_id = forms.IntegerField(widget= forms.HiddenInput())
     response = forms.ChoiceField(choices=[('Approve','Approve'), ('Reject','Reject')])
-    message = forms.CharField(max_length=500, widget = forms.Textarea())
+    message = forms.CharField(max_length=500, required=False, widget = forms.Textarea())
 

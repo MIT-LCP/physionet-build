@@ -45,20 +45,25 @@ def download_file(request, file_path):
         return Http404()
 
 
-def process_storage_request(request, storage_response_form):
+def process_storage_request(request, storage_response_formset):
     "Accept or deny a project's storage request"
-    if storage_response_form.is_valid():
-        project = storage_response_form.cleaned_data['project']
 
-        if storage_response_form.response == 'Approve':
-            project.storage_allowance = storage_response_form.cleaned_data['']
-            messages.success(request, 'The storage request has been granted')
+
+    for storage_response_form in storage_request_formset:
+        if storage_response_form.is_valid():
+            project_id = storage_response_form.cleaned_data['project_id']
+            storage_request = StorageRequest.objects.get(project=project_id)
+            project = storage_request.project
+
+            if storage_response_form.response == 'Approve':
+                project.storage_allowance = storage_request.request_allowance
+                messages.success(request, 'The storage request has been approved')
+            else:
+                messages.success(request, 'The storage request has been denied')
+            # Delete the storage request object
+            storage_request.delete()
         else:
-            messages.success(request, 'The storage request has been denied')
-        # Delete the storage request object
-        project.delete()
-    else:
-        messages.error(request, get_form_errors(storage_response_form))
+            messages.error(request, get_form_errors(storage_response_form))
 
 
 @login_required
@@ -79,21 +84,22 @@ def project_home(request):
 
     # Storage requests
     if user.is_admin:
+        StorageResponseFormSet = formset_factory(StorageResponseForm, extra=0)
         if request.method == 'POST':
-            storage_response_form = StorageResponseForm(request.POST)
-            if storage_response_form.is_valid():
-                process_storage_request()
+
+            storage_response_formset = StorageResponseFormSet(request.POST)
+            pdb.set_trace()
+            process_storage_request(request, storage_response_formset)
 
         storage_requests = StorageRequest.objects.all()
-        context['storage_requests'] = storage_requests
+        
         if storage_requests:
-            StorageResponseFormSet = formset_factory(StorageResponseForm, extra=0)
+            context['storage_requests'] = storage_requests
+            
             storage_response_formset = StorageResponseFormSet(
                 initial=[{'project_id':sr.project.id} for sr in storage_requests])
 
         context['storage_response_formset'] = storage_response_formset
-
-    
 
     return render(request, 'project/project_home.html', context)
 
