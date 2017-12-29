@@ -4,6 +4,7 @@ from django.forms import formset_factory
 from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
 import os
+import re
 
 from .forms import (ProjectCreationForm, metadata_forms, MultiFileFieldForm,
     FolderCreationForm, MoveItemsForm, RenameItemForm, DeleteItemsForm,
@@ -19,7 +20,7 @@ import pdb
 
 def collaborator_required(base_function):
     """
-    Decorator to ensure only collaborators can access projects
+    Decorator to ensure only collaborators (and admins) can access projects
     """
     @login_required
     def function_wrapper(request, *args, **kwargs):
@@ -47,23 +48,34 @@ def download_file(request, file_path):
 
 def process_storage_request(request, storage_response_formset):
     "Accept or deny a project's storage request"
+    # Only process the form that was submitted. Find the relevant project
+    matched_project_ids = [re.findall('respond-(?P<project_id>\d+)', k) for k in request.POST.keys()]
+    matched_project_ids = [i for i in matched_project_ids if i]
+
+    if len(matched_project_ids) == 1:
+        project_id = int(matched_project_ids[0][0])
+
+        for storage_response_form in storage_response_formset:
+
+            if storage_response_form.is_valid():
+                if project_id == int(storage_response_form.cleaned_data['project_id']):
+                    storage_request = StorageRequest.objects.get(project=project_id)
+                    project = storage_request.project
+                    if storage_response_form.cleaned_data['response'] == 'Approve':
+                        project.storage_allowance = storage_request.request_allowance
+                        project.save()
+                        messages.success(request, 'The storage request has been approved')
+                    else:
+                        messages.success(request, 'The storage request has been denied')
+                    # Delete the storage request object
+                    storage_request.delete()
+            
+            #messages.error(request, get_form_errors(storage_response_form))
+
+    else:
+        messages.error('Invalid submission')
 
 
-    for storage_response_form in storage_request_formset:
-        if storage_response_form.is_valid():
-            project_id = storage_response_form.cleaned_data['project_id']
-            storage_request = StorageRequest.objects.get(project=project_id)
-            project = storage_request.project
-
-            if storage_response_form.response == 'Approve':
-                project.storage_allowance = storage_request.request_allowance
-                messages.success(request, 'The storage request has been approved')
-            else:
-                messages.success(request, 'The storage request has been denied')
-            # Delete the storage request object
-            storage_request.delete()
-        else:
-            messages.error(request, get_form_errors(storage_response_form))
 
 
 @login_required
@@ -88,7 +100,7 @@ def project_home(request):
         if request.method == 'POST':
 
             storage_response_formset = StorageResponseFormSet(request.POST)
-            pdb.set_trace()
+            #pdb.set_trace()
             process_storage_request(request, storage_response_formset)
 
         storage_requests = StorageRequest.objects.all()
