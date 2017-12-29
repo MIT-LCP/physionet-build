@@ -334,6 +334,9 @@ class StorageRequestForm(forms.ModelForm):
 
 
 class StorageResponseForm(forms.Form):
+    """
+    Form for responding to a storage request
+    """
     project_id = forms.IntegerField(widget= forms.HiddenInput())
     response = forms.ChoiceField(choices=[('Approve','Approve'), ('Reject','Reject')])
     message = forms.CharField(max_length=500, required=False, widget = forms.Textarea())

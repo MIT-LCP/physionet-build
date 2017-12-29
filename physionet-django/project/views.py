@@ -18,6 +18,19 @@ from user.forms import ProfileForm
 import pdb
 
 
+def admin_required(base_function):
+    """
+    Decorator for admin only pages
+    """
+    @login_required
+    def function_wrapper(request, *args, **kwargs):
+        user = request.user
+        if not user.is_admin:
+            raise Http404("Unable to access page")
+        return base_function(request, *args, **kwargs)
+    return function_wrapper
+
+
 def collaborator_required(base_function):
     """
     Decorator to ensure only collaborators (and admins) can access projects
@@ -46,45 +59,12 @@ def download_file(request, file_path):
         return Http404()
 
 
-def process_storage_request(request, storage_response_formset):
-    "Accept or deny a project's storage request"
-    # Only process the form that was submitted. Find the relevant project
-    matched_project_ids = [re.findall('respond-(?P<project_id>\d+)', k) for k in request.POST.keys()]
-    matched_project_ids = [i for i in matched_project_ids if i]
-
-    if len(matched_project_ids) == 1:
-        project_id = int(matched_project_ids[0][0])
-
-        for storage_response_form in storage_response_formset:
-
-            if storage_response_form.is_valid():
-                if project_id == int(storage_response_form.cleaned_data['project_id']):
-                    storage_request = StorageRequest.objects.get(project=project_id)
-                    project = storage_request.project
-                    if storage_response_form.cleaned_data['response'] == 'Approve':
-                        project.storage_allowance = storage_request.request_allowance
-                        project.save()
-                        messages.success(request, 'The storage request has been approved')
-                    else:
-                        messages.success(request, 'The storage request has been denied')
-                    # Delete the storage request object
-                    storage_request.delete()
-            
-            #messages.error(request, get_form_errors(storage_response_form))
-
-    else:
-        messages.error('Invalid submission')
-
-
-
-
 @login_required
 def project_home(request):
     """
     Home page listing projects a user is involved in:
     - Collaborating projects
     - Reviewing projects
-    - If admin, process storage requests
     """
     user = request.user
     projects = Project.objects.filter(collaborators__in=[user])
@@ -92,28 +72,8 @@ def project_home(request):
     # Projects that the user is responsible for reviewing
     review_projects = None
 
-    context = {'projects':projects, 'review_projects':review_projects}
-
-    # Storage requests
-    if user.is_admin:
-        StorageResponseFormSet = formset_factory(StorageResponseForm, extra=0)
-        if request.method == 'POST':
-
-            storage_response_formset = StorageResponseFormSet(request.POST)
-            #pdb.set_trace()
-            process_storage_request(request, storage_response_formset)
-
-        storage_requests = StorageRequest.objects.all()
-        
-        if storage_requests:
-            context['storage_requests'] = storage_requests
-            
-            storage_response_formset = StorageResponseFormSet(
-                initial=[{'project_id':sr.project.id} for sr in storage_requests])
-
-        context['storage_response_formset'] = storage_response_formset
-
-    return render(request, 'project/project_home.html', context)
+    return render(request, 'project/project_home.html', {'projects':projects,
+        'review_projects':review_projects})
 
 
 @login_required
@@ -301,3 +261,58 @@ def project_files(request, project_id, sub_item=''):
 def project_collaborators(request, project_id):
     project = Project.objects.get(id=project_id)
     return render(request, 'project/project_collaborators.html', {'project':project})
+
+def process_storage_request(request, storage_response_formset):
+    "Accept or deny a project's storage request"
+    # Only process the form that was submitted. Find the relevant project
+    matched_project_ids = [re.findall('respond-(?P<project_id>\d+)', k) for k in request.POST.keys()]
+    matched_project_ids = [i for i in matched_project_ids if i]
+
+    if len(matched_project_ids) == 1:
+        project_id = int(matched_project_ids[0][0])
+
+        for storage_response_form in storage_response_formset:
+
+            if storage_response_form.is_valid():
+                if project_id == int(storage_response_form.cleaned_data['project_id']):
+                    storage_request = StorageRequest.objects.get(project=project_id)
+                    project = storage_request.project
+                    if storage_response_form.cleaned_data['response'] == 'Approve':
+                        project.storage_allowance = storage_request.request_allowance
+                        project.save()
+                        messages.success(request, 'The storage request has been approved')
+                    else:
+                        messages.success(request, 'The storage request has been denied')
+                    # Delete the storage request object
+                    storage_request.delete()
+            
+            #messages.error(request, get_form_errors(storage_response_form))
+
+    else:
+        messages.error('Invalid submission')
+
+
+@admin_required
+def storage_requests(request):
+    """
+    Page listing projects with outstanding storage requests
+    """
+    user = request.user
+    
+    StorageResponseFormSet = formset_factory(StorageResponseForm, extra=0)
+    
+    if request.method == 'POST':
+        storage_response_formset = StorageResponseFormSet(request.POST)
+        process_storage_request(request, storage_response_formset)
+
+    storage_requests = StorageRequest.objects.all()
+    if storage_requests:
+        storage_response_formset = StorageResponseFormSet(
+            initial=[{'project_id':sr.project.id} for sr in storage_requests])
+    else:
+        storage_response_formset = None
+
+    return render(request, 'project/storage_requests.html', {'user':user,
+        'storage_requests':storage_requests,
+        'storage_response_formset':storage_response_formset})
+
