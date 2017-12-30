@@ -8,7 +8,7 @@ import re
 
 from .forms import (ProjectCreationForm, metadata_forms, MultiFileFieldForm,
     FolderCreationForm, MoveItemsForm, RenameItemForm, DeleteItemsForm,
-    StorageRequestForm, StorageResponseForm)
+    StorageRequestForm, StorageResponseForm, CollaboratorChoiceForm)
 from .models import Project, DatabaseMetadata, SoftwareMetadata, StorageRequest
 from .utility import (get_file_info, get_directory_info, get_storage_info,
     write_uploaded_file, list_items, remove_items, move_items as do_move_items,
@@ -261,7 +261,13 @@ def project_files(request, project_id, sub_item=''):
 @collaborator_required
 def project_collaborators(request, project_id):
     project = Project.objects.get(id=project_id)
-    return render(request, 'project/project_collaborators.html', {'project':project})
+    collaborators = project.collaborators.all()
+
+    collaborator_choice_form = CollaboratorChoiceForm(project)
+
+    return render(request, 'project/project_collaborators.html',
+        {'project':project, 'collaborators':collaborators,
+        'collaborator_choice_form':collaborator_choice_form})
 
 
 def process_storage_request(request, storage_response_formset):

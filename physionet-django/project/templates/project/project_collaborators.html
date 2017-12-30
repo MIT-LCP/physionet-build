@@ -5,5 +5,30 @@
 {% block form %}
 <h2 class="form-signin-heading">Project Collaborators</h2>
 <hr>
+<p>Collaborators can view and edit project metadata and files.</p>
+<div class="card"">
+  <ul class="list-group list-group-flush">
+    {% for collaborator in collaborators %}
+      <li class="list-group-item">{{ collaborator.email }}
+        <a class="float-right">
+        {% if collaborator == project.owner %}
+            <span class="badge badge-success">Project Owner</span>{% endif %}
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+</div>
+
+{% if user == project.owner or user.is_admin %}
+<br>
+<hr>
+<h4>Project Owner</h4>
+<p>Warning: only the project owner may invite, remove, and .</p>
+<form action="{% url 'edit_emails' %}" method="post" class="form-signin">
+  {% csrf_token %}
+  {{ collaborator_choice_form.collaborator }}
+  <button class="btn btn-primary btn-fixed" name="set_primary_email" type="submit">Make Primary Email</button>
+</form>
+{% endif %}
 
 {% endblock %}

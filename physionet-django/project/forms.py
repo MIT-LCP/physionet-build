@@ -305,6 +305,25 @@ class SoftwareMetadataForm(forms.ModelForm):
 metadata_forms = {'Database':DatabaseMetadataForm, 'Software':SoftwareMetadataForm}
 
 
+class CollaboratorChoiceForm(forms.Form):
+    """
+    For choosing project collaborators
+    """
+    collaborator = forms.ModelChoiceField(queryset=None, to_field_name='email',
+        label='email', widget=forms.Select(attrs={'class':'form-control'}))
+
+    def __init__(self, project, include_owner=True, *args, **kwargs):
+        # Email choices are those belonging to a user
+        super(CollaboratorChoiceForm, self).__init__(*args, **kwargs)
+
+        collaborators = project.collaborators.all()
+        
+        if not include_owner:
+            pass
+
+        self.fields['collaborator'].queryset = collaborators
+
+
 class StorageRequestForm(forms.ModelForm):
     """
     Making a request for storage capacity for a project
@@ -340,4 +359,5 @@ class StorageResponseForm(forms.Form):
     project_id = forms.IntegerField(widget= forms.HiddenInput())
     response = forms.ChoiceField(choices=[('Approve','Approve'), ('Reject','Reject')])
     message = forms.CharField(max_length=500, required=False, widget = forms.Textarea())
+
 
