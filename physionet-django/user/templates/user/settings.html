@@ -23,20 +23,7 @@
     </div><!--/span-->
 
     <div class="col-10 col-md-9">
-      {% if messages %}
-        {% for message in messages %}
-          {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
-            <div class="alert alert-danger alert-dismissible">
-          {% else %}
-            <div class="alert alert-success alert-dismissible">
-          {% endif %}
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-            {{ message }}
-          </div>
-        {% endfor %}
-      {% endif %}
+      {% include "message_snippet.html" %}
       <div class="container">
         {% block form %}
         {% endblock %}

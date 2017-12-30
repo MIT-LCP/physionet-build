@@ -11,7 +11,8 @@ from .forms import (ProjectCreationForm, metadata_forms, MultiFileFieldForm,
     StorageRequestForm, StorageResponseForm)
 from .models import Project, DatabaseMetadata, SoftwareMetadata, StorageRequest
 from .utility import (get_file_info, get_directory_info, get_storage_info,
-    write_uploaded_file, list_items, remove_items, move_items, get_form_errors)
+    write_uploaded_file, list_items, remove_items, move_items as do_move_items,
+    get_form_errors)
 from physionet.settings import MEDIA_ROOT, project_file_individual_limit
 from user.forms import ProfileForm
 
@@ -148,7 +149,7 @@ def rename_item(request, rename_item_form):
 
 def move_items(request, move_items_form):
     if move_items_form.is_valid():
-        move_items([os.path.join(move_items_form.current_directory, i) for i in move_items_form.cleaned_data['selected_items']],
+        do_move_items([os.path.join(move_items_form.current_directory, i) for i in move_items_form.cleaned_data['selected_items']],
             os.path.join(move_items_form.current_directory, move_items_form.cleaned_data['destination_folder']))
         messages.success(request, 'Your items have been moved.')
     else:
@@ -261,6 +262,7 @@ def project_files(request, project_id, sub_item=''):
 def project_collaborators(request, project_id):
     project = Project.objects.get(id=project_id)
     return render(request, 'project/project_collaborators.html', {'project':project})
+
 
 def process_storage_request(request, storage_response_formset):
     "Accept or deny a project's storage request"
