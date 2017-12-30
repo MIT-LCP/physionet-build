@@ -312,14 +312,14 @@ class CollaboratorChoiceForm(forms.Form):
     collaborator = forms.ModelChoiceField(queryset=None, to_field_name='email',
         label='email', widget=forms.Select(attrs={'class':'form-control'}))
 
-    def __init__(self, project, include_owner=True, *args, **kwargs):
+    def __init__(self, project, include_owner=False, *args, **kwargs):
         # Email choices are those belonging to a user
         super(CollaboratorChoiceForm, self).__init__(*args, **kwargs)
 
         collaborators = project.collaborators.all()
-        
+
         if not include_owner:
-            pass
+            collaborators = [c for c in collaborators if c != project.owner]
 
         self.fields['collaborator'].queryset = collaborators
 

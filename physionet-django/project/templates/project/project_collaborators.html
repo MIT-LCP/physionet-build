@@ -5,8 +5,22 @@
 {% block form %}
 <h2 class="form-signin-heading">Project Collaborators</h2>
 <hr>
-<p>Collaborators can view and edit project metadata and files.</p>
+
+<h4>Roles</h4>
+<p>Each project can have many <strong>collaborators</strong>. Collaborators can view and edit project metadata and files.</p>
+
+<p>Each project has one <strong>owner</strong>, who is also a collaborator. The owner may:</p>
+<ul>
+    <li>Submit the project for publication</li>
+    <li>Delete the project</li>
+    <li>Invite and remove collaborators</li>
+    <li>Assign ownership of the project to another collaborator</li>
+</ul>
+
 <div class="card"">
+  <div class="card card-header">
+    <h4>Project Collaborators</h4>
+  </div>
   <ul class="list-group list-group-flush">
     {% for collaborator in collaborators %}
       <li class="list-group-item">{{ collaborator.email }}
@@ -18,17 +32,36 @@
     {% endfor %}
   </ul>
 </div>
+<hr>
 
 {% if user == project.owner or user.is_admin %}
-<br>
-<hr>
-<h4>Project Owner</h4>
-<p>Warning: only the project owner may invite, remove, and .</p>
-<form action="{% url 'edit_emails' %}" method="post" class="form-signin">
-  {% csrf_token %}
-  {{ collaborator_choice_form.collaborator }}
-  <button class="btn btn-primary btn-fixed" name="set_primary_email" type="submit">Make Primary Email</button>
-</form>
-{% endif %}
+
+    <h4>Invite Collaborators</h4>
+    <p>Invite new users to help edit project metadata and files.</p>
+    <form action="{% url 'edit_emails' %}" method="post" class="form-signin">
+      {% csrf_token %}
+      {{ collaborator_choice_form.collaborator }}
+      <button class="btn btn-success btn-fixed" name="set_primary_email" type="submit">Invite Collaborator</button>
+    </form>
+    <hr>
+
+    <h4>Remove Collaborators</h4>
+    <p>Remove users from accessing the project.</p>
+    <form action="{% url 'edit_emails' %}" method="post" class="form-signin">
+      {% csrf_token %}
+      {{ collaborator_choice_form.collaborator }}
+      <button class="btn btn-danger btn-fixed" name="set_primary_email" type="submit">Remove Collaborator</button>
+    </form>
+    <hr>
+
+    <h4>Set Owner</h4>
+    <p>Select another collaborator to be the new project owner. <strong><em>Warning: only the new owner will be able to control project roles.</em></strong></p>
+    <form action="{% url 'edit_emails' %}" method="post" class="form-signin">
+      {% csrf_token %}
+      {{ collaborator_choice_form.collaborator }}
+      <button class="btn btn-primary btn-fixed" name="set_primary_email" type="submit">Set New Owner</button>
+    </form>
+    <hr>
+    {% endif %}
 
 {% endblock %}

@@ -264,6 +264,7 @@ def project_collaborators(request, project_id):
     collaborators = project.collaborators.all()
 
     collaborator_choice_form = CollaboratorChoiceForm(project)
+    pdb.set_trace()
 
     return render(request, 'project/project_collaborators.html',
         {'project':project, 'collaborators':collaborators,
