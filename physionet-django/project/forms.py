@@ -307,10 +307,12 @@ metadata_forms = {'Database':DatabaseMetadataForm, 'Software':SoftwareMetadataFo
 
 class CollaboratorChoiceForm(forms.Form):
     """
-    For choosing project collaborators
+    For choosing project collaborators. Queryset is all project collaborators,
+    optionally excluding the owner. Used for selecting new owner and removing
+    collaborators.
     """
     collaborator = forms.ModelChoiceField(queryset=None, to_field_name='email',
-        label='email', widget=forms.Select(attrs={'class':'form-control'}))
+        label='email', widget=forms.Select())
 
     def __init__(self, project, include_owner=False, *args, **kwargs):
         # Email choices are those belonging to a user
@@ -319,9 +321,33 @@ class CollaboratorChoiceForm(forms.Form):
         collaborators = project.collaborators.all()
 
         if not include_owner:
-            collaborators = [c for c in collaborators if c != project.owner]
+            collaborators = collaborators.exclude(id=project.owner.id)
 
         self.fields['collaborator'].queryset = collaborators
+        self.project = project
+
+
+class CollaboratorInviteForm(forms.Form):
+    """
+    Form to invite new collaborators
+    """
+    collaborator = forms.EmailField()
+
+    def __init__(self, project, *args, **kwargs):
+        super(CollaboratorInviteForm, self).__init__(*args, **kwargs)
+        self.project = project
+
+    def clean_collaborator(self):
+        "Ensure invite is sent to a non-collaborator"
+        data = self.cleaned_data['collaborator']
+
+        if data in [c.email for c in self.project.collaborators.all()]:
+            raise forms.ValidationError('The user is already a collaborator of this project',
+                code='already_collaborator')
+
+        return data
+
+
 
 
 class StorageRequestForm(forms.ModelForm):
