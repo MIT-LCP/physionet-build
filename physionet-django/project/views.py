@@ -102,10 +102,10 @@ def project_overview(request, project_id):
 def project_metadata(request, project_id):
     project = Project.objects.get(id=project_id)
 
-    form = metadata_forms[project.resource_type.description](instance=project)
+    form = forms.metadata_forms[project.resource_type.description](instance=project)
 
     if request.method == 'POST':
-        form = metadata_forms[project.resource_type.description](request.POST,
+        form = forms.metadata_forms[project.resource_type.description](request.POST,
             instance=project)
         if form.is_valid():
             form.save()
