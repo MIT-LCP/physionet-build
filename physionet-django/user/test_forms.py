@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from user.forms import (AssociatedEmailChoiceForm, AssociatedEmailForm,
-    EditPasswordForm, LoginForm, ProfileForm, ResetPasswordForm, SetPasswordForm,
+    LoginForm, ProfileForm, ResetPasswordForm, SetPasswordForm,
     UserCreationForm)
 from user.models import User
 
@@ -50,14 +50,6 @@ class TestForms(TestCase):
         self.create_test_forms(AssociatedEmailForm, {'email':'tester0@mit.edu'},
             {'email':'nonexistent'})
         self.run_test_forms({'email': ['Enter a valid email address.']})
-
-    def test_edit_password_form(self):
-        user = User.objects.get(email='tester@mit.edu')
-        self.create_test_forms(EditPasswordForm, {'old_password':'Tester1!',
-            'new_password1':'Very5trongt0t@11y', 'new_password2':'Very5trongt0t@11y'},
-            {'old_password':'Tester1!',
-            'new_password1':'weak', 'new_password2':'weak1'}, user=user)
-        self.run_test_forms({'new_password2':["The two password fields didn't match."]})
 
     def test_login_form(self):
         self.create_test_forms(LoginForm, {'username':'tester@mit.edu','password':'Tester1!'},

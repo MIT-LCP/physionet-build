@@ -57,17 +57,6 @@ class SetPasswordForm(auth_forms.SetPasswordForm):
     )
 
 
-class EditPasswordForm(SetPasswordForm, auth_forms.PasswordChangeForm):
-    """
-    For editing password
-    """
-    old_password = forms.CharField(
-        label="Old password",
-        strip=False,
-        widget=forms.PasswordInput(attrs={'autofocus': True, 'class':'form-control'}),
-    )
-
-
 class LoginForm(auth_forms.AuthenticationForm):
     """
     Form for logging in.

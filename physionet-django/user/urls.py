@@ -3,7 +3,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import reverse_lazy
 
 from . import views
-from .forms import LoginForm, ResetPasswordForm, SetPasswordForm, EditPasswordForm
+from .forms import LoginForm, ResetPasswordForm, SetPasswordForm
 
 
 urlpatterns = [
@@ -45,7 +45,6 @@ urlpatterns = [
     url(r'^settings/$', views.user_settings, name='user_settings'),
     url(r'^settings/profile/$', views.edit_profile, name='edit_profile'),
     url(r'^settings/password/$', auth_views.PasswordChangeView.as_view(
-        form_class=EditPasswordForm,
         success_url = reverse_lazy('edit_password_complete'),
         template_name='user/edit_password.html',
         ),
