@@ -366,7 +366,7 @@ def storage_requests(request):
     """
     user = request.user
     
-    StorageResponseFormSet = formset_factory(StorageResponseForm, extra=0)
+    StorageResponseFormSet = formset_factory(forms.StorageResponseForm, extra=0)
     
     if request.method == 'POST':
         storage_response_formset = StorageResponseFormSet(request.POST)
