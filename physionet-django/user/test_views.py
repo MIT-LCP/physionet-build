@@ -5,7 +5,6 @@ from django.test import RequestFactory, TestCase
 from django.urls import reverse
 import re
 
-from .management.commands.resetdb import load_fixture_profiles
 from .models import AssociatedEmail, User
 from .views import (activate_user, edit_emails, edit_profile,
     edit_password_complete, public_profile, register, user_home, user_settings,
@@ -99,7 +98,6 @@ class TestAuth(TestCase, TestMixin):
     fixtures = ['user']
 
     def setUp(self):
-        load_fixture_profiles()
         self.factory = RequestFactory()
         self.user = User.objects.get(email='tester@mit.edu')
         self.anonymous_user = AnonymousUser()
@@ -198,7 +196,6 @@ class TestPublic(TestCase, TestMixin):
     fixtures = ['user']
 
     def setUp(self):
-        load_fixture_profiles()
         self.factory = RequestFactory()
         self.user = AnonymousUser()
 

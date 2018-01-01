@@ -6,19 +6,22 @@ def home(request):
 
 # Publish pages
 
-# def submit(request):
-#     return render(request, 'submit.html')
-
 def author_guidelines(request):
     return render(request, 'author_guidelines.html')
 
 # About pages
 
+def about_physionet(request):
+    return render(request, 'about_physionet.html')
+
+def faq(request):
+    return render(request, 'faq.html')
+
 def contact(request):
     return render(request, 'contact.html')
 
-def ourteam(request):
-    return render(request, 'ourteam.html')
+def our_team(request):
+    return render(request, 'our_team.html')
 
 def funding(request):
     return render(request, 'funding.html')
@@ -31,5 +34,5 @@ def data(request):
 def software(request):
     return render(request, 'software.html')
 
-def challenges(request):
-    return render(request, 'challenges.html')
+def challenge(request):
+    return render(request, 'challenge.html')

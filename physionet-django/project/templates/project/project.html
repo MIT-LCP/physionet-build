@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% load project_templatetags %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/settings.css' %}"/>
+{% endblock %}
+
+
+{% block content %}
+<div class="container">
+  <div class="row row-offcanvas row-offcanvas-right">
+    <div class="col-6 col-md-2 sidebar-offcanvas" id="sidebar">
+      <div class="list-group">
+        {% with 'overview metadata files collaborators' as project_settings %}
+            {% for setting in project_settings.split %}
+              {% if setting == 'files' %}
+                {% url 'project_'|add:setting project.id '' as setting_url %}
+                <a href={{ setting_url }} class="list-group-item list-group-item-action{% if setting_url == request.path or sub_item %} active{% endif %}">{{ setting|title }}</a>
+              {% else %}
+                {% url 'project_'|add:setting project.id as setting_url %}
+                <a href={{ setting_url }} class="list-group-item list-group-item-action{% if setting_url == request.path %} active{% endif %}">{{ setting|title }}</a>
+              {% endif %}
+            {% endfor %}
+        {% endwith %}
+
+      </div>
+      <br>
+      <div class="list-group">
+          <a href={% url 'project_home' %} class="list-group-item"><i class="fa fa-archive"></i> My Projects</a>
+      </div>
+    </div><!--/span-->
+
+    <div class="col-10 col-md-10">
+      {% include "message_snippet.html" %}
+      <div class="container">
+        <h1>{{ project }}</h1>
+        <hr>
+        {% block form %}
+        {% endblock %}
+      </div><!--/row-->
+    </div><!--/span-->
+
+  </div><!--/row-->
+
+
+</div><!--/.container-->
+{% endblock %}

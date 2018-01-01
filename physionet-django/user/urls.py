@@ -3,7 +3,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import reverse_lazy
 
 from . import views
-from .forms import LoginForm, ResetPasswordForm, SetPasswordForm, EditPasswordForm
+from .forms import LoginForm
 
 
 urlpatterns = [
@@ -19,19 +19,18 @@ urlpatterns = [
         views.activate_user, name='activate_user'),
     
     # Request password reset
-    url(r'^resetpassword/$', auth_views.PasswordResetView.as_view(
-        form_class=ResetPasswordForm, template_name='user/reset_password_request.html',
+    url(r'^reset-password/$', auth_views.PasswordResetView.as_view(
+        template_name='user/reset_password_request.html',
         success_url=reverse_lazy('reset_password_sent'),
         email_template_name='user/email/reset_password_email.html'),
         name='reset_password_request'),
     # Page shown after reset email has been sent
-    url(r'^resetpassword/sent/$', auth_views.PasswordResetDoneView.as_view(
+    url(r'^reset-password/sent/$', auth_views.PasswordResetDoneView.as_view(
         template_name='user/reset_password_sent.html'),
         name='reset_password_sent'),
     # Prompt user to enter new password and carry out password reset (if url is valid)
     url(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
         auth_views.PasswordResetConfirmView.as_view(
-        form_class=SetPasswordForm,
         template_name='user/reset_password_confirm.html',
         success_url=reverse_lazy('reset_password_complete')),
         name='reset_password_confirm'),
@@ -45,7 +44,6 @@ urlpatterns = [
     url(r'^settings/$', views.user_settings, name='user_settings'),
     url(r'^settings/profile/$', views.edit_profile, name='edit_profile'),
     url(r'^settings/password/$', auth_views.PasswordChangeView.as_view(
-        form_class=EditPasswordForm,
         success_url = reverse_lazy('edit_password_complete'),
         template_name='user/edit_password.html',
         ),

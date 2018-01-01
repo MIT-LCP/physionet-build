@@ -1,18 +1,3 @@
-"""physionet URL Configuration
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/1.11/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  url(r'^$', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  url(r'^$', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.conf.urls import url, include
-    2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
-"""
 from django.conf.urls import url, include
 from django.contrib import admin
 
@@ -24,18 +9,27 @@ urlpatterns = [
     url(r'^$', views.home, name='home'),
 
     # publish pages
-    # url(r'^submit', views.submit, name='submit'),
-    url(r'^author_guidelines', views.author_guidelines, name='author_guidelines'),
+    url(r'^author_guidelines/$', views.author_guidelines, name='author_guidelines'),
 
     # about pages
-    url(r'^contact', views.contact, name='contact'),
-    url(r'^ourteam', views.ourteam, name='ourteam'),
-    url(r'^funding', views.funding, name='funding'),
+    url(r'^about-physionet/$', views.about_physionet, name='about_physionet'),
+    url(r'^faq/$', views.faq, name='faq'),  
+
+    url(r'^our-team/$', views.our_team, name='our_team'),
+    url(r'^funding/$', views.funding, name='funding'),
+
+    # contact pages
+    url(r'^contact/$', views.contact, name='contact'),
 
     # content pages
-    url(r'^data', views.data, name='data'),
-    url(r'^software', views.software, name='software'),
-    url(r'^challenges', views.challenges, name='challenges'),
+    url(r'^data/$', views.data, name='data'),
+    url(r'^software/$', views.software, name='software'),
+    url(r'^challenge/$', views.challenge, name='challenge'),
 
+    # user account pages
     url(r'^', include('user.urls')),
+
+    # project pages
+    url(r'^projects/', include('project.urls')),
 ]
+

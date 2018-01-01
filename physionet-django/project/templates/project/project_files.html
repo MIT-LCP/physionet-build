@@ -1,0 +1,249 @@
+{% extends "project/project.html" %}
+
+{% load project_templatetags %}
+
+{% block title %}Project Files - {{ project }}{% endblock %}
+
+{% block form %}
+<h2 class="form-signin-heading">Project Files</h2>
+<hr>
+
+<div class="card">
+  <div class="card-body">
+    <h4 class="card-title">Storage Allowance: {{ storage_info.readable_allowance }}</h4>
+    <p class="card-text">Used: {{ storage_info.readable_used }} ( {{ storage_info.p_used }}% ) <a style="float:right">Remaining: {{ storage_info.readable_remaining }} ( {{ storage_info.p_remaining }}% )</a></p>
+    <div class="progress">
+      <div class="progress-bar progress-bar-striped" role="progressbar" style="width: {{ storage_info.p_used }}%;" aria-valuenow="{{ storage_info.p_used }}" aria-valuemin="0" aria-valuemax="100">
+      </div>
+    </div>
+    <br>
+    {% if storage_request %}
+      <em>Storage request for {{ storage_request.request_allowance }}GB pending</em>
+    {% else %}
+      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#request-storage-modal">
+        <i class="fa fa-cube"></i> Request Storage
+      </button>
+    {% endif %}
+  </div>
+</div>
+<br>
+
+
+<!-- Content manipulation buttons to trigger modals -->
+<button type="button" class="btn btn-success" data-toggle="modal" data-target="#upload-files-modal">
+  <i class="fa fa-arrow-circle-up"></i> Upload Files
+</button>
+<button type="button" class="btn btn-success" data-toggle="modal" data-target="#create-folder-modal">
+  <i class="fa fa-folder-open"></i> Create Folder
+</button>
+
+<i style="float:right">
+  <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#rename-item-modal">
+    <i class="fa fa-edit"></i> Rename Item
+  </button>
+  <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#move-items-modal">
+    <i class="fas fa-arrow-right"></i> Move Items
+  </button>
+
+  <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#delete-items-modal">
+    <i class="fa fa-trash-alt"></i> Delete Items
+  </button>
+</i>
+
+
+<!-- Modals for manipulating content -->
+{% if not storage_request %}
+  <div class="modal fade" id="request-storage-modal" tabindex="-1" role="dialog" aria-labelledby="request-storage-modal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Request Storage</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form action="" method="post" enctype="multipart/form-data">
+          <div class="modal-body">
+            {% csrf_token %}
+            <tr><th><label for="id_request_allowance">Request allowance (GB):</label></th><td>
+            {{ storage_request_form.request_allowance }}
+            {{ storage_request_form.project }}
+            <em>Current allowance: {{ storage_info.readable_allowance }}</em>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-primary" name="request_storage" type="submit"><i class="fa fa-cube"></i> Request Storage</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+<div class="modal fade" id="upload-files-modal" tabindex="-1" role="dialog" aria-labelledby="upload-files-modal" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Upload Files</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form action="" method="post" enctype="multipart/form-data">
+        <div class="modal-body">
+          {% csrf_token %}
+          {{ upload_files_form }}
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-success" name="upload_files" type="submit"><i class="fa fa-arrow-circle-up"></i> Upload Files</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="create-folder-modal" tabindex="-1" role="dialog" aria-labelledby="create-folder-modal" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Create Folder</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form action="" method="post" enctype="multipart/form-data">
+        <div class="modal-body">
+          {% csrf_token %}
+          {{ folder_creation_form }}
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-success" name="create_folder" type="submit"><i class="fa fa-folder-open"></i> Create Folder</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="rename-item-modal" tabindex="-1" role="dialog" aria-labelledby="rename-item-modal" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Rename Item</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form action="" method="post" enctype="multipart/form-data">
+        <div class="modal-body">
+          {% csrf_token %}
+          {{ rename_item_form }}
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" name="rename_item" type="submit"><i class="fa fa-edit"></i> Rename Item</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="move-items-modal" tabindex="-1" role="dialog" aria-labelledby="move-items-modal" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Move Items</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form action="" method="post" enctype="multipart/form-data">
+        <div class="modal-body">
+          {% csrf_token %}
+          {{ move_items_form }}
+          Hold <em>ctrl</em> or <em>shift</em> to select multiple
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" name="move_items" type="submit"><i class="fas fa-arrow-right"></i> Move Items</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="delete-items-modal" tabindex="-1" role="dialog" aria-labelledby="delete-items-modal" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Delete Items</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form action="" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="modal-body">
+          {% csrf_token %}
+          {{ delete_items_form }}
+          Hold <em>ctrl</em> or <em>shift</em> to select multiple
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-danger" name="delete_items" type="submit"><i class="fa fa-trash-alt"></i> Delete Items</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<br>
+<br>
+
+<div class="card">
+  <div class="card-header">
+    &nbsp;&nbsp;&nbsp;<strong>Contents of folder: /{{ sub_item }}</strong>
+    {% if in_subdir %}
+      <a href="{% url 'project_files' project.id '' %}" style="float:right">Return to base folder</a>
+    {% endif %}
+  </div>
+
+  <ul class="list-group list-group-flush">
+    <li class="list-group-item">
+      <div class="row">
+        <div class="col-md-8">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>Name</strong></div>
+        <div class="col-md-2"><strong>Size</strong></div>
+        <div class="col-md-2"><strong>Modified</strong></div>
+      </div>
+    </li>
+    {% if in_subdir %}
+      <li class="list-group-item">
+        <div class="row">
+          <div class="col-md-8">&nbsp;<i class="fas fa-angle-up"></i>&nbsp;&nbsp;<a href="../">Parent Directory</a></div>
+          <div class="col-md-2"></div>
+          <div class="col-md-2"></div>
+        </div>
+      </li> 
+    {% endif %}
+    {% for dir in display_dirs %}
+      <li class="list-group-item">
+        <div class="row">
+          <div class="col-md-8"><i class="fas fa-folder-open"></i>&nbsp;&nbsp;<a href="{{ dir.name }}/">{{ dir.name }}</a></div>
+          <div class="col-md-2"></div>
+          <div class="col-md-2"></div>
+        </div>
+      </li>
+    {% endfor %}
+    {% for file in display_files %}
+      <li class="list-group-item">
+        <div class="row">
+          <div class="col-md-8">&nbsp;<i class="far fa-file"></i>&nbsp;&nbsp;&nbsp;<a href="{{ file.name }}">{{ file.name }}</a></div>
+          <div class="col-md-2">{{ file.size }}</div>
+          <div class="col-md-2">{{ file.last_modified }}</div>
+        </div>
+      </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}
