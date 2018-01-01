@@ -3,7 +3,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import reverse_lazy
 
 from . import views
-from .forms import LoginForm, SetPasswordForm
+from .forms import LoginForm
 
 
 urlpatterns = [
@@ -31,7 +31,6 @@ urlpatterns = [
     # Prompt user to enter new password and carry out password reset (if url is valid)
     url(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
         auth_views.PasswordResetConfirmView.as_view(
-        form_class=SetPasswordForm,
         template_name='user/reset_password_confirm.html',
         success_url=reverse_lazy('reset_password_complete')),
         name='reset_password_confirm'),

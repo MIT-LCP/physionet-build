@@ -39,24 +39,6 @@ class AssociatedEmailForm(forms.ModelForm):
         }
 
 
-class SetPasswordForm(auth_forms.SetPasswordForm):
-    """
-    Form to set or reset the password.
-    Inherited by edit password, and directly used in password reset.
-    """
-    new_password1 = forms.CharField(
-        label="New password",
-        widget=forms.PasswordInput(attrs={'autofocus': True, 'class':'form-control'}),
-        strip=False,
-    )
-    new_password2 = forms.CharField(
-        label="New password confirmation",
-        strip=False,
-        widget=forms.PasswordInput(attrs={'autofocus': True, 'class':'form-control'}),
-        help_text=password_validation.password_validators_help_text_html(),
-    )
-
-
 class LoginForm(auth_forms.AuthenticationForm):
     """
     Form for logging in.
@@ -102,18 +84,6 @@ class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
         exclude = ('user', 'identity_verification_date')
-
-
-class ResetPasswordForm(auth_forms.PasswordResetForm):
-    """
-    Form to send the email to reset the password.
-    """
-    email = forms.EmailField(
-        label='Email',
-        max_length=254,
-        widget=forms.TextInput(attrs={'autofocus': True, 'class':'form-control',
-            'placeholder':'Email Address'}),
-    )
 
 
 class UserCreationForm(forms.ModelForm):
