@@ -147,3 +147,20 @@ DEFAULT_FROM_EMAIL = 'Physionet Help <help@dev.physionet.org>'
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR,'static')]
+
+MEDIA_ROOT = os.path.join(os.path.abspath(os.path.join(BASE_DIR, os.pardir)), 'media')
+
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'Custom',
+        'toolbar_Custom': [
+            ['Bold', 'Italic', 'Underline'],
+            ['NumberedList', 'BulletedList', '-'],
+            ['Link', 'Unlink'],
+            ['RemoveFormat']
+        ]
+    }
+}
+
+# Size limit for individual files being uploaded to projects
+project_file_individual_limit = 100 * 1024**2

@@ -6,7 +6,6 @@ from django.urls import reverse
 import re
 
 from user.models import User, AssociatedEmail
-from user.management.commands.resetdb import load_fixture_profiles
 
 
 class TestAuth(TestCase):
@@ -16,7 +15,6 @@ class TestAuth(TestCase):
     fixtures = ['user']
 
     def setUp(self):
-        load_fixture_profiles()
         self.client.login(username='rgmark@mit.edu', password='Tester1!')
 
     def test_edit_password(self):
@@ -60,9 +58,6 @@ class TestPublic(TestCase):
     Test views that do not require authentication
     """
     fixtures = ['user']
-
-    def setUp(self):
-        load_fixture_profiles()
 
     def test_admin_home(self):
         """

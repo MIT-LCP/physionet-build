@@ -2,18 +2,13 @@ from django.test import TestCase
 from django.urls import reverse
 
 from user.forms import (AssociatedEmailChoiceForm, AssociatedEmailForm,
-    EditPasswordForm, LoginForm, ProfileForm, ResetPasswordForm, SetPasswordForm,
-    UserCreationForm)
-from user.management.commands.resetdb import load_fixture_profiles
+    LoginForm, ProfileForm, UserCreationForm)
 from user.models import User
 
 
 class TestForms(TestCase):
 
     fixtures = ['user']
-
-    def setUp(self):
-        load_fixture_profiles()
     
     def create_test_forms(self, FormClass, valid_dict, invalid_dict, user=None):
         """
@@ -55,14 +50,6 @@ class TestForms(TestCase):
             {'email':'nonexistent'})
         self.run_test_forms({'email': ['Enter a valid email address.']})
 
-    def test_edit_password_form(self):
-        user = User.objects.get(email='tester@mit.edu')
-        self.create_test_forms(EditPasswordForm, {'old_password':'Tester1!',
-            'new_password1':'Very5trongt0t@11y', 'new_password2':'Very5trongt0t@11y'},
-            {'old_password':'Tester1!',
-            'new_password1':'weak', 'new_password2':'weak1'}, user=user)
-        self.run_test_forms({'new_password2':["The two password fields didn't match."]})
-
     def test_login_form(self):
         self.create_test_forms(LoginForm, {'username':'tester@mit.edu','password':'Tester1!'},
             {'username':'tester@mit.edu', 'password':'wrong'})
@@ -75,21 +62,6 @@ class TestForms(TestCase):
             {'first_name':'Tester','middle_names':'Mid',
             'last_name':'', 'phone':'0'})
         self.run_test_forms({'last_name': ['This field is required.']})
-
-    def test_reset_password_form(self):
-        self.create_test_forms(ResetPasswordForm, {'email':'tester@mit.edu'},
-            {'email':'nonexistent'})
-        self.run_test_forms({'email': ['Enter a valid email address.']})
-
-    def test_set_password_form(self):
-        user = User.objects.get(email='tester@mit.edu')
-        self.create_test_forms(SetPasswordForm, {
-            'new_password1':'Very5trongt0t@11y',
-            'new_password2':'Very5trongt0t@11y'},
-            {'new_password1':'weak', 'new_password2':'weak'}, user=user)
-        self.run_test_forms(
-            {'new_password2':['This password is too short. It must contain at least 8 characters.',
-            'This password is too weak.']})
 
     def test_user_creation_form(self):
         self.create_test_forms(UserCreationForm, {'email':'tester0@mit.edu',

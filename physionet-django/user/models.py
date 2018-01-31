@@ -34,7 +34,8 @@ class UserManager(BaseUserManager):
     Manager object with methods to create
     User instances.
     """
-    def create_user(self, email, password, is_active=False):
+    def create_user(self, email, password, is_active=False, first_name='',
+        middle_names='', last_name=''):
         user = self.model(
             email=self.normalize_email(email),
             is_active=is_active,
@@ -42,13 +43,17 @@ class UserManager(BaseUserManager):
 
         user.set_password(password)
         user.save(using=self._db)
+
+        profile = Profile.objects.create(user=user, first_name=first_name,
+            middle_names=middle_names,
+            last_name=last_name)
         return user
 
-    def create_superuser(self, email, password, is_active=True):
-        user = self.create_user(
-            email=email,
-            password=password,
-            is_active=is_active,
+    def create_superuser(self, email, password, is_active=True, first_name='',
+        middle_names='', last_name=''):
+        user = self.create_user(email=email, password=password,
+            is_active=is_active, first_name=first_name,
+            middle_names=middle_names, last_name=last_name
         )
         user.is_admin = True
         user.save(using=self._db)
@@ -126,6 +131,7 @@ class AssociatedEmail(models.Model):
     def __str__(self):
         return self.email
 
+
 @receiver(post_save, sender=User)
 def create_associated_email(sender, **kwargs):
     """
@@ -137,6 +143,7 @@ def create_associated_email(sender, **kwargs):
         if user.is_active:
             email.verification_date = timezone.now()
         email.save()
+
 
 @receiver(post_save, sender=User)
 def update_associated_emails(sender, **kwargs):
@@ -184,14 +191,3 @@ class Profile(models.Model):
 
     def __str__(self):
         return self.get_full_name()
-
-@receiver(post_save, sender=User)
-def create_profile(sender, **kwargs):
-    """
-    The receiver function for receiving post_save signals of User objects.
-    Creates and attaches an empty Profile when a User object is created.
-    """
-    user = kwargs["instance"]
-    if kwargs["created"]:
-        profile = Profile(user=user)
-        profile.save()

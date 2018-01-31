@@ -16,27 +16,14 @@
         {% with 'profile password emails' as setting_options %}
             {% for setting in setting_options.split %}
               {% url 'edit_'|add:setting as settings_url %}
-              <a href={{ settings_url }}  class="list-group-item {% if settings_url == request.path %}active{% endif %}">{{ setting|title }}</a>
+              <a href={{ settings_url }} class="list-group-item list-group-item-action{% if settings_url == request.path %} active{% endif %}">{{ setting|title }}</a>
             {% endfor %}
         {% endwith %}
       </div>
     </div><!--/span-->
 
     <div class="col-10 col-md-9">
-      {% if messages %}
-        {% for message in messages %}
-          {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
-            <div class="alert alert-danger alert-dismissible">
-          {% else %}
-            <div class="alert alert-success alert-dismissible">
-          {% endif %}
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-            {{ message }}
-          </div>
-        {% endfor %}
-      {% endif %}
+      {% include "message_snippet.html" %}
       <div class="container">
         {% block form %}
         {% endblock %}
