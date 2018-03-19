@@ -7,7 +7,7 @@ import os
 import re
 
 from . import forms
-from .models import Project, DatabaseMetadata, SoftwareMetadata, StorageRequest
+from .models import Project, PublishedProject, StorageRequest
 from .utility import (get_file_info, get_directory_info, get_storage_info,
     write_uploaded_file, list_items, remove_items, move_items as do_move_items,
     get_form_errors)
@@ -94,7 +94,7 @@ def create_project(request):
 def project_overview(request, project_id):
     "Overview page of a project"
     project = Project.objects.get(id=project_id)
-    
+
     return render(request, 'project/project_overview.html', {'project':project})
 
 
@@ -119,7 +119,7 @@ def project_metadata(request, project_id):
 
 
 # Helper functions for project files view
-# The errors need to be explicitly passed into messages because the 
+# The errors need to be explicitly passed into messages because the
 # forms are contained in modals and their errors would not be shown
 
 def upload_files(request, upload_files_form):
@@ -186,7 +186,7 @@ def project_files(request, project_id, sub_item=''):
     # In project's file root
     else:
         in_subdir = False
-    
+
     # The url is not pointing to a file to download.
 
     # The file directory being examined
@@ -216,7 +216,7 @@ def project_files(request, project_id, sub_item=''):
         elif 'rename_item' in request.POST:
             rename_item_form = forms.RenameItemForm(current_directory, request.POST)
             rename_item(request, rename_item_form)
-        
+
         elif 'move_items' in request.POST:
             move_items_form = forms.MoveItemsForm(current_directory, in_subdir,
                 request.POST)
@@ -306,7 +306,7 @@ def project_collaborators(request, project_id):
         collaborator_invite_form = forms.CollaboratorInviteForm(project)
         collaborator_removal_form = forms.CollaboratorChoiceForm(project)
         set_owner_form = forms.CollaboratorChoiceForm(project)
-    
+
         if request.method == 'POST':
             if 'invite_collaborator' in request.POST:
                 collaborator_invite_form = forms.CollaboratorInviteForm(project, request.POST)
@@ -352,7 +352,7 @@ def process_storage_request(request, storage_response_formset):
                         messages.success(request, 'The storage request has been denied')
                     # Delete the storage request object
                     storage_request.delete()
-            
+
             #messages.error(request, get_form_errors(storage_response_form))
 
     else:
@@ -365,9 +365,9 @@ def storage_requests(request):
     Page listing projects with outstanding storage requests
     """
     user = request.user
-    
+
     StorageResponseFormSet = formset_factory(forms.StorageResponseForm, extra=0)
-    
+
     if request.method == 'POST':
         storage_response_formset = StorageResponseFormSet(request.POST)
         process_storage_request(request, storage_response_formset)

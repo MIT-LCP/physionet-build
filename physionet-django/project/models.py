@@ -1,90 +1,83 @@
-from django.contrib.contenttypes.fields import GenericForeignKey
+import os
+
+from ckeditor.fields import RichTextField
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.template.defaultfilters import slugify
-import os
-
-from ckeditor.fields import RichTextField
 
 from physionet.settings import MEDIA_ROOT
-from user.models import BaseAffiliation
 from .utility import get_tree_size
 
 
-class CommonMetadata(models.Model):
+class Metadata(models.Model):
     """
-    Common metadata for all types of projects. Inherited by published project
-    classes, and project metadata classes, of all resource types.
+    Metadata for all projects.
+
+    https://schema.datacite.org/
+    https://schema.datacite.org/meta/kernel-4.0/doc/DataCite-MetadataKernel_v4.1.pdf
+    https://www.nature.com/sdata/publish/for-authors#format
+
     """
     class Meta:
         abstract = True
 
     title = models.CharField(max_length=200)
+    # datacite: "A brief description of the resource and the context in
+    # which the resource was created"
     abstract = RichTextField(max_length=10000, blank=True)
-    
+    background = RichTextField(blank=True)
+    methods = RichTextField(blank=True)
+    content_description = RichTextField(blank=True)
+    technical_validation = RichTextField(blank=True)
+    usage_notes = RichTextField(blank=True)
+
     acknowledgements = RichTextField(blank=True)
-    paper_citations = models.ManyToManyField('project.Reference', related_name='%(class)s_citations', blank=True)
-    references = models.ManyToManyField('project.Reference', related_name='%(class)s_references', blank=True)
-    topics = models.ManyToManyField('project.Topic', related_name='%(class)s', blank=True)
+    paper_citations = models.ManyToManyField('project.Reference',
+        related_name='%(class)s_citations', blank=True)
+    references = models.ManyToManyField('project.Reference',
+        related_name='%(class)s_references', blank=True)
+    topics = models.ManyToManyField('project.Topic', related_name='%(class)s',
+        blank=True)
 
     # Access policy
     # Consideration: What happens when dua/training course objects change?
-    dua = models.ForeignKey('project.DUA', null=True, blank=True, related_name='%(class)s')
-    training_course = models.ForeignKey('project.TrainingCourse', null=True, blank=True, related_name='%(class)s')
+    dua = models.ForeignKey('project.DUA', null=True, blank=True,
+        related_name='%(class)s')
+    training_course = models.ForeignKey('project.TrainingCourse', null=True,
+        blank=True, related_name='%(class)s')
     id_verification_required = models.BooleanField(default=False)
 
     # Version and changes (if any)
-    version_number = models.FloatField(null=True, blank=True)
-    changelog = RichTextField(blank=True)
+    version_number = models.CharField(max_length=15, default='', blank=True)
+    changelog_summary = RichTextField(blank=True)
+
+    project_home = models.URLField()
 
 
-class DatabaseMetadata(models.Model):
-    """
-    Metadata fields only possessed by databases
-
-    This model (including inherited fields) should contain some fields which
-    help map projects to datacite:
-    https://schema.datacite.org/
-    https://schema.datacite.org/meta/kernel-4.0/doc/DataCite-MetadataKernel_v4.0.pdf
-    """
-    class Meta:
-        abstract = True
-
-    background = RichTextField(blank=True)
-    methods = RichTextField(blank=True)
-    data_description = RichTextField(blank=True)
-
-
-class SoftwareMetadata(models.Model):
-    """
-    Metadata fields only possessed by software packages
-    """
-    class Meta:
-        abstract = True
-
-    technical_validation = RichTextField(blank=True)
-    usage_notes = RichTextField(blank=True)
-    source_controlled_location = models.URLField(blank=True)
-
-
-class Project(CommonMetadata, DatabaseMetadata, SoftwareMetadata):
+class Project(Metadata):
     """
     The model for user-owned projects.
     """
-    # The type of resource: data, software, tutorial, challenge
-    resource_type = models.ForeignKey('project.ResourceType')
-
+    resource_types = (
+        (0, 'data'),
+        (1, 'software'),
+        (2, 'tutorial'),
+        (3, 'challenge'),
+    )
+    resource_type = models.SmallIntegerField(choices=resource_types)
     creation_datetime = models.DateTimeField(auto_now_add=True)
     modified_datetime = models.DateTimeField(auto_now=True)
 
     # Maximum allowed storage capacity in GB
     storage_allowance = models.SmallIntegerField(default=1)
     owner = models.ForeignKey('user.User', related_name='owned_projects')
-    collaborators = models.ManyToManyField('user.User', related_name='collaborating_projects')
-    
+    collaborators = models.ManyToManyField('user.User',
+        related_name='collaborating_projects')
+
     published = models.BooleanField(default=False)
     under_review = models.BooleanField(default=False)
 
@@ -103,112 +96,137 @@ class Project(CommonMetadata, DatabaseMetadata, SoftwareMetadata):
         return get_tree_size(self.file_root())
 
 
-class ResourceTypeManager(models.Manager):
-    "Manager class for ResourceType"
-    def get_by_natural_key(self, description):
-        return self.get(description=description)
-
-
-class ResourceType(models.Model):
+class PublishedProject(Metadata):
     """
-    A type of resource: data, software, tutorial, challenge
-    """
-    description = models.CharField(max_length=20)
+    A published project. Immutable snapshot.
 
-    objects = ResourceTypeManager()
-
-    def __str__(self):
-        return self.description
-
-    def natural_key(self):
-        return (self.description,)
-
-
-class PublishedProject(models.Model):
-    """
-    Fields common to all published projects, that are also not relevant to the
-    core variable Project
     """
     slug = models.SlugField(max_length=30)
     # The Project this object was created from
-    core_project = models.ForeignKey('project.Project', related_name='published_%(class)s', blank=True, null=True)
+    core_project = models.ForeignKey('project.Project',
+        related_name='published_project', blank=True, null=True)
     # Total file storage size in bytes
-    storage_size = models.IntegerField(null=True)
-    publish_date = models.DateField(null=True)
-    is_final_version = models.BooleanField(default=False)
-    doi = models.CharField(max_length=50, default='')
+    storage_size = models.IntegerField()
+    publish_datetime = models.DateTimeField()
+    is_newest_version = models.BooleanField(default=False)
+    doi = models.CharField(max_length=50, default='', unique=True)
 
     class Meta:
-        abstract = True
         unique_together = (('title', 'version_number'),)
 
 
-class Database(CommonMetadata, DatabaseMetadata, PublishedProject):
+class Affiliation(models.Model):
     """
-    A published database
-    """
-    title = models.CharField(max_length=200, unique=True)
+    Affiliations belonging to a creator or collaborator
 
+    """
+    name = models.CharField(max_length=255)
 
-class SoftwarePackage(CommonMetadata, SoftwareMetadata, PublishedProject):
-    """
-    A published software package
-    """
-    title = models.CharField(max_length=200, unique=True)
-
-
-class Review(models.Model):
-    """
-    Project review
-    """
-    project = models.ForeignKey('project.Project', related_name='reviews')
-    start_date = models.DateTimeField(auto_now_add=True)
-    submission_date = models.DateTimeField(null=True)
-    editor = models.ForeignKey('user.User', related_name='edits', null=True)
-    reviewers = models.ManyToManyField('user.User', related_name='reviews')
-
-
-class StorageRequest(models.Model):
-    """
-    A request for storage capacity for a project
-    """
-    project = models.OneToOneField('project.Project')
-    # Requested storage size in GB
-    request_allowance = models.SmallIntegerField(validators=[MaxValueValidator(100),
-        MinValueValidator(1)])
-    request_datetime = models.DateTimeField(auto_now_add=True)
-
-
-class AuthorInfo(models.Model):
-    """
-    Data owner/author. Credited for contributing/owning the data
-    
-    Static snapshot/manually entered info, rather than info
-    being based on profile fields liable to change.
-    """
-    # The project_object points to one of the project models.
-    # Do not confuse this built in content_type variable with project resource type.
+    # member_object points to a Creator or Contributor.
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
-    published_project = GenericForeignKey('content_type', 'object_id')
+    member_object = GenericForeignKey('content_type', 'object_id')
 
-    author = models.ForeignKey('user.User', related_name='author_info')
-    is_submitting_author = models.BooleanField(default=False)
+
+class Member(models.Model):
+    """
+    Inherited by the Author and Contributor classes.
+
+    """
+    # The 'project_object' generic foreign key points to either a
+    # Project object, or one of the published resource objects.
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    project_object = GenericForeignKey('content_type', 'object_id')
+
+    first_name = models.CharField(max_length=100)
+    middle_names = models.CharField(max_length=200)
+    last_name = models.CharField(max_length=100)
+
+    class Meta:
+        abstract = True
+
+
+class Author(Member):
+    """
+    A project's author/creator (datacite). Credited for creating the
+    resource.
+
+    Datacite definition:
+        "The main researchers involved
+        in producing the data, or the
+        authors of the publication, in
+        priority order."
+
+    """
+    # Creators must have physionet profiles.
+    # In special cases, this can be empty
+    user = models.ForeignKey('user.User', related_name='creator', null=True)
+
     equal_contributor = models.BooleanField(default=False)
     display_order = models.SmallIntegerField()
-    
+    is_organization = models.BooleanField(default=False)
+
+    affiliations = GenericRelation(Affiliation)
+
+
+class Contributor(Member):
+    """
+    A resource contributor.
+
+    Datacite definition:
+        "The institution or person
+        responsible for collecting,
+        managing, distributing, or
+        otherwise contributing to the
+        development of the resource."
+
+    Contributors have the same metadata as creators, with one additional
+    field.
+
+    """
+    contributor_type_choices = (
+        ('ContactPerson', 'Contact Person'),
+        ('DataCollector', 'Data Collector'),
+        ('DataCurator', 'Data Curator'),
+        ('DataManager', 'Data Manager'),
+        ('Distributor', 'Distributor'),
+        ('Editor', 'Editor'),
+        ('HostingInstitution', 'Hosting Institution'),
+        ('Producer', 'Producer'),
+        ('ProjectLeader', 'Project Leader'),
+        ('ProjectManager', 'Project Manager'),
+        ('ProjectMember', 'Project Member'),
+        ('RegistrationAgency', 'Registration Agency'),
+        ('RegistrationAuthority', 'Registration Authority'),
+        ('RelatedPerson', 'Related Person'),
+        ('Researcher', 'Researcher'),
+        ('ResearchGroup', 'Research Group'),
+        ('RightsHolder', 'Rights Holder'),
+        ('Sponsor', 'Sponsor'),
+        ('Supervisor', 'Supervisor'),
+        ('WorkPackageLeader', 'Work Package Leader'),
+        ('Other', 'Other'),
+    )
+
+    contributor_type = models.CharField(max_length=20,
+        choices=contributor_type_choices)
+
     first_name = models.CharField(max_length=100)
     middle_names = models.CharField(max_length=200)
     last_name = models.CharField(max_length=100)
 
 
-class AffiliationInfo(BaseAffiliation):
+class Invitation(models.Model):
     """
-    Author affiliation snapshot upon project publication.
-    An author may have multiple affiliations
+    Invitation to join a project as a collaborator.
+
     """
-    author_info = models.ForeignKey('project.AuthorInfo', related_name='affiliations')
-    
+    email = models.EmailField(max_length=255)
+    # Whether it is also an invitation to be an author
+    author_invite = models.BooleanField(default=False)
+    project = models.ForeignKey('project.Project', related_name='invitations')
+
 
 class Topic(models.Model):
     """
@@ -249,6 +267,30 @@ class DUASignature(models.Model):
 
 
 class TrainingCourseCompletion(models.Model):
-    user = models.ForeignKey('user.User', related_name='training_course_completions')
+    user = models.ForeignKey('user.User',
+        related_name='training_course_completions')
     date = models.DateField(auto_now_add=True)
-    training_course = models.ForeignKey('project.TrainingCourse', related_name='training_course_completions')
+    training_course = models.ForeignKey('project.TrainingCourse',
+        related_name='training_course_completions')
+
+
+class StorageRequest(models.Model):
+    """
+    A request for storage capacity for a project
+    """
+    project = models.OneToOneField('project.Project')
+    # Requested storage size in GB
+    request_allowance = models.SmallIntegerField(
+        validators=[MaxValueValidator(100), MinValueValidator(1)])
+    request_datetime = models.DateTimeField(auto_now_add=True)
+
+
+class Review(models.Model):
+    """
+    Project review
+    """
+    project = models.ForeignKey('project.Project', related_name='reviews')
+    start_date = models.DateTimeField(auto_now_add=True)
+    submission_date = models.DateTimeField(null=True)
+    editor = models.ForeignKey('user.User', related_name='edits', null=True)
+    reviewers = models.ManyToManyField('user.User', related_name='reviews')

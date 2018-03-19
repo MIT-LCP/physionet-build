@@ -6,26 +6,17 @@ from django.dispatch import receiver
 from django.utils import timezone
 
 
-class BaseAffiliation(models.Model):
+class Affiliation(models.Model):
     """
-    Base class inherited by profile affiliations and static snapshot
-    affiliation info.
+    Profile affiliation
+
     """
     order = models.SmallIntegerField(default=0)
-    institution = models.CharField(max_length=100)
-    department = models.CharField(max_length=100)
+    name = models.CharField(max_length=100)
+    department = models.CharField(max_length=100, default='')
     city = models.CharField(max_length=50)
     country = models.CharField(max_length=100)
-    post_code = models.CharField(max_length=20)
-    
-    class Meta:
-        abstract = True
 
-
-class Affiliation(BaseAffiliation):
-    """
-    Affiliations belonging to a profile.
-    """
     profile = models.ForeignKey('user.Profile', related_name='affiliations')
 
 

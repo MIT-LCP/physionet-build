@@ -32,7 +32,7 @@ class MultiFileFieldForm(forms.Form):
         # Prospective upload content
         data = self.cleaned_data['file_field']
         files = self.files.getlist('file_field')
-        
+
         self.taken_names = list_items(self.current_directory, return_separate=False)
 
         total_size = 0
@@ -222,7 +222,7 @@ class MoveItemsForm(forms.Form):
             #     code='clashing_name', params={'clashing_name':list(clashing_names)[0]})
             validation_errors.append(forms.ValidationError('Item named: "%(clashing_name)s" already exists in destination folder.',
                 code='clashing_name', params={'clashing_name':list(clashing_names)[0]}))
-        
+
         if validation_errors:
             raise forms.ValidationError(validation_errors)
 
@@ -264,7 +264,8 @@ class ProjectCreationForm(forms.ModelForm):
     """
     class Meta:
         model = Project
-        fields = ('resource_type', 'title', 'abstract', 'owner', 'storage_allowance')
+        fields = ('resource_type', 'title', 'abstract', 'owner',
+            'storage_allowance')
         widgets = {'owner': forms.HiddenInput(),
         'storage_allowance': forms.HiddenInput()}
 
@@ -284,9 +285,9 @@ class DatabaseMetadataForm(forms.ModelForm):
     class Meta:
         model = Project
         fields = ('title', 'abstract', 'background', 'methods',
-            'data_description', 'acknowledgements', 'paper_citations',
+            'content_description', 'acknowledgements', 'paper_citations',
             'references', 'topics', 'dua', 'training_course',
-            'id_verification_required', 'version_number', 'changelog',)
+            'id_verification_required', 'version_number', 'changelog_summary',)
 
 
 class SoftwareMetadataForm(forms.ModelForm):
@@ -296,9 +297,9 @@ class SoftwareMetadataForm(forms.ModelForm):
     class Meta:
         model = Project
         fields = ('title', 'abstract', 'technical_validation', 'usage_notes',
-            'source_controlled_location', 'acknowledgements', 'paper_citations',
+            'project_home', 'acknowledgements', 'paper_citations',
             'references', 'topics', 'dua', 'training_course',
-            'id_verification_required', 'version_number', 'changelog',)
+            'id_verification_required', 'version_number', 'changelog_summary',)
 
 
 # The modelform for editing metadata for each resource type
@@ -372,7 +373,7 @@ class StorageRequestForm(forms.ModelForm):
         # pdb.set_trace()
         current_allowance = self.cleaned_data['project'].storage_allowance
         request_allowance = self.cleaned_data['request_allowance']
-        
+
         if request_allowance <= current_allowance:
             raise forms.ValidationError('Project already has the requested capacity.',
                 code='already_has_allowance')
