@@ -44,7 +44,8 @@
       {% for invitation in invitations %}
         <li class="list-group-item">{{ invitation.email }}
           <a class="float-right">
-              <span class="badge badge-success">Invited: {{ invitation.sent_datetime }}</span>
+              <span class="badge badge-success">Sent: {{ invitation.creation_datetime }}</span>
+              <span class="badge badge-success">Expires: {{ invitation.expiration_datetime }}</span>
           </a>
         </li>
       {% endfor %}

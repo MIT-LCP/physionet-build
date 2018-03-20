@@ -69,11 +69,13 @@ def project_home(request):
     user = request.user
     projects = Project.objects.filter(collaborators__in=[user])
 
+    invitations = Invitation.objects.filter(email__in=[ae.email for ae in user.associated_emails.all()])
+
     # Projects that the user is responsible for reviewing
     review_projects = None
 
     return render(request, 'project/project_home.html', {'projects':projects,
-        'review_projects':review_projects})
+        'review_projects':review_projects, 'invitations':invitations})
 
 
 @login_required
@@ -81,12 +83,12 @@ def create_project(request):
     user = request.user
 
     if request.method == 'POST':
-        form = forms.ProjectCreationForm(owner=user, data=request.POST)
-        if form.is_valid():# and form.cleaned_data['owner'] == user:
+        form = forms.CreateProjectForm(owner=user, data=request.POST)
+        if form.is_valid():
             project = form.save()
             return redirect('project_overview', project_id=project.id)
     else:
-        form = forms.ProjectCreationForm(owner=user)
+        form = forms.CreateProjectForm(owner=user)
 
     return render(request, 'project/create_project.html', {'form':form})
 
@@ -276,12 +278,9 @@ def invite_collaborator(request, invite_collaborator_form):
     Invite a user to be a collaborator
     """
     if invite_collaborator_form.is_valid():
-        print('lol actuall is valid')
-        pdb.set_trace()
         invite_collaborator_form.save()
         messages.success(request, 'An invitation has been sent to the user')
         return True
-    pdb.set_trace()
 
 def remove_collaborator(request, collaborator_removal_form):
     """
@@ -332,7 +331,6 @@ def project_collaborators(request, project_id):
                 if invite_collaborator(request, invite_collaborator_form):
                     print('yay')
                     invite_collaborator_form = forms.InviteCollaboratorForm(project)
-
             if 'remove_collaborator' in request.POST:
                 collaborator_removal_form = forms.CollaboratorChoiceForm(
                     project, False, request.POST)
@@ -346,7 +344,7 @@ def project_collaborators(request, project_id):
 
         context.update({'invite_collaborator_form':invite_collaborator_form,
             'collaborator_removal_form':collaborator_removal_form,
-            'set_owner_form':set_owner_form})
+            'set_owner_form':set_owner_form, 'invitations':invitations})
 
     return render(request, 'project/project_collaborators.html', context)
 

@@ -1,5 +1,6 @@
 from django import forms
 from django.template.defaultfilters import slugify
+from django.utils import timezone
 import os
 
 from .models import Author, Invitation, Project, StorageRequest
@@ -258,12 +259,12 @@ class DeleteItemsForm(forms.Form):
         return data
 
 
-class ProjectCreationForm(forms.ModelForm):
+class CreateProjectForm(forms.ModelForm):
     """
     For creating projects
     """
     def __init__(self, owner, *args, **kwargs):
-        super(ProjectCreationForm, self).__init__(*args, **kwargs)
+        super(CreateProjectForm, self).__init__(*args, **kwargs)
         self.owner = owner
 
     class Meta:
@@ -271,7 +272,7 @@ class ProjectCreationForm(forms.ModelForm):
         fields = ('resource_type', 'title', 'abstract',)
 
     def save(self):
-        project = super(ProjectCreationForm, self).save(commit=False)
+        project = super(CreateProjectForm, self).save(commit=False)
         project.owner = self.owner
         project.save()
         project.collaborators.add(project.owner)
@@ -340,14 +341,12 @@ class InviteCollaboratorForm(forms.ModelForm):
     def __init__(self, project, *args, **kwargs):
         super(InviteCollaboratorForm, self).__init__(*args, **kwargs)
         self.project = project
-        #pdb.set_trace()
 
     class Meta:
         model = Invitation
-        fields = ('email',)#('email', 'project')
+        fields = ('email',)
         widgets = {
             'request_allowance':forms.NumberInput(),
-            #'project':forms.HiddenInput()
         }
 
     def clean_email(self):
@@ -365,6 +364,14 @@ class InviteCollaboratorForm(forms.ModelForm):
                 code='already_invited')
         return data
 
+    def save(self):
+        invitation = super(InviteCollaboratorForm, self).save(commit=False)
+        invitation.project = self.project
+        invitation.invitation_type = 'collaborator'
+        invitation.expiration_datetime = (timezone.now()
+            + timezone.timedelta(days=7))
+        invitation.save()
+        return invitation
 
 
     # project = models.ForeignKey('project.Project', related_name='invitations')
@@ -374,8 +381,6 @@ class InviteCollaboratorForm(forms.ModelForm):
     # invitation_type = models.CharField(max_length=10)
     # creation_datetime = models.DateTimeField(auto_now_add=True)
     # expiration_datetime = models.DateTimeField()
-
-
 
 
 class InviteAuthorForm(forms.ModelForm):

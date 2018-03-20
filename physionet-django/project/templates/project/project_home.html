@@ -64,7 +64,41 @@
     </ul>
   </div>
   <br>
-  
+
+  <div class="card" >
+    <div class="card-header">
+      <h4>Project Invitations</h4>
+    </div>
+
+    <ul class="list-group list-group-flush">
+      {% if invitations %}
+        {% for project in projects %}
+          <li class="list-group-item">
+            <p>
+              <span class="badge badge-dark">{{ project|resource_icon|safe }} {{ project.resource_type }}</span>
+              {% if project.under_review %}
+                <span class="badge badge-info">Under Review</span>
+              {% endif %}
+              {% if project.published %}
+                <span class="badge badge-success">Published</span>
+              {% endif %}
+            </p>
+            <h4><a href="{% url 'project_overview' project.id %}">{{ project.title }}</a></h4>
+            <p class="list-group-item-text text-muted">
+            <small>Created {{ project.creation_datetime }}. Modified {{ project.modified_datetime }}</small>
+            </p>
+          </li>
+        {% endfor %}
+      {% else %}
+        <div class="card-body text-center">
+          <h4 class="card-title">No pending invitations</h4>
+          <p class="card-text">You are not currently being invited to join any projects.</p>
+        </div>
+      {% endif %}
+    </ul>
+  </div>
+  <br>
+
   <div class="card" >
     <div class="card-header">
       <h4>Reviewing Projects</h4>
