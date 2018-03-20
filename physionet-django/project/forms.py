@@ -2,7 +2,7 @@ from django import forms
 from django.template.defaultfilters import slugify
 import os
 
-from .models import Project, StorageRequest
+from .models import Invitation, Project, StorageRequest
 from .utility import readable_size, list_items, list_directories
 from physionet.settings import MEDIA_ROOT
 import pdb
@@ -227,7 +227,6 @@ class MoveItemsForm(forms.Form):
             raise forms.ValidationError(validation_errors)
 
 
-
 class DeleteItemsForm(forms.Form):
     """
     Form for deleting items
@@ -264,10 +263,8 @@ class ProjectCreationForm(forms.ModelForm):
     """
     class Meta:
         model = Project
-        fields = ('resource_type', 'title', 'abstract', 'owner',
-            'storage_allowance')
-        widgets = {'owner': forms.HiddenInput(),
-        'storage_allowance': forms.HiddenInput()}
+        fields = ('resource_type', 'title', 'abstract', 'owner',)
+        widgets = {'owner': forms.HiddenInput(),}
 
     def save(self):
         project = super(ProjectCreationForm, self).save()
@@ -328,7 +325,7 @@ class CollaboratorChoiceForm(forms.Form):
         self.project = project
 
 
-class CollaboratorInviteForm(forms.Form):
+class CollaboratorInviteForm(forms.ModelForm):
     """
     Form to invite new collaborators
     """
@@ -338,17 +335,67 @@ class CollaboratorInviteForm(forms.Form):
         super(CollaboratorInviteForm, self).__init__(*args, **kwargs)
         self.project = project
 
-    def clean_collaborator(self):
-        "Ensure invite is sent to a non-collaborator"
+    class Meta:
+        model = Invitation
+        fields = ('request_allowance', 'project')
+        widgets = {
+            'request_allowance':forms.NumberInput(),
+            'project':forms.HiddenInput()
+        }
+
+    def clean_email(self):
+        "Ensure it is a fresh invite to a non-collaborator"
         data = self.cleaned_data['collaborator']
 
         if data in [c.email for c in self.project.collaborators.all()]:
             raise forms.ValidationError('The user is already a collaborator of this project',
                 code='already_collaborator')
 
+        if data in [i.email for i in self.project.invitations.filter(invitation_type='collaborator')]:
+            raise forms.ValidationError('There is already an outstanding invitation to that email',
+                code='already_outstanding')
+
         return data
 
 
+class AuthorInviteForm(forms.ModelForm):
+    """
+    Form to invite a new author.
+
+    """
+    email = forms.EmailField()
+
+    class Meta:
+        model = Invitation
+        fields = ('email', 'project',)
+        widgets = {
+            'project':forms.HiddenInput()
+        }
+
+    def __init__(self, project, *args, **kwargs):
+        super(CollaboratorInviteForm, self).__init__(*args, **kwargs)
+        self.project = project
+
+    email = models.EmailField(max_length=255)
+    # Either 'collaborator', 'author', or 'reviewer'
+    invitation_type = models.CharField(max_length=10)
+    project = models.ForeignKey('project.Project', related_name='invitations')
+    creation_datetime = models.DateTimeField(auto_now_add=True)
+    expiration_datetime = models.DateTimeField()
+
+
+class AuthorAddForm(forms.ModelForm):
+    """
+    Form to add an organization as an author
+    """
+    class Meta:
+        model = Author
+        fields = (
+            'project_object', 'organization_name', 'display_order', '',
+        )
+        widgets = {
+            'project_object':forms.HiddenInput()
+        }
 
 
 class StorageRequestForm(forms.ModelForm):
@@ -360,7 +407,7 @@ class StorageRequestForm(forms.ModelForm):
 
     class Meta:
         model = StorageRequest
-        fields = ('request_allowance', 'project')
+        fields = ('request_allowance', 'project',)
         widgets = {
             'request_allowance':forms.NumberInput(),
             'project':forms.HiddenInput()

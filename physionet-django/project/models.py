@@ -13,6 +13,103 @@ from physionet.settings import MEDIA_ROOT
 from .utility import get_tree_size
 
 
+class Affiliation(models.Model):
+    """
+    Affiliations belonging to a creator or collaborator
+
+    """
+    name = models.CharField(max_length=255)
+
+    # member_object points to a Creator or Contributor.
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    member_object = GenericForeignKey('content_type', 'object_id')
+
+
+class Member(models.Model):
+    """
+    Inherited by the Author and Contributor classes.
+
+    """
+    # The 'project_object' generic foreign key points to either a
+    # Project object, or one of the published resource objects.
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    project_object = GenericForeignKey('content_type', 'object_id')
+
+    first_name = models.CharField(max_length=100, default='')
+    middle_names = models.CharField(max_length=200, default='')
+    last_name = models.CharField(max_length=100, default='')
+    is_organization = models.BooleanField(default=False)
+    organization_name = models.CharField(max_length=200, default='')
+
+    display_order = models.SmallIntegerField()
+
+    affiliations = GenericRelation(Affiliation)
+
+    class Meta:
+        abstract = True
+
+
+class Author(Member):
+    """
+    A project's author/creator (datacite). Credited for creating the
+    resource.
+
+    Datacite definition:
+        "The main researchers involved
+        in producing the data, or the
+        authors of the publication, in
+        priority order."
+
+    """
+    # Creators must have physionet profiles.
+    # In special cases, this can be empty
+    user = models.ForeignKey('user.User', related_name='creator', null=True)
+    # Whether to label them as 'equal contributor'
+    equal_contributor = models.BooleanField(default=False)
+
+
+class Contributor(Member):
+    """
+    A resource contributor.
+
+    Datacite definition:
+        "The institution or person
+        responsible for collecting,
+        managing, distributing, or
+        otherwise contributing to the
+        development of the resource."
+
+    """
+    contributor_type_choices = (
+        ('ContactPerson', 'Contact Person'),
+        ('DataCollector', 'Data Collector'),
+        ('DataCurator', 'Data Curator'),
+        ('DataManager', 'Data Manager'),
+        ('Distributor', 'Distributor'),
+        ('Editor', 'Editor'),
+        ('HostingInstitution', 'Hosting Institution'),
+        ('Producer', 'Producer'),
+        ('ProjectLeader', 'Project Leader'),
+        ('ProjectManager', 'Project Manager'),
+        ('ProjectMember', 'Project Member'),
+        ('RegistrationAgency', 'Registration Agency'),
+        ('RegistrationAuthority', 'Registration Authority'),
+        ('RelatedPerson', 'Related Person'),
+        ('Researcher', 'Researcher'),
+        ('ResearchGroup', 'Research Group'),
+        ('RightsHolder', 'Rights Holder'),
+        ('Sponsor', 'Sponsor'),
+        ('Supervisor', 'Supervisor'),
+        ('WorkPackageLeader', 'Work Package Leader'),
+        ('Other', 'Other'),
+    )
+
+    contributor_type = models.CharField(max_length=20,
+        choices=contributor_type_choices)
+
+
 class Metadata(models.Model):
     """
     Metadata for all projects.
@@ -24,6 +121,13 @@ class Metadata(models.Model):
     """
     class Meta:
         abstract = True
+
+    resource_types = (
+        ('Database', 'Database'),
+        ('Software', 'Software'),
+        ('Tutorial', 'Tutorial'),
+        ('Challenge', 'Challenge'),
+    )
 
     title = models.CharField(max_length=200)
     # datacite: "A brief description of the resource and the context in
@@ -43,6 +147,7 @@ class Metadata(models.Model):
     topics = models.ManyToManyField('project.Topic', related_name='%(class)s',
         blank=True)
 
+    resource_type = models.CharField(max_length=10, choices=resource_types)
     # Access policy
     # Consideration: What happens when dua/training course objects change?
     dua = models.ForeignKey('project.DUA', null=True, blank=True,
@@ -54,21 +159,18 @@ class Metadata(models.Model):
     # Version and changes (if any)
     version_number = models.CharField(max_length=15, default='', blank=True)
     changelog_summary = RichTextField(blank=True)
+    # External home page
+    project_home = models.URLField(default='', blank=True)
 
-    project_home = models.URLField()
+    authors = GenericRelation(Author)
+    contributors = GenericRelation(Contributor)
 
 
 class Project(Metadata):
     """
     The model for user-owned projects.
     """
-    resource_types = (
-        (0, 'data'),
-        (1, 'software'),
-        (2, 'tutorial'),
-        (3, 'challenge'),
-    )
-    resource_type = models.SmallIntegerField(choices=resource_types)
+
     creation_datetime = models.DateTimeField(auto_now_add=True)
     modified_datetime = models.DateTimeField(auto_now=True)
 
@@ -115,117 +217,17 @@ class PublishedProject(Metadata):
         unique_together = (('title', 'version_number'),)
 
 
-class Affiliation(models.Model):
-    """
-    Affiliations belonging to a creator or collaborator
-
-    """
-    name = models.CharField(max_length=255)
-
-    # member_object points to a Creator or Contributor.
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    member_object = GenericForeignKey('content_type', 'object_id')
-
-
-class Member(models.Model):
-    """
-    Inherited by the Author and Contributor classes.
-
-    """
-    # The 'project_object' generic foreign key points to either a
-    # Project object, or one of the published resource objects.
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    project_object = GenericForeignKey('content_type', 'object_id')
-
-    first_name = models.CharField(max_length=100)
-    middle_names = models.CharField(max_length=200)
-    last_name = models.CharField(max_length=100)
-
-    class Meta:
-        abstract = True
-
-
-class Author(Member):
-    """
-    A project's author/creator (datacite). Credited for creating the
-    resource.
-
-    Datacite definition:
-        "The main researchers involved
-        in producing the data, or the
-        authors of the publication, in
-        priority order."
-
-    """
-    # Creators must have physionet profiles.
-    # In special cases, this can be empty
-    user = models.ForeignKey('user.User', related_name='creator', null=True)
-
-    equal_contributor = models.BooleanField(default=False)
-    display_order = models.SmallIntegerField()
-    is_organization = models.BooleanField(default=False)
-
-    affiliations = GenericRelation(Affiliation)
-
-
-class Contributor(Member):
-    """
-    A resource contributor.
-
-    Datacite definition:
-        "The institution or person
-        responsible for collecting,
-        managing, distributing, or
-        otherwise contributing to the
-        development of the resource."
-
-    Contributors have the same metadata as creators, with one additional
-    field.
-
-    """
-    contributor_type_choices = (
-        ('ContactPerson', 'Contact Person'),
-        ('DataCollector', 'Data Collector'),
-        ('DataCurator', 'Data Curator'),
-        ('DataManager', 'Data Manager'),
-        ('Distributor', 'Distributor'),
-        ('Editor', 'Editor'),
-        ('HostingInstitution', 'Hosting Institution'),
-        ('Producer', 'Producer'),
-        ('ProjectLeader', 'Project Leader'),
-        ('ProjectManager', 'Project Manager'),
-        ('ProjectMember', 'Project Member'),
-        ('RegistrationAgency', 'Registration Agency'),
-        ('RegistrationAuthority', 'Registration Authority'),
-        ('RelatedPerson', 'Related Person'),
-        ('Researcher', 'Researcher'),
-        ('ResearchGroup', 'Research Group'),
-        ('RightsHolder', 'Rights Holder'),
-        ('Sponsor', 'Sponsor'),
-        ('Supervisor', 'Supervisor'),
-        ('WorkPackageLeader', 'Work Package Leader'),
-        ('Other', 'Other'),
-    )
-
-    contributor_type = models.CharField(max_length=20,
-        choices=contributor_type_choices)
-
-    first_name = models.CharField(max_length=100)
-    middle_names = models.CharField(max_length=200)
-    last_name = models.CharField(max_length=100)
-
-
 class Invitation(models.Model):
     """
-    Invitation to join a project as a collaborator.
+    Invitation to join a project as a collaborator, author, reviewer?
 
     """
     email = models.EmailField(max_length=255)
-    # Whether it is also an invitation to be an author
-    author_invite = models.BooleanField(default=False)
+    # Either 'collaborator', 'author', or 'reviewer'
+    invitation_type = models.CharField(max_length=10)
     project = models.ForeignKey('project.Project', related_name='invitations')
+    creation_datetime = models.DateTimeField(auto_now_add=True)
+    expiration_datetime = models.DateTimeField()
 
 
 class Topic(models.Model):

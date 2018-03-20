@@ -18,7 +18,7 @@
 </ul>
 <hr>
 
-<div class="card"">
+<div class="card">
   <div class="card card-header">
     <h4>Project Collaborators</h4>
   </div>
@@ -31,6 +31,28 @@
         </a>
       </li>
     {% endfor %}
+  </ul>
+</div>
+<hr>
+
+<div class="card">
+  <div class="card card-header">
+    <h4>Outstanding Invitations</h4>
+  </div>
+  <ul class="list-group list-group-flush">
+    {% if invitations %}
+      {% for invitation in invitations %}
+        <li class="list-group-item">{{ invitation.email }}
+          <a class="float-right">
+              <span class="badge badge-success">Invited: {{ invitation.sent_datetime }}</span>
+          </a>
+        </li>
+      {% endfor %}
+    {% else %}
+      <div class="card-body text-center">
+
+      </div>
+    {% endif %}
   </ul>
 </div>
 <hr>

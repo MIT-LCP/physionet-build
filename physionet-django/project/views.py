@@ -7,7 +7,7 @@ import os
 import re
 
 from . import forms
-from .models import Project, PublishedProject, StorageRequest
+from .models import Invitation, Project, PublishedProject, StorageRequest
 from .utility import (get_file_info, get_directory_info, get_storage_info,
     write_uploaded_file, list_items, remove_items, move_items as do_move_items,
     get_form_errors)
@@ -99,13 +99,24 @@ def project_overview(request, project_id):
 
 
 @collaborator_required
+def project_authors(request, project_id):
+    "Page displaying author information"
+    project = Project.objects.get(id=project_id)
+
+    invitations = project.invitations.filter(author_invite=True)
+
+    return render(request, 'project/project_authors.html', {'project':project,
+        'invitations':invitations})
+
+
+@collaborator_required
 def project_metadata(request, project_id):
     project = Project.objects.get(id=project_id)
 
-    form = forms.metadata_forms[project.resource_type.description](instance=project)
+    form = forms.metadata_forms[project.resource_type](instance=project)
 
     if request.method == 'POST':
-        form = forms.metadata_forms[project.resource_type.description](request.POST,
+        form = forms.metadata_forms[project.resource_type](request.POST,
             instance=project)
         if form.is_valid():
             form.save()
@@ -264,6 +275,7 @@ def invite_collaborator(request, collaborator_invite_form):
     Invite a user to be a collaborator
     """
     if collaborator_invite_form.is_valid():
+        collaborator_invite_form.save()
         messages.success(request, 'An invitation has been sent to the user')
         return True
 
@@ -298,6 +310,7 @@ def project_collaborators(request, project_id):
     user = request.user
     project = Project.objects.get(id=project_id)
     collaborators = project.collaborators.all()
+    invitations = project.invitations.all()
 
     context = {'project':project, 'collaborators':collaborators}
 
