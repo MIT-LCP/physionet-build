@@ -5,7 +5,6 @@ from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelatio
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.template.defaultfilters import slugify
 
@@ -63,9 +62,9 @@ class Author(Member):
         priority order."
 
     """
-    # Creators must have physionet profiles.
-    # In special cases, this can be empty
-    user = models.ForeignKey('user.User', related_name='creator', null=True)
+    # Authors must have physionet profiles, unless they are organizations.
+    user = models.ForeignKey('user.User', related_name='creator',
+        blank=True, null=True)
     # Whether to label them as 'equal contributor'
     equal_contributor = models.BooleanField(default=False)
 
@@ -146,7 +145,6 @@ class Metadata(models.Model):
         related_name='%(class)s_references', blank=True)
     topics = models.ManyToManyField('project.Topic', related_name='%(class)s',
         blank=True)
-
     resource_type = models.CharField(max_length=10, choices=resource_types)
     # Access policy
     # Consideration: What happens when dua/training course objects change?
@@ -222,10 +220,11 @@ class Invitation(models.Model):
     Invitation to join a project as a collaborator, author, reviewer?
 
     """
+    project = models.ForeignKey('project.Project', related_name='invitations')
+
     email = models.EmailField(max_length=255)
     # Either 'collaborator', 'author', or 'reviewer'
     invitation_type = models.CharField(max_length=10)
-    project = models.ForeignKey('project.Project', related_name='invitations')
     creation_datetime = models.DateTimeField(auto_now_add=True)
     expiration_datetime = models.DateTimeField()
 

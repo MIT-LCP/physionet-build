@@ -2,7 +2,7 @@ from django import forms
 from django.template.defaultfilters import slugify
 import os
 
-from .models import Invitation, Project, StorageRequest
+from .models import Author, Invitation, Project, StorageRequest
 from .utility import readable_size, list_items, list_directories
 from physionet.settings import MEDIA_ROOT
 import pdb
@@ -198,6 +198,7 @@ class MoveItemsForm(forms.Form):
         Selected destination folder:
         - Must not be one of the items selected to be moved
         - Must not contain items with the same name as the items to be moved
+
         """
         validation_errors = []
 
@@ -261,15 +262,19 @@ class ProjectCreationForm(forms.ModelForm):
     """
     For creating projects
     """
+    def __init__(self, owner, *args, **kwargs):
+        super(ProjectCreationForm, self).__init__(*args, **kwargs)
+        self.owner = owner
+
     class Meta:
         model = Project
-        fields = ('resource_type', 'title', 'abstract', 'owner',)
-        widgets = {'owner': forms.HiddenInput(),}
+        fields = ('resource_type', 'title', 'abstract',)
 
     def save(self):
-        project = super(ProjectCreationForm, self).save()
-        owner = self.cleaned_data['owner']
-        project.collaborators.add(owner)
+        project = super(ProjectCreationForm, self).save(commit=False)
+        project.owner = self.owner
+        project.save()
+        project.collaborators.add(project.owner)
         # Create file directory
         os.mkdir(project.file_root())
         return project
@@ -300,7 +305,8 @@ class SoftwareMetadataForm(forms.ModelForm):
 
 
 # The modelform for editing metadata for each resource type
-metadata_forms = {'Database':DatabaseMetadataForm, 'Software':SoftwareMetadataForm}
+metadata_forms = {'Database':DatabaseMetadataForm,
+                  'Software':SoftwareMetadataForm}
 
 
 class CollaboratorChoiceForm(forms.Form):
@@ -325,42 +331,56 @@ class CollaboratorChoiceForm(forms.Form):
         self.project = project
 
 
-class CollaboratorInviteForm(forms.ModelForm):
+class InviteCollaboratorForm(forms.ModelForm):
     """
-    Form to invite new collaborators
-    """
-    collaborator = forms.EmailField()
+    Form to invite new collaborators to a project.
+    Field to fill in: email.
 
+    """
     def __init__(self, project, *args, **kwargs):
-        super(CollaboratorInviteForm, self).__init__(*args, **kwargs)
+        super(InviteCollaboratorForm, self).__init__(*args, **kwargs)
         self.project = project
+        #pdb.set_trace()
 
     class Meta:
         model = Invitation
-        fields = ('request_allowance', 'project')
+        fields = ('email',)#('email', 'project')
         widgets = {
             'request_allowance':forms.NumberInput(),
-            'project':forms.HiddenInput()
+            #'project':forms.HiddenInput()
         }
 
     def clean_email(self):
         "Ensure it is a fresh invite to a non-collaborator"
-        data = self.cleaned_data['collaborator']
-
+        data = self.cleaned_data['email']
         if data in [c.email for c in self.project.collaborators.all()]:
-            raise forms.ValidationError('The user is already a collaborator of this project',
+            raise forms.ValidationError(
+                'The user is already a collaborator of this project',
                 code='already_collaborator')
-
-        if data in [i.email for i in self.project.invitations.filter(invitation_type='collaborator')]:
-            raise forms.ValidationError('There is already an outstanding invitation to that email',
-                code='already_outstanding')
-
+        invitations = self.project.invitations.filter(
+            invitation_type='collaborator')
+        if data in [i.email for i in invitations]:
+            raise forms.ValidationError(
+                'There is already an outstanding invitation to that email',
+                code='already_invited')
         return data
 
 
-class AuthorInviteForm(forms.ModelForm):
+
+    # project = models.ForeignKey('project.Project', related_name='invitations')
+
+    # email = models.EmailField(max_length=255)
+    # # Either 'collaborator', 'author', or 'reviewer'
+    # invitation_type = models.CharField(max_length=10)
+    # creation_datetime = models.DateTimeField(auto_now_add=True)
+    # expiration_datetime = models.DateTimeField()
+
+
+
+
+class InviteAuthorForm(forms.ModelForm):
     """
-    Form to invite a new author.
+    Form to invite a new author to a project.
 
     """
     email = forms.EmailField()
@@ -373,29 +393,32 @@ class AuthorInviteForm(forms.ModelForm):
         }
 
     def __init__(self, project, *args, **kwargs):
-        super(CollaboratorInviteForm, self).__init__(*args, **kwargs)
+        super(InviteCollaboratorForm, self).__init__(*args, **kwargs)
         self.project = project
 
-    email = models.EmailField(max_length=255)
-    # Either 'collaborator', 'author', or 'reviewer'
-    invitation_type = models.CharField(max_length=10)
-    project = models.ForeignKey('project.Project', related_name='invitations')
-    creation_datetime = models.DateTimeField(auto_now_add=True)
-    expiration_datetime = models.DateTimeField()
+    def save():
+        pass
+
+    # email = models.EmailField(max_length=255)
+    # # Either 'collaborator', 'author', or 'reviewer'
+    # invitation_type = models.CharField(max_length=10)
+    # project = models.ForeignKey('project.Project', related_name='invitations')
+    # creation_datetime = models.DateTimeField(auto_now_add=True)
+    # expiration_datetime = models.DateTimeField()
 
 
-class AuthorAddForm(forms.ModelForm):
-    """
-    Form to add an organization as an author
-    """
-    class Meta:
-        model = Author
-        fields = (
-            'project_object', 'organization_name', 'display_order', '',
-        )
-        widgets = {
-            'project_object':forms.HiddenInput()
-        }
+# class AddAuthorForm(forms.ModelForm):
+#     """
+#     Form to add an organization as an author
+#     """
+#     class Meta:
+#         model = Author
+#         fields = (
+#             'project_object', 'organization_name', 'display_order', '',
+#         )
+#         widgets = {
+#             'project_object':forms.HiddenInput()
+#         }
 
 
 class StorageRequestForm(forms.ModelForm):

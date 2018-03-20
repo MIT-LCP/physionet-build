@@ -79,13 +79,14 @@ def project_home(request):
 @login_required
 def create_project(request):
     user = request.user
-    form = forms.ProjectCreationForm(initial={'owner':user})
 
     if request.method == 'POST':
-        form = forms.ProjectCreationForm(request.POST)
-        if form.is_valid() and form.cleaned_data['owner'] == user:
+        form = forms.ProjectCreationForm(owner=user, data=request.POST)
+        if form.is_valid():# and form.cleaned_data['owner'] == user:
             project = form.save()
             return redirect('project_overview', project_id=project.id)
+    else:
+        form = forms.ProjectCreationForm(owner=user)
 
     return render(request, 'project/create_project.html', {'form':form})
 
@@ -270,14 +271,17 @@ def project_files(request, project_id, sub_item=''):
         'delete_items_form':delete_items_form})
 
 
-def invite_collaborator(request, collaborator_invite_form):
+def invite_collaborator(request, invite_collaborator_form):
     """
     Invite a user to be a collaborator
     """
-    if collaborator_invite_form.is_valid():
-        collaborator_invite_form.save()
+    if invite_collaborator_form.is_valid():
+        print('lol actuall is valid')
+        pdb.set_trace()
+        invite_collaborator_form.save()
         messages.success(request, 'An invitation has been sent to the user')
         return True
+    pdb.set_trace()
 
 def remove_collaborator(request, collaborator_removal_form):
     """
@@ -316,26 +320,31 @@ def project_collaborators(request, project_id):
 
     # Managing collaborators and owners
     if project.owner == user or user.is_admin:
-        collaborator_invite_form = forms.CollaboratorInviteForm(project)
+        invite_collaborator_form = forms.InviteCollaboratorForm(project,
+            initial={'project':project})
         collaborator_removal_form = forms.CollaboratorChoiceForm(project)
         set_owner_form = forms.CollaboratorChoiceForm(project)
 
         if request.method == 'POST':
             if 'invite_collaborator' in request.POST:
-                collaborator_invite_form = forms.CollaboratorInviteForm(project, request.POST)
-                if invite_collaborator(request, collaborator_invite_form):
-                    collaborator_invite_form = forms.CollaboratorInviteForm(project)
+                invite_collaborator_form = forms.InviteCollaboratorForm(
+                    project, request.POST)
+                if invite_collaborator(request, invite_collaborator_form):
+                    print('yay')
+                    invite_collaborator_form = forms.InviteCollaboratorForm(project)
 
             if 'remove_collaborator' in request.POST:
-                collaborator_removal_form = forms.CollaboratorChoiceForm(project, False, request.POST)
+                collaborator_removal_form = forms.CollaboratorChoiceForm(
+                    project, False, request.POST)
                 if remove_collaborator(request, collaborator_removal_form):
                     collaborator_removal_form = forms.CollaboratorChoiceForm(project)
             if 'set_owner' in request.POST:
-                set_owner_form = forms.CollaboratorChoiceForm(project, False, request.POST)
+                set_owner_form = forms.CollaboratorChoiceForm(project, False,
+                    request.POST)
                 if set_owner(request, set_owner_form):
                     set_owner_form = forms.CollaboratorChoiceForm(project)
 
-        context.update({'collaborator_invite_form':collaborator_invite_form,
+        context.update({'invite_collaborator_form':invite_collaborator_form,
             'collaborator_removal_form':collaborator_removal_form,
             'set_owner_form':set_owner_form})
 

@@ -63,8 +63,8 @@
     <p>Invite new users to help edit project metadata and files.</p>
     <form action="{% url 'project_collaborators' project.id %}" method="post" class="form-signin">
       {% csrf_token %}
-      {{ collaborator_invite_form.collaborator }}
-      {% for error in collaborator_invite_form.collaborator.errors %}
+      {{ invite_collaborator_form.email }}
+      {% for error in invite_collaborator_form.email.errors %}
         <div class="alert alert-danger">
             <strong>{{ error|escape }}</strong>
         </div>
