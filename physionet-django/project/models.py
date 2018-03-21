@@ -220,7 +220,8 @@ class Invitation(models.Model):
     Invitation to join a project as a collaborator, author, reviewer?
 
     """
-    project = models.ForeignKey('project.Project', related_name='invitations')
+    project = models.ForeignKey('project.Project',
+        related_name='invitations')
     # The target email
     email = models.EmailField(max_length=255)
     # User who made the invitation
@@ -230,13 +231,19 @@ class Invitation(models.Model):
     creation_date = models.DateField(auto_now_add=True)
     expiration_date = models.DateField()
 
+
+    def __str__(self):
+        return ('Project: %s To: %s By: %s'
+                % (self.project, self.email, self.inviter))
+
     def user_invitations(user, invitation_types='all'):
         "Get all invitations to a user, possibly for a certain project"
         emails = [ae.email for ae in user.associated_emails.all()]
         invitations = Invitation.objects.filter(email__in=emails)
 
         if invitation_types != 'all':
-            invitations = invitations.filter(invitation_type__in=invitation_types)
+            invitations = invitations.filter(
+                invitation_type__in=invitation_types)
 
         return invitations
 

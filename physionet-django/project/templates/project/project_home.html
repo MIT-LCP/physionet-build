@@ -75,25 +75,57 @@
         <ul class="list-group list-group-flush">
           <li class="list-group-item">
             <div class="row">
-              <div class="col-md-6"><strong>Project</strong></div>
-              <div class="col-md-2"><strong>Owner</strong></div>
-              <div class="col-md-2"><strong>Invite Date</strong></div>
+              <div class="col-md-4"><strong>Project</strong></div>
+              <div class="col-md-2"><strong>Inviter</strong></div>
+              <div class="col-md-2"><strong>Sent</strong></div>
+              <div class="col-md-2"><strong>Expires</strong></div>
               <div class="col-md-2"></div>
             </div>
           </li>
           {% for invitation in invitations %}
             <li class="list-group-item">
               <div class="row">
-                <div class="col-md-6"><a href="{% url 'project_overview' invitation.project.id %}">{{ invitation.project }}</a></div>
+                <div class="col-md-4"><a href="{% url 'project_overview' invitation.project.id %}">{{ invitation.project }}</a></div>
                 <div class="col-md-2">{{ invitation.inviter }}</div>
                 <div class="col-md-2">{{ invitation.creation_date }}</div>
-                <div class="col-md-2"><button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#storage-response-modal-{{ storage_request.project.id }}">
+                <div class="col-md-2">{{ invitation.expiration_date }}</div>
+                <div class="col-md-2"><button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#invitation-response-modal-{{ storage_request.project.id }}">
                   <i class="fa fa-reply"></i> Respond</button>
                 </div>
               </div>
             </li>
           {% endfor %}
         </ul>
+
+        <!-- A modal and response form for each invitation -->
+        <form action="" method="post" enctype="multipart/form-data">
+          {{ invitation_response_formset.management_form }}
+          {% csrf_token %}
+          {% for invitation_response_form in invitation_response_formset %}
+            <div class="modal fade" id="invitation-response-modal-{{ invitation_response_form.project_id.value }}" tabindex="-1" role="dialog" aria-labelledby="invitation-response-modal-{{ invitation_response_form.project_id.value }}" aria-hidden="true">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title">Respond to Storage Request</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+
+                    <div class="modal-body">
+                      {{ invitation_response_form }}
+                    </div>
+                    <div class="modal-footer">
+                      <button class="btn btn-primary" name="respond-{{ invitation_response_form.project_id.value }}" type="submit"><i class="fa fa-reply"></i> Submit Response</button>
+                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+              </div>
+            </div>
+
+          {% endfor %}
+        </form>
+
 
       {% else %}
         <div class="card-body text-center">

@@ -353,12 +353,15 @@ class InviteCollaboratorForm(forms.ModelForm):
     def clean_email(self):
         "Ensure it is a fresh invite to a non-collaborator"
         data = self.cleaned_data['email']
-        if data in [c.email for c in self.project.collaborators.all()]:
-            raise forms.ValidationError(
-                'The user is already a collaborator of this project',
-                code='already_collaborator')
-        invitations = self.project.invitations.filter(
-            invitation_type='collaborator')
+
+        for collaborator in self.project.collaborators.all():
+            if data in [ae.email for ae in collaborator.associated_emails.all()]:
+                raise forms.ValidationError(
+                    'The user is already a collaborator of this project',
+                    code='already_collaborator')
+            invitations = self.project.invitations.filter(
+                invitation_type='collaborator')
+
         if data in [i.email for i in invitations]:
             raise forms.ValidationError(
                 'There is already an outstanding invitation to that email',
@@ -397,12 +400,6 @@ class InviteAuthorForm(forms.ModelForm):
     def save():
         pass
 
-    # email = models.EmailField(max_length=255)
-    # # Either 'collaborator', 'author', or 'reviewer'
-    # invitation_type = models.CharField(max_length=10)
-    # project = models.ForeignKey('project.Project', related_name='invitations')
-    # creation_datetime = models.DateTimeField(auto_now_add=True)
-    # expiration_datetime = models.DateTimeField()
 
 
 # class AddAuthorForm(forms.ModelForm):
@@ -417,6 +414,17 @@ class InviteAuthorForm(forms.ModelForm):
 #         widgets = {
 #             'project_object':forms.HiddenInput()
 #         }
+
+class ProjectResponseForm(forms.Form):
+    """
+    Generic form for responding to a type of request to do something
+    for a project
+    """
+    project_id = forms.IntegerField(widget= forms.HiddenInput())
+    response = forms.ChoiceField(choices=[('Accept','Accept'),
+        ('Reject','Reject')])
+    message = forms.CharField(max_length=500, required=False,
+        widget=forms.Textarea())
 
 
 class StorageRequestForm(forms.ModelForm):
@@ -453,6 +461,6 @@ class StorageResponseForm(forms.Form):
     """
     project_id = forms.IntegerField(widget= forms.HiddenInput())
     response = forms.ChoiceField(choices=[('Approve','Approve'), ('Reject','Reject')])
-    message = forms.CharField(max_length=500, required=False, widget = forms.Textarea())
+    message = forms.CharField(max_length=500, required=False, widget=forms.Textarea())
 
 

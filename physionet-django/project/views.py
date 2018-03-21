@@ -104,9 +104,19 @@ def project_home(request):
     """
     user = request.user
     projects = Project.objects.filter(collaborators__in=[user])
+    InvitationResponseFormset = formset_factory(forms.ProjectResponseForm,
+            extra=0)
+
+    if request.method == 'POST':
+        invitation_response_formset = InvitationResponseFormset(request.POST)
 
     invitations = Invitation.user_invitations(user)
-    #invitations = Invitation.objects.filter(email__in=[ae.email for ae in user.associated_emails.all()])
+    if invitations:
+        invitation_response_formset = InvitationResponseFormset(
+            initial=[{'project_id':i.project.id} for i in invitations])
+    else:
+        invitation_response_formset = None
+
 
     # Projects that the user is responsible for reviewing
     review_projects = None
@@ -392,6 +402,13 @@ def project_submission(request, project_id):
     return
 
 
+def process_collaborator_invitation(request, invitation_id):
+
+    pass
+
+
+
+
 def process_storage_request(request, storage_response_formset):
     "Accept or deny a project's storage request"
     # Only process the form that was submitted. Find the relevant project
@@ -431,7 +448,8 @@ def storage_requests(request):
     """
     user = request.user
 
-    StorageResponseFormSet = formset_factory(forms.StorageResponseForm, extra=0)
+    StorageResponseFormSet = formset_factory(forms.ProjectResponseForm,
+        extra=0)
 
     if request.method == 'POST':
         storage_response_formset = StorageResponseFormSet(request.POST)
