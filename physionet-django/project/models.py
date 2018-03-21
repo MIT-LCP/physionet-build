@@ -221,12 +221,14 @@ class Invitation(models.Model):
 
     """
     project = models.ForeignKey('project.Project', related_name='invitations')
-
+    # The target email
     email = models.EmailField(max_length=255)
+    # User who made the invitation
+    inviter = models.ForeignKey('user.User')
     # Either 'collaborator', 'author', or 'reviewer'
     invitation_type = models.CharField(max_length=10)
-    creation_datetime = models.DateTimeField(auto_now_add=True)
-    expiration_datetime = models.DateTimeField()
+    creation_date = models.DateField(auto_now_add=True)
+    expiration_date = models.DateField()
 
     def user_invitations(user, invitation_types='all'):
         "Get all invitations to a user, possibly for a certain project"

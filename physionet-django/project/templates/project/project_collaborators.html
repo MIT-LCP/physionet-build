@@ -41,17 +41,28 @@
   </div>
   <ul class="list-group list-group-flush">
     {% if invitations %}
-      {% for invitation in invitations %}
-        <li class="list-group-item">{{ invitation.email }}
-          <a class="float-right">
-              <span class="badge badge-success">Sent: {{ invitation.creation_datetime }}</span>
-              <span class="badge badge-success">Expires: {{ invitation.expiration_datetime }}</span>
-          </a>
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item">
+          <div class="row">
+            <div class="col-md-4"><strong>Invitee</strong></div>
+            <div class="col-md-4"><strong>Inviter</strong></div>
+            <div class="col-md-2"><strong>Sent</strong></div>
+            <div class="col-md-2"><strong>Expires</strong></div>
+          </div>
         </li>
-      {% endfor %}
+        {% for invitation in invitations %}
+          <li class="list-group-item">
+            <div class="row">
+              <div class="col-md-4">{{ invitation.email }}</a></div>
+              <div class="col-md-4">{{ invitation.inviter }}</div>
+              <div class="col-md-2">{{ invitation.creation_date }}</div>
+              <div class="col-md-2">{{ invitation.expiration_date }}</div>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
     {% else %}
       <div class="card-body text-center">
-
       </div>
     {% endif %}
   </ul>

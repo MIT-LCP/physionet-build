@@ -338,8 +338,9 @@ class InviteCollaboratorForm(forms.ModelForm):
     Field to fill in: email.
 
     """
-    def __init__(self, project, *args, **kwargs):
+    def __init__(self, project, inviter, *args, **kwargs):
         super(InviteCollaboratorForm, self).__init__(*args, **kwargs)
+        self.inviter = inviter
         self.project = project
 
     class Meta:
@@ -367,8 +368,9 @@ class InviteCollaboratorForm(forms.ModelForm):
     def save(self):
         invitation = super(InviteCollaboratorForm, self).save(commit=False)
         invitation.project = self.project
+        invitation.inviter = self.inviter
         invitation.invitation_type = 'collaborator'
-        invitation.expiration_datetime = (timezone.now()
+        invitation.expiration_date = (timezone.now().date()
             + timezone.timedelta(days=7))
         invitation.save()
         return invitation

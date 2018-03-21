@@ -85,8 +85,8 @@
             <li class="list-group-item">
               <div class="row">
                 <div class="col-md-6"><a href="{% url 'project_overview' invitation.project.id %}">{{ invitation.project }}</a></div>
-                <div class="col-md-2">{{ invitation.project.owner }}</div>
-                <div class="col-md-2">{{ invitation.creation_datetime|date }}</div>
+                <div class="col-md-2">{{ invitation.inviter }}</div>
+                <div class="col-md-2">{{ invitation.creation_date }}</div>
                 <div class="col-md-2"><button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#storage-response-modal-{{ storage_request.project.id }}">
                   <i class="fa fa-reply"></i> Respond</button>
                 </div>

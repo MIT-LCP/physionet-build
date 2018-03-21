@@ -356,18 +356,17 @@ def project_collaborators(request, project_id):
 
     # Managing collaborators and owners
     if project.owner == user or user.is_admin:
-        invite_collaborator_form = forms.InviteCollaboratorForm(project,
-            initial={'project':project})
+        invite_collaborator_form = forms.InviteCollaboratorForm(project, user)
         collaborator_removal_form = forms.CollaboratorChoiceForm(project)
         set_owner_form = forms.CollaboratorChoiceForm(project)
 
         if request.method == 'POST':
             if 'invite_collaborator' in request.POST:
                 invite_collaborator_form = forms.InviteCollaboratorForm(
-                    project, request.POST)
+                    project, user, request.POST)
                 if invite_collaborator(request, invite_collaborator_form):
-                    print('yay')
-                    invite_collaborator_form = forms.InviteCollaboratorForm(project)
+                    invite_collaborator_form = forms.InviteCollaboratorForm(
+                        project, user)
             if 'remove_collaborator' in request.POST:
                 collaborator_removal_form = forms.CollaboratorChoiceForm(
                     project, False, request.POST)
