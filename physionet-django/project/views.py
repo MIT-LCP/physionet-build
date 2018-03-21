@@ -46,9 +46,45 @@ def collaborator_required(base_function):
     return function_wrapper
 
 
+def is_admin(user, *args, **kwargs):
+    return user.is_admin
+
+def is_collaborator(user, project):
+    collaborators = project.collaborators.all()
+    return (user in collaborators)
+
+def is_invited(user, project):
+    "Whether a user has been invited to join a project"
+    user_invitations = Invitation.user_invitations(user)
+    return bool(user_invitations.filter(project=project))
+
+
+def authorization_required(auth_functions):
+    """
+    A generic authorization requirement decorator for projects.
+    Accepts an iterable of functions, and grants access if any of the
+    functions return True.
+    """
+    def real_decorator(base_function):
+        @login_required
+        def function_wrapper(request, *args, **kwargs):
+            user = request.user
+            project = project = Project.objects.get(id=kwargs['project_id'])
+
+            for auth_func in auth_functions:
+                if auth_func(user, project):
+                    return base_function(request, *args, **kwargs)
+
+            raise Http404("Unable to access page")
+
+        return function_wrapper
+    return real_decorator
+
+
 def download_file(request, file_path):
     """
-    Serve a file to download. file_path is the full file path of the file on the server
+    Serve a file to download. file_path is the full file path of the
+    file on the server
     """
     if os.path.exists(file_path):
         with open(file_path, 'rb') as f:
@@ -69,7 +105,8 @@ def project_home(request):
     user = request.user
     projects = Project.objects.filter(collaborators__in=[user])
 
-    invitations = Invitation.objects.filter(email__in=[ae.email for ae in user.associated_emails.all()])
+    invitations = Invitation.user_invitations(user)
+    #invitations = Invitation.objects.filter(email__in=[ae.email for ae in user.associated_emails.all()])
 
     # Projects that the user is responsible for reviewing
     review_projects = None
@@ -93,7 +130,7 @@ def create_project(request):
     return render(request, 'project/create_project.html', {'form':form})
 
 
-@collaborator_required
+@authorization_required(auth_functions=(is_admin, is_collaborator, is_invited))
 def project_overview(request, project_id):
     "Overview page of a project"
     project = Project.objects.get(id=project_id)
@@ -349,6 +386,13 @@ def project_collaborators(request, project_id):
     return render(request, 'project/project_collaborators.html', context)
 
 
+def project_submission(request, project_id):
+    """
+    View submission details regarding a project
+    """
+    return
+
+
 def process_storage_request(request, storage_response_formset):
     "Accept or deny a project's storage request"
     # Only process the form that was submitted. Find the relevant project
@@ -377,6 +421,8 @@ def process_storage_request(request, storage_response_formset):
 
     else:
         messages.error('Invalid submission')
+
+
 
 
 @admin_required

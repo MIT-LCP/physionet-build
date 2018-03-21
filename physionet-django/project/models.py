@@ -228,6 +228,16 @@ class Invitation(models.Model):
     creation_datetime = models.DateTimeField(auto_now_add=True)
     expiration_datetime = models.DateTimeField()
 
+    def user_invitations(user, invitation_types='all'):
+        "Get all invitations to a user, possibly for a certain project"
+        emails = [ae.email for ae in user.associated_emails.all()]
+        invitations = Invitation.objects.filter(email__in=emails)
+
+        if invitation_types != 'all':
+            invitations = invitations.filter(invitation_type__in=invitation_types)
+
+        return invitations
+
 
 class Topic(models.Model):
     """

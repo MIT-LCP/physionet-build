@@ -374,15 +374,6 @@ class InviteCollaboratorForm(forms.ModelForm):
         return invitation
 
 
-    # project = models.ForeignKey('project.Project', related_name='invitations')
-
-    # email = models.EmailField(max_length=255)
-    # # Either 'collaborator', 'author', or 'reviewer'
-    # invitation_type = models.CharField(max_length=10)
-    # creation_datetime = models.DateTimeField(auto_now_add=True)
-    # expiration_datetime = models.DateTimeField()
-
-
 class InviteAuthorForm(forms.ModelForm):
     """
     Form to invite a new author to a project.

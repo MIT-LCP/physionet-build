@@ -1,3 +1,6 @@
+# Private tests
+physionet-django/private-tests.py
+
 # Django database and migration files
 db.sqlite3
 physionet-django/*/migrations/0*.py
