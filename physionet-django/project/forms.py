@@ -402,29 +402,62 @@ class InviteAuthorForm(forms.ModelForm):
 
 
 
-# class AddAuthorForm(forms.ModelForm):
+
+
+# Actually this shit isn't even required. All content is from the factory.
+# The formset version will have the id inherently.
+# class InvitationResponseForm(forms.ModelForm):
 #     """
-#     Form to add an organization as an author
+#     For responding to an invitation
 #     """
 #     class Meta:
-#         model = Author
-#         fields = (
-#             'project_object', 'organization_name', 'display_order', '',
-#         )
-#         widgets = {
-#             'project_object':forms.HiddenInput()
-#         }
+#         model = Invitation
+#         # Most of these things will be disabled in the modelformset_factory
+#         fields = ('project', 'email', 'inviter', 'creation_date', 'expiration_date', 'response',)
+#         # widgets = {
+#         #     # 'response':forms.Select(choices=RESPONSE_CHOICES),
+#         #     # 'creation_date':forms.DateField(attrs={'disabled':'disabled'}),
+#         #     # 'project':forms.Select(attrs={'disabled':True})
+#         # }
 
-class ProjectResponseForm(forms.Form):
+
+    # project = models.ForeignKey('project.Project',
+    #     related_name='invitations')
+    # # The target email
+    # email = models.EmailField(max_length=255)
+    # # User who made the invitation
+    # inviter = models.ForeignKey('user.User')
+    # # Either 'collaborator', 'author', or 'reviewer'
+    # invitation_type = models.CharField(max_length=10)
+    # creation_date = models.DateField(auto_now_add=True)
+    # expiration_date = models.DateField()
+    # response = models.NullBooleanField(null=True)
+    # is_active = models.BooleanField(default=True)
+
+
+# The form version, non formset.
+# How to get the invitation id back?
+class InvitationResponseForm(forms.Form):
     """
     Generic form for responding to a type of request to do something
-    for a project
+    for a project. Used for storage requests and project invites.
     """
-    project_id = forms.IntegerField(widget= forms.HiddenInput())
+    invitation_id = forms.IntegerField()
     response = forms.ChoiceField(choices=[('Accept','Accept'),
         ('Reject','Reject')])
     message = forms.CharField(max_length=500, required=False,
         widget=forms.Textarea())
+
+    def __init__(self, responder, *args, **kwargs):
+        "Keep track of the user responding to the form"
+        self.invitation = invitation
+        self.responder = responder
+
+    def clean(self):
+        "Make sure the user is actually being invited to the project"
+        if self.responder.email != self.invitation.email:
+            return('Fuck off')
+
 
 
 class StorageRequestForm(forms.ModelForm):

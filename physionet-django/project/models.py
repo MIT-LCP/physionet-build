@@ -217,7 +217,7 @@ class PublishedProject(Metadata):
 
 class Invitation(models.Model):
     """
-    Invitation to join a project as a collaborator, author, reviewer?
+    Invitation to join a project as a collaborator, author, or reviewer
 
     """
     project = models.ForeignKey('project.Project',
@@ -230,7 +230,8 @@ class Invitation(models.Model):
     invitation_type = models.CharField(max_length=10)
     creation_date = models.DateField(auto_now_add=True)
     expiration_date = models.DateField()
-
+    response = models.NullBooleanField(null=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return ('Project: %s To: %s By: %s'

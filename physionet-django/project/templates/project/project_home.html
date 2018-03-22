@@ -71,7 +71,7 @@
     </div>
 
     <ul class="list-group list-group-flush">
-      {% if invitations %}
+      {% if invitation_formset.total_form_count %}
         <ul class="list-group list-group-flush">
           <li class="list-group-item">
             <div class="row">
@@ -82,13 +82,13 @@
               <div class="col-md-2"></div>
             </div>
           </li>
-          {% for invitation in invitations %}
+          {% for invitation_form in invitation_formset %}
             <li class="list-group-item">
               <div class="row">
-                <div class="col-md-4"><a href="{% url 'project_overview' invitation.project.id %}">{{ invitation.project }}</a></div>
-                <div class="col-md-2">{{ invitation.inviter }}</div>
-                <div class="col-md-2">{{ invitation.creation_date }}</div>
-                <div class="col-md-2">{{ invitation.expiration_date }}</div>
+                <div class="col-md-4"><a href="{% url 'project_overview' invitation_form.project.value %}">{{ invitation_form.project  }}</a></div>
+                <div class="col-md-2">{{ invitation_form.inviter }}</div>
+                <div class="col-md-2">{{ invitation_form.creation_date.value }}</div>
+                <div class="col-md-2">{{ invitation_form.expiration_date.value }}</div>
                 <div class="col-md-2"><button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#invitation-response-modal-{{ storage_request.project.id }}">
                   <i class="fa fa-reply"></i> Respond</button>
                 </div>

@@ -1,6 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.forms import formset_factory
+from django.forms import formset_factory, modelformset_factory, TextInput, CharField
 from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
 import os
@@ -95,6 +95,47 @@ def download_file(request, file_path):
         return Http404()
 
 
+# @login_required
+# def project_home(request):
+#     """
+#     Home page listing projects a user is involved in:
+#     - Collaborating projects
+#     - Reviewing projects
+#     """
+#     user = request.user
+#     projects = Project.objects.filter(collaborators__in=[user])
+
+#     InvitationFormSet = modelformset_factory(Invitation,
+#         fields=('project', 'email', 'inviter', #'creation_date',
+#                 'expiration_date', 'response'),
+
+#         widgets={'project':TextInput(attrs={'disabled':True})},
+#         # field_classes = {
+#         #     'project': CharField,
+#         # },
+
+#         extra=0)
+
+
+
+#     invitations = Invitations.objects.filter(email=user.email)
+#     response_form = ResponseForm()
+
+
+
+#     if request.method == 'POST':
+#         invitation_formset = InvitationFormSet(request.POST)
+
+#     invitation_formset = InvitationFormSet(
+#         queryset=Invitation.user_invitations(user))
+
+#     # Projects that the user is responsible for reviewing
+#     review_projects = None
+
+#     return render(request, 'project/project_home.html', {'projects':projects,
+#         'review_projects':review_projects,
+#         'invitation_formset':invitation_formset})
+
 @login_required
 def project_home(request):
     """
@@ -104,25 +145,37 @@ def project_home(request):
     """
     user = request.user
     projects = Project.objects.filter(collaborators__in=[user])
-    InvitationResponseFormset = formset_factory(forms.ProjectResponseForm,
-            extra=0)
+
+    InvitationFormSet = modelformset_factory(Invitation,
+        fields=('project', 'email', 'inviter', #'creation_date',
+                'expiration_date', 'response'),
+
+        widgets={'project':TextInput(attrs={'disabled':True})},
+        # field_classes = {
+        #     'project': CharField,
+        # },
+
+        extra=0)
+
+
+
+    # invitations = Invitations.objects.filter(email=user.email)
+    # response_form = ResponseForm()
+
+
 
     if request.method == 'POST':
-        invitation_response_formset = InvitationResponseFormset(request.POST)
+        invitation_formset = InvitationFormSet(request.POST)
 
-    invitations = Invitation.user_invitations(user)
-    if invitations:
-        invitation_response_formset = InvitationResponseFormset(
-            initial=[{'project_id':i.project.id} for i in invitations])
-    else:
-        invitation_response_formset = None
-
+    invitation_formset = InvitationFormSet(
+        queryset=Invitation.user_invitations(user))
 
     # Projects that the user is responsible for reviewing
     review_projects = None
 
     return render(request, 'project/project_home.html', {'projects':projects,
-        'review_projects':review_projects, 'invitations':invitations})
+        'review_projects':review_projects,
+        'invitation_formset':invitation_formset})
 
 
 @login_required
@@ -138,6 +191,7 @@ def create_project(request):
         form = forms.CreateProjectForm(owner=user)
 
     return render(request, 'project/create_project.html', {'form':form})
+
 
 
 @authorization_required(auth_functions=(is_admin, is_collaborator, is_invited))
