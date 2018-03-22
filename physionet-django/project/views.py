@@ -94,7 +94,39 @@ def download_file(request, file_path):
     else:
         return Http404()
 
+# The version with separate formset and models
+@login_required
+def project_home(request):
+    """
+    Home page listing projects a user is involved in:
+    - Collaborating projects
+    - Reviewing projects
+    """
+    user = request.user
 
+    projects = Project.objects.filter(collaborators__in=[user])
+    invitations = Invitation.get_user_invitations(user)
+
+
+
+    InvitationResponseFormSet = formset_factory(forms.InvitationResponseForm,
+        extra=0)
+
+
+    invitation_response_formset = InvitationResponseFormSet(
+        initial=[{'invitation_id':inv.id} for inv in invitations])
+
+
+
+    # Projects that the user is responsible for reviewing
+    review_projects = None
+
+    return render(request, 'project/project_home.html', {'projects':projects,
+        'review_projects':review_projects, 'invitations':invitations,
+        'invitation_response_formset':invitation_response_formset})
+
+
+# The version with a single huge modelformset
 # @login_required
 # def project_home(request):
 #     """
@@ -106,7 +138,7 @@ def download_file(request, file_path):
 #     projects = Project.objects.filter(collaborators__in=[user])
 
 #     InvitationFormSet = modelformset_factory(Invitation,
-#         fields=('project', 'email', 'inviter', #'creation_date',
+#         fields=('id', 'project', 'email', 'inviter', #'creation_date',
 #                 'expiration_date', 'response'),
 
 #         widgets={'project':TextInput(attrs={'disabled':True})},
@@ -118,8 +150,8 @@ def download_file(request, file_path):
 
 
 
-#     invitations = Invitations.objects.filter(email=user.email)
-#     response_form = ResponseForm()
+#     # =invitations = Invitations.objects.filter(email=user.email)
+#     # response_form = ResponseForm()
 
 
 
@@ -135,47 +167,6 @@ def download_file(request, file_path):
 #     return render(request, 'project/project_home.html', {'projects':projects,
 #         'review_projects':review_projects,
 #         'invitation_formset':invitation_formset})
-
-@login_required
-def project_home(request):
-    """
-    Home page listing projects a user is involved in:
-    - Collaborating projects
-    - Reviewing projects
-    """
-    user = request.user
-    projects = Project.objects.filter(collaborators__in=[user])
-
-    InvitationFormSet = modelformset_factory(Invitation,
-        fields=('project', 'email', 'inviter', #'creation_date',
-                'expiration_date', 'response'),
-
-        widgets={'project':TextInput(attrs={'disabled':True})},
-        # field_classes = {
-        #     'project': CharField,
-        # },
-
-        extra=0)
-
-
-
-    # invitations = Invitations.objects.filter(email=user.email)
-    # response_form = ResponseForm()
-
-
-
-    if request.method == 'POST':
-        invitation_formset = InvitationFormSet(request.POST)
-
-    invitation_formset = InvitationFormSet(
-        queryset=Invitation.user_invitations(user))
-
-    # Projects that the user is responsible for reviewing
-    review_projects = None
-
-    return render(request, 'project/project_home.html', {'projects':projects,
-        'review_projects':review_projects,
-        'invitation_formset':invitation_formset})
 
 
 @login_required

@@ -442,7 +442,7 @@ class InvitationResponseForm(forms.Form):
     Generic form for responding to a type of request to do something
     for a project. Used for storage requests and project invites.
     """
-    invitation_id = forms.IntegerField()
+    invitation_id = forms.IntegerField(widget=forms.HiddenInput)
     response = forms.ChoiceField(choices=[('Accept','Accept'),
         ('Reject','Reject')])
     message = forms.CharField(max_length=500, required=False,
@@ -456,7 +456,7 @@ class InvitationResponseForm(forms.Form):
     def clean(self):
         "Make sure the user is actually being invited to the project"
         if self.responder.email != self.invitation.email:
-            return('Fuck off')
+            return('No')
 
 
 

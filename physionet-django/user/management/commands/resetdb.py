@@ -50,7 +50,4 @@ def load_fixtures(installed_apps):
     are removed.
     """
     for app in installed_apps:
-        try:
-            call_command('loaddata', app, verbosity=1)
-        except:
-            pass
+        call_command('loaddata', app, verbosity=1)

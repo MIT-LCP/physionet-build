@@ -37,6 +37,18 @@
   },
 
   {
+    "model": "project.Invitation",
+    "fields": {
+      "email": "george@mit.edu",
+      "project": "1",
+      "inviter": ["tester@mit.edu"],
+      "invitation_type": "collaborator",
+      "creation_date":"2017-11-02",
+      "expiration_date":"2017-11-09"
+    }
+  },
+
+  {
     "model": "project.StorageRequest",
     "fields": {
       "project": "3",

@@ -237,16 +237,25 @@ class Invitation(models.Model):
         return ('Project: %s To: %s By: %s'
                 % (self.project, self.email, self.inviter))
 
-    def user_invitations(user, invitation_types='all'):
-        "Get all invitations to a user, possibly for a certain project"
+    def get_user_invitations(user, invitation_types='all'):
+        "Get all active invitations to a user, possibly for a certain project"
         emails = [ae.email for ae in user.associated_emails.all()]
-        invitations = Invitation.objects.filter(email__in=emails)
+        invitations = Invitation.objects.filter(email__in=emails,
+            is_active=True)
 
         if invitation_types != 'all':
             invitations = invitations.filter(
                 invitation_type__in=invitation_types)
 
         return invitations
+
+    def is_invited(user, project, invitation_types='all'):
+        "Whether a user is invited to a project"
+        user_invitations = get_user_invitations(user=user,
+            invitation_types=invitation_types)
+
+        return bool(project in [inv.project for inv in invitations])
+
 
 
 class Topic(models.Model):
