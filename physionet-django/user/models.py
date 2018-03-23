@@ -107,6 +107,11 @@ class User(AbstractBaseUser):
         "Is the user a member of staff?"
         return self.is_admin
 
+    def get_emails(self):
+        "Get list of all email strings"
+        return [ae.email for ae in self.associated_emails.all()]
+
+
 
 class AssociatedEmail(models.Model):
     """

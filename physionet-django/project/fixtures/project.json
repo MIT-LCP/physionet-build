@@ -47,6 +47,17 @@
       "expiration_date":"2017-11-09"
     }
   },
+  {
+    "model": "project.Invitation",
+    "fields": {
+      "email": "george@mit.edu",
+      "project": "2",
+      "inviter": ["tester@mit.edu"],
+      "invitation_type": "collaborator",
+      "creation_date":"2017-11-07",
+      "expiration_date":"2017-11-14"
+    }
+  },
 
   {
     "model": "project.StorageRequest",

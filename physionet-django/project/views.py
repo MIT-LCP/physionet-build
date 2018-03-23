@@ -94,6 +94,52 @@ def download_file(request, file_path):
     else:
         return Http404()
 
+
+def get_button_id(post_keys):
+    """
+    Helper function to extract the submit button label from a form post.
+    The button name should be in the form of: "respond-<id>", and there
+    should only be one item in the post of that format. This function
+    is used to determine which form/button was submitted on a page with
+    multiple forms.
+
+    post_keys : keys of a form post.
+    """
+    button_id = [re.findall('respond-(?P<button_id>\d+)', k) for k in post_keys]
+    button_id = [i for i in button_id if i]
+
+    if len(button_id) == 1:
+        button_id = int(button_id[0][0])
+    else:
+        button_id = None
+
+    return button_id
+
+
+def process_invitation_response(request, invitation_response_formset):
+    "Process an invitation response"
+    invitation_id = get_button_id(request.POST.keys())
+
+    # Only process the form that was submitted
+    for invitation_response_form in invitation_response_formset:
+        if (invitation_response_form.is_valid() and
+                invitation_response_form.cleaned_data['invitation_id'] == invitation_id):
+            # Update the Invitation object
+            invitation = Invitation.objects.get(id=invitation_id)
+            response = int(invitation_response_form.cleaned_data['response'])
+            pdb.set_trace()
+            invitation.response = response
+            invitation.is_active = False
+            invitation.save()
+
+            if response:
+                # Add the user to the project collaborators
+                project = invitation.project
+                project.collaborators.add(request.user)
+
+            return
+
+
 # The version with separate formset and models
 @login_required
 def project_home(request):
@@ -107,16 +153,20 @@ def project_home(request):
     projects = Project.objects.filter(collaborators__in=[user])
     invitations = Invitation.get_user_invitations(user)
 
-
-
     InvitationResponseFormSet = formset_factory(forms.InvitationResponseForm,
         extra=0)
 
+    if request.method == 'POST':
+        invitation_response_formset = InvitationResponseFormSet(
+            request.POST, form_kwargs={'responder':user})
+        process_invitation_response(request, invitation_response_formset)
+
 
     invitation_response_formset = InvitationResponseFormSet(
+        form_kwargs={'responder':user},
         initial=[{'invitation_id':inv.id} for inv in invitations])
 
-
+    #pdb.set_trace()
 
     # Projects that the user is responsible for reviewing
     review_projects = None
@@ -124,49 +174,6 @@ def project_home(request):
     return render(request, 'project/project_home.html', {'projects':projects,
         'review_projects':review_projects, 'invitations':invitations,
         'invitation_response_formset':invitation_response_formset})
-
-
-# The version with a single huge modelformset
-# @login_required
-# def project_home(request):
-#     """
-#     Home page listing projects a user is involved in:
-#     - Collaborating projects
-#     - Reviewing projects
-#     """
-#     user = request.user
-#     projects = Project.objects.filter(collaborators__in=[user])
-
-#     InvitationFormSet = modelformset_factory(Invitation,
-#         fields=('id', 'project', 'email', 'inviter', #'creation_date',
-#                 'expiration_date', 'response'),
-
-#         widgets={'project':TextInput(attrs={'disabled':True})},
-#         # field_classes = {
-#         #     'project': CharField,
-#         # },
-
-#         extra=0)
-
-
-
-#     # =invitations = Invitations.objects.filter(email=user.email)
-#     # response_form = ResponseForm()
-
-
-
-#     if request.method == 'POST':
-#         invitation_formset = InvitationFormSet(request.POST)
-
-#     invitation_formset = InvitationFormSet(
-#         queryset=Invitation.user_invitations(user))
-
-#     # Projects that the user is responsible for reviewing
-#     review_projects = None
-
-#     return render(request, 'project/project_home.html', {'projects':projects,
-#         'review_projects':review_projects,
-#         'invitation_formset':invitation_formset})
 
 
 @login_required
@@ -484,8 +491,6 @@ def process_storage_request(request, storage_response_formset):
         messages.error('Invalid submission')
 
 
-
-
 @admin_required
 def storage_requests(request):
     """
@@ -493,7 +498,7 @@ def storage_requests(request):
     """
     user = request.user
 
-    StorageResponseFormSet = formset_factory(forms.ProjectResponseForm,
+    StorageResponseFormSet = formset_factory(forms.StorageResponseForm,
         extra=0)
 
     if request.method == 'POST':

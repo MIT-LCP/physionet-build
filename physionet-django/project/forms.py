@@ -309,6 +309,11 @@ class SoftwareMetadataForm(forms.ModelForm):
 metadata_forms = {'Database':DatabaseMetadataForm,
                   'Software':SoftwareMetadataForm}
 
+RESPONSE_CHOICES = (
+    ('', '------'),
+    (1, 'Accept'),
+    (0, 'Reject')
+)
 
 class CollaboratorChoiceForm(forms.Form):
     """
@@ -322,7 +327,6 @@ class CollaboratorChoiceForm(forms.Form):
     def __init__(self, project, include_owner=False, *args, **kwargs):
         # Email choices are those belonging to a user
         super(CollaboratorChoiceForm, self).__init__(*args, **kwargs)
-
         collaborators = project.collaborators.all()
 
         if not include_owner:
@@ -401,40 +405,6 @@ class InviteAuthorForm(forms.ModelForm):
         pass
 
 
-
-
-
-# Actually this shit isn't even required. All content is from the factory.
-# The formset version will have the id inherently.
-# class InvitationResponseForm(forms.ModelForm):
-#     """
-#     For responding to an invitation
-#     """
-#     class Meta:
-#         model = Invitation
-#         # Most of these things will be disabled in the modelformset_factory
-#         fields = ('project', 'email', 'inviter', 'creation_date', 'expiration_date', 'response',)
-#         # widgets = {
-#         #     # 'response':forms.Select(choices=RESPONSE_CHOICES),
-#         #     # 'creation_date':forms.DateField(attrs={'disabled':'disabled'}),
-#         #     # 'project':forms.Select(attrs={'disabled':True})
-#         # }
-
-
-    # project = models.ForeignKey('project.Project',
-    #     related_name='invitations')
-    # # The target email
-    # email = models.EmailField(max_length=255)
-    # # User who made the invitation
-    # inviter = models.ForeignKey('user.User')
-    # # Either 'collaborator', 'author', or 'reviewer'
-    # invitation_type = models.CharField(max_length=10)
-    # creation_date = models.DateField(auto_now_add=True)
-    # expiration_date = models.DateField()
-    # response = models.NullBooleanField(null=True)
-    # is_active = models.BooleanField(default=True)
-
-
 # The form version, non formset.
 # How to get the invitation id back?
 class InvitationResponseForm(forms.Form):
@@ -443,21 +413,27 @@ class InvitationResponseForm(forms.Form):
     for a project. Used for storage requests and project invites.
     """
     invitation_id = forms.IntegerField(widget=forms.HiddenInput)
-    response = forms.ChoiceField(choices=[('Accept','Accept'),
-        ('Reject','Reject')])
+    response = forms.ChoiceField(choices=RESPONSE_CHOICES)
     message = forms.CharField(max_length=500, required=False,
         widget=forms.Textarea())
 
     def __init__(self, responder, *args, **kwargs):
         "Keep track of the user responding to the form"
-        self.invitation = invitation
+        super(InvitationResponseForm, self).__init__(*args, **kwargs)
         self.responder = responder
 
-    def clean(self):
+    def clean_invitation_id(self):
         "Make sure the user is actually being invited to the project"
-        if self.responder.email != self.invitation.email:
-            return('No')
+        data = self.cleaned_data['invitation_id']
 
+        target_email = Invitation.objects.get(id=data).email
+
+        if target_email not in self.responder.get_emails():
+            raise forms.ValidationError(
+                'You are not invited',
+                code='not_invited')
+
+        return data
 
 
 class StorageRequestForm(forms.ModelForm):
@@ -493,7 +469,7 @@ class StorageResponseForm(forms.Form):
     Form for responding to a storage request
     """
     project_id = forms.IntegerField(widget= forms.HiddenInput())
-    response = forms.ChoiceField(choices=[('Approve','Approve'), ('Reject','Reject')])
+    response = forms.ChoiceField(choices=RESPONSE_CHOICES)
     message = forms.CharField(max_length=500, required=False, widget=forms.Textarea())
 
 

@@ -242,7 +242,6 @@ class Invitation(models.Model):
         emails = [ae.email for ae in user.associated_emails.all()]
         invitations = Invitation.objects.filter(email__in=emails,
             is_active=True)
-
         if invitation_types != 'all':
             invitations = invitations.filter(
                 invitation_type__in=invitation_types)
@@ -313,6 +312,10 @@ class StorageRequest(models.Model):
     request_allowance = models.SmallIntegerField(
         validators=[MaxValueValidator(100), MinValueValidator(1)])
     request_datetime = models.DateTimeField(auto_now_add=True)
+    response = models.NullBooleanField(null=True)
+    is_active = models.BooleanField(default=True)
+    # The authorizer
+    responder = models.ForeignKey('user.User', null=True)
 
 
 class Review(models.Model):
