@@ -158,7 +158,7 @@ class Metadata(models.Model):
     version_number = models.CharField(max_length=15, default='', blank=True)
     changelog_summary = RichTextField(blank=True)
     # External home page
-    project_home = models.URLField(default='', blank=True)
+    project_home_page = models.URLField(default='', blank=True)
 
     authors = GenericRelation(Author)
     contributors = GenericRelation(Contributor)

@@ -16,9 +16,11 @@ class MultiFileFieldForm(forms.Form):
     """
     Form for uploading multiple files
     """
-    file_field = forms.FileField(widget=forms.ClearableFileInput(attrs={'multiple': True}))
+    file_field = forms.FileField(widget=forms.ClearableFileInput(
+        attrs={'multiple': True}))
 
-    def __init__(self, individual_size_limit, total_size_limit, current_directory, *args, **kwargs):
+    def __init__(self, individual_size_limit, total_size_limit,
+                 current_directory, *args, **kwargs):
         # Email choices are those belonging to a user
         super(MultiFileFieldForm, self).__init__(*args, **kwargs)
         self.individual_size_limit = individual_size_limit
@@ -34,7 +36,8 @@ class MultiFileFieldForm(forms.Form):
         data = self.cleaned_data['file_field']
         files = self.files.getlist('file_field')
 
-        self.taken_names = list_items(self.current_directory, return_separate=False)
+        self.taken_names = list_items(self.current_directory,
+                                      return_separate=False)
 
         total_size = 0
         for file in files:
@@ -300,7 +303,7 @@ class SoftwareMetadataForm(forms.ModelForm):
     class Meta:
         model = Project
         fields = ('title', 'abstract', 'technical_validation', 'usage_notes',
-            'project_home', 'acknowledgements', 'paper_citations',
+            'project_home_page', 'acknowledgements', 'paper_citations',
             'references', 'topics', 'dua', 'training_course',
             'id_verification_required', 'version_number', 'changelog_summary',)
 

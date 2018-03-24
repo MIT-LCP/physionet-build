@@ -11,7 +11,7 @@ urlpatterns = [
     url(r'^invitation-response/$', views.invitation_response,
         name='invitation_response'),
 
-    url(r'^(?P<project_id>\d+)/$', views.project_overview,
+    url(r'^(?P<project_id>\d+)/overview/$', views.project_overview,
         name='project_overview'),
     url(r'^(?P<project_id>\d+)/authors/$', views.project_authors,
         name='project_authors'),

@@ -223,7 +223,7 @@ def project_authors(request, project_id):
     "Page displaying author information"
     project = Project.objects.get(id=project_id)
 
-    invitations = project.invitations.filter(author_invite=True)
+    invitations = project.invitations.filter(invitation_type='author')
 
     return render(request, 'project/project_authors.html', {'project':project,
         'invitations':invitations})

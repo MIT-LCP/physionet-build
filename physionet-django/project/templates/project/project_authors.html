@@ -1,0 +1,99 @@
+{% extends "project/project.html" %}
+
+{% block title %}Project Authors{% endblock %}
+
+{% block form %}
+<h2 class="form-signin-heading">Project Authors</h2>
+<hr>
+
+<h4>Roles</h4>
+<p>Each project can have several <strong>authors</strong>. Authors are credited for creating the database when it is published.</p>
+
+<p>All authors are project <a href="{% url 'project_collaborators' project.id %}">collaborators</a>, although collaborators are not necessarily authors. Collaborators can view the project, and edit the metadata and files.</p>
+
+<hr>
+
+<div class="card">
+  <div class="card card-header">
+    <h4>Project Authors</h4>
+  </div>
+  {% if authors %}
+    <ul class="list-group list-group-flush">
+      {% for author in authors %}
+        <li class="list-group-item">{{ author }}
+          <a class="float-right">
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <div class="card card-body text-center">
+    </div>
+  {% endif %}
+</div>
+<hr>
+
+<div class="card">
+  <div class="card card-header">
+    <h4>Outstanding Invitations</h4>
+  </div>
+  <ul class="list-group list-group-flush">
+    {% if invitations %}
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item">
+          <div class="row">
+            <div class="col-md-4"><strong>Invitee</strong></div>
+            <div class="col-md-4"><strong>Inviter</strong></div>
+            <div class="col-md-2"><strong>Sent</strong></div>
+            <div class="col-md-2"><strong>Expires</strong></div>
+          </div>
+        </li>
+        {% for invitation in invitations %}
+          <li class="list-group-item">
+            <div class="row">
+              <div class="col-md-4">{{ invitation.email }}</a></div>
+              <div class="col-md-4">{{ invitation.inviter }}</div>
+              <div class="col-md-2">{{ invitation.creation_date }}</div>
+              <div class="col-md-2">{{ invitation.expiration_date }}</div>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="card-body text-center">
+      </div>
+    {% endif %}
+  </ul>
+</div>
+<hr>
+
+
+{% if user == project.owner or user.is_admin %}
+
+    <h4>Invite Authors</h4>
+    <p>Invite new authors</p>
+    <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
+      {% csrf_token %}
+      {{ collaborator_invite_form.collaborator }}
+      {% for error in collaborator_invite_form.collaborator.errors %}
+        <div class="alert alert-danger">
+            <strong>{{ error|escape }}</strong>
+        </div>
+      {% endfor %}
+
+      <button class="btn btn-success btn-fixed" name="invite_author" type="submit">Invite Authors</button>
+    </form>
+    <hr>
+
+    <h4>Remove Authors</h4>
+    <p>Remove users from accessing the project.</p>
+    <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
+      {% csrf_token %}
+      {{ collaborator_removal_form.collaborator }}
+      <button class="btn btn-danger btn-fixed" name="remove_author" type="submit">Remove Author</button>
+    </form>
+    <hr>
+
+    {% endif %}
+
+{% endblock %}
