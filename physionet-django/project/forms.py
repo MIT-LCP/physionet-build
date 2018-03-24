@@ -310,7 +310,7 @@ metadata_forms = {'Database':DatabaseMetadataForm,
                   'Software':SoftwareMetadataForm}
 
 RESPONSE_CHOICES = (
-    ('', '------'),
+#    ('', '------'),
     (1, 'Accept'),
     (0, 'Reject')
 )
@@ -359,7 +359,7 @@ class InviteCollaboratorForm(forms.ModelForm):
         data = self.cleaned_data['email']
 
         for collaborator in self.project.collaborators.all():
-            if data in [ae.email for ae in collaborator.associated_emails.all()]:
+            if data in collaborator.get_emails():
                 raise forms.ValidationError(
                     'The user is already a collaborator of this project',
                     code='already_collaborator')

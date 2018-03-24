@@ -127,7 +127,6 @@ def process_invitation_response(request, invitation_response_formset):
             # Update the Invitation object
             invitation = Invitation.objects.get(id=invitation_id)
             response = int(invitation_response_form.cleaned_data['response'])
-            pdb.set_trace()
             invitation.response = response
             invitation.is_active = False
             invitation.save()
@@ -136,9 +135,36 @@ def process_invitation_response(request, invitation_response_formset):
                 # Add the user to the project collaborators
                 project = invitation.project
                 project.collaborators.add(request.user)
+            else:
+                project = None
 
-            return
+            return project
 
+
+@login_required
+def invitation_response(request):
+    """
+    Directed here after responding to an invitation
+    """
+    user = request.user
+    InvitationResponseFormSet = formset_factory(forms.InvitationResponseForm,
+        extra=0)
+
+    if request.method == 'POST':
+        invitation_response_formset = InvitationResponseFormSet(
+            request.POST, form_kwargs={'responder':user})
+        project = process_invitation_response(request,
+            invitation_response_formset)
+
+        if project:
+            response = 'accepted'
+        else:
+            response = 'rejected'
+
+        return render(request, 'project/invitation_response.html',
+            {'project':project, 'response':response})
+    else:
+        return Http404()
 
 # The version with separate formset and models
 @login_required
@@ -156,17 +182,9 @@ def project_home(request):
     InvitationResponseFormSet = formset_factory(forms.InvitationResponseForm,
         extra=0)
 
-    if request.method == 'POST':
-        invitation_response_formset = InvitationResponseFormSet(
-            request.POST, form_kwargs={'responder':user})
-        process_invitation_response(request, invitation_response_formset)
-
-
     invitation_response_formset = InvitationResponseFormSet(
         form_kwargs={'responder':user},
         initial=[{'invitation_id':inv.id} for inv in invitations])
-
-    #pdb.set_trace()
 
     # Projects that the user is responsible for reviewing
     review_projects = None
@@ -453,10 +471,6 @@ def project_submission(request, project_id):
     """
     return
 
-
-def process_collaborator_invitation(request, invitation_id):
-
-    pass
 
 
 

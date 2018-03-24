@@ -8,6 +8,8 @@ urlpatterns = [
 
     url(r'^storage-requests/$', views.storage_requests,
         name='storage_requests'),
+    url(r'^invitation-response/$', views.invitation_response,
+        name='invitation_response'),
 
     url(r'^(?P<project_id>\d+)/$', views.project_overview,
         name='project_overview'),
@@ -19,7 +21,6 @@ urlpatterns = [
         name='project_files'),
     url(r'^(?P<project_id>\d+)/metadata/$', views.project_metadata,
         name='project_metadata'),
-
     url(r'^(?P<project_id>\d+)/submission/$', views.project_submission,
         name='project_submission'),
 ]
