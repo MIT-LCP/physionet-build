@@ -61,7 +61,6 @@
   </div>
   <br>
 
-
   <div class="card" >
     <div class="card-header">
       <h4>Collaborator Invitations</h4>
@@ -104,6 +103,47 @@
   </div>
   <br>
 
+  <div class="card" >
+    <div class="card-header">
+      <h4>Reviewer Invitations</h4>
+    </div>
+
+    <ul class="list-group list-group-flush">
+      {% if reviewer_invitations %}
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item">
+            <div class="row">
+              <div class="col-md-4"><strong>Project</strong></div>
+              <div class="col-md-2"><strong>Inviter</strong></div>
+              <div class="col-md-2"><strong>Sent</strong></div>
+              <div class="col-md-2"><strong>Expires</strong></div>
+              <div class="col-md-2"></div>
+            </div>
+          </li>
+          {% for invitation in collaborator_invitations %}
+            <li class="list-group-item">
+              <div class="row">
+                <div class="col-md-4"><a href="{% url 'project_overview' invitation.project.id %}">{{ invitation.project  }}</a></div>
+                <div class="col-md-2">{{ invitation.inviter }}</div>
+                <div class="col-md-2">{{ invitation.creation_date }}</div>
+                <div class="col-md-2">{{ invitation.expiration_date }}</div>
+                <div class="col-md-2"><button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#invitation-response-modal-{{ invitation.id }}">
+                  <i class="fa fa-reply"></i> Respond</button>
+                </div>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+
+      {% else %}
+        <div class="card-body text-center">
+          <h4 class="card-title">No pending invitations</h4>
+          <p class="card-text">You are not currently being invited to review any projects.</p>
+        </div>
+      {% endif %}
+    </ul>
+  </div>
+  <br>
   {% if invitations %}
       <!-- A modal and response form for each invitation. Not separated by type -->
     <form action="{% url 'project_invitations' %}" method="post" enctype="multipart/form-data">

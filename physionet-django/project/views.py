@@ -55,7 +55,7 @@ def is_collaborator(user, project):
 
 def is_invited(user, project):
     "Whether a user has been invited to join a project"
-    user_invitations = Invitation.user_invitations(user)
+    user_invitations = Invitation.get_user_invitations(user)
     return bool(user_invitations.filter(project=project))
 
 
@@ -298,6 +298,7 @@ def project_authors(request, project_id):
 
     # Initiate the forms
     invite_author_form = forms.InviteAuthorForm(project, user)
+    add_author_form = forms.AddAuthorForm(project)
 
     if request.method == 'POST':
 
@@ -317,7 +318,8 @@ def project_authors(request, project_id):
 
     return render(request, 'project/project_authors.html', {'project':project,
         'authors':authors,
-        'invitations':invitations, 'invite_author_form':invite_author_form})
+        'invitations':invitations, 'invite_author_form':invite_author_form,
+        'add_author_form':add_author_form})
 
 
 @collaborator_required

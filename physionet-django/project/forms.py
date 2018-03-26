@@ -458,6 +458,26 @@ class InvitationResponseForm(forms.Form):
         return data
 
 
+class AddAuthorForm(forms.ModelForm):
+    """
+    Add a non-human author
+    """
+    class Meta:
+        model = Author
+        fields = ('organization_name', 'display_order')
+
+    def __init__(self, project, *args, **kwargs):
+        "Make sure the user adding this entry is the owner"
+        super(AddAuthorForm, self).__init__(*args, **kwargs)
+        self.project = project
+
+    def save(self):
+        author = super(AddAuthorForm, self).save(commit=False)
+        author.project_object = self.project
+        author.is_human = False
+        author.save()
+
+
 class StorageRequestForm(forms.ModelForm):
     """
     Making a request for storage capacity for a project

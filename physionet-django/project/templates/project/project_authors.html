@@ -89,8 +89,8 @@
     <p>Add an organizational author</p>
     <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
       {% csrf_token %}
-      {{ collaborator_invite_form.collaborator }}
-      {% for error in collaborator_invite_form.collaborator.errors %}
+      {{ add_author_form }}
+      {% for error in add_author_Form.errors %}
         <div class="alert alert-danger">
             <strong>{{ error|escape }}</strong>
         </div>
