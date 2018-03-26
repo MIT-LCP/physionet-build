@@ -7,7 +7,7 @@ import os
 import re
 
 from . import forms
-from .models import Invitation, Project, PublishedProject, StorageRequest
+from .models import Author, Invitation, Project, PublishedProject, StorageRequest
 from .utility import (get_file_info, get_directory_info, get_storage_info,
     write_uploaded_file, list_items, remove_items, move_items as do_move_items,
     get_form_errors)
@@ -172,16 +172,27 @@ def process_invitation_response(request, invitation_response_formset):
                 project = invitation.project
 
                 if invitation.invitation_type == 'author':
-                    Author.objects.create(project_object=project, user=user)
-                    # Also add as collaborator. Signal?
+                    # Create Author object. Signal adds user as
+                    # collaborator collaborator.
+                    existing_authors = project.authors.filter(is_human=True)
+                    if existing_authors:
+                        order = max([a.display_order for a in existing_authors]) + 1
+                    else:
+                        order = 1
+                    Author.objects.create(project_object=project, user=user,
+                        display_order=order)
+
                 elif invitation.invitation_type == 'collaborator':
                     # Add the user to the project collaborators
                     project.collaborators.add(user)
                 elif invitation.invitation_type == 'reviewer':
                     pass
+
             else:
                 project = None
                 response = 'rejected'
+
+            messages.success(request, 'You have %s the invitation.' % response)
 
             return project, response
     # content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
@@ -214,7 +225,6 @@ def project_invitations(request):
     invitation_response_formset = InvitationResponseFormSet(
         form_kwargs={'responder':user},
         initial=[{'invitation_id':inv.id} for inv in invitations])
-
 
     # author_invitation_response_formset = InvitationResponseFormSet(
     #     form_kwargs={'responder':user},
@@ -284,6 +294,7 @@ def project_authors(request, project_id):
     """
     user = request.user
     project = Project.objects.get(id=project_id)
+    authors = project.authors.all()
 
     # Initiate the forms
     invite_author_form = forms.InviteAuthorForm(project, user)
@@ -301,10 +312,11 @@ def project_authors(request, project_id):
         elif 'remove_author' in request.POST:
             pass
 
-    invitations = project.invitations.filter(invitation_type='author')
-
+    invitations = project.invitations.filter(invitation_type='author',
+        is_active=True)
 
     return render(request, 'project/project_authors.html', {'project':project,
+        'authors':authors,
         'invitations':invitations, 'invite_author_form':invite_author_form})
 
 

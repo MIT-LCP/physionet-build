@@ -3,8 +3,8 @@
     "model": "project.Project",
     "fields": {
       "title": "MIT-BIH Arrhythmia Database",
-      "owner": ["tester@mit.edu"],
-      "collaborators": [["tester@mit.edu"], ["rgmark@mit.edu"]],
+      "owner": ["rgmark@mit.edu"],
+      "collaborators": [["admin@mit.edu"], ["rgmark@mit.edu"]],
       "creation_datetime":"2017-10-30T09:30:30-05:00",
       "modified_datetime":"2017-10-30T09:30:30-05:00",
       "resource_type":"Database",
@@ -15,8 +15,8 @@
     "model": "project.Project",
     "fields": {
       "title": "MIMIC-III Clinical Database",
-      "owner": ["tester@mit.edu"],
-      "collaborators": [["tester@mit.edu"],["rgmark@mit.edu"]],
+      "owner": ["rgmark@mit.edu"],
+      "collaborators": [["admin@mit.edu"],["rgmark@mit.edu"]],
       "creation_datetime":"2017-10-30T09:30:30-05:00",
       "modified_datetime":"2017-10-30T09:30:30-05:00",
       "resource_type":"Database",
@@ -41,8 +41,8 @@
     "fields": {
       "email": "george@mit.edu",
       "project": "1",
-      "inviter": ["tester@mit.edu"],
-      "invitation_type": "collaborator",
+      "inviter": ["rgmark@mit.edu"],
+      "invitation_type": "author",
       "creation_date":"2017-11-02",
       "expiration_date":"2017-11-09"
     }
@@ -52,7 +52,7 @@
     "fields": {
       "email": "george@mit.edu",
       "project": "2",
-      "inviter": ["tester@mit.edu"],
+      "inviter": ["admin@mit.edu"],
       "invitation_type": "collaborator",
       "creation_date":"2017-11-07",
       "expiration_date":"2017-11-14"

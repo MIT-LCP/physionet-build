@@ -47,8 +47,15 @@ class Member(models.Model):
 
     affiliations = GenericRelation(Affiliation)
 
+    def __str__(self):
+        if self.is_human:
+            return self.user.email
+        else:
+            return self.organization_name
+
     class Meta:
         abstract = True
+
 
 
 class Author(Member):
@@ -68,6 +75,7 @@ class Author(Member):
         blank=True, null=True)
     # Whether to label them as 'equal contributor'
     equal_contributor = models.BooleanField(default=False)
+
 
 @receiver(post_init, sender=Author)
 def add_author_collaborator(sender, **kwargs):
@@ -268,7 +276,6 @@ class Invitation(models.Model):
             invitation_types=invitation_types)
 
         return bool(project in [inv.project for inv in invitations])
-
 
 
 class Topic(models.Model):

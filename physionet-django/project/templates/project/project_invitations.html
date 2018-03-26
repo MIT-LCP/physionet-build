@@ -12,6 +12,7 @@
 
 {% block content %}
 <div class="container">
+  {% include "message_snippet.html" %}
 
   <div class="jumbotron">
     <h1>Project Invitations</h1>
@@ -67,7 +68,7 @@
     </div>
 
     <ul class="list-group list-group-flush">
-      {% if invitations %}
+      {% if collaborator_invitations %}
         <ul class="list-group list-group-flush">
           <li class="list-group-item">
             <div class="row">
@@ -78,7 +79,7 @@
               <div class="col-md-2"></div>
             </div>
           </li>
-          {% for invitation in invitations %}
+          {% for invitation in collaborator_invitations %}
             <li class="list-group-item">
               <div class="row">
                 <div class="col-md-4"><a href="{% url 'project_overview' invitation.project.id %}">{{ invitation.project  }}</a></div>
@@ -96,7 +97,7 @@
       {% else %}
         <div class="card-body text-center">
           <h4 class="card-title">No pending invitations</h4>
-          <p class="card-text">You are not currently being invited to author any projects.</p>
+          <p class="card-text">You are not currently being invited to collaborate in any projects.</p>
         </div>
       {% endif %}
     </ul>

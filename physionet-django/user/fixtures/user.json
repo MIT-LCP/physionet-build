@@ -1,9 +1,9 @@
-[ 
+[
   {
     "model": "user.User",
     "fields": {
       "password": "pbkdf2_sha256$36000$hrff9gKPggd1$6A044c72UsUzwl+aK/oWlKeg5LFeJu8xiSwRPg+2qTc=",
-      "email": "tester@mit.edu",
+      "email": "admin@mit.edu",
       "join_date": "2017-11-11",
       "last_login": null,
       "is_active": true,
@@ -33,7 +33,7 @@
   {
     "model": "user.Profile",
     "fields": {
-      "user": ["tester@mit.edu"],
+      "user": ["admin@mit.edu"],
       "first_name": "Tester",
       "last_name": "Bot",
       "url": "https://github.com/MIT-LCP/physionet-build"
@@ -61,8 +61,8 @@
   {
     "model": "user.AssociatedEmail",
     "fields": {
-      "user": ["tester@mit.edu"],
-      "email": "tester2@mit.edu",
+      "user": ["admin@mit.edu"],
+      "email": "admin2@mit.edu",
       "is_primary_email": "False",
       "is_public": "True",
       "verification_date": "2017-10-30T09:30:30-05:00"
@@ -71,8 +71,8 @@
   {
     "model": "user.AssociatedEmail",
     "fields": {
-      "user": ["tester@mit.edu"],
-      "email": "tester3@mit.edu",
+      "user": ["admin@mit.edu"],
+      "email": "admin3@mit.edu",
       "is_primary_email": "False",
       "is_public": "False",
       "verification_date": "2017-10-30T10:15:20-05:00"
