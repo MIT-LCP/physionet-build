@@ -5,6 +5,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelatio
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models.signals import post_init
 from django.dispatch import receiver
 from django.template.defaultfilters import slugify
 
@@ -39,7 +40,7 @@ class Member(models.Model):
     first_name = models.CharField(max_length=100, default='')
     middle_names = models.CharField(max_length=200, default='')
     last_name = models.CharField(max_length=100, default='')
-    is_organization = models.BooleanField(default=False)
+    is_human = models.BooleanField(default=True)
     organization_name = models.CharField(max_length=200, default='')
 
     display_order = models.SmallIntegerField()
@@ -67,6 +68,19 @@ class Author(Member):
         blank=True, null=True)
     # Whether to label them as 'equal contributor'
     equal_contributor = models.BooleanField(default=False)
+
+@receiver(post_init, sender=Author)
+def add_author_collaborator(sender, **kwargs):
+    """
+    When a human author is created, add the user as a collaborator if
+    they are not already one.
+    """
+    author = kwargs['instance']
+    if author.is_human:
+        user = author.user
+        project = author.project_object
+        if user not in project.collaborators.all():
+            project.collaborators.add(user)
 
 
 class Contributor(Member):

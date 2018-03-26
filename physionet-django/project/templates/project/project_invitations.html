@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% load project_templatetags %}
+
+{% block title %}Project Invitations{% endblock %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/project-home.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <div class="jumbotron">
+    <h1>Project Invitations</h1>
+    <p class="lead">You can see your projects in your <a href="{% url 'project_home' %}">project home</a>.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h4>Author Invitations</h4>
+    </div>
+
+    <ul class="list-group list-group-flush">
+      {% if author_invitations %}
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item">
+            <div class="row">
+              <div class="col-md-4"><strong>Project</strong></div>
+              <div class="col-md-2"><strong>Inviter</strong></div>
+              <div class="col-md-2"><strong>Sent</strong></div>
+              <div class="col-md-2"><strong>Expires</strong></div>
+              <div class="col-md-2"></div>
+            </div>
+          </li>
+          {% for invitation in author_invitations %}
+            <li class="list-group-item">
+              <div class="row">
+                <div class="col-md-4"><a href="{% url 'project_overview' invitation.project.id %}">{{ invitation.project  }}</a></div>
+                <div class="col-md-2">{{ invitation.inviter }}</div>
+                <div class="col-md-2">{{ invitation.creation_date }}</div>
+                <div class="col-md-2">{{ invitation.expiration_date }}</div>
+                <div class="col-md-2"><button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#invitation-response-modal-{{ invitation.id }}">
+                  <i class="fa fa-reply"></i> Respond</button>
+                </div>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+
+      {% else %}
+        <div class="card-body text-center">
+          <h4 class="card-title">No pending invitations</h4>
+          <p class="card-text">You are not currently being invited to author any projects.</p>
+        </div>
+      {% endif %}
+    </ul>
+  </div>
+  <br>
+
+
+  <div class="card" >
+    <div class="card-header">
+      <h4>Collaborator Invitations</h4>
+    </div>
+
+    <ul class="list-group list-group-flush">
+      {% if invitations %}
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item">
+            <div class="row">
+              <div class="col-md-4"><strong>Project</strong></div>
+              <div class="col-md-2"><strong>Inviter</strong></div>
+              <div class="col-md-2"><strong>Sent</strong></div>
+              <div class="col-md-2"><strong>Expires</strong></div>
+              <div class="col-md-2"></div>
+            </div>
+          </li>
+          {% for invitation in invitations %}
+            <li class="list-group-item">
+              <div class="row">
+                <div class="col-md-4"><a href="{% url 'project_overview' invitation.project.id %}">{{ invitation.project  }}</a></div>
+                <div class="col-md-2">{{ invitation.inviter }}</div>
+                <div class="col-md-2">{{ invitation.creation_date }}</div>
+                <div class="col-md-2">{{ invitation.expiration_date }}</div>
+                <div class="col-md-2"><button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#invitation-response-modal-{{ invitation.id }}">
+                  <i class="fa fa-reply"></i> Respond</button>
+                </div>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+
+      {% else %}
+        <div class="card-body text-center">
+          <h4 class="card-title">No pending invitations</h4>
+          <p class="card-text">You are not currently being invited to author any projects.</p>
+        </div>
+      {% endif %}
+    </ul>
+  </div>
+  <br>
+
+  {% if invitations %}
+      <!-- A modal and response form for each invitation. Not separated by type -->
+    <form action="{% url 'project_invitations' %}" method="post" enctype="multipart/form-data">
+      {{ invitation_response_formset.management_form }}
+      {% csrf_token %}
+      {% for invitation_response_form in invitation_response_formset %}
+        <div class="modal fade" id="invitation-response-modal-{{ invitation_response_form.invitation_id.value }}" tabindex="-1" role="dialog" aria-labelledby="invitation-response-modal-{{ invitation_response_form.invitation_id.value }}" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Respond to invitation</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+
+              <div class="modal-body">
+                {{ invitation_response_form }}
+              </div>
+              <div class="modal-footer">
+                <button class="btn btn-primary" name="respond-{{ invitation_response_form.invitation_id.value }}" type="submit"><i class="fa fa-reply"></i> Submit Response</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      {% endfor %}
+    </form>
+  {% endif %}
+
+
+
+</div> <!-- /container -->
+{% endblock %}

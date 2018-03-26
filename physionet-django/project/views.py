@@ -116,55 +116,8 @@ def get_button_id(post_keys):
     return button_id
 
 
-def process_invitation_response(request, invitation_response_formset):
-    "Process an invitation response"
-    invitation_id = get_button_id(request.POST.keys())
-
-    # Only process the form that was submitted
-    for invitation_response_form in invitation_response_formset:
-        if (invitation_response_form.is_valid() and
-                invitation_response_form.cleaned_data['invitation_id'] == invitation_id):
-            # Update the Invitation object
-            invitation = Invitation.objects.get(id=invitation_id)
-            response = int(invitation_response_form.cleaned_data['response'])
-            invitation.response = response
-            invitation.is_active = False
-            invitation.save()
-
-            if response:
-                # Add the user to the project collaborators
-                project = invitation.project
-                project.collaborators.add(request.user)
-            else:
-                project = None
-
-            return project
 
 
-@login_required
-def invitation_response(request):
-    """
-    Directed here after responding to an invitation
-    """
-    user = request.user
-    InvitationResponseFormSet = formset_factory(forms.InvitationResponseForm,
-        extra=0)
-
-    if request.method == 'POST':
-        invitation_response_formset = InvitationResponseFormSet(
-            request.POST, form_kwargs={'responder':user})
-        project = process_invitation_response(request,
-            invitation_response_formset)
-
-        if project:
-            response = 'accepted'
-        else:
-            response = 'rejected'
-
-        return render(request, 'project/invitation_response.html',
-            {'project':project, 'response':response})
-    else:
-        return Http404()
 
 # The version with separate formset and models
 @login_required
@@ -193,6 +146,103 @@ def project_home(request):
         'review_projects':review_projects, 'invitations':invitations,
         'invitation_response_formset':invitation_response_formset})
 
+
+def process_invitation_response(request, invitation_response_formset):
+    """
+    Process an invitation response. Helper function to
+    project_invitations
+    """
+    user = request.user
+    invitation_id = get_button_id(request.POST.keys())
+
+    # Only process the form that was submitted
+    for invitation_response_form in invitation_response_formset:
+        if (invitation_response_form.is_valid() and
+                invitation_response_form.cleaned_data['invitation_id'] == invitation_id):
+            # Update the Invitation object
+            invitation = Invitation.objects.get(id=invitation_id)
+            response = int(invitation_response_form.cleaned_data['response'])
+            invitation.response = response
+            invitation.is_active = False
+            invitation.save()
+
+            # Process the invite
+            if response:
+                response = 'accepted'
+                project = invitation.project
+
+                if invitation.invitation_type == 'author':
+                    Author.objects.create(project_object=project, user=user)
+                    # Also add as collaborator. Signal?
+                elif invitation.invitation_type == 'collaborator':
+                    # Add the user to the project collaborators
+                    project.collaborators.add(user)
+                elif invitation.invitation_type == 'reviewer':
+                    pass
+            else:
+                project = None
+                response = 'rejected'
+
+            return project, response
+    # content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    # object_id = models.PositiveIntegerField()
+    # project_object = GenericForeignKey('content_type', 'object_id')
+
+    # first_name = models.CharField(max_length=100, default='')
+    # middle_names = models.CharField(max_length=200, default='')
+    # last_name = models.CharField(max_length=100, default='')
+    # is_organization = models.BooleanField(default=False)
+    # organization_name = models.CharField(max_length=200, default='')
+
+    # display_order = models.SmallIntegerField()
+
+    # affiliations = GenericRelation(Affiliation)
+@login_required
+def project_invitations(request):
+    """
+    Page listing invitations
+    """
+    user = request.user
+    project = None
+    invitations = Invitation.get_user_invitations(user)
+    author_invitations = invitations.filter(invitation_type='author')
+    collaborator_invitations = invitations.filter(invitation_type='collaborator')
+    reviewer_invitations = invitations.filter(invitation_type='reviewer')
+
+    InvitationResponseFormSet = formset_factory(forms.InvitationResponseForm,
+        extra=0)
+    invitation_response_formset = InvitationResponseFormSet(
+        form_kwargs={'responder':user},
+        initial=[{'invitation_id':inv.id} for inv in invitations])
+
+
+    # author_invitation_response_formset = InvitationResponseFormSet(
+    #     form_kwargs={'responder':user},
+    #     initial=[{'invitation_id':inv.id} for inv in author_invitations])
+    # collaborator_invitation_response_formset = InvitationResponseFormSet(
+    #     form_kwargs={'responder':user},
+    #     initial=[{'invitation_id':inv.id} for inv in collaborator_invitations])
+    # reviewer_invitation_response_formset = InvitationResponseFormSet(
+    #     form_kwargs={'responder':user},
+    #     initial=[{'invitation_id':inv.id} for inv in reviewer_invitations])
+
+    if request.method == 'POST':
+        invitation_response_formset = InvitationResponseFormSet(
+            request.POST, form_kwargs={'responder':user})
+        project, response = process_invitation_response(request,
+            invitation_response_formset)
+
+    return render(request, 'project/project_invitations.html', {
+        'invitations':invitations,
+        'author_invitations':author_invitations,
+        'collaborator_invitations':collaborator_invitations,
+        'reviewer_invitations':reviewer_invitations,
+        'invitation_response_formset':invitation_response_formset,
+
+        # 'author_invitation_response_formset':author_invitation_response_formset,
+        # 'collaborator_invitation_response_formset':collaborator_invitation_response_formset,
+        # 'reviewer_invitation_response_formset':reviewer_invitation_response_formset,
+        'project':project,})
 
 @login_required
 def create_project(request):
@@ -234,7 +284,6 @@ def project_authors(request, project_id):
     """
     user = request.user
     project = Project.objects.get(id=project_id)
-
 
     # Initiate the forms
     invite_author_form = forms.InviteAuthorForm(project, user)
@@ -460,7 +509,7 @@ def project_collaborators(request, project_id):
     user = request.user
     project = Project.objects.get(id=project_id)
     collaborators = project.collaborators.all()
-    invitations = project.invitations.all()
+    invitations = project.invitations.filter()
 
     context = {'project':project, 'collaborators':collaborators}
 

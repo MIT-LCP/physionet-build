@@ -4,12 +4,14 @@ from . import views
 
 urlpatterns = [
     url(r'^$', views.project_home, name='project_home'),
+    url(r'^invitations/$', views.project_invitations, name='project_invitations'),
+
+
     url(r'^create/$', views.create_project, name='create_project'),
+
 
     url(r'^storage-requests/$', views.storage_requests,
         name='storage_requests'),
-    url(r'^invitation-response/$', views.invitation_response,
-        name='invitation_response'),
 
     url(r'^(?P<project_id>\d+)/overview/$', views.project_overview,
         name='project_overview'),
