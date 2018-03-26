@@ -7,7 +7,7 @@
 <hr>
 
 <h4>Roles</h4>
-<p>Each project can have several <strong>authors</strong>. Authors are credited for creating the database when it is published.</p>
+<p>Authors are credited for creating the database when it is published. An author may be a person, or an organization. Human authors must be invited and accept authorship, and fill in their own details. Organizational authors can be added by the project owner. Each project can have several authors. </p>
 
 <p>All authors are project <a href="{% url 'project_collaborators' project.id %}">collaborators</a>, although collaborators are not necessarily authors. Collaborators can view the project, and edit the metadata and files.</p>
 
@@ -70,8 +70,23 @@
 
 {% if user == project.owner or user.is_admin %}
 
-    <h4>Invite Authors</h4>
-    <p>Invite new authors</p>
+    <h4>Invite Human Author</h4>
+    <p>Invite an author with their email</p>
+    <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
+      {% csrf_token %}
+      {{ invite_author_form.email }}
+      {% for error in invite_author_form.email.errors %}
+        <div class="alert alert-danger">
+            <strong>{{ error|escape }}</strong>
+        </div>
+      {% endfor %}
+
+      <button class="btn btn-success btn-fixed" name="invite_author" type="submit">Invite Author</button>
+    </form>
+    <hr>
+
+    <h4>Add Organizational Author</h4>
+    <p>Add an organizational author</p>
     <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
       {% csrf_token %}
       {{ collaborator_invite_form.collaborator }}
@@ -81,12 +96,12 @@
         </div>
       {% endfor %}
 
-      <button class="btn btn-success btn-fixed" name="invite_author" type="submit">Invite Authors</button>
+      <button class="btn btn-success btn-fixed" name="invite_author" type="submit">Invite Author</button>
     </form>
     <hr>
 
-    <h4>Remove Authors</h4>
-    <p>Remove users from accessing the project.</p>
+    <h4>Remove Author</h4>
+    <p>Remove a user from the list of authors</p>
     <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
       {% csrf_token %}
       {{ collaborator_removal_form.collaborator }}

@@ -218,15 +218,45 @@ def project_overview(request, project_id):
     return render(request, 'project/project_overview.html', {'project':project})
 
 
+def invite_author(request, invite_author_form):
+    """
+    Invite a user to be a collaborator
+    """
+    if invite_author_form.is_valid():
+        invite_author_form.save()
+        messages.success(request, 'An invitation has been sent to the user')
+        return True
+
 @collaborator_required
 def project_authors(request, project_id):
-    "Page displaying author information"
+    """
+    Page displaying author information and actions.
+    """
+    user = request.user
     project = Project.objects.get(id=project_id)
+
+
+    # Initiate the forms
+    invite_author_form = forms.InviteAuthorForm(project, user)
+
+    if request.method == 'POST':
+
+        if 'edit_author' in request.POST:
+            pass
+        if 'invite_author' in request.POST:
+            invite_author_form = forms.InviteAuthorForm(project, user, request.POST)
+            if invite_author(request, invite_author_form):
+                invite_author_form = forms.InviteAuthorForm(project, user)
+        elif 'add_author' in request.POST:
+            pass
+        elif 'remove_author' in request.POST:
+            pass
 
     invitations = project.invitations.filter(invitation_type='author')
 
+
     return render(request, 'project/project_authors.html', {'project':project,
-        'invitations':invitations})
+        'invitations':invitations, 'invite_author_form':invite_author_form})
 
 
 @collaborator_required

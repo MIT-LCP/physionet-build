@@ -353,9 +353,6 @@ class InviteCollaboratorForm(forms.ModelForm):
     class Meta:
         model = Invitation
         fields = ('email',)
-        widgets = {
-            'request_allowance':forms.NumberInput(),
-        }
 
     def clean_email(self):
         "Ensure it is a fresh invite to a non-collaborator"
@@ -388,24 +385,47 @@ class InviteCollaboratorForm(forms.ModelForm):
 
 class InviteAuthorForm(forms.ModelForm):
     """
-    Form to invite a new author to a project.
+    Form to invite new authors to a project.
+    Field to fill in: email.
 
     """
-    email = forms.EmailField()
+    def __init__(self, project, inviter, *args, **kwargs):
+        super(InviteAuthorForm, self).__init__(*args, **kwargs)
+        self.inviter = inviter
+        self.project = project
 
     class Meta:
         model = Invitation
-        fields = ('email', 'project',)
-        widgets = {
-            'project':forms.HiddenInput()
-        }
+        fields = ('email',)
 
-    def __init__(self, project, *args, **kwargs):
-        super(InviteCollaboratorForm, self).__init__(*args, **kwargs)
-        self.project = project
+    def clean_email(self):
+        "Ensure it is a fresh invite to a non-author"
+        data = self.cleaned_data['email']
 
-    def save():
-        pass
+        for author in self.project.authors.all():
+            if data in author.get_emails():
+                raise forms.ValidationError(
+                    'The user is already an author of this project',
+                    code='already_author')
+
+        invitations = self.project.invitations.filter(
+            invitation_type='author')
+
+        if data in [i.email for i in invitations]:
+            raise forms.ValidationError(
+                'There is already an outstanding invitation to that email',
+                code='already_invited')
+        return data
+
+    def save(self):
+        invitation = super(InviteAuthorForm, self).save(commit=False)
+        invitation.project = self.project
+        invitation.inviter = self.inviter
+        invitation.invitation_type = 'author'
+        invitation.expiration_date = (timezone.now().date()
+            + timezone.timedelta(days=21))
+        invitation.save()
+        return invitation
 
 
 # The form version, non formset.
@@ -433,8 +453,7 @@ class InvitationResponseForm(forms.Form):
 
         if target_email not in self.responder.get_emails():
             raise forms.ValidationError(
-                'You are not invited',
-                code='not_invited')
+                'You are not invited', code='not_invited')
 
         return data
 
