@@ -1,0 +1,41 @@
+{% extends "project/project.html" %}
+
+{% block title %}Project Overview - {{ project }}"{% endblock %}
+
+{% load project_templatetags %}
+
+{% block form %}
+<h2 class="form-signin-heading">Project Submission</h2>
+<hr>
+
+<p>
+    <span class="badge badge-dark">{{ project|resource_icon|safe }} {{ project.resource_type }} Project</span>
+</p>
+<p class="text-muted">
+    Created {{ project.creation_datetime }} Modified {{ project.modified_datetime }}
+</p>
+<p>
+    Submitting Author: <a href="{% url 'public_profile' project.submitting_author %}">{{ project.submitting_author }}</a>
+</p>
+<hr>
+
+
+<h4>Abstract</h4>
+{{ project.abstract|safe }}
+<hr>
+
+<h4>Review Status</h4>
+{% if project.under_review %}
+    <p>The project is currently under review. You may see the details <a href="#">here</a>.</p>
+{% else %}
+    <p>The project is not under review. If the project satisfies the <a href="#">publication requirements</a> and you would like to publish the project, you may <a href="#">request a review</a>.</p>
+    <a href="#" class="btn btn-primary btn-fixed">Request Review</a>
+{% endif %}
+<hr>
+
+<h4>Published Versions</h4>
+<p>This project has not been published.</p>
+<hr>
+
+
+{% endblock %}

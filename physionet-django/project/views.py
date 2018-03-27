@@ -21,9 +21,9 @@ import pdb
 def is_admin(user, *args, **kwargs):
     return user.is_admin
 
-def is_collaborator(user, project):
-    collaborators = project.collaborators.all()
-    return (user in collaborators)
+def is_author(user, project):
+    authors = project.authors.all()
+    return (user in [a.user for a in authors])
 
 def is_invited(user, project):
     "Whether a user has been invited to join a project"
@@ -189,7 +189,7 @@ def create_project(request):
     return render(request, 'project/create_project.html', {'form':form})
 
 
-@authorization_required(auth_functions=(is_admin, is_collaborator, is_invited))
+@authorization_required(auth_functions=(is_admin, is_author, is_invited))
 def project_overview(request, project_id):
     "Overview page of a project"
     project = Project.objects.get(id=project_id)

@@ -12,15 +12,17 @@ from django.template.defaultfilters import slugify
 from physionet.settings import MEDIA_ROOT
 from .utility import get_tree_size
 
+import pdb
 
 def new_creation(receiver_function):
     """
     Decorator for a receiver function to only trigger upon model
     creation from non-fixtures.
     """
-    def func_wrapper(**kwargs):
+    def func_wrapper(*args, **kwargs):
+        #pdb.set_trace()
         if kwargs.get('created') and not kwargs.get('raw'):
-            return func_wrapper
+            return receiver_function(*args, **kwargs)
 
     return func_wrapper
 
@@ -192,13 +194,13 @@ class Project(Metadata):
     """
     The model for user-owned projects.
     """
-
     creation_datetime = models.DateTimeField(auto_now_add=True)
     modified_datetime = models.DateTimeField(auto_now=True)
 
     # Maximum allowed storage capacity in GB
     storage_allowance = models.SmallIntegerField(default=1)
-    submitting_author = models.ForeignKey('user.User', related_name='submitting_projects')
+    submitting_author = models.ForeignKey('user.User',
+        related_name='submitting_projects')
 
     published = models.BooleanField(default=False)
     under_review = models.BooleanField(default=False)
@@ -227,7 +229,7 @@ def setup_project(sender, **kwargs):
     """
     project = kwargs['instance']
     user = project.submitting_author
-    Author.objects.create(project=project, user=user)
+    Author.objects.create(project=project, user=user, display_order=1)
     # Create file directory
     os.mkdir(project.file_root())
 
