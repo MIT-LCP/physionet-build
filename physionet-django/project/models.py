@@ -5,7 +5,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelatio
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models.signals import post_init
+from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.template.defaultfilters import slugify
 
@@ -55,6 +55,7 @@ class Member(models.Model):
 
     class Meta:
         abstract = True
+        unique_together = (('first_name', 'last_name'), ('first_name', 'object_id'))
 
 
 
@@ -77,14 +78,15 @@ class Author(Member):
     equal_contributor = models.BooleanField(default=False)
 
 
-@receiver(post_init, sender=Author)
+@receiver(post_save, sender=Author)
 def add_author_collaborator(sender, **kwargs):
     """
     When a human author is created, add the user as a collaborator if
     they are not already one.
     """
     author = kwargs['instance']
-    if author.is_human:
+    created = kwargs['created']
+    if created and author.is_human:
         user = author.user
         project = author.project_object
         if user not in project.collaborators.all():

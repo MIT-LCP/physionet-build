@@ -466,9 +466,10 @@ class AddAuthorForm(forms.ModelForm):
         model = Author
         fields = ('organization_name', 'display_order')
 
-    def __init__(self, project, *args, **kwargs):
-        "Make sure the user adding this entry is the owner"
+    def __init__(self, user, project, *args, **kwargs):
+        "Make sure the user submitting this entry is the owner"
         super(AddAuthorForm, self).__init__(*args, **kwargs)
+        self.user = user
         self.project = project
 
     def save(self):

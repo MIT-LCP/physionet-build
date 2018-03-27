@@ -116,9 +116,6 @@ def get_button_id(post_keys):
     return button_id
 
 
-
-
-
 # The version with separate formset and models
 @login_required
 def project_home(request):
@@ -195,19 +192,8 @@ def process_invitation_response(request, invitation_response_formset):
             messages.success(request, 'You have %s the invitation.' % response)
 
             return project, response
-    # content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    # object_id = models.PositiveIntegerField()
-    # project_object = GenericForeignKey('content_type', 'object_id')
 
-    # first_name = models.CharField(max_length=100, default='')
-    # middle_names = models.CharField(max_length=200, default='')
-    # last_name = models.CharField(max_length=100, default='')
-    # is_organization = models.BooleanField(default=False)
-    # organization_name = models.CharField(max_length=200, default='')
 
-    # display_order = models.SmallIntegerField()
-
-    # affiliations = GenericRelation(Affiliation)
 @login_required
 def project_invitations(request):
     """
@@ -226,16 +212,6 @@ def project_invitations(request):
         form_kwargs={'responder':user},
         initial=[{'invitation_id':inv.id} for inv in invitations])
 
-    # author_invitation_response_formset = InvitationResponseFormSet(
-    #     form_kwargs={'responder':user},
-    #     initial=[{'invitation_id':inv.id} for inv in author_invitations])
-    # collaborator_invitation_response_formset = InvitationResponseFormSet(
-    #     form_kwargs={'responder':user},
-    #     initial=[{'invitation_id':inv.id} for inv in collaborator_invitations])
-    # reviewer_invitation_response_formset = InvitationResponseFormSet(
-    #     form_kwargs={'responder':user},
-    #     initial=[{'invitation_id':inv.id} for inv in reviewer_invitations])
-
     if request.method == 'POST':
         invitation_response_formset = InvitationResponseFormSet(
             request.POST, form_kwargs={'responder':user})
@@ -248,11 +224,8 @@ def project_invitations(request):
         'collaborator_invitations':collaborator_invitations,
         'reviewer_invitations':reviewer_invitations,
         'invitation_response_formset':invitation_response_formset,
-
-        # 'author_invitation_response_formset':author_invitation_response_formset,
-        # 'collaborator_invitation_response_formset':collaborator_invitation_response_formset,
-        # 'reviewer_invitation_response_formset':reviewer_invitation_response_formset,
         'project':project,})
+
 
 @login_required
 def create_project(request):
@@ -267,7 +240,6 @@ def create_project(request):
         form = forms.CreateProjectForm(owner=user)
 
     return render(request, 'project/create_project.html', {'form':form})
-
 
 
 @authorization_required(auth_functions=(is_admin, is_collaborator, is_invited))
@@ -298,7 +270,7 @@ def project_authors(request, project_id):
 
     # Initiate the forms
     invite_author_form = forms.InviteAuthorForm(project, user)
-    add_author_form = forms.AddAuthorForm(project)
+    add_author_form = forms.AddAuthorForm(user, project)
 
     if request.method == 'POST':
 
@@ -309,7 +281,9 @@ def project_authors(request, project_id):
             if invite_author(request, invite_author_form):
                 invite_author_form = forms.InviteAuthorForm(project, user)
         elif 'add_author' in request.POST:
-            pass
+            add_author_form = forms.AddAuthorForm(user, project, request.POST)
+            if add_author(request, add_author_form):
+                add_author_form = forms.AddAuthorForm(user, project)
         elif 'remove_author' in request.POST:
             pass
 
