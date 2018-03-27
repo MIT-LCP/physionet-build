@@ -339,48 +339,48 @@ class CollaboratorChoiceForm(forms.Form):
         self.project = project
 
 
-class InviteCollaboratorForm(forms.ModelForm):
-    """
-    Form to invite new collaborators to a project.
-    Field to fill in: email.
+# class InviteCollaboratorForm(forms.ModelForm):
+#     """
+#     Form to invite new collaborators to a project.
+#     Field to fill in: email.
 
-    """
-    def __init__(self, project, inviter, *args, **kwargs):
-        super(InviteCollaboratorForm, self).__init__(*args, **kwargs)
-        self.inviter = inviter
-        self.project = project
+#     """
+#     def __init__(self, project, inviter, *args, **kwargs):
+#         super(InviteCollaboratorForm, self).__init__(*args, **kwargs)
+#         self.inviter = inviter
+#         self.project = project
 
-    class Meta:
-        model = Invitation
-        fields = ('email',)
+#     class Meta:
+#         model = Invitation
+#         fields = ('email',)
 
-    def clean_email(self):
-        "Ensure it is a fresh invite to a non-collaborator"
-        data = self.cleaned_data['email']
+#     def clean_email(self):
+#         "Ensure it is a fresh invite to a non-collaborator"
+#         data = self.cleaned_data['email']
 
-        for collaborator in self.project.collaborators.all():
-            if data in collaborator.get_emails():
-                raise forms.ValidationError(
-                    'The user is already a collaborator of this project',
-                    code='already_collaborator')
-            invitations = self.project.invitations.filter(
-                invitation_type='collaborator')
+#         for collaborator in self.project.collaborators.all():
+#             if data in collaborator.get_emails():
+#                 raise forms.ValidationError(
+#                     'The user is already a collaborator of this project',
+#                     code='already_collaborator')
+#             invitations = self.project.invitations.filter(
+#                 invitation_type='collaborator')
 
-        if data in [i.email for i in invitations]:
-            raise forms.ValidationError(
-                'There is already an outstanding invitation to that email',
-                code='already_invited')
-        return data
+#         if data in [i.email for i in invitations]:
+#             raise forms.ValidationError(
+#                 'There is already an outstanding invitation to that email',
+#                 code='already_invited')
+#         return data
 
-    def save(self):
-        invitation = super(InviteCollaboratorForm, self).save(commit=False)
-        invitation.project = self.project
-        invitation.inviter = self.inviter
-        invitation.invitation_type = 'collaborator'
-        invitation.expiration_date = (timezone.now().date()
-            + timezone.timedelta(days=7))
-        invitation.save()
-        return invitation
+#     def save(self):
+#         invitation = super(InviteCollaboratorForm, self).save(commit=False)
+#         invitation.project = self.project
+#         invitation.inviter = self.inviter
+#         invitation.invitation_type = 'collaborator'
+#         invitation.expiration_date = (timezone.now().date()
+#             + timezone.timedelta(days=7))
+#         invitation.save()
+#         return invitation
 
 
 class InviteAuthorForm(forms.ModelForm):
@@ -428,8 +428,6 @@ class InviteAuthorForm(forms.ModelForm):
         return invitation
 
 
-# The form version, non formset.
-# How to get the invitation id back?
 class InvitationResponseForm(forms.Form):
     """
     Generic form for responding to a type of request to do something
@@ -440,10 +438,10 @@ class InvitationResponseForm(forms.Form):
     message = forms.CharField(max_length=500, required=False,
         widget=forms.Textarea())
 
-    def __init__(self, responder, *args, **kwargs):
+    def __init__(self, user, *args, **kwargs):
         "Keep track of the user responding to the form"
         super(InvitationResponseForm, self).__init__(*args, **kwargs)
-        self.responder = responder
+        self.user = user
 
     def clean_invitation_id(self):
         "Make sure the user is actually being invited to the project"
@@ -451,7 +449,7 @@ class InvitationResponseForm(forms.Form):
 
         target_email = Invitation.objects.get(id=data).email
 
-        if target_email not in self.responder.get_emails():
+        if target_email not in self.user.get_emails():
             raise forms.ValidationError(
                 'You are not invited', code='not_invited')
 

@@ -10,40 +10,12 @@ from . import forms
 from .models import Author, Invitation, Project, PublishedProject, StorageRequest
 from .utility import (get_file_info, get_directory_info, get_storage_info,
     write_uploaded_file, list_items, remove_items, move_items as do_move_items,
-    get_form_errors)
+    get_form_errors, serve_file)
 from physionet.settings import MEDIA_ROOT, project_file_individual_limit
 from user.forms import ProfileForm
 from user.models import User
 
 import pdb
-
-
-def admin_required(base_function):
-    """
-    Decorator for admin only pages
-    """
-    @login_required
-    def function_wrapper(request, *args, **kwargs):
-        user = request.user
-        if not user.is_admin:
-            raise Http404("Unable to access page")
-        return base_function(request, *args, **kwargs)
-    return function_wrapper
-
-
-def collaborator_required(base_function):
-    """
-    Decorator to ensure only collaborators (and admins) can access projects
-    """
-    @login_required
-    def function_wrapper(request, *args, **kwargs):
-        user = request.user
-        project = Project.objects.get(id=kwargs['project_id'])
-        collaborators = project.collaborators.all()
-        if not user.is_admin and user not in collaborators:
-            raise Http404("Unable to access project")
-        return base_function(request, *args, **kwargs)
-    return function_wrapper
 
 
 def is_admin(user, *args, **kwargs):
@@ -81,20 +53,6 @@ def authorization_required(auth_functions):
     return real_decorator
 
 
-def download_file(request, file_path):
-    """
-    Serve a file to download. file_path is the full file path of the
-    file on the server
-    """
-    if os.path.exists(file_path):
-        with open(file_path, 'rb') as f:
-            response = HttpResponse(f.read())
-            response['Content-Disposition'] = 'attachment; filename=' + os.path.basename(file_path)
-            return response
-    else:
-        return Http404()
-
-
 def get_button_id(post_keys):
     """
     Helper function to extract the submit button label from a form post.
@@ -126,22 +84,13 @@ def project_home(request):
     """
     user = request.user
 
-    projects = Project.objects.filter(collaborators__in=[user])
-    invitations = Invitation.get_user_invitations(user)
-
-    InvitationResponseFormSet = formset_factory(forms.InvitationResponseForm,
-        extra=0)
-
-    invitation_response_formset = InvitationResponseFormSet(
-        form_kwargs={'responder':user},
-        initial=[{'invitation_id':inv.id} for inv in invitations])
+    projects = Project.objects.filter(authors__in=user.authorships.all())
 
     # Projects that the user is responsible for reviewing
     review_projects = None
 
     return render(request, 'project/project_home.html', {'projects':projects,
-        'review_projects':review_projects, 'invitations':invitations,
-        'invitation_response_formset':invitation_response_formset})
+        'review_projects':review_projects})
 
 
 def process_invitation_response(request, invitation_response_formset):
@@ -203,25 +152,23 @@ def project_invitations(request):
     project = None
     invitations = Invitation.get_user_invitations(user)
     author_invitations = invitations.filter(invitation_type='author')
-    collaborator_invitations = invitations.filter(invitation_type='collaborator')
     reviewer_invitations = invitations.filter(invitation_type='reviewer')
 
     InvitationResponseFormSet = formset_factory(forms.InvitationResponseForm,
         extra=0)
     invitation_response_formset = InvitationResponseFormSet(
-        form_kwargs={'responder':user},
+        form_kwargs={'user':user},
         initial=[{'invitation_id':inv.id} for inv in invitations])
 
     if request.method == 'POST':
         invitation_response_formset = InvitationResponseFormSet(
-            request.POST, form_kwargs={'responder':user})
+            request.POST, form_kwargs={'user':user})
         project, response = process_invitation_response(request,
             invitation_response_formset)
 
     return render(request, 'project/project_invitations.html', {
         'invitations':invitations,
         'author_invitations':author_invitations,
-        'collaborator_invitations':collaborator_invitations,
         'reviewer_invitations':reviewer_invitations,
         'invitation_response_formset':invitation_response_formset,
         'project':project,})
@@ -259,7 +206,7 @@ def invite_author(request, invite_author_form):
         messages.success(request, 'An invitation has been sent to the user')
         return True
 
-@collaborator_required
+
 def project_authors(request, project_id):
     """
     Page displaying author information and actions.
@@ -296,7 +243,7 @@ def project_authors(request, project_id):
         'add_author_form':add_author_form})
 
 
-@collaborator_required
+
 def project_metadata(request, project_id):
     project = Project.objects.get(id=project_id)
 
@@ -361,7 +308,7 @@ def delete_items(request, delete_items_form):
     else:
         messages.error(request, get_form_errors(delete_items_form))
 
-@collaborator_required
+
 def project_files(request, project_id, sub_item=''):
     "View and manipulate files in a project"
     project = Project.objects.get(id=project_id)
@@ -374,7 +321,7 @@ def project_files(request, project_id, sub_item=''):
         item_path = os.path.join(project_file_root, sub_item)
         # Serve a file
         if os.path.isfile(item_path):
-            return download_file(request, item_path)
+            return serve_file(request, item_path)
         # In a subdirectory
         elif os.path.isdir(item_path):
             in_subdir = True
@@ -457,88 +404,11 @@ def project_files(request, project_id, sub_item=''):
         'delete_items_form':delete_items_form})
 
 
-def invite_collaborator(request, invite_collaborator_form):
-    """
-    Invite a user to be a collaborator
-    """
-    if invite_collaborator_form.is_valid():
-        invite_collaborator_form.save()
-        messages.success(request, 'An invitation has been sent to the user')
-        return True
-
-def remove_collaborator(request, collaborator_removal_form):
-    """
-    Remove a collaborator from the project
-    """
-    if collaborator_removal_form.is_valid():
-        user = collaborator_removal_form.cleaned_data['collaborator']
-        collaborator_removal_form.project.collaborators.remove(user)
-        messages.success(request, 'The user has been removed from this project')
-        return True
-
-def set_owner(request, set_owner_form):
-    """
-    Set another collaborator as the project owner
-    """
-    if set_owner_form.is_valid():
-        user = set_owner_form.cleaned_data['collaborator']
-        set_owner_form.project.owner = user
-        set_owner_form.project.save()
-        messages.success(request, 'The user has been set as the new project owner')
-        return True
-
-
-@collaborator_required
-def project_collaborators(request, project_id):
-    """
-    View collaborators and owner of the project.
-    The owner may also control collaborators.
-    """
-    user = request.user
-    project = Project.objects.get(id=project_id)
-    collaborators = project.collaborators.all()
-    invitations = project.invitations.filter()
-
-    context = {'project':project, 'collaborators':collaborators}
-
-    # Managing collaborators and owners
-    if project.owner == user or user.is_admin:
-        invite_collaborator_form = forms.InviteCollaboratorForm(project, user)
-        collaborator_removal_form = forms.CollaboratorChoiceForm(project)
-        set_owner_form = forms.CollaboratorChoiceForm(project)
-
-        if request.method == 'POST':
-            if 'invite_collaborator' in request.POST:
-                invite_collaborator_form = forms.InviteCollaboratorForm(
-                    project, user, request.POST)
-                if invite_collaborator(request, invite_collaborator_form):
-                    invite_collaborator_form = forms.InviteCollaboratorForm(
-                        project, user)
-            if 'remove_collaborator' in request.POST:
-                collaborator_removal_form = forms.CollaboratorChoiceForm(
-                    project, False, request.POST)
-                if remove_collaborator(request, collaborator_removal_form):
-                    collaborator_removal_form = forms.CollaboratorChoiceForm(project)
-            if 'set_owner' in request.POST:
-                set_owner_form = forms.CollaboratorChoiceForm(project, False,
-                    request.POST)
-                if set_owner(request, set_owner_form):
-                    set_owner_form = forms.CollaboratorChoiceForm(project)
-
-        context.update({'invite_collaborator_form':invite_collaborator_form,
-            'collaborator_removal_form':collaborator_removal_form,
-            'set_owner_form':set_owner_form, 'invitations':invitations})
-
-    return render(request, 'project/project_collaborators.html', context)
-
-
 def project_submission(request, project_id):
     """
     View submission details regarding a project
     """
-    return
-
-
+    return render(request, 'project/project_submission.html')
 
 
 
@@ -572,7 +442,6 @@ def process_storage_request(request, storage_response_formset):
         messages.error('Invalid submission')
 
 
-@admin_required
 def storage_requests(request):
     """
     Page listing projects with outstanding storage requests

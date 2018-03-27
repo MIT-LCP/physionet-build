@@ -176,7 +176,6 @@ class Profile(models.Model):
     last_name = models.CharField(max_length=30)
     url = models.URLField(default='', blank=True, null=True)
     identity_verification_date = models.DateField(blank=True, null=True)
-    phone = models.CharField(max_length=20, blank=True, default='')
 
     def get_full_name(self):
         if self.middle_names:

@@ -15,7 +15,7 @@ from .utility import get_tree_size
 
 class Affiliation(models.Model):
     """
-    Affiliations belonging to a creator or collaborator
+    Affiliations belonging to an author or collaborator
 
     """
     name = models.CharField(max_length=255)
@@ -31,32 +31,35 @@ class Member(models.Model):
     Inherited by the Author and Contributor classes.
 
     """
-    # The 'project_object' generic foreign key points to either a
-    # Project object, or one of the published resource objects.
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    project_object = GenericForeignKey('content_type', 'object_id')
+    # The member will point to a project OR published project
+    project = models.ForeignKey('project.Project', related_name='%(class)ss',
+        null=True, blank=True)
+    published_project =models.ForeignKey('project.PublishedProject',
+        related_name='%(class)s', null=True, blank=True)
 
     first_name = models.CharField(max_length=100, default='')
     middle_names = models.CharField(max_length=200, default='')
     last_name = models.CharField(max_length=100, default='')
     is_human = models.BooleanField(default=True)
     organization_name = models.CharField(max_length=200, default='')
-
     display_order = models.SmallIntegerField()
-
     affiliations = GenericRelation(Affiliation)
 
     def __str__(self):
         if self.is_human:
-            return self.user.email
+            name = self.user.email
         else:
-            return self.organization_name
+            name = self.organization_name
+        return '%s at %s' % (name, self.project)
 
     class Meta:
         abstract = True
-        unique_together = (('first_name', 'last_name'), ('first_name', 'object_id'))
 
+
+
+class AuthorManager(models.Manager):
+    def get_by_natural_key(self, project, user):
+        return self.get(project=project, user=user)
 
 
 class Author(Member):
@@ -71,26 +74,14 @@ class Author(Member):
         priority order."
 
     """
+    class Meta:
+        unique_together = (('user', 'project'), ('user', 'published_project'))
+
+    objects = AuthorManager()
+
     # Authors must have physionet profiles, unless they are organizations.
-    user = models.ForeignKey('user.User', related_name='creator',
+    user = models.ForeignKey('user.User', related_name='authorships',
         blank=True, null=True)
-    # Whether to label them as 'equal contributor'
-    equal_contributor = models.BooleanField(default=False)
-
-
-@receiver(post_save, sender=Author)
-def add_author_collaborator(sender, **kwargs):
-    """
-    When a human author is created, add the user as a collaborator if
-    they are not already one.
-    """
-    author = kwargs['instance']
-    created = kwargs['created']
-    if created and author.is_human:
-        user = author.user
-        project = author.project_object
-        if user not in project.collaborators.all():
-            project.collaborators.add(user)
 
 
 class Contributor(Member):
@@ -184,9 +175,6 @@ class Metadata(models.Model):
     # External home page
     project_home_page = models.URLField(default='', blank=True)
 
-    authors = GenericRelation(Author)
-    contributors = GenericRelation(Contributor)
-
 
 class Project(Metadata):
     """
@@ -198,15 +186,13 @@ class Project(Metadata):
 
     # Maximum allowed storage capacity in GB
     storage_allowance = models.SmallIntegerField(default=1)
-    owner = models.ForeignKey('user.User', related_name='owned_projects')
-    collaborators = models.ManyToManyField('user.User',
-        related_name='collaborating_projects')
+    submitting_author = models.ForeignKey('user.User', related_name='submitting_projects')
 
     published = models.BooleanField(default=False)
     under_review = models.BooleanField(default=False)
 
     class Meta:
-        unique_together = (('title', 'owner'),)
+        unique_together = (('title', 'submitting_author'),)
 
     def __str__(self):
         return self.title
@@ -241,7 +227,7 @@ class PublishedProject(Metadata):
 
 class Invitation(models.Model):
     """
-    Invitation to join a project as a collaborator, author, or reviewer
+    Invitation to join a project as an, author, or reviewer
 
     """
     project = models.ForeignKey('project.Project',
@@ -250,7 +236,7 @@ class Invitation(models.Model):
     email = models.EmailField(max_length=255)
     # User who made the invitation
     inviter = models.ForeignKey('user.User')
-    # Either 'collaborator', 'author', or 'reviewer'
+    # Either 'author', or 'reviewer'
     invitation_type = models.CharField(max_length=10)
     creation_date = models.DateField(auto_now_add=True)
     expiration_date = models.DateField()

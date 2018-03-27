@@ -3,8 +3,7 @@
     "model": "project.Project",
     "fields": {
       "title": "MIT-BIH Arrhythmia Database",
-      "owner": ["rgmark@mit.edu"],
-      "collaborators": [["admin@mit.edu"], ["rgmark@mit.edu"]],
+      "submitting_author": ["rgmark@mit.edu"],
       "creation_datetime":"2017-10-30T09:30:30-05:00",
       "modified_datetime":"2017-10-30T09:30:30-05:00",
       "resource_type":"Database",
@@ -15,8 +14,7 @@
     "model": "project.Project",
     "fields": {
       "title": "MIMIC-III Clinical Database",
-      "owner": ["rgmark@mit.edu"],
-      "collaborators": [["admin@mit.edu"],["rgmark@mit.edu"]],
+      "submitting_author": ["rgmark@mit.edu"],
       "creation_datetime":"2017-10-30T09:30:30-05:00",
       "modified_datetime":"2017-10-30T09:30:30-05:00",
       "resource_type":"Database",
@@ -27,12 +25,20 @@
     "model": "project.Project",
     "fields": {
       "title": "WFDB",
-      "owner": ["george@mit.edu"],
-      "collaborators": [["george@mit.edu"]],
+      "submitting_author": ["george@mit.edu"],
       "creation_datetime":"2017-10-30T09:30:30-05:00",
       "modified_datetime":"2017-10-30T09:30:30-05:00",
       "resource_type":"Software",
       "abstract":"<p>Effective use of PhysioBank data requires specialized software. We have developed a large collection of such software over the past twenty years, and much of it is contained within the WFDB (WaveForm DataBase) Software Package, the GPLed successor to the MIT DB Software Package.</p><p>The major components of the WFDB Software Package are the WFDB library, about 75 WFDB applications for signal processing and automated analysis, and the WAVE software for viewing, annotation, and interactive analysis of waveform data. A comprehensive collection of documentation, including tutorials and reference manuals, is also included in the package.</p>"
+    }
+  },
+
+  {
+    "model": "project.Author",
+    "fields": {
+      "project": "1",
+      "user": ["rgmark@mit.edu"],
+      "display_order": "1"
     }
   },
 
@@ -45,17 +51,6 @@
       "invitation_type": "author",
       "creation_date":"2017-11-02",
       "expiration_date":"2017-11-09"
-    }
-  },
-  {
-    "model": "project.Invitation",
-    "fields": {
-      "email": "george@mit.edu",
-      "project": "2",
-      "inviter": ["admin@mit.edu"],
-      "invitation_type": "collaborator",
-      "creation_date":"2017-11-07",
-      "expiration_date":"2017-11-14"
     }
   },
 
