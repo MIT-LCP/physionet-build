@@ -266,9 +266,9 @@ class CreateProjectForm(forms.ModelForm):
     """
     For creating projects
     """
-    def __init__(self, owner, *args, **kwargs):
+    def __init__(self, user, *args, **kwargs):
         super(CreateProjectForm, self).__init__(*args, **kwargs)
-        self.owner = owner
+        self.user = user
 
     class Meta:
         model = Project
@@ -276,11 +276,8 @@ class CreateProjectForm(forms.ModelForm):
 
     def save(self):
         project = super(CreateProjectForm, self).save(commit=False)
-        project.owner = self.owner
+        project.submitting_author = self.user
         project.save()
-        project.collaborators.add(project.owner)
-        # Create file directory
-        os.mkdir(project.file_root())
         return project
 
 

@@ -179,12 +179,12 @@ def create_project(request):
     user = request.user
 
     if request.method == 'POST':
-        form = forms.CreateProjectForm(owner=user, data=request.POST)
+        form = forms.CreateProjectForm(user=user, data=request.POST)
         if form.is_valid():
             project = form.save()
             return redirect('project_overview', project_id=project.id)
     else:
-        form = forms.CreateProjectForm(owner=user)
+        form = forms.CreateProjectForm(user=user)
 
     return render(request, 'project/create_project.html', {'form':form})
 

@@ -7,9 +7,7 @@
 <hr>
 
 <h4>Roles</h4>
-<p>Authors are credited for creating the database when it is published. An author may be a person, or an organization. Human authors must be invited and accept authorship, and fill in their own details. Organizational authors can be added by the project owner. Each project can have several authors. </p>
-
-<p>All authors are project <a href="{% url 'project_collaborators' project.id %}">collaborators</a>, although collaborators are not necessarily authors. Collaborators can view the project, and edit the metadata and files.</p>
+<p>Each project has one or more authors, including the single submitting author who creates the project. Authors are credited for creating the resource when it is published. An author may be a person, or an organization. Human authors must be invited and accept authorship, and fill in their own details. Organizational authors can be added by the submitting author.</p>
 
 <hr>
 
@@ -68,7 +66,7 @@
 <hr>
 
 
-{% if user == project.owner or user.is_admin %}
+{% if user == project.submitting_author or user.is_admin %}
 
     <h4>Invite Human Author</h4>
     <p>Invite an author with their email</p>

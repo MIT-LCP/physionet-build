@@ -10,12 +10,12 @@
 
 <p>
     <span class="badge badge-dark">{{ project|resource_icon|safe }} {{ project.resource_type }} Project</span>
-</p> 
+</p>
 <p class="text-muted">
     Created {{ project.creation_datetime }} Modified {{ project.modified_datetime }}
 </p>
 <p>
-    Owner: <a href="{% url 'public_profile' project.owner %}">{{ project.owner }}</a>
+    Submitting Author: <a href="{% url 'public_profile' project.submitting_author %}">{{ project.submitting_author }}</a>
 </p>
 <hr>
 

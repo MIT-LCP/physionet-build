@@ -13,6 +13,18 @@ from physionet.settings import MEDIA_ROOT
 from .utility import get_tree_size
 
 
+def new_creation(receiver_function):
+    """
+    Decorator for a receiver function to only trigger upon model
+    creation from non-fixtures.
+    """
+    def func_wrapper(**kwargs):
+        if kwargs.get('created') and not kwargs.get('raw'):
+            return func_wrapper
+
+    return func_wrapper
+
+
 class Affiliation(models.Model):
     """
     Affiliations belonging to an author or collaborator
@@ -205,6 +217,19 @@ class Project(Metadata):
         "Total storage used in bytes"
         return get_tree_size(self.file_root())
 
+@receiver(post_save, sender=Project)
+@new_creation
+def setup_project(sender, **kwargs):
+    """
+    When a Project is created:
+    - create an Author object from the submitting_author field
+    - create the project file directory
+    """
+    project = kwargs['instance']
+    user = project.submitting_author
+    Author.objects.create(project=project, user=user)
+    # Create file directory
+    os.mkdir(project.file_root())
 
 class PublishedProject(Metadata):
     """
