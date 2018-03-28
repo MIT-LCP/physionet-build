@@ -465,21 +465,21 @@ class AuthorChoiceForm(forms.Form):
         return data
 
 
-class AffiliationForm(forms.ModelForm):
-    class Meta:
-        model = Affiliation
-        fields = ('name',)
+# class AffiliationForm(forms.ModelForm):
+#     class Meta:
+#         model = Affiliation
+#         fields = ('name',)
 
-    def __init__(self, user, project, *args, **kwargs):
-        super(AffiliationeForm, self).__init__(*args, **kwargs)
-        self.user = user
-        self.project = project
+#     def __init__(self, user, project, *args, **kwargs):
+#         super(AffiliationeForm, self).__init__(*args, **kwargs)
+#         self.user = user
+#         self.project = project
 
-    def save(self):
-        affiliation = super(AffiliationForm, self).save(commit=False)
-        author = Author.objects.get(user=self.user, project=self.project)
-        affiliation.member_object = self.author
-        affiliation.save()
+#     def save(self):
+#         affiliation = super(AffiliationForm, self).save(commit=False)
+#         author = Author.objects.get(user=self.user, project=self.project)
+#         affiliation.member_object = self.author
+#         affiliation.save()
 
 
 class StorageRequestForm(forms.ModelForm):

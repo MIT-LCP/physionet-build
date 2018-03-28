@@ -7,7 +7,7 @@ import os
 import re
 
 from . import forms
-from .models import Author, Invitation, Project, PublishedProject, StorageRequest
+from .models import Affiliation, Author, Invitation, Project, PublishedProject, StorageRequest
 from .utility import (get_file_info, get_directory_info, get_storage_info,
     write_uploaded_file, list_items, remove_items, move_items as do_move_items,
     get_form_errors, serve_file)
@@ -239,9 +239,13 @@ def project_authors(request, project_id):
     user = request.user
     project = Project.objects.get(id=project_id)
     authors = project.authors.all()
+    author = authors.get(user=user)
+    affiliations = author.affiliations.all()
 
     # Initiate the forms
-    edit_author_form = forms.AuthorForm(instance=authors.get(user=user))
+    AffiliationFormSet = modelformset_factory(Affiliation, fields='name', extra=2)
+    edit_author_form = forms.AuthorForm(instance=author)
+    affiliation_formset = AffiliationFormSet(queryset=affiliations)
     invite_author_form = forms.InviteAuthorForm(project, user)
     add_author_form = forms.AddAuthorForm(user, project)
     remove_author_form = forms.AuthorChoiceForm(user=user, project=project)
@@ -249,12 +253,15 @@ def project_authors(request, project_id):
 
     if request.method == 'POST':
         if 'edit_author' in request.POST:
-            edit_author_form = forms.AuthorForm(instance=authors.get(user=user),
+            edit_author_form = forms.AuthorForm(instance=author,
                 data=request.POST)
             if edit_author_form.is_valid():
                 edit_author_form.save()
                 messages.success(request,
                     'Your author information has been updated')
+        if 'edit_affiliations' in request.POST:
+            AffiliationFormSet = modelformset_factory(Affiliation,
+                fields='name', extra=2, data=request.POST)
         if 'invite_author' in request.POST:
             invite_author_form = forms.InviteAuthorForm(project, user, request.POST)
             if invite_author(request, invite_author_form):
