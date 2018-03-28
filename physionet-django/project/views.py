@@ -105,35 +105,34 @@ def process_invitation_response(request, invitation_response_formset):
     for invitation_response_form in invitation_response_formset:
         if (invitation_response_form.is_valid() and
                 invitation_response_form.cleaned_data['invitation_id'] == invitation_id):
-            # Update the Invitation object
+            # Get the specified Invitation and response
             invitation = Invitation.objects.get(id=invitation_id)
             response = int(invitation_response_form.cleaned_data['response'])
-            invitation.response = response
-            invitation.is_active = False
-            invitation.save()
+            # Update the specified Invitation object, and also any other
+            # duplicate invitations (same user, project, and invitation_type)
+            emails = user.get_emails()
+            invitations = Invitation.objects.filter(email__in=emails,
+                project=invitation.project,
+                invitation_type=invitation.invitation_type)
+            invitations.update(response=response, is_active=False)
 
-            # Process the invite
+            # Carry out the response to the project
             if response:
                 response = 'accepted'
                 project = invitation.project
 
                 if invitation.invitation_type == 'author':
-                    # Create Author object. Signal adds user as
-                    # collaborator collaborator.
+                    # Create Author object.
                     existing_authors = project.authors.filter(is_human=True)
                     if existing_authors:
                         order = max([a.display_order for a in existing_authors]) + 1
                     else:
                         order = 1
-                    Author.objects.create(project_object=project, user=user,
+                    Author.objects.create(project=project, user=user,
                         display_order=order)
 
-                elif invitation.invitation_type == 'collaborator':
-                    # Add the user to the project collaborators
-                    project.collaborators.add(user)
                 elif invitation.invitation_type == 'reviewer':
                     pass
-
             else:
                 project = None
                 response = 'rejected'

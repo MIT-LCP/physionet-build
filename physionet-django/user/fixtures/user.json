@@ -1,81 +1,146 @@
 [
-  {
-    "model": "user.User",
-    "fields": {
-      "password": "pbkdf2_sha256$36000$hrff9gKPggd1$6A044c72UsUzwl+aK/oWlKeg5LFeJu8xiSwRPg+2qTc=",
-      "email": "admin@mit.edu",
-      "join_date": "2017-11-11",
-      "last_login": null,
-      "is_active": true,
-      "is_admin": true}
-  },
-  {
-    "model": "user.User",
-    "fields": {
-      "password": "pbkdf2_sha256$36000$Zj28MDwT3xxY$zQgpJUJisgQkgt364G+xi4ip7T4lRGjs6P1OzVmJkBc=",
-      "email": "rgmark@mit.edu",
-      "join_date": "2017-11-11",
-      "last_login": null,
-      "is_active": true,
-      "is_admin": false}
-  },
-  {
-    "model": "user.User",
-    "fields": {
-      "password": "pbkdf2_sha256$36000$p0q2ZDFhXvuT$Fa7vJkKhTJl0QpZAKsGUO7HqeosEUP8E/jVLrw8kXZA=",
-      "email": "george@mit.edu",
-      "join_date": "2017-11-11",
-      "last_login": null,
-      "is_active": true,
-      "is_admin": false}
-  },
-
-  {
-    "model": "user.Profile",
-    "fields": {
-      "user": ["admin@mit.edu"],
-      "first_name": "Tester",
-      "last_name": "Bot",
-      "url": "https://github.com/MIT-LCP/physionet-build"
-    }
-  },
-  {
-    "model": "user.Profile",
-    "fields": {
-      "user": ["rgmark@mit.edu"],
-      "first_name": "Roger Greenwood",
-      "last_name": "Mark",
-      "url": "http://imes.mit.edu/people/faculty/mark-roger/"
-    }
-  },
-  {
-    "model": "user.Profile",
-    "fields": {
-      "user": ["george@mit.edu"],
-      "first_name": "George",
-      "last_name": "Moody",
-      "url": "http://ecg.mit.edu/george/"
-    }
-  },
-
-  {
-    "model": "user.AssociatedEmail",
-    "fields": {
-      "user": ["admin@mit.edu"],
-      "email": "admin2@mit.edu",
-      "is_primary_email": "False",
-      "is_public": "True",
-      "verification_date": "2017-10-30T09:30:30-05:00"
-    }
-  },
-  {
-    "model": "user.AssociatedEmail",
-    "fields": {
-      "user": ["admin@mit.edu"],
-      "email": "admin3@mit.edu",
-      "is_primary_email": "False",
-      "is_public": "False",
-      "verification_date": "2017-10-30T10:15:20-05:00"
-    }
+{
+  "model": "user.user",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$36000$hrff9gKPggd1$6A044c72UsUzwl+aK/oWlKeg5LFeJu8xiSwRPg+2qTc=",
+    "email": "admin@mit.edu",
+    "join_date": "2017-11-11",
+    "last_login": null,
+    "is_active": true,
+    "is_admin": true
   }
+},
+{
+  "model": "user.user",
+  "pk": 2,
+  "fields": {
+    "password": "pbkdf2_sha256$36000$Zj28MDwT3xxY$zQgpJUJisgQkgt364G+xi4ip7T4lRGjs6P1OzVmJkBc=",
+    "email": "rgmark@mit.edu",
+    "join_date": "2017-11-11",
+    "last_login": "2018-03-28T16:06:33.366Z",
+    "is_active": true,
+    "is_admin": false
+  }
+},
+{
+  "model": "user.user",
+  "pk": 3,
+  "fields": {
+    "password": "pbkdf2_sha256$36000$p0q2ZDFhXvuT$Fa7vJkKhTJl0QpZAKsGUO7HqeosEUP8E/jVLrw8kXZA=",
+    "email": "george@mit.edu",
+    "join_date": "2017-11-11",
+    "last_login": "2018-03-28T17:16:51.656Z",
+    "is_active": true,
+    "is_admin": false
+  }
+},
+{
+  "model": "user.associatedemail",
+  "pk": 1,
+  "fields": {
+    "user": 1,
+    "email": "admin@mit.edu",
+    "is_primary_email": true,
+    "added_date": "2018-03-28T16:06:29.431Z",
+    "verification_date": "2018-03-28T16:06:29.431Z",
+    "is_public": false
+  }
+},
+{
+  "model": "user.associatedemail",
+  "pk": 2,
+  "fields": {
+    "user": 2,
+    "email": "rgmark@mit.edu",
+    "is_primary_email": true,
+    "added_date": "2018-03-28T16:06:29.433Z",
+    "verification_date": "2018-03-28T16:06:29.433Z",
+    "is_public": false
+  }
+},
+{
+  "model": "user.associatedemail",
+  "pk": 3,
+  "fields": {
+    "user": 3,
+    "email": "george@mit.edu",
+    "is_primary_email": true,
+    "added_date": "2018-03-28T16:06:29.436Z",
+    "verification_date": "2018-03-28T16:06:29.435Z",
+    "is_public": false
+  }
+},
+{
+  "model": "user.associatedemail",
+  "pk": 4,
+  "fields": {
+    "user": 1,
+    "email": "admin2@mit.edu",
+    "is_primary_email": false,
+    "added_date": null,
+    "verification_date": "2017-10-30T14:30:30Z",
+    "is_public": true
+  }
+},
+{
+  "model": "user.associatedemail",
+  "pk": 5,
+  "fields": {
+    "user": 1,
+    "email": "admin3@mit.edu",
+    "is_primary_email": false,
+    "added_date": null,
+    "verification_date": "2017-10-30T15:15:20Z",
+    "is_public": false
+  }
+},
+{
+  "model": "user.associatedemail",
+  "pk": 6,
+  "fields": {
+    "user": 3,
+    "email": "george@gmail.com",
+    "is_primary_email": false,
+    "added_date": "2018-03-28T17:17:14.082Z",
+    "verification_date": "2018-03-28T17:17:22.440Z",
+    "is_public": false
+  }
+},
+{
+  "model": "user.profile",
+  "pk": 1,
+  "fields": {
+    "user": 1,
+    "first_name": "Tester",
+    "middle_names": "",
+    "last_name": "Bot",
+    "url": "https://github.com/MIT-LCP/physionet-build",
+    "identity_verification_date": null
+  }
+},
+{
+  "model": "user.profile",
+  "pk": 2,
+  "fields": {
+    "user": 2,
+    "first_name": "Roger Greenwood",
+    "middle_names": "",
+    "last_name": "Mark",
+    "url": "http://imes.mit.edu/people/faculty/mark-roger/",
+    "identity_verification_date": null
+  }
+},
+{
+  "model": "user.profile",
+  "pk": 3,
+  "fields": {
+    "user": 3,
+    "first_name": "George",
+    "middle_names": "",
+    "last_name": "Moody",
+    "url": "http://ecg.mit.edu/george/",
+    "identity_verification_date": null
+  }
+}
 ]

@@ -18,7 +18,7 @@
   {% if authors %}
     <ul class="list-group list-group-flush">
       {% for author in authors %}
-        <li class="list-group-item">{{ author }}
+        <li class="list-group-item">{{ author.user }}
           <a class="float-right">
           </a>
         </li>
@@ -68,7 +68,7 @@
 
 {% if user == project.submitting_author or user.is_admin %}
 
-    <h4>Invite Human Author</h4>
+    <h4>Invite Author</h4>
     <p>Invite an author with their email</p>
     <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
       {% csrf_token %}

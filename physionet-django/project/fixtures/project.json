@@ -149,6 +149,20 @@
   }
 },
 {
+  "model": "project.invitation",
+  "pk": 2,
+  "fields": {
+    "project": 1,
+    "email": "george@gmail.com",
+    "inviter": 2,
+    "invitation_type": "author",
+    "creation_date": "2018-03-28",
+    "expiration_date": "2018-04-18",
+    "response": null,
+    "is_active": true
+  }
+},
+{
   "model": "project.topic",
   "pk": 1,
   "fields": {

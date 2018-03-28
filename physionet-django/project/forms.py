@@ -336,50 +336,6 @@ class CollaboratorChoiceForm(forms.Form):
         self.project = project
 
 
-# class InviteCollaboratorForm(forms.ModelForm):
-#     """
-#     Form to invite new collaborators to a project.
-#     Field to fill in: email.
-
-#     """
-#     def __init__(self, project, inviter, *args, **kwargs):
-#         super(InviteCollaboratorForm, self).__init__(*args, **kwargs)
-#         self.inviter = inviter
-#         self.project = project
-
-#     class Meta:
-#         model = Invitation
-#         fields = ('email',)
-
-#     def clean_email(self):
-#         "Ensure it is a fresh invite to a non-collaborator"
-#         data = self.cleaned_data['email']
-
-#         for collaborator in self.project.collaborators.all():
-#             if data in collaborator.get_emails():
-#                 raise forms.ValidationError(
-#                     'The user is already a collaborator of this project',
-#                     code='already_collaborator')
-#             invitations = self.project.invitations.filter(
-#                 invitation_type='collaborator')
-
-#         if data in [i.email for i in invitations]:
-#             raise forms.ValidationError(
-#                 'There is already an outstanding invitation to that email',
-#                 code='already_invited')
-#         return data
-
-#     def save(self):
-#         invitation = super(InviteCollaboratorForm, self).save(commit=False)
-#         invitation.project = self.project
-#         invitation.inviter = self.inviter
-#         invitation.invitation_type = 'collaborator'
-#         invitation.expiration_date = (timezone.now().date()
-#             + timezone.timedelta(days=7))
-#         invitation.save()
-#         return invitation
-
-
 class InviteAuthorForm(forms.ModelForm):
     """
     Form to invite new authors to a project.
@@ -400,7 +356,7 @@ class InviteAuthorForm(forms.ModelForm):
         data = self.cleaned_data['email']
 
         for author in self.project.authors.all():
-            if data in author.get_emails():
+            if data in author.user.get_emails():
                 raise forms.ValidationError(
                     'The user is already an author of this project',
                     code='already_author')
