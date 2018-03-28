@@ -33,7 +33,7 @@
 
 <div class="card">
   <div class="card card-header">
-    <h4>Outstanding Invitations</h4>
+    <h4>Outstanding Author Invitations</h4>
   </div>
   <ul class="list-group list-group-flush">
     {% if invitations %}
@@ -102,8 +102,17 @@
     <p>Remove a user from the list of authors</p>
     <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
       {% csrf_token %}
-      {{ collaborator_removal_form.collaborator }}
+      {{ remove_author_form.author }}
       <button class="btn btn-danger btn-fixed" name="remove_author" type="submit">Remove Author</button>
+    </form>
+    <hr>
+
+    <h4>Cancel Invitation</h4>
+    <p>Cancel an existing author invitation</p>
+    <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
+      {% csrf_token %}
+      {{ cancel_invitation_form.invitation }}
+      <button class="btn btn-danger btn-fixed" name="cancel_invitation" type="submit">Cancel Invitation</button>
     </form>
     <hr>
 

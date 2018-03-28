@@ -190,7 +190,9 @@ def create_project(request):
 
 @authorization_required(auth_functions=(is_admin, is_author, is_invited))
 def project_overview(request, project_id):
-    "Overview page of a project"
+    """
+    Overview page of a project
+    """
     project = Project.objects.get(id=project_id)
 
     return render(request, 'project/project_overview.html', {'project':project})
@@ -198,14 +200,38 @@ def project_overview(request, project_id):
 
 def invite_author(request, invite_author_form):
     """
-    Invite a user to be a collaborator
+    Invite a user to be a collaborator.
+    Helper function for `project_authors`.
     """
     if invite_author_form.is_valid():
         invite_author_form.save()
         messages.success(request, 'An invitation has been sent to the user')
         return True
 
+def remove_author(request, remove_author_form):
+    """
+    Remove an author from a project
+    Helper function for `project_authors`.
+    """
+    if remove_author_form.is_valid():
+        author = remove_author_form.cleaned_data['author']
+        author.delete()
+        messages.success(request, 'The author has been removed from the project')
+        return True
 
+def cancel_invitation(request, cancel_invitation_form):
+    """
+    Cancel an author invitation for a project.
+    Helper function for `project_authors`.
+    """
+    if cancel_invitation_form.is_valid():
+        invitation = cancel_invitation_form.cleaned_data['invitation']
+        invitation.is_active = False
+        invitation.save()
+        messages.success(request, 'The invitation has been cancelled')
+        return True
+
+@authorization_required(auth_functions=(is_admin, is_author))
 def project_authors(request, project_id):
     """
     Page displaying author information and actions.
@@ -217,6 +243,8 @@ def project_authors(request, project_id):
     # Initiate the forms
     invite_author_form = forms.InviteAuthorForm(project, user)
     add_author_form = forms.AddAuthorForm(user, project)
+    remove_author_form = forms.AuthorChoiceForm(user=user, project=project)
+    cancel_invitation_form = forms.InvitationChoiceForm(user=user, project=project)
 
     if request.method == 'POST':
 
@@ -231,18 +259,30 @@ def project_authors(request, project_id):
             if add_author(request, add_author_form):
                 add_author_form = forms.AddAuthorForm(user, project)
         elif 'remove_author' in request.POST:
-            pass
+            remove_author_form = forms.AuthorChoiceForm(user=user,
+                project=project, data=request.POST)
+            if remove_author(request, remove_author_form):
+                remove_author_form = forms.AuthorChoiceForm(user=user,
+                    project=project)
+        elif 'cancel_invitation' in request.POST:
+            cancel_invitation_form = forms.InvitationChoiceForm(user=user,
+                project=project, data=request.POST)
+            if cancel_invitation(request, cancel_invitation_form):
+                cancel_invitation_form = forms.InvitationChoiceForm(user=user,
+                    project=project)
 
     invitations = project.invitations.filter(invitation_type='author',
         is_active=True)
 
     return render(request, 'project/project_authors.html', {'project':project,
-        'authors':authors,
-        'invitations':invitations, 'invite_author_form':invite_author_form,
-        'add_author_form':add_author_form})
+        'authors':authors, 'invitations':invitations,
+        'invite_author_form':invite_author_form,
+        'add_author_form':add_author_form,
+        'remove_author_form':remove_author_form,
+        'cancel_invitation_form':cancel_invitation_form})
 
 
-
+@authorization_required(auth_functions=(is_admin, is_author))
 def project_metadata(request, project_id):
     project = Project.objects.get(id=project_id)
 
@@ -307,7 +347,7 @@ def delete_items(request, delete_items_form):
     else:
         messages.error(request, get_form_errors(delete_items_form))
 
-
+@authorization_required(auth_functions=(is_admin, is_author))
 def project_files(request, project_id, sub_item=''):
     "View and manipulate files in a project"
     project = Project.objects.get(id=project_id)
@@ -403,11 +443,18 @@ def project_files(request, project_id, sub_item=''):
         'delete_items_form':delete_items_form})
 
 
+@authorization_required(auth_functions=(is_admin, is_author))
 def project_submission(request, project_id):
     """
     View submission details regarding a project
     """
-    return render(request, 'project/project_submission.html')
+    user = request.user
+    project = Project.objects.get(id=project_id)
+
+    is_submitting_author = (user == project.submitting_author)
+
+    return render(request, 'project/project_submission.html', {'user':user,
+        'project':project})
 
 
 
@@ -440,7 +487,7 @@ def process_storage_request(request, storage_response_formset):
     else:
         messages.error('Invalid submission')
 
-
+@authorization_required(auth_functions=(is_admin))
 def storage_requests(request):
     """
     Page listing projects with outstanding storage requests
@@ -464,4 +511,3 @@ def storage_requests(request):
     return render(request, 'project/storage_requests.html', {'user':user,
         'storage_requests':storage_requests,
         'storage_response_formset':storage_response_formset})
-

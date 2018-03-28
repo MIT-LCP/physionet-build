@@ -315,26 +315,6 @@ RESPONSE_CHOICES = (
     (0, 'Reject')
 )
 
-class CollaboratorChoiceForm(forms.Form):
-    """
-    For choosing project collaborators. Queryset is all project collaborators,
-    optionally excluding the owner. Used for selecting new owner and removing
-    collaborators.
-    """
-    collaborator = forms.ModelChoiceField(queryset=None, to_field_name='email',
-        label='email', widget=forms.Select())
-
-    def __init__(self, project, include_owner=False, *args, **kwargs):
-        # Email choices are those belonging to a user
-        super(CollaboratorChoiceForm, self).__init__(*args, **kwargs)
-        collaborators = project.collaborators.all()
-
-        if not include_owner:
-            collaborators = collaborators.exclude(id=project.owner.id)
-
-        self.fields['collaborator'].queryset = collaborators
-        self.project = project
-
 
 class InviteAuthorForm(forms.ModelForm):
     """
@@ -383,8 +363,7 @@ class InviteAuthorForm(forms.ModelForm):
 
 class InvitationResponseForm(forms.Form):
     """
-    Generic form for responding to a type of request to do something
-    for a project. Used for storage requests and project invites.
+    For a user to respond to their project invitations.
     """
     invitation_id = forms.IntegerField(widget=forms.HiddenInput)
     response = forms.ChoiceField(choices=RESPONSE_CHOICES)
@@ -408,6 +387,27 @@ class InvitationResponseForm(forms.Form):
 
         return data
 
+class InvitationChoiceForm(forms.Form):
+    """
+    For selecting outstanding invitations to a project
+    """
+    invitation = forms.ModelChoiceField(queryset=None)
+
+    def __init__(self, user, project, *args, **kwargs):
+        super(InvitationChoiceForm, self).__init__(*args, **kwargs)
+        self.user = user
+        self.project = project
+        invitations = project.invitations.filter(is_active=True)
+        self.fields['invitation'].queryset = invitations
+
+    def clean_invitation(self):
+        "Make sure the user is the submitting author"
+        data = self.cleaned_data['invitation']
+        if self.user != data.project.submitting_author:
+            raise forms.ValidationError(
+                'You are not authorized to do that', code='not_authorized')
+
+        return data
 
 class AddAuthorForm(forms.ModelForm):
     """
@@ -421,13 +421,39 @@ class AddAuthorForm(forms.ModelForm):
         "Make sure the user submitting this entry is the owner"
         super(AddAuthorForm, self).__init__(*args, **kwargs)
         self.user = user
-        self.project = project
 
     def save(self):
         author = super(AddAuthorForm, self).save(commit=False)
-        author.project_object = self.project
+        author.project = self.project
         author.is_human = False
         author.save()
+
+
+class AuthorChoiceForm(forms.Form):
+    """
+    For choosing project authors. Queryset is all project authors,
+    optionally excluding the owner. Used for removing authors.
+    """
+    author = forms.ModelChoiceField(queryset=None)
+
+    def __init__(self, user, project, include_owner=False, *args, **kwargs):
+        super(AuthorChoiceForm, self).__init__(*args, **kwargs)
+        self.user = user
+        self.project = project
+        authors = project.authors.all()
+        if not include_owner:
+            authors = authors.exclude(user__id=project.submitting_author.id)
+        self.fields['author'].queryset = authors
+
+    def clean_author(self):
+        "Ensure the user is the project's submitting author"
+        data = self.cleaned_data['author']
+        if self.user != data.project.submitting_author:
+            raise forms.ValidationError(
+                'You are not authorized to do that', code='not_authorized')
+
+        return data
+
 
 
 class StorageRequestForm(forms.ModelForm):
