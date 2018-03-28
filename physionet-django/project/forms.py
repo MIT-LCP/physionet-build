@@ -3,7 +3,7 @@ from django.template.defaultfilters import slugify
 from django.utils import timezone
 import os
 
-from .models import Author, Invitation, Project, StorageRequest
+from .models import Affiliation, Author, Invitation, Project, StorageRequest
 from .utility import readable_size, list_items, list_directories
 from physionet.settings import MEDIA_ROOT
 import pdb
@@ -409,13 +409,23 @@ class InvitationChoiceForm(forms.Form):
 
         return data
 
+
+class AuthorForm(forms.ModelForm):
+    """
+    For editing one's author information.
+    """
+    class Meta:
+        model = Author
+        fields = ('first_name', 'middle_names', 'last_name')
+
+
 class AddAuthorForm(forms.ModelForm):
     """
     Add a non-human author
     """
     class Meta:
         model = Author
-        fields = ('organization_name', 'display_order')
+        fields = ('organization_name',)
 
     def __init__(self, user, project, *args, **kwargs):
         "Make sure the user submitting this entry is the owner"
@@ -454,6 +464,22 @@ class AuthorChoiceForm(forms.Form):
 
         return data
 
+
+class AffiliationForm(forms.ModelForm):
+    class Meta:
+        model = Affiliation
+        fields = ('name',)
+
+    def __init__(self, user, project, *args, **kwargs):
+        super(AffiliationeForm, self).__init__(*args, **kwargs)
+        self.user = user
+        self.project = project
+
+    def save(self):
+        affiliation = super(AffiliationForm, self).save(commit=False)
+        author = Author.objects.get(user=self.user, project=self.project)
+        affiliation.member_object = self.author
+        affiliation.save()
 
 
 class StorageRequestForm(forms.ModelForm):

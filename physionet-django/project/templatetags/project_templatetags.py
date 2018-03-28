@@ -16,3 +16,10 @@ def resource_icon(project):
     }
 
     return icons[project.resource_type]
+
+@register.filter(name='author_name')
+def author_name(author):
+    """
+    Full name from author object
+    """
+    return author.get_full_name()

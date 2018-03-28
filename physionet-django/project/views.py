@@ -241,15 +241,20 @@ def project_authors(request, project_id):
     authors = project.authors.all()
 
     # Initiate the forms
+    edit_author_form = forms.AuthorForm(instance=authors.get(user=user))
     invite_author_form = forms.InviteAuthorForm(project, user)
     add_author_form = forms.AddAuthorForm(user, project)
     remove_author_form = forms.AuthorChoiceForm(user=user, project=project)
     cancel_invitation_form = forms.InvitationChoiceForm(user=user, project=project)
 
     if request.method == 'POST':
-
         if 'edit_author' in request.POST:
-            pass
+            edit_author_form = forms.AuthorForm(instance=authors.get(user=user),
+                data=request.POST)
+            if edit_author_form.is_valid():
+                edit_author_form.save()
+                messages.success(request,
+                    'Your author information has been updated')
         if 'invite_author' in request.POST:
             invite_author_form = forms.InviteAuthorForm(project, user, request.POST)
             if invite_author(request, invite_author_form):
@@ -276,6 +281,7 @@ def project_authors(request, project_id):
 
     return render(request, 'project/project_authors.html', {'project':project,
         'authors':authors, 'invitations':invitations,
+        'edit_author_form':edit_author_form,
         'invite_author_form':invite_author_form,
         'add_author_form':add_author_form,
         'remove_author_form':remove_author_form,
@@ -444,6 +450,18 @@ def project_files(request, project_id, sub_item=''):
 
 
 @authorization_required(auth_functions=(is_admin, is_author))
+def project_preview(request, project_id):
+    """
+    Preview what the published project would look like
+    """
+    user = request.user
+    project = Project.objects.get(id=project_id)
+
+    return render(request, 'project/project_submission.html', {'user':user,
+        'project':project})
+
+
+@authorization_required(auth_functions=(is_admin, is_author))
 def project_submission(request, project_id):
     """
     View submission details regarding a project
@@ -451,15 +469,15 @@ def project_submission(request, project_id):
     user = request.user
     project = Project.objects.get(id=project_id)
 
-    is_submitting_author = (user == project.submitting_author)
-
     return render(request, 'project/project_submission.html', {'user':user,
         'project':project})
 
 
-
 def process_storage_request(request, storage_response_formset):
-    "Accept or deny a project's storage request"
+    """
+    Accept or deny a project's storage request
+    Helper function to `storage_requests`.
+    """
     # Only process the form that was submitted. Find the relevant project
     matched_project_ids = [re.findall('respond-(?P<project_id>\d+)', k) for k in request.POST.keys()]
     matched_project_ids = [i for i in matched_project_ids if i]

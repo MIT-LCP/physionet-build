@@ -39,6 +39,9 @@ class Affiliation(models.Model):
     object_id = models.PositiveIntegerField()
     member_object = GenericForeignKey('content_type', 'object_id')
 
+    class Meta:
+        unique_together = (('name', 'content_type', 'object_id'))
+
 
 class Member(models.Model):
     """
@@ -69,6 +72,13 @@ class Member(models.Model):
     class Meta:
         abstract = True
 
+    def get_full_name(self):
+        if self.middle_names:
+            return ' '.join([self.first_name, self.middle_names,
+                           self.last_name])
+        else:
+            return ' '.join([self.first_name, self.last_name])
+
 
 
 class AuthorManager(models.Manager):
@@ -90,6 +100,8 @@ class Author(Member):
     """
     class Meta:
         unique_together = (('user', 'project'), ('user', 'published_project'))
+
+
 
     objects = AuthorManager()
 

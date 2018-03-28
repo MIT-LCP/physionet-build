@@ -1,5 +1,7 @@
 {% extends "project/project.html" %}
 
+{% load project_templatetags %}
+
 {% block title %}Project Authors{% endblock %}
 
 {% block form %}
@@ -18,7 +20,10 @@
   {% if authors %}
     <ul class="list-group list-group-flush">
       {% for author in authors %}
-        <li class="list-group-item">{{ author.user }}
+        <li class="list-group-item">
+          {{ author.display_order }}. {{ author.user }}<br>
+          Name: {{ author|author_name }}<br>
+          Affiliations:
           <a class="float-right">
           </a>
         </li>
@@ -29,6 +34,21 @@
     </div>
   {% endif %}
 </div>
+<hr>
+
+<h4>Your Author Information</h4>
+<p>Edit your author information. <em>Note: these fields are not tied to your profile information</em>.</p>
+<form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
+  {% csrf_token %}
+  {{ edit_author_form }}
+  {% for error in edit_author_form.email.errors %}
+    <div class="alert alert-danger">
+        <strong>{{ error|escape }}</strong>
+    </div>
+  {% endfor %}
+
+  <button class="btn btn-primary btn-fixed" name="edit_author" type="submit">Update Information</button>
+</form>
 <hr>
 
 <div class="card">
@@ -65,8 +85,21 @@
 </div>
 <hr>
 
-
 {% if user == project.submitting_author or user.is_admin %}
+    <h4>Order Authors</h4>
+    <p>Set the order in which authors are displayed</p>
+    <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
+      {% csrf_token %}
+      {{ invite_author_form.email }}
+      {% for error in invite_author_form.email.errors %}
+        <div class="alert alert-danger">
+            <strong>{{ error|escape }}</strong>
+        </div>
+      {% endfor %}
+
+      <button class="btn btn-success btn-fixed" name="invite_author" type="submit">Invite Author</button>
+    </form>
+    <hr>
 
     <h4>Invite Author</h4>
     <p>Invite an author with their email</p>
