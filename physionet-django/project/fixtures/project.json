@@ -1,84 +1,184 @@
 [
-  {
-    "model": "project.Project",
-    "fields": {
-      "title": "MIT-BIH Arrhythmia Database",
-      "submitting_author": ["rgmark@mit.edu"],
-      "creation_datetime":"2017-10-30T09:30:30-05:00",
-      "modified_datetime":"2017-10-30T09:30:30-05:00",
-      "resource_type":"Database",
-      "abstract":"<p>The MIT-BIH Arrhythmia Database contains 48 half-hour excerpts of two-channel ambulatory ECG recordings, obtained from 47 subjects studied by the BIH Arrhythmia Laboratory between 1975 and 1979. Twenty-three recordings were chosen at random from a set of 4000 24-hour ambulatory ECG recordings collected from a mixed population of inpatients (about 60%) and outpatients (about 40%) at Boston's Beth Israel Hospital; the remaining 25 recordings were selected from the same set to include less common but clinically significant arrhythmias that would not be well-represented in a small random sample.</p><p>The recordings were digitized at 360 samples per second per channel with 11-bit resolution over a 10 mV range. Two or more cardiologists independently annotated each record; disagreements were resolved to obtain the computer-readable reference annotations for each beat (approximately 110,000 annotations in all) included with the database.</p>"
-    }
-  },
-  {
-    "model": "project.Project",
-    "fields": {
-      "title": "MIMIC-III Clinical Database",
-      "submitting_author": ["rgmark@mit.edu"],
-      "creation_datetime":"2017-10-30T09:30:30-05:00",
-      "modified_datetime":"2017-10-30T09:30:30-05:00",
-      "resource_type":"Database",
-      "abstract":"<p>MIMIC-III (Medical Information Mart for Intensive Care III) is a large, freely-available database comprising deidentified health-related data associated with over forty thousand patients who stayed in critical care units of the Beth Israel Deaconess Medical Center between 2001 and 2012.</p><p>The database includes information such as demographics, vital sign measurements made at the bedside (~1 data point per hour), laboratory test results, procedures, medications, caregiver notes, imaging reports, and mortality (both in and out of hospital).</p>"
-    }
-  },
-  {
-    "model": "project.Project",
-    "fields": {
-      "title": "WFDB",
-      "submitting_author": ["george@mit.edu"],
-      "creation_datetime":"2017-10-30T09:30:30-05:00",
-      "modified_datetime":"2017-10-30T09:30:30-05:00",
-      "resource_type":"Software",
-      "abstract":"<p>Effective use of PhysioBank data requires specialized software. We have developed a large collection of such software over the past twenty years, and much of it is contained within the WFDB (WaveForm DataBase) Software Package, the GPLed successor to the MIT DB Software Package.</p><p>The major components of the WFDB Software Package are the WFDB library, about 75 WFDB applications for signal processing and automated analysis, and the WAVE software for viewing, annotation, and interactive analysis of waveform data. A comprehensive collection of documentation, including tutorials and reference manuals, is also included in the package.</p>"
-    }
-  },
-
-  {
-    "model": "project.Author",
-    "fields": {
-      "project": "1",
-      "user": ["rgmark@mit.edu"],
-      "display_order": "1"
-    }
-  },
-
-  {
-    "model": "project.Invitation",
-    "fields": {
-      "email": "george@mit.edu",
-      "project": "1",
-      "inviter": ["rgmark@mit.edu"],
-      "invitation_type": "author",
-      "creation_date":"2017-11-02",
-      "expiration_date":"2017-11-09"
-    }
-  },
-
-  {
-    "model": "project.StorageRequest",
-    "fields": {
-      "project": "3",
-      "request_allowance":"3",
-      "request_datetime":"2017-10-30T09:30:30-05:00"
-    }
-  },
-
-  {
-    "model": "project.Topic",
-    "fields": {
-      "description": "ecg"
-    }
-  },
-  {
-    "model": "project.Topic",
-    "fields": {
-      "description": "arrhythmia"
-    }
-  },
-  {
-    "model": "project.Topic",
-    "fields": {
-      "description": "intensive care unit"
-    }
+{
+  "model": "project.author",
+  "pk": 1,
+  "fields": {
+    "project": 1,
+    "published_project": null,
+    "first_name": "",
+    "middle_names": "",
+    "last_name": "",
+    "is_human": true,
+    "organization_name": "",
+    "display_order": 1,
+    "user": 2
   }
+},
+{
+  "model": "project.author",
+  "pk": 2,
+  "fields": {
+    "project": 2,
+    "published_project": null,
+    "first_name": "",
+    "middle_names": "",
+    "last_name": "",
+    "is_human": true,
+    "organization_name": "",
+    "display_order": 1,
+    "user": 2
+  }
+},
+{
+  "model": "project.author",
+  "pk": 3,
+  "fields": {
+    "project": 3,
+    "published_project": null,
+    "first_name": "",
+    "middle_names": "",
+    "last_name": "",
+    "is_human": true,
+    "organization_name": "",
+    "display_order": 1,
+    "user": 3
+  }
+},
+{
+  "model": "project.project",
+  "pk": 1,
+  "fields": {
+    "title": "MIT-BIH Arrhythmia Database",
+    "abstract": "<p>The MIT-BIH Arrhythmia Database contains 48 half-hour excerpts of two-channel ambulatory ECG recordings, obtained from 47 subjects studied by the BIH Arrhythmia Laboratory between 1975 and 1979. Twenty-three recordings were chosen at random from a set of 4000 24-hour ambulatory ECG recordings collected from a mixed population of inpatients (about 60%) and outpatients (about 40%) at Boston's Beth Israel Hospital; the remaining 25 recordings were selected from the same set to include less common but clinically significant arrhythmias that would not be well-represented in a small random sample.</p><p>The recordings were digitized at 360 samples per second per channel with 11-bit resolution over a 10 mV range. Two or more cardiologists independently annotated each record; disagreements were resolved to obtain the computer-readable reference annotations for each beat (approximately 110,000 annotations in all) included with the database.</p>",
+    "background": "",
+    "methods": "",
+    "content_description": "",
+    "technical_validation": "",
+    "usage_notes": "",
+    "acknowledgements": "",
+    "resource_type": "Database",
+    "dua": null,
+    "training_course": null,
+    "id_verification_required": false,
+    "version_number": "",
+    "changelog_summary": "",
+    "project_home_page": "",
+    "creation_datetime": "2017-10-30T14:30:30Z",
+    "modified_datetime": "2017-10-30T14:30:30Z",
+    "storage_allowance": 1,
+    "submitting_author": 2,
+    "published": false,
+    "under_review": false,
+    "paper_citations": [],
+    "references": [],
+    "topics": []
+  }
+},
+{
+  "model": "project.project",
+  "pk": 2,
+  "fields": {
+    "title": "MIMIC-III Clinical Database",
+    "abstract": "<p>MIMIC-III (Medical Information Mart for Intensive Care III) is a large, freely-available database comprising deidentified health-related data associated with over forty thousand patients who stayed in critical care units of the Beth Israel Deaconess Medical Center between 2001 and 2012.</p><p>The database includes information such as demographics, vital sign measurements made at the bedside (~1 data point per hour), laboratory test results, procedures, medications, caregiver notes, imaging reports, and mortality (both in and out of hospital).</p>",
+    "background": "",
+    "methods": "",
+    "content_description": "",
+    "technical_validation": "",
+    "usage_notes": "",
+    "acknowledgements": "",
+    "resource_type": "Database",
+    "dua": null,
+    "training_course": null,
+    "id_verification_required": false,
+    "version_number": "",
+    "changelog_summary": "",
+    "project_home_page": "",
+    "creation_datetime": "2017-10-30T14:30:30Z",
+    "modified_datetime": "2017-10-30T14:30:30Z",
+    "storage_allowance": 1,
+    "submitting_author": 2,
+    "published": false,
+    "under_review": false,
+    "paper_citations": [],
+    "references": [],
+    "topics": []
+  }
+},
+{
+  "model": "project.project",
+  "pk": 3,
+  "fields": {
+    "title": "WFDB",
+    "abstract": "<p>Effective use of PhysioBank data requires specialized software. We have developed a large collection of such software over the past twenty years, and much of it is contained within the WFDB (WaveForm DataBase) Software Package, the GPLed successor to the MIT DB Software Package.</p><p>The major components of the WFDB Software Package are the WFDB library, about 75 WFDB applications for signal processing and automated analysis, and the WAVE software for viewing, annotation, and interactive analysis of waveform data. A comprehensive collection of documentation, including tutorials and reference manuals, is also included in the package.</p>",
+    "background": "",
+    "methods": "",
+    "content_description": "",
+    "technical_validation": "",
+    "usage_notes": "",
+    "acknowledgements": "",
+    "resource_type": "Software",
+    "dua": null,
+    "training_course": null,
+    "id_verification_required": false,
+    "version_number": "",
+    "changelog_summary": "",
+    "project_home_page": "",
+    "creation_datetime": "2017-10-30T14:30:30Z",
+    "modified_datetime": "2017-10-30T14:30:30Z",
+    "storage_allowance": 1,
+    "submitting_author": 3,
+    "published": false,
+    "under_review": false,
+    "paper_citations": [],
+    "references": [],
+    "topics": []
+  }
+},
+{
+  "model": "project.invitation",
+  "pk": 1,
+  "fields": {
+    "project": 1,
+    "email": "george@mit.edu",
+    "inviter": 2,
+    "invitation_type": "author",
+    "creation_date": "2017-11-02",
+    "expiration_date": "2017-11-09",
+    "response": null,
+    "is_active": true
+  }
+},
+{
+  "model": "project.topic",
+  "pk": 1,
+  "fields": {
+    "description": "ecg"
+  }
+},
+{
+  "model": "project.topic",
+  "pk": 2,
+  "fields": {
+    "description": "arrhythmia"
+  }
+},
+{
+  "model": "project.topic",
+  "pk": 3,
+  "fields": {
+    "description": "intensive care unit"
+  }
+},
+{
+  "model": "project.storagerequest",
+  "pk": 1,
+  "fields": {
+    "project": 3,
+    "request_allowance": 3,
+    "request_datetime": "2017-10-30T14:30:30Z",
+    "response": null,
+    "is_active": true,
+    "responder": null
+  }
+}
 ]
