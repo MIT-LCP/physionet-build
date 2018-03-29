@@ -21,9 +21,9 @@
     <ul class="list-group list-group-flush">
       {% for author in authors %}
         <li class="list-group-item">
-          {{ author.display_order }}. {{ author.user }}<br>
+          User: {{ author.user }}<br>
           Name: {{ author|author_name }}<br>
-          Affiliations:
+          Affiliations: {{ author|author_affiliations }}
           <a class="float-right">
           </a>
         </li>
@@ -56,7 +56,6 @@
 <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
   {% csrf_token %}
   {{ affiliation_formset }}
-
   <button class="btn btn-primary btn-fixed" name="edit_affiliations" type="submit">Set Affiliations</button>
 </form>
 <hr>

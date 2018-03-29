@@ -1,13 +1,49 @@
 [
 {
+  "model": "project.affiliation",
+  "pk": 1,
+  "fields": {
+    "name": "Massachusets Institute of Technology",
+    "content_type": 18,
+    "object_id": 3
+  }
+},
+{
+  "model": "project.affiliation",
+  "pk": 2,
+  "fields": {
+    "name": "Massachusets Institute of Technology",
+    "content_type": 18,
+    "object_id": 1
+  }
+},
+{
+  "model": "project.affiliation",
+  "pk": 3,
+  "fields": {
+    "name": "Harvard University",
+    "content_type": 18,
+    "object_id": 1
+  }
+},
+{
+  "model": "project.affiliation",
+  "pk": 4,
+  "fields": {
+    "name": "Beth Israel Deaconess Medical Center",
+    "content_type": 18,
+    "object_id": 1
+  }
+},
+{
   "model": "project.author",
   "pk": 1,
   "fields": {
     "project": 1,
     "published_project": null,
-    "first_name": "",
-    "middle_names": "",
-    "last_name": "",
+    "first_name": "Roger",
+    "middle_names": "Greenwood",
+    "last_name": "Mark",
     "is_human": true,
     "organization_name": "",
     "display_order": 1,
@@ -35,9 +71,9 @@
   "fields": {
     "project": 3,
     "published_project": null,
-    "first_name": "",
+    "first_name": "George",
     "middle_names": "",
-    "last_name": "",
+    "last_name": "Moody",
     "is_human": true,
     "organization_name": "",
     "display_order": 1,

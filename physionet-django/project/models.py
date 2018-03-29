@@ -80,10 +80,9 @@ class Member(models.Model):
             return ' '.join([self.first_name, self.last_name])
 
 
-
 class AuthorManager(models.Manager):
-    def get_by_natural_key(self, project, user):
-        return self.get(project=project, user=user)
+    def get_by_natural_key(self, user, project):
+        return self.get(user=user, project=project)
 
 
 class Author(Member):
@@ -101,13 +100,29 @@ class Author(Member):
     class Meta:
         unique_together = (('user', 'project'), ('user', 'published_project'))
 
-
+    def natural_key(self):
+        return (self.user, self.project)
 
     objects = AuthorManager()
 
     # Authors must have physionet profiles, unless they are organizations.
     user = models.ForeignKey('user.User', related_name='authorships',
         blank=True, null=True)
+
+@receiver(post_save, sender=Author)
+@new_creation
+def setup_author(sender, **kwargs):
+    """
+    When an Author is created:
+    - Import profile names.
+    """
+    pdb.set_trace()
+    author = kwargs['instance']
+    if author.is_human:
+        profile = author.user.profile
+        for field in ['first_name', 'middle_names', 'last_name']:
+            setattr(author, field, getattr(profile, field))
+        author.save()
 
 
 class Contributor(Member):

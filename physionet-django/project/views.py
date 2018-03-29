@@ -253,7 +253,8 @@ def project_authors(request, project_id):
     affiliations = author.affiliations.all()
 
     # Initiate the forms
-    AffiliationFormSet = generic_inlineformset_factory(Affiliation, fields=('name',), extra=2)
+    AffiliationFormSet = generic_inlineformset_factory(Affiliation,
+        fields=('name',), extra=2, max_num=3)
     edit_author_form = forms.AuthorForm(instance=author)
     affiliation_formset = AffiliationFormSet(instance=author)
     invite_author_form = forms.InviteAuthorForm(project, user)
@@ -273,7 +274,6 @@ def project_authors(request, project_id):
             affiliation_formset = AffiliationFormSet(instance=author,
                 data=request.POST)
             if edit_affiliations(request, affiliation_formset):
-                # This isn't necessary
                 affiliation_formset = AffiliationFormSet(
                     instance=author)
         if 'invite_author' in request.POST:

@@ -23,3 +23,12 @@ def author_name(author):
     Full name from author object
     """
     return author.get_full_name()
+
+@register.filter(name='author_affiliations')
+def author_affiliations(author):
+    """
+    A displayable list of author affiliations
+    """
+    affiliations = author.affiliations.all()
+
+    return ', '.join([a.name for a in affiliations])
