@@ -1,38 +1,50 @@
 [
 {
   "model": "project.affiliation",
-  "pk": 1,
+  "pk": 11,
   "fields": {
     "name": "Massachusets Institute of Technology",
-    "content_type": 18,
-    "object_id": 3
-  }
-},
-{
-  "model": "project.affiliation",
-  "pk": 2,
-  "fields": {
-    "name": "Massachusets Institute of Technology",
-    "content_type": 18,
+    "content_type": [
+      "project",
+      "invitation"
+    ],
     "object_id": 1
   }
 },
 {
   "model": "project.affiliation",
-  "pk": 3,
+  "pk": 12,
   "fields": {
     "name": "Harvard University",
-    "content_type": 18,
+    "content_type": [
+      "project",
+      "invitation"
+    ],
     "object_id": 1
   }
 },
 {
   "model": "project.affiliation",
-  "pk": 4,
+  "pk": 13,
   "fields": {
     "name": "Beth Israel Deaconess Medical Center",
-    "content_type": 18,
+    "content_type": [
+      "project",
+      "invitation"
+    ],
     "object_id": 1
+  }
+},
+{
+  "model": "project.affiliation",
+  "pk": 14,
+  "fields": {
+    "name": "Massachusets Institute of Technology",
+    "content_type": [
+      "project",
+      "invitation"
+    ],
+    "object_id": 3
   }
 },
 {
@@ -47,7 +59,9 @@
     "is_human": true,
     "organization_name": "",
     "display_order": 1,
-    "user": 2
+    "user": [
+      "rgmark@mit.edu"
+    ]
   }
 },
 {
@@ -62,7 +76,9 @@
     "is_human": true,
     "organization_name": "",
     "display_order": 1,
-    "user": 2
+    "user": [
+      "rgmark@mit.edu"
+    ]
   }
 },
 {
@@ -77,7 +93,9 @@
     "is_human": true,
     "organization_name": "",
     "display_order": 1,
-    "user": 3
+    "user": [
+      "george@mit.edu"
+    ]
   }
 },
 {
@@ -102,7 +120,9 @@
     "creation_datetime": "2017-10-30T14:30:30Z",
     "modified_datetime": "2017-10-30T14:30:30Z",
     "storage_allowance": 1,
-    "submitting_author": 2,
+    "submitting_author": [
+      "rgmark@mit.edu"
+    ],
     "published": false,
     "under_review": false,
     "paper_citations": [],
@@ -132,7 +152,9 @@
     "creation_datetime": "2017-10-30T14:30:30Z",
     "modified_datetime": "2017-10-30T14:30:30Z",
     "storage_allowance": 1,
-    "submitting_author": 2,
+    "submitting_author": [
+      "rgmark@mit.edu"
+    ],
     "published": false,
     "under_review": false,
     "paper_citations": [],
@@ -162,7 +184,9 @@
     "creation_datetime": "2017-10-30T14:30:30Z",
     "modified_datetime": "2017-10-30T14:30:30Z",
     "storage_allowance": 1,
-    "submitting_author": 3,
+    "submitting_author": [
+      "george@mit.edu"
+    ],
     "published": false,
     "under_review": false,
     "paper_citations": [],
@@ -176,7 +200,9 @@
   "fields": {
     "project": 1,
     "email": "george@mit.edu",
-    "inviter": 2,
+    "inviter": [
+      "rgmark@mit.edu"
+    ],
     "invitation_type": "author",
     "creation_date": "2017-11-02",
     "expiration_date": "2017-11-09",
@@ -190,7 +216,9 @@
   "fields": {
     "project": 1,
     "email": "george@gmail.com",
-    "inviter": 2,
+    "inviter": [
+      "rgmark@mit.edu"
+    ],
     "invitation_type": "author",
     "creation_date": "2018-03-28",
     "expiration_date": "2018-04-18",

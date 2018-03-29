@@ -27,17 +27,27 @@ def new_creation(receiver_function):
     return func_wrapper
 
 
+class AffiliationManager(models.Manager):
+    def get_by_natural_key(self, author_email, project, name):
+        return self.get(member_object__email=author_email, project=project, name=name)
+
 class Affiliation(models.Model):
     """
     Affiliations belonging to an author or collaborator
 
     """
-    name = models.CharField(max_length=255)
+    objects = AffiliationManager()
 
+    name = models.CharField(max_length=255)
     # member_object points to a Creator or Contributor.
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     member_object = GenericForeignKey('content_type', 'object_id')
+
+    def natural_key(self):
+        return self.member_object.natural_key() + (self.name,)
+    natural_key.dependencies = ['project.Author']
+
 
     class Meta:
         unique_together = (('name', 'content_type', 'object_id'))
@@ -81,8 +91,8 @@ class Member(models.Model):
 
 
 class AuthorManager(models.Manager):
-    def get_by_natural_key(self, user, project):
-        return self.get(user=user, project=project)
+    def get_by_natural_key(self, user_email, project):
+        return self.get(user__email=user_email, project=project)
 
 
 class Author(Member):
@@ -101,7 +111,8 @@ class Author(Member):
         unique_together = (('user', 'project'), ('user', 'published_project'))
 
     def natural_key(self):
-        return (self.user, self.project)
+        return self.user.natural_key() + (self.project,)
+    natural_key.dependencies = ['user.User', 'project.Project']
 
     objects = AuthorManager()
 
