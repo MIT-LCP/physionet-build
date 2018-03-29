@@ -47,7 +47,17 @@
     </div>
   {% endfor %}
 
-  <button class="btn btn-primary btn-fixed" name="edit_author" type="submit">Update Information</button>
+  <button class="btn btn-primary btn-fixed" name="edit_author" type="submit">Set Information</button>
+</form>
+<hr>
+
+<h4>Your Author Affiliations</h4>
+<p>Add affiliations to your author information.</p>
+<form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
+  {% csrf_token %}
+  {{ affiliation_formset }}
+
+  <button class="btn btn-primary btn-fixed" name="edit_affiliations" type="submit">Set Affiliations</button>
 </form>
 <hr>
 

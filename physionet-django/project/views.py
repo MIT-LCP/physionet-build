@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.forms import formset_factory, modelformset_factory, TextInput, CharField
+from django.contrib.contenttypes.forms import generic_inlineformset_factory
+from django.forms import formset_factory, modelformset_factory
 from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
 import os
@@ -198,6 +199,15 @@ def project_overview(request, project_id):
     return render(request, 'project/project_overview.html', {'project':project})
 
 
+def edit_affiliations(request, affiliation_formset):
+    """
+    Edit affiliation information
+    """
+    if affiliation_formset.is_valid():
+        affiliation_formset.save()
+        messages.success(request, 'Your author affiliations have been updated')
+        return True
+
 def invite_author(request, invite_author_form):
     """
     Invite a user to be a collaborator.
@@ -243,9 +253,9 @@ def project_authors(request, project_id):
     affiliations = author.affiliations.all()
 
     # Initiate the forms
-    AffiliationFormSet = modelformset_factory(Affiliation, fields='name', extra=2)
+    AffiliationFormSet = generic_inlineformset_factory(Affiliation, fields=('name',), extra=2)
     edit_author_form = forms.AuthorForm(instance=author)
-    affiliation_formset = AffiliationFormSet(queryset=affiliations)
+    affiliation_formset = AffiliationFormSet(instance=author)
     invite_author_form = forms.InviteAuthorForm(project, user)
     add_author_form = forms.AddAuthorForm(user, project)
     remove_author_form = forms.AuthorChoiceForm(user=user, project=project)
@@ -260,8 +270,12 @@ def project_authors(request, project_id):
                 messages.success(request,
                     'Your author information has been updated')
         if 'edit_affiliations' in request.POST:
-            AffiliationFormSet = modelformset_factory(Affiliation,
-                fields='name', extra=2, data=request.POST)
+            affiliation_formset = AffiliationFormSet(instance=author,
+                data=request.POST)
+            if edit_affiliations(request, affiliation_formset):
+                # This isn't necessary
+                affiliation_formset = AffiliationFormSet(
+                    instance=author)
         if 'invite_author' in request.POST:
             invite_author_form = forms.InviteAuthorForm(project, user, request.POST)
             if invite_author(request, invite_author_form):
@@ -289,6 +303,7 @@ def project_authors(request, project_id):
     return render(request, 'project/project_authors.html', {'project':project,
         'authors':authors, 'invitations':invitations,
         'edit_author_form':edit_author_form,
+        'affiliation_formset':affiliation_formset,
         'invite_author_form':invite_author_form,
         'add_author_form':add_author_form,
         'remove_author_form':remove_author_form,

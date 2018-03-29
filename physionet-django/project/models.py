@@ -55,7 +55,7 @@ class Member(models.Model):
         related_name='%(class)s', null=True, blank=True)
 
     first_name = models.CharField(max_length=100, default='')
-    middle_names = models.CharField(max_length=200, default='')
+    middle_names = models.CharField(max_length=200, default='', blank=True)
     last_name = models.CharField(max_length=100, default='')
     is_human = models.BooleanField(default=True)
     organization_name = models.CharField(max_length=200, default='')
