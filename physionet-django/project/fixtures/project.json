@@ -1,104 +1,5 @@
 [
 {
-  "model": "project.affiliation",
-  "pk": 11,
-  "fields": {
-    "name": "Massachusets Institute of Technology",
-    "content_type": [
-      "project",
-      "invitation"
-    ],
-    "object_id": 1
-  }
-},
-{
-  "model": "project.affiliation",
-  "pk": 12,
-  "fields": {
-    "name": "Harvard University",
-    "content_type": [
-      "project",
-      "invitation"
-    ],
-    "object_id": 1
-  }
-},
-{
-  "model": "project.affiliation",
-  "pk": 13,
-  "fields": {
-    "name": "Beth Israel Deaconess Medical Center",
-    "content_type": [
-      "project",
-      "invitation"
-    ],
-    "object_id": 1
-  }
-},
-{
-  "model": "project.affiliation",
-  "pk": 14,
-  "fields": {
-    "name": "Massachusets Institute of Technology",
-    "content_type": [
-      "project",
-      "invitation"
-    ],
-    "object_id": 3
-  }
-},
-{
-  "model": "project.author",
-  "pk": 1,
-  "fields": {
-    "project": 1,
-    "published_project": null,
-    "first_name": "Roger",
-    "middle_names": "Greenwood",
-    "last_name": "Mark",
-    "is_human": true,
-    "organization_name": "",
-    "display_order": 1,
-    "user": [
-      "rgmark@mit.edu"
-    ]
-  }
-},
-{
-  "model": "project.author",
-  "pk": 2,
-  "fields": {
-    "project": 2,
-    "published_project": null,
-    "first_name": "",
-    "middle_names": "",
-    "last_name": "",
-    "is_human": true,
-    "organization_name": "",
-    "display_order": 1,
-    "user": [
-      "rgmark@mit.edu"
-    ]
-  }
-},
-{
-  "model": "project.author",
-  "pk": 3,
-  "fields": {
-    "project": 3,
-    "published_project": null,
-    "first_name": "George",
-    "middle_names": "",
-    "last_name": "Moody",
-    "is_human": true,
-    "organization_name": "",
-    "display_order": 1,
-    "user": [
-      "george@mit.edu"
-    ]
-  }
-},
-{
   "model": "project.project",
   "pk": 1,
   "fields": {
@@ -257,6 +158,69 @@
     "response": null,
     "is_active": true,
     "responder": null
+  }
+},
+{
+  "model": "project.author",
+  "pk": 1,
+  "fields": {
+    "project": 1,
+    "published_project": null,
+    "first_name": "Roger",
+    "middle_names": "Greenwood",
+    "last_name": "Mark",
+    "is_human": true,
+    "organization_name": "",
+    "display_order": 1,
+    "user": [
+      "rgmark@mit.edu"
+    ]
+  }
+},
+{
+  "model": "project.author",
+  "pk": 2,
+  "fields": {
+    "project": 2,
+    "published_project": null,
+    "first_name": "",
+    "middle_names": "",
+    "last_name": "",
+    "is_human": true,
+    "organization_name": "",
+    "display_order": 1,
+    "user": [
+      "rgmark@mit.edu"
+    ]
+  }
+},
+{
+  "model": "project.author",
+  "pk": 3,
+  "fields": {
+    "project": 3,
+    "published_project": null,
+    "first_name": "George",
+    "middle_names": "",
+    "last_name": "Moody",
+    "is_human": true,
+    "organization_name": "",
+    "display_order": 1,
+    "user": [
+      "george@mit.edu"
+    ]
+  }
+},
+{
+  "model": "project.affiliation",
+  "pk": 15,
+  "fields": {
+    "name": "MIT",
+    "content_type": [
+      "project",
+      "author"
+    ],
+    "object_id": 1
   }
 }
 ]
