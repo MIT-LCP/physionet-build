@@ -29,7 +29,8 @@ def new_creation(receiver_function):
 
 class AffiliationManager(models.Manager):
     def get_by_natural_key(self, author_email, project, name):
-        return self.get(member_object__email=author_email, project=project, name=name)
+        return self.get(member_object__email=author_email, project=project,
+            name=name)
 
 class Affiliation(models.Model):
     """
