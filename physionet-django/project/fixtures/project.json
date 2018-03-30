@@ -213,14 +213,50 @@
 },
 {
   "model": "project.affiliation",
-  "pk": 15,
+  "pk": 16,
   "fields": {
-    "name": "MIT",
+    "name": "Massachusets Institute of Technology",
     "content_type": [
       "project",
       "author"
     ],
     "object_id": 1
+  }
+},
+{
+  "model": "project.affiliation",
+  "pk": 17,
+  "fields": {
+    "name": "Harvard University",
+    "content_type": [
+      "project",
+      "author"
+    ],
+    "object_id": 1
+  }
+},
+{
+  "model": "project.affiliation",
+  "pk": 18,
+  "fields": {
+    "name": "Beth Israel Deaconess Medical Center",
+    "content_type": [
+      "project",
+      "author"
+    ],
+    "object_id": 1
+  }
+},
+{
+  "model": "project.affiliation",
+  "pk": 19,
+  "fields": {
+    "name": "Massachusets Institute of Technology",
+    "content_type": [
+      "project",
+      "author"
+    ],
+    "object_id": 3
   }
 }
 ]

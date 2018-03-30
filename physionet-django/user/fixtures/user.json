@@ -18,7 +18,7 @@
     "password": "pbkdf2_sha256$36000$Zj28MDwT3xxY$zQgpJUJisgQkgt364G+xi4ip7T4lRGjs6P1OzVmJkBc=",
     "email": "rgmark@mit.edu",
     "join_date": "2017-11-11",
-    "last_login": "2018-03-28T16:06:33.366Z",
+    "last_login": "2018-03-30T15:23:17.608Z",
     "is_active": true,
     "is_admin": false
   }
@@ -30,7 +30,7 @@
     "password": "pbkdf2_sha256$36000$p0q2ZDFhXvuT$Fa7vJkKhTJl0QpZAKsGUO7HqeosEUP8E/jVLrw8kXZA=",
     "email": "george@mit.edu",
     "join_date": "2017-11-11",
-    "last_login": "2018-03-29T18:03:26.332Z",
+    "last_login": "2018-03-30T15:23:25.682Z",
     "is_active": true,
     "is_admin": false
   }
