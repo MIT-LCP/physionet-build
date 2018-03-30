@@ -80,6 +80,11 @@
               <a class="dropdown-item" href="{% url 'project_invitations' %}">
                 <i class="far fa-envelope"></i> Project Invitations
               </a>
+              {% if user.is_admin %}
+              <a class="dropdown-item" href="{% url 'storage_requests' %}">
+                <i class="fa fa-user-secret"></i> Project Admin Panel
+              </a>
+              {% endif %}
           </div>
         </li>
       {% endif %}

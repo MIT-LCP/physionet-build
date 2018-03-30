@@ -128,7 +128,6 @@ def setup_author(sender, **kwargs):
     When an Author is created:
     - Import profile names.
     """
-    pdb.set_trace()
     author = kwargs['instance']
     if author.is_human:
         profile = author.user.profile

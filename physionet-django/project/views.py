@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.forms import formset_factory, modelformset_factory
 from django.http import HttpResponse, Http404
@@ -42,7 +42,7 @@ def authorization_required(auth_functions):
         @login_required
         def function_wrapper(request, *args, **kwargs):
             user = request.user
-            project = project = Project.objects.get(id=kwargs['project_id'])
+            project = Project.objects.get(id=kwargs['project_id'])
 
             for auth_func in auth_functions:
                 if auth_func(user, project):
@@ -75,7 +75,6 @@ def get_button_id(post_keys):
     return button_id
 
 
-# The version with separate formset and models
 @login_required
 def project_home(request):
     """
@@ -96,8 +95,8 @@ def project_home(request):
 
 def process_invitation_response(request, invitation_response_formset):
     """
-    Process an invitation response. Helper function to
-    project_invitations
+    Process an invitation response.
+    Helper function to project_invitations
     """
     user = request.user
     invitation_id = get_button_id(request.POST.keys())
@@ -135,43 +134,37 @@ def process_invitation_response(request, invitation_response_formset):
                 elif invitation.invitation_type == 'reviewer':
                     pass
             else:
-                project = None
                 response = 'rejected'
 
             messages.success(request, 'You have %s the invitation.' % response)
 
-            return project, response
-
-
 @login_required
 def project_invitations(request):
     """
-    Page listing invitations
+    Page listing invitations for a user
     """
     user = request.user
-    project = None
-    invitations = Invitation.get_user_invitations(user)
-    author_invitations = invitations.filter(invitation_type='author')
-    reviewer_invitations = invitations.filter(invitation_type='reviewer')
 
     InvitationResponseFormSet = formset_factory(forms.InvitationResponseForm,
         extra=0)
-    invitation_response_formset = InvitationResponseFormSet(
-        form_kwargs={'user':user},
-        initial=[{'invitation_id':inv.id} for inv in invitations])
 
     if request.method == 'POST':
         invitation_response_formset = InvitationResponseFormSet(
             request.POST, form_kwargs={'user':user})
-        project, response = process_invitation_response(request,
-            invitation_response_formset)
+        process_invitation_response(request, invitation_response_formset)
+
+    invitations = Invitation.get_user_invitations(user)
+    author_invitations = invitations.filter(invitation_type='author')
+    reviewer_invitations = invitations.filter(invitation_type='reviewer')
+    invitation_response_formset = InvitationResponseFormSet(
+        form_kwargs={'user':user},
+        initial=[{'invitation_id':inv.id} for inv in invitations])
 
     return render(request, 'project/project_invitations.html', {
         'invitations':invitations,
         'author_invitations':author_invitations,
         'reviewer_invitations':reviewer_invitations,
-        'invitation_response_formset':invitation_response_formset,
-        'project':project,})
+        'invitation_response_formset':invitation_response_formset})
 
 
 @login_required
@@ -501,33 +494,35 @@ def process_storage_request(request, storage_response_formset):
     Helper function to `storage_requests`.
     """
     # Only process the form that was submitted. Find the relevant project
-    matched_project_ids = [re.findall('respond-(?P<project_id>\d+)', k) for k in request.POST.keys()]
-    matched_project_ids = [i for i in matched_project_ids if i]
+    project_id = get_button_id(request.POST.keys())
 
-    if len(matched_project_ids) == 1:
-        project_id = int(matched_project_ids[0][0])
+    for storage_response_form in storage_response_formset:
+        if (storage_response_form.is_valid() and
+                storage_response_form.cleaned_data['project_id'] == project_id):
 
-        for storage_response_form in storage_response_formset:
+            storage_request = StorageRequest.objects.get(project=project_id)
+            project = storage_request.project
+            response = int(storage_response_form.cleaned_data['response'])
+            # Update the specified StorageRequest object
+            storage_request.response = response
+            storage_request.is_active = False
+            storage_request.save()
 
-            if storage_response_form.is_valid():
-                if project_id == int(storage_response_form.cleaned_data['project_id']):
-                    storage_request = StorageRequest.objects.get(project=project_id)
-                    project = storage_request.project
-                    if storage_response_form.cleaned_data['response'] == 'Approve':
-                        project.storage_allowance = storage_request.request_allowance
-                        project.save()
-                        messages.success(request, 'The storage request has been approved')
-                    else:
-                        messages.success(request, 'The storage request has been denied')
-                    # Delete the storage request object
-                    storage_request.delete()
+            # Carry out the response to the storage request
+            if response:
+                response = 'accepted'
+                project.storage_allowance = storage_request.request_allowance
+                project.save()
+            else:
+                response = 'rejected'
+            messages.success(request, 'The storage request has been %s.' % response)
+            return
 
-            #messages.error(request, get_form_errors(storage_response_form))
+    messages.error('Invalid submission')
 
-    else:
-        messages.error('Invalid submission')
 
-@authorization_required(auth_functions=(is_admin))
+@login_required
+@user_passes_test(is_admin)
 def storage_requests(request):
     """
     Page listing projects with outstanding storage requests
@@ -541,12 +536,9 @@ def storage_requests(request):
         storage_response_formset = StorageResponseFormSet(request.POST)
         process_storage_request(request, storage_response_formset)
 
-    storage_requests = StorageRequest.objects.all()
-    if storage_requests:
-        storage_response_formset = StorageResponseFormSet(
-            initial=[{'project_id':sr.project.id} for sr in storage_requests])
-    else:
-        storage_response_formset = None
+    storage_requests = StorageRequest.objects.filter(is_active=True)
+    storage_response_formset = StorageResponseFormSet(
+        initial=[{'project_id':sr.project.id} for sr in storage_requests])
 
     return render(request, 'project/storage_requests.html', {'user':user,
         'storage_requests':storage_requests,
