@@ -128,6 +128,22 @@
   }
 },
 {
+  "model": "project.invitation",
+  "pk": 3,
+  "fields": {
+    "project": 2,
+    "email": "aewj@mit.edu",
+    "inviter": [
+      "rgmark@mit.edu"
+    ],
+    "invitation_type": "author",
+    "creation_date": "2018-03-30",
+    "expiration_date": "2018-04-20",
+    "response": true,
+    "is_active": false
+  }
+},
+{
   "model": "project.topic",
   "pk": 1,
   "fields": {
@@ -208,6 +224,23 @@
     "display_order": 1,
     "user": [
       "george@mit.edu"
+    ]
+  }
+},
+{
+  "model": "project.author",
+  "pk": 4,
+  "fields": {
+    "project": 2,
+    "published_project": null,
+    "first_name": "Alistair",
+    "middle_names": "Edward William",
+    "last_name": "Johnson",
+    "is_human": true,
+    "organization_name": "",
+    "display_order": 2,
+    "user": [
+      "aewj@mit.edu"
     ]
   }
 },
