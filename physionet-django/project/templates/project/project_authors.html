@@ -21,9 +21,9 @@
     <ul class="list-group list-group-flush">
       {% for author in authors %}
         <li class="list-group-item">
-          User: {{ author.user }}<br>
-          Name: {{ author|author_name }}<br>
-          Affiliations: {{ author|author_affiliations }}
+          <strong>User</strong>: {{ author.user }}<br>
+          <strong>Name</strong>: {{ author|author_name }}<br>
+          <strong>Affiliations</strong>: {{ author|author_affiliations }}
           <a class="float-right">
           </a>
         </li>
