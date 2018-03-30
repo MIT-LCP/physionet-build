@@ -8,8 +8,9 @@
 <h2 class="form-signin-heading">Project Authors</h2>
 <hr>
 
-<h4>Roles</h4>
-<p>Each project has one or more authors, including the single submitting author who creates the project. Authors are credited for creating the resource when it is published. An author may be a person, or an organization. Human authors must be invited and accept authorship, and fill in their own details. Organizational authors can be added by the submitting author.</p>
+<p>Each project has one or more <strong>authors</strong>, including the single <strong>submitting author</strong> who creates the project. Authors are credited for creating the resource when it is published.</p>
+
+<p>An author may be a person, or an organization. Human authors must be invited and accept authorship, and fill in their own details. Only the submitting author may invite authors, add organizational authors, remove authors, and change the final author display order.</p>
 
 <hr>
 
@@ -21,11 +22,15 @@
     <ul class="list-group list-group-flush">
       {% for author in authors %}
         <li class="list-group-item">
-          <strong>User</strong>: {{ author.user }}<br>
+          <strong>User</strong>: {{ author.user }}
+          {% if author == project.submitting_author %}
+            <a class="float-right">
+            </a>
+          {% endif %}
+          <br>
           <strong>Name</strong>: {{ author|author_name }}<br>
           <strong>Affiliations</strong>: {{ author|author_affiliations }}
-          <a class="float-right">
-          </a>
+
         </li>
       {% endfor %}
     </ul>
@@ -99,14 +104,10 @@
     <p>Set the order in which authors are displayed</p>
     <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
       {% csrf_token %}
-      {{ invite_author_form.email }}
-      {% for error in invite_author_form.email.errors %}
-        <div class="alert alert-danger">
-            <strong>{{ error|escape }}</strong>
-        </div>
+      {% for form in order_formset %}
+        {{ form }}
       {% endfor %}
-
-      <button class="btn btn-success btn-fixed" name="invite_author" type="submit">Invite Author</button>
+      <button class="btn btn-primary btn-fixed" name="order_authors" type="submit">Order Authors</button>
     </form>
     <hr>
 

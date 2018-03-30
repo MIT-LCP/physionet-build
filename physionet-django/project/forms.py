@@ -446,22 +446,31 @@ class AuthorChoiceForm(forms.Form):
     """
     author = forms.ModelChoiceField(queryset=None)
 
-    def __init__(self, user, project, include_owner=False, *args, **kwargs):
+    def __init__(self, user, project, include_submitting_author=False, *args,
+                 **kwargs):
         super(AuthorChoiceForm, self).__init__(*args, **kwargs)
         self.user = user
         self.project = project
         authors = project.authors.all()
-        if not include_owner:
+        if not include_submitting_author:
             authors = authors.exclude(user__id=project.submitting_author.id)
         self.fields['author'].queryset = authors
+        self.include_submitting_author = include_submitting_author
 
     def clean_author(self):
-        "Ensure the user is the project's submitting author"
+        """
+        Ensure the user is the project's submitting author. Also check
+        if the selection is allowed to include the submitting author
+
+        """
         data = self.cleaned_data['author']
         if self.user != data.project.submitting_author:
             raise forms.ValidationError(
                 'You are not authorized to do that', code='not_authorized')
-
+        if not self.include_submitting_author and data == self.user:
+            raise forms.ValidationError(
+                'You are not authorized to select the submitting author',
+                code='not_authorized')
         return data
 
 

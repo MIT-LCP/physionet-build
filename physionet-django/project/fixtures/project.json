@@ -199,9 +199,9 @@
   "fields": {
     "project": 2,
     "published_project": null,
-    "first_name": "",
-    "middle_names": "",
-    "last_name": "",
+    "first_name": "Roger",
+    "middle_names": "Greenwood",
+    "last_name": "Mark",
     "is_human": true,
     "organization_name": "",
     "display_order": 1,
@@ -290,6 +290,54 @@
       "author"
     ],
     "object_id": 3
+  }
+},
+{
+  "model": "project.affiliation",
+  "pk": 20,
+  "fields": {
+    "name": "Massachusetts Institute of Technology",
+    "content_type": [
+      "project",
+      "author"
+    ],
+    "object_id": 2
+  }
+},
+{
+  "model": "project.affiliation",
+  "pk": 21,
+  "fields": {
+    "name": "Harvard University",
+    "content_type": [
+      "project",
+      "author"
+    ],
+    "object_id": 2
+  }
+},
+{
+  "model": "project.affiliation",
+  "pk": 22,
+  "fields": {
+    "name": "Beth Israel Deaconess Medical Center",
+    "content_type": [
+      "project",
+      "author"
+    ],
+    "object_id": 2
+  }
+},
+{
+  "model": "project.affiliation",
+  "pk": 23,
+  "fields": {
+    "name": "Massachusetts Institute of Technology",
+    "content_type": [
+      "project",
+      "author"
+    ],
+    "object_id": 4
   }
 }
 ]

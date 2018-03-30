@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
-from django.forms import formset_factory, modelformset_factory
+from django.forms import formset_factory, inlineformset_factory, TextInput
 from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
 import os
@@ -245,11 +245,17 @@ def project_authors(request, project_id):
     author = authors.get(user=user)
     affiliations = author.affiliations.all()
 
-    # Initiate the forms
+    # Formset factories
     AffiliationFormSet = generic_inlineformset_factory(Affiliation,
-        fields=('name',), extra=2, max_num=3)
+        fields=('name',), extra=3, max_num=3)
+    OrderFormSet = inlineformset_factory(Project, Author,
+        fields=('user', 'display_order',), widgets={'user':TextInput(attrs={'disabled':'disabled'})},
+        can_delete=False, extra=0)
+
+    # Initiate the forms
     edit_author_form = forms.AuthorForm(instance=author)
     affiliation_formset = AffiliationFormSet(instance=author)
+    order_formset = OrderFormSet(instance=project)
     invite_author_form = forms.InviteAuthorForm(project, user)
     add_author_form = forms.AddAuthorForm(user, project)
     remove_author_form = forms.AuthorChoiceForm(user=user, project=project)
@@ -297,6 +303,7 @@ def project_authors(request, project_id):
         'authors':authors, 'invitations':invitations,
         'edit_author_form':edit_author_form,
         'affiliation_formset':affiliation_formset,
+        'order_formset':order_formset,
         'invite_author_form':invite_author_form,
         'add_author_form':add_author_form,
         'remove_author_form':remove_author_form,
