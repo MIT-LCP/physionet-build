@@ -1,4 +1,5 @@
 from django import forms
+from django.forms import BaseInlineFormSet
 from django.template.defaultfilters import slugify
 from django.utils import timezone
 import os
@@ -472,6 +473,14 @@ class AuthorChoiceForm(forms.Form):
                 'You are not authorized to select the submitting author',
                 code='not_authorized')
         return data
+
+
+class AuthorOrderFormSet(BaseInlineFormSet):
+    """
+
+    """
+    def clean():
+        pass
 
 
 class StorageRequestForm(forms.ModelForm):

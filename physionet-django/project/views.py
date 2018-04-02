@@ -249,13 +249,15 @@ def project_authors(request, project_id):
     AffiliationFormSet = generic_inlineformset_factory(Affiliation,
         fields=('name',), extra=3, max_num=3)
     OrderFormSet = inlineformset_factory(Project, Author,
-        fields=('user', 'display_order',), widgets={'user':TextInput(attrs={'disabled':'disabled'})},
+        fields=('display_order',),
         can_delete=False, extra=0)
 
     # Initiate the forms
     edit_author_form = forms.AuthorForm(instance=author)
     affiliation_formset = AffiliationFormSet(instance=author)
     order_formset = OrderFormSet(instance=project)
+    # kloogy way to get author names for order formset
+    pdb.set_trace()
     invite_author_form = forms.InviteAuthorForm(project, user)
     add_author_form = forms.AddAuthorForm(user, project)
     remove_author_form = forms.AuthorChoiceForm(user=user, project=project)
