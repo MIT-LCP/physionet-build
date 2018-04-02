@@ -432,11 +432,13 @@ class AddAuthorForm(forms.ModelForm):
         "Make sure the user submitting this entry is the owner"
         super(AddAuthorForm, self).__init__(*args, **kwargs)
         self.user = user
+        self.project = project
 
     def save(self):
         author = super(AddAuthorForm, self).save(commit=False)
         author.project = self.project
         author.is_human = False
+        author.display_order = self.project.authors.all().count() + 1
         author.save()
 
 

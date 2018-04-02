@@ -22,15 +22,18 @@
     <ul class="list-group list-group-flush">
       {% for author in authors %}
         <li class="list-group-item">
-          <strong>User</strong>: {{ author.user }}
-          {% if author == project.submitting_author %}
-            <a class="float-right">
-            </a>
+          {% if author.is_human %}
+            <strong>User</strong>: {{ author.user }}
+            {% if author == project.submitting_author %}
+              <a class="float-right">
+              </a>
+            {% endif %}
+            <br>
+            <strong>Name</strong>: {{ author|author_name }}<br>
+            <strong>Affiliations</strong>: {{ author|author_affiliations }}
+          {% else %}
+            <strong>Organization</strong>: {{ author.organization_name }}
           {% endif %}
-          <br>
-          <strong>Name</strong>: {{ author|author_name }}<br>
-          <strong>Affiliations</strong>: {{ author|author_affiliations }}
-
         </li>
       {% endfor %}
     </ul>

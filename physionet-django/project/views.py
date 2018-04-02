@@ -123,7 +123,7 @@ def process_invitation_response(request, invitation_response_formset):
 
                 if invitation.invitation_type == 'author':
                     # Create Author object.
-                    existing_authors = project.authors.filter(is_human=True)
+                    existing_authors = project.authors.all()
                     if existing_authors:
                         order = max([a.display_order for a in existing_authors]) + 1
                     else:
@@ -223,6 +223,15 @@ def invite_author(request, invite_author_form):
         messages.success(request, 'An invitation has been sent to the user')
         return True
 
+def add_author(request, add_author_form):
+    """
+    Add an organizational author
+    """
+    if add_author_form.is_valid():
+        add_author_form.save()
+        messages.success(request, 'The organizational author has been added')
+        return True
+
 def remove_author(request, remove_author_form):
     """
     Remove an author from a project
@@ -272,7 +281,7 @@ def project_authors(request, project_id):
     # kloogy way to get author names for order formset
     #pdb.set_trace()
     invite_author_form = forms.InviteAuthorForm(project, user)
-    add_author_form = forms.AddAuthorForm(user, project)
+    add_author_form = forms.AddAuthorForm(user=user, project=project)
     remove_author_form = forms.AuthorChoiceForm(user=user, project=project)
     cancel_invitation_form = forms.InvitationChoiceForm(user=user, project=project)
 
