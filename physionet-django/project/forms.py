@@ -492,7 +492,6 @@ class AuthorOrderFormSet(BaseInlineFormSet):
         display_orders.sort()
 
         if display_orders != list(range(1, len(display_orders) + 1)):
-            pdb.set_trace()
             raise forms.ValidationError(
                 'Display orders must be consecutive integers from 1.')
 

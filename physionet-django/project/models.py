@@ -70,15 +70,14 @@ class Member(models.Model):
     last_name = models.CharField(max_length=100, default='')
     is_human = models.BooleanField(default=True)
     organization_name = models.CharField(max_length=200, default='')
-    display_order = models.SmallIntegerField()
+    display_order = models.PositiveSmallIntegerField()
     affiliations = GenericRelation(Affiliation)
 
     def __str__(self):
         if self.is_human:
-            name = self.user.email
+            return self.user.__str__()
         else:
-            name = self.organization_name
-        return '%s at %s' % (name, self.project)
+            return self.organization_name
 
     class Meta:
         abstract = True
@@ -109,7 +108,7 @@ class Author(Member):
 
     """
     class Meta:
-        unique_together = (('user', 'project'), ('user', 'published_project'))
+        unique_together = (('user', 'project'), ('user', 'published_project'),)
 
     def natural_key(self):
         return self.user.natural_key() + (self.project,)

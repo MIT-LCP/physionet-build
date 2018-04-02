@@ -208,7 +208,6 @@ def order_authors(request, order_formset):
     Helper function for `project_authors`.
     """
     if order_formset.is_valid():
-        pdb.set_trace()
         order_formset.save()
         messages.success(request, 'The author display order has been udpated')
         return True
@@ -262,7 +261,7 @@ def project_authors(request, project_id):
     """
     user = request.user
     project = Project.objects.get(id=project_id)
-    authors = project.authors.all()
+    authors = project.authors.all().order_by('display_order')
     author = authors.get(user=user)
     affiliations = author.affiliations.all()
 
