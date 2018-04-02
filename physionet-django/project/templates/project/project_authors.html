@@ -45,21 +45,16 @@
 <hr>
 
 <h4>Your Author Information</h4>
-<p>Edit your author information. <em>Note: these fields are not tied to your profile information</em>.</p>
+<p>Edit your author information. <em>Note: these fields are not tied to your user profile</em>.</p>
 <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
   {% csrf_token %}
-  {{ edit_author_form }}
-  {% for error in edit_author_form.email.errors %}
-    <div class="alert alert-danger">
-        <strong>{{ error|escape }}</strong>
-    </div>
-  {% endfor %}
+  {% include "form_snippet.html" with form=edit_author_form %}
   <button class="btn btn-primary btn-fixed" name="edit_author" type="submit">Set Information</button>
 </form>
 <hr>
 
 <h4>Your Author Affiliations</h4>
-<p>Add affiliations to your author information.</p>
+<p>Set up to three affiliations for your author profile. <em>Note: these fields are not tied to your user profile</em>.</p>
 <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
   {% csrf_token %}
   {{ affiliation_formset }}
@@ -115,46 +110,34 @@
     <p>Invite an author with their email</p>
     <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
       {% csrf_token %}
-      {{ invite_author_form.email }}
-      {% for error in invite_author_form.email.errors %}
-        <div class="alert alert-danger">
-            <strong>{{ error|escape }}</strong>
-        </div>
-      {% endfor %}
-
+      {% include "form_snippet.html" with form=invite_author_form %}
       <button class="btn btn-success btn-fixed" name="invite_author" type="submit">Invite Author</button>
     </form>
     <hr>
 
     <h4>Add Organizational Author</h4>
-    <p>Add an organizational author</p>
+    <p>Add an organizational author.</p>
     <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
       {% csrf_token %}
-      {{ add_author_form }}
-      {% for error in add_author_Form.errors %}
-        <div class="alert alert-danger">
-            <strong>{{ error|escape }}</strong>
-        </div>
-      {% endfor %}
-
+      {% include "form_snippet.html" with form=add_author_form %}
       <button class="btn btn-success btn-fixed" name="add_author" type="submit">Add Author</button>
     </form>
     <hr>
 
     <h4>Remove Author</h4>
-    <p>Remove a user from the list of authors</p>
+    <p>Remove an author from the project.</p>
     <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
       {% csrf_token %}
-      {{ remove_author_form.author }}
+      {% include "form_snippet_no_labels.html" with form=remove_author_form %}
       <button class="btn btn-danger btn-fixed" name="remove_author" type="submit">Remove Author</button>
     </form>
     <hr>
 
     <h4>Cancel Invitation</h4>
-    <p>Cancel an existing author invitation</p>
+    <p>Cancel an existing author invitation.</p>
     <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
       {% csrf_token %}
-      {{ cancel_invitation_form.invitation }}
+      {% include "form_snippet_no_labels.html" with form=cancel_invitation_form %}
       <button class="btn btn-danger btn-fixed" name="cancel_invitation" type="submit">Cancel Invitation</button>
     </form>
     <hr>
