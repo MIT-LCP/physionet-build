@@ -195,10 +195,22 @@ def project_overview(request, project_id):
 def edit_affiliations(request, affiliation_formset):
     """
     Edit affiliation information
+    Helper function for `project_authors`.
     """
     if affiliation_formset.is_valid():
         affiliation_formset.save()
         messages.success(request, 'Your author affiliations have been updated')
+        return True
+
+def order_authors(request, order_formset):
+    """
+    Order authors of a project
+    Helper function for `project_authors`.
+    """
+    if order_formset.is_valid():
+        pdb.set_trace()
+        order_formset.save()
+        messages.success(request, 'The author display order has been udpated')
         return True
 
 def invite_author(request, invite_author_form):
@@ -249,6 +261,7 @@ def project_authors(request, project_id):
     AffiliationFormSet = generic_inlineformset_factory(Affiliation,
         fields=('name',), extra=3, max_num=3)
     OrderFormSet = inlineformset_factory(Project, Author,
+        formset=forms.AuthorOrderFormSet,
         fields=('display_order',),
         can_delete=False, extra=0)
 
@@ -257,7 +270,7 @@ def project_authors(request, project_id):
     affiliation_formset = AffiliationFormSet(instance=author)
     order_formset = OrderFormSet(instance=project)
     # kloogy way to get author names for order formset
-    pdb.set_trace()
+    #pdb.set_trace()
     invite_author_form = forms.InviteAuthorForm(project, user)
     add_author_form = forms.AddAuthorForm(user, project)
     remove_author_form = forms.AuthorChoiceForm(user=user, project=project)
@@ -271,12 +284,16 @@ def project_authors(request, project_id):
                 edit_author_form.save()
                 messages.success(request,
                     'Your author information has been updated')
-        if 'edit_affiliations' in request.POST:
+        elif 'edit_affiliations' in request.POST:
             affiliation_formset = AffiliationFormSet(instance=author,
                 data=request.POST)
             if edit_affiliations(request, affiliation_formset):
                 affiliation_formset = AffiliationFormSet(
                     instance=author)
+        elif 'order_authors' in request.POST:
+            order_formset = OrderFormSet(instance=project, data=request.POST)
+            if order_authors(request, order_formset):
+                order_formset = OrderFormSet(instance=project)
         if 'invite_author' in request.POST:
             invite_author_form = forms.InviteAuthorForm(project, user, request.POST)
             if invite_author(request, invite_author_form):

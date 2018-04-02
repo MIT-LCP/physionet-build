@@ -51,7 +51,6 @@
         <strong>{{ error|escape }}</strong>
     </div>
   {% endfor %}
-
   <button class="btn btn-primary btn-fixed" name="edit_author" type="submit">Set Information</button>
 </form>
 <hr>
@@ -104,9 +103,7 @@
     <p>Set the order in which authors are displayed</p>
     <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
       {% csrf_token %}
-      {% for form in order_formset %}
-        {{ form }}
-      {% endfor %}
+      {{ order_formset }}
       <button class="btn btn-primary btn-fixed" name="order_authors" type="submit">Order Authors</button>
     </form>
     <hr>
