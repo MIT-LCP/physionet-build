@@ -9,7 +9,7 @@ from user.models import User
 class TestForms(TestCase):
 
     fixtures = ['user']
-    
+
     def create_test_forms(self, FormClass, valid_dict, invalid_dict, user=None):
         """
         Helper method to create a valid and invalid form of a certain form class.
@@ -38,9 +38,9 @@ class TestForms(TestCase):
         """
         Choice field in form, cannot use create helper function
         """
-        user = User.objects.get(email='tester@mit.edu')
+        user = User.objects.get(email='admin@mit.edu')
         self.valid_form = AssociatedEmailChoiceForm(user=user,
-            include_primary=True, data={'associated_email':'tester2@mit.edu'})
+            include_primary=True, data={'associated_email':'admin2@mit.edu'})
         self.invalid_form = AssociatedEmailChoiceForm(user=user,
             include_primary=True, data={'associated_email':'nonexistent@mit.edu'})
         self.run_test_forms({'associated_email':['Select a valid choice. That choice is not one of the available choices.']})
@@ -51,8 +51,8 @@ class TestForms(TestCase):
         self.run_test_forms({'email': ['Enter a valid email address.']})
 
     def test_login_form(self):
-        self.create_test_forms(LoginForm, {'username':'tester@mit.edu','password':'Tester1!'},
-            {'username':'tester@mit.edu', 'password':'wrong'})
+        self.create_test_forms(LoginForm, {'username':'admin@mit.edu','password':'Tester11!'},
+            {'username':'admin@mit.edu', 'password':'wrong'})
         self.run_test_forms({'__all__':['Please enter a correct email and password. Note that both fields may be case-sensitive.']})
 
     def test_profile_form(self):

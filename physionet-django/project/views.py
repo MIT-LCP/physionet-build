@@ -289,8 +289,6 @@ def project_authors(request, project_id):
     edit_author_form = forms.AuthorForm(instance=author)
     affiliation_formset = AffiliationFormSet(instance=author)
     order_formset = OrderFormSet(instance=project)
-    # kloogy way to get author names for order formset
-    #pdb.set_trace()
     invite_author_form = forms.InviteAuthorForm(project, user)
     add_author_form = forms.AddAuthorForm(user=user, project=project)
     remove_author_form = forms.AuthorChoiceForm(user=user, project=project)

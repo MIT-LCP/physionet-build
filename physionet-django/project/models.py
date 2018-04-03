@@ -20,7 +20,6 @@ def new_creation(receiver_function):
     creation from non-fixtures.
     """
     def func_wrapper(*args, **kwargs):
-        #pdb.set_trace()
         if kwargs.get('created') and not kwargs.get('raw'):
             return receiver_function(*args, **kwargs)
 

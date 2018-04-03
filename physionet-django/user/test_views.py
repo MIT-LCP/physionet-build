@@ -19,7 +19,7 @@ class TestMixin(object):
         """
         Helper Function.
         Create and set a get request
-    
+
         - viewname: The view name
         - reverse_kwargs: kwargs of additional url parameters
         """
@@ -31,7 +31,7 @@ class TestMixin(object):
         """
         Helper Function.
         Create and set a get request
-    
+
         - viewname: The view name
         - data: Dictionary of post parameters
         - reverse_kwargs: Kwargs of additional url parameters
@@ -50,13 +50,13 @@ class TestMixin(object):
         """
         Helper Function.
         Test the get request with the view against the expected status code
-        
+
         - view: The view function
         - view_kwargs: The kwargs dictionary of additional arguments to put into
           view function aside from request
         - status_code: expected status code of response
         - redirect_viewname: view name of the expected redirect
-        - redirect_reverse_kwargs: kwargs dictionary of expected redirect 
+        - redirect_reverse_kwargs: kwargs dictionary of expected redirect
         """
         if view_kwargs:
             response = view(self.get_request, **view_kwargs)
@@ -73,13 +73,13 @@ class TestMixin(object):
         """
         Helper Function.
         Test the post request with the view against the expected status code
-        
+
         - view: The view function
         - view_kwargs: The kwargs dictionary of additional arguments to put into
           view function aside from request
         - status_code: expected status code of response
         - redirect_viewname: view name of the expected redirect
-        - redirect_reverse_kwargs: kwargs dictionary of expected redirect 
+        - redirect_reverse_kwargs: kwargs dictionary of expected redirect
         """
         if view_kwargs:
             response = view(self.post_request, **view_kwargs)
@@ -99,7 +99,7 @@ class TestAuth(TestCase, TestMixin):
 
     def setUp(self):
         self.factory = RequestFactory()
-        self.user = User.objects.get(email='tester@mit.edu')
+        self.user = User.objects.get(email='admin@mit.edu')
         self.anonymous_user = AnonymousUser()
 
     def test_user_home(self):
@@ -141,18 +141,18 @@ class TestAuth(TestCase, TestMixin):
             'associated_emails-0-id': ['1'],
             'associated_emails-INITIAL_FORMS': ['3'],
             'associated_emails-0-user': ['1'],
-            'associated_emails-1-email': ['tester2@mit.edu'],
+            'associated_emails-1-email': ['admin2@mit.edu'],
             'set_public_emails': [''], 'associated_emails-2-is_public': ['on'],
             'associated_emails-MIN_NUM_FORMS': ['0'],
             'associated_emails-1-is_public': ['on'],
             'associated_emails-1-user': ['1'],
             'associated_emails-1-id': ['4'],
             'associated_emails-2-id': ['5'],
-            'associated_emails-2-email': ['tester3@mit.edu'],
+            'associated_emails-2-email': ['admin3@mit.edu'],
             'associated_emails-MAX_NUM_FORMS': ['3'],
             'associated_emails-2-is_primary_email': ['False'],
             'associated_emails-0-is_public': ['on'],
-            'associated_emails-0-email': ['tester@mit.edu'],
+            'associated_emails-0-email': ['admin@mit.edu'],
             'associated_emails-2-user': ['1'],
             'associated_emails-1-is_primary_email': ['False'],
             'associated_emails-0-is_primary_email': ['True']})
@@ -162,22 +162,22 @@ class TestAuth(TestCase, TestMixin):
 
         # Test 2: set primary email
         self.make_post_request('edit_emails',
-            data={'set_primary_email':[''],'associated_email': 'tester2@mit.edu'})
+            data={'set_primary_email':[''],'associated_email': 'admin2@mit.edu'})
         self.tst_post_request(edit_emails)
-        self.assertEqual(self.user.email, 'tester2@mit.edu')
+        self.assertEqual(self.user.email, 'admin2@mit.edu')
 
         # Test 3: add email
         self.make_post_request('edit_emails',
             data={'add_email':[''],'email': 'tester0@mit.edu'})
         self.tst_post_request(edit_emails)
         self.assertIsNotNone(AssociatedEmail.objects.filter(email='tester0@mit.edu'))
-        
+
         # Test 4: remove email
         self.make_post_request('edit_emails',
-            data={'remove_email':[''],'associated_email': 'tester3@mit.edu'})
+            data={'remove_email':[''],'associated_email': 'admin3@mit.edu'})
         self.tst_post_request(edit_emails)
         remaining_associated_emails = [ae.email for ae in AssociatedEmail.objects.filter(user=self.user)]
-        self.assertNotIn('tester3@mit.edu', remaining_associated_emails)
+        self.assertNotIn('admin3@mit.edu', remaining_associated_emails)
 
         # Verify the newly added email
         # Get the activation info from the sent email
@@ -200,9 +200,9 @@ class TestPublic(TestCase, TestMixin):
         self.user = AnonymousUser()
 
     def test_public_profile(self):
-        self.make_get_request('public_profile', {'email':'tester@mit.edu'})
+        self.make_get_request('public_profile', {'email':'admin@mit.edu'})
         self.tst_get_request(public_profile,
-            view_kwargs={'email':'tester@mit.edu'}, status_code=200)
+            view_kwargs={'email':'admin@mit.edu'}, status_code=200)
 
     def test_register_activate(self):
         """
@@ -220,7 +220,7 @@ class TestPublic(TestCase, TestMixin):
         # Check user object was created
         self.assertIsNotNone(User.objects.filter(email='jackreacher@mit.edu'))
         self.assertFalse(User.objects.get(email='jackreacher@mit.edu').is_active)
-        
+
         # Get the activation info from the sent email
         uidb64, token = re.findall('http://testserver/activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
             mail.outbox[0].body)[0]
