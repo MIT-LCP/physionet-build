@@ -336,7 +336,7 @@ class InviteAuthorForm(forms.ModelForm):
         "Ensure it is a fresh invite to a non-author"
         data = self.cleaned_data['email']
 
-        for author in self.project.authors.all():
+        for author in self.project.authors.filter(is_human=True):
             if data in author.user.get_emails():
                 raise forms.ValidationError(
                     'The user is already an author of this project',

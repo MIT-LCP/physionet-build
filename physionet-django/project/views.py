@@ -201,6 +201,8 @@ def edit_affiliations(request, affiliation_formset):
         affiliation_formset.save()
         messages.success(request, 'Your author affiliations have been updated')
         return True
+    else:
+        messages.error(request, 'Submission unsuccessful. See form for errors.')
 
 def order_authors(request, order_formset):
     """
@@ -211,6 +213,8 @@ def order_authors(request, order_formset):
         order_formset.save()
         messages.success(request, 'The author display order has been udpated')
         return True
+    else:
+        messages.error(request, 'Submission unsuccessful. See form for errors.')
 
 def invite_author(request, invite_author_form):
     """
@@ -221,6 +225,8 @@ def invite_author(request, invite_author_form):
         invite_author_form.save()
         messages.success(request, 'An invitation has been sent to the user')
         return True
+    else:
+        messages.error(request, 'Submission unsuccessful. See form for errors.')
 
 def add_author(request, add_author_form):
     """
@@ -230,6 +236,8 @@ def add_author(request, add_author_form):
         add_author_form.save()
         messages.success(request, 'The organizational author has been added')
         return True
+    else:
+        messages.error(request, 'Submission unsuccessful. See form for errors.')
 
 def remove_author(request, remove_author_form):
     """
@@ -241,6 +249,8 @@ def remove_author(request, remove_author_form):
         author.delete()
         messages.success(request, 'The author has been removed from the project')
         return True
+    else:
+        messages.error(request, 'Submission unsuccessful. See form for errors.')
 
 def cancel_invitation(request, cancel_invitation_form):
     """
@@ -253,6 +263,8 @@ def cancel_invitation(request, cancel_invitation_form):
         invitation.save()
         messages.success(request, 'The invitation has been cancelled')
         return True
+    else:
+        messages.error(request, 'Submission unsuccessful. See form for errors.')
 
 @authorization_required(auth_functions=(is_admin, is_author))
 def project_authors(request, project_id):

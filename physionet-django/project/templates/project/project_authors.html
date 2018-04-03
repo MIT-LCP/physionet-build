@@ -97,13 +97,19 @@
 
 {% if user == project.submitting_author or user.is_admin %}
     <h4>Order Authors</h4>
-    <p>Set the order in which authors are displayed</p>
+    <p>Set the order in which authors are displayed. Must be continuous integers from 1.</p>
     <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
       {% csrf_token %}
+      {# The formset is manually looped over to access the instance #}
       {{ order_formset.management_form }}
       {% for form in order_formset %}
         {{ form.instance }}
         {% include "form_snippet_no_labels.html" %}
+      {% endfor %}
+      {% for error in order_formset.non_form_errors %}
+        <div class="alert alert-danger">
+          <strong>{{ error|escape }}</strong>
+        </div>
       {% endfor %}
       <button class="btn btn-primary btn-fixed" name="order_authors" type="submit">Order Authors</button>
     </form>
