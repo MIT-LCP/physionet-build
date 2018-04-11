@@ -3,7 +3,7 @@ from django.core.management.base import BaseCommand
 import os
 import shutil
 
-from physionet import settings
+from django.conf import settings
 from project.models import Project
 
 
@@ -13,9 +13,10 @@ class Command(BaseCommand):
         """
         For each app, write the fixture data
         """
-        installed_apps = [a for a in settings.INSTALLED_APPS if not any(noncustom in a for noncustom in ['django', 'ckeditor'])]
+        project_apps = ['user', 'project']
 
-        for app in installed_apps:
+        for app in project_apps:
             fixture_file = os.path.join(settings.BASE_DIR, app, 'fixtures', '%s.json' % app)
+            print(fixture_file)
             call_command('dumpdata', app, natural_foreign=True, indent=2,
                 output=fixture_file)

@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
@@ -12,7 +13,6 @@ from .models import Affiliation, Author, Invitation, Project, PublishedProject, 
 from .utility import (get_file_info, get_directory_info, get_storage_info,
     write_uploaded_file, list_items, remove_items, move_items as do_move_items,
     get_form_errors, serve_file)
-from physionet.settings import MEDIA_ROOT, project_file_individual_limit
 from user.forms import ProfileForm
 from user.models import User
 
@@ -453,7 +453,7 @@ def project_files(request, project_id, sub_item=''):
                 messages.error(request, get_form_errors(storage_request_form))
 
         if 'upload_files' in request.POST:
-            upload_files_form = forms.MultiFileFieldForm(project_file_individual_limit,
+            upload_files_form = forms.MultiFileFieldForm(settings.project_file_individual_limit,
                 storage_info.remaining, current_directory, request.POST, request.FILES)
             upload_files(request, upload_files_form)
 
@@ -485,7 +485,7 @@ def project_files(request, project_id, sub_item=''):
         storage_request_form = None
     else:
         storage_request_form = forms.StorageRequestForm(initial={'project':project})
-    upload_files_form = forms.MultiFileFieldForm(project_file_individual_limit,
+    upload_files_form = forms.MultiFileFieldForm(settings.project_file_individual_limit,
         storage_info.remaining, current_directory)
     folder_creation_form = forms.FolderCreationForm()
     rename_item_form = forms.RenameItemForm(current_directory)
