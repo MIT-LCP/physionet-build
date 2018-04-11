@@ -5,7 +5,7 @@ Command to:
 - apply and make migrations
 - load example fixture data
 
-This should only be used for development environments.
+This should only be accessible in development environments.
 
 """
 import os
@@ -40,7 +40,7 @@ def clear_db(project_apps):
     for app in project_apps:
         remove_migration_files(app)
 
-    # delete the database
+    # delete the sqlite database file
     db_file = os.path.join(settings.BASE_DIR, 'db.sqlite3')
     if os.path.isfile(db_file):
         os.remove(db_file)
