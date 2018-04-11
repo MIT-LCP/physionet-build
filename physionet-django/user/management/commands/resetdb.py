@@ -1,10 +1,19 @@
-from django.core.management import call_command
-from django.core.management.base import BaseCommand
+"""
+Command to:
+- delete the sqlite database
+- delete migrations
+- apply and make migrations
+- load example fixture data
+
+This should only be used for development environments.
+
+"""
 import os
 import shutil
 
 from django.conf import settings
-from project.models import Project
+from django.core.management import call_command
+from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):

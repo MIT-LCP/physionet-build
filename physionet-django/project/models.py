@@ -14,6 +14,9 @@ from .utility import get_tree_size
 
 import pdb
 
+# Size limit for individual files being uploaded to projects
+PROJECT_FILE_SIZE_LIMIT = 100 * 1024**2
+
 def new_creation(receiver_function):
     """
     Decorator for a receiver function to only trigger upon model

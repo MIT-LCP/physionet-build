@@ -17,6 +17,5 @@ class Command(BaseCommand):
 
         for app in project_apps:
             fixture_file = os.path.join(settings.BASE_DIR, app, 'fixtures', '%s.json' % app)
-            print(fixture_file)
             call_command('dumpdata', app, natural_foreign=True, indent=2,
                 output=fixture_file)
