@@ -37,35 +37,25 @@ settings file: `/etc/postgresql/<version>/main/pg_hba.conf file`, by adding this
 
 ## File Directories and Python Environments
 
-Set the environment variable to reference the correct settings file.
-
-**For Production Server**:
-`export DJANGO_SETTINGS_MODULE=physionet.settings.production`
-
-**For Staging Server**
-`export DJANGO_SETTINGS_MODULE=physionet.settings.production`
-
 ```
 mkdir /physionet
 cd /physionet
 mkdir media static python-env
 cd python-env
 virtualenv -p/usr/bin/python3 physionet
+# Copy over the project
+# scp -r <somewhere>:/path/to/physionet-build .
 ```
 
 ## Setting up nginx and uwsgi
 
 http://uwsgi-docs.readthedocs.io/en/latest/tutorials/Django_and_nginx.html
 
-Symlink the nginx configuration file for the site:
+Symlink the nginx configuration file for the site, and remove the default:
 
-`sudo ln -s /physionet/physionet-build/deploy/physionet_nginx.conf /etc/nginx/sites-enabled/`
-
-
-Run uWSGI with the initialization file settings:
 ```
-cd /physionet/physionet-build/deploy
-uwsgi --ini physionet_uwsgi.ini
+sudo ln -s /physionet/physionet-build/deploy/physionet_nginx.conf /etc/nginx/sites-enabled/
+sudo rm /etc/nginx/sites-enabled/default
 ```
 
 Restart nginx:
@@ -73,3 +63,26 @@ Restart nginx:
 `sudo /etc/init.d/nginx restart`
 
 nginx error log file: `/var/log/nginx/error.log`
+
+Run uWSGI in emperor mode. Link the init file for physionet into the vassals folder.
+
+```
+sudo mkdir /etc/uwsgi
+sudo mkdir /etc/uwsgi/vassals
+sudo ln -s /physionet/physionet-build/deploy/physionet_uwsgi.ini /etc/uwsgi/vassals/
+uwsgi --emperor /etc/uwsgi/vassals --uid pn --gid pn
+```
+
+## Setting up the system to run upon startup
+
+Set the environment variable for the user running uWSGI to reference the correct settings file. Add the line to their .bashrc.
+
+**For Staging Server**
+`export DJANGO_SETTINGS_MODULE=physionet.settings.staging`
+
+**For Production Server**:
+`export DJANGO_SETTINGS_MODULE=physionet.settings.production`
+
+The `/etc/rc.local` file runs upon system startup. Add the line:
+
+`uwsgi --emperor /etc/uwsgi/vassals --uid pn --gid pn`

@@ -4,7 +4,7 @@ from .base import *
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['staging.physionet.org', '127.0.0.1']
+ALLOWED_HOSTS = ['staging.physionet.org', '127.0.0.1', '192.168.11.101']
 
 DATABASES = {
     'default': {
@@ -31,6 +31,6 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 EMAIL_USE_TLS = True
 
-MEDIA_ROOT = os.path.join(os.path.abspath(os.path.join(BASE_DIR, os.pardir)), 'media')
+MEDIA_ROOT = '/physionet/media'
 
 STATIC_ROOT = '/physionet/static'
