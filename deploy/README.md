@@ -58,31 +58,34 @@ sudo ln -s /physionet/physionet-build/deploy/physionet_nginx.conf /etc/nginx/sit
 sudo rm /etc/nginx/sites-enabled/default
 ```
 
-Restart nginx:
+Restart nginx: `sudo /etc/init.d/nginx restart`
 
-`sudo /etc/init.d/nginx restart`
+The nginx error log file: `/var/log/nginx/error.log`
 
-nginx error log file: `/var/log/nginx/error.log`
+Set the `DJANGO_SETTINGS_MODULE` environment variable as appropriate in the
+`physionet_uwsgi.ini` file to reference the correct settings file.
 
-Run uWSGI in emperor mode. Link the init file for physionet into the vassals folder.
-
+Setup for uWSGI to run in emperor mode. Link the init file for physionet into the vassals folder.
 ```
 sudo mkdir /etc/uwsgi
 sudo mkdir /etc/uwsgi/vassals
 sudo ln -s /physionet/physionet-build/deploy/physionet_uwsgi.ini /etc/uwsgi/vassals/
-uwsgi --emperor /etc/uwsgi/vassals --uid pn --gid pn
+# This runs uwsgi in emperor mode with the pn user and group
+# uwsgi --emperor /etc/uwsgi/vassals --uid pn --gid pn
 ```
 
-## Setting up the system to run upon startup
+## Setting up the system to run uwsgi upon startup
 
-Set the environment variable for the user running uWSGI to reference the correct settings file. Add the line to their .bashrc.
+The `/etc/rc.local` file runs upon system startup. Create it and make it executable
+(755) and owned by root if not already existing. Ensure the following is contained
+in the file:
+```
+#!/bin/sh -e
 
-**For Staging Server**
-`export DJANGO_SETTINGS_MODULE=physionet.settings.staging`
+uwsgi --emperor /etc/uwsgi/vassals --uid pn --gid pn
 
-**For Production Server**:
-`export DJANGO_SETTINGS_MODULE=physionet.settings.production`
+exit 0
 
-The `/etc/rc.local` file runs upon system startup. Add the line:
+```
 
-`uwsgi --emperor /etc/uwsgi/vassals --uid pn --gid pn`
+Kill the emperor mode process if needed.
