@@ -1,3 +1,10 @@
+# Directory File Content
+
+- `physionet.sock` : The socket file uWSGI and nginx use to communicate.
+- `physionet_nginx.conf` : The nginx configuration file for the PhysioNet site.
+- `physionet_uwsgi.ini` : Initialization file for uWSGI.
+- `uwsgi_params` : Generic parameters for uWSGI.
+
 # Initial Server Setup
 
 Run these commands once only, on the staging and production servers.
@@ -41,7 +48,7 @@ Set the environment variable to reference the correct settings file.
 ```
 mkdir /physionet
 cd /physionet
-mkdir physionet-django media static python-env
+mkdir media static python-env
 cd python-env
 virtualenv -p/usr/bin/python3 physionet
 ```
@@ -50,3 +57,19 @@ virtualenv -p/usr/bin/python3 physionet
 
 http://uwsgi-docs.readthedocs.io/en/latest/tutorials/Django_and_nginx.html
 
+Symlink the nginx configuration file for the site:
+
+`sudo ln -s /physionet/physionet-build/deploy/physionet_nginx.conf /etc/nginx/sites-enabled/`
+
+
+Run uWSGI with the initialization file settings:
+```
+cd /physionet/physionet-build/deploy
+uwsgi --ini physionet_uwsgi.ini
+```
+
+Restart nginx:
+
+`sudo /etc/init.d/nginx restart`
+
+nginx error log file: `/var/log/nginx/error.log`
