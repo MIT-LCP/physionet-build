@@ -54,7 +54,7 @@ About PhysioNet
         <ul class="timeline">
           <li>
             <div class="timeline-image">
-              <img class="rounded-circle img-fluid" src="{% static 'about/mitdb.jpg' %}" alt="">
+              <img class="mx-auto rounded-circle img-fluid" src="{% static 'about/mitdb.jpg' %}" alt="">
             </div>
             <div class="timeline-panel">
               <div class="timeline-heading">
@@ -68,7 +68,7 @@ About PhysioNet
           </li>
           <li class="timeline-inverted">
             <div class="timeline-image">
-              <img class="rounded-circle img-fluid" src="{% static 'about/physionet-old-logo.jpg' %}" alt="">
+              <img class="mx-auto rounded-circle img-fluid" src="{% static 'about/physionet-old-logo.jpg' %}" alt="">
             </div>
             <div class="timeline-panel">
               <div class="timeline-heading">
@@ -78,13 +78,13 @@ About PhysioNet
               <div class="timeline-body">
                 <p> PhysioNet was established in 1999 as the outreach component of the Research Resource for Complex Physiologic Signals, a cooperative project initiated by a diverse group of scientists and clinicians at Boston's Beth Israel Deaconess Medical Center, Boston University, and McGill University, and the MIT group.</p>
                 <br>
-                <p>The MIT group contributed its 11 databases, and the software it had developed for exploring and analyzing them, to establish PhysioBank and PhysioToolkit. Free availability of these resources via the Internet catalyzed an even greater explosion of interest in them, as researchers worldwide who had no previous access to such data or software began new programs of research. These initial contributions were quickly supplemented by additional collections of data and software from their collaborators, and soon after, from many researchers worldwide.</p>
+                <p>The MIT group contributed its 11 databases, and the software it had developed for exploring and analyzing them, to establish PhysioBank and PhysioToolkit. Free availability of these resources catalyzed an even greater explosion of interest in them, as researchers worldwide who had no previous access to such data or software began new programs of research. These initial contributions were quickly supplemented by additional collections of data and software from their collaborators, and soon after, from many researchers worldwide.</p>
               </div>
             </div>
           </li>
           <li>
             <div class="timeline-image">
-              <img class="rounded-circle img-fluid" src="{% static 'about/cinc.jpg' %}" alt="">
+              <img class="mx-auto rounded-circle img-fluid" src="{% static 'about/cinc.jpg' %}" alt="">
             </div>
             <div class="timeline-panel">
               <div class="timeline-heading">
@@ -92,13 +92,13 @@ About PhysioNet
                 <h4 class="subheading">Computing in Cardiology</h4>
               </div>
               <div class="timeline-body">
-                <p>Members of the PhysioNet team at MIT were preparing to host Computers in Cardiology 2000, and created the first PhysioNet/CinC Challenge. They hoped to introduce PhysioNet to international colleagues who would be attending CinC, by encouraging participation in an activity that made effective use of the facilities provided by PhysioNet, to stimulate rapid progress on an unsolved problem of practical clinical significance. More than a dozen teams participated in the challenge of detecting sleep apnea from the ECG. Their efforts were broadly successful, they discussed their findings at CinC 2000, and an annual tradition was born.</p>
+                <p>Members of the PhysioNet team at MIT were preparing to host <a href="http://www.cinc.org/" target="_blank">Computing in Cardiology</a> 2000, and created the first PhysioNet/CinC Challenge. They hoped to introduce PhysioNet to international colleagues, by encouraging participation in an activity that made effective use of PhysioNet's resources to stimulate rapid progress on an unsolved problem of practical clinical significance. More than a dozen teams participated in the challenge of detecting sleep apnea from the ECG, and an <a href="{% url 'challenge' %}">annual tradition</a> was born.</p>
               </div>
             </div>
           </li>
           <li class="timeline-inverted">
             <div class="timeline-image">
-              <img class="rounded-circle img-fluid" src="{% static 'favicon.ico' %}" alt="">
+              <img class="mx-auto rounded-circle img-fluid" src="{% static 'favicon.ico' %}" alt="">
             </div>
             <div class="timeline-panel">
               <div class="timeline-heading">
@@ -106,13 +106,13 @@ About PhysioNet
                 <h4 class="subheading">New Web Platform</h4>
               </div>
               <div class="timeline-body">
-                <p>New members of the LCP build a modern dynamic PhysioNet platform using Django. Work is continually ongoing.</p>
+                <p>New members of the LCP build a modern dynamic PhysioNet platform using <a href="https://www.djangoproject.com/" target="_blank">Django</a>. Work is continually ongoing to improve the site's capabilities.</p>
               </div>
             </div>
           </li>
           <li>
             <div class="timeline-image">
-              <img class="rounded-circle img-fluid" src="{% static 'favicon.ico' %}" alt="">
+              <img class="mx-auto rounded-circle img-fluid" src="{% static 'about/future.jpg' %}" alt="">
             </div>
             <div class="timeline-panel">
               <div class="timeline-heading">
@@ -120,12 +120,11 @@ About PhysioNet
                 <h4 class="subheading">Open Science</h4>
               </div>
               <div class="timeline-body">
-                <p>PhysioNet today hosts over 90 public databases, a variety of software tools, facilitating. An immense number of of global visitors leverage its resources, adding more to scientific and industrial development than the individual data/software contributors ever could without sharing.</p>
+                <p>PhysioNet today hosts over 90 public databases, a variety of software tools, and the annual challenge. An immense number of of global visitors leverage its resources, producing more scientific and industrial development than the individual data/software contributors ever could alone.</p>
                 <br>
-                <p>The future of science relies on new findings to grow upon past research. Unfortunately, the literature has been polluted with flawed studies,
-                <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1182327/" target="_blank">the reproducibility crisis</a>.</p>
+                <p>The future of science relies on new findings to grow upon past research. Unfortunately, the literature has been polluted with flawed studies, resulting in the <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1182327/" target="_blank">reproducibility crisis</a>, which is especially acute in medical research and psychology.</p>
                 <br>
-                <p>Give legitimacy to your studies, and help us work towards a better scientific future, by <a href="{% url 'create_project' %}">publishing</a> your code and data on PhysioNet.</p>
+                <p>Give legitimacy to your studies, let the world leverage your resources, and help us work towards a better scientific future, by <a href="{% url 'create_project' %}">publishing</a> your code and data on PhysioNet.</p>
               </div>
             </div>
           </li>
@@ -141,7 +140,7 @@ About PhysioNet
       <div class="row">
         <div class="col-lg-12 text-center">
           <h2 class="section-heading">The PhysioNet Team</h2>
-          <h3 class="section-subheading text-muted">PhysioNet is managed by members of MIT's Lab for Computational Physiology.</h3>
+          <h3 class="section-subheading text-muted">PhysioNet is managed by members of MIT's <a href="http://lcp.mit.edu/" target="_blank">MIT Laboratory for Computational Physiology</a> <a href="https://github.com/MIT-LCP/" target="_blank" style="text-decoration: none; color: #000000;"><i class="fab fa-github"></i></a>.</h3>
         </div>
       </div>
       <div class="row">
