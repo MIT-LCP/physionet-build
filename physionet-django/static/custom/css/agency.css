@@ -384,7 +384,7 @@ header.masthead .intro-text .intro-heading {
   color: white;
   border: 7px solid #e9ecef;
   border-radius: 100%;
-  background-color: #fed136;
+  /*background-color: #fed136;*/
 }
 
 .timeline > li .timeline-image h4 {
@@ -527,7 +527,6 @@ header.masthead .intro-text .intro-heading {
 }
 
 section#contact {
-
   /*background-image: url("/static/about/hypnotoad.jpg");*/
   background-repeat: no-repeat;
   background-position: center;

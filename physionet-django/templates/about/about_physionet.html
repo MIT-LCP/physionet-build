@@ -13,15 +13,125 @@ About PhysioNet
 
 
 {% block content %}
-<section class="bg-light" id="funding">
+
+<section id="about">
   <div class="container">
       <div class="row">
         <div class="col-lg-12 text-center">
-          <h2 class="section-heading text-uppercase">Funding</h2>
-          <h3 class="section-subheading text-muted">All hail the hypnotoad.</h3>
-          <p>PhysioNet is supported by the <a href="http://www.nigms.nih.gov/" target="_blank">National Institute of General Medical Sciences</a> and the <a href="https://www.nibib.nih.gov/" target="_blank">National Institute of Biomedical Imaging and Bioengineering</a> under NIH grant number: <em>2R01GM104987-09</em>.</p>
+          <h2 class="section-heading">PhysioNet</h2>
+          <h3 class="section-subheading text-muted">The research resource for complex physiological data.</h3>
+          <p>PhysioNet offers free access via the web to large collections of recorded physiologic signals and related open-source software. </p>
         </div>
       </div>
+  </div>
+</section>
+
+
+<section class="bg-light" id="funding">
+  <div class="container">
+      <div class="row">
+        <div class="col-lg-12">
+          <h2 class="section-heading text-center">Funding</h2>
+          <p>PhysioNet was originally established under the auspices of the NIH's National Center for Research Resources, which was abolished in 2011. PhysioNet has been funded since September 2007 under a cooperative agreement with the NIH's <a href="https://www.nibib.nih.gov/" target="_blank">National Institute of Biomedical Imaging and Bioengineering</a>, and the <a href="http://www.nigms.nih.gov/" target="_blank">National Institute of General Medical Sciences</a>, under grant number: <em>2R01GM104987-09</em>.</p>
+          <p>With the rapid explosion of data volume, our operating costs have grown immensely. If you would like to support our mission, please consider <a href="#">making a donation</a> to Physionet, or contributing to one of our <a href="https://github.com/MIT-LCP/" target="_blank">open source projects</a>.</p>
+        </div>
+      </div>
+  </div>
+</section>
+
+
+<!-- About -->
+<section id="about">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12 text-center">
+        <h2 class="section-heading">A Brief History</h2>
+        <h3 class="section-subheading text-muted">Foundation, growth and impact.</h3>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-lg-12">
+        <ul class="timeline">
+          <li>
+            <div class="timeline-image">
+              <img class="rounded-circle img-fluid" src="{% static 'about/mitdb.jpg' %}" alt="">
+            </div>
+            <div class="timeline-panel">
+              <div class="timeline-heading">
+                <h4>1980</h4>
+                <h4 class="subheading">Landmark Database</h4>
+              </div>
+              <div class="timeline-body">
+                <p>In the mid-1970s, members of the PhysioNet team who were then working on some of the first microcomputer-based instruments for cardiac arrhythmia monitoring, foresaw the usefulness of establishing shared databases of well-characterized ECG recordings, as a basis for evaluation, and objective comparison of algorithms for automated arrhythmia analysis. A five-year effort culminated in the publication of the MIT-BIH Arrhythmia Database in 1980, which soon became the standard reference collection of its type.</p>
+              </div>
+            </div>
+          </li>
+          <li class="timeline-inverted">
+            <div class="timeline-image">
+              <img class="rounded-circle img-fluid" src="{% static 'about/physionet-old-logo.jpg' %}" alt="">
+            </div>
+            <div class="timeline-panel">
+              <div class="timeline-heading">
+                <h4>1999</h4>
+                <h4 class="subheading">PhysioNet is Released</h4>
+              </div>
+              <div class="timeline-body">
+                <p> PhysioNet was established in 1999 as the outreach component of the Research Resource for Complex Physiologic Signals, a cooperative project initiated by a diverse group of scientists and clinicians at Boston's Beth Israel Deaconess Medical Center, Boston University, and McGill University, and the MIT group.</p>
+                <br>
+                <p>The MIT group contributed its 11 databases, and the software it had developed for exploring and analyzing them, to establish PhysioBank and PhysioToolkit. Free availability of these resources via the Internet catalyzed an even greater explosion of interest in them, as researchers worldwide who had no previous access to such data or software began new programs of research. These initial contributions were quickly supplemented by additional collections of data and software from their collaborators, and soon after, from many researchers worldwide.</p>
+              </div>
+            </div>
+          </li>
+          <li>
+            <div class="timeline-image">
+              <img class="rounded-circle img-fluid" src="{% static 'about/cinc.jpg' %}" alt="">
+            </div>
+            <div class="timeline-panel">
+              <div class="timeline-heading">
+                <h4>2000</h4>
+                <h4 class="subheading">Computing in Cardiology</h4>
+              </div>
+              <div class="timeline-body">
+                <p>Members of the PhysioNet team at MIT were preparing to host Computers in Cardiology 2000, and created the first PhysioNet/CinC Challenge. They hoped to introduce PhysioNet to international colleagues who would be attending CinC, by encouraging participation in an activity that made effective use of the facilities provided by PhysioNet, to stimulate rapid progress on an unsolved problem of practical clinical significance. More than a dozen teams participated in the challenge of detecting sleep apnea from the ECG. Their efforts were broadly successful, they discussed their findings at CinC 2000, and an annual tradition was born.</p>
+              </div>
+            </div>
+          </li>
+          <li class="timeline-inverted">
+            <div class="timeline-image">
+              <img class="rounded-circle img-fluid" src="{% static 'favicon.ico' %}" alt="">
+            </div>
+            <div class="timeline-panel">
+              <div class="timeline-heading">
+                <h4>2018</h4>
+                <h4 class="subheading">New Web Platform</h4>
+              </div>
+              <div class="timeline-body">
+                <p>New members of the LCP build a modern dynamic PhysioNet platform using Django. Work is continually ongoing.</p>
+              </div>
+            </div>
+          </li>
+          <li>
+            <div class="timeline-image">
+              <img class="rounded-circle img-fluid" src="{% static 'favicon.ico' %}" alt="">
+            </div>
+            <div class="timeline-panel">
+              <div class="timeline-heading">
+                <h4>Looking Forward</h4>
+                <h4 class="subheading">Open Science</h4>
+              </div>
+              <div class="timeline-body">
+                <p>PhysioNet today hosts over 90 public databases, a variety of software tools, facilitating. An immense number of of global visitors leverage its resources, adding more to scientific and industrial development than the individual data/software contributors ever could without sharing.</p>
+                <br>
+                <p>The future of science relies on new findings to grow upon past research. Unfortunately, the literature has been polluted with flawed studies,
+                <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1182327/" target="_blank">the reproducibility crisis</a>.</p>
+                <br>
+                <p>Give legitimacy to your studies, and help us work towards a better scientific future, by <a href="{% url 'create_project' %}">publishing</a> your code and data on PhysioNet.</p>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -30,16 +140,16 @@ About PhysioNet
     <div class="container">
       <div class="row">
         <div class="col-lg-12 text-center">
-          <h2 class="section-heading text-uppercase">The PhysioNet Team</h2>
-          <h3 class="section-subheading text-muted">All hail the hypnotoad.</h3>
+          <h2 class="section-heading">The PhysioNet Team</h2>
+          <h3 class="section-subheading text-muted">PhysioNet is managed by members of MIT's Lab for Computational Physiology.</h3>
         </div>
       </div>
       <div class="row">
         <div class="col-sm-4">
           <div class="team-member">
-            <img class="mx-auto rounded-circle" src="{% static 'about/hypnotoad.jpg' %}" alt="">
-            <h4>Hypno-Toad</h4>
-            <p class="text-muted">Lead Designer Lead Designer Lead Designer Lead Designer Lead Designer Lead Designer Lead Designer</p>
+            <img class="mx-auto rounded-circle" src="{% static 'about/george.jpg' %}" alt="">
+            <h4>George Moody</h4>
+            <p class="text-muted">Creator of PhysioNet</p>
             <ul class="list-inline social-buttons">
               <li class="list-inline-item">
                 <a href="#">
@@ -56,9 +166,9 @@ About PhysioNet
         </div>
         <div class="col-sm-4">
           <div class="team-member">
-            <img class="mx-auto rounded-circle" src="{% static 'about/hypnotoad.jpg' %}" alt="">
-            <h4>Hypno-Toad</h4>
-            <p class="text-muted">Lead Marketer</p>
+            <img class="mx-auto rounded-circle" src="{% static 'about/felipe.jpg' %}" alt="">
+            <h4>Felipe Torres</h4>
+            <p class="text-muted">Marketing Expert</p>
             <ul class="list-inline social-buttons">
               <li class="list-inline-item">
                 <a href="#">
@@ -75,8 +185,8 @@ About PhysioNet
         </div>
         <div class="col-sm-4">
           <div class="team-member">
-            <img class="mx-auto rounded-circle" src="{% static 'about/hypnotoad.jpg' %}" alt="">
-            <h4>Hypno-Toad</h4>
+            <img class="mx-auto rounded-circle" src="{% static 'about/hypnotoad1.jpg' %}" alt="">
+            <h4>Hypno Toad</h4>
             <p class="text-muted">Lead Developer</p>
             <ul class="list-inline social-buttons">
               <li class="list-inline-item">
@@ -93,6 +203,111 @@ About PhysioNet
           </div>
         </div>
       </div>
+
+
+      <div class="row">
+        <div class="col-sm-4">
+          <div class="team-member">
+            <img class="mx-auto rounded-circle" src="{% static 'about/roger.png' %}" alt="">
+            <h4>Roger Mark</h4>
+            <p class="text-muted">Principal Investigator. Cofounder of PhysioNet</p>
+            <ul class="list-inline social-buttons">
+              <li class="list-inline-item">
+                <a href="#">
+                  <i class="fab fa-github"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a href="#">
+                  <i class="fab fa-playstation"></i>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-sm-4">
+          <div class="team-member">
+            <img class="mx-auto rounded-circle" src="{% static 'about/liwei.jpg' %}" alt="">
+            <h4>Liwei Lehman</h4>
+            <p class="text-muted">PhysioNet research staff. Hypnotoad supporter.</p>
+            <ul class="list-inline social-buttons">
+              <li class="list-inline-item">
+                <a href="#">
+                  <i class="fab fa-github"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a href="#">
+                  <i class="fab fa-playstation"></i>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-sm-4">
+          <div class="team-member">
+            <img class="mx-auto rounded-circle" src="{% static 'about/tom.jpg' %}" alt="">
+            <h4>Tom Pollard</h4>
+            <p class="text-muted">Litecoin Owner</p>
+            <ul class="list-inline social-buttons">
+              <li class="list-inline-item">
+                <a href="#">
+                  <i class="fab fa-github"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a href="#">
+                  <i class="fab fa-playstation"></i>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="row">
+        <div class="col-sm-4">
+          <div class="team-member">
+            <img class="mx-auto rounded-circle" src="{% static 'about/chen.jpg' %}" alt="">
+            <h4>Chen Xie</h4>
+            <p class="text-muted">Slave to Hypnotoad</p>
+            <ul class="list-inline social-buttons">
+              <li class="list-inline-item">
+                <a href="#">
+                  <i class="fab fa-github"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a href="#">
+                  <i class="fab fa-playstation"></i>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-sm-4">
+          <div class="team-member">
+            <img class="mx-auto rounded-circle" src="{% static 'about/benjamin.jpg' %}" alt="">
+            <h4>Benjamin Moody</h4>
+            <p class="text-muted">Does all the work</p>
+            <ul class="list-inline social-buttons">
+              <li class="list-inline-item">
+                <a href="#">
+                  <i class="fab fa-github"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a href="#">
+                  <i class="fab fa-playstation"></i>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+
 
       <div class="row">
         <div class="col-lg-8 mx-auto text-center">
