@@ -17,10 +17,16 @@ About PhysioNet
 <section id="about">
   <div class="container">
       <div class="row">
-        <div class="col-lg-12 text-center">
-          <h2 class="section-heading">PhysioNet</h2>
-          <h3 class="section-subheading text-muted">The research resource for complex physiological data.</h3>
-          <p>PhysioNet offers free access via the web to large collections of recorded physiologic signals and related open-source software. </p>
+        <div class="col-lg-12">
+          <h2 class="section-heading text-center">PhysioNet</h2>
+          <h3 class="section-subheading text-muted text-center">The research resource for complex physiological data.</h3>
+          <p>PhysioNet offers free access to large collections of physiologic <a href="{% url 'data' %}">data</a> and related open-source <a href="{% url 'software' %}">software</a>. The PhysioNet web site was established by the Resource as its mechanism for free and open dissemination and exchange of recorded biomedical signals and open-source software for analyzing them, by providing facilities for cooperative analysis of data and evaluation of proposed new algorithms.
+
+          <p>In cooperation with the annual <a href="http://www.cinc.org/" target="_blank">Computing in Cardiology</a> conference, PhysioNet also hosts an annual series of <a href="{% url 'challenge' %}">challenges</a>, in which researchers address unsolved problems of clinical or basic scientific interest using data and software provided by PhysioNet.</p>
+
+          <p>Researchers are increasingly seeking to deposit and share data through PhysioNet. Demand has been driven by the rising recognition of the importance of open data, coupled with journals such as <a href="https://www.nature.com/sdata/policies/repositories#healthsci" target="_blank">Nature Scientific Data</a> including PhysioNet as a recommended repository for health data.</p>
+
+          <p>By providing data curation and custom access requirements, which are often required when dealing with sensitive health data, PhysioNet provides a great platform for publishing content. By sharing common data sets, and software in source form, the research community benefits from access to materials that have been rigorously scrutinized by many investigators. We invite researchers to <a href="{% url 'create_project' %}">contribute</a> data and software. Please review our <a href="{% url 'author_guidelines' %}">author guidelines</a> before submitting material.</p>
         </div>
       </div>
   </div>
