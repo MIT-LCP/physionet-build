@@ -6,26 +6,17 @@ from django.dispatch import receiver
 from django.utils import timezone
 
 
-class BaseAffiliation(models.Model):
+class Affiliation(models.Model):
     """
-    Base class inherited by profile affiliations and static snapshot
-    affiliation info.
+    Profile affiliation
+
     """
     order = models.SmallIntegerField(default=0)
-    institution = models.CharField(max_length=100)
-    department = models.CharField(max_length=100)
+    name = models.CharField(max_length=100)
+    department = models.CharField(max_length=100, default='')
     city = models.CharField(max_length=50)
     country = models.CharField(max_length=100)
-    post_code = models.CharField(max_length=20)
-    
-    class Meta:
-        abstract = True
 
-
-class Affiliation(BaseAffiliation):
-    """
-    Affiliations belonging to a profile.
-    """
     profile = models.ForeignKey('user.Profile', related_name='affiliations')
 
 
@@ -116,6 +107,11 @@ class User(AbstractBaseUser):
         "Is the user a member of staff?"
         return self.is_admin
 
+    def get_emails(self):
+        "Get list of all email strings"
+        return [ae.email for ae in self.associated_emails.all()]
+
+
 
 class AssociatedEmail(models.Model):
     """
@@ -180,7 +176,6 @@ class Profile(models.Model):
     last_name = models.CharField(max_length=30)
     url = models.URLField(default='', blank=True, null=True)
     identity_verification_date = models.DateField(blank=True, null=True)
-    phone = models.CharField(max_length=20, blank=True, default='')
 
     def get_full_name(self):
         if self.middle_names:

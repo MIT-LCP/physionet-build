@@ -14,7 +14,7 @@
   <div class="row row-offcanvas row-offcanvas-right">
     <div class="col-6 col-md-2 sidebar-offcanvas" id="sidebar">
       <div class="list-group">
-        {% with 'overview metadata files collaborators' as project_settings %}
+        {% with 'overview authors metadata files preview submission' as project_settings %}
             {% for setting in project_settings.split %}
               {% if setting == 'files' %}
                 {% url 'project_'|add:setting project.id '' as setting_url %}

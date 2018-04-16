@@ -11,7 +11,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         installed_apps = [a for a in settings.INSTALLED_APPS if not any(noncustom in a for noncustom in ['django', 'ckeditor'])]
-        clear_db(installed_apps)        
+        clear_db(installed_apps)
         load_fixtures(installed_apps)
 
 
@@ -48,6 +48,6 @@ def load_fixtures(installed_apps):
     Demo Profile objects are located in a separate user_profiles.json fixture
     file as they can only be attached after the triggered profiles created
     are removed.
-    """ 
+    """
     for app in installed_apps:
         call_command('loaddata', app, verbosity=1)

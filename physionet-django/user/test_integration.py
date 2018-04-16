@@ -15,11 +15,11 @@ class TestAuth(TestCase):
     fixtures = ['user']
 
     def setUp(self):
-        self.client.login(username='rgmark@mit.edu', password='Tester1!')
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
 
     def test_edit_password(self):
         response = self.client.post(reverse('edit_password'),
-            data={'old_password':'Tester1!',
+            data={'old_password':'Tester11!',
             'new_password1':'Very5trongt0t@11y',
             'new_password2':'Very5trongt0t@11y'})
         self.assertRedirects(response, reverse('edit_password_complete'))
@@ -69,7 +69,7 @@ class TestPublic(TestCase):
 
     def test_login(self):
         response = self.client.post(reverse('login'),
-            data={'username':'rgmark@mit.edu','password':'Tester1!'})
+            data={'username':'rgmark@mit.edu','password':'Tester11!'})
         self.assertRedirects(response, reverse('user_home'))
         self.assertIn('_auth_user_id', self.client.session)
 

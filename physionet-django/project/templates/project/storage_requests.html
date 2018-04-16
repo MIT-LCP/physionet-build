@@ -44,7 +44,7 @@
   <br>
 
   <!-- A modal and response form for each storage request -->
-  {% if storage_response_formset %}
+  {% if storage_requests %}
     <form action="" method="post" enctype="multipart/form-data">
       {{ storage_response_formset.management_form }}
       {% csrf_token %}
@@ -53,12 +53,12 @@
           <div class="modal-dialog" role="document">
             <div class="modal-content">
               <div class="modal-header">
-                <h5 class="modal-title">Respond to Storage Request</h5>
+                <h5 class="modal-title">Respond to storage request</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                   <span aria-hidden="true">&times;</span>
                 </button>
               </div>
-              
+
                 <div class="modal-body">
                   {{ storage_response_form }}
                 </div>

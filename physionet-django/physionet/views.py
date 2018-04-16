@@ -7,24 +7,24 @@ def home(request):
 # Publish pages
 
 def author_guidelines(request):
-    return render(request, 'author_guidelines.html')
+    return render(request, 'about/author_guidelines.html')
 
 # About pages
 
 def about_physionet(request):
-    return render(request, 'about_physionet.html')
+    return render(request, 'about/about_physionet.html')
 
 def faq(request):
-    return render(request, 'faq.html')
+    return render(request, 'about/faq.html')
 
 def contact(request):
-    return render(request, 'contact.html')
+    return render(request, 'about/contact.html')
 
 def our_team(request):
-    return render(request, 'our_team.html')
+    return render(request, 'about/our_team.html')
 
 def funding(request):
-    return render(request, 'funding.html')
+    return render(request, 'about/funding.html')
 
 # Content pages
 

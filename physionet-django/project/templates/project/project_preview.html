@@ -4,7 +4,7 @@
 
 {% load project_templatetags %}
 
-{% block title %}Project Home{% endblock %}
+{% block title %}Project Preview{% endblock %}
 
 {% block local_css %}
 <link rel="stylesheet" type="text/css" href="{% static 'custom/css/project-home.css' %}">
@@ -14,8 +14,8 @@
 <div class="container">
 
   <div class="jumbotron">
-    <h1>Project Home</h1>
-    <p class="lead">Welcome to your project home. Here you can create new projects, and access projects that you are authoring or reviewing.</p>
+    <h1>Project Preview</h1>
+    <p class="lead">Welcome to your project home. Here you can create new projects, and access projects that you are working on or reviewing.</p>
     <p>
       <a class="btn btn-lg btn-success" href="{% url 'create_project' %}" role="button">
         <i class="fa fa-cloud-upload-alt"></i> Create New Project
@@ -30,7 +30,7 @@
 
   <div class="card" >
     <div class="card-header">
-      <h4>Authoring Projects</h4>
+      <h4>Your Projects</h4>
     </div>
 
     <ul class="list-group list-group-flush">
@@ -48,8 +48,7 @@
             </p>
             <h4><a href="{% url 'project_overview' project.id %}">{{ project.title }}</a></h4>
             <p class="list-group-item-text text-muted">
-            <strong>Submitting Author: {{ project.submitting_author }}</strong><br>
-            <small>Created {{ project.creation_datetime }} Modified {{ project.modified_datetime }}</small>
+            <small>Created {{ project.creation_datetime }}. Modified {{ project.modified_datetime }}</small>
             </p>
           </li>
         {% endfor %}
