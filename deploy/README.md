@@ -38,14 +38,53 @@ settings file: `/etc/postgresql/<version>/main/pg_hba.conf file`, by adding this
 ## File Directories and Python Environments
 
 ```
+# Create the necessary directories
 mkdir /physionet
 cd /physionet
-mkdir media static python-env
+mkdir physionet-build media static python-env
+# Create the bare repository
+git init --bare physionet-build.git
+# Create the virtual environment
 cd python-env
 virtualenv -p/usr/bin/python3 physionet
-# Copy over the project
-# scp -r <somewhere>:/path/to/physionet-build .
+# Copy over the .env file into /physionet/physionet-build
+scp <somewhere>/.env /physionet/physionet-build/
 ```
+
+## Setting Up Bare Repository
+
+Add the remote bare repositories from your local development machines:
+
+`git remote add <staging OR deploy> <user>@<address>:/physionet/physionet-build.git`
+
+Create the `post-receive` file in the working repository:
+
+```
+#!/bin/bash
+destination=/physionet/physionet-build/
+echo "Deploying into $dest"
+GIT_WORK_TREE=$dest git checkout --force
+
+echo "Updating content"
+cd $destination
+source /physionet/python-env/physionet/bin/activate
+pip install -r requirements.txt
+cd physionet-django
+python manage.py collectstatic
+python manage.py makemigrations
+python manage.py migrate
+touch physionet/wsgi.py
+
+echo "Done"
+```
+
+Ensure it is executable:
+
+`chmod +x post-receive`
+
+Push to the remotes when appropriate
+
+`git push <staging OR deploy> <staging OR deploy>`
 
 ## Setting up nginx and uwsgi
 
@@ -58,7 +97,7 @@ sudo ln -s /physionet/physionet-build/deploy/physionet_nginx.conf /etc/nginx/sit
 sudo rm /etc/nginx/sites-enabled/default
 ```
 
-Restart nginx: `sudo /etc/init.d/nginx restart`
+Restarting nginx: `sudo /etc/init.d/nginx restart`
 
 The nginx error log file: `/var/log/nginx/error.log`
 
