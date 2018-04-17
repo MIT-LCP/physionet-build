@@ -51,19 +51,13 @@ virtualenv -p/usr/bin/python3 physionet
 scp <somewhere>/.env /physionet/physionet-build/
 ```
 
-## Setting Up Bare Repository
-
-Add the remote bare repositories from your local development machines:
-
-`git remote add <staging OR deploy> <user>@<address>:/physionet/physionet-build.git`
-
-Create the `post-receive` file in the working repository:
+Create the `post-receive` file in the bare repository's `hooks` directory:
 
 ```
 #!/bin/bash
 destination=/physionet/physionet-build/
-echo "Deploying into $dest"
-GIT_WORK_TREE=$dest git checkout --force
+echo "Deploying into $destination"
+GIT_WORK_TREE=$destination git checkout --force
 
 echo "Updating content"
 cd $destination
@@ -76,15 +70,22 @@ python manage.py migrate
 touch physionet/wsgi.py
 
 echo "Done"
+
 ```
 
 Ensure it is executable:
 
 `chmod +x post-receive`
 
+## Deploying to the Bare Repository
+
+Add the remote bare repositories from your local development machines:
+
+`git remote add <pn-staging OR pn-production> <user>@<address>:/physionet/physionet-build.git`
+
 Push to the remotes when appropriate
 
-`git push <staging OR deploy> <staging OR deploy>`
+`git push <pn-staging OR pn-production> <staging OR production>`
 
 ## Setting up nginx and uwsgi
 
