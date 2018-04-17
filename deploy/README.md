@@ -57,14 +57,15 @@ Create the `post-receive` file in the bare repository's `hooks` directory:
 #!/bin/bash
 destination=/physionet/physionet-build/
 echo "Deploying into $destination"
-GIT_WORK_TREE=$destination git checkout --force
+GIT_WORK_TREE=$destination git checkout --force <staging OR production>
 
 echo "Updating content"
+export DJANGO_SETTINGS_MODULE=physionet.settings.<staging OR production>
 cd $destination
 source /physionet/python-env/physionet/bin/activate
 pip install -r requirements.txt
 cd physionet-django
-python manage.py collectstatic
+python manage.py collectstatic --noinput
 python manage.py makemigrations
 python manage.py migrate
 touch physionet/wsgi.py
