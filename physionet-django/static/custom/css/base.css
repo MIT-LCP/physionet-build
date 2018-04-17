@@ -1,0 +1,19 @@
+.bg-green {
+    background-color: #694;
+}
+
+a {
+  color: #369;
+  text-decoration: none;
+  background-color: transparent;
+  -webkit-text-decoration-skip: objects;
+}
+
+a:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+.card-header {
+    background-color: #daf3ce;
+}
