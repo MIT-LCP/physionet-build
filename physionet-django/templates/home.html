@@ -18,12 +18,13 @@ PhysioNet
 
 <!-- Header row -->
 <div class="row">
+
+  <!-- PhysioNet logo -->
   <div class="col-sm-8">
-  
-  <img class="img-fluid d-block mx-left" src="{% static 'about/logo.png' %}" alt="">
-  
+    <img class="img-fluid d-block mx-left" src="{% static 'about/logo.png' %}" alt="">
   </div>
 
+  <!-- About PhysioNet -->
   <div class="col-sm-4">
     <div class="card">
       <h5 class="card-header"><a href="{% url 'about_physionet' %}">About PhysioNet</a></h5>
@@ -34,68 +35,64 @@ PhysioNet
   </div>
 
 </div> <!-- /.row -->
-<!-- <hr> -->
-
 
 <div class="row">
+
 <!-- Publications column -->
 <!-- {# A publication #} -->
-<div class="col-md-8">
+  <div class="col-md-8">
+    <br>
+    <h1>Recent Publications</h1>
+    <hr>
 
-<br>
-<h1>Recent Publications</h1>
-<hr>
+    <!-- START ITEM -->
+    <h2 class="card-title"><a href="">Sleep Bioradiolocation Database</a></h2>
+    <p><a class="text-muted">March 14, 2018</a></p>
+    <p class="card-text">The database contains 32 records of non-contact sleep monitoring by a bioradar. The records are accompanied by results of sleep scoring, based on polysomnography according to the rules of the American Academy of Sleep Medicine. <a href = #>Read more</a>.</p>
+    <!-- END ITEM -->
 
-<!-- START ITEM -->
-<h2 class="card-title"><a href="">Sleep Bioradiolocation Database</a></h2>
-<p><a class="text-muted">March 14, 2018</a></p>
-<p class="card-text">The database contains 32 records of non-contact sleep monitoring by a bioradar. The records are accompanied by results of sleep scoring, based on polysomnography according to the rules of the American Academy of Sleep Medicine. <a href = #>Read more</a>.</p>
-<!-- END ITEM -->
-
-<!-- START ITEM -->
-<h2 class="card-title"><a href="">CHARIS Database</a></h2>
-<p><a class="text-muted">March 08, 2018</a></p>
-<p class="card-text">The CHARIS database contains multi-channel recordings of ECG, arterial blood pressure (ABP), and intracranial pressure (ICP) of patients diagnosed with traumatic brain injury (TBI). The data is contributed by members of the CHARIS project which aims to systematize the analysis of relevant physiological signals. <a href = #>Read more</a>.</p>
-<!-- END ITEM -->
+    <!-- START ITEM -->
+    <h2 class="card-title"><a href="">CHARIS Database</a></h2>
+    <p><a class="text-muted">March 08, 2018</a></p>
+    <p class="card-text">The CHARIS database contains multi-channel recordings of ECG, arterial blood pressure (ABP), and intracranial pressure (ICP) of patients diagnosed with traumatic brain injury (TBI). The data is contributed by members of the CHARIS project which aims to systematize the analysis of relevant physiological signals. <a href = #>Read more</a>.</p>
+    <!-- END ITEM -->
 
 
-<!-- START ITEM -->
-<h2 class="card-title"><a href="">Long Term Movement Monitoring Database</a></h2>
-<p><a class="text-muted">March 01, 2018</a></p>
-<p class="card-text">Contains 3-day 3D accelerometer recordings of 71 elder community residents, used to study gait, stability, and fall risk. The dataset and its collection methods are described in Does the Evaluation of Gait Quality During Daily Life Provide Insight Into Fall Risk? <a href = #>Read more</a>.</p>
-<!-- END ITEM -->
-<hr>
+    <!-- START ITEM -->
+    <h2 class="card-title"><a href="">Long Term Movement Monitoring Database</a></h2>
+    <p><a class="text-muted">March 01, 2018</a></p>
+    <p class="card-text">Contains 3-day 3D accelerometer recordings of 71 elder community residents, used to study gait, stability, and fall risk. The dataset and its collection methods are described in Does the Evaluation of Gait Quality During Daily Life Provide Insight Into Fall Risk? <a href = #>Read more</a>.</p>
+    <!-- END ITEM -->
 
-<!-- START ITEM -->
-<h2 class="card-title"><a href="">Squid Giant Axon Membrane Potential</a></h2>
-<p><a class="text-muted">February 26, 2018</a></p>
-<p class="card-text">Single-unit neuronal recordings of squid giant axons in response to stimulus currents. The membrane potential and stimulus current are given for a total of 170 trials across 8 different axons. The dataset and its collection methods are described in Noisy Inputs and the Induction of On-Off Switching Behavior. <a href = #>Read more</a>.</p>
-<!-- END ITEM -->
-<hr>
+    <!-- START ITEM -->
+    <h2 class="card-title"><a href="">Squid Giant Axon Membrane Potential</a></h2>
+    <p><a class="text-muted">February 26, 2018</a></p>
+    <p class="card-text">Single-unit neuronal recordings of squid giant axons in response to stimulus currents. The membrane potential and stimulus current are given for a total of 170 trials across 8 different axons. The dataset and its collection methods are described in Noisy Inputs and the Induction of On-Off Switching Behavior. <a href = #>Read more</a>.</p>
+    <!-- END ITEM -->
 
-<!-- START ITEM -->
-<h2 class="card-title"><a href="">Multiscale Poincare Plots</a></h2>
-<p><a class="text-muted">February 15, 2018</a></p>
-<p class="card-text">The Multiscale Poincare Plots package contains MATLAB scripts used to visualize time series by plotting Poincare plots of the original signal course grained at multiple time scales. <a href = #>Read more</a>.</p>
-<!-- END ITEM -->
-<hr>
+    <!-- START ITEM -->
+    <h2 class="card-title"><a href="">Multiscale Poincare Plots</a></h2>
+    <p><a class="text-muted">February 15, 2018</a></p>
+    <p class="card-text">The Multiscale Poincare Plots package contains MATLAB scripts used to visualize time series by plotting Poincare plots of the original signal course grained at multiple time scales. <a href = #>Read more</a>.</p>
+    <!-- END ITEM -->
+    <hr>
 
-<!-- Pagination -->
-<ul class="pagination justify-content-center">
-  <li class="page-item">
-    <a class="page-link" href="#">&larr; Older</a>
-  </li>
-  <li class="page-item disabled">
-    <a class="page-link" href="#">Newer &rarr;</a>
-  </li>
-</ul>
-</div>
+    <!-- Pagination -->
+    <ul class="pagination justify-content-center">
+      <li class="page-item">
+        <a class="page-link" href="#">&larr; Older</a>
+      </li>
+      <li class="page-item disabled">
+        <a class="page-link" href="#">Newer &rarr;</a>
+      </li>
+    </ul>
+  </div> <!-- /.col-md-8 -->
 
-<!-- Announcements column -->
-<!--     {# An announcement #} -->
-<div class="col-md-4">
-  <div class="card">
-    <h5 class="card-header"><a href="{% url 'about_physionet' %}">Latest News</a></h5>
+  <!-- Announcements column -->
+  <!--     {# An announcement #} -->
+  <div class="col-md-4">
+    <div class="card">
+      <h5 class="card-header"><a href="{% url 'about_physionet' %}">Latest News</a></h5>
 
       <!-- START ITEM -->
       <div class="card-body">
@@ -122,10 +119,8 @@ PhysioNet
       <!-- END ITEM -->
 
     </div>
-  </div>
-</div>
+  </div> <!-- /.col-md-4 -->
 
-</div>
 </div> <!-- /.row -->
 </div> <!-- /.container -->
 
