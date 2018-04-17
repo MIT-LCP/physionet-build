@@ -3,17 +3,282 @@
 {% load static %}
 
 {% block title %}
-PhysioNet
+About PhysioNet
 {% endblock %}
 
 
 {% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/about.css' %}"/>
 {% endblock %}
 
 
 {% block content %}
-<div class="container">
-    <h1>About Physionet</h1>
-    <p>We hope you enjoy your stay</p>
-</div>
+
+<section id="about">
+  <div class="container">
+      <div class="row">
+        <div class="col-lg-12">
+          <h2 class="section-heading text-center">PhysioNet</h2>
+          <h3 class="section-subheading text-muted text-center">The research resource for complex physiological data.</h3>
+          <p>PhysioNet is a distribution and <a href="{% url 'author_guidelines' %}">publishing</a> platform for physiologic <a href="{% url 'data' %}">data</a> and <a href="{% url 'software' %}">software</a>. It hosts large volumes of open-access and protected resources, and facilitates cooperative analysis of data, evaluation of algorithms, and the free open dissemination of information.</p>
+
+          <p>In cooperation with the annual <a href="http://www.cinc.org/" target="_blank">Computing in Cardiology</a> conference, PhysioNet also hosts an annual series of <a href="{% url 'challenge' %}">challenges</a>, in which researchers address unsolved problems of clinical or basic scientific interest using data and software provided by PhysioNet.</p>
+
+          <p>Researchers are increasingly seeking to deposit and share data through PhysioNet. Demand has been driven by the rising recognition of the importance of open data, coupled with journals such as <a href="https://www.nature.com/sdata/policies/repositories#healthsci" target="_blank">Nature Scientific Data</a> including PhysioNet as a recommended repository for health data.</p>
+
+          <p>By providing data curation and custom access requirements, which are often required when dealing with sensitive health data, PhysioNet provides a great platform for publishing content. By sharing common data sets, and software in source form, the research community benefits from access to materials that have been rigorously scrutinized by many investigators. We invite researchers to <a href="{% url 'create_project' %}">contribute</a> data and software. Please review our <a href="{% url 'author_guidelines' %}">author guidelines</a> before submitting material.</p>
+        </div>
+      </div>
+  </div>
+</section>
+
+
+<section class="bg-light" id="funding">
+  <div class="container">
+      <div class="row">
+        <div class="col-lg-12">
+          <h2 class="section-heading text-center">Funding</h2>
+          <p>PhysioNet was originally established under the auspices of the NIH's National Center for Research Resources, which was abolished in 2011. PhysioNet has been funded since September 2007 under a cooperative agreement with the NIH's <a href="https://www.nibib.nih.gov/" target="_blank">National Institute of Biomedical Imaging and Bioengineering</a>, and the <a href="http://www.nigms.nih.gov/" target="_blank">National Institute of General Medical Sciences</a>, under grant number: <em>2R01GM104987-09</em>.</p>
+          <p>With the rapid explosion of data volume, our operating costs have grown immensely. If you would like to support our mission, please consider <a href="#">making a donation</a> to Physionet, or contributing to one of our <a href="https://github.com/MIT-LCP/" target="_blank">open source projects</a>.</p>
+        </div>
+      </div>
+  </div>
+</section>
+
+
+<!-- About -->
+<section id="about">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12 text-center">
+        <h2 class="section-heading">A Brief History</h2>
+        <h3 class="section-subheading text-muted">Foundation, growth and impact.</h3>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-lg-12">
+        <ul class="timeline">
+          <li>
+            <div class="timeline-image">
+              <img class="mx-auto rounded-circle img-fluid" src="{% static 'about/mitdb.jpg' %}" alt="">
+            </div>
+            <div class="timeline-panel">
+              <div class="timeline-heading">
+                <h4>1980</h4>
+                <h4 class="subheading">Landmark Database</h4>
+              </div>
+              <div class="timeline-body">
+                <p>In the mid-1970s, members of the PhysioNet team who were then working on some of the first microcomputer-based instruments for cardiac arrhythmia monitoring, foresaw the usefulness of establishing shared databases of well-characterized ECG recordings, as a basis for evaluation, and objective comparison of algorithms for automated arrhythmia analysis. A five-year effort culminated in the publication of the MIT-BIH Arrhythmia Database in 1980, which soon became the standard reference collection of its type.</p>
+              </div>
+            </div>
+          </li>
+          <li class="timeline-inverted">
+            <div class="timeline-image">
+              <img class="mx-auto rounded-circle img-fluid" src="{% static 'about/physionet-old-logo.jpg' %}" alt="">
+            </div>
+            <div class="timeline-panel">
+              <div class="timeline-heading">
+                <h4>1999</h4>
+                <h4 class="subheading">PhysioNet is Released</h4>
+              </div>
+              <div class="timeline-body">
+                <p> PhysioNet was established in 1999 as the outreach component of the Research Resource for Complex Physiologic Signals, a cooperative project initiated by a diverse group of scientists and clinicians at Boston's Beth Israel Deaconess Medical Center, Boston University, and McGill University, and the MIT group.</p>
+                <br>
+                <p>The MIT group contributed its 11 databases, and the software it had developed for exploring and analyzing them, to establish PhysioBank and PhysioToolkit. Free availability of these resources catalyzed an even greater explosion of interest in them, as researchers worldwide who had no previous access to such data or software began new programs of research. These initial contributions were quickly supplemented by additional collections of data and software from their collaborators, and soon after, from many researchers worldwide.</p>
+              </div>
+            </div>
+          </li>
+          <li>
+            <div class="timeline-image">
+              <img class="mx-auto rounded-circle img-fluid" src="{% static 'about/cinc.jpg' %}" alt="">
+            </div>
+            <div class="timeline-panel">
+              <div class="timeline-heading">
+                <h4>2000</h4>
+                <h4 class="subheading">Computing in Cardiology</h4>
+              </div>
+              <div class="timeline-body">
+                <p>Members of the PhysioNet team at MIT were preparing to host <a href="http://www.cinc.org/" target="_blank">Computing in Cardiology</a> 2000, and created the first PhysioNet/CinC Challenge. They hoped to introduce PhysioNet to international colleagues, by encouraging participation in an activity that made effective use of PhysioNet's resources to stimulate rapid progress on an unsolved problem of practical clinical significance. More than a dozen teams participated in the challenge of detecting sleep apnea from the ECG, and an <a href="{% url 'challenge' %}">annual tradition</a> was born.</p>
+              </div>
+            </div>
+          </li>
+          <li class="timeline-inverted">
+            <div class="timeline-image">
+              <img class="mx-auto rounded-circle img-fluid" src="{% static 'favicon.ico' %}" alt="">
+            </div>
+            <div class="timeline-panel">
+              <div class="timeline-heading">
+                <h4>2018</h4>
+                <h4 class="subheading">New Web Platform</h4>
+              </div>
+              <div class="timeline-body">
+                <p>New members of the LCP build a modern dynamic PhysioNet platform using <a href="https://www.djangoproject.com/" target="_blank">Django</a>. Work is continually ongoing to improve the site's capabilities.</p>
+              </div>
+            </div>
+          </li>
+          <li>
+            <div class="timeline-image">
+              <img class="mx-auto rounded-circle img-fluid" src="{% static 'about/future.jpg' %}" alt="">
+            </div>
+            <div class="timeline-panel">
+              <div class="timeline-heading">
+                <h4>Looking Forward</h4>
+                <h4 class="subheading">Open Science</h4>
+              </div>
+              <div class="timeline-body">
+                <p>PhysioNet today hosts over 90 public databases, a variety of software tools, and the annual challenge. An immense number of of global visitors leverage its resources, producing more scientific and industrial development than the individual data/software contributors ever could alone.</p>
+                <br>
+                <p>The future of science relies on new findings to grow upon past research. Unfortunately, the literature has been polluted with flawed studies, resulting in the <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1182327/" target="_blank">reproducibility crisis</a>, which is especially acute in medical research and psychology.</p>
+                <br>
+                <p>Give legitimacy to your studies, let the world leverage your resources, and help us work towards a better scientific future, by <a href="{% url 'create_project' %}">publishing</a> your code and data on PhysioNet.</p>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Team -->
+<section class="bg-light" id="team">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-12 text-center">
+          <h2 class="section-heading">The PhysioNet Team</h2>
+          <h3 class="section-subheading text-muted">PhysioNet is managed by members of MIT's <a href="http://lcp.mit.edu/" target="_blank">MIT Laboratory for Computational Physiology</a> <a href="https://github.com/MIT-LCP/" target="_blank" style="text-decoration: none; color: #000000;"><i class="fab fa-github"></i></a>.</h3>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-4">
+          <div class="team-member">
+            <img class="mx-auto rounded-circle" src="{% static 'about/physionet-old-logo.jpg' %}" alt="">
+            <h4>Roger Mark</h4>
+            <p class="text-muted">Role description</p>
+            <ul class="list-inline social-buttons">
+              <li class="list-inline-item">
+                <a href="#">
+                  <i class="fab fa-github"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a href="#">
+                  <i class="fab fa-playstation"></i>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-sm-4">
+          <div class="team-member">
+            <img class="mx-auto rounded-circle" src="{% static 'about/physionet-old-logo.jpg' %}" alt="">
+            <h4>Felipe Torres</h4>
+            <p class="text-muted">Role description</p>
+            <ul class="list-inline social-buttons">
+              <li class="list-inline-item">
+                <a href="#">
+                  <i class="fab fa-github"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a href="#">
+                  <i class="fab fa-playstation"></i>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-sm-4">
+          <div class="team-member">
+            <img class="mx-auto rounded-circle" src="{% static 'about/physionet-old-logo.jpg' %}" alt="">
+            <h4>Benjamin Moody</h4>
+            <p class="text-muted">Role description</p>
+            <ul class="list-inline social-buttons">
+              <li class="list-inline-item">
+                <a href="#">
+                  <i class="fab fa-github"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a href="#">
+                  <i class="fab fa-playstation"></i>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="row">
+        <div class="col-sm-4">
+          <div class="team-member">
+            <img class="mx-auto rounded-circle" src="{% static 'about/physionet-old-logo.jpg' %}" alt="">
+            <h4>Chen Xie</h4>
+            <p class="text-muted">Role description</p>
+            <ul class="list-inline social-buttons">
+              <li class="list-inline-item">
+                <a href="#">
+                  <i class="fab fa-github"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a href="#">
+                  <i class="fab fa-playstation"></i>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-sm-4">
+          <div class="team-member">
+            <img class="mx-auto rounded-circle" src="{% static 'about/physionet-old-logo.jpg' %}" alt="">
+            <h4>Liwei Lehman</h4>
+            <p class="text-muted">Role description</p>
+            <ul class="list-inline social-buttons">
+              <li class="list-inline-item">
+                <a href="#">
+                  <i class="fab fa-github"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a href="#">
+                  <i class="fab fa-playstation"></i>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-sm-4">
+          <div class="team-member">
+            <img class="mx-auto rounded-circle" src="{% static 'about/physionet-old-logo.jpg' %}" alt="">
+            <h4>Tom Pollard</h4>
+            <p class="text-muted">Role description</p>
+            <ul class="list-inline social-buttons">
+              <li class="list-inline-item">
+                <a href="#">
+                  <i class="fab fa-github"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a href="#">
+                  <i class="fab fa-playstation"></i>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+
+      </div>
+
+
+      <div class="row">
+        <div class="col-lg-8 mx-auto text-center">
+          <p class="large text-muted">If you would like to join our team, allow yourself to succumb to the influence of the hypnotoad.</p>
+        </div>
+      </div>
+    </div>
+</section>
 {% endblock %}

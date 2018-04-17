@@ -12,11 +12,9 @@ urlpatterns = [
     url(r'^about/author-guidelines/$', views.author_guidelines, name='author_guidelines'),
 
     # about pages
-    url(r'^about/about-physionet/$', views.about_physionet, name='about_physionet'),
+    url(r'^about/physionet/$', views.about_physionet, name='about_physionet'),
     url(r'^about/faq/$', views.faq, name='faq'),
 
-    url(r'^about/our-team/$', views.our_team, name='our_team'),
-    url(r'^about/funding/$', views.funding, name='funding'),
 
     # contact pages
     url(r'^about/contact/$', views.contact, name='contact'),
