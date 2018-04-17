@@ -19,6 +19,9 @@ from django.core.management.base import BaseCommand
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
+        if os.environ['DJANGO_SETTINGS_MODULE'] != 'physionet.settings.development':
+            raise Exception('This command should only be called in a development environment')
+
         project_apps = ['user', 'project']
         clear_db(project_apps)
         load_fixtures(project_apps)
