@@ -14,143 +14,114 @@ PhysioNet
 
 {% block content %}
 
-<header class="masthead bg-primary text-white text-center mb-4">
-  <div class="container mb-4">
-    <img class="img-fluid d-block mx-auto" src="{% static 'about/physionet-logo.svg' %}" alt="">
-    <h1 class="mb-4"><strong>PhysioNet</strong>
-    <br><small>The resource for complex physiological data</small>
-    </h1>
-    <br>
+<div class="container">
+
+<!-- Header row -->
+<div class="row">
+
+  <!-- PhysioNet logo -->
+  <div class="col-sm-8">
+    <img class="img-fluid d-block mx-left" src="{% static 'about/logo.png' %}" alt="">
   </div>
-</header>
 
-    <!-- Page Content -->
-    <div class="container">
-
-      <div class="row">
-        <!-- Recent publications column -->
-        <div class="col-md-8">
-          <h1>Recent Announcements</h1>
-
-          {# An announcement #}
-          <hr>
-          <h2 class="card-title"><a href="">PhysioNet/CinC Challenge 2018</a></h2>
-          <p><a class="text-muted">March 20, 2018</a></p>
-          <p class="card-text">The 2018 PhysioNet/Computing in Cardiology Challenge is now open. This year's Challenge, "You Snooze, You Win", is focused on the problem of automatically detecting disturbances in a patient's sleep. Given a collection of physiological signals recorded during sleep, including EEG, ECG, and EMG, participants are invited to develop an algorithm to automatically identify arousal events, and will be scored based on how well their algorithm's results agree with those of expert human annotators.</p>
-
-          <hr>
-          <h2 class="card-title"><a href="">MIMIC Chest-Xrays Released</a></h2>
-          <p><a class="text-muted">February 18, 2018</a></p>
-          <p class="card-text">We have created a deidentified set of chest x-rays with associated radiology reports from patients admitted to the BIDMC. The data was collected between 2011-2016, and comprises over 500,000 images corresponding to 200,000 studies. Custom code was written to remove PHI from both the image meta data and from the image itself, obscuring the data with black boxes. Manual review of approximately 5,000 images discovered no PHI..</p>
-
-          <hr>
-          <h2 class="card-title"><a href="">New eICU Collaborative Database Tables</a></h2>
-          <p><a class="text-muted">January 09, 2018</a></p>
-          <p class="card-text">Seven new concept tables have been normalized and released for the eICU Collaborative Research Database, a large multi-center critical care database made available by Philips Healthcare in partnership with the MIT Laboratory for Computational Physiology.</p>
-
-
-        </div>
-
-        <!-- Sidebar Widgets Column -->
-        <div class="col-md-4">
-          <!-- Side Widget -->
-          <div class="card my-4">
-            <h5 class="card-header"><a href="{% url 'about_physionet' %}">About PhysioNet</a></h5>
-            <div class="card-body">
-              PhysioNet is a distribution and <a href="{% url 'author_guidelines' %}">publishing</a> platform for physiologic <a href="{% url 'data' %}">data</a> and <a href="{% url 'software' %}">software</a>. It hosts large volumes of open-access and protected resources, and facilitates cooperative analysis of data, evaluation of algorithms, and the free open dissemination of information.
-            </div>
-          </div>
-
-          <!-- Search Widget -->
-          <div class="card my-4">
-            <h5 class="card-header">Search</h5>
-            <div class="card-body">
-              <div class="input-group">
-                <input type="text" class="form-control" placeholder="Search for...">
-                <span class="input-group-btn">
-                  <button class="btn btn-secondary" type="button">Go!</button>
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div class="card my-4">
-            <h5 class="card-header">Connect</h5>
-            <div class="card-body">
-              <div class="row">
-                <div class="col-lg-6">
-                  <ul class="list-unstyled mb-0">
-                    <li>
-                      <a href="https://github.com/MIT-LCP/" target="_blank" style="text-decoration: none; color: #000000;"><i class="fab fa-github"></i> Github</a>
-                    </li>
-                    <li>
-                      <a href="#" target="_blank" style="text-decoration: none; color: #000000;"><i class="fab fa-twitter"></i> Twitter</a>
-                    </li>
-                  </ul>
-                </div>
-                <div class="col-lg-6">
-                  <ul class="list-unstyled mb-0">
-                    <li>
-                      <a href="#" target="_blank" style="text-decoration: none; color: #000000;"><i class="fa fa-envelope"></i> Email List</a>
-                    </li>
-                    <li>
-                      <a href="{% url 'contact' %}" target="_blank" style="text-decoration: none; color: #000000;"><i class="fa fa-comments"></i> Contact Us</a>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Recent Publications  -->
-        <div class="col-md-12">
-          <hr>
-          <br>
-          <h1>Recent Publications</h1>
-          <hr>
-
-          {# A publication #}
-          <h2 class="card-title"><a href="">Sleep Bioradiolocation Database</a></h2>
-          <p><a class="text-muted">March 14, 2018</a></p>
-          <p class="card-text">The database contains 32 records of non-contact sleep monitoring by a bioradar. The records are accompanied by results of sleep scoring, based on polysomnography according to the rules of the American Academy of Sleep Medicine.</p>
-          <hr>
-
-          <h2 class="card-title"><a href="">CHARIS Database</a></h2>
-          <p><a class="text-muted">March 08, 2018</a></p>
-          <p class="card-text">The CHARIS database contains multi-channel recordings of ECG, arterial blood pressure (ABP), and intracranial pressure (ICP) of patients diagnosed with traumatic brain injury (TBI). The data is contributed by members of the CHARIS project which aims to systematize the analysis of relevant physiological signals, and create data-driven algorithms to search for potential predictors of acute clinical events for patients with acute brain injury. A description of the dataset and its collection methods are described in Trending autoregulatory indices during treatment for traumatic brain injury.</p>
-          <hr>
-
-          <h2 class="card-title"><a href="">Long Term Movement Monitoring Database</a></h2>
-          <p><a class="text-muted">March 01, 2018</a></p>
-          <p class="card-text">Contains 3-day 3D accelerometer recordings of 71 elder community residents, used to study gait, stability, and fall risk. The dataset and its collection methods are described in Does the Evaluation of Gait Quality During Daily Life Provide Insight Into Fall Risk? : A Novel Approach Using 3-Day Accelerometer Recordings.</p>
-          <hr>
-
-          <h2 class="card-title"><a href="">Squid Giant Axon Membrane Potential</a></h2>
-          <p><a class="text-muted">February 26, 2018</a></p>
-          <p class="card-text">Single-unit neuronal recordings of squid giant axons in response to stimulus currents. The membrane potential and stimulus current are given for a total of 170 trials across 8 different axons. The dataset and its collection methods are described in Noisy Inputs and the Induction of On-Off Switching Behavior in a Neuronal Pacemaker.</p>
-          <hr>
-
-          <h2 class="card-title"><a href="">Multiscale Poincare Plots</a></h2>
-          <p><a class="text-muted">February 15, 2018</a></p>
-          <p class="card-text">The Multiscale Poincare Plots package contains MATLAB scripts used to visualize time series by plotting Poincare plots of the original signal course grained at multiple time scales.</p>
-          <hr>
-        </div>
-
-                  <!-- Pagination -->
-          <ul class="pagination justify-content-center mb-4">
-            <li class="page-item">
-              <a class="page-link" href="#">&larr; Older</a>
-            </li>
-            <li class="page-item disabled">
-              <a class="page-link" href="#">Newer &rarr;</a>
-            </li>
-          </ul>
-
+  <!-- About PhysioNet -->
+  <div class="col-sm-4">
+    <div class="card">
+      <h5 class="card-header"><a href="{% url 'about_physionet' %}">About PhysioNet</a></h5>
+      <div class="card-body">
+        PhysioNet is an international repository of medical and physiological data. The site hosts large volumes of open-access and protected resources that underpin scientific research studies. <a href=#>Submit your data for publication</a>.
       </div>
-      <!-- /.row -->
+    </div>
+  </div>
+
+</div> <!-- /.row -->
+
+<div class="row">
+
+<!-- Publications column -->
+<!-- {# A publication #} -->
+  <div class="col-md-8">
+    <br>
+    <h1>Recent Publications</h1>
+    <hr>
+
+    <!-- START ITEM -->
+    <h2 class="card-title"><a href="">Sleep Bioradiolocation Database</a></h2>
+    <p><a class="text-muted">March 14, 2018</a></p>
+    <p class="card-text">The database contains 32 records of non-contact sleep monitoring by a bioradar. The records are accompanied by results of sleep scoring, based on polysomnography according to the rules of the American Academy of Sleep Medicine. <a href = #>Read more</a>.</p>
+    <!-- END ITEM -->
+
+    <!-- START ITEM -->
+    <h2 class="card-title"><a href="">CHARIS Database</a></h2>
+    <p><a class="text-muted">March 08, 2018</a></p>
+    <p class="card-text">The CHARIS database contains multi-channel recordings of ECG, arterial blood pressure (ABP), and intracranial pressure (ICP) of patients diagnosed with traumatic brain injury (TBI). The data is contributed by members of the CHARIS project which aims to systematize the analysis of relevant physiological signals. <a href = #>Read more</a>.</p>
+    <!-- END ITEM -->
+
+
+    <!-- START ITEM -->
+    <h2 class="card-title"><a href="">Long Term Movement Monitoring Database</a></h2>
+    <p><a class="text-muted">March 01, 2018</a></p>
+    <p class="card-text">Contains 3-day 3D accelerometer recordings of 71 elder community residents, used to study gait, stability, and fall risk. The dataset and its collection methods are described in Does the Evaluation of Gait Quality During Daily Life Provide Insight Into Fall Risk? <a href = #>Read more</a>.</p>
+    <!-- END ITEM -->
+
+    <!-- START ITEM -->
+    <h2 class="card-title"><a href="">Squid Giant Axon Membrane Potential</a></h2>
+    <p><a class="text-muted">February 26, 2018</a></p>
+    <p class="card-text">Single-unit neuronal recordings of squid giant axons in response to stimulus currents. The membrane potential and stimulus current are given for a total of 170 trials across 8 different axons. The dataset and its collection methods are described in Noisy Inputs and the Induction of On-Off Switching Behavior. <a href = #>Read more</a>.</p>
+    <!-- END ITEM -->
+
+    <!-- START ITEM -->
+    <h2 class="card-title"><a href="">Multiscale Poincare Plots</a></h2>
+    <p><a class="text-muted">February 15, 2018</a></p>
+    <p class="card-text">The Multiscale Poincare Plots package contains MATLAB scripts used to visualize time series by plotting Poincare plots of the original signal course grained at multiple time scales. <a href = #>Read more</a>.</p>
+    <!-- END ITEM -->
+    <hr>
+
+    <!-- Pagination -->
+    <ul class="pagination justify-content-center">
+      <li class="page-item">
+        <a class="page-link" href="#">&larr; Older</a>
+      </li>
+      <li class="page-item disabled">
+        <a class="page-link" href="#">Newer &rarr;</a>
+      </li>
+    </ul>
+  </div> <!-- /.col-md-8 -->
+
+  <!-- Announcements column -->
+  <!--     {# An announcement #} -->
+  <div class="col-md-4">
+    <div class="card">
+      <h5 class="card-header"><a href="{% url 'about_physionet' %}">Latest News</a></h5>
+
+      <!-- START ITEM -->
+      <div class="card-body">
+        <h5 class="card-title"><a href="">PhysioNet/CinC Challenge 2018</a></h5>
+        <p><a class="text-muted">March 20, 2018</a></p>
+        <p class="card-text">The 2018 PhysioNet/Computing in Cardiology Challenge is now open! This year's Challenge, "You Snooze, You Win", is focused on the problem of automatically detecting disturbances in a patient's sleep. <a href = #>Read more</a>.</p>
+      </div>
+      <!-- END ITEM -->
+
+      <!-- START ITEM -->
+      <div class="card-body">
+        <h5 class="card-title"><a href="">Chest X-Rays</a></h5>
+        <p><a class="text-muted">February 21, 2018</a></p>
+        <p class="card-text">We have created a deidentified set of chest x-rays with associated radiology reports from patients admitted to the BIDMC. The data was collected between 2011-2016, and comprises over 500,000 images corresponding to 200,000 studies. <a href = #>Read more</a>.</p>
+      </div>
+      <!-- END ITEM -->
+
+      <!-- START ITEM -->
+      <div class="card-body">
+        <h5 class="card-title"><a href="">New eICU Tables</a></h5>
+        <p><a class="text-muted">January 09, 2018</a></p>
+        <p class="card-text">Seven new concept tables have been normalized and released for the eICU Collaborative Research Database, a large multi-center critical care database made available by Philips Healthcare in partnership with the MIT Laboratory for Computational Physiology. <a href = #>Read more</a>.</p>
+      </div>
+      <!-- END ITEM -->
 
     </div>
-    <!-- /.container -->
+  </div> <!-- /.col-md-4 -->
+
+</div> <!-- /.row -->
+</div> <!-- /.container -->
+
 {% endblock %}
