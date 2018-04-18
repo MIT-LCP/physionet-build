@@ -6,6 +6,27 @@
 - `uwsgi_params`: Generic parameters for uWSGI.
 - `post-receive`: The post-receive hook that runs in the bare repository in the staging/production servers.
 
+# Development Workflow
+
+## Servers
+
+- Development: Done on local developer machines.
+- Staging server: For staging changes before they are applied to production. Aims to replicate the production environment. Hosts the `pn-staging` remote bare repository. Accessed through url: `staging.physionet.org`. Available through internal network only.
+- Production server: For live production. Hosts the `pn-production` remote bare repository. Accessed through `beta.physionet.org` or `physionet.org` when ready. Initially available through internal network only.
+
+## Git Branches
+
+- `<new feature branch>`: make a branch off the `dev` branch to begin implementing a feature or fix.
+- `dev`: the branch with the latest development features, accepted by all developers, run locally.
+- `staging`: stable version of the code, run against replication of the live database.
+- `production`: stable version of the code, run against live database.
+
+## Workflow
+
+- Pull requests are made against the `dev` branch on Github to introduce bug fixes, new functionality. These are merged manually after review and automated tests against a test database. Merging to `dev` triggers a pull request to the `staging` branch.
+- Merge the `dev` branch into the `staging` branch via pull request on Github, following a successful merge into `dev`. Push the `staging` branch to the staging server. Run tests on, and inspect the staging server. If errors are found, revert to the previous stable staging state.
+- When the changes appear stable on the staging server, the `staging` branch is manually merged with the `production` branch via pull request on Github. Push the `production` branch to the production server. If errors are found, revert to the previous stable production state.
+
 # Initial Server Setup
 
 Run these commands once only, on the staging and production servers.
