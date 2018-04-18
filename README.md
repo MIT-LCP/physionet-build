@@ -10,8 +10,9 @@ Dev branch: [![Run Status](https://api.shippable.com/projects/59e7d1baaf0a170700
 - Install python packages in `requirements.txt`.
 - Install sqlite3: `sudo apt-get install sqlite3`.
 - Activate virtual python environment.
-- Within the `physionet-django` directory, run: `python manage.py resetdb` to reset the database and load demo data.
-- Within the `physionet-django` directory, run: `python manage.py runserver`.
+- Within the `physionet-django` directory, run: `python manage.py resetdb` to reset the database.
+- Within the `physionet-django` directory, run: `python manage.py runserver`,
+  or `python manage.py testdemoserver` to run the server with demo data.
 
 ## Contribution Guidelines
 
