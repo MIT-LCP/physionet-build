@@ -1,9 +1,10 @@
 # Directory File Content
 
-- `physionet.sock` : The socket file uWSGI and nginx use to communicate.
-- `physionet_nginx.conf` : The nginx configuration file for the PhysioNet site.
-- `physionet_uwsgi.ini` : Initialization file for uWSGI.
-- `uwsgi_params` : Generic parameters for uWSGI.
+- `physionet.sock`: The socket file uWSGI and nginx use to communicate.
+- `physionet_nginx.conf`: The nginx configuration file for the PhysioNet site.
+- `physionet_uwsgi.ini`: Initialization file for uWSGI.
+- `uwsgi_params`: Generic parameters for uWSGI.
+- `post-receive`: The post-receive hook that runs in the bare repository in the staging/production servers.
 
 # Initial Server Setup
 
@@ -11,6 +12,7 @@ Run these commands once only, on the staging and production servers.
 
 ## System Packages
 
+Run as root:
 ```
 apt-get update
 apt-get install -y python3-dev python3-pip build-essential libpq-dev postgresql postgresql-contrib nginx
@@ -18,6 +20,14 @@ apt-get install upgrade
 pip3 install --upgrade pip
 pip3 install virtualenv uwsgi
 ```
+
+## Dedicated User
+
+Create a user for the site. They should own all the site's files, and all interactions with the site should be run by them.
+
+Append this to their `.bashrc` for when you need to to manually run management commands:
+
+`export DJANGO_SETTINGS_MODULE=physionet.settings.<staging OR production>`
 
 ## Postgres Database Setup
 
@@ -51,30 +61,7 @@ virtualenv -p/usr/bin/python3 physionet
 scp <somewhere>/.env /physionet/physionet-build/
 ```
 
-Create the `post-receive` file in the bare repository's `hooks` directory:
-
-```
-#!/bin/bash
-destination=/physionet/physionet-build/
-echo "Deploying into $destination"
-GIT_WORK_TREE=$destination git checkout --force <staging OR production>
-
-echo "Updating content"
-export DJANGO_SETTINGS_MODULE=physionet.settings.<staging OR production>
-cd $destination
-source /physionet/python-env/physionet/bin/activate
-pip install -r requirements.txt
-cd physionet-django
-python manage.py collectstatic --noinput
-python manage.py makemigrations
-python manage.py migrate
-touch physionet/wsgi.py
-
-echo "Done"
-
-```
-
-Ensure it is executable:
+Add the `post-receive` file to the bare repository's `hooks` directory. Ensure it is executable:
 
 `chmod +x post-receive`
 
