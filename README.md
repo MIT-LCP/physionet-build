@@ -20,7 +20,7 @@ Dev branch: [![Run Status](https://api.shippable.com/projects/59e7d1baaf0a170700
 - Write tests for your code where possible (see "Testing" section below). Confirm that all tests pass before making a pull request.
 - Make a pull request to the `dev` branch with a clear title and description of the changes. Tips for a good pull request: http://blog.ploeh.dk/2015/01/15/10-tips-for-better-pull-requests/
 
-## Testing  
+## Testing
 
 - Unit tests for each app are kept in their `test*.py` files.
 - To run the unit tests, change to the `physionet-django` directory and run `python manage.py test`.
@@ -28,12 +28,11 @@ Dev branch: [![Run Status](https://api.shippable.com/projects/59e7d1baaf0a170700
 
 ## Database Content During Development
 
-During development, before the database contains any real data, the following workflow is applied for convenience:
-
+During development, the following workflow is applied for convenience:
 - The database engine is sqlite3. The db.sqlite3 file will not be tracked by git, and hence will not be uploaded and shared between developers
 - Database migration files will not be tracked by git. Sequential migrations are not applied. Instead, every time a batch of content is to be changed or added, the database file and migration history are deleted, and the demo data is reimported
-- Demo model instances will be specified in json files in the `fixtures` subdirectory of each app. Example file: `<BASE_DIR>/<appname>/fixtures/<appname>.json`
+- Demo model instances will be specified in json files in the `fixtures` subdirectory of each app. Example file: `<BASE_DIR>/<appname>/fixtures/demo-<appname>.json`
 
-To conveniently obtain a clean database populated with demo data, run:`python manage.py resetdb`
+To conveniently obtain a clean database with the latest applied migrations, run:`python manage.py resetdb`. This does not populate the database with any data.
 
 There will be a vastly different workflow during actual deployment, when migrations are to be sequentially applied and tracked, and data is to be kept.
