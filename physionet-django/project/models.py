@@ -274,7 +274,6 @@ def setup_project(sender, **kwargs):
     os.mkdir(project.file_root())
 
 @receiver(pre_delete, sender=Project)
-@new_creation
 def cleanup_project(sender, **kwargs):
     """
     Before a Project is deleted:
@@ -283,8 +282,13 @@ def cleanup_project(sender, **kwargs):
     project = kwargs['instance']
 
     # Delete file directory
-    shutil.rmtree(project.file_root())
+    project_root = project.file_root()
+    if os.path.islink(project_root):
+        os.remove(project_root)
+    elif os.path.isdir(project_root):
+        shutil.rmtree(project_root)
 
+    print('deleted')
 
 class PublishedProject(Metadata):
     """

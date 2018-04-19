@@ -12,6 +12,7 @@ Reference: https://code.djangoproject.com/ticket/23833
 
 """
 import os
+import shutil
 import sys
 
 from django.conf import settings
@@ -52,6 +53,8 @@ class Command(BaseCommand):
         call_command('makemigrations')
         call_command('migrate')
 
+        # Remove the project files
+        clear_directory(os.path.join(settings.MEDIA_ROOT, 'projects'))
 
 def remove_migration_files(app):
     """
@@ -63,3 +66,15 @@ def remove_migration_files(app):
         migration_files = [file for file in os.listdir(app_migrations_dir) if file != '__init__.py' and file.endswith('.py')]
         for file in migration_files:
             os.remove(os.path.join(app_migrations_dir, file))
+
+def clear_directory(directory):
+    """
+    Delete everything in a directory
+
+    """
+    for item in os.listdir(directory):
+        item = os.path.join(directory, item)
+        if os.path.isdir(item):
+            shutil.rmtree(item)
+        else:
+            os.remove(item)
