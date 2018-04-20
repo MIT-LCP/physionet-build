@@ -19,6 +19,8 @@ from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
+from project.models import Project
+
 
 class Command(BaseCommand):
 
@@ -35,6 +37,8 @@ class Command(BaseCommand):
             print('Continuing reset')
 
         project_apps = ['user', 'project']
+        # Delete the project objects so that their directories get cleared
+        Project.objects.all().delete()
 
         # Remove data from all tables. Tables are kept.
         call_command('flush', interactive=False, verbosity=1)
@@ -53,8 +57,6 @@ class Command(BaseCommand):
         call_command('makemigrations')
         call_command('migrate')
 
-        # Remove the project files
-        clear_directory(os.path.join(settings.MEDIA_ROOT, 'projects'))
 
 def remove_migration_files(app):
     """
@@ -67,14 +69,3 @@ def remove_migration_files(app):
         for file in migration_files:
             os.remove(os.path.join(app_migrations_dir, file))
 
-def clear_directory(directory):
-    """
-    Delete everything in a directory
-
-    """
-    for item in os.listdir(directory):
-        item = os.path.join(directory, item)
-        if os.path.isdir(item):
-            shutil.rmtree(item)
-        else:
-            os.remove(item)
