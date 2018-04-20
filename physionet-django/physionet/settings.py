@@ -160,8 +160,7 @@ CKEDITOR_CONFIGS = {
     'default': {
         'toolbar': 'Custom',
         'toolbar_Custom': [
-            ['Bold', 'Italic'
-            , 'Underline'],
+            ['Bold', 'Italic', 'Underline'],
             ['NumberedList', 'BulletedList', '-'],
             ['Link', 'Unlink'],
             ['RemoveFormat']
@@ -171,3 +170,20 @@ CKEDITOR_CONFIGS = {
 
 # Size limit for individual files being uploaded to projects
 project_file_individual_limit = 100 * 1024**2
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+        },
+    },
+}
