@@ -15,7 +15,7 @@
     Created {{ project.creation_datetime }} Modified {{ project.modified_datetime }}
 </p>
 <p>
-    Submitting Author: <a href="{% url 'public_profile' project.submitting_author.username %}">{{ project.submitting_author }}</a>
+    Submitting Author: <a href="{% url 'public_profile' project.submitting_author.username %}">{{ project.submitting_author.profile }}</a>
 </p>
 <hr>
 

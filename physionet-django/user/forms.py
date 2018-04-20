@@ -11,7 +11,7 @@ class AssociatedEmailChoiceForm(forms.Form):
     Ie. primary email, contact email, remove email.
     """
     associated_email = forms.ModelChoiceField(queryset=None, to_field_name='email',
-        label='email', widget=forms.Select(attrs={'class':'form-control'}))
+        label='email', widget=forms.Select(attrs={'class':'form-control custom-select'}))
 
     def __init__(self, user, include_primary=True, *args, **kwargs):
         # Email choices are those belonging to a user

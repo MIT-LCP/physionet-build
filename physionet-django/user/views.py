@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
-from django.forms import inlineformset_factory, HiddenInput
+from django.forms import inlineformset_factory, HiddenInput, CheckboxInput
 from django.shortcuts import redirect, render
 from django.template import loader
 from django.urls import reverse
@@ -91,7 +91,7 @@ def edit_emails(request):
     # Email forms to display
     AssociatedEmailFormset = inlineformset_factory(User, AssociatedEmail,
         fields=('email','is_primary_email', 'is_public'), extra=0,
-        widgets={'email': HiddenInput, 'is_primary_email':HiddenInput})
+        widgets={'email': HiddenInput, 'is_primary_email':HiddenInput, 'is_public': CheckboxInput(attrs={'class':'form-check-input-inline'})})
     associated_email_formset = AssociatedEmailFormset(instance=user,
         queryset=AssociatedEmail.objects.filter(verification_date__isnull=False))
     primary_email_form = AssociatedEmailChoiceForm(user=user, include_primary=True)

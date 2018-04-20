@@ -7,7 +7,7 @@ body {
   overflow-x: hidden; /* Prevent scroll on narrow devices */
 }
 
-.btn {
+.btn-custom {
   margin-top: 10px;
 }
 
@@ -62,7 +62,10 @@ input::placeholder {
   color: #868e96;
   opacity: 1;
 }
-
+.form-check-input-inline {
+  position: absolute;
+  margin-top: 0.25rem;
+}
 /*
  * Off Canvas
  * --------------------------------------------------
