@@ -51,9 +51,9 @@ class TestForms(TestCase):
         self.run_test_forms({'email': ['Enter a valid email address.']})
 
     def test_login_form(self):
-        self.create_test_forms(LoginForm, {'username':'admin@mit.edu','password':'Tester11!'},
-            {'username':'admin@mit.edu', 'password':'wrong'})
-        self.run_test_forms({'__all__':['Please enter a correct email and password. Note that both fields may be case-sensitive.']})
+        self.create_test_forms(LoginForm, {'username':'admin','password':'Tester11!'},
+            {'username':'admin', 'password':'wrong'})
+        self.run_test_forms({'__all__':['Please enter a correct username and password. Note that both fields may be case-sensitive.']})
 
     def test_profile_form(self):
         self.create_test_forms(ProfileForm, {'first_name':'Tester',
@@ -65,9 +65,10 @@ class TestForms(TestCase):
 
     def test_user_creation_form(self):
         self.create_test_forms(UserCreationForm, {'email':'tester0@mit.edu',
-            'first_name':'Tester', 'middle_names':'Mid', 'last_name':'Bot',
-            'password1':'Very5trongt0t@11y', 'password2':'Very5trongt0t@11y'},
-            {'email':'tester0@mit.edu', 'first_name':'', 'middle_names':'Mid',
+            'username':'The-Tester', 'first_name':'Tester', 'middle_names':'Mid', 
+            'last_name':'Bot','password1':'Very5trongt0t@11y', 
+            'password2':'Very5trongt0t@11y'},{'email':'tester0@mit.edu', 
+            'username':'bot-net', 'first_name':'', 'middle_names':'Mid',
             'last_name':'Bot', 'password1':'weakweak', 'password2':'weakweak'})
         self.run_test_forms({'first_name':['This field is required.'],
             'password2':['This password is too weak.']})
