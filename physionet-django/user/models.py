@@ -7,7 +7,6 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
 from .validators import UsernameValidator
-from django.core.validators import EmailValidator
 
 class Affiliation(models.Model):
     """
@@ -223,24 +222,3 @@ class DualAuthModelBackend(object):
             return get_user_model().objects.get(pk=username)
         except get_user_model().DoesNotExist:
             return None
-
-    # """
-    # This is a ModelBacked that allows authentication with either a username or an email address.
-    # """
-    # def authenticate(self, username=None, password=None):
-    #     if '@' in username:
-    #         kwargs = {'email': username}
-    #     else:
-    #         kwargs = {'username': username}
-    #     try:
-    #         user = get_user_model().objects.get(**kwargs)
-    #         if user.check_password(password):
-    #             return user
-    #     except User.DoesNotExist:
-    #         return None
-
-    # def get_user(self, username):
-    #     try:
-    #         return get_user_model().objects.get(pk=username)
-    #     except get_user_model().DoesNotExist:
-    #         return None
