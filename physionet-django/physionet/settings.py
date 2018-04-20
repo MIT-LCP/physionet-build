@@ -108,7 +108,13 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTHENTICATION_BACKENDS = (
+    'user.models.DualAuthModelBackend',
+    'django.contrib.auth.backends.ModelBackend'
+    )
+
 AUTH_USER_MODEL = 'user.User'
+
 
 LOGIN_URL = '/login/'
 
@@ -154,7 +160,8 @@ CKEDITOR_CONFIGS = {
     'default': {
         'toolbar': 'Custom',
         'toolbar_Custom': [
-            ['Bold', 'Italic', 'Underline'],
+            ['Bold', 'Italic'
+            , 'Underline'],
             ['NumberedList', 'BulletedList', '-'],
             ['Link', 'Unlink'],
             ['RemoveFormat']

@@ -1,10 +1,13 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+# from django.contrib.auth.backends import ModelBackend
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
-
+from .validators import UsernameValidator
+from django.core.validators import EmailValidator
 
 class Affiliation(models.Model):
     """
@@ -28,7 +31,9 @@ class UserManager(BaseUserManager):
     def create_user(self, email, password, is_active=False, first_name='',
         middle_names='', last_name=''):
         user = self.model(
-            email=self.normalize_email(email),
+            email=self.normalize_email(email.lower()),
+            username = self.normalize_username(username.lower()),
+
             is_active=is_active,
         )
 
@@ -42,8 +47,8 @@ class UserManager(BaseUserManager):
 
     def create_superuser(self, email, password, is_active=True, first_name='',
         middle_names='', last_name=''):
-        user = self.create_user(email=email, password=password,
-            is_active=is_active, first_name=first_name,
+        user = self.create_user(email=email.lower(), password=password,
+            is_active=is_active, first_name=first_name, username=username.lower(),
             middle_names=middle_names, last_name=last_name
         )
         user.is_admin = True
@@ -53,32 +58,39 @@ class UserManager(BaseUserManager):
     def get_by_natural_key(self, email):
         return self.get(email=email)
 
-
 class User(AbstractBaseUser):
     """
     The user authentication model
     """
+
     email = models.EmailField(max_length=255, unique=True)
+    username = models.CharField(max_length=150, unique=True,
+        help_text='Required. 150 characters or fewer. Letters, digits and - only.', 
+        validators=[UsernameValidator()],
+        error_messages={
+            'unique': "A user with that username already exists."})
     join_date = models.DateField(auto_now_add=True)
     last_login = models.DateTimeField(null=True, blank=True)
 
     # Mandatory fields for the default authentication backend
     is_active = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'email'
 
     def natural_key(self):
-        return (self.email,)
+        return (self.email)
 
-    def validate_unique(self, *args, **kwargs):
+    def validate_unique(self, exclude=None):
         """
         Add additional check to the non-primary AssociatedEmail objects.
         The email field in User should be in sync with primary AssociatedEmails.
         """
-        super(User, self).validate_unique(*args, **kwargs)
+        super(User, self).validate_unique(exclude=exclude)
 
-        if AssociatedEmail.objects.filter(email=self.email, is_primary_email=False):
+        if AssociatedEmail.objects.filter(email=self.email.lower(), is_primary_email=False):
+            raise ValidationError({'email':'User with this email already exists.'})
+        if User.objects.filter(email=self.email.lower()):
             raise ValidationError({'email':'User with this email already exists.'})
 
     # Mandatory methods for default authentication backend
@@ -86,7 +98,7 @@ class User(AbstractBaseUser):
         return self.profile.get_full_name()
 
     def get_short_name(self):
-        return self.email
+        return self.profile.first_name
 
     def __str__(self):
         return self.email
@@ -184,5 +196,51 @@ class Profile(models.Model):
         else:
             return ' '.join([self.first_name, self.last_name])
 
+
+
     def __str__(self):
         return self.get_full_name()
+
+class DualAuthModelBackend(object):
+    """
+    This is a ModelBacked that allows authentication with either a username or an email address.
+
+    """
+    def authenticate(self, username=None, password=None):
+        if '@' in username:
+            kwargs = {'email': username.lower()}
+        else:
+            kwargs = {'username': username.lower()}
+        try:
+            user = get_user_model().objects.get(**kwargs)
+            if user.check_password(password):
+                return user
+        except User.DoesNotExist:
+            return None
+
+    def get_user(self, username):
+        try:
+            return get_user_model().objects.get(pk=username)
+        except get_user_model().DoesNotExist:
+            return None
+
+    # """
+    # This is a ModelBacked that allows authentication with either a username or an email address.
+    # """
+    # def authenticate(self, username=None, password=None):
+    #     if '@' in username:
+    #         kwargs = {'email': username}
+    #     else:
+    #         kwargs = {'username': username}
+    #     try:
+    #         user = get_user_model().objects.get(**kwargs)
+    #         if user.check_password(password):
+    #             return user
+    #     except User.DoesNotExist:
+    #         return None
+
+    # def get_user(self, username):
+    #     try:
+    #         return get_user_model().objects.get(pk=username)
+    #     except get_user_model().DoesNotExist:
+    #         return None

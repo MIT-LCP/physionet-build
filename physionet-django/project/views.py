@@ -6,7 +6,7 @@ from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
 import os
 import re
-
+import logging
 from . import forms
 from .models import Affiliation, Author, Invitation, Project, PublishedProject, StorageRequest
 from .utility import (get_file_info, get_directory_info, get_storage_info,
@@ -17,6 +17,8 @@ from user.forms import ProfileForm
 from user.models import User
 
 import pdb
+
+logger = logging.getLogger(__name__)
 
 
 def is_admin(user, *args, **kwargs):
@@ -64,9 +66,11 @@ def get_button_id(post_keys):
 
     post_keys : keys of a form post.
     """
+    logger.error(post_keys)
     button_id = [re.findall('respond-(?P<button_id>\d+)', k) for k in post_keys]
+    logger.error(button_id)
     button_id = [i for i in button_id if i]
-
+    logger.error(button_id)
     if len(button_id) == 1:
         button_id = int(button_id[0][0])
     else:
@@ -100,12 +104,15 @@ def process_invitation_response(request, invitation_response_formset):
     """
     user = request.user
     invitation_id = get_button_id(request.POST.keys())
-
+    logger.error("YEP...")
+    logger.error(invitation_response_formset)
     # Only process the form that was submitted
     for invitation_response_form in invitation_response_formset:
+        logger.error("YEP...1")
         if (invitation_response_form.is_valid() and
                 invitation_response_form.cleaned_data['invitation_id'] == invitation_id):
             # Get the specified Invitation and response
+            logger.error("YEP...2")
             invitation = Invitation.objects.get(id=invitation_id)
             response = int(invitation_response_form.cleaned_data['response'])
             # Update the specified Invitation object, and also any other

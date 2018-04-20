@@ -26,7 +26,7 @@
 
 <hr>
 <h4>Public Emails</h4>
-<p>The email addresses shown in your <a href="{% url 'public_profile' user.email %}">public profile</a>.</p>
+<p>The email addresses shown in your <a href="{% url 'public_profile' user.username %}">public profile</a>.</p>
 <form action="{% url 'edit_emails' %}" method="post" class="form-signin">
   {% csrf_token %}
   <div class="card">

@@ -1,3 +1,4 @@
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext as _
 from zxcvbn import zxcvbn
@@ -127,3 +128,8 @@ class MixedCharacterValidator(AlphabeticRequirementValidator,
             "Your password must contain a mixture of letters, numbers, and symbols."
         )
 
+class UsernameValidator(UnicodeUsernameValidator):
+    regex = r'^[a-zA-Z0-9-]+$'
+    message = _(
+        'Enter a valid username. This value may contain only letters, '
+                "numbers, and - character.")

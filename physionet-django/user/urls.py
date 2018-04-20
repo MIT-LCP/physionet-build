@@ -57,7 +57,7 @@ urlpatterns = [
     url(r'^home/$', views.user_home, name='user_home'),
 
     # Public user profile
-    url(r'^users/(?P<email>[\w\-\.]+@[\w\-\.]+)/$', views.public_profile,
+    url(r'^users/(?P<username>[\w\-\.]+)/$', views.public_profile,
         name='public_profile'),
 
     # Just for tests

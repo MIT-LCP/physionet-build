@@ -157,11 +157,15 @@ def edit_password_complete(request):
     return render(request, 'user/edit_password_complete.html')
 
 
-def public_profile(request, email):
+def public_profile(request, username):
     """
     A user's public profile
     """
-    return render(request, 'user/public_profile.html', {'email':email})
+    if User.objects.filter(username=username).exists():
+        user = User.objects.get(username=username).get_full_name()
+    else:
+        return redirect('register')
+    return render(request, 'user/public_profile.html', {'username':user})
 
 
 def register(request):
