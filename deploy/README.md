@@ -131,7 +131,7 @@ in the file:
 ```
 #!/bin/sh -e
 
-uwsgi --emperor /etc/uwsgi/vassals --uid pn --gid pn
+uwsgi --emperor /etc/uwsgi/vassals --uid pn --gid www-data
 
 exit 0
 
