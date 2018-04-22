@@ -6,7 +6,6 @@ import os
 
 from .models import Affiliation, Author, Invitation, Project, StorageRequest
 from .utility import readable_size, list_items, list_directories
-from physionet.settings import MEDIA_ROOT
 import pdb
 
 

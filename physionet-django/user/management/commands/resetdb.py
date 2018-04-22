@@ -1,18 +1,30 @@
-from django.core.management import call_command
-from django.core.management.base import BaseCommand
+"""
+Command to:
+- delete the sqlite database
+- delete migrations
+- apply and make migrations
+- load example fixture data
+
+This should only be accessible in development environments.
+
+"""
 import os
 import shutil
 
-from physionet import settings
-from project.models import Project
+from django.conf import settings
+from django.core.management import call_command
+from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
-        installed_apps = [a for a in settings.INSTALLED_APPS if not any(noncustom in a for noncustom in ['django', 'ckeditor'])]
-        clear_db(installed_apps)
-        load_fixtures(installed_apps)
+        if os.environ['DJANGO_SETTINGS_MODULE'] != 'physionet.settings.development':
+            raise Exception('This command should only be called in a development environment')
+
+        project_apps = ['user', 'project']
+        clear_db(project_apps)
+        load_fixtures(project_apps)
 
 
 def remove_migration_files(app):
@@ -23,15 +35,15 @@ def remove_migration_files(app):
         for file in migration_files:
             os.remove(os.path.join(app_migrations_dir, file))
 
-def clear_db(installed_apps):
+def clear_db(project_apps):
     """
     Delete the database and migration files.
     Remake and reapply the migrations
     """
-    for app in installed_apps:
+    for app in project_apps:
         remove_migration_files(app)
 
-    # delete the database
+    # delete the sqlite database file
     db_file = os.path.join(settings.BASE_DIR, 'db.sqlite3')
     if os.path.isfile(db_file):
         os.remove(db_file)
@@ -41,7 +53,7 @@ def clear_db(installed_apps):
     call_command('migrate')
 
 
-def load_fixtures(installed_apps):
+def load_fixtures(project_apps):
     """
     Insert the demo content from each app's fixtures files.
 
@@ -49,5 +61,5 @@ def load_fixtures(installed_apps):
     file as they can only be attached after the triggered profiles created
     are removed.
     """
-    for app in installed_apps:
+    for app in project_apps:
         call_command('loaddata', app, verbosity=1)
