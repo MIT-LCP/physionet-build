@@ -3,7 +3,9 @@ Command to:
 - load all fixtures named 'demo-*.*'
 - create symbolic links of demo projects to projects directory
 
-This should only be called after `resetdb` is run.
+This should only be called in a clean database, such as after
+`resetdb` is run. This should generally only be used in
+development environments.
 
 """
 import os

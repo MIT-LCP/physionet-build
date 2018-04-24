@@ -6,7 +6,8 @@ Command to:
 - make migrations
 - apply migrations
 
-Does NOT load any data. This should only be used in development environments.
+Does NOT load any data. This should generally only be used in
+development environments.
 
 Reference: https://code.djangoproject.com/ticket/23833
 

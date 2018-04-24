@@ -284,11 +284,9 @@ def cleanup_project(sender, **kwargs):
     # Delete file directory
     project_root = project.file_root()
     if os.path.islink(project_root):
-        os.remove(project_root)
+        os.unlink(project_root)
     elif os.path.isdir(project_root):
         shutil.rmtree(project_root)
-
-    print('deleted')
 
 class PublishedProject(Metadata):
     """
