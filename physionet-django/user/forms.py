@@ -128,6 +128,7 @@ class UserCreationForm(forms.ModelForm):
         user = super(UserCreationForm, self).save(commit=False)
         user.set_password(self.cleaned_data['password1'])
         user.email = user.email.lower()
+        user.username = user.username.lower()
         if commit:
             user.save()
             # Save additional fields in Profile model

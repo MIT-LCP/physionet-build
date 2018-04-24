@@ -1,6 +1,7 @@
 import os
 
 from ckeditor.fields import RichTextField
+from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -9,10 +10,12 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.template.defaultfilters import slugify
 
-from physionet.settings import MEDIA_ROOT
 from .utility import get_tree_size
 
 import pdb
+
+# Size limit for individual files being uploaded to projects
+PROJECT_FILE_SIZE_LIMIT = 100 * 1024**2
 
 def new_creation(receiver_function):
     """
@@ -249,7 +252,7 @@ class Project(Metadata):
 
     def file_root(self):
         "Root directory containing the project's files"
-        return os.path.join(MEDIA_ROOT, 'projects', str(self.id))
+        return os.path.join(settings.MEDIA_ROOT, 'projects', str(self.id))
 
     def storage_used(self):
         "Total storage used in bytes"

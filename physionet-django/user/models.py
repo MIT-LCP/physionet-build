@@ -8,6 +8,10 @@ from django.dispatch import receiver
 from django.utils import timezone
 from .validators import UsernameValidator
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 class Affiliation(models.Model):
     """
     Profile affiliation
@@ -27,8 +31,8 @@ class UserManager(BaseUserManager):
     Manager object with methods to create
     User instances.
     """
-    def create_user(self, email, password, is_active=False, first_name='',
-        middle_names='', last_name=''):
+    def create_user(self, email, password, username, is_active=False,
+        first_name='', middle_names='', last_name=''):
         user = self.model(
             email=self.normalize_email(email.lower()),
             username = self.normalize_username(username.lower()),
@@ -44,14 +48,13 @@ class UserManager(BaseUserManager):
             last_name=last_name)
         return user
 
-    def create_superuser(self, email, password, is_active=True, first_name='',
-        middle_names='', last_name=''):
-        user = self.create_user(email=email.lower(), password=password,
-            is_active=is_active, first_name=first_name, username=username.lower(),
-            middle_names=middle_names, last_name=last_name
-        )
-        user.is_admin = True
+    def create_superuser(self, email, password, username):
+        user = self.model(email=email.lower(), username=username.lower(), 
+            is_active=True, is_admin=True)
+        user.set_password(password)
         user.save(using=self._db)
+        profile = Profile.objects.create(user=user, first_name='',
+            middle_names='', last_name='')
         return user
 
     def get_by_natural_key(self, email):
@@ -77,6 +80,8 @@ class User(AbstractBaseUser):
     USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'email'
 
+    REQUIRED_FIELDS = ['email']
+
     def natural_key(self):
         return (self.email)
 
@@ -91,7 +96,9 @@ class User(AbstractBaseUser):
             raise ValidationError({'email':'User with this email already exists.'})
         if User.objects.filter(email=self.email.lower()):
             raise ValidationError({'email':'User with this email already exists.'})
-
+        if User.objects.filter(username=self.username.lower()):
+            raise ValidationError({'username':'User with this username already exists.'})
+            
     # Mandatory methods for default authentication backend
     def get_full_name(self):
         return self.profile.get_full_name()
@@ -100,7 +107,7 @@ class User(AbstractBaseUser):
         return self.profile.first_name
 
     def __str__(self):
-        return self.email
+        return self.username
 
     objects = UserManager()
 
@@ -200,7 +207,7 @@ class Profile(models.Model):
     def __str__(self):
         return self.get_full_name()
 
-class DualAuthModelBackend(object):
+class DualAuthModelBackend():
     """
     This is a ModelBacked that allows authentication with either a username or an email address.
 
@@ -213,8 +220,10 @@ class DualAuthModelBackend(object):
         try:
             user = get_user_model().objects.get(**kwargs)
             if user.check_password(password):
+                logger.info('User logged in {0}'.format(user.email))
                 return user
         except User.DoesNotExist:
+            logger.error('Unsuccessful authentication {0}'.format(username.lower()))
             return None
 
     def get_user(self, username):
