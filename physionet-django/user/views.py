@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
-from django.forms import inlineformset_factory, HiddenInput
+from django.forms import inlineformset_factory, HiddenInput, CheckboxInput
 from django.shortcuts import redirect, render
 from django.template import loader
 from django.urls import reverse
@@ -15,6 +15,10 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from .forms import AssociatedEmailForm, AssociatedEmailChoiceForm, ProfileForm, UserCreationForm
 from .models import AssociatedEmail, Profile, User
 
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 def activate_user(request, uidb64, token):
     """
@@ -32,8 +36,10 @@ def activate_user(request, uidb64, token):
         email = user.associated_emails.first()
         email.verification_date = timezone.now()
         email.save()
+        logger.info('User activated - {0}'.format(user.email))
         context = {'title':'Activation Successful', 'isvalid':True}
     else:
+        logger.warning('Invalid Activation Link')
         context = {'title':'Invalid Activation Link', 'isvalid':False}
 
     return render(request, 'user/activate_user.html', context)
@@ -53,6 +59,7 @@ def set_primary_email(request, primary_email_form):
         associated_email = primary_email_form.cleaned_data['associated_email']
         # Only do something if they selected a different email
         if associated_email.email != user.email:
+            logger.info('Primary email changed from: {0} to {1}'.format(user.email, associated_email.email))
             user.email = associated_email.email
             user.save(update_fields=['email'])
             messages.success(request, 'Your email: %s has been set as your new primary email.' % user.email)
@@ -80,6 +87,7 @@ def remove_email(request, remove_email_form):
         associated_email = remove_email_form.cleaned_data['associated_email']
         remove_email = associated_email.email
         associated_email.delete()
+        logger.info('Removed email {0} from user {1}'.format(remove_email, user.email))
         messages.success(request, 'Your email: %s has been removed from your account.' % remove_email)
 
 @login_required
@@ -91,7 +99,7 @@ def edit_emails(request):
     # Email forms to display
     AssociatedEmailFormset = inlineformset_factory(User, AssociatedEmail,
         fields=('email','is_primary_email', 'is_public'), extra=0,
-        widgets={'email': HiddenInput, 'is_primary_email':HiddenInput})
+        widgets={'email': HiddenInput, 'is_primary_email':HiddenInput, 'is_public': CheckboxInput(attrs={'class':'form-check-input-inline'})})
     associated_email_formset = AssociatedEmailFormset(instance=user,
         queryset=AssociatedEmail.objects.filter(verification_date__isnull=False))
     primary_email_form = AssociatedEmailChoiceForm(user=user, include_primary=True)
@@ -157,11 +165,15 @@ def edit_password_complete(request):
     return render(request, 'user/edit_password_complete.html')
 
 
-def public_profile(request, email):
+def public_profile(request, username):
     """
     A user's public profile
     """
-    return render(request, 'user/public_profile.html', {'email':email})
+    if User.objects.filter(username=username).exists():
+        user = User.objects.get(username=username).get_full_name()
+    else:
+        return redirect('register')
+    return render(request, 'user/public_profile.html', {'username':user})
 
 
 def register(request):
@@ -228,25 +240,10 @@ def verify_email(request, uidb64, token):
         if default_token_generator.check_token(user, token):
             associated_email.verification_date = timezone.now()
             associated_email.save()
+            logger.info('User {0} verified another email {1}'.format(user.email, associated_email))
             return render(request, 'user/verify_email.html',
                 {'title':'Verification Successful', 'isvalid':True})
-
+    
+    logger.warning('Invalid Verification Link')
     return render(request, 'user/verify_email.html',
         {'title':'Invalid Verification Link', 'isvalid':False})
-
-
-# def test(request):
-#     """
-#     For testing
-#     """
-#     user = request.user
-#     primary_email_form = AssociatedEmailChoiceForm(label='Primary Email')
-#     primary_email_form.get_associated_emails(user=user)
-
-#     if request.method == 'POST':
-#         form = AssociatedEmailChoiceForm(request.POST)
-
-#         pdb.set_trace()
-
-#     return render(request,'user/test.html', {'user':user,
-#         'form':primary_email_form, 'csrf_token': csrf.get_token(request)})

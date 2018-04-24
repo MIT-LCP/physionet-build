@@ -26,45 +26,57 @@
 
 <hr>
 <h4>Public Emails</h4>
-<p>The email addresses shown in your <a href="{% url 'public_profile' user.email %}">public profile</a>.</p>
+<p>The email addresses shown in your <a href="{% url 'public_profile' user.username %}">public profile</a>.</p>
 <form action="{% url 'edit_emails' %}" method="post" class="form-signin">
   {% csrf_token %}
   <div class="card">
     <ul class="list-group list-group-flush">
       {{  associated_email_formset.management_form }}
       {% for form in associated_email_formset %}
-        <li class="list-group-item">{{ form.is_public }} {{ form.email.value }} {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}</li>
+        <li class="list-group-item" >{{ form.is_public }} <label class="form-check-label">{{ form.email.value }}</label>{% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}</li>
       {% endfor %}
     </ul>
   </div>
-  <button class="btn btn-primary btn-fixed" name="set_public_emails" type="submit">Set Public Emails</button>
+  <button class="btn btn-primary btn-fixed btn-custom" name="set_public_emails" type="submit">Set Public Emails</button>
 </form>
 
 <hr>
 <h4>Primary Email</h4>
 <p>The email address used for logging into your account.</p>
-<form action="{% url 'edit_emails' %}" method="post" class="form-signin">
+<form action="{% url 'edit_emails' %}" method="post" class="form-signin row">
   {% csrf_token %}
-  {% include "form_snippet_no_labels.html" with form=primary_email_form %}
-  <button class="btn btn-primary btn-fixed" name="set_primary_email" type="submit">Make Primary Email</button>
+  <div class='col-md-9'>
+    {% include "form_snippet_no_labels.html" with form=primary_email_form %}
+  </div>
+  <div>
+    <button class="btn btn-primary btn-fixed" name="set_primary_email" type="submit">Make Primary Email</button>
+  </div>
 </form>
 
 <hr>
 <h4>Add Email</h4>
 <p>Add another email address. A message will be sent to the address for verification. </p>
-<form action="{% url 'edit_emails' %}" method="post" class="form-signin" name="add_email">
+<form action="{% url 'edit_emails' %}" method="post" class="form-signin row" name="add_email">
   {% csrf_token %}
-  {% include "form_snippet_no_labels.html" with form=add_email_form %}
-  <button class="btn btn-primary btn-fixed" name="add_email" type="submit">Add Email</button>
+  <div class='col-md-9'>
+    {% include "form_snippet_no_labels.html" with form=add_email_form %}
+  </div>
+  <div>
+    <button class="btn btn-primary btn-fixed" name="add_email" type="submit">Add Email</button>
+  </div>
 </form>
 
 <hr>
 <h4>Remove Email</h4>
 <p>Remove an email address from your account. You may not remove your primary email address.</p>
-<form action="{% url 'edit_emails' %}" method="post" class="form-signin">
+<form action="{% url 'edit_emails' %}" method="post" class="form-signin row">
   {% csrf_token %}
+  <div class='col-md-9'>
   {% include "form_snippet_no_labels.html" with form=remove_email_form %}
-  <button class="btn btn-danger btn-fixed" name="remove_email" type="submit">Remove Email</button>
+  </div>
+  <div>
+    <button class="btn btn-danger btn-fixed" name="remove_email" type="submit">Remove Email</button>
+  </div>
 </form>
 
 {% endblock %}

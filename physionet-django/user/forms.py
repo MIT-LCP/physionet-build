@@ -11,7 +11,7 @@ class AssociatedEmailChoiceForm(forms.Form):
     Ie. primary email, contact email, remove email.
     """
     associated_email = forms.ModelChoiceField(queryset=None, to_field_name='email',
-        label='email', widget=forms.Select(attrs={'class':'form-control'}))
+        label='email', widget=forms.Select(attrs={'class':'form-control custom-select'}))
 
     def __init__(self, user, include_primary=True, *args, **kwargs):
         # Email choices are those belonging to a user
@@ -44,10 +44,10 @@ class LoginForm(auth_forms.AuthenticationForm):
     Form for logging in.
     """
     username = auth_forms.UsernameField(
-        label='Email',
+        label='Email or Username',
         max_length=254,
         widget=forms.TextInput(attrs={'autofocus': True, 'class':'form-control', 
-            'placeholder':'Email Address'}),
+            'placeholder':'Email or Username'}),
     )
     password = forms.CharField(
         label= 'Password',
@@ -105,9 +105,10 @@ class UserCreationForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('email',)
+        fields = ('email','username',)
         widgets = {
             'email':forms.EmailInput(attrs={'class':'form-control dropemail'}),
+            'username':forms.TextInput(attrs={'class':'form-control'}),
         }
 
     def clean_password2(self):
@@ -121,10 +122,13 @@ class UserCreationForm(forms.ModelForm):
             self.instance)
         return password2
 
+
     def save(self, commit=True):
         # Save the provided password in hashed format
         user = super(UserCreationForm, self).save(commit=False)
         user.set_password(self.cleaned_data['password1'])
+        user.email = user.email.lower()
+        user.username = user.username.lower()
         if commit:
             user.save()
             # Save additional fields in Profile model

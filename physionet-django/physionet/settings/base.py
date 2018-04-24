@@ -14,6 +14,8 @@ import os
 
 from decouple import config
 
+import logging.config
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -93,6 +95,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTHENTICATION_BACKENDS = ['user.models.DualAuthModelBackend']
+
 AUTH_USER_MODEL = 'user.User'
 
 LOGIN_URL = '/login/'
@@ -115,17 +119,7 @@ USE_L10N = True
 
 USE_TZ = True
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = '192.168.11.160'
-# EMAIL_PORT = 25
-# EMAIL_HOST_USER = ''
-# EMAIL_HOST_PASSWORD = ''
-# EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = 'Physionet Help <help@dev.physionet.org>'
-# EMAIL_HOST = 'localhost'
-# EMAIL_PORT = 1025
-# EMAIL_USE_TLS = False
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
@@ -146,3 +140,42 @@ CKEDITOR_CONFIGS = {
         ]
     }
 }
+
+LOGGING_CONFIG = None
+LOGLEVEL = os.environ.get('LOGLEVEL', 'info').upper()
+
+logging.config.dictConfig({
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'console': {
+            'format': '%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+        },
+        'simple': {
+            'format': '%(levelname)s %(asctime)-15s %(message)s'
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'console',
+        },
+        'Custom_Logging': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': '/tmp/physionet.log',
+            'formatter': 'simple',
+        },
+    },
+    'loggers': {
+        '': {
+            'level': 'INFO',
+            'handlers': ['console'],
+        },
+        'user': {
+            'level': 'INFO',
+            'handlers': ['Custom_Logging'],
+            'propagate': False,
+        },        
+    },
+})

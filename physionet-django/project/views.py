@@ -6,7 +6,6 @@ from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
 import os
 import re
-
 from . import forms
 from .models import (Affiliation, Author, Invitation, Project,
     PublishedProject, StorageRequest, PROJECT_FILE_SIZE_LIMIT)
@@ -17,7 +16,6 @@ from user.forms import ProfileForm
 from user.models import User
 
 import pdb
-
 
 def is_admin(user, *args, **kwargs):
     return user.is_admin
@@ -66,7 +64,6 @@ def get_button_id(post_keys):
     """
     button_id = [re.findall('respond-(?P<button_id>\d+)', k) for k in post_keys]
     button_id = [i for i in button_id if i]
-
     if len(button_id) == 1:
         button_id = int(button_id[0][0])
     else:
@@ -100,7 +97,6 @@ def process_invitation_response(request, invitation_response_formset):
     """
     user = request.user
     invitation_id = get_button_id(request.POST.keys())
-
     # Only process the form that was submitted
     for invitation_response_form in invitation_response_formset:
         if (invitation_response_form.is_valid() and

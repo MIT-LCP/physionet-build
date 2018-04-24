@@ -82,14 +82,14 @@
 
       <li class="nav-item active dropdown">
         <a class="nav-link dropdown-toggle" href="#" id="account_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <i class="fa fa-user"></i> Account
+          {% if user.is_authenticated %}
+          <i class="fa fa-user"></i> {{user.get_short_name}}
         </a>
         <div class="dropdown-menu" aria-labelledby="account_dropdown">
-          {% if user.is_authenticated %}
             <a class="dropdown-item" href="{% url 'user_home'%}">
               <i class="fa fa-home"></i> User Home
             </a>
-            <a class="dropdown-item" href="{% url 'public_profile' user.get_username %}">
+            <a class="dropdown-item" href="{% url 'public_profile' user.username %}">
               <i class="fa fa-address-card"></i>&nbsp;&nbsp;Profile
             </a>
             <a class="dropdown-item" href="{% url 'edit_profile' %}">
@@ -99,6 +99,9 @@
               <i class="fas fa-sign-out-alt"></i>&nbsp;&nbsp;Logout
             </a>
           {% else %}
+          <i class="fa fa-user"></i> Account
+        </a>
+        <div class="dropdown-menu" aria-labelledby="account_dropdown">
             <a class="dropdown-item" href="{% url 'login' %}">
               <i class="fas fa-sign-in-alt"></i>&nbsp;&nbsp;Login
             </a>

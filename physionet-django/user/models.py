@@ -1,10 +1,16 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+# from django.contrib.auth.backends import ModelBackend
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
+from .validators import UsernameValidator
 
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Affiliation(models.Model):
     """
@@ -25,10 +31,12 @@ class UserManager(BaseUserManager):
     Manager object with methods to create
     User instances.
     """
-    def create_user(self, email, password, is_active=False, first_name='',
-        middle_names='', last_name=''):
+    def create_user(self, email, password, username, is_active=False,
+        first_name='', middle_names='', last_name=''):
         user = self.model(
-            email=self.normalize_email(email),
+            email=self.normalize_email(email.lower()),
+            username = self.normalize_username(username.lower()),
+
             is_active=is_active,
         )
 
@@ -40,56 +48,66 @@ class UserManager(BaseUserManager):
             last_name=last_name)
         return user
 
-    def create_superuser(self, email, password, is_active=True, first_name='',
-        middle_names='', last_name=''):
-        user = self.create_user(email=email, password=password,
-            is_active=is_active, first_name=first_name,
-            middle_names=middle_names, last_name=last_name
-        )
-        user.is_admin = True
+    def create_superuser(self, email, password, username):
+        user = self.model(email=email.lower(), username=username.lower(), 
+            is_active=True, is_admin=True)
+        user.set_password(password)
         user.save(using=self._db)
+        profile = Profile.objects.create(user=user, first_name='',
+            middle_names='', last_name='')
         return user
 
     def get_by_natural_key(self, email):
         return self.get(email=email)
 
-
 class User(AbstractBaseUser):
     """
     The user authentication model
     """
+
     email = models.EmailField(max_length=255, unique=True)
+    username = models.CharField(max_length=150, unique=True,
+        help_text='Required. 150 characters or fewer. Letters, digits and - only.', 
+        validators=[UsernameValidator()],
+        error_messages={
+            'unique': "A user with that username already exists."})
     join_date = models.DateField(auto_now_add=True)
     last_login = models.DateTimeField(null=True, blank=True)
 
     # Mandatory fields for the default authentication backend
     is_active = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'email'
 
-    def natural_key(self):
-        return (self.email,)
+    REQUIRED_FIELDS = ['email']
 
-    def validate_unique(self, *args, **kwargs):
+    def natural_key(self):
+        return (self.email)
+
+    def validate_unique(self, exclude=None):
         """
         Add additional check to the non-primary AssociatedEmail objects.
         The email field in User should be in sync with primary AssociatedEmails.
         """
-        super(User, self).validate_unique(*args, **kwargs)
+        super(User, self).validate_unique(exclude=exclude)
 
-        if AssociatedEmail.objects.filter(email=self.email, is_primary_email=False):
+        if AssociatedEmail.objects.filter(email=self.email.lower(), is_primary_email=False):
             raise ValidationError({'email':'User with this email already exists.'})
-
+        if User.objects.filter(email=self.email.lower()):
+            raise ValidationError({'email':'User with this email already exists.'})
+        if User.objects.filter(username=self.username.lower()):
+            raise ValidationError({'username':'User with this username already exists.'})
+            
     # Mandatory methods for default authentication backend
     def get_full_name(self):
         return self.profile.get_full_name()
 
     def get_short_name(self):
-        return self.email
+        return self.profile.first_name
 
     def __str__(self):
-        return self.email
+        return self.username
 
     objects = UserManager()
 
@@ -184,5 +202,32 @@ class Profile(models.Model):
         else:
             return ' '.join([self.first_name, self.last_name])
 
+
+
     def __str__(self):
         return self.get_full_name()
+
+class DualAuthModelBackend():
+    """
+    This is a ModelBacked that allows authentication with either a username or an email address.
+
+    """
+    def authenticate(self, username=None, password=None):
+        if '@' in username:
+            kwargs = {'email': username.lower()}
+        else:
+            kwargs = {'username': username.lower()}
+        try:
+            user = get_user_model().objects.get(**kwargs)
+            if user.check_password(password):
+                logger.info('User logged in {0}'.format(user.email))
+                return user
+        except User.DoesNotExist:
+            logger.error('Unsuccessful authentication {0}'.format(username.lower()))
+            return None
+
+    def get_user(self, username):
+        try:
+            return get_user_model().objects.get(pk=username)
+        except get_user_model().DoesNotExist:
+            return None

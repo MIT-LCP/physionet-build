@@ -200,9 +200,9 @@ class TestPublic(TestCase, TestMixin):
         self.user = AnonymousUser()
 
     def test_public_profile(self):
-        self.make_get_request('public_profile', {'email':'admin@mit.edu'})
+        self.make_get_request('public_profile', {'username':'admin'})
         self.tst_get_request(public_profile,
-            view_kwargs={'email':'admin@mit.edu'}, status_code=200)
+            view_kwargs={'username':'admin'}, status_code=200)
 
     def test_register_activate(self):
         """
@@ -212,9 +212,9 @@ class TestPublic(TestCase, TestMixin):
         self.make_get_request('register')
         self.tst_get_request(register, status_code=200)
         self.make_post_request('register',
-            data={'email':'jackreacher@mit.edu', 'first_name': 'Jack',
-            'last_name': 'Reacher','password1':'Very5trongt0t@11y',
-            'password2':'Very5trongt0t@11y'})
+            data={'email':'jackreacher@mit.edu', 'username':'awesomeness',
+            'first_name': 'Jack', 'last_name': 'Reacher',
+            'password1':'Very5trongt0t@11y', 'password2':'Very5trongt0t@11y'})
         # Recall that register uses same view upon success, so not 302
         self.tst_post_request(register, status_code=200)
         # Check user object was created
