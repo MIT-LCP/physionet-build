@@ -95,7 +95,7 @@ class TestAuth(TestCase, TestMixin):
     """
     Test views that require authentication
     """
-    fixtures = ['user']
+    fixtures = ['demo-user']
 
     def setUp(self):
         self.factory = RequestFactory()
@@ -193,7 +193,7 @@ class TestPublic(TestCase, TestMixin):
     """
     Test views that do not require authentication
     """
-    fixtures = ['user']
+    fixtures = ['demo-user']
 
     def setUp(self):
         self.factory = RequestFactory()

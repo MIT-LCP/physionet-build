@@ -38,8 +38,12 @@ class Command(BaseCommand):
             print('Continuing reset')
 
         project_apps = ['user', 'project']
-        # Delete the project objects so that their directories get cleared
-        Project.objects.all().delete()
+        # Delete the project objects so that their directories get
+        # cleared. Only needs to run if migrations have been applied.
+        try:
+            Project.objects.all().delete()
+        except:
+            pass
 
         # Remove data from all tables. Tables are kept.
         call_command('flush', interactive=False, verbosity=1)
