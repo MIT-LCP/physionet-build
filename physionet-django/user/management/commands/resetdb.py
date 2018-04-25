@@ -20,8 +20,6 @@ from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
-from project.models import Project
-
 
 class Command(BaseCommand):
 
@@ -37,40 +35,52 @@ class Command(BaseCommand):
                     sys.exit('Exiting from reset. No actions applied.')
             print('Continuing reset')
 
-        project_apps = ['user', 'project']
-        # Delete the project objects so that their directories get
-        # cleared. Only needs to run if migrations have been applied.
-        try:
-            Project.objects.all().delete()
-        except:
-            pass
-
-        # Remove data from all tables. Tables are kept.
-        call_command('flush', interactive=False, verbosity=1)
+        # This order is important because we need to reset the project
+        # migrations first, which depend on user migrations.
+        project_apps = ['project', 'user']
 
         for app in project_apps:
-            # Reverse migrations, which drops the tables. Only works if
-            # migration files exist, regardless of table/migration status.
-            try:
+            migration_files = get_migration_files(app)
+            if migration_files:
+                # Reverse the migrations, which drops the tables. Only
+                # works if migration files exist, regardless of
+                # table/migration status.
                 call_command('migrate', app, 'zero', verbosity=1)
-            except:
-                pass
-            # Delete the migration .py files
-            remove_migration_files(app)
+                # Delete the migration .py files
+                for file in migration_files:
+                    os.remove(file)
 
+        # Remove project files
+        clear_project_files()
         # Remake and apply the migrations
         call_command('makemigrations')
         call_command('migrate')
 
 
-def remove_migration_files(app):
+def get_migration_files(app):
     """
-    Remove all python migration files from an app
+    Get all migration files for an app. Full path. Gets all .py files
+    from the app's `migrations` directory.
 
     """
     app_migrations_dir = os.path.join(settings.BASE_DIR, app, 'migrations')
     if os.path.isdir(app_migrations_dir):
-        migration_files = [file for file in os.listdir(app_migrations_dir) if file != '__init__.py' and file.endswith('.py')]
-        for file in migration_files:
-            os.remove(os.path.join(app_migrations_dir, file))
+        migration_files = [os.path.join(app_migrations_dir, file) for file in os.listdir(app_migrations_dir) if file != '__init__.py' and file.endswith('.py')]
+    else:
+        migration_files = []
 
+    return migration_files
+
+def clear_project_files():
+    """
+    Remove all project content from the root project directory
+    """
+    project_root = os.path.join(settings.MEDIA_ROOT, 'projects')
+
+    project_items = [os.path.join(project_root, item) for item in os.listdir(project_root) if item != '.gitkeep']
+
+    for item in project_items:
+        if os.path.islink(item):
+            os.unlink(item)
+        elif os.path.isdir(item):
+            shutil.rmtree(item)
