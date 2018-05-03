@@ -5,6 +5,9 @@ physionet-django/private-tests.py
 db.sqlite3
 physionet-django/*/migrations/0*.py
 
+# Project folders created during testing
+media/projects/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

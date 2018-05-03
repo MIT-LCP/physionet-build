@@ -8,7 +8,7 @@ from user.models import User
 
 class TestForms(TestCase):
 
-    fixtures = ['user']
+    fixtures = ['demo-user']
 
     def create_test_forms(self, FormClass, valid_dict, invalid_dict, user=None):
         """
@@ -65,9 +65,9 @@ class TestForms(TestCase):
 
     def test_user_creation_form(self):
         self.create_test_forms(UserCreationForm, {'email':'tester0@mit.edu',
-            'username':'The-Tester', 'first_name':'Tester', 'middle_names':'Mid', 
-            'last_name':'Bot','password1':'Very5trongt0t@11y', 
-            'password2':'Very5trongt0t@11y'},{'email':'tester0@mit.edu', 
+            'username':'The-Tester', 'first_name':'Tester', 'middle_names':'Mid',
+            'last_name':'Bot','password1':'Very5trongt0t@11y',
+            'password2':'Very5trongt0t@11y'},{'email':'tester0@mit.edu',
             'username':'bot-net', 'first_name':'', 'middle_names':'Mid',
             'last_name':'Bot', 'password1':'weakweak', 'password2':'weakweak'})
         self.run_test_forms({'first_name':['This field is required.'],

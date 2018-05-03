@@ -1,4 +1,5 @@
 import os
+import shutil
 
 from ckeditor.fields import RichTextField
 from django.conf import settings
@@ -6,7 +7,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelatio
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 from django.template.defaultfilters import slugify
 
@@ -271,6 +272,21 @@ def setup_project(sender, **kwargs):
     Author.objects.create(project=project, user=user, display_order=1)
     # Create file directory
     os.mkdir(project.file_root())
+
+@receiver(pre_delete, sender=Project)
+def cleanup_project(sender, **kwargs):
+    """
+    Before a Project is deleted:
+    - delete the project file directory
+    """
+    project = kwargs['instance']
+
+    # Delete file directory
+    project_root = project.file_root()
+    if os.path.islink(project_root):
+        os.unlink(project_root)
+    elif os.path.isdir(project_root):
+        shutil.rmtree(project_root)
 
 class PublishedProject(Metadata):
     """
