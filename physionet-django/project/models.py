@@ -304,7 +304,7 @@ class PublishedProject(Metadata):
     doi = models.CharField(max_length=50, default='', unique=True)
 
     class Meta:
-        unique_together = (('title', 'version_number'),)
+        unique_together = (('core_project', 'version_number'),)
 
 
 class Invitation(models.Model):
