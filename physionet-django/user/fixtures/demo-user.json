@@ -7,7 +7,7 @@
     "email": "admin@mit.edu",
     "username": "admin",
     "join_date": "2017-11-11",
-    "last_login": "2018-03-30T19:42:51.538Z",
+    "last_login": "2018-05-03T18:50:20.095Z",
     "is_active": true,
     "is_admin": true
   }
@@ -20,7 +20,7 @@
     "email": "rgmark@mit.edu",
     "username": "rgmark",
     "join_date": "2017-11-11",
-    "last_login": "2018-04-02T20:01:53.050Z",
+    "last_login": "2018-05-03T19:31:55.802Z",
     "is_active": true,
     "is_admin": false
   }
@@ -55,9 +55,7 @@
   "model": "user.associatedemail",
   "pk": 1,
   "fields": {
-    "user": [
-      "admin@mit.edu"
-    ],
+    "user": ["admin@mit.edu"],
     "email": "admin@mit.edu",
     "is_primary_email": true,
     "added_date": "2018-03-28T16:06:29.431Z",
@@ -69,9 +67,7 @@
   "model": "user.associatedemail",
   "pk": 2,
   "fields": {
-    "user": [
-      "rgmark@mit.edu"
-    ],
+    "user": ["rgmark@mit.edu"],
     "email": "rgmark@mit.edu",
     "is_primary_email": true,
     "added_date": "2018-03-28T16:06:29.433Z",
@@ -83,9 +79,7 @@
   "model": "user.associatedemail",
   "pk": 3,
   "fields": {
-    "user": [
-      "george@mit.edu"
-    ],
+    "user": ["george@mit.edu"],
     "email": "george@mit.edu",
     "is_primary_email": true,
     "added_date": "2018-03-28T16:06:29.436Z",
@@ -97,9 +91,7 @@
   "model": "user.associatedemail",
   "pk": 4,
   "fields": {
-    "user": [
-      "admin@mit.edu"
-    ],
+    "user": ["admin@mit.edu"],
     "email": "admin2@mit.edu",
     "is_primary_email": false,
     "added_date": null,
@@ -111,9 +103,7 @@
   "model": "user.associatedemail",
   "pk": 5,
   "fields": {
-    "user": [
-      "admin@mit.edu"
-    ],
+    "user": ["admin@mit.edu"],
     "email": "admin3@mit.edu",
     "is_primary_email": false,
     "added_date": null,
@@ -125,9 +115,7 @@
   "model": "user.associatedemail",
   "pk": 6,
   "fields": {
-    "user": [
-      "george@mit.edu"
-    ],
+    "user": ["george@mit.edu"],
     "email": "george@gmail.com",
     "is_primary_email": false,
     "added_date": "2018-03-28T17:17:14.082Z",
@@ -139,9 +127,7 @@
   "model": "user.associatedemail",
   "pk": 7,
   "fields": {
-    "user": [
-      "aewj@mit.edu"
-    ],
+    "user": ["aewj@mit.edu"],
     "email": "aewj@mit.edu",
     "is_primary_email": true,
     "added_date": "2018-03-30T19:36:57.684Z",
@@ -153,10 +139,8 @@
   "model": "user.profile",
   "pk": 1,
   "fields": {
-    "user": [
-      "admin@mit.edu"
-    ],
-    "first_name": "Tester",
+    "user": ["admin@mit.edu"],
+    "first_name": "Admin",
     "middle_names": "",
     "last_name": "Bot",
     "url": "https://github.com/MIT-LCP/physionet-build",
@@ -167,9 +151,7 @@
   "model": "user.profile",
   "pk": 2,
   "fields": {
-    "user": [
-      "rgmark@mit.edu"
-    ],
+    "user": ["rgmark@mit.edu"],
     "first_name": "Roger Greenwood",
     "middle_names": "",
     "last_name": "Mark",
@@ -181,9 +163,7 @@
   "model": "user.profile",
   "pk": 3,
   "fields": {
-    "user": [
-      "george@mit.edu"
-    ],
+    "user": ["george@mit.edu"],
     "first_name": "George",
     "middle_names": "",
     "last_name": "Moody",
@@ -195,9 +175,7 @@
   "model": "user.profile",
   "pk": 4,
   "fields": {
-    "user": [
-      "aewj@mit.edu"
-    ],
+    "user": ["aewj@mit.edu"],
     "first_name": "Alistair",
     "middle_names": "Edward William",
     "last_name": "Johnson",

@@ -12,10 +12,7 @@
     "usage_notes": "",
     "acknowledgements": "",
     "resource_type": "Database",
-    "dua": null,
-    "training_course": null,
-    "id_verification_required": false,
-    "version_number": "",
+    "version": "",
     "changelog_summary": "",
     "project_home_page": "",
     "creation_datetime": "2017-10-30T14:30:30Z",
@@ -26,7 +23,7 @@
     ],
     "published": false,
     "under_review": false,
-    "paper_citations": [],
+    "project_citations": [],
     "references": [],
     "topics": []
   }
@@ -44,10 +41,7 @@
     "usage_notes": "",
     "acknowledgements": "",
     "resource_type": "Database",
-    "dua": null,
-    "training_course": null,
-    "id_verification_required": false,
-    "version_number": "",
+    "version": "",
     "changelog_summary": "",
     "project_home_page": "",
     "creation_datetime": "2017-10-30T14:30:30Z",
@@ -58,7 +52,7 @@
     ],
     "published": false,
     "under_review": false,
-    "paper_citations": [],
+    "project_citations": [],
     "references": [],
     "topics": []
   }
@@ -76,10 +70,7 @@
     "usage_notes": "",
     "acknowledgements": "",
     "resource_type": "Software",
-    "dua": null,
-    "training_course": null,
-    "id_verification_required": false,
-    "version_number": "",
+    "version": "",
     "changelog_summary": "",
     "project_home_page": "",
     "creation_datetime": "2017-10-30T14:30:30Z",
@@ -90,7 +81,7 @@
     ],
     "published": false,
     "under_review": false,
-    "paper_citations": [],
+    "project_citations": [],
     "references": [],
     "topics": []
   }
@@ -141,27 +132,6 @@
     "expiration_date": "2018-04-20",
     "response": true,
     "is_active": false
-  }
-},
-{
-  "model": "project.topic",
-  "pk": 1,
-  "fields": {
-    "description": "ecg"
-  }
-},
-{
-  "model": "project.topic",
-  "pk": 2,
-  "fields": {
-    "description": "arrhythmia"
-  }
-},
-{
-  "model": "project.topic",
-  "pk": 3,
-  "fields": {
-    "description": "intensive care unit"
   }
 },
 {
