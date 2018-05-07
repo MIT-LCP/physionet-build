@@ -309,7 +309,7 @@ metadata_forms = {'Database':DatabaseMetadataForm,
                   'Software':SoftwareMetadataForm}
 
 RESPONSE_CHOICES = (
-#    ('', '------'),
+    # ('', '------'),
     (1, 'Accept'),
     (0, 'Reject')
 )
@@ -521,12 +521,3 @@ class StorageRequestForm(forms.ModelForm):
         if request_allowance <= current_allowance:
             raise forms.ValidationError('Project already has the requested capacity.',
                 code='already_has_allowance')
-
-
-class StorageResponseForm(forms.Form):
-    """
-    Form for responding to a storage request
-    """
-    project_id = forms.IntegerField(widget= forms.HiddenInput())
-    response = forms.ChoiceField(choices=RESPONSE_CHOICES)
-    message = forms.CharField(max_length=500, required=False, widget=forms.Textarea())

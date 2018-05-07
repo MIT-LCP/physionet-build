@@ -1,11 +1,15 @@
+import os
+import pdb
+import re
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
-from django.forms import formset_factory, inlineformset_factory, TextInput
+from django.forms import formset_factory, inlineformset_factory, modelformset_factory, Textarea, Select
 from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
-import os
-import re
+from django.utils import timezone
+
 from . import forms
 from .models import (Affiliation, Author, Invitation, Project,
     PublishedProject, StorageRequest, PROJECT_FILE_SIZE_LIMIT)
@@ -15,7 +19,14 @@ from .utility import (get_file_info, get_directory_info, get_storage_info,
 from user.forms import ProfileForm
 from user.models import User
 
-import pdb
+
+RESPONSE_CHOICES = (
+    (1, 'Accept'),
+    (0, 'Reject')
+)
+
+RESPONSE_ACTIONS = {0:'rejected', 1:'accepted'}
+
 
 def is_admin(user, *args, **kwargs):
     return user.is_admin
@@ -529,58 +540,44 @@ def project_submission(request, project_id):
         'project':project})
 
 
-def process_storage_request(request, storage_response_formset):
-    """
-    Accept or deny a project's storage request
-    Helper function to `storage_requests`.
-    """
-    # Only process the form that was submitted. Find the relevant project
-    project_id = get_button_id(request.POST.keys())
+def process_storage_response(request, storage_response_formset):
+    user = request.user
+    storage_request_id = int(request.POST['storage_response'])
 
     for storage_response_form in storage_response_formset:
-        if (storage_response_form.is_valid() and
-                storage_response_form.cleaned_data['project_id'] == project_id):
-
-            storage_request = StorageRequest.objects.get(project=project_id)
-            project = storage_request.project
-            response = int(storage_response_form.cleaned_data['response'])
-            # Update the specified StorageRequest object
-            storage_request.response = response
-            storage_request.is_active = False
-            storage_request.save()
-
-            # Carry out the response to the storage request
-            if response:
-                response = 'accepted'
-                project.storage_allowance = storage_request.request_allowance
-                project.save()
-            else:
-                response = 'rejected'
-            messages.success(request, 'The storage request has been %s.' % response)
-            return
-
-    messages.error('Invalid submission')
-
+        # Only process the response that was submitted
+        if storage_response_form.instance.id == storage_request_id:
+            if storage_response_form.is_valid():
+                storage_request = storage_response_form.save(commit=False)
+                storage_request.responder = request.user
+                storage_request.response_datetime = timezone.now()
+                storage_request.is_active = False
+                storage_request.save()
+                project = storage_request.project
+                if storage_request.response:
+                    project.storage_allowance = storage_request.request_allowance
+                    project.save()
+                messages.success(request, 'The storage request has been %s.' % RESPONSE_ACTIONS[storage_request.response])
 
 @login_required
 @user_passes_test(is_admin)
 def storage_requests(request):
     """
-    Page listing projects with outstanding storage requests
+    Page for listing and responding to project storage requests
     """
     user = request.user
 
-    StorageResponseFormSet = formset_factory(forms.StorageResponseForm,
-        extra=0)
+    StorageResponseFormSet = modelformset_factory(StorageRequest,
+        fields=('response', 'response_message'),
+        widgets={'response':Select(choices=RESPONSE_CHOICES),
+                 'response_message':Textarea()}, extra=0)
 
     if request.method == 'POST':
         storage_response_formset = StorageResponseFormSet(request.POST)
-        process_storage_request(request, storage_response_formset)
+        process_storage_response(request, storage_response_formset)
 
-    storage_requests = StorageRequest.objects.filter(is_active=True)
     storage_response_formset = StorageResponseFormSet(
-        initial=[{'project_id':sr.project.id} for sr in storage_requests])
+        queryset=StorageRequest.objects.filter(is_active=True))
 
     return render(request, 'project/storage_requests.html', {'user':user,
-        'storage_requests':storage_requests,
         'storage_response_formset':storage_response_formset})

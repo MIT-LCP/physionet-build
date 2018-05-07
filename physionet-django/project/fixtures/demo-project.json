@@ -135,7 +135,23 @@
     "project": 3,
     "request_allowance": 3,
     "request_datetime": "2017-10-30T14:30:30Z",
+    "response_datetime": null,
     "response": null,
+    "response_message": "",
+    "is_active": true,
+    "responder": null
+  }
+},
+{
+  "model": "project.storagerequest",
+  "pk": 2,
+  "fields": {
+    "project": 2,
+    "request_allowance": 80,
+    "request_datetime": "2018-05-07T20:27:01.572Z",
+    "response_datetime": null,
+    "response": null,
+    "response_message": "",
     "is_active": true,
     "responder": null
   }
