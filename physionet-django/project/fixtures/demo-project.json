@@ -90,8 +90,7 @@
       "rgmark@mit.edu"
     ],
     "invitation_type": "author",
-    "creation_date": "2017-11-02",
-    "expiration_date": "2017-11-09",
+    "request_datetime": "2017-11-02T14:30:30Z",
     "response": null,
     "is_active": true
   }
@@ -106,8 +105,7 @@
       "rgmark@mit.edu"
     ],
     "invitation_type": "author",
-    "creation_date": "2018-03-28",
-    "expiration_date": "2018-04-18",
+    "request_datetime": "2018-03-28T14:30:30Z",
     "response": null,
     "is_active": true
   }
@@ -122,8 +120,7 @@
       "rgmark@mit.edu"
     ],
     "invitation_type": "author",
-    "creation_date": "2018-03-30",
-    "expiration_date": "2018-04-20",
+    "request_datetime":  "2018-03-30T14:30:30Z",
     "response": true,
     "is_active": false
   }

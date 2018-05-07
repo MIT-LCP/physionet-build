@@ -338,47 +338,6 @@ class PublishedProject(Metadata):
         unique_together = (('title', 'version'),)
 
 
-class Invitation(models.Model):
-    """
-    Invitation to join a project as an, author, or reviewer
-
-    """
-    project = models.ForeignKey('project.Project',
-        related_name='invitations')
-    # The target email
-    email = models.EmailField(max_length=255)
-    # User who made the invitation
-    inviter = models.ForeignKey('user.User')
-    # Either 'author', or 'reviewer'
-    invitation_type = models.CharField(max_length=10)
-    creation_date = models.DateField(auto_now_add=True)
-    expiration_date = models.DateField()
-    response = models.NullBooleanField(null=True)
-    is_active = models.BooleanField(default=True)
-
-    def __str__(self):
-        return ('Project: %s To: %s By: %s'
-                % (self.project, self.email, self.inviter))
-
-    def get_user_invitations(user, invitation_types='all'):
-        "Get all active invitations to a user, possibly for a certain project"
-        emails = [ae.email for ae in user.associated_emails.all()]
-        invitations = Invitation.objects.filter(email__in=emails,
-            is_active=True)
-        if invitation_types != 'all':
-            invitations = invitations.filter(
-                invitation_type__in=invitation_types)
-
-        return invitations
-
-    def is_invited(user, project, invitation_types='all'):
-        "Whether a user is invited to a project"
-        user_invitations = get_user_invitations(user=user,
-            invitation_types=invitation_types)
-
-        return bool(project in [inv.project for inv in invitations])
-
-
 class DUA(models.Model):
     title = models.CharField(max_length=150)
     slug = models.SlugField(max_length=20, null=True)
@@ -407,7 +366,57 @@ class TrainingCourseCompletion(models.Model):
         related_name='training_course_completions')
 
 
-class StorageRequest(models.Model):
+class BaseInvitation(models.Model):
+    request_datetime = models.DateTimeField(auto_now_add=True)
+    response_datetime = models.DateTimeField(null=True)
+    response = models.NullBooleanField(null=True)
+    response_message = models.CharField(max_length=50, default='', blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        abstract = True
+
+class Invitation(BaseInvitation):
+    """
+    Invitation to join a project as an, author, or reviewer
+
+    """
+    project = models.ForeignKey('project.Project',
+        related_name='invitations')
+    # The target email
+    email = models.EmailField(max_length=255)
+    # User who made the invitation
+    inviter = models.ForeignKey('user.User')
+    # Either 'author', or 'reviewer'
+    invitation_type = models.CharField(max_length=10)
+
+
+    def __str__(self):
+        return ('Project: %s To: %s By: %s'
+                % (self.project, self.email, self.inviter))
+
+    def get_user_invitations(user, invitation_types='all'):
+        "Get all active invitations to a user, possibly for a certain project"
+        emails = user.get_emails()
+        invitations = Invitation.objects.filter(email__in=emails,
+            is_active=True).order_by('request_datetime')
+        if invitation_types != 'all':
+            invitations = invitations.filter(
+                invitation_type__in=invitation_types)
+
+        # Remove duplicate invitations to the same project
+
+        return invitations
+
+    def is_invited(user, project, invitation_types='all'):
+        "Whether a user is invited to a project"
+        user_invitations = get_user_invitations(user=user,
+            invitation_types=invitation_types)
+
+        return bool(project in [inv.project for inv in invitations])
+
+
+class StorageRequest(BaseInvitation):
     """
     A request for storage capacity for a project
     """
@@ -415,11 +424,7 @@ class StorageRequest(models.Model):
     # Requested storage size in GB
     request_allowance = models.SmallIntegerField(
         validators=[MaxValueValidator(100), MinValueValidator(1)])
-    request_datetime = models.DateTimeField(auto_now_add=True)
-    response_datetime = models.DateTimeField(null=True)
-    response = models.NullBooleanField(null=True)
-    response_message = models.CharField(max_length=50, default='', blank=True)
-    is_active = models.BooleanField(default=True)
+
     # The authorizer
     responder = models.ForeignKey('user.User', null=True)
 
