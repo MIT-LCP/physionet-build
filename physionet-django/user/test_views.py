@@ -135,30 +135,14 @@ class TestAuth(TestCase, TestMixin):
         """
         self.make_get_request('edit_emails')
         self.tst_get_request(edit_emails)
-        # Test 1: set public emails
+
+        # Test 1: set public email
         self.make_post_request('edit_emails',
-            data={'associated_emails-TOTAL_FORMS': ['3'],
-            'associated_emails-0-id': ['1'],
-            'associated_emails-INITIAL_FORMS': ['3'],
-            'associated_emails-0-user': ['1'],
-            'associated_emails-1-email': ['admin2@mit.edu'],
-            'set_public_emails': [''], 'associated_emails-2-is_public': ['on'],
-            'associated_emails-MIN_NUM_FORMS': ['0'],
-            'associated_emails-1-is_public': ['on'],
-            'associated_emails-1-user': ['1'],
-            'associated_emails-1-id': ['4'],
-            'associated_emails-2-id': ['5'],
-            'associated_emails-2-email': ['admin3@mit.edu'],
-            'associated_emails-MAX_NUM_FORMS': ['3'],
-            'associated_emails-2-is_primary_email': ['False'],
-            'associated_emails-0-is_public': ['on'],
-            'associated_emails-0-email': ['admin@mit.edu'],
-            'associated_emails-2-user': ['1'],
-            'associated_emails-1-is_primary_email': ['False'],
-            'associated_emails-0-is_primary_email': ['True']})
+            data={'set_public_email':[''],'associated_email': 'admin3@mit.edu'})
         self.tst_post_request(edit_emails)
-        public_status = [ae.is_public for ae in AssociatedEmail.objects.filter(user=self.user)]
-        self.assertNotIn(False, public_status)
+        # order is admin2@mit.edu, admin3@mit.edu, admin@mit.edu
+        public_status = [ae.is_public for ae in AssociatedEmail.objects.filter(user=self.user).order_by('email')]
+        self.assertEqual(public_status, [False, True, False])
 
         # Test 2: set primary email
         self.make_post_request('edit_emails',
@@ -173,13 +157,14 @@ class TestAuth(TestCase, TestMixin):
         self.assertIsNotNone(AssociatedEmail.objects.filter(email='tester0@mit.edu'))
 
         # Test 4: remove email
+        remove_id = AssociatedEmail.objects.get(email='admin3@mit.edu').id
         self.make_post_request('edit_emails',
-            data={'remove_email':[''],'associated_email': 'admin3@mit.edu'})
+            data={'remove_email':[str(remove_id)]})
         self.tst_post_request(edit_emails)
         remaining_associated_emails = [ae.email for ae in AssociatedEmail.objects.filter(user=self.user)]
         self.assertNotIn('admin3@mit.edu', remaining_associated_emails)
 
-        # Verify the newly added email
+        # Test 5: Verify the newly added email
         # Get the activation info from the sent email
         uidb64, token = re.findall('http://testserver/verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
             mail.outbox[0].body)[0]

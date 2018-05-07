@@ -73,7 +73,6 @@ def set_primary_email(request, primary_email_form):
 def set_public_email(request, public_email_form):
     "Set the selected email as the public email"
     user = request.user
-    #pdb.set_trace()
     if public_email_form.is_valid():
         associated_email = public_email_form.cleaned_data['associated_email']
         current_public_email = user.associated_emails.filter(is_public=True).first()
