@@ -13,6 +13,7 @@
 {% block content %}
 <div class="container">
   {% include "message_snippet.html" %}
+
   <div class="card">
     <div class="card-header">
       <h4>Storage Requests</h4>
@@ -27,54 +28,47 @@
           <div class="col-md-2"></div>
         </div>
       </li>
-      {% for storage_request in storage_requests %}
-        <li class="list-group-item">
-          <div class="row">
-            <div class="col-md-6"><a href="{% url 'project_overview' storage_request.project.id %}">{{ storage_request.project.title }}</a></div>
-            <div class="col-md-2">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ storage_request.request_allowance }}</div>
-            <div class="col-md-2">{{ storage_request.request_datetime|date }}</div>
-            <div class="col-md-2"><button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#storage-response-modal-{{ storage_request.project.id }}">
-              <i class="fa fa-reply"></i> Respond</button>
+      {% if storage_response_formset %}
+        <form action="" method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          {{ storage_response_formset.management_form }}
+          {% for storage_response_form in storage_response_formset %}
+            <li class="list-group-item">
+              <div class="row">
+                <div class="col-md-6"><a href="{% url 'project_overview' storage_response_form.instance.project.id %}">{{ storage_response_form.instance.project.title }}</a></div>
+                <div class="col-md-2">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ storage_response_form.instance.request_allowance }}</div>
+                <div class="col-md-2">{{ storage_response_form.instance.request_datetime|date }}</div>
+                <div class="col-md-2"><button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#storage-response-modal-{{ storage_response_form.instance.id }}">
+                  <i class="fa fa-reply"></i> Respond</button>
+                </div>
+              </div>
+            </li>
+            {# The modal for the response #}
+            <div class="modal fade" id="storage-response-modal-{{ storage_response_form.instance.id }}" tabindex="-1" role="dialog" aria-labelledby="storage-response-modal-{{ storage_response_form.project_id.value }}" aria-hidden="true">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title">Respond to storage request</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                    <div class="modal-body">
+                      {{ storage_response_form }}
+                    </div>
+                    <div class="modal-footer">
+                      <button class="btn btn-primary" name="storage_response" value="{{ storage_response_form.instance.id }}" type="submit"><i class="fa fa-reply"></i> Submit Response</button>
+                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+              </div>
             </div>
-          </div>
-        </li>
-      {% endfor %}
+          {% endfor %}
+        </form>
+      {% endif %}
     </ul>
   </div>
   <br>
-
-  <!-- A modal and response form for each storage request -->
-  {% if storage_requests %}
-    <form action="" method="post" enctype="multipart/form-data">
-      {{ storage_response_formset.management_form }}
-      {% csrf_token %}
-      {% for storage_response_form in storage_response_formset %}
-        <div class="modal fade" id="storage-response-modal-{{ storage_response_form.project_id.value }}" tabindex="-1" role="dialog" aria-labelledby="storage-response-modal-{{ storage_response_form.project_id.value }}" aria-hidden="true">
-          <div class="modal-dialog" role="document">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title">Respond to storage request</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
-
-                <div class="modal-body">
-                  {{ storage_response_form }}
-                </div>
-                <div class="modal-footer">
-                  <button class="btn btn-primary" name="respond-{{ storage_response_form.project_id.value }}" type="submit"><i class="fa fa-reply"></i> Submit Response</button>
-                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                </div>
-            </div>
-          </div>
-        </div>
-
-      {% endfor %}
-    </form>
-  {% endif %}
-
-
 
 </div> <!-- /container -->
 {% endblock %}

@@ -416,7 +416,9 @@ class StorageRequest(models.Model):
     request_allowance = models.SmallIntegerField(
         validators=[MaxValueValidator(100), MinValueValidator(1)])
     request_datetime = models.DateTimeField(auto_now_add=True)
+    response_datetime = models.DateTimeField(null=True)
     response = models.NullBooleanField(null=True)
+    response_message = models.CharField(max_length=50, default='', blank=True)
     is_active = models.BooleanField(default=True)
     # The authorizer
     responder = models.ForeignKey('user.User', null=True)
