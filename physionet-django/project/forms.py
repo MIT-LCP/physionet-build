@@ -436,7 +436,7 @@ class AddAuthorForm(forms.ModelForm):
         author = super(AddAuthorForm, self).save(commit=False)
         author.project = self.project
         author.is_human = False
-        author.display_order = self.project.authors.all().count() + 1
+        author.display_order = self.project.authors.count() + 1
         author.save()
 
 

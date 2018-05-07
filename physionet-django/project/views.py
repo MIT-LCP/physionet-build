@@ -63,26 +63,6 @@ def authorization_required(auth_functions):
     return real_decorator
 
 
-def get_button_id(post_keys):
-    """
-    Helper function to extract the submit button label from a form post.
-    The button name should be in the form of: "respond-<id>", and there
-    should only be one item in the post of that format. This function
-    is used to determine which form/button was submitted on a page with
-    multiple forms.
-
-    post_keys : keys of a form post.
-    """
-    button_id = [re.findall('respond-(?P<button_id>\d+)', k) for k in post_keys]
-    button_id = [i for i in button_id if i]
-    if len(button_id) == 1:
-        button_id = int(button_id[0][0])
-    else:
-        button_id = None
-
-    return button_id
-
-
 @login_required
 def project_home(request):
     """
@@ -107,85 +87,50 @@ def process_invitation_response(request, invitation_response_formset):
     Helper function to project_invitations
     """
     user = request.user
-    invitation_id = get_button_id(request.POST.keys())
-    # Only process the form that was submitted
+    invitation_id = int(request.POST['invitation_response'])
     for invitation_response_form in invitation_response_formset:
-        if (invitation_response_form.is_valid() and
-                invitation_response_form.cleaned_data['invitation_id'] == invitation_id):
-            # Get the specified Invitation and response
-            invitation = Invitation.objects.get(id=invitation_id)
-            response = int(invitation_response_form.cleaned_data['response'])
-            # Update the specified Invitation object, and also any other
-            # duplicate invitations (same user, project, and invitation_type)
-            emails = user.get_emails()
-            invitations = Invitation.objects.filter(email__in=emails,
-                project=invitation.project,
-                invitation_type=invitation.invitation_type)
-            invitations.update(response=response, is_active=False)
-
-            # Carry out the response to the project
-            if response:
-                response = 'accepted'
+        # Only process the response that was submitted
+        if invitation_response_form.instance.id == invitation_id:
+            if invitation_response_form.is_valid() and invitation_response_form.instance.email in user.get_emails():
+                # Update this invitation, and any other one made to the
+                # same user, project, and invitation type
+                invitation = invitation_response_form.save(commit=False)
                 project = invitation.project
-
-                if invitation.invitation_type == 'author':
-                    # Create Author object.
-                    existing_authors = project.authors.all()
-                    if existing_authors:
-                        order = max([a.display_order for a in existing_authors]) + 1
-                    else:
-                        order = 1
+                invitations = Invitation.objects.filter(is_active=True,
+                    email__in=user.get_emails(), project=project,
+                    invitation_type=invitation.invitation_type)
+                invitations.update(response=invitation.response,
+                    response_message=invitation.response_message,
+                    response_datetime=timezone.now(), is_active=False)
+                # Create a new Author object
+                if invitation.response:
                     Author.objects.create(project=project, user=user,
-                        display_order=order)
+                        display_order=project.authors.count() + 1)
 
-                elif invitation.invitation_type == 'reviewer':
-                    pass
-            else:
-                response = 'rejected'
-
-            messages.success(request, 'You have %s the invitation.' % response)
+                messages.success(request, 'The invitation has been %s.' % RESPONSE_ACTIONS[invitation.response])
 
 @login_required
 def project_invitations(request):
     """
-    Page listing invitations for a user
+    Page for listing and responding to project invitations
     """
     user = request.user
 
-    InvitationResponseFormSet = formset_factory(forms.InvitationResponseForm,
-        extra=0)
+    InvitationResponseFormSet = modelformset_factory(Invitation,
+        fields=('response', 'response_message'),
+        widgets={'response':Select(choices=RESPONSE_CHOICES),
+                 'response_message':Textarea()}, extra=0)
 
     if request.method == 'POST':
-        invitation_response_formset = InvitationResponseFormSet(
-            request.POST, form_kwargs={'user':user})
+        invitation_response_formset = InvitationResponseFormSet(request.POST)
         process_invitation_response(request, invitation_response_formset)
 
-    invitations = Invitation.get_user_invitations(user)
-    author_invitations = invitations.filter(invitation_type='author')
-    reviewer_invitations = invitations.filter(invitation_type='reviewer')
     invitation_response_formset = InvitationResponseFormSet(
-        form_kwargs={'user':user},
-        initial=[{'invitation_id':inv.id} for inv in invitations])
+        queryset=Invitation.get_user_invitations(user,
+        invitation_types=['author']))
 
     return render(request, 'project/project_invitations.html', {
-        'invitations':invitations,
-        'author_invitations':author_invitations,
-        'reviewer_invitations':reviewer_invitations,
         'invitation_response_formset':invitation_response_formset})
-
-# def project_invitations(request):
-#     """
-#     Page for listing and responding to project invitations
-#     """
-#     user = request.user
-
-#     InvitationResponseFormSet = modelformset_factory(Invitation,
-#         fields={}
-
-#     StorageResponseFormSet = modelformset_factory(StorageRequest,
-#         fields=('response', 'response_message'),
-#         widgets={'response':Select(choices=RESPONSE_CHOICES),
-#                  'response_message':Textarea()}, extra=0)
 
 
 @login_required

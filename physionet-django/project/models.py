@@ -52,7 +52,6 @@ class Affiliation(models.Model):
         return self.member_object.natural_key() + (self.name,)
     natural_key.dependencies = ['project.Author']
 
-
     class Meta:
         unique_together = (('name', 'content_type', 'object_id'))
 
@@ -367,6 +366,9 @@ class TrainingCourseCompletion(models.Model):
 
 
 class BaseInvitation(models.Model):
+    """
+    Base class for project invitations and storage requests
+    """
     request_datetime = models.DateTimeField(auto_now_add=True)
     response_datetime = models.DateTimeField(null=True)
     response = models.NullBooleanField(null=True)
@@ -395,16 +397,29 @@ class Invitation(BaseInvitation):
         return ('Project: %s To: %s By: %s'
                 % (self.project, self.email, self.inviter))
 
-    def get_user_invitations(user, invitation_types='all'):
-        "Get all active invitations to a user, possibly for a certain project"
+    def get_user_invitations(user, invitation_types='all',
+                             exclude_duplicates=True):
+        """
+        Get all active invitations to a user
+
+        """
         emails = user.get_emails()
         invitations = Invitation.objects.filter(email__in=emails,
-            is_active=True).order_by('request_datetime')
+            is_active=True).order_by('-request_datetime')
         if invitation_types != 'all':
             invitations = invitations.filter(
                 invitation_type__in=invitation_types)
 
         # Remove duplicate invitations to the same project
+        if exclude_duplicates:
+            project_ids = []
+            remove_ids = []
+            for invitation in invitations:
+                if invitation.project.id in project_ids:
+                    remove_ids.append(invitation.id)
+                else:
+                    project_ids.append(invitation.project.id)
+            invitations = invitations.exclude(id__in=remove_ids)
 
         return invitations
 
