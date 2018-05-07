@@ -1,61 +1,98 @@
 {% extends "user/settings.html" %}
 
+
 {% block title %}Edit Emails{% endblock %}
 
-{% block form %}
+
+{% block main_content %}
+
 <h2 class="form-signin-heading">Emails</h2>
 
+
+
 <hr>
-<h4>Your Emails</h4>
 <div class="card">
   <ul class="list-group list-group-flush">
-    {% for form in associated_email_formset %}
-      <li class="list-group-item">{{ form.email.value }}
-        <a class="float-right">
-        {% if form.is_primary_email.value %}<span class="badge badge-success">Primary</span>{% endif %}
-        {% if form.is_public.value %}
-          <span class="badge badge-primary">Public</span>
-        {% else %}
-          <span class="badge badge-secondary">Private</span>
+    {% for email in associated_emails %}
+      <li class="list-group-item">
+        {{ email }}&nbsp;
+        {% if email.is_primary_email %}
+          <span class="badge badge-success">Primary</span>&nbsp;
         {% endif %}
+        {% if email.is_public %}
+          <span class="badge badge-primary">Public</span>&nbsp;
+        {% endif %}
+        {% if not email.is_verified %}
+          <span class="badge badge-secondary">Unverified</span>&nbsp;
+        {% endif %}
+        <a class="float-right">
+          {% if not email.is_primary_email %}
+            <button class="btn btn-sm" type="button" style="background:none" data-toggle="modal" data-target="#remove-{{ email.id }}-modal"><i class="fas fa-trash-alt" style="color:#cb2431"></i></button>
+            {# Modal for removing email #}
+            <div class="modal fade" id="remove-{{ email.id }}-modal" role="dialog" aria-labelledby="remove-{{ email.id }}-modal" aria-hidden="true">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Remove Email</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                    Are you sure you want to remove <strong>{{ email }}</strong> from your account?
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <form action="{% url 'edit_emails' %}" method="post">
+                      {% csrf_token %}
+                      <button class="btn btn-danger" name="remove_email" value="{{ email.id }}" type="submit">Remove Email</button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% else %}
+            {# placeholder for card height #}
+            <button class="btn btn-sm" style="background:none" type="button"><i class="fas fa-trash-alt" style="color:white"></i></button>
+          {% endif %}
         </a>
       </li>
     {% endfor %}
   </ul>
 </div>
 
-<hr>
-<h4>Public Emails</h4>
-<p>The email addresses shown in your <a href="{% url 'public_profile' user.username %}">public profile</a>.</p>
-<form action="{% url 'edit_emails' %}" method="post" class="form-signin">
-  {% csrf_token %}
-  <div class="card">
-    <ul class="list-group list-group-flush">
-      {{  associated_email_formset.management_form }}
-      {% for form in associated_email_formset %}
-        <li class="list-group-item" >{{ form.is_public }} <label class="form-check-label">{{ form.email.value }}</label>{% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}</li>
-      {% endfor %}
-    </ul>
-  </div>
-  <button class="btn btn-primary btn-fixed btn-custom" name="set_public_emails" type="submit">Set Public Emails</button>
-</form>
 
-<hr>
+<br>
 <h4>Primary Email</h4>
-<p>The email address used for logging into your account.</p>
+<p>The email address used for authentication, and email notifications.</p>
 <form action="{% url 'edit_emails' %}" method="post" class="form-signin row">
   {% csrf_token %}
   <div class='col-md-9'>
     {% include "form_snippet_no_labels.html" with form=primary_email_form %}
   </div>
   <div>
-    <button class="btn btn-primary btn-fixed" name="set_primary_email" type="submit">Make Primary Email</button>
+    <button class="btn btn-primary btn-fixed" name="set_primary_email" type="submit">Select</button>
   </div>
 </form>
 
+
+<hr>
+<h4>Public Email</h4>
+<p>The email address shown in your <a href="{% url 'public_profile' user.username %}">public profile</a>.</p>
+<form action="{% url 'edit_emails' %}" method="post" class="form-signin row">
+  {% csrf_token %}
+  <div class='col-md-9'>
+    {% include "form_snippet_no_labels.html" with form=public_email_form %}
+  </div>
+  <div>
+    <button class="btn btn-primary btn-fixed" name="set_public_email" type="submit">Select</button>
+  </div>
+</form>
+
+
 <hr>
 <h4>Add Email</h4>
-<p>Add another email address. A message will be sent to the address for verification. </p>
+<p>Add a new email address.</p>
 <form action="{% url 'edit_emails' %}" method="post" class="form-signin row" name="add_email">
   {% csrf_token %}
   <div class='col-md-9'>
@@ -63,19 +100,6 @@
   </div>
   <div>
     <button class="btn btn-primary btn-fixed" name="add_email" type="submit">Add Email</button>
-  </div>
-</form>
-
-<hr>
-<h4>Remove Email</h4>
-<p>Remove an email address from your account. You may not remove your primary email address.</p>
-<form action="{% url 'edit_emails' %}" method="post" class="form-signin row">
-  {% csrf_token %}
-  <div class='col-md-9'>
-  {% include "form_snippet_no_labels.html" with form=remove_email_form %}
-  </div>
-  <div>
-    <button class="btn btn-danger btn-fixed" name="remove_email" type="submit">Remove Email</button>
   </div>
 </form>
 

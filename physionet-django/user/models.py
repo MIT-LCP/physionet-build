@@ -140,6 +140,7 @@ class AssociatedEmail(models.Model):
     is_primary_email = models.BooleanField(default=False)
     added_date = models.DateTimeField(auto_now_add=True, null=True)
     verification_date = models.DateTimeField(null=True)
+    is_verified = models.BooleanField(default=False)
     is_public = models.BooleanField(default=False)
 
     def __str__(self):
