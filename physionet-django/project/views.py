@@ -173,6 +173,20 @@ def project_invitations(request):
         'reviewer_invitations':reviewer_invitations,
         'invitation_response_formset':invitation_response_formset})
 
+# def project_invitations(request):
+#     """
+#     Page for listing and responding to project invitations
+#     """
+#     user = request.user
+
+#     InvitationResponseFormSet = modelformset_factory(Invitation,
+#         fields={}
+
+#     StorageResponseFormSet = modelformset_factory(StorageRequest,
+#         fields=('response', 'response_message'),
+#         widgets={'response':Select(choices=RESPONSE_CHOICES),
+#                  'response_message':Textarea()}, extra=0)
+
 
 @login_required
 def create_project(request):
