@@ -1,5 +1,6 @@
 <!-- The base template used for the site -->
 <!DOCTYPE html>
+{% load static %}
 <html lang="en">
   <head>
     <title>{% block title %}{% endblock %}</title>
@@ -7,6 +8,7 @@
     {% block local_css %}{% endblock %}
     {% include "base_js_top.html" %}
     {% block local_js_top %}{% endblock %}
+    <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}"/>
   </head>
 
   <body>
