@@ -29,29 +29,6 @@
           {% else %}
             <a class="float-right">
                 <button class="btn btn-sm" type="button" style="background:none" data-toggle="modal" data-target="#remove-{{ author.id }}-modal"><i class="fas fa-user-times" style="color:#cb2431"></i></button>
-                {# Modal for removing email #}
-                <div class="modal fade" id="remove-{{ author.id }}-modal" role="dialog" aria-labelledby="remove-{{ author.id }}-modal" aria-hidden="true">
-                  <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                      <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">Remove Author</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                          <span aria-hidden="true">&times;</span>
-                        </button>
-                      </div>
-                      <div class="modal-body">
-                        Are you sure you want to remove <strong>{{ author }}</strong> from the project's authors?
-                      </div>
-                      <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <form action="" method="post">
-                          {% csrf_token %}
-                          <button class="btn btn-danger" name="remove_author" value="{{ author.id }}" type="submit">Remove Author</button>
-                        </form>
-                      </div>
-                    </div>
-                  </div>
-                </div>
             </a>
           {% endif %}
           <br>
@@ -59,11 +36,42 @@
           <strong>Affiliations</strong>: {{ author|author_affiliations }}
         {% else %}
           <strong>Organization</strong>: {{ author.organization_name }}
+          <a class="float-right">
+            <button class="btn btn-sm" type="button" style="background:none" data-toggle="modal" data-target="#remove-{{ author.id }}-modal"><i class="fas fa-user-times" style="color:#cb2431"></i></button>
+          </a>
         {% endif %}
       </li>
     {% endfor %}
   </ul>
 </div>
+
+{# Modals for removing author #}
+{% for author in authors %}
+  {% if not author.is_submitting_author %}
+    <div class="modal fade" id="remove-{{ author.id }}-modal" role="dialog" aria-labelledby="remove-{{ author.id }}-modal" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Remove Author</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            Are you sure you want to remove <strong>{{ author }}</strong> from the project's authors?
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <form action="" method="post">
+              {% csrf_token %}
+              <button class="btn btn-danger" name="remove_author" value="{{ author.id }}" type="submit">Remove Author</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+{% endfor %}
 <br>
 
 <div class="card">
