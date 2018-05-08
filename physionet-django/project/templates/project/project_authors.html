@@ -27,9 +27,11 @@
           {% if author.user == project.submitting_author %}
             <span class="badge badge-success">Submitting Author</span>
           {% else %}
-            <a class="float-right">
-                <button class="btn btn-sm" type="button" style="background:none" data-toggle="modal" data-target="#remove-{{ author.id }}-modal"><i class="fas fa-user-times" style="color:#cb2431"></i></button>
-            </a>
+            {% if project.submitting_author == user %}
+              <a class="float-right">
+                  <button class="btn btn-sm" type="button" style="background:none" data-toggle="modal" data-target="#remove-{{ author.id }}-modal"><i class="fas fa-user-times" style="color:#cb2431"></i></button>
+              </a>
+            {% endif %}
           {% endif %}
           <br>
           <strong>Name</strong>: {{ author.user|author_name }}<br>
@@ -44,34 +46,6 @@
     {% endfor %}
   </ul>
 </div>
-
-{# Modals for removing author #}
-{% for author in authors %}
-  {% if not author.is_submitting_author %}
-    <div class="modal fade" id="remove-{{ author.id }}-modal" role="dialog" aria-labelledby="remove-{{ author.id }}-modal" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLabel">Remove Author</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            Are you sure you want to remove <strong>{{ author }}</strong> from the project's authors?
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            <form action="" method="post">
-              {% csrf_token %}
-              <button class="btn btn-danger" name="remove_author" value="{{ author.id }}" type="submit">Remove Author</button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-  {% endif %}
-{% endfor %}
 <br>
 
 <div class="card">
@@ -83,6 +57,11 @@
     {% for invitation in invitations %}
       <li class="list-group-item">
           <strong>Email</strong>: {{ invitation.email }}<br>
+            {% if project.submitting_author == user %}
+              <a class="float-right">
+                  <button class="btn btn-sm" type="button" style="background:none" data-toggle="modal" data-target="#cancel-{{ invitation.id }}-modal"><i class="fas fa-user-times" style="color:#cb2431"></i></button>
+              </a>
+            {% endif %}
           <strong>Inviter</strong>: {{ invitation.inviter }}<br>
           <strong>Sent</strong>: {{ invitation.request_datetime|date }}
       </li>
@@ -95,6 +74,63 @@
   {% endif %}
 </div>
 <hr>
+
+{# Modals for removing authors and invitations #}
+{% if project.submitting_author == user %}
+  {% for author in authors %}
+    {% if not author.is_submitting_author %}
+      <div class="modal fade" id="remove-{{ author.id }}-modal" role="dialog" aria-labelledby="remove-{{ author.id }}-modal" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Remove Author</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              Are you sure you want to remove <strong>{{ author }}</strong> from the project's authors?
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              <form action="" method="post">
+                {% csrf_token %}
+                <button class="btn btn-danger" name="remove_author" value="{{ author.id }}" type="submit">Remove Author</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  {% endfor %}
+
+  {% for invitation in invitations %}
+    <div class="modal fade" id="cancel-{{ invitation.id }}-modal" role="dialog" aria-labelledby="cancel-{{ invitation.id }}-modal" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Cancel Invitation</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            Are you sure you want to cancel the invitation to <strong>{{ invitation.email }}</strong>?
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <form action="" method="post">
+              {% csrf_token %}
+              <button class="btn btn-danger" name="cancel_invitation" value="{{ invitation.id }}" type="submit">Cancel Invitation</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+{% endif %}
+<br>
+
 
 <h4>Your Author Affiliations</h4>
 <p>Set up to three affiliations for your author profile. <em>Note: these fields are not tied to your user profile</em>.</p>
