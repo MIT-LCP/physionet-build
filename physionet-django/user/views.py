@@ -1,3 +1,6 @@
+import logging
+import pdb
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -14,8 +17,6 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
 from .forms import AssociatedEmailForm, AssociatedEmailChoiceForm, ProfileForm, UserCreationForm
 from .models import AssociatedEmail, Profile, User
-
-import logging
 
 
 logger = logging.getLogger(__name__)
@@ -46,11 +47,16 @@ def activate_user(request, uidb64, token):
 
 
 # Helper functions for edit_emails view
-def set_public_emails(request, formset):
-    "Set public/private status of associated emails"
-    if formset.is_valid():
-        formset.save()
-        messages.success(request, 'Your email privacy settings have been updated.')
+
+def remove_email(request, email_id):
+    "Remove a non-primary email associated with a user"
+    user = request.user
+    associated_email = AssociatedEmail.objects.get(id=email_id)
+    if associated_email.user == user and not associated_email.is_primary_email:
+        email = associated_email.email
+        associated_email.delete()
+        logger.info('Removed email {0} from user {1}'.format(email, user.id))
+        messages.success(request, 'Your email: %s has been removed from your account.' % email)
 
 def set_primary_email(request, primary_email_form):
     "Set the selected email as the primary email"
@@ -63,6 +69,25 @@ def set_primary_email(request, primary_email_form):
             user.email = associated_email.email
             user.save(update_fields=['email'])
             messages.success(request, 'Your email: %s has been set as your new primary email.' % user.email)
+
+def set_public_email(request, public_email_form):
+    "Set the selected email as the public email"
+    user = request.user
+    if public_email_form.is_valid():
+        associated_email = public_email_form.cleaned_data['associated_email']
+        current_public_email = user.associated_emails.filter(is_public=True).first()
+        # Only do something if they selected a different email
+        if associated_email != current_public_email:
+            if current_public_email:
+                current_public_email.is_public = False
+                current_public_email.save()
+            # The selection may be None
+            if associated_email:
+                associated_email.is_public = True
+                associated_email.save()
+                messages.success(request, 'Your email: %s has been set to public.' % associated_email.email)
+            else:
+                messages.success(request, 'Your email: %s is no longer public.' % current_public_email.email)
 
 def add_email(request, add_email_form):
     user = request.user
@@ -80,54 +105,43 @@ def add_email(request, add_email_form):
             [add_email_form.cleaned_data['email']], fail_silently=False)
         messages.success(request, 'A verification link has been sent to: %s' % associated_email.email)
 
-def remove_email(request, remove_email_form):
-    "Remove a non-primary email associated with a user"
-    user = request.user
-    if remove_email_form.is_valid():
-        associated_email = remove_email_form.cleaned_data['associated_email']
-        remove_email = associated_email.email
-        associated_email.delete()
-        logger.info('Removed email {0} from user {1}'.format(remove_email, user.email))
-        messages.success(request, 'Your email: %s has been removed from your account.' % remove_email)
-
 @login_required
 def edit_emails(request):
     """
     Edit emails page
     """
     user = request.user
-    # Email forms to display
-    AssociatedEmailFormset = inlineformset_factory(User, AssociatedEmail,
-        fields=('email','is_primary_email', 'is_public'), extra=0,
-        widgets={'email': HiddenInput, 'is_primary_email':HiddenInput, 'is_public': CheckboxInput(attrs={'class':'form-check-input-inline'})})
-    associated_email_formset = AssociatedEmailFormset(instance=user,
-        queryset=AssociatedEmail.objects.filter(verification_date__isnull=False))
-    primary_email_form = AssociatedEmailChoiceForm(user=user, include_primary=True)
+
+    associated_emails = AssociatedEmail.objects.filter(
+        user=user).order_by('-is_verified', '-is_primary_email')
+    primary_email_form = AssociatedEmailChoiceForm(user=user,
+                                                   selection_type='primary')
+    public_email_form = AssociatedEmailChoiceForm(user=user,
+                                                  selection_type='public')
     add_email_form = AssociatedEmailForm()
-    remove_email_form = AssociatedEmailChoiceForm(user=user, include_primary=False)
 
     if request.method == 'POST':
-        if 'set_public_emails' in request.POST:
-            formset = AssociatedEmailFormset(request.POST, instance=user)
-            set_public_emails(request, formset)
-
+        if 'remove_email' in request.POST:
+            # No form. Just get button value.
+            email_id = int(request.POST['remove_email'])
+            remove_email(request, email_id)
         elif 'set_primary_email' in request.POST:
             primary_email_form = AssociatedEmailChoiceForm(user=user,
-                include_primary=True, data=request.POST)
+                selection_type='primary', data=request.POST)
             set_primary_email(request, primary_email_form)
+        elif 'set_public_email' in request.POST:
+            public_email_form = AssociatedEmailChoiceForm(user=user,
+                selection_type='public', data=request.POST)
+            set_public_email(request, public_email_form)
 
         elif 'add_email' in request.POST:
             add_email_form = AssociatedEmailForm(request.POST)
             add_email(request, add_email_form)
-                
-        elif 'remove_email' in request.POST:
-            remove_email_form = AssociatedEmailChoiceForm(user=user,
-                include_primary=False, data=request.POST)
-            remove_email(request, remove_email_form)
 
-    context = {'associated_email_formset':associated_email_formset,
+    context = {'associated_emails':associated_emails,
         'primary_email_form':primary_email_form,
-        'add_email_form':add_email_form, 'remove_email_form':remove_email_form}
+        'add_email_form':add_email_form,
+        'public_email_form':public_email_form}
 
     context['messages'] = messages.get_messages(request)
 
@@ -196,7 +210,7 @@ def register(request):
             context = {'name':user.get_full_name(),
                 'domain':get_current_site(request), 'uidb64':uidb64, 'token':token}
             body = loader.render_to_string('user/email/register_email.html', context)
-            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, 
+            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                 [form.cleaned_data['email']], fail_silently=False)
 
             # Registration successful
@@ -243,7 +257,7 @@ def verify_email(request, uidb64, token):
             logger.info('User {0} verified another email {1}'.format(user.email, associated_email))
             return render(request, 'user/verify_email.html',
                 {'title':'Verification Successful', 'isvalid':True})
-    
+
     logger.warning('Invalid Verification Link')
     return render(request, 'user/verify_email.html',
         {'title':'Invalid Verification Link', 'isvalid':False})

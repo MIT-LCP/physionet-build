@@ -49,7 +49,7 @@ class UserManager(BaseUserManager):
         return user
 
     def create_superuser(self, email, password, username):
-        user = self.model(email=email.lower(), username=username.lower(), 
+        user = self.model(email=email.lower(), username=username.lower(),
             is_active=True, is_admin=True)
         user.set_password(password)
         user.save(using=self._db)
@@ -67,7 +67,7 @@ class User(AbstractBaseUser):
 
     email = models.EmailField(max_length=255, unique=True)
     username = models.CharField(max_length=150, unique=True,
-        help_text='Required. 150 characters or fewer. Letters, digits and - only.', 
+        help_text='Required. 150 characters or fewer. Letters, digits and - only.',
         validators=[UsernameValidator()],
         error_messages={
             'unique': "A user with that username already exists."})
@@ -83,7 +83,7 @@ class User(AbstractBaseUser):
     REQUIRED_FIELDS = ['email']
 
     def natural_key(self):
-        return (self.email)
+        return (self.email, )
 
     def validate_unique(self, exclude=None):
         """
@@ -98,7 +98,7 @@ class User(AbstractBaseUser):
             raise ValidationError({'email':'User with this email already exists.'})
         if User.objects.filter(username=self.username.lower()):
             raise ValidationError({'username':'User with this username already exists.'})
-            
+
     # Mandatory methods for default authentication backend
     def get_full_name(self):
         return self.profile.get_full_name()
@@ -140,6 +140,7 @@ class AssociatedEmail(models.Model):
     is_primary_email = models.BooleanField(default=False)
     added_date = models.DateTimeField(auto_now_add=True, null=True)
     verification_date = models.DateTimeField(null=True)
+    is_verified = models.BooleanField(default=False)
     is_public = models.BooleanField(default=False)
 
     def __str__(self):

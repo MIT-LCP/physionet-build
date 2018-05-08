@@ -40,9 +40,9 @@ class TestForms(TestCase):
         """
         user = User.objects.get(email='admin@mit.edu')
         self.valid_form = AssociatedEmailChoiceForm(user=user,
-            include_primary=True, data={'associated_email':'admin2@mit.edu'})
+            selection_type='primary', data={'associated_email':'admin2@mit.edu'})
         self.invalid_form = AssociatedEmailChoiceForm(user=user,
-            include_primary=True, data={'associated_email':'nonexistent@mit.edu'})
+            selection_type='public', data={'associated_email':'nonexistent@mit.edu'})
         self.run_test_forms({'associated_email':['Select a valid choice. That choice is not one of the available choices.']})
 
     def test_associated_email_form(self):

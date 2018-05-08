@@ -1,11 +1,15 @@
+import os
+import pdb
+import re
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
-from django.forms import formset_factory, inlineformset_factory, TextInput
+from django.forms import formset_factory, inlineformset_factory, modelformset_factory, Textarea, Select
 from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
-import os
-import re
+from django.utils import timezone
+
 from . import forms
 from .models import (Affiliation, Author, Invitation, Project,
     PublishedProject, StorageRequest, PROJECT_FILE_SIZE_LIMIT)
@@ -15,7 +19,14 @@ from .utility import (get_file_info, get_directory_info, get_storage_info,
 from user.forms import ProfileForm
 from user.models import User
 
-import pdb
+
+RESPONSE_CHOICES = (
+    (1, 'Accept'),
+    (0, 'Reject')
+)
+
+RESPONSE_ACTIONS = {0:'rejected', 1:'accepted'}
+
 
 def is_admin(user, *args, **kwargs):
     return user.is_admin
@@ -52,26 +63,6 @@ def authorization_required(auth_functions):
     return real_decorator
 
 
-def get_button_id(post_keys):
-    """
-    Helper function to extract the submit button label from a form post.
-    The button name should be in the form of: "respond-<id>", and there
-    should only be one item in the post of that format. This function
-    is used to determine which form/button was submitted on a page with
-    multiple forms.
-
-    post_keys : keys of a form post.
-    """
-    button_id = [re.findall('respond-(?P<button_id>\d+)', k) for k in post_keys]
-    button_id = [i for i in button_id if i]
-    if len(button_id) == 1:
-        button_id = int(button_id[0][0])
-    else:
-        button_id = None
-
-    return button_id
-
-
 @login_required
 def project_home(request):
     """
@@ -96,70 +87,49 @@ def process_invitation_response(request, invitation_response_formset):
     Helper function to project_invitations
     """
     user = request.user
-    invitation_id = get_button_id(request.POST.keys())
-    # Only process the form that was submitted
+    invitation_id = int(request.POST['invitation_response'])
     for invitation_response_form in invitation_response_formset:
-        if (invitation_response_form.is_valid() and
-                invitation_response_form.cleaned_data['invitation_id'] == invitation_id):
-            # Get the specified Invitation and response
-            invitation = Invitation.objects.get(id=invitation_id)
-            response = int(invitation_response_form.cleaned_data['response'])
-            # Update the specified Invitation object, and also any other
-            # duplicate invitations (same user, project, and invitation_type)
-            emails = user.get_emails()
-            invitations = Invitation.objects.filter(email__in=emails,
-                project=invitation.project,
-                invitation_type=invitation.invitation_type)
-            invitations.update(response=response, is_active=False)
-
-            # Carry out the response to the project
-            if response:
-                response = 'accepted'
+        # Only process the response that was submitted
+        if invitation_response_form.instance.id == invitation_id:
+            if invitation_response_form.is_valid() and invitation_response_form.instance.email in user.get_emails():
+                # Update this invitation, and any other one made to the
+                # same user, project, and invitation type
+                invitation = invitation_response_form.save(commit=False)
                 project = invitation.project
-
-                if invitation.invitation_type == 'author':
-                    # Create Author object.
-                    existing_authors = project.authors.all()
-                    if existing_authors:
-                        order = max([a.display_order for a in existing_authors]) + 1
-                    else:
-                        order = 1
+                invitations = Invitation.objects.filter(is_active=True,
+                    email__in=user.get_emails(), project=project,
+                    invitation_type=invitation.invitation_type)
+                invitations.update(response=invitation.response,
+                    response_message=invitation.response_message,
+                    response_datetime=timezone.now(), is_active=False)
+                # Create a new Author object
+                if invitation.response:
                     Author.objects.create(project=project, user=user,
-                        display_order=order)
+                        display_order=project.authors.count() + 1)
 
-                elif invitation.invitation_type == 'reviewer':
-                    pass
-            else:
-                response = 'rejected'
-
-            messages.success(request, 'You have %s the invitation.' % response)
+                messages.success(request, 'The invitation has been %s.' % RESPONSE_ACTIONS[invitation.response])
 
 @login_required
 def project_invitations(request):
     """
-    Page listing invitations for a user
+    Page for listing and responding to project invitations
     """
     user = request.user
 
-    InvitationResponseFormSet = formset_factory(forms.InvitationResponseForm,
-        extra=0)
+    InvitationResponseFormSet = modelformset_factory(Invitation,
+        fields=('response', 'response_message'),
+        widgets={'response':Select(choices=RESPONSE_CHOICES),
+                 'response_message':Textarea()}, extra=0)
 
     if request.method == 'POST':
-        invitation_response_formset = InvitationResponseFormSet(
-            request.POST, form_kwargs={'user':user})
+        invitation_response_formset = InvitationResponseFormSet(request.POST)
         process_invitation_response(request, invitation_response_formset)
 
-    invitations = Invitation.get_user_invitations(user)
-    author_invitations = invitations.filter(invitation_type='author')
-    reviewer_invitations = invitations.filter(invitation_type='reviewer')
     invitation_response_formset = InvitationResponseFormSet(
-        form_kwargs={'user':user},
-        initial=[{'invitation_id':inv.id} for inv in invitations])
+        queryset=Invitation.get_user_invitations(user,
+        invitation_types=['author']))
 
     return render(request, 'project/project_invitations.html', {
-        'invitations':invitations,
-        'author_invitations':author_invitations,
-        'reviewer_invitations':reviewer_invitations,
         'invitation_response_formset':invitation_response_formset})
 
 
@@ -235,32 +205,30 @@ def add_author(request, add_author_form):
     else:
         messages.error(request, 'Submission unsuccessful. See form for errors.')
 
-def remove_author(request, remove_author_form):
+def remove_author(request, author_id):
     """
     Remove an author from a project
     Helper function for `project_authors`.
     """
-    if remove_author_form.is_valid():
-        author = remove_author_form.cleaned_data['author']
+    user = request.user
+    author = Author.objects.get(id=author_id)
+
+    if author.project.submitting_author == user:
         author.delete()
         messages.success(request, 'The author has been removed from the project')
         return True
-    else:
-        messages.error(request, 'Submission unsuccessful. See form for errors.')
 
-def cancel_invitation(request, cancel_invitation_form):
+def cancel_invitation(request, invitation_id):
     """
     Cancel an author invitation for a project.
     Helper function for `project_authors`.
     """
-    if cancel_invitation_form.is_valid():
-        invitation = cancel_invitation_form.cleaned_data['invitation']
-        invitation.is_active = False
-        invitation.save()
+    user = request.user
+    invitation = Invitation.objects.get(id=invitation_id)
+    if invitation.project.submitting_author == user:
+        invitation.delete()
         messages.success(request, 'The invitation has been cancelled')
         return True
-    else:
-        messages.error(request, 'Submission unsuccessful. See form for errors.')
 
 @authorization_required(auth_functions=(is_admin, is_author))
 def project_authors(request, project_id):
@@ -287,8 +255,6 @@ def project_authors(request, project_id):
     order_formset = OrderFormSet(instance=project)
     invite_author_form = forms.InviteAuthorForm(project, user)
     add_author_form = forms.AddAuthorForm(user=user, project=project)
-    remove_author_form = forms.AuthorChoiceForm(user=user, project=project)
-    cancel_invitation_form = forms.InvitationChoiceForm(user=user, project=project)
 
     if request.method == 'POST':
         if 'edit_author' in request.POST:
@@ -317,17 +283,13 @@ def project_authors(request, project_id):
             if add_author(request, add_author_form):
                 add_author_form = forms.AddAuthorForm(user, project)
         elif 'remove_author' in request.POST:
-            remove_author_form = forms.AuthorChoiceForm(user=user,
-                project=project, data=request.POST)
-            if remove_author(request, remove_author_form):
-                remove_author_form = forms.AuthorChoiceForm(user=user,
-                    project=project)
+            # No form. Just get button value.
+            author_id = int(request.POST['remove_author'])
+            remove_author(request, author_id)
         elif 'cancel_invitation' in request.POST:
-            cancel_invitation_form = forms.InvitationChoiceForm(user=user,
-                project=project, data=request.POST)
-            if cancel_invitation(request, cancel_invitation_form):
-                cancel_invitation_form = forms.InvitationChoiceForm(user=user,
-                    project=project)
+            # No form. Just get button value.
+            invitation_id = int(request.POST['cancel_invitation'])
+            cancel_invitation(request, invitation_id)
 
     invitations = project.invitations.filter(invitation_type='author',
         is_active=True)
@@ -338,9 +300,7 @@ def project_authors(request, project_id):
         'affiliation_formset':affiliation_formset,
         'order_formset':order_formset,
         'invite_author_form':invite_author_form,
-        'add_author_form':add_author_form,
-        'remove_author_form':remove_author_form,
-        'cancel_invitation_form':cancel_invitation_form})
+        'add_author_form':add_author_form})
 
 
 @authorization_required(auth_functions=(is_admin, is_author))
@@ -529,58 +489,44 @@ def project_submission(request, project_id):
         'project':project})
 
 
-def process_storage_request(request, storage_response_formset):
-    """
-    Accept or deny a project's storage request
-    Helper function to `storage_requests`.
-    """
-    # Only process the form that was submitted. Find the relevant project
-    project_id = get_button_id(request.POST.keys())
+def process_storage_response(request, storage_response_formset):
+    user = request.user
+    storage_request_id = int(request.POST['storage_response'])
 
     for storage_response_form in storage_response_formset:
-        if (storage_response_form.is_valid() and
-                storage_response_form.cleaned_data['project_id'] == project_id):
-
-            storage_request = StorageRequest.objects.get(project=project_id)
-            project = storage_request.project
-            response = int(storage_response_form.cleaned_data['response'])
-            # Update the specified StorageRequest object
-            storage_request.response = response
-            storage_request.is_active = False
-            storage_request.save()
-
-            # Carry out the response to the storage request
-            if response:
-                response = 'accepted'
-                project.storage_allowance = storage_request.request_allowance
-                project.save()
-            else:
-                response = 'rejected'
-            messages.success(request, 'The storage request has been %s.' % response)
-            return
-
-    messages.error('Invalid submission')
-
+        # Only process the response that was submitted
+        if storage_response_form.instance.id == storage_request_id:
+            if storage_response_form.is_valid():
+                storage_request = storage_response_form.save(commit=False)
+                storage_request.responder = request.user
+                storage_request.response_datetime = timezone.now()
+                storage_request.is_active = False
+                storage_request.save()
+                project = storage_request.project
+                if storage_request.response:
+                    project.storage_allowance = storage_request.request_allowance
+                    project.save()
+                messages.success(request, 'The storage request has been %s.' % RESPONSE_ACTIONS[storage_request.response])
 
 @login_required
 @user_passes_test(is_admin)
 def storage_requests(request):
     """
-    Page listing projects with outstanding storage requests
+    Page for listing and responding to project storage requests
     """
     user = request.user
 
-    StorageResponseFormSet = formset_factory(forms.StorageResponseForm,
-        extra=0)
+    StorageResponseFormSet = modelformset_factory(StorageRequest,
+        fields=('response', 'response_message'),
+        widgets={'response':Select(choices=RESPONSE_CHOICES),
+                 'response_message':Textarea()}, extra=0)
 
     if request.method == 'POST':
         storage_response_formset = StorageResponseFormSet(request.POST)
-        process_storage_request(request, storage_response_formset)
+        process_storage_response(request, storage_response_formset)
 
-    storage_requests = StorageRequest.objects.filter(is_active=True)
     storage_response_formset = StorageResponseFormSet(
-        initial=[{'project_id':sr.project.id} for sr in storage_requests])
+        queryset=StorageRequest.objects.filter(is_active=True))
 
     return render(request, 'project/storage_requests.html', {'user':user,
-        'storage_requests':storage_requests,
         'storage_response_formset':storage_response_formset})

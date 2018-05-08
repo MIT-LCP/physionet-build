@@ -7,7 +7,7 @@
     "email": "admin@mit.edu",
     "username": "admin",
     "join_date": "2017-11-11",
-    "last_login": "2018-03-30T19:42:51.538Z",
+    "last_login": "2018-05-03T18:50:20.095Z",
     "is_active": true,
     "is_admin": true
   }
@@ -20,7 +20,7 @@
     "email": "rgmark@mit.edu",
     "username": "rgmark",
     "join_date": "2017-11-11",
-    "last_login": "2018-04-02T20:01:53.050Z",
+    "last_login": "2018-05-03T19:31:55.802Z",
     "is_active": true,
     "is_admin": false
   }
@@ -62,6 +62,7 @@
     "is_primary_email": true,
     "added_date": "2018-03-28T16:06:29.431Z",
     "verification_date": "2018-03-28T16:06:29.431Z",
+    "is_verified": true,
     "is_public": false
   }
 },
@@ -76,6 +77,7 @@
     "is_primary_email": true,
     "added_date": "2018-03-28T16:06:29.433Z",
     "verification_date": "2018-03-28T16:06:29.433Z",
+    "is_verified": true,
     "is_public": false
   }
 },
@@ -90,6 +92,7 @@
     "is_primary_email": true,
     "added_date": "2018-03-28T16:06:29.436Z",
     "verification_date": "2018-03-28T16:06:29.435Z",
+    "is_verified": true,
     "is_public": false
   }
 },
@@ -104,6 +107,7 @@
     "is_primary_email": false,
     "added_date": null,
     "verification_date": "2017-10-30T14:30:30Z",
+    "is_verified": true,
     "is_public": true
   }
 },
@@ -118,6 +122,7 @@
     "is_primary_email": false,
     "added_date": null,
     "verification_date": "2017-10-30T15:15:20Z",
+    "is_verified": true,
     "is_public": false
   }
 },
@@ -132,6 +137,7 @@
     "is_primary_email": false,
     "added_date": "2018-03-28T17:17:14.082Z",
     "verification_date": "2018-03-28T17:17:22.440Z",
+    "is_verified": true,
     "is_public": false
   }
 },
@@ -146,6 +152,7 @@
     "is_primary_email": true,
     "added_date": "2018-03-30T19:36:57.684Z",
     "verification_date": "2018-03-30T19:37:10.998Z",
+    "is_verified": true,
     "is_public": false
   }
 },
@@ -156,7 +163,7 @@
     "user": [
       "admin@mit.edu"
     ],
-    "first_name": "Tester",
+    "first_name": "Admin",
     "middle_names": "",
     "last_name": "Bot",
     "url": "https://github.com/MIT-LCP/physionet-build",

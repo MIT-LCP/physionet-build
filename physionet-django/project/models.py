@@ -52,7 +52,6 @@ class Affiliation(models.Model):
         return self.member_object.natural_key() + (self.name,)
     natural_key.dependencies = ['project.Author']
 
-
     class Meta:
         unique_together = (('name', 'content_type', 'object_id'))
 
@@ -178,6 +177,37 @@ class Contributor(Member):
         choices=contributor_type_choices)
 
 
+class Topic(models.Model):
+    """
+    Topic information to tag projects
+    """
+    description = models.CharField(max_length=50)
+
+    # Project or PublishedProject
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    project_object = GenericForeignKey('content_type', 'object_id')
+
+    def __str__(self):
+        return self.description
+
+
+class Reference(models.Model):
+    """
+    General reference field for projects
+    """
+    description = models.CharField(max_length=250)
+    order = models.PositiveSmallIntegerField()
+
+    # Project or PublishedProject
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    project_object = GenericForeignKey('content_type', 'object_id')
+
+    class Meta:
+        unique_together = (('order', 'content_type', 'object_id'))
+
+
 class Metadata(models.Model):
     """
     Metadata for all projects.
@@ -193,10 +223,17 @@ class Metadata(models.Model):
     resource_types = (
         ('Database', 'Database'),
         ('Software', 'Software'),
-        ('Tutorial', 'Tutorial'),
-        ('Challenge', 'Challenge'),
     )
 
+    access_policies = (
+        ('Open', 'Open'),
+        ('Disclaimer', 'Disclaimer'),
+        ('Protected', 'Protected'),
+    )
+
+    # Main body descriptive metadata
+
+    resource_type = models.CharField(max_length=10, choices=resource_types)
     title = models.CharField(max_length=200)
     # datacite: "A brief description of the resource and the context in
     # which the resource was created"
@@ -206,28 +243,20 @@ class Metadata(models.Model):
     content_description = RichTextField(blank=True)
     technical_validation = RichTextField(blank=True)
     usage_notes = RichTextField(blank=True)
-
     acknowledgements = RichTextField(blank=True)
-    paper_citations = models.ManyToManyField('project.Reference',
-        related_name='%(class)s_citations', blank=True)
-    references = models.ManyToManyField('project.Reference',
-        related_name='%(class)s_references', blank=True)
-    topics = models.ManyToManyField('project.Topic', related_name='%(class)s',
-        blank=True)
-    resource_type = models.CharField(max_length=10, choices=resource_types)
-    # Access policy
-    # Consideration: What happens when dua/training course objects change?
-    dua = models.ForeignKey('project.DUA', null=True, blank=True,
-        related_name='%(class)s')
-    training_course = models.ForeignKey('project.TrainingCourse', null=True,
-        blank=True, related_name='%(class)s')
-    id_verification_required = models.BooleanField(default=False)
+    references = GenericRelation(Reference, blank=True)
 
-    # Version and changes (if any)
-    version_number = models.CharField(max_length=15, default='', blank=True)
-    changelog_summary = RichTextField(blank=True)
+    # Supplementary descriptive fields
+
     # External home page
     project_home_page = models.URLField(default='', blank=True)
+    # The additional papers to cite when citing the database
+    project_citations =GenericRelation(Reference, blank=True)
+    topics = GenericRelation(Topic, blank=True)
+    version = models.CharField(max_length=15, default='', blank=True)
+    changelog_summary = RichTextField(blank=True)
+    access_policy = models.CharField(max_length=10, choices=access_policies,
+                                     default=access_policies[0][0])
 
 
 class Project(Metadata):
@@ -258,6 +287,7 @@ class Project(Metadata):
     def storage_used(self):
         "Total storage used in bytes"
         return get_tree_size(self.file_root())
+
 
 @receiver(post_save, sender=Project)
 @new_creation
@@ -304,66 +334,7 @@ class PublishedProject(Metadata):
     doi = models.CharField(max_length=50, default='', unique=True)
 
     class Meta:
-        unique_together = (('core_project', 'version_number'),)
-
-
-class Invitation(models.Model):
-    """
-    Invitation to join a project as an, author, or reviewer
-
-    """
-    project = models.ForeignKey('project.Project',
-        related_name='invitations')
-    # The target email
-    email = models.EmailField(max_length=255)
-    # User who made the invitation
-    inviter = models.ForeignKey('user.User')
-    # Either 'author', or 'reviewer'
-    invitation_type = models.CharField(max_length=10)
-    creation_date = models.DateField(auto_now_add=True)
-    expiration_date = models.DateField()
-    response = models.NullBooleanField(null=True)
-    is_active = models.BooleanField(default=True)
-
-    def __str__(self):
-        return ('Project: %s To: %s By: %s'
-                % (self.project, self.email, self.inviter))
-
-    def get_user_invitations(user, invitation_types='all'):
-        "Get all active invitations to a user, possibly for a certain project"
-        emails = [ae.email for ae in user.associated_emails.all()]
-        invitations = Invitation.objects.filter(email__in=emails,
-            is_active=True)
-        if invitation_types != 'all':
-            invitations = invitations.filter(
-                invitation_type__in=invitation_types)
-
-        return invitations
-
-    def is_invited(user, project, invitation_types='all'):
-        "Whether a user is invited to a project"
-        user_invitations = get_user_invitations(user=user,
-            invitation_types=invitation_types)
-
-        return bool(project in [inv.project for inv in invitations])
-
-
-class Topic(models.Model):
-    """
-    Topic information to tag projects
-    """
-    description = models.CharField(max_length=50)
-
-    def __str__(self):
-        return self.description
-
-
-class Reference(models.Model):
-    """
-    General reference link and description
-    """
-    description = models.CharField(max_length=100)
-    url = models.URLField()
+        unique_together = (('title', 'version'),)
 
 
 class DUA(models.Model):
@@ -394,7 +365,73 @@ class TrainingCourseCompletion(models.Model):
         related_name='training_course_completions')
 
 
-class StorageRequest(models.Model):
+class BaseInvitation(models.Model):
+    """
+    Base class for project invitations and storage requests
+    """
+    request_datetime = models.DateTimeField(auto_now_add=True)
+    response_datetime = models.DateTimeField(null=True)
+    response = models.NullBooleanField(null=True)
+    response_message = models.CharField(max_length=50, default='', blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        abstract = True
+
+class Invitation(BaseInvitation):
+    """
+    Invitation to join a project as an, author, or reviewer
+
+    """
+    project = models.ForeignKey('project.Project',
+        related_name='invitations')
+    # The target email
+    email = models.EmailField(max_length=255)
+    # User who made the invitation
+    inviter = models.ForeignKey('user.User')
+    # Either 'author', or 'reviewer'
+    invitation_type = models.CharField(max_length=10)
+
+
+    def __str__(self):
+        return ('Project: %s To: %s By: %s'
+                % (self.project, self.email, self.inviter))
+
+    def get_user_invitations(user, invitation_types='all',
+                             exclude_duplicates=True):
+        """
+        Get all active invitations to a user
+
+        """
+        emails = user.get_emails()
+        invitations = Invitation.objects.filter(email__in=emails,
+            is_active=True).order_by('-request_datetime')
+        if invitation_types != 'all':
+            invitations = invitations.filter(
+                invitation_type__in=invitation_types)
+
+        # Remove duplicate invitations to the same project
+        if exclude_duplicates:
+            project_ids = []
+            remove_ids = []
+            for invitation in invitations:
+                if invitation.project.id in project_ids:
+                    remove_ids.append(invitation.id)
+                else:
+                    project_ids.append(invitation.project.id)
+            invitations = invitations.exclude(id__in=remove_ids)
+
+        return invitations
+
+    def is_invited(user, project, invitation_types='all'):
+        "Whether a user is invited to a project"
+        user_invitations = get_user_invitations(user=user,
+            invitation_types=invitation_types)
+
+        return bool(project in [inv.project for inv in invitations])
+
+
+class StorageRequest(BaseInvitation):
     """
     A request for storage capacity for a project
     """
@@ -402,9 +439,7 @@ class StorageRequest(models.Model):
     # Requested storage size in GB
     request_allowance = models.SmallIntegerField(
         validators=[MaxValueValidator(100), MinValueValidator(1)])
-    request_datetime = models.DateTimeField(auto_now_add=True)
-    response = models.NullBooleanField(null=True)
-    is_active = models.BooleanField(default=True)
+
     # The authorizer
     responder = models.ForeignKey('user.User', null=True)
 
