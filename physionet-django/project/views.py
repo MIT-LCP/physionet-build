@@ -218,19 +218,17 @@ def remove_author(request, author_id):
         messages.success(request, 'The author has been removed from the project')
         return True
 
-def cancel_invitation(request, cancel_invitation_form):
+def cancel_invitation(request, invitation_id):
     """
     Cancel an author invitation for a project.
     Helper function for `project_authors`.
     """
-    if cancel_invitation_form.is_valid():
-        invitation = cancel_invitation_form.cleaned_data['invitation']
-        invitation.is_active = False
-        invitation.save()
+    user = request.user
+    invitation = Invitation.objects.get(id=invitation_id)
+    if invitation.project.submitting_author == user:
+        invitation.delete()
         messages.success(request, 'The invitation has been cancelled')
         return True
-    else:
-        messages.error(request, 'Submission unsuccessful. See form for errors.')
 
 @authorization_required(auth_functions=(is_admin, is_author))
 def project_authors(request, project_id):
@@ -289,11 +287,9 @@ def project_authors(request, project_id):
             author_id = int(request.POST['remove_author'])
             remove_author(request, author_id)
         elif 'cancel_invitation' in request.POST:
-            cancel_invitation_form = forms.InvitationChoiceForm(user=user,
-                project=project, data=request.POST)
-            if cancel_invitation(request, cancel_invitation_form):
-                cancel_invitation_form = forms.InvitationChoiceForm(user=user,
-                    project=project)
+            # No form. Just get button value.
+            invitation_id = int(request.POST['cancel_invitation'])
+            cancel_invitation(request, invitation_id)
 
     invitations = project.invitations.filter(invitation_type='author',
         is_active=True)
