@@ -205,18 +205,18 @@ def add_author(request, add_author_form):
     else:
         messages.error(request, 'Submission unsuccessful. See form for errors.')
 
-def remove_author(request, remove_author_form):
+def remove_author(request, author_id):
     """
     Remove an author from a project
     Helper function for `project_authors`.
     """
-    if remove_author_form.is_valid():
-        author = remove_author_form.cleaned_data['author']
+    user = request.user
+    author = Author.objects.get(id=author_id)
+
+    if author.project.submitting_author == user:
         author.delete()
         messages.success(request, 'The author has been removed from the project')
         return True
-    else:
-        messages.error(request, 'Submission unsuccessful. See form for errors.')
 
 def cancel_invitation(request, cancel_invitation_form):
     """
@@ -257,8 +257,6 @@ def project_authors(request, project_id):
     order_formset = OrderFormSet(instance=project)
     invite_author_form = forms.InviteAuthorForm(project, user)
     add_author_form = forms.AddAuthorForm(user=user, project=project)
-    remove_author_form = forms.AuthorChoiceForm(user=user, project=project)
-    cancel_invitation_form = forms.InvitationChoiceForm(user=user, project=project)
 
     if request.method == 'POST':
         if 'edit_author' in request.POST:
@@ -287,11 +285,9 @@ def project_authors(request, project_id):
             if add_author(request, add_author_form):
                 add_author_form = forms.AddAuthorForm(user, project)
         elif 'remove_author' in request.POST:
-            remove_author_form = forms.AuthorChoiceForm(user=user,
-                project=project, data=request.POST)
-            if remove_author(request, remove_author_form):
-                remove_author_form = forms.AuthorChoiceForm(user=user,
-                    project=project)
+            # No form. Just get button value.
+            author_id = int(request.POST['remove_author'])
+            remove_author(request, author_id)
         elif 'cancel_invitation' in request.POST:
             cancel_invitation_form = forms.InvitationChoiceForm(user=user,
                 project=project, data=request.POST)
@@ -308,9 +304,7 @@ def project_authors(request, project_id):
         'affiliation_formset':affiliation_formset,
         'order_formset':order_formset,
         'invite_author_form':invite_author_form,
-        'add_author_form':add_author_form,
-        'remove_author_form':remove_author_form,
-        'cancel_invitation_form':cancel_invitation_form})
+        'add_author_form':add_author_form})
 
 
 @authorization_required(auth_functions=(is_admin, is_author))
