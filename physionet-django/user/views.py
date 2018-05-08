@@ -36,6 +36,7 @@ def activate_user(request, uidb64, token):
         user.save()
         email = user.associated_emails.first()
         email.verification_date = timezone.now()
+        email.is_verified = True
         email.save()
         logger.info('User activated - {0}'.format(user.email))
         context = {'title':'Activation Successful', 'isvalid':True}
@@ -253,8 +254,9 @@ def verify_email(request, uidb64, token):
         user = associated_email.user
         if default_token_generator.check_token(user, token):
             associated_email.verification_date = timezone.now()
+            associated_email.is_verified = True
             associated_email.save()
-            logger.info('User {0} verified another email {1}'.format(user.email, associated_email))
+            logger.info('User {0} verified another email {1}'.format(user.id, associated_email))
             return render(request, 'user/verify_email.html',
                 {'title':'Verification Successful', 'isvalid':True})
 

@@ -17,7 +17,7 @@ class AssociatedEmailChoiceForm(forms.Form):
         # Email choices are those belonging to a user
         super(AssociatedEmailChoiceForm, self).__init__(*args, **kwargs)
 
-        associated_emails = user.associated_emails.filter(is_verified=True)
+        associated_emails = user.associated_emails.filter(is_verified=True).order_by('-is_primary_email')
         self.fields['associated_email'].queryset = associated_emails
 
         # Primary email, or public email choice
@@ -135,7 +135,7 @@ class UserCreationForm(forms.ModelForm):
             user.save()
             # Save additional fields in Profile model
             profile = Profile.objects.create(user=user,
-                first_name = self.cleaned_data['first_name'],
-                middle_names = self.cleaned_data['middle_names'],
-                last_name = self.cleaned_data['last_name'])
+                first_name=self.cleaned_data['first_name'],
+                middle_names=self.cleaned_data['middle_names'],
+                last_name=self.cleaned_data['last_name'])
         return user
