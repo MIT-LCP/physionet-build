@@ -5,6 +5,7 @@ import re
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
+from django.core.mail import send_mail
 from django.forms import formset_factory, inlineformset_factory, modelformset_factory, Textarea, Select
 from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
@@ -189,7 +190,13 @@ def invite_author(request, invite_author_form):
     """
     if invite_author_form.is_valid():
         invite_author_form.save()
-        messages.success(request, 'An invitation has been sent to the user')
+        # subject = "PhysioNet Email Verification"
+        # context = {'name':user.get_full_name(),
+        #     'domain':get_current_site(request), 'uidb64':uidb64, 'token':token}
+        # body = loader.render_to_string('user/email/verify_email_email.html', context)
+        # send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+        #     [add_email_form.cleaned_data['email']], fail_silently=False)
+        # messages.success(request, 'An invitation has been sent to the user')
         return True
     else:
         messages.error(request, 'Submission unsuccessful. See form for errors.')
@@ -250,21 +257,14 @@ def project_authors(request, project_id):
         can_delete=False, extra=0)
 
     # Initiate the forms
-    edit_author_form = forms.AuthorForm(instance=author)
+
     affiliation_formset = AffiliationFormSet(instance=author)
     order_formset = OrderFormSet(instance=project)
     invite_author_form = forms.InviteAuthorForm(project, user)
     add_author_form = forms.AddAuthorForm(project=project)
 
     if request.method == 'POST':
-        if 'edit_author' in request.POST:
-            edit_author_form = forms.AuthorForm(instance=author,
-                data=request.POST)
-            if edit_author_form.is_valid():
-                edit_author_form.save()
-                messages.success(request,
-                    'Your author information has been updated')
-        elif 'edit_affiliations' in request.POST:
+        if 'edit_affiliations' in request.POST:
             affiliation_formset = AffiliationFormSet(instance=author,
                 data=request.POST)
             if edit_affiliations(request, affiliation_formset):
@@ -297,7 +297,6 @@ def project_authors(request, project_id):
 
     return render(request, 'project/project_authors.html', {'project':project,
         'authors':authors, 'invitations':invitations,
-        'edit_author_form':edit_author_form,
         'affiliation_formset':affiliation_formset,
         'order_formset':order_formset,
         'invite_author_form':invite_author_form,
