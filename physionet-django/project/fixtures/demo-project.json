@@ -84,58 +84,81 @@
   "model": "project.invitation",
   "pk": 1,
   "fields": {
+    "request_datetime": "2017-11-02T14:30:30Z",
+    "response_datetime": null,
+    "response": null,
+    "response_message": "",
+    "is_active": true,
     "project": 1,
     "email": "george@mit.edu",
     "inviter": [
       "rgmark@mit.edu"
     ],
-    "invitation_type": "author",
-    "request_datetime": "2017-11-02T14:30:30Z",
-    "response": null,
-    "is_active": true
+    "invitation_type": "author"
   }
 },
 {
   "model": "project.invitation",
   "pk": 2,
   "fields": {
+    "request_datetime": "2018-03-28T14:30:30Z",
+    "response_datetime": null,
+    "response": null,
+    "response_message": "",
+    "is_active": true,
     "project": 1,
     "email": "george@gmail.com",
     "inviter": [
       "rgmark@mit.edu"
     ],
-    "invitation_type": "author",
-    "request_datetime": "2018-03-28T14:30:30Z",
-    "response": null,
-    "is_active": true
+    "invitation_type": "author"
   }
 },
 {
   "model": "project.invitation",
   "pk": 3,
   "fields": {
+    "request_datetime": "2018-03-30T14:30:30Z",
+    "response_datetime": null,
+    "response": true,
+    "response_message": "",
+    "is_active": false,
     "project": 2,
     "email": "aewj@mit.edu",
     "inviter": [
       "rgmark@mit.edu"
     ],
-    "invitation_type": "author",
-    "request_datetime":  "2018-03-30T14:30:30Z",
-    "response": true,
-    "is_active": false
+    "invitation_type": "author"
+  }
+},
+{
+  "model": "project.invitation",
+  "pk": 4,
+  "fields": {
+    "request_datetime": "2018-05-08T00:08:23.769Z",
+    "response_datetime": null,
+    "response": null,
+    "response_message": "",
+    "is_active": true,
+    "project": 2,
+    "email": "george@mit.edu",
+    "inviter": [
+      "rgmark@mit.edu"
+    ],
+    "invitation_type": "author"
   }
 },
 {
   "model": "project.storagerequest",
   "pk": 1,
   "fields": {
-    "project": 3,
-    "request_allowance": 3,
     "request_datetime": "2017-10-30T14:30:30Z",
     "response_datetime": null,
     "response": null,
     "response_message": "",
     "is_active": true,
+    "project": 3,
+    "request_allowance": 3,
     "responder": null
   }
 },
@@ -143,13 +166,13 @@
   "model": "project.storagerequest",
   "pk": 2,
   "fields": {
-    "project": 2,
-    "request_allowance": 80,
     "request_datetime": "2018-05-07T20:27:01.572Z",
     "response_datetime": null,
     "response": null,
     "response_message": "",
     "is_active": true,
+    "project": 2,
+    "request_allowance": 80,
     "responder": null
   }
 },
