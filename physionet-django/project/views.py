@@ -2,13 +2,16 @@ import os
 import pdb
 import re
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
+from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
 from django.forms import formset_factory, inlineformset_factory, modelformset_factory, Textarea, Select
 from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
+from django.template import loader
 from django.utils import timezone
 
 from . import forms
@@ -190,13 +193,18 @@ def invite_author(request, invite_author_form):
     """
     if invite_author_form.is_valid():
         invite_author_form.save()
-        # subject = "PhysioNet Email Verification"
-        # context = {'name':user.get_full_name(),
-        #     'domain':get_current_site(request), 'uidb64':uidb64, 'token':token}
-        # body = loader.render_to_string('user/email/verify_email_email.html', context)
-        # send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-        #     [add_email_form.cleaned_data['email']], fail_silently=False)
-        # messages.success(request, 'An invitation has been sent to the user')
+        inviter = invite_author_form.inviter
+        target_email = invite_author_form.cleaned_data['email']
+
+        subject = "PhysioNet Project Authorship Invitation"
+        context = {'email':target_email, 'inviter_username':inviter.username,
+                   'inviter_email':inviter.email,
+                   'project_title':invite_author_form.project.title,
+                   'domain':get_current_site(request)}
+        body = loader.render_to_string('project/email/invite_author.html', context)
+        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+            [target_email], fail_silently=False)
+        messages.success(request, 'An invitation has been sent to the email')
         return True
     else:
         messages.error(request, 'Submission unsuccessful. See form for errors.')
