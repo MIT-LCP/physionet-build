@@ -1,0 +1,60 @@
+{% load project_templatetags %}
+
+{% for author in authors %}
+  <li class="list-group-item">
+    {% if author.is_human %}
+      <strong>User</strong>: {{ author.user }}
+      {% if author.user == project.submitting_author %}
+        <span class="badge badge-success">Submitting Author</span>
+      {% endif %}
+      {# Removing and reordering authors #}
+      {% if user == project.submitting_author %}
+        <a class="float-right">
+          <form action="" method="post">
+            {# Up button #}
+            {% if author.display_order > 1 %}
+              <button class="btn btn-sm" type="button" title="Move Author Up" style="background:none" data-toggle="modal" data-target="#remove-{{ author.id }}-modal"><i class="fas fa-arrow-up"></i></button>
+            {% endif %}
+            {# Down button #}
+            {% if author.display_order < authors|length %}
+              <button class="btn btn-sm" type="button" title="Move Author Down" style="background:none" data-toggle="modal" data-target="#remove-{{ author.id }}-modal"><i class="fas fa-arrow-down"></i></button>
+            {% else %}
+              <button class="btn btn-sm" style="background:none; color:white" type="button"><i class="fa-arrow-down"></i></button>
+            {% endif %}
+            {# Remove button #}
+            {% if author.user != project.submitting_author %}
+              <button class="btn btn-sm" type="button" title="Remove Author" style="background:none; color:#cb2431" data-toggle="modal" data-target="#remove-{{ author.id }}-modal"><i class="fas fa-user-times"></i></button>
+            {% else %}
+              <button class="btn btn-sm" style="background:none; color:white" type="button"><i class="fas fa-user-times"></i></button>
+            {% endif %}
+          </form>
+        </a>
+      {% endif %}
+      <br>
+      <strong>Name</strong>: {{ author.user|author_name }}<br>
+      <strong>Affiliations</strong>: {{ author|author_affiliations }}
+    {% else %}
+      <strong>Organization</strong>: {{ author.organization_name }}
+      <a class="float-right">
+        <form action="" method="post">
+          {# Up button #}
+          {% if author.display_order > 1 %}
+            <button class="btn btn-sm" type="button" title="Move Author Up" style="background:none" data-toggle="modal" data-target="#remove-{{ author.id }}-modal"><i class="fas fa-arrow-up"></i></button>
+          {% endif %}
+          {# Down button #}
+          {% if author.display_order < authors|length %}
+            <button class="btn btn-sm" type="button" title="Move Author Down" style="background:none" data-toggle="modal" data-target="#remove-{{ author.id }}-modal"><i class="fas fa-arrow-down"></i></button>
+          {% else %}
+            <button class="btn btn-sm" style="background:none; color:white" type="button"><i class="fa-arrow-down"></i></button>
+          {% endif %}
+          {# Remove button #}
+          {% if author.user != project.submitting_author %}
+            <button class="btn btn-sm" type="button" title="Remove Author" style="background:none; color:#cb2431" data-toggle="modal" data-target="#remove-{{ author.id }}-modal"><i class="fas fa-user-times"></i></button>
+          {% else %}
+            <button class="btn btn-sm" style="background:none; color:white" type="button"><i class="fas fa-user-times"></i></button>
+          {% endif %}
+        </form>
+      </a>
+    {% endif %}
+  </li>
+{% endfor %}

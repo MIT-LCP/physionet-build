@@ -257,6 +257,7 @@ def cancel_invitation(request, invitation_id):
         messages.success(request, 'The invitation has been cancelled')
         return True
 
+
 @authorization_required(auth_functions=(is_submitting_author,))
 def move_author(request, project_id):
     """
@@ -305,7 +306,6 @@ def project_authors(request, project_id):
     invite_author_form = forms.InviteAuthorForm(project, user)
     add_author_form = forms.AddAuthorForm(project=project)
 
-
     if request.method == 'POST':
         if 'edit_affiliations' in request.POST:
             affiliation_formset = AffiliationFormSet(instance=author,
@@ -313,7 +313,7 @@ def project_authors(request, project_id):
             if edit_affiliations(request, affiliation_formset):
                 affiliation_formset = AffiliationFormSet(
                     instance=author)
-        elif 'invite_author' in request.POST:
+        if 'invite_author' in request.POST:
             invite_author_form = forms.InviteAuthorForm(project, user, request.POST)
             if invite_author(request, invite_author_form):
                 invite_author_form = forms.InviteAuthorForm(project, user)
