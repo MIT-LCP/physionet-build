@@ -409,20 +409,31 @@ class AddAuthorForm(forms.ModelForm):
         author.save()
 
 
-class AuthorOrderFormSet(BaseInlineFormSet):
+class OrderAuthorForm(forms.Form):
     """
     For ordering authors
     """
+    author = forms.ModelChoiceField(queryset=None)
+    direction = forms.ChoiceField(choices=(('up', 'up'), ('down', 'down')))
+
+    def __init__(self, user, project, *args, **kwargs):
+        super(OrderAuthorForm, self).__init__(*args, **kwargs)
+        project_authors = project.authors.all()
+        self.user = user
+        self.project = project
+        self.n_authors = project_authors.count()
+        self.fields['author'].queryset = project_authors
+
     def clean(self):
-        "Make sure that order is consecutive integers"
-        super().clean()
+        """
+        Make sure direction is valid for the current order
+        """
+        direction = self.cleaned_data['direction']
+        author = self.cleaned_data['author']
 
-        display_orders = []
-        for form in self.forms:
-            display_orders.append(form.cleaned_data['display_order'])
-
-        display_orders.sort()
-
-        if display_orders != list(range(1, len(display_orders) + 1)):
-            raise forms.ValidationError(
-                'Display orders must be consecutive integers from 1.')
+        if direction == 'up' and not 1 < author.order <= self.n_authors:
+            raise forms.ValidationError('Invalid direction',
+                                        code='invalid_direction')
+        elif direction == 'down' and not 1 <= author.order < self.n_authors:
+            raise forms.ValidationError('Invalid direction',
+                                        code='invalid_direction')
