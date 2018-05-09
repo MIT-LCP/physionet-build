@@ -39,6 +39,9 @@ def is_author(user, project):
     authors = project.authors.all()
     return (user in [a.user for a in authors])
 
+def is_submitting_author(user, project):
+    return user == project.submitting_author
+
 def is_invited(user, project):
     "Whether a user has been invited to join a project"
     user_invitations = Invitation.get_user_invitations(user)
@@ -174,17 +177,6 @@ def edit_affiliations(request, affiliation_formset):
     else:
         messages.error(request, 'Submission unsuccessful. See form for errors.')
 
-def order_authors(request, order_formset):
-    """
-    Order authors of a project
-    Helper function for `project_authors`.
-    """
-    if order_formset.is_valid():
-        order_formset.save()
-        messages.success(request, 'The author display order has been udpated')
-        return True
-    else:
-        messages.error(request, 'Submission unsuccessful. See form for errors.')
 
 def invite_author(request, invite_author_form):
     """
@@ -245,6 +237,48 @@ def cancel_invitation(request, invitation_id):
         messages.success(request, 'The invitation has been cancelled')
         return True
 
+# @authorization_required(auth_functions=(is_submitting_author,))
+# def reorder_author(request, project_id, author_id, direction):
+#     """
+#     Change an author order. Called via ajax.
+#     """
+#     project = Project.objects.get(id=project_id)
+#     author = author.objects.get(id=author_id)
+#     project_authors = project.authors.all()
+#     n_authors = project_authors.count()
+
+#     if author in project_authors and n_authors > 1:
+#         if direction in ['up', 'down']:
+#             if direction == 'up' and 1 < author.order <= n_authors:
+#                 swap_author = project_authors.get(order=author.order + 1)
+#             elif direction == 'down' and 1 <= author.order < n_authors:
+#                 swap_author = project_authors.get(order=author.order - 1)
+#                 author.order, swap_author.order = swap_author.order, author.order
+#             else:
+#                 return Http404()
+
+#             author.order, swap_author.order = swap_author.order, author.order
+#             author.save()
+#             swap_author.save()
+#             return success()
+
+#     return Http404()
+
+
+@authorization_required(auth_functions=(is_submitting_author,))
+def order_authors(request, order_author_form):
+    if order_author_form.is_valid():
+        if direction == 'up':
+            swap_author = project_authors.get(order=author.order + 1)
+        else:
+            swap_author = project_authors.get(order=author.order - 1)
+        author.order, swap_author.order = swap_author.order, author.order
+        author.save()
+        swap_author.save()
+        return somekindofsuccessstatus()
+
+    return Http404()
+
 @authorization_required(auth_functions=(is_admin, is_author))
 def project_authors(request, project_id):
     """
@@ -259,17 +293,15 @@ def project_authors(request, project_id):
     # Formset factories
     AffiliationFormSet = generic_inlineformset_factory(Affiliation,
         fields=('name',), extra=3, max_num=3)
-    OrderFormSet = inlineformset_factory(Project, Author,
-        formset=forms.AuthorOrderFormSet,
-        fields=('display_order',),
-        can_delete=False, extra=0)
 
     # Initiate the forms
-
+    order_author_form = forms.OrderAuthorForm(user=user, project=project)
     affiliation_formset = AffiliationFormSet(instance=author)
-    order_formset = OrderFormSet(instance=project)
     invite_author_form = forms.InviteAuthorForm(project, user)
     add_author_form = forms.AddAuthorForm(project=project)
+
+
+
 
     if request.method == 'POST':
         if 'edit_affiliations' in request.POST:
@@ -279,9 +311,11 @@ def project_authors(request, project_id):
                 affiliation_formset = AffiliationFormSet(
                     instance=author)
         elif 'order_authors' in request.POST:
-            order_formset = OrderFormSet(instance=project, data=request.POST)
-            if order_authors(request, order_formset):
-                order_formset = OrderFormSet(instance=project)
+            order_author_form = forms.OrderAuthorForm(user=user, project=project,
+                data=request.POST)
+            response = order_authors(request, order_author_form)
+            # Have to reload the part of the page. Not just moving elements, but also buttons.
+
         if 'invite_author' in request.POST:
             invite_author_form = forms.InviteAuthorForm(project, user, request.POST)
             if invite_author(request, invite_author_form):
@@ -303,10 +337,12 @@ def project_authors(request, project_id):
     invitations = project.invitations.filter(invitation_type='author',
         is_active=True)
 
+
+
+
     return render(request, 'project/project_authors.html', {'project':project,
         'authors':authors, 'invitations':invitations,
         'affiliation_formset':affiliation_formset,
-        'order_formset':order_formset,
         'invite_author_form':invite_author_form,
         'add_author_form':add_author_form})
 

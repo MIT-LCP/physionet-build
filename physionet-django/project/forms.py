@@ -447,25 +447,6 @@ class AddAuthorForm(forms.ModelForm):
         author.save()
 
 
-class AuthorOrderFormSet(BaseInlineFormSet):
-    """
-    For ordering authors
-    """
-    def clean(self):
-        "Make sure that order is consecutive integers"
-        cleaned_data = super().clean()
-
-        display_orders = []
-        for form in self.forms:
-            display_orders.append(form.cleaned_data['display_order'])
-
-        display_orders.sort()
-
-        if display_orders != list(range(1, len(display_orders) + 1)):
-            raise forms.ValidationError(
-                'Display orders must be consecutive integers from 1.')
-
-
 class StorageRequestForm(forms.ModelForm):
     """
     Making a request for storage capacity for a project

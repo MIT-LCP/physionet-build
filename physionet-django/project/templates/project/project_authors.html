@@ -21,33 +21,11 @@
   </div>
 
   <ul class="list-group list-group-flush">
-    {% for author in authors %}
-      <li class="list-group-item">
-        {% if author.is_human %}
-          <strong>User</strong>: {{ author.user }}
-          {% if author.user == project.submitting_author %}
-            <span class="badge badge-success">Submitting Author</span>
-          {% else %}
-            {% if project.submitting_author == user %}
-              <a class="float-right">
-                  <button class="btn btn-sm" type="button" style="background:none" data-toggle="modal" data-target="#remove-{{ author.id }}-modal"><i class="fas fa-user-times" style="color:#cb2431"></i></button>
-              </a>
-            {% endif %}
-          {% endif %}
-          <br>
-          <strong>Name</strong>: {{ author.user|author_name }}<br>
-          <strong>Affiliations</strong>: {{ author|author_affiliations }}
-        {% else %}
-          <strong>Organization</strong>: {{ author.organization_name }}
-          <a class="float-right">
-            <button class="btn btn-sm" type="button" style="background:none" data-toggle="modal" data-target="#remove-{{ author.id }}-modal"><i class="fas fa-user-times" style="color:#cb2431"></i></button>
-          </a>
-        {% endif %}
-      </li>
-    {% endfor %}
+  {% include "project/authors_display.html" %}
   </ul>
 </div>
 <br>
+
 
 <div class="card">
   <div class="card card-header">
@@ -144,25 +122,6 @@
 
 
 {% if user == project.submitting_author or user.is_admin %}
-    <h4>Order Authors</h4>
-    <p>Set the order in which authors are displayed. Must be continuous integers from 1.</p>
-    <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
-      {% csrf_token %}
-      {# The formset is manually looped over to access the instance #}
-      {{ order_formset.management_form }}
-      {% for form in order_formset %}
-        {{ form.instance }}
-        {% include "form_snippet_no_labels.html" %}
-      {% endfor %}
-      {% for error in order_formset.non_form_errors %}
-        <div class="alert alert-danger">
-          <strong>{{ error|escape }}</strong>
-        </div>
-      {% endfor %}
-      <button class="btn btn-primary btn-fixed" name="order_authors" type="submit">Order Authors</button>
-    </form>
-    <hr>
-
     <h4>Invite Author</h4>
     <p>Invite an author with their email</p>
     <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
@@ -180,6 +139,6 @@
       <button class="btn btn-success btn-fixed" name="add_author" type="submit">Add Author</button>
     </form>
     <hr>
-    {% endif %}
+{% endif %}
 
 {% endblock %}
