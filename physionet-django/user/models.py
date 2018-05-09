@@ -32,33 +32,30 @@ class UserManager(BaseUserManager):
     User instances.
     """
     def create_user(self, email, password, username, is_active=False,
-        first_name='', middle_names='', last_name=''):
-        user = self.model(
-            email=self.normalize_email(email.lower()),
-            username = self.normalize_username(username.lower()),
+                    is_admin=False, first_name='', middle_names='',
+                    last_name=''):
+        if is_admin:
+            is_active = True
 
-            is_active=is_active,
-        )
-
+        user = self.model(email=self.normalize_email(email.lower()),
+                          username=self.model.normalize_username(username.lower()),
+                          is_active=is_active, is_admin=is_admin)
         user.set_password(password)
         user.save(using=self._db)
 
         profile = Profile.objects.create(user=user, first_name=first_name,
-            middle_names=middle_names,
-            last_name=last_name)
+                                         middle_names=middle_names,
+                                         last_name=last_name)
         return user
 
     def create_superuser(self, email, password, username):
-        user = self.model(email=email.lower(), username=username.lower(), 
-            is_active=True, is_admin=True)
-        user.set_password(password)
-        user.save(using=self._db)
-        profile = Profile.objects.create(user=user, first_name='',
-            middle_names='', last_name='')
+        user = self.create_user(email=email, password=password,
+                                username=username, is_admin=True)
         return user
 
     def get_by_natural_key(self, email):
         return self.get(email=email)
+
 
 class User(AbstractBaseUser):
     """
@@ -67,7 +64,7 @@ class User(AbstractBaseUser):
 
     email = models.EmailField(max_length=255, unique=True)
     username = models.CharField(max_length=150, unique=True,
-        help_text='Required. 150 characters or fewer. Letters, digits and - only.', 
+        help_text='Required. 150 characters or fewer. Letters, digits and - only.',
         validators=[UsernameValidator()],
         error_messages={
             'unique': "A user with that username already exists."})
@@ -83,7 +80,7 @@ class User(AbstractBaseUser):
     REQUIRED_FIELDS = ['email']
 
     def natural_key(self):
-        return (self.email)
+        return (self.email,)
 
     def validate_unique(self, exclude=None):
         """
@@ -98,7 +95,7 @@ class User(AbstractBaseUser):
             raise ValidationError({'email':'User with this email already exists.'})
         if User.objects.filter(username=self.username.lower()):
             raise ValidationError({'username':'User with this username already exists.'})
-            
+
     # Mandatory methods for default authentication backend
     def get_full_name(self):
         return self.profile.get_full_name()
@@ -140,6 +137,7 @@ class AssociatedEmail(models.Model):
     is_primary_email = models.BooleanField(default=False)
     added_date = models.DateTimeField(auto_now_add=True, null=True)
     verification_date = models.DateTimeField(null=True)
+    is_verified = models.BooleanField(default=False)
     is_public = models.BooleanField(default=False)
 
     def __str__(self):
@@ -149,21 +147,23 @@ class AssociatedEmail(models.Model):
 @receiver(post_save, sender=User)
 def create_associated_email(sender, **kwargs):
     """
-    Creates and attaches a primary AssociatedEmail when a User object is created.
+    Creates and attaches a primary AssociatedEmail when a User object is
+    created.
     """
     user = kwargs['instance']
     if kwargs['created']:
         email = AssociatedEmail(user=user, email=user.email, is_primary_email=True)
         if user.is_active:
             email.verification_date = timezone.now()
+            email.is_verified = True
         email.save()
 
 
 @receiver(post_save, sender=User)
 def update_associated_emails(sender, **kwargs):
     """
-    Updates the primary/non-primary status of AssociatedEmails when the User
-    object's email field is updated.
+    Updates the primary/non-primary status of AssociatedEmails when the
+    User object's email field is updated.
     """
     user = kwargs['instance']
     if not kwargs['created']:

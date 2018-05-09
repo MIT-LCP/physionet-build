@@ -8,24 +8,26 @@ from .models import AssociatedEmail, User, Profile
 class AssociatedEmailChoiceForm(forms.Form):
     """
     For letting users choose one of their AssociatedEmails.
-    Ie. primary email, contact email, remove email.
+    Ie. primary email, public email.
     """
     associated_email = forms.ModelChoiceField(queryset=None, to_field_name='email',
         label='email', widget=forms.Select(attrs={'class':'form-control custom-select'}))
 
-    def __init__(self, user, include_primary=True, *args, **kwargs):
+    def __init__(self, user, selection_type, *args, **kwargs):
         # Email choices are those belonging to a user
         super(AssociatedEmailChoiceForm, self).__init__(*args, **kwargs)
 
-        associated_emails = user.associated_emails.filter(verification_date__isnull=False)
-        if include_primary:
-            self.fields['associated_email'].queryset = associated_emails.order_by('-is_primary_email')
-        else:
-            self.fields['associated_email'].queryset = associated_emails.filter(is_primary_email=False)
+        associated_emails = user.associated_emails.filter(is_verified=True).order_by('-is_primary_email')
+        self.fields['associated_email'].queryset = associated_emails
 
-    def set_label(self, label):
-        self.fields['email'].label = label
-
+        # Primary email, or public email choice
+        if selection_type == 'primary':
+            self.fields['associated_email'].empty_label = None
+            self.fields['associated_email'].initial = associated_emails.filter(is_primary_email=True).first()
+        elif selection_type == 'public':
+            # This might be None
+            self.fields['associated_email'].initial = associated_emails.filter(is_public=True).first()
+            self.fields['associated_email'].required = False
 
 class AssociatedEmailForm(forms.ModelForm):
     """
@@ -46,11 +48,11 @@ class LoginForm(auth_forms.AuthenticationForm):
     username = auth_forms.UsernameField(
         label='Email or Username',
         max_length=254,
-        widget=forms.TextInput(attrs={'autofocus': True, 'class':'form-control', 
+        widget=forms.TextInput(attrs={'autofocus': True, 'class':'form-control',
             'placeholder':'Email or Username'}),
     )
     password = forms.CharField(
-        label= 'Password',
+        label='Password',
         strip=False,
         widget=forms.PasswordInput(attrs={'class':'form-control',
             'placeholder':'Password'}),
@@ -118,7 +120,7 @@ class UserCreationForm(forms.ModelForm):
         if password1 and password2 and password1 != password2:
             raise forms.ValidationError("The passwords don't match")
         self.instance.username = self.cleaned_data.get('username')
-        password_validation.validate_password(self.cleaned_data.get('password2'), 
+        password_validation.validate_password(self.cleaned_data.get('password2'),
             self.instance)
         return password2
 
@@ -133,7 +135,7 @@ class UserCreationForm(forms.ModelForm):
             user.save()
             # Save additional fields in Profile model
             profile = Profile.objects.create(user=user,
-                first_name = self.cleaned_data['first_name'],
-                middle_names = self.cleaned_data['middle_names'],
-                last_name = self.cleaned_data['last_name'])
+                first_name=self.cleaned_data['first_name'],
+                middle_names=self.cleaned_data['middle_names'],
+                last_name=self.cleaned_data['last_name'])
         return user

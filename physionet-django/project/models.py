@@ -178,6 +178,37 @@ class Contributor(Member):
         choices=contributor_type_choices)
 
 
+class Topic(models.Model):
+    """
+    Topic information to tag projects
+    """
+    description = models.CharField(max_length=50)
+
+    # Project or PublishedProject
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    project_object = GenericForeignKey('content_type', 'object_id')
+
+    def __str__(self):
+        return self.description
+
+
+class Reference(models.Model):
+    """
+    General reference field for projects
+    """
+    description = models.CharField(max_length=250)
+    order = models.PositiveSmallIntegerField()
+
+    # Project or PublishedProject
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    project_object = GenericForeignKey('content_type', 'object_id')
+
+    class Meta:
+        unique_together = (('order', 'content_type', 'object_id'))
+
+
 class Metadata(models.Model):
     """
     Metadata for all projects.
@@ -193,10 +224,17 @@ class Metadata(models.Model):
     resource_types = (
         ('Database', 'Database'),
         ('Software', 'Software'),
-        ('Tutorial', 'Tutorial'),
-        ('Challenge', 'Challenge'),
     )
 
+    access_policies = (
+        ('Open', 'Open'),
+        ('Disclaimer', 'Disclaimer'),
+        ('Protected', 'Protected'),
+    )
+
+    # Main body descriptive metadata
+
+    resource_type = models.CharField(max_length=10, choices=resource_types)
     title = models.CharField(max_length=200)
     # datacite: "A brief description of the resource and the context in
     # which the resource was created"
@@ -206,28 +244,20 @@ class Metadata(models.Model):
     content_description = RichTextField(blank=True)
     technical_validation = RichTextField(blank=True)
     usage_notes = RichTextField(blank=True)
-
     acknowledgements = RichTextField(blank=True)
-    paper_citations = models.ManyToManyField('project.Reference',
-        related_name='%(class)s_citations', blank=True)
-    references = models.ManyToManyField('project.Reference',
-        related_name='%(class)s_references', blank=True)
-    topics = models.ManyToManyField('project.Topic', related_name='%(class)s',
-        blank=True)
-    resource_type = models.CharField(max_length=10, choices=resource_types)
-    # Access policy
-    # Consideration: What happens when dua/training course objects change?
-    dua = models.ForeignKey('project.DUA', null=True, blank=True,
-        related_name='%(class)s')
-    training_course = models.ForeignKey('project.TrainingCourse', null=True,
-        blank=True, related_name='%(class)s')
-    id_verification_required = models.BooleanField(default=False)
+    references = GenericRelation(Reference, blank=True)
 
-    # Version and changes (if any)
-    version_number = models.CharField(max_length=15, default='', blank=True)
-    changelog_summary = RichTextField(blank=True)
+    # Supplementary descriptive fields
+
     # External home page
     project_home_page = models.URLField(default='', blank=True)
+    # The additional papers to cite when citing the database
+    project_citations =GenericRelation(Reference, blank=True)
+    topics = GenericRelation(Topic, blank=True)
+    version = models.CharField(max_length=15, default='', blank=True)
+    changelog_summary = RichTextField(blank=True)
+    access_policy = models.CharField(max_length=10, choices=access_policies,
+                                     default=access_policies[0][0])
 
 
 class Project(Metadata):
@@ -258,6 +288,7 @@ class Project(Metadata):
     def storage_used(self):
         "Total storage used in bytes"
         return get_tree_size(self.file_root())
+
 
 @receiver(post_save, sender=Project)
 @new_creation
@@ -304,7 +335,7 @@ class PublishedProject(Metadata):
     doi = models.CharField(max_length=50, default='', unique=True)
 
     class Meta:
-        unique_together = (('core_project', 'version_number'),)
+        unique_together = (('title', 'version'),)
 
 
 class Invitation(models.Model):
@@ -346,24 +377,6 @@ class Invitation(models.Model):
             invitation_types=invitation_types)
 
         return bool(project in [inv.project for inv in invitations])
-
-
-class Topic(models.Model):
-    """
-    Topic information to tag projects
-    """
-    description = models.CharField(max_length=50)
-
-    def __str__(self):
-        return self.description
-
-
-class Reference(models.Model):
-    """
-    General reference link and description
-    """
-    description = models.CharField(max_length=100)
-    url = models.URLField()
 
 
 class DUA(models.Model):

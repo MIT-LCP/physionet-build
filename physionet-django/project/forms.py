@@ -288,9 +288,8 @@ class DatabaseMetadataForm(forms.ModelForm):
     class Meta:
         model = Project
         fields = ('title', 'abstract', 'background', 'methods',
-            'content_description', 'acknowledgements', 'paper_citations',
-            'references', 'topics', 'dua', 'training_course',
-            'id_verification_required', 'version_number', 'changelog_summary',)
+            'content_description', 'acknowledgements',
+            'version', 'changelog_summary',)
 
 
 class SoftwareMetadataForm(forms.ModelForm):
@@ -299,10 +298,10 @@ class SoftwareMetadataForm(forms.ModelForm):
     """
     class Meta:
         model = Project
-        fields = ('title', 'abstract', 'technical_validation', 'usage_notes',
-            'project_home_page', 'acknowledgements', 'paper_citations',
-            'references', 'topics', 'dua', 'training_course',
-            'id_verification_required', 'version_number', 'changelog_summary',)
+        fields = ('title', 'abstract', 'technical_validation', 'usage_notes')
+            # 'project_home_page', 'acknowledgements', 'paper_citations',
+            # 'references', 'topics', 'dua', 'training_course',
+            # 'id_verification_required', 'version_number', 'changelog_summary',)
 
 
 # The modelform for editing metadata for each resource type
@@ -531,5 +530,3 @@ class StorageResponseForm(forms.Form):
     project_id = forms.IntegerField(widget= forms.HiddenInput())
     response = forms.ChoiceField(choices=RESPONSE_CHOICES)
     message = forms.CharField(max_length=500, required=False, widget=forms.Textarea())
-
-
