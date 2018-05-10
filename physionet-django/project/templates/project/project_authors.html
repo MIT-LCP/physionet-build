@@ -14,16 +14,43 @@
 
 <hr>
 
-<div class="card">
-  <div class="card card-header">
-    <h4>Project Authors</h4>
-    <em>Shown in display order</em>
-  </div>
 
-  <ul class="list-group list-group-flush">
-  {% include "project/authors_display.html" %}
-  </ul>
-</div>
+<script>
+  function getCookie(name) {
+      var cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+          var cookies = document.cookie.split(';');
+          for (var i = 0; i < cookies.length; i++) {
+              var cookie = jQuery.trim(cookies[i]);
+              // Does this cookie string begin with the name we want?
+              if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                  cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                  break;
+              }
+          }
+      }
+      return cookieValue;
+  }
+
+  {# Ajax call to update authors list #}
+  function moveAuthor(author_id, direction){
+      var csrftoken = getCookie('csrftoken');
+      $.ajax({
+              type: "POST",
+              url: "{% url 'move_author' project.id %}",
+              data: {'csrfmiddlewaretoken':csrftoken,
+                     'author_id':author_id, 'direction':direction
+              },
+              success: function reloadSection(result){
+                  $("#author-list").html(result);
+              },
+      });
+  };
+</script>
+
+
+
+{% include "project/author_list.html" %}
 <br>
 
 
