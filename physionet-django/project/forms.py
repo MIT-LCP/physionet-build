@@ -407,33 +407,3 @@ class AddAuthorForm(forms.ModelForm):
         author.is_human = False
         author.display_order = self.project.authors.count() + 1
         author.save()
-
-
-class OrderAuthorForm(forms.Form):
-    """
-    For ordering authors
-    """
-    author = forms.ModelChoiceField(queryset=None)
-    direction = forms.ChoiceField(choices=(('up', 'up'), ('down', 'down')))
-
-    def __init__(self, user, project, *args, **kwargs):
-        super(OrderAuthorForm, self).__init__(*args, **kwargs)
-        project_authors = project.authors.all()
-        self.user = user
-        self.project = project
-        self.n_authors = project_authors.count()
-        self.fields['author'].queryset = project_authors
-
-    def clean(self):
-        """
-        Make sure direction is valid for the current order
-        """
-        direction = self.cleaned_data['direction']
-        author = self.cleaned_data['author']
-
-        if direction == 'up' and not 1 < author.order <= self.n_authors:
-            raise forms.ValidationError('Invalid direction',
-                                        code='invalid_direction')
-        elif direction == 'down' and not 1 <= author.order < self.n_authors:
-            raise forms.ValidationError('Invalid direction',
-                                        code='invalid_direction')
