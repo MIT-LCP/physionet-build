@@ -383,39 +383,6 @@ class InviteAuthorForm(forms.ModelForm):
         return invitation
 
 
-<<<<<<< e95d623411de25298a31eb4754c684cbcf7dd21c
-class InvitationChoiceForm(forms.Form):
-    """
-    For selecting outstanding invitations to a project
-    """
-    invitation = forms.ModelChoiceField(queryset=None)
-
-    def __init__(self, user, project, *args, **kwargs):
-        super(InvitationChoiceForm, self).__init__(*args, **kwargs)
-        self.user = user
-        self.project = project
-        invitations = project.invitations.filter(is_active=True)
-        self.fields['invitation'].queryset = invitations
-
-    def clean_invitation(self):
-        "Make sure the user is the submitting author"
-        data = self.cleaned_data['invitation']
-        if self.user != data.project.submitting_author:
-            raise forms.ValidationError(
-                'You are not authorized to do that', code='not_authorized')
-
-        return data
-
-
-class AuthorForm(forms.ModelForm):
-    """
-    For editing one's author information.
-    """
-    class Meta:
-        model = Author
-        fields = ('first_name', 'middle_names', 'last_name')
-
-
 class AddAuthorForm(forms.ModelForm):
     """
     Add a non-human author
