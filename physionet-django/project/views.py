@@ -238,40 +238,32 @@ def cancel_invitation(request, invitation_id):
         return True
 
 @authorization_required(auth_functions=(is_submitting_author,))
-def order_author(request, project_id, author_id, direction):
+def move_author(request, project_id):
     """
-    Change an author display order. Return True if successful.
+    Change an author display order. Return the updated authors list html
+    if successful. Called via ajax.
     """
-    project = Project.objects.get(id=project_id)
-    author = author.objects.get(id=author_id)
-    project_authors = project.authors.all()
-    n_authors = project_authors.count()
+    if request.method == 'POST':
+        project = Project.objects.get(id=project_id)
+        author = Author.objects.get(id=int(request.POST['author_id']))
+        direction = request.POST['direction']
+        project_authors = project.authors.all()
+        n_authors = project_authors.count()
+        if author.project == project and n_authors > 1:
+            if direction == 'up' and 1 < author.display_order <= n_authors:
+                swap_author = project_authors.get(display_order=author.display_order - 1)
+            elif direction == 'down' and 1 <= author.display_order < n_authors:
+                swap_author = project_authors.get(display_order=author.display_order + 1)
+            else:
+                raise Http404()
+            author.display_order, swap_author.display_order = swap_author.display_order, author.display_order
+            author.save()
+            swap_author.save()
+            authors = project_authors.order_by('display_order')
+            return render(request, 'project/author_list.html',
+                                  {'project':project, 'authors':authors})
+    raise Http404()
 
-    if author.project == project and n_authors > 1:
-        if direction == 'up' and 1 < author.display_order <= n_authors:
-            swap_author = project_authors.get(order=author.display_order + 1)
-        elif direction == 'down' and 1 <= author.display_order < n_authors:
-            swap_author = project_authors.get(order=author.display_order - 1)
-        else:
-            return False
-        author.display_order, swap_author.display_order = swap_author.display_order, author.display_order
-        author.save()
-        swap_author.save()
-        return True
-
-# @authorization_required(auth_functions=(is_submitting_author,))
-# def order_authors(request, order_author_form):
-#     if order_author_form.is_valid():
-#         if direction == 'up':
-#             swap_author = project_authors.get(order=author.order + 1)
-#         else:
-#             swap_author = project_authors.get(order=author.order - 1)
-#         author.order, swap_author.order = swap_author.order, author.order
-#         author.save()
-#         swap_author.save()
-#         return somekindofsuccessstatus()
-
-#     return Http404()
 
 @authorization_required(auth_functions=(is_admin, is_author))
 def project_authors(request, project_id):
@@ -302,21 +294,6 @@ def project_authors(request, project_id):
             if edit_affiliations(request, affiliation_formset):
                 affiliation_formset = AffiliationFormSet(
                     instance=author)
-        elif 'move_author_up' in request.POST:
-            # order_author_form = forms.OrderAuthorForm(user=user, project=project,
-            #     data=request.POST)
-            # response = order_authors(request, order_author_form)
-
-            # Have to reload the part of the page. Not just moving elements, but also buttons.
-            author_id = int(request.POST['move_author_up'])
-            if order_author(request, project_id, author_id, direction='up'):
-                return render(request, 'project/author_displays.html',
-                              {'project':project, 'authors':author})
-        elif 'move_author_down' in request.POST:
-            author_id = int(request.POST['move_author_down'])
-            if order_author(request, project_id, author_id, direction='down'):
-                return render(request, 'project/author_displays.html',
-                              {'project':project, 'authors':author})
         elif 'invite_author' in request.POST:
             invite_author_form = forms.InviteAuthorForm(project, user, request.POST)
             if invite_author(request, invite_author_form):
