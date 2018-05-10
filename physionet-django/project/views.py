@@ -221,7 +221,14 @@ def remove_author(request, author_id):
     author = Author.objects.get(id=author_id)
 
     if author.project.submitting_author == user:
+        # Other author orders may have to be decreased when this author
+        # is removed
+        higher_authors = author.project.authors.filter(display_order__gt=author.display_order)
         author.delete()
+        if higher_authors:
+            for author in higher_authors:
+                author.display_order -= 1
+                author.save()
         messages.success(request, 'The author has been removed from the project')
         return True
 
@@ -313,9 +320,6 @@ def project_authors(request, project_id):
 
     invitations = project.invitations.filter(invitation_type='author',
         is_active=True)
-
-
-
 
     return render(request, 'project/project_authors.html', {'project':project,
         'authors':authors, 'invitations':invitations,
