@@ -572,3 +572,14 @@ def storage_requests(request):
 
     return render(request, 'project/storage_requests.html', {'user':user,
         'storage_response_formset':storage_response_formset})
+
+
+def published_project(request, published_project_id):
+    """
+    Displays a published project
+    """
+
+    published_project = PublishedProject.objects.get(id=project_id)
+
+    return render(request, 'project/database.html',
+                  {'published_project':published_project})

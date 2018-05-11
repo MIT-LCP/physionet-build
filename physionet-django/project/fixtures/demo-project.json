@@ -5,24 +5,24 @@
   "fields": {
     "resource_type": "Database",
     "title": "MIT-BIH Arrhythmia Database",
-    "abstract": "<p>The MIT-BIH Arrhythmia Database contains 48 half-hour excerpts of two-channel ambulatory ECG recordings, obtained from 47 subjects studied by the BIH Arrhythmia Laboratory between 1975 and 1979. Twenty-three recordings were chosen at random from a set of 4000 24-hour ambulatory ECG recordings collected from a mixed population of inpatients (about 60%) and outpatients (about 40%) at Boston's Beth Israel Hospital; the remaining 25 recordings were selected from the same set to include less common but clinically significant arrhythmias that would not be well-represented in a small random sample.</p><p>The recordings were digitized at 360 samples per second per channel with 11-bit resolution over a 10 mV range. Two or more cardiologists independently annotated each record; disagreements were resolved to obtain the computer-readable reference annotations for each beat (approximately 110,000 annotations in all) included with the database.</p>",
-    "background": "",
-    "methods": "",
-    "content_description": "",
-    "technical_validation": "",
-    "usage_notes": "",
-    "acknowledgements": "",
+    "abstract": "<p>The MIT-BIH Arrhythmia Database contains 48 half-hour excerpts of two-channel ambulatory ECG recordings, obtained from 47 subjects studied by the BIH Arrhythmia Laboratory between 1975 and 1979. Twenty-three recordings were chosen at random from a set of 4000 24-hour ambulatory ECG recordings collected from a mixed population of inpatients (about 60%) and outpatients (about 40%) at Boston&#39;s Beth Israel Hospital; the remaining 25 recordings were selected from the same set to include less common but clinically significant arrhythmias that would not be well-represented in a small random sample.</p>",
+    "background": "<p>Since 1975, our laboratories at Boston&#39;s Beth Israel Hospital (now the Beth Israel Deaconess Medical Center) and at MIT have supported our own research into arrhythmia analysis and related subjects. One of the first major products of that effort was the MIT-BIH Arrhythmia Database, which we completed and began distributing in 1980. The database was the first generally available set of standard test material for evaluation of arrhythmia detectors, and has been used for that purpose as well as for basic research into cardiac dynamics at more than 500 sites worldwide. Originally, we distributed the database on 9-track half-inch digital tape at 800 and 1600 bpi, and on quarter-inch IRIG-format FM analog tape. In August, 1989, we produced a CD-ROM version of the database.</p>",
+    "methods": "<p>The recordings were digitized at 360 samples per second per channel with 11-bit resolution over a 10 mV range. Two or more cardiologists independently annotated each record; disagreements were resolved to obtain the computer-readable reference annotations for each beat (approximately 110,000 annotations in all) included with the database.</p>",
+    "content_description": "<p>This directory contains the entire MIT-BIH Arrhythmia Database. About half (25 of 48 complete records, and reference annotation files for all 48 records) of this database has been freely available here since PhysioNet&#39;s inception in September 1999. The 23 remaining signal files, which had been available only on the MIT-BIH Arrhythmia Database CD-ROM, were posted here in February 2005.</p>",
+    "technical_validation": "<p>The charts for each recording were given to two cardiologists, who worked independently, adding additional beat labels and deleting false detections as necessary, and changing the labels for abnormal beats. The cardiologists also added rhythm and signal quality labels. At this point the two sets of annotations were compared automatically and another chart recording was printed, showing the cardiologists&rsquo; annotations in the margin, with all discrepancies highlighted. Each discrepancy was examined and resolved by consensus.</p>",
+    "usage_notes": "<p>Use one of the <a href=\"https://physionet.org/physiotools/wfdb.shtml\">WFDB</a> software package distributions to read the files. The WFDB record files contain the regularly sampled multichannel waveforms, and the <em>.atr annotation files contain the reference annotations.</em></p>",
+    "acknowledgements": "<p>Thank you to the cardiologists who labelled over 100000 heartbeats.</p>",
     "project_home_page": "",
     "version": "",
     "changelog_summary": "",
     "access_policy": "Open",
     "creation_datetime": "2017-10-30T14:30:30Z",
-    "modified_datetime": "2017-10-30T14:30:30Z",
+    "modified_datetime": "2018-05-11T15:16:36.324Z",
     "storage_allowance": 1,
     "submitting_author": [
       "rgmark@mit.edu"
     ],
-    "published": false,
+    "published": true,
     "under_review": false
   }
 },

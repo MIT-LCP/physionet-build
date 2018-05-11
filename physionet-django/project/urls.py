@@ -25,6 +25,10 @@ urlpatterns = [
     url(r'^(?P<project_id>\d+)/submission/$', views.project_submission,
         name='project_submission'),
 
+    # Published Projects
+    url(r'^published/(?P<published_project_id>\d+)/$', views.published_project,
+        name='database'),
+
     # Admin pages
     url(r'^storage-requests/$', views.storage_requests,
         name='storage_requests'),
