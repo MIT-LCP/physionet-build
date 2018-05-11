@@ -343,9 +343,14 @@ def project_authors(request, project_id):
 
 @authorization_required(auth_functions=(is_admin, is_author))
 def project_metadata(request, project_id):
+    """
+    For editing project metadata
+    """
     project = Project.objects.get(id=project_id)
+    # There are several forms for different types of metadata
+    core_form = forms.metadata_forms[project.resource_type](instance=project)
 
-    form = forms.metadata_forms[project.resource_type](instance=project)
+    reference_formset = inlineformset_factory(Project, Reference)
 
     if request.method == 'POST':
         form = forms.metadata_forms[project.resource_type](request.POST,
@@ -358,7 +363,7 @@ def project_metadata(request, project_id):
                 'There was an error with the information entered, please verify and try again.')
 
     return render(request, 'project/project_metadata.html', {'project':project,
-        'form':form, 'messages':messages.get_messages(request)})
+        'core_form':core_form, 'messages':messages.get_messages(request)})
 
 
 # Helper functions for project files view
@@ -579,7 +584,7 @@ def published_project(request, published_project_id):
     Displays a published project
     """
 
-    published_project = PublishedProject.objects.get(id=project_id)
-
+    published_project = PublishedProject.objects.get(id=published_project_id)
+    authors = published_project.authors.all().order_by('display_order')
     return render(request, 'project/database.html',
-                  {'published_project':published_project})
+                  {'published_project':published_project, 'authors':authors})
