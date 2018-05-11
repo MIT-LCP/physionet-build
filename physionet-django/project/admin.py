@@ -1,8 +1,9 @@
 from django.contrib import admin
-from .models import Author, Invitation, Project, PublishedProject
+from . import models
 
 
-admin.site.register(Author)
-admin.site.register(Invitation)
-admin.site.register(Project)
-admin.site.register(PublishedProject)
+admin.site.register(models.Author)
+admin.site.register(models.Invitation)
+admin.site.register(models.Project)
+admin.site.register(models.PublishedProject)
+admin.site.register(models.Topic)

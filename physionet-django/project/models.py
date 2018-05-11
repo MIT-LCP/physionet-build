@@ -182,11 +182,17 @@ class Topic(models.Model):
     Topic information to tag projects
     """
     description = models.CharField(max_length=50)
+    project = models.ForeignKey('project.Project', related_name='topics')
 
-    # Project or PublishedProject
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    project_object = GenericForeignKey('content_type', 'object_id')
+    def __str__(self):
+        return self.description
+
+
+class PublishedTopic(models.Model):
+    """
+    Topic information to tag published projects
+    """
+    description = models.CharField(max_length=50)
 
     def __str__(self):
         return self.description
@@ -288,6 +294,53 @@ class Project(Metadata):
         "Total storage used in bytes"
         return get_tree_size(self.file_root())
 
+    def is_publishable(self):
+        """
+        Whether the project can be published
+        """
+        return True
+
+    def publish(self):
+        """
+        Create a published version of this project
+        """
+        if not self.is_publishable:
+            raise Exception('Nope')
+
+        published_project = PublishedProject()
+
+        # Direct copy over fields
+        for attr in ['title', 'abstract', 'background', 'methods',
+                     'content_description', 'technical_validation',
+                     'usage_notes', 'acknowledgements']:
+            setattr(pulished_project, attr, getattr(self, attr))
+
+        # New content
+        published_project.core_project = self
+        published_project.storage_size = self.storage_used()
+        # To be implemented...
+        published_project.doi = '10.13026/C2F305'
+
+        published_project.save()
+
+
+        # Same content, different objects, requiring the new object
+        # to be saved
+        for reference in self.references.all():
+            reference_copy = Reference.objects.create(
+                description=reference.description, order=description.order,
+                project_object=published_project)
+            reference_copy.save()
+
+        for topic in self.topics.all():
+            published_topic = PublishedTopic.objects.filter(description=topic.description.lower())
+            # If same content object exists, add it. Otherwise create.
+            if published_topic.count():
+                published_project.topics.add(published_topic.first())
+            else:
+                published_topic = PublishedTopic.objects.create(description=topic.description.lower())
+                published_project.topics.add(published_topic)
+
 
 @receiver(post_save, sender=Project)
 @new_creation
@@ -327,10 +380,12 @@ class PublishedProject(Metadata):
     # The Project this object was created from
     core_project = models.ForeignKey('project.Project',
         related_name='published_project', blank=True, null=True)
+    topics = models.ManyToManyField('project.PublishedTopic',
+                                    related_name='tagged_projects')
     # Total file storage size in bytes
     storage_size = models.IntegerField()
     publish_datetime = models.DateTimeField()
-    is_newest_version = models.BooleanField(default=False)
+    is_newest_version = models.BooleanField(default=True)
     doi = models.CharField(max_length=50, default='', unique=True)
 
     class Meta:
