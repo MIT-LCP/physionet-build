@@ -313,10 +313,10 @@ class Project(Metadata):
         for attr in ['title', 'abstract', 'background', 'methods',
                      'content_description', 'technical_validation',
                      'usage_notes', 'acknowledgements']:
-            setattr(pulished_project, attr, getattr(self, attr))
+            setattr(published_project, attr, getattr(self, attr))
 
         # New content
-        published_project.core_project = self
+        published_project.base_project = self
         published_project.storage_size = self.storage_used()
         # To be implemented...
         published_project.doi = '10.13026/C2F305'
@@ -378,18 +378,18 @@ class PublishedProject(Metadata):
     """
     slug = models.SlugField(max_length=30)
     # The Project this object was created from
-    core_project = models.ForeignKey('project.Project',
+    base_project = models.ForeignKey('project.Project',
         related_name='published_project', blank=True, null=True)
     topics = models.ManyToManyField('project.PublishedTopic',
                                     related_name='tagged_projects')
     # Total file storage size in bytes
     storage_size = models.IntegerField()
-    publish_datetime = models.DateTimeField()
+    publish_datetime = models.DateTimeField(auto_now_add=True)
     is_newest_version = models.BooleanField(default=True)
     doi = models.CharField(max_length=50, default='', unique=True)
 
     class Meta:
-        unique_together = (('title', 'version'),)
+        unique_together = (('base_project', 'version'),)
 
 
 class DUA(models.Model):

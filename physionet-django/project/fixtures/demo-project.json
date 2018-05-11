@@ -1,5 +1,21 @@
 [
 {
+  "model": "project.topic",
+  "pk": 1,
+  "fields": {
+    "description": "ecg",
+    "project": 1
+  }
+},
+{
+  "model": "project.topic",
+  "pk": 2,
+  "fields": {
+    "description": "arrthythmia",
+    "project": 1
+  }
+},
+{
   "model": "project.project",
   "pk": 1,
   "fields": {
