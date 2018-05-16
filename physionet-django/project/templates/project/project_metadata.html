@@ -2,12 +2,119 @@
 
 {% block title %}Project Metadata - {{ project }}{% endblock %}
 
-{% block form %}
+{% block main_content %}
+<h2 class="form-signin-heading">Project Metadata</h2>
+<hr>
+
+
+
+<script>
+  {# Show another formset element #}
+  function addReference(){
+    // Figure out number of existing reference forms
+    cloneElement('.arf:last', 'project-reference-content_type-object_id', 8);
+
+  };
+
+  function cloneElement(selector, type, max_forms){
+    var newElement = $(selector).clone(true);
+    var total_forms = $('#id_' + type + '-TOTAL_FORMS').val();
+
+    if (total_forms < max_forms){
+      // Change input names and ids
+      newElement.find('input').each(function() {
+          var name = $(this).attr('name').replace('-' + (total_forms-1) + '-', '-' + total_forms + '-');
+          var id = 'id_' + name;
+          $(this).attr({'name': name, 'id': id}).val('').removeAttr('checked');
+      });
+
+      total_forms++;
+      $('#id_' + type + '-TOTAL_FORMS').val(total_forms);
+
+
+      // Insert the new content (reference) after the old content
+      $(selector).after(newElement);
+      $('.ref-number:last').html(total_forms);
+    }
+  }
+</script>
+
+
 <form action="{% url 'project_metadata' project.id %}" method="post">
-  <h2 class="form-signin-heading">Project Metadata</h2>
+  <h3 class="form-signin-heading">2. References</h3>
+  <hr>
+  {# This should be a part of the main description #}
+  {{ reference_formset.management_form }}
+  {% csrf_token %}
+
+  {% for form in reference_formset %}
+    <div class="form-group row arf" id="ref-{{ forloop.counter }}">
+        <div class="col-md-1 ref-number">{{ forloop.counter }}.</div>
+        <div class='col-md-10'>
+            {{ form.description }}
+        </div>
+        <div class='col-md-1'>
+            <button class="btn btn-sm btn-secondary" title="Delete"><i class="fas fa-times"></i></button>
+        </div>
+    </div>
+  {% endfor %}
+  <p><button class="btn" type="button" onclick="addReference()" style="background:transparent"><i class="fas fa-plus"></i> Add Reference</button></p>
+
+  <p id="target">Ha</p>
+
+  <button class="btn btn-lg btn-primary" type="submit" name="edit_references">Save References</button>
+</form>
+<br>
+
+<form action="{% url 'project_metadata' project.id %}" method="post">
+  <h3 class="form-signin-heading">1. Description Metadata</h2>
   <hr>
   {{ form.media }}
   {% include "inline_form_snippet.html" %}
-  <button class="btn btn-lg btn-primary" type="submit">Save Changes</button>
+  <button class="btn btn-lg btn-primary" type="submit" name="edit_core_fields">Save Changes</button>
 </form>
+<br>
+<hr>
+
+<form action="{% url 'project_metadata' project.id %}" method="post">
+  <h3 class="form-signin-heading">3. Access</h2>
+  <hr>
+  {# License, access selection #}
+  {{ reference_formset.media }}
+  {% csrf_token %}
+
+  {% for form in reference_formset %}
+    <div class="form-group row">
+        <label class="col-md-1">1.</label>
+        <div class='col-md-11'>
+            {{ form.description }}
+        </div>
+    </div>
+  {% endfor %}
+
+  <button class="btn btn-lg btn-primary" type="submit" name="edit_references">Save Access Information</button>
+</form>
+<br>
+
+<form action="{% url 'project_metadata' project.id %}" method="post">
+  <h3 class="form-signin-heading">4. Identifiers</h2>
+  <hr>
+  {# Topics, external home page, citations #}
+  {{ reference_formset.media }}
+  {% csrf_token %}
+
+  {% for form in reference_formset %}
+    <div class="form-group row">
+        <label class="col-md-1">1.</label>
+        <div class='col-md-11'>
+            {{ form.description }}
+        </div>
+    </div>
+  {% endfor %}
+
+  <button class="btn btn-lg btn-primary" type="submit" name="edit_references">Save Access Information</button>
+</form>
+<br>
+
+
 {% endblock %}

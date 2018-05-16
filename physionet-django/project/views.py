@@ -16,7 +16,7 @@ from django.utils import timezone
 
 from . import forms
 from .models import (Affiliation, Author, Invitation, Project,
-    PublishedProject, StorageRequest, PROJECT_FILE_SIZE_LIMIT)
+    PublishedProject, StorageRequest, PROJECT_FILE_SIZE_LIMIT, Reference)
 from .utility import (get_file_info, get_directory_info, get_storage_info,
     write_uploaded_file, list_items, remove_items, move_items as do_move_items,
     get_form_errors, serve_file)
@@ -295,9 +295,7 @@ def project_authors(request, project_id):
     project = Project.objects.get(id=project_id)
     authors = project.authors.all().order_by('display_order')
     author = authors.get(user=user)
-    affiliations = author.affiliations.all()
 
-    # Formset factories
     AffiliationFormSet = generic_inlineformset_factory(Affiliation,
         fields=('name',), extra=3, max_num=3)
 
@@ -341,6 +339,21 @@ def project_authors(request, project_id):
         'add_author_form':add_author_form})
 
 
+def edit_references(request, reference_formset):
+    """
+    Edit references
+    Helper function for `project_metadata`.
+    """
+    #pdb.set_trace()
+    if reference_formset.is_valid():
+        for form in reference_formset:
+            form.instance.order = 8
+        reference_formset.save()
+        messages.success(request, 'The project references have been updated')
+        return True
+    else:
+        messages.error(request, 'Submission unsuccessful. See form for errors.')
+
 @authorization_required(auth_functions=(is_admin, is_author))
 def project_metadata(request, project_id):
     """
@@ -350,20 +363,33 @@ def project_metadata(request, project_id):
     # There are several forms for different types of metadata
     core_form = forms.metadata_forms[project.resource_type](instance=project)
 
-    reference_formset = inlineformset_factory(Project, Reference)
+    ReferenceFormSet = generic_inlineformset_factory(Reference,
+        fields=('description',), extra=5, max_num=20)
+
+    reference_formset = ReferenceFormSet(instance=project)
 
     if request.method == 'POST':
-        form = forms.metadata_forms[project.resource_type](request.POST,
-            instance=project)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Your project metadata has been updated.')
-        else:
-            messages.error(request,
-                'There was an error with the information entered, please verify and try again.')
+        if 'edit_core_fields' in request.POST:
+            form = forms.metadata_forms[project.resource_type](request.POST,
+                instance=project)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Your project metadata has been updated.')
+            else:
+                messages.error(request,
+                    'There was an error with the information entered, please verify and try again.')
+        elif 'edit_references' in request.POST:
+            reference_formset = ReferenceFormSet(instance=project,
+                data=request.POST)
+            if edit_references(request, reference_formset):
+                reference_formset = ReferenceFormSet(
+                    instance=project)
+
+
 
     return render(request, 'project/project_metadata.html', {'project':project,
-        'core_form':core_form, 'messages':messages.get_messages(request)})
+        'form':core_form, 'reference_formset':reference_formset,
+        'messages':messages.get_messages(request)})
 
 
 # Helper functions for project files view
