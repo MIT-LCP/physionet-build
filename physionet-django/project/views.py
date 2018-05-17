@@ -168,7 +168,7 @@ def create_project(request):
     return render(request, 'project/create_project.html', {'form':form})
 
 
-@authorization_required(auth_functions=(is_admin, is_author, is_invited))
+@authorization_required(auth_functions=(is_author, is_invited))
 def project_overview(request, project_id):
     """
     Overview page of a project
@@ -286,7 +286,7 @@ def move_author(request, project_id):
     raise Http404()
 
 
-@authorization_required(auth_functions=(is_admin, is_author))
+@authorization_required(auth_functions=(is_author,))
 def project_authors(request, project_id):
     """
     Page displaying author information and actions.
@@ -354,7 +354,28 @@ def edit_references(request, reference_formset):
     else:
         messages.error(request, 'Submission unsuccessful. See form for errors.')
 
-@authorization_required(auth_functions=(is_admin, is_author))
+
+@authorization_required(auth_functions=(is_author,))
+def update_references(request, project_id):
+    """
+    Delete a reference, or reload a formset with 1 form. Return the
+    updated reference formset html if successful. Called via ajax.
+    """
+    project = Project.objects.get(id=project_id)
+
+    if request.method == 'POST':
+        if 'add_first' in request.POST:
+            ReferenceFormSet = generic_inlineformset_factory(Reference,
+                fields=('description',), extra=1, max_num=20)
+            reference_formset = ReferenceFormSet(instance=project)
+            return render(request, 'project/reference_list.html', {'reference_formset':reference_formset})
+        elif 'delete_reference' in request.POST:
+            pass
+
+    return Http404()
+
+
+@authorization_required(auth_functions=(is_author,))
 def project_metadata(request, project_id):
     """
     For editing project metadata
@@ -364,7 +385,7 @@ def project_metadata(request, project_id):
     core_form = forms.metadata_forms[project.resource_type](instance=project)
 
     ReferenceFormSet = generic_inlineformset_factory(Reference,
-        fields=('description',), extra=5, max_num=20)
+        fields=('description',), extra=3, max_num=20)
 
     reference_formset = ReferenceFormSet(instance=project)
 
@@ -437,7 +458,7 @@ def delete_items(request, delete_items_form):
     else:
         messages.error(request, get_form_errors(delete_items_form))
 
-@authorization_required(auth_functions=(is_admin, is_author))
+@authorization_required(auth_functions=(is_author,))
 def project_files(request, project_id, sub_item=''):
     "View and manipulate files in a project"
     project = Project.objects.get(id=project_id)
@@ -538,7 +559,7 @@ def project_files(request, project_id, sub_item=''):
         'delete_items_form':delete_items_form})
 
 
-@authorization_required(auth_functions=(is_admin, is_author))
+@authorization_required(auth_functions=(is_author,))
 def project_preview(request, project_id):
     """
     Preview what the published project would look like
@@ -550,7 +571,7 @@ def project_preview(request, project_id):
         'project':project})
 
 
-@authorization_required(auth_functions=(is_admin, is_author))
+@authorization_required(auth_functions=(is_author,))
 def project_submission(request, project_id):
     """
     View submission details regarding a project

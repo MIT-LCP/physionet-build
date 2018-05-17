@@ -1,0 +1,21 @@
+{{ reference_formset.management_form }}
+{% csrf_token %}
+
+<div class="form-group row">
+  <label class="col-md-1">References</label>
+</div>
+
+{% for form in reference_formset %}
+  <div class="form-group row arf" id="ref-{{ forloop.counter }}">
+    <div class="col-md-1"></div>
+      <div class="col-md-1 ref-number">{{ forloop.counter }}.</div>
+      <div class='col-md-9'>
+          {{ form.description }}
+      </div>
+      <div class='col-md-1'>
+          <button class="btn btn-sm btn-secondary" title="Delete"><i class="fas fa-times"></i></button>
+      </div>
+  </div>
+{% endfor %}
+
+
