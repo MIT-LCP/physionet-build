@@ -9,12 +9,21 @@
 
 
 <script>
-  {# Show another formset element #}
-  function addReference(){
-    // Figure out number of existing reference forms
-    cloneElement('.arf:last', 'project-reference-content_type-object_id', 8);
-
-  };
+  function getCookie(name) {
+      var cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+          var cookies = document.cookie.split(';');
+          for (var i = 0; i < cookies.length; i++) {
+              var cookie = jQuery.trim(cookies[i]);
+              // Does this cookie string begin with the name we want?
+              if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                  cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                  break;
+              }
+          }
+      }
+      return cookieValue;
+  }
 
   function cloneElement(selector, type, max_forms){
     var newElement = $(selector).clone(true);
@@ -36,18 +45,46 @@
       $('.ref-number:last').html(total_forms);
     }
   }
+
+  {# Add another reference form #}
+  function addReference(){
+    // The base name of the reference formset
+    var type = 'project-reference-content_type-object_id'
+    var total_forms = $('#id_' + type + '-TOTAL_FORMS').val();
+
+    // Clone the existing html
+    if (total_forms > 0){
+      cloneElement('.arf:last', type, 8);
+    }
+    // Reload the reference section with an additional form
+    else{
+      var csrftoken = getCookie('csrftoken');
+      $.ajax({
+              type: "POST",
+              url: "{% url 'edit_references' project.id %}",
+              data: {'csrfmiddlewaretoken':csrftoken,
+                     'add_first':true
+              },
+              success: function reloadSection(result){
+                  $("#reference-list").html(result);
+              },
+      });
+    }
+  };
+
+
 </script>
 
 
 <form action="{% url 'project_metadata' project.id %}" method="post">
   <h3 class="form-signin-heading">1. Description Metadata</h2>
   <hr>
-  {{ form.media }}
+  {{ description_form.media }}
   {% include 'project/reference_list.html' %}
   <p><button class="btn" type="button" onclick="addReference()" style="background:transparent"><i class="fas fa-plus"></i> Add Reference</button></p>
-  <button class="btn btn-lg btn-primary" type="submit" name="edit_core_fields">Save Description</button>
+  <button class="btn btn-lg btn-primary" type="submit" name="edit_description">Save Description</button>
   <br>
-  {% include "inline_form_snippet.html" %}
+  {% include "inline_form_snippet.html" with form=description_form %}
 
 
 

@@ -339,24 +339,8 @@ def project_authors(request, project_id):
         'add_author_form':add_author_form})
 
 
-def edit_references(request, reference_formset):
-    """
-    Edit references
-    Helper function for `project_metadata`.
-    """
-    #pdb.set_trace()
-    if reference_formset.is_valid():
-        for form in reference_formset:
-            form.instance.order = 8
-        reference_formset.save()
-        messages.success(request, 'The project references have been updated')
-        return True
-    else:
-        messages.error(request, 'Submission unsuccessful. See form for errors.')
-
-
 @authorization_required(auth_functions=(is_author,))
-def update_references(request, project_id):
+def edit_references(request, project_id):
     """
     Delete a reference, or reload a formset with 1 form. Return the
     updated reference formset html if successful. Called via ajax.
@@ -366,11 +350,15 @@ def update_references(request, project_id):
     if request.method == 'POST':
         if 'add_first' in request.POST:
             ReferenceFormSet = generic_inlineformset_factory(Reference,
-                fields=('description',), extra=1, max_num=20)
+                fields=('description',), extra=1, max_num=20, can_delete=False)
             reference_formset = ReferenceFormSet(instance=project)
             return render(request, 'project/reference_list.html', {'reference_formset':reference_formset})
         elif 'delete_reference' in request.POST:
-            pass
+            # Just delete that reference. Don't process the form/formset.
+            reference_id = int(request.POST['delete_reference'])
+            reference = reference.objects.get(id=reference_id)
+            reference.delete()
+            higher_references = project.references.filter(display_order__gt=author.display_order)
 
     return Http404()
 
@@ -382,34 +370,38 @@ def project_metadata(request, project_id):
     """
     project = Project.objects.get(id=project_id)
     # There are several forms for different types of metadata
-    core_form = forms.metadata_forms[project.resource_type](instance=project)
+    description_form = forms.metadata_forms[project.resource_type](instance=project)
 
     ReferenceFormSet = generic_inlineformset_factory(Reference,
-        fields=('description',), extra=3, max_num=20)
+        fields=('description',), extra=0, max_num=20, can_delete=False)
 
     reference_formset = ReferenceFormSet(instance=project)
 
+    # There are several different metadata sections
     if request.method == 'POST':
-        if 'edit_core_fields' in request.POST:
-            form = forms.metadata_forms[project.resource_type](request.POST,
+        # Main description. Process both the description form, and the
+        # reference formset
+        if 'edit_description' in request.POST:
+            description_form = forms.metadata_forms[project.resource_type](request.POST,
                 instance=project)
-            if form.is_valid():
-                form.save()
+            reference_formset = ReferenceFormSet(request.POST, instance=project)
+            if description_form.is_valid() and reference_formset.is_valid():
+                description_form.save()
+
+                reference_formset.save()
+
                 messages.success(request, 'Your project metadata has been updated.')
+
+                reference_formset = ReferenceFormSet(instance=project)
+
             else:
                 messages.error(request,
-                    'There was an error with the information entered, please verify and try again.')
-        elif 'edit_references' in request.POST:
-            reference_formset = ReferenceFormSet(instance=project,
-                data=request.POST)
-            if edit_references(request, reference_formset):
-                reference_formset = ReferenceFormSet(
-                    instance=project)
-
-
+                    'Invalid submission. See errors below.')
+        elif 'edit_access' in request.POST:
+            pass
 
     return render(request, 'project/project_metadata.html', {'project':project,
-        'form':core_form, 'reference_formset':reference_formset,
+        'description_form':description_form, 'reference_formset':reference_formset,
         'messages':messages.get_messages(request)})
 
 

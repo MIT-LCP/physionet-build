@@ -203,7 +203,8 @@ class Reference(models.Model):
     General reference field for projects
     """
     description = models.CharField(max_length=250)
-    order = models.PositiveSmallIntegerField()
+    # This value only gets set for published project references
+    order = models.PositiveSmallIntegerField(null=True)
 
     # Project or PublishedProject
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
@@ -211,8 +212,11 @@ class Reference(models.Model):
     project_object = GenericForeignKey('content_type', 'object_id')
 
     class Meta:
-        unique_together = (('order', 'content_type', 'object_id'))
+        unique_together = (('description', 'content_type', 'object_id'),
+                           ('order', 'content_type', 'object_id'))
 
+    def __str__(self):
+        return self.description
 
 class Metadata(models.Model):
     """

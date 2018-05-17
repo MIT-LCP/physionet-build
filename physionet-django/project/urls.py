@@ -18,6 +18,8 @@ urlpatterns = [
         name='move_author'),
     url(r'^(?P<project_id>\d+)/metadata/$', views.project_metadata,
         name='project_metadata'),
+    url(r'^(?P<project_id>\d+)/metadata/edit_references/$', views.edit_references,
+        name='edit_references'),
     url(r'^(?P<project_id>\d+)/files/(?P<sub_item>.*)$', views.project_files,
         name='project_files'),
     url(r'^(?P<project_id>\d+)/preview/$', views.project_preview,
