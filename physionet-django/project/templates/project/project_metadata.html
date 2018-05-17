@@ -73,6 +73,32 @@
   };
 
 
+  // Delete a reference form and possibly an object
+  function removeReference(reference_id, reference_number, has_instance){
+
+    var type = 'project-reference-content_type-object_id'
+    var total_forms = $('#id_' + type + '-TOTAL_FORMS').val();
+
+    // Just remove the html for the extra form
+    if (has_instance){
+      $("#ref-"+reference_number).delete()
+    }
+    // Delete the instance and reload the reference section
+    else{
+      var csrftoken = getCookie('csrftoken');
+      $.ajax({
+              type: "POST",
+              url: "{% url 'edit_references' project.id %}",
+              data: {'csrfmiddlewaretoken':csrftoken,
+                     'remove_reference':reference_id
+              },
+              success: function reloadSection(result){
+                  $("#reference-list").html(result);
+              },
+      });
+    }
+  };
+
 </script>
 
 
@@ -85,8 +111,6 @@
   <button class="btn btn-lg btn-primary" type="submit" name="edit_description">Save Description</button>
   <br>
   {% include "inline_form_snippet.html" with form=description_form %}
-
-
 
 
 </form>

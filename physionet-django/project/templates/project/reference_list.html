@@ -15,7 +15,7 @@
             {{ form.description }}
         </div>
         <div class='col-md-1'>
-            <button class="btn btn-sm btn-secondary" title="Delete"><i class="fas fa-times"></i></button>
+            <button class="btn btn-sm btn-secondary" type="button" title="Remove" onclick="removeReference({{ forloop.counter }}, true)"><i class="fas fa-times"></i></button>
         </div>
     </div>
   {% endfor %}
