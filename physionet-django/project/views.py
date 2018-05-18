@@ -358,7 +358,6 @@ def edit_references(request, project_id):
             reference = Reference.objects.get(id=reference_id)
             reference.delete()
             higher_references = project.references.filter(id__gt=reference_id)
-
             ReferenceFormSet = generic_inlineformset_factory(Reference,
                 fields=('description',), extra=0, max_num=20, can_delete=False)
             reference_formset = ReferenceFormSet(instance=project)

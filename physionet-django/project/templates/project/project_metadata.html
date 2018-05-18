@@ -25,63 +25,73 @@
       return cookieValue;
   }
 
-  function cloneElement(selector, type, max_forms){
+  /** Clone a form element to a formset
+
+   @constructor
+   @param {string} selector - The selector used to get the element to clone.
+   @param {string} form_name - The name of the forms. May be more complicated
+   for modelforms, inline_formsets, and genericinline_formsets.
+  */
+  function cloneFormElement(selector, form_name){
     var newElement = $(selector).clone(true);
-    var total_forms = $('#id_' + type + '-TOTAL_FORMS').val();
+    var total_forms = $('#id_' + form_name + '-TOTAL_FORMS').val();
 
-    if (total_forms < max_forms){
-      // Change input names and ids
-      newElement.find('input').each(function() {
-          var name = $(this).attr('name').replace('-' + (total_forms-1) + '-', '-' + total_forms + '-');
-          var id = 'id_' + name;
-          $(this).attr({'name': name, 'id': id}).val('').removeAttr('checked');
-      });
+    // Set the names and ids of each input element of the new form
+    newElement.find('input').each(function() {
+        var name = $(this).attr('name').replace('-' + (total_forms-1) + '-', '-' + total_forms + '-');
+        var id = 'id_' + name;
+        $(this).attr({'name': name, 'id': id}).val('').removeAttr('checked');
+    });
 
-      total_forms++;
-      $('#id_' + type + '-TOTAL_FORMS').val(total_forms);
+    // Update the formset total forms indicator
+    total_forms++;
+    $('#id_' + form_name + '-TOTAL_FORMS').val(total_forms);
 
-      // Insert the new content (reference) after the old content
-      $(selector).after(newElement);
-      $('.ref-number:last').html(total_forms);
-    }
+    // Insert the new content after the original selected content
+    $(selector).after(newElement);
+    $('.ref-number:last').html(total_forms);
   }
+
+  // The base name of the reference formset's individual forms. Used
+  // for adding and deleting forms from the formset
+  reference_form_name = 'project-reference-content_type-object_id'
 
   {# Add another reference form #}
   function addReference(){
-    // The base name of the reference formset
-    var type = 'project-reference-content_type-object_id'
-    var total_forms = $('#id_' + type + '-TOTAL_FORMS').val();
+    var max_forms = 8;
+    var total_forms = $('#id_' + reference_form_name + '-TOTAL_FORMS').val();
+    // alternate length method: document.getElementsByClassName("ref-body").length
 
-    // Clone the existing html
-    if (total_forms > 0){
-      cloneElement('.ref-body:last', type, 8);
-    }
-    // Reload the reference section with an additional form
-    else{
-      var csrftoken = getCookie('csrftoken');
-      $.ajax({
-              type: "POST",
-              url: "{% url 'edit_references' project.id %}",
-              data: {'csrfmiddlewaretoken':csrftoken,
-                     'add_first':true
-              },
-              success: function reloadSection(result){
-                  $("#reference-list").html(result);
-              },
-      });
+    if (total_forms < max_forms){
+      // Clone the existing html
+      if (total_forms > 0){
+        cloneFormElement(".ref-body:last", reference_form_name);
+      }
+      // Reload the reference section with an additional form
+      else{
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+                type: "POST",
+                url: "{% url 'edit_references' project.id %}",
+                data: {'csrfmiddlewaretoken':csrftoken,
+                       'add_first':true
+                },
+                success: function reloadSection(result){
+                    $("#reference-list").html(result);
+                },
+        });
+      }
     }
   };
 
 
   // Delete a reference form and possibly an object
   function removeReference(trigger_button){
-
-    // Get the reference number, and whether there is an input id value of the form
-
+    // The div encapsulating the entire reference element
     var reference_div = trigger_button.parentElement.parentElement
-
+    // The div containing the form input elements
     var form_div = reference_div.getElementsByClassName("ref-form")[0]
-
+    // The hiddeninput element specifies the reference pk if any
     var reference_instance_id = form_div.getElementsByTagName("input")[0].value
 
     // The reference object has not been saved. Just edit html.
@@ -94,6 +104,12 @@
       var reference_divs = reference_list_div.getElementsByClassName("ref-body")
 
       var num_reference_forms = reference_divs.length;
+
+      reference_div.remove()
+
+      var total_forms = $('#id_' + reference_form_name + '-TOTAL_FORMS').val();
+      total_forms--;
+      $('#id_' + reference_form_name + '-TOTAL_FORMS').val(total_forms);
 
       // All reference forms with greater numbers must be altered
 
