@@ -40,16 +40,13 @@
     newElement.find('input').each(function() {
         var name = $(this).attr('name').replace('-' + (total_forms-1) + '-', '-' + total_forms + '-');
         var id = 'id_' + name;
+        // What about the actual object id hidden input?
         $(this).attr({'name': name, 'id': id}).val('').removeAttr('checked');
     });
-
     // Update the formset total forms indicator
-    total_forms++;
-    $('#id_' + form_name + '-TOTAL_FORMS').val(total_forms);
-
+    $('#id_' + form_name + '-TOTAL_FORMS').val(total_forms + 1);
     // Insert the new content after the original selected content
     $(selector).after(newElement);
-    $('.ref-number:last').html(total_forms);
   }
 
   // The base name of the reference formset's individual forms. Used
@@ -63,9 +60,17 @@
     // alternate length method: document.getElementsByClassName("ref-body").length
 
     if (total_forms < max_forms){
-      // Clone the existing html
       if (total_forms > 0){
+        // Clone the existing html
         cloneFormElement(".ref-body:last", reference_form_name);
+        // Change the reference number id and display label of the newly cloned element
+        new_reference_div = $(".ref-body:last");
+        new_reference_div.id = "ref-" + (total_forms + 1);
+
+
+        //$('.ref-number:last').html((total_forms+1) + '.');
+        // That id field?
+
       }
       // Reload the reference section with an additional form
       else{
@@ -96,29 +101,26 @@
 
     // The reference object has not been saved. Just edit html.
     if (reference_instance_id == ""){
-
+      // The reference number to be deleted
       var reference_number = parseInt(reference_div.id.substring(4));
-
       var reference_list_div = reference_div.parentElement;
 
-      var reference_divs = reference_list_div.getElementsByClassName("ref-body")
-
-      var num_reference_forms = reference_divs.length;
-
-      reference_div.remove()
-
-      var total_forms = $('#id_' + reference_form_name + '-TOTAL_FORMS').val();
-      total_forms--;
-      $('#id_' + reference_form_name + '-TOTAL_FORMS').val(total_forms);
+      var total_forms = reference_list_div.getElementsByClassName("ref-body").length;
 
       // All reference forms with greater numbers must be altered
+      for (i=reference_number+1; i<total_forms+1; i++){
+        var higher_ref_div = reference_list_div.getElementById("ref-" + i)
 
+      }
+
+      // delete the selected reference's html and update the form count
+      reference_div.remove()
+      total_forms--;
+      $('#id_' + reference_form_name + '-TOTAL_FORMS').val(total_forms);
     }
     // The reference object exists. Send ajax query to remove it and
-    // reload page section.
+    // reload the page section.
     else{
-
-
       var csrftoken = getCookie('csrftoken');
       $.ajax({
               type: "POST",
@@ -131,39 +133,6 @@
               },
       });
     }
-
-
-
-
-
-
-
-
-    var type = 'project-reference-content_type-object_id';
-    var total_forms = $('#id_' + type + '-TOTAL_FORMS').val();
-
-    // Just remove the html for the extra form
-    // if (has_instance){
-    //   $("#ref-"+reference_number).delete()
-    // }
-    // // Delete the instance and reload the reference section
-    // else{
-
-    //   // Get all the larger references
-
-
-    //   var csrftoken = getCookie('csrftoken');
-    //   $.ajax({
-    //           type: "POST",
-    //           url: "{% url 'edit_references' project.id %}",
-    //           data: {'csrfmiddlewaretoken':csrftoken,
-    //                  'remove_reference':reference_id
-    //           },
-    //           success: function reloadSection(result){
-    //               $("#reference-list").html(result);
-    //           },
-    //   });
-    // }
   };
 
 </script>
