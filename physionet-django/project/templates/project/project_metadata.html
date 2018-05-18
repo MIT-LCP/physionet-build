@@ -44,7 +44,7 @@
         $(this).attr({'name': name, 'id': id}).val('').removeAttr('checked');
     });
     // Update the formset total forms indicator
-    $('#id_' + form_name + '-TOTAL_FORMS').val(total_forms + 1);
+    $('#id_' + form_name + '-TOTAL_FORMS').val(++total_forms);
     // Insert the new content after the original selected content
     $(selector).after(newElement);
   }
@@ -56,7 +56,7 @@
   {# Add another reference form #}
   function addReference(){
     var max_forms = 8;
-    var total_forms = $('#id_' + reference_form_name + '-TOTAL_FORMS').val();
+    var total_forms = parseInt($('#id_' + reference_form_name + '-TOTAL_FORMS').val());
     // alternate length method: document.getElementsByClassName("ref-body").length
 
     if (total_forms < max_forms){
@@ -64,10 +64,10 @@
         // Clone the existing html
         cloneFormElement(".ref-body:last", reference_form_name);
         // Change the reference number id and display label of the newly cloned element
-        new_reference_div = $(".ref-body:last");
-        new_reference_div.id = "ref-" + (total_forms + 1);
-
-
+        new_reference_div = document.getElementsByClassName("ref-body")[total_forms]
+        total_forms++;
+        new_reference_div.id = "ref-" + (total_forms);
+        new_reference_div.getElementsByClassName("ref-number")[0].innerHTML = total_forms + "."
         //$('.ref-number:last').html((total_forms+1) + '.');
         // That id field?
 
@@ -93,11 +93,11 @@
   // Delete a reference form and possibly an object
   function removeReference(trigger_button){
     // The div encapsulating the entire reference element
-    var reference_div = trigger_button.parentElement.parentElement
+    var reference_div = trigger_button.parentElement.parentElement;
     // The div containing the form input elements
-    var form_div = reference_div.getElementsByClassName("ref-form")[0]
+    var form_div = reference_div.getElementsByClassName("ref-form")[0];
     // The hiddeninput element specifies the reference pk if any
-    var reference_instance_id = form_div.getElementsByTagName("input")[0].value
+    var reference_instance_id = form_div.getElementsByTagName("input")[0].value;
 
     // The reference object has not been saved. Just edit html.
     if (reference_instance_id == ""){
@@ -109,7 +109,7 @@
 
       // All reference forms with greater numbers must be altered
       for (i=reference_number+1; i<total_forms+1; i++){
-        var higher_ref_div = reference_list_div.getElementById("ref-" + i)
+        var higher_ref_div = reference_list_div.getElementById("ref-" + i);
 
       }
 
