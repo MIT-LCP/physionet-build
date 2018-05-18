@@ -354,11 +354,15 @@ def edit_references(request, project_id):
             reference_formset = ReferenceFormSet(instance=project)
             return render(request, 'project/reference_list.html', {'reference_formset':reference_formset})
         elif 'remove_reference' in request.POST:
-            # Just delete that reference. Don't process the form/formset.
             reference_id = int(request.POST['remove_reference'])
-            reference = reference.objects.get(id=reference_id)
+            reference = Reference.objects.get(id=reference_id)
             reference.delete()
-            higher_references = project.references.filter(display_order__gt=author.display_order)
+            higher_references = project.references.filter(id__gt=reference_id)
+
+            ReferenceFormSet = generic_inlineformset_factory(Reference,
+                fields=('description',), extra=0, max_num=20, can_delete=False)
+            reference_formset = ReferenceFormSet(instance=project)
+            return render(request, 'project/reference_list.html', {'reference_formset':reference_formset})
 
     return Http404()
 

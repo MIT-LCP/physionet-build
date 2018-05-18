@@ -7,15 +7,17 @@
   </div>
 
   {% for form in reference_formset %}
-    <div class="form-group row arf" id="ref-{{ forloop.counter }}">
-      <div class="col-md-1"></div>
+    {# This ref-%d id is identifying the form number on the page #}
+    <div class="form-group row ref-body" id="ref-{{ forloop.counter }}">
+        <div class="col-md-1"></div>
         <div class="col-md-1 ref-number">{{ forloop.counter }}.</div>
-        <div class='col-md-9'>
+        <div class="col-md-9 ref-form">
+            {# id value is blank for forms without saved instances #}
             {{ form.id }}
             {{ form.description }}
         </div>
         <div class='col-md-1'>
-            <button class="btn btn-sm btn-secondary" type="button" title="Remove" onclick="removeReference({{ forloop.counter }}, true)"><i class="fas fa-times"></i></button>
+            <button class="btn btn-sm btn-secondary" type="button" title="Remove" onclick="removeReference(this)"><i class="fas fa-times"></i></button>
         </div>
     </div>
   {% endfor %}

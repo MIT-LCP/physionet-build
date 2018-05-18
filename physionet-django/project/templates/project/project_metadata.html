@@ -54,7 +54,7 @@
 
     // Clone the existing html
     if (total_forms > 0){
-      cloneElement('.arf:last', type, 8);
+      cloneElement('.ref-body:last', type, 8);
     }
     // Reload the reference section with an additional form
     else{
@@ -74,29 +74,80 @@
 
 
   // Delete a reference form and possibly an object
-  function removeReference(reference_id, reference_number, has_instance){
+  function removeReference(trigger_button){
 
-    var type = 'project-reference-content_type-object_id'
-    var total_forms = $('#id_' + type + '-TOTAL_FORMS').val();
+    // Get the reference number, and whether there is an input id value of the form
 
-    // Just remove the html for the extra form
-    if (has_instance){
-      $("#ref-"+reference_number).delete()
+    var reference_div = trigger_button.parentElement.parentElement
+
+    var form_div = reference_div.getElementsByClassName("ref-form")[0]
+
+    var reference_instance_id = form_div.getElementsByTagName("input")[0].value
+
+    // The reference object has not been saved. Just edit html.
+    if (reference_instance_id == ""){
+
+      var reference_number = parseInt(reference_div.id.substring(4));
+
+      var reference_list_div = reference_div.parentElement;
+
+      var reference_divs = reference_list_div.getElementsByClassName("ref-body")
+
+      var num_reference_forms = reference_divs.length;
+
+      // All reference forms with greater numbers must be altered
+
     }
-    // Delete the instance and reload the reference section
+    // The reference object exists. Send ajax query to remove it and
+    // reload page section.
     else{
+
+
       var csrftoken = getCookie('csrftoken');
       $.ajax({
               type: "POST",
               url: "{% url 'edit_references' project.id %}",
               data: {'csrfmiddlewaretoken':csrftoken,
-                     'remove_reference':reference_id
+                     'remove_reference':reference_instance_id
               },
               success: function reloadSection(result){
                   $("#reference-list").html(result);
               },
       });
     }
+
+
+
+
+
+
+
+
+    var type = 'project-reference-content_type-object_id';
+    var total_forms = $('#id_' + type + '-TOTAL_FORMS').val();
+
+    // Just remove the html for the extra form
+    // if (has_instance){
+    //   $("#ref-"+reference_number).delete()
+    // }
+    // // Delete the instance and reload the reference section
+    // else{
+
+    //   // Get all the larger references
+
+
+    //   var csrftoken = getCookie('csrftoken');
+    //   $.ajax({
+    //           type: "POST",
+    //           url: "{% url 'edit_references' project.id %}",
+    //           data: {'csrfmiddlewaretoken':csrftoken,
+    //                  'remove_reference':reference_id
+    //           },
+    //           success: function reloadSection(result){
+    //               $("#reference-list").html(result);
+    //           },
+    //   });
+    // }
   };
 
 </script>
