@@ -309,7 +309,7 @@ metadata_forms = {'Database':DatabaseMetadataForm,
                   'Software':SoftwareMetadataForm}
 
 RESPONSE_CHOICES = (
-#    ('', '------'),
+    # ('', '------'),
     (1, 'Accept'),
     (0, 'Reject')
 )
@@ -436,7 +436,7 @@ class AddAuthorForm(forms.ModelForm):
         author = super(AddAuthorForm, self).save(commit=False)
         author.project = self.project
         author.is_human = False
-        author.display_order = self.project.authors.all().count() + 1
+        author.display_order = self.project.authors.count() + 1
         author.save()
 
 
@@ -494,7 +494,6 @@ class AuthorOrderFormSet(BaseInlineFormSet):
                 'Display orders must be consecutive integers from 1.')
 
 
-
 class StorageRequestForm(forms.ModelForm):
     """
     Making a request for storage capacity for a project
@@ -521,12 +520,3 @@ class StorageRequestForm(forms.ModelForm):
         if request_allowance <= current_allowance:
             raise forms.ValidationError('Project already has the requested capacity.',
                 code='already_has_allowance')
-
-
-class StorageResponseForm(forms.Form):
-    """
-    Form for responding to a storage request
-    """
-    project_id = forms.IntegerField(widget= forms.HiddenInput())
-    response = forms.ChoiceField(choices=RESPONSE_CHOICES)
-    message = forms.CharField(max_length=500, required=False, widget=forms.Textarea())
