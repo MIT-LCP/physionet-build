@@ -562,7 +562,7 @@ def project_preview(request, project_id):
     user = request.user
     project = Project.objects.get(id=project_id)
 
-    return render(request, 'project/project_submission.html', {'user':user,
+    return render(request, 'project/project_preview.html', {'user':user,
         'project':project})
 
 
