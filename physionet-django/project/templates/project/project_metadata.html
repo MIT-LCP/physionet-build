@@ -106,15 +106,18 @@
       var reference_list_div = reference_div.parentElement;
 
       var total_forms = reference_list_div.getElementsByClassName("ref-body").length;
-
-      // All reference forms with greater numbers must be altered
+      
+      // delete the selected reference's html
+      reference_div.remove()
+      
+      // All reference forms with greater numbers must be decremented
       for (i=reference_number+1; i<total_forms+1; i++){
-        var higher_ref_div = reference_list_div.getElementById("ref-" + i);
-
+        var higher_ref_div = document.getElementById("ref-" + i);
+        higher_ref_div.getElementsByClassName("ref-number")[0].innerHTML = (i-1) + "."
+        higher_ref_div.id = "ref-" + (i-1)
       }
 
-      // delete the selected reference's html and update the form count
-      reference_div.remove()
+      // update the form count
       total_forms--;
       $('#id_' + reference_form_name + '-TOTAL_FORMS').val(total_forms);
     }
@@ -142,11 +145,10 @@
   <h3 class="form-signin-heading">1. Description Metadata</h2>
   <hr>
   {{ description_form.media }}
+  {% include "inline_form_snippet.html" with form=description_form %}
   {% include 'project/reference_list.html' %}
   <p><button class="btn" type="button" onclick="addReference()" style="background:transparent"><i class="fas fa-plus"></i> Add Reference</button></p>
   <button class="btn btn-lg btn-primary" type="submit" name="edit_description">Save Description</button>
-  <br>
-  {% include "inline_form_snippet.html" with form=description_form %}
 
 
 </form>
@@ -154,40 +156,21 @@
 <hr>
 
 <form action="{% url 'project_metadata' project.id %}" method="post">
-  <h3 class="form-signin-heading">3. Access</h2>
+  <h3 class="form-signin-heading">2. Access</h2>
   <hr>
   {# License, access selection #}
-  {{ reference_formset.media }}
-  {% csrf_token %}
 
-  {% for form in reference_formset %}
-    <div class="form-group row">
-        <label class="col-md-1">1.</label>
-        <div class='col-md-11'>
-            {{ form.description }}
-        </div>
-    </div>
-  {% endfor %}
 
   <button class="btn btn-lg btn-primary" type="submit" name="edit_references">Save Access Information</button>
 </form>
 <br>
 
 <form action="{% url 'project_metadata' project.id %}" method="post">
-  <h3 class="form-signin-heading">4. Identifiers</h2>
+  <h3 class="form-signin-heading">3. Identifiers</h2>
   <hr>
   {# Topics, external home page, citations #}
-  {{ reference_formset.media }}
   {% csrf_token %}
 
-  {% for form in reference_formset %}
-    <div class="form-group row">
-        <label class="col-md-1">1.</label>
-        <div class='col-md-11'>
-            {{ form.description }}
-        </div>
-    </div>
-  {% endfor %}
 
   <button class="btn btn-lg btn-primary" type="submit" name="edit_references">Save Access Information</button>
 </form>
