@@ -371,6 +371,7 @@ def delete_items(request, delete_items_form):
 @authorization_required(auth_functions=(is_admin, is_author))
 def project_files(request, project_id, sub_item=''):
     "View and manipulate files in a project"
+    user = request.user
     project = Project.objects.get(id=project_id)
 
     # Directory where files are kept for the project
@@ -401,8 +402,10 @@ def project_files(request, project_id, sub_item=''):
 
     if request.method == 'POST':
         if 'request_storage' in request.POST:
-            storage_request_form = forms.StorageRequestForm(request.POST)
+            storage_request_form = forms.StorageRequestForm(user=user,
+                project=project, data=request.POST)
             if storage_request_form.is_valid():
+                storage_request_form.instance.project = project
                 storage_request_form.save()
                 messages.success(request, 'Your storage request has been received.')
             else:
@@ -436,12 +439,15 @@ def project_files(request, project_id, sub_item=''):
         storage_info = get_storage_info(project.storage_allowance*1024**3,
             project.storage_used())
 
+    storage_request = StorageRequest.objects.filter(project=project,
+                                                    is_active=True).first()
+
     # Forms
-    storage_request = StorageRequest.objects.filter(project=project).first()
     if storage_request:
         storage_request_form = None
     else:
-        storage_request_form = forms.StorageRequestForm(initial={'project':project})
+        storage_request_form = forms.StorageRequestForm(user=user,
+                                                        project=project)
     upload_files_form = forms.MultiFileFieldForm(PROJECT_FILE_SIZE_LIMIT,
         storage_info.remaining, current_directory)
     folder_creation_form = forms.FolderCreationForm()

@@ -503,25 +503,27 @@ class StorageRequestForm(forms.ModelForm):
     """
     Making a request for storage capacity for a project
     """
-    # Storage request in GB
-    request_allowance = forms.IntegerField(min_value=1, max_value=10000)
-
     class Meta:
         model = StorageRequest
-        fields = ('request_allowance', 'project',)
+        # Storage request allowance in GB
+        fields = ('request_allowance',)
         widgets = {
             'request_allowance':forms.NumberInput(),
-            'project':forms.HiddenInput()
         }
 
-    def clean(self):
+    def __init__(self, user, project, *args, **kwargs):
+        super(StorageRequestForm, self).__init__(*args, **kwargs)
+        self.user = user
+        self.project = project
+
+    def clean_request_allowance(self):
         """
         Storage size must be reasonable
         """
-        cleaned_data = super().clean()
-        current_allowance = cleaned_data['project'].storage_allowance
-        request_allowance = cleaned_data['request_allowance']
+        data = self.cleaned_data['request_allowance']
 
-        if request_allowance <= current_allowance:
-            raise forms.ValidationError('Project already has the requested capacity.',
+        if data <= self.project.storage_allowance:
+            raise forms.ValidationError('Project already has the requested allowance.',
                 code='already_has_allowance')
+
+        return data

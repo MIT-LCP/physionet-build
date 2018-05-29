@@ -435,7 +435,7 @@ class StorageRequest(BaseInvitation):
     """
     A request for storage capacity for a project
     """
-    project = models.OneToOneField('project.Project')
+    project = models.ForeignKey('project.Project', related_name='storage_requests')
     # Requested storage size in GB
     request_allowance = models.SmallIntegerField(
         validators=[MaxValueValidator(100), MinValueValidator(1)])
