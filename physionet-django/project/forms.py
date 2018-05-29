@@ -326,24 +326,16 @@ class DatabaseMetadataForm(forms.ModelForm):
 class SoftwareMetadataForm(forms.ModelForm):
     """
     Form for editing the metadata of a project with resource_type == database
+    NOT DONE
     """
     class Meta:
         model = Project
         fields = ('title', 'abstract', 'technical_validation', 'usage_notes')
-            # 'project_home_page', 'acknowledgements', 'paper_citations',
-            # 'references', 'topics', 'dua', 'training_course',
-            # 'id_verification_required', 'version_number', 'changelog_summary',)
 
 
 # The modelform for editing metadata for each resource type
 metadata_forms = {'Database':DatabaseMetadataForm,
                   'Software':SoftwareMetadataForm}
-
-RESPONSE_CHOICES = (
-    # ('', '------'),
-    (1, 'Accept'),
-    (0, 'Reject')
-)
 
 
 class InviteAuthorForm(forms.ModelForm):

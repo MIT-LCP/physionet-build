@@ -94,7 +94,7 @@ def process_invitation_response(request, invitation_response_formset):
             if invitation_response_form.is_valid() and invitation_response_form.instance.email in user.get_emails():
                 # Update this invitation, and any other one made to the
                 # same user, project, and invitation type
-                invitation = invitation_response_form.save(commit=False)
+                invitation = invitation_response_form.instance
                 project = invitation.project
                 invitations = Invitation.objects.filter(is_active=True,
                     email__in=user.get_emails(), project=project,
@@ -496,20 +496,20 @@ def project_submission(request, project_id):
 
 
 def process_storage_response(request, storage_response_formset):
-    user = request.user
     storage_request_id = int(request.POST['storage_response'])
 
     for storage_response_form in storage_response_formset:
         # Only process the response that was submitted
         if storage_response_form.instance.id == storage_request_id:
             if storage_response_form.is_valid():
-                storage_request = storage_response_form.save(commit=False)
+                storage_request = storage_response_form.instance
                 storage_request.responder = request.user
                 storage_request.response_datetime = timezone.now()
                 storage_request.is_active = False
                 storage_request.save()
-                project = storage_request.project
+
                 if storage_request.response:
+                    project = storage_request.project
                     project.storage_allowance = storage_request.request_allowance
                     project.save()
                 messages.success(request, 'The storage request has been %s.' % RESPONSE_ACTIONS[storage_request.response])
