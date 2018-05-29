@@ -275,7 +275,7 @@ class Project(Metadata):
     under_review = models.BooleanField(default=False)
 
     class Meta:
-        unique_together = (('title', 'submitting_author'),)
+        unique_together = (('title', 'submitting_author', 'resource_type'),)
 
     def __str__(self):
         return self.title
