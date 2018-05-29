@@ -429,6 +429,16 @@ class AddAuthorForm(forms.ModelForm):
         self.user = user
         self.project = project
 
+    def clean_organization_name(self):
+        """
+        Ensure uniqueness of organization name
+        """
+        data = self.cleaned_data['organization_name']
+        if self.project.authors.filter(organization_name=data).exists():
+            raise forms.ValidationError('Organizational author names must be unique')
+
+        return data
+
     def save(self):
         author = super(AddAuthorForm, self).save(commit=False)
         author.project = self.project
