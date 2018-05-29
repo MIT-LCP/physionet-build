@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 
-from user.forms import (AssociatedEmailChoiceForm, AssociatedEmailForm,
+from user.forms import (AssociatedEmailChoiceForm, AddEmailForm,
     LoginForm, ProfileForm, UserCreationForm)
 from user.models import User
 
@@ -46,7 +46,7 @@ class TestForms(TestCase):
         self.run_test_forms({'associated_email':['Select a valid choice. That choice is not one of the available choices.']})
 
     def test_associated_email_form(self):
-        self.create_test_forms(AssociatedEmailForm, {'email':'tester0@mit.edu'},
+        self.create_test_forms(AddEmailForm, {'email':'tester0@mit.edu'},
             {'email':'nonexistent'})
         self.run_test_forms({'email': ['Enter a valid email address.']})
 
