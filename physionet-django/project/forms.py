@@ -423,10 +423,9 @@ class AddAuthorForm(forms.ModelForm):
         model = Author
         fields = ('organization_name',)
 
-    def __init__(self, user, project, *args, **kwargs):
+    def __init__(self, project, *args, **kwargs):
         "Make sure the user submitting this entry is the owner"
         super(AddAuthorForm, self).__init__(*args, **kwargs)
-        self.user = user
         self.project = project
 
     def clean_organization_name(self):
@@ -513,9 +512,8 @@ class StorageRequestForm(forms.ModelForm):
             'request_allowance':forms.NumberInput(),
         }
 
-    def __init__(self, user, project, *args, **kwargs):
+    def __init__(self, project, *args, **kwargs):
         super(StorageRequestForm, self).__init__(*args, **kwargs)
-        self.user = user
         self.project = project
 
     def clean_request_allowance(self):

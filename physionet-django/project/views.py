@@ -254,7 +254,7 @@ def project_authors(request, project_id):
     affiliation_formset = AffiliationFormSet(instance=author)
     order_formset = OrderFormSet(instance=project)
     invite_author_form = forms.InviteAuthorForm(project, user)
-    add_author_form = forms.AddAuthorForm(user=user, project=project)
+    add_author_form = forms.AddAuthorForm(project=project)
 
     if request.method == 'POST':
         if 'edit_author' in request.POST:
@@ -279,9 +279,10 @@ def project_authors(request, project_id):
             if invite_author(request, invite_author_form):
                 invite_author_form = forms.InviteAuthorForm(project, user)
         elif 'add_author' in request.POST:
-            add_author_form = forms.AddAuthorForm(user, project, request.POST)
+            add_author_form = forms.AddAuthorForm(project=project,
+                                                  data=request.POST)
             if add_author(request, add_author_form):
-                add_author_form = forms.AddAuthorForm(user, project)
+                add_author_form = forms.AddAuthorForm(project=project)
         elif 'remove_author' in request.POST:
             # No form. Just get button value.
             author_id = int(request.POST['remove_author'])
@@ -371,7 +372,6 @@ def delete_items(request, delete_items_form):
 @authorization_required(auth_functions=(is_admin, is_author))
 def project_files(request, project_id, sub_item=''):
     "View and manipulate files in a project"
-    user = request.user
     project = Project.objects.get(id=project_id)
 
     # Directory where files are kept for the project
@@ -402,8 +402,8 @@ def project_files(request, project_id, sub_item=''):
 
     if request.method == 'POST':
         if 'request_storage' in request.POST:
-            storage_request_form = forms.StorageRequestForm(user=user,
-                project=project, data=request.POST)
+            storage_request_form = forms.StorageRequestForm(project=project,
+                                                            data=request.POST)
             if storage_request_form.is_valid():
                 storage_request_form.instance.project = project
                 storage_request_form.save()
@@ -446,8 +446,7 @@ def project_files(request, project_id, sub_item=''):
     if storage_request:
         storage_request_form = None
     else:
-        storage_request_form = forms.StorageRequestForm(user=user,
-                                                        project=project)
+        storage_request_form = forms.StorageRequestForm(project=project)
     upload_files_form = forms.MultiFileFieldForm(PROJECT_FILE_SIZE_LIMIT,
         storage_info.remaining, current_directory)
     folder_creation_form = forms.FolderCreationForm()
