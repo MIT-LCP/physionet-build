@@ -288,7 +288,6 @@ def project_authors(request, project_id):
         fields=('name',), extra=3, max_num=3)
 
     # Initiate the forms
-    order_author_form = forms.OrderAuthorForm(user=user, project=project)
     affiliation_formset = AffiliationFormSet(instance=author)
     invite_author_form = forms.InviteAuthorForm(project, user)
     add_author_form = forms.AddAuthorForm(project=project)
