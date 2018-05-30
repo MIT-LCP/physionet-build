@@ -29,9 +29,10 @@ class AssociatedEmailChoiceForm(forms.Form):
             self.fields['associated_email'].initial = associated_emails.filter(is_public=True).first()
             self.fields['associated_email'].required = False
 
-class AssociatedEmailForm(forms.ModelForm):
+
+class AddEmailForm(forms.ModelForm):
     """
-    For adding/editing new associated emails
+    For adding new associated emails
     """
     class Meta:
         model = AssociatedEmail
@@ -39,6 +40,19 @@ class AssociatedEmailForm(forms.ModelForm):
         widgets = {
             'email':forms.EmailInput(attrs={'class':'form-control dropemail'}),
         }
+
+    def clean_email(self):
+        """
+        Check that the email is unique for the user. Make the email
+        lowercase
+        """
+        data = self.cleaned_data['email'].lower()
+
+        if AssociatedEmail.objects.filter(email=data).exists():
+            raise forms.ValidationError(
+                'The email is already registered')
+
+        return data
 
 
 class LoginForm(auth_forms.AuthenticationForm):

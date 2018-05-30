@@ -204,10 +204,11 @@ class MoveItemsForm(forms.Form):
         - Must not contain items with the same name as the items to be moved
 
         """
+        cleaned_data = super().clean()
         validation_errors = []
 
-        destination_folder = self.cleaned_data['destination_folder']
-        selected_items = self.cleaned_data['selected_items']
+        destination_folder = cleaned_data['destination_folder']
+        selected_items = cleaned_data['selected_items']
 
         if destination_folder in selected_items:
             # raise forms.ValidationError('Cannot move folder: %(destination_folder)s into itself',
@@ -274,6 +275,19 @@ class CreateProjectForm(forms.ModelForm):
         model = Project
         fields = ('resource_type', 'title', 'abstract',)
 
+    def clean(self):
+        """
+        Check that the title and resource type are unique for the user.
+        Needs to be run because submitting_author is not a form field.
+        """
+        cleaned_data = super().clean()
+        if Project.objects.filter(resource_type=cleaned_data['resource_type'],
+                                  title=cleaned_data['title'],
+                                  submitting_author=self.user).exists():
+            raise forms.ValidationError(
+                  'You already have a project with this title and resource type')
+        return cleaned_data
+
     def save(self):
         project = super(CreateProjectForm, self).save(commit=False)
         project.submitting_author = self.user
@@ -291,28 +305,37 @@ class DatabaseMetadataForm(forms.ModelForm):
             'content_description', 'acknowledgements',
             'version', 'changelog_summary',)
 
+    def clean_title(self):
+        """
+        Check that the title and resource type are unique for the user
+        """
+        data = self.cleaned_data['title']
+
+        if Project.objects.filter(
+                title=data,
+                resource_type=self.instance.resource_type,
+                submitting_author=self.instance.submitting_author).exists():
+
+            raise forms.ValidationError(
+                  'You already have a project with this title and resource type')
+
+        return data
+
+
 
 class SoftwareMetadataForm(forms.ModelForm):
     """
     Form for editing the metadata of a project with resource_type == database
+    NOT DONE
     """
     class Meta:
         model = Project
         fields = ('title', 'abstract', 'technical_validation', 'usage_notes')
-            # 'project_home_page', 'acknowledgements', 'paper_citations',
-            # 'references', 'topics', 'dua', 'training_course',
-            # 'id_verification_required', 'version_number', 'changelog_summary',)
 
 
 # The modelform for editing metadata for each resource type
 metadata_forms = {'Database':DatabaseMetadataForm,
                   'Software':SoftwareMetadataForm}
-
-RESPONSE_CHOICES = (
-#    ('', '------'),
-    (1, 'Accept'),
-    (0, 'Reject')
-)
 
 
 class InviteAuthorForm(forms.ModelForm):
@@ -341,7 +364,7 @@ class InviteAuthorForm(forms.ModelForm):
                     code='already_author')
 
         invitations = self.project.invitations.filter(
-            invitation_type='author')
+            invitation_type='author', is_active=True)
 
         if data in [i.email for i in invitations]:
             raise forms.ValidationError(
@@ -359,32 +382,6 @@ class InviteAuthorForm(forms.ModelForm):
         invitation.save()
         return invitation
 
-
-class InvitationResponseForm(forms.Form):
-    """
-    For a user to respond to their project invitations.
-    """
-    invitation_id = forms.IntegerField(widget=forms.HiddenInput)
-    response = forms.ChoiceField(choices=RESPONSE_CHOICES)
-    message = forms.CharField(max_length=500, required=False,
-        widget=forms.Textarea())
-
-    def __init__(self, user, *args, **kwargs):
-        "Keep track of the user responding to the form"
-        super(InvitationResponseForm, self).__init__(*args, **kwargs)
-        self.user = user
-
-    def clean_invitation_id(self):
-        "Make sure the user is actually being invited to the project"
-        data = self.cleaned_data['invitation_id']
-
-        target_email = Invitation.objects.get(id=data).email
-
-        if target_email not in self.user.get_emails():
-            raise forms.ValidationError(
-                'You are not invited', code='not_invited')
-
-        return data
 
 class InvitationChoiceForm(forms.Form):
     """
@@ -426,17 +423,26 @@ class AddAuthorForm(forms.ModelForm):
         model = Author
         fields = ('organization_name',)
 
-    def __init__(self, user, project, *args, **kwargs):
+    def __init__(self, project, *args, **kwargs):
         "Make sure the user submitting this entry is the owner"
         super(AddAuthorForm, self).__init__(*args, **kwargs)
-        self.user = user
         self.project = project
+
+    def clean_organization_name(self):
+        """
+        Ensure uniqueness of organization name
+        """
+        data = self.cleaned_data['organization_name']
+        if self.project.authors.filter(organization_name=data).exists():
+            raise forms.ValidationError('Organizational author names must be unique')
+
+        return data
 
     def save(self):
         author = super(AddAuthorForm, self).save(commit=False)
         author.project = self.project
         author.is_human = False
-        author.display_order = self.project.authors.all().count() + 1
+        author.display_order = self.project.authors.count() + 1
         author.save()
 
 
@@ -481,7 +487,7 @@ class AuthorOrderFormSet(BaseInlineFormSet):
     """
     def clean(self):
         "Make sure that order is consecutive integers"
-        super().clean()
+        cleaned_data = super().clean()
 
         display_orders = []
         for form in self.forms:
@@ -494,39 +500,30 @@ class AuthorOrderFormSet(BaseInlineFormSet):
                 'Display orders must be consecutive integers from 1.')
 
 
-
 class StorageRequestForm(forms.ModelForm):
     """
     Making a request for storage capacity for a project
     """
-    # Storage request in GB
-    request_allowance = forms.IntegerField(min_value=1, max_value=10000)
-
     class Meta:
         model = StorageRequest
-        fields = ('request_allowance', 'project',)
+        # Storage request allowance in GB
+        fields = ('request_allowance',)
         widgets = {
             'request_allowance':forms.NumberInput(),
-            'project':forms.HiddenInput()
         }
 
-    def clean(self):
+    def __init__(self, project, *args, **kwargs):
+        super(StorageRequestForm, self).__init__(*args, **kwargs)
+        self.project = project
+
+    def clean_request_allowance(self):
         """
         Storage size must be reasonable
         """
-        # pdb.set_trace()
-        current_allowance = self.cleaned_data['project'].storage_allowance
-        request_allowance = self.cleaned_data['request_allowance']
+        data = self.cleaned_data['request_allowance']
 
-        if request_allowance <= current_allowance:
-            raise forms.ValidationError('Project already has the requested capacity.',
+        if data <= self.project.storage_allowance:
+            raise forms.ValidationError('Project already has the requested allowance.',
                 code='already_has_allowance')
 
-
-class StorageResponseForm(forms.Form):
-    """
-    Form for responding to a storage request
-    """
-    project_id = forms.IntegerField(widget= forms.HiddenInput())
-    response = forms.ChoiceField(choices=RESPONSE_CHOICES)
-    message = forms.CharField(max_length=500, required=False, widget=forms.Textarea())
+        return data

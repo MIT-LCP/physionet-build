@@ -65,7 +65,7 @@
         <form action="" method="post" enctype="multipart/form-data">
           <div class="modal-body">
             {% csrf_token %}
-            <tr><th><label for="id_request_allowance">Request allowance (GB):</label></th><td>
+            <tr><td><label for="id_request_allowance">Request allowance (GB):</label></td><tr>
             {{ storage_request_form.request_allowance }}
             {{ storage_request_form.project }}
             <em>Current allowance: {{ storage_info.readable_allowance }}</em>
@@ -224,7 +224,7 @@
           <div class="col-md-2"></div>
           <div class="col-md-2"></div>
         </div>
-      </li> 
+      </li>
     {% endif %}
     {% for dir in display_dirs %}
       <li class="list-group-item">

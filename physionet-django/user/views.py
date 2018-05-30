@@ -15,7 +15,7 @@ from django.utils import timezone
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
-from .forms import AssociatedEmailForm, AssociatedEmailChoiceForm, ProfileForm, UserCreationForm
+from .forms import AddEmailForm, AssociatedEmailChoiceForm, ProfileForm, UserCreationForm
 from .models import AssociatedEmail, Profile, User
 
 
@@ -119,7 +119,7 @@ def edit_emails(request):
                                                    selection_type='primary')
     public_email_form = AssociatedEmailChoiceForm(user=user,
                                                   selection_type='public')
-    add_email_form = AssociatedEmailForm()
+    add_email_form = AddEmailForm()
 
     if request.method == 'POST':
         if 'remove_email' in request.POST:
@@ -136,7 +136,7 @@ def edit_emails(request):
             set_public_email(request, public_email_form)
 
         elif 'add_email' in request.POST:
-            add_email_form = AssociatedEmailForm(request.POST)
+            add_email_form = AddEmailForm(request.POST)
             add_email(request, add_email_form)
 
     context = {'associated_emails':associated_emails,
