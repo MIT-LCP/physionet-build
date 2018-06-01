@@ -106,6 +106,7 @@ def process_invitation_response(request, invitation_response_formset):
                 invitations = Invitation.objects.filter(is_active=True,
                     email__in=user.get_emails(), project=project,
                     invitation_type=invitation.invitation_type)
+                affected_emails = [i.email for i in invitations]
                 invitations.update(response=invitation.response,
                     response_message=invitation.response_message,
                     response_datetime=timezone.now(), is_active=False)
@@ -113,6 +114,18 @@ def process_invitation_response(request, invitation_response_formset):
                 if invitation.response:
                     Author.objects.create(project=project, user=user,
                         display_order=project.authors.count() + 1)
+                # Send an email notifying the submitting author
+                target_email = project.submitting_author.email
+                subject = "PhysioNet Project Authorship Response"
+                context = {'project_title':project.title,
+                           'response':RESPONSE_ACTIONS[invitation.response],
+                           'domain':get_current_site(request)}
+
+                for email in affected_emails:
+                    context['author_email'] = email
+                    body = loader.render_to_string('project/email/author_response.html', context)
+                    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                        [target_email], fail_silently=False)
 
                 messages.success(request, 'The invitation has been %s.' % RESPONSE_ACTIONS[invitation.response])
 
@@ -189,7 +202,7 @@ def invite_author(request, invite_author_form):
         target_email = invite_author_form.cleaned_data['email']
 
         subject = "PhysioNet Project Authorship Invitation"
-        context = {'email':target_email, 'inviter_username':inviter.username,
+        context = {'inviter_name':inviter.get_full_name(),
                    'inviter_email':inviter.email,
                    'project_title':invite_author_form.project.title,
                    'domain':get_current_site(request)}
