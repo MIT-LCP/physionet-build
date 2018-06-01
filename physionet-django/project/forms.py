@@ -314,7 +314,7 @@ class DatabaseMetadataForm(forms.ModelForm):
         if Project.objects.filter(
                 title=data,
                 resource_type=self.instance.resource_type,
-                submitting_author=self.instance.submitting_author).exists():
+                submitting_author=self.instance.submitting_author).exclude(id=self.instance.id).exists():
 
             raise forms.ValidationError(
                   'You already have a project with this title and resource type')

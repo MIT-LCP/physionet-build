@@ -1,8 +1,14 @@
 {% extends "project/project.html" %}
 
+{% load static %}
+
 {% load project_templatetags %}
 
 {% block title %}Project Authors{% endblock %}
+
+{% block local_js_top %}
+<script type="text/javascript" src="{% static 'custom/js/cookie.js' %}"></script>
+{% endblock %}
 
 {% block main_content %}
 <h2 class="form-signin-heading">Project Authors</h2>
@@ -14,25 +20,8 @@
 
 <hr>
 
-
 <script>
-  function getCookie(name) {
-      var cookieValue = null;
-      if (document.cookie && document.cookie !== '') {
-          var cookies = document.cookie.split(';');
-          for (var i = 0; i < cookies.length; i++) {
-              var cookie = jQuery.trim(cookies[i]);
-              // Does this cookie string begin with the name we want?
-              if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                  cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                  break;
-              }
-          }
-      }
-      return cookieValue;
-  }
-
-  {# Ajax call to update authors list #}
+  // Ajax call to update authors list
   function moveAuthor(author_id, direction){
       var csrftoken = getCookie('csrftoken');
       $.ajax({
@@ -48,11 +37,8 @@
   };
 </script>
 
-
-
 {% include "project/author_list.html" %}
 <br>
-
 
 <div class="card">
   <div class="card card-header">
