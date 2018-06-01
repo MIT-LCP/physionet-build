@@ -35,6 +35,9 @@ class Command(BaseCommand):
                     sys.exit('Exiting from reset. No actions applied.')
             print('Continuing reset')
 
+        # Clean the data
+        call_command('flush', interactive=False)
+
         # This order is important because we need to reset the project
         # migrations first, which depend on user migrations.
         project_apps = ['project', 'user']

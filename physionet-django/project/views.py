@@ -2,12 +2,16 @@ import os
 import pdb
 import re
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
+from django.contrib.sites.shortcuts import get_current_site
+from django.core.mail import send_mail
 from django.forms import formset_factory, inlineformset_factory, modelformset_factory, Textarea, Select
 from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
+from django.template import loader
 from django.utils import timezone
 
 from . import forms
@@ -34,6 +38,9 @@ def is_admin(user, *args, **kwargs):
 def is_author(user, project):
     authors = project.authors.all()
     return (user in [a.user for a in authors])
+
+def is_submitting_author(user, project):
+    return user == project.submitting_author
 
 def is_invited(user, project):
     "Whether a user has been invited to join a project"
@@ -99,6 +106,7 @@ def process_invitation_response(request, invitation_response_formset):
                 invitations = Invitation.objects.filter(is_active=True,
                     email__in=user.get_emails(), project=project,
                     invitation_type=invitation.invitation_type)
+                affected_emails = [i.email for i in invitations]
                 invitations.update(response=invitation.response,
                     response_message=invitation.response_message,
                     response_datetime=timezone.now(), is_active=False)
@@ -106,6 +114,18 @@ def process_invitation_response(request, invitation_response_formset):
                 if invitation.response:
                     Author.objects.create(project=project, user=user,
                         display_order=project.authors.count() + 1)
+                # Send an email notifying the submitting author
+                target_email = project.submitting_author.email
+                subject = "PhysioNet Project Authorship Response"
+                context = {'project_title':project.title,
+                           'response':RESPONSE_ACTIONS[invitation.response],
+                           'domain':get_current_site(request)}
+
+                for email in affected_emails:
+                    context['author_email'] = email
+                    body = loader.render_to_string('project/email/author_response.html', context)
+                    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                        [target_email], fail_silently=False)
 
                 messages.success(request, 'The invitation has been %s.' % RESPONSE_ACTIONS[invitation.response])
 
@@ -170,17 +190,6 @@ def edit_affiliations(request, affiliation_formset):
     else:
         messages.error(request, 'Submission unsuccessful. See form for errors.')
 
-def order_authors(request, order_formset):
-    """
-    Order authors of a project
-    Helper function for `project_authors`.
-    """
-    if order_formset.is_valid():
-        order_formset.save()
-        messages.success(request, 'The author display order has been udpated')
-        return True
-    else:
-        messages.error(request, 'Submission unsuccessful. See form for errors.')
 
 def invite_author(request, invite_author_form):
     """
@@ -189,7 +198,18 @@ def invite_author(request, invite_author_form):
     """
     if invite_author_form.is_valid():
         invite_author_form.save()
-        messages.success(request, 'An invitation has been sent to the user')
+        inviter = invite_author_form.inviter
+        target_email = invite_author_form.cleaned_data['email']
+
+        subject = "PhysioNet Project Authorship Invitation"
+        context = {'inviter_name':inviter.get_full_name(),
+                   'inviter_email':inviter.email,
+                   'project_title':invite_author_form.project.title,
+                   'domain':get_current_site(request)}
+        body = loader.render_to_string('project/email/invite_author.html', context)
+        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+            [target_email], fail_silently=False)
+        messages.success(request, 'An invitation has been sent to the email')
         return True
     else:
         messages.error(request, 'Submission unsuccessful. See form for errors.')
@@ -214,7 +234,14 @@ def remove_author(request, author_id):
     author = Author.objects.get(id=author_id)
 
     if author.project.submitting_author == user:
+        # Other author orders may have to be decreased when this author
+        # is removed
+        higher_authors = author.project.authors.filter(display_order__gt=author.display_order)
         author.delete()
+        if higher_authors:
+            for author in higher_authors:
+                author.display_order -= 1
+                author.save()
         messages.success(request, 'The author has been removed from the project')
         return True
 
@@ -230,6 +257,34 @@ def cancel_invitation(request, invitation_id):
         messages.success(request, 'The invitation has been cancelled')
         return True
 
+@authorization_required(auth_functions=(is_submitting_author,))
+def move_author(request, project_id):
+    """
+    Change an author display order. Return the updated authors list html
+    if successful. Called via ajax.
+    """
+    if request.method == 'POST':
+        project = Project.objects.get(id=project_id)
+        author = Author.objects.get(id=int(request.POST['author_id']))
+        direction = request.POST['direction']
+        project_authors = project.authors.all()
+        n_authors = project_authors.count()
+        if author.project == project and n_authors > 1:
+            if direction == 'up' and 1 < author.display_order <= n_authors:
+                swap_author = project_authors.get(display_order=author.display_order - 1)
+            elif direction == 'down' and 1 <= author.display_order < n_authors:
+                swap_author = project_authors.get(display_order=author.display_order + 1)
+            else:
+                raise Http404()
+            author.display_order, swap_author.display_order = swap_author.display_order, author.display_order
+            author.save()
+            swap_author.save()
+            authors = project_authors.order_by('display_order')
+            return render(request, 'project/author_list.html',
+                                  {'project':project, 'authors':authors})
+    raise Http404()
+
+
 @authorization_required(auth_functions=(is_admin, is_author))
 def project_authors(request, project_id):
     """
@@ -244,37 +299,21 @@ def project_authors(request, project_id):
     # Formset factories
     AffiliationFormSet = generic_inlineformset_factory(Affiliation,
         fields=('name',), extra=3, max_num=3)
-    OrderFormSet = inlineformset_factory(Project, Author,
-        formset=forms.AuthorOrderFormSet,
-        fields=('display_order',),
-        can_delete=False, extra=0)
 
     # Initiate the forms
-    edit_author_form = forms.AuthorForm(instance=author)
     affiliation_formset = AffiliationFormSet(instance=author)
-    order_formset = OrderFormSet(instance=project)
     invite_author_form = forms.InviteAuthorForm(project, user)
     add_author_form = forms.AddAuthorForm(project=project)
 
+
     if request.method == 'POST':
-        if 'edit_author' in request.POST:
-            edit_author_form = forms.AuthorForm(instance=author,
-                data=request.POST)
-            if edit_author_form.is_valid():
-                edit_author_form.save()
-                messages.success(request,
-                    'Your author information has been updated')
-        elif 'edit_affiliations' in request.POST:
+        if 'edit_affiliations' in request.POST:
             affiliation_formset = AffiliationFormSet(instance=author,
                 data=request.POST)
             if edit_affiliations(request, affiliation_formset):
                 affiliation_formset = AffiliationFormSet(
                     instance=author)
-        elif 'order_authors' in request.POST:
-            order_formset = OrderFormSet(instance=project, data=request.POST)
-            if order_authors(request, order_formset):
-                order_formset = OrderFormSet(instance=project)
-        if 'invite_author' in request.POST:
+        elif 'invite_author' in request.POST:
             invite_author_form = forms.InviteAuthorForm(project, user, request.POST)
             if invite_author(request, invite_author_form):
                 invite_author_form = forms.InviteAuthorForm(project, user)
@@ -297,9 +336,7 @@ def project_authors(request, project_id):
 
     return render(request, 'project/project_authors.html', {'project':project,
         'authors':authors, 'invitations':invitations,
-        'edit_author_form':edit_author_form,
         'affiliation_formset':affiliation_formset,
-        'order_formset':order_formset,
         'invite_author_form':invite_author_form,
         'add_author_form':add_author_form})
 

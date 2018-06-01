@@ -1,0 +1,8 @@
+{% load i18n %}{% autoescape off %}
+Dear Sir or Madam
+
+Your invitation to {{ author_email }} to co-author your project: {{ project_title }}, has been {{ response }}.
+
+{% blocktrans %}The {{ domain }} team{% endblocktrans %}
+
+{% endautoescape %}

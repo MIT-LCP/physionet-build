@@ -27,7 +27,7 @@
         {% endif %}
         <a class="float-right">
           {% if not email.is_primary_email %}
-            <button class="btn btn-sm" type="button" style="background:none" data-toggle="modal" data-target="#remove-{{ email.id }}-modal"><i class="fas fa-trash-alt" style="color:#cb2431"></i></button>
+            <button class="btn btn-sm" type="button" title="Remove Email" style="background:none" data-toggle="modal" data-target="#remove-{{ email.id }}-modal"><i class="fas fa-trash-alt" style="color:#cb2431"></i></button>
             {# Modal for removing email #}
             <div class="modal fade" id="remove-{{ email.id }}-modal" role="dialog" aria-labelledby="remove-{{ email.id }}-modal" aria-hidden="true">
               <div class="modal-dialog" role="document">

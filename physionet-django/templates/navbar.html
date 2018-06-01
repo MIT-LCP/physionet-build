@@ -83,7 +83,7 @@
       <li class="nav-item active dropdown">
         <a class="nav-link dropdown-toggle" href="#" id="account_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           {% if user.is_authenticated %}
-          <i class="fa fa-user"></i> {{user.get_short_name}}
+          <i class="fa fa-user"></i> {{ user }}
         </a>
         <div class="dropdown-menu" aria-labelledby="account_dropdown">
             <a class="dropdown-item" href="{% url 'user_home'%}">

@@ -383,38 +383,6 @@ class InviteAuthorForm(forms.ModelForm):
         return invitation
 
 
-class InvitationChoiceForm(forms.Form):
-    """
-    For selecting outstanding invitations to a project
-    """
-    invitation = forms.ModelChoiceField(queryset=None)
-
-    def __init__(self, user, project, *args, **kwargs):
-        super(InvitationChoiceForm, self).__init__(*args, **kwargs)
-        self.user = user
-        self.project = project
-        invitations = project.invitations.filter(is_active=True)
-        self.fields['invitation'].queryset = invitations
-
-    def clean_invitation(self):
-        "Make sure the user is the submitting author"
-        data = self.cleaned_data['invitation']
-        if self.user != data.project.submitting_author:
-            raise forms.ValidationError(
-                'You are not authorized to do that', code='not_authorized')
-
-        return data
-
-
-class AuthorForm(forms.ModelForm):
-    """
-    For editing one's author information.
-    """
-    class Meta:
-        model = Author
-        fields = ('first_name', 'middle_names', 'last_name')
-
-
 class AddAuthorForm(forms.ModelForm):
     """
     Add a non-human author
@@ -444,60 +412,6 @@ class AddAuthorForm(forms.ModelForm):
         author.is_human = False
         author.display_order = self.project.authors.count() + 1
         author.save()
-
-
-class AuthorChoiceForm(forms.Form):
-    """
-    For choosing project authors. Queryset is all project authors,
-    optionally excluding the owner. Used for removing authors.
-    """
-    author = forms.ModelChoiceField(queryset=None)
-
-    def __init__(self, user, project, include_submitting_author=False, *args,
-                 **kwargs):
-        super(AuthorChoiceForm, self).__init__(*args, **kwargs)
-        self.user = user
-        self.project = project
-        authors = project.authors.all()
-        if not include_submitting_author:
-            authors = authors.exclude(user__id=project.submitting_author.id)
-        self.fields['author'].queryset = authors
-        self.include_submitting_author = include_submitting_author
-
-    def clean_author(self):
-        """
-        Ensure the user is the project's submitting author. Also check
-        if the selection is allowed to include the submitting author
-
-        """
-        data = self.cleaned_data['author']
-        if self.user != data.project.submitting_author:
-            raise forms.ValidationError(
-                'You are not authorized to do that', code='not_authorized')
-        if not self.include_submitting_author and data == self.user:
-            raise forms.ValidationError(
-                'You are not authorized to select the submitting author',
-                code='not_authorized')
-        return data
-
-
-class AuthorOrderFormSet(BaseInlineFormSet):
-    """
-    For ordering authors
-    """
-    def clean(self):
-        "Make sure that order is consecutive integers"
-        cleaned_data = super().clean()
-
-        display_orders = []
-        for form in self.forms:
-            display_orders.append(form.cleaned_data['display_order'])
-
-        display_orders.sort()
-
-        if display_orders != list(range(1, len(display_orders) + 1)):
-            raise forms.ValidationError(
-                'Display orders must be consecutive integers from 1.')
 
 
 class StorageRequestForm(forms.ModelForm):

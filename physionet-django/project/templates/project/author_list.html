@@ -1,0 +1,86 @@
+{% load project_templatetags %}
+<div id="author-list" class="card">
+  <div class="card card-header">
+    <h4>Project Authors</h4>
+    <em>Shown in display order</em>
+  </div>
+
+  <ul class="list-group list-group-flush">
+    {% for author in authors %}
+      <li class="list-group-item">
+        {% if author.is_human %}
+          <strong>User</strong>: {{ author.user }}
+          {% if author.user == project.submitting_author %}
+            <span class="badge badge-success">Submitting Author</span>
+          {% endif %}
+          {# Removing and reordering authors #}
+          {% if user == project.submitting_author %}
+            <a class="float-right">
+              {# Up button #}
+              {% if author.display_order > 1 %}
+                <button class="btn btn-sm" onclick="moveAuthor({{ author.id }}, 'up')" title="Move Author Up" style="background:none"><i class="fas fa-arrow-up"></i></button>
+              {% endif %}
+              {# Down button #}
+              {% if author.display_order < authors|length %}
+                <button class="btn btn-sm" onclick="moveAuthor({{ author.id }}, 'down')"type="button" title="Move Author Down" style="background:none"><i class="fas fa-arrow-down"></i></button>
+              {% else %}
+                <button class="btn btn-sm" type="button" style="background:none; color:white"><i class="fa-arrow-down"></i></button>
+              {% endif %}
+              {# Remove button. Leads to modal. #}
+              {% if author.user != project.submitting_author %}
+                <button class="btn btn-sm" type="button" title="Remove Author" style="background:none; color:#cb2431" data-toggle="modal" data-target="#remove-{{ author.id }}-modal"><i class="fas fa-user-times"></i></button>
+              {% else %}
+                <button class="btn btn-sm" type="button" style="background:none; color:white"><i class="fas fa-user-times"></i></button>
+              {% endif %}
+            </a>
+          {% endif %}
+          <br>
+          <strong>Name</strong>: {{ author.user|author_name }}<br>
+          <strong>Affiliations</strong>: {{ author|author_affiliations }}
+        {% else %}
+          <strong>Organization</strong>: {{ author.organization_name }}
+          <a class="float-right">
+            {# Up button #}
+            {% if author.display_order > 1 %}
+              <button class="btn btn-sm" onclick="moveAuthor({{ author.id }}, 'up')" title="Move Author Up" style="background:none"><i class="fas fa-arrow-up"></i></button>
+            {% endif %}
+            {# Down button #}
+            {% if author.display_order < authors|length %}
+              <button class="btn btn-sm" onclick="moveAuthor({{ author.id }}, 'down')"type="button" title="Move Author Down" style="background:none"><i class="fas fa-arrow-down"></i></button>
+            {% else %}
+              <button class="btn btn-sm" type="button" style="background:none; color:white"><i class="fa-arrow-down"></i></button>
+            {% endif %}
+            {# Remove button #}
+            <button class="btn btn-sm" type="button" title="Remove Author" style="background:none; color:#cb2431" data-toggle="modal" data-target="#remove-{{ author.id }}-modal"><i class="fas fa-user-times"></i></button>
+          </a>
+        {% endif %}
+
+        {% if author.user != project.submitting_author %}
+          {# Remove author modal #}
+          <div class="modal fade" id="remove-{{ author.id }}-modal" role="dialog" aria-labelledby="remove-{{ author.id }}-modal" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">Remove Author</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  Are you sure you want to remove <strong>{{ author }}</strong> from this project?
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                  <form action="{% url 'project_authors' project.id %}" method="post">
+                    {% csrf_token %}
+                    <button class="btn btn-danger" name="remove_author" value="{{ author.id }}" type="submit">Remove Author</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+</div>
