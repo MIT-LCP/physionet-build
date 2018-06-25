@@ -134,9 +134,7 @@
     var counts = [];
 
     for (var i = 0; i < reference_inputs.length; i++) {
-        var x = 5;
         if (reference_inputs[i].id.endsWith("description")){
-          // var input_val = reference_inputs
           if (counts[reference_inputs[i].value] === undefined) {
             counts[reference_inputs[i].value] = 1;
           }
