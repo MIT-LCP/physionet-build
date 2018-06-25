@@ -264,7 +264,6 @@ def move_author(request, project_id):
     Change an author display order. Return the updated authors list html
     if successful. Called via ajax.
     """
-    print('yea')
     if request.method == 'POST':
         project = Project.objects.get(id=project_id)
         author = Author.objects.get(id=int(request.POST['author_id']))
