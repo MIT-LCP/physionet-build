@@ -377,8 +377,8 @@ def project_metadata(request, project_id):
 
     ReferenceFormSet = generic_inlineformset_factory(Reference,
         fields=('description',), extra=0, max_num=20, can_delete=False)
-
     reference_formset = ReferenceFormSet(instance=project)
+    access_form = forms.AccessMetadataForm(instance=project)
 
     # There are several different metadata sections
     if request.method == 'POST':
@@ -405,6 +405,7 @@ def project_metadata(request, project_id):
 
     return render(request, 'project/project_metadata.html', {'project':project,
         'description_form':description_form, 'reference_formset':reference_formset,
+        'access_form':access_form,
         'messages':messages.get_messages(request)})
 
 

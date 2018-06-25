@@ -322,7 +322,6 @@ class DatabaseMetadataForm(forms.ModelForm):
         return data
 
 
-
 class SoftwareMetadataForm(forms.ModelForm):
     """
     Form for editing the metadata of a project with resource_type == database
@@ -337,6 +336,14 @@ class SoftwareMetadataForm(forms.ModelForm):
 metadata_forms = {'Database':DatabaseMetadataForm,
                   'Software':SoftwareMetadataForm}
 
+
+class AccessMetadataForm(forms.ModelForm):
+    """
+    For editing project access metadata
+    """
+    class Meta:
+        model = Project
+        fields = ('access_policy', 'license', 'data_use_agreement')
 
 class InviteAuthorForm(forms.ModelForm):
     """

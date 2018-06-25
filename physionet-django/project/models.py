@@ -236,9 +236,9 @@ class Metadata(models.Model):
     )
 
     access_policies = (
-        ('Open', 'Open'),
-        ('Disclaimer', 'Disclaimer'),
-        ('Protected', 'Protected'),
+        (0, 'Open'),
+        (1, 'Restricted'),
+        (2, 'Credentialed'),
     )
 
     # Main body descriptive metadata
@@ -264,10 +264,8 @@ class Metadata(models.Model):
     changelog_summary = RichTextField(blank=True)
 
     # One of three: open, dua signature, credentialed user + dua signature
-    access_policy = models.CharField(max_length=10, choices=access_policies,
-                                     default=access_policies[0][0])
-
-
+    access_policy = models.SmallIntegerField(choices=access_policies,
+                                             default=0)
     # Identifiers
     topics = GenericRelation(Topic, blank=True)
     # External home page
@@ -291,7 +289,7 @@ class Project(Metadata):
 
     # Access fields
     license = models.ForeignKey('project.License', null=True)
-    dua = models.ForeignKey('project.DUA', null=True)
+    data_use_agreement = RichTextField(blank=True)
 
     class Meta:
         unique_together = (('title', 'submitting_author', 'resource_type'),)
@@ -425,17 +423,24 @@ class PublishedProject(Metadata):
 
 class License(models.Model):
     name = models.CharField(max_length=100)
-    version = models.CharField(max_length=20)
-    description = models.CharField(max_length=50000)
+    description = RichTextField()
     url = models.URLField(blank=True, null=True)
 
+    def __str__(self):
+        return self.name
 
-class DUA(models.Model):
+
+class DataUseAgreement(models.Model):
+    """
+    Data use agreement, for PublishedProjects via their AccessSystem.
+    """
     name = models.CharField(max_length=150)
     description = RichTextField()
     content = RichTextField()
     creation_datetime = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return self.name
 
 class AccessSystem(models.Model):
     """
@@ -446,7 +451,7 @@ class AccessSystem(models.Model):
     """
     name = models.CharField(max_length=100)
     license = models.ForeignKey('project.License')
-    dua = models.ForeignKey('project.DUA')
+    data_use_agreement = models.ForeignKey('project.DataUseAgreement')
     requires_credentialed = models.BooleanField(default=False)
     creation_datetime = models.DateTimeField(auto_now_add=True)
 
@@ -474,6 +479,7 @@ class BaseInvitation(models.Model):
 
     class Meta:
         abstract = True
+
 
 class Invitation(BaseInvitation):
     """
