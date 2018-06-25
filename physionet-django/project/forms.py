@@ -345,6 +345,7 @@ class AccessMetadataForm(forms.ModelForm):
         model = Project
         fields = ('access_policy', 'license', 'data_use_agreement')
 
+
 class InviteAuthorForm(forms.ModelForm):
     """
     Form to invite new authors to a project.

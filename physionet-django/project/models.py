@@ -266,10 +266,12 @@ class Metadata(models.Model):
     # One of three: open, dua signature, credentialed user + dua signature
     access_policy = models.SmallIntegerField(choices=access_policies,
                                              default=0)
+    license = models.ForeignKey('project.License', null=True)
+
     # Identifiers
     topics = GenericRelation(Topic, blank=True)
     # External home page
-    project_home_page = models.URLField(default='', blank=True)
+    project_home_page = models.URLField(blank=True, null=True)
 
 
 class Project(Metadata):
@@ -288,7 +290,6 @@ class Project(Metadata):
     under_review = models.BooleanField(default=False)
 
     # Access fields
-    license = models.ForeignKey('project.License', null=True)
     data_use_agreement = RichTextField(blank=True)
 
     class Meta:
@@ -325,7 +326,7 @@ class Project(Metadata):
                      'content_description', 'technical_validation',
                      'usage_notes', 'acknowledgements', 'project_home_page',
                      'version', 'resource_type', 'access_policy',
-                     'changelog_summary']:
+                     'changelog_summary', 'access_policy', 'license']:
             setattr(published_project, attr, getattr(self, attr))
 
         # New content
@@ -364,6 +365,16 @@ class Project(Metadata):
                 display_order=author.display_order, #'affiliations',
                 user=author.user
                 )
+
+        # Non-open access policy
+        if self.access_policy:
+            access_system = AccessSystem.objects.create(
+                name=published_project.__str__(),
+                license=self.license,
+                data_use_agreement=self.data_use_agreement,
+                requires_credentialed=bool(self.access_policy-1)
+                )
+            published_project.access_system = access_system
 
 
 @receiver(post_save, sender=Project)
@@ -446,10 +457,16 @@ class AccessSystem(models.Model):
     """
     Access control for published projects. This is a separate model
     so that multiple published projects can share the same
-    access system and list of approved users
+    access system and list of approved users.
+
+    Also we use this intermediate object to change the dua/license
+    for a published project without publishing a new version
 
     """
     name = models.CharField(max_length=100)
+    # This license field is used if the PublishedProject has an
+    # AccessSystem object (not open). Otherwise the
+    # PublishedProject.license field is used.
     license = models.ForeignKey('project.License')
     data_use_agreement = models.ForeignKey('project.DataUseAgreement')
     requires_credentialed = models.BooleanField(default=False)

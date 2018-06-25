@@ -390,18 +390,21 @@ def project_metadata(request, project_id):
             reference_formset = ReferenceFormSet(request.POST, instance=project)
             if description_form.is_valid() and reference_formset.is_valid():
                 description_form.save()
-
                 reference_formset.save()
-
                 messages.success(request, 'Your project metadata has been updated.')
-
                 reference_formset = ReferenceFormSet(instance=project)
 
             else:
                 messages.error(request,
                     'Invalid submission. See errors below.')
         elif 'edit_access' in request.POST:
-            pass
+            access_form = forms.AccessMetadataForm(request.POST, instance=project)
+            if access_form.is_valid():
+                access_form.save()
+                messages.success(request, 'Your access metadata has been updated.')
+            else:
+                messages.error(request,
+                    'Invalid submission. See errors below.')
 
     return render(request, 'project/project_metadata.html', {'project':project,
         'description_form':description_form, 'reference_formset':reference_formset,

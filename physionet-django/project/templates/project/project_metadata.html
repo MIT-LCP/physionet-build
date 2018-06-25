@@ -171,17 +171,21 @@
      publically available. The following policies control access to the
      files:</p>
   <ol>
-    <li><strong>Open</strong>: Anyone can access the files.</li>
+    <li><strong>Open</strong>: Anyone can access the files, as long as
+        they conform to the terms of the license. No data use agreement
+        (DUA) is required.</li>
     <li><strong>Restricted</strong>: Only logged in users who sign the
-        specified data use agreement can access the files.</li>
+        specified DUA can access the files.</li>
     <li><strong>Credentialed</strong>: Only PhysioNet credentialed users
         can access the files.</li>
   </ol>
   <p>We strongly encourage setting the 'open' access policy, and will
      reject non-open submissions that are not justified.</p>
+  <p>If you would like to use a license that is not currently listed,
+     please <a href="{% url 'contact' %}" target="_blank">contact us</a>.</p>
   <br>
   {% include "inline_form_snippet.html" with form=access_form %}
-  <button class="btn btn-lg btn-primary" type="submit" name="edit_references">Save Access Information</button>
+  <button class="btn btn-lg btn-primary" type="submit" name="edit_access">Save Access Information</button>
 </form>
 <br>
 <hr>
@@ -193,7 +197,7 @@
   {% csrf_token %}
 
 
-  <button class="btn btn-lg btn-primary" type="submit" name="edit_references">Save Access Information</button>
+  <button class="btn btn-lg btn-primary" type="submit" name="edit_identifiers">Save Access Information</button>
 </form>
 <br>
 
