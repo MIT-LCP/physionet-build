@@ -463,7 +463,7 @@ class AccessSystem(models.Model):
     for a published project without publishing a new version
 
     """
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
     # This license field is used if the PublishedProject has an
     # AccessSystem object (not open). Otherwise the
     # PublishedProject.license field is used.
