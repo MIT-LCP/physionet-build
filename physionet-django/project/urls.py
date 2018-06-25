@@ -18,12 +18,18 @@ urlpatterns = [
         name='move_author'),
     url(r'^(?P<project_id>\d+)/metadata/$', views.project_metadata,
         name='project_metadata'),
+    url(r'^(?P<project_id>\d+)/metadata/edit_references/$', views.edit_references,
+        name='edit_references'),
     url(r'^(?P<project_id>\d+)/files/(?P<sub_item>.*)$', views.project_files,
         name='project_files'),
     url(r'^(?P<project_id>\d+)/preview/$', views.project_preview,
         name='project_preview'),
     url(r'^(?P<project_id>\d+)/submission/$', views.project_submission,
         name='project_submission'),
+
+    # Published Projects
+    url(r'^published/(?P<published_project_id>\d+)/$', views.published_project,
+        name='database'),
 
     # Admin pages
     url(r'^storage-requests/$', views.storage_requests,

@@ -16,7 +16,7 @@ from django.utils import timezone
 
 from . import forms
 from .models import (Affiliation, Author, Invitation, Project,
-    PublishedProject, StorageRequest, PROJECT_FILE_SIZE_LIMIT)
+    PublishedProject, StorageRequest, PROJECT_FILE_SIZE_LIMIT, Reference)
 from .utility import (get_file_info, get_directory_info, get_storage_info,
     write_uploaded_file, list_items, remove_items, move_items as do_move_items,
     get_form_errors, serve_file)
@@ -168,7 +168,7 @@ def create_project(request):
     return render(request, 'project/create_project.html', {'form':form})
 
 
-@authorization_required(auth_functions=(is_admin, is_author, is_invited))
+@authorization_required(auth_functions=(is_author, is_invited))
 def project_overview(request, project_id):
     """
     Overview page of a project
@@ -257,6 +257,7 @@ def cancel_invitation(request, invitation_id):
         messages.success(request, 'The invitation has been cancelled')
         return True
 
+
 @authorization_required(auth_functions=(is_submitting_author,))
 def move_author(request, project_id):
     """
@@ -285,7 +286,7 @@ def move_author(request, project_id):
     raise Http404()
 
 
-@authorization_required(auth_functions=(is_admin, is_author))
+@authorization_required(auth_functions=(is_author,))
 def project_authors(request, project_id):
     """
     Page displaying author information and actions.
@@ -294,9 +295,7 @@ def project_authors(request, project_id):
     project = Project.objects.get(id=project_id)
     authors = project.authors.all().order_by('display_order')
     author = authors.get(user=user)
-    affiliations = author.affiliations.all()
 
-    # Formset factories
     AffiliationFormSet = generic_inlineformset_factory(Affiliation,
         fields=('name',), extra=3, max_num=3)
 
@@ -304,7 +303,6 @@ def project_authors(request, project_id):
     affiliation_formset = AffiliationFormSet(instance=author)
     invite_author_form = forms.InviteAuthorForm(project, user)
     add_author_form = forms.AddAuthorForm(project=project)
-
 
     if request.method == 'POST':
         if 'edit_affiliations' in request.POST:
@@ -341,24 +339,73 @@ def project_authors(request, project_id):
         'add_author_form':add_author_form})
 
 
-@authorization_required(auth_functions=(is_admin, is_author))
-def project_metadata(request, project_id):
+@authorization_required(auth_functions=(is_author,))
+def edit_references(request, project_id):
+    """
+    Delete a reference, or reload a formset with 1 form. Return the
+    updated reference formset html if successful. Called via ajax.
+    """
     project = Project.objects.get(id=project_id)
 
-    form = forms.metadata_forms[project.resource_type](instance=project)
-
     if request.method == 'POST':
-        form = forms.metadata_forms[project.resource_type](request.POST,
-            instance=project)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Your project metadata has been updated.')
-        else:
-            messages.error(request,
-                'There was an error with the information entered, please verify and try again.')
+        if 'add_first' in request.POST:
+            ReferenceFormSet = generic_inlineformset_factory(Reference,
+                fields=('description',), extra=1, max_num=20, can_delete=False)
+            reference_formset = ReferenceFormSet(instance=project)
+            return render(request, 'project/reference_list.html', {'reference_formset':reference_formset})
+        elif 'remove_reference' in request.POST:
+            reference_id = int(request.POST['remove_reference'])
+            reference = Reference.objects.get(id=reference_id)
+            reference.delete()
+            higher_references = project.references.filter(id__gt=reference_id)
+            ReferenceFormSet = generic_inlineformset_factory(Reference,
+                fields=('description',), extra=0, max_num=20, can_delete=False)
+            reference_formset = ReferenceFormSet(instance=project)
+            return render(request, 'project/reference_list.html', {'reference_formset':reference_formset})
+
+    return Http404()
+
+
+@authorization_required(auth_functions=(is_author,))
+def project_metadata(request, project_id):
+    """
+    For editing project metadata
+    """
+    project = Project.objects.get(id=project_id)
+    # There are several forms for different types of metadata
+    description_form = forms.metadata_forms[project.resource_type](instance=project)
+
+    ReferenceFormSet = generic_inlineformset_factory(Reference,
+        fields=('description',), extra=0, max_num=20, can_delete=False)
+
+    reference_formset = ReferenceFormSet(instance=project)
+
+    # There are several different metadata sections
+    if request.method == 'POST':
+        # Main description. Process both the description form, and the
+        # reference formset
+        if 'edit_description' in request.POST:
+            description_form = forms.metadata_forms[project.resource_type](request.POST,
+                instance=project)
+            reference_formset = ReferenceFormSet(request.POST, instance=project)
+            if description_form.is_valid() and reference_formset.is_valid():
+                description_form.save()
+
+                reference_formset.save()
+
+                messages.success(request, 'Your project metadata has been updated.')
+
+                reference_formset = ReferenceFormSet(instance=project)
+
+            else:
+                messages.error(request,
+                    'Invalid submission. See errors below.')
+        elif 'edit_access' in request.POST:
+            pass
 
     return render(request, 'project/project_metadata.html', {'project':project,
-        'form':form, 'messages':messages.get_messages(request)})
+        'description_form':description_form, 'reference_formset':reference_formset,
+        'messages':messages.get_messages(request)})
 
 
 # Helper functions for project files view
@@ -406,7 +453,7 @@ def delete_items(request, delete_items_form):
     else:
         messages.error(request, get_form_errors(delete_items_form))
 
-@authorization_required(auth_functions=(is_admin, is_author))
+@authorization_required(auth_functions=(is_author,))
 def project_files(request, project_id, sub_item=''):
     "View and manipulate files in a project"
     project = Project.objects.get(id=project_id)
@@ -507,7 +554,7 @@ def project_files(request, project_id, sub_item=''):
         'delete_items_form':delete_items_form})
 
 
-@authorization_required(auth_functions=(is_admin, is_author))
+@authorization_required(auth_functions=(is_author,))
 def project_preview(request, project_id):
     """
     Preview what the published project would look like
@@ -515,11 +562,11 @@ def project_preview(request, project_id):
     user = request.user
     project = Project.objects.get(id=project_id)
 
-    return render(request, 'project/project_submission.html', {'user':user,
+    return render(request, 'project/project_preview.html', {'user':user,
         'project':project})
 
 
-@authorization_required(auth_functions=(is_admin, is_author))
+@authorization_required(auth_functions=(is_author,))
 def project_submission(request, project_id):
     """
     View submission details regarding a project
@@ -572,3 +619,14 @@ def storage_requests(request):
 
     return render(request, 'project/storage_requests.html', {'user':user,
         'storage_response_formset':storage_response_formset})
+
+
+def published_project(request, published_project_id):
+    """
+    Displays a published project
+    """
+
+    published_project = PublishedProject.objects.get(id=published_project_id)
+    authors = published_project.authors.all().order_by('display_order')
+    return render(request, 'project/database.html',
+                  {'published_project':published_project, 'authors':authors})

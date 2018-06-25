@@ -122,10 +122,13 @@ class User(AbstractBaseUser):
         "Is the user a member of staff?"
         return self.is_admin
 
+    # Custom fields and methods
     def get_emails(self):
         "Get list of all email strings"
         return [ae.email for ae in self.associated_emails.all()]
 
+    def get_names(self):
+        return self.profile.get_names()
 
 
 class AssociatedEmail(models.Model):
@@ -202,7 +205,8 @@ class Profile(models.Model):
         else:
             return ' '.join([self.first_name, self.last_name])
 
-
+    def get_names(self):
+        return self.first_name, self.middle_names, self.last_name
 
     def __str__(self):
         return self.get_full_name()

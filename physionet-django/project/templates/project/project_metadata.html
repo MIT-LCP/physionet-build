@@ -1,13 +1,188 @@
 {% extends "project/project.html" %}
 
+{% load static %}
+
 {% block title %}Project Metadata - {{ project }}{% endblock %}
 
-{% block form %}
-<form action="{% url 'project_metadata' project.id %}" method="post">
-  <h2 class="form-signin-heading">Project Metadata</h2>
+{% block local_js_top %}
+<script type="text/javascript" src="{% static 'custom/js/cookie.js' %}"></script>
+{% endblock %}
+
+
+{% block main_content %}
+<h2 class="form-signin-heading">Project Metadata</h2>
+<hr>
+
+<script>
+  /** Clone a form element to a formset
+
+   @constructor
+   @param {string} selector - The selector used to get the element to clone.
+   @param {string} form_name - The name of the forms. May be more complicated
+   for modelforms, inline_formsets, and genericinline_formsets.
+  */
+  function cloneFormElement(selector, form_name){
+    var newElement = $(selector).clone(true);
+    var total_forms = $('#id_' + form_name + '-TOTAL_FORMS').val();
+
+    // Set the names and ids of each input element of the new form
+    newElement.find('input').each(function() {
+        var name = $(this).attr('name').replace('-' + (total_forms-1) + '-', '-' + total_forms + '-');
+        var id = 'id_' + name;
+        // What about the actual object id hidden input?
+        $(this).attr({'name': name, 'id': id}).val('').removeAttr('checked');
+    });
+    // Update the formset total forms indicator
+    $('#id_' + form_name + '-TOTAL_FORMS').val(++total_forms);
+    // Insert the new content after the original selected content
+    $(selector).after(newElement);
+  }
+
+  // The base name of the reference formset's individual forms. Used
+  // for adding and deleting forms from the formset
+  reference_form_name = 'project-reference-content_type-object_id'
+
+  // Add another reference form
+  function addReference(){
+    var max_forms = 8;
+    var total_forms = parseInt($('#id_' + reference_form_name + '-TOTAL_FORMS').val());
+    // alternate length method: document.getElementsByClassName("ref-body").length
+
+    if (total_forms < max_forms){
+      if (total_forms > 0){
+        // Clone the existing html
+        cloneFormElement(".ref-body:last", reference_form_name);
+        // Change the reference number id and display label of the newly cloned element
+        new_reference_div = document.getElementsByClassName("ref-body")[total_forms]
+        total_forms++;
+        new_reference_div.id = "ref-" + (total_forms);
+        new_reference_div.getElementsByClassName("ref-number")[0].innerHTML = total_forms + "."
+        //$('.ref-number:last').html((total_forms+1) + '.');
+        // That id field?
+
+      }
+      // Reload the reference section with an additional form
+      else{
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+                type: "POST",
+                url: "{% url 'edit_references' project.id %}",
+                data: {'csrfmiddlewaretoken':csrftoken,
+                       'add_first':true
+                },
+                success: function reloadSection(result){
+                    $("#reference-list").html(result);
+                },
+        });
+      }
+    }
+  };
+
+
+  // Delete a reference form and possibly an object
+  function removeReference(trigger_button){
+    // The div encapsulating the entire reference element
+    var reference_div = trigger_button.parentElement.parentElement;
+    // The div containing the form input elements
+    var form_div = reference_div.getElementsByClassName("ref-form")[0];
+    // The hiddeninput element specifies the reference pk if any
+    var reference_instance_id = form_div.getElementsByTagName("input")[0].value;
+
+    // The reference object has not been saved. Just edit html.
+    if (reference_instance_id == ""){
+      // The reference number to be deleted
+      var reference_number = parseInt(reference_div.id.substring(4));
+      var reference_list_div = reference_div.parentElement;
+
+      var total_forms = reference_list_div.getElementsByClassName("ref-body").length;
+
+      // delete the selected reference's html
+      reference_div.remove()
+
+      // All reference forms with greater numbers must be decremented
+      for (i=reference_number+1; i<total_forms+1; i++){
+        var higher_ref_div = document.getElementById("ref-" + i);
+        higher_ref_div.getElementsByClassName("ref-number")[0].innerHTML = (i-1) + "."
+        higher_ref_div.id = "ref-" + (i-1)
+      }
+
+      // update the form count
+      total_forms--;
+      $('#id_' + reference_form_name + '-TOTAL_FORMS').val(total_forms);
+    }
+    // The reference object exists. Send ajax query to remove it and
+    // reload the page section.
+    else{
+      var csrftoken = getCookie('csrftoken');
+      $.ajax({
+              type: "POST",
+              url: "{% url 'edit_references' project.id %}",
+              data: {'csrfmiddlewaretoken':csrftoken,
+                     'remove_reference':reference_instance_id
+              },
+              success: function reloadSection(result){
+                  $("#reference-list").html(result);
+              },
+      });
+    }
+  };
+
+  // Ensure references are not duplicated
+  function validateReferences() {
+    reference_div = document.getElementById("reference-list");
+    reference_inputs = reference_div.getElementsByTagName("input");
+    var counts = [];
+
+    for (var i = 0; i < reference_inputs.length; i++) {
+        if (reference_inputs[i].id.endsWith("description")){
+          if (counts[reference_inputs[i].value] === undefined) {
+            counts[reference_inputs[i].value] = 1;
+          }
+          else{
+             reference_inputs[i].select();
+             alert("References must be unique");
+             return false;
+          }
+      }
+    }
+    return true;
+  }
+
+
+</script>
+
+
+<form action="{% url 'project_metadata' project.id %}" onsubmit="return validateReferences()" method="post">
+  <h3 class="form-signin-heading">1. Description Metadata</h2>
   <hr>
-  {{ form.media }}
-  {% include "inline_form_snippet.html" %}
-  <button class="btn btn-lg btn-primary" type="submit">Save Changes</button>
+  {{ description_form.media }}
+  {% include "inline_form_snippet.html" with form=description_form %}
+  {% include 'project/reference_list.html' %}
+  <p><button class="btn" type="button" onclick="addReference()" style="background:transparent"><i class="fas fa-plus"></i> Add Reference</button></p>
+  <button class="btn btn-lg btn-primary" type="submit" name="edit_description">Save Description</button>
 </form>
+<br>
+<hr>
+
+<form action="{% url 'project_metadata' project.id %}" method="post">
+  <h3 class="form-signin-heading">2. Access</h2>
+  <hr>
+  {# License, access selection #}
+
+  <button class="btn btn-lg btn-primary" type="submit" name="edit_references">Save Access Information</button>
+</form>
+<br>
+
+<form action="{% url 'project_metadata' project.id %}" method="post">
+  <h3 class="form-signin-heading">3. Identifiers</h2>
+  <hr>
+  {# Topics, external home page, citations #}
+  {% csrf_token %}
+
+
+  <button class="btn btn-lg btn-primary" type="submit" name="edit_references">Save Access Information</button>
+</form>
+<br>
+
+
 {% endblock %}

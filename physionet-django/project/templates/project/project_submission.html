@@ -4,7 +4,7 @@
 
 {% load project_templatetags %}
 
-{% block form %}
+{% block main_content %}
 <h2 class="form-signin-heading">Project Submission</h2>
 <hr>
 
@@ -26,10 +26,10 @@
     <li>Ensure all <a href="{% url 'project_authors' project.id %}">authors</a> to be credited for creating the resource, have been added to the project and filled in their details.</li>
     <li>Fill in all the mandatory, and the desired optional <a href="{% url 'project_metadata' project.id %}">metadata</a> fields.</li>
     <li>Upload the project <a href="{% url 'project_files' project.id '' %}">files</a>.</li>
-    <li>Inspect the project <a href="{% url 'project_preview' project.id %}">preview</a> to see how the published project would look.</li>
+    <li>Inspect the project <a href="{% url 'project_preview' project.id %}">preview</a> to see how the published project would look. Make sure to address any errors.</li>
 </ol>
 
-<p>When </p>
+<p>When you have done all of the above, you may submit your project for publication.</p>
 
 <hr>
 

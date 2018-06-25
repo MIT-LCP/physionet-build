@@ -65,7 +65,7 @@ class Member(models.Model):
     project = models.ForeignKey('project.Project', related_name='%(class)ss',
         null=True, blank=True)
     published_project =models.ForeignKey('project.PublishedProject',
-        related_name='%(class)s', null=True, blank=True)
+        related_name='%(class)ss', null=True, blank=True)
 
     first_name = models.CharField(max_length=100, default='')
     middle_names = models.CharField(max_length=200, default='', blank=True)
@@ -130,7 +130,7 @@ def setup_author(sender, **kwargs):
     - Import profile names.
     """
     author = kwargs['instance']
-    if author.is_human:
+    if author.is_human and author.user:
         profile = author.user.profile
         for field in ['first_name', 'middle_names', 'last_name']:
             setattr(author, field, getattr(profile, field))
@@ -182,11 +182,17 @@ class Topic(models.Model):
     Topic information to tag projects
     """
     description = models.CharField(max_length=50)
+    project = models.ForeignKey('project.Project', related_name='topics')
 
-    # Project or PublishedProject
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    project_object = GenericForeignKey('content_type', 'object_id')
+    def __str__(self):
+        return self.description
+
+
+class PublishedTopic(models.Model):
+    """
+    Topic information to tag published projects
+    """
+    description = models.CharField(max_length=50)
 
     def __str__(self):
         return self.description
@@ -197,7 +203,8 @@ class Reference(models.Model):
     General reference field for projects
     """
     description = models.CharField(max_length=250)
-    order = models.PositiveSmallIntegerField()
+    # This value only gets set for published project references
+    order = models.PositiveSmallIntegerField(null=True)
 
     # Project or PublishedProject
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
@@ -205,8 +212,11 @@ class Reference(models.Model):
     project_object = GenericForeignKey('content_type', 'object_id')
 
     class Meta:
-        unique_together = (('order', 'content_type', 'object_id'))
+        unique_together = (('description', 'content_type', 'object_id'),
+                           ('order', 'content_type', 'object_id'))
 
+    def __str__(self):
+        return self.description
 
 class Metadata(models.Model):
     """
@@ -288,6 +298,66 @@ class Project(Metadata):
         "Total storage used in bytes"
         return get_tree_size(self.file_root())
 
+    def is_publishable(self):
+        """
+        Whether the project can be published
+        """
+        return True
+
+    def publish(self):
+        """
+        Create a published version of this project
+        """
+        if not self.is_publishable:
+            raise Exception('Nope')
+
+        published_project = PublishedProject()
+
+        # Direct copy over fields
+        for attr in ['title', 'abstract', 'background', 'methods',
+                     'content_description', 'technical_validation',
+                     'usage_notes', 'acknowledgements', 'project_home_page',
+                     'version', 'resource_type', 'access_policy',
+                     'changelog_summary']:
+            setattr(published_project, attr, getattr(self, attr))
+
+        # New content
+        published_project.base_project = self
+        published_project.storage_size = self.storage_used()
+        # To be implemented...
+        published_project.doi = '10.13026/C2F305'
+        published_project.save()
+
+        # Same content, different objects.
+        for reference in self.references.all():
+            reference_copy = Reference.objects.create(
+                description=reference.description, order=description.order,
+                project_object=published_project)
+
+        for topic in self.topics.all():
+            published_topic = PublishedTopic.objects.filter(description=topic.description.lower())
+            # If same content object exists, add it. Otherwise create.
+            if published_topic.count():
+                published_project.topics.add(published_topic.first())
+            else:
+                published_topic = PublishedTopic.objects.create(description=topic.description.lower())
+                published_project.topics.add(published_topic)
+
+        for author in self.authors.all():
+            if author.is_human:
+                first_name, middle_names, last_name = author.user.get_names()
+            else:
+                first_name, middle_names, last_name = '', '', ''
+
+            author_copy = Author.objects.create(
+                published_project=published_project,
+                first_name=first_name, middle_names=middle_names,
+                last_name=last_name, is_human=author.is_human,
+                organization_name=author.organization_name,
+                display_order=author.display_order, #'affiliations',
+                user=author.user
+                )
+
 
 @receiver(post_save, sender=Project)
 @new_creation
@@ -323,18 +393,22 @@ class PublishedProject(Metadata):
     A published project. Immutable snapshot.
 
     """
-    slug = models.SlugField(max_length=30)
     # The Project this object was created from
-    core_project = models.ForeignKey('project.Project',
+    base_project = models.ForeignKey('project.Project',
         related_name='published_project', blank=True, null=True)
+    topics = models.ManyToManyField('project.PublishedTopic',
+                                    related_name='tagged_projects')
     # Total file storage size in bytes
     storage_size = models.IntegerField()
-    publish_datetime = models.DateTimeField()
-    is_newest_version = models.BooleanField(default=False)
+    publish_datetime = models.DateTimeField(auto_now_add=True)
+    is_newest_version = models.BooleanField(default=True)
     doi = models.CharField(max_length=50, default='', unique=True)
 
     class Meta:
-        unique_together = (('title', 'version'),)
+        unique_together = (('base_project', 'version'),)
+
+    def __str__(self):
+        return ('%s v%s' % (self.title, self.version))
 
 
 class DUA(models.Model):
