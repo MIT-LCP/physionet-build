@@ -28,10 +28,10 @@
     "technical_validation": "<p>The charts for each recording were given to two cardiologists, who worked independently, adding additional beat labels and deleting false detections as necessary, and changing the labels for abnormal beats. The cardiologists also added rhythm and signal quality labels. At this point the two sets of annotations were compared automatically and another chart recording was printed, showing the cardiologists&rsquo; annotations in the margin, with all discrepancies highlighted. Each discrepancy was examined and resolved by consensus.</p>",
     "usage_notes": "<p>Use one of the <a href=\"https://physionet.org/physiotools/wfdb.shtml\">WFDB</a> software package distributions to read the files. The WFDB record files contain the regularly sampled multichannel waveforms, and the <em>.atr annotation files contain the reference annotations.</em></p>",
     "acknowledgements": "<p>Thank you to the cardiologists who labelled over 100000 heartbeats.</p>",
-    "project_home_page": "",
     "version": "",
     "changelog_summary": "",
     "access_policy": "Open",
+    "project_home_page": "",
     "creation_datetime": "2017-10-30T14:30:30Z",
     "modified_datetime": "2018-05-11T15:16:36.324Z",
     "storage_allowance": 1,
@@ -39,7 +39,9 @@
       "rgmark@mit.edu"
     ],
     "published": true,
-    "under_review": false
+    "under_review": false,
+    "license": null,
+    "dua": null
   }
 },
 {
@@ -55,10 +57,10 @@
     "technical_validation": "",
     "usage_notes": "",
     "acknowledgements": "",
-    "project_home_page": "",
     "version": "",
     "changelog_summary": "",
     "access_policy": "Open",
+    "project_home_page": "",
     "creation_datetime": "2017-10-30T14:30:30Z",
     "modified_datetime": "2017-10-30T14:30:30Z",
     "storage_allowance": 1,
@@ -66,7 +68,9 @@
       "rgmark@mit.edu"
     ],
     "published": false,
-    "under_review": false
+    "under_review": false,
+    "license": null,
+    "dua": null
   }
 },
 {
@@ -82,10 +86,10 @@
     "technical_validation": "",
     "usage_notes": "",
     "acknowledgements": "",
-    "project_home_page": "",
     "version": "",
     "changelog_summary": "",
     "access_policy": "Open",
+    "project_home_page": "",
     "creation_datetime": "2017-10-30T14:30:30Z",
     "modified_datetime": "2017-10-30T14:30:30Z",
     "storage_allowance": 1,
@@ -93,7 +97,9 @@
       "george@mit.edu"
     ],
     "published": false,
-    "under_review": false
+    "under_review": false,
+    "license": null,
+    "dua": null
   }
 },
 {

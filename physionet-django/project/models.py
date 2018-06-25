@@ -220,7 +220,7 @@ class Reference(models.Model):
 
 class Metadata(models.Model):
     """
-    Metadata for all projects.
+    Metadata for Projects and PublishedProjects.
 
     https://schema.datacite.org/
     https://schema.datacite.org/meta/kernel-4.0/doc/DataCite-MetadataKernel_v4.1.pdf
@@ -258,15 +258,20 @@ class Metadata(models.Model):
 
     # Supplementary descriptive fields
 
-    # External home page
-    project_home_page = models.URLField(default='', blank=True)
     # The additional papers to cite when citing the database
     project_citations =GenericRelation(Reference, blank=True)
-    topics = GenericRelation(Topic, blank=True)
     version = models.CharField(max_length=15, default='', blank=True)
     changelog_summary = RichTextField(blank=True)
+
+    # One of three: open, dua signature, credentialed user + dua signature
     access_policy = models.CharField(max_length=10, choices=access_policies,
                                      default=access_policies[0][0])
+
+
+    # Identifiers
+    topics = GenericRelation(Topic, blank=True)
+    # External home page
+    project_home_page = models.URLField(default='', blank=True)
 
 
 class Project(Metadata):
@@ -283,6 +288,10 @@ class Project(Metadata):
 
     published = models.BooleanField(default=False)
     under_review = models.BooleanField(default=False)
+
+    # Access fields
+    license = models.ForeignKey('project.License', null=True)
+    dua = models.ForeignKey('project.DUA', null=True)
 
     class Meta:
         unique_together = (('title', 'submitting_author', 'resource_type'),)
@@ -308,7 +317,7 @@ class Project(Metadata):
         """
         Create a published version of this project
         """
-        if not self.is_publishable:
+        if not self.is_publishable():
             raise Exception('Nope')
 
         published_project = PublishedProject()
@@ -404,6 +413,9 @@ class PublishedProject(Metadata):
     is_newest_version = models.BooleanField(default=True)
     doi = models.CharField(max_length=50, default='', unique=True)
 
+    access_system = models.ForeignKey('project.AccessSystem',
+                                       related_name='projects')
+
     class Meta:
         unique_together = (('base_project', 'version'),)
 
@@ -411,32 +423,43 @@ class PublishedProject(Metadata):
         return ('%s v%s' % (self.title, self.version))
 
 
+class License(models.Model):
+    name = models.CharField(max_length=100)
+    version = models.CharField(max_length=20)
+    description = models.CharField(max_length=50000)
+    url = models.URLField(blank=True, null=True)
+
+
 class DUA(models.Model):
-    title = models.CharField(max_length=150)
-    slug = models.SlugField(max_length=20, null=True)
+    name = models.CharField(max_length=150)
     description = RichTextField()
     content = RichTextField()
+    creation_datetime = models.DateTimeField(auto_now_add=True)
 
 
-class TrainingCourse(models.Model):
-    title = models.CharField(max_length=150)
-    slug = models.SlugField(max_length=20, null=True)
-    description = RichTextField()
-    url = models.URLField()
+class AccessSystem(models.Model):
+    """
+    Access control for published projects. This is a separate model
+    so that multiple published projects can share the same
+    access system and list of approved users
+
+    """
+    name = models.CharField(max_length=100)
+    license = models.ForeignKey('project.License')
+    dua = models.ForeignKey('project.DUA')
+    requires_credentialed = models.BooleanField(default=False)
+    creation_datetime = models.DateTimeField(auto_now_add=True)
 
 
-class DUASignature(models.Model):
-    user = models.ForeignKey('user.User', related_name='dua_signatures')
-    date = models.DateField(auto_now_add=True)
-    dua = models.ForeignKey('project.DUA', related_name='dua_signatures')
-
-
-class TrainingCourseCompletion(models.Model):
-    user = models.ForeignKey('user.User',
-        related_name='training_course_completions')
-    date = models.DateField(auto_now_add=True)
-    training_course = models.ForeignKey('project.TrainingCourse',
-        related_name='training_course_completions')
+class Approval(models.Model):
+    """
+    Object indicating that a user is approved to access a project
+    """
+    access_system = models.ForeignKey('project.AccessSystem')
+    user = models.ForeignKey('user.User')
+    first_approval_datetime = models.DateTimeField()
+    approval_datetime = models.DateTimeField()
+    requires_update = models.BooleanField(default=False)
 
 
 class BaseInvitation(models.Model):

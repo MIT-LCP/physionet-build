@@ -196,7 +196,8 @@ class Profile(models.Model):
     middle_names = models.CharField(max_length=100, blank=True, default='')
     last_name = models.CharField(max_length=30)
     url = models.URLField(default='', blank=True, null=True)
-    identity_verification_date = models.DateField(blank=True, null=True)
+    is_credentialed = models.BooleanField(default=False)
+    credential_datetime = models.DateTimeField(blank=True, null=True)
 
     def get_full_name(self):
         if self.middle_names:
