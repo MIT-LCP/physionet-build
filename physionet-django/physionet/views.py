@@ -1,5 +1,7 @@
 from django.shortcuts import render
 
+from project.models import License
+
 
 def home(request):
     return render(request, 'home.html')
@@ -8,6 +10,15 @@ def home(request):
 
 def author_guidelines(request):
     return render(request, 'about/author_guidelines.html')
+
+def licenses(request):
+    licenses = License.objects.all()
+    return render(request, 'about/licenses.html', {'licenses':licenses})
+
+def full_license(request, license_slug):
+    license = License.objects.get(slug=license_slug)
+    return render(request, 'about/full_license.html', {'license':license})
+
 
 # About pages
 
@@ -20,11 +31,6 @@ def faq(request):
 def contact(request):
     return render(request, 'about/contact.html')
 
-def our_team(request):
-    return render(request, 'about/our_team.html')
-
-def funding(request):
-    return render(request, 'about/funding.html')
 
 # Content pages
 

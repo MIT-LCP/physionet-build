@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+Full License
+{% endblock %}
+
+
+{% block local_css %}
+{% endblock %}
+
+
+{% block content %}
+<div class="container">
+    <h1 class="text-center">{{ license.name }} <a href="{{ license.url }}"><i class="fas fa-external-link-alt"></i></a></h1>
+    <hr>
+    {{ license.description|safe }}
+    <br>
+</div>
+{% endblock %}

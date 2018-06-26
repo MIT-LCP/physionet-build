@@ -434,6 +434,7 @@ class PublishedProject(Metadata):
 
 class License(models.Model):
     name = models.CharField(max_length=100)
+    slug = models.SlugField(max_length=120)
     description = RichTextField()
     url = models.URLField(blank=True, null=True)
 
