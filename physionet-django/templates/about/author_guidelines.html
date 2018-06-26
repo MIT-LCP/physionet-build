@@ -13,7 +13,75 @@ Author Guidelines
 
 {% block content %}
 <div class="container">
-    <h1>Author Guidelines</h1>
-    <p>We hope you enjoy your stay</p>
+    <h1 class="text-center">Author Guidelines</h1>
+    <hr>
+    <br>
+
+    <h2>Process Overview</h2>
+    <hr>
+    <p>Once a version of a project is published, it falls into the public domain and cannot be changed.
+
+       Contributors will have no control over it. They may however edit their project and publish subsequent versions.</p>
+    <hr>
+    <br>
+
+
+    <h2 id="authors">Project Creation</h2>
+    <hr>
+    <p>An account is required for creating projects. The project creation <a href="{% url 'create_project' %}">link</a> can be found in the navbar under the <em>publish</em> panel, or your <a href="{% url 'project_home' %}">project home</a> page, which lists all of your authoring projects.</p>
+
+    </p>
+
+    <p>Projects are not accessible by or even visible to anyone, except initially for the submitting author, and subsequently also for invited co-authors.</p>
+    <hr>
+    <br>
+
+
+    <h2 id="authors">Authors</h2>
+    <hr>
+    <p>Each project can have one <strong>submitting author</strong>. who is the user who
+       creates the project. Only the submitting author can invite, remove, and order co-authors, fill in the project metadata, upload/edit files, and submit the project for review/publication.
+    </p>
+    <p>Co-authors are invited by email. Each co-author must have a PhysioNet account.
+    </p>
+    <hr>
+    <br>
+
+
+    <h2 id="files">Uploading Files</h2>
+    <hr>
+    <p>All projects start with a moderately low size quota. You may request more storage if needed. Recall that only the submitting author may upload/edit files</p>
+    <hr>
+    <br>
+
+
+    <h2 id="access">Access Policies</h2>
+    <hr>
+    <p>Once published, the descriptive metadata of any project will be
+       publically available. The following access policies control access
+       to the files:</p>
+    <ol>
+        <li><strong>Open</strong>: Anyone can access the files, as long as
+            they conform to the terms of the license. No data use agreement
+            (DUA) is provided.</li>
+        <li><strong>Restricted</strong>: Only logged in users who sign the
+            specified DUA can access the files.</li>
+        <li><strong>Credentialed</strong>: Only PhysioNet credentialed users
+            can access the files.</li>
+    </ol>
+
+    <p>We strongly encourage using the 'open' access policy, and will
+       reject non-open submissions that are not justified.</p>
+    <hr>
+    <br>
+
+    <h2 id="review">Review Process</h2>
+    <hr>
+    <p>If the project passes all of its automatic checks, the submitting
+       author may submit the project for review/publication. Once all the co-authors approve the review submission,
+       a set of reviewers is assigned to the project.
+
+
+    </p>
 </div>
 {% endblock %}

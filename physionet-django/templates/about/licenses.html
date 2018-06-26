@@ -24,8 +24,8 @@ Licenses
     {% for license in licenses %}
       <p><strong>{{ license.name }}</strong></p>
       <ul>
-        <li><a href="{% url 'full_license' license.slug %}">Full description</a></li>
-        <li><a href="{{ license.url }}"><i class="fas fa-external-link-alt"></i> Home page</a></li>
+        <li><a href="{% url 'full_license' license.slug %}">Full license</a></li>
+        <li><a href="{{ license.url }}" target="_blank">Home page <i class="fas fa-external-link-alt"></i></a></li>
       </ul>
     {% endfor %}
 
