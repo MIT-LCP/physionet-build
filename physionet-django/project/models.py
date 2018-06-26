@@ -290,7 +290,8 @@ class Project(Metadata):
     under_review = models.BooleanField(default=False)
 
     # Access fields
-    data_use_agreement = RichTextField(blank=True)
+    data_use_agreement = models.ForeignKey('project.DataUseAgreement',
+                                           null=True, blank=True)
 
     class Meta:
         unique_together = (('title', 'submitting_author', 'resource_type'),)
