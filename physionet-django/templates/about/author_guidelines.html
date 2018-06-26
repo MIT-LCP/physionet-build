@@ -20,37 +20,58 @@ Author Guidelines
     <h2>Process Overview</h2>
     <hr>
     <p>Once a version of a project is published, it falls into the public domain and cannot be changed.
-
        Contributors will have no control over it. They may however edit their project and publish subsequent versions.</p>
+
+    <p>It is important to separate the concepts of a project, and published versions of a project. A user may create a project and edit its fields. If it is submitted and accepted for publication, a version of the project is published, which falls into the public domain and cannot be edited. The original project </p>
     <hr>
     <br>
 
 
-    <h2 id="authors">Project Creation</h2>
+    <h2 id="project-creation">Project Creation</h2>
     <hr>
-    <p>An account is required for creating projects. The project creation <a href="{% url 'create_project' %}">link</a> can be found in the navbar under the <em>publish</em> panel, or your <a href="{% url 'project_home' %}">project home</a> page, which lists all of your authoring projects.</p>
-
+    <p>An account is required for creating projects. The
+       <a href="{% url 'create_project' %}" target="_blank">project
+       creation page</a> can be found in the navbar under the
+       <em>publish</em> panel, or your
+       <a href="{% url 'project_home' %}" target="_blank">project
+       home</a> page, which lists all of your authoring projects.</p>
     </p>
 
-    <p>Projects are not accessible by or even visible to anyone, except initially for the submitting author, and subsequently also for invited co-authors.</p>
+    <p>Projects are not accessible by, or even visible to anyone, except
+       initially for the submitting author, and subsequently also for
+       invited co-authors.</p>
+
+    <p>When creating a project, choose the correct resource type, as
+       this <strong>cannot be changed</strong> later. If you would like
+       to contribute both data and code from a single related project,
+       submit them in separate projects, and refer them to each other.</p>
     <hr>
     <br>
 
 
     <h2 id="authors">Authors</h2>
     <hr>
-    <p>Each project can have one <strong>submitting author</strong>. who is the user who
-       creates the project. Only the submitting author can invite, remove, and order co-authors, fill in the project metadata, upload/edit files, and submit the project for review/publication.
-    </p>
-    <p>Co-authors are invited by email. Each co-author must have a PhysioNet account.
-    </p>
-    <hr>
-    <br>
+    <p>Each project can have one <strong>submitting author</strong>, and
+       many co-authors. The user who creates the project is the initial
+       submitting author, though they can assign this role to another
+       co-author if they want. Only the submitting author can invite,
+       remove, and *order co-authors, fill in the project metadata,
+       upload/edit files, and submit the project for review/publication.
+       <em>*The author order is the order in which author names will be
+       displayed in the published project</em>.</p>
 
+    <p>The submitting author can invite a co-author to the project by
+       specifying an email address. An email will be sent to the target
+       email address. If a PhysioNet account is already associated with
+       the specified email, the invitation will appear in its
+       <a href="{% url 'project_invitations' %}" target="_blank">project
+       invitations</a> page. If not, once they associate the email to their existing account, or create a new account with the email, they will be able to view and accept the invitation in the specified location.</p>
 
-    <h2 id="files">Uploading Files</h2>
-    <hr>
-    <p>All projects start with a moderately low size quota. You may request more storage if needed. Recall that only the submitting author may upload/edit files</p>
+    <p>
+        Co-authors must fill in their own affiliations.
+        Co-authors can view the project content as it is being prepared,
+        but are unable to make any edits to the files and descriptive metadata.
+    </p>
     <hr>
     <br>
 
@@ -75,13 +96,25 @@ Author Guidelines
     <hr>
     <br>
 
+
+    <h2 id="files">Uploading Files</h2>
+    <hr>
+    <p>Recall that
+       only the submitting author can upload/edit files. All projects
+       start with a moderately low size quota. The submitting author may
+       request more storage if needed.</p>
+    <hr>
+    <br>
+
     <h2 id="review">Review Process</h2>
     <hr>
     <p>If the project passes all of its automatic checks, the submitting
        author may submit the project for review/publication. Once all the co-authors approve the review submission,
        a set of reviewers is assigned to the project.
-
-
     </p>
+
+    <p>Once all the reviewers have completed their review, the editor
+       will make the decision to accept or reject the publication.</p>
+
 </div>
 {% endblock %}
