@@ -16,7 +16,8 @@ from django.utils import timezone
 
 from . import forms
 from .models import (Affiliation, Author, Invitation, Project,
-    PublishedProject, StorageRequest, PROJECT_FILE_SIZE_LIMIT, Reference)
+    PublishedProject, StorageRequest, PROJECT_FILE_SIZE_LIMIT, Reference,
+    Topic)
 from .utility import (get_file_info, get_directory_info, get_storage_info,
     write_uploaded_file, list_items, remove_items, move_items as do_move_items,
     get_form_errors, serve_file)
@@ -377,8 +378,14 @@ def project_metadata(request, project_id):
 
     ReferenceFormSet = generic_inlineformset_factory(Reference,
         fields=('description',), extra=0, max_num=20, can_delete=False)
+
+    TopicFormSet = inlineformset_factory(Project, Topic,
+        fields=('description',), extra=0, max_num=20, can_delete=False)
+
     reference_formset = ReferenceFormSet(instance=project)
     access_form = forms.AccessMetadataForm(instance=project)
+    identifier_form = forms.IdentifierMetadataForm(instance=project)
+    topic_formset = TopicFormSet(instance=project)
 
     # There are several different metadata sections
     if request.method == 'POST':
@@ -405,10 +412,15 @@ def project_metadata(request, project_id):
             else:
                 messages.error(request,
                     'Invalid submission. See errors below.')
+        elif 'edit_identifiers' in request.POST:
+            identifier_form = forms.IdentifierMetadataForm(request.POST,
+                                                           instance=project)
+            topic_formset = TopicFormSet(request.POST, instance=project)
 
     return render(request, 'project/project_metadata.html', {'project':project,
         'description_form':description_form, 'reference_formset':reference_formset,
-        'access_form':access_form,
+        'access_form':access_form, 'identifier_form':identifier_form,
+        'topic_formset':topic_formset,
         'messages':messages.get_messages(request)})
 
 

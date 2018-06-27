@@ -361,7 +361,7 @@ class IdentifierMetadataForm(forms.ModelForm):
     """
     class Meta:
         model = Project
-        fields = ('project_home_page', 'license', 'data_use_agreement')
+        fields = ('project_home_page',)
 
     def clean(self):
         """

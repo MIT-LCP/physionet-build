@@ -186,10 +186,10 @@
   <h3 class="form-signin-heading">3. Identifiers</h2>
   <hr>
   {# Topics, external home page, citations #}
-  {% csrf_token %}
-
-
-  <button class="btn btn-lg btn-primary" type="submit" name="edit_identifiers">Save Access Information</button>
+  {% include "inline_form_snippet.html" with form=identifier_form %}
+  {% include 'project/topic_list.html' %}
+  <p><button class="btn" type="button" onclick="addTopic()" style="background:transparent"><i class="fas fa-plus"></i> Add Topic</button></p>
+  <button class="btn btn-lg btn-primary" type="submit" name="edit_identifiers">Save Identifiers</button>
 </form>
 <br>
 
