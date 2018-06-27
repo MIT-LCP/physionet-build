@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+Data Use Agreement Content
+{% endblock %}
+
+
+{% block local_css %}
+{% endblock %}
+
+
+{% block content %}
+<div class="container">
+    <h1 class="text-center">{{ dua.name }}</h1>
+    <hr>
+    {{ dua.description|safe }}
+    <br>
+</div>
+{% endblock %}
