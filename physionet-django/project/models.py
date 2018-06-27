@@ -448,8 +448,8 @@ class DataUseAgreement(models.Model):
     Data use agreement, for PublishedProjects via their AccessSystem.
     """
     name = models.CharField(max_length=150)
+    slug = models.SlugField(max_length=170)
     description = RichTextField()
-    content = RichTextField()
     creation_datetime = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

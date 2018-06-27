@@ -1,6 +1,6 @@
 from django.shortcuts import render
 
-from project.models import License
+from project.models import DataUseAgreement, License
 
 
 def home(request):
@@ -12,12 +12,26 @@ def author_guidelines(request):
     return render(request, 'about/author_guidelines.html')
 
 def licenses(request):
+    """
+    Display all licenses
+    """
     licenses = License.objects.all()
     return render(request, 'about/licenses.html', {'licenses':licenses})
 
-def full_license(request, license_slug):
+def license_content(request, license_slug):
+    """
+    Content for an individual license
+    """
     license = License.objects.get(slug=license_slug)
-    return render(request, 'about/full_license.html', {'license':license})
+    return render(request, 'about/license_content.html', {'license':license})
+
+def duas(request):
+    duas = DataUseAgreement.objects.all()
+    return render(request, 'about/duas.html', {'duas':duas})
+
+def dua_content(request, dua_slug):
+    dua = DataUseAgreement.objects.get(slug=dua_slug)
+    return render(request, 'about/dua_content.html', {'dua':dua})
 
 
 # About pages
