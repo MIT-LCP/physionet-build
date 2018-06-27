@@ -345,6 +345,16 @@ class AccessMetadataForm(forms.ModelForm):
         model = Project
         fields = ('access_policy', 'license', 'data_use_agreement')
 
+    def clean(self):
+        """
+        Check the combination of access policy and dua
+        """
+        cleaned_data = super().clean()
+        pdb.set_trace()
+        if cleaned_data['access_policy'] == 0 and cleaned_data['data_use_agreement'] is not None:
+            raise forms.ValidationError('Open-acess projects cannot have DUAs')
+        return cleaned_data
+
 
 class InviteAuthorForm(forms.ModelForm):
     """
