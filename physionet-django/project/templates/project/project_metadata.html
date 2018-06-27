@@ -167,15 +167,15 @@
 <form action="{% url 'project_metadata' project.id %}" method="post">
   <h3 class="form-signin-heading">2. Access</h2>
   <hr>
-  <p>The descriptive metadata of all published projects are publically
-     visible. The <a href="{% url 'author_guidelines' %}#access">access
-     policy</a> controls access to the files. We strongly encourage
-     setting the 'open' access policy, and will reject non-open
-     submissions that are not justified.</p>
+  <p>The <a href="{% url 'author_guidelines' %}#access" target="_blank">
+     access policy</a> controls access to the files. A
+     <a href="{% url 'licenses' %}" target="_blank">license</a> is
+     always required, and a <a href="{% url 'duas' %}" target="_blank">
+     data use agreement</a> (DUA) is only required for non-open
+     projects.</p>
 
-  <p>If you would like to use a license that is not
-     <a href="{% url 'licenses' %}">currently listed</a>, please
-     <a href="{% url 'contact' %}" target="_blank">contact us</a>.</p>
+   <p>We strongly encourage setting the 'open' access policy, and will
+      reject non-open submissions that are not justified.</p>
   <br>
   {% include "inline_form_snippet.html" with form=access_form %}
   <button class="btn btn-lg btn-primary" type="submit" name="edit_access">Save Access Information</button>
