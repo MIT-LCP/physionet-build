@@ -78,6 +78,40 @@
     }
   };
 
+  topic_form_name = 'topics'
+
+  // Add another reference form
+  function addTopic(){
+    var max_forms = 8;
+    var total_forms = parseInt($('#id_' + topic_form_name + '-TOTAL_FORMS').val());
+    // alternate length method: document.getElementsByClassName("ref-body").length
+
+    if (total_forms < max_forms){
+      if (total_forms > 0){
+        // Clone the existing html
+        cloneFormElement(".topic-body:last", topic_form_name);
+        // Change the reference number id and display label of the newly cloned element
+        new_topic_div = document.getElementsByClassName("topic-body")[total_forms]
+        total_forms++;
+        new_topic_div.id = "topic-" + (total_forms);
+        new_topic_div.getElementsByClassName("topic-number")[0].innerHTML = total_forms + "."
+      }
+      // Reload the topic section with an additional form
+      else{
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+                type: "POST",
+                url: "{% url 'edit_topics' project.id %}",
+                data: {'csrfmiddlewaretoken':csrftoken,
+                       'add_first':true
+                },
+                success: function reloadSection(result){
+                    $("#topic-list").html(result);
+                },
+        });
+      }
+    }
+  };
 
   // Delete a reference form and possibly an object
   function removeReference(trigger_button){
@@ -122,6 +156,54 @@
               },
               success: function reloadSection(result){
                   $("#reference-list").html(result);
+              },
+      });
+    }
+  };
+
+    // Delete a reference form and possibly an object
+  function removeTopic(trigger_button){
+    // The div encapsulating the entire reference element
+    var topic_div = trigger_button.parentElement.parentElement;
+    // The div containing the form input elements
+    var form_div = topic_div.getElementsByClassName("topic-form")[0];
+    // The hiddeninput element specifies the reference pk if any
+    var topic_instance_id = form_div.getElementsByTagName("input")[0].value;
+
+    // The object has not been saved. Just edit html.
+    if (topic_instance_id == ""){
+      // The reference number to be deleted
+      var topic_number = parseInt(topic_div.id.substring(6));  // different from ref
+      var topic_list_div = topic_div.parentElement;
+
+      var total_forms = reference_list_div.getElementsByClassName("topic-body").length;
+
+      // delete the selected reference's html
+      topic_div.remove()
+
+      // All reference forms with greater numbers must be decremented
+      for (i=topic_number+1; i<total_forms+1; i++){
+        var higher_topic_div = document.getElementById("topic-" + i);
+        higher_topic_div.getElementsByClassName("topic-number")[0].innerHTML = (i-1) + "."
+        higher_ref_div.id = "topic-" + (i-1)
+      }
+
+      // update the form count
+      total_forms--;
+      $('#id_' + topic_form_name + '-TOTAL_FORMS').val(total_forms);
+    }
+    // The reference object exists. Send ajax query to remove it and
+    // reload the page section.
+    else{
+      var csrftoken = getCookie('csrftoken');
+      $.ajax({
+              type: "POST",
+              url: "{% url 'edit_topics' project.id %}",
+              data: {'csrfmiddlewaretoken':csrftoken,
+                     'remove_topic':topic_instance_id
+              },
+              success: function reloadSection(result){
+                  $("#topic-list").html(result);
               },
       });
     }

@@ -366,6 +366,32 @@ def edit_references(request, project_id):
 
     return Http404()
 
+@authorization_required(auth_functions=(is_author,))
+def edit_topics(request, project_id):
+    """
+    Delete a topic, or reload a formset with 1 form. Return the
+    updated topic formset html if successful. Called via ajax.
+    """
+    project = Project.objects.get(id=project_id)
+
+    if request.method == 'POST':
+        if 'add_first' in request.POST:
+            TopicFormSet = inlineformset_factory(Project, Topic,
+                fields=('description',), extra=1, max_num=20, can_delete=False)
+            topic_formset = TopicFormSet(instance=project)
+            return render(request, 'project/topic_list.html', {'topic_formset':topic_formset})
+        elif 'remove_topic' in request.POST:
+            topic_id = int(request.POST['remove_topic'])
+            topic = Topic.objects.get(id=topic_id)
+            topic.delete()
+            higher_topics = project.topics.filter(id__gt=topic_id)
+            TopicFormSet = inlineformset_factory(Project, Topic,
+                fields=('description',), extra=0, max_num=20, can_delete=False)
+            topic_formset = TopicFormSet(instance=project)
+            return render(request, 'project/topic_list.html', {'topic_formset':topic_formset})
+
+    return Http404()
+
 
 @authorization_required(auth_functions=(is_author,))
 def project_metadata(request, project_id):
@@ -400,7 +426,6 @@ def project_metadata(request, project_id):
                 reference_formset.save()
                 messages.success(request, 'Your project metadata has been updated.')
                 reference_formset = ReferenceFormSet(instance=project)
-
             else:
                 messages.error(request,
                     'Invalid submission. See errors below.')
@@ -416,6 +441,14 @@ def project_metadata(request, project_id):
             identifier_form = forms.IdentifierMetadataForm(request.POST,
                                                            instance=project)
             topic_formset = TopicFormSet(request.POST, instance=project)
+            if identifier_form.is_valid() and topic_formset.is_valid():
+                identifier_form.save()
+                topic_formset.save()
+                messages.success(request, 'Your identifier metadata has been updated.')
+                topic_formset = TopicFormSet(instance=project)
+            else:
+                messages.error(request,
+                    'Invalid submission. See errors below.')
 
     return render(request, 'project/project_metadata.html', {'project':project,
         'description_form':description_form, 'reference_formset':reference_formset,
