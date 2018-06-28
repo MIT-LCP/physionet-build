@@ -17,7 +17,7 @@ from django.utils import timezone
 from . import forms
 from .models import (Affiliation, Author, Invitation, Project,
     PublishedProject, StorageRequest, PROJECT_FILE_SIZE_LIMIT, Reference,
-    Topic)
+    Topic, Contact, Publication)
 from .utility import (get_file_info, get_directory_info, get_storage_info,
     write_uploaded_file, list_items, remove_items, move_items as do_move_items,
     get_form_errors, serve_file)
@@ -399,18 +399,24 @@ def project_metadata(request, project_id):
     For editing project metadata
     """
     project = Project.objects.get(id=project_id)
-    # There are several forms for different types of metadata
-    description_form = forms.metadata_forms[project.resource_type](instance=project)
 
+    # There are several forms for different types of metadata
     ReferenceFormSet = generic_inlineformset_factory(Reference,
         fields=('description',), extra=0, max_num=20, can_delete=False)
-
     TopicFormSet = inlineformset_factory(Project, Topic,
         fields=('description',), extra=0, max_num=20, can_delete=False)
+    PublicationFormSet = generic_inlineformset_factory(Publication,
+        fields=('citation', 'url'), extra=0, max_num=3, can_delete=False)
+    ContactFormSet = generic_inlineformset_factory(Contact,
+        fields=('name', 'email', 'affiliation'), extra=0, max_num=3,
+        can_delete=False)
 
+    description_form = forms.metadata_forms[project.resource_type](instance=project)
     reference_formset = ReferenceFormSet(instance=project)
     access_form = forms.AccessMetadataForm(instance=project)
     identifier_form = forms.IdentifierMetadataForm(instance=project)
+    publication_formset = PublicationFormSet(instance=project)
+    contact_formset = ContactFormSet(instance=project)
     topic_formset = TopicFormSet(instance=project)
 
     # There are several different metadata sections
@@ -453,6 +459,8 @@ def project_metadata(request, project_id):
     return render(request, 'project/project_metadata.html', {'project':project,
         'description_form':description_form, 'reference_formset':reference_formset,
         'access_form':access_form, 'identifier_form':identifier_form,
+        'publication_formset':publication_formset,
+        'contact_formset':contact_formset,
         'topic_formset':topic_formset,
         'messages':messages.get_messages(request)})
 
