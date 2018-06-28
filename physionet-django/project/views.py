@@ -717,7 +717,7 @@ def edit_metadata_item(request, project_id):
 
         return render(request, 'project/item_list.html',
             {'formset':formset, 'item':item, 'item_label':item_labels[item],
-             'form_name':form_names[item]})
+             'form_name':form_names[item], 'max_forms':max_forms[item]})
 
     else:
         return Http404()
