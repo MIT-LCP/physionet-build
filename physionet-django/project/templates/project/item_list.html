@@ -1,0 +1,27 @@
+<div id="{{ item }}-list">
+  {{ formset.management_form }}
+
+  <div class="form-group row">
+    <label class="col-md-1">{{ item_label }}</label>
+  </div>
+
+  {% for form in formset %}
+    {# This {{ item }}-%d id is identifying the form number on the page #}
+    <div class="form-group row {{ item }}-body" id="{{ item }}-{{ forloop.counter }}">
+        <div class="col-md-1"></div>
+        <div class="col-md-1 {{ item }}-number">{{ forloop.counter }}.</div>
+        <div class="col-md-9 {{ item }}-form">
+            {# id value is blank for forms without saved instances #}
+            {{ form.id }}
+            {{ form.description }}
+
+            {{ form.url }}
+        </div>
+        <div class='col-md-1'>
+            <button class="btn btn-sm btn-secondary" type="button" title="Remove" onclick="removeItem(this, '{{ item }}'), '{{ form_name }}'"><i class="fas fa-times"></i></button>
+        </div>
+    </div>
+  {% endfor %}
+  <p><button class="btn" type="button" onclick="addItem('{{ item }}', '{{ form_name }}', '{{ max_forms }}')" style="background:transparent"><i class="fas fa-plus"></i> Add {{ item }}</button></p>
+</div>
+

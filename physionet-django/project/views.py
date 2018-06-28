@@ -365,32 +365,6 @@ def edit_references(request, project_id):
 
     return Http404()
 
-@authorization_required(auth_functions=(is_author,))
-def edit_topics(request, project_id):
-    """
-    Delete a topic, or reload a formset with 1 form. Return the
-    updated topic formset html if successful. Called via ajax.
-    """
-    project = Project.objects.get(id=project_id)
-
-    if request.method == 'POST':
-        if 'add_first' in request.POST:
-            TopicFormSet = inlineformset_factory(Project, Topic,
-                fields=('description',), extra=1, max_num=20, can_delete=False)
-            topic_formset = TopicFormSet(instance=project)
-            return render(request, 'project/topic_list.html', {'topic_formset':topic_formset})
-        elif 'remove_topic' in request.POST:
-            topic_id = int(request.POST['remove_topic'])
-            topic = Topic.objects.get(id=topic_id)
-            topic.delete()
-            higher_topics = project.topics.filter(id__gt=topic_id)
-            TopicFormSet = inlineformset_factory(Project, Topic,
-                fields=('description',), extra=0, max_num=20, can_delete=False)
-            topic_formset = TopicFormSet(instance=project)
-            return render(request, 'project/topic_list.html', {'topic_formset':topic_formset})
-
-    return Http404()
-
 
 @authorization_required(auth_functions=(is_author,))
 def project_metadata(request, project_id):
@@ -688,15 +662,7 @@ def published_project(request, published_project_id):
                   {'published_project':published_project, 'authors':authors})
 
 
-def give_dumb(request):
-    """
-    1. Can we make the python function generic?
-        - If so, then just call the one url yay
-
-    """
-    return HttpResponse("lmao")
-
-
+@authorization_required(auth_functions=(is_author,))
 def edit_metadata_item(request, project_id):
     """
     Either add the first form, or remove an item.
@@ -705,20 +671,16 @@ def edit_metadata_item(request, project_id):
 
     model_dict = {'reference': Reference, 'publication': Publication,
                   'topic': Topic, 'contact': Contact}
-
     # Whether the item relation is generic
     is_generic_relation = {'reference': True, 'publication': True,
                         'topic': False, 'contact': True}
-
     # The fields of each formset
     metadata_item_fields = {'reference': ('description',),
                             'publication': ('citation', 'url'),
                             'topic': ('description',),
                             'contact': ('name', 'affiliation', 'email')}
-
     max_forms = {'reference': 20, 'publication': 3, 'topic': 20,
                  'contact': 3}
-
 
     # These are for the template
     item_labels = {'reference': 'References', 'publication': 'Publications',
@@ -743,17 +705,15 @@ def edit_metadata_item(request, project_id):
                 max_num=max_forms[item], can_delete=False)
         else:
             ItemFormSet = inlineformset_factory(Project, model,
-                fields=metadat_item_fields[item], extra=extra,
+                fields=metadata_item_fields[item], extra=extra,
                 max_num=max_forms[item], can_delete=False)
 
-        if 'remove' in request.POST:
+        if 'remove_id' in request.POST:
             # Check this post key
-            item_id = int(request.POST['remove_item'])
-            model.objects.remove(id=item_id)
+            item_id = int(request.POST['remove_id'])
+            model.objects.filter(id=item_id).delete()
 
         formset = ItemFormSet(instance=project)
-
-        pdb.set_trace()
 
         return render(request, 'project/item_list.html',
             {'formset':formset, 'item':item, 'item_label':item_labels[item],
@@ -761,64 +721,3 @@ def edit_metadata_item(request, project_id):
 
     else:
         return Http404()
-
-
-# Problem: {% url %}. Can just hardcode or have multiple functions for calling.
-
-# Is there a way to make this generic?
-# Have to call like: project.references.filter() and project.topics.filter()
-# If not generic, then the js function has to be able to call the right one.
-# Also problem: when calling return render(request, item_list.html) you have
-# to pass in the right context variables.
-
-# @authorization_required(auth_functions=(is_author,))
-# def edit_references(request, project_id):
-#     """
-#     Delete a reference, or reload a formset with 1 form. Return the
-#     updated reference formset html if successful. Called via ajax.
-#     """
-#     project = Project.objects.get(id=project_id)
-
-#     if request.method == 'POST':
-#         if 'add_first' in request.POST:
-#             ReferenceFormSet = generic_inlineformset_factory(Reference,
-#                 fields=('description',), extra=1, max_num=20, can_delete=False)
-#             reference_formset = ReferenceFormSet(instance=project)
-#             return render(request, 'project/reference_list.html', {'reference_formset':reference_formset})
-#         elif 'remove_reference' in request.POST:
-#             reference_id = int(request.POST['remove_reference'])
-#             reference = Reference.objects.get(id=reference_id)
-#             reference.delete()
-#             higher_references = project.references.filter(id__gt=reference_id)
-#             ReferenceFormSet = generic_inlineformset_factory(Reference,
-#                 fields=('description',), extra=0, max_num=20, can_delete=False)
-#             reference_formset = ReferenceFormSet(instance=project)
-#             return render(request, 'project/reference_list.html', {'reference_formset':reference_formset})
-
-#     return Http404()
-
-# @authorization_required(auth_functions=(is_author,))
-# def edit_topics(request, project_id):
-#     """
-#     Delete a topic, or reload a formset with 1 form. Return the
-#     updated topic formset html if successful. Called via ajax.
-#     """
-#     project = Project.objects.get(id=project_id)
-
-#     if request.method == 'POST':
-#         if 'add_first' in request.POST:
-#             TopicFormSet = inlineformset_factory(Project, Topic,
-#                 fields=('description',), extra=1, max_num=20, can_delete=False)
-#             topic_formset = TopicFormSet(instance=project)
-#             return render(request, 'project/topic_list.html', {'topic_formset':topic_formset})
-#         elif 'remove_topic' in request.POST:
-#             topic_id = int(request.POST['remove_topic'])
-#             topic = Topic.objects.get(id=topic_id)
-#             topic.delete()
-#             higher_topics = project.topics.filter(id__gt=topic_id)
-#             TopicFormSet = inlineformset_factory(Project, Topic,
-#                 fields=('description',), extra=0, max_num=20, can_delete=False)
-#             topic_formset = TopicFormSet(instance=project)
-#             return render(request, 'project/topic_list.html', {'topic_formset':topic_formset})
-
-#     return Http404()
