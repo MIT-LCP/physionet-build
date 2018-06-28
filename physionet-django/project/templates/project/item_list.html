@@ -12,10 +12,19 @@
         <div class="col-md-1 {{ item }}-number">{{ forloop.counter }}.</div>
         <div class="col-md-9 {{ item }}-form">
             {# id value is blank for forms without saved instances #}
-            {{ form.id }}
-            {{ form.description }}
-
-            {{ form.url }}
+            {# in addition to fields you fill in, there is also id #}
+            {% if form.fields|length > 2 %}
+              {% for field in form %}
+                {% if field.label != "Id" %}
+                  {{ field.label }}
+                {% endif %}
+                {{ field }}
+              {% endfor %}
+            {% else %}
+              {% for field in form %}
+                {{ field }}
+              {% endfor %}
+            {% endif %}
         </div>
         <div class='col-md-1'>
             <button class="btn btn-sm btn-secondary" type="button" title="Remove" onclick="removeItem(this, '{{ item }}', '{{ form_name }}')"><i class="fas fa-times"></i></button>

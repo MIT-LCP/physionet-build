@@ -203,17 +203,13 @@ class Reference(models.Model):
     General reference field for projects, for the descriptive metadata
     """
     description = models.CharField(max_length=250)
-    # This value only gets set for published project references
-    order = models.PositiveSmallIntegerField(null=True)
-
     # Project or PublishedProject
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     project_object = GenericForeignKey('content_type', 'object_id')
 
     class Meta:
-        unique_together = (('description', 'content_type', 'object_id'),
-                           ('order', 'content_type', 'object_id'))
+        unique_together = (('description', 'content_type', 'object_id'),)
 
     def __str__(self):
         return self.description
@@ -296,7 +292,7 @@ class Metadata(models.Model):
     # Identifiers
     # External home page
     project_home_page = models.URLField(blank=True, null=True)
-    related_publications = GenericRelation(Publication, blank=True)
+    publications = GenericRelation(Publication, blank=True)
     topics = GenericRelation(Topic, blank=True)
     contacts = GenericRelation(Contact, blank=True)
 
@@ -367,7 +363,7 @@ class Project(Metadata):
         # Same content, different objects.
         for reference in self.references.all():
             reference_copy = Reference.objects.create(
-                description=reference.description, order=description.order,
+                description=reference.description,
                 project_object=published_project)
 
         for topic in self.topics.all():
