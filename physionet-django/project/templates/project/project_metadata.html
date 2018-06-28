@@ -230,6 +230,54 @@
     return true;
   }
 
+
+  function addItem(form_name, max_forms, item){
+
+    alert(form_name);
+    $.ajax({
+        type: "GET",
+        url: "{% url 'edit_metadata_item' project.id %}",
+        success: function reloadSection(result){
+            $("#" + item + "-list").html(result);
+        },
+    });
+
+  }
+
+
+
+  // Add another form to a formset
+  function addItemm(form_name, max_forms, item_name){
+    var total_forms = parseInt($('#id_' + form_name + '-TOTAL_FORMS').val());
+    // alternate length method: document.getElementsByClassName("ref-body").length
+
+    if (total_forms < max_forms){
+      if (total_forms > 0){
+        // Clone the existing html
+        cloneFormElement("." + item_name + "-body:last", form_name);
+        // Change the number id and display label of the newly cloned element
+        new_item_div = document.getElementsByClassName(item_name + "-body")[total_forms]
+        total_forms++;
+        new_item_div.id = item_name + "-" + (total_forms);
+        new_item_div.getElementsByClassName(item_name + "-number")[0].innerHTML = total_forms + "."
+
+      }
+      // Reload the item list section with an additional form
+      else{
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+                type: "POST",
+                url: "{% url 'edit_metadata_item' project.id %}",
+                data: {'csrfmiddlewaretoken':csrftoken,
+                       'add_first':true, 'item':item
+                },
+                success: function reloadSection(result){
+                    $("#" + item_name + "-list").html(result);
+                },
+        });
+      }
+    }
+  };
 </script>
 
 
@@ -239,7 +287,6 @@
   {{ description_form.media }}
   {% include "inline_form_snippet.html" with form=description_form %}
   {% include 'project/reference_list.html' %}
-  <p><button class="btn" type="button" onclick="addReference()" style="background:transparent"><i class="fas fa-plus"></i> Add Reference</button></p>
   <button class="btn btn-lg btn-primary" type="submit" name="edit_description">Save Description</button>
 </form>
 <br>
@@ -269,9 +316,11 @@
   <hr>
   {# Topics, external home page, citations #}
   {% include "inline_form_snippet.html" with form=identifier_form %}
-  {% include 'project/item_list.html' with item="publication" formset=publication_formset %}
-  {% include 'project/topic_list.html' %}
-  <p><button class="btn" type="button" onclick="addTopic()" style="background:transparent"><i class="fas fa-plus"></i> Add Topic</button></p>
+  {% include 'project/item_list.html' with item="publication" item_label="Publications" formset=publication_formset add_function="addItem(5, 8)" %}
+
+
+  {% include 'project/item_list.html' with item="topic" item_label="Topics" formset=topic_formset max_forms=3 form_name="topics" %}
+
   <button class="btn btn-lg btn-primary" type="submit" name="edit_identifiers">Save Identifiers</button>
 </form>
 <br>
