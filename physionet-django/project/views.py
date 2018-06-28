@@ -730,7 +730,7 @@ def edit_metadata_item(request, project_id):
 
     if request.method == 'POST':
         project = Project.objects.get(id=project_id)
-        item = request.POST[item]
+        item = request.POST['item']
 
         model = model_dict[item]
         # Whether to add the first empty form in the formset
@@ -752,6 +752,8 @@ def edit_metadata_item(request, project_id):
             model.objects.remove(id=item_id)
 
         formset = ItemFormSet(instance=project)
+
+        pdb.set_trace()
 
         return render(request, 'project/item_list.html',
             {'formset':formset, 'item':item, 'item_label':item_labels[item],
