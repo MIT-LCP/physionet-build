@@ -12,12 +12,13 @@
         <div class="col-md-1 {{ item }}-number">{{ forloop.counter }}.</div>
         <div class="col-md-9 {{ item }}-form">
             {# id value is blank for forms without saved instances #}
-            {# in addition to fields you fill in, there is also id #}
-            {% if form.fields|length > 2 %}
-              {% for field in form %}
-                {% if field.label != "Id" %}
-                  {{ field.label }}
-                {% endif %}
+            {# We want to display labels only for multi-attribute fields #}
+            {% if form.visible_fields|length > 1 %}
+              {% for field in form.visible_fields %}
+                {{ field.label }}
+                {{ field }}
+              {% endfor %}
+              {% for field in form.hidden_fields %}
                 {{ field }}
               {% endfor %}
             {% else %}

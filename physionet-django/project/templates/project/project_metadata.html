@@ -78,8 +78,13 @@
     var item_div = trigger_button.parentElement.parentElement;
     // The div containing the form input elements
     var form_div = item_div.getElementsByClassName(item + "-form")[0];
-    // The hiddeninput element specifies the item pk if any
-    var item_instance_id = form_div.getElementsByTagName("input")[0].value;
+    // Get the item instance id if it exists, ie. it is already saved
+    for (i=0; i<form_div.children.length; i++) {
+      form_input = form_div.children[i];
+      if (form_input.id.startsWith('id') && form_input.id.endsWith('id')) {
+        var item_instance_id = form_input.value;
+      }
+    }
 
     // The object has not been saved. Just edit html.
     if (item_instance_id == ""){
@@ -146,7 +151,7 @@
 
 
 <form action="{% url 'project_metadata' project.id %}" onsubmit="return validateReferences()" method="post">
-  <h3 class="form-signin-heading">1. Description Metadata</h2>
+  <h3 id="description" class="form-signin-heading">1. Description Metadata</h2>
   <hr>
   {{ description_form.media }}
   {% include "inline_form_snippet.html" with form=description_form %}
@@ -157,7 +162,7 @@
 <hr>
 
 <form action="{% url 'project_metadata' project.id %}" method="post">
-  <h3 class="form-signin-heading">2. Access</h2>
+  <h3 id="access" class="form-signin-heading">2. Access</h2>
   <hr>
   <p>The <a href="{% url 'author_guidelines' %}#access" target="_blank">
      access policy</a> controls access to the files. A
@@ -176,7 +181,7 @@
 <hr>
 
 <form action="{% url 'project_metadata' project.id %}" method="post">
-  <h3 class="form-signin-heading">3. Identifiers</h2>
+  <h3 id="identifiers" class="form-signin-heading">3. Identifiers</h2>
   <hr>
   {# Topics, external home page, citations #}
   {% include "inline_form_snippet.html" with form=identifier_form %}
