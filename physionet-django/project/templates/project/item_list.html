@@ -3,7 +3,10 @@
 
   <div class="form-group row">
     <div class="col-md-11">
-      <label>{{ item_label }}</label>
+      <label title="{{ formset.help_text }}">{{ item_label }}</label>
+        {% if formset.help_text|slice:"0:1" == "*" %}
+          <a style="color:red"> *</a>
+        {% endif %}
     </div>
 
     <div class="col-md-1">

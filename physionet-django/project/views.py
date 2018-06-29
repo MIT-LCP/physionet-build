@@ -32,6 +32,12 @@ RESPONSE_CHOICES = (
 
 RESPONSE_ACTIONS = {0:'rejected', 1:'accepted'}
 
+# Help test for formsets, rather than individual form fields.
+METADATA_FORMSET_HELP_TEXT = {'reference': "Numbered references specified in descriptive information. Note: different from 'publications' in section 3. Maximum of 20.",
+    'publication': "Associated publications for the project. Note: different from 'references' in section 1. Maximum of 20",
+    'topic': 'Keyword topics associated with the project. Maximum of 20.',
+    'contact':'* Persons to contact for questions about the project. Minimum of 1, maximum of 3.'}
+
 
 def is_admin(user, *args, **kwargs):
     return user.is_admin
@@ -388,9 +394,14 @@ def project_metadata(request, project_id):
     reference_formset = ReferenceFormSet(instance=project)
     access_form = forms.AccessMetadataForm(instance=project)
     identifier_form = forms.IdentifierMetadataForm(instance=project)
-    publication_formset = PublicationFormSet(instance=project)
     contact_formset = ContactFormSet(instance=project)
+    publication_formset = PublicationFormSet(instance=project)
     topic_formset = TopicFormSet(instance=project)
+
+    reference_formset.help_text = METADATA_FORMSET_HELP_TEXT['reference']
+    contact_formset.help_text = METADATA_FORMSET_HELP_TEXT['contact']
+    publication_formset.help_text = METADATA_FORMSET_HELP_TEXT['publication']
+    topic_formset.help_text = METADATA_FORMSET_HELP_TEXT['topic']
 
     # There are several different metadata sections
     if request.method == 'POST':
@@ -407,6 +418,7 @@ def project_metadata(request, project_id):
             else:
                 messages.error(request,
                     'Invalid submission. See errors below.')
+            reference_formset.help_text = METADATA_FORMSET_HELP_TEXT['reference']
         elif 'edit_access' in request.POST:
             access_form = forms.AccessMetadataForm(request.POST, instance=project)
             if access_form.is_valid():
@@ -432,6 +444,9 @@ def project_metadata(request, project_id):
             else:
                 messages.error(request,
                     'Invalid submission. See errors below.')
+            contact_formset.help_text = METADATA_FORMSET_HELP_TEXT['contact']
+            publication_formset.help_text = METADATA_FORMSET_HELP_TEXT['publication']
+            topic_formset.help_text = METADATA_FORMSET_HELP_TEXT['topic']
 
     return render(request, 'project/project_metadata.html', {'project':project,
         'description_form':description_form, 'reference_formset':reference_formset,
@@ -718,6 +733,7 @@ def edit_metadata_item(request, project_id):
             model.objects.filter(id=item_id).delete()
 
         formset = ItemFormSet(instance=project)
+        formset.help_text = METADATA_FORMSET_HELP_TEXT[item]
 
         return render(request, 'project/item_list.html',
             {'formset':formset, 'item':item, 'item_label':item_labels[item],
