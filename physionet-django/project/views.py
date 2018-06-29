@@ -394,8 +394,7 @@ def project_metadata(request, project_id):
 
     # There are several different metadata sections
     if request.method == 'POST':
-        # Main description. Process both the description form, and the
-        # reference formset
+        # Main description.
         if 'edit_description' in request.POST:
             description_form = forms.metadata_forms[project.resource_type](request.POST,
                 instance=project)
@@ -419,9 +418,14 @@ def project_metadata(request, project_id):
         elif 'edit_identifiers' in request.POST:
             identifier_form = forms.IdentifierMetadataForm(request.POST,
                                                            instance=project)
+            publication_formset = PublicationFormSet(request.POST,
+                                                     instance=project)
+            contact_formset = ContactFormSet(request.POST, instance=project)
             topic_formset = TopicFormSet(request.POST, instance=project)
-            if identifier_form.is_valid() and topic_formset.is_valid():
+            if identifier_form.is_valid() and topic_formset.is_valid() and publication_formset.is_valid():
                 identifier_form.save()
+                contact_formset.save()
+                publication_formset.save()
                 topic_formset.save()
                 messages.success(request, 'Your identifier metadata has been updated.')
                 topic_formset = TopicFormSet(instance=project)

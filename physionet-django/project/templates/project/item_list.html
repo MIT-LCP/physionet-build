@@ -2,7 +2,13 @@
   {{ formset.management_form }}
 
   <div class="form-group row">
-    <label class="col-md-1">{{ item_label }}</label>
+    <div class="col-md-11">
+      <label>{{ item_label }}</label>
+    </div>
+
+    <div class="col-md-1">
+      <button class="btn btn-sm btn-info" type="button" onclick="addItem('{{ item }}', '{{ form_name }}', '{{ max_forms }}')" title="Add {{ item }}"><i class="fas fa-plus"></i></button>
+    </div>
   </div>
 
   {% for form in formset %}
@@ -28,10 +34,10 @@
             {% endif %}
         </div>
         <div class='col-md-1'>
-            <button class="btn btn-sm btn-secondary" type="button" title="Remove" onclick="removeItem(this, '{{ item }}', '{{ form_name }}')"><i class="fas fa-times"></i></button>
+            <button class="btn btn-sm btn-secondary" type="button" title="Remove {{ item }}" onclick="removeItem(this, '{{ item }}', '{{ form_name }}')"><i class="fas fa-times"></i></button>
         </div>
     </div>
   {% endfor %}
-  <p><button class="btn" type="button" onclick="addItem('{{ item }}', '{{ form_name }}', '{{ max_forms }}')" style="background:transparent"><i class="fas fa-plus"></i> Add {{ item }}</button></p>
+
 </div>
 

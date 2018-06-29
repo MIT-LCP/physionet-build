@@ -85,7 +85,6 @@
         var item_instance_id = form_input.value;
       }
     }
-
     // The object has not been saved. Just edit html.
     if (item_instance_id == ""){
       // The item/form number on the page to be deleted. The div id is
@@ -93,21 +92,17 @@
       var item_number = parseInt(item_div.id.substring(item.length + 1));
       var item_list_div = item_div.parentElement;
       var total_forms = item_list_div.getElementsByClassName(item + "-body").length;
-
       // delete the selected item's html
       item_div.remove()
-
       // All item forms with greater numbers must be decremented
       for (i=item_number+1; i<total_forms+1; i++){
         var higher_item_div = document.getElementById(item + "-" + i);
         higher_item_div.getElementsByClassName(item + "-number")[0].innerHTML = (i-1) + "."
         higher_item_div.id = item + "-" + (i-1)
       }
-
       // update the form count
       total_forms--;
       $('#id_' + form_name + '-TOTAL_FORMS').val(total_forms);
-
     }
     // The item object exists. Send ajax query to remove it and
     // reload the page section.
@@ -185,6 +180,7 @@
   <hr>
   {# Topics, external home page, citations #}
   {% include "inline_form_snippet.html" with form=identifier_form %}
+  {% include 'project/item_list.html' with item="contact" item_label="Contacts" formset=contact_formset max_forms=3 form_name="project-contact-content_type-object_id" %}
   {% include 'project/item_list.html' with item="publication" item_label="Publications" formset=publication_formset max_forms=3 form_name="project-publication-content_type-object_id" %}
   {% include 'project/item_list.html' with item="topic" item_label="Topics" formset=topic_formset max_forms=20 form_name="topics" %}
 
