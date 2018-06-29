@@ -149,7 +149,7 @@
   <h3 id="description" class="form-signin-heading">1. Description Metadata</h2>
   <hr>
   {{ description_form.media }}
-  {% include "inline_form_snippet.html" with form=description_form %}
+  {% include "project/metadata_inline_form_snippet.html" with form=description_form %}
   {% include 'project/item_list.html' with item="reference" item_label="References" formset=reference_formset max_forms=20 form_name="project-reference-content_type-object_id" %}
   <button class="btn btn-lg btn-primary" type="submit" name="edit_description">Save Description</button>
 </form>
@@ -169,7 +169,7 @@
    <p>We strongly encourage setting the 'open' access policy, and will
       reject non-open submissions that are not justified.</p>
   <br>
-  {% include "inline_form_snippet.html" with form=access_form %}
+  {% include "project/metadata_inline_form_snippet.html" with form=access_form %}
   <button class="btn btn-lg btn-primary" type="submit" name="edit_access">Save Access Information</button>
 </form>
 <br>
@@ -179,7 +179,7 @@
   <h3 id="identifiers" class="form-signin-heading">3. Identifiers</h2>
   <hr>
   {# Topics, external home page, citations #}
-  {% include "inline_form_snippet.html" with form=identifier_form %}
+  {% include "project/metadata_inline_form_snippet.html" with form=identifier_form %}
   {% include 'project/item_list.html' with item="contact" item_label="Contacts" formset=contact_formset max_forms=3 form_name="project-contact-content_type-object_id" %}
   {% include 'project/item_list.html' with item="publication" item_label="Publications" formset=publication_formset max_forms=3 form_name="project-publication-content_type-object_id" %}
   {% include 'project/item_list.html' with item="topic" item_label="Topics" formset=topic_formset max_forms=20 form_name="topics" %}
