@@ -14,6 +14,9 @@
     <form action="{% url 'create_project' %}" method="post">
         <h2 class="form-signin-heading">Create New Project</h2>
         <hr>
+        <p>Initialize your project with its core fields. The resource type
+           <strong>cannot</strong> be changed after the project is created.</p>
+        <hr>
         {{ form.media }}
         {% include "inline_form_snippet.html" %}
         <button class="btn btn-lg btn-primary" type="submit">Create Project</button>
