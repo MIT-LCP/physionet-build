@@ -347,32 +347,6 @@ def project_authors(request, project_id):
 
 
 @authorization_required(auth_functions=(is_author,))
-def edit_references(request, project_id):
-    """
-    Delete a reference, or reload a formset with 1 form. Return the
-    updated reference formset html if successful. Called via ajax.
-    """
-    project = Project.objects.get(id=project_id)
-
-    if request.method == 'POST':
-        if 'add_first' in request.POST:
-            ReferenceFormSet = generic_inlineformset_factory(Reference,
-                fields=('description',), extra=1, max_num=20, can_delete=False)
-            reference_formset = ReferenceFormSet(instance=project)
-            return render(request, 'project/reference_list.html', {'reference_formset':reference_formset})
-        elif 'remove_reference' in request.POST:
-            reference_id = int(request.POST['remove_reference'])
-            reference = Reference.objects.get(id=reference_id)
-            reference.delete()
-            ReferenceFormSet = generic_inlineformset_factory(Reference,
-                fields=('description',), extra=0, max_num=20, can_delete=False)
-            reference_formset = ReferenceFormSet(instance=project)
-            return render(request, 'project/reference_list.html',{'reference_formset':reference_formset})
-
-    return Http404()
-
-
-@authorization_required(auth_functions=(is_author,))
 def project_metadata(request, project_id):
     """
     For editing project metadata

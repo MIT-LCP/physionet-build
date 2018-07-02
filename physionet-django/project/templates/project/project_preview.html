@@ -18,12 +18,13 @@
     {{ project|access_badge|safe }}
     <hr>
     <p class="text-muted">
-    {% for author in author_info %}
-        <a title="{{ author.affiliations }}">{{ author.name }}</a>
-        {% if forloop.counter < author_info|length|add:"-1" %}
-            ,&nbsp;
-        {% endif %}
-    {% endfor %}
+        Authors:
+        {% for author in author_info %}
+            <a title="{{ author.affiliations }}">{{ author.name }}</a>
+            {% if forloop.counter < author_info|length|add:"-1" %}
+                ,&nbsp;
+            {% endif %}
+        {% endfor %}
     </p>
     <hr>
     Published: [dd/mm/yyyy] - Version:
