@@ -201,49 +201,6 @@
 <br>
 <br>
 
-<div class="card">
-  <div class="card-header">
-    &nbsp;&nbsp;&nbsp;<strong>Contents of folder: /{{ sub_item }}</strong>
-    {% if in_subdir %}
-      <a href="{% url 'project_files' project.id '' %}" style="float:right">Return to base folder</a>
-    {% endif %}
-  </div>
+{% include "project/files_panel.html" %}
 
-  <ul class="list-group list-group-flush">
-    <li class="list-group-item">
-      <div class="row">
-        <div class="col-md-8">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>Name</strong></div>
-        <div class="col-md-2"><strong>Size</strong></div>
-        <div class="col-md-2"><strong>Modified</strong></div>
-      </div>
-    </li>
-    {% if in_subdir %}
-      <li class="list-group-item">
-        <div class="row">
-          <div class="col-md-8">&nbsp;<i class="fas fa-angle-up"></i>&nbsp;&nbsp;<a href="../">Parent Directory</a></div>
-          <div class="col-md-2"></div>
-          <div class="col-md-2"></div>
-        </div>
-      </li>
-    {% endif %}
-    {% for dir in display_dirs %}
-      <li class="list-group-item">
-        <div class="row">
-          <div class="col-md-8"><i class="fas fa-folder-open"></i>&nbsp;&nbsp;<a href="{{ dir.name }}/">{{ dir.name }}</a></div>
-          <div class="col-md-2"></div>
-          <div class="col-md-2"></div>
-        </div>
-      </li>
-    {% endfor %}
-    {% for file in display_files %}
-      <li class="list-group-item">
-        <div class="row">
-          <div class="col-md-8">&nbsp;<i class="far fa-file"></i>&nbsp;&nbsp;&nbsp;<a href="{{ file.name }}">{{ file.name }}</a></div>
-          <div class="col-md-2">{{ file.size }}</div>
-          <div class="col-md-2">{{ file.last_modified }}</div>
-        </div>
-      </li>
-    {% endfor %}
-  </ul>
-</div>
 {% endblock %}

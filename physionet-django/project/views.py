@@ -20,7 +20,7 @@ from .models import (Affiliation, Author, Invitation, Project,
     Topic, Contact, Publication)
 from .utility import (get_file_info, get_directory_info, get_storage_info,
     write_uploaded_file, list_items, remove_items, move_items as do_move_items,
-    get_form_errors, serve_file)
+    get_form_errors, serve_file, AuthorInfo)
 from user.forms import ProfileForm
 from user.models import User
 
@@ -604,15 +604,59 @@ def project_files(request, project_id, sub_item=''):
 
 
 @authorization_required(auth_functions=(is_author,))
-def project_preview(request, project_id):
+def project_preview(request, project_id, sub_item=''):
     """
-    Preview what the published project would look like
+    Preview what the published project would look like. Includes
+    serving files.
+
     """
+    project = Project.objects.get(id=project_id)
+
+    # Directory where files are kept for the project
+    project_file_root = project.file_root()
+
+    # Case of accessing a file or subdirectory
+    if sub_item:
+        item_path = os.path.join(project_file_root, sub_item)
+        # Serve a file
+        if os.path.isfile(item_path):
+            return serve_file(request, item_path)
+        # In a subdirectory
+        elif os.path.isdir(item_path):
+            in_subdir = True
+        # Invalid url
+        else:
+            return Http404()
+    # In project's file root
+    else:
+        in_subdir = False
+
+    # The url is not pointing to a file to download.
+
+    # The file directory being examined
+    current_directory = os.path.join(project_file_root, sub_item)
+    file_names , dir_names = list_items(current_directory)
+    display_files = [get_file_info(os.path.join(current_directory, f)) for f in file_names]
+    display_dirs = [get_directory_info(os.path.join(current_directory, d)) for d in dir_names]
+
+    authors = project.authors.all().order_by('display_order')
+    author_info = [AuthorInfo(a) for a in authors]
+
+    references = project.references.all()
+    topics = project.topics.all()
+
+    return render(request, 'project/project_preview.html', {
+        'project':project, 'display_files':display_files, 'display_dirs':display_dirs,
+        'sub_item':sub_item, 'in_subdir':in_subdir, 'author_info':author_info,
+        'references':references, 'topics':topics})
+
+
+@authorization_required(auth_functions=(is_author,))
+def full_preview(request, project_id):
     user = request.user
     project = Project.objects.get(id=project_id)
 
-    return render(request, 'project/project_preview.html', {'user':user,
-        'project':project})
+
 
 
 @authorization_required(auth_functions=(is_author,))
@@ -620,11 +664,10 @@ def project_submission(request, project_id):
     """
     View submission details regarding a project
     """
-    user = request.user
     project = Project.objects.get(id=project_id)
 
-    return render(request, 'project/project_submission.html', {'user':user,
-        'project':project})
+    return render(request, 'project/project_submission.html',
+                  {'project':project})
 
 
 def process_storage_response(request, storage_response_formset):

@@ -22,8 +22,11 @@ urlpatterns = [
         name='edit_references'),
     url(r'^(?P<project_id>\d+)/files/(?P<sub_item>.*)$', views.project_files,
         name='project_files'),
-    url(r'^(?P<project_id>\d+)/preview/$', views.project_preview,
+    url(r'^(?P<project_id>\d+)/preview/(?P<sub_item>.*)$', views.project_preview,
         name='project_preview'),
+
+
+
     url(r'^(?P<project_id>\d+)/submission/$', views.project_submission,
         name='project_submission'),
 
