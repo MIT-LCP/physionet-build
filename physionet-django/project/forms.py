@@ -372,8 +372,8 @@ class IdentifierMetadataForm(forms.ModelForm):
     """
     class Meta:
         model = Project
-        fields = ('project_home_page',)
-        help_texts = {'project_home_page': 'External home page for project'}
+        fields = ('external_home_page',)
+        help_texts = {'external_home_page': 'External home page for project'}
 
 
 class InviteAuthorForm(forms.ModelForm):

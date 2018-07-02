@@ -36,7 +36,7 @@ RESPONSE_ACTIONS = {0:'rejected', 1:'accepted'}
 METADATA_FORMSET_HELP_TEXT = {'reference': "Numbered references specified in descriptive information. Note: different from 'publications' in section 3. Maximum of 20.",
     'publication': "Associated publications for the project. Note: different from 'references' in section 1. Maximum of 20",
     'topic': 'Keyword topics associated with the project. Maximum of 20.',
-    'contact':'* Persons to contact for questions about the project. Minimum of 1, maximum of 3.'}
+    'contact':'* Persons to contact for questions about the project. This will only be visible to logged in users. Minimum of 1, maximum of 3.'}
 
 
 def is_admin(user, *args, **kwargs):
@@ -643,12 +643,13 @@ def project_preview(request, project_id, sub_item=''):
     author_info = [AuthorInfo(a) for a in authors]
 
     references = project.references.all()
+    publications = project.publications.all()
     topics = project.topics.all()
 
     return render(request, 'project/project_preview.html', {
         'project':project, 'display_files':display_files, 'display_dirs':display_dirs,
         'sub_item':sub_item, 'in_subdir':in_subdir, 'author_info':author_info,
-        'references':references, 'topics':topics})
+        'references':references, 'publications':publications, 'topics':topics})
 
 
 @authorization_required(auth_functions=(is_author,))
