@@ -148,7 +148,6 @@
     return true;
   }
 
-
 </script>
 
 
@@ -167,11 +166,21 @@
 <form action="{% url 'project_metadata' project.id %}" method="post">
   <h3 class="form-signin-heading">2. Access</h2>
   <hr>
-  {# License, access selection #}
+  <p>The <a href="{% url 'author_guidelines' %}#access" target="_blank">
+     access policy</a> controls access to the files. A
+     <a href="{% url 'licenses' %}" target="_blank">license</a> is
+     always required, and a <a href="{% url 'duas' %}" target="_blank">
+     data use agreement</a> (DUA) is only required for non-open
+     projects.</p>
 
-  <button class="btn btn-lg btn-primary" type="submit" name="edit_references">Save Access Information</button>
+   <p>We strongly encourage setting the 'open' access policy, and will
+      reject non-open submissions that are not justified.</p>
+  <br>
+  {% include "inline_form_snippet.html" with form=access_form %}
+  <button class="btn btn-lg btn-primary" type="submit" name="edit_access">Save Access Information</button>
 </form>
 <br>
+<hr>
 
 <form action="{% url 'project_metadata' project.id %}" method="post">
   <h3 class="form-signin-heading">3. Identifiers</h2>
@@ -180,9 +189,27 @@
   {% csrf_token %}
 
 
-  <button class="btn btn-lg btn-primary" type="submit" name="edit_references">Save Access Information</button>
+  <button class="btn btn-lg btn-primary" type="submit" name="edit_identifiers">Save Access Information</button>
 </form>
 <br>
 
 
+<script>
+  // Control the DUA selection based on access policy
+  access_policy_input = document.getElementById("id_access_policy");
+
+  function controlDUA() {
+    // No dua allowed if open-access
+    dua_input = document.getElementById("id_data_use_agreement");
+    if (access_policy_input.value == "0") {
+      dua_input.selectedIndex = 0;
+      dua_input.disabled = true;
+    }
+    else {
+      dua_input.disabled = false;
+    }
+  }
+  access_policy_input.onload = controlDUA();
+  access_policy_input.onchange = controlDUA;
+</script>
 {% endblock %}

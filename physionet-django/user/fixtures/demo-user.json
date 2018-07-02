@@ -7,7 +7,7 @@
     "email": "admin@mit.edu",
     "username": "admin",
     "join_date": "2017-11-11",
-    "last_login": "2018-05-03T18:50:20.095Z",
+    "last_login": "2018-06-27T17:48:23.668Z",
     "is_active": true,
     "is_admin": true
   }
@@ -20,7 +20,7 @@
     "email": "rgmark@mit.edu",
     "username": "rgmark",
     "join_date": "2017-11-11",
-    "last_login": "2018-05-03T19:31:55.802Z",
+    "last_login": "2018-06-25T21:30:51.578Z",
     "is_active": true,
     "is_admin": false
   }
@@ -167,7 +167,8 @@
     "middle_names": "",
     "last_name": "Bot",
     "url": "https://github.com/MIT-LCP/physionet-build",
-    "identity_verification_date": null
+    "is_credentialed": false,
+    "credential_datetime": null
   }
 },
 {
@@ -181,7 +182,8 @@
     "middle_names": "",
     "last_name": "Mark",
     "url": "http://imes.mit.edu/people/faculty/mark-roger/",
-    "identity_verification_date": null
+    "is_credentialed": false,
+    "credential_datetime": null
   }
 },
 {
@@ -195,7 +197,8 @@
     "middle_names": "",
     "last_name": "Moody",
     "url": "http://ecg.mit.edu/george/",
-    "identity_verification_date": null
+    "is_credentialed": false,
+    "credential_datetime": null
   }
 },
 {
@@ -209,7 +212,8 @@
     "middle_names": "Edward William",
     "last_name": "Johnson",
     "url": "",
-    "identity_verification_date": null
+    "is_credentialed": false,
+    "credential_datetime": null
   }
 }
 ]

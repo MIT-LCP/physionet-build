@@ -322,7 +322,6 @@ class DatabaseMetadataForm(forms.ModelForm):
         return data
 
 
-
 class SoftwareMetadataForm(forms.ModelForm):
     """
     Form for editing the metadata of a project with resource_type == database
@@ -336,6 +335,24 @@ class SoftwareMetadataForm(forms.ModelForm):
 # The modelform for editing metadata for each resource type
 metadata_forms = {'Database':DatabaseMetadataForm,
                   'Software':SoftwareMetadataForm}
+
+
+class AccessMetadataForm(forms.ModelForm):
+    """
+    For editing project access metadata
+    """
+    class Meta:
+        model = Project
+        fields = ('access_policy', 'license', 'data_use_agreement')
+
+    def clean(self):
+        """
+        Check the combination of access policy and dua
+        """
+        cleaned_data = super().clean()
+        if cleaned_data['access_policy'] == 0 and cleaned_data['data_use_agreement'] is not None:
+            raise forms.ValidationError('Open-acess projects cannot have DUAs')
+        return cleaned_data
 
 
 class InviteAuthorForm(forms.ModelForm):
