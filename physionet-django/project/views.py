@@ -615,15 +615,23 @@ def project_preview(request, project_id, sub_item=''):
 
     authors = project.authors.all().order_by('display_order')
     author_info = [AuthorInfo(a) for a in authors]
+    invitations = project.invitations.filter(is_active=True)
 
     references = project.references.all()
     publications = project.publications.all()
     topics = project.topics.all()
     contacts = project.contacts.all()
 
+    if project.is_publishable():
+        messages.success(request, 'Project has passed all automatic checks')
+    else:
+        for e in project.publish_errors:
+            messages.error(request, e)
+
     return render(request, 'project/project_preview.html', {
         'project':project, 'display_files':display_files, 'display_dirs':display_dirs,
         'sub_item':sub_item, 'in_subdir':in_subdir, 'author_info':author_info,
+        'invitations':invitations,
         'references':references, 'publications':publications, 'topics':topics,
         'contacts':contacts})
 

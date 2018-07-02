@@ -13,6 +13,8 @@
 {% block content %}
 
 <div class="container">
+    {% include "message_snippet.html" %}
+
     <h1 class="form-signin-heading">{{ project.title }}</h1>
     <span class="badge badge-dark">{{ project|resource_icon|safe }} {{ project.resource_type }}</span>
     {{ project|access_badge|safe }}
@@ -24,6 +26,9 @@
             {% if forloop.counter < author_info|length|add:"-1" %}
                 ,&nbsp;
             {% endif %}
+        {% endfor %}
+        {% for invitation in invitations %}
+            <a style="color:red">* Outstanding invitation: {{ invitation.email }}</a>
         {% endfor %}
     </p>
     <hr>
