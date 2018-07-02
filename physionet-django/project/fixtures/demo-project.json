@@ -43,19 +43,6 @@
   }
 },
 {
-  "model": "project.publication",
-  "pk": 2,
-  "fields": {
-    "citation": "Moody GB, Mark RG. The impact of the MIT-BIH Arrhythmia Database. IEEE Eng in Med and Biol 20(3):45-50 (May-June 2001). (PMID: 11446209)",
-    "url": "https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=932724&tag=1",
-    "content_type": [
-      "project",
-      "project"
-    ],
-    "object_id": 2
-  }
-},
-{
   "model": "project.project",
   "pk": 1,
   "fields": {
@@ -72,7 +59,7 @@
     "changelog_summary": "",
     "access_policy": 0,
     "license": 1,
-    "external_home_page": null,
+    "external_home_page": "https://physionet.org/physiobank/database/mitdb/",
     "creation_datetime": "2017-10-30T14:30:30Z",
     "modified_datetime": "2018-06-29T20:12:31.456Z",
     "storage_allowance": 1,
@@ -101,7 +88,7 @@
     "changelog_summary": "",
     "access_policy": 2,
     "license": null,
-    "external_home_page": "https://physionet.org/physiobank/database/mitdb/",
+    "external_home_page": null,
     "creation_datetime": "2017-10-30T14:30:30Z",
     "modified_datetime": "2018-07-02T20:38:24.477Z",
     "storage_allowance": 1,
