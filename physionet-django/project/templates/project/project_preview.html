@@ -99,50 +99,52 @@
         <div class="col-md-4">
           <!-- Side Widget -->
           <div class="card my-4">
-            <h5 class="card-header"><a href="{% url 'about_physionet' %}">About PhysioNet</a></h5>
+            <h5 class="card-header">Access</h5>
             <div class="card-body">
-              PhysioNet is a distribution and <a href="{% url 'author_guidelines' %}">publishing</a> platform for physiologic <a href="{% url 'data' %}">data</a> and <a href="{% url 'software' %}">software</a>. It hosts large volumes of open-access and protected resources, and facilitates cooperative analysis of data, evaluation of algorithms, and the free open dissemination of information.
+                <p>
+                    <strong>License (for files)</strong>
+                    <br>
+                    {% if project.license %}
+                        <a href="{% url 'license_content' project.license.slug %}" target="_blank">{{ project.license }}</a>
+                    {% else %}
+                        <a style="color:red"><strong>* Required field missing</strong></a>
+                    {% endif %}
+                </p>
+                {% if project.data_use_agreement %}
+                    <p>
+                        <strong>Data Use Agreement</strong>
+                        <br>
+                        <a href="{% url 'dua_content' project.data_use_agreement.slug %}" target="_blank">{{ project.data_use_agreement.name }}</a>
+                    </p>
+                {% endif %}
+
             </div>
           </div>
 
           <!-- Search Widget -->
           <div class="card my-4">
-            <h5 class="card-header">Search</h5>
+            <h5 class="card-header">Identifiers</h5>
             <div class="card-body">
-              <div class="input-group">
-                <input type="text" class="form-control" placeholder="Search for...">
-                <span class="input-group-btn">
-                  <button class="btn btn-secondary" type="button">Go!</button>
-                </span>
-              </div>
+                <p>Topics:
+                {% for topic in topics %}
+                    <a href="#" class="badge badge-info">{{ topic.description }}</a>
+                {% endfor %}
+                </p>
             </div>
           </div>
 
           <div class="card my-4">
-            <h5 class="card-header">Connect</h5>
+            <h5 class="card-header">Contact</h5>
             <div class="card-body">
-              <div class="row">
-                <div class="col-lg-6">
-                  <ul class="list-unstyled mb-0">
-                    <li>
-                      <a href="https://github.com/MIT-LCP/" target="_blank" style="text-decoration: none; color: #000000;"><i class="fab fa-github"></i> Github</a>
-                    </li>
-                    <li>
-                      <a href="#" target="_blank" style="text-decoration: none; color: #000000;"><i class="fab fa-twitter"></i> Twitter</a>
-                    </li>
-                  </ul>
-                </div>
-                <div class="col-lg-6">
-                  <ul class="list-unstyled mb-0">
-                    <li>
-                      <a href="#" target="_blank" style="text-decoration: none; color: #000000;"><i class="fa fa-envelope"></i> Email List</a>
-                    </li>
-                    <li>
-                      <a href="{% url 'contact' %}" target="_blank" style="text-decoration: none; color: #000000;"><i class="fa fa-comments"></i> Contact Us</a>
-                    </li>
-                  </ul>
-                </div>
-              </div>
+            {% if contacts %}
+                {% for contact in contacts %}
+                <p>
+                    {{ contact.name }}
+                </p>
+                {% endfor %}
+            {% else %}
+                <p><a style="color:red"><strong>* Required field missing</strong></a></p>
+            {% endif %}
             </div>
           </div>
         </div>
