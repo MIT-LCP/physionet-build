@@ -135,6 +135,11 @@
           <div class="card my-4">
             <h5 class="card-header">Identifiers</h5>
             <div class="card-body">
+                    <p><strong>DOI:</strong>
+                    <br>
+                    <span class="badge badge-info">10.13026/[XXXXXX]</span>
+                    </p>
+
                 {% if publications %}
                     <p><strong>Related Publications:</strong>
                     <br>
@@ -159,7 +164,6 @@
                     <a href="{{ project.external_home_page }}" target="_blank"><i class="fas fa-external-link-alt"></i> {{ project.external_home_page }}</a>
                     </p>
                 {% endif %}
-
             </div>
           </div>
 
@@ -169,7 +173,9 @@
             {% if contacts %}
                 {% for contact in contacts %}
                 <p>
-                    {{ contact.name }}
+                    Name: {{ contact.name }}<br>
+                    Affiliation: {{ contact.affiliation }}<br>
+                    Email: {{ contact.email }}
                 </p>
                 {% endfor %}
             {% else %}

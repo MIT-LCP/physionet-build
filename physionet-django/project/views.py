@@ -645,11 +645,13 @@ def project_preview(request, project_id, sub_item=''):
     references = project.references.all()
     publications = project.publications.all()
     topics = project.topics.all()
+    contacts = project.contacts.all()
 
     return render(request, 'project/project_preview.html', {
         'project':project, 'display_files':display_files, 'display_dirs':display_dirs,
         'sub_item':sub_item, 'in_subdir':in_subdir, 'author_info':author_info,
-        'references':references, 'publications':publications, 'topics':topics})
+        'references':references, 'publications':publications, 'topics':topics,
+        'contacts':contacts})
 
 
 @authorization_required(auth_functions=(is_author,))

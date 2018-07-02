@@ -20,8 +20,22 @@
   "pk": 1,
   "fields": {
     "name": "Roger Mark",
-    "affiliation": "MIT",
+    "affiliation": "MIT, Harvard",
     "email": "rgmark@mit.edu",
+    "content_type": [
+      "project",
+      "project"
+    ],
+    "object_id": 1
+  }
+},
+{
+  "model": "project.contact",
+  "pk": 2,
+  "fields": {
+    "name": "George Moody",
+    "affiliation": "MIT",
+    "email": "george@mit.edu",
     "content_type": [
       "project",
       "project"
@@ -61,7 +75,7 @@
     "license": 1,
     "external_home_page": "https://physionet.org/physiobank/database/mitdb/",
     "creation_datetime": "2017-10-30T14:30:30Z",
-    "modified_datetime": "2018-06-29T20:12:31.456Z",
+    "modified_datetime": "2018-07-02T20:59:58.843Z",
     "storage_allowance": 1,
     "submitting_author": [
       "rgmark@mit.edu"
