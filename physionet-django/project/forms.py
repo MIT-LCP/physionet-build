@@ -342,8 +342,8 @@ class SoftwareMetadataForm(forms.ModelForm):
 
 
 # The modelform for editing metadata for each resource type
-metadata_forms = {'Database':DatabaseMetadataForm,
-                  'Software':SoftwareMetadataForm}
+metadata_forms = {0: DatabaseMetadataForm,
+                  1: SoftwareMetadataForm}
 
 
 class AccessMetadataForm(forms.ModelForm):

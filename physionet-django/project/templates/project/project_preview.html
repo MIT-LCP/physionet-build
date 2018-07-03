@@ -38,9 +38,9 @@
         {% endif %}
     {% endif %}
 
-    <h1 class="form-signin-heading">{{ project.title }}</h1>
-    <span class="badge badge-dark">{{ project|resource_icon|safe }} {{ project.resource_type }}</span>
-    {{ project|access_badge|safe }}
+    <h1 class="form-signin-heading"><em>[Preview]:</em> {{ project.title }}</h1>
+    {{ project.resource_type|resource_badge|safe }}
+    {{ project.access_policy|access_badge|safe }}
     <hr>
     <p class="text-muted">
         Authors:
@@ -132,7 +132,7 @@
                 <p>
                     <strong>Access Policy:</strong>
                     <br>
-                    {{ project|access_badge|safe}} {{ project|access_description }}
+                    {{ project.access_policy|access_badge|safe}} {{ project.access_policy|access_description }}
                 </p>
                 <p>
                     <strong>License (for files):</strong>

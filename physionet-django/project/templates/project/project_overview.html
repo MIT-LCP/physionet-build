@@ -9,7 +9,7 @@
 <hr>
 
 <p>
-    <span class="badge badge-dark">{{ project|resource_icon|safe }} {{ project.resource_type }} Project</span>
+    {{ project.resource_type|resource_badge|safe }}
 </p>
 <p class="text-muted">
     Created {{ project.creation_datetime }} Modified {{ project.modified_datetime }}

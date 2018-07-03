@@ -252,8 +252,8 @@ class Metadata(models.Model):
         abstract = True
 
     resource_types = (
-        ('Database', 'Database'),
-        ('Software', 'Software'),
+        (0, 'Database'),
+        (1, 'Software'),
     )
 
     access_policies = (
@@ -264,7 +264,7 @@ class Metadata(models.Model):
 
     # Main body descriptive metadata
 
-    resource_type = models.CharField(max_length=10, choices=resource_types)
+    resource_type = models.PositiveSmallIntegerField(choices=resource_types)
     title = models.CharField(max_length=200)
     # datacite: "A brief description of the resource and the context in
     # which the resource was created"
