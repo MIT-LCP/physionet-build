@@ -638,22 +638,37 @@ def project_preview(request, project_id, sub_item=''):
 
 
 @authorization_required(auth_functions=(is_author,))
-def full_preview(request, project_id):
-    user = request.user
-    project = Project.objects.get(id=project_id)
-
-
-
-
-@authorization_required(auth_functions=(is_author,))
 def project_submission(request, project_id):
     """
     View submission details regarding a project
     """
+    user = request.user
     project = Project.objects.get(id=project_id)
+    authors = project.authors.filter(is_human=True)
+
+    if request.method == 'POST':
+        if 'submit_project' in request.POST:
+            if project.is_publishable():
+                project.presubmit()
+                if len(authors) == 1:
+                    project.submit()
+                    messages.success(request, 'Your project has been submitted, and review has begun.')
+                else:
+                    messages.success(request, 'Your project has been submitted. Awaiting co-authors to approve submission.')
+            else:
+                messages.error(request, 'Fix the errors before submitting')
+        elif 'approve_submission' in request.POST:
+            if project.submission_status == 1:
+                submission = project.submissions.get(is_active=True)
+                author = authors.get(user=user)
+                if authors not in submission.approved_authors.all():
+                    submission.approved_authors.add(author)
+                    messages.success(request, )
+            else:
+                raise Http404()
 
     return render(request, 'project/project_submission.html',
-                  {'project':project})
+                  {'project':project, 'authors':authors})
 
 
 def process_storage_response(request, storage_response_formset):

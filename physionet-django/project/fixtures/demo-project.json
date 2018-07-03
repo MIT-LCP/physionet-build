@@ -81,7 +81,7 @@
       "rgmark@mit.edu"
     ],
     "published": true,
-    "under_review": false,
+    "submission_status": 0,
     "data_use_agreement": null
   }
 },
@@ -110,7 +110,7 @@
       "rgmark@mit.edu"
     ],
     "published": false,
-    "under_review": false,
+    "submission_status": 0,
     "data_use_agreement": null
   }
 },
@@ -139,7 +139,7 @@
       "george@mit.edu"
     ],
     "published": false,
-    "under_review": false,
+    "submission_status": 0,
     "data_use_agreement": null
   }
 },

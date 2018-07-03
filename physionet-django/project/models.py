@@ -10,6 +10,7 @@ from django.db import models
 from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 from django.template.defaultfilters import slugify
+from django.utils import timezone
 
 from .utility import get_tree_size
 
@@ -309,7 +310,8 @@ class Project(Metadata):
         related_name='submitting_projects')
 
     published = models.BooleanField(default=False)
-    under_review = models.BooleanField(default=False)
+    # 0 = not submitted, 1 = presubmission, 2 = under submission
+    submission_status = models.PositiveSmallIntegerField(default=0)
 
     # Access fields
     data_use_agreement = models.ForeignKey('project.DataUseAgreement',
@@ -366,6 +368,49 @@ class Project(Metadata):
             return False
         else:
             return True
+
+    def presubmit(self):
+        """
+        Initialize submission via the submitting author
+        """
+        if not self.is_publishable():
+            raise Exception('Nope')
+
+        if self.submissions.filter(is_active=True):
+            raise Exception('Active submission exists')
+
+        submission = Submission.objects.create(project=self)
+        submission.approved_authors.add(self.authors.filter(user=self.submitting_author))
+        self.submission_status = 1
+        self.save()
+
+    def retract_submission(self):
+        """
+        Retract a submission during presubmission phase
+        """
+        if self.submission_status != 1:
+            raise Exception('Nope')
+
+        submission = self.submissions.get(is_active=True)
+        submission.delete()
+        self.submission_status = 0
+        self.save()
+
+    def submit(self):
+        """
+        Complete the submission after the last author agrees.
+        Set the submission statuses, and get reviewers + editor
+        """
+        submission = self.submissions.get(is_active=True)
+        submission.presubmission = False
+        submission.submission_datetime = timezone.now()
+        submission.save()
+        submission.get_reviewers()
+        submission.get_editor()
+
+        self.submission_status = 2
+        self.save()
+
 
     def publish(self):
         """
@@ -468,7 +513,7 @@ class PublishedProject(Metadata):
     """
     # The Project this object was created from
     base_project = models.ForeignKey('project.Project',
-        related_name='published_project', blank=True, null=True)
+        related_name='published_projects', blank=True, null=True)
     topics = models.ManyToManyField('project.PublishedTopic',
                                     related_name='tagged_projects')
     # Total file storage size in bytes
@@ -616,17 +661,59 @@ class StorageRequest(BaseInvitation):
     # Requested storage size in GB
     request_allowance = models.SmallIntegerField(
         validators=[MaxValueValidator(100), MinValueValidator(1)])
-
     # The authorizer
     responder = models.ForeignKey('user.User', null=True)
 
 
+class Submission(models.Model):
+    """
+    Project submission. Object is created in presubmission mode when
+    submitting author submits. When all co-authors approve, official
+    submission begins. Object can be deleted if submitting author
+    retracts before all co-authors approve.
+
+    """
+    project = models.ForeignKey('project.Project', related_name='submissions')
+    is_active = models.BooleanField(default=True)
+    # Whether the project is under presubmission
+    presubmission = models.BooleanField(default=True)
+    approved_authors = models.ManyToManyField('project.Author')
+    # Marks when the submitting author submits
+    presubmission_datetime = models.DateTimeField(auto_now_add=True)
+    # Marks when all co-authors approve
+    submission_datetime = models.DateTimeField(null=True)
+    response_datetime = models.DateTimeField(null=True)
+    editor = models.ForeignKey('user.User', related_name='editing_submissions',
+        null=True)
+    editor_comments = models.CharField(max_length=800)
+    decision = models.NullBooleanField(null=True)
+    published_project = models.OneToOneField('project.PublishedProject',
+        related_name='submission', null=True)
+
+    def get_reviewers(self):
+        """
+        Get reviewers for the submission
+        """
+        reviewer = Review.objects.create(submission=self,
+            user=User.objects.filter(is_admin=True.first()))
+
+
+    def get_editor(self):
+        """
+        Get an editor for the submission
+        """
+        self.editor = User.objects.filter(is_admin=True).first()
+        self.save()
+
+
 class Review(models.Model):
     """
-    Project review
+    A review for a submission
     """
-    project = models.ForeignKey('project.Project', related_name='reviews')
-    start_date = models.DateTimeField(auto_now_add=True)
-    submission_date = models.DateTimeField(null=True)
-    editor = models.ForeignKey('user.User', related_name='edits', null=True)
-    reviewers = models.ManyToManyField('user.User', related_name='reviews')
+    submission = models.ForeignKey('project.Submission', related_name='reviews')
+    user = models.ForeignKey('user.User', related_name='reviews')
+    comments = models.CharField(max_length=800)
+    decision = models.NullBooleanField(null=True)
+    is_active = models.BooleanField(default=True)
+    response_datetime = models.DateTimeField(null=True)
+

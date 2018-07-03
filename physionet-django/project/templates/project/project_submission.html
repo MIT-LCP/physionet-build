@@ -30,14 +30,28 @@
 <hr>
 
 <h3>Submission Status</h3>
-{% if project.under_review %}
-    <p>The project is currently under review. You may see the details <a href="#">here</a>.</p>
-{% else %}
-    <p>The project is not under review. If the <a href="{% url 'project_preview' project.id '' %}" target="_blank">preview</a>
-       appears satisfactory, the submitting author may request a review</p>
-    <a href="#" class="btn btn-primary btn-fixed">Request Review</a>
-{% endif %}
-<hr>
+{% if project.submission_status == 0 %}
+    <p>The project is not under review. If the
+       <a href="{% url 'project_preview' project.id '' %}" target="_blank">
+       preview</a> appears satisfactory, the submitting author may
+       request a review</p>
+    {% if user == project.submitting_author %}
+        <form action="{% url 'project_submission' project.id %}" method="post">
+            {% csrf_token %}
+            <button class="btn btn-primary" type="submit" name="submit_project">
+            <i class="fas fa-glasses"></i> Request Review</button>
+        </form>
+    {% endif %}
 
+{% elif project.submission_status == 1 %}
+    <p>The project has been submitted for review. Review will begin once
+       all co-authors approve the submission.</p>
+    {% for author in authors %}
+    {% endfor %}
+{% else %}
+    <p>The project is under review</p>
+{% endif %}
+
+<hr>
 
 {% endblock %}
