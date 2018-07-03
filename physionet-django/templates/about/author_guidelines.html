@@ -15,14 +15,14 @@ Author Guidelines
 <div class="container">
     <h1 class="text-center">Author Guidelines</h1>
     <hr>
-    <br>
 
-    <h2>Publication Overview</h2>
-    <hr>
+    <h2 id="overview">Publication Overview</h2>
     <p>These are the steps for publishing a resource on PhysioNet:</p>
     <ul>
         <li>Create a project with a specified resource type.</li>
-        <li>Invite co-authors to be credited on the publication.</li>
+        <li>Invite co-authors to be credited on the publication.
+            Each co-authors must accept their invitation, and fill in
+            their name and affiliations.</li>
         <li>Fill in project metadata, including license and access
             policy.</li>
         <li>Upload the files.</li>
@@ -45,12 +45,12 @@ Author Guidelines
        public domain and cannot be edited. The original project remains,
        and can be edited and resubmitted to publish subsequent versions
        if desired.</p>
-    <hr>
     <br>
+    <hr>
+
 
 
     <h2 id="project-creation">Project Creation</h2>
-    <hr>
     <p>An account is required for creating projects. The
        <a href="{% url 'create_project' %}" target="_blank">project
        creation page</a> can be found in the navbar under the
@@ -67,12 +67,10 @@ Author Guidelines
        this <strong>cannot be changed</strong> later. If you would like
        to contribute both data and code from a single related project,
        submit them in separate projects, and refer them to each other.</p>
-    <hr>
     <br>
-
+    <hr>
 
     <h2 id="authors">Authors</h2>
-    <hr>
     <p>Each project can have one <strong>submitting author</strong>, and
        many co-authors. The user who creates the project is the initial
        submitting author, though they can assign this role to another
@@ -103,12 +101,11 @@ Author Guidelines
        metadata. All non-submitting authors are required to approve
        project submissions initiated by the submitting author.
     </p>
-    <hr>
     <br>
+    <hr>
 
 
     <h2 id="access">Access Policies</h2>
-    <hr>
     <p>Each published project has an access policy chosen by the
        submitting author. The descriptive metadata of all published
        projects are publically visible. The following access policies
@@ -132,12 +129,11 @@ Author Guidelines
 
     <p>We strongly encourage using the 'open' access policy, and will
        reject non-open submissions that are not justified.</p>
-    <hr>
     <br>
+    <hr>
 
 
     <h2 id="files">Uploading Files</h2>
-    <hr>
     <p>PhysioNet resources should be reusable by the greater scientific
         community. Data should be provided in an open format, such as
         text, csv, or wfdb. Large time-series data, especially
@@ -147,15 +143,15 @@ Author Guidelines
     <p>Recall that only the submitting author can upload/edit files. All
        projects start with a moderately low size quota. The submitting
        author may request more storage if needed.</p>
-    <hr>
     <br>
+    <hr>
 
     <h2 id="review">Review Process</h2>
-    <hr>
     <p>If the project passes all of its automatic checks, the submitting
        author may submit the project for review/publication. Once all
        the co-authors approve the review submission, a set of reviewers
-       is assigned to the project.</p>
+       is assigned to the project. While under review, the project
+       cannot be edited.</p>
 
     <p>Once all the reviewers have completed their review, the editor
        will make the decision to accept or reject the publication. If
