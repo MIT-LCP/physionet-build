@@ -622,8 +622,9 @@ def project_preview(request, project_id, sub_item=''):
     topics = project.topics.all()
     contacts = project.contacts.all()
 
-    if project.is_publishable():
-        messages.success(request, 'Project has passed all automatic checks')
+    is_publishable = project.is_publishable()
+    if is_publishable:
+        messages.success(request, 'The project has passed all automatic checks and may be submitted.')
     else:
         for e in project.publish_errors:
             messages.error(request, e)
@@ -633,7 +634,7 @@ def project_preview(request, project_id, sub_item=''):
         'sub_item':sub_item, 'in_subdir':in_subdir, 'author_info':author_info,
         'invitations':invitations,
         'references':references, 'publications':publications, 'topics':topics,
-        'contacts':contacts})
+        'contacts':contacts, 'is_publishable':is_publishable})
 
 
 @authorization_required(auth_functions=(is_author,))
