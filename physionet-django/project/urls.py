@@ -26,6 +26,8 @@ urlpatterns = [
         name='project_files'),
     url(r'^(?P<project_id>\d+)/preview/(?P<sub_item>.*)$', views.project_preview,
         name='project_preview'),
+    url(r'^(?P<project_id>\d+)/publishable/$', views.check_publishable,
+        name='check_publishable'),
     url(r'^(?P<project_id>\d+)/submission/$', views.project_submission,
         name='project_submission'),
 

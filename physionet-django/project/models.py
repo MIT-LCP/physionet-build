@@ -335,38 +335,39 @@ class Project(Metadata):
         """
         Whether the project can be published
         """
-        publish_errors = []
+        self.publish_errors = []
 
         # Invitations
         for invitation in self.invitations.filter(is_active=True):
-            publish_errors.append('Outstanding author invitation to %s' % invitation.email)
+            self.publish_errors.append('Outstanding author invitation to %s' % invitation.email)
 
         # Authors
         for author in self.authors.all():
             if author.is_human:
                 if not author.get_full_name():
-                    publish_errors.append('Author %s has not fill in name' % author.user.username)
+                    self.publish_errors.append('Author %s has not fill in name' % author.user.username)
                 if not author.affiliations.all():
-                    publish_errors.append('Author %s has not filled in affiliations' % author.user.username)
+                    self.publish_errors.append('Author %s has not filled in affiliations' % author.user.username)
             else:
                 if not author.organization_name:
-                    publish_errors.append('Organizational author with no name')
+                    self.publish_errors.append('Organizational author with no name')
         # Metadata
         for attr in ['abstract', 'background', 'methods', 'content_description',
                      'license', 'version']:
             if not getattr(self, attr):
-                publish_errors.append('Missing required field: %s' % attr)
+                self.publish_errors.append('Missing required field: %s' % attr)
 
         if self.access_policy and not self.data_use_agreement:
-            publish_errors.append('Missing DUA for non-open access policy')
+            self.publish_errors.append('Missing DUA for non-open access policy')
 
         if not self.contacts.filter():
-            publish_errors.append('At least one contact is required')
+            self.publish_errors.append('At least one contact is required')
 
-        if publish_errors:
-            self.publish_errors = publish_errors
+        if self.publish_errors:
+            self.is_publishable = False
             return False
         else:
+            self.is_publishable = True
             return True
 
     def presubmit(self):

@@ -9,7 +9,7 @@ from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
 from django.forms import formset_factory, inlineformset_factory, modelformset_factory, Textarea, Select
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, JsonResponse
 from django.shortcuts import render, redirect
 from django.template import loader
 from django.utils import timezone
@@ -635,6 +635,19 @@ def project_preview(request, project_id, sub_item=''):
         'invitations':invitations,
         'references':references, 'publications':publications, 'topics':topics,
         'contacts':contacts, 'is_publishable':is_publishable})
+
+
+@authorization_required(auth_functions=(is_author,))
+def check_publishable(request, project_id):
+    """
+    Check whether a project is publishable
+    """
+    project = Project.objects.get(id=project_id)
+
+    result = project.is_publishable()
+
+    return JsonResponse({'is_publishable':result,
+        'publish_errors':project.publish_errors})
 
 
 @authorization_required(auth_functions=(is_author,))
