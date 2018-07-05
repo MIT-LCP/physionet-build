@@ -364,10 +364,8 @@ class Project(Metadata):
             self.publish_errors.append('At least one contact is required')
 
         if self.publish_errors:
-            self.is_publishable = False
             return False
         else:
-            self.is_publishable = True
             return True
 
     def presubmit(self):
@@ -375,27 +373,58 @@ class Project(Metadata):
         Initialize submission via the submitting author
         """
         if not self.is_publishable():
-            raise Exception('Nope')
+            raise Exception('Project is not publishable')
 
         if self.submissions.filter(is_active=True):
             raise Exception('Active submission exists')
 
-        submission = Submission.objects.create(project=self)
-        submission.approved_authors.add(self.authors.filter(user=self.submitting_author))
         self.submission_status = 1
         self.save()
 
-    def retract_submission(self):
+        submission = Submission.objects.create(project=self)
+        self.approve_author(self.authors.get(user=self.submitting_author))
+
+    def approve_author(self, author):
         """
-        Retract a submission during presubmission phase
+        Add an author to the active submission's approved authors.
+        Triggers submission if it is the last author.
         """
         if self.submission_status != 1:
-            raise Exception('Nope')
+            raise Exception('Project is not under presubmission')
+
+        submission = self.submissions.get(is_active=True)
+
+        if self.submission_status == 1 and author not in submission.approved_authors.all():
+            submission.approved_authors.add(author)
+            # Make the submission
+            if submission.approved_authors.count() == self.authors.filter(is_human=True).count():
+                self.submit()
+
+    def cancel_submission(self):
+        """
+        Cancel a submission during presubmission phase at the request
+        of the submitting author
+        """
+        if self.submission_status != 1:
+            raise Exception('Project is not under presubmission')
 
         submission = self.submissions.get(is_active=True)
         submission.delete()
         self.submission_status = 0
         self.save()
+
+    def withdraw_submission_approval(self, author):
+        """
+        Withdraw an author's submission approval during presubmission phase
+        """
+        if self.submission_status != 1:
+            raise Exception('Project is not under presubmission')
+
+        if author == self.submitting_author:
+            raise Exception('Cannot withdraw submitting author.')
+
+        submission = self.submissions.get(is_active=True)
+        submission.approved_authors.remove(author)
 
     def submit(self):
         """

@@ -653,35 +653,62 @@ def check_publishable(request, project_id):
 @authorization_required(auth_functions=(is_author,))
 def project_submission(request, project_id):
     """
-    View submission details regarding a project
+    View submission details regarding a project, submit the project
+    for review, cancel a submission, approve a submission, and withdraw
+    approval.
     """
     user = request.user
     project = Project.objects.get(id=project_id)
     authors = project.authors.filter(is_human=True)
+    context = {'project':project}
+
+    if project.submission_status:
+        submission = project.submissions.get(is_active=True)
+        context['submission'] = submission
 
     if request.method == 'POST':
         if 'submit_project' in request.POST:
-            if project.is_publishable():
-                project.presubmit()
-                if len(authors) == 1:
-                    project.submit()
-                    messages.success(request, 'Your project has been submitted, and review has begun.')
-                else:
-                    messages.success(request, 'Your project has been submitted. Awaiting co-authors to approve submission.')
+            if project.submission_status:
+                raise Http404()
             else:
-                messages.error(request, 'Fix the errors before submitting')
+                if project.is_publishable() and user == project.submitting_author:
+                    project.presubmit()
+                    # Submission is automatically triggered if only 1 author
+                    if project.submission_status == 1:
+                        messages.success(request, 'Your project has been submitted and review has begun.')
+                    else:
+                        messages.success(request, 'Your project has been submitted. Awaiting co-authors to approve submission.')
+                else:
+                    messages.error(request, 'Fix the errors before submitting')
+        elif 'cancel_submission' in request.POST:
+            if project.submission_status == 1 and user == project.submitting_author:
+                project.cancel_submission()
+                messages.success(request, 'Your project submission has been cancelled.')
+            else:
+                raise Http404()
         elif 'approve_submission' in request.POST:
-            if project.submission_status == 1:
-                submission = project.submissions.get(is_active=True)
-                author = authors.get(user=user)
-                if authors not in submission.approved_authors.all():
-                    submission.approved_authors.add(author)
-                    messages.success(request, )
+            author = authors.get(user=user)
+            submission = project.submissions.get(is_active=True)
+            if project.submission_status == 1 and authors not in submission.approved_authors.all():
+                project.approve_author(author)
+                messages.success(request, 'You have approved the submission')
+            else:
+                raise Http404()
+        elif 'withdraw_approval' in request.POST:
+            submission = project.submissions.get(is_active=True)
+            if project.submission_status == 1 and user in [a.user for a in approved_authors] and user != project.submitting_author:
+                submission.approved_authors.remove(authors.get(user=user))
+                messages.success(request, 'You have withdrawn your approval for the project submission.')
             else:
                 raise Http404()
 
-    return render(request, 'project/project_submission.html',
-                  {'project':project, 'authors':authors})
+        if project.submission_status == 1:
+            submission = project.submissions.get(is_active=True)
+            context['submission'] = submission
+            context['approved_authors'] = submission.approved_authors.all()
+            context['unapproved_authors'] = authors.difference(context['approved_authors'])
+
+    return render(request, 'project/project_submission.html', context)
 
 
 def process_storage_response(request, storage_response_formset):
