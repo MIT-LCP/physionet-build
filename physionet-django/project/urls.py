@@ -34,4 +34,10 @@ urlpatterns = [
     # Admin pages
     url(r'^storage-requests/$', views.storage_requests,
         name='storage_requests'),
+
+
+    # Edit a metadata item and reload the formset section
+    url(r'^(?P<project_id>\d+)/metadata/edit_item/$',
+        views.edit_metadata_item,
+        name='edit_metadata_item'),
 ]

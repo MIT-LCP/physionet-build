@@ -16,6 +16,33 @@
   }
 },
 {
+  "model": "project.contact",
+  "pk": 1,
+  "fields": {
+    "name": "Roger Mark",
+    "affiliation": "MIT",
+    "email": "rgmark@mit.edu",
+    "content_type": [
+      "project",
+      "project"
+    ],
+    "object_id": 1
+  }
+},
+{
+  "model": "project.publication",
+  "pk": 1,
+  "fields": {
+    "citation": "Moody GB, Mark RG. The impact of the MIT-BIH Arrhythmia Database. IEEE Eng in Med and Biol 20(3):45-50 (May-June 2001). (PMID: 11446209)",
+    "url": "https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=932724",
+    "content_type": [
+      "project",
+      "project"
+    ],
+    "object_id": 1
+  }
+},
+{
   "model": "project.project",
   "pk": 1,
   "fields": {
@@ -28,13 +55,13 @@
     "technical_validation": "<p>The charts for each recording were given to two cardiologists, who worked independently, adding additional beat labels and deleting false detections as necessary, and changing the labels for abnormal beats. The cardiologists also added rhythm and signal quality labels. At this point the two sets of annotations were compared automatically and another chart recording was printed, showing the cardiologists&rsquo; annotations in the margin, with all discrepancies highlighted. Each discrepancy was examined and resolved by consensus.</p>",
     "usage_notes": "<p>Use one of the <a href=\"https://physionet.org/physiotools/wfdb.shtml\">WFDB</a> software package distributions to read the files. The WFDB record files contain the regularly sampled multichannel waveforms, and the <em>.atr annotation files contain the reference annotations.</em></p>",
     "acknowledgements": "<p>Thank you to the cardiologists who labelled over 100000 heartbeats.</p>",
-    "version": "",
+    "version": "1.0.0",
     "changelog_summary": "",
     "access_policy": 0,
     "license": 1,
-    "project_home_page": "",
+    "project_home_page": null,
     "creation_datetime": "2017-10-30T14:30:30Z",
-    "modified_datetime": "2018-06-27T18:54:39.167Z",
+    "modified_datetime": "2018-06-29T20:12:31.456Z",
     "storage_allowance": 1,
     "submitting_author": [
       "rgmark@mit.edu"

@@ -304,6 +304,15 @@ class DatabaseMetadataForm(forms.ModelForm):
         fields = ('title', 'abstract', 'background', 'methods',
             'content_description', 'acknowledgements',
             'version', 'changelog_summary',)
+        help_texts = {'title': '* Title of the resource',
+                      'abstract': '* A brief description of the resource and the context in which the resource was created.',
+                      'methods': '* The methodology employed for the study or research.',
+                      'background': '* The study background',
+                      'content_description': '* ',
+                      'acknowledgements': '* Any general acknowledgements',
+                      'version': '* The version number of the resource. Suggested format: <MAJOR>.<MINOR>.<PATCH>',
+                      'changelog_summary': '* Summary of changes from the previous release'}
+
 
     def clean_title(self):
         """
@@ -344,7 +353,9 @@ class AccessMetadataForm(forms.ModelForm):
     class Meta:
         model = Project
         fields = ('access_policy', 'license', 'data_use_agreement')
-
+        help_texts = {'access_policy': '* Access policy for files.',
+                      'license': '* License for usage',
+                      'data_use_agreement': 'Specific conditions for usage'}
     def clean(self):
         """
         Check the combination of access policy and dua
@@ -353,6 +364,16 @@ class AccessMetadataForm(forms.ModelForm):
         if cleaned_data['access_policy'] == 0 and cleaned_data['data_use_agreement'] is not None:
             raise forms.ValidationError('Open-acess projects cannot have DUAs')
         return cleaned_data
+
+
+class IdentifierMetadataForm(forms.ModelForm):
+    """
+    For editing project identifier metadata
+    """
+    class Meta:
+        model = Project
+        fields = ('project_home_page',)
+        help_texts = {'project_home_page': 'External home page for project'}
 
 
 class InviteAuthorForm(forms.ModelForm):

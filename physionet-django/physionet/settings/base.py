@@ -137,7 +137,8 @@ CKEDITOR_CONFIGS = {
             ['NumberedList', 'BulletedList', '-'],
             ['Link', 'Unlink'],
             ['RemoveFormat']
-        ]
+        ],
+        'width': '100%'
     }
 }
 
@@ -176,6 +177,6 @@ logging.config.dictConfig({
             'level': 'INFO',
             'handlers': ['Custom_Logging'],
             'propagate': False,
-        },        
+        },
     },
 })

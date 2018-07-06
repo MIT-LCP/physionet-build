@@ -200,23 +200,44 @@ class PublishedTopic(models.Model):
 
 class Reference(models.Model):
     """
-    General reference field for projects
+    General reference field for projects, for the descriptive metadata
     """
     description = models.CharField(max_length=250)
-    # This value only gets set for published project references
-    order = models.PositiveSmallIntegerField(null=True)
-
     # Project or PublishedProject
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     project_object = GenericForeignKey('content_type', 'object_id')
 
     class Meta:
-        unique_together = (('description', 'content_type', 'object_id'),
-                           ('order', 'content_type', 'object_id'))
+        unique_together = (('description', 'content_type', 'object_id'),)
 
     def __str__(self):
         return self.description
+
+
+class Contact(models.Model):
+    name = models.CharField(max_length=120)
+    affiliation = models.CharField(max_length=100)
+    email = models.EmailField(max_length=255)
+
+    # Project or PublishedProject
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    project_object = GenericForeignKey('content_type', 'object_id')
+
+
+class Publication(models.Model):
+    """
+    The related publications for a project.
+    """
+    citation = models.CharField(max_length=250)
+    url = models.URLField()
+
+    # Project or PublishedProject
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    project_object = GenericForeignKey('content_type', 'object_id')
+
 
 class Metadata(models.Model):
     """
@@ -269,9 +290,11 @@ class Metadata(models.Model):
     license = models.ForeignKey('project.License', null=True)
 
     # Identifiers
-    topics = GenericRelation(Topic, blank=True)
     # External home page
     project_home_page = models.URLField(blank=True, null=True)
+    publications = GenericRelation(Publication, blank=True)
+    topics = GenericRelation(Topic, blank=True)
+    contacts = GenericRelation(Contact, blank=True)
 
 
 class Project(Metadata):
@@ -340,7 +363,7 @@ class Project(Metadata):
         # Same content, different objects.
         for reference in self.references.all():
             reference_copy = Reference.objects.create(
-                description=reference.description, order=description.order,
+                description=reference.description,
                 project_object=published_project)
 
         for topic in self.topics.all():
@@ -454,6 +477,7 @@ class DataUseAgreement(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class AccessSystem(models.Model):
     """

@@ -1,0 +1,46 @@
+<div id="{{ item }}-list">
+  {{ formset.management_form }}
+
+  <div class="form-group row">
+    <div class="col-md-11">
+      <label title="{{ formset.help_text }}">{{ item_label }}</label>
+        {% if formset.help_text|slice:"0:1" == "*" %}
+          <a style="color:red"> *</a>
+        {% endif %}
+    </div>
+
+    <div class="col-md-1">
+      <button class="btn btn-sm btn-info" type="button" onclick="addItem('{{ item }}', '{{ form_name }}', '{{ max_forms }}')" title="Add {{ item }}"><i class="fas fa-plus"></i></button>
+    </div>
+  </div>
+
+  {% for form in formset %}
+    {# This {{ item }}-%d id is identifying the form number on the page #}
+    <div class="form-group row {{ item }}-body" id="{{ item }}-{{ forloop.counter }}">
+        <div class="col-md-1"></div>
+        <div class="col-md-1 {{ item }}-number">{{ forloop.counter }}.</div>
+        <div class="col-md-9 {{ item }}-form">
+            {# id value is blank for forms without saved instances #}
+            {# We want to display labels only for multi-attribute fields #}
+            {% if form.visible_fields|length > 1 %}
+              {% for field in form.visible_fields %}
+                {{ field.label }}
+                {{ field }}
+              {% endfor %}
+              {% for field in form.hidden_fields %}
+                {{ field }}
+              {% endfor %}
+            {% else %}
+              {% for field in form %}
+                {{ field }}
+              {% endfor %}
+            {% endif %}
+        </div>
+        <div class='col-md-1'>
+            <button class="btn btn-sm btn-secondary" type="button" title="Remove {{ item }}" onclick="removeItem(this, '{{ item }}', '{{ form_name }}')"><i class="fas fa-times"></i></button>
+        </div>
+    </div>
+  {% endfor %}
+
+</div>
+

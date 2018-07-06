@@ -16,7 +16,8 @@ from django.utils import timezone
 
 from . import forms
 from .models import (Affiliation, Author, Invitation, Project,
-    PublishedProject, StorageRequest, PROJECT_FILE_SIZE_LIMIT, Reference)
+    PublishedProject, StorageRequest, PROJECT_FILE_SIZE_LIMIT, Reference,
+    Topic, Contact, Publication)
 from .utility import (get_file_info, get_directory_info, get_storage_info,
     write_uploaded_file, list_items, remove_items, move_items as do_move_items,
     get_form_errors, serve_file)
@@ -30,6 +31,12 @@ RESPONSE_CHOICES = (
 )
 
 RESPONSE_ACTIONS = {0:'rejected', 1:'accepted'}
+
+# Help test for formsets, rather than individual form fields.
+METADATA_FORMSET_HELP_TEXT = {'reference': "Numbered references specified in descriptive information. Note: different from 'publications' in section 3. Maximum of 20.",
+    'publication': "Associated publications for the project. Note: different from 'references' in section 1. Maximum of 20",
+    'topic': 'Keyword topics associated with the project. Maximum of 20.',
+    'contact':'* Persons to contact for questions about the project. Minimum of 1, maximum of 3.'}
 
 
 def is_admin(user, *args, **kwargs):
@@ -357,11 +364,10 @@ def edit_references(request, project_id):
             reference_id = int(request.POST['remove_reference'])
             reference = Reference.objects.get(id=reference_id)
             reference.delete()
-            higher_references = project.references.filter(id__gt=reference_id)
             ReferenceFormSet = generic_inlineformset_factory(Reference,
                 fields=('description',), extra=0, max_num=20, can_delete=False)
             reference_formset = ReferenceFormSet(instance=project)
-            return render(request, 'project/reference_list.html', {'reference_formset':reference_formset})
+            return render(request, 'project/reference_list.html',{'reference_formset':reference_formset})
 
     return Http404()
 
@@ -372,18 +378,34 @@ def project_metadata(request, project_id):
     For editing project metadata
     """
     project = Project.objects.get(id=project_id)
-    # There are several forms for different types of metadata
-    description_form = forms.metadata_forms[project.resource_type](instance=project)
 
+    # There are several forms for different types of metadata
     ReferenceFormSet = generic_inlineformset_factory(Reference,
         fields=('description',), extra=0, max_num=20, can_delete=False)
+    TopicFormSet = inlineformset_factory(Project, Topic,
+        fields=('description',), extra=0, max_num=20, can_delete=False)
+    PublicationFormSet = generic_inlineformset_factory(Publication,
+        fields=('citation', 'url'), extra=0, max_num=3, can_delete=False)
+    ContactFormSet = generic_inlineformset_factory(Contact,
+        fields=('name', 'email', 'affiliation'), extra=0, max_num=3,
+        can_delete=False)
+
+    description_form = forms.metadata_forms[project.resource_type](instance=project)
     reference_formset = ReferenceFormSet(instance=project)
     access_form = forms.AccessMetadataForm(instance=project)
+    identifier_form = forms.IdentifierMetadataForm(instance=project)
+    contact_formset = ContactFormSet(instance=project)
+    publication_formset = PublicationFormSet(instance=project)
+    topic_formset = TopicFormSet(instance=project)
+
+    reference_formset.help_text = METADATA_FORMSET_HELP_TEXT['reference']
+    contact_formset.help_text = METADATA_FORMSET_HELP_TEXT['contact']
+    publication_formset.help_text = METADATA_FORMSET_HELP_TEXT['publication']
+    topic_formset.help_text = METADATA_FORMSET_HELP_TEXT['topic']
 
     # There are several different metadata sections
     if request.method == 'POST':
-        # Main description. Process both the description form, and the
-        # reference formset
+        # Main description.
         if 'edit_description' in request.POST:
             description_form = forms.metadata_forms[project.resource_type](request.POST,
                 instance=project)
@@ -393,10 +415,10 @@ def project_metadata(request, project_id):
                 reference_formset.save()
                 messages.success(request, 'Your project metadata has been updated.')
                 reference_formset = ReferenceFormSet(instance=project)
-
             else:
                 messages.error(request,
                     'Invalid submission. See errors below.')
+            reference_formset.help_text = METADATA_FORMSET_HELP_TEXT['reference']
         elif 'edit_access' in request.POST:
             access_form = forms.AccessMetadataForm(request.POST, instance=project)
             if access_form.is_valid():
@@ -405,10 +427,33 @@ def project_metadata(request, project_id):
             else:
                 messages.error(request,
                     'Invalid submission. See errors below.')
+        elif 'edit_identifiers' in request.POST:
+            identifier_form = forms.IdentifierMetadataForm(request.POST,
+                                                           instance=project)
+            publication_formset = PublicationFormSet(request.POST,
+                                                     instance=project)
+            contact_formset = ContactFormSet(request.POST, instance=project)
+            topic_formset = TopicFormSet(request.POST, instance=project)
+            if identifier_form.is_valid() and topic_formset.is_valid() and publication_formset.is_valid():
+                identifier_form.save()
+                contact_formset.save()
+                publication_formset.save()
+                topic_formset.save()
+                messages.success(request, 'Your identifier metadata has been updated.')
+                topic_formset = TopicFormSet(instance=project)
+            else:
+                messages.error(request,
+                    'Invalid submission. See errors below.')
+            contact_formset.help_text = METADATA_FORMSET_HELP_TEXT['contact']
+            publication_formset.help_text = METADATA_FORMSET_HELP_TEXT['publication']
+            topic_formset.help_text = METADATA_FORMSET_HELP_TEXT['topic']
 
     return render(request, 'project/project_metadata.html', {'project':project,
         'description_form':description_form, 'reference_formset':reference_formset,
-        'access_form':access_form,
+        'access_form':access_form, 'identifier_form':identifier_form,
+        'publication_formset':publication_formset,
+        'contact_formset':contact_formset,
+        'topic_formset':topic_formset,
         'messages':messages.get_messages(request)})
 
 
@@ -634,3 +679,65 @@ def published_project(request, published_project_id):
     authors = published_project.authors.all().order_by('display_order')
     return render(request, 'project/database.html',
                   {'published_project':published_project, 'authors':authors})
+
+
+@authorization_required(auth_functions=(is_author,))
+def edit_metadata_item(request, project_id):
+    """
+    Either add the first form, or remove an item.
+
+    """
+
+    model_dict = {'reference': Reference, 'publication': Publication,
+                  'topic': Topic, 'contact': Contact}
+    # Whether the item relation is generic
+    is_generic_relation = {'reference': True, 'publication': True,
+                        'topic': False, 'contact': True}
+    # The fields of each formset
+    metadata_item_fields = {'reference': ('description',),
+                            'publication': ('citation', 'url'),
+                            'topic': ('description',),
+                            'contact': ('name', 'affiliation', 'email')}
+    max_forms = {'reference': 20, 'publication': 3, 'topic': 20,
+                 'contact': 3}
+
+    # These are for the template
+    item_labels = {'reference': 'References', 'publication': 'Publications',
+                   'topic': 'Topics', 'contact': 'Contacts'}
+    form_names = {'reference': 'project-reference-content_type-object_id',
+                  'publication': 'project-publication-content_type-object_id',
+                  'topic': 'topics',
+                  'contact': 'project-contact-content_type-object_id'}
+
+    if request.method == 'POST':
+        project = Project.objects.get(id=project_id)
+        item = request.POST['item']
+
+        model = model_dict[item]
+        # Whether to add the first empty form in the formset
+        extra = int('add_first' in request.POST)
+
+        # Use the correct formset factory function
+        if is_generic_relation[item]:
+            ItemFormSet = generic_inlineformset_factory(model,
+                fields=metadata_item_fields[item], extra=extra,
+                max_num=max_forms[item], can_delete=False)
+        else:
+            ItemFormSet = inlineformset_factory(Project, model,
+                fields=metadata_item_fields[item], extra=extra,
+                max_num=max_forms[item], can_delete=False)
+
+        if 'remove_id' in request.POST:
+            # Check this post key
+            item_id = int(request.POST['remove_id'])
+            model.objects.filter(id=item_id).delete()
+
+        formset = ItemFormSet(instance=project)
+        formset.help_text = METADATA_FORMSET_HELP_TEXT[item]
+
+        return render(request, 'project/item_list.html',
+            {'formset':formset, 'item':item, 'item_label':item_labels[item],
+             'form_name':form_names[item], 'max_forms':max_forms[item]})
+
+    else:
+        return Http404()
