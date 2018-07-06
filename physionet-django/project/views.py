@@ -700,17 +700,14 @@ def project_submission(request, project_id):
             else:
                 raise Http404()
 
+    if project.submission_status:
+        submission = project.submissions.get(is_active=True)
+        context['submission'] = submission
         if project.submission_status == 1:
-            submission = project.submissions.get(is_active=True)
-            context['submission'] = submission
             context['approved_authors'] = submission.approved_authors.all()
             context['unapproved_authors'] = authors.difference(context['approved_authors'])
-    else:
-        if project.submission_status:
-            submission = project.submissions.get(is_active=True)
-            context['submission'] = submission
-            context['approved_authors'] = submission.approved_authors.all()
-            context['unapproved_authors'] = authors.difference(context['approved_authors'])
+        else:
+            context['reviews'] = submission.reviews.all()
 
     return render(request, 'project/project_submission.html', context)
 

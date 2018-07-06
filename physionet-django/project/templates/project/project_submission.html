@@ -116,7 +116,20 @@
     </ul>
     </form>
 {% else %}
-    <p>The project is under review</p>
+    <p>The project has begun review on {{ submission.submission_datetime|date }}. The editor will make the decision
+       after the reviewers have submitted their feedback.</p>
+    <ul class="list-group">
+        {% for review in reviews %}
+            <li class="list-group-item">
+                <i class="fas fa-check" style="color:green" title="Approved"></i>
+                {{ review.user|author_name }}
+            </li>
+        {% endfor %}
+        <li class="list-group-item">
+            <i class="fas fa-check" style="color:green" title="Approved"></i>
+            {{ submission.editor|author_name }}
+        </li>
+    </ul>
 {% endif %}
 
 <hr>

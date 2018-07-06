@@ -39,11 +39,11 @@
           <li class="list-group-item">
             <p>
               {{ project.resource_type|resource_badge|safe }}
-              {% if project.under_review %}
-                <span class="badge badge-info">Under Review</span>
+              {% if project.submission_status == 2 %}
+                <span class="badge badge-info"><i class="fas fa-glasses"></i> Under Review</span>
               {% endif %}
               {% if project.published %}
-                <span class="badge badge-info"><i class="fas fa-book-open"></i> Published</span>
+                <span class="badge badge-success"><i class="fas fa-book-open"></i> Published</span>
               {% endif %}
             </p>
             <h4><a href="{% url 'project_overview' project.id %}">{{ project.title }}</a></h4>
