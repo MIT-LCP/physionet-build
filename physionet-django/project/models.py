@@ -12,6 +12,7 @@ from django.dispatch import receiver
 from django.template.defaultfilters import slugify
 from django.utils import timezone
 
+from user.models import User
 from .utility import get_tree_size
 
 import pdb
@@ -415,11 +416,13 @@ class Project(Metadata):
 
     def withdraw_submission_approval(self, author):
         """
-        Withdraw an author's submission approval during presubmission phase
+        Withdraw a non-submitting author's submission approval during
+        presubmission phase
         """
         if self.submission_status != 1:
             raise Exception('Project is not under presubmission')
 
+        # The `cancel_submission` function is the right one to use
         if author == self.submitting_author:
             raise Exception('Cannot withdraw submitting author.')
 
@@ -712,11 +715,11 @@ class Submission(models.Model):
     presubmission_datetime = models.DateTimeField(auto_now_add=True)
     # Marks when all co-authors approve
     submission_datetime = models.DateTimeField(null=True)
-    response_datetime = models.DateTimeField(null=True)
     editor = models.ForeignKey('user.User', related_name='editing_submissions',
         null=True)
     editor_comments = models.CharField(max_length=800)
     decision = models.NullBooleanField(null=True)
+    response_datetime = models.DateTimeField(null=True)
     published_project = models.OneToOneField('project.PublishedProject',
         related_name='submission', null=True)
 
@@ -725,7 +728,7 @@ class Submission(models.Model):
         Get reviewers for the submission
         """
         reviewer = Review.objects.create(submission=self,
-            user=User.objects.filter(is_admin=True.first()))
+            user=User.objects.filter(is_admin=True).first())
 
 
     def get_editor(self):
