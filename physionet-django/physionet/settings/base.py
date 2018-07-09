@@ -40,6 +40,7 @@ INSTALLED_APPS = [
 
     'user',
     'project',
+    'console',
 ]
 
 MIDDLEWARE = [

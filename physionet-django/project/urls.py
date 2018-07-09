@@ -39,6 +39,4 @@ urlpatterns = [
     url(r'^storage-requests/$', views.storage_requests,
         name='storage_requests'),
 
-
-
 ]

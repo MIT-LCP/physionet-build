@@ -1,0 +1,243 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" id="mainNav">
+
+  <a class="navbar-brand" href="{% url 'home' %}">
+    <i class="fab fa-playstation"></i> Physionet
+  </a>
+
+  <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarResponsive">
+
+
+
+    <ul class="navbar-nav navbar-sidenav" id="exampleAccordion">
+      <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Dashboard">
+        <a class="nav-link" href="index.html">
+          <i class="fa fa-fw fa-dashboard"></i>
+          <span class="nav-link-text">Dashboard</span>
+        </a>
+      </li>
+      <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Charts">
+        <a class="nav-link" href="charts.html">
+          <i class="fa fa-fw fa-area-chart"></i>
+          <span class="nav-link-text">Charts</span>
+        </a>
+      </li>
+      <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Tables">
+        <a class="nav-link" href="tables.html">
+          <i class="fa fa-fw fa-table"></i>
+          <span class="nav-link-text">Tables</span>
+        </a>
+      </li>
+      <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Components">
+        <a class="nav-link nav-link-collapse collapsed" data-toggle="collapse" href="#collapseComponents" data-parent="#exampleAccordion">
+          <i class="fa fa-fw fa-wrench"></i>
+          <span class="nav-link-text">Components</span>
+        </a>
+        <ul class="sidenav-second-level collapse" id="collapseComponents">
+          <li>
+            <a href="navbar.html">Navbar</a>
+          </li>
+          <li>
+            <a href="cards.html">Cards</a>
+          </li>
+        </ul>
+      </li>
+      <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Example Pages">
+        <a class="nav-link nav-link-collapse collapsed" data-toggle="collapse" href="#collapseExamplePages" data-parent="#exampleAccordion">
+          <i class="fa fa-fw fa-file"></i>
+          <span class="nav-link-text">Example Pages</span>
+        </a>
+        <ul class="sidenav-second-level collapse" id="collapseExamplePages">
+          <li>
+            <a href="login.html">Login Page</a>
+          </li>
+          <li>
+            <a href="register.html">Registration Page</a>
+          </li>
+          <li>
+            <a href="forgot-password.html">Forgot Password Page</a>
+          </li>
+          <li>
+            <a href="blank.html">Blank Page</a>
+          </li>
+        </ul>
+      </li>
+      <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Menu Levels">
+        <a class="nav-link nav-link-collapse collapsed" data-toggle="collapse" href="#collapseMulti" data-parent="#exampleAccordion">
+          <i class="fa fa-fw fa-sitemap"></i>
+          <span class="nav-link-text">Menu Levels</span>
+        </a>
+        <ul class="sidenav-second-level collapse" id="collapseMulti">
+          <li>
+            <a href="#">Second Level Item</a>
+          </li>
+          <li>
+            <a href="#">Second Level Item</a>
+          </li>
+          <li>
+            <a href="#">Second Level Item</a>
+          </li>
+          <li>
+            <a class="nav-link-collapse collapsed" data-toggle="collapse" href="#collapseMulti2">Third Level</a>
+            <ul class="sidenav-third-level collapse" id="collapseMulti2">
+              <li>
+                <a href="#">Third Level Item</a>
+              </li>
+              <li>
+                <a href="#">Third Level Item</a>
+              </li>
+              <li>
+                <a href="#">Third Level Item</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Link">
+        <a class="nav-link" href="#">
+          <i class="fa fa-fw fa-link"></i>
+          <span class="nav-link-text">Link</span>
+        </a>
+      </li>
+    </ul>
+
+
+    <ul class="navbar-nav sidenav-toggler">
+      <li class="nav-item">
+        <a class="nav-link text-center" id="sidenavToggler">
+          <i class="fa fa-fw fa-angle-left"></i>
+        </a>
+      </li>
+    </ul>
+
+
+
+
+
+
+    <ul class="navbar-nav mr-auto">
+
+      <li class="nav-item active dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="resource_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i class="fa fa-server"></i> Resources
+        </a>
+        <div class="dropdown-menu" aria-labelledby="resource_dropdown">
+          <a class="dropdown-item" href="{% url 'data' %}">
+            <i class="fa fa-database"></i>&nbsp;&nbsp;Data
+          </a>
+          <a class="dropdown-item" href="{% url 'software' %}">
+            <i class="fa fa-keyboard"></i> Software
+          </a>
+          <a class="dropdown-item" href="{% url 'challenge' %}">
+            <i class="fa fa-university"></i> Challenge
+          </a>
+        </div>
+      </li>
+
+      <li class="nav-item active dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="resource_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i class="fa fa-cloud-upload-alt"></i> Publish
+        </a>
+        <div class="dropdown-menu" aria-labelledby="resource_dropdown">
+          <a class="dropdown-item" href="{% url 'create_project' %}">
+            <i class="fa fa-upload"></i>&nbsp;&nbsp;Submit
+          </a>
+          <a class="dropdown-item" href="{% url 'author_guidelines' %}">
+            <i class="fa fa-book"></i>&nbsp;&nbsp;Author Guidelines
+          </a>
+          <a class="dropdown-item" href="{% url 'licenses' %}">
+            <i class="fab fa-creative-commons"></i>&nbsp;&nbsp;Licenses
+          </a>
+        </div>
+      </li>
+
+      <li class="nav-item active dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="resource_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i class="fa fa-info-circle"></i> About
+        </a>
+        <div class="dropdown-menu" aria-labelledby="resource_dropdown">
+          <a class="dropdown-item" href="{% url 'about_physionet' %}">
+            <i class="fab fa-playstation"></i> About Physionet
+          </a>
+          <a class="dropdown-item" href="{% url 'faq' %}">
+            &nbsp;<i class="fa fa-question"></i>&nbsp;&nbsp;FAQs
+          </a>
+          <a class="dropdown-item" href="{% url 'contact' %}">
+            <i class="fa fa-comments"></i> Contact
+          </a>
+        </div>
+      </li>
+
+    </ul>
+
+    <ul class="navbar-nav ml-auto">
+      {% if user.is_authenticated %}
+        <li class="nav-item active dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="project_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <i class="fa fa-archive"></i> My Projects
+          </a>
+          <div class="dropdown-menu" aria-labelledby="project_dropdown">
+              <a class="dropdown-item" href="{% url 'project_home'%}">
+                <i class="fa fa-home"></i> Project Home
+              </a>
+              <a class="dropdown-item" href="{% url 'project_invitations' %}">
+                <i class="far fa-envelope"></i> Project Invitations
+              </a>
+              {% if user.is_admin %}
+              <a class="dropdown-item" href="{% url 'storage_requests' %}">
+                <i class="fa fa-user-secret"></i> Project Admin Panel
+              </a>
+              {% endif %}
+          </div>
+        </li>
+      {% endif %}
+
+      <li class="nav-item active dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="account_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          {% if user.is_authenticated %}
+          <i class="fa fa-user"></i> {{ user }}
+        </a>
+        <div class="dropdown-menu" aria-labelledby="account_dropdown">
+            <a class="dropdown-item" href="{% url 'user_home'%}">
+              <i class="fa fa-home"></i> User Home
+            </a>
+            <a class="dropdown-item" href="{% url 'public_profile' user.username %}">
+              <i class="fa fa-address-card"></i>&nbsp;&nbsp;Profile
+            </a>
+            <a class="dropdown-item" href="{% url 'edit_profile' %}">
+              <i class="fa fa-cogs"></i> Settings
+            </a>
+            <a class="dropdown-item" href="{% url 'logout' %}">
+              <i class="fas fa-sign-out-alt"></i>&nbsp;&nbsp;Logout
+            </a>
+          {% else %}
+          <i class="fa fa-user"></i> Account
+        </a>
+        <div class="dropdown-menu" aria-labelledby="account_dropdown">
+            <a class="dropdown-item" href="{% url 'login' %}">
+              <i class="fas fa-sign-in-alt"></i>&nbsp;&nbsp;Login
+            </a>
+            <a class="dropdown-item" href="{% url 'register' %}">
+              <i class="fas fa-user-plus"></i> Register
+            </a>
+          {% endif %}
+        </div>
+      </li>
+      <form class="form-inline my-2 my-lg-0 mr-lg-2">
+        <input class="form-control" type="text" placeholder="Search">
+        <span class="input-group-btn">
+          <button class="btn btn-primary  my-2 my-sm-0" type="button"><i class="fa fa-search"></i></button>
+        </span>
+      </form>
+    </ul>
+
+
+
+
+
+
+  </div>
+</nav>

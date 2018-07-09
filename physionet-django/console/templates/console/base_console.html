@@ -1,0 +1,40 @@
+<!-- The base template used for the console pages -->
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+  <head>
+    <title>{% block title %}{% endblock %}</title>
+    {% include "base_css.html" %}
+    <link rel="stylesheet" type="text/css" href="{% static 'console/css/console.css' %}"/>
+    {% block local_css %}{% endblock %}
+    {% include "base_js_top.html" %}
+    {% block local_js_top %}{% endblock %}
+    <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}"/>
+  </head>
+
+  <body class="fixed-nav sticky-footer bg-dark">
+    {% include "console/console_navbar.html" %}
+    {% block content %}{% endblock %}
+
+    {% include 'footer.html' %}
+
+    {% include "base_js_bottom.html" %}
+
+    {% block local_js_bottom %}{% endblock %}
+
+    {# Console js #}
+    <script type="text/javascript" src="{% static 'console/js/console.js' %}"></script>
+
+
+    <!-- Page level plugin JavaScript-->
+    <script src="vendor/chart.js/Chart.min.js"></script>
+    <script src="vendor/datatables/jquery.dataTables.js"></script>
+    <script src="vendor/datatables/dataTables.bootstrap4.js"></script>
+
+
+
+    <!-- Custom scripts for this page-->
+    <script src="js/sb-admin-datatables.min.js"></script>
+    <script src="js/sb-admin-charts.min.js"></script>
+  </body>
+</html>
