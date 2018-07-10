@@ -39,7 +39,7 @@ def is_admin(user, *args, **kwargs):
     return user.is_admin
 
 def is_author(user, project):
-    authors = project.authors.all()
+    authors = project.authors.filter(is_human=True)
     return (user in [a.user for a in authors])
 
 def is_submitting_author(user, project):
@@ -155,9 +155,12 @@ def project_overview(request, project_id):
     """
     Overview page of a project
     """
+    user = request.user
     project = Project.objects.get(id=project_id)
+    admin_inspect = user.is_admin and not is_author(user, project)
 
-    return render(request, 'project/project_overview.html', {'project':project})
+    return render(request, 'project/project_overview.html',
+                  {'project':project, 'admin_inspect':admin_inspect})
 
 
 def edit_affiliations(request, affiliation_formset):
@@ -276,13 +279,12 @@ def project_authors(request, project_id):
     user = request.user
     project = Project.objects.get(id=project_id)
     authors = project.authors.all().order_by('display_order')
+    admin_inspect = user.is_admin and user not in [a.user for a in authors]
 
     # Deal with case when user is a non-author admin
-    if user.is_admin and user not in [a.user for a in authors]:
+    if admin_inspect:
         affiliation_formset, invite_author_form, add_author_form = None, None, None
-        admin_inspect = True
     else:
-        admin_inspect = False
         author = authors.get(user=user)
         AffiliationFormSet = generic_inlineformset_factory(Affiliation,
             fields=('name',), extra=3, max_num=3)
@@ -334,7 +336,9 @@ def project_metadata(request, project_id):
     """
     For editing project metadata
     """
+    user = request.user
     project = Project.objects.get(id=project_id)
+    admin_inspect = user.is_admin and not is_author(user, project)
 
     # There are several forms for different types of metadata
     ReferenceFormSet = generic_inlineformset_factory(Reference,
@@ -411,7 +415,7 @@ def project_metadata(request, project_id):
         'publication_formset':publication_formset,
         'contact_formset':contact_formset,
         'topic_formset':topic_formset,
-        'messages':messages.get_messages(request)})
+        'messages':messages.get_messages(request), 'admin_inspect':admin_inspect})
 
 
 # Helper functions for project files view
@@ -485,6 +489,7 @@ def project_files(request, project_id, sub_item=''):
 
     # The url is not pointing to a file to download.
 
+    admin_inspect = request.user.is_admin and not is_author(request.user, project)
     # The file directory being examined
     current_directory = os.path.join(project_file_root, sub_item)
     storage_info = get_storage_info(project.storage_allowance*1024**3,
@@ -557,7 +562,7 @@ def project_files(request, project_id, sub_item=''):
         'upload_files_form':upload_files_form,
         'folder_creation_form':folder_creation_form,
         'rename_item_form':rename_item_form, 'move_items_form':move_items_form,
-        'delete_items_form':delete_items_form})
+        'delete_items_form':delete_items_form, 'admin_inspect':admin_inspect})
 
 
 @authorization_required(auth_functions=(is_author, is_admin))
@@ -589,7 +594,7 @@ def project_preview(request, project_id, sub_item=''):
         in_subdir = False
 
     # The url is not pointing to a file to download.
-
+    admin_inspect = request.user.is_admin and not is_author(request.user, project)
     # The file directory being examined
     current_directory = os.path.join(project_file_root, sub_item)
     file_names , dir_names = list_items(current_directory)
@@ -617,7 +622,8 @@ def project_preview(request, project_id, sub_item=''):
         'sub_item':sub_item, 'in_subdir':in_subdir, 'author_info':author_info,
         'invitations':invitations,
         'references':references, 'publications':publications, 'topics':topics,
-        'contacts':contacts, 'is_publishable':is_publishable})
+        'contacts':contacts, 'is_publishable':is_publishable,
+        'admin_inspect':admin_inspect})
 
 
 @authorization_required(auth_functions=(is_author,))
@@ -643,7 +649,8 @@ def project_submission(request, project_id):
     user = request.user
     project = Project.objects.get(id=project_id)
     authors = project.authors.filter(is_human=True)
-    context = {'project':project}
+    admin_inspect = user.is_admin and user not in [a.user for a in authors]
+    context = {'project':project, 'admin_inspect':admin_inspect}
 
     if request.method == 'POST':
         if 'submit_project' in request.POST:
