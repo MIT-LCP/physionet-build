@@ -72,19 +72,23 @@ body.fixed-nav {
   max-height: 75vh;
 }
 
-/*#mainNav .navbar-collapse .navbar-nav .nav-item .nav-link {
+#mainNav .navbar-collapse .navbar-nav .nav-item .nav-link {
   cursor: pointer;
 }
 
+/* Content is for after collapse */
 #mainNav .navbar-collapse .navbar-sidenav .nav-link-collapse:after {
   float: right;
   content: '\f107';
-  font-family: 'FontAwesome';
-}*/
+  /* These two are required for fa-5 ;*/
+  font-family: 'Font Awesome\ 5 Free';
+  font-weight: 900;
+}
 
-/*#mainNav .navbar-collapse .navbar-sidenav .nav-link-collapse.collapsed:after {
-  content: '\f105';
-}*/
+/* Before collapse */
+#mainNav .navbar-collapse .navbar-sidenav .nav-link-collapse.collapsed:after {
+  content: "\f105";
+}
 
 #mainNav .navbar-collapse .navbar-sidenav .sidenav-second-level,
 #mainNav .navbar-collapse .navbar-sidenav .sidenav-third-level {
