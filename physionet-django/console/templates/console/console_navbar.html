@@ -10,69 +10,61 @@
 
   <div class="collapse navbar-collapse" id="navbarResponsive">
 
-    <ul class="navbar-nav navbar-sidenav" id="exampleAccordion">
-      <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Dashboard">
+    <ul class="navbar-nav navbar-sidenav" id="sideAccordion">
+      <li class="nav-item" data-toggle="tooltip" data-placement="right">
         <a class="nav-link" href="{% url 'console_home' %}">
           <i class="fas fa-tachometer-alt"></i></i>
           <span class="nav-link-text">Console</span>
         </a>
       </li>
-      <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Charts">
+      <li class="nav-item" data-toggle="tooltip" data-placement="right">
         <a class="nav-link" href="#">
           <i class="fa fa-archive"></i>
           <span class="nav-link-text">All Projects</span>
         </a>
       </li>
-      <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Tables">
+      <li class="nav-item" data-toggle="tooltip" data-placement="right">
         <a class="nav-link" href="{% url 'storage_requests' %}">
           <i class="fa fa-cube"></i>
           <span class="nav-link-text">Storage Requests</span>
         </a>
       </li>
-      <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Tables">
+      <li class="nav-item" data-toggle="tooltip" data-placement="right">
         <a class="nav-link" href="#">
           <i class="fas fa-user-check"></i>
           <span class="nav-link-text">User Credentials</span>
         </a>
       </li>
-      <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Components">
-
-        <a class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#collapseComponents" data-parent="#exampleAccordion">
-          <i class="fa fa-fw fa-wrench"></i>
-          <span class="nav-link-text">Example</span>
+      <li class="nav-item" data-toggle="tooltip" data-placement="right">
+        <a class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#collapseSubmissions" data-parent="#sideAccordion">
+          <i class="fas fa-glasses"></i>
+          <span class="nav-link-text">Project Submissions</span>
         </a>
-
+        <ul class="sidenav-second-level collapse" id="collapseSubmissions">
+          <li>
+            <a href="#">Submission Requests</a>
+          </li>
+          <li>
+            <a href="#">Editor Home</a>
+          </li>
+        </ul>
+      </li>
+      <li class="nav-item" data-toggle="tooltip" data-placement="right">
+        <a class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#collapseComponents" data-parent="#sideAccordion">
+          <i class="fas fa-chart-area"></i>
+          <span class="nav-link-text">Usage Stats</span>
+        </a>
         <ul class="sidenav-second-level collapse" id="collapseComponents">
           <li>
-            <a href="navbar.html">Navbar</a>
+            <a href="#">Big Data</a>
           </li>
           <li>
-            <a href="cards.html">Cards</a>
+            <a href="#">Blockchain</a>
           </li>
         </ul>
       </li>
-      <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Example Pages">
-        <a class="nav-link nav-link-collapse collapsed" data-toggle="collapse" href="#collapseExamplePages" data-parent="#exampleAccordion">
-          <i class="fa fa-fw fa-file"></i>
-          <span class="nav-link-text">Example</span>
-        </a>
-        <ul class="sidenav-second-level collapse" id="collapseExamplePages">
-          <li>
-            <a href="login.html">Login Page</a>
-          </li>
-          <li>
-            <a href="register.html">Registration Page</a>
-          </li>
-          <li>
-            <a href="forgot-password.html">Forgot Password Page</a>
-          </li>
-          <li>
-            <a href="blank.html">Blank Page</a>
-          </li>
-        </ul>
-      </li>
-      <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Menu Levels">
-        <a class="nav-link nav-link-collapse collapsed" data-toggle="collapse" href="#collapseMulti" data-parent="#exampleAccordion">
+      <li class="nav-item" data-toggle="tooltip" data-placement="right">
+        <a class="nav-link nav-link-collapse collapsed" data-toggle="collapse" href="#collapseMulti" data-parent="#sideAccordion">
           <i class="fa fa-fw fa-sitemap"></i>
           <span class="nav-link-text">Example</span>
         </a>
