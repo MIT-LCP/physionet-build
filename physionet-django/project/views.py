@@ -35,18 +35,15 @@ METADATA_FORMSET_HELP_TEXT = {'reference': "Numbered references specified in des
     'contact':'* Persons to contact for questions about the project. This will only be visible to logged in users. Minimum of 1, maximum of 3.'}
 
 
+def is_admin(user, *args, **kwargs):
+    return user.is_admin
+
 def is_author(user, project):
     authors = project.authors.all()
     return (user in [a.user for a in authors])
 
 def is_submitting_author(user, project):
     return user == project.submitting_author
-
-def is_invited(user, project):
-    "Whether a user has been invited to join a project"
-    user_invitations = Invitation.get_user_invitations(user)
-    return bool(user_invitations.filter(project=project))
-
 
 def authorization_required(auth_functions):
     """
@@ -153,7 +150,7 @@ def create_project(request):
     return render(request, 'project/create_project.html', {'form':form})
 
 
-@authorization_required(auth_functions=(is_author, is_invited))
+@authorization_required(auth_functions=(is_author, is_admin))
 def project_overview(request, project_id):
     """
     Overview page of a project
@@ -271,7 +268,7 @@ def move_author(request, project_id):
     raise Http404()
 
 
-@authorization_required(auth_functions=(is_author,))
+@authorization_required(auth_functions=(is_author, is_admin))
 def project_authors(request, project_id):
     """
     Page displaying author information and actions.
@@ -279,15 +276,23 @@ def project_authors(request, project_id):
     user = request.user
     project = Project.objects.get(id=project_id)
     authors = project.authors.all().order_by('display_order')
-    author = authors.get(user=user)
 
-    AffiliationFormSet = generic_inlineformset_factory(Affiliation,
-        fields=('name',), extra=3, max_num=3)
+    # Deal with case when user is a non-author admin
+    if user.is_admin and user not in [a.user for a in authors]:
+        affiliation_formset, invite_author_form, add_author_form = None, None, None
+        admin_inspect = True
+    else:
+        admin_inspect = False
+        author = authors.get(user=user)
+        AffiliationFormSet = generic_inlineformset_factory(Affiliation,
+            fields=('name',), extra=3, max_num=3)
+        affiliation_formset = AffiliationFormSet(instance=author)
 
-    # Initiate the forms
-    affiliation_formset = AffiliationFormSet(instance=author)
-    invite_author_form = forms.InviteAuthorForm(project, user)
-    add_author_form = forms.AddAuthorForm(project=project)
+        if user == project.submitting_author:
+            invite_author_form = forms.InviteAuthorForm(project, user)
+            add_author_form = forms.AddAuthorForm(project=project)
+        else:
+            invite_author_form, add_author_form = None, None
 
     if request.method == 'POST':
         if 'edit_affiliations' in request.POST:
@@ -321,10 +326,10 @@ def project_authors(request, project_id):
         'authors':authors, 'invitations':invitations,
         'affiliation_formset':affiliation_formset,
         'invite_author_form':invite_author_form,
-        'add_author_form':add_author_form})
+        'add_author_form':add_author_form, 'admin_inspect':admin_inspect})
 
 
-@authorization_required(auth_functions=(is_author,))
+@authorization_required(auth_functions=(is_author, is_admin))
 def project_metadata(request, project_id):
     """
     For editing project metadata
@@ -454,7 +459,7 @@ def delete_items(request, delete_items_form):
     else:
         messages.error(request, get_form_errors(delete_items_form))
 
-@authorization_required(auth_functions=(is_author,))
+@authorization_required(auth_functions=(is_author, is_admin))
 def project_files(request, project_id, sub_item=''):
     "View and manipulate files in a project"
     project = Project.objects.get(id=project_id)
@@ -555,7 +560,7 @@ def project_files(request, project_id, sub_item=''):
         'delete_items_form':delete_items_form})
 
 
-@authorization_required(auth_functions=(is_author,))
+@authorization_required(auth_functions=(is_author, is_admin))
 def project_preview(request, project_id, sub_item=''):
     """
     Preview what the published project would look like. Includes
@@ -628,7 +633,7 @@ def check_publishable(request, project_id):
         'publish_errors':project.publish_errors})
 
 
-@authorization_required(auth_functions=(is_author,))
+@authorization_required(auth_functions=(is_author, is_admin))
 def project_submission(request, project_id):
     """
     View submission details regarding a project, submit the project

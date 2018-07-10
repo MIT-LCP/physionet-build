@@ -39,23 +39,25 @@
           <strong>Affiliations</strong>: {{ author|author_affiliations }}
         {% else %}
           <strong>Organization</strong>: {{ author.organization_name }}
-          <a class="float-right">
-            {# Up button #}
-            {% if author.display_order > 1 %}
-              <button class="btn btn-sm" onclick="moveAuthor({{ author.id }}, 'up')" title="Move Author Up" style="background:none"><i class="fas fa-arrow-up"></i></button>
-            {% endif %}
-            {# Down button #}
-            {% if author.display_order < authors|length %}
-              <button class="btn btn-sm" onclick="moveAuthor({{ author.id }}, 'down')"type="button" title="Move Author Down" style="background:none"><i class="fas fa-arrow-down"></i></button>
-            {% else %}
-              <button class="btn btn-sm" type="button" style="background:none; color:white"><i class="fa-arrow-down"></i></button>
-            {% endif %}
-            {# Remove button #}
-            <button class="btn btn-sm" type="button" title="Remove Author" style="background:none; color:#cb2431" data-toggle="modal" data-target="#remove-{{ author.id }}-modal"><i class="fas fa-user-times"></i></button>
-          </a>
+          {% if user == project.submitting_author %}
+            <a class="float-right">
+              {# Up button #}
+              {% if author.display_order > 1 %}
+                <button class="btn btn-sm" onclick="moveAuthor({{ author.id }}, 'up')" title="Move Author Up" style="background:none"><i class="fas fa-arrow-up"></i></button>
+              {% endif %}
+              {# Down button #}
+              {% if author.display_order < authors|length %}
+                <button class="btn btn-sm" onclick="moveAuthor({{ author.id }}, 'down')"type="button" title="Move Author Down" style="background:none"><i class="fas fa-arrow-down"></i></button>
+              {% else %}
+                <button class="btn btn-sm" type="button" style="background:none; color:white"><i class="fa-arrow-down"></i></button>
+              {% endif %}
+              {# Remove button #}
+              <button class="btn btn-sm" type="button" title="Remove Author" style="background:none; color:#cb2431" data-toggle="modal" data-target="#remove-{{ author.id }}-modal"><i class="fas fa-user-times"></i></button>
+            </a>
+          {% endif %}
         {% endif %}
 
-        {% if author.user != project.submitting_author %}
+        {% if user == project.submitting_author and author.user != project.submitting_author %}
           {# Remove author modal #}
           <div class="modal fade" id="remove-{{ author.id }}-modal" role="dialog" aria-labelledby="remove-{{ author.id }}-modal" aria-hidden="true">
             <div class="modal-dialog" role="document">
