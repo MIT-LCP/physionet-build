@@ -14,12 +14,15 @@
 
   <body class="fixed-nav sticky-footer bg-dark">
     {% include "console/console_navbar.html" %}
-    {% block content %}{% endblock %}
-
+    {# Main Content rectangle #}
+    <div class="content-wrapper">
+      <div class="container-fluid">
+        {% block content %}{% endblock %}
+      </div>
+    </div>
     {% include 'footer.html' %}
     {% include "base_js_bottom.html" %}
     {% block local_js_bottom %}{% endblock %}
-
     {# Console js #}
     <script type="text/javascript" src="{% static 'console/js/console.js' %}"></script>
   </body>

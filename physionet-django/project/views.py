@@ -5,7 +5,7 @@ import re
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
@@ -39,9 +39,6 @@ METADATA_FORMSET_HELP_TEXT = {'reference': "Numbered references specified in des
     'topic': 'Keyword topics associated with the project. Maximum of 20.',
     'contact':'* Persons to contact for questions about the project. This will only be visible to logged in users. Minimum of 1, maximum of 3.'}
 
-
-def is_admin(user, *args, **kwargs):
-    return user.is_admin
 
 def is_author(user, project):
     authors = project.authors.all()
@@ -711,49 +708,6 @@ def project_submission(request, project_id):
             context['reviews'] = submission.reviews.all()
 
     return render(request, 'project/project_submission.html', context)
-
-
-def process_storage_response(request, storage_response_formset):
-    storage_request_id = int(request.POST['storage_response'])
-
-    for storage_response_form in storage_response_formset:
-        # Only process the response that was submitted
-        if storage_response_form.instance.id == storage_request_id:
-            if storage_response_form.is_valid():
-                storage_request = storage_response_form.instance
-                storage_request.responder = request.user
-                storage_request.response_datetime = timezone.now()
-                storage_request.is_active = False
-                storage_request.save()
-
-                if storage_request.response:
-                    project = storage_request.project
-                    project.storage_allowance = storage_request.request_allowance
-                    project.save()
-                messages.success(request, 'The storage request has been %s.' % RESPONSE_ACTIONS[storage_request.response])
-
-@login_required
-@user_passes_test(is_admin)
-def storage_requests(request):
-    """
-    Page for listing and responding to project storage requests
-    """
-    user = request.user
-
-    StorageResponseFormSet = modelformset_factory(StorageRequest,
-        fields=('response', 'response_message'),
-        widgets={'response':Select(choices=RESPONSE_CHOICES),
-                 'response_message':Textarea()}, extra=0)
-
-    if request.method == 'POST':
-        storage_response_formset = StorageResponseFormSet(request.POST)
-        process_storage_response(request, storage_response_formset)
-
-    storage_response_formset = StorageResponseFormSet(
-        queryset=StorageRequest.objects.filter(is_active=True))
-
-    return render(request, 'project/storage_requests.html', {'user':user,
-        'storage_response_formset':storage_response_formset})
 
 
 def published_project(request, published_project_id):
