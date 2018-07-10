@@ -121,13 +121,7 @@ def project_home(request):
     - project invitations and response form
     """
     user = request.user
-
     projects = Project.objects.filter(authors__in=user.authorships.all())
-
-    # InvitationResponseFormSet = modelformset_factory(Invitation,
-    #     fields=('response', 'response_message'),
-    #     widgets={'response':Select(choices=RESPONSE_CHOICES),
-    #              'response_message':Textarea()}, extra=0)
 
     InvitationResponseFormSet = modelformset_factory(Invitation,
         form=forms.InvitationResponseForm, extra=0)
