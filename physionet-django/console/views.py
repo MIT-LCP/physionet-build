@@ -1,3 +1,6 @@
+import pdb
+
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.forms import modelformset_factory, Select, Textarea
 from django.shortcuts import render
@@ -33,7 +36,7 @@ def process_storage_response(request, storage_response_formset):
     for storage_response_form in storage_response_formset:
         # Only process the response that was submitted
         if storage_response_form.instance.id == storage_request_id:
-            if storage_response_form.is_valid():
+            if storage_response_form.is_valid() and storage_response_form.instance.is_active:
                 storage_request = storage_response_form.instance
                 storage_request.responder = request.user
                 storage_request.response_datetime = timezone.now()

@@ -697,6 +697,9 @@ class StorageRequest(BaseInvitation):
     # The authorizer
     responder = models.ForeignKey('user.User', null=True)
 
+    def __str__(self):
+        return "%dGB for project: %s" % (self.request_allowance, self.project.__str__())
+
 
 class Submission(models.Model):
     """

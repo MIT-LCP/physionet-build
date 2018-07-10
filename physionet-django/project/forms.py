@@ -479,3 +479,14 @@ class StorageRequestForm(forms.ModelForm):
                 code='already_has_allowance')
 
         return data
+
+    def clean(self):
+        """
+        Must not have outstanding storage request
+        """
+        cleaned_data = super().clean()
+
+        if self.project.storage_requests.filter(is_active=True):
+            raise forms.ValidationError(
+                  'This project already has an outstanding storage request.')
+        return cleaned_data
