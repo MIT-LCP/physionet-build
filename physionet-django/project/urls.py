@@ -4,9 +4,6 @@ from . import views
 
 urlpatterns = [
     url(r'^$', views.project_home, name='project_home'),
-    url(r'^invitations/$', views.project_invitations, name='project_invitations'),
-
-
     url(r'^create/$', views.create_project, name='create_project'),
 
     # Individual project pages

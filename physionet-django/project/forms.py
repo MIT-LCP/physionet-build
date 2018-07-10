@@ -1,5 +1,5 @@
 from django import forms
-from django.forms import BaseInlineFormSet
+from django.forms import BaseInlineFormSet, Select, Textarea
 from django.template.defaultfilters import slugify
 from django.utils import timezone
 import os
@@ -9,7 +9,12 @@ from .utility import readable_size, list_items, list_directories
 import pdb
 
 
-illegal_patterns = ['/','..',]
+RESPONSE_CHOICES = (
+    (1, 'Accept'),
+    (0, 'Reject')
+)
+
+ILLEGAL_PATTERNS = ['/','..',]
 
 
 class MultiFileFieldForm(forms.Form):
@@ -86,7 +91,7 @@ class FolderCreationForm(forms.Form):
             raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
                 code='clashing_name', params={'taken_name':data})
 
-        for substring in illegal_patterns:
+        for substring in ILLEGAL_PATTERNS:
             if substring in data:
                 raise forms.ValidationError('Illegal pattern specified in item name: "%(illegal_pattern)s"',
                 code='illegal_pattern', params={'illegal_pattern':substring})
@@ -136,7 +141,7 @@ class RenameItemForm(forms.Form):
             raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
                 code='clashing_name', params={'taken_name':data})
 
-        for substring in illegal_patterns:
+        for substring in ILLEGAL_PATTERNS:
             if substring in data:
                 raise forms.ValidationError('Illegal pattern specified in item name: "%(illegal_pattern)s"',
                 code='illegal_pattern', params={'illegal_pattern':substring})
@@ -489,4 +494,30 @@ class StorageRequestForm(forms.ModelForm):
         if self.project.storage_requests.filter(is_active=True):
             raise forms.ValidationError(
                   'This project already has an outstanding storage request.')
+        return cleaned_data
+
+
+class InvitationResponseForm(forms.ModelForm):
+    """
+    For responding to an author invitation
+    """
+    class Meta:
+        model = Invitation
+        fields = ('response', 'response_message')
+        widgets={'response':Select(choices=RESPONSE_CHOICES),
+                 'response_message':Textarea()}
+
+    def clean(self):
+        """
+        Invitation must be active, user must be invited
+        """
+        cleaned_data = super().clean()
+
+        if not self.instance.is_active:
+            raise forms.ValidationError('Invalid invitation.')
+
+        if self.instance.email not in self.user.get_emails():
+            raise forms.ValidationError(
+                  'You are not invited.')
+
         return cleaned_data

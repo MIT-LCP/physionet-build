@@ -29,7 +29,7 @@ def console_home(request):
 def process_storage_response(request, storage_response_formset):
     """
     Implement the response to a storage request.
-    Helper function to view: `storage_requests`.
+    Helper function to view: storage_requests.
     """
     storage_request_id = int(request.POST['storage_response'])
 

@@ -62,19 +62,10 @@
         </a>
       </li>
     {% endif %}
-
-    <li class="nav-item active dropdown">
-      <a class="nav-link dropdown-toggle" href="#" id="project_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        <i class="fa fa-archive"></i> My Projects
+    <li class="nav-item active">
+      <a class="nav-link" href="{% url 'project_home' %}">
+        <i class="fa fa-archive"></i> Project Home
       </a>
-      <div class="dropdown-menu" aria-labelledby="project_dropdown">
-          <a class="dropdown-item" href="{% url 'project_home'%}">
-            <i class="fa fa-home"></i> Project Home
-          </a>
-          <a class="dropdown-item" href="{% url 'project_invitations' %}">
-            <i class="far fa-envelope"></i> Project Invitations
-          </a>
-      </div>
     </li>
   {% endif %}
 

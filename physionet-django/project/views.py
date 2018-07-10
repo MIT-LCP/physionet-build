@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
-from django.forms import formset_factory, inlineformset_factory, modelformset_factory, Textarea, Select
+from django.forms import formset_factory, inlineformset_factory, modelformset_factory
 from django.http import HttpResponse, Http404, JsonResponse
 from django.shortcuts import render, redirect
 from django.template import loader
@@ -25,11 +25,6 @@ from .utility import (get_file_info, get_directory_info, get_storage_info,
 from user.forms import ProfileForm
 from user.models import User
 
-
-RESPONSE_CHOICES = (
-    (1, 'Accept'),
-    (0, 'Reject')
-)
 
 RESPONSE_ACTIONS = {0:'rejected', 1:'accepted'}
 
@@ -75,35 +70,18 @@ def authorization_required(auth_functions):
     return real_decorator
 
 
-@login_required
-def project_home(request):
-    """
-    Home page listing projects a user is involved in:
-    - Collaborating projects
-    - Reviewing projects
-    """
-    user = request.user
-
-    projects = Project.objects.filter(authors__in=user.authorships.all())
-
-    # Projects that the user is responsible for reviewing
-    review_projects = None
-
-    return render(request, 'project/project_home.html', {'projects':projects,
-        'review_projects':review_projects})
-
-
 def process_invitation_response(request, invitation_response_formset):
     """
     Process an invitation response.
-    Helper function to project_invitations
+    Helper function to view: project_home
     """
     user = request.user
     invitation_id = int(request.POST['invitation_response'])
     for invitation_response_form in invitation_response_formset:
         # Only process the response that was submitted
         if invitation_response_form.instance.id == invitation_id:
-            if invitation_response_form.is_valid() and invitation_response_form.instance.email in user.get_emails():
+            invitation_response_form.user = user
+            if invitation_response_form.is_valid():# and invitation_response_form.instance.email in user.get_emails():
                 # Update this invitation, and any other one made to the
                 # same user, project, and invitation type
                 invitation = invitation_response_form.instance
@@ -134,17 +112,25 @@ def process_invitation_response(request, invitation_response_formset):
 
                 messages.success(request, 'The invitation has been %s.' % RESPONSE_ACTIONS[invitation.response])
 
+
 @login_required
-def project_invitations(request):
+def project_home(request):
     """
-    Page for listing and responding to project invitations
+    Project home page, listing:
+    - authoring projects
+    - project invitations and response form
     """
     user = request.user
 
+    projects = Project.objects.filter(authors__in=user.authorships.all())
+
+    # InvitationResponseFormSet = modelformset_factory(Invitation,
+    #     fields=('response', 'response_message'),
+    #     widgets={'response':Select(choices=RESPONSE_CHOICES),
+    #              'response_message':Textarea()}, extra=0)
+
     InvitationResponseFormSet = modelformset_factory(Invitation,
-        fields=('response', 'response_message'),
-        widgets={'response':Select(choices=RESPONSE_CHOICES),
-                 'response_message':Textarea()}, extra=0)
+        form=forms.InvitationResponseForm, extra=0)
 
     if request.method == 'POST':
         invitation_response_formset = InvitationResponseFormSet(request.POST)
@@ -154,7 +140,7 @@ def project_invitations(request):
         queryset=Invitation.get_user_invitations(user,
         invitation_types=['author']))
 
-    return render(request, 'project/project_invitations.html', {
+    return render(request, 'project/project_home.html', {'projects':projects,
         'invitation_response_formset':invitation_response_formset})
 
 
