@@ -1,0 +1,118 @@
+{% load static %}
+<ul class="navbar-nav mr-auto">
+
+  <li class="nav-item active dropdown">
+    <a class="nav-link dropdown-toggle" href="#" id="resource_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+      <i class="fa fa-server"></i> Resources
+    </a>
+    <div class="dropdown-menu" aria-labelledby="resource_dropdown">
+      <a class="dropdown-item" href="{% url 'data' %}">
+        <i class="fa fa-database"></i>&nbsp;&nbsp;Data
+      </a>
+      <a class="dropdown-item" href="{% url 'software' %}">
+        <i class="fa fa-keyboard"></i> Software
+      </a>
+      <a class="dropdown-item" href="{% url 'challenge' %}">
+        <i class="fa fa-university"></i> Challenge
+      </a>
+    </div>
+  </li>
+
+  <li class="nav-item active dropdown">
+    <a class="nav-link dropdown-toggle" href="#" id="resource_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+      <i class="fa fa-cloud-upload-alt"></i> Publish
+    </a>
+    <div class="dropdown-menu" aria-labelledby="resource_dropdown">
+      <a class="dropdown-item" href="{% url 'create_project' %}">
+        <i class="fa fa-upload"></i>&nbsp;&nbsp;Submit
+      </a>
+      <a class="dropdown-item" href="{% url 'author_guidelines' %}">
+        <i class="fa fa-book"></i>&nbsp;&nbsp;Author Guidelines
+      </a>
+      <a class="dropdown-item" href="{% url 'licenses' %}">
+        <i class="fab fa-creative-commons"></i>&nbsp;&nbsp;Licenses
+      </a>
+    </div>
+  </li>
+
+  <li class="nav-item active dropdown">
+    <a class="nav-link dropdown-toggle" href="#" id="resource_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+      <i class="fa fa-info-circle"></i> About
+    </a>
+    <div class="dropdown-menu" aria-labelledby="resource_dropdown">
+      <a class="dropdown-item" href="{% url 'about_physionet' %}">
+        <i class="fab fa-playstation"></i> About Physionet
+      </a>
+      <a class="dropdown-item" href="{% url 'faq' %}">
+        &nbsp;<i class="fa fa-question"></i>&nbsp;&nbsp;FAQs
+      </a>
+      <a class="dropdown-item" href="{% url 'contact' %}">
+        <i class="fa fa-comments"></i> Contact
+      </a>
+    </div>
+  </li>
+</ul>
+
+<ul class="navbar-nav ml-auto">
+  {% if user.is_authenticated %}
+    {% if user.is_admin %}
+      <li class="nav-item active">
+        <a class="nav-link" href="{% url 'console_home' %}">
+          <i class="fa fa-user-secret"></i> Admin Console
+        </a>
+      </li>
+    {% endif %}
+
+    <li class="nav-item active dropdown">
+      <a class="nav-link dropdown-toggle" href="#" id="project_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <i class="fa fa-archive"></i> My Projects
+      </a>
+      <div class="dropdown-menu" aria-labelledby="project_dropdown">
+          <a class="dropdown-item" href="{% url 'project_home'%}">
+            <i class="fa fa-home"></i> Project Home
+          </a>
+          <a class="dropdown-item" href="{% url 'project_invitations' %}">
+            <i class="far fa-envelope"></i> Project Invitations
+          </a>
+      </div>
+    </li>
+  {% endif %}
+
+  <li class="nav-item active dropdown">
+    <a class="nav-link dropdown-toggle" href="#" id="account_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+      {% if user.is_authenticated %}
+      <i class="fa fa-user"></i> {{ user }}
+    </a>
+    <div class="dropdown-menu" aria-labelledby="account_dropdown">
+        <a class="dropdown-item" href="{% url 'user_home'%}">
+          <i class="fa fa-home"></i> User Home
+        </a>
+        <a class="dropdown-item" href="{% url 'public_profile' user.username %}">
+          <i class="fa fa-address-card"></i>&nbsp;&nbsp;Profile
+        </a>
+        <a class="dropdown-item" href="{% url 'edit_profile' %}">
+          <i class="fa fa-cogs"></i> Settings
+        </a>
+        <a class="dropdown-item" href="{% url 'logout' %}">
+          <i class="fas fa-sign-out-alt"></i>&nbsp;&nbsp;Logout
+        </a>
+      {% else %}
+      <i class="fa fa-user"></i> Account
+    </a>
+    <div class="dropdown-menu" aria-labelledby="account_dropdown">
+        <a class="dropdown-item" href="{% url 'login' %}">
+          <i class="fas fa-sign-in-alt"></i>&nbsp;&nbsp;Login
+        </a>
+        <a class="dropdown-item" href="{% url 'register' %}">
+          <i class="fas fa-user-plus"></i> Register
+        </a>
+      {% endif %}
+    </div>
+  </li>
+  <form class="form-inline my-2 my-lg-0 mr-lg-2">
+    <input class="form-control" type="text" placeholder="Search">
+    <span class="input-group-btn">
+      <button class="btn btn-primary  my-2 my-sm-0" type="button"><i class="fa fa-search"></i></button>
+    </span>
+  </form>
+</ul>
