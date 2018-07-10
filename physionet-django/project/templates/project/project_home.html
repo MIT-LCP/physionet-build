@@ -38,12 +38,12 @@
         {% for project in projects %}
           <li class="list-group-item">
             <p>
-              <span class="badge badge-dark">{{ project|resource_icon|safe }} {{ project.resource_type }}</span>
+              {{ project.resource_type|resource_badge|safe }}
               {% if project.under_review %}
                 <span class="badge badge-info">Under Review</span>
               {% endif %}
               {% if project.published %}
-                <span class="badge badge-success">Published</span>
+                <span class="badge badge-info"><i class="fas fa-book-open"></i> Published</span>
               {% endif %}
             </p>
             <h4><a href="{% url 'project_overview' project.id %}">{{ project.title }}</a></h4>

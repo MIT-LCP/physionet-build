@@ -252,8 +252,8 @@ class Metadata(models.Model):
         abstract = True
 
     resource_types = (
-        ('Database', 'Database'),
-        ('Software', 'Software'),
+        (0, 'Database'),
+        (1, 'Software'),
     )
 
     access_policies = (
@@ -264,7 +264,7 @@ class Metadata(models.Model):
 
     # Main body descriptive metadata
 
-    resource_type = models.CharField(max_length=10, choices=resource_types)
+    resource_type = models.PositiveSmallIntegerField(choices=resource_types)
     title = models.CharField(max_length=200)
     # datacite: "A brief description of the resource and the context in
     # which the resource was created"
@@ -290,8 +290,7 @@ class Metadata(models.Model):
     license = models.ForeignKey('project.License', null=True)
 
     # Identifiers
-    # External home page
-    project_home_page = models.URLField(blank=True, null=True)
+    external_home_page = models.URLField(blank=True, null=True)
     publications = GenericRelation(Publication, blank=True)
     topics = GenericRelation(Topic, blank=True)
     contacts = GenericRelation(Contact, blank=True)
@@ -334,7 +333,39 @@ class Project(Metadata):
         """
         Whether the project can be published
         """
-        return True
+        publish_errors = []
+
+        # Invitations
+        for invitation in self.invitations.filter(is_active=True):
+            publish_errors.append('Outstanding author invitation to %s' % invitation.email)
+
+        # Authors
+        for author in self.authors.all():
+            if author.is_human:
+                if not author.get_full_name():
+                    publish_errors.append('Author %s has not fill in name' % author.user.username)
+                if not author.affiliations.all():
+                    publish_errors.append('Author %s has not filled in affiliations' % author.user.username)
+            else:
+                if not author.organization_name:
+                    publish_errors.append('Organizational author with no name')
+        # Metadata
+        for attr in ['abstract', 'background', 'methods', 'content_description',
+                     'license', 'version']:
+            if not getattr(self, attr):
+                publish_errors.append('Missing required field: %s' % attr)
+
+        if self.access_policy and not self.data_use_agreement:
+            publish_errors.append('Missing DUA for non-open access policy')
+
+        if not self.contacts.filter():
+            publish_errors.append('At least one contact is required')
+
+        if publish_errors:
+            self.publish_errors = publish_errors
+            return False
+        else:
+            return True
 
     def publish(self):
         """

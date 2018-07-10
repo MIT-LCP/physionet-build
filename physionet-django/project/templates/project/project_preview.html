@@ -1,13 +1,230 @@
-{% extends "project/project.html" %}
+{% extends "base.html" %}
 
 {% block title %}Project Preview - {{ project }}"{% endblock %}
 
+{% load static %}
+
 {% load project_templatetags %}
 
-{% block main_content %}
-<h2 class="form-signin-heading">Project Preview</h2>
-<hr>
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/home.css' %}"/>
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    {% if messages %}
+        {% if is_publishable %}
+            <div class="alert alert-success alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+                {% for message in messages %}
+                    <strong>{{ message }}</strong>
+                {% endfor %}
+            </div>
+        {% else %}
+        <div class="alert alert-danger alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <strong>The following errors must be addressed before submission:</strong>
+            <ul class="messages">
+                {% for message in messages %}
+                <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    {% endif %}
+
+    <h1 class="form-signin-heading"><em>[Preview]:</em> {{ project.title }}</h1>
+    {{ project.resource_type|resource_badge|safe }}
+    {{ project.access_policy|access_badge|safe }}
+    <hr>
+    <p class="text-muted">
+        Authors:
+        {% for author in author_info %}
+            <a title="{{ author.affiliations }}">{{ author.name }}</a>
+            {% if forloop.counter < author_info|length|add:"-1" %}
+                ,&nbsp;
+            {% endif %}
+        {% endfor %}
+        {% for invitation in invitations %}
+            <a style="color:red">* Outstanding invitation: {{ invitation.email }}</a>
+        {% endfor %}
+    </p>
+    <hr>
+    Published: [dd/mm/yyyy] - Version:
+    {% if project.version %}
+        {{ project.version}}
+    {% else %}
+        <a style="color:red"><strong>* Required field missing</strong></a>
+    {% endif %}
+    <hr>
+
+    <div class="row">
+        <!-- Main column -->
+        <div class="col-md-8">
+
+            <h2>Abstract</h2>
+            {% if project.abstract %}
+                {{ project.abstract|safe }}
+            {% else %}
+                <p style="color:red"><strong>* Required field missing</strong></p>
+            {% endif %}
+            <hr>
+
+            <h2>Background</h2>
+            {% if project.background %}
+                {{ project.background|safe }}
+            {% else %}
+                <p style="color:red"><strong>* Required field missing</strong></p>
+            {% endif %}
+            <hr>
+
+            <h2>Methods</h2>
+            {% if project.methods %}
+                {{ project.methods|safe }}
+            {% else %}
+                <p style="color:red"><strong>* Required field missing</strong></p>
+            {% endif %}
+            <hr>
+
+            <h2>Content Description</h2>
+            {% if project.content_description %}
+                {{ project.content_description|safe }}
+            {% else %}
+                <p style="color:red"><strong>* Required field missing</strong></p>
+            {% endif %}
+            <hr>
+
+            {% if project.acknowledgements %}
+                <h2>Acknowledgements</h2>
+                {{ project.acknowledgements|safe }}
+                <hr>
+            {% endif %}
+
+            {% if references %}
+                <h2>References</h2>
+                <ol>
+                {% for reference in topics %}
+                    <li>{{ reference.description }}</li>
+                {% endfor %}
+                </ol>
+                <hr>
+            {% endif %}
+
+            {% if project.changelog_summary %}
+                <h2>Changelog Summary</h2>
+                {{ project.changelog_summary|safe }}
+                <hr>
+            {% endif %}
+        </div>
+        <!-- /.main column -->
+
+        <!-- Sidebar Column -->
+        <div class="col-md-4">
+          <!-- Side Widget -->
+          <div class="card my-4">
+            <h5 class="card-header">Access</h5>
+            <div class="card-body">
+                <p>
+                    <strong>Access Policy:</strong>
+                    <br>
+                    {{ project.access_policy|access_badge|safe}} {{ project.access_policy|access_description }}
+                </p>
+                <p>
+                    <strong>License (for files):</strong>
+                    <br>
+                    {% if project.license %}
+                        <a href="{% url 'license_content' project.license.slug %}" target="_blank">{{ project.license }}</a>
+                    {% else %}
+                        <a style="color:red"><strong>* Required field missing</strong></a>
+                    {% endif %}
+                </p>
+                {% if project.data_use_agreement %}
+                    <p>
+                        <strong>Data Use Agreement:</strong>
+                        <br>
+                        <a href="{% url 'dua_content' project.data_use_agreement.slug %}" target="_blank">{{ project.data_use_agreement.name }}</a>
+                    </p>
+                {% else %}
+                    {% if project.access_policy %}
+                        <p>
+                            <strong>Data Use Agreement:</strong>
+                            <br>
+                            <a style="color:red"><strong>* Missing DUA for non-open access policy</strong></a>
+                    </p>
+                    {% endif %}
+                {% endif %}
+            </div>
+          </div>
+
+          <div class="card my-4">
+            <h5 class="card-header">Identifiers</h5>
+            <div class="card-body">
+                    <p><strong>DOI:</strong>
+                    <br>
+                    <span class="badge badge-info">10.13026/[XXXXXX]</span>
+                    </p>
+
+                {% if publications %}
+                    <p><strong>Related Publications:</strong>
+                    <br>
+                    {% for publication in publications %}
+                        <a href="{{ publication.url }}" target="_blank">{{ publication.citation }}</a>
+                    {% endfor %}
+                    </p>
+                {% endif %}
+
+                {% if topics %}
+                    <p><strong>Topics:</strong>
+                    <br>
+                    {% for topic in topics %}
+                        <a href="#" class="badge badge-info">{{ topic.description }}</a>
+                    {% endfor %}
+                    </p>
+                {% endif %}
+
+                {% if project.external_home_page %}
+                    <p><strong>Project Home Page:</strong>
+                    <br>
+                    <a href="{{ project.external_home_page }}" target="_blank"><i class="fas fa-external-link-alt"></i> {{ project.external_home_page }}</a>
+                    </p>
+                {% endif %}
+            </div>
+          </div>
+
+          <div class="card my-4">
+            <h5 class="card-header">Contact</h5>
+            <div class="card-body">
+            {% if contacts %}
+                {% for contact in contacts %}
+                <p>
+                    Name: {{ contact.name }}<br>
+                    Affiliation: {{ contact.affiliation }}<br>
+                    Email: {{ contact.email }}
+                </p>
+                {% endfor %}
+            {% else %}
+                <p><a style="color:red"><strong>* Required field missing</strong></a></p>
+            {% endif %}
+            </div>
+          </div>
+        </div>
+        <!-- /.sidebar -->
 
 
 
+    </div>
+
+
+
+    <br><br>
+
+    {% include "project/files_panel.html" %}
+    <br>
+
+</div>
 {% endblock %}

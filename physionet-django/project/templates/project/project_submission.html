@@ -8,42 +8,35 @@
 <h2 class="form-signin-heading">Project Submission</h2>
 <hr>
 
-<p>
-    <span class="badge badge-dark">{{ project|resource_icon|safe }} {{ project.resource_type }} Project</span>
-</p>
-<p class="text-muted">
-    Created {{ project.creation_datetime }} Modified {{ project.modified_datetime }}
-</p>
-<p>
-    Submitting Author: <a href="{% url 'public_profile' project.submitting_author.username %}">{{ project.submitting_author.profile }}</a>
-</p>
-<hr>
-
-
-<h4>Submission Checklist</h4>
+<h3>Submission Checklist</h3>
 
 <ol>
-    <li>Ensure all <a href="{% url 'project_authors' project.id %}">authors</a> to be credited for creating the resource, have been added to the project and filled in their details.</li>
-    <li>Fill in all the mandatory, and the desired optional <a href="{% url 'project_metadata' project.id %}">metadata</a> fields.</li>
-    <li>Upload the project <a href="{% url 'project_files' project.id '' %}">files</a>.</li>
-    <li>Inspect the project <a href="{% url 'project_preview' project.id %}">preview</a> to see how the published project would look. Make sure to address any errors.</li>
+    <li>Ensure all <a href="{% url 'project_authors' project.id %}">
+        authors</a> to be credited for creating the resource, have been
+        added to the project and filled in their details.</li>
+    <li>Fill in all the mandatory, and the desired optional
+        <a href="{% url 'project_metadata' project.id %}">metadata</a>
+        fields.</li>
+    <li>Upload the project <a href="{% url 'project_files' project.id '' %}">
+        files</a>.</li>
+    <li>Inspect the project <a href="{% url 'project_preview' project.id '' %}" target="_blank">
+        preview</a> to see how the published project would look. Make
+        sure to address any errors.</li>
 </ol>
 
-<p>When you have done all of the above, you may submit your project for publication.</p>
+<p>For more details, see the <a href="{% url 'author_guidelines' %}" target="_blank">
+   author guidelines</a>.</p>
 
 <hr>
 
-<h4>Submission Status</h4>
+<h3>Submission Status</h3>
 {% if project.under_review %}
     <p>The project is currently under review. You may see the details <a href="#">here</a>.</p>
 {% else %}
-    <p>The project is not under review. If the project satisfies the <a href="#">publication requirements</a> and you would like to publish the project, you may <a href="#">request a review</a>.</p>
+    <p>The project is not under review. If the <a href="{% url 'project_preview' project.id '' %}" target="_blank">preview</a>
+       appears satisfactory, the submitting author may request a review</p>
     <a href="#" class="btn btn-primary btn-fixed">Request Review</a>
 {% endif %}
-<hr>
-
-<h4>Published Versions</h4>
-<p>This project has not been published.</p>
 <hr>
 
 

@@ -20,8 +20,22 @@
   "pk": 1,
   "fields": {
     "name": "Roger Mark",
-    "affiliation": "MIT",
+    "affiliation": "MIT, Harvard",
     "email": "rgmark@mit.edu",
+    "content_type": [
+      "project",
+      "project"
+    ],
+    "object_id": 1
+  }
+},
+{
+  "model": "project.contact",
+  "pk": 2,
+  "fields": {
+    "name": "George Moody",
+    "affiliation": "MIT",
+    "email": "george@mit.edu",
     "content_type": [
       "project",
       "project"
@@ -46,7 +60,7 @@
   "model": "project.project",
   "pk": 1,
   "fields": {
-    "resource_type": "Database",
+    "resource_type": 0,
     "title": "MIT-BIH Arrhythmia Database",
     "abstract": "<p>The MIT-BIH Arrhythmia Database contains 48 half-hour excerpts of two-channel ambulatory ECG recordings, obtained from 47 subjects studied by the BIH Arrhythmia Laboratory between 1975 and 1979. Twenty-three recordings were chosen at random from a set of 4000 24-hour ambulatory ECG recordings collected from a mixed population of inpatients (about 60%) and outpatients (about 40%) at Boston&#39;s Beth Israel Hospital; the remaining 25 recordings were selected from the same set to include less common but clinically significant arrhythmias that would not be well-represented in a small random sample.</p>",
     "background": "<p>Since 1975, our laboratories at Boston&#39;s Beth Israel Hospital (now the Beth Israel Deaconess Medical Center) and at MIT have supported our own research into arrhythmia analysis and related subjects. One of the first major products of that effort was the MIT-BIH Arrhythmia Database, which we completed and began distributing in 1980. The database was the first generally available set of standard test material for evaluation of arrhythmia detectors, and has been used for that purpose as well as for basic research into cardiac dynamics at more than 500 sites worldwide. Originally, we distributed the database on 9-track half-inch digital tape at 800 and 1600 bpi, and on quarter-inch IRIG-format FM analog tape. In August, 1989, we produced a CD-ROM version of the database.</p>",
@@ -59,9 +73,9 @@
     "changelog_summary": "",
     "access_policy": 0,
     "license": 1,
-    "project_home_page": null,
+    "external_home_page": "https://physionet.org/physiobank/database/mitdb/",
     "creation_datetime": "2017-10-30T14:30:30Z",
-    "modified_datetime": "2018-06-29T20:12:31.456Z",
+    "modified_datetime": "2018-07-02T20:59:58.843Z",
     "storage_allowance": 1,
     "submitting_author": [
       "rgmark@mit.edu"
@@ -75,22 +89,22 @@
   "model": "project.project",
   "pk": 2,
   "fields": {
-    "resource_type": "Database",
+    "resource_type": 0,
     "title": "MIMIC-III Clinical Database",
-    "abstract": "<p>MIMIC-III (Medical Information Mart for Intensive Care III) is a large, freely-available database comprising deidentified health-related data associated with over forty thousand patients who stayed in critical care units of the Beth Israel Deaconess Medical Center between 2001 and 2012.</p><p>The database includes information such as demographics, vital sign measurements made at the bedside (~1 data point per hour), laboratory test results, procedures, medications, caregiver notes, imaging reports, and mortality (both in and out of hospital).</p>",
+    "abstract": "<p>MIMIC-III (Medical Information Mart for Intensive Care III) is a large, freely-available database comprising deidentified health-related data associated with over forty thousand patients who stayed in critical care units of the Beth Israel Deaconess Medical Center between 2001 and 2012.</p>\r\n\r\n<p>The database includes information such as demographics, vital sign measurements made at the bedside (~1 data point per hour), laboratory test results, procedures, medications, caregiver notes, imaging reports, and mortality (both in and out of hospital).</p>",
     "background": "",
     "methods": "",
     "content_description": "",
     "technical_validation": "",
     "usage_notes": "",
     "acknowledgements": "",
-    "version": "",
+    "version": "1.0.0",
     "changelog_summary": "",
     "access_policy": 2,
     "license": null,
-    "project_home_page": "",
+    "external_home_page": null,
     "creation_datetime": "2017-10-30T14:30:30Z",
-    "modified_datetime": "2017-10-30T14:30:30Z",
+    "modified_datetime": "2018-07-02T20:38:24.477Z",
     "storage_allowance": 1,
     "submitting_author": [
       "rgmark@mit.edu"
@@ -104,7 +118,7 @@
   "model": "project.project",
   "pk": 3,
   "fields": {
-    "resource_type": "Software",
+    "resource_type": 1,
     "title": "WFDB",
     "abstract": "<p>Effective use of PhysioBank data requires specialized software. We have developed a large collection of such software over the past twenty years, and much of it is contained within the WFDB (WaveForm DataBase) Software Package, the GPLed successor to the MIT DB Software Package.</p><p>The major components of the WFDB Software Package are the WFDB library, about 75 WFDB applications for signal processing and automated analysis, and the WAVE software for viewing, annotation, and interactive analysis of waveform data. A comprehensive collection of documentation, including tutorials and reference manuals, is also included in the package.</p>",
     "background": "",
@@ -117,7 +131,7 @@
     "changelog_summary": "",
     "access_policy": 0,
     "license": null,
-    "project_home_page": "",
+    "external_home_page": "",
     "creation_datetime": "2017-10-30T14:30:30Z",
     "modified_datetime": "2017-10-30T14:30:30Z",
     "storage_allowance": 1,
