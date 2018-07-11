@@ -6,7 +6,8 @@ from django.forms import modelformset_factory, Select, Textarea
 from django.shortcuts import render
 from django.utils import timezone
 
-from project.models import StorageRequest
+from project.models import Project, StorageRequest
+from user.models import User
 
 
 RESPONSE_CHOICES = (
@@ -52,6 +53,18 @@ def process_storage_response(request, storage_response_formset):
 
 @login_required
 @user_passes_test(is_admin)
+def project_list(request):
+    """
+    View list of projects
+    """
+    projects = Project.objects.all()
+
+    # title, submitting author, creation date, published,
+    return render(request, 'console/project_list.html', {'projects':projects})
+
+
+@login_required
+@user_passes_test(is_admin)
 def storage_requests(request):
     """
     Page for listing and responding to project storage requests
@@ -72,3 +85,13 @@ def storage_requests(request):
 
     return render(request, 'console/storage_requests.html', {'user':user,
         'storage_response_formset':storage_response_formset})
+
+
+@login_required
+@user_passes_test(is_admin)
+def user_list(request):
+    """
+    View list of users
+    """
+    users = User.objects.all()
+    return render(request, 'console/user_list.html', {'users':users})

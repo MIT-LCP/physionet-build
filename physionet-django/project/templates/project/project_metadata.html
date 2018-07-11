@@ -12,7 +12,7 @@
 {% block main_content %}
 <h2 class="form-signin-heading">Project Metadata</h2>
 <hr>
-<p>Hover over a field label to see its description. (<a style="color:red">*</a>) indicates a required field, although you do not need to fill in all fields before saving.</p>
+<p>Hover over a field label to see its description. (<a style="color:red">*</a>) indicates a required field, although you do not need to fill in all fields before saving. Only the submitting author may edit the metadata.</p>
 <hr>
 
 <script>
@@ -208,6 +208,12 @@
   }
   access_policy_input.onload = controlDUA();
   access_policy_input.onchange = controlDUA;
+
+  {% if user != project.submitting_author %}
+    $('button').attr('disabled',true);
+    $('input').attr('disabled',true);
+    $('select').attr('disabled',true);
+  {% endif %}
 </script>
 {% endblock %}
 

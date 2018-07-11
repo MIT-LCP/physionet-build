@@ -18,7 +18,7 @@
         </a>
       </li>
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
-        <a class="nav-link" href="#">
+        <a class="nav-link" href="{% url 'project_list' %}">
           <i class="fa fa-archive"></i>
           <span class="nav-link-text">All Projects</span>
         </a>
@@ -30,24 +30,22 @@
         </a>
       </li>
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
-        <a class="nav-link" href="#">
+        <a class="nav-link" href="{% url 'user_list' %}">
           <i class="fas fa-user-check"></i>
-          <span class="nav-link-text">User Credentials</span>
+          <span class="nav-link-text">All Users</span>
         </a>
       </li>
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
-        <a class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#collapseSubmissions" data-parent="#sideAccordion">
+        <a class="nav-link" href="{% url 'user_list' %}">
           <i class="fas fa-glasses"></i>
           <span class="nav-link-text">Project Submissions</span>
         </a>
-        <ul class="sidenav-second-level collapse" id="collapseSubmissions">
-          <li>
-            <a href="#">Submission Requests</a>
-          </li>
-          <li>
-            <a href="#">Editor Home</a>
-          </li>
-        </ul>
+      </li>
+      <li class="nav-item" data-toggle="tooltip" data-placement="right">
+        <a class="nav-link" href="{% url 'user_list' %}">
+          <i class="fas fa-edit"></i>
+          <span class="nav-link-text">Editor Home</span>
+        </a>
       </li>
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
         <a class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#collapseComponents" data-parent="#sideAccordion">

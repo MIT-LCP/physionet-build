@@ -332,6 +332,7 @@ class Project(Metadata):
         "Total storage used in bytes"
         return get_tree_size(self.file_root())
 
+
     def is_publishable(self):
         """
         Whether the project can be published
