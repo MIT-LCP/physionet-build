@@ -702,6 +702,18 @@ def project_submission(request, project_id):
     return render(request, 'project/project_submission.html', context)
 
 
+@authorization_required(auth_functions=(is_author, is_admin))
+def project_submission_history(request, project_id):
+    """
+    Submission history for a project
+    """
+    project = Project.objects.get(id=project_id)
+    admin_inspect = user.is_admin and not is_author(user, project)
+
+    return render(request, 'project/submission_history.html',
+        {'project':project, 'admin_inspect':admin_inspect})
+
+
 def published_project(request, published_project_id):
     """
     Displays a published project

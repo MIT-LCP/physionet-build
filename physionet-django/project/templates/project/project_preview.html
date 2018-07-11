@@ -38,7 +38,10 @@
         {% endif %}
     {% endif %}
 
-    <h1 class="form-signin-heading"><em>[Preview]:</em> {{ project.title }}</h1>
+    <h1 class="form-signin-heading"><em>[Preview]:</em> {{ project.title }} {% if admin_inspect %}
+            (<i class="fas fa-user-secret" title="Admin Inspection"></i>)
+          {% endif %}
+    </h1>
     {{ project.resource_type|resource_badge|safe }}
     {{ project.access_policy|access_badge|safe }}
     <hr>

@@ -311,8 +311,9 @@ class Project(Metadata):
         related_name='submitting_projects')
 
     published = models.BooleanField(default=False)
-    # 0 = not submitted, 1 = presubmission, 2 = under submission
-    submission_status = models.PositiveSmallIntegerField(default=0)
+    # Under any stage of the submission process, from presubmission.
+    # 1 <= Submission.submission_status <= 4
+    under_submission = models.BooleanField(default=False)
 
     # Access fields
     data_use_agreement = models.ForeignKey('project.DataUseAgreement',
