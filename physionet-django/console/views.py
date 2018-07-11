@@ -95,3 +95,23 @@ def user_list(request):
     """
     users = User.objects.all()
     return render(request, 'console/user_list.html', {'users':users})
+
+
+@login_required
+@user_passes_test(is_admin)
+def submissions(request):
+    """
+    Submission control panel
+    """
+
+    return render(request, 'console/submissions.html', {})
+
+
+@login_required
+@user_passes_test(is_admin)
+def editor_home(request):
+    """
+    Editor home
+    """
+
+    return render(request, 'console/editor_home.html', {})
