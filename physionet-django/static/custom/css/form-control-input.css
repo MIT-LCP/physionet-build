@@ -1,6 +1,6 @@
 /* Styling of inputs to have the same bootstrap look as form-control elements */
 
-input, select, django-ckeditor-widget textarea {
+input, select, django-ckeditor-widget, textarea {
   display: block;
   width: 100%;
   padding: 0.5rem 0.75rem;

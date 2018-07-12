@@ -26,7 +26,13 @@
             <td><a href="{% url 'project_overview' submission.project.id %}">{{ submission.project }}</a></td>
             <td>{{ submission.submission_status }}</td>
             <td>{{ submission.submission_datetime|date }}</td>
-            <td>{{ submission.editor }}</td>
+            <td>
+                {% if submission.editor %}
+                    {{ submission.editor }}
+                {% else %}
+                    <a style="color:red">Awaiting Editor Assignment</a>
+                {% endif %}
+            </td>
         {% endfor %}
         </tbody>
       </table>
@@ -43,7 +49,6 @@
           {% include "form_snippet.html" with form=assign_editor_form %}
           <button class="btn btn-primary btn-fixed" name="invite_author" type="submit">Assign Editor</button>
         </form>
-
     </div>
 </div>
 

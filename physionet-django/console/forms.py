@@ -9,6 +9,12 @@ RESPONSE_CHOICES = (
     (0, 'Reject')
 )
 
+SUBMISSION_RESPONSE_CHOICES = (
+    (0, 'Reject'),
+    (1, 'Resubmit with changes'),
+    (2, 'Accept')
+)
+
 
 class AssignEditorForm(forms.Form):
     """
@@ -20,6 +26,9 @@ class AssignEditorForm(forms.Form):
 
 class EditSubmissionForm(forms.Form):
     """
-    For an editor to make a decision regarding a submission
+    For an editor to make a decision regarding a submission.
+    Not a ModelForm because we might need to create a resubmission object
     """
-    decision = forms.ChoiceField(choices=RESPONSE_CHOICES)
+
+    comments = forms.CharField(widget=forms.Textarea)
+    decision = forms.ChoiceField(choices=SUBMISSION_RESPONSE_CHOICES)

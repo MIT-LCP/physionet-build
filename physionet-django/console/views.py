@@ -142,4 +142,7 @@ def edit_submission(request, submission_id):
     if request.user != submission.editor:
         return Http404()
 
-    return render(request, 'console/edit_submission.html')
+    edit_submission_form = forms.EditSubmissionForm()
+
+    return render(request, 'console/edit_submission.html',
+        {'submission':submission, 'edit_submission_form':edit_submission_form})

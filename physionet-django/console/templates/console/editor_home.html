@@ -8,6 +8,7 @@
       <i class="fa fa-table"></i> Your Editing Project Submissions
   </div>
   <div class="card-body">
+    <p>You are assigned to edit the following projects</p>
     <div class="table-responsive">
       <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
         <thead>
@@ -16,6 +17,7 @@
             <th>Project</th>
             <th>Submission Status</th>
             <th>Submission Date</th>
+            <th>Edit</th>
           </tr>
         </thead>
         <tbody>
@@ -24,6 +26,7 @@
             <td><a href="{% url 'project_overview' submission.project.id %}">{{ submission.project }}</a></td>
             <td>{{ submission.submission_status }}</td>
             <td>{{ submission.submission_datetime|date }}</td>
+            <td><a class="btn btn-primary btn-sm" href="{% url 'edit_submission' submission.id %}" role="button"><i class="fas fa-glasses"></i> Edit Submission</a></td>
         {% endfor %}
         </tbody>
       </table>
