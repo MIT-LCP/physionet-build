@@ -3,4 +3,31 @@
 {% block title %}Editor Home{% endblock %}
 
 {% block content %}
+<div class="card mb-3">
+  <div class="card-header">
+      <i class="fa fa-table"></i> Your Editing Project Submissions
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+        <thead>
+          <tr>
+            <th>Submission ID</th>
+            <th>Project</th>
+            <th>Submission Status</th>
+            <th>Submission Date</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for submission in submissions %}
+            <td>{{ submission.id }}</td>
+            <td><a href="{% url 'project_overview' submission.project.id %}">{{ submission.project }}</a></td>
+            <td>{{ submission.submission_status }}</td>
+            <td>{{ submission.submission_datetime|date }}</td>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
 {% endblock %}

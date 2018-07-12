@@ -12,11 +12,6 @@ from project.models import Project, StorageRequest, Submission
 from user.models import User
 
 
-RESPONSE_CHOICES = (
-    (1, 'Accept'),
-    (0, 'Reject')
-)
-
 RESPONSE_ACTIONS = {0:'rejected', 1:'accepted'}
 
 def is_admin(user, *args, **kwargs):
@@ -75,7 +70,7 @@ def storage_requests(request):
 
     StorageResponseFormSet = modelformset_factory(StorageRequest,
         fields=('response', 'response_message'),
-        widgets={'response':Select(choices=RESPONSE_CHOICES),
+        widgets={'response':Select(choices=forms.RESPONSE_CHOICES),
                  'response_message':Textarea()}, extra=0)
 
     if request.method == 'POST':
@@ -132,7 +127,8 @@ def editor_home(request):
     submissions = Submission.objects.filter(is_active=True, submission_status=3,
         editor=request.user)
 
-    return render(request, 'console/editor_home.html', {'submissions':submissions})
+    return render(request, 'console/editor_home.html',
+        {'submissions':submissions})
 
 
 @login_required
@@ -145,6 +141,5 @@ def edit_submission(request, submission_id):
     # The user must be the editor
     if request.user != submission.editor:
         return Http404()
-
 
     return render(request, 'console/edit_submission.html')
