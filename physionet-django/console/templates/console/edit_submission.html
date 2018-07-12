@@ -2,16 +2,33 @@
 
 {% block title %}Edit Submission{% endblock %}
 
+{% load project_templatetags %}
 {% block content %}
 <div class="card mb-3">
   <div class="card-header">
-      <i class="fa fa-table"></i> Your Editing Project Submissions
+    Project Information
   </div>
   <div class="card-body">
-    <p>Hello</p>
-    <form>
-      {% include "inline_form_snippet.html" with form=edit_submission_form %}
-    </form>
+    <ul>
+      <li>Project: <a href="{% url 'project_overview' submission.project.id %}">{{ submission.project.title }}</a></li>
+      <li>Resource Type: {{ submission.project.resource_type|resource_badge|safe }}</li>
+      <li>Submitting Author: <a href="{% url 'public_profile' submission.project.submitting_author.username %}">{{ submission.project.submitting_author.username }}</a></li>
+      <li>Project Preview: <a href="{% url 'project_preview' submission.project.id '' %}">Preview</a></li>
+      <li>Submission Date: {{ submission.submission_datetime|date }}</li>
+    </ul>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-header">
+      Editor Response
+  </div>
+  <div class="card-body">
+    <form action="" method="post" class="form-signin">
+        {% csrf_token %}
+        {% include "form_snippet.html" with form=edit_submission_form %}
+        <button class="btn btn-primary btn-fixed" name="invite_author" type="submit">Submit Response</button>
+      </form>
   </div>
 </div>
 {% endblock %}

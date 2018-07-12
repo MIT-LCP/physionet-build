@@ -109,13 +109,14 @@ def submissions(request):
             submission.save()
             messages.success(request, 'The editor has been assigned')
 
-    # Submissions awaiting an editor
     submissions = Submission.objects.filter(is_active=True,
         submission_status__gte=2).order_by('submission_status')
     assign_editor_form = forms.AssignEditorForm()
+    n_awaiting_editor = submissions.filter(submission_status=2).count()
 
     return render(request, 'console/submissions.html',
-        {'submissions':submissions, 'assign_editor_form':assign_editor_form})
+        {'submissions':submissions, 'assign_editor_form':assign_editor_form,
+         'n_awaiting_editor':n_awaiting_editor})
 
 
 @login_required
@@ -126,6 +127,7 @@ def editor_home(request):
     """
     submissions = Submission.objects.filter(is_active=True, submission_status=3,
         editor=request.user)
+
 
     return render(request, 'console/editor_home.html',
         {'submissions':submissions})
