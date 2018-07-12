@@ -3,10 +3,12 @@ import pdb
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.forms import modelformset_factory, Select, Textarea
+from django.http import Http404
 from django.shortcuts import render
 from django.utils import timezone
 
-from project.models import Project, StorageRequest
+from . import forms
+from project.models import Project, StorageRequest, Submission
 from user.models import User
 
 
@@ -103,15 +105,46 @@ def submissions(request):
     """
     Submission control panel
     """
+    if request.method == 'POST':
+        assign_editor_form = forms.AssignEditorForm(request.POST)
+        if assign_editor_form.is_valid():
+            submission = assign_editor_form.cleaned_data['submission']
+            submission.editor = assign_editor_form.cleaned_data['editor']
+            submission.submission_status = 3
+            submission.save()
+            messages.success(request, 'The editor has been assigned')
 
-    return render(request, 'console/submissions.html', {})
+    # Submissions awaiting an editor
+    submissions = Submission.objects.filter(is_active=True,
+        submission_status__gte=2).order_by('submission_status')
+    assign_editor_form = forms.AssignEditorForm()
+
+    return render(request, 'console/submissions.html',
+        {'submissions':submissions, 'assign_editor_form':assign_editor_form})
 
 
 @login_required
 @user_passes_test(is_admin)
 def editor_home(request):
     """
-    Editor home
+    List of submissions the editor is responsible for
     """
+    submissions = Submission.objects.filter(is_active=True, submission_status=3,
+        editor=request.user)
 
-    return render(request, 'console/editor_home.html', {})
+    return render(request, 'console/editor_home.html', {'submissions':submissions})
+
+
+@login_required
+@user_passes_test(is_admin)
+def edit_submission(request, submission_id):
+    """
+    Page to respond to a particular submission, as an editor
+    """
+    submission = Submission.objects.get(id=submission_id)
+    # The user must be the editor
+    if request.user != submission.editor:
+        return Http404()
+
+
+    return render(request, 'console/edit_submission.html')

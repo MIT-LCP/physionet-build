@@ -1,6 +1,51 @@
 {% extends "console/base_console.html" %}
 
-{% block title %}Submissions{% endblock %}
+{% block title %}Project Submissions{% endblock %}
 
 {% block content %}
+{% include "message_snippet.html" %}
+<div class="card mb-3">
+  <div class="card-header">
+      <i class="fa fa-table"></i> Active Project Submissions
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+        <thead>
+          <tr>
+            <th>Submission ID</th>
+            <th>Project</th>
+            <th>Submission Status</th>
+            <th>Submission Date</th>
+            <th>Editor</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for submission in submissions %}
+            <td>{{ submission.id }}</td>
+            <td><a href="{% url 'project_overview' submission.project.id %}">{{ submission.project }}</a></td>
+            <td>{{ submission.submission_status }}</td>
+            <td>{{ submission.submission_datetime }}</td>
+            <td>{{ submission.editor }}</td>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header">
+      <i class="fa fa-bar-chart"></i> Assign Editor</div>
+    <div class="card-body">
+        <form action="" method="post" class="form-signin">
+          {% csrf_token %}
+          {% include "form_snippet.html" with form=assign_editor_form %}
+          <button class="btn btn-primary btn-fixed" name="invite_author" type="submit">Assign Editor</button>
+        </form>
+
+    </div>
+</div>
+
 {% endblock %}
+

@@ -717,7 +717,7 @@ class Submission(models.Model):
 
     The submission_status field:
     - 1 : submitting author submits.
-    - 2 : all authors agree.
+    - 2 : all authors agree, awaiting editor assignment
     - 3 : editor assigned, awaiting decision.
     - 4 : decision 1 = resubmission requested (accept with changes).
           Loops back to 3.
@@ -743,6 +743,9 @@ class Submission(models.Model):
     editor_comments = models.CharField(max_length=800)
     # Set to 0 for reject or 1 for accept, when final decision is made.
     response = models.NullBooleanField(null=True)
+
+    def __str__(self):
+        return 'Submission ID %d - %s' % (self.id, self.project.title)
 
 
 class Resubmission(models.Model):
