@@ -4,9 +4,6 @@ from . import views
 
 urlpatterns = [
     url(r'^$', views.project_home, name='project_home'),
-    url(r'^invitations/$', views.project_invitations, name='project_invitations'),
-
-
     url(r'^create/$', views.create_project, name='create_project'),
 
     # Individual project pages
@@ -26,17 +23,12 @@ urlpatterns = [
         name='project_files'),
     url(r'^(?P<project_id>\d+)/preview/(?P<sub_item>.*)$', views.project_preview,
         name='project_preview'),
+    url(r'^(?P<project_id>\d+)/publishable/$', views.check_publishable,
+        name='check_publishable'),
     url(r'^(?P<project_id>\d+)/submission/$', views.project_submission,
         name='project_submission'),
 
     # Published Projects
     url(r'^published/(?P<published_project_id>\d+)/$', views.published_project,
         name='database'),
-
-    # Admin pages
-    url(r'^storage-requests/$', views.storage_requests,
-        name='storage_requests'),
-
-
-
 ]

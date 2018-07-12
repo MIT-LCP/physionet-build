@@ -12,19 +12,16 @@
 
 {% block content %}
 <div class="container">
-
+  {% include "message_snippet.html" %}
   <div class="jumbotron">
     <h1>Project Home</h1>
-    <p class="lead">Welcome to your project home. Here you can create new projects, and access projects that you are authoring or reviewing.</p>
+    <p class="lead">Welcome to your project home. Here you can create new
+      projects, access projects that you are authoring, and respond to
+      author invitations.</p>
     <p>
       <a class="btn btn-lg btn-success" href="{% url 'create_project' %}" role="button">
         <i class="fa fa-cloud-upload-alt"></i> Create New Project
       </a>
-      {% if user.is_admin %}
-      <a class="btn btn-lg btn-dark" href="{% url 'storage_requests' %}" role="button">
-        <i class="fa fa-user-secret"></i> Project Admin Panel
-      </a>
-      {% endif %}
     </p>
   </div>
 
@@ -39,11 +36,11 @@
           <li class="list-group-item">
             <p>
               {{ project.resource_type|resource_badge|safe }}
-              {% if project.under_review %}
-                <span class="badge badge-info">Under Review</span>
+              {% if project.submission_status == 2 %}
+                <span class="badge badge-info"><i class="fas fa-glasses"></i> Under Review</span>
               {% endif %}
               {% if project.published %}
-                <span class="badge badge-info"><i class="fas fa-book-open"></i> Published</span>
+                <span class="badge badge-success"><i class="fas fa-book-open"></i> Published</span>
               {% endif %}
             </p>
             <h4><a href="{% url 'project_overview' project.id %}">{{ project.title }}</a></h4>
@@ -68,23 +65,63 @@
 
   <div class="card" >
     <div class="card-header">
-      <h4>Reviewing Projects</h4>
+      <h4>Project Invitations</h4>
     </div>
+      {% if invitation_response_formset|length %}
+        <form action="" method="post">
+          {{ invitation_response_formset.management_form }}
+          {% csrf_token %}
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <div class="row">
+                <div class="col-md-6"><strong>Project</strong></div>
+                <div class="col-md-2"><strong>Inviter</strong></div>
+                <div class="col-md-2"><strong>Sent</strong></div>
+                <div class="col-md-2"></div>
+              </div>
+            </li>
+            {% for invitation_response_form in invitation_response_formset %}
+              <li class="list-group-item">
+                <div class="row">
+                  <div class="col-md-6">{{ invitation_response_form.instance.project  }}</div>
+                  <div class="col-md-2">{{ invitation_response_form.instance.inviter }}</div>
+                  <div class="col-md-2">{{ invitation_response_form.instance.request_datetime|date }}</div>
+                  <div class="col-md-2"><button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#invitation-response-modal-{{ invitation_response_form.instance.id }}">
+                    <i class="fa fa-reply"></i> Respond</button>
+                  </div>
+                </div>
+              </li>
+              {# The modal for the response #}
+              <div class="modal fade" id="invitation-response-modal-{{ invitation_response_form.instance.id }}" tabindex="-1" role="dialog" aria-labelledby="invitation-response-modal-{{ invitation_response_form.invitation_id.value }}" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title">Respond to invitation</h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
 
-    <ul class="list-group list-group-flush">
-      {% if reviewing_projects %}
-        {% for project in reviewing_projects %}
-          <li class="list-group-item">
-            <h4>{{ project.title }}</h4>
-          </li>
-        {% endfor %}
+                    <div class="modal-body">
+                      {{ invitation_response_form }}
+                    </div>
+                    <div class="modal-footer">
+                      <button class="btn btn-primary" name="invitation_response" value="{{ invitation_response_form.instance.id }}" type="submit"><i class="fa fa-reply"></i> Submit Response</button>
+                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </ul>
+        </form>
+
       {% else %}
         <div class="card-body text-center">
-          <h4 class="card-title">No projects to show</h4>
-          <p class="card-text">You are not currently reviewing any projects.</p>
+          <h4 class="card-title">No pending invitations</h4>
+          <p class="card-text">You are not currently being invited to author any projects.</p>
         </div>
       {% endif %}
-    </ul>
   </div>
   <br>
 

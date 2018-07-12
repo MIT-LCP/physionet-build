@@ -5,6 +5,30 @@
 {% load project_templatetags %}
 
 {% block main_content %}
+
+<script>
+    // Check whether the project is publishable
+    function checkPublishable(){
+        $.ajax({url: "{% url 'check_publishable' project.id %}",
+                success: function(result){
+                    if (result.is_publishable){
+                        $("#publishable").html("<i class='fas fa-check' style='color:green'></i> The automatic checks have passed. You may submit the project for review.");
+                        document.getElementById("request-review").disabled = false;
+                    }
+                    else{
+                        message = "<p><i class='fas fa-times' style='color:red'></i> The automatic checks have failed. The following errors must be addressed before you can submit the project:</p><ul>"
+                        for (i=0; i<result.publish_errors.length; i++){
+                            message += "<li>" + result.publish_errors[i] + "</li>"
+                        }
+                        message += "</ul>"
+                        $("#publishable").html(message);
+                    }
+                }
+        });
+    }
+</script>
+
+
 <h2 class="form-signin-heading">Project Submission</h2>
 <hr>
 
@@ -30,14 +54,84 @@
 <hr>
 
 <h3>Submission Status</h3>
-{% if project.under_review %}
-    <p>The project is currently under review. You may see the details <a href="#">here</a>.</p>
-{% else %}
-    <p>The project is not under review. If the <a href="{% url 'project_preview' project.id '' %}" target="_blank">preview</a>
-       appears satisfactory, the submitting author may request a review</p>
-    <a href="#" class="btn btn-primary btn-fixed">Request Review</a>
-{% endif %}
-<hr>
+{% if project.submission_status == 0 %}
+    <p>The project is not under review. If the
+       <a href="{% url 'project_preview' project.id '' %}" target="_blank">
+       preview</a> appears satisfactory, the submitting author may
+       request a review</p>
+    {% if user == project.submitting_author %}
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#submit-modal" onclick="checkPublishable()">
+      <i class="fas fa-glasses"></i> Request Review
+    </button>
 
+    <div class="modal fade" id="submit-modal" tabindex="-1" role="dialog" aria-labelledby="submit-modal" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Submit Project</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <form action="" method="post">
+            <div class="modal-body">
+              {% csrf_token %}
+              <p id="publishable"><i class="fas fa-spinner"></i> Running checks on project...</p>
+            </div>
+            <div class="modal-footer">
+              <button id="request-review" class="btn btn-primary" type="submit" name="submit_project" disabled><i class="fas fa-glasses"></i> Request Review</button>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+{% elif project.submission_status == 1 %}
+    <p>The project has been submitted for review on {{ submission.presubmission_datetime|date }}. Review will begin once
+       all co-authors approve the submission.</p>
+    <form action="" method="post">
+        {% csrf_token %}
+    <ul class="list-group">
+        {% for author in approved_authors %}
+            <li class="list-group-item">
+                <i class="fas fa-check" style="color:green" title="Approved"></i> {{ author|author_name }}
+                {% if author.user == project.submitting_author %}
+                    <span class="badge badge-success">Submitting Author</span>
+                {% endif %}
+                {% if user == author.user %}
+                    <button class="btn btn-danger"name="cancel_submission" style="float:right">Cancel Submission</button>
+                {% endif %}
+            </li>
+        {% endfor %}
+        {% for author in unapproved_authors %}
+            <li class="list-group-item">
+                <i class="far fa-clock" title="Waiting for approval"></i> {{ author|author_name }}
+                {% if user == author.user %}
+                    <button class="btn btn-primary" name="approve_submission" style="float:right">Approve Submission</button>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+    </form>
+{% else %}
+    <p>The project has begun review on {{ submission.submission_datetime|date }}. The editor will make the decision
+       after the reviewers have submitted their feedback.</p>
+    <ul class="list-group">
+        {% for review in reviews %}
+            <li class="list-group-item">
+                <i class="fas fa-check" style="color:green" title="Approved"></i>
+                {{ review.user|author_name }}
+            </li>
+        {% endfor %}
+        <li class="list-group-item">
+            <i class="fas fa-check" style="color:green" title="Approved"></i>
+            {{ submission.editor|author_name }}
+        </li>
+    </ul>
+{% endif %}
+
+<hr>
 
 {% endblock %}

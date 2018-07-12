@@ -4,12 +4,13 @@ import re
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
-from django.forms import formset_factory, inlineformset_factory, modelformset_factory, Textarea, Select
-from django.http import HttpResponse, Http404
+from django.forms import formset_factory, inlineformset_factory, modelformset_factory
+from django.http import HttpResponse, Http404, JsonResponse
 from django.shortcuts import render, redirect
 from django.template import loader
 from django.utils import timezone
@@ -25,11 +26,6 @@ from user.forms import ProfileForm
 from user.models import User
 
 
-RESPONSE_CHOICES = (
-    (1, 'Accept'),
-    (0, 'Reject')
-)
-
 RESPONSE_ACTIONS = {0:'rejected', 1:'accepted'}
 
 # Help test for formsets, rather than individual form fields.
@@ -38,9 +34,6 @@ METADATA_FORMSET_HELP_TEXT = {'reference': "Numbered references specified in des
     'topic': 'Keyword topics associated with the project. Maximum of 20.',
     'contact':'* Persons to contact for questions about the project. This will only be visible to logged in users. Minimum of 1, maximum of 3.'}
 
-
-def is_admin(user, *args, **kwargs):
-    return user.is_admin
 
 def is_author(user, project):
     authors = project.authors.all()
@@ -77,35 +70,18 @@ def authorization_required(auth_functions):
     return real_decorator
 
 
-@login_required
-def project_home(request):
-    """
-    Home page listing projects a user is involved in:
-    - Collaborating projects
-    - Reviewing projects
-    """
-    user = request.user
-
-    projects = Project.objects.filter(authors__in=user.authorships.all())
-
-    # Projects that the user is responsible for reviewing
-    review_projects = None
-
-    return render(request, 'project/project_home.html', {'projects':projects,
-        'review_projects':review_projects})
-
-
 def process_invitation_response(request, invitation_response_formset):
     """
     Process an invitation response.
-    Helper function to project_invitations
+    Helper function to view: project_home
     """
     user = request.user
     invitation_id = int(request.POST['invitation_response'])
     for invitation_response_form in invitation_response_formset:
         # Only process the response that was submitted
         if invitation_response_form.instance.id == invitation_id:
-            if invitation_response_form.is_valid() and invitation_response_form.instance.email in user.get_emails():
+            invitation_response_form.user = user
+            if invitation_response_form.is_valid():# and invitation_response_form.instance.email in user.get_emails():
                 # Update this invitation, and any other one made to the
                 # same user, project, and invitation type
                 invitation = invitation_response_form.instance
@@ -136,17 +112,19 @@ def process_invitation_response(request, invitation_response_formset):
 
                 messages.success(request, 'The invitation has been %s.' % RESPONSE_ACTIONS[invitation.response])
 
+
 @login_required
-def project_invitations(request):
+def project_home(request):
     """
-    Page for listing and responding to project invitations
+    Project home page, listing:
+    - authoring projects
+    - project invitations and response form
     """
     user = request.user
+    projects = Project.objects.filter(authors__in=user.authorships.all())
 
     InvitationResponseFormSet = modelformset_factory(Invitation,
-        fields=('response', 'response_message'),
-        widgets={'response':Select(choices=RESPONSE_CHOICES),
-                 'response_message':Textarea()}, extra=0)
+        form=forms.InvitationResponseForm, extra=0)
 
     if request.method == 'POST':
         invitation_response_formset = InvitationResponseFormSet(request.POST)
@@ -156,7 +134,7 @@ def project_invitations(request):
         queryset=Invitation.get_user_invitations(user,
         invitation_types=['author']))
 
-    return render(request, 'project/project_invitations.html', {
+    return render(request, 'project/project_home.html', {'projects':projects,
         'invitation_response_formset':invitation_response_formset})
 
 
@@ -638,65 +616,78 @@ def project_preview(request, project_id, sub_item=''):
 
 
 @authorization_required(auth_functions=(is_author,))
-def full_preview(request, project_id):
-    user = request.user
+def check_publishable(request, project_id):
+    """
+    Check whether a project is publishable
+    """
     project = Project.objects.get(id=project_id)
 
+    result = project.is_publishable()
 
+    return JsonResponse({'is_publishable':result,
+        'publish_errors':project.publish_errors})
 
 
 @authorization_required(auth_functions=(is_author,))
 def project_submission(request, project_id):
     """
-    View submission details regarding a project
-    """
-    project = Project.objects.get(id=project_id)
-
-    return render(request, 'project/project_submission.html',
-                  {'project':project})
-
-
-def process_storage_response(request, storage_response_formset):
-    storage_request_id = int(request.POST['storage_response'])
-
-    for storage_response_form in storage_response_formset:
-        # Only process the response that was submitted
-        if storage_response_form.instance.id == storage_request_id:
-            if storage_response_form.is_valid():
-                storage_request = storage_response_form.instance
-                storage_request.responder = request.user
-                storage_request.response_datetime = timezone.now()
-                storage_request.is_active = False
-                storage_request.save()
-
-                if storage_request.response:
-                    project = storage_request.project
-                    project.storage_allowance = storage_request.request_allowance
-                    project.save()
-                messages.success(request, 'The storage request has been %s.' % RESPONSE_ACTIONS[storage_request.response])
-
-@login_required
-@user_passes_test(is_admin)
-def storage_requests(request):
-    """
-    Page for listing and responding to project storage requests
+    View submission details regarding a project, submit the project
+    for review, cancel a submission, approve a submission, and withdraw
+    approval.
     """
     user = request.user
-
-    StorageResponseFormSet = modelformset_factory(StorageRequest,
-        fields=('response', 'response_message'),
-        widgets={'response':Select(choices=RESPONSE_CHOICES),
-                 'response_message':Textarea()}, extra=0)
+    project = Project.objects.get(id=project_id)
+    authors = project.authors.filter(is_human=True)
+    context = {'project':project}
 
     if request.method == 'POST':
-        storage_response_formset = StorageResponseFormSet(request.POST)
-        process_storage_response(request, storage_response_formset)
+        if 'submit_project' in request.POST:
+            if project.submission_status:
+                raise Http404()
+            else:
+                if project.is_publishable() and user == project.submitting_author:
+                    project.presubmit()
+                    # Submission is automatically triggered if only 1 author
+                    if project.submission_status == 2:
+                        messages.success(request, 'Your project has been submitted and review has begun.')
+                    else:
+                        messages.success(request, 'Your project has been submitted. Awaiting co-authors to approve submission.')
+                else:
+                    messages.error(request, 'Fix the errors before submitting')
+        elif 'cancel_submission' in request.POST:
+            if project.submission_status == 1 and user == project.submitting_author:
+                project.cancel_submission()
+                messages.success(request, 'Your project submission has been cancelled.')
+            else:
+                raise Http404()
+        elif 'approve_submission' in request.POST:
+            author = authors.get(user=user)
+            submission = project.submissions.get(is_active=True)
+            if project.submission_status == 1 and authors not in submission.approved_authors.all():
+                project.approve_author(author)
+                messages.success(request, 'You have approved the submission')
+            else:
+                raise Http404()
+        elif 'withdraw_approval' in request.POST:
+            submission = project.submissions.get(is_active=True)
+            if project.submission_status == 1 and user in [a.user for a in approved_authors] and user != project.submitting_author:
 
-    storage_response_formset = StorageResponseFormSet(
-        queryset=StorageRequest.objects.filter(is_active=True))
+                submission.approved_authors.remove(authors.get(user=user))
 
-    return render(request, 'project/storage_requests.html', {'user':user,
-        'storage_response_formset':storage_response_formset})
+                messages.success(request, 'You have withdrawn your approval for the project submission.')
+            else:
+                raise Http404()
+
+    if project.submission_status:
+        submission = project.submissions.get(is_active=True)
+        context['submission'] = submission
+        if project.submission_status == 1:
+            context['approved_authors'] = submission.approved_authors.all()
+            context['unapproved_authors'] = authors.difference(context['approved_authors'])
+        else:
+            context['reviews'] = submission.reviews.all()
+
+    return render(request, 'project/project_submission.html', context)
 
 
 def published_project(request, published_project_id):

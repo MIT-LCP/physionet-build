@@ -5,11 +5,17 @@ from . import views
 
 
 urlpatterns = [
+    # django admin
     url(r'^admin/', admin.site.urls),
+    # physionet management console
+    url(r'^console/', include('console.urls')),
+    # user account
+    url(r'^', include('user.urls')),
+    # projects
+    url(r'^projects/', include('project.urls')),
+
 
     url(r'^$', views.home, name='home'),
-
-
     # about pages
     url(r'^about/author-guidelines/$', views.author_guidelines,
         name='author_guidelines'),
@@ -30,10 +36,4 @@ urlpatterns = [
     url(r'^data/$', views.data, name='data'),
     url(r'^software/$', views.software, name='software'),
     url(r'^challenge/$', views.challenge, name='challenge'),
-
-    # user account pages
-    url(r'^', include('user.urls')),
-
-    # project pages
-    url(r'^projects/', include('project.urls')),
 ]
