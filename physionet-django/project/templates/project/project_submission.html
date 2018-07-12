@@ -89,7 +89,7 @@
     {% endif %}
 
 {% elif project.submission_status == 1 %}
-    <p>The project has been submitted for review on {{ submission.presubmission_datetime|date }}. Review will begin once
+    <p>The project has been submitted for review on {{ submission.presubmission_datetime|date }}. Awaiting
        all co-authors approve the submission.</p>
     <form action="" method="post">
         {% csrf_token %}
@@ -115,19 +115,12 @@
         {% endfor %}
     </ul>
     </form>
-{% else %}
-    <p>The project has begun review on {{ submission.submission_datetime|date }}. The editor will make the decision
-       after the reviewers have submitted their feedback.</p>
+{% elif project.submission_status == 2 %}
+    <p>The project has begun review on {{ submission.submission_datetime|date }}. </p>
     <ul class="list-group">
-        {% for review in reviews %}
-            <li class="list-group-item">
-                <i class="fas fa-check" style="color:green" title="Approved"></i>
-                {{ review.user|author_name }}
-            </li>
-        {% endfor %}
         <li class="list-group-item">
             <i class="fas fa-check" style="color:green" title="Approved"></i>
-            {{ submission.editor|author_name }}
+
         </li>
     </ul>
 {% endif %}

@@ -653,8 +653,10 @@ def project_submission(request, project_id):
     context = {'project':project, 'admin_inspect':admin_inspect}
 
     if request.method == 'POST':
+        if project.under_submission:
+            submission = project.submissions.get(is_active=True)
         if 'submit_project' in request.POST:
-            if project.submission_status:
+            if project.submission_status():
                 raise Http404()
             else:
                 if project.is_publishable() and user == project.submitting_author:
@@ -667,37 +669,31 @@ def project_submission(request, project_id):
                 else:
                     messages.error(request, 'Fix the errors before submitting')
         elif 'cancel_submission' in request.POST:
-            if project.submission_status == 1 and user == project.submitting_author:
+            if submission.submission_status == 1 and user == project.submitting_author:
                 project.cancel_submission()
                 messages.success(request, 'Your project submission has been cancelled.')
             else:
                 raise Http404()
         elif 'approve_submission' in request.POST:
             author = authors.get(user=user)
-            submission = project.submissions.get(is_active=True)
-            if project.submission_status == 1 and authors not in submission.approved_authors.all():
+            if submission.submission_status == 1 and authors not in submission.approved_authors.all():
                 project.approve_author(author)
                 messages.success(request, 'You have approved the submission')
             else:
                 raise Http404()
         elif 'withdraw_approval' in request.POST:
-            submission = project.submissions.get(is_active=True)
-            if project.submission_status == 1 and user in [a.user for a in approved_authors] and user != project.submitting_author:
-
+            if submission.submission_status == 1 and user in [a.user for a in approved_authors] and user != project.submitting_author:
                 submission.approved_authors.remove(authors.get(user=user))
-
                 messages.success(request, 'You have withdrawn your approval for the project submission.')
             else:
                 raise Http404()
 
-    if project.submission_status:
+    if project.under_submission:
         submission = project.submissions.get(is_active=True)
         context['submission'] = submission
-        if project.submission_status == 1:
+        if submission.submission_status == 1:
             context['approved_authors'] = submission.approved_authors.all()
             context['unapproved_authors'] = authors.difference(context['approved_authors'])
-        else:
-            context['reviews'] = submission.reviews.all()
 
     return render(request, 'project/project_submission.html', context)
 
