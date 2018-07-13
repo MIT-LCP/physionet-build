@@ -12,7 +12,7 @@
     {{ project.resource_type|resource_badge|safe }}
 </p>
 <p class="text-muted">
-    Created {{ project.creation_datetime }} Modified {{ project.modified_datetime }}
+    Created {{ project.creation_datetime|date }} Modified {{ project.modified_datetime|date }}
 </p>
 <p>
     Submitting Author: <a href="{% url 'public_profile' project.submitting_author.username %}">{{ project.submitting_author.profile }}</a>
@@ -28,14 +28,16 @@
 <p>This project has not been published.</p>
 <hr>
 
-<h3>Submission Status</h3>
-{% if project.under_review %}
-    <p>The project is currently under review. You may see the details
-       <a href="#">here</a>.</p>
+<h3>Submission</h3>
+
+<p>The submission process is described in the
+   <a href="{% url 'author_guidelines' %}" target="_blank">author guidelines.</a></p>
+{% if project.under_submission %}
+    <p>The project is under submission. See the details from the
+       <a href="{% url 'project_submission' project.id %}">submission</a>
+       tab.</p>
 {% else %}
-    <p>The project is not under review. See the
-       <a href="{% url 'author_guidelines' %}" target="_blank">author
-       guidelines</a> for submission details.</p>
+    <p>The project is not under submission.</p>
 {% endif %}
 <hr>
 

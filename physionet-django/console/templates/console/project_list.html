@@ -15,7 +15,7 @@
               <th>Title</th>
               <th>Submitting Author</th>
               <th>Creation Date</th>
-              <th>Submission Status</th>
+              <th>Under Submission</th>
               <th>Published</th>
             </tr>
           </thead>
@@ -25,7 +25,7 @@
               <td><a href="{% url 'project_overview' project.id %}">{{ project.title }}</a></td>
               <td><a href="{% url 'public_profile' project.submitting_author.username %}">{{ project.submitting_author }}</td>
               <td>{{ project.creation_datetime|date }}</td>
-              <td>{{ project.submission_status }}</td>
+              <td>{{ project.under_submission }}</td>
               <td>{{ project.published }}</td>
             </tr>
           {% endfor %}

@@ -8,7 +8,7 @@ from django.shortcuts import render
 from django.utils import timezone
 
 from . import forms
-from project.models import Project, StorageRequest, Submission
+from project.models import Project, Resubmission, StorageRequest, Submission
 from user.models import User
 
 
@@ -125,8 +125,8 @@ def editor_home(request):
     """
     List of submissions the editor is responsible for
     """
-    submissions = Submission.objects.filter(is_active=True, submission_status=3,
-        editor=request.user)
+    submissions = Submission.objects.filter(is_active=True,
+        submission_status__in=[3, 4, 6], editor=request.user)
 
     return render(request, 'console/editor_home.html',
         {'submissions':submissions})
@@ -139,9 +139,33 @@ def edit_submission(request, submission_id):
     Page to respond to a particular submission, as an editor
     """
     submission = Submission.objects.get(id=submission_id)
+    project = submission.project
     # The user must be the editor
     if request.user != submission.editor:
         return Http404()
+
+    if request.method == 'POST':
+        edit_submission_form = forms.EditSubmissionForm(request.POST)
+        if edit_submission_form.is_valid() and submission.submission_status == 3:
+            # Reject
+            if edit_submission_form.cleaned_data['decision'] == 0:
+                submission.submission_status = 5
+                submission.decision = 0
+                submission.editor_comments = edit_submission_form.cleaned_data['comments']
+            # Resubmit with changes
+            elif edit_submission_form.cleaned_data['decision'] == 1:
+                submission.submission_status = 4
+                resubmission = Resubmission.objects.create(submission=submission,
+                    editor_comments=edit_submission_form.cleaned_data['comments'])
+            # Accept
+            else:
+                submission.submission_status = 6
+                submission.decision = 1
+                submission.editor_comments = edit_submission_form.cleaned_data['comments']
+            submission.save()
+
+            return render(request, 'console/submission_response.html',
+                {'response':edit_submission_form.cleaned_data['decision']})
 
     edit_submission_form = forms.EditSubmissionForm()
 

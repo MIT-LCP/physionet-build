@@ -88,9 +88,9 @@
     </div>
     {% endif %}
 {% else %}
+    <p>The project has been submitted for review on {{ submission.presubmission_datetime|date }}.</p>
     {% if submission.submission_status == 1 %}
-        <p>The project has been submitted for review on {{ submission.presubmission_datetime|date }}. Awaiting
-           all co-authors approve the submission.</p>
+        <p> Awaiting all co-authors approve the submission.</p>
         <form action="" method="post">
             {% csrf_token %}
         <ul class="list-group">
@@ -116,14 +116,16 @@
         </ul>
         </form>
     {% elif submission.submission_status == 2 %}
-        <p>The project has been submitted for review on {{ submission.submission_datetime|date }}.
-           Awaiting an editor to be assigned.</p>
-    {% elif submission.submission_status == 3 %}
-        <ul class="list-group">
-            <li class="list-group-item">
-                <i class="fas fa-check" style="color:green" title="Approved"></i>
-            </li>
-        </ul>
+        <p>Awaiting an editor to be assigned.</p>
+    {% else %}
+        <p>The editor of this submission is: <a href="{% url 'public_profile' submission.editor.username %}">{{ submission.editor }}</a> ({{ submission.editor.email }}).
+        {% if submission.submission_status == 3 %}
+            <p>Awaiting editor response.</p>
+        {% elif submission_status == 4 %}
+            <p>The editor has requested a resubmission.</p>
+        {% elif submission_status == 6 %}
+            <p>The editor has accepted the submission. Awaiting confirmation from the submitting author to publish the project.</p>
+        {% endif %}
     {% endif %}
 {% endif %}
 

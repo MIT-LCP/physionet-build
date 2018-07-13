@@ -315,7 +315,6 @@ class Project(Metadata):
     # 1 <= Submission.submission_status <= 4. The project is not
     # editable when this is True.
     under_submission = models.BooleanField(default=False)
-
     # Access fields
     data_use_agreement = models.ForeignKey('project.DataUseAgreement',
                                            null=True, blank=True)
@@ -344,6 +343,14 @@ class Project(Metadata):
         else:
             return 0
 
+    def is_frozen(self):
+        """
+        Project is not editable when frozen
+        """
+        if self.submission_status() in [0, 4]:
+            return False
+        else:
+            return True
 
     def is_publishable(self):
         """
@@ -756,20 +763,6 @@ class Resubmission(models.Model):
     """
     submission = models.ForeignKey('project.Submission',
         related_name='resubmissions')
-    response_datetime = models.DateTimeField(null=True)
+    response_datetime = models.DateTimeField(auto_now_add=True)
     # Comments for this resubmission decision
     editor_comments = models.CharField(max_length=800)
-    is_active = models.BooleanField(default=True)
-
-
-class Review(models.Model):
-    """
-    A review for a submission
-    """
-    submission = models.ForeignKey('project.Submission', related_name='reviews')
-    user = models.ForeignKey('user.User', related_name='reviews')
-    comments = models.CharField(max_length=800)
-    decision = models.NullBooleanField(null=True)
-    is_active = models.BooleanField(default=True)
-    response_datetime = models.DateTimeField(null=True)
-
