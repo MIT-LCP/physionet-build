@@ -9,13 +9,16 @@
     Project Information
   </div>
   <div class="card-body">
-    <ul>
-      <li>Project: <a href="{% url 'project_overview' submission.project.id %}">{{ submission.project.title }}</a></li>
-      <li>Resource Type: {{ submission.project.resource_type|resource_badge|safe }}</li>
-      <li>Submitting Author: <a href="{% url 'public_profile' submission.project.submitting_author.username %}">{{ submission.project.submitting_author.username }}</a></li>
-      <li>Project Preview: <a href="{% url 'project_preview' submission.project.id '' %}">Preview</a></li>
-      <li>Submission Date: {{ submission.submission_datetime|date }}</li>
-    </ul>
+    <p>{{ submission.project.resource_type|resource_badge|safe }}</p>
+    <h4 class="card-title"><a href="{% url 'project_overview' submission.project.id %}">{{ submission.project.title }}</a></h4>
+    <p class="card-text">
+      <strong>Submitting Author: <a href="{% url 'public_profile' submission.project.submitting_author.username %}">{{ submission.project.submitting_author.username }}</a></strong><br>
+      Created: {{ submission.project.creation_datetime|date }}<br>
+      Submitted: {{ submission.submission_datetime|date }}
+    </p>
+    <p><a class="btn btn-lg btn-primary" href="{% url 'project_preview' submission.project.id '' %}" role="button">
+        <i class="fa fa-cloud-upload-alt"></i> View Project Preview</a>
+    </p>
   </div>
 </div>
 

@@ -9,6 +9,16 @@
       <i class="fa fa-table"></i> Active Project Submissions
   </div>
   <div class="card-body">
+    <p>Submission Statuses</p>
+    <ol>
+      <li>Presubmission - submitting author submits project. Awaiting co-authors.</li>
+      <li>Submitted - all co-authors agree to submission. Awaiting editor assignment.</li>
+      <li>Submitted - editor is assigned. Awaiting editor decision. Continues to 4, 5, or 6.</li>
+      <li>Resubmission - editor decision 1. Awaiting submitting author to make revisions. Loops back to 3.</li>
+      <li>Rejected - editor decision 2. The submission ends.</li>
+      <li>Accepted - editor approved publication. Awaiting submitting author to confirm.</li>
+      <li>Accepted - submitting author approves publication. Project is published and submission ends.</li>
+    </ol>
     <div class="table-responsive">
       <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
         <thead>
@@ -44,8 +54,18 @@
     <div class="card-header">
       <i class="fa fa-bar-chart"></i> Assign Editor</div>
     <div class="card-body">
-      <p>There are {{ n_awaiting_editor }} submissions awaiting
-         an editor.</p>
+      <p>
+        {% if not n_awaiting_editor %}
+          <i style="color:green" class="fas fa-check-circle"></i>
+        {% else %}
+          <i style="color:red" class="fas fa-exclamation-circle"></i>
+        {% endif %}
+        {% if n_awaiting_editor == 1 %}
+          There is one submission awaiting an editor.
+        {% else %}
+          There are {{ n_awaiting_editor }} submissions awaiting an editor.
+        {% endif %}
+        </p>
       <form action="" method="post" class="form-signin">
         {% csrf_token %}
         {% include "form_snippet.html" with form=assign_editor_form %}

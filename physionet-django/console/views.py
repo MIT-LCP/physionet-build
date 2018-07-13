@@ -128,7 +128,6 @@ def editor_home(request):
     submissions = Submission.objects.filter(is_active=True, submission_status=3,
         editor=request.user)
 
-
     return render(request, 'console/editor_home.html',
         {'submissions':submissions})
 
