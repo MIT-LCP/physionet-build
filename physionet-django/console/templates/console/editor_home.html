@@ -5,32 +5,35 @@
 {% block content %}
 <div class="card mb-3">
   <div class="card-header">
-      <i class="fa fa-table"></i> Your Editing Project Submissions
+      <i class="fas fa-edit"></i> Editor Home
   </div>
   <div class="card-body">
-    <p>You are assigned to edit the following projects</p>
+    <p>You are assigned to edit the following submissions.</p>
     <div class="table-responsive">
       <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
         <thead>
           <tr>
-            <th>Submission ID</th>
             <th>Project</th>
-            <th>Submission Status</th>
+            <th>Submitting Author</th>
+            <th>Submission Status <a data-toggle="modal" data-target="#submissionStatusModal" href="#"><i class="fas fa-question-circle"></i></a>
             <th>Submission Date</th>
-            <th>Edit</th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody>
         {% for submission in submissions %}
-            <td>{{ submission.id }}</td>
             <td><a href="{% url 'project_overview' submission.project.id %}">{{ submission.project }}</a></td>
+            <td> <a href="{% url 'public_profile' submission.project.submitting_author.username %}">{{ submission.project.submitting_author.username }}</a> - {{ submission.project.submitting_author.email }}</td>
             <td>{{ submission.submission_status }}</td>
             <td>{{ submission.submission_datetime|date }}</td>
-            <td><a class="btn btn-primary btn-sm" href="{% url 'edit_submission' submission.id %}" role="button"><i class="fas fa-glasses"></i> Edit Submission</a></td>
+            <td>{% if submission.submission_status == 3 %}<a class="btn btn-primary btn-sm" href="{% url 'edit_submission' submission.id %}" role="button"><i class="fas fa-glasses"></i> Edit Submission</a>{% else %}Awaiting author action{% endif %}</td>
         {% endfor %}
         </tbody>
       </table>
     </div>
   </div>
 </div>
+
+{% include "console/submission_status_modal.html" %}
+
 {% endblock %}

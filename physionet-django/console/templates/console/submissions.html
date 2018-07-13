@@ -12,38 +12,14 @@
       <i class="fa fa-table"></i> Active Project Submissions
   </div>
   <div class="card-body">
-
-    <div class="card  mb-3">
-      <div class="card-header" id="headingOne">
-        <h5 class="mb-0">
-          <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-            Submission Statuses
-          </button>
-        </h5>
-      </div>
-
-      <div id="collapseOne" class="collapse" aria-labelledby="headingOne">
-        <div class="card-body">
-          <ol>
-            <li>Presubmission - submitting author submits project. Awaiting co-authors.</li>
-            <li>Submitted - all co-authors agree to submission. Awaiting editor assignment.</li>
-            <li>Submitted - editor is assigned. Awaiting editor decision. Continues to 4, 5, or 6.</li>
-            <li>Resubmission - editor decision 1. Awaiting submitting author to make revisions. Loops back to 3.</li>
-            <li>Rejected - editor decision 2. The submission ends.</li>
-            <li>Accepted - editor approved publication. Awaiting submitting author to confirm.</li>
-            <li>Accepted - submitting author approves publication. Project is published and submission ends.</li>
-          </ol>
-        </div>
-      </div>
-    </div>
-
     <div class="table-responsive">
       <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
         <thead>
           <tr>
             <th>Submission ID</th>
             <th>Project</th>
-            <th>Submission Status</th>
+            <th>Submitting Author</th>
+            <th>Submission Status <a data-toggle="modal" data-target="#submissionStatusModal" href="#"><i class="fas fa-question-circle"></i></a></th>
             <th>Submission Date</th>
             <th>Editor</th>
           </tr>
@@ -52,6 +28,7 @@
         {% for submission in submissions %}
             <td>{{ submission.id }}</td>
             <td><a href="{% url 'project_overview' submission.project.id %}">{{ submission.project }}</a></td>
+            <td><a href="{% url 'public_profile' submission.project.submitting_author.username %}">{{ submission.project.submitting_author.username }}</a> - {{ submission.project.submitting_author.email }}</td>
             <td>{{ submission.submission_status }}</td>
             <td>{{ submission.submission_datetime|date }}</td>
             <td>
@@ -67,6 +44,8 @@
     </div>
   </div>
 </div>
+
+{% include "console/submission_status_modal.html" %}
 
 <div class="card mb-3">
     <div class="card-header">
