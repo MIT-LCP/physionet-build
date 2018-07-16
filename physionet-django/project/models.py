@@ -309,7 +309,7 @@ class Project(Metadata):
     storage_allowance = models.SmallIntegerField(default=1)
     submitting_author = models.ForeignKey('user.User',
         related_name='submitting_projects')
-
+    # If it has any published versions
     published = models.BooleanField(default=False)
     # Under any stage of the submission process, from presubmission.
     # 1 <= Submission.submission_status <= 4. The project is not
@@ -384,6 +384,11 @@ class Project(Metadata):
         if not self.contacts.filter():
             self.publish_errors.append('At least one contact is required')
 
+        if self.published:
+            published_versions = [p.version for p in self.published_projects.all()]
+            if self.version in published_versions:
+                self.publish_errors.append('The version matches a previously published version.')
+
         if self.publish_errors:
             return False
         else:
@@ -426,7 +431,7 @@ class Project(Metadata):
         Cancel a submission during presubmission phase at the request
         of the submitting author
         """
-        if self.submission_status != 1:
+        if self.submission_status() != 1:
             raise Exception('Project is not under presubmission')
 
         submission = self.submissions.get(is_active=True)
@@ -530,9 +535,15 @@ class Project(Metadata):
                 requires_credentialed=bool(self.access_policy-1)
                 )
             published_project.access_system = access_system
+            published_project.save()
 
         submission.submission_status = 7
+        submission.is_active = False
         submission.save()
+
+        self.under_submission = False
+        self.published = True
+        self.save()
 
         return published_project
 

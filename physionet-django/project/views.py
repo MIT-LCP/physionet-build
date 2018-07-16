@@ -159,8 +159,14 @@ def project_overview(request, project_id):
     project = Project.objects.get(id=project_id)
     admin_inspect = user.is_admin and not is_author(user, project)
 
+    if project.published:
+        published_projects = project.published_projects.all().order_by('publish_datetime')
+    else:
+        published_projects = None
+
     return render(request, 'project/project_overview.html',
-                  {'project':project, 'admin_inspect':admin_inspect})
+                  {'project':project, 'admin_inspect':admin_inspect,
+                   'published_projects':published_projects})
 
 
 def edit_affiliations(request, affiliation_formset):
@@ -613,16 +619,18 @@ def project_preview(request, project_id, sub_item=''):
     is_publishable = project.is_publishable()
     if is_publishable:
         messages.success(request, 'The project has passed all automatic checks and may be submitted.')
+        version_clash = False
     else:
         for e in project.publish_errors:
             messages.error(request, e)
+        version_clash = True
 
     return render(request, 'project/project_preview.html', {
         'project':project, 'display_files':display_files, 'display_dirs':display_dirs,
         'sub_item':sub_item, 'in_subdir':in_subdir, 'author_info':author_info,
-        'invitations':invitations,
-        'references':references, 'publications':publications, 'topics':topics,
-        'contacts':contacts, 'is_publishable':is_publishable,
+        'invitations':invitations, 'references':references,
+        'publications':publications, 'topics':topics, 'contacts':contacts,
+        'is_publishable':is_publishable, 'version_clash':version_clash,
         'admin_inspect':admin_inspect})
 
 
@@ -690,7 +698,8 @@ def project_submission(request, project_id):
         elif 'approve_publication' in request.POST:
             if submission.submission_status == 6 and user == project.submitting_author:
                 published_project = project.publish()
-                return render(request, 'project/publish_success.html', {'project':project})
+                return render(request, 'project/publish_success.html',
+                    {'project':project, 'published_project':published_project})
 
     if project.under_submission:
         submission = project.submissions.get(is_active=True)

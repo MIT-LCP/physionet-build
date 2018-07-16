@@ -91,56 +91,55 @@
     <ul class="list-group">
     <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The project has been submitted for review on {{ submission.presubmission_datetime|date }}.</li>
     {% if submission.submission_status == 1 %}
-        <p> Awaiting all co-authors approve the submission.</p>
-        <form action="" method="post">
-            {% csrf_token %}
-        <ul class="list-group">
-            {% for author in approved_authors %}
-                <li class="list-group-item">
-                    <i class="fas fa-check" style="color:green" title="Approved"></i> {{ author|author_name }}
-                    {% if author.user == project.submitting_author %}
-                        <span class="badge badge-success">Submitting Author</span>
-                    {% endif %}
-                    {% if user == author.user %}
-                        <button class="btn btn-danger" name="cancel_submission" style="float:right">Cancel Submission</button>
-                    {% endif %}
-                </li>
-            {% endfor %}
-            {% for author in unapproved_authors %}
-                <li class="list-group-item">
-                    <i class="far fa-clock" title="Waiting for approval"></i> {{ author|author_name }}
-                    {% if user == author.user %}
-                        <button class="btn btn-primary" name="approve_submission" style="float:right">Approve Submission</button>
-                    {% endif %}
-                </li>
-            {% endfor %}
         </ul>
-        </form>
+        <br>
+        <div class="card">
+            <div class="card-header"><h5>Awaiting co-authors to approve the submission.</h5></div>
+                <form action="" method="post">
+                    {% csrf_token %}
+                <ul class="list-group">
+                    {% for author in approved_authors %}
+                        <li class="list-group-item">
+                            <i class="fas fa-check" style="color:green" title="Approved"></i> {{ author|author_name }}
+                            {% if author.user == project.submitting_author %}
+                                <span class="badge badge-success">Submitting Author</span>
+                            {% endif %}
+                            {% if user == author.user %}
+                                <button class="btn btn-danger" name="cancel_submission" style="float:right">Cancel Submission</button>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                    {% for author in unapproved_authors %}
+                        <li class="list-group-item">
+                            <i class="far fa-clock" title="Waiting for approval"></i> {{ author|author_name }}
+                            {% if user == author.user %}
+                                <button class="btn btn-primary" name="approve_submission" style="float:right">Approve Submission</button>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+                </form>
+        </div>
     {% elif submission.submission_status == 2 %}
-        <p>Awaiting an editor to be assigned.</p>
+        <li class="list-group-item"><i class="far fa-clock"></i> Awaiting an editor to be assigned.</li>
+    </ul>
     {% else %}
         <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The editor of this submission is: <a href="{% url 'public_profile' submission.editor.username %}">{{ submission.editor }}</a> ({{ submission.editor.email }}).</li>
         {% if submission.submission_status == 3 %}
-            <p>Awaiting editor response.</p>
+            <li class="list-group-item"><i class="far fa-clock"></i> Awaiting editor response.</li></ul>
         {% elif submission.submission_status == 4 %}
             <p>The editor has requested a resubmission.</p>
         {% elif submission.submission_status == 6 %}
-            <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The editor has accepted the submission. The submitting author may confirm to publish the project.
+            <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The editor has accepted the submission. The submitting author may confirm to publish the project.</li></ul>
             {% if user == project.submitting_author %}
-                <form action="" method="post">
-                    {% csrf_token %}
-                    <button class="btn btn-success" name="approve_publication" style="float:right"><i class="fas fa-book-open"></i> Publish</button>
-                </form>
+                <p>
+                    <form action="" method="post">
+                        {% csrf_token %}
+                        <button class="btn btn-success btn-lg" name="approve_publication"><i class="fas fa-book-open"></i> Publish</button>
+                    </form>
+                </p>
             {% endif %}
-            </li>
         {% endif %}
-    {% endif %}
-    </ul>
-
-    {% if submission.submission_status == 6 and user == project.submitting_author %}
-
-
-
     {% endif %}
 {% endif %}
 

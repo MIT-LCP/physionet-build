@@ -10,9 +10,9 @@ RESPONSE_CHOICES = (
 )
 
 SUBMISSION_RESPONSE_CHOICES = (
-    (0, 'Reject'),
+    (2, 'Accept'),
     (1, 'Resubmit with changes'),
-    (2, 'Accept')
+    (0, 'Reject'),
 )
 
 
