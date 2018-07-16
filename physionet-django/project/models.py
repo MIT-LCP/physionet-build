@@ -461,17 +461,19 @@ class Project(Metadata):
 
     def publish(self):
         """
-        Create a published version of this project
+        Create a published version of this project and update the
+        submission status
         """
         if not self.is_publishable():
             raise Exception('Nope')
 
+        submission = self.submissions.get(is_active=True)
         published_project = PublishedProject()
 
         # Direct copy over fields
         for attr in ['title', 'abstract', 'background', 'methods',
                      'content_description', 'technical_validation',
-                     'usage_notes', 'acknowledgements', 'project_home_page',
+                     'usage_notes', 'acknowledgements', 'external_home_page',
                      'version', 'resource_type', 'access_policy',
                      'changelog_summary', 'access_policy', 'license']:
             setattr(published_project, attr, getattr(self, attr))
@@ -490,12 +492,14 @@ class Project(Metadata):
                 project_object=published_project)
 
         for topic in self.topics.all():
-            published_topic = PublishedTopic.objects.filter(description=topic.description.lower())
+            published_topic = PublishedTopic.objects.filter(
+                description=topic.description.lower())
             # If same content object exists, add it. Otherwise create.
             if published_topic.count():
                 published_project.topics.add(published_topic.first())
             else:
-                published_topic = PublishedTopic.objects.create(description=topic.description.lower())
+                published_topic = PublishedTopic.objects.create(
+                    description=topic.description.lower())
                 published_project.topics.add(published_topic)
 
         for author in self.authors.all():
@@ -509,9 +513,13 @@ class Project(Metadata):
                 first_name=first_name, middle_names=middle_names,
                 last_name=last_name, is_human=author.is_human,
                 organization_name=author.organization_name,
-                display_order=author.display_order, #'affiliations',
-                user=author.user
+                display_order=author.display_order, user=author.user
                 )
+
+            affiliations = author.affiliations.all()
+            for affiliation in affiliations:
+                affiliation_copy = Affiliation.objects.create(
+                    name=affiliation.name, member_object=author_copy)
 
         # Non-open access policy
         if self.access_policy:
@@ -523,6 +531,10 @@ class Project(Metadata):
                 )
             published_project.access_system = access_system
 
+        submission.submission_status = 7
+        submission.save()
+
+        return published_project
 
 @receiver(post_save, sender=Project)
 @new_creation
@@ -569,7 +581,7 @@ class PublishedProject(Metadata):
     is_newest_version = models.BooleanField(default=True)
     doi = models.CharField(max_length=50, default='', unique=True)
 
-    access_system = models.ForeignKey('project.AccessSystem',
+    access_system = models.ForeignKey('project.AccessSystem', null=True,
                                        related_name='projects')
 
     class Meta:

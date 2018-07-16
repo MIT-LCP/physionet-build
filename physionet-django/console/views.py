@@ -20,6 +20,8 @@ def is_admin(user, *args, **kwargs):
 
 # ------------------------- Views begin ------------------------- #
 
+@login_required
+@user_passes_test(is_admin)
 def console_home(request):
     return render(request, 'console/console_home.html')
 

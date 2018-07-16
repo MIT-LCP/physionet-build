@@ -687,6 +687,10 @@ def project_submission(request, project_id):
                 messages.success(request, 'You have withdrawn your approval for the project submission.')
             else:
                 raise Http404()
+        elif 'approve_publication' in request.POST:
+            if submission.submission_status == 6 and user == project.submitting_author:
+                published_project = project.publish()
+                return render(request, 'project/publish_success.html', {'project':project})
 
     if project.under_submission:
         submission = project.submissions.get(is_active=True)

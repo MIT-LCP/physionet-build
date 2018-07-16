@@ -46,7 +46,7 @@
             <h4><a href="{% url 'project_overview' project.id %}">{{ project.title }}</a></h4>
             <p class="list-group-item-text text-muted">
             <strong>Submitting Author: {{ project.submitting_author }}</strong><br>
-            <small>Created {{ project.creation_datetime }} Modified {{ project.modified_datetime }}</small>
+            <small>Created {{ project.creation_datetime|date }} Modified {{ project.modified_datetime|date }}</small>
             </p>
           </li>
         {% endfor %}
