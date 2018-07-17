@@ -617,13 +617,15 @@ def project_preview(request, project_id, sub_item=''):
     contacts = project.contacts.all()
 
     is_publishable = project.is_publishable()
+    version_clash = False
+
     if is_publishable:
         messages.success(request, 'The project has passed all automatic checks and may be submitted.')
-        version_clash = False
     else:
         for e in project.publish_errors:
             messages.error(request, e)
-        version_clash = True
+            if 'version' in e:
+                version_clash = True
 
     return render(request, 'project/project_preview.html', {
         'project':project, 'display_files':display_files, 'display_dirs':display_dirs,
@@ -670,7 +672,7 @@ def project_submission(request, project_id):
                 if project.is_publishable() and user == project.submitting_author:
                     project.presubmit()
                     # Submission is automatically triggered if only 1 author
-                    if project.submission_status == 2:
+                    if project.submission_status() == 2:
                         messages.success(request, 'Your project has been submitted and review has begun.')
                     else:
                         messages.success(request, 'Your project has been submitted. Awaiting co-authors to approve submission.')
@@ -723,15 +725,31 @@ def project_submission_history(request, project_id):
         {'project':project, 'admin_inspect':admin_inspect})
 
 
+def database(request, published_project):
+    """
+    Displays a published database project
+    """
+    authors = published_project.authors.all().order_by('display_order')
+    author_info = [AuthorInfo(a) for a in authors]
+    references = published_project.references.all()
+    publications = published_project.publications.all()
+    topics = published_project.topics.all()
+    contacts = published_project.contacts.all()
+
+    return render(request, 'project/database.html',
+        {'published_project':published_project, 'author_info':author_info,
+        'references':references, 'publications':publications, 'topics':topics,
+        'contacts':contacts})
+
 def published_project(request, published_project_id):
     """
     Displays a published project
     """
 
     published_project = PublishedProject.objects.get(id=published_project_id)
-    authors = published_project.authors.all().order_by('display_order')
-    return render(request, 'project/database.html',
-                  {'published_project':published_project, 'authors':authors})
+
+    if published_project.resource_type == 0:
+        return database(request, published_project)
 
 
 @authorization_required(auth_functions=(is_author,))

@@ -29,8 +29,4 @@ urlpatterns = [
         name='project_submission'),
     url(r'^(?P<project_id>\d+)/submission/history/$', views.project_submission_history,
         name='project_submission_history'),
-
-    # Published Projects
-    url(r'^published/(?P<published_project_id>\d+)/$', views.published_project,
-        name='database'),
 ]

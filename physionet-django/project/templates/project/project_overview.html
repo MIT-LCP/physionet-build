@@ -27,7 +27,7 @@
 <h3>Published Versions</h3>
 {% if project.published %}
     {% for published_project in published_projects %}
-        <a href="#">Version {{ published_project.version }}. Published {{ published_project.publish_datetime|date }}</a>
+        <a href="{% url 'published_project' published_project.id %}">Version {{ published_project.version }}. Published {{ published_project.publish_datetime|date }}</a>
     {% endfor %}
 {% else %}
     <p>This project has not been published.</p>

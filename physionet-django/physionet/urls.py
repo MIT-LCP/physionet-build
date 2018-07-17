@@ -2,6 +2,7 @@ from django.conf.urls import url, include
 from django.contrib import admin
 
 from . import views
+import project.views as project_views
 
 
 urlpatterns = [
@@ -24,8 +25,7 @@ urlpatterns = [
     url(r'^about/licenses/$', views.licenses, name='licenses'),
     url(r'^about/licenses/(?P<license_slug>[\w-]+)/$', views.license_content,
         name='license_content'),
-    url(r'^about/duas/$', views.duas,
-        name='duas'),
+    url(r'^about/duas/$', views.duas, name='duas'),
     url(r'^about/duas/(?P<dua_slug>[\w-]+)/$', views.dua_content,
         name='dua_content'),
 
@@ -36,4 +36,8 @@ urlpatterns = [
     url(r'^data/$', views.data, name='data'),
     url(r'^software/$', views.software, name='software'),
     url(r'^challenge/$', views.challenge, name='challenge'),
+
+    # Published Projects
+    url(r'^content/(?P<published_project_id>\d+)/$', project_views.published_project,
+        name='published_project'),
 ]

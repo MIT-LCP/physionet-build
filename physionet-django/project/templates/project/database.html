@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}{{ published_project }}"{% endblock %}
+
+{% load static %}
+
+{% load project_templatetags %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/home.css' %}"/>
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <h1 class="form-signin-heading"><em>{{ published_project.title }} {% if admin_inspect %}
+            (<i class="fas fa-user-secret" title="Admin Inspection"></i>)
+          {% endif %}
+    </h1>
+    {{ published_project.resource_type|resource_badge|safe }}
+    {{ published_project.access_policy|access_badge|safe }}
+    <hr>
+    <p class="text-muted">
+        Authors:
+        {% for author in author_info %}
+            <a title="{{ author.affiliations }}">{{ author.name }}</a>
+            {% if forloop.counter < author_info|length|add:"-1" %}
+                ,&nbsp;
+            {% endif %}
+        {% endfor %}
+        {% for invitation in invitations %}
+            <a style="color:red">* Outstanding Invitation: {{ invitation.email }}</a>
+        {% endfor %}
+    </p>
+    <hr>
+    Published: {{ published_project.publish_datetime|date }} - Version: {{ published_project.version }}
+    <hr>
+
+    <div class="row">
+        <!-- Main column -->
+        <div class="col-md-8">
+
+            <h2>Abstract</h2>
+            {{ published_project.abstract|safe }}
+            <hr>
+
+            <h2>Background</h2>
+            {{ published_project.background|safe }}
+            <hr>
+
+            <h2>Methods</h2>
+            {{ published_project.methods|safe }}
+            <hr>
+
+            <h2>Content Description</h2>
+            {{ published_project.content_description|safe }}
+            <hr>
+
+            {% if published_project.acknowledgements %}
+                <h2>Acknowledgements</h2>
+                {{ published_project.acknowledgements|safe }}
+                <hr>
+            {% endif %}
+
+            {% if references %}
+                <h2>References</h2>
+                <ol>
+                {% for reference in references %}
+                    <li>{{ reference.description }}</li>
+                {% endfor %}
+                </ol>
+                <hr>
+            {% endif %}
+
+            {% if published_project.changelog_summary %}
+                <h2>Changelog Summary</h2>
+                {{ published_project.changelog_summary|safe }}
+                <hr>
+            {% endif %}
+        </div>
+        <!-- /.main column -->
+
+        <!-- Sidebar Column -->
+        <div class="col-md-4">
+          <!-- Side Widget -->
+          <div class="card my-4">
+            <h5 class="card-header">Access</h5>
+            <div class="card-body">
+                <p>
+                    <strong>Access Policy:</strong>
+                    <br>
+                    {{ published_project.access_policy|access_badge|safe}} {{ published_project.access_policy|access_description }}
+                </p>
+                <p>
+                    <strong>License (for files):</strong>
+                    <br>
+                    <a href="{% url 'license_content' published_project.license.slug %}" target="_blank">{{ published_project.license }}</a>
+                </p>
+                {% if published_project.data_use_agreement %}
+                    <p>
+                        <strong>Data Use Agreement:</strong>
+                        <br>
+                        <a href="{% url 'dua_content' published_project.data_use_agreement.slug %}" target="_blank">{{ published_project.data_use_agreement.name }}</a>
+                    </p>
+                {% endif %}
+            </div>
+          </div>
+
+          <div class="card my-4">
+            <h5 class="card-header">Identifiers</h5>
+            <div class="card-body">
+                    <p><strong>DOI:</strong>
+                    <br>
+                    <span class="badge badge-info">{{ published_project.doi }}</span>
+                    </p>
+
+                {% if publications %}
+                    <p><strong>Related Publications:</strong>
+                    <br>
+                    {% for publication in publications %}
+                        <a href="{{ publication.url }}" target="_blank">{{ publication.citation }}</a>
+                    {% endfor %}
+                    </p>
+                {% endif %}
+
+                {% if topics %}
+                    <p><strong>Topics:</strong>
+                    <br>
+                    {% for topic in topics %}
+                        <span class="badge badge-info">{{ topic.description }}</span>
+                    {% endfor %}
+                    </p>
+                {% endif %}
+
+                {% if project.external_home_page %}
+                    <p><strong>Project Home Page:</strong>
+                    <br>
+                    <a href="{{ project.external_home_page }}" target="_blank"><i class="fas fa-external-link-alt"></i> {{ project.external_home_page }}</a>
+                    </p>
+                {% endif %}
+            </div>
+          </div>
+
+          <div class="card my-4">
+            <h5 class="card-header">Contact</h5>
+            <div class="card-body">
+                {% for contact in contacts %}
+                <p>
+                    Name: {{ contact.name }}<br>
+                    Affiliation: {{ contact.affiliation }}<br>
+                    Email: {{ contact.email }}
+                </p>
+                {% endfor %}
+            </div>
+          </div>
+        </div>
+        <!-- /.sidebar -->
+
+    </div>
+
+
+
+    <br><br>
+
+    {% include "project/files_panel.html" %}
+    <br>
+
+</div>
+{% endblock %}

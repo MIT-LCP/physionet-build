@@ -526,6 +526,11 @@ class Project(Metadata):
                 affiliation_copy = Affiliation.objects.create(
                     name=affiliation.name, member_object=author_copy)
 
+        for contact in self.contacts.all():
+            contact_copy = Contact.objects.create(name=contact.name,
+                affiliation=contact.affiliation, email=contact.email,
+                project_object=published_project)
+
         # Non-open access policy
         if self.access_policy:
             access_system = AccessSystem.objects.create(
