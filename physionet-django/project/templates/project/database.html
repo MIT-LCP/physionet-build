@@ -13,10 +13,7 @@
 {% block content %}
 
 <div class="container">
-    <h1 class="form-signin-heading"><em>{{ published_project.title }} {% if admin_inspect %}
-            (<i class="fas fa-user-secret" title="Admin Inspection"></i>)
-          {% endif %}
-    </h1>
+    <h1 class="form-signin-heading">{{ published_project.title }}</h1>
     {{ published_project.resource_type|resource_badge|safe }}
     {{ published_project.access_policy|access_badge|safe }}
     <hr>

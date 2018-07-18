@@ -1,6 +1,6 @@
 from django.shortcuts import render
 
-from project.models import DataUseAgreement, License
+from project.models import DataUseAgreement, License, PublishedProject
 
 
 def home(request):
@@ -49,7 +49,12 @@ def contact(request):
 # Content pages
 
 def data(request):
-    return render(request, 'data.html')
+    published_projects = PublishedProject.objects.all().order_by('publish_datetime')
+    authors = [p.authors.all() for p in published_projects]
+    topics = [p.topics.all() for p in published_projects]
+    projects_authors_topics = zip(published_projects, authors, topics)
+
+    return render(request, 'data.html', {'projects_authors_topics':projects_authors_topics})
 
 def software(request):
     return render(request, 'software.html')
