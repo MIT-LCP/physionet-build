@@ -13,24 +13,22 @@
 {% block content %}
 
 <div class="container">
+    <p>
+       {{ published_project.resource_type|resource_badge|safe }}
+       {{ published_project.access_policy|access_badge|safe }}
+    </p>
     <h1 class="form-signin-heading">{{ published_project.title }}</h1>
-    {{ published_project.resource_type|resource_badge|safe }}
-    {{ published_project.access_policy|access_badge|safe }}
-    <hr>
     <p class="text-muted">
-        Authors:
+        <strong>Authors:
         {% for author in author_info %}
             <a title="{{ author.affiliations }}">{{ author.name }}</a>
             {% if forloop.counter < author_info|length|add:"-1" %}
                 ,&nbsp;
             {% endif %}
         {% endfor %}
-        {% for invitation in invitations %}
-            <a style="color:red">* Outstanding Invitation: {{ invitation.email }}</a>
-        {% endfor %}
+        </strong>
     </p>
-    <hr>
-    Published: {{ published_project.publish_datetime|date }} - Version: {{ published_project.version }}
+    <p>Published: {{ published_project.publish_datetime|date }}. Version: {{ published_project.version }}</p>
     <hr>
 
     <div class="row">
@@ -129,10 +127,10 @@
                     </p>
                 {% endif %}
 
-                {% if project.external_home_page %}
+                {% if published_project.external_home_page %}
                     <p><strong>Project Home Page:</strong>
                     <br>
-                    <a href="{{ project.external_home_page }}" target="_blank"><i class="fas fa-external-link-alt"></i> {{ project.external_home_page }}</a>
+                    <a href="{{ published_project.external_home_page }}" target="_blank"><i class="fas fa-external-link-alt"></i> {{ published_project.external_home_page }}</a>
                     </p>
                 {% endif %}
             </div>
@@ -141,21 +139,22 @@
           <div class="card my-4">
             <h5 class="card-header">Contact</h5>
             <div class="card-body">
-                {% for contact in contacts %}
-                <p>
-                    Name: {{ contact.name }}<br>
-                    Affiliation: {{ contact.affiliation }}<br>
-                    Email: {{ contact.email }}
-                </p>
-                {% endfor %}
+                {% if user.is_authenticated %}
+                    {% for contact in contacts %}
+                    <p>
+                        Name: {{ contact.name }}<br>
+                        Affiliation: {{ contact.affiliation }}<br>
+                        Email: {{ contact.email }}
+                    </p>
+                    {% endfor %}
+                {% else %}
+                    <em>You must be logged in to view the contact information.</em>
+                {% endif %}
             </div>
           </div>
         </div>
         <!-- /.sidebar -->
-
     </div>
-
-
 
     <br><br>
 

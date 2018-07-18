@@ -487,13 +487,18 @@ class Project(Metadata):
         published_project.base_project = self
         published_project.storage_size = self.storage_used()
         # To be implemented...
-        published_project.doi = '10.13026/C2F305'
+        published_project.doi = '10.13026/C2F305' + str(self.id)
         published_project.save()
 
         # Same content, different objects.
         for reference in self.references.all():
             reference_copy = Reference.objects.create(
                 description=reference.description,
+                project_object=published_project)
+
+        for publication in self.publications.all():
+            publication_copy = Publication.objects.create(
+                citation=publication.citation, url=publication.url,
                 project_object=published_project)
 
         for topic in self.topics.all():
