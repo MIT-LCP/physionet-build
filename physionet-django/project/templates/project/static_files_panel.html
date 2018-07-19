@@ -1,8 +1,10 @@
+{% load static %}
+
 <div id="files-panel" class="card">
   <div class="card-header">
-    &nbsp;&nbsp;&nbsp;<strong>Contents of folder: /{{ sub_item }}</strong>
+    &nbsp;&nbsp;&nbsp;<strong>Contents of folder: /{{ subdir }}</strong>
     {% if in_subdir %}
-      <a href="{% url 'project_files' project.id '' %}" style="float:right">Return to base folder</a>
+      <a href="" style="float:right">Return to base folder</a>
     {% endif %}
   </div>
 
@@ -26,7 +28,7 @@
     {% for dir in display_dirs %}
       <li class="list-group-item">
         <div class="row">
-          <div class="col-md-8"><i class="fas fa-folder-open"></i>&nbsp;&nbsp;<a href="#" onclick="loadDir()">{{ dir.name }}</a></div>
+          <div class="col-md-8"><i class="fas fa-folder-open"></i>&nbsp;&nbsp;<a onclick="navigateDir('{{ dir.name }}')">{{ dir.name }}</a></div>
           <div class="col-md-2"></div>
           <div class="col-md-2"></div>
         </div>
@@ -35,7 +37,7 @@
     {% for file in display_files %}
       <li class="list-group-item">
         <div class="row">
-          <div class="col-md-8">&nbsp;<i class="far fa-file"></i>&nbsp;&nbsp;&nbsp;<a href="{{ file.name }}">{{ file.name }}</a></div>
+          <div class="col-md-8">&nbsp;<i class="far fa-file"></i>&nbsp;&nbsp;&nbsp;<a href="{% static file.static_url %}">{{ file.name }}</a></div>
           <div class="col-md-2">{{ file.size }}</div>
           <div class="col-md-2">{{ file.last_modified }}</div>
         </div>
@@ -45,22 +47,19 @@
 </div>
 
 <script>
-  // Loads a project directory
-  function loadDir(project_id, subdir){
-    alert('lol')
+  // Navigate to another file directory and reload the file panel
+  function navigateDir(subdir){
     var csrftoken = getCookie('csrftoken');
-      $.ajax({
-              type: "POST",
-              url: "{% url 'edit_metadata_item' project.id %}",
-              data: {'csrfmiddlewaretoken':csrftoken, 'project_id':project_id,
-                     'subdir':subdir
-              },
-              success: function reloadSection(result){
-                  $("#files-panel").html(result);
-              },
-      });
+        $.ajax({
+                type: "POST",
+                url: "{% url 'published_files_panel' published_project.id %}",
+                data: {'csrfmiddlewaretoken':csrftoken, 'subdir':subdir
+                },
+                success: function reloadSection(result){
+                    $("#files-panel").html(result);
+                },
+        });
   }
-
 
 
 </script>

@@ -13,7 +13,7 @@ from django.template.defaultfilters import slugify
 from django.utils import timezone
 
 from user.models import User
-from .utility import get_tree_size
+from .utility import get_tree_size, get_file_info, get_directory_info, list_items
 
 import pdb
 
@@ -620,6 +620,30 @@ class PublishedProject(Metadata):
             return os.path.join(settings.MEDIA_ROOT, 'published-projects', str(self.id))
         else:
             return os.path.join(settings.STATIC_ROOT, 'published-projects', str(self.id))
+
+    def get_directory_content(self, subdir=''):
+        """
+        Return
+        """
+        inspect_dir = os.path.join(self.file_root(), subdir)
+        file_names , dir_names = list_items(inspect_dir)
+
+        display_files = []
+
+        # Files require desciptive info and download links
+        for file in file_names:
+            file_info = get_file_info(os.path.join(inspect_dir, file))
+            if self.access_policy:
+                # Figure this out
+                file_info.media_url = os.path.join(settings.MEDIA_ROOT, 'published-projects', str(self.id), subdir, file)
+            else:
+                file_info.static_url = os.path.join('published-projects', str(self.id), subdir, file)
+
+            display_files.append(file_info)
+
+        display_dirs = [get_directory_info(os.path.join(inspect_dir, d)) for d in dir_names]
+
+        return display_files, display_dirs
 
 
 class License(models.Model):

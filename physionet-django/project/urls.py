@@ -21,6 +21,12 @@ urlpatterns = [
         name='edit_metadata_item'),
     url(r'^(?P<project_id>\d+)/files/(?P<sub_item>.*)$', views.project_files,
         name='project_files'),
+
+
+    url(r'^(?P<project_id>\d+)/files-panel/(?P<sub_dir>.*)$', views.project_files_panel,
+        name='project_files_panel'),
+
+
     url(r'^(?P<project_id>\d+)/preview/(?P<sub_item>.*)$', views.project_preview,
         name='project_preview'),
     url(r'^(?P<project_id>\d+)/publishable/$', views.check_publishable,

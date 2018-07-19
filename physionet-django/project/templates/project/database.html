@@ -10,6 +10,10 @@
 <link rel="stylesheet" type="text/css" href="{% static 'custom/css/home.css' %}"/>
 {% endblock %}
 
+{% block local_js_top %}
+<script type="text/javascript" src="{% static 'custom/js/cookie.js' %}"></script>
+{% endblock %}
+
 {% block content %}
 
 <div class="container">
@@ -157,8 +161,11 @@
     </div>
 
     <br><br>
+    {% if published_project.access_policy %}
 
-    {% include "project/files_panel.html" %}
+    {% else %}
+        {% include "project/static_files_panel.html" %}
+    {% endif %}
     <br>
 
 </div>

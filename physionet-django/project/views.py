@@ -571,6 +571,18 @@ def project_files(request, project_id, sub_item=''):
         'delete_items_form':delete_items_form, 'admin_inspect':admin_inspect})
 
 
+def project_files_panel(request, project_id, sub_dir):
+    """
+    Load the files panel for a project in its subdirectory
+    """
+    project = Project.objects.get(id=project_id)
+
+    inspect_directory = os.path.join(project.file_root(), sub_item)
+    in_subdir = bool(sub_dir)
+
+    return render(request, 'project/files_panel.html', {'display_files':display_files})
+
+
 @authorization_required(auth_functions=(is_author, is_admin))
 def project_preview(request, project_id, sub_item=''):
     """
@@ -725,6 +737,22 @@ def project_submission_history(request, project_id):
         {'project':project, 'admin_inspect':admin_inspect})
 
 
+
+def published_files_panel(request, published_project_id):
+    """
+    Return the file panel for the published project
+    """
+    published_project = PublishedProject.objects.get(id=published_project_id)
+    subdir = request.POST['subdir']
+    display_files, display_dirs = published_project.get_directory_content(
+        subdir=subdir)
+
+    in_subdir = bool(subdir)
+    print('yeaaaaaaa')
+    return render(request, 'project/static_files_panel.html',
+        {'published_project':published_project, 'in_subdir':in_subdir,
+         'display_files':display_files, 'display_dirs':display_dirs})
+
 def database(request, published_project):
     """
     Displays a published database project
@@ -736,10 +764,16 @@ def database(request, published_project):
     topics = published_project.topics.all()
     contacts = published_project.contacts.all()
 
+    # The file and directory contents
+    if published_project.access_policy:
+        pass
+    else:
+        display_files, display_dirs = published_project.get_directory_content()
+
     return render(request, 'project/database.html',
         {'published_project':published_project, 'author_info':author_info,
         'references':references, 'publications':publications, 'topics':topics,
-        'contacts':contacts})
+        'contacts':contacts, 'display_files':display_files, 'display_dirs':display_dirs})
 
 def published_project(request, published_project_id):
     """
