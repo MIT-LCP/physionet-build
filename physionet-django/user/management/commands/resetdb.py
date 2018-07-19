@@ -53,7 +53,7 @@ class Command(BaseCommand):
                 for file in migration_files:
                     os.remove(file)
 
-        # Remove project files
+        # Remove project/published project files
         clear_project_files()
         # Remake and apply the migrations
         call_command('makemigrations')
@@ -76,14 +76,20 @@ def get_migration_files(app):
 
 def clear_project_files():
     """
-    Remove all project content from the root project directory
+    Remove all content from the project and published project root
+    directories
     """
     project_root = os.path.join(settings.MEDIA_ROOT, 'projects')
+    published_project_roots = [os.path.join(settings.MEDIA_ROOT, 'published-projects'),
+        os.path.join(settings.STATIC_ROOT, 'published-projects')]
 
-    project_items = [os.path.join(project_root, item) for item in os.listdir(project_root) if item != '.gitkeep']
+    for root_dir in [project_root] + published_project_roots:
+        project_items = [os.path.join(root_dir, item) for item in os.listdir(root_dir) if item != '.gitkeep']
 
-    for item in project_items:
-        if os.path.islink(item):
-            os.unlink(item)
-        elif os.path.isdir(item):
-            shutil.rmtree(item)
+        for item in project_items:
+            if os.path.islink(item):
+                os.unlink(item)
+            elif os.path.isdir(item):
+                shutil.rmtree(item)
+
+

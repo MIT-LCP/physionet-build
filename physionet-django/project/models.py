@@ -547,6 +547,9 @@ class Project(Metadata):
             published_project.access_system = access_system
             published_project.save()
 
+        # Copy over files
+        shutil.copytree(self.file_root(), published_project.file_root())
+
         submission.submission_status = 7
         submission.is_active = False
         submission.save()
@@ -610,6 +613,13 @@ class PublishedProject(Metadata):
 
     def __str__(self):
         return ('%s v%s' % (self.title, self.version))
+
+    def file_root(self):
+        "Root directory containing the published project's files"
+        if self.access_policy:
+            return os.path.join(settings.MEDIA_ROOT, 'published-projects', str(self.id))
+        else:
+            return os.path.join(settings.STATIC_ROOT, 'published-projects', str(self.id))
 
 
 class License(models.Model):
