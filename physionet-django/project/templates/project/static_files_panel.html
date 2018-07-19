@@ -19,7 +19,7 @@
     {% if in_subdir %}
       <li class="list-group-item">
         <div class="row">
-          <div class="col-md-8">&nbsp;<i class="fas fa-angle-up"></i>&nbsp;&nbsp;<a onclick="navigateDir('{{ parent_dir }}')">Parent Directory</a></div>
+          <div class="col-md-8">&nbsp;<i class="fas fa-angle-up"></i>&nbsp;&nbsp;<a href="" onclick="return navigateDir('{{ parent_dir }}')">Parent Directory</span></div>
           <div class="col-md-2"></div>
           <div class="col-md-2"></div>
         </div>
@@ -28,7 +28,7 @@
     {% for dir in display_dirs %}
       <li class="list-group-item">
         <div class="row">
-          <div class="col-md-8"><i class="fas fa-folder-open"></i>&nbsp;&nbsp;<a onclick="navigateDir('{{ dir.full_subdir }}')">{{ dir.name }}</a></div>
+          <div class="col-md-8"><i class="fas fa-folder-open"></i>&nbsp;&nbsp;<a href="" onclick="return navigateDir('{{ dir.full_subdir }}')">{{ dir.name }}</a></div>
           <div class="col-md-2"></div>
           <div class="col-md-2"></div>
         </div>
@@ -60,6 +60,7 @@
                     $("#files-panel").html(result);
                 },
         });
+    return false
   }
 
 
