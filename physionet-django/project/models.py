@@ -623,12 +623,12 @@ class PublishedProject(Metadata):
 
     def get_directory_content(self, subdir=''):
         """
-        Return
+        Return information for displaying file and directories
         """
         inspect_dir = os.path.join(self.file_root(), subdir)
         file_names , dir_names = list_items(inspect_dir)
 
-        display_files = []
+        display_files, display_dirs = [], []
 
         # Files require desciptive info and download links
         for file in file_names:
@@ -638,10 +638,15 @@ class PublishedProject(Metadata):
                 file_info.media_url = os.path.join(settings.MEDIA_ROOT, 'published-projects', str(self.id), subdir, file)
             else:
                 file_info.static_url = os.path.join('published-projects', str(self.id), subdir, file)
-
             display_files.append(file_info)
 
-        display_dirs = [get_directory_info(os.path.join(inspect_dir, d)) for d in dir_names]
+        # Directories require
+        for dir_name in dir_names:
+            dir_info = get_directory_info(os.path.join(inspect_dir, dir_name))
+            dir_info.full_subdir = os.path.join(subdir, dir_name)
+            display_dirs.append(dir_info)
+
+        # display_dirs = [get_directory_info(os.path.join(inspect_dir, d)) for d in dir_names]
 
         return display_files, display_dirs
 

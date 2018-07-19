@@ -4,7 +4,7 @@
   <div class="card-header">
     &nbsp;&nbsp;&nbsp;<strong>Contents of folder: /{{ subdir }}</strong>
     {% if in_subdir %}
-      <a href="" style="float:right">Return to base folder</a>
+      <a onclick="navigateDir('')" style="float:right">Return to base folder</a>
     {% endif %}
   </div>
 
@@ -19,7 +19,7 @@
     {% if in_subdir %}
       <li class="list-group-item">
         <div class="row">
-          <div class="col-md-8">&nbsp;<i class="fas fa-angle-up"></i>&nbsp;&nbsp;<a href="../#files-panel">Parent Directory</a></div>
+          <div class="col-md-8">&nbsp;<i class="fas fa-angle-up"></i>&nbsp;&nbsp;<a onclick="navigateDir('{{ parent_dir }}')">Parent Directory</a></div>
           <div class="col-md-2"></div>
           <div class="col-md-2"></div>
         </div>
@@ -28,7 +28,7 @@
     {% for dir in display_dirs %}
       <li class="list-group-item">
         <div class="row">
-          <div class="col-md-8"><i class="fas fa-folder-open"></i>&nbsp;&nbsp;<a onclick="navigateDir('{{ dir.name }}')">{{ dir.name }}</a></div>
+          <div class="col-md-8"><i class="fas fa-folder-open"></i>&nbsp;&nbsp;<a onclick="navigateDir('{{ dir.full_subdir }}')">{{ dir.name }}</a></div>
           <div class="col-md-2"></div>
           <div class="col-md-2"></div>
         </div>
@@ -48,6 +48,7 @@
 
 <script>
   // Navigate to another file directory and reload the file panel
+  // subdir is the full subdirectory
   function navigateDir(subdir){
     var csrftoken = getCookie('csrftoken');
         $.ajax({

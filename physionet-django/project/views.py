@@ -746,11 +746,12 @@ def published_files_panel(request, published_project_id):
     subdir = request.POST['subdir']
     display_files, display_dirs = published_project.get_directory_content(
         subdir=subdir)
-
     in_subdir = bool(subdir)
-    print('yeaaaaaaa')
+    parent_dir = os.path.split(subdir)[0]
+
     return render(request, 'project/static_files_panel.html',
         {'published_project':published_project, 'in_subdir':in_subdir,
+         'subdir':subdir, 'parent_dir':parent_dir,
          'display_files':display_files, 'display_dirs':display_dirs})
 
 def database(request, published_project):
