@@ -35,18 +35,15 @@ METADATA_FORMSET_HELP_TEXT = {'reference': "Numbered references specified in des
     'contact':'* Persons to contact for questions about the project. This will only be visible to logged in users. Minimum of 1, maximum of 3.'}
 
 
+def is_admin(user, *args, **kwargs):
+    return user.is_admin
+
 def is_author(user, project):
-    authors = project.authors.all()
+    authors = project.authors.filter(is_human=True)
     return (user in [a.user for a in authors])
 
 def is_submitting_author(user, project):
     return user == project.submitting_author
-
-def is_invited(user, project):
-    "Whether a user has been invited to join a project"
-    user_invitations = Invitation.get_user_invitations(user)
-    return bool(user_invitations.filter(project=project))
-
 
 def authorization_required(auth_functions):
     """
@@ -153,14 +150,23 @@ def create_project(request):
     return render(request, 'project/create_project.html', {'form':form})
 
 
-@authorization_required(auth_functions=(is_author, is_invited))
+@authorization_required(auth_functions=(is_author, is_admin))
 def project_overview(request, project_id):
     """
     Overview page of a project
     """
+    user = request.user
     project = Project.objects.get(id=project_id)
+    admin_inspect = user.is_admin and not is_author(user, project)
 
-    return render(request, 'project/project_overview.html', {'project':project})
+    if project.published:
+        published_projects = project.published_projects.all().order_by('publish_datetime')
+    else:
+        published_projects = None
+
+    return render(request, 'project/project_overview.html',
+                  {'project':project, 'admin_inspect':admin_inspect,
+                   'published_projects':published_projects})
 
 
 def edit_affiliations(request, affiliation_formset):
@@ -271,7 +277,7 @@ def move_author(request, project_id):
     raise Http404()
 
 
-@authorization_required(auth_functions=(is_author,))
+@authorization_required(auth_functions=(is_author, is_admin))
 def project_authors(request, project_id):
     """
     Page displaying author information and actions.
@@ -279,15 +285,22 @@ def project_authors(request, project_id):
     user = request.user
     project = Project.objects.get(id=project_id)
     authors = project.authors.all().order_by('display_order')
-    author = authors.get(user=user)
+    admin_inspect = user.is_admin and user not in [a.user for a in authors]
 
-    AffiliationFormSet = generic_inlineformset_factory(Affiliation,
-        fields=('name',), extra=3, max_num=3)
+    # Deal with case when user is a non-author admin
+    if admin_inspect:
+        affiliation_formset, invite_author_form, add_author_form = None, None, None
+    else:
+        author = authors.get(user=user)
+        AffiliationFormSet = generic_inlineformset_factory(Affiliation,
+            fields=('name',), extra=3, max_num=3)
+        affiliation_formset = AffiliationFormSet(instance=author)
 
-    # Initiate the forms
-    affiliation_formset = AffiliationFormSet(instance=author)
-    invite_author_form = forms.InviteAuthorForm(project, user)
-    add_author_form = forms.AddAuthorForm(project=project)
+        if user == project.submitting_author:
+            invite_author_form = forms.InviteAuthorForm(project, user)
+            add_author_form = forms.AddAuthorForm(project=project)
+        else:
+            invite_author_form, add_author_form = None, None
 
     if request.method == 'POST':
         if 'edit_affiliations' in request.POST:
@@ -321,15 +334,17 @@ def project_authors(request, project_id):
         'authors':authors, 'invitations':invitations,
         'affiliation_formset':affiliation_formset,
         'invite_author_form':invite_author_form,
-        'add_author_form':add_author_form})
+        'add_author_form':add_author_form, 'admin_inspect':admin_inspect})
 
 
-@authorization_required(auth_functions=(is_author,))
+@authorization_required(auth_functions=(is_author, is_admin))
 def project_metadata(request, project_id):
     """
     For editing project metadata
     """
+    user = request.user
     project = Project.objects.get(id=project_id)
+    admin_inspect = user.is_admin and not is_author(user, project)
 
     # There are several forms for different types of metadata
     ReferenceFormSet = generic_inlineformset_factory(Reference,
@@ -406,7 +421,7 @@ def project_metadata(request, project_id):
         'publication_formset':publication_formset,
         'contact_formset':contact_formset,
         'topic_formset':topic_formset,
-        'messages':messages.get_messages(request)})
+        'messages':messages.get_messages(request), 'admin_inspect':admin_inspect})
 
 
 # Helper functions for project files view
@@ -454,7 +469,7 @@ def delete_items(request, delete_items_form):
     else:
         messages.error(request, get_form_errors(delete_items_form))
 
-@authorization_required(auth_functions=(is_author,))
+@authorization_required(auth_functions=(is_author, is_admin))
 def project_files(request, project_id, sub_item=''):
     "View and manipulate files in a project"
     project = Project.objects.get(id=project_id)
@@ -480,6 +495,7 @@ def project_files(request, project_id, sub_item=''):
 
     # The url is not pointing to a file to download.
 
+    admin_inspect = request.user.is_admin and not is_author(request.user, project)
     # The file directory being examined
     current_directory = os.path.join(project_file_root, sub_item)
     storage_info = get_storage_info(project.storage_allowance*1024**3,
@@ -552,10 +568,10 @@ def project_files(request, project_id, sub_item=''):
         'upload_files_form':upload_files_form,
         'folder_creation_form':folder_creation_form,
         'rename_item_form':rename_item_form, 'move_items_form':move_items_form,
-        'delete_items_form':delete_items_form})
+        'delete_items_form':delete_items_form, 'admin_inspect':admin_inspect})
 
 
-@authorization_required(auth_functions=(is_author,))
+@authorization_required(auth_functions=(is_author, is_admin))
 def project_preview(request, project_id, sub_item=''):
     """
     Preview what the published project would look like. Includes
@@ -584,7 +600,7 @@ def project_preview(request, project_id, sub_item=''):
         in_subdir = False
 
     # The url is not pointing to a file to download.
-
+    admin_inspect = request.user.is_admin and not is_author(request.user, project)
     # The file directory being examined
     current_directory = os.path.join(project_file_root, sub_item)
     file_names , dir_names = list_items(current_directory)
@@ -603,16 +619,19 @@ def project_preview(request, project_id, sub_item=''):
     is_publishable = project.is_publishable()
     if is_publishable:
         messages.success(request, 'The project has passed all automatic checks and may be submitted.')
+        version_clash = False
     else:
         for e in project.publish_errors:
             messages.error(request, e)
+        version_clash = True
 
     return render(request, 'project/project_preview.html', {
         'project':project, 'display_files':display_files, 'display_dirs':display_dirs,
         'sub_item':sub_item, 'in_subdir':in_subdir, 'author_info':author_info,
-        'invitations':invitations,
-        'references':references, 'publications':publications, 'topics':topics,
-        'contacts':contacts, 'is_publishable':is_publishable})
+        'invitations':invitations, 'references':references,
+        'publications':publications, 'topics':topics, 'contacts':contacts,
+        'is_publishable':is_publishable, 'version_clash':version_clash,
+        'admin_inspect':admin_inspect})
 
 
 @authorization_required(auth_functions=(is_author,))
@@ -628,7 +647,7 @@ def check_publishable(request, project_id):
         'publish_errors':project.publish_errors})
 
 
-@authorization_required(auth_functions=(is_author,))
+@authorization_required(auth_functions=(is_author, is_admin))
 def project_submission(request, project_id):
     """
     View submission details regarding a project, submit the project
@@ -638,11 +657,14 @@ def project_submission(request, project_id):
     user = request.user
     project = Project.objects.get(id=project_id)
     authors = project.authors.filter(is_human=True)
-    context = {'project':project}
+    admin_inspect = user.is_admin and user not in [a.user for a in authors]
+    context = {'project':project, 'admin_inspect':admin_inspect}
 
     if request.method == 'POST':
+        if project.under_submission:
+            submission = project.submissions.get(is_active=True)
         if 'submit_project' in request.POST:
-            if project.submission_status:
+            if project.submission_status():
                 raise Http404()
             else:
                 if project.is_publishable() and user == project.submitting_author:
@@ -655,39 +677,50 @@ def project_submission(request, project_id):
                 else:
                     messages.error(request, 'Fix the errors before submitting')
         elif 'cancel_submission' in request.POST:
-            if project.submission_status == 1 and user == project.submitting_author:
+            if submission.submission_status == 1 and user == project.submitting_author:
                 project.cancel_submission()
                 messages.success(request, 'Your project submission has been cancelled.')
             else:
                 raise Http404()
         elif 'approve_submission' in request.POST:
             author = authors.get(user=user)
-            submission = project.submissions.get(is_active=True)
-            if project.submission_status == 1 and authors not in submission.approved_authors.all():
+            if submission.submission_status == 1 and authors not in submission.approved_authors.all():
                 project.approve_author(author)
                 messages.success(request, 'You have approved the submission')
             else:
                 raise Http404()
         elif 'withdraw_approval' in request.POST:
-            submission = project.submissions.get(is_active=True)
-            if project.submission_status == 1 and user in [a.user for a in approved_authors] and user != project.submitting_author:
-
+            if submission.submission_status == 1 and user in [a.user for a in approved_authors] and user != project.submitting_author:
                 submission.approved_authors.remove(authors.get(user=user))
-
                 messages.success(request, 'You have withdrawn your approval for the project submission.')
             else:
                 raise Http404()
+        elif 'approve_publication' in request.POST:
+            if submission.submission_status == 6 and user == project.submitting_author:
+                published_project = project.publish()
+                return render(request, 'project/publish_success.html',
+                    {'project':project, 'published_project':published_project})
 
-    if project.submission_status:
+    if project.under_submission:
         submission = project.submissions.get(is_active=True)
         context['submission'] = submission
-        if project.submission_status == 1:
+        if submission.submission_status == 1:
             context['approved_authors'] = submission.approved_authors.all()
             context['unapproved_authors'] = authors.difference(context['approved_authors'])
-        else:
-            context['reviews'] = submission.reviews.all()
 
     return render(request, 'project/project_submission.html', context)
+
+
+@authorization_required(auth_functions=(is_author, is_admin))
+def project_submission_history(request, project_id):
+    """
+    Submission history for a project
+    """
+    project = Project.objects.get(id=project_id)
+    admin_inspect = user.is_admin and not is_author(user, project)
+
+    return render(request, 'project/submission_history.html',
+        {'project':project, 'admin_inspect':admin_inspect})
 
 
 def published_project(request, published_project_id):

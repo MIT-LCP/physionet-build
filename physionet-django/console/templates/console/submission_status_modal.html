@@ -1,0 +1,26 @@
+<div class="modal fade" id="submissionStatusModal" tabindex="-1" role="dialog" aria-labelledby="submissionStatusModal" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Submission Statuses</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <ol>
+          <li>Presubmission - submitting author submits project. Awaiting co-authors.</li>
+          <li>Submitted - all co-authors agree to submission. Awaiting editor assignment.</li>
+          <li>Submitted - editor is assigned. Awaiting editor decision. Continues to 4, 5, or 6.</li>
+          <li>Resubmission - editor decision 1. Awaiting submitting author to make revisions. Loops back to 3.</li>
+          <li>Rejected - editor decision 2. The submission ends.</li>
+          <li>Accepted - editor approved publication. Awaiting submitting author to confirm.</li>
+          <li>Accepted - submitting author approves publication. Project is published and submission ends.</li>
+        </ol>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

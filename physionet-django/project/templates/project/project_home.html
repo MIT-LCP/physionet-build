@@ -36,17 +36,17 @@
           <li class="list-group-item">
             <p>
               {{ project.resource_type|resource_badge|safe }}
-              {% if project.submission_status == 2 %}
-                <span class="badge badge-info"><i class="fas fa-glasses"></i> Under Review</span>
+              {% if project.under_submission %}
+                <span class="badge badge-info"><i class="fas fa-glasses"></i> Under Submission</span>
               {% endif %}
               {% if project.published %}
-                <span class="badge badge-success"><i class="fas fa-book-open"></i> Published</span>
+                <span class="badge badge-primary"><i class="fas fa-book-open"></i> Published</span>
               {% endif %}
             </p>
             <h4><a href="{% url 'project_overview' project.id %}">{{ project.title }}</a></h4>
             <p class="list-group-item-text text-muted">
             <strong>Submitting Author: {{ project.submitting_author }}</strong><br>
-            <small>Created {{ project.creation_datetime }} Modified {{ project.modified_datetime }}</small>
+            <small>Created {{ project.creation_datetime|date }} Modified {{ project.modified_datetime|date }}</small>
             </p>
           </li>
         {% endfor %}
@@ -54,9 +54,6 @@
         <div class="card-body text-center">
           <h4 class="card-title">No projects to show</h4>
           <p class="card-text">You are not currently working on any projects.</p>
-          <a class="btn btn-success" href="{% url 'create_project' %}" role="button">
-            <i class="fa fa-cloud-upload-alt"></i> Create New Project
-          </a>
         </div>
       {% endif %}
     </ul>

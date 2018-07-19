@@ -123,18 +123,18 @@
 {% endif %}
 <br>
 
+{% if not admin_inspect %}
+  <h4>Your Author Affiliations</h4>
+  <p>Set up to three affiliations for your author profile. <em>Note: these fields are not tied to your user profile</em>.</p>
+  <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
+    {% csrf_token %}
+    {{ affiliation_formset }}
+    <button class="btn btn-primary btn-fixed" name="edit_affiliations" type="submit">Set Affiliations</button>
+  </form>
+  <hr>
+{% endif %}
 
-<h4>Your Author Affiliations</h4>
-<p>Set up to three affiliations for your author profile. <em>Note: these fields are not tied to your user profile</em>.</p>
-<form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
-  {% csrf_token %}
-  {{ affiliation_formset }}
-  <button class="btn btn-primary btn-fixed" name="edit_affiliations" type="submit">Set Affiliations</button>
-</form>
-<hr>
-
-
-{% if user == project.submitting_author or user.is_admin %}
+{% if user == project.submitting_author %}
     <h4>Invite Author</h4>
     <p>Invite an author with their email</p>
     <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">

@@ -38,7 +38,10 @@
         {% endif %}
     {% endif %}
 
-    <h1 class="form-signin-heading"><em>[Preview]:</em> {{ project.title }}</h1>
+    <h1 class="form-signin-heading"><em>[Preview]:</em> {{ project.title }} {% if admin_inspect %}
+            (<i class="fas fa-user-secret" title="Admin Inspection"></i>)
+          {% endif %}
+    </h1>
     {{ project.resource_type|resource_badge|safe }}
     {{ project.access_policy|access_badge|safe }}
     <hr>
@@ -51,15 +54,19 @@
             {% endif %}
         {% endfor %}
         {% for invitation in invitations %}
-            <a style="color:red">* Outstanding invitation: {{ invitation.email }}</a>
+            <a style="color:red">* Outstanding Invitation: {{ invitation.email }}</a>
         {% endfor %}
     </p>
     <hr>
     Published: [dd/mm/yyyy] - Version:
     {% if project.version %}
-        {{ project.version}}
+        {% if version_clash %}
+            <a style="color:red"><strong>{{ project.version}} * Clashing Version</strong></a>
+        {% else %}
+            {{ project.version}}
+        {% endif %}
     {% else %}
-        <a style="color:red"><strong>* Required field missing</strong></a>
+
     {% endif %}
     <hr>
 

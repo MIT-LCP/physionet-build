@@ -1,0 +1,75 @@
+{% extends "console/base_console.html" %}
+
+{% block title %}Project Submissions{% endblock %}
+
+{% block content %}
+{% include "message_snippet.html" %}
+
+
+
+<div class="card mb-3">
+  <div class="card-header">
+      <i class="fas fa-glasses"></i> Active Project Submissions
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+        <thead>
+          <tr>
+            <th>Submission ID</th>
+            <th>Project</th>
+            <th>Submitting Author</th>
+            <th>Submission Status <a data-toggle="modal" data-target="#submissionStatusModal" href="#"><i class="fas fa-question-circle"></i></a></th>
+            <th>Submission Date</th>
+            <th>Editor</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for submission in submissions %}
+            <td>{{ submission.id }}</td>
+            <td><a href="{% url 'project_overview' submission.project.id %}">{{ submission.project }}</a></td>
+            <td><a href="{% url 'public_profile' submission.project.submitting_author.username %}">{{ submission.project.submitting_author.username }}</a> - {{ submission.project.submitting_author.email }}</td>
+            <td>{{ submission.submission_status }}</td>
+            <td>{{ submission.submission_datetime|date }}</td>
+            <td>
+                {% if submission.editor %}
+                    {{ submission.editor }}
+                {% else %}
+                    <a style="color:red">Awaiting Editor Assignment</a>
+                {% endif %}
+            </td>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% include "console/submission_status_modal.html" %}
+
+<div class="card mb-3">
+    <div class="card-header">
+      <i class="fa fa-bar-chart"></i> Assign Editor</div>
+    <div class="card-body">
+      <p>
+        {% if not n_awaiting_editor %}
+          <i style="color:green" class="fas fa-check-circle"></i>
+        {% else %}
+          <i style="color:red" class="fas fa-exclamation-circle"></i>
+        {% endif %}
+        {% if n_awaiting_editor == 1 %}
+          There is one submission awaiting an editor.
+        {% else %}
+          There are {{ n_awaiting_editor }} submissions awaiting an editor.
+        {% endif %}
+        </p>
+      <form action="" method="post" class="form-signin">
+        {% csrf_token %}
+        {% include "form_snippet.html" with form=assign_editor_form %}
+        <button class="btn btn-primary btn-fixed" name="invite_author" type="submit">Assign Editor</button>
+      </form>
+    </div>
+</div>
+
+{% endblock %}
+

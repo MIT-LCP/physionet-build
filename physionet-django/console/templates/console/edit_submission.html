@@ -1,0 +1,37 @@
+{% extends "console/base_console.html" %}
+
+{% block title %}Edit Submission{% endblock %}
+
+{% load project_templatetags %}
+{% block content %}
+<div class="card mb-3">
+  <div class="card-header">
+    Project Information
+  </div>
+  <div class="card-body">
+    <p>{{ submission.project.resource_type|resource_badge|safe }}</p>
+    <h4 class="card-title"><a href="{% url 'project_overview' submission.project.id %}">{{ submission.project.title }}</a></h4>
+    <p class="card-text">
+      Submitting Author: <a href="{% url 'public_profile' submission.project.submitting_author.username %}">{{ submission.project.submitting_author.username }}</a> {{ submission.project.submitting_author.email }}<br>
+      Created: {{ submission.project.creation_datetime|date }}<br>
+      Submitted: {{ submission.submission_datetime|date }}
+    </p>
+    <p><a class="btn btn-lg btn-primary" href="{% url 'project_preview' submission.project.id '' %}" role="button" target="_blank">
+        <i class="fas fa-eye"></i> View Project Preview</a>
+    </p>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-header">
+      Editor Response
+  </div>
+  <div class="card-body">
+    <form action="" method="post" class="form-signin">
+        {% csrf_token %}
+        {% include "form_snippet.html" with form=edit_submission_form %}
+        <button class="btn btn-primary btn-fixed" name="invite_author" type="submit">Submit Response</button>
+      </form>
+  </div>
+</div>
+{% endblock %}

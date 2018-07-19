@@ -309,11 +309,12 @@ class Project(Metadata):
     storage_allowance = models.SmallIntegerField(default=1)
     submitting_author = models.ForeignKey('user.User',
         related_name='submitting_projects')
-
+    # If it has any published versions
     published = models.BooleanField(default=False)
-    # 0 = not submitted, 1 = presubmission, 2 = under submission
-    submission_status = models.PositiveSmallIntegerField(default=0)
-
+    # Under any stage of the submission process, from presubmission.
+    # 1 <= Submission.submission_status <= 4. The project is not
+    # editable when this is True.
+    under_submission = models.BooleanField(default=False)
     # Access fields
     data_use_agreement = models.ForeignKey('project.DataUseAgreement',
                                            null=True, blank=True)
@@ -331,6 +332,25 @@ class Project(Metadata):
     def storage_used(self):
         "Total storage used in bytes"
         return get_tree_size(self.file_root())
+
+    def submission_status(self):
+        """
+        The submission status is kept track of in the active Submission
+        object, if it exists.
+        """
+        if self.under_submission:
+            return self.submissions.get(is_active=True).submission_status
+        else:
+            return 0
+
+    def is_frozen(self):
+        """
+        Project is not editable when frozen
+        """
+        if self.submission_status() in [0, 4]:
+            return False
+        else:
+            return True
 
     def is_publishable(self):
         """
@@ -364,6 +384,11 @@ class Project(Metadata):
         if not self.contacts.filter():
             self.publish_errors.append('At least one contact is required')
 
+        if self.published:
+            published_versions = [p.version for p in self.published_projects.all()]
+            if self.version in published_versions:
+                self.publish_errors.append('The version matches a previously published version.')
+
         if self.publish_errors:
             return False
         else:
@@ -379,7 +404,7 @@ class Project(Metadata):
         if self.submissions.filter(is_active=True):
             raise Exception('Active submission exists')
 
-        self.submission_status = 1
+        self.under_submission = True
         self.save()
 
         submission = Submission.objects.create(project=self)
@@ -390,14 +415,14 @@ class Project(Metadata):
         Add an author to the active submission's approved authors.
         Triggers submission if it is the last author.
         """
-        if self.submission_status != 1:
+        if self.submission_status() != 1:
             raise Exception('Project is not under presubmission')
 
         submission = self.submissions.get(is_active=True)
 
-        if self.submission_status == 1 and author not in submission.approved_authors.all():
+        if submission.submission_status == 1 and author not in submission.approved_authors.all():
             submission.approved_authors.add(author)
-            # Make the submission
+            # Make the submission if this was the last author
             if submission.approved_authors.count() == self.authors.filter(is_human=True).count():
                 self.submit()
 
@@ -406,12 +431,12 @@ class Project(Metadata):
         Cancel a submission during presubmission phase at the request
         of the submitting author
         """
-        if self.submission_status != 1:
+        if self.submission_status() != 1:
             raise Exception('Project is not under presubmission')
 
         submission = self.submissions.get(is_active=True)
         submission.delete()
-        self.submission_status = 0
+        self.under_submission = False
         self.save()
 
     def withdraw_submission_approval(self, author):
@@ -435,29 +460,25 @@ class Project(Metadata):
         Set the submission statuses, and get reviewers + editor
         """
         submission = self.submissions.get(is_active=True)
-        submission.presubmission = False
+        submission.submission_status = 2
         submission.submission_datetime = timezone.now()
         submission.save()
-        submission.get_reviewers()
-        submission.get_editor()
-
-        self.submission_status = 2
-        self.save()
-
 
     def publish(self):
         """
-        Create a published version of this project
+        Create a published version of this project and update the
+        submission status
         """
         if not self.is_publishable():
             raise Exception('Nope')
 
+        submission = self.submissions.get(is_active=True)
         published_project = PublishedProject()
 
         # Direct copy over fields
         for attr in ['title', 'abstract', 'background', 'methods',
                      'content_description', 'technical_validation',
-                     'usage_notes', 'acknowledgements', 'project_home_page',
+                     'usage_notes', 'acknowledgements', 'external_home_page',
                      'version', 'resource_type', 'access_policy',
                      'changelog_summary', 'access_policy', 'license']:
             setattr(published_project, attr, getattr(self, attr))
@@ -476,12 +497,14 @@ class Project(Metadata):
                 project_object=published_project)
 
         for topic in self.topics.all():
-            published_topic = PublishedTopic.objects.filter(description=topic.description.lower())
+            published_topic = PublishedTopic.objects.filter(
+                description=topic.description.lower())
             # If same content object exists, add it. Otherwise create.
             if published_topic.count():
                 published_project.topics.add(published_topic.first())
             else:
-                published_topic = PublishedTopic.objects.create(description=topic.description.lower())
+                published_topic = PublishedTopic.objects.create(
+                    description=topic.description.lower())
                 published_project.topics.add(published_topic)
 
         for author in self.authors.all():
@@ -495,9 +518,13 @@ class Project(Metadata):
                 first_name=first_name, middle_names=middle_names,
                 last_name=last_name, is_human=author.is_human,
                 organization_name=author.organization_name,
-                display_order=author.display_order, #'affiliations',
-                user=author.user
+                display_order=author.display_order, user=author.user
                 )
+
+            affiliations = author.affiliations.all()
+            for affiliation in affiliations:
+                affiliation_copy = Affiliation.objects.create(
+                    name=affiliation.name, member_object=author_copy)
 
         # Non-open access policy
         if self.access_policy:
@@ -508,7 +535,17 @@ class Project(Metadata):
                 requires_credentialed=bool(self.access_policy-1)
                 )
             published_project.access_system = access_system
+            published_project.save()
 
+        submission.submission_status = 7
+        submission.is_active = False
+        submission.save()
+
+        self.under_submission = False
+        self.published = True
+        self.save()
+
+        return published_project
 
 @receiver(post_save, sender=Project)
 @new_creation
@@ -555,7 +592,7 @@ class PublishedProject(Metadata):
     is_newest_version = models.BooleanField(default=True)
     doi = models.CharField(max_length=50, default='', unique=True)
 
-    access_system = models.ForeignKey('project.AccessSystem',
+    access_system = models.ForeignKey('project.AccessSystem', null=True,
                                        related_name='projects')
 
     class Meta:
@@ -708,48 +745,47 @@ class Submission(models.Model):
     submission begins. Object can be deleted if submitting author
     retracts before all co-authors approve.
 
+    The submission_status field:
+    - 1 : submitting author submits.
+    - 2 : all authors agree, awaiting editor assignment
+    - 3 : editor assigned, awaiting decision.
+    - 4 : decision 1 = resubmission requested (accept with changes).
+          Loops back to 3.
+    - 5 : decision 2 = hard reject, final.
+    - 6 : decision 3 = accept, awaiting author approval to publish.
+    - 7 : author approves publishing, and project is published.
+
     """
     project = models.ForeignKey('project.Project', related_name='submissions')
+    # Each project can have one active submission at a time
     is_active = models.BooleanField(default=True)
-    # Whether the project is under presubmission
-    presubmission = models.BooleanField(default=True)
+    submission_status = models.PositiveSmallIntegerField(default=1)
     approved_authors = models.ManyToManyField('project.Author')
     # Marks when the submitting author submits
     presubmission_datetime = models.DateTimeField(auto_now_add=True)
     # Marks when all co-authors approve
     submission_datetime = models.DateTimeField(null=True)
+    # Marks when the editor decides the final accept/reject
+    response_datetime = models.DateTimeField(null=True)
     editor = models.ForeignKey('user.User', related_name='editing_submissions',
         null=True)
+    # Comments for the final decision
     editor_comments = models.CharField(max_length=800)
-    decision = models.NullBooleanField(null=True)
-    response_datetime = models.DateTimeField(null=True)
-    published_project = models.OneToOneField('project.PublishedProject',
-        related_name='submission', null=True)
+    # Set to 0 for reject or 1 for accept, when final decision is made.
+    response = models.NullBooleanField(null=True)
 
-    def get_reviewers(self):
-        """
-        Get reviewers for the submission
-        """
-        reviewer = Review.objects.create(submission=self,
-            user=User.objects.filter(is_admin=True).first())
+    def __str__(self):
+        return 'Submission ID %d - %s' % (self.id, self.project.title)
 
 
-    def get_editor(self):
-        """
-        Get an editor for the submission
-        """
-        self.editor = User.objects.filter(is_admin=True).first()
-        self.save()
-
-
-class Review(models.Model):
+class Resubmission(models.Model):
     """
-    A review for a submission
-    """
-    submission = models.ForeignKey('project.Submission', related_name='reviews')
-    user = models.ForeignKey('user.User', related_name='reviews')
-    comments = models.CharField(max_length=800)
-    decision = models.NullBooleanField(null=True)
-    is_active = models.BooleanField(default=True)
-    response_datetime = models.DateTimeField(null=True)
+    Model for resubmissions, ie. when editor accepts with conditional
+    changes.
 
+    """
+    submission = models.ForeignKey('project.Submission',
+        related_name='resubmissions')
+    response_datetime = models.DateTimeField(auto_now_add=True)
+    # Comments for this resubmission decision
+    editor_comments = models.CharField(max_length=800)

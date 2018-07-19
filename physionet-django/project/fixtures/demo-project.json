@@ -168,13 +168,13 @@
     "license": 1,
     "external_home_page": "https://physionet.org/physiobank/database/mitdb/",
     "creation_datetime": "2017-10-30T14:30:30Z",
-    "modified_datetime": "2018-07-02T20:59:58.843Z",
+    "modified_datetime": "2018-07-11T22:40:13.213Z",
     "storage_allowance": 1,
     "submitting_author": [
       "rgmark@mit.edu"
     ],
-    "published": true,
-    "submission_status": 0,
+    "published": false,
+    "under_submission": false,
     "data_use_agreement": null
   }
 },
@@ -203,7 +203,7 @@
       "rgmark@mit.edu"
     ],
     "published": false,
-    "submission_status": 0,
+    "under_submission": false,
     "data_use_agreement": 1
   }
 },
@@ -232,7 +232,7 @@
       "george@mit.edu"
     ],
     "published": false,
-    "submission_status": 0,
+    "under_submission": false,
     "data_use_agreement": null
   }
 },
