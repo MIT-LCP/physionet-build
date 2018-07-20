@@ -47,3 +47,4 @@ urlpatterns = [
     url(r'^(?P<published_project_id>\d+)/files/(?P<sub_item>.*)$',
         project_views.published_project_file, name='published_project_file'),
 ]
+

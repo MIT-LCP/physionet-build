@@ -745,15 +745,16 @@ def published_files_panel(request, published_project_id):
 
     display_files, display_dirs = published_project.get_directory_content(
         subdir=subdir)
-
+    total_size = utility.readable_size(published_project.storage_size)
 
     # Breadcrumbs
     dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
-    #parent_dir = os.path.split(subdir)[0]
+    parent_dir = os.path.split(subdir)[0]
 
     return render(request, 'project/static_files_panel.html',
         {'published_project':published_project, 'subdir':subdir,
-         'dir_breadcrumbs':dir_breadcrumbs,
+         'dir_breadcrumbs':dir_breadcrumbs, 'total_size':total_size,
+         'parent_dir':parent_dir,
          'display_files':display_files, 'display_dirs':display_dirs})
 
 
@@ -783,18 +784,21 @@ def database(request, published_project):
     publications = published_project.publications.all()
     topics = published_project.topics.all()
     contacts = published_project.contacts.all()
-    dir_breadcrumbs = utility.get_dir_breadcrumbs('')
+
     # The file and directory contents
     if published_project.access_policy:
         pass
     else:
         display_files, display_dirs = published_project.get_directory_content()
+    dir_breadcrumbs = utility.get_dir_breadcrumbs('')
+    total_size = utility.readable_size(published_project.storage_size)
 
     return render(request, 'project/database.html',
         {'published_project':published_project, 'author_info':author_info,
          'references':references, 'publications':publications, 'topics':topics,
          'contacts':contacts, 'dir_breadcrumbs':dir_breadcrumbs,
-         'display_files':display_files, 'display_dirs':display_dirs})
+         'total_size':total_size, 'display_files':display_files,
+         'display_dirs':display_dirs})
 
 def published_project(request, published_project_id):
     """

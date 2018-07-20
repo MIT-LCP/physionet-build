@@ -2,7 +2,8 @@
 
 <div id="files-panel" class="card">
   <div class="card-header">
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>Folder:</strong>
+    <div class="row">
+    <div class="col-md-8">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Folder Navigation:
     {% for breadcrumb in dir_breadcrumbs %}
       {% if forloop.counter == dir_breadcrumbs|length %}
         {{ breadcrumb.name }}
@@ -10,6 +11,11 @@
         <a href="" onclick="return navigateDir('{{ breadcrumb.full_subdir }}')">{{ breadcrumb.name }}</a>&nbsp;/&nbsp;
       {% endif %}
     {% endfor %}
+  </div>
+    <div class="col-md-4">
+    <span style="float:right">Total File Size: {{ total_size }}</span>
+  </div>
+    </div>
   </div>
   <ul class="list-group list-group-flush">
     <li class="list-group-item">
