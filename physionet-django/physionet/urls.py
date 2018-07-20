@@ -38,9 +38,12 @@ urlpatterns = [
     url(r'^challenge/$', views.challenge, name='challenge'),
 
     # Published Projects
-    url(r'^content/(?P<published_project_id>\d+)/$', project_views.published_project,
-        name='published_project'),
+    url(r'^content/(?P<published_project_id>\d+)/$',
+        project_views.published_project, name='published_project'),
 
-    url(r'^(?P<published_project_id>\d+)/files-panel/$', project_views.published_files_panel,
-        name='published_files_panel'),
+    url(r'^(?P<published_project_id>\d+)/files-panel/$',
+        project_views.published_files_panel, name='published_files_panel'),
+
+    url(r'^(?P<published_project_id>\d+)/files/(?P<sub_item>.*)$',
+        project_views.published_project_file, name='published_project_file'),
 ]

@@ -34,6 +34,41 @@ class DirectoryInfo():
         self.size = size
         self.last_modified = last_modified
 
+class DirectoryBreadcrumb():
+    """
+    For navigating through project file directories
+    """
+    def __init__(self, name, full_subdir, active=True):
+        self.name = name
+        self.full_subdir = full_subdir
+        self.active = active
+
+def get_dir_breadcrumbs(subdir):
+    """
+    Given a subdirectory, return all breadcrumb elements
+
+    full_subdir for inputs:
+    ''  -->
+    d1  --> ['', 'd1']
+    d1/  --> ['', 'd1']
+    d1/d2/d3
+    d1/d2/d3/
+    """
+
+    if subdir == '':
+        return [DirectoryBreadcrumb(name='<base>', full_subdir='', active=False)]
+    if subdir.endswith('/'):
+        subdir = subdir[:-1]
+    dirs = subdir.split('/')
+    dir_breadcrumbs = [DirectoryBreadcrumb(name='<base>', full_subdir='')]
+    for i in range(len(dirs)):
+        dir_breadcrumbs.append(DirectoryBreadcrumb(name=dirs[i], full_subdir='/'.join([d.name for d in dir_breadcrumbs[1:]]+ [dirs[i]])))
+    dir_breadcrumbs[-1].active = False
+    return dir_breadcrumbs
+
+# x = get_dir_breadcrumbs('')
+# [xx.name for xx in x]
+# [xx.full_subdir for xx in x]
 
 class StorageInfo():
     """
@@ -173,6 +208,7 @@ def get_form_errors(form):
     for field in form.errors:
         all_errors += form.errors[field]
     return all_errors
+
 
 def serve_file(request, file_path):
     """

@@ -2,12 +2,15 @@
 
 <div id="files-panel" class="card">
   <div class="card-header">
-    &nbsp;&nbsp;&nbsp;<strong>Contents of folder: /{{ subdir }}</strong>
-    {% if in_subdir %}
-      <a onclick="navigateDir('')" style="float:right">Return to base folder</a>
-    {% endif %}
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>Folder:</strong>
+    {% for breadcrumb in dir_breadcrumbs %}
+      {% if forloop.counter == dir_breadcrumbs|length %}
+        {{ breadcrumb.name }}
+      {% else %}
+        <a href="" onclick="return navigateDir('{{ breadcrumb.full_subdir }}')">{{ breadcrumb.name }}</a>&nbsp;/&nbsp;
+      {% endif %}
+    {% endfor %}
   </div>
-
   <ul class="list-group list-group-flush">
     <li class="list-group-item">
       <div class="row">
@@ -16,10 +19,10 @@
         <div class="col-md-2"><strong>Modified</strong></div>
       </div>
     </li>
-    {% if in_subdir %}
+    {% if subdir %}
       <li class="list-group-item">
         <div class="row">
-          <div class="col-md-8">&nbsp;<i class="fas fa-angle-up"></i>&nbsp;&nbsp;<a href="" onclick="return navigateDir('{{ parent_dir }}')">Parent Directory</span></div>
+          <div class="col-md-8">&nbsp;<i class="fas fa-angle-up"></i>&nbsp;&nbsp;<a href="" onclick="return navigateDir('{{ parent_dir }}')">Parent Directory</a></div>
           <div class="col-md-2"></div>
           <div class="col-md-2"></div>
         </div>
