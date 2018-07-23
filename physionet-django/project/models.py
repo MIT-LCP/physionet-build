@@ -327,7 +327,7 @@ class Project(Metadata):
 
     def file_root(self):
         "Root directory containing the project's files"
-        return os.path.join(settings.MEDIA_ROOT, 'projects', str(self.id))
+        return os.path.join(settings.MEDIA_ROOT, 'project', str(self.id))
 
     def storage_used(self):
         "Total storage used in bytes"
@@ -641,7 +641,7 @@ class PublishedProject(Metadata):
     def file_root(self):
         "Root directory containing the published project's files"
         if self.access_policy:
-            return os.path.join(settings.MEDIA_ROOT, 'published-projects', str(self.id))
+            return os.path.join(settings.MEDIA_ROOT, 'published-project', str(self.id))
         else:
             # Temporary workaround for development
             if os.environ['DJANGO_SETTINGS_MODULE'] == 'physionet.settings.development':

@@ -36,7 +36,7 @@ class Command(BaseCommand):
         call_command('loaddata', *demo_fixtures, verbosity=1)
 
         # Link the demo project folders
-        projects_dir = os.path.join(settings.MEDIA_ROOT, 'projects')
-        demo_projects_dir = os.path.join(settings.MEDIA_ROOT, 'demo', 'projects')
+        projects_dir = os.path.join(settings.MEDIA_ROOT, 'project')
+        demo_projects_dir = os.path.join(settings.MEDIA_ROOT, 'demo', 'project')
         for item in os.listdir(demo_projects_dir):
             os.symlink(os.path.join(demo_projects_dir, item), os.path.join(projects_dir, item))

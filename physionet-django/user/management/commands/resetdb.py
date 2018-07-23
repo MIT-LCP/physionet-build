@@ -79,7 +79,7 @@ def clear_project_files():
     Remove all content from the project and published project root
     directories
     """
-    project_root = os.path.join(settings.MEDIA_ROOT, 'projects')
+    project_root = os.path.join(settings.MEDIA_ROOT, 'project')
     published_project_roots = [os.path.join(settings.MEDIA_ROOT, 'published-project'),
         # os.path.join(settings.STATIC_ROOT, 'published-projects'),
         os.path.join(settings.STATICFILES_DIRS[0], 'published-project')]
