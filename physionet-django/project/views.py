@@ -551,9 +551,7 @@ def project_files(request, project_id):
     delete_items_form = forms.DeleteItemsForm(current_directory)
 
     # The contents of the directory
-    file_names , dir_names = utility.list_items(current_directory)
     display_files, display_dirs = project.get_directory_content()
-
     dir_breadcrumbs = utility.get_dir_breadcrumbs('')
 
     return render(request, 'project/project_files.html', {'project':project,
@@ -694,45 +692,18 @@ def project_files_panel(request, project_id, sub_dir):
 
 
 @authorization_required(auth_functions=(is_author, is_admin))
-def project_preview(request, project_id, sub_item=''):
+def project_preview(request, project_id):
     """
     Preview what the published project would look like. Includes
     serving files.
 
     """
     project = Project.objects.get(id=project_id)
-
-    # Directory where files are kept for the project
-    project_file_root = project.file_root()
-
-    # Case of accessing a file or subdirectory
-    if sub_item:
-        item_path = os.path.join(project_file_root, sub_item)
-        # Serve a file
-        if os.path.isfile(item_path):
-            return utility.serve_file(request, item_path)
-        # In a subdirectory
-        elif os.path.isdir(item_path):
-            in_subdir = True
-        # Invalid url
-        else:
-            return Http404()
-    # In project's file root
-    else:
-        in_subdir = False
-
-    # The url is not pointing to a file to download.
     admin_inspect = request.user.is_admin and not is_author(request.user, project)
-    # The file directory being examined
-    current_directory = os.path.join(project_file_root, sub_item)
-    file_names , dir_names = utility.list_items(current_directory)
-    display_files = [utility.get_file_info(os.path.join(current_directory, f)) for f in file_names]
-    display_dirs = [utility.get_directory_info(os.path.join(current_directory, d)) for d in dir_names]
 
     authors = project.authors.all().order_by('display_order')
     author_info = [utility.AuthorInfo(a) for a in authors]
     invitations = project.invitations.filter(is_active=True)
-
     references = project.references.all()
     publications = project.publications.all()
     topics = project.topics.all()
@@ -749,13 +720,16 @@ def project_preview(request, project_id, sub_item=''):
             if 'version' in e:
                 version_clash = True
 
+    display_files, display_dirs = project.get_directory_content()
+    dir_breadcrumbs = utility.get_dir_breadcrumbs('')
+
     return render(request, 'project/project_preview.html', {
         'project':project, 'display_files':display_files, 'display_dirs':display_dirs,
-        'sub_item':sub_item, 'in_subdir':in_subdir, 'author_info':author_info,
+        'author_info':author_info,
         'invitations':invitations, 'references':references,
         'publications':publications, 'topics':topics, 'contacts':contacts,
         'is_publishable':is_publishable, 'version_clash':version_clash,
-        'admin_inspect':admin_inspect})
+        'admin_inspect':admin_inspect, 'dir_breadcrumbs':dir_breadcrumbs})
 
 
 @authorization_required(auth_functions=(is_author,))
@@ -849,7 +823,8 @@ def project_submission_history(request, project_id):
 
 def published_files_panel(request, published_project_id):
     """
-    Return the file panel for the published project
+    Return the file panel for the published project, for all access
+    policies
     """
     published_project = PublishedProject.objects.get(id=published_project_id)
     subdir = request.GET['subdir']

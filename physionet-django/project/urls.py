@@ -21,7 +21,6 @@ urlpatterns = [
         name='edit_metadata_item'),
 
 
-
     url(r'^(?P<project_id>\d+)/files/$', views.project_files,
         name='project_files'),
     url(r'^(?P<project_id>\d+)/files/(?P<file_name>.+)$', views.serve_project_file,
