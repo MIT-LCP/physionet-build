@@ -7,8 +7,8 @@ physionet-django/*/migrations/0*.py
 
 # Project folders created during testing
 media/projects/*
-media/published-projects/*
-static/published-projects/*
+media/published-project/*
+physionet-django/static/published-project/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

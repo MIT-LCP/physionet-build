@@ -619,7 +619,11 @@ class PublishedProject(Metadata):
         if self.access_policy:
             return os.path.join(settings.MEDIA_ROOT, 'published-projects', str(self.id))
         else:
-            return os.path.join(settings.STATIC_ROOT, 'published-projects', str(self.id))
+            # Temporary workaround for development
+            if os.environ['DJANGO_SETTINGS_MODULE'] == 'physionet.settings.development':
+                return os.path.join(settings.STATICFILES_DIRS[0], 'published-project', str(self.id))
+            else:
+                return os.path.join(settings.STATIC_ROOT, 'published-project', str(self.id))
 
     def get_directory_content(self, subdir=''):
         """
@@ -635,9 +639,9 @@ class PublishedProject(Metadata):
             file_info = get_file_info(os.path.join(inspect_dir, file))
             if self.access_policy:
                 # Figure this out
-                file_info.media_url = os.path.join(settings.MEDIA_ROOT, 'published-projects', str(self.id), subdir, file)
+                file_info.media_url = os.path.join(settings.MEDIA_ROOT, 'published-project', str(self.id), subdir, file)
             else:
-                file_info.static_url = os.path.join('published-projects', str(self.id), subdir, file)
+                file_info.static_url = os.path.join('published-project', str(self.id), subdir, file)
             display_files.append(file_info)
 
         # Directories require

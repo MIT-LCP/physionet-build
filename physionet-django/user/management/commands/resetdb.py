@@ -80,8 +80,9 @@ def clear_project_files():
     directories
     """
     project_root = os.path.join(settings.MEDIA_ROOT, 'projects')
-    published_project_roots = [os.path.join(settings.MEDIA_ROOT, 'published-projects'),
-        os.path.join(settings.STATIC_ROOT, 'published-projects')]
+    published_project_roots = [os.path.join(settings.MEDIA_ROOT, 'published-project'),
+        # os.path.join(settings.STATIC_ROOT, 'published-projects'),
+        os.path.join(settings.STATICFILES_DIRS[0], 'published-project')]
 
     for root_dir in [project_root] + published_project_roots:
         project_items = [os.path.join(root_dir, item) for item in os.listdir(root_dir) if item != '.gitkeep']
