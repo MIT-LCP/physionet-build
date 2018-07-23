@@ -1,11 +1,18 @@
+{% load static %}
 <div id="files-panel" class="card">
   <div class="card-header">
-    &nbsp;&nbsp;&nbsp;<strong>Contents of folder: /{{ sub_item }}</strong>
-    {% if in_subdir %}
-      <a href="{% url 'project_files' project.id '' %}" style="float:right">Return to base folder</a>
-    {% endif %}
+    <div class="row">
+      <div class="col-md-8">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Folder Navigation:
+      {% for breadcrumb in dir_breadcrumbs %}
+        {% if forloop.counter == dir_breadcrumbs|length %}
+          {{ breadcrumb.name }}
+        {% else %}
+          <a href="" onclick="return navigateDir('{{ breadcrumb.full_subdir }}')">{{ breadcrumb.name }}</a>&nbsp;/&nbsp;
+        {% endif %}
+      {% endfor %}
+      </div>
+    </div>
   </div>
-
   <ul class="list-group list-group-flush">
     <li class="list-group-item">
       <div class="row">
@@ -14,10 +21,10 @@
         <div class="col-md-2"><strong>Modified</strong></div>
       </div>
     </li>
-    {% if in_subdir %}
+    {% if subdir %}
       <li class="list-group-item">
         <div class="row">
-          <div class="col-md-8">&nbsp;<i class="fas fa-angle-up"></i>&nbsp;&nbsp;<a href="../#files-panel">Parent Directory</a></div>
+          <div class="col-md-8">&nbsp;<i class="fas fa-angle-up"></i>&nbsp;&nbsp;<a href="" onclick="return navigateDir('{{ parent_dir }}')">Parent Directory</a></div>
           <div class="col-md-2"></div>
           <div class="col-md-2"></div>
         </div>
@@ -26,7 +33,7 @@
     {% for dir in display_dirs %}
       <li class="list-group-item">
         <div class="row">
-          <div class="col-md-8"><i class="fas fa-folder-open"></i>&nbsp;&nbsp;<a href="#" onclick="loadDir()">{{ dir.name }}</a></div>
+          <div class="col-md-8"><i class="fas fa-folder-open"></i>&nbsp;&nbsp;<a href="" onclick="return navigateDir('{{ dir.full_subdir }}')">{{ dir.name }}</a></div>
           <div class="col-md-2"></div>
           <div class="col-md-2"></div>
         </div>
@@ -35,7 +42,7 @@
     {% for file in display_files %}
       <li class="list-group-item">
         <div class="row">
-          <div class="col-md-8">&nbsp;<i class="far fa-file"></i>&nbsp;&nbsp;&nbsp;<a href="{{ file.name }}">{{ file.name }}</a></div>
+          <div class="col-md-8">&nbsp;<i class="far fa-file"></i>&nbsp;&nbsp;&nbsp;<a href="{% url 'serve_project_file' project.id file.full_file_name %}">{{ file.name }}</a></div>
           <div class="col-md-2">{{ file.size }}</div>
           <div class="col-md-2">{{ file.last_modified }}</div>
         </div>
@@ -45,22 +52,19 @@
 </div>
 
 <script>
-  // Loads a project directory
-  function loadDir(project_id, subdir){
-    alert('lol')
+  // Navigate to another file directory and reload the file panel
+  // subdir is the full subdirectory
+  function navigateDir(subdir){
     var csrftoken = getCookie('csrftoken');
-      $.ajax({
-              type: "POST",
-              url: "{% url 'edit_metadata_item' project.id %}",
-              data: {'csrfmiddlewaretoken':csrftoken, 'project_id':project_id,
-                     'subdir':subdir
-              },
-              success: function reloadSection(result){
-                  $("#files-panel").html(result);
-              },
-      });
+    $.ajax({
+            type: "GET",
+            url: "{% url 'files_panel' project.id %}",
+            data: {'csrfmiddlewaretoken':csrftoken, 'subdir':subdir
+            },
+            success: function reloadSection(result){
+                $("#files-panel").html(result);
+            },
+    });
+    return false
   }
-
-
-
 </script>

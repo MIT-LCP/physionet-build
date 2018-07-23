@@ -19,16 +19,19 @@ urlpatterns = [
     url(r'^(?P<project_id>\d+)/metadata/edit_item/$',
         views.edit_metadata_item,
         name='edit_metadata_item'),
-    url(r'^(?P<project_id>\d+)/files/(?P<sub_item>.*)$', views.project_files,
+
+
+
+    url(r'^(?P<project_id>\d+)/files/$', views.project_files,
         name='project_files'),
+    url(r'^(?P<project_id>\d+)/files/(?P<file_name>.+)$', views.serve_project_file,
+        name='serve_project_file'),
+    url(r'^(?P<project_id>\d+)/files-panel/$', views.files_panel,
+        name='files_panel'),
 
-
-    url(r'^(?P<project_id>\d+)/files-panel/(?P<sub_dir>.*)$', views.project_files_panel,
-        name='project_files_panel'),
-
-
-    url(r'^(?P<project_id>\d+)/preview/(?P<sub_item>.*)$', views.project_preview,
+    url(r'^(?P<project_id>\d+)/preview/$', views.project_preview,
         name='project_preview'),
+
     url(r'^(?P<project_id>\d+)/publishable/$', views.check_publishable,
         name='check_publishable'),
     url(r'^(?P<project_id>\d+)/submission/$', views.project_submission,
