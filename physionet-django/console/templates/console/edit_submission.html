@@ -16,7 +16,7 @@
       Created: {{ submission.project.creation_datetime|date }}<br>
       Submitted: {{ submission.submission_datetime|date }}
     </p>
-    <p><a class="btn btn-lg btn-primary" href="{% url 'project_preview' submission.project.id '' %}" role="button" target="_blank">
+    <p><a class="btn btn-lg btn-primary" href="{% url 'project_preview' submission.project.id %}" role="button" target="_blank">
         <i class="fas fa-eye"></i> View Project Preview</a>
     </p>
   </div>

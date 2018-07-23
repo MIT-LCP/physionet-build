@@ -662,8 +662,7 @@ class PublishedProject(Metadata):
         for file in file_names:
             file_info = get_file_info(os.path.join(inspect_dir, file))
             if self.access_policy:
-                # Figure this out
-                file_info.media_url = os.path.join(settings.MEDIA_ROOT, 'published-project', str(self.id), subdir, file)
+                file_info.full_file_name = os.path.join(subdir, file)
             else:
                 file_info.static_url = os.path.join('published-project', str(self.id), subdir, file)
             display_files.append(file_info)

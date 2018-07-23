@@ -158,9 +158,9 @@
 
     <br><br>
     {% if published_project.access_policy %}
-
+        {% include "project/protected_files_panel.html" %}
     {% else %}
-        {% include "project/static_files_panel.html" %}
+        {% include "project/open_files_panel.html" %}
     {% endif %}
     <br>
 

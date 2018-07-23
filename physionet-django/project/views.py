@@ -837,28 +837,28 @@ def published_files_panel(request, published_project_id):
     dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
     parent_dir = os.path.split(subdir)[0]
 
-    return render(request, 'project/static_files_panel.html',
+    if published_project.access_policy:
+        template = 'project/protected_files_panel.html'
+    else:
+        template = 'project/open_files_panel.html'
+
+    return render(request, template,
         {'published_project':published_project, 'subdir':subdir,
          'dir_breadcrumbs':dir_breadcrumbs, 'total_size':total_size,
          'parent_dir':parent_dir,
          'display_files':display_files, 'display_dirs':display_dirs})
 
 
-def published_project_file(request, published_project_id, sub_item):
+def serve_published_project_file(request, published_project_id, file_name):
     """
     Serve a protected file of a published project
 
     """
-
     # todo: protect this view
     published_project = PublishedProject.objects.get(id=published_project_id)
+    file_path = os.path.join(published_project.file_root(), file_name)
+    return utility.serve_file(request, file_path)
 
-    file_path = os.path.join(published_project.file_root(), sub_item)
-
-    if os.path.isfile(file_path):
-        return utility.serve_file(request, file_path)
-    else:
-        return Http404()
 
 def database(request, published_project):
     """
@@ -872,10 +872,8 @@ def database(request, published_project):
     contacts = published_project.contacts.all()
 
     # The file and directory contents
-    if published_project.access_policy:
-        pass
-    else:
-        display_files, display_dirs = published_project.get_directory_content()
+    display_files, display_dirs = published_project.get_directory_content()
+
     dir_breadcrumbs = utility.get_dir_breadcrumbs('')
     total_size = utility.readable_size(published_project.storage_size)
 
