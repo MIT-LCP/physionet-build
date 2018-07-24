@@ -468,7 +468,7 @@ def delete_items(request, delete_items_form):
         messages.error(request, utility.get_form_errors(delete_items_form))
 
 @authorization_required(auth_functions=(is_author, is_admin))
-def files_panel(request, project_id):
+def project_files_panel(request, project_id):
     """
     Return the file panel for the project
     """
@@ -481,7 +481,7 @@ def files_panel(request, project_id):
     # Breadcrumbs
     dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
     parent_dir = os.path.split(subdir)[0]
-    return render(request, 'project/files_panel.html',
+    return render(request, 'project/project_files_panel.html',
         {'project':project, 'subdir':subdir,
          'dir_breadcrumbs':dir_breadcrumbs, 'parent_dir':parent_dir,
          'display_files':display_files, 'display_dirs':display_dirs})
@@ -678,17 +678,6 @@ def project_files_old(request, project_id, sub_item=''):
         'rename_item_form':rename_item_form, 'move_items_form':move_items_form,
         'delete_items_form':delete_items_form, 'admin_inspect':admin_inspect})
 
-
-def project_files_panel(request, project_id, sub_dir):
-    """
-    Load the files panel for a project in its subdirectory
-    """
-    project = Project.objects.get(id=project_id)
-
-    inspect_directory = os.path.join(project.file_root(), sub_item)
-    in_subdir = bool(sub_dir)
-
-    return render(request, 'project/files_panel.html', {'display_files':display_files})
 
 
 @authorization_required(auth_functions=(is_author, is_admin))

@@ -58,7 +58,7 @@
     var csrftoken = getCookie('csrftoken');
     $.ajax({
             type: "GET",
-            url: "{% url 'files_panel' project.id %}",
+            url: "{% url 'preview_files_panel' project.id %}",
             data: {'csrfmiddlewaretoken':csrftoken, 'subdir':subdir
             },
             success: function reloadSection(result){
