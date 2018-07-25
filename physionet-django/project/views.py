@@ -428,8 +428,7 @@ def project_metadata(request, project_id):
 
 def upload_files(request, upload_files_form):
     if upload_files_form.is_valid():
-        files = upload_files_form.files.getlist('file_field')
-        for file in files:
+        for file in upload_files_form.files.getlist('file_field'):
             utility.write_uploaded_file(file=file,
                 write_file_path=os.path.join(upload_files_form.file_dir,
                                              file.name))
@@ -439,7 +438,7 @@ def upload_files(request, upload_files_form):
 
 def create_folder(request, folder_creation_form):
     if folder_creation_form.is_valid():
-        os.mkdir(os.path.join(folder_creation_form.current_directory, folder_creation_form.cleaned_data['folder_name']))
+        os.mkdir(os.path.join(folder_creation_form.file_dir, folder_creation_form.cleaned_data['folder_name']))
         messages.success(request, 'Your folder has been created.')
     else:
         messages.error(request, utility.get_form_errors(folder_creation_form))
@@ -470,7 +469,8 @@ def delete_items(request, delete_items_form):
 @authorization_required(auth_functions=(is_author, is_admin))
 def project_files_panel(request, project_id):
     """
-    Return the file panel for the project. called via ajax.
+    Return the file panel for the project, along with the forms used to
+    manipulate them. Called via ajax to navigate directories.
     """
     project = Project.objects.get(id=project_id)
     subdir = request.GET['subdir']
@@ -481,10 +481,17 @@ def project_files_panel(request, project_id):
     # Breadcrumbs
     dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
     parent_dir = os.path.split(subdir)[0]
+
+    # Forms
+    upload_files_form = forms.UploadFilesForm(project=project, subdir=subdir)
+    folder_creation_form = forms.FolderCreationForm(project=project, subdir=subdir)
+
     return render(request, 'project/project_files_panel.html',
         {'project':project, 'subdir':subdir,
          'dir_breadcrumbs':dir_breadcrumbs, 'parent_dir':parent_dir,
-         'display_files':display_files, 'display_dirs':display_dirs})
+         'display_files':display_files, 'display_dirs':display_dirs,
+         'upload_files_form':upload_files_form,
+         'folder_creation_form':folder_creation_form})
 
 @authorization_required(auth_functions=(is_author, is_admin))
 def project_files(request, project_id):
@@ -509,15 +516,16 @@ def project_files(request, project_id):
                 messages.error(request, utility.get_form_errors(storage_request_form))
 
         if 'upload_files' in request.POST:
-            upload_files_form = forms.UploadFilesForm(project, '', request.POST,
-                request.FILES)
+            upload_files_form = forms.UploadFilesForm(project=project,
+                data=request.POST, files=request.FILES)
             upload_files(request, upload_files_form)
             subdir = upload_files_form.cleaned_data['subdir']
 
         elif 'create_folder' in request.POST:
-            folder_creation_form = forms.FolderCreationForm(current_directory,
-                request.POST)
+            folder_creation_form = forms.FolderCreationForm(project=project,
+                                                            data=request.POST)
             create_folder(request, folder_creation_form)
+            subdir = folder_creation_form.cleaned_data['subdir']
 
         elif 'rename_item' in request.POST:
             rename_item_form = forms.RenameItemForm(current_directory, request.POST)
@@ -552,15 +560,15 @@ def project_files(request, project_id):
     else:
         storage_request_form = forms.StorageRequestForm(project=project)
 
-    upload_files_form = forms.UploadFilesForm(project)
-    folder_creation_form = forms.FolderCreationForm(file_dir)
+    upload_files_form = forms.UploadFilesForm(project=project, subdir=subdir)
+    folder_creation_form = forms.FolderCreationForm(project=project, subdir=subdir)
     rename_item_form = forms.RenameItemForm(file_dir)
     move_items_form = forms.MoveItemsForm(file_dir, True)
     delete_items_form = forms.DeleteItemsForm(file_dir)
 
     # The contents of the directory
-    display_files, display_dirs = project.get_directory_content()
-    dir_breadcrumbs = utility.get_dir_breadcrumbs('')
+    display_files, display_dirs = project.get_directory_content(subdir=subdir)
+    dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
 
     return render(request, 'project/project_files.html', {'project':project,
         'subdir':subdir,

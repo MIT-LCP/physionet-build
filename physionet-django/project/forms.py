@@ -17,20 +17,11 @@ RESPONSE_CHOICES = (
 ILLEGAL_PATTERNS = ['/','..',]
 
 
-class UploadFilesForm(forms.Form):
+class ProjectFileForm(forms.Form):
     """
-    Form for uploading multiple files to a project.
-    `subdir` is the project subdirectory relative to the file root.
+    Common form for manipulating project files
     """
-    file_field = forms.FileField(widget=forms.ClearableFileInput(
-        attrs={'multiple': True}))
     subdir = forms.CharField(widget=forms.HiddenInput(), required=False)
-
-    def __init__(self, project, subdir='', *args, **kwargs):
-        super(UploadFilesForm, self).__init__(*args, **kwargs)
-        self.project = project
-        # The intial value doesn't affect the form post value
-        self.fields['subdir'].initial = subdir
 
     def clean_subdir(self):
         """
@@ -44,6 +35,20 @@ class UploadFilesForm(forms.Form):
         self.file_dir = file_dir
 
         return data
+
+class UploadFilesForm(ProjectFileForm):
+    """
+    Form for uploading multiple files to a project.
+    `subdir` is the project subdirectory relative to the file root.
+    """
+    file_field = forms.FileField(widget=forms.ClearableFileInput(
+        attrs={'multiple': True}))
+
+    def __init__(self, project, subdir='', *args, **kwargs):
+        super(UploadFilesForm, self).__init__(*args, **kwargs)
+        self.project = project
+        # The intial value doesn't affect the form post value
+        self.fields['subdir'].initial = subdir
 
     def clean_file_field(self):
         """
@@ -92,31 +97,37 @@ class UploadFilesForm(forms.Form):
         return data
 
 
-class FolderCreationForm(forms.Form):
+class FolderCreationForm(ProjectFileForm):
     """
     Form for creating a new folder in a directory
     """
     folder_name = forms.CharField(max_length=50)
 
-    def __init__(self, current_directory=None, *args, **kwargs):
+    def __init__(self, project, subdir='', *args, **kwargs):
         super(FolderCreationForm, self).__init__(*args, **kwargs)
-        self.current_directory = current_directory
+        self.project = project
+        # The intial value doesn't affect the form post value
+        self.fields['subdir'].initial = subdir
 
     def clean_folder_name(self):
-        """
-        Prevent upload when existing file/folder exists in directory
-        """
         data = self.cleaned_data['folder_name']
-        self.taken_names = list_items(self.current_directory, return_separate=False)
-
-        if data in self.taken_names:
-            raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
-                code='clashing_name', params={'taken_name':data})
-
         for substring in ILLEGAL_PATTERNS:
             if substring in data:
                 raise forms.ValidationError('Illegal pattern specified in item name: "%(illegal_pattern)s"',
                 code='illegal_pattern', params={'illegal_pattern':substring})
+        return data
+
+    def clean(self):
+        """
+        Check for name clash with existing files/folders in the directory
+        """
+        data = self.cleaned_data
+        folder_name = self.cleaned_data['folder_name']
+        self.taken_names = list_items(self.file_dir, return_separate=False)
+
+        if folder_name in self.taken_names:
+            raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
+                code='clashing_name', params={'taken_name':folder_name})
 
         return data
 
