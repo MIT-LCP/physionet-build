@@ -66,9 +66,6 @@ def get_dir_breadcrumbs(subdir):
     dir_breadcrumbs[-1].active = False
     return dir_breadcrumbs
 
-# x = get_dir_breadcrumbs('')
-# [xx.name for xx in x]
-# [xx.full_subdir for xx in x]
 
 class StorageInfo():
     """

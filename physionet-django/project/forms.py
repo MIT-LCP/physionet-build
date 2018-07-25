@@ -24,62 +24,70 @@ class UploadFilesForm(forms.Form):
     """
     file_field = forms.FileField(widget=forms.ClearableFileInput(
         attrs={'multiple': True}))
-    subdir = forms.CharField(widget=forms.HiddenInput())
+    subdir = forms.CharField(widget=forms.HiddenInput(), required=False)
 
-    def __init__(self, individual_size_limit, total_size_limit,
-                 subdir='', *args, **kwargs):
+    def __init__(self, project, subdir='', *args, **kwargs):
         super(UploadFilesForm, self).__init__(*args, **kwargs)
-        self.individual_size_limit = individual_size_limit
-        self.total_size_limit = total_size_limit
+        self.project = project
+        # The intial value doesn't affect the form post value
         self.fields['subdir'].initial = subdir
-
-        self.file_dir = os.path.join(project.file_root(), subdir)
 
     def clean_subdir(self):
         """
         Check that the subdirectory exists
         """
         data = self.cleaned_data['subdir']
+        file_dir = os.path.join(self.project.file_root(), data)
 
-        if not os.path.isdir(os.path.join(self.project.file_root(), data)):
+        if not os.path.isdir(file_dir):
             raise forms.ValidationError('Invalid upload')
+        self.file_dir = file_dir
 
         return data
 
     def clean_file_field(self):
         """
-        Check for file size limits and prevent upload when existing
-        file/folder exists in directory
+        Check for file size limits and whether they are readable
         """
-        # Prospective upload content
         data = self.cleaned_data['file_field']
         files = self.files.getlist('file_field')
 
-        self.taken_names = list_items(self.current_directory,
-                                      return_separate=False)
-
-        total_size = 0
         for file in files:
-            if file:
-                if file.size > self.individual_size_limit:
-                    raise forms.ValidationError(
-                        'File: "%(file_name)s" exceeds individual size limit: %(individual_size_limit)s',
-                        code='exceed_individual_limit',
-                        params={'file_name':file.name, 'individual_size_limit':readable_size(self.individual_size_limit)}
-                    )
-                total_size += file.size
-                if total_size > self.total_size_limit:
-                    raise forms.ValidationError(
-                        'Total upload size exceeds limit: %(total_size_limit)s',
-                        code='exceed_total_limit',
-                        params={'total_size_limit':readable_size(self.total_size_limit)}
-                    )
-                if file.name in self.taken_names:
-                    raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
-                        code='clashing_name', params={'taken_name':file.name})
-            else:
-                # Special error
-                raise forms.ValidationError('Could not read the uploaded file')
+            # Special error
+            if not file:
+                raise forms.ValidationError('Could not read file: %(file_name)s',
+                    params={'file_name':file.name})
+
+        for file in files:
+            if file.size > Project.INDIVIDUAL_FILE_SIZE_LIMIT:
+                raise forms.ValidationError(
+                    'File %(file_name)s is larger than the individual size limit: %(individual_size_limit)s',
+                    code='exceed_individual_limit',
+                    params={'file_name':file.name,
+                            'individual_size_limit':readable_size(Project.INDIVIDUAL_FILE_SIZE_LIMIT)}
+                )
+
+        if sum(f.size for f in files) > self.project.storage_allowance*1024**3 - self.project.storage_used():
+            raise forms.ValidationError(
+                'Total upload volume exceeds remaining quota',
+                code='exceed_remaining_quota',
+            )
+
+        return data
+
+    def clean(self):
+        """
+        Check for name clash with existing files/folders in the directory
+        """
+        data = self.cleaned_data
+        files = self.files.getlist('file_field')
+
+        self.taken_names = list_items(self.file_dir, return_separate=False)
+
+        for file in files:
+            if file.name in self.taken_names:
+                raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
+                    code='clashing_name', params={'taken_name':file.name})
 
         return data
 

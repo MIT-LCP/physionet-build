@@ -431,8 +431,8 @@ def upload_files(request, upload_files_form):
         files = upload_files_form.files.getlist('file_field')
         for file in files:
             utility.write_uploaded_file(file=file,
-                write_file_path=os.path.join(upload_files_form.current_directory
-            , file.name))
+                write_file_path=os.path.join(upload_files_form.file_dir,
+                                             file.name))
         messages.success(request, 'Your files have been uploaded.')
     else:
         messages.error(request, utility.get_form_errors(upload_files_form))
@@ -498,10 +498,6 @@ def project_files(request, project_id):
         if request.user != project.submitting_author:
             return Http404()
 
-        # The form will contain the subdir
-        subdir = request.POST['upload_files']
-        file_dir = os.path.join(project.file_root(), subdir)
-
         if 'request_storage' in request.POST:
             storage_request_form = forms.StorageRequestForm(project=project,
                                                             data=request.POST)
@@ -513,10 +509,10 @@ def project_files(request, project_id):
                 messages.error(request, utility.get_form_errors(storage_request_form))
 
         if 'upload_files' in request.POST:
-            upload_files_form = forms.UploadFilesForm(PROJECT_FILE_SIZE_LIMIT,
-                storage_info.remaining, file_dir, request.POST,
+            upload_files_form = forms.UploadFilesForm(project, '', request.POST,
                 request.FILES)
             upload_files(request, upload_files_form)
+            subdir = upload_files_form.cleaned_data['subdir']
 
         elif 'create_folder' in request.POST:
             folder_creation_form = forms.FolderCreationForm(current_directory,
@@ -536,6 +532,8 @@ def project_files(request, project_id):
             delete_items_form = forms.DeleteItemsForm(current_directory, request.POST)
             delete_items(request, delete_items_form)
 
+        file_dir = os.path.join(project.file_root(), subdir)
+
         # Reload the storage info.
         storage_info = utility.get_storage_info(project.storage_allowance*1024**3,
             project.storage_used())
@@ -554,8 +552,7 @@ def project_files(request, project_id):
     else:
         storage_request_form = forms.StorageRequestForm(project=project)
 
-    upload_files_form = forms.UploadFilesForm(PROJECT_FILE_SIZE_LIMIT,
-        storage_info.remaining, file_dir)
+    upload_files_form = forms.UploadFilesForm(project)
     folder_creation_form = forms.FolderCreationForm(file_dir)
     rename_item_form = forms.RenameItemForm(file_dir)
     move_items_form = forms.MoveItemsForm(file_dir, True)
