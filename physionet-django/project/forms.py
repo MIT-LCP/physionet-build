@@ -17,20 +17,34 @@ RESPONSE_CHOICES = (
 ILLEGAL_PATTERNS = ['/','..',]
 
 
-class MultiFileFieldForm(forms.Form):
+class UploadFilesForm(forms.Form):
     """
-    Form for uploading multiple files
+    Form for uploading multiple files to a project.
+    `subdir` is the project subdirectory relative to the file root.
     """
     file_field = forms.FileField(widget=forms.ClearableFileInput(
         attrs={'multiple': True}))
+    subdir = forms.CharField(widget=forms.HiddenInput())
 
     def __init__(self, individual_size_limit, total_size_limit,
-                 current_directory, *args, **kwargs):
-        # Email choices are those belonging to a user
-        super(MultiFileFieldForm, self).__init__(*args, **kwargs)
+                 subdir='', *args, **kwargs):
+        super(UploadFilesForm, self).__init__(*args, **kwargs)
         self.individual_size_limit = individual_size_limit
         self.total_size_limit = total_size_limit
-        self.current_directory = current_directory
+        self.fields['subdir'].initial = subdir
+
+        self.file_dir = os.path.join(project.file_root(), subdir)
+
+    def clean_subdir(self):
+        """
+        Check that the subdirectory exists
+        """
+        data = self.cleaned_data['subdir']
+
+        if not os.path.isdir(os.path.join(self.project.file_root(), data)):
+            raise forms.ValidationError('Invalid upload')
+
+        return data
 
     def clean_file_field(self):
         """

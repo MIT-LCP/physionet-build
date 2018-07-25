@@ -30,183 +30,39 @@
         <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#request-storage-modal">
           <i class="fa fa-cube"></i> Request Storage
         </button>
+
+        <div class="modal fade" id="request-storage-modal" tabindex="-1" role="dialog" aria-labelledby="request-storage-modal" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Request Storage</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <form action="" method="post" enctype="multipart/form-data">
+                <div class="modal-body">
+                  {% csrf_token %}
+                  <tr><td><label for="id_request_allowance">Request allowance (GB):</label></td><tr>
+                  {{ storage_request_form.request_allowance }}
+                  {{ storage_request_form.project }}
+                  <em>Current allowance: {{ storage_info.readable_allowance }}</em>
+                </div>
+                <div class="modal-footer">
+                  <button class="btn btn-primary" name="request_storage" type="submit"><i class="fa fa-cube"></i> Request Storage</button>
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
       {% endif %}
     {% endif %}
   </div>
 </div>
 <br>
 
-{% if user == project.submitting_author %}
-  <!-- Content manipulation buttons to trigger modals -->
-  <button type="button" class="btn btn-success" data-toggle="modal" data-target="#upload-files-modal">
-    <i class="fa fa-arrow-circle-up"></i> Upload Files
-  </button>
-  <button type="button" class="btn btn-success" data-toggle="modal" data-target="#create-folder-modal">
-    <i class="fa fa-folder-open"></i> Create Folder
-  </button>
-
-  <i style="float:right">
-    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#rename-item-modal">
-      <i class="fa fa-edit"></i> Rename Item
-    </button>
-    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#move-items-modal">
-      <i class="fas fa-arrow-right"></i> Move Items
-    </button>
-
-    <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#delete-items-modal">
-      <i class="fa fa-trash-alt"></i> Delete Items
-    </button>
-  </i>
-
-
-  <!-- Modals for manipulating content -->
-  {% if not storage_request %}
-    <div class="modal fade" id="request-storage-modal" tabindex="-1" role="dialog" aria-labelledby="request-storage-modal" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Request Storage</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <form action="" method="post" enctype="multipart/form-data">
-            <div class="modal-body">
-              {% csrf_token %}
-              <tr><td><label for="id_request_allowance">Request allowance (GB):</label></td><tr>
-              {{ storage_request_form.request_allowance }}
-              {{ storage_request_form.project }}
-              <em>Current allowance: {{ storage_info.readable_allowance }}</em>
-            </div>
-            <div class="modal-footer">
-              <button class="btn btn-primary" name="request_storage" type="submit"><i class="fa fa-cube"></i> Request Storage</button>
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  {% endif %}
-
-  <div class="modal fade" id="upload-files-modal" tabindex="-1" role="dialog" aria-labelledby="upload-files-modal" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Upload Files</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <form action="" method="post" enctype="multipart/form-data">
-          <div class="modal-body">
-            {% csrf_token %}
-            {{ upload_files_form }}
-          </div>
-          <div class="modal-footer">
-            <button class="btn btn-success" name="upload_files" type="submit"><i class="fa fa-arrow-circle-up"></i> Upload Files</button>
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal fade" id="create-folder-modal" tabindex="-1" role="dialog" aria-labelledby="create-folder-modal" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLabel">Create Folder</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <form action="" method="post" enctype="multipart/form-data">
-          <div class="modal-body">
-            {% csrf_token %}
-            {{ folder_creation_form }}
-          </div>
-          <div class="modal-footer">
-            <button class="btn btn-success" name="create_folder" type="submit"><i class="fa fa-folder-open"></i> Create Folder</button>
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal fade" id="rename-item-modal" tabindex="-1" role="dialog" aria-labelledby="rename-item-modal" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Rename Item</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <form action="" method="post" enctype="multipart/form-data">
-          <div class="modal-body">
-            {% csrf_token %}
-            {{ rename_item_form }}
-          </div>
-          <div class="modal-footer">
-            <button class="btn btn-primary" name="rename_item" type="submit"><i class="fa fa-edit"></i> Rename Item</button>
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal fade" id="move-items-modal" tabindex="-1" role="dialog" aria-labelledby="move-items-modal" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Move Items</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <form action="" method="post" enctype="multipart/form-data">
-          <div class="modal-body">
-            {% csrf_token %}
-            {{ move_items_form }}
-            Hold <em>ctrl</em> or <em>shift</em> to select multiple
-          </div>
-          <div class="modal-footer">
-            <button class="btn btn-primary" name="move_items" type="submit"><i class="fas fa-arrow-right"></i> Move Items</button>
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal fade" id="delete-items-modal" tabindex="-1" role="dialog" aria-labelledby="delete-items-modal" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Delete Items</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <form action="" method="post" enctype="multipart/form-data">
-          {% csrf_token %}
-          <div class="modal-body">
-            {% csrf_token %}
-            {{ delete_items_form }}
-            Hold <em>ctrl</em> or <em>shift</em> to select multiple
-          </div>
-          <div class="modal-footer">
-            <button class="btn btn-danger" name="delete_items" type="submit"><i class="fa fa-trash-alt"></i> Delete Items</button>
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-  <br>
-{% endif %}
+{% include "project/project_files_form.html" %}
 
 <br>
 

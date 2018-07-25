@@ -1,5 +1,6 @@
 import os
 import shutil
+import pdb
 
 from ckeditor.fields import RichTextField
 from django.conf import settings
@@ -15,10 +16,6 @@ from django.utils import timezone
 from user.models import User
 from .utility import get_tree_size, get_file_info, get_directory_info, list_items
 
-import pdb
-
-# Size limit for individual files being uploaded to projects
-PROJECT_FILE_SIZE_LIMIT = 100 * 1024**2
 
 def new_creation(receiver_function):
     """
@@ -318,6 +315,8 @@ class Project(Metadata):
     # Access fields
     data_use_agreement = models.ForeignKey('project.DataUseAgreement',
                                            null=True, blank=True)
+
+    INDIVIDUAL_FILE_SIZE_LIMIT = 100 * 1024**2
 
     class Meta:
         unique_together = (('title', 'submitting_author', 'resource_type'),)
