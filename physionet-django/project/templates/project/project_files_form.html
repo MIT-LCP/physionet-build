@@ -8,14 +8,14 @@
   </button>
 
   <i style="float:right">
-    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#rename-item-modal" disabled="true">
+    <button id="rename-item-button" type="button" class="btn btn-primary" data-toggle="modal" data-target="#rename-item-modal" disabled="true" onclick="prepareRename()">
       <i class="fa fa-edit"></i> Rename Item
     </button>
-    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#move-items-modal" disabled="true">
+    <button id="move-items-button" type="button" class="btn btn-primary" data-toggle="modal" data-target="#move-items-modal" disabled="true" onclick="prepareMove()">
       <i class="fas fa-arrow-right"></i> Move Items
     </button>
 
-    <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#delete-items-modal" disabled="true">
+    <button id="delete-items-button" type="button" class="btn btn-danger" data-toggle="modal" data-target="#delete-items-modal" disabled="true" onclick="prepareDelete()">
       <i class="fa fa-trash-alt"></i> Delete Items
     </button>
   </i>

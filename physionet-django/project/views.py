@@ -564,7 +564,7 @@ def project_files(request, project_id):
     folder_creation_form = forms.FolderCreationForm(project=project, subdir=subdir)
     rename_item_form = forms.RenameItemForm(file_dir)
     move_items_form = forms.MoveItemsForm(file_dir, True)
-    delete_items_form = forms.DeleteItemsForm(file_dir)
+    delete_items_form = forms.DeleteItemsForm(project=project, subdir=subdir)
 
     # The contents of the directory
     display_files, display_dirs = project.get_directory_content(subdir=subdir)

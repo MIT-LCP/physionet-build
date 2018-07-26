@@ -271,23 +271,29 @@ class MoveItemsForm(forms.Form):
             raise forms.ValidationError(validation_errors)
 
 
-class DeleteItemsForm(forms.Form):
+class DeleteItemsForm(ProjectFileForm):
     """
     Form for deleting items
     """
-    selected_items = forms.MultipleChoiceField()
 
-    def __init__(self, current_directory, *args, **kwargs):
-        """
-        Get the available items in the directory to delete, and set the form
-        field's set of choices.
-        """
+    def __init__(self, project, subdir='', *args, **kwargs):
         super(DeleteItemsForm, self).__init__(*args, **kwargs)
-        self.current_directory = current_directory
-        existing_items = list_items(current_directory, return_separate=False)
-        self.fields['selected_items'].choices = [(i, i) for i in existing_items]
+        self.project = project
+        # The intial value doesn't affect the form post value
+        self.fields['subdir'].initial = subdir
 
-    def clean_selected_items(self):
+
+    # def __init__(self, current_directory, *args, **kwargs):
+    #     """
+    #     Get the available items in the directory to delete, and set the form
+    #     field's set of choices.
+    #     """
+    #     super(DeleteItemsForm, self).__init__(*args, **kwargs)
+    #     self.current_directory = current_directory
+    #     existing_items = list_items(current_directory, return_separate=False)
+    #     self.fields['selected_items'].choices = [(i, i) for i in existing_items]
+
+    def clean(self):
         """
         Ensure selected items to delete exist in directory
         """

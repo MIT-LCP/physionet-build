@@ -43,7 +43,7 @@
             <div class="col-md-7"><i class="fas fa-folder-open"></i>&nbsp;&nbsp;<a href="" onclick="return navigateDir('{{ dir.full_subdir }}')">{{ dir.name }}</a></div>
             <div class="col-md-2"></div>
             <div class="col-md-2"></div>
-            <div class="col-md-1"><input type="checkbox" name="" value=""></div>
+            <div class="col-md-1"><input type="checkbox" name="item-name" value="{{ dir.name }}" onchange="countSelected(this)"></div>
           </div>
         </li>
       {% endfor %}
@@ -53,7 +53,7 @@
             <div class="col-md-7">&nbsp;<i class="far fa-file"></i>&nbsp;&nbsp;&nbsp;<a href="{% url 'serve_project_file' project.id file.full_file_name %}">{{ file.name }}</a></div>
             <div class="col-md-2">{{ file.size }}</div>
             <div class="col-md-2">{{ file.last_modified }}</div>
-            <div class="col-md-1"><input type="checkbox" name="" value=""></div>
+            <div class="col-md-1"><input type="checkbox" name="item-name" value="{{ file.name }}" onchange="countSelected(this)"></div>
           </div>
         </li>
       {% endfor %}
@@ -77,6 +77,54 @@
     });
     return false
   }
+
+
+  // Selected checkboxes
+  n_selected = 0
+
+  // Enables and disables buttons based on selected checkboxes
+  function countSelected(box){
+    if (box.checked){
+      n_selected ++
+    }
+    else{
+      n_selected --
+    }
+
+    if (n_selected > 0){
+      if (n_selected == 1){
+        document.getElementById("rename-item-button").disabled = false
+      }
+      else{
+        document.getElementById("rename-item-button").disabled = true
+      }
+      document.getElementById("move-items-button").disabled = false
+      document.getElementById("delete-items-button").disabled = false
+    }
+    else{
+      document.getElementById("rename-item-button").disabled = true
+      document.getElementById("move-items-button").disabled = true
+      document.getElementById("delete-items-button").disabled = true
+    }
+  }
+
+
+  // Fill in the rename modal
+  function prepareRename(){
+    // alert(document.querySelectorAll('input[type="checkbox"]:checked').length);
+    itemName = document.querySelector('input[type="checkbox"]:checked')
+
+
+  }
+
+  function prepareMove(){
+    alert(document.querySelectorAll('input[type="checkbox"]:checked').length);
+  }
+
+  function prepareDelete(){
+    alert(document.querySelectorAll('input[type="checkbox"]:checked').length);
+  }
+
 </script>
 
 
