@@ -80,7 +80,9 @@
         <form action="" method="post" enctype="multipart/form-data">
           <div class="modal-body">
             {% csrf_token %}
+            <p id="rename-item-message"></p>
             {{ rename_item_form }}
+
           </div>
           <div class="modal-footer">
             <button class="btn btn-primary" name="rename_item" type="submit"><i class="fa fa-edit"></i> Rename Item</button>
@@ -101,10 +103,12 @@
           </button>
         </div>
         <form action="" method="post" enctype="multipart/form-data">
+          {{ move_items_form.destination_folder }}
           <div class="modal-body">
             {% csrf_token %}
             {{ move_items_form }}
-            Hold <em>ctrl</em> or <em>shift</em> to select multiple
+            <br>
+            <p id="move-items-message"></p>
           </div>
           <div class="modal-footer">
             <button class="btn btn-primary" name="move_items" type="submit"><i class="fas fa-arrow-right"></i> Move Items</button>
@@ -124,12 +128,12 @@
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <form action="" method="post" enctype="multipart/form-data">
+        <form id="delete-items-form" action="" method="post" enctype="multipart/form-data">
           {% csrf_token %}
           <div class="modal-body">
             {% csrf_token %}
             {{ delete_items_form }}
-            Hold <em>ctrl</em> or <em>shift</em> to select multiple
+            <p id="delete-items-message"></p>
           </div>
           <div class="modal-footer">
             <button class="btn btn-danger" name="delete_items" type="submit"><i class="fa fa-trash-alt"></i> Delete Items</button>

@@ -182,12 +182,20 @@ class RenameItemForm(forms.Form):
         return data
 
 
+class MoveItemsFormm(ProjectFileForm):
+    """
+    Form for moving items into a target folder
+    """
+    destination_folder = forms.ChoiceField()
+    selected_items = forms.MultipleChoiceField(widget=forms.HiddenInput())
+
+
 class MoveItemsForm(forms.Form):
     """
     Form for moving items into a target folder
     """
     destination_folder = forms.ChoiceField()
-    selected_items = forms.MultipleChoiceField()
+    selected_items = forms.MultipleChoiceField(widget=forms.HiddenInput())
 
     def __init__(self, current_directory, in_subdir, *args, **kwargs):
         """
@@ -273,34 +281,27 @@ class MoveItemsForm(forms.Form):
 
 class DeleteItemsForm(ProjectFileForm):
     """
-    Form for deleting items
+    Form for deleting items. No input field for selecting items.
     """
 
-    def __init__(self, project, subdir='', *args, **kwargs):
+    def __init__(self, project, subdir='', selected_items=[], *args, **kwargs):
         super(DeleteItemsForm, self).__init__(*args, **kwargs)
         self.project = project
         # The intial value doesn't affect the form post value
         self.fields['subdir'].initial = subdir
-
-
-    # def __init__(self, current_directory, *args, **kwargs):
-    #     """
-    #     Get the available items in the directory to delete, and set the form
-    #     field's set of choices.
-    #     """
-    #     super(DeleteItemsForm, self).__init__(*args, **kwargs)
-    #     self.current_directory = current_directory
-    #     existing_items = list_items(current_directory, return_separate=False)
-    #     self.fields['selected_items'].choices = [(i, i) for i in existing_items]
+        self.selected_items = selected_items
 
     def clean(self):
         """
-        Ensure selected items to delete exist in directory
-        """
-        data = self.cleaned_data['selected_items']
-        existing_items = list_items(self.current_directory, return_separate=False)
+        Clean selected items.
 
-        if not set(data).issubset(set(existing_items)):
+        Ensure selected items to delete exist in directory.
+        """
+        data = self.cleaned_data
+
+        existing_items = list_items(self.file_dir, return_separate=False)
+
+        if not set(self.selected_items).issubset(set(existing_items)):
             raise forms.ValidationError('Invalid item selection.',
                 code='invalid_item_selection')
 

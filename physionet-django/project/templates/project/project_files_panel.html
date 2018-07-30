@@ -108,23 +108,64 @@
     }
   }
 
+  // Get the names of all the selected items
+function getSelected(){
+  var itemNames = []
+  var items = document.querySelectorAll('input[type="checkbox"]:checked')
+
+  for (i=0; i<items.length; i++){
+    itemNames.push(items[i].value)
+  }
+
+  // itemNames = [{"name":"hi", "value":"LOL"}]
+//   [
+//   {
+//     name: "a",
+//     value: "1"
+//   },
+//   {
+//     name: "b",
+//     value: "2"
+//   },
+//   {
+//     name: "c",
+//     value: "3"
+//   },
+//   {
+//     name: "d",
+//     value: "4"
+//   },
+//   {
+//     name: "e",
+//     value: "5"
+//   }
+// ]
+
+
+  return itemNames
+}
+
 
   // Fill in the rename modal
   function prepareRename(){
     // alert(document.querySelectorAll('input[type="checkbox"]:checked').length);
-    itemName = document.querySelector('input[type="checkbox"]:checked')
-
+    var itemName = document.querySelector('input[type="checkbox"]:checked').value
+    document.getElementById("rename-item-message").innerHTML = "Selected item: <strong>"+ itemName + "</strong>"
 
   }
 
   function prepareMove(){
-    alert(document.querySelectorAll('input[type="checkbox"]:checked').length);
+    document.getElementById("move-items-message").innerHTML = "Move "+ n_selected + " selected item(s) into destination folder."
   }
 
   function prepareDelete(){
-    alert(document.querySelectorAll('input[type="checkbox"]:checked').length);
+    document.getElementById("delete-items-message").innerHTML = "Are you sure you wish to delete the "+ n_selected + " selected item(s)?"
   }
 
+   $('#delete-items-form').submit(function(eventObj) {
+        $(this).append('<input type="hidden" name="selected_items" value=["hi","bye"] /> ');
+        return true;
+    });
 </script>
 
 

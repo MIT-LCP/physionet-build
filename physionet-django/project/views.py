@@ -505,6 +505,8 @@ def project_files(request, project_id):
         if request.user != project.submitting_author:
             return Http404()
 
+        pdb.set_trace()
+
         if 'request_storage' in request.POST:
             storage_request_form = forms.StorageRequestForm(project=project,
                                                             data=request.POST)
