@@ -539,7 +539,8 @@ def project_files(request, project_id):
             move_items(request, move_items_form)
 
         elif 'delete_items' in request.POST:
-            delete_items_form = forms.DeleteItemsForm(current_directory, request.POST)
+            delete_items_form = forms.DeleteItemsForm(project=project,
+                subdir=subdir, selected_items=request.POST['item-name'], data=request.POST)
             delete_items(request, delete_items_form)
 
         file_dir = os.path.join(project.file_root(), subdir)
@@ -569,12 +570,12 @@ def project_files(request, project_id):
     delete_items_form = forms.DeleteItemsForm(project=project, subdir=subdir)
 
     # The contents of the directory
-    display_files, display_dirs = project.get_directory_content(subdir=subdir)
+    display_items = project.get_directory_content(subdir=subdir)
     dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
 
     return render(request, 'project/project_files.html', {'project':project,
         'subdir':subdir,
-        'display_files':display_files, 'display_dirs':display_dirs,
+        'display_items':display_items,
         'storage_info':storage_info,
         'storage_request':storage_request,
         'storage_request_form':storage_request_form,

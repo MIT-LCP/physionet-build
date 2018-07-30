@@ -19,7 +19,7 @@ ILLEGAL_PATTERNS = ['/','..',]
 
 class ProjectFileForm(forms.Form):
     """
-    Common form for manipulating project files
+    Inherited form for manipulating project files.
     """
     subdir = forms.CharField(widget=forms.HiddenInput(), required=False)
 
@@ -36,13 +36,29 @@ class ProjectFileForm(forms.Form):
 
         return data
 
+class EditFilesForm(forms.Form):
+    """
+    Inherited form for editing files/directories. Rename, edit, delete.
+    """
+    def clean(self):
+        """
+        Check if selected files exist in subdirectory
+        """
+        data = self.cleaned_data
+
+        for file in self.selected_items:
+            if not os.path.exists(os.path.join(self.file_dir, file)):
+                raise forms.ValidationError('Invalid item selection')
+
+        return data
+
 class UploadFilesForm(ProjectFileForm):
     """
     Form for uploading multiple files to a project.
     `subdir` is the project subdirectory relative to the file root.
     """
     file_field = forms.FileField(widget=forms.ClearableFileInput(
-        attrs={'multiple': True}))
+        attrs={'multiple': True}), required=False)
 
     def __init__(self, project, subdir='', *args, **kwargs):
         super(UploadFilesForm, self).__init__(*args, **kwargs)
@@ -101,7 +117,7 @@ class FolderCreationForm(ProjectFileForm):
     """
     Form for creating a new folder in a directory
     """
-    folder_name = forms.CharField(max_length=50)
+    folder_name = forms.CharField(max_length=50, required=False)
 
     def __init__(self, project, subdir='', *args, **kwargs):
         super(FolderCreationForm, self).__init__(*args, **kwargs)
@@ -136,8 +152,8 @@ class RenameItemForm(forms.Form):
     """
     Form for renaming an item in a directory
     """
-    new_name = forms.CharField(max_length=50)
-    selected_item = forms.ChoiceField()
+    new_name = forms.CharField(max_length=50, required=False)
+    selected_item = forms.ChoiceField(required=False)
 
     def __init__(self, current_directory, *args, **kwargs):
         """
@@ -186,16 +202,16 @@ class MoveItemsFormm(ProjectFileForm):
     """
     Form for moving items into a target folder
     """
-    destination_folder = forms.ChoiceField()
-    selected_items = forms.MultipleChoiceField(widget=forms.HiddenInput())
+    destination_folder = forms.ChoiceField(required=False)
+    selected_items = forms.MultipleChoiceField(widget=forms.HiddenInput(), required=False)
 
 
 class MoveItemsForm(forms.Form):
     """
     Form for moving items into a target folder
     """
-    destination_folder = forms.ChoiceField()
-    selected_items = forms.MultipleChoiceField(widget=forms.HiddenInput())
+    destination_folder = forms.ChoiceField(required=False)
+    selected_items = forms.MultipleChoiceField(widget=forms.HiddenInput(), required=False)
 
     def __init__(self, current_directory, in_subdir, *args, **kwargs):
         """

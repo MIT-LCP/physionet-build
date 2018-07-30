@@ -337,23 +337,49 @@ class Project(Metadata):
         Return information for displaying file and directories
         """
         inspect_dir = os.path.join(self.file_root(), subdir)
-        file_names , dir_names = list_items(inspect_dir)
 
-        display_files, display_dirs = [], []
+        display_items = []
 
-        # Files require desciptive info and download links
-        for file in file_names:
-            file_info = get_file_info(os.path.join(inspect_dir, file))
-            file_info.full_file_name = os.path.join(subdir, file)
-            display_files.append(file_info)
 
-        # Directories require
-        for dir_name in dir_names:
-            dir_info = get_directory_info(os.path.join(inspect_dir, dir_name))
-            dir_info.full_subdir = os.path.join(subdir, dir_name)
-            display_dirs.append(dir_info)
+        for item in os.path.listdir(inspect_dir):
+            full_item = os.path.join(inspect_dir, item)
+            # File
+            if os.path.isfile(full_item):
+                if not item.endswith('~'):
+                    name, size_last_modified = get_file_info()
+                    item_info = ItemInfo(name=item,
+                        size=size, last_modified=last_modified, item_type=0)
+                    # For the relative download link
+                    item_info.full_file_name = os.path.join(subdir, item)
+                    display_items.append(item_info).full_file_name = os.path.join(subdir, file)
+            # Directory
+            else:
+                item_info = ItemInfo(name=item, item_type=1)
+                # For navigating to directory
+                item_info.full_subdir = os.path.join(subdir, item)
+                display_items.append(item_info)
 
-        return display_files, display_dirs
+        return display_items
+
+        # OLDDDD
+
+        # file_names , dir_names = list_items(inspect_dir)
+
+        # display_files, display_dirs = [], []
+
+        # # Files require desciptive info and download links
+        # for file in file_names:
+        #     file_info = get_file_info(os.path.join(inspect_dir, file))
+        #     file_info.full_file_name = os.path.join(subdir, file)
+        #     display_files.append(file_info)
+
+        # # Directories require
+        # for dir_name in dir_names:
+        #     dir_info = get_directory_info(os.path.join(inspect_dir, dir_name))
+        #     dir_info.full_subdir = os.path.join(subdir, dir_name)
+        #     display_dirs.append(dir_info)
+
+        # return display_files, display_dirs
 
 
     def submission_status(self):
