@@ -461,7 +461,7 @@ def move_items(request, move_items_form):
 
 def delete_items(request, delete_items_form):
     if delete_items_form.is_valid():
-        utility.remove_items([os.path.join(delete_items_form.current_directory, i) for i in delete_items_form.cleaned_data['selected_items']])
+        utility.remove_items([os.path.join(delete_items_form.file_dir, i) for i in delete_items_form.cleaned_data['items']])
         messages.success(request, 'Your items have been deleted.')
     else:
         messages.error(request, utility.get_form_errors(delete_items_form))
@@ -505,7 +505,6 @@ def project_files(request, project_id):
         if request.user != project.submitting_author:
             return Http404()
 
-        pdb.set_trace()
 
         if 'request_storage' in request.POST:
             storage_request_form = forms.StorageRequestForm(project=project,
@@ -540,8 +539,9 @@ def project_files(request, project_id):
 
         elif 'delete_items' in request.POST:
             delete_items_form = forms.DeleteItemsForm(project=project,
-                subdir=subdir, selected_items=request.POST['item-name'], data=request.POST)
+                data=request.POST)
             delete_items(request, delete_items_form)
+            subdir = delete_items_form.cleaned_data['subdir']
 
         file_dir = os.path.join(project.file_root(), subdir)
 
@@ -566,22 +566,24 @@ def project_files(request, project_id):
     upload_files_form = forms.UploadFilesForm(project=project, subdir=subdir)
     folder_creation_form = forms.FolderCreationForm(project=project, subdir=subdir)
     rename_item_form = forms.RenameItemForm(file_dir)
-    move_items_form = forms.MoveItemsForm(file_dir, True)
+    # move_items_form = forms.MoveItemsForm(file_dir, True)
     delete_items_form = forms.DeleteItemsForm(project=project, subdir=subdir)
 
     # The contents of the directory
-    display_items = project.get_directory_content(subdir=subdir)
+    display_files, display_dirs = project.get_directory_content(subdir=subdir)
     dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
 
     return render(request, 'project/project_files.html', {'project':project,
         'subdir':subdir,
-        'display_items':display_items,
+        'display_files':display_files,
+        'display_dirs':display_dirs,
         'storage_info':storage_info,
         'storage_request':storage_request,
         'storage_request_form':storage_request_form,
         'upload_files_form':upload_files_form,
         'folder_creation_form':folder_creation_form,
-        'rename_item_form':rename_item_form, 'move_items_form':move_items_form,
+        # 'rename_item_form':rename_item_form,
+        # 'move_items_form':move_items_form,
         'delete_items_form':delete_items_form, 'admin_inspect':admin_inspect,
         'dir_breadcrumbs':dir_breadcrumbs})
 

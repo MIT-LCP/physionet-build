@@ -94,7 +94,6 @@
           </button>
         </div>
           <div class="modal-body">
-            {% csrf_token %}
             {{ move_items_form }}
             <br>
             <p id="move-items-message"></p>
@@ -117,8 +116,6 @@
           </button>
         </div>
           <div class="modal-body">
-
-            {{ delete_items_form }}
             <p id="delete-items-message"></p>
           </div>
           <div class="modal-footer">

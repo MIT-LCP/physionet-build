@@ -29,21 +29,8 @@ class FileInfo():
 
 
 class DirectoryInfo():
-     def __init__(self, name, size, last_modified):
+     def __init__(self, name):
         self.name = name
-        self.size = size
-        self.last_modified = last_modified
-
-class ItemInfo():
-    """
-    For displaying info about files and directories
-
-    item_type is 0 (file) or 1 (directory).
-    """
-    def __init__(self, name, size=None, last_modified=None, item_type)
-
-
-
 
 class DirectoryBreadcrumb():
     """
@@ -108,7 +95,7 @@ def list_directories(directory):
     "List directories in a directory"
     return sorted([d for d in os.listdir(directory) if os.path.isdir(os.path.join(directory, d))])
 
-def list_items(directory, return_separate=False):
+def list_items(directory, return_separate=True):
     "List files and directories in a directory. Return separate or combine lists"
     if return_separate:
         return (list_files(directory), list_directories(directory))
@@ -144,8 +131,11 @@ def get_file_info(file_path):
     name = os.path.split(file_path)[-1]
     size = readable_size(os.path.getsize(file_path))
     last_modified = datetime.date.fromtimestamp(os.path.getmtime(file_path)).strftime("%Y-%m-%d")
-    return name, size, last_modified
+    return FileInfo(name, size, last_modified)
 
+def get_directory_info(dir_path):
+    "Given a directory path, get the information used to display it"
+    return DirectoryInfo(os.path.split(dir_path)[-1])
 
 def get_tree_size(path):
     """Return total size of files in given path and subdirs."""

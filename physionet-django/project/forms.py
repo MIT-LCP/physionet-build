@@ -17,9 +17,10 @@ RESPONSE_CHOICES = (
 ILLEGAL_PATTERNS = ['/','..',]
 
 
-class ProjectFileForm(forms.Form):
+class ProjectFilesForm(forms.Form):
     """
-    Inherited form for manipulating project files.
+    Inherited form for manipulating project files/directories. Upload
+    and create folders, move, rename, delete items.
     """
     subdir = forms.CharField(widget=forms.HiddenInput(), required=False)
 
@@ -31,28 +32,35 @@ class ProjectFileForm(forms.Form):
         file_dir = os.path.join(self.project.file_root(), data)
 
         if not os.path.isdir(file_dir):
-            raise forms.ValidationError('Invalid upload')
+            raise forms.ValidationError('Invalid directory')
         self.file_dir = file_dir
 
         return data
 
-class EditFilesForm(forms.Form):
+class EditItemsForm(ProjectFilesForm):
     """
-    Inherited form for editing files/directories. Rename, edit, delete.
+    Inherited form for manipulating existing files/directories.
+    Rename, edit, delete.
+
     """
-    def clean(self):
+    # This field's choices depend on the `subdir` field
+    items = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple)
+
+    field_order = ['subdir', 'items']
+
+    def clean_subdir(self, *args, **kwargs):
         """
-        Check if selected files exist in subdirectory
+        Set the items' valid choices after cleaning the subdirectory.
+        This must be called before clean_items.
         """
-        data = self.cleaned_data
+        super(EditItemsForm, self).clean_subdir(*args, **kwargs)
+        existing_items = list_items(self.file_dir, return_separate=False)
+        self.fields['items'].choices = tuple((item, item) for item in existing_items)
 
-        for file in self.selected_items:
-            if not os.path.exists(os.path.join(self.file_dir, file)):
-                raise forms.ValidationError('Invalid item selection')
+        return self.cleaned_data['subdir']
 
-        return data
 
-class UploadFilesForm(ProjectFileForm):
+class UploadFilesForm(ProjectFilesForm):
     """
     Form for uploading multiple files to a project.
     `subdir` is the project subdirectory relative to the file root.
@@ -113,7 +121,7 @@ class UploadFilesForm(ProjectFileForm):
         return data
 
 
-class FolderCreationForm(ProjectFileForm):
+class FolderCreationForm(ProjectFilesForm):
     """
     Form for creating a new folder in a directory
     """
@@ -198,7 +206,7 @@ class RenameItemForm(forms.Form):
         return data
 
 
-class MoveItemsFormm(ProjectFileForm):
+class MoveItemsFormm(ProjectFilesForm):
     """
     Form for moving items into a target folder
     """
@@ -295,33 +303,16 @@ class MoveItemsForm(forms.Form):
             raise forms.ValidationError(validation_errors)
 
 
-class DeleteItemsForm(ProjectFileForm):
+class DeleteItemsForm(EditItemsForm):
     """
-    Form for deleting items. No input field for selecting items.
+    Form for deleting items.
     """
 
-    def __init__(self, project, subdir='', selected_items=[], *args, **kwargs):
+    def __init__(self, project, subdir='', *args, **kwargs):
         super(DeleteItemsForm, self).__init__(*args, **kwargs)
         self.project = project
-        # The intial value doesn't affect the form post value
+        # The intial value doesn't affect the bound data value
         self.fields['subdir'].initial = subdir
-        self.selected_items = selected_items
-
-    def clean(self):
-        """
-        Clean selected items.
-
-        Ensure selected items to delete exist in directory.
-        """
-        data = self.cleaned_data
-
-        existing_items = list_items(self.file_dir, return_separate=False)
-
-        if not set(self.selected_items).issubset(set(existing_items)):
-            raise forms.ValidationError('Invalid item selection.',
-                code='invalid_item_selection')
-
-        return data
 
 
 class CreateProjectForm(forms.ModelForm):

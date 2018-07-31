@@ -39,27 +39,13 @@
             </div>
           </li>
         {% endif %}
-        {# All files and directories #}
-        {% for item in display_items %}
-          <li class="list-group-item">
-            <div class="row">
-              <div class="col-md-7">&nbsp;<i class="far fa-file"></i>&nbsp;&nbsp;&nbsp;<a href="{% url 'serve_project_file' project.id file.full_file_name %}">{{ file.name }}</a></div>
-              <div class="col-md-2">{{ file.size }}</div>
-              <div class="col-md-2">{{ file.last_modified }}</div>
-              <div class="col-md-1"><input type="checkbox" name="item-name" value="{{ file.name }}" onchange="countSelected(this)"></div>
-            </div>
-          </li>
-        {% endfor %}
-
-
-
         {% for dir in display_dirs %}
           <li class="list-group-item">
             <div class="row">
               <div class="col-md-7"><i class="fas fa-folder-open"></i>&nbsp;&nbsp;<a href="" onclick="return navigateDir('{{ dir.full_subdir }}')">{{ dir.name }}</a></div>
               <div class="col-md-2"></div>
               <div class="col-md-2"></div>
-              <div class="col-md-1"><input type="checkbox" name="item-name" value="{{ dir.name }}" onchange="countSelected(this)"></div>
+              <div class="col-md-1"><input type="checkbox" name="items" value="{{ dir.name }}" onchange="countSelected(this)"></div>
             </div>
           </li>
         {% endfor %}
@@ -69,7 +55,7 @@
               <div class="col-md-7">&nbsp;<i class="far fa-file"></i>&nbsp;&nbsp;&nbsp;<a href="{% url 'serve_project_file' project.id file.full_file_name %}">{{ file.name }}</a></div>
               <div class="col-md-2">{{ file.size }}</div>
               <div class="col-md-2">{{ file.last_modified }}</div>
-              <div class="col-md-1"><input type="checkbox" name="item-name" value="{{ file.name }}" onchange="countSelected(this)"></div>
+              <div class="col-md-1"><input type="checkbox" name="items" value="{{ file.name }}" onchange="countSelected(this)"></div>
             </div>
           </li>
         {% endfor %}
