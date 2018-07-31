@@ -337,33 +337,7 @@ class Project(Metadata):
         Return information for displaying file and directories
         """
         inspect_dir = os.path.join(self.file_root(), subdir)
-
-        # Combining files and dirs
-        # display_items = []
-
-        # for item in list_items(inspect_dir):
-        #     full_item = os.path.join(inspect_dir, item)
-        #     # File
-        #     if os.path.isfile(full_item):
-        #         if not item.endswith('~'):
-        #             name, size_last_modified = get_file_info()
-        #             item_info = ItemInfo(name=item,
-        #                 size=size, last_modified=last_modified, item_type=0)
-        #             # For the relative download link
-        #             item_info.full_file_name = os.path.join(subdir, item)
-        #             display_items.append(item_info).full_file_name = os.path.join(subdir, file)
-        #     # Directory
-        #     else:
-        #         item_info = ItemInfo(name=item, item_type=1)
-        #         # For navigating to directory
-        #         item_info.full_subdir = os.path.join(subdir, item)
-        #         display_items.append(item_info)
-
-        # return display_items
-
-        # OLDDDD
         file_names , dir_names = list_items(inspect_dir)
-
         display_files, display_dirs = [], []
 
         # Files require desciptive info and download links

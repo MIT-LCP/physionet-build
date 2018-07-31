@@ -1,4 +1,6 @@
 {% if user == project.submitting_author %}
+  <input name="subdir" value="{{ subdir }}" type="hidden">
+
   <!-- Content manipulation buttons to trigger modals -->
   <button type="button" class="btn btn-success" data-toggle="modal" data-target="#upload-files-modal">
     <i class="fa fa-arrow-circle-up"></i> Upload Files
@@ -20,7 +22,6 @@
     </button>
   </i>
 
-
   <!-- File manipulation modals -->
   <div class="modal fade" id="upload-files-modal" tabindex="-1" role="dialog" aria-labelledby="upload-files-modal" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -32,7 +33,7 @@
           </button>
         </div>
           <div class="modal-body">
-            {{ upload_files_form }}
+            {{ upload_files_form.file_field }}
           </div>
           <div class="modal-footer">
             <button class="btn btn-success" name="upload_files" value="{{ subdir }}" type="submit"><i class="fa fa-arrow-circle-up"></i> Upload Files</button>
@@ -52,7 +53,7 @@
           </button>
         </div>
           <div class="modal-body">
-            {{ folder_creation_form }}
+            {{ folder_creation_form.folder_name }}
           </div>
           <div class="modal-footer">
             <button class="btn btn-success" name="create_folder" type="submit"><i class="fa fa-folder-open"></i> Create Folder</button>
@@ -73,8 +74,7 @@
         </div>
           <div class="modal-body">
             <p id="rename-item-message"></p>
-            {{ rename_item_form }}
-
+            {{ rename_item_form.new_name }}
           </div>
           <div class="modal-footer">
             <button class="btn btn-primary" name="rename_item" type="submit"><i class="fa fa-edit"></i> Rename Item</button>
@@ -94,7 +94,7 @@
           </button>
         </div>
           <div class="modal-body">
-            {{ move_items_form }}
+            {{ move_items_form.destination_folder }}
             <br>
             <p id="move-items-message"></p>
           </div>
