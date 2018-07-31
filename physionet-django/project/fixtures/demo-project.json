@@ -124,6 +124,34 @@
   }
 },
 {
+  "model": "project.contact",
+  "pk": 5,
+  "fields": {
+    "name": "Roger mark",
+    "affiliation": "MIT",
+    "email": "rgmark@mit.edu",
+    "content_type": [
+      "project",
+      "project"
+    ],
+    "object_id": 4
+  }
+},
+{
+  "model": "project.contact",
+  "pk": 6,
+  "fields": {
+    "name": "Roger mark",
+    "affiliation": "MIT",
+    "email": "rgmark@mit.edu",
+    "content_type": [
+      "project",
+      "project"
+    ],
+    "object_id": 4
+  }
+},
+{
   "model": "project.publication",
   "pk": 1,
   "fields": {
@@ -234,6 +262,35 @@
     "published": false,
     "under_submission": false,
     "data_use_agreement": null
+  }
+},
+{
+  "model": "project.project",
+  "pk": 4,
+  "fields": {
+    "resource_type": 0,
+    "title": "MIMIC-III Clinical Database Demo",
+    "abstract": "<p>The MIMIC-III (Medical Information Mart for Intensive Care) Clinical Database contains comprehensive clinical data from tens of thousands of Intensive Care Unit (ICU) patients. This project is a demo version which has only 100 patients and excludes the noteevents table.</p>",
+    "background": "<p>Many found that it would be useful to explore the structure of the database before installing the full version.</p>",
+    "methods": "<p>Took 100 patients from the full database.</p>",
+    "content_description": "<p>Limited information up to 100 patients. Notes are not included.</p>",
+    "technical_validation": "",
+    "usage_notes": "",
+    "acknowledgements": "",
+    "version": "1.0.0",
+    "changelog_summary": "",
+    "access_policy": 1,
+    "license": 1,
+    "external_home_page": null,
+    "creation_datetime": "2018-07-23T21:48:39.068Z",
+    "modified_datetime": "2018-07-23T22:03:10.736Z",
+    "storage_allowance": 1,
+    "submitting_author": [
+      "rgmark@mit.edu"
+    ],
+    "published": false,
+    "under_submission": false,
+    "data_use_agreement": 1
   }
 },
 {
@@ -429,6 +486,23 @@
   }
 },
 {
+  "model": "project.author",
+  "pk": 6,
+  "fields": {
+    "project": 4,
+    "published_project": null,
+    "first_name": "Roger Greenwood",
+    "middle_names": "",
+    "last_name": "Mark",
+    "is_human": true,
+    "organization_name": "",
+    "display_order": 1,
+    "user": [
+      "rgmark@mit.edu"
+    ]
+  }
+},
+{
   "model": "project.affiliation",
   "pk": 16,
   "fields": {
@@ -522,6 +596,42 @@
       "author"
     ],
     "object_id": 4
+  }
+},
+{
+  "model": "project.affiliation",
+  "pk": 24,
+  "fields": {
+    "name": "Massachusetts Institute of Technology",
+    "content_type": [
+      "project",
+      "author"
+    ],
+    "object_id": 6
+  }
+},
+{
+  "model": "project.affiliation",
+  "pk": 25,
+  "fields": {
+    "name": "Harvard University",
+    "content_type": [
+      "project",
+      "author"
+    ],
+    "object_id": 6
+  }
+},
+{
+  "model": "project.affiliation",
+  "pk": 26,
+  "fields": {
+    "name": "Beth Israel Deaconess Medical Center",
+    "content_type": [
+      "project",
+      "author"
+    ],
+    "object_id": 6
   }
 }
 ]

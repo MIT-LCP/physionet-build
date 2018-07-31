@@ -10,6 +10,10 @@
 <link rel="stylesheet" type="text/css" href="{% static 'custom/css/home.css' %}"/>
 {% endblock %}
 
+{% block local_js_top %}
+<script type="text/javascript" src="{% static 'custom/js/cookie.js' %}"></script>
+{% endblock %}
+
 {% block content %}
 
 <div class="container">
@@ -38,15 +42,16 @@
         {% endif %}
     {% endif %}
 
+    <p>
+        {{ project.resource_type|resource_badge|safe }}
+        {{ project.access_policy|access_badge|safe }}
+    </p>
     <h1 class="form-signin-heading"><em>[Preview]:</em> {{ project.title }} {% if admin_inspect %}
             (<i class="fas fa-user-secret" title="Admin Inspection"></i>)
           {% endif %}
     </h1>
-    {{ project.resource_type|resource_badge|safe }}
-    {{ project.access_policy|access_badge|safe }}
-    <hr>
     <p class="text-muted">
-        Authors:
+        <strong>Authors:
         {% for author in author_info %}
             <a title="{{ author.affiliations }}">{{ author.name }}</a>
             {% if forloop.counter < author_info|length|add:"-1" %}
@@ -56,9 +61,10 @@
         {% for invitation in invitations %}
             <a style="color:red">* Outstanding Invitation: {{ invitation.email }}</a>
         {% endfor %}
+        </strong>
     </p>
-    <hr>
-    Published: [dd/mm/yyyy] - Version:
+
+    <p>Published: [dd/mm/yyyy] - Version:
     {% if project.version %}
         {% if version_clash %}
             <a style="color:red"><strong>{{ project.version}} * Clashing Version</strong></a>
@@ -66,8 +72,9 @@
             {{ project.version}}
         {% endif %}
     {% else %}
-
+        <a style="color:red"><strong>* Required field missing</strong></a>
     {% endif %}
+    </p>
     <hr>
 
     <div class="row">
@@ -226,10 +233,7 @@
 
     </div>
 
-
-
     <br><br>
-
     {% include "project/files_panel.html" %}
     <br>
 

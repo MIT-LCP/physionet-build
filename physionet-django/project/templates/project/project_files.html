@@ -1,8 +1,14 @@
 {% extends "project/project.html" %}
 
+{% load static %}
+
 {% load project_templatetags %}
 
 {% block title %}Project Files - {{ project }}{% endblock %}
+
+{% block local_js_top %}
+<script type="text/javascript" src="{% static 'custom/js/cookie.js' %}"></script>
+{% endblock %}
 
 {% block main_content %}
 <h2 class="form-signin-heading">Project Files</h2>

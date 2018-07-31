@@ -3,6 +3,7 @@ import os
 import shutil
 import pdb
 
+from django.conf import settings
 from django.http import HttpResponse, Http404
 
 
@@ -21,20 +22,53 @@ class FileInfo():
     For displaying lists of files in project pages
     All attributes are human readable strings
     """
-    def __init__(self, name, size, last_modified, description):
+    def __init__(self, name, size, last_modified):
         self.name = name
         self.size = size
         self.last_modified= last_modified
-        self.description = description
 
 
 class DirectoryInfo():
-     def __init__(self, name, size, last_modified, description):
+     def __init__(self, name, size, last_modified):
         self.name = name
         self.size = size
         self.last_modified = last_modified
-        self.description = description
 
+class DirectoryBreadcrumb():
+    """
+    For navigating through project file directories
+    """
+    def __init__(self, name, full_subdir, active=True):
+        self.name = name
+        self.full_subdir = full_subdir
+        self.active = active
+
+def get_dir_breadcrumbs(subdir):
+    """
+    Given a subdirectory, return all breadcrumb elements
+
+    full_subdir for inputs:
+    ''  -->
+    d1  --> ['', 'd1']
+    d1/  --> ['', 'd1']
+    d1/d2/d3
+    d1/d2/d3/
+    """
+
+    if subdir == '':
+        return [DirectoryBreadcrumb(name='<base>', full_subdir='', active=False)]
+    if subdir.endswith('/'):
+        subdir = subdir[:-1]
+    dirs = subdir.split('/')
+    dir_breadcrumbs = [DirectoryBreadcrumb(name='<base>', full_subdir='')]
+    for i in range(len(dirs)):
+        dir_breadcrumbs.append(DirectoryBreadcrumb(name=dirs[i], full_subdir='/'.join([d.name for d in dir_breadcrumbs[1:]]+ [dirs[i]])))
+    dir_breadcrumbs[-1].active = False
+    return dir_breadcrumbs
+
+# x = get_dir_breadcrumbs('')
+# [xx.name for xx in x]
+# [xx.full_subdir for xx in x]
 
 class StorageInfo():
     """
@@ -66,14 +100,12 @@ def list_directories(directory):
     "List directories in a directory"
     return sorted([d for d in os.listdir(directory) if os.path.isdir(os.path.join(directory, d))])
 
-
 def list_items(directory, return_separate=True):
     "List files and directories in a directory. Return separate or combine lists"
     if return_separate:
         return (list_files(directory), list_directories(directory))
     else:
         return list_files(directory)+list_directories(directory)
-
 
 def remove_items(items):
     """
@@ -86,7 +118,6 @@ def remove_items(items):
             shutil.rmtree(item)
     return
 
-
 def move_items(items, target_folder):
     """
     Move items (full path) into target folder (full path)
@@ -95,13 +126,21 @@ def move_items(items, target_folder):
         os.rename(item, os.path.join(target_folder, os.path.split(item)[-1]))
 
 
+def get_project_file_info(file_path, sub_dir):
+    file_info = get_file_info(file_path)
+    file_info.media_url = os.path.join(settings.MEDIA_ROOT, )
+    return file_info
+
 def get_file_info(file_path):
     "Given a file path, get the information used to display it"
     name = os.path.split(file_path)[-1]
     size = readable_size(os.path.getsize(file_path))
     last_modified = datetime.date.fromtimestamp(os.path.getmtime(file_path)).strftime("%Y-%m-%d")
-    description = ''
-    return FileInfo(name, size, last_modified, description)
+
+
+
+
+    return FileInfo(name, size, last_modified)
 
 
 def get_directory_info(dir_path):
@@ -109,8 +148,7 @@ def get_directory_info(dir_path):
     name = os.path.split(dir_path)[-1]
     size = ''
     last_modified = datetime.date.fromtimestamp(os.path.getmtime(dir_path)).strftime("%Y-%m-%d")
-    description = ''
-    return DirectoryInfo(name, size, last_modified, description)
+    return DirectoryInfo(name, size, last_modified)
 
 
 def get_tree_size(path):
@@ -170,6 +208,7 @@ def get_form_errors(form):
     for field in form.errors:
         all_errors += form.errors[field]
     return all_errors
+
 
 def serve_file(request, file_path):
     """

@@ -16,13 +16,8 @@
       <div class="list-group">
         {% with 'overview authors metadata files submission' as project_settings %}
             {% for setting in project_settings.split %}
-              {% if setting == 'files' %}
-                {% url 'project_'|add:setting project.id '' as setting_url %}
-                <a href={{ setting_url }} class="list-group-item list-group-item-action{% if setting_url == request.path or sub_item %} active{% endif %}">{{ setting|title }}</a>
-              {% else %}
                 {% url 'project_'|add:setting project.id as setting_url %}
                 <a href={{ setting_url }} class="list-group-item list-group-item-action{% if setting_url == request.path %} active{% endif %}">{{ setting|title }}</a>
-              {% endif %}
             {% endfor %}
         {% endwith %}
 

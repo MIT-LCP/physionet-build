@@ -13,7 +13,7 @@ from django.template.defaultfilters import slugify
 from django.utils import timezone
 
 from user.models import User
-from .utility import get_tree_size
+from .utility import get_tree_size, get_file_info, get_directory_info, list_items
 
 import pdb
 
@@ -327,11 +327,35 @@ class Project(Metadata):
 
     def file_root(self):
         "Root directory containing the project's files"
-        return os.path.join(settings.MEDIA_ROOT, 'projects', str(self.id))
+        return os.path.join(settings.MEDIA_ROOT, 'project', str(self.id))
 
     def storage_used(self):
         "Total storage used in bytes"
         return get_tree_size(self.file_root())
+
+    def get_directory_content(self, subdir=''):
+        """
+        Return information for displaying file and directories
+        """
+        inspect_dir = os.path.join(self.file_root(), subdir)
+        file_names , dir_names = list_items(inspect_dir)
+
+        display_files, display_dirs = [], []
+
+        # Files require desciptive info and download links
+        for file in file_names:
+            file_info = get_file_info(os.path.join(inspect_dir, file))
+            file_info.full_file_name = os.path.join(subdir, file)
+            display_files.append(file_info)
+
+        # Directories require
+        for dir_name in dir_names:
+            dir_info = get_directory_info(os.path.join(inspect_dir, dir_name))
+            dir_info.full_subdir = os.path.join(subdir, dir_name)
+            display_dirs.append(dir_info)
+
+        return display_files, display_dirs
+
 
     def submission_status(self):
         """
@@ -487,13 +511,18 @@ class Project(Metadata):
         published_project.base_project = self
         published_project.storage_size = self.storage_used()
         # To be implemented...
-        published_project.doi = '10.13026/C2F305'
+        published_project.doi = '10.13026/C2F305' + str(self.id)
         published_project.save()
 
         # Same content, different objects.
         for reference in self.references.all():
             reference_copy = Reference.objects.create(
                 description=reference.description,
+                project_object=published_project)
+
+        for publication in self.publications.all():
+            publication_copy = Publication.objects.create(
+                citation=publication.citation, url=publication.url,
                 project_object=published_project)
 
         for topic in self.topics.all():
@@ -526,6 +555,11 @@ class Project(Metadata):
                 affiliation_copy = Affiliation.objects.create(
                     name=affiliation.name, member_object=author_copy)
 
+        for contact in self.contacts.all():
+            contact_copy = Contact.objects.create(name=contact.name,
+                affiliation=contact.affiliation, email=contact.email,
+                project_object=published_project)
+
         # Non-open access policy
         if self.access_policy:
             access_system = AccessSystem.objects.create(
@@ -536,6 +570,9 @@ class Project(Metadata):
                 )
             published_project.access_system = access_system
             published_project.save()
+
+        # Copy over files
+        shutil.copytree(self.file_root(), published_project.file_root())
 
         submission.submission_status = 7
         submission.is_active = False
@@ -600,6 +637,43 @@ class PublishedProject(Metadata):
 
     def __str__(self):
         return ('%s v%s' % (self.title, self.version))
+
+    def file_root(self):
+        "Root directory containing the published project's files"
+        if self.access_policy:
+            return os.path.join(settings.MEDIA_ROOT, 'published-project', str(self.id))
+        else:
+            # Temporary workaround for development
+            if os.environ['DJANGO_SETTINGS_MODULE'] == 'physionet.settings.development':
+                return os.path.join(settings.STATICFILES_DIRS[0], 'published-project', str(self.id))
+            else:
+                return os.path.join(settings.STATIC_ROOT, 'published-project', str(self.id))
+
+    def get_directory_content(self, subdir=''):
+        """
+        Return information for displaying file and directories
+        """
+        inspect_dir = os.path.join(self.file_root(), subdir)
+        file_names , dir_names = list_items(inspect_dir)
+
+        display_files, display_dirs = [], []
+
+        # Files require desciptive info and download links
+        for file in file_names:
+            file_info = get_file_info(os.path.join(inspect_dir, file))
+            if self.access_policy:
+                file_info.full_file_name = os.path.join(subdir, file)
+            else:
+                file_info.static_url = os.path.join('published-project', str(self.id), subdir, file)
+            display_files.append(file_info)
+
+        # Directories require
+        for dir_name in dir_names:
+            dir_info = get_directory_info(os.path.join(inspect_dir, dir_name))
+            dir_info.full_subdir = os.path.join(subdir, dir_name)
+            display_dirs.append(dir_info)
+
+        return display_files, display_dirs
 
 
 class License(models.Model):

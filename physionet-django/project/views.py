@@ -19,9 +19,7 @@ from . import forms
 from .models import (Affiliation, Author, Invitation, Project,
     PublishedProject, StorageRequest, PROJECT_FILE_SIZE_LIMIT, Reference,
     Topic, Contact, Publication)
-from .utility import (get_file_info, get_directory_info, get_storage_info,
-    write_uploaded_file, list_items, remove_items, move_items as do_move_items,
-    get_form_errors, serve_file, AuthorInfo)
+from . import utility
 from user.forms import ProfileForm
 from user.models import User
 
@@ -432,19 +430,19 @@ def upload_files(request, upload_files_form):
     if upload_files_form.is_valid():
         files = upload_files_form.files.getlist('file_field')
         for file in files:
-            write_uploaded_file(file=file,
+            utility.write_uploaded_file(file=file,
                 write_file_path=os.path.join(upload_files_form.current_directory
             , file.name))
         messages.success(request, 'Your files have been uploaded.')
     else:
-        messages.error(request, get_form_errors(upload_files_form))
+        messages.error(request, utility.get_form_errors(upload_files_form))
 
 def create_folder(request, folder_creation_form):
     if folder_creation_form.is_valid():
         os.mkdir(os.path.join(folder_creation_form.current_directory, folder_creation_form.cleaned_data['folder_name']))
         messages.success(request, 'Your folder has been created.')
     else:
-        messages.error(request, get_form_errors(folder_creation_form))
+        messages.error(request, utility.get_form_errors(folder_creation_form))
 
 def rename_item(request, rename_item_form):
     if rename_item_form.is_valid():
@@ -452,54 +450,51 @@ def rename_item(request, rename_item_form):
             os.path.join(rename_item_form.current_directory, rename_item_form.cleaned_data['new_name']))
         messages.success(request, 'Your item has been renamed.')
     else:
-        messages.error(request, get_form_errors(rename_item_form))
+        messages.error(request, utility.get_form_errors(rename_item_form))
 
 def move_items(request, move_items_form):
     if move_items_form.is_valid():
-        do_move_items([os.path.join(move_items_form.current_directory, i) for i in move_items_form.cleaned_data['selected_items']],
+        utility.move_items([os.path.join(move_items_form.current_directory, i) for i in move_items_form.cleaned_data['selected_items']],
             os.path.join(move_items_form.current_directory, move_items_form.cleaned_data['destination_folder']))
         messages.success(request, 'Your items have been moved.')
     else:
-        messages.error(request, get_form_errors(move_items_form))
+        messages.error(request, utility.get_form_errors(move_items_form))
 
 def delete_items(request, delete_items_form):
     if delete_items_form.is_valid():
-        remove_items([os.path.join(delete_items_form.current_directory, i) for i in delete_items_form.cleaned_data['selected_items']])
+        utility.remove_items([os.path.join(delete_items_form.current_directory, i) for i in delete_items_form.cleaned_data['selected_items']])
         messages.success(request, 'Your items have been deleted.')
     else:
-        messages.error(request, get_form_errors(delete_items_form))
+        messages.error(request, utility.get_form_errors(delete_items_form))
 
 @authorization_required(auth_functions=(is_author, is_admin))
-def project_files(request, project_id, sub_item=''):
+def files_panel(request, project_id):
+    """
+    Return the file panel for the project
+    """
+    project = Project.objects.get(id=project_id)
+    subdir = request.GET['subdir']
+
+    display_files, display_dirs = project.get_directory_content(
+        subdir=subdir)
+
+    # Breadcrumbs
+    dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
+    parent_dir = os.path.split(subdir)[0]
+    return render(request, 'project/files_panel.html',
+        {'project':project, 'subdir':subdir,
+         'dir_breadcrumbs':dir_breadcrumbs, 'parent_dir':parent_dir,
+         'display_files':display_files, 'display_dirs':display_dirs})
+
+@authorization_required(auth_functions=(is_author, is_admin))
+def project_files(request, project_id):
     "View and manipulate files in a project"
     project = Project.objects.get(id=project_id)
-
-    # Directory where files are kept for the project
-    project_file_root = project.file_root()
-
-    # Case of accessing a file or subdirectory
-    if sub_item:
-        item_path = os.path.join(project_file_root, sub_item)
-        # Serve a file
-        if os.path.isfile(item_path):
-            return serve_file(request, item_path)
-        # In a subdirectory
-        elif os.path.isdir(item_path):
-            in_subdir = True
-        # Invalid url
-        else:
-            return Http404()
-    # In project's file root
-    else:
-        in_subdir = False
-
-    # The url is not pointing to a file to download.
-
     admin_inspect = request.user.is_admin and not is_author(request.user, project)
-    # The file directory being examined
-    current_directory = os.path.join(project_file_root, sub_item)
-    storage_info = get_storage_info(project.storage_allowance*1024**3,
+    storage_info = utility.get_storage_info(project.storage_allowance*1024**3,
             project.storage_used())
+
+    current_directory = project.file_root()
 
     if request.method == 'POST':
         if 'request_storage' in request.POST:
@@ -510,7 +505,7 @@ def project_files(request, project_id, sub_item=''):
                 storage_request_form.save()
                 messages.success(request, 'Your storage request has been received.')
             else:
-                messages.error(request, get_form_errors(storage_request_form))
+                messages.error(request, utility.get_form_errors(storage_request_form))
 
         if 'upload_files' in request.POST:
             upload_files_form = forms.MultiFileFieldForm(PROJECT_FILE_SIZE_LIMIT,
@@ -537,7 +532,120 @@ def project_files(request, project_id, sub_item=''):
             delete_items(request, delete_items_form)
 
         # Reload the storage info.
-        storage_info = get_storage_info(project.storage_allowance*1024**3,
+        storage_info = utility.get_storage_info(project.storage_allowance*1024**3,
+            project.storage_used())
+
+    storage_request = StorageRequest.objects.filter(project=project,
+                                                    is_active=True).first()
+
+    # Forms
+    if storage_request:
+        storage_request_form = None
+    else:
+        storage_request_form = forms.StorageRequestForm(project=project)
+    upload_files_form = forms.MultiFileFieldForm(PROJECT_FILE_SIZE_LIMIT,
+        storage_info.remaining, current_directory)
+    folder_creation_form = forms.FolderCreationForm()
+    rename_item_form = forms.RenameItemForm(current_directory)
+    move_items_form = forms.MoveItemsForm(current_directory, True)
+    delete_items_form = forms.DeleteItemsForm(current_directory)
+
+    # The contents of the directory
+    display_files, display_dirs = project.get_directory_content()
+    dir_breadcrumbs = utility.get_dir_breadcrumbs('')
+
+    return render(request, 'project/project_files.html', {'project':project,
+        'display_files':display_files, 'display_dirs':display_dirs,
+        'storage_info':storage_info,
+        'storage_request':storage_request,
+        'storage_request_form':storage_request_form,
+        'upload_files_form':upload_files_form,
+        'folder_creation_form':folder_creation_form,
+        'rename_item_form':rename_item_form, 'move_items_form':move_items_form,
+        'delete_items_form':delete_items_form, 'admin_inspect':admin_inspect,
+        'dir_breadcrumbs':dir_breadcrumbs})
+
+
+@authorization_required(auth_functions=(is_author, is_admin))
+def serve_project_file(request, project_id, file_name):
+    """
+    Serve a file in a project. file_name is file path relative to
+    project file root.
+    """
+    project = Project.objects.get(id=project_id)
+    file_path = os.path.join(project.file_root(), file_name)
+    return utility.serve_file(request, file_path)
+
+
+@authorization_required(auth_functions=(is_author, is_admin))
+def project_files_old(request, project_id, sub_item=''):
+    "View and manipulate files in a project"
+    project = Project.objects.get(id=project_id)
+
+    # Directory where files are kept for the project
+    project_file_root = project.file_root()
+
+    # Case of accessing a file or subdirectory
+    if sub_item:
+        item_path = os.path.join(project_file_root, sub_item)
+        # Serve a file
+        if os.path.isfile(item_path):
+            return utility.serve_file(request, item_path)
+        # In a subdirectory
+        elif os.path.isdir(item_path):
+            in_subdir = True
+        # Invalid url
+        else:
+            return Http404()
+    # In project's file root
+    else:
+        in_subdir = False
+
+    # The url is not pointing to a file to download.
+
+    admin_inspect = request.user.is_admin and not is_author(request.user, project)
+    # The file directory being examined
+    current_directory = os.path.join(project_file_root, sub_item)
+    storage_info = utility.get_storage_info(project.storage_allowance*1024**3,
+            project.storage_used())
+
+    if request.method == 'POST':
+        if 'request_storage' in request.POST:
+            storage_request_form = forms.StorageRequestForm(project=project,
+                                                            data=request.POST)
+            if storage_request_form.is_valid():
+                storage_request_form.instance.project = project
+                storage_request_form.save()
+                messages.success(request, 'Your storage request has been received.')
+            else:
+                messages.error(request, utility.get_form_errors(storage_request_form))
+
+        if 'upload_files' in request.POST:
+            upload_files_form = forms.MultiFileFieldForm(PROJECT_FILE_SIZE_LIMIT,
+                storage_info.remaining, current_directory, request.POST,
+                request.FILES)
+            upload_files(request, upload_files_form)
+
+        elif 'create_folder' in request.POST:
+            folder_creation_form = forms.FolderCreationForm(current_directory,
+                request.POST)
+            create_folder(request, folder_creation_form)
+
+        elif 'rename_item' in request.POST:
+            rename_item_form = forms.RenameItemForm(current_directory, request.POST)
+            rename_item(request, rename_item_form)
+
+        elif 'move_items' in request.POST:
+            move_items_form = forms.MoveItemsForm(current_directory, in_subdir,
+                request.POST)
+            move_items(request, move_items_form)
+
+        elif 'delete_items' in request.POST:
+            delete_items_form = forms.DeleteItemsForm(current_directory, request.POST)
+            delete_items(request, delete_items_form)
+
+        # Reload the storage info.
+        storage_info = utility.get_storage_info(project.storage_allowance*1024**3,
             project.storage_used())
 
     storage_request = StorageRequest.objects.filter(project=project,
@@ -556,9 +664,9 @@ def project_files(request, project_id, sub_item=''):
     delete_items_form = forms.DeleteItemsForm(current_directory)
 
     # The contents of the directory
-    file_names , dir_names = list_items(current_directory)
-    display_files = [get_file_info(os.path.join(current_directory, f)) for f in file_names]
-    display_dirs = [get_directory_info(os.path.join(current_directory, d)) for d in dir_names]
+    file_names , dir_names = utility.list_items(current_directory)
+    display_files = [utility.get_file_info(os.path.join(current_directory, f)) for f in file_names]
+    display_dirs = [utility.get_directory_info(os.path.join(current_directory, d)) for d in dir_names]
 
     return render(request, 'project/project_files.html', {'project':project,
         'display_files':display_files, 'display_dirs':display_dirs,
@@ -571,67 +679,57 @@ def project_files(request, project_id, sub_item=''):
         'delete_items_form':delete_items_form, 'admin_inspect':admin_inspect})
 
 
+def project_files_panel(request, project_id, sub_dir):
+    """
+    Load the files panel for a project in its subdirectory
+    """
+    project = Project.objects.get(id=project_id)
+
+    inspect_directory = os.path.join(project.file_root(), sub_item)
+    in_subdir = bool(sub_dir)
+
+    return render(request, 'project/files_panel.html', {'display_files':display_files})
+
+
 @authorization_required(auth_functions=(is_author, is_admin))
-def project_preview(request, project_id, sub_item=''):
+def project_preview(request, project_id):
     """
     Preview what the published project would look like. Includes
     serving files.
 
     """
     project = Project.objects.get(id=project_id)
-
-    # Directory where files are kept for the project
-    project_file_root = project.file_root()
-
-    # Case of accessing a file or subdirectory
-    if sub_item:
-        item_path = os.path.join(project_file_root, sub_item)
-        # Serve a file
-        if os.path.isfile(item_path):
-            return serve_file(request, item_path)
-        # In a subdirectory
-        elif os.path.isdir(item_path):
-            in_subdir = True
-        # Invalid url
-        else:
-            return Http404()
-    # In project's file root
-    else:
-        in_subdir = False
-
-    # The url is not pointing to a file to download.
     admin_inspect = request.user.is_admin and not is_author(request.user, project)
-    # The file directory being examined
-    current_directory = os.path.join(project_file_root, sub_item)
-    file_names , dir_names = list_items(current_directory)
-    display_files = [get_file_info(os.path.join(current_directory, f)) for f in file_names]
-    display_dirs = [get_directory_info(os.path.join(current_directory, d)) for d in dir_names]
 
     authors = project.authors.all().order_by('display_order')
-    author_info = [AuthorInfo(a) for a in authors]
+    author_info = [utility.AuthorInfo(a) for a in authors]
     invitations = project.invitations.filter(is_active=True)
-
     references = project.references.all()
     publications = project.publications.all()
     topics = project.topics.all()
     contacts = project.contacts.all()
 
     is_publishable = project.is_publishable()
+    version_clash = False
+
     if is_publishable:
         messages.success(request, 'The project has passed all automatic checks and may be submitted.')
-        version_clash = False
     else:
         for e in project.publish_errors:
             messages.error(request, e)
-        version_clash = True
+            if 'version' in e:
+                version_clash = True
+
+    display_files, display_dirs = project.get_directory_content()
+    dir_breadcrumbs = utility.get_dir_breadcrumbs('')
 
     return render(request, 'project/project_preview.html', {
         'project':project, 'display_files':display_files, 'display_dirs':display_dirs,
-        'sub_item':sub_item, 'in_subdir':in_subdir, 'author_info':author_info,
+        'author_info':author_info,
         'invitations':invitations, 'references':references,
         'publications':publications, 'topics':topics, 'contacts':contacts,
         'is_publishable':is_publishable, 'version_clash':version_clash,
-        'admin_inspect':admin_inspect})
+        'admin_inspect':admin_inspect, 'dir_breadcrumbs':dir_breadcrumbs})
 
 
 @authorization_required(auth_functions=(is_author,))
@@ -670,7 +768,7 @@ def project_submission(request, project_id):
                 if project.is_publishable() and user == project.submitting_author:
                     project.presubmit()
                     # Submission is automatically triggered if only 1 author
-                    if project.submission_status == 2:
+                    if project.submission_status() == 2:
                         messages.success(request, 'Your project has been submitted and review has begun.')
                     else:
                         messages.success(request, 'Your project has been submitted. Awaiting co-authors to approve submission.')
@@ -723,15 +821,78 @@ def project_submission_history(request, project_id):
         {'project':project, 'admin_inspect':admin_inspect})
 
 
+def published_files_panel(request, published_project_id):
+    """
+    Return the file panel for the published project, for all access
+    policies
+    """
+    published_project = PublishedProject.objects.get(id=published_project_id)
+    subdir = request.GET['subdir']
+
+    display_files, display_dirs = published_project.get_directory_content(
+        subdir=subdir)
+    total_size = utility.readable_size(published_project.storage_size)
+
+    # Breadcrumbs
+    dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
+    parent_dir = os.path.split(subdir)[0]
+
+    if published_project.access_policy:
+        template = 'project/protected_files_panel.html'
+    else:
+        template = 'project/open_files_panel.html'
+
+    return render(request, template,
+        {'published_project':published_project, 'subdir':subdir,
+         'dir_breadcrumbs':dir_breadcrumbs, 'total_size':total_size,
+         'parent_dir':parent_dir,
+         'display_files':display_files, 'display_dirs':display_dirs})
+
+
+def serve_published_project_file(request, published_project_id, file_name):
+    """
+    Serve a protected file of a published project
+
+    """
+    # todo: protect this view
+    published_project = PublishedProject.objects.get(id=published_project_id)
+    file_path = os.path.join(published_project.file_root(), file_name)
+    return utility.serve_file(request, file_path)
+
+
+def database(request, published_project):
+    """
+    Displays a published database project
+    """
+    authors = published_project.authors.all().order_by('display_order')
+    author_info = [utility.AuthorInfo(a) for a in authors]
+    references = published_project.references.all()
+    publications = published_project.publications.all()
+    topics = published_project.topics.all()
+    contacts = published_project.contacts.all()
+
+    # The file and directory contents
+    display_files, display_dirs = published_project.get_directory_content()
+
+    dir_breadcrumbs = utility.get_dir_breadcrumbs('')
+    total_size = utility.readable_size(published_project.storage_size)
+
+    return render(request, 'project/database.html',
+        {'published_project':published_project, 'author_info':author_info,
+         'references':references, 'publications':publications, 'topics':topics,
+         'contacts':contacts, 'dir_breadcrumbs':dir_breadcrumbs,
+         'total_size':total_size, 'display_files':display_files,
+         'display_dirs':display_dirs})
+
 def published_project(request, published_project_id):
     """
     Displays a published project
     """
 
     published_project = PublishedProject.objects.get(id=published_project_id)
-    authors = published_project.authors.all().order_by('display_order')
-    return render(request, 'project/database.html',
-                  {'published_project':published_project, 'authors':authors})
+
+    if published_project.resource_type == 0:
+        return database(request, published_project)
 
 
 @authorization_required(auth_functions=(is_author,))

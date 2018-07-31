@@ -42,7 +42,7 @@
     {% for file in display_files %}
       <li class="list-group-item">
         <div class="row">
-          <div class="col-md-8">&nbsp;<i class="far fa-file"></i>&nbsp;&nbsp;&nbsp;<a href="{% url 'serve_project_file' project.id file.full_file_name %}">{{ file.name }}</a></div>
+          <div class="col-md-8">&nbsp;<i class="far fa-file"></i>&nbsp;&nbsp;&nbsp;<a href="{% url 'serve_published_project_file' published_project.id file.full_file_name %}">{{ file.name }}</a></div>
           <div class="col-md-2">{{ file.size }}</div>
           <div class="col-md-2">{{ file.last_modified }}</div>
         </div>
@@ -58,7 +58,7 @@
     var csrftoken = getCookie('csrftoken');
     $.ajax({
             type: "GET",
-            url: "{% url 'files_panel' project.id %}",
+            url: "{% url 'published_files_panel' published_project.id %}",
             data: {'csrfmiddlewaretoken':csrftoken, 'subdir':subdir
             },
             success: function reloadSection(result){

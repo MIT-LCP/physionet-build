@@ -9,8 +9,7 @@ Publication Successful
 {% block content %}
 <div class="container">
     <h1>Your Project has been Published</h1>
-    <p>Version {{ published_project.version }} of your project has been published, and can be
-       found here.</p>
+    <p>Version {{ published_project.version }} of your project has been published <a href="{% url 'published_project' published_project.id %}">here</a>.</p>
     <p>Your <a href="{% url 'project_overview' project.id %}">project</a> is
         still accessible, and listed in your
        <a href="{% url 'project_home' %}">project home</a>. You can use it to

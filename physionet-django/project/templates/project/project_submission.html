@@ -41,9 +41,9 @@
     <li>Fill in all the mandatory, and the desired optional
         <a href="{% url 'project_metadata' project.id %}">metadata</a>
         fields.</li>
-    <li>Upload the project <a href="{% url 'project_files' project.id '' %}">
+    <li>Upload the project <a href="{% url 'project_files' project.id %}">
         files</a>.</li>
-    <li>Inspect the project <a href="{% url 'project_preview' project.id '' %}" target="_blank">
+    <li>Inspect the project <a href="{% url 'project_preview' project.id %}" target="_blank">
         preview</a> to see how the published project would look. Make
         sure to address any errors.</li>
 </ol>
@@ -56,7 +56,7 @@
 <h3>Submission Status</h3>
 {% if not project.under_submission %}
     <p>The project is not under submission. If the
-       <a href="{% url 'project_preview' project.id '' %}" target="_blank">
+       <a href="{% url 'project_preview' project.id %}" target="_blank">
        preview</a> appears satisfactory, the submitting author may
        request a review</p>
     {% if user == project.submitting_author %}
