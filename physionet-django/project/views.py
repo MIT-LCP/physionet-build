@@ -562,6 +562,26 @@ def serve_project_file(request, project_id, file_name):
     file_path = os.path.join(project.file_root(), file_name)
     return utility.serve_file(request, file_path)
 
+@authorization_required(auth_functions=(is_author, is_admin))
+def preview_files_panel(request, project_id):
+    """
+    Return the file panel for the project, along with the forms used to
+    manipulate them. Called via ajax to navigate directories.
+    """
+    project = Project.objects.get(id=project_id)
+    subdir = request.GET['subdir']
+
+    display_files, display_dirs = project.get_directory_content(
+        subdir=subdir)
+
+    # Breadcrumbs
+    dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
+    parent_dir = os.path.split(subdir)[0]
+
+    return render(request, 'project/preview_files_panel.html',
+        {'project':project, 'subdir':subdir,
+         'dir_breadcrumbs':dir_breadcrumbs, 'parent_dir':parent_dir,
+         'display_files':display_files, 'display_dirs':display_dirs})
 
 @authorization_required(auth_functions=(is_author, is_admin))
 def project_preview(request, project_id):
