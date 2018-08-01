@@ -111,54 +111,16 @@
     }
   }
 
-  // Get the names of all the selected items
-function getSelected(){
-  var itemNames = []
-  var items = document.querySelectorAll('input[type="checkbox"]:checked')
-
-  for (i=0; i<items.length; i++){
-    itemNames.push(items[i].value)
-  }
-
-  // itemNames = [{"name":"hi", "value":"LOL"}]
-//   [
-//   {
-//     name: "a",
-//     value: "1"
-//   },
-//   {
-//     name: "b",
-//     value: "2"
-//   },
-//   {
-//     name: "c",
-//     value: "3"
-//   },
-//   {
-//     name: "d",
-//     value: "4"
-//   },
-//   {
-//     name: "e",
-//     value: "5"
-//   }
-// ]
-
-
-  return itemNames
-}
-
 
   // Fill in the rename modal
   function prepareRename(){
     // alert(document.querySelectorAll('input[type="checkbox"]:checked').length);
     var itemName = document.querySelector('input[type="checkbox"]:checked').value
     document.getElementById("rename-item-message").innerHTML = "Selected item: <strong>"+ itemName + "</strong>"
-
   }
 
   function prepareMove(){
-    document.getElementById("move-items-message").innerHTML = "Move "+ n_selected + " selected item(s) into destination folder."
+    document.getElementById("move-items-message").innerHTML = "Move "+ n_selected + " selected item(s)."
   }
 
   function prepareDelete(){

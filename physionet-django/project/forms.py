@@ -221,28 +221,47 @@ class MoveItemsForm(forms.Form):
     Form for moving items into a target folder
     """
     destination_folder = forms.ChoiceField(required=False)
-    selected_items = forms.MultipleChoiceField(widget=forms.HiddenInput(), required=False)
 
-    success_message = 'Your items have been moved'
+    # def __init__(self, current_directory, in_subdir, *args, **kwargs):
+    #     """
+    #     Get the available items in the directory to move, the available
+    #     target subdirectories, and set the two form fields' set of choices.
+    #     """
+    #     super(MoveItemsForm, self).__init__(*args, **kwargs)
+    #     self.current_directory = current_directory
+    #     self.in_subdir = in_subdir
 
-    def __init__(self, current_directory, in_subdir, *args, **kwargs):
+    #     existing_files, existing_subdirectories = utility.list_items(current_directory)
+    #     existing_items = existing_files + existing_subdirectories
+
+    #     destination_folder_choices = [(s, s) for s in existing_subdirectories]
+    #     if in_subdir:
+    #         destination_folder_choices = [('../', '*Parent Directory*')] + destination_folder_choices
+
+    #     self.fields['destination_folder'].choices = destination_folder_choices
+    #     self.fields['selected_items'].choices = [(i, i) for i in existing_items]
+
+
+    def __init__(self, project, subdir=None, *args, **kwargs):
         """
-        Get the available items in the directory to move, the available
-        target subdirectories, and set the two form fields' set of choices.
+        Set the choices for the destination folder
         """
         super(MoveItemsForm, self).__init__(*args, **kwargs)
-        self.current_directory = current_directory
-        self.in_subdir = in_subdir
 
-        existing_files, existing_subdirectories = utility.list_items(current_directory)
-        existing_items = existing_files + existing_subdirectories
+        # The choices are only set here for get requests
+        if subdir is not None:
+            self.fields['destination_folder'].choices = MoveItemsForm.get_destination_choices(project, subdir)
 
-        destination_folder_choices = [(s, s) for s in existing_subdirectories]
-        if in_subdir:
-            destination_folder_choices = [('../', '*Parent Directory*')] + destination_folder_choices
+    def get_destination_choices(project, subdir):
+        """
+        Return allowed destination choices
+        """
+        existing_subdirs = utility.list_directories(os.path.join(project.file_root(), subdir))
+        subdir_choices = [(s, s) for s in existing_subdirs]
+        if subdir:
+            subdir_choices = [('../', '*Parent Directory*')] + subdir_choices
+        return subdir_choices
 
-        self.fields['destination_folder'].choices = destination_folder_choices
-        self.fields['selected_items'].choices = [(i, i) for i in existing_items]
 
     def clean_selected_items(self):
         """

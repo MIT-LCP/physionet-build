@@ -441,17 +441,24 @@ def project_files_panel(request, project_id):
     # Forms
     upload_files_form = forms.UploadFilesForm(project=project)
     create_folder_form = forms.CreateFolderForm(project=project)
+    rename_item_form = forms.RenameItemForm(project=project)
+    move_items_form = forms.MoveItemsForm(project=project, subdir=subdir)
+    delete_items_form = forms.EditItemsForm(project=project)
 
     return render(request, 'project/project_files_panel.html',
         {'project':project, 'subdir':subdir,
          'dir_breadcrumbs':dir_breadcrumbs, 'parent_dir':parent_dir,
          'display_files':display_files, 'display_dirs':display_dirs,
          'upload_files_form':upload_files_form,
-         'create_folder_form':create_folder_form})
+         'create_folder_form':create_folder_form,
+         'rename_item_form':rename_item_form,
+         'move_items_form':move_items_form,
+         'delete_items_form':delete_items_form,})
 
 def process_items(request, form):
     """
     Process the items with the appropriate form and action.
+    Returns the subdirectory.
     """
     if form.is_valid():
         messages.success(request, form.perform_action())
@@ -507,7 +514,6 @@ def project_files(request, project_id):
         # The subdirectory is just the base. Ajax calls to the file
         # panel will not call this view.
         subdir = ''
-        file_dir = os.path.join(project.file_root(), subdir)
 
     storage_request = StorageRequest.objects.filter(project=project,
                                                     is_active=True).first()
@@ -521,7 +527,7 @@ def project_files(request, project_id):
     upload_files_form = forms.UploadFilesForm(project=project)
     create_folder_form = forms.CreateFolderForm(project=project)
     rename_item_form = forms.RenameItemForm(project=project)
-    # move_items_form = forms.MoveItemsForm(file_dir, True)
+    move_items_form = forms.MoveItemsForm(project=project, subdir=subdir)
     delete_items_form = forms.EditItemsForm(project=project)
 
     # The contents of the directory
@@ -538,7 +544,7 @@ def project_files(request, project_id):
         'upload_files_form':upload_files_form,
         'create_folder_form':create_folder_form,
         'rename_item_form':rename_item_form,
-        # 'move_items_form':move_items_form,
+        'move_items_form':move_items_form,
         'delete_items_form':delete_items_form, 'admin_inspect':admin_inspect,
         'dir_breadcrumbs':dir_breadcrumbs})
 
