@@ -457,8 +457,8 @@ def project_files_panel(request, project_id):
 
 def process_items(request, form):
     """
-    Process the items with the appropriate form and action.
-    Returns the subdirectory.
+    Process the file manipulation items with the appropriate form and
+    action. Returns the working subdirectory.
     """
     if form.is_valid():
         messages.success(request, form.perform_action())
