@@ -49,7 +49,7 @@ class EditItemsForm(ProjectFilesForm):
 
     """
     # This field's choices depend on the `subdir` field
-    items = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple)
+    items = forms.MultipleChoiceField()
 
     field_order = ['subdir', 'items']
 
@@ -61,7 +61,6 @@ class EditItemsForm(ProjectFilesForm):
         super(EditItemsForm, self).clean_subdir(*args, **kwargs)
         existing_items = utility.list_items(self.file_dir, return_separate=False)
         self.fields['items'].choices = tuple((item, item) for item in existing_items)
-
         return self.cleaned_data['subdir']
 
     def perform_action(self):
@@ -131,8 +130,7 @@ class UploadFilesForm(ProjectFilesForm):
         """
         for file in self.files.getlist('file_field'):
             utility.write_uploaded_file(file=file,
-                write_file_path=os.path.join(upload_files_form.file_dir,
-                                             file.name))
+                write_file_path=os.path.join(self.file_dir, file.name))
         return 'Your files have been uploaded'
 
 
@@ -175,19 +173,12 @@ class RenameItemForm(EditItemsForm):
     """
     Form for renaming an item in a directory
     """
+    # The name is 'items' to override the parent class field.
+    items = forms.ChoiceField(required=False)
     new_name = forms.CharField(max_length=50, required=False)
 
-    def clean_items(self):
-        """
-        Ensure there's only one selected item
-        """
-        data = self.cleaned_data['items']
+    field_order = ['subdir', 'items', 'new_name']
 
-        if len(data) > 1:
-            raise forms.ValidationError('Invalid item selection.',
-                code='invalid_item_selection')
-
-        return data
 
     def clean_new_name(self):
         """
@@ -205,14 +196,14 @@ class RenameItemForm(EditItemsForm):
             if substring in data:
                 raise forms.ValidationError('Illegal pattern specified in item name: "%(illegal_pattern)s"',
                 code='illegal_pattern', params={'illegal_pattern':substring})
-
+        pdb.set_trace()
         return data
 
     def perform_action(self):
         """
         Rename the items
         """
-        os.rename(os.path.join(self.file_dir, self.cleaned_data['items'][0]),
+        os.rename(os.path.join(self.file_dir, self.cleaned_data['items']),
             os.path.join(self.file_dir, self.cleaned_data['new_name']))
         return 'Your item has been renamed'
 

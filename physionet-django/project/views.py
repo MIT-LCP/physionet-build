@@ -465,7 +465,11 @@ def process_items(request, form):
         return form.cleaned_data['subdir']
     else:
         messages.error(request, utility.get_form_errors(form))
-        return ''
+        # If there are no errors with the subdir, keep the same subdir.
+        if 'subdir' in form.cleaned_data:
+            return form.cleaned_data['subdir']
+        else:
+            return ''
 
 @authorization_required(auth_functions=(is_author, is_admin))
 def project_files(request, project_id):
@@ -490,19 +494,19 @@ def project_files(request, project_id):
             else:
                 messages.error(request, utility.get_form_errors(storage_request_form))
         elif 'upload_files' in request.POST:
-            form = UploadFilesForm(project=project, data=request.POST)
+            form = forms.UploadFilesForm(project=project, data=request.POST, files=request.FILES)
             subdir = process_items(request, form)
         elif 'create_folder' in request.POST:
-            form = UploadFilesForm(project=project, data=request.POST)
+            form = forms.CreateFolderForm(project=project, data=request.POST)
             subdir = process_items(request, form)
         elif 'rename_item' in request.POST:
-            form = RenameItemForm(project=project, data=request.POST)
+            form = forms.RenameItemForm(project=project, data=request.POST)
             subdir = process_items(request, form)
         elif 'move_items' in request.POST:
-            form = MoveItemsForm(project=project, data=request.POST)
+            form = forms.MoveItemsForm(project=project, data=request.POST)
             subdir = process_items(request, form)
         elif 'delete_items' in request.POST:
-            form = EditItemsForm(project=project, data=request.POST)
+            form = forms.EditItemsForm(project=project, data=request.POST)
             subdir = process_items(request, form)
         else:
             subdir = ''
@@ -517,7 +521,6 @@ def project_files(request, project_id):
 
     storage_request = StorageRequest.objects.filter(project=project,
                                                     is_active=True).first()
-
     # Forms
     if storage_request:
         storage_request_form = None
