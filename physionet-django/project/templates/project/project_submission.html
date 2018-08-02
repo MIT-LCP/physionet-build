@@ -89,7 +89,7 @@
     {% endif %}
 {% else %}
     <ul class="list-group">
-    <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The project has been submitted for review on {{ submission.presubmission_datetime|date }}.</li>
+    <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The project was submitted for review on {{ submission.presubmission_datetime|date }}.</li>
     {% if submission.submission_status == 1 %}
         </ul>
         <br>
