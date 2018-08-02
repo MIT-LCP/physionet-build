@@ -1,3 +1,9 @@
+/* Pushing items away from top-left brand */
 .navbar-brand {
     width: 250px;
+}
+
+/* Padding between navbar items */
+.navbar-nav > li{
+  padding-right:5px;
 }

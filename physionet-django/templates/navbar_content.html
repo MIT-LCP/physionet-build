@@ -3,17 +3,11 @@
 
   <li class="nav-item active dropdown">
     <a class="nav-link dropdown-toggle" href="#" id="resource_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-      <i class="fa fa-server"></i> Resources
+      <i class="fa fa-server"></i> Find
     </a>
     <div class="dropdown-menu" aria-labelledby="resource_dropdown">
       <a class="dropdown-item" href="{% url 'data' %}">
         <i class="fa fa-database"></i>&nbsp;&nbsp;Data
-      </a>
-      <a class="dropdown-item" href="{% url 'software' %}">
-        <i class="fa fa-keyboard"></i> Software
-      </a>
-      <a class="dropdown-item" href="{% url 'challenge' %}">
-        <i class="fa fa-university"></i> Challenge
       </a>
     </div>
   </li>
@@ -55,16 +49,9 @@
 
 <ul class="navbar-nav ml-auto">
   {% if user.is_authenticated %}
-    {% if user.is_admin %}
-      <li class="nav-item active">
-        <a class="nav-link" href="{% url 'console_home' %}">
-          <i class="fa fa-user-secret"></i> Admin Console
-        </a>
-      </li>
-    {% endif %}
     <li class="nav-item active">
       <a class="nav-link" href="{% url 'project_home' %}">
-        <i class="fa fa-archive"></i> Project Home
+        <i class="fa fa-archive"></i> Projects
       </a>
     </li>
   {% endif %}
@@ -72,25 +59,27 @@
   <li class="nav-item active dropdown">
     <a class="nav-link dropdown-toggle" href="#" id="account_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
       {% if user.is_authenticated %}
-      <i class="fa fa-user"></i> {{ user }}
-    </a>
-    <div class="dropdown-menu" aria-labelledby="account_dropdown">
-        <a class="dropdown-item" href="{% url 'user_home'%}">
-          <i class="fa fa-home"></i> User Home
+        <i class="fa fa-user"></i> {{ user }}
         </a>
-        <a class="dropdown-item" href="{% url 'public_profile' user.username %}">
-          <i class="fa fa-address-card"></i>&nbsp;&nbsp;Profile
-        </a>
-        <a class="dropdown-item" href="{% url 'edit_profile' %}">
-          <i class="fa fa-cogs"></i> Settings
-        </a>
-        <a class="dropdown-item" href="{% url 'logout' %}">
-          <i class="fas fa-sign-out-alt"></i>&nbsp;&nbsp;Logout
-        </a>
+        <div class="dropdown-menu" aria-labelledby="account_dropdown">
+          {% if user.is_admin %}
+            <a class="dropdown-item" href="{% url 'console_home' %}">
+              &nbsp;<i class="fa fa-user-secret"></i>&nbsp;&nbsp;Admin
+            </a>
+          {% endif %}
+          <a class="dropdown-item" href="{% url 'public_profile' user.username %}">
+            <i class="fa fa-address-card"></i>&nbsp;&nbsp;Profile
+          </a>
+          <a class="dropdown-item" href="{% url 'edit_profile' %}">
+            <i class="fa fa-cogs"></i> Settings
+          </a>
+          <a class="dropdown-item" href="{% url 'logout' %}">
+            <i class="fas fa-sign-out-alt"></i>&nbsp;&nbsp;Logout
+          </a>
       {% else %}
-      <i class="fa fa-user"></i> Account
-    </a>
-    <div class="dropdown-menu" aria-labelledby="account_dropdown">
+        <i class="fa fa-user"></i> Account
+        </a>
+        <div class="dropdown-menu" aria-labelledby="account_dropdown">
         <a class="dropdown-item" href="{% url 'login' %}">
           <i class="fas fa-sign-in-alt"></i>&nbsp;&nbsp;Login
         </a>

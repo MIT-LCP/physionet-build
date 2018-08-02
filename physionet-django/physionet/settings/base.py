@@ -102,7 +102,7 @@ AUTH_USER_MODEL = 'user.User'
 
 LOGIN_URL = '/login/'
 
-LOGIN_REDIRECT_URL = '/home/'
+LOGIN_REDIRECT_URL = '/projects/'
 
 LOGOUT_REDIRECT_URL = '/'
 
