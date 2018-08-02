@@ -112,25 +112,73 @@
   }
 
 
-  // Fill in the rename modal
+  // Direct each input's 'enter' submit function to the right button.
+  // Needed due to form sharing of all item manipulation inputs.
+  document.getElementById("id_file_field").addEventListener("keydown", function(event){
+      if (event.keyCode === 13) {
+        event.preventDefault()
+        document.getElementById("upload-files-button-submit").click()
+      }
+  });
+  document.getElementById("id_folder_name").addEventListener("keydown", function(event){
+      if (event.keyCode === 13) {
+        event.preventDefault()
+        document.getElementById("create-folder-button-submit").click()
+      }
+  });
+  document.getElementById("id_new_name").addEventListener("keydown", function(event){
+      if (event.keyCode === 13) {
+        event.preventDefault()
+        document.getElementById("rename-item-button-submit").click()
+      }
+  });
+  document.getElementById("id_destination_folder").addEventListener("keydown", function(event){
+      if (event.keyCode === 13) {
+        event.preventDefault()
+        document.getElementById("move-items-button-submit").click()
+      }
+  });
+
+
+  function setInputRequirements(required_id){
+    // Make one of the item manipulating form inputs required, and
+    // remove it from all others.
+    var input_ids = ["id_file_field", "id_folder_name", "id_new_name",
+                     "id_destination_folder"]
+    for (var i=0; i<input_ids.length; i++){
+      var input_id = input_ids[i]
+      if (required_id == input_id){
+        document.getElementById(input_id).required = true
+      }
+      else{
+        document.getElementById(input_id).required = false
+      }
+    }
+  }
+
+  // These prepare functions are activated before triggering the modals
+  function prepareUpload(){
+    setInputRequirements("id_file_field")
+  }
+
+  function prepareCreate(){
+    setInputRequirements("id_folder_name")
+  }
+
   function prepareRename(){
-    // alert(document.querySelectorAll('input[type="checkbox"]:checked').length);
+    setInputRequirements("id_new_name")
     var itemName = document.querySelector('input[type="checkbox"]:checked').value
     document.getElementById("rename-item-message").innerHTML = "Selected item: <strong>"+ itemName + "</strong>"
   }
 
   function prepareMove(){
+    setInputRequirements("id_destination_folder")
     document.getElementById("move-items-message").innerHTML = "Move "+ n_selected + " selected item(s)."
   }
 
   function prepareDelete(){
+    setInputRequirements("")
     document.getElementById("delete-items-message").innerHTML = "Are you sure you wish to delete the "+ n_selected + " selected item(s)?"
   }
 
-   $('#delete-items-form').submit(function(eventObj) {
-        $(this).append('<input type="hidden" name="selected_items" value=["hi","bye"] /> ');
-        return true;
-    });
 </script>
-
-

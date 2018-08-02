@@ -490,9 +490,9 @@ def project_files(request, project_id):
                 storage_request_form.instance.project = project
                 storage_request_form.save()
                 messages.success(request, 'Your storage request has been received.')
-                subdir = ''
             else:
                 messages.error(request, utility.get_form_errors(storage_request_form))
+            subdir = ''
         elif 'upload_files' in request.POST:
             form = forms.UploadFilesForm(project=project, data=request.POST, files=request.FILES)
             subdir = process_items(request, form)

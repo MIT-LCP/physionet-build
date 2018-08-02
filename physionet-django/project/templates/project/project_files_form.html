@@ -2,10 +2,10 @@
   <input name="subdir" value="{{ subdir }}" type="hidden">
 
   <!-- Content manipulation buttons to trigger modals -->
-  <button type="button" class="btn btn-success" data-toggle="modal" data-target="#upload-files-modal">
+  <button id="upload-files-button" type="button" class="btn btn-success" data-toggle="modal" data-target="#upload-files-modal" onclick="prepareUpload()">
     <i class="fa fa-arrow-circle-up"></i> Upload Files
   </button>
-  <button type="button" class="btn btn-success" data-toggle="modal" data-target="#create-folder-modal">
+  <button id="create-folder-button" type="button" class="btn btn-success" data-toggle="modal" data-target="#create-folder-modal" onclick="prepareCreate()">
     <i class="fa fa-folder-open"></i> Create Folder
   </button>
 
@@ -36,7 +36,7 @@
             {{ upload_files_form.file_field }}
           </div>
           <div class="modal-footer">
-            <button class="btn btn-success" name="upload_files" value="{{ subdir }}" type="submit"><i class="fa fa-arrow-circle-up"></i> Upload Files</button>
+            <button id="upload-files-button-submit" class="btn btn-success" name="upload_files" value="{{ subdir }}" type="submit"><i class="fa fa-arrow-circle-up"></i> Upload Files</button>
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
           </div>
       </div>
@@ -57,7 +57,7 @@
             {{ create_folder_form.folder_name }}
           </div>
           <div class="modal-footer">
-            <button class="btn btn-success" name="create_folder" type="submit"><i class="fa fa-folder-open"></i> Create Folder</button>
+            <button id="create-folder-button-submit" class="btn btn-success" name="create_folder" type="submit"><i class="fa fa-folder-open"></i> Create Folder</button>
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
           </div>
       </div>
@@ -79,7 +79,7 @@
             {{ rename_item_form.new_name }}
           </div>
           <div class="modal-footer">
-            <button class="btn btn-primary" name="rename_item" type="submit"><i class="fa fa-edit"></i> Rename Item</button>
+            <button id="rename-item-button-submit" class="btn btn-primary" name="rename_item" type="submit"><i class="fa fa-edit"></i> Rename Item</button>
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
           </div>
       </div>
@@ -101,7 +101,7 @@
             {{ move_items_form.destination_folder }}
           </div>
           <div class="modal-footer">
-            <button class="btn btn-primary" name="move_items" type="submit"><i class="fas fa-arrow-right"></i> Move Items</button>
+            <button id="move-items-button-submit" class="btn btn-primary" name="move_items" type="submit"><i class="fas fa-arrow-right"></i> Move Items</button>
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
           </div>
       </div>
@@ -121,7 +121,7 @@
             <p id="delete-items-message"></p>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-danger" name="delete_items" type="submit"><i class="fa fa-trash-alt"></i> Delete Items</button>
+            <button id="delete-items-button-submit" class="btn btn-danger" name="delete_items" type="submit"><i class="fa fa-trash-alt"></i> Delete Items</button>
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
           </div>
       </div>
