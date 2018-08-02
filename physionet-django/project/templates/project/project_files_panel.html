@@ -1,0 +1,184 @@
+{% load static %}
+
+<div id="forms-and-panel">
+  <form action="" method="post" type="submit" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% include "project/project_files_form.html" %}
+    <br>
+
+    <div id="files-panel" class="card">
+      <div class="card-header">
+        <div class="row">
+          <div class="col-md-8">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Folder Navigation:
+          {% for breadcrumb in dir_breadcrumbs %}
+            {% if forloop.counter == dir_breadcrumbs|length %}
+              {{ breadcrumb.name }}
+            {% else %}
+              <a href="" onclick="return navigateDir('{{ breadcrumb.full_subdir }}')">{{ breadcrumb.name }}</a>&nbsp;/&nbsp;
+            {% endif %}
+          {% endfor %}
+          </div>
+        </div>
+      </div>
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item">
+          <div class="row">
+            <div class="col-md-7">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>Name</strong></div>
+            <div class="col-md-2"><strong>Size</strong></div>
+            <div class="col-md-2"><strong>Modified</strong></div>
+            <div class="col-md-1"></div>
+          </div>
+        </li>
+        {% if subdir %}
+          <li class="list-group-item">
+            <div class="row">
+              <div class="col-md-7">&nbsp;<i class="fas fa-angle-up"></i>&nbsp;&nbsp;<a href="" onclick="return navigateDir('{{ parent_dir }}')">Parent Directory</a></div>
+              <div class="col-md-2"></div>
+              <div class="col-md-2"></div>
+              <div class="col-md-1"></div>
+            </div>
+          </li>
+        {% endif %}
+        {% for dir in display_dirs %}
+          <li class="list-group-item">
+            <div class="row">
+              <div class="col-md-7"><i class="fas fa-folder-open"></i>&nbsp;&nbsp;<a href="" onclick="return navigateDir('{{ dir.full_subdir }}')">{{ dir.name }}</a></div>
+              <div class="col-md-2"></div>
+              <div class="col-md-2"></div>
+              <div class="col-md-1"><input type="checkbox" name="items" value="{{ dir.name }}" onchange="countSelected(this)"></div>
+            </div>
+          </li>
+        {% endfor %}
+        {% for file in display_files %}
+          <li class="list-group-item">
+            <div class="row">
+              <div class="col-md-7">&nbsp;<i class="far fa-file"></i>&nbsp;&nbsp;&nbsp;<a href="{% url 'serve_project_file' project.id file.full_file_name %}">{{ file.name }}</a></div>
+              <div class="col-md-2">{{ file.size }}</div>
+              <div class="col-md-2">{{ file.last_modified }}</div>
+              <div class="col-md-1"><input type="checkbox" name="items" value="{{ file.name }}" onchange="countSelected(this)"></div>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </form>
+
+</div>
+<script>
+  // Navigate to another file directory and reload the file panel
+  // subdir is the full subdirectory
+  function navigateDir(subdir){
+    var csrftoken = getCookie('csrftoken');
+    $.ajax({
+            type: "GET",
+            url: "{% url 'project_files_panel' project.id %}",
+            data: {'csrfmiddlewaretoken':csrftoken, 'subdir':subdir
+            },
+            success: function reloadSection(result){
+                $("#forms-and-panel").html(result);
+            },
+    });
+    return false
+  }
+
+
+  // Selected checkboxes
+  n_selected = 0
+
+  // Enables and disables buttons based on selected checkboxes
+  function countSelected(box){
+    if (box.checked){
+      n_selected ++
+    }
+    else{
+      n_selected --
+    }
+
+    if (n_selected > 0){
+      if (n_selected == 1){
+        document.getElementById("rename-item-button").disabled = false
+      }
+      else{
+        document.getElementById("rename-item-button").disabled = true
+      }
+      document.getElementById("move-items-button").disabled = false
+      document.getElementById("delete-items-button").disabled = false
+    }
+    else{
+      document.getElementById("rename-item-button").disabled = true
+      document.getElementById("move-items-button").disabled = true
+      document.getElementById("delete-items-button").disabled = true
+    }
+  }
+
+
+  // Direct each input's 'enter' submit function to the right button.
+  // Needed due to form sharing of all item manipulation inputs.
+  document.getElementById("id_file_field").addEventListener("keydown", function(event){
+      if (event.keyCode === 13) {
+        event.preventDefault()
+        document.getElementById("upload-files-button-submit").click()
+      }
+  });
+  document.getElementById("id_folder_name").addEventListener("keydown", function(event){
+      if (event.keyCode === 13) {
+        event.preventDefault()
+        document.getElementById("create-folder-button-submit").click()
+      }
+  });
+  document.getElementById("id_new_name").addEventListener("keydown", function(event){
+      if (event.keyCode === 13) {
+        event.preventDefault()
+        document.getElementById("rename-item-button-submit").click()
+      }
+  });
+  document.getElementById("id_destination_folder").addEventListener("keydown", function(event){
+      if (event.keyCode === 13) {
+        event.preventDefault()
+        document.getElementById("move-items-button-submit").click()
+      }
+  });
+
+
+  function setInputRequirements(required_id){
+    // Make one of the item manipulating form inputs required, and
+    // remove it from all others.
+    var input_ids = ["id_file_field", "id_folder_name", "id_new_name",
+                     "id_destination_folder"]
+    for (var i=0; i<input_ids.length; i++){
+      var input_id = input_ids[i]
+      if (required_id == input_id){
+        document.getElementById(input_id).required = true
+      }
+      else{
+        document.getElementById(input_id).required = false
+      }
+    }
+  }
+
+  // These prepare functions are activated before triggering the modals
+  function prepareUpload(){
+    setInputRequirements("id_file_field")
+  }
+
+  function prepareCreate(){
+    setInputRequirements("id_folder_name")
+  }
+
+  function prepareRename(){
+    setInputRequirements("id_new_name")
+    var itemName = document.querySelector('input[type="checkbox"]:checked').value
+    document.getElementById("rename-item-message").innerHTML = "Selected item: <strong>"+ itemName + "</strong>"
+  }
+
+  function prepareMove(){
+    setInputRequirements("id_destination_folder")
+    document.getElementById("move-items-message").innerHTML = "Move "+ n_selected + " selected item(s)."
+  }
+
+  function prepareDelete(){
+    setInputRequirements("")
+    document.getElementById("delete-items-message").innerHTML = "Are you sure you wish to delete the "+ n_selected + " selected item(s)?"
+  }
+
+</script>

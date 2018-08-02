@@ -1,0 +1,131 @@
+{% if user == project.submitting_author %}
+  <input name="subdir" value="{{ subdir }}" type="hidden">
+
+  <!-- Content manipulation buttons to trigger modals -->
+  <button id="upload-files-button" type="button" class="btn btn-success" data-toggle="modal" data-target="#upload-files-modal" onclick="prepareUpload()">
+    <i class="fa fa-arrow-circle-up"></i> Upload Files
+  </button>
+  <button id="create-folder-button" type="button" class="btn btn-success" data-toggle="modal" data-target="#create-folder-modal" onclick="prepareCreate()">
+    <i class="fa fa-folder-open"></i> Create Folder
+  </button>
+
+  <i style="float:right">
+    <button id="rename-item-button" type="button" class="btn btn-primary" data-toggle="modal" data-target="#rename-item-modal" disabled="true" onclick="prepareRename()">
+      <i class="fa fa-edit"></i> Rename Item
+    </button>
+    <button id="move-items-button" type="button" class="btn btn-primary" data-toggle="modal" data-target="#move-items-modal" disabled="true" onclick="prepareMove()">
+      <i class="fas fa-arrow-right"></i> Move Items
+    </button>
+
+    <button id="delete-items-button" type="button" class="btn btn-danger" data-toggle="modal" data-target="#delete-items-modal" disabled="true" onclick="prepareDelete()">
+      <i class="fa fa-trash-alt"></i> Delete Items
+    </button>
+  </i>
+
+  <!-- File manipulation modals -->
+  <div class="modal fade" id="upload-files-modal" tabindex="-1" role="dialog" aria-labelledby="upload-files-modal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Upload Files</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+          <div class="modal-body">
+            {{ upload_files_form.file_field }}
+          </div>
+          <div class="modal-footer">
+            <button id="upload-files-button-submit" class="btn btn-success" name="upload_files" value="{{ subdir }}" type="submit"><i class="fa fa-arrow-circle-up"></i> Upload Files</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="create-folder-modal" tabindex="-1" role="dialog" aria-labelledby="create-folder-modal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Create Folder</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+          <div class="modal-body">
+            <label>{{ create_folder_form.folder_name.label }}:</label>
+            {{ create_folder_form.folder_name }}
+          </div>
+          <div class="modal-footer">
+            <button id="create-folder-button-submit" class="btn btn-success" name="create_folder" type="submit"><i class="fa fa-folder-open"></i> Create Folder</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="rename-item-modal" tabindex="-1" role="dialog" aria-labelledby="rename-item-modal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Rename Item</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+          <div class="modal-body">
+            <p id="rename-item-message"></p>
+            <label>{{ rename_item_form.new_name.label }}:</label>
+            {{ rename_item_form.new_name }}
+          </div>
+          <div class="modal-footer">
+            <button id="rename-item-button-submit" class="btn btn-primary" name="rename_item" type="submit"><i class="fa fa-edit"></i> Rename Item</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="move-items-modal" tabindex="-1" role="dialog" aria-labelledby="move-items-modal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Move Items</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+          <div class="modal-body">
+            <p id="move-items-message"></p>
+            <label>{{ move_items_form.destination_folder.label }}:</label>
+            {{ move_items_form.destination_folder }}
+          </div>
+          <div class="modal-footer">
+            <button id="move-items-button-submit" class="btn btn-primary" name="move_items" type="submit"><i class="fas fa-arrow-right"></i> Move Items</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="delete-items-modal" tabindex="-1" role="dialog" aria-labelledby="delete-items-modal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Delete Items</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+          <div class="modal-body">
+            <p id="delete-items-message"></p>
+          </div>
+          <div class="modal-footer">
+            <button id="delete-items-button-submit" class="btn btn-danger" name="delete_items" type="submit"><i class="fa fa-trash-alt"></i> Delete Items</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+      </div>
+    </div>
+  </div>
+  <br>
+{% endif %}

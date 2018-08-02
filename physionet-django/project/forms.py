@@ -5,7 +5,7 @@ from django.utils import timezone
 import os
 
 from .models import Affiliation, Author, Invitation, Project, StorageRequest
-from .utility import readable_size, list_items, list_directories
+from . import utility
 import pdb
 
 
@@ -17,117 +17,171 @@ RESPONSE_CHOICES = (
 ILLEGAL_PATTERNS = ['/','..',]
 
 
-class MultiFileFieldForm(forms.Form):
+class ProjectFilesForm(forms.Form):
     """
-    Form for uploading multiple files
+    Inherited form for manipulating project files/directories. Upload
+    and create folders, move, rename, delete items.
     """
-    file_field = forms.FileField(widget=forms.ClearableFileInput(
-        attrs={'multiple': True}))
+    # The working subdirectory relative to the project root
+    subdir = forms.CharField(widget=forms.HiddenInput(), required=False)
 
-    def __init__(self, individual_size_limit, total_size_limit,
-                 current_directory, *args, **kwargs):
-        # Email choices are those belonging to a user
-        super(MultiFileFieldForm, self).__init__(*args, **kwargs)
-        self.individual_size_limit = individual_size_limit
-        self.total_size_limit = total_size_limit
-        self.current_directory = current_directory
+    def __init__(self, project, *args, **kwargs):
+        super(ProjectFilesForm, self).__init__(*args, **kwargs)
+        self.project = project
 
-    def clean_file_field(self):
+    def clean_subdir(self):
         """
-        Check for file size limits and prevent upload when existing
-        file/folder exists in directory
+        Check that the subdirectory exists
         """
-        # Prospective upload content
-        data = self.cleaned_data['file_field']
-        files = self.files.getlist('file_field')
+        data = self.cleaned_data['subdir']
+        file_dir = os.path.join(self.project.file_root(), data)
 
-        self.taken_names = list_items(self.current_directory,
-                                      return_separate=False)
-
-        total_size = 0
-        for file in files:
-            if file:
-                if file.size > self.individual_size_limit:
-                    raise forms.ValidationError(
-                        'File: "%(file_name)s" exceeds individual size limit: %(individual_size_limit)s',
-                        code='exceed_individual_limit',
-                        params={'file_name':file.name, 'individual_size_limit':readable_size(self.individual_size_limit)}
-                    )
-                total_size += file.size
-                if total_size > self.total_size_limit:
-                    raise forms.ValidationError(
-                        'Total upload size exceeds limit: %(total_size_limit)s',
-                        code='exceed_total_limit',
-                        params={'total_size_limit':readable_size(self.total_size_limit)}
-                    )
-                if file.name in self.taken_names:
-                    raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
-                        code='clashing_name', params={'taken_name':file.name})
-            else:
-                # Special error
-                raise forms.ValidationError('Could not read the uploaded file')
+        if not os.path.isdir(file_dir):
+            raise forms.ValidationError('Invalid directory')
+        self.file_dir = file_dir
 
         return data
 
 
-class FolderCreationForm(forms.Form):
+class UploadFilesForm(ProjectFilesForm):
+    """
+    Form for uploading multiple files to a project.
+    `subdir` is the project subdirectory relative to the file root.
+    """
+    file_field = forms.FileField(widget=forms.ClearableFileInput(
+        attrs={'multiple': True}), required=False)
+
+    def clean_file_field(self):
+        """
+        Check for file size limits and whether they are readable
+        """
+        data = self.cleaned_data['file_field']
+        files = self.files.getlist('file_field')
+
+        for file in files:
+            # Special error
+            if not file:
+                raise forms.ValidationError('Could not read file: %(file_name)s',
+                    params={'file_name':file.name})
+
+        for file in files:
+            if file.size > Project.INDIVIDUAL_FILE_SIZE_LIMIT:
+                raise forms.ValidationError(
+                    'File %(file_name)s is larger than the individual size limit: %(individual_size_limit)s',
+                    code='exceed_individual_limit',
+                    params={'file_name':file.name,
+                            'individual_size_limit':utility.readable_size(Project.INDIVIDUAL_FILE_SIZE_LIMIT)}
+                )
+
+        if sum(f.size for f in files) > self.project.storage_allowance*1024**3 - self.project.storage_used():
+            raise forms.ValidationError(
+                'Total upload volume exceeds remaining quota',
+                code='exceed_remaining_quota',
+            )
+
+        return data
+
+    def clean(self):
+        """
+        Check for name clash with existing files/folders in the directory
+        """
+        data = self.cleaned_data
+        files = self.files.getlist('file_field')
+
+        self.taken_names = utility.list_items(self.file_dir, return_separate=False)
+
+        for file in files:
+            if file.name in self.taken_names:
+                raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
+                    code='clashing_name', params={'taken_name':file.name})
+
+        return data
+
+    def perform_action(self):
+        """
+        Upload the files
+        """
+        for file in self.files.getlist('file_field'):
+            utility.write_uploaded_file(file=file,
+                write_file_path=os.path.join(self.file_dir, file.name))
+        return 'Your files have been uploaded'
+
+
+class CreateFolderForm(ProjectFilesForm):
     """
     Form for creating a new folder in a directory
     """
-    folder_name = forms.CharField(max_length=50)
-
-    def __init__(self, current_directory=None, *args, **kwargs):
-        super(FolderCreationForm, self).__init__(*args, **kwargs)
-        self.current_directory = current_directory
+    folder_name = forms.CharField(max_length=50, required=False)
 
     def clean_folder_name(self):
-        """
-        Prevent upload when existing file/folder exists in directory
-        """
         data = self.cleaned_data['folder_name']
-        self.taken_names = list_items(self.current_directory, return_separate=False)
-
-        if data in self.taken_names:
-            raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
-                code='clashing_name', params={'taken_name':data})
-
         for substring in ILLEGAL_PATTERNS:
             if substring in data:
                 raise forms.ValidationError('Illegal pattern specified in item name: "%(illegal_pattern)s"',
                 code='illegal_pattern', params={'illegal_pattern':substring})
+        return data
+
+    def clean(self):
+        """
+        Check for name clash with existing files/folders in the directory
+        """
+        data = self.cleaned_data
+        folder_name = self.cleaned_data['folder_name']
+        self.taken_names = utility.list_items(self.file_dir, return_separate=False)
+
+        if folder_name in self.taken_names:
+            raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
+                code='clashing_name', params={'taken_name':folder_name})
 
         return data
 
+    def perform_action(self):
+        """
+        Create the folder
+        """
+        os.mkdir(os.path.join(self.file_dir, self.cleaned_data['folder_name']))
+        return 'Your folder has been created'
 
-class RenameItemForm(forms.Form):
+
+class EditItemsForm(ProjectFilesForm):
+    """
+    Inherited form for manipulating existing files/directories.
+    Rename, edit, delete. This is also the form for deleting items.
+
+    """
+    # This field's choices depend on the `subdir` field
+    items = forms.MultipleChoiceField()
+
+    field_order = ['subdir', 'items']
+
+    def clean_subdir(self, *args, **kwargs):
+        """
+        Set the items' valid choices after cleaning the subdirectory.
+        This must be called before clean_items.
+        """
+        super(EditItemsForm, self).clean_subdir(*args, **kwargs)
+        existing_items = utility.list_items(self.file_dir, return_separate=False)
+        self.fields['items'].choices = tuple((item, item) for item in existing_items)
+        return self.cleaned_data['subdir']
+
+    def perform_action(self):
+        """
+        Delete the items
+        """
+        utility.remove_items([os.path.join(self.file_dir, i) for i in self.cleaned_data['items']])
+        return 'Your items have been deleted'
+
+
+class RenameItemForm(EditItemsForm):
     """
     Form for renaming an item in a directory
     """
-    new_name = forms.CharField(max_length=50)
-    selected_item = forms.ChoiceField()
+    # The name is 'items' to override the parent class field.
+    items = forms.ChoiceField(required=False)
+    new_name = forms.CharField(max_length=50, required=False)
 
-    def __init__(self, current_directory, *args, **kwargs):
-        """
-        Get the available items in the directory to rename, and set the form
-        field's set of choices.
-        """
-        super(RenameItemForm, self).__init__(*args, **kwargs)
-        self.current_directory = current_directory
-        existing_items = list_items(current_directory, return_separate=False)
-        self.fields['selected_item'].choices = [(i, i) for i in existing_items]
+    field_order = ['subdir', 'items', 'new_name']
 
-    def clean_selected_item(self):
-        """
-        Ensure selected item to rename exists in directory
-        """
-        data = self.cleaned_data['selected_item']
-        existing_items = list_items(self.current_directory, return_separate=False)
-
-        if data not in existing_items:
-            raise forms.ValidationError('Invalid item selection.',
-                code='invalid_item_selection')
-
-        return data
 
     def clean_new_name(self):
         """
@@ -135,7 +189,7 @@ class RenameItemForm(forms.Form):
         - Prevent illegal names
         """
         data = self.cleaned_data['new_name']
-        taken_names = list_items(self.current_directory, return_separate=False)
+        taken_names = utility.list_items(self.file_dir, return_separate=False)
 
         if data in taken_names:
             raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
@@ -145,61 +199,54 @@ class RenameItemForm(forms.Form):
             if substring in data:
                 raise forms.ValidationError('Illegal pattern specified in item name: "%(illegal_pattern)s"',
                 code='illegal_pattern', params={'illegal_pattern':substring})
-
         return data
 
+    def perform_action(self):
+        """
+        Rename the items
+        """
+        os.rename(os.path.join(self.file_dir, self.cleaned_data['items']),
+            os.path.join(self.file_dir, self.cleaned_data['new_name']))
+        return 'Your item has been renamed'
 
-class MoveItemsForm(forms.Form):
+
+class MoveItemsForm(EditItemsForm):
     """
     Form for moving items into a target folder
     """
-    destination_folder = forms.ChoiceField()
-    selected_items = forms.MultipleChoiceField()
+    destination_folder = forms.ChoiceField(required=False)
 
-    def __init__(self, current_directory, in_subdir, *args, **kwargs):
+    field_order = ['subdir', 'items', 'destination_folder']
+
+    def __init__(self, project, subdir=None, *args, **kwargs):
         """
-        Get the available items in the directory to move, the available
-        target subdirectories, and set the two form fields' set of choices.
+        Set the choices for the destination folder
         """
-        super(MoveItemsForm, self).__init__(*args, **kwargs)
-        self.current_directory = current_directory
-        self.in_subdir = in_subdir
+        super(MoveItemsForm, self).__init__(project, *args, **kwargs)
+        # The choices are only set here for get requests
+        if subdir is not None:
+            self.fields['destination_folder'].choices = MoveItemsForm.get_destination_choices(
+                project, subdir)
 
-        existing_files, existing_subdirectories = list_items(current_directory)
-        existing_items = existing_files + existing_subdirectories
-
-        destination_folder_choices = [(s, s) for s in existing_subdirectories]
-        if in_subdir:
-            destination_folder_choices = [('../', '*Parent Directory*')] + destination_folder_choices
-
-        self.fields['destination_folder'].choices = destination_folder_choices
-        self.fields['selected_items'].choices = [(i, i) for i in existing_items]
-
-    def clean_selected_items(self):
+    def get_destination_choices(project, subdir):
         """
-        Ensure selected items to move exist in directory
+        Return allowed destination choices
         """
-        data = self.cleaned_data['selected_items']
-        existing_items = list_items(self.current_directory, return_separate=False)
+        existing_subdirs = utility.list_directories(
+            os.path.join(project.file_root(), subdir))
+        subdir_choices = [(s, s) for s in existing_subdirs]
+        if subdir:
+            subdir_choices = [('../', '*Parent Directory*')] + subdir_choices
+        return subdir_choices
 
-        if not set(data).issubset(set(existing_items)):
-            raise forms.ValidationError('Invalid item selection.',
-                code='invalid_item_selection')
-
-        return data
-
-    def clean_destination_folder(self):
+    def clean_subdir(self, *args, **kwargs):
         """
-        Selected destination folderm ust exist in current directory
-
+        Set the allowed destination choices after the subdir is cleaned
         """
-        data = self.cleaned_data['destination_folder']
-        existing_items = list_items(self.current_directory, return_separate=False)
-
-        if data not in existing_items:
-            raise forms.ValidationError('Invalid destination folder selection.',
-                code='invalid_destination_selection')
-
+        super(MoveItemsForm, self).clean_subdir(*args, **kwargs)
+        data = self.cleaned_data['subdir']
+        self.fields['destination_folder'].choices = MoveItemsForm.get_destination_choices(
+            self.project, data)
         return data
 
     def clean(self):
@@ -209,28 +256,22 @@ class MoveItemsForm(forms.Form):
         - Must not contain items with the same name as the items to be moved
 
         """
-        cleaned_data = super().clean()
+        cleaned_data = super(MoveItemsForm, self).clean()
         validation_errors = []
 
         destination_folder = cleaned_data['destination_folder']
-        selected_items = cleaned_data['selected_items']
+        selected_items = cleaned_data['items']
 
         if destination_folder in selected_items:
-            # raise forms.ValidationError('Cannot move folder: %(destination_folder)s into itself',
-            #     code='move_folder_self',
-            #     params={'destination_folder':destination_folder})
-
             validation_errors.append(forms.ValidationError('Cannot move folder: %(destination_folder)s into itself',
                 code='move_folder_self',
                 params={'destination_folder':destination_folder}))
 
-        taken_names = list_items(os.path.join(self.current_directory, destination_folder),
+        taken_names = utility.list_items(os.path.join(self.file_dir, destination_folder),
             return_separate=False)
         clashing_names = set(selected_items).intersection(set(taken_names))
 
         if clashing_names:
-            # raise forms.ValidationError('Item named: "%(clashing_name)s" already exists in destination folder.',
-            #     code='clashing_name', params={'clashing_name':list(clashing_names)[0]})
             validation_errors.append(forms.ValidationError('Item named: "%(clashing_name)s" already exists in destination folder.',
                 code='clashing_name', params={'clashing_name':list(clashing_names)[0]}))
 
@@ -238,34 +279,13 @@ class MoveItemsForm(forms.Form):
             raise forms.ValidationError(validation_errors)
 
 
-class DeleteItemsForm(forms.Form):
-    """
-    Form for deleting items
-    """
-    selected_items = forms.MultipleChoiceField()
-
-    def __init__(self, current_directory, *args, **kwargs):
+    def perform_action(self):
         """
-        Get the available items in the directory to delete, and set the form
-        field's set of choices.
+        Move the items into the selected directory
         """
-        super(DeleteItemsForm, self).__init__(*args, **kwargs)
-        self.current_directory = current_directory
-        existing_items = list_items(current_directory, return_separate=False)
-        self.fields['selected_items'].choices = [(i, i) for i in existing_items]
-
-    def clean_selected_items(self):
-        """
-        Ensure selected items to delete exist in directory
-        """
-        data = self.cleaned_data['selected_items']
-        existing_items = list_items(self.current_directory, return_separate=False)
-
-        if not set(data).issubset(set(existing_items)):
-            raise forms.ValidationError('Invalid item selection.',
-                code='invalid_item_selection')
-
-        return data
+        utility.move_items([os.path.join(self.file_dir, i) for i in self.cleaned_data['items']],
+            os.path.join(self.file_dir, self.cleaned_data['destination_folder']))
+        return 'Your items have been moved'
 
 
 class CreateProjectForm(forms.ModelForm):
