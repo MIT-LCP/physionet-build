@@ -1,7 +1,70 @@
-/*.jumbotron {
-    background: url("/static/about/physionet-logo.jpg") center center;
-    background-size: contain;
+/* Adapted from startbootstrap-agency */
+.main-title {
+  font-size: 50px;
+  font-style: italic;
+  line-height: 22px;
+  margin-bottom: 25px;
+  font-family: 'Droid Serif', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
 
+.btn-pn {
+  color: white;
+  background-color: #694;
+  margin-right: 5px;
+  margin-left: 5px;
+}
+
+header.masthead {
+  text-align: center;
+  /*background-image: url("/static/about/ecg.jpg");*/
+  background-size: contain;
+  background-repeat: repeat-x;
+}
+
+header.masthead .intro-text {
+  padding-top: 50px;
+  padding-bottom: 50px;
+}
+
+header.masthead .intro-text .intro-lead-in {
+  font-size: 22px;
+  line-height: 22px;
+  margin-bottom: 25px;
+  font-family: 'Droid Serif', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+header.masthead .intro-text .intro-heading {
+  color: #694;
+  font-size: 75px;
+  font-weight: 700;
+  line-height: 75px;
+  margin-bottom: 25px;
+  font-family: 'Montserrat', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+@media (min-width: 768px) {
+  header.masthead .intro-text {
+    padding-top: 50px;
+    padding-bottom: 50px;
+  }
+
+  header.masthead .intro-text .intro-heading {
+    color: #694;
+    font-size: 75px;
+    font-weight: 700;
+    line-height: 75px;
+    margin-bottom: 25px;
+    font-family: 'Montserrat', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  }
+
+  header.masthead .intro-text .intro-lead-in {
+    font-size: 22px;
+    line-height: 22px;
+    margin-bottom: 25px;
+    font-family: 'Droid Serif', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  }
+}
+
+h1 {
 
 }
-*/
