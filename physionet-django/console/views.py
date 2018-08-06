@@ -23,7 +23,14 @@ def is_admin(user, *args, **kwargs):
 @login_required
 @user_passes_test(is_admin)
 def console_home(request):
-    return render(request, 'console/console_home.html')
+    """
+    List of submissions the editor is responsible for
+    """
+    submissions = Submission.objects.filter(is_active=True,
+        submission_status__in=[3, 4, 6], editor=request.user)
+
+    return render(request, 'console/console_home.html',
+        {'submissions':submissions})
 
 
 def process_storage_response(request, storage_response_formset):
@@ -119,19 +126,6 @@ def submissions(request):
     return render(request, 'console/submissions.html',
         {'submissions':submissions, 'assign_editor_form':assign_editor_form,
          'n_awaiting_editor':n_awaiting_editor})
-
-
-@login_required
-@user_passes_test(is_admin)
-def editor_home(request):
-    """
-    List of submissions the editor is responsible for
-    """
-    submissions = Submission.objects.filter(is_active=True,
-        submission_status__in=[3, 4, 6], editor=request.user)
-
-    return render(request, 'console/editor_home.html',
-        {'submissions':submissions})
 
 
 @login_required
