@@ -13,13 +13,16 @@ Profile for {{ public_user.username }}
 
 {% block content %}
 <div class="container">
-
   <div class="row">
-    <div class="col-md-3">
+    <div class="col-md-4">
       <img border="1px" src="{% static 'about/unknown-user.svg' %}"width="250px" height="250px">
     </div>
-    <div class="col-md-9">
-      <h2>User: {{ public_user.username }}</h2>
+    <div class="col-md-8">
+      <h2>User: {{ public_user.username }}
+      {% if user == public_user %}
+        <a class="btn btn-primary" href="{% url 'edit_profile' %}" role="button" style="float:right">Edit Profile</a>
+      {% endif %}
+      </h2>
       <hr>
       <div class="row mb-1">
         <div class="col-md-2">
@@ -73,10 +76,8 @@ Profile for {{ public_user.username }}
           </div>
         </div>
       {% endif %}
-
-      </div>
     </div>
   </div>
-  <hr>
+  <br>
 </div>
 {% endblock %}
