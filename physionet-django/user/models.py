@@ -1,3 +1,5 @@
+import pdb
+
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 # from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth import get_user_model
@@ -169,14 +171,13 @@ def update_associated_emails(sender, **kwargs):
     User object's email field is updated.
     """
     user = kwargs['instance']
-    if not kwargs['created']:
-        if kwargs['update_fields'] and 'email' in kwargs['update_fields']:
-            old_primary_email = AssociatedEmail.objects.get(user=user, is_primary_email=True)
-            new_primary_email = AssociatedEmail.objects.get(user=user, email=user.email)
-            old_primary_email.is_primary_email = False
-            new_primary_email.is_primary_email = True
-            old_primary_email.save()
-            new_primary_email.save()
+    if not kwargs['created'] and kwargs['update_fields'] and 'email' in kwargs['update_fields']:
+        old_primary_email = AssociatedEmail.objects.get(user=user, is_primary_email=True)
+        new_primary_email = AssociatedEmail.objects.get(user=user, email=user.email)
+        old_primary_email.is_primary_email = False
+        new_primary_email.is_primary_email = True
+        old_primary_email.save()
+        new_primary_email.save()
 
 
 def photo_path(instance, filename):

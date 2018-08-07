@@ -1,4 +1,5 @@
 import logging
+import os
 import pdb
 
 from django.conf import settings
@@ -164,7 +165,11 @@ def edit_profile(request):
                            instance=user.profile)
         if form.is_valid():
             form.save()
+            # Delete the photo file if needed
+            if 'photo-clear' in request.POST:
+                os.remove(form.photo_path)
             messages.success(request, 'Your profile has been updated.')
+            # Form needs to be reloaded to show photo changes
             form = ProfileForm(instance=user.profile)
         else:
             messages.error(request,
