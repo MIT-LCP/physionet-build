@@ -160,7 +160,8 @@ def edit_profile(request):
     if request.method == 'POST':
         # Update the profile and return to the same page. Place a message
         # at the top of the page: 'your profile has been updated'
-        form = ProfileForm(request.POST, instance=user.profile)
+        form = ProfileForm(data=request.POST, files=request.FILES,
+                           instance=user.profile)
         if form.is_valid():
             form.save()
             messages.success(request, 'Your profile has been updated.')

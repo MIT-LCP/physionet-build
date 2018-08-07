@@ -1,3 +1,5 @@
+import os
+
 from django import forms
 from django.contrib.auth import forms as auth_forms
 from django.contrib.auth import password_validation
@@ -99,7 +101,13 @@ class ProfileForm(forms.ModelForm):
     """
     class Meta:
         model = Profile
-        exclude = ('user', 'identity_verification_date')
+        fields = ('first_name', 'middle_names', 'last_name', 'url', 'photo')
+
+    # def __init__(self, *args, **kwargs):
+
+    #     super(ProfileForm, self).__init__(*args, **kwargs)
+    #     print('ayeee')
+    #     self.fields['photo'].upload_too = os.path.join('user', str(self.instance.id))
 
 
 class UserCreationForm(forms.ModelForm):

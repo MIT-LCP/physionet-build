@@ -179,6 +179,12 @@ def update_associated_emails(sender, **kwargs):
             new_primary_email.save()
 
 
+def photo_path(instance, filename):
+    """
+    Storage path of profile photo. Keep the original file extension only.
+    """
+    return 'user/{0}/{1}'.format(instance.id, '.'.join(['profile-photo', filename.split('.')[-1]]))
+
 class Profile(models.Model):
     """
     Class storing profile information which is
@@ -196,8 +202,12 @@ class Profile(models.Model):
     middle_names = models.CharField(max_length=100, blank=True, default='')
     last_name = models.CharField(max_length=30)
     url = models.URLField(default='', blank=True, null=True)
+    photo = models.ImageField(upload_to=photo_path, blank=True, null=True)
     is_credentialed = models.BooleanField(default=False)
     credential_datetime = models.DateTimeField(blank=True, null=True)
+
+    def __str__(self):
+        return self.get_full_name()
 
     def get_full_name(self):
         if self.middle_names:
@@ -209,8 +219,6 @@ class Profile(models.Model):
     def get_names(self):
         return self.first_name, self.middle_names, self.last_name
 
-    def __str__(self):
-        return self.get_full_name()
 
 class DualAuthModelBackend():
     """

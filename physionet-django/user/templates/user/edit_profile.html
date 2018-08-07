@@ -3,7 +3,7 @@
 {% block title %}Edit Profile{% endblock %}
 
 {% block main_content %}
-<form action="{% url 'edit_profile' %}" method="post" class="form-signin">
+<form action="{% url 'edit_profile' %}" method="post" enctype="multipart/form-data" class="form-signin">
   <h2 class="form-signin-heading">Profile</h2>
   <hr>
   {% include "inline_form_snippet.html" %}
