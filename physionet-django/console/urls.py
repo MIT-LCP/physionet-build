@@ -9,7 +9,6 @@ urlpatterns = [
         name='storage_requests'),
     url(r'^user-list/$', views.user_list, name='user_list'),
     url(r'^submissions/$', views.submissions, name='submissions'),
-    url(r'^editor-home/$', views.editor_home, name='editor_home'),
     url(r'^edit-submission/(?P<submission_id>\d+)/$', views.edit_submission,
         name='edit_submission'),
 ]

@@ -70,7 +70,7 @@ class TestPublic(TestCase):
     def test_login(self):
         response = self.client.post(reverse('login'),
             data={'username':'rgmark@mit.edu','password':'Tester11!'})
-        self.assertRedirects(response, reverse('user_home'))
+        self.assertRedirects(response, reverse('project_home'))
         self.assertIn('_auth_user_id', self.client.session)
 
     def test_reset_password(self):
