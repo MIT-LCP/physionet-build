@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block title %}
-Public Profile
+Profile for {{ public_user.username }}
 {% endblock %}
 
 
@@ -13,6 +13,70 @@ Public Profile
 
 {% block content %}
 <div class="container">
-    <p>Public profile for {{ username }}</p>
+
+  <div class="row">
+    <div class="col-md-3">
+      <img border="1px" src="{% static 'about/unknown-user.svg' %}"width="250px" height="250px">
+    </div>
+    <div class="col-md-9">
+      <h2>User: {{ public_user.username }}</h2>
+      <hr>
+      <div class="row mb-1">
+        <div class="col-md-2">
+          Name:
+        </div>
+        <div class="col-md-10">
+          {{ public_user.get_full_name }}
+        </div>
+      </div>
+
+      {% if profile.affiliation %}
+        <div class="row mb-1">
+          <div class="col-md-2">
+            Affiliation:
+          </div>
+          <div class="col-md-10">
+            {{ profile.affiliation }}
+          </div>
+        </div>
+      {% endif %}
+
+      {% if profile.location %}
+        <div class="row mb-1">
+          <div class="col-md-2">
+            Location:
+          </div>
+          <div class="col-md-10">
+            {{ profile.location }}
+          </div>
+        </div>
+      {% endif %}
+
+      {% if public_email %}
+        <div class="row mb-1">
+          <div class="col-md-2">
+            Email:
+          </div>
+          <div class="col-md-10">
+            {{ public_email }}
+          </div>
+        </div>
+      {% endif %}
+
+      {% if profile.website %}
+        <div class="row mb-1">
+          <div class="col-md-2">
+            Website:
+          </div>
+          <div class="col-md-10">
+            <a href="{{ profile.website }}" target="_blank">{{ profile.website }}</a>
+          </div>
+        </div>
+      {% endif %}
+
+      </div>
+    </div>
+  </div>
+  <hr>
 </div>
 {% endblock %}

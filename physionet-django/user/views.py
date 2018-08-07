@@ -166,7 +166,7 @@ def edit_profile(request):
         if form.is_valid():
             form.save()
             # Delete the photo file if needed
-            if 'photo-clear' in request.POST:
+            if 'photo-clear' in request.POST or ('photo' in form.cleaned_data and hasattr(form, 'photo_path')):
                 os.remove(form.photo_path)
             messages.success(request, 'Your profile has been updated.')
             # Form needs to be reloaded to show photo changes
@@ -192,10 +192,14 @@ def public_profile(request, username):
     A user's public profile
     """
     if User.objects.filter(username=username).exists():
-        user = User.objects.get(username=username).get_full_name()
+        public_user = User.objects.get(username=username)
+        public_email = public_user.associated_emails.filter(is_public=True).first()
     else:
-        return redirect('register')
-    return render(request, 'user/public_profile.html', {'username':user})
+        raise Http404()
+
+    return render(request, 'user/public_profile.html', {
+        'public_user':public_user, 'profile':public_user.profile,
+        'public_email':public_email})
 
 
 def register(request):

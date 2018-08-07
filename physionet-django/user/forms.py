@@ -106,7 +106,8 @@ class ProfileForm(forms.ModelForm):
 
     class Meta:
         model = Profile
-        fields = ('first_name', 'middle_names', 'last_name', 'url', 'photo')
+        fields = ('first_name', 'middle_names', 'last_name', 'affiliation',
+                  'location', 'website', 'photo')
 
     def clean_photo(self):
         data = self.cleaned_data['photo']
@@ -114,11 +115,9 @@ class ProfileForm(forms.ModelForm):
         if data:
             if data.size > Profile.MAX_PHOTO_SIZE:
                 raise forms.ValidationError('Exceeded maximum size: {0}'.format(Profile.MAX_PHOTO_SIZE))
-        # Nothing is being uploaded. Save the file path in case it needs
-        # to be deleted
-        else:
-            if self.instance.photo.path:
-                self.photo_path = self.instance.photo.path
+        # Save the existing file path in case it needs to be deleted
+        if self.instance.photo:
+            self.photo_path = self.instance.photo.path
 
         return data
 
