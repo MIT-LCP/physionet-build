@@ -165,6 +165,7 @@ def edit_profile(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Your profile has been updated.')
+            form = ProfileForm(instance=user.profile)
         else:
             messages.error(request,
                 'There was an error with the information entered, please verify and try again.')

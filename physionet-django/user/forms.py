@@ -1,11 +1,12 @@
 import os
+import pdb
 
 from django import forms
 from django.contrib.auth import forms as auth_forms
 from django.contrib.auth import password_validation
 
 from .models import AssociatedEmail, User, Profile
-
+from .widgets import ProfilePhotoInput
 
 class AssociatedEmailChoiceForm(forms.Form):
     """
@@ -99,6 +100,10 @@ class ProfileForm(forms.ModelForm):
     """
     For editing the profile
     """
+
+    photo = forms.ImageField(required=False, widget=ProfilePhotoInput(
+        attrs={'template_name':'user/profile_photo_input.html'}))
+
     class Meta:
         model = Profile
         fields = ('first_name', 'middle_names', 'last_name', 'url', 'photo')
@@ -109,6 +114,13 @@ class ProfileForm(forms.ModelForm):
     #     print('ayeee')
     #     self.fields['photo'].upload_too = os.path.join('user', str(self.instance.id))
 
+    def clean_photo(self):
+        data = self.cleaned_data['photo']
+        # Only check if file is present
+        if data and data.size > Profile.MAX_PHOTO_SIZE:
+            raise forms.ValidationError('Exceeded maximum size: {0}'.format(Profile.MAX_PHOTO_SIZE))
+
+        return data
 
 class UserCreationForm(forms.ModelForm):
     """A form for creating new users. Includes all the required

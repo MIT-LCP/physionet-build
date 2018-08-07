@@ -183,7 +183,7 @@ def photo_path(instance, filename):
     """
     Storage path of profile photo. Keep the original file extension only.
     """
-    return 'user/{0}/{1}'.format(instance.id, '.'.join(['profile-photo', filename.split('.')[-1]]))
+    return 'user/{0}/{1}'.format(instance.user.id, '.'.join(['profile-photo', filename.split('.')[-1]]))
 
 class Profile(models.Model):
     """
@@ -205,6 +205,8 @@ class Profile(models.Model):
     photo = models.ImageField(upload_to=photo_path, blank=True, null=True)
     is_credentialed = models.BooleanField(default=False)
     credential_datetime = models.DateTimeField(blank=True, null=True)
+
+    MAX_PHOTO_SIZE = 2 * 1024 ** 2
 
     def __str__(self):
         return self.get_full_name()
