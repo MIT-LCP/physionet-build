@@ -20,7 +20,7 @@
     "email": "rgmark@mit.edu",
     "username": "rgmark",
     "join_date": "2017-11-11",
-    "last_login": "2018-07-23T21:36:44.151Z",
+    "last_login": "2018-08-08T18:14:51.706Z",
     "is_active": true,
     "is_admin": false
   }
@@ -166,7 +166,10 @@
     "first_name": "Admin",
     "middle_names": "",
     "last_name": "Bot",
-    "url": "https://github.com/MIT-LCP/physionet-build",
+    "affiliation": "",
+    "location": "",
+    "website": "https://github.com/MIT-LCP/physionet-build",
+    "photo": "",
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -178,10 +181,13 @@
     "user": [
       "rgmark@mit.edu"
     ],
-    "first_name": "Roger Greenwood",
-    "middle_names": "",
+    "first_name": "Roger",
+    "middle_names": "Greenwood",
     "last_name": "Mark",
-    "url": "http://imes.mit.edu/people/faculty/mark-roger/",
+    "affiliation": "Massachusetts Institute of Technology",
+    "location": "Cambridge MA",
+    "website": "http://imes.mit.edu/people/faculty/mark-roger/",
+    "photo": "",
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -196,7 +202,10 @@
     "first_name": "George",
     "middle_names": "",
     "last_name": "Moody",
-    "url": "http://ecg.mit.edu/george/",
+    "affiliation": "",
+    "location": "",
+    "website": "http://ecg.mit.edu/george/",
+    "photo": "",
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -211,7 +220,10 @@
     "first_name": "Alistair",
     "middle_names": "Edward William",
     "last_name": "Johnson",
-    "url": "",
+    "affiliation": "",
+    "location": "",
+    "website": "",
+    "photo": "",
     "is_credentialed": false,
     "credential_datetime": null
   }

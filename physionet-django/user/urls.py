@@ -11,13 +11,13 @@ urlpatterns = [
         template_name='user/login.html',
         authentication_form=LoginForm,
         redirect_authenticated_user=True), name='login'),
-    
+
     url(r'^logout/$', auth_views.LogoutView.as_view(), name='logout'),
-    
+
     url(r'^register/$', views.register, name='register'),
     url(r'^activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
         views.activate_user, name='activate_user'),
-    
+
     # Request password reset
     url(r'^reset-password/$', auth_views.PasswordResetView.as_view(
         template_name='user/reset_password_request.html',
@@ -52,15 +52,14 @@ urlpatterns = [
     url(r'^settings/emails/$', views.edit_emails, name='edit_emails'),
     url(r'^verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
         views.verify_email, name='verify_email'),
-    
+
     # Individual home page/dashboard
     url(r'^home/$', views.user_home, name='user_home'),
 
     # Public user profile
     url(r'^users/(?P<username>[\w\-\.]+)/$', views.public_profile,
         name='public_profile'),
-
-    # Just for tests
-    # url(r'^test/$', views.test, name='test'),
+    url(r'^users/(?P<username>[\w\-\.]+)/profile-photo/$', views.profile_photo,
+        name='profile_photo'),
 ]
 

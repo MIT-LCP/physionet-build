@@ -115,6 +115,7 @@ class ProfileForm(forms.ModelForm):
         if data:
             if data.size > Profile.MAX_PHOTO_SIZE:
                 raise forms.ValidationError('Exceeded maximum size: {0}'.format(Profile.MAX_PHOTO_SIZE))
+
         # Save the existing file path in case it needs to be deleted
         if self.instance.photo:
             self.photo_path = self.instance.photo.path

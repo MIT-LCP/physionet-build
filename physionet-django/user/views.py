@@ -9,6 +9,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
 from django.forms import inlineformset_factory, HiddenInput, CheckboxInput
+from django.http import HttpResponse, Http404
 from django.shortcuts import redirect, render
 from django.template import loader
 from django.urls import reverse
@@ -18,6 +19,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
 from .forms import AddEmailForm, AssociatedEmailChoiceForm, ProfileForm, UserCreationForm
 from .models import AssociatedEmail, Profile, User
+from physionet import utility
 
 
 logger = logging.getLogger(__name__)
@@ -164,16 +166,15 @@ def edit_profile(request):
         form = ProfileForm(data=request.POST, files=request.FILES,
                            instance=user.profile)
         if form.is_valid():
-            form.save()
-            # Delete the photo file if needed
+            # Delete the existing photo file if needed. form.save()
+            # uploads the new image
             if 'photo-clear' in request.POST or ('photo' in form.cleaned_data and hasattr(form, 'photo_path')):
                 os.remove(form.photo_path)
+            form.save()
             messages.success(request, 'Your profile has been updated.')
             # Form needs to be reloaded to show photo changes
             form = ProfileForm(instance=user.profile)
-        else:
-            messages.error(request,
-                'There was an error with the information entered, please verify and try again.')
+
     return render(request, 'user/edit_profile.html', {'user':user, 'form':form,
         'messages':messages.get_messages(request)})
 
@@ -181,8 +182,8 @@ def edit_profile(request):
 @login_required
 def edit_password_complete(request):
     """
-    After password has successfully been changed. Need this view because we
-    can't control the edit password view to show a success message.
+    After password has successfully been changed. Need this view because
+    we can't control the edit password view to show a success message.
     """
     return render(request, 'user/edit_password_complete.html')
 
@@ -200,6 +201,14 @@ def public_profile(request, username):
     return render(request, 'user/public_profile.html', {
         'public_user':public_user, 'profile':public_user.profile,
         'public_email':public_email})
+
+
+def profile_photo(request, username):
+    """
+    Serve a user's profile photo
+    """
+    user = User.objects.get(username=username)
+    return utility.serve_file(request, user.profile.photo.path)
 
 
 def register(request):
@@ -274,3 +283,5 @@ def verify_email(request, uidb64, token):
     logger.warning('Invalid Verification Link')
     return render(request, 'user/verify_email.html',
         {'title':'Invalid Verification Link', 'isvalid':False})
+
+

@@ -4,7 +4,7 @@
             {{ widget.initial_text }}:
         </div>
         <div class="col-md-10">
-            <a href="{{ widget.value.url }}">{{ widget.value }}</a>
+            <a href="{% url 'profile_photo' widget.value.instance.user.username %}" target="_blank">Image</a>
         </div>
     </div>
     {% if not widget.required %}
