@@ -20,7 +20,7 @@
     "email": "rgmark@mit.edu",
     "username": "rgmark",
     "join_date": "2017-11-11",
-    "last_login": "2018-08-08T18:14:51.706Z",
+    "last_login": "2018-08-08T20:33:15.080Z",
     "is_active": true,
     "is_admin": false
   }
@@ -187,7 +187,7 @@
     "affiliation": "Massachusetts Institute of Technology",
     "location": "Cambridge MA",
     "website": "http://imes.mit.edu/people/faculty/mark-roger/",
-    "photo": "",
+    "photo": "user/2/profile-photo.jpg",
     "is_credentialed": false,
     "credential_datetime": null
   }

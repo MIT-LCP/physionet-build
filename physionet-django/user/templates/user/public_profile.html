@@ -19,7 +19,7 @@ Profile for {{ public_user.username }}
       {% if profile.photo %}
         <img border="1px" src="{% url 'profile_photo' public_user.username %}" width="250px" height="250px">
       {% else %}
-        <img border="1px" src="{% static 'about/unknown-user.svg' %}"width="250px" height="250px">
+        <img border="1px" src="{% static '/images/unknown-user.svg' %}"width="250px" height="250px">
       {% endif %}
     </div>
     <div class="col-md-8">
