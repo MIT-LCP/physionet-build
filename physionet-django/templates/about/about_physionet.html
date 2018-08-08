@@ -39,7 +39,7 @@ About PhysioNet
         <div class="col-lg-12">
           <h2 class="section-heading text-center">Funding</h2>
           <p>PhysioNet was originally established under the auspices of the NIH's National Center for Research Resources, which was abolished in 2011. PhysioNet has been funded since September 2007 under a cooperative agreement with the NIH's <a href="https://www.nibib.nih.gov/" target="_blank">National Institute of Biomedical Imaging and Bioengineering</a>, and the <a href="http://www.nigms.nih.gov/" target="_blank">National Institute of General Medical Sciences</a>, under grant number: <em>2R01GM104987-09</em>.</p>
-          <p>With the rapid explosion of data volume, our operating costs have grown immensely. If you would like to support our mission, please consider <a href="#">making a donation</a> to Physionet, or contributing to one of our <a href="https://github.com/MIT-LCP/" target="_blank">open source projects</a>.</p>
+        {#   <p>With the rapid explosion of data volume, our operating costs have grown immensely. If you would like to support our mission, please consider <a href="#">making a donation</a> to Physionet, or contributing to one of our <a href="https://github.com/MIT-LCP/" target="_blank">open source projects</a>.</p> #}
         </div>
       </div>
   </div>
@@ -126,7 +126,7 @@ About PhysioNet
                 <h4 class="subheading">Open Science</h4>
               </div>
               <div class="timeline-body">
-                <p>PhysioNet today hosts over 90 public databases, a variety of software tools, and the annual challenge. An immense number of of global visitors leverage its resources, producing more scientific and industrial development than the individual data/software contributors ever could alone.</p>
+                <p>PhysioNet today hosts large volumes of public data, a variety of software tools, and the annual challenge. An immense number of of global visitors leverage its resources, producing more scientific and industrial development than the individual data/software contributors ever could alone.</p>
                 <br>
                 <p>The future of science relies on new findings to grow upon past research. Unfortunately, the literature has been polluted with flawed studies, resulting in the <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1182327/" target="_blank">reproducibility crisis</a>, which is especially acute in medical research and psychology.</p>
                 <br>
@@ -142,143 +142,165 @@ About PhysioNet
 
 <!-- Team -->
 <section class="bg-light" id="team">
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-12 text-center">
-          <h2 class="section-heading">The PhysioNet Team</h2>
-          <h3 class="section-subheading text-muted">PhysioNet is managed by members of MIT's <a href="http://lcp.mit.edu/" target="_blank">MIT Laboratory for Computational Physiology</a> <a href="https://github.com/MIT-LCP/" target="_blank" style="text-decoration: none; color: #000000;"><i class="fab fa-github"></i></a>.</h3>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12 text-center">
+        <h2 class="section-heading">The PhysioNet Team</h2>
+        <h3 class="section-subheading text-muted">PhysioNet is managed by members of MIT's <a href="http://lcp.mit.edu/" target="_blank">MIT Laboratory for Computational Physiology</a> <a href="https://github.com/MIT-LCP/" target="_blank" style="text-decoration: none; color: #000000;"><i class="fab fa-github"></i></a>.</h3>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-sm-4">
+        <div class="team-member">
+          <img class="mx-auto rounded-circle" src="{% static 'images/about/people/benjamin-moody.jpg' %}" alt="">
+          <h4>Benjamin Moody</h4>
+          <p class="text-muted">Role description</p>
+          <ul class="list-inline social-buttons">
+            <li class="list-inline-item">
+              <a href="https://github.com/bemoody" target="_blank">
+                <i class="fab fa-github"></i>
+              </a>
+            </li>
+          </ul>
         </div>
       </div>
-      <div class="row">
-        <div class="col-sm-4">
-          <div class="team-member">
-            <img class="mx-auto rounded-circle" src="{% static 'about/physionet-old-logo.jpg' %}" alt="">
-            <h4>Roger Mark</h4>
-            <p class="text-muted">Role description</p>
-            <ul class="list-inline social-buttons">
-              <li class="list-inline-item">
-                <a href="#">
-                  <i class="fab fa-github"></i>
-                </a>
-              </li>
-              <li class="list-inline-item">
-                <a href="#">
-                  <i class="fab fa-playstation"></i>
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
-        <div class="col-sm-4">
-          <div class="team-member">
-            <img class="mx-auto rounded-circle" src="{% static 'about/physionet-old-logo.jpg' %}" alt="">
-            <h4>Felipe Torres</h4>
-            <p class="text-muted">Role description</p>
-            <ul class="list-inline social-buttons">
-              <li class="list-inline-item">
-                <a href="#">
-                  <i class="fab fa-github"></i>
-                </a>
-              </li>
-              <li class="list-inline-item">
-                <a href="#">
-                  <i class="fab fa-playstation"></i>
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
-        <div class="col-sm-4">
-          <div class="team-member">
-            <img class="mx-auto rounded-circle" src="{% static 'about/physionet-old-logo.jpg' %}" alt="">
-            <h4>Benjamin Moody</h4>
-            <p class="text-muted">Role description</p>
-            <ul class="list-inline social-buttons">
-              <li class="list-inline-item">
-                <a href="#">
-                  <i class="fab fa-github"></i>
-                </a>
-              </li>
-              <li class="list-inline-item">
-                <a href="#">
-                  <i class="fab fa-playstation"></i>
-                </a>
-              </li>
-            </ul>
-          </div>
+      <div class="col-sm-4">
+        <div class="team-member">
+          <img class="mx-auto rounded-circle" src="{% static 'images/about/people/chen-xie.jpg' %}" alt="">
+          <h4>Chen Xie</h4>
+          <p class="text-muted">Role description</p>
+          <ul class="list-inline social-buttons">
+            <li class="list-inline-item">
+              <a href="https://github.com/cx1111/" target="_blank">
+                <i class="fab fa-github"></i>
+              </a>
+            </li>
+          </ul>
         </div>
       </div>
-
-
-      <div class="row">
-        <div class="col-sm-4">
-          <div class="team-member">
-            <img class="mx-auto rounded-circle" src="{% static 'about/physionet-old-logo.jpg' %}" alt="">
-            <h4>Chen Xie</h4>
-            <p class="text-muted">Role description</p>
-            <ul class="list-inline social-buttons">
-              <li class="list-inline-item">
-                <a href="#">
-                  <i class="fab fa-github"></i>
-                </a>
-              </li>
-              <li class="list-inline-item">
-                <a href="#">
-                  <i class="fab fa-playstation"></i>
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
-        <div class="col-sm-4">
-          <div class="team-member">
-            <img class="mx-auto rounded-circle" src="{% static 'about/physionet-old-logo.jpg' %}" alt="">
-            <h4>Liwei Lehman</h4>
-            <p class="text-muted">Role description</p>
-            <ul class="list-inline social-buttons">
-              <li class="list-inline-item">
-                <a href="#">
-                  <i class="fab fa-github"></i>
-                </a>
-              </li>
-              <li class="list-inline-item">
-                <a href="#">
-                  <i class="fab fa-playstation"></i>
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
-        <div class="col-sm-4">
-          <div class="team-member">
-            <img class="mx-auto rounded-circle" src="{% static 'about/physionet-old-logo.jpg' %}" alt="">
-            <h4>Tom Pollard</h4>
-            <p class="text-muted">Role description</p>
-            <ul class="list-inline social-buttons">
-              <li class="list-inline-item">
-                <a href="#">
-                  <i class="fab fa-github"></i>
-                </a>
-              </li>
-              <li class="list-inline-item">
-                <a href="#">
-                  <i class="fab fa-playstation"></i>
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-
-      </div>
-
-
-      <div class="row">
-        <div class="col-lg-8 mx-auto text-center">
-          <p class="large text-muted">If you would like to join our team, <a href="{% url 'contact' %}">contact us</a>.</p>
+      <div class="col-sm-4">
+        <div class="team-member">
+          <img class="mx-auto rounded-circle" src="{% static 'images/about/people/felipe-torres.jpg' %}" alt="">
+          <h4>Felipe Torres</h4>
+          <p class="text-muted">Role description</p>
+          <ul class="list-inline social-buttons">
+            <li class="list-inline-item">
+              <a href="https://github.com/elfeto/" target="_blank">
+                <i class="fab fa-github"></i>
+              </a>
+            </li>
+          </ul>
         </div>
       </div>
     </div>
+
+    <div class="row">
+      <div class="col-sm-4">
+        <div class="team-member">
+          <img class="mx-auto rounded-circle" src="{% static 'images/about/people/liwei-lehman.jpg' %}" alt="">
+          <h4>Liwei Lehman</h4>
+          <p class="text-muted">Role description</p>
+          <ul class="list-inline social-buttons">
+            <li class="list-inline-item">
+              <a href="http://web.mit.edu/lilehman/www/" target="_blank">
+                <i class="fas fa-external-link-alt"></i>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-sm-4">
+        <div class="team-member">
+          <img class="mx-auto rounded-circle" src="{% static 'images/about/people/roger-mark.jpg' %}" alt="">
+          <h4>Roger Mark</h4>
+          <p class="text-muted">Role description</p>
+          <ul class="list-inline social-buttons">
+            <li class="list-inline-item">
+              <a href="http://imes.mit.edu/people/faculty/mark-roger/"  target="_blank">
+                <i class="fas fa-external-link-alt"></i>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-sm-4">
+        <div class="team-member">
+          <img class="mx-auto rounded-circle" src="{% static 'images/about/people/tom-pollard.jpg' %}" alt="">
+          <h4>Tom Pollard</h4>
+          <p class="text-muted">Role description</p>
+          <ul class="list-inline social-buttons">
+            <li class="list-inline-item">
+              <a href="https://github.com/cx1111/"  target="_blank">
+                <i class="fab fa-github"></i>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-lg-8 mx-auto text-center">
+        <p class="large text-muted">If you would like to join our team, <a href="{% url 'contact' %}">contact us</a>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Founders -->
+<section id="founders">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12 text-center">
+        <h2 class="section-heading">Founders of PhysioNet</h2>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-4">
+        <div class="team-member">
+          <img class="mx-auto rounded-circle" src="{% static 'images/about/people/roger-mark.jpg' %}" alt="">
+          <h4>Roger Mark</h4>
+          <p class="text-muted">Role description</p>
+          <ul class="list-inline social-buttons">
+            <li class="list-inline-item">
+              <a href="http://imes.mit.edu/people/faculty/mark-roger/"  target="_blank">
+                <i class="fas fa-external-link-alt"></i>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-sm-4">
+        <div class="team-member">
+          <img class="mx-auto rounded-circle" src="{% static 'images/about/people/george-moody.jpg' %}" alt="">
+          <h4>George Moody</h4>
+          <p class="text-muted">Role description</p>
+          <ul class="list-inline social-buttons">
+            <li class="list-inline-item">
+              <a href="http://ecg.mit.edu/george/"  target="_blank">
+                <i class="fas fa-external-link-alt"></i>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-sm-4">
+        <div class="team-member">
+          <img class="mx-auto rounded-circle" src="{% static 'images/about/people/ary-goldberger.jpg' %}" alt="">
+          <h4>Ary Goldberger</h4>
+          <p class="text-muted">Role description</p>
+          <ul class="list-inline social-buttons">
+            <li class="list-inline-item">
+              <a href="https://connects.catalyst.harvard.edu/Profiles/display/Person/3288"  target="_blank">
+                <i class="fas fa-external-link-alt"></i>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
 </section>
 {% endblock %}
