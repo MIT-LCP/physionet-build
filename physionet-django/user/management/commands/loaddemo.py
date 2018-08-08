@@ -35,8 +35,15 @@ class Command(BaseCommand):
         # Remove data from all tables. Tables are kept.
         call_command('loaddata', *demo_fixtures, verbosity=1)
 
-        # Link the demo project folders
-        projects_dir = os.path.join(settings.MEDIA_ROOT, 'project')
-        demo_projects_dir = os.path.join(settings.MEDIA_ROOT, 'demo', 'project')
-        for item in os.listdir(demo_projects_dir):
-            os.symlink(os.path.join(demo_projects_dir, item), os.path.join(projects_dir, item))
+        # Link the demo project and user media content
+        for content in ['user', 'project']:
+            link_demo_media(content)
+
+
+# Link the demo content from the specified subdirectory
+def link_demo_media(subdir):
+    demo_subdir = os.path.join(settings.MEDIA_ROOT, 'demo', subdir)
+    link_subdir = os.path.join(settings.MEDIA_ROOT, subdir)
+
+    for item in os.listdir(demo_subdir):
+            os.symlink(os.path.join(demo_subdir, item), os.path.join(link_subdir, item))
