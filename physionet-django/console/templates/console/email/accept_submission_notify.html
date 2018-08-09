@@ -1,0 +1,9 @@
+{% load i18n %}{% autoescape off %}
+Dear Sir or Madam
+
+The editor has accepted your publication request for project: {{ project.title }}. The project's submitting author may now make the final approval and publish your project at: http://{{ domain }}{% url "project_submission" project.id %}
+
+Thank You
+{% blocktrans %}The PhysioNet team{% endblocktrans %}
+
+{% endautoescape %}

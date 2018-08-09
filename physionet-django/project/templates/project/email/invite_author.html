@@ -1,7 +1,7 @@
 {% load i18n %}{% autoescape off %}
 Dear Sir or Madam
 
-You have been invited by {{ inviter_name }} ({{ inviter_email }}) to co-author the project: {{ project_title }}, on {{ domain }}.
+You have been invited by {{ inviter_name }} ({{ inviter_email }}) to co-author the project: {{ project.title }}, on {{ domain }}.
 
 If you already have a {{ domain }} account, you may respond from your project home page: http://{{ domain }}{% url "project_home" %}. If this email is not associated with your account, you may add it from your email settings page, or ask your inviter to send the invitation to your account email.
 

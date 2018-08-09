@@ -2,9 +2,11 @@ import pdb
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.core.mail import send_mail
 from django.forms import modelformset_factory, Select, Textarea
 from django.http import Http404
 from django.shortcuts import render
+from django.template import loader
 from django.utils import timezone
 
 from . import forms
@@ -54,7 +56,16 @@ def process_storage_response(request, storage_response_formset):
                     project = storage_request.project
                     project.storage_allowance = storage_request.request_allowance
                     project.save()
-                messages.success(request, 'The storage request has been %s.' % RESPONSE_ACTIONS[storage_request.response])
+
+                response = RESPONSE_ACTIONS[storage_request.response]
+                # Send the notifying email
+                subject = 'Storage request {0} for project {1}'.format([response,
+                    project.title])
+                body = loader.render_to_string('project/email/assign_editor_notify.html',
+                    {'project':submission.project, 'response':response})
+                send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                    submission.project.get_author_emails(), fail_silently=False)
+                messages.success(request, 'The storage request has been {0}.'.format(response))
 
 
 @login_required
@@ -107,7 +118,7 @@ def user_list(request):
 @user_passes_test(is_admin)
 def submissions(request):
     """
-    Submission control panel
+    Submission control panel. Editors are assigned here.
     """
     if request.method == 'POST':
         assign_editor_form = forms.AssignEditorForm(request.POST)
@@ -116,6 +127,12 @@ def submissions(request):
             submission.editor = assign_editor_form.cleaned_data['editor']
             submission.submission_status = 3
             submission.save()
+            # Send the notifying email
+            subject = 'Editor assigned to project {0}'.format(submission.project.title)
+            body = loader.render_to_string('project/email/assign_editor_notify.html',
+                {'project':submission.project, 'editor':submission.editor})
+            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                submission.project.get_author_emails(), fail_silently=False)
             messages.success(request, 'The editor has been assigned')
 
     submissions = Submission.objects.filter(is_active=True,
@@ -158,8 +175,15 @@ def edit_submission(request, submission_id):
                 submission.submission_status = 6
                 submission.decision = 1
                 submission.editor_comments = edit_submission_form.cleaned_data['comments']
-            submission.save()
+                # Notify authors of decision
+                subject = 'Submission accepted for project {0}'.format(submission.project.title)
+                body = loader.render_to_string(
+                    'project/email/accept_submission_notify.html',
+                    {'project':submission.project})
+                send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                    submission.project.get_author_emails(), fail_silently=False)
 
+            submission.save()
             return render(request, 'console/submission_response.html',
                 {'response':edit_submission_form.cleaned_data['decision']})
 

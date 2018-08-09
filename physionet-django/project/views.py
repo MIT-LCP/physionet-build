@@ -95,9 +95,8 @@ def process_invitation_response(request, invitation_response_formset):
                 # Send an email notifying the submitting author
                 target_email = project.submitting_author.email
                 subject = "PhysioNet Project Authorship Response"
-                context = {'project_title':project.title,
-                           'response':RESPONSE_ACTIONS[invitation.response],
-                           'domain':get_current_site(request)}
+                context = {'project':project,
+                           'response':RESPONSE_ACTIONS[invitation.response]}
 
                 for email in affected_emails:
                     context['author_email'] = email
@@ -193,7 +192,7 @@ def invite_author(request, invite_author_form):
         subject = "PhysioNet Project Authorship Invitation"
         context = {'inviter_name':inviter.get_full_name(),
                    'inviter_email':inviter.email,
-                   'project_title':invite_author_form.project.title,
+                   'project':invite_author_form.project,
                    'domain':get_current_site(request)}
         body = loader.render_to_string('project/email/invite_author.html', context)
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
