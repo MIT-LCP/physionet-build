@@ -108,18 +108,20 @@ class Author(Member):
         priority order."
 
     """
+    # Authors must have physionet profiles, unless they are organizations.
+    user = models.ForeignKey('user.User', related_name='authorships',
+        blank=True, null=True)
+
     class Meta:
         unique_together = (('user', 'project'), ('user', 'published_project'),)
 
     def natural_key(self):
         return self.user.natural_key() + (self.project,)
+
     natural_key.dependencies = ['user.User', 'project.Project']
 
     objects = AuthorManager()
 
-    # Authors must have physionet profiles, unless they are organizations.
-    user = models.ForeignKey('user.User', related_name='authorships',
-        blank=True, null=True)
 
 @receiver(post_save, sender=Author)
 @new_creation
@@ -373,6 +375,24 @@ class Project(Metadata):
             return False
         else:
             return True
+
+    def get_coauthors(self):
+        """
+        Return queryset of non-submitting authors
+        """
+        return self.authors.exclude(user=self.submitting_author)
+
+    def get_coauthor_emails(self):
+        """
+        Return list of coauthor emails
+        """
+        return [c.user.email for c in self.get_coauthors()]
+
+    def get_author_emails(self):
+        """
+        Return list of all author emails
+        """
+        return [a.user.email for a in self.authors.all()]
 
     def is_publishable(self):
         """
