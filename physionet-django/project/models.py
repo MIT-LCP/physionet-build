@@ -380,7 +380,7 @@ class Project(Metadata):
         """
         Return queryset of non-submitting authors
         """
-        return self.authors.exclude(user=self.submitting_author)
+        return self.authors.exclude(user=self.submitting_author, is_human=False)
 
     def get_coauthor_info(self):
         """
@@ -398,7 +398,7 @@ class Project(Metadata):
         """
         Return tuple pairs of all author emails and names
         """
-        return ((a.user.email, a.user.get_full_name()) for a in self.authors.all())
+        return ((a.user.email, a.user.get_full_name()) for a in self.authors.filter(is_human=True))
 
     def is_publishable(self):
         """
