@@ -668,14 +668,14 @@ def project_submission(request, project_id):
                             [project.submitting_author.email], fail_silently=False)
                         messages.success(request, 'Your project has been submitted for review.')
                     else:
-                        # Send email submitting author
+                        # email submitting author
                         subject = 'Presubmission of project {0}'.format(project.title)
                         email_context = {'domain':get_current_site(request), 'project':project}
                         body = loader.render_to_string(
                             'project/email/presubmit_notify.html', email_context)
                         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                             [project.submitting_author.email], fail_silently=False)
-                        # Send email to coauthors
+                        # email coauthors
                         body = loader.render_to_string(
                             'project/email/presubmit_notify_coauthor.html', email_context)
                         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
@@ -691,8 +691,9 @@ def project_submission(request, project_id):
                 subject = 'Submission canceled for project {0}'.format(project.title)
                 body = loader.render_to_string(
                     'project/email/cancel_submit_notify.html', {'project':project})
-                send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                    project.get_author_emails(), fail_silently=False)
+                for email in project.get_author_info():
+                    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                        email, fail_silently=False)
                 messages.success(request, 'Your project submission has been cancelled.')
             else:
                 raise Http404()
@@ -702,12 +703,13 @@ def project_submission(request, project_id):
             if submission.submission_status == 1 and authors not in submission.approved_authors.all():
                 project.approve_author(author)
                 # Send out emails if this was the last outstanding approval
-                if submission.submission_status == 2:
+                if project.submission_status() == 2:
                     subject = 'Submission of project {0}'.format(project.title)
                     body = loader.render_to_string(
                         'project/email/submit_notify_all.html', {'project':project})
-                    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                        project.get_author_emails(), fail_silently=False)
+                    for email in project.get_author_info():
+                        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                            [email], fail_silently=False)
                     messages.success(request, 'You have approved the submission. The project is now under review.')
                 else:
                     messages.success(request, 'You have approved the submission')
@@ -730,7 +732,7 @@ def project_submission(request, project_id):
                     'project/email/publish_notify.html', {'project':project,
                     'published_project':published_project})
                 send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                    project.get_author_emails(), fail_silently=False)
+                    project.get_author_info(), fail_silently=False)
                 return render(request, 'project/publish_success.html',
                     {'project':project, 'published_project':published_project})
 

@@ -1,7 +1,9 @@
 import pdb
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
 from django.forms import modelformset_factory, Select, Textarea
 from django.http import Http404
@@ -52,19 +54,21 @@ def process_storage_response(request, storage_response_formset):
                 storage_request.is_active = False
                 storage_request.save()
 
+                project = storage_request.project
+
                 if storage_request.response:
-                    project = storage_request.project
                     project.storage_allowance = storage_request.request_allowance
                     project.save()
 
+                # Send the notifying email to the submitting author
                 response = RESPONSE_ACTIONS[storage_request.response]
-                # Send the notifying email
-                subject = 'Storage request {0} for project {1}'.format([response,
-                    project.title])
-                body = loader.render_to_string('project/email/assign_editor_notify.html',
-                    {'project':submission.project, 'response':response})
+                subject = 'Storage request {0} for project {1}'.format(response,
+                    project.title)
+                body = loader.render_to_string('console/email/assign_editor_notify.html',
+                    {'name':project.submitting_author.get_full_name(),
+                     'project':submission.project, 'response':response})
                 send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                    submission.project.get_author_emails(), fail_silently=False)
+                    [project.submitting_author.email], fail_silently=False)
                 messages.success(request, 'The storage request has been {0}.'.format(response))
 
 
@@ -129,10 +133,12 @@ def submissions(request):
             submission.save()
             # Send the notifying email
             subject = 'Editor assigned to project {0}'.format(submission.project.title)
-            body = loader.render_to_string('project/email/assign_editor_notify.html',
+            body = loader.render_to_string('console/email/assign_editor_notify.html',
                 {'project':submission.project, 'editor':submission.editor})
-            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                submission.project.get_author_emails(), fail_silently=False)
+
+            for email in submission.project.get_author_info():
+                send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                    [email], fail_silently=False)
             messages.success(request, 'The editor has been assigned')
 
     submissions = Submission.objects.filter(is_active=True,
@@ -178,10 +184,11 @@ def edit_submission(request, submission_id):
                 # Notify authors of decision
                 subject = 'Submission accepted for project {0}'.format(submission.project.title)
                 body = loader.render_to_string(
-                    'project/email/accept_submission_notify.html',
-                    {'project':submission.project})
-                send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                    submission.project.get_author_emails(), fail_silently=False)
+                    'console/email/accept_submission_notify.html',
+                    {'project':submission.project, 'domain':get_current_site(request)})
+                for email in submission.project.get_author_info():
+                    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                        [email], fail_silently=False)
 
             submission.save()
             return render(request, 'console/submission_response.html',

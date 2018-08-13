@@ -1,7 +1,7 @@
 {% load i18n %}{% autoescape off %}
-Dear Sir or Madam
+Dear {{ name }}
 
-Your storage request of {{ }}GB for project: {{ project.title }}, has been {{ response }}.
+Your storage request for {{ }}GB for project: {{ project.title }}, has been {{ response }}.
 
 {% blocktrans %}The PhysioNet team{% endblocktrans %}
 

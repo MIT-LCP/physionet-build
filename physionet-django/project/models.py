@@ -388,11 +388,11 @@ class Project(Metadata):
         """
         return [c.user.email for c in self.get_coauthors()]
 
-    def get_author_emails(self):
+    def get_author_info(self):
         """
-        Return list of all author emails
+        Return tuple pairs of all author emails and names
         """
-        return [a.user.email for a in self.authors.all()]
+        return ((a.user.email, a.user.get_full_name()) for a in self.authors.all())
 
     def is_publishable(self):
         """

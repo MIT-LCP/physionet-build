@@ -1,9 +1,8 @@
 {% load i18n %}{% autoescape off %}
-Dear Sir or Madam
+Dear {{ name }}
 
 All the authors of your project: {{ project.title }}, have approved its submission. It has successfully been submitted for review. You will be notified when an editor is assigned to your project.
 
-Thank You
-{% blocktrans %}The PhysioNet team{% endblocktrans %}
-
+Regards
+The PhysioNet team
 {% endautoescape %}
