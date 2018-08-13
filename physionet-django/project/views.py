@@ -299,7 +299,8 @@ def project_authors(request, project_id):
 
         if user == project.submitting_author:
             invite_author_form = forms.InviteAuthorForm(project, user)
-            add_author_form = forms.AddAuthorForm(project=project)
+            # Removing organizational authors for now
+            # add_author_form = forms.AddAuthorForm(project=project)
         else:
             invite_author_form, add_author_form = None, None
 
@@ -314,11 +315,12 @@ def project_authors(request, project_id):
             invite_author_form = forms.InviteAuthorForm(project, user, request.POST)
             if invite_author(request, invite_author_form):
                 invite_author_form = forms.InviteAuthorForm(project, user)
-        elif 'add_author' in request.POST:
-            add_author_form = forms.AddAuthorForm(project=project,
-                                                  data=request.POST)
-            if add_author(request, add_author_form):
-                add_author_form = forms.AddAuthorForm(project=project)
+        # Removing organizational authors for now
+        # elif 'add_author' in request.POST:
+        #     add_author_form = forms.AddAuthorForm(project=project,
+        #                                           data=request.POST)
+        #     if add_author(request, add_author_form):
+        #         add_author_form = forms.AddAuthorForm(project=project)
         elif 'remove_author' in request.POST:
             # No form. Just get button value.
             author_id = int(request.POST['remove_author'])
@@ -335,7 +337,7 @@ def project_authors(request, project_id):
         'authors':authors, 'invitations':invitations,
         'affiliation_formset':affiliation_formset,
         'invite_author_form':invite_author_form,
-        'add_author_form':add_author_form, 'admin_inspect':admin_inspect})
+        'admin_inspect':admin_inspect})
 
 
 @authorization_required(auth_functions=(is_author, is_admin))
