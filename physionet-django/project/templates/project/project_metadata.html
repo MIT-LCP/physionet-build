@@ -44,7 +44,6 @@
   // Add another form to a formset
   function addItem(item, form_name, max_forms){
     var total_forms = parseInt($('#id_' + form_name + '-TOTAL_FORMS').val());
-    // alternate length method: document.getElementsByClassName("ref-body").length
 
     if (total_forms < max_forms){
       if (total_forms > 0){

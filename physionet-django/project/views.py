@@ -277,6 +277,42 @@ def move_author(request, project_id):
                                   {'project':project, 'authors':authors})
     raise Http404()
 
+@authorization_required(auth_functions=(is_author,))
+def edit_affiliation(request, project_id):
+    """
+    Either add the first form for, or remove an author affiliation.
+
+    """
+    # Todo: access control
+    user = request.user
+    project = Project.objects.get(id=project_id)
+    author = project.authors.get(user=user)
+
+    # These are for the template
+    item_label = 'Affiliations'
+    form_name = 'project-affiliation-content_type-object_id'
+
+    if request.method == 'POST':
+        # Whether to add the first empty form in the formset
+        extra = int('add_first' in request.POST)
+
+        AffiliationFormSet = generic_inlineformset_factory(Affiliation,
+            fields=('name',), extra=extra, max_num=3, can_delete=False)
+
+        if 'remove_id' in request.POST:
+            # Check this post key
+            item_id = int(request.POST['remove_id'])
+            Affiliation.objects.filter(id=item_id).delete()
+
+        formset = AffiliationFormSet(instance=author)
+        formset.help_text = 'Institutions you are affiliated with'
+
+        return render(request, 'project/item_list.html',
+            {'formset':formset, 'item':'affiliation', 'item_label':'Affiliations',
+             'form_name':form_name, 'max_forms':3})
+
+    else:
+        return Http404()
 
 @authorization_required(auth_functions=(is_author, is_admin))
 def project_authors(request, project_id):
@@ -308,9 +344,11 @@ def project_authors(request, project_id):
         if 'edit_affiliations' in request.POST:
             affiliation_formset = AffiliationFormSet(instance=author,
                 data=request.POST)
+            print('we err')
             if edit_affiliations(request, affiliation_formset):
                 affiliation_formset = AffiliationFormSet(
                     instance=author)
+                print('we here')
         elif 'invite_author' in request.POST:
             invite_author_form = forms.InviteAuthorForm(project, user, request.POST)
             if invite_author(request, invite_author_form):
