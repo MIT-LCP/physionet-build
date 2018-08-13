@@ -64,12 +64,12 @@ def process_storage_response(request, storage_response_formset):
                 response = RESPONSE_ACTIONS[storage_request.response]
                 subject = 'Storage request {0} for project {1}'.format(response,
                     project.title)
+                email, name = project.get_submitting_author_info()
                 body = loader.render_to_string('console/email/storage_response_notify.html',
-                    {'name':project.submitting_author.get_full_name(),
-                     'project':submission.project, 'response':response,
+                    {'name':name, 'project':project, 'response':response,
                      'allowance':storage_request.request_allowance})
                 send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                    [project.submitting_author.email], fail_silently=False)
+                          [email], fail_silently=False)
                 messages.success(request, 'The storage request has been {0}.'.format(response))
 
 
@@ -132,14 +132,15 @@ def submissions(request):
             submission.editor = assign_editor_form.cleaned_data['editor']
             submission.submission_status = 3
             submission.save()
-            # Send the notifying email
+            # Send the notifying emails to authors
             subject = 'Editor assigned to project {0}'.format(submission.project.title)
-            body = loader.render_to_string('console/email/assign_editor_notify.html',
-                {'project':submission.project, 'editor':submission.editor})
-
-            for email in submission.project.get_author_info():
+            for email, name in submission.project.get_author_info():
+                body = loader.render_to_string(
+                    'console/email/assign_editor_notify.html',
+                    {'name':name, 'project':submission.project,
+                     'editor':submission.editor})
                 send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                    [email], fail_silently=False)
+                          [email], fail_silently=False)
             messages.success(request, 'The editor has been assigned')
 
     submissions = Submission.objects.filter(is_active=True,
@@ -184,12 +185,13 @@ def edit_submission(request, submission_id):
                 submission.editor_comments = edit_submission_form.cleaned_data['comments']
                 # Notify authors of decision
                 subject = 'Submission accepted for project {0}'.format(submission.project.title)
-                body = loader.render_to_string(
-                    'console/email/accept_submission_notify.html',
-                    {'project':submission.project, 'domain':get_current_site(request)})
-                for email in submission.project.get_author_info():
+                for email, name in submission.project.get_author_info():
+                    body = loader.render_to_string(
+                        'console/email/accept_submission_notify.html',
+                        {'name':name, 'project':submission.project,
+                         'domain':get_current_site(request)})
                     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                        [email], fail_silently=False)
+                              [email], fail_silently=False)
 
             submission.save()
             return render(request, 'console/submission_response.html',

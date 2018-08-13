@@ -744,7 +744,8 @@ def project_submission(request, project_id):
                 for email, name in project.get_author_info():
                     body = loader.render_to_string(
                         'project/email/publish_notify.html', {'name':name,
-                        'project':project, 'published_project':published_project})
+                        'project':project, 'published_project':published_project,
+                        'domain':get_current_site(request)})
                     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                               [email], fail_silently=False)
                 return render(request, 'project/publish_success.html',
