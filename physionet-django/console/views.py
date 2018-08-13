@@ -64,9 +64,10 @@ def process_storage_response(request, storage_response_formset):
                 response = RESPONSE_ACTIONS[storage_request.response]
                 subject = 'Storage request {0} for project {1}'.format(response,
                     project.title)
-                body = loader.render_to_string('console/email/assign_editor_notify.html',
+                body = loader.render_to_string('console/email/storage_response_notify.html',
                     {'name':project.submitting_author.get_full_name(),
-                     'project':submission.project, 'response':response})
+                     'project':submission.project, 'response':response,
+                     'allowance':storage_request.request_allowance})
                 send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                     [project.submitting_author.email], fail_silently=False)
                 messages.success(request, 'The storage request has been {0}.'.format(response))

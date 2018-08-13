@@ -157,10 +157,10 @@ def readable_size(num, suffix='B'):
             if '.' not in readsize:
                 return readsize+' '+unit+suffix
             else:
-                return "%3.1f %s%s" % (num, unit, suffix)
+                return '{:3.1f} {:s}{:s}'.format(num, unit, suffix)
 
         num /= 1024.0
-    return "%.1f%s%s" % (num, 'Y', suffix)
+    return '{:.1f}{:s}{:s}'.format(num, 'Y', suffix)
 
 
 def get_storage_info(allowance, used):

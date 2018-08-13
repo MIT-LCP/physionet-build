@@ -76,7 +76,7 @@ def process_invitation_response(request, invitation_response_formset):
         # Only process the response that was submitted
         if invitation_response_form.instance.id == invitation_id:
             invitation_response_form.user = user
-            if invitation_response_form.is_valid():# and invitation_response_form.instance.email in user.get_emails():
+            if invitation_response_form.is_valid():
                 # Update this invitation, and any other one made to the
                 # same user, project, and invitation type
                 invitation = invitation_response_form.instance
@@ -93,18 +93,20 @@ def process_invitation_response(request, invitation_response_formset):
                     Author.objects.create(project=project, user=user,
                         display_order=project.authors.count() + 1)
                 # Send an email notifying the submitting author
-                target_email = project.submitting_author.email
-                subject = "PhysioNet Project Authorship Response"
-                context = {'project':project,
-                           'response':RESPONSE_ACTIONS[invitation.response]}
-
-                for email in affected_emails:
-                    context['author_email'] = email
-                    body = loader.render_to_string('project/email/author_response.html', context)
+                subject = 'PhysioNet Project Authorship Response'
+                email, name = project.get_submitting_author_info()
+                email_context = {'name':name, 'project':project,
+                    'response':RESPONSE_ACTIONS[invitation.response]}
+                # Send an email for each email belonging to the accepting user
+                for author_email in affected_emails:
+                    email_context['author_email'] = author_email
+                    body = loader.render_to_string(
+                        'project/email/author_response.html', email_context)
                     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                        [target_email], fail_silently=False)
+                              [email], fail_silently=False)
 
-                messages.success(request, 'The invitation has been %s.' % RESPONSE_ACTIONS[invitation.response])
+                messages.success(request,'The invitation has been {0}.'.format(
+                    RESPONSE_ACTIONS[invitation.response]))
 
 
 @login_required
@@ -190,14 +192,16 @@ def invite_author(request, invite_author_form):
         target_email = invite_author_form.cleaned_data['email']
 
         subject = "PhysioNet Project Authorship Invitation"
-        context = {'inviter_name':inviter.get_full_name(),
-                   'inviter_email':inviter.email,
-                   'project':invite_author_form.project,
-                   'domain':get_current_site(request)}
-        body = loader.render_to_string('project/email/invite_author.html', context)
+        email_context = {'inviter_name':inviter.get_full_name(),
+                         'inviter_email':inviter.email,
+                         'project':invite_author_form.project,
+                         'domain':get_current_site(request)}
+        body = loader.render_to_string('project/email/invite_author.html',
+                                       email_context)
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-            [target_email], fail_silently=False)
-        messages.success(request, 'An invitation has been sent to the email')
+                  [target_email], fail_silently=False)
+        messages.success(request,
+            'An invitation has been sent to {0}'.format(target_email))
         return True
     else:
         messages.error(request, 'Submission unsuccessful. See form for errors.')
@@ -659,27 +663,34 @@ def project_submission(request, project_id):
             else:
                 if project.is_publishable() and user == project.submitting_author:
                     project.presubmit()
+                    email, name = project.get_submitting_author_info()
                     # Submission is automatically triggered if only 1 author
                     if project.submission_status() == 2:
                         subject = 'Submission of project {0}'.format(project.title)
                         body = loader.render_to_string(
-                            'project/email/submit_notify.html', {'project':project})
+                            'project/email/submit_notify.html',
+                            {'name':name, 'project':project})
                         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                            [project.submitting_author.email], fail_silently=False)
+                                  [email], fail_silently=False)
                         messages.success(request, 'Your project has been submitted for review.')
+                    # There are multiple authors
                     else:
                         # email submitting author
                         subject = 'Presubmission of project {0}'.format(project.title)
-                        email_context = {'domain':get_current_site(request), 'project':project}
+                        email_context = {'name':name, 'project':project,
+                                         'domain':get_current_site(request)}
                         body = loader.render_to_string(
                             'project/email/presubmit_notify.html', email_context)
                         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                            [project.submitting_author.email], fail_silently=False)
+                            [email], fail_silently=False)
                         # email coauthors
-                        body = loader.render_to_string(
-                            'project/email/presubmit_notify_coauthor.html', email_context)
-                        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                            project.get_coauthor_emails(), fail_silently=False)
+                        for email, name in project.get_coauthor_info():
+                            email_context['name'] = name
+                            body = loader.render_to_string(
+                                'project/email/presubmit_notify_coauthor.html',
+                                email_context)
+                            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                                      [email], fail_silently=False)
                         messages.success(request, 'Your project has been pre-submitted. Awaiting co-authors to approve submission.')
                 else:
                     messages.error(request, 'Fix the errors before submitting')
@@ -689,11 +700,12 @@ def project_submission(request, project_id):
                 project.cancel_submission()
                 # Send email to all authors
                 subject = 'Submission canceled for project {0}'.format(project.title)
-                body = loader.render_to_string(
-                    'project/email/cancel_submit_notify.html', {'project':project})
-                for email in project.get_author_info():
+                for email, name in project.get_author_info():
+                    body = loader.render_to_string(
+                        'project/email/cancel_submit_notify.html',
+                        {'name':name, 'project':project})
                     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                        email, fail_silently=False)
+                        [email], fail_silently=False)
                 messages.success(request, 'Your project submission has been cancelled.')
             else:
                 raise Http404()
@@ -705,11 +717,12 @@ def project_submission(request, project_id):
                 # Send out emails if this was the last outstanding approval
                 if project.submission_status() == 2:
                     subject = 'Submission of project {0}'.format(project.title)
-                    body = loader.render_to_string(
-                        'project/email/submit_notify_all.html', {'project':project})
-                    for email in project.get_author_info():
+                    for email, name in project.get_author_info():
+                        body = loader.render_to_string(
+                            'project/email/submit_notify_all.html',
+                            {'name':name, 'project':project})
                         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                            [email], fail_silently=False)
+                                  [email], fail_silently=False)
                     messages.success(request, 'You have approved the submission. The project is now under review.')
                 else:
                     messages.success(request, 'You have approved the submission')
@@ -728,11 +741,12 @@ def project_submission(request, project_id):
                 published_project = project.publish()
                 # Send a notifying email
                 subject = 'Publication of project {0}'.format(project.title)
-                body = loader.render_to_string(
-                    'project/email/publish_notify.html', {'project':project,
-                    'published_project':published_project})
-                send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                    project.get_author_info(), fail_silently=False)
+                for email, name in project.get_author_info():
+                    body = loader.render_to_string(
+                        'project/email/publish_notify.html', {'name':name,
+                        'project':project, 'published_project':published_project})
+                    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                              [email], fail_silently=False)
                 return render(request, 'project/publish_success.html',
                     {'project':project, 'published_project':published_project})
 

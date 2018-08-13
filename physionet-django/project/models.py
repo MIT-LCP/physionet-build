@@ -382,11 +382,17 @@ class Project(Metadata):
         """
         return self.authors.exclude(user=self.submitting_author)
 
-    def get_coauthor_emails(self):
+    def get_coauthor_info(self):
         """
-        Return list of coauthor emails
+        Return tuple pairs of non-submitting author emails and names
         """
-        return [c.user.email for c in self.get_coauthors()]
+        return ((a.user.email, a.user.get_full_name()) for a in self.get_coauthors())
+
+    def get_submitting_author_info(self):
+        """
+        Return the email and name of the submitting author
+        """
+        return self.submitting_author.email, self.submitting_author.get_full_name()
 
     def get_author_info(self):
         """
@@ -402,15 +408,16 @@ class Project(Metadata):
 
         # Invitations
         for invitation in self.invitations.filter(is_active=True):
-            self.publish_errors.append('Outstanding author invitation to %s' % invitation.email)
+            self.publish_errors.append(
+                'Outstanding author invitation to {0}'.format(invitation.email))
 
         # Authors
         for author in self.authors.all():
             if author.is_human:
                 if not author.get_full_name():
-                    self.publish_errors.append('Author %s has not fill in name' % author.user.username)
+                    self.publish_errors.append('Author {0} has not fill in name'.format(author.user.username))
                 if not author.affiliations.all():
-                    self.publish_errors.append('Author %s has not filled in affiliations' % author.user.username)
+                    self.publish_errors.append('Author {0} has not filled in affiliations'.format(author.user.username))
             else:
                 if not author.organization_name:
                     self.publish_errors.append('Organizational author with no name')
@@ -418,7 +425,7 @@ class Project(Metadata):
         for attr in ['abstract', 'background', 'methods', 'content_description',
                      'license', 'version']:
             if not getattr(self, attr):
-                self.publish_errors.append('Missing required field: %s' % attr)
+                self.publish_errors.append('Missing required field: {0}'.format(attr))
 
         if self.access_policy and not self.data_use_agreement:
             self.publish_errors.append('Missing DUA for non-open access policy')
@@ -654,7 +661,7 @@ class PublishedProject(Metadata):
         unique_together = (('base_project', 'version'),)
 
     def __str__(self):
-        return ('%s v%s' % (self.title, self.version))
+        return ('{0} v{1}'.format(self.title, self.version))
 
     def file_root(self):
         "Root directory containing the published project's files"
@@ -778,8 +785,8 @@ class Invitation(BaseInvitation):
 
 
     def __str__(self):
-        return ('Project: %s To: %s By: %s'
-                % (self.project, self.email, self.inviter))
+        return 'Project: {0} To: {1} By: {2}'.format(self.project, self.email,
+                                                     self.inviter)
 
     def get_user_invitations(user, invitation_types='all',
                              exclude_duplicates=True):
@@ -827,7 +834,8 @@ class StorageRequest(BaseInvitation):
     responder = models.ForeignKey('user.User', null=True)
 
     def __str__(self):
-        return "%dGB for project: %s" % (self.request_allowance, self.project.__str__())
+        return '{0}GB for project: {1}'.format(self.request_allowance,
+                                               self.project.__str__())
 
 
 class Submission(models.Model):
@@ -867,7 +875,7 @@ class Submission(models.Model):
     response = models.NullBooleanField(null=True)
 
     def __str__(self):
-        return 'Submission ID %d - %s' % (self.id, self.project.title)
+        return 'Submission ID {0} - {1}'.format(self.id, self.project.title)
 
 
 class Resubmission(models.Model):
