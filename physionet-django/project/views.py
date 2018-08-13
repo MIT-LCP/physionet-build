@@ -294,7 +294,7 @@ def project_authors(request, project_id):
     else:
         author = authors.get(user=user)
         AffiliationFormSet = generic_inlineformset_factory(Affiliation,
-            fields=('name',), extra=3, max_num=3)
+            fields=('name',), extra=0, max_num=3, can_delete=False)
         affiliation_formset = AffiliationFormSet(instance=author)
 
         if user == project.submitting_author:

@@ -472,21 +472,6 @@
 },
 {
   "model": "project.author",
-  "pk": 5,
-  "fields": {
-    "project": 2,
-    "published_project": null,
-    "first_name": "",
-    "middle_names": "",
-    "last_name": "",
-    "is_human": false,
-    "organization_name": "Phillips Healthcare",
-    "display_order": 3,
-    "user": null
-  }
-},
-{
-  "model": "project.author",
   "pk": 6,
   "fields": {
     "project": 4,

@@ -135,7 +135,7 @@
 
 {% if not admin_inspect %}
   <h4>Your Author Affiliations</h4>
-  <p>Set up to three affiliations for your author profile. <em>Note: these fields are not tied to your user profile</em>.</p>
+  <p>Set up to three affiliations for your author profile. Note: these fields are not tied to your user profile.</p>
   <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
     {% csrf_token %}
     {{ affiliation_formset }}
