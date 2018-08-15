@@ -34,6 +34,10 @@ class Command(BaseCommand):
                 if choice != 'y':
                     sys.exit('Exiting from reset. No actions applied.')
             print('Continuing reset')
+        else:
+            settings_file = os.path.join(settings.BASE_DIR, 'db.sqlite3')
+            if os.path.isfile(settings_file):
+                os.remove(settings_file)
 
         # Clean the data
         call_command('flush', interactive=False)
@@ -53,8 +57,8 @@ class Command(BaseCommand):
                 for file in migration_files:
                     os.remove(file)
 
-        # Remove project/published project files
-        clear_project_files()
+        # Remove created user/project/published project files
+        clear_media_files()
         # Remake and apply the migrations
         call_command('makemigrations')
         call_command('migrate')
@@ -74,17 +78,18 @@ def get_migration_files(app):
 
     return migration_files
 
-def clear_project_files():
+def clear_media_files():
     """
     Remove all content from the project and published project root
     directories
     """
     project_root = os.path.join(settings.MEDIA_ROOT, 'project')
+    user_root = os.path.join(settings.MEDIA_ROOT, 'user')
     published_project_roots = [os.path.join(settings.MEDIA_ROOT, 'published-project'),
         # os.path.join(settings.STATIC_ROOT, 'published-projects'),
         os.path.join(settings.STATICFILES_DIRS[0], 'published-project')]
 
-    for root_dir in [project_root] + published_project_roots:
+    for root_dir in [user_root, project_root] + published_project_roots:
         project_items = [os.path.join(root_dir, item) for item in os.listdir(root_dir) if item != '.gitkeep']
 
         for item in project_items:

@@ -6,15 +6,14 @@ import project.views as project_views
 
 
 urlpatterns = [
-    # django admin
+    # django admin app
     url(r'^admin/', admin.site.urls),
-    # physionet management console
+    # management console app
     url(r'^console/', include('console.urls')),
-    # user account
+    # user app
     url(r'^', include('user.urls')),
-    # projects
+    # projects app
     url(r'^projects/', include('project.urls')),
-
 
     url(r'^$', views.home, name='home'),
     # about pages
@@ -28,8 +27,6 @@ urlpatterns = [
     url(r'^about/duas/$', views.duas, name='duas'),
     url(r'^about/duas/(?P<dua_slug>[\w-]+)/$', views.dua_content,
         name='dua_content'),
-
-    # contact pages
     url(r'^about/contact/$', views.contact, name='contact'),
 
     # content pages
@@ -37,7 +34,7 @@ urlpatterns = [
     url(r'^software/$', views.software, name='software'),
     url(r'^challenge/$', views.challenge, name='challenge'),
 
-    # Published Projects
+    # published projects
     url(r'^content/(?P<published_project_id>\d+)/$',
         project_views.published_project, name='published_project'),
     url(r'^content/(?P<published_project_id>\d+)/files-panel/$',
