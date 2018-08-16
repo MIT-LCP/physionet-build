@@ -36,11 +36,6 @@ input, select, django-ckeditor-widget textarea {
   transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
 }
 
-/* So that the checkbox doesn't float to the middle of the column */
-input[type=checkbox]{
-  width: 0%;
-}
-
 input::-ms-expand {
   background-color: transparent;
   border: 0;
