@@ -116,11 +116,20 @@ class ProfileForm(forms.ModelForm):
             if data.size > Profile.MAX_PHOTO_SIZE:
                 raise forms.ValidationError('Exceeded maximum size: {0}'.format(Profile.MAX_PHOTO_SIZE))
 
-        # Save the existing file path in case it needs to be deleted
+        # Save the existing file path in case it needs to be deleted.
+        # After is_valid runs, the instance photo is already updated.
         if self.instance.photo:
-            self.photo_path = self.instance.photo.path
+            self.old_photo_path = self.instance.photo.path
 
         return data
+
+    def save(self):
+        # Delete the old photo if the user is uploading a new photo, and
+        # they already had one (before saving the new photo)
+        if 'photo' in self.changed_data and hasattr(self, 'old_photo_path'):
+            os.remove(self.old_photo_path)
+        super(ProfileForm, self).save()
+
 
 class UserCreationForm(forms.ModelForm):
     """A form for creating new users. Includes all the required
