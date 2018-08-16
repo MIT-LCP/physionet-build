@@ -1,5 +1,3 @@
-from datetime import date
-
 from django.shortcuts import render, redirect
 from django.utils import timezone
 
@@ -13,7 +11,6 @@ def news(request):
     return redirect('news_year', year=timezone.now().year)
 
 def news_year(request, year):
-    # date_range = (date(int(year), 1, 1), date(int(year), 12, 31))
     news_pieces = News.objects.filter(datetime__year=int(year)).order_by('-datetime')
     # The year range of all the PN news in existence.
     # Yes, the start is hardcoded.
