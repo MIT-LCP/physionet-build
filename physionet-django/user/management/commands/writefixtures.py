@@ -1,10 +1,8 @@
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 import os
-import shutil
 
 from django.conf import settings
-from project.models import Project
 
 
 class Command(BaseCommand):

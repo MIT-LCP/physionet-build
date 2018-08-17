@@ -5,12 +5,12 @@ from project.models import DataUseAgreement, License, PublishedProject
 
 
 def home(request):
-    published_projects = PublishedProject.objects.all().order_by('publish_datetime')[:8]
+    published_projects = PublishedProject.objects.all().order_by('-publish_datetime')[:8]
     authors = [p.authors.all() for p in published_projects]
     topics = [p.topics.all() for p in published_projects]
     projects_authors_topics = zip(published_projects, authors, topics)
 
-    news_pieces = News.objects.all().order_by('datetime')[:5]
+    news_pieces = News.objects.all().order_by('-datetime')[:5]
     return render(request, 'home.html', {
         'published_projects':published_projects, 'news_pieces':news_pieces,
         'projects_authors_topics':projects_authors_topics})
@@ -47,6 +47,9 @@ def dua_content(request, dua_slug):
 
 def about_physionet(request):
     return render(request, 'about/about_physionet.html')
+
+def new_site(request):
+    return render(request, 'about/new_site.html')
 
 def faq(request):
     return render(request, 'about/faq.html')

@@ -17,7 +17,7 @@ PhysioNet
     <!-- Page Content -->
     <div class="container">
 
-      <header class="masthead mb-4">
+      <header class="masthead">
         <div class="container">
           <div class="intro-text">
             <div class="intro-heading">PhysioNet</div>
@@ -25,7 +25,6 @@ PhysioNet
             <a class="btn btn-pn btn-light badge-pill" href="{% url 'data' %}"><i class="fa fa-database"></i> Data</a>
             <a class="btn btn-pn btn-light badge-pill" href="{% url 'software' %}"><i class="fa fa-keyboard"></i> Software</a>
             <a class="btn btn-pn btn-light badge-pill" href="{% url 'create_project' %}"><i class="fa fa-book-open"></i> Publish</a>
-
           </div>
         </div>
       </header>
@@ -71,7 +70,7 @@ PhysioNet
             <div class="card-body">
               <p>PhysioNet is a distribution and <a href="{% url 'author_guidelines' %}">publishing</a> platform for physiologic <a href="{% url 'data' %}">data</a> and <a href="{% url 'software' %}">software</a>. It hosts large volumes of open-access and protected resources, and facilitates cooperative analysis of data, evaluation of algorithms, and the free open dissemination of information.</p>
 
-            <div class="row">
+              <div class="row">
                 <div class="col-lg-6">
                   <ul class="list-unstyled mb-0">
                     <li>
@@ -82,6 +81,7 @@ PhysioNet
                     </li>
                   </ul>
                 </div>
+
                 <div class="col-lg-6">
                   <ul class="list-unstyled mb-0">
                     <li>
@@ -92,12 +92,13 @@ PhysioNet
                     </li>
                   </ul>
                 </div>
+
               </div>
             </div>
           </div>
 
           <div class="card my-4">
-            <h2 class="card-header">News</h2>
+            <h2 class="card-header"><a href="{% url 'news' %}">News</a></h2>
             <div class="card-body">
               {% for news in news_pieces %}
                 <h3>

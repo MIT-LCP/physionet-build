@@ -3,26 +3,66 @@
 {% load static %}
 
 {% block title %}
-PhysioNet News
+PhysioNet News - {{ year }}
 {% endblock %}
 
 
 {% block content %}
 <div class="container">
-  <h1>PhysioNet News</h1>
-  <hr>
-  {% for news in news_pieces %}
-    <h3>
-      {% if news.url %}
-        <a href="{{ news.url }}">{{ news.title }}</a>
-      {% else %}
-        {{ news.title }}
-      {% endif %}
-    </h3>
-    <p><a class="text-muted">{{ news.datetime|date }}</a></p>
-    {{ news.content|safe }}
-    <hr>
-  {% endfor %}
-  <br>
+
+
+  <div class="row">
+    {# Left column #}
+    <div class="col-md-9">
+      <h1>PhysioNet News - {{ year }}</h1>
+      <hr>
+      {% for news in news_pieces %}
+        <h2>
+          {% if news.url %}
+            <a href="{{ news.url }}">{{ news.title }}</a>
+          {% else %}
+            {{ news.title }}
+          {% endif %}
+        </h2>
+        <p><a class="text-muted">{{ news.datetime|date }}</a></p>
+        {{ news.content|safe }}
+        <hr>
+      {% endfor %}
+      <br>
+    </div>
+
+    {# Right column #}
+    <div class="col-md-3">
+      <div class="card mb-4">
+        <h2 class="card-header">Archives</h2>
+        <div class="card-body">
+          <ol class="list-unstyled mb-0">
+            {% for year in news_years %}
+              <li><a href="{% url 'news_year' year %}">{{ year }}</a></li>
+            {% endfor %}
+          </ol>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <h2 class="card-header">Elsewhere</h2>
+        <div class="card-body">
+          <ul class="list-unstyled mb-0">
+            <li>
+              <a href="https://github.com/MIT-LCP/" target="_blank" style="text-decoration: none; color: #000000;"><i class="fab fa-github"></i> Github</a>
+            </li>
+            <li>
+              <a href="#" target="_blank" style="text-decoration: none; color: #000000;"><i class="fab fa-twitter"></i> Twitter</a>
+            </li>
+            <li>
+              <a href="#" target="_blank" style="text-decoration: none; color: #000000;"><i class="fa fa-envelope"></i> Email List</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+    </div>  {# end col #}
+
+  </div>
 </div>
 {% endblock %}

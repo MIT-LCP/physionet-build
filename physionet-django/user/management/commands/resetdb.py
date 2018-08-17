@@ -20,6 +20,8 @@ from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
+from physionet.utility import get_project_apps
+
 
 class Command(BaseCommand):
 
@@ -35,24 +37,21 @@ class Command(BaseCommand):
                     sys.exit('Exiting from reset. No actions applied.')
             print('Continuing reset')
         else:
-            settings_file = os.path.join(settings.BASE_DIR, 'db.sqlite3')
-            if os.path.isfile(settings_file):
-                os.remove(settings_file)
+            db_file = os.path.join(settings.BASE_DIR, 'db.sqlite3')
+            if os.path.isfile(db_file):
+                os.remove(db_file)
 
-        # Clean the data
-        call_command('flush', interactive=False)
-
-        # This order is important because we need to reset the project
-        # migrations first, which depend on user migrations.
-        project_apps = ['project', 'user']
+        project_apps = get_project_apps()
 
         for app in project_apps:
             migration_files = get_migration_files(app)
             if migration_files:
                 # Reverse the migrations, which drops the tables. Only
                 # works if migration files exist, regardless of
-                # table/migration status.
-                call_command('migrate', app, 'zero', verbosity=1)
+                # table/migration status. Equivalent of deleting
+                # sqlite file.
+                if 'development' not in os.environ['DJANGO_SETTINGS_MODULE']:
+                    call_command('migrate', app, 'zero', verbosity=1)
                 # Delete the migration .py files
                 for file in migration_files:
                     os.remove(file)
@@ -80,8 +79,7 @@ def get_migration_files(app):
 
 def clear_media_files():
     """
-    Remove all content from the project and published project root
-    directories
+    Remove all media files
     """
     project_root = os.path.join(settings.MEDIA_ROOT, 'project')
     user_root = os.path.join(settings.MEDIA_ROOT, 'user')

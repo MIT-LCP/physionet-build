@@ -7,3 +7,26 @@
 .navbar-nav > li{
   padding-right:5px;
 }
+
+
+/* Adapted from start-bootstrap freelancer*/
+#mainNav {
+  font-weight: 700;
+}
+
+#mainNav .navbar-nav li.nav-item a.nav-link {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+#mainNav .navbar-nav li.nav-item a.nav-link:hover {
+  color: #fff;
+}
+
+#mainNav .navbar-nav li.nav-item a.nav-link:active, #mainNav .navbar-nav li.nav-item a.nav-link:focus {
+  color: #fff;
+}
+
+#mainNav .navbar-toggler {
+  font-size: 80%;
+  padding: 0.8rem;
+}
