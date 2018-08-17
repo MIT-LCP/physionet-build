@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+The New PhysioNet Site
+{% endblock %}
+
+
+{% block content %}
+<div class="container">
+    <h1 class="text-center">The New PhysioNet Site</h1>
+
+    <hr>
+    <h2>What is PhysioNet?</h2>
+    <p>See the <a href="{% url 'about_physionet' %}">about</a> page.</p>
+
+    <hr>
+    <h2>Publishing</h2>
+    <p>For a full explanation, see the <a href="{% url 'author_guidelines' %}">author guidelines</a> page.</p>
+
+
+
+</div>
+{% endblock %}
