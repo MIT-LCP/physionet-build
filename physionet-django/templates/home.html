@@ -22,9 +22,9 @@ PhysioNet
           <div class="intro-text">
             <div class="intro-heading">PhysioNet</div>
             <div class="intro-lead-in">The distribution hub for physiologic tools and data</div>
-            <a class="btn btn-pn btn-light badge-pill" href="{% url 'data' %}"><i class="fa fa-database"></i> Data</a>
-            <a class="btn btn-pn btn-light badge-pill" href="{% url 'software' %}"><i class="fa fa-keyboard"></i> Software</a>
-            <a class="btn btn-pn btn-light badge-pill" href="{% url 'create_project' %}"><i class="fa fa-book-open"></i> Publish</a>
+            <a class="btn btn-pn btn-light badge-pill intro-badge" href="{% url 'data' %}">&nbsp;<i class="fa fa-database"></i> Data&nbsp;</a>
+            <a class="btn btn-pn btn-light badge-pill intro-badge" href="{% url 'software' %}">&nbsp;<i class="fa fa-keyboard"></i> Software&nbsp;</a>
+            <a class="btn btn-pn btn-light badge-pill intro-badge" href="{% url 'create_project' %}">&nbsp;<i class="fa fa-book-open"></i> Publish&nbsp;</a>
           </div>
         </div>
       </header>
@@ -65,7 +65,7 @@ PhysioNet
 
         <!--Right Column -->
         <div class="col-md-5">
-          <div class="card my-4">
+          <div class="card mb-4">
             <h2 class="card-header"><a href="{% url 'about_physionet' %}">About PhysioNet</a></h2>
             <div class="card-body">
               <p>PhysioNet is a distribution and <a href="{% url 'author_guidelines' %}">publishing</a> platform for physiologic <a href="{% url 'data' %}">data</a> and <a href="{% url 'software' %}">software</a>. It hosts large volumes of open-access and protected resources, and facilitates cooperative analysis of data, evaluation of algorithms, and the free open dissemination of information.</p>
