@@ -22,7 +22,9 @@ urlpatterns = [
     url(r'^about/author-guidelines/$', views.author_guidelines,
         name='author_guidelines'),
     url(r'^about/physionet/$', views.about_physionet, name='about_physionet'),
+
     url(r'^about/development/$', views.development, name='development'),
+
     url(r'^about/faq/$', views.faq, name='faq'),
     url(r'^about/licenses/$', views.licenses, name='licenses'),
     url(r'^about/licenses/(?P<license_slug>[\w-]+)/$', views.license_content,
