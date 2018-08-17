@@ -12,8 +12,10 @@ urlpatterns = [
     url(r'^console/', include('console.urls')),
     # user app
     url(r'^', include('user.urls')),
-    # projects app
+    # project app
     url(r'^projects/', include('project.urls')),
+    # notification app
+    url(r'^', include('notification.urls')),
 
     url(r'^$', views.home, name='home'),
     # about pages

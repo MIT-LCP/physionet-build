@@ -36,35 +36,30 @@ PhysioNet
           <h1>Recent Publications</h1>
           <hr>
           {# A publication #}
-          <p>{{ 0|resource_badge|safe }} {{ 0|access_badge|safe }}</p>
-          <h2><a href="">Sleep Bioradiolocation Database</a></h2>
-          <p><a class="text-muted">March 14, 2018</a></p>
-          <p class="card-text">The database contains 32 records of non-contact sleep monitoring by a bioradar. The records are accompanied by results of sleep scoring, based on polysomnography according to the rules of the American Academy of Sleep Medicine.</p>
-          <hr>
+          {% for published_project, authors , topics in projects_authors_topics %}
+            <p>{{ published_project.resource_type|resource_badge|safe }}
+               {{ published_project.access_policy|access_badge|safe }}
+            </p>
+            <a href="{% url 'published_project' published_project.id %}"><h2>{{ published_project.title }}</h2></a>
+            <p class="text-muted">
+                <strong>Authors:
+                {% for author in authors %}
+                    {{ author|author_name }}
+                {% endfor %}
+                </strong>
+            </p>
+            {{ published_project.abstract|safe }}
+            <p class="text-muted">
+                Published: {{ published_project.publish_datetime|date }}.
+                Version: {{ published_project.version }}
+                <br>
+                {% for topic in topics %}
+                    <a href="#" class="badge badge-info">{{ topic.description }}</a>
+                {% endfor %}
+            </p>
+            <hr>
+        {% endfor %}
 
-          <p>{{ 0|resource_badge|safe }} {{ 0|access_badge|safe }}</p>
-          <h2><a href="">CHARIS Database</a></h2>
-          <p><a class="text-muted">March 08, 2018</a></p>
-          <p class="card-text">The CHARIS database contains multi-channel recordings of ECG, arterial blood pressure (ABP), and intracranial pressure (ICP) of patients diagnosed with traumatic brain injury (TBI). The data is contributed by members of the CHARIS project which aims to systematize the analysis of relevant physiological signals, and create data-driven algorithms to search for potential predictors of acute clinical events for patients with acute brain injury. A description of the dataset and its collection methods are described in Trending autoregulatory indices during treatment for traumatic brain injury.</p>
-          <hr>
-
-          <p>{{ 0|resource_badge|safe }} {{ 0|access_badge|safe }}</p>
-          <h2><a href="">Long Term Movement Monitoring Database</a></h2>
-          <p><a class="text-muted">March 01, 2018</a></p>
-          <p class="card-text">Contains 3-day 3D accelerometer recordings of 71 elder community residents, used to study gait, stability, and fall risk. The dataset and its collection methods are described in Does the Evaluation of Gait Quality During Daily Life Provide Insight Into Fall Risk? : A Novel Approach Using 3-Day Accelerometer Recordings.</p>
-          <hr>
-
-          <p>{{ 0|resource_badge|safe }} {{ 0|access_badge|safe }}</p>
-          <h2><a href="">Squid Giant Axon Membrane Potential</a></h2>
-          <p><a class="text-muted">February 26, 2018</a></p>
-          <p class="card-text">Single-unit neuronal recordings of squid giant axons in response to stimulus currents. The membrane potential and stimulus current are given for a total of 170 trials across 8 different axons. The dataset and its collection methods are described in Noisy Inputs and the Induction of On-Off Switching Behavior in a Neuronal Pacemaker.</p>
-          <hr>
-
-          <p>{{ 0|resource_badge|safe }} {{ 0|access_badge|safe }}</p>
-          <h2><a href="">Multiscale Poincare Plots</a></h2>
-          <p><a class="text-muted">February 15, 2018</a></p>
-          <p class="card-text">The Multiscale Poincare Plots package contains MATLAB scripts used to visualize time series by plotting Poincare plots of the original signal course grained at multiple time scales.</p>
-          <hr>
           <a class="btn btn-outline-primary" href="">More Publications</a>
           <br><br>
         </div>
@@ -98,29 +93,25 @@ PhysioNet
                   </ul>
                 </div>
               </div>
-
             </div>
           </div>
 
           <div class="card my-4">
-            <h2 class="card-header">Announcements</h2>
+            <h2 class="card-header">News</h2>
             <div class="card-body">
-
-              <h3><a href="">PhysioNet/CinC Challenge 2018</a></h3>
-              <p><a class="text-muted">March 20, 2018</a></p>
-              <p class="card-text">The 2018 PhysioNet/Computing in Cardiology Challenge is now open. This year's Challenge, "You Snooze, You Win", is focused on the problem of automatically detecting disturbances in a patient's sleep. Given a collection of physiological signals recorded during sleep, including EEG, ECG, and EMG, participants are invited to develop an algorithm to automatically identify arousal events, and will be scored based on how well their algorithm's results agree with those of expert human annotators.</p>
-              <hr>
-
-              <h3><a href="">MIMIC Chest-Xrays Released</a></h3>
-              <p><a class="text-muted">February 18, 2018</a></p>
-              <p class="card-text">We have created a deidentified set of chest x-rays with associated radiology reports from patients admitted to the BIDMC. The data was collected between 2011-2016, and comprises over 500,000 images corresponding to 200,000 studies. Custom code was written to remove PHI from both the image meta data and from the image itself, obscuring the data with black boxes. Manual review of approximately 5,000 images discovered no PHI..</p>
-              <hr>
-
-              <h3><a href="">New eICU Collaborative Database Tables</a></h3>
-              <p><a class="text-muted">January 09, 2018</a></p>
-              <p class="card-text">Seven new concept tables have been normalized and released for the eICU Collaborative Research Database, a large multi-center critical care database made available by Philips Healthcare in partnership with the MIT Laboratory for Computational Physiology.</p>
-              <hr>
-              <a class="btn btn-outline-primary" href="">More Accouncements</a>
+              {% for news in news_pieces %}
+                <h3>
+                  {% if news.url %}
+                    <a href="{{ news.url }}">{{ news.title }}</a>
+                  {% else %}
+                    {{ news.title }}
+                  {% endif %}
+                </h3>
+                <p><a class="text-muted">{{ news.datetime|date }}</a></p>
+                {{ news.content|safe }}
+                <hr>
+              {% endfor %}
+              <a class="btn btn-outline-primary" href="{% url 'news' %}">More News</a>
             </div>
           </div>
 

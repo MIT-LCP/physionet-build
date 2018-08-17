@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+PhysioNet News
+{% endblock %}
+
+
+{% block content %}
+<div class="container">
+  <h1>PhysioNet News</h1>
+  <hr>
+  {% for news in news_pieces %}
+    <h3>
+      {% if news.url %}
+        <a href="{{ news.url }}">{{ news.title }}</a>
+      {% else %}
+        {{ news.title }}
+      {% endif %}
+    </h3>
+    <p><a class="text-muted">{{ news.datetime|date }}</a></p>
+    {{ news.content|safe }}
+    <hr>
+  {% endfor %}
+  <br>
+</div>
+{% endblock %}

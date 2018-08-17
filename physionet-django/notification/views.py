@@ -1,3 +1,8 @@
 from django.shortcuts import render
 
-# Create your views here.
+from .models import News
+
+def news(request):
+    news_pieces = News.objects.all().order_by('datetime')
+    return render(request, 'notification/news.html',
+        {'news_pieces':news_pieces})
