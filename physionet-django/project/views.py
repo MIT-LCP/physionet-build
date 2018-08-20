@@ -388,79 +388,103 @@ def project_metadata(request, project_id):
     # There are several forms for different types of metadata
     ReferenceFormSet = generic_inlineformset_factory(Reference,
         fields=('description',), extra=0, max_num=20, can_delete=False)
+
+
+    description_form = forms.metadata_forms[project.resource_type](instance=project)
+    reference_formset = ReferenceFormSet(instance=project)
+
+
+
+    reference_formset.help_text = METADATA_FORMSET_HELP_TEXT['reference']
+
+
+    if request.method == 'POST':
+
+        description_form = forms.metadata_forms[project.resource_type](request.POST,
+            instance=project)
+        reference_formset = ReferenceFormSet(request.POST, instance=project)
+        if description_form.is_valid() and reference_formset.is_valid():
+            description_form.save()
+            reference_formset.save()
+            messages.success(request, 'Your project metadata has been updated.')
+            reference_formset = ReferenceFormSet(instance=project)
+        else:
+            messages.error(request,
+                'Invalid submission. See errors below.')
+        reference_formset.help_text = METADATA_FORMSET_HELP_TEXT['reference']
+
+    return render(request, 'project/project_metadata.html', {'project':project,
+        'description_form':description_form, 'reference_formset':reference_formset,
+        'messages':messages.get_messages(request), 'admin_inspect':admin_inspect})
+
+
+@authorization_required(auth_functions=(is_author, is_admin))
+def project_access(request, project_id):
+    """
+    Page to edit project access policy
+
+    """
+    user = request.user
+    project = Project.objects.get(id=project_id)
+    admin_inspect = user.is_admin and not is_author(user, project)
+
+    access_form = forms.AccessMetadataForm(instance=project)
+
+    if request.method == 'POST':
+        access_form = forms.AccessMetadataForm(request.POST, instance=project)
+        if access_form.is_valid():
+            access_form.save()
+            messages.success(request, 'Your access metadata has been updated.')
+        else:
+            messages.error(request,
+                'Invalid submission. See errors below.')
+
+    return render(request, 'project/project_access.html', {'project':project,
+                  'access_form':access_form, 'admin_inspect':admin_inspect})
+
+
+@authorization_required(auth_functions=(is_author, is_admin))
+def project_identifiers(request, project_id):
+    """
+    Page to edit external project identifiers
+
+    """
+    user = request.user
+    project = Project.objects.get(id=project_id)
+    admin_inspect = user.is_admin and not is_author(user, project)
+
     TopicFormSet = inlineformset_factory(Project, Topic,
         fields=('description',), extra=0, max_num=20, can_delete=False)
     PublicationFormSet = generic_inlineformset_factory(Publication,
         fields=('citation', 'url'), extra=0, max_num=3, can_delete=False)
-    ContactFormSet = generic_inlineformset_factory(Contact,
-        fields=('name', 'email', 'affiliation'), extra=0, max_num=3,
-        can_delete=False)
 
-    description_form = forms.metadata_forms[project.resource_type](instance=project)
-    reference_formset = ReferenceFormSet(instance=project)
-    access_form = forms.AccessMetadataForm(instance=project)
     identifier_form = forms.IdentifierMetadataForm(instance=project)
-    contact_formset = ContactFormSet(instance=project)
     publication_formset = PublicationFormSet(instance=project)
     topic_formset = TopicFormSet(instance=project)
 
-    reference_formset.help_text = METADATA_FORMSET_HELP_TEXT['reference']
-    contact_formset.help_text = METADATA_FORMSET_HELP_TEXT['contact']
-    publication_formset.help_text = METADATA_FORMSET_HELP_TEXT['publication']
-    topic_formset.help_text = METADATA_FORMSET_HELP_TEXT['topic']
-
-    # There are several different metadata sections
     if request.method == 'POST':
-        # Main description.
-        if 'edit_description' in request.POST:
-            description_form = forms.metadata_forms[project.resource_type](request.POST,
-                instance=project)
-            reference_formset = ReferenceFormSet(request.POST, instance=project)
-            if description_form.is_valid() and reference_formset.is_valid():
-                description_form.save()
-                reference_formset.save()
-                messages.success(request, 'Your project metadata has been updated.')
-                reference_formset = ReferenceFormSet(instance=project)
-            else:
-                messages.error(request,
-                    'Invalid submission. See errors below.')
-            reference_formset.help_text = METADATA_FORMSET_HELP_TEXT['reference']
-        elif 'edit_access' in request.POST:
-            access_form = forms.AccessMetadataForm(request.POST, instance=project)
-            if access_form.is_valid():
-                access_form.save()
-                messages.success(request, 'Your access metadata has been updated.')
-            else:
-                messages.error(request,
-                    'Invalid submission. See errors below.')
-        elif 'edit_identifiers' in request.POST:
-            identifier_form = forms.IdentifierMetadataForm(request.POST,
-                                                           instance=project)
-            publication_formset = PublicationFormSet(request.POST,
-                                                     instance=project)
-            contact_formset = ContactFormSet(request.POST, instance=project)
-            topic_formset = TopicFormSet(request.POST, instance=project)
-            if identifier_form.is_valid() and topic_formset.is_valid() and publication_formset.is_valid():
-                identifier_form.save()
-                contact_formset.save()
-                publication_formset.save()
-                topic_formset.save()
-                messages.success(request, 'Your identifier metadata has been updated.')
-                topic_formset = TopicFormSet(instance=project)
-            else:
-                messages.error(request,
-                    'Invalid submission. See errors below.')
-            contact_formset.help_text = METADATA_FORMSET_HELP_TEXT['contact']
-            publication_formset.help_text = METADATA_FORMSET_HELP_TEXT['publication']
-            topic_formset.help_text = METADATA_FORMSET_HELP_TEXT['topic']
+        identifier_form = forms.IdentifierMetadataForm(request.POST,
+                                                       instance=project)
+        publication_formset = PublicationFormSet(request.POST,
+                                                 instance=project)
+        topic_formset = TopicFormSet(request.POST, instance=project)
+        if identifier_form.is_valid() and topic_formset.is_valid() and publication_formset.is_valid():
+            identifier_form.save()
+            contact_formset.save()
+            publication_formset.save()
+            topic_formset.save()
+            messages.success(request, 'Your identifier metadata has been updated.')
+            topic_formset = TopicFormSet(instance=project)
+        else:
+            messages.error(request,
+                'Invalid submission. See errors below.')
+        publication_formset.help_text = METADATA_FORMSET_HELP_TEXT['publication']
+        topic_formset.help_text = METADATA_FORMSET_HELP_TEXT['topic']
 
-    return render(request, 'project/project_metadata.html', {'project':project,
-        'description_form':description_form, 'reference_formset':reference_formset,
-        'access_form':access_form, 'identifier_form':identifier_form,
+    return render(request, 'project/project_identifiers.html', {'project':project,
+        'identifier_form':identifier_form,
         'publication_formset':publication_formset,
-        'contact_formset':contact_formset,
-        'topic_formset':topic_formset,
-        'messages':messages.get_messages(request), 'admin_inspect':admin_inspect})
+        'topic_formset':topic_formset})
 
 
 @authorization_required(auth_functions=(is_author, is_admin))

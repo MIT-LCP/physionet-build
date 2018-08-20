@@ -13,18 +13,25 @@
 <div class="container">
   <div class="row row-offcanvas row-offcanvas-right">
     <div class="col-6 col-md-2 sidebar-offcanvas" id="sidebar">
+      {# Overview box is separate from submission steps #}
       <div class="list-group">
-        {% with 'overview authors metadata files submission' as project_settings %}
-            {% for setting in project_settings.split %}
-                {% url 'project_'|add:setting project.id as setting_url %}
-                <a href={{ setting_url }} class="list-group-item list-group-item-action{% if setting_url == request.path %} active{% endif %}">{{ setting|title }}</a>
-            {% endfor %}
-        {% endwith %}
-
+        {% url 'project_overview' project.id as overview_url %}
+        <a href="{{ overview_url }}" class="list-group-item list-group-item-action{% if overview_url == request.path %} active{% endif %}">&nbsp;&nbsp;&nbsp;Overview</a>
       </div>
       <br>
+
       <div class="list-group">
-          <a href={% url 'project_home' %} class="list-group-item"><i class="fa fa-archive"></i> My Projects</a>
+        {% with 'authors metadata access identifiers files submission' as project_settings %}
+          {% for setting in project_settings.split %}
+            {% url 'project_'|add:setting project.id as setting_url %}
+            <a href={{ setting_url }} class="list-group-item list-group-item-action{% if setting_url == request.path %} active{% endif %}">{{ forloop.counter }}. {{ setting|title }}</a>
+          {% endfor %}
+        {% endwith %}
+      </div>
+      <br>
+
+      <div class="list-group">
+        <a href={% url 'project_home' %} class="list-group-item">&nbsp;&nbsp;&nbsp;My Projects</a>
       </div>
     </div><!--/span-->
 

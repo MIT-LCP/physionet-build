@@ -147,8 +147,6 @@
 
 
 <form action="{% url 'project_metadata' project.id %}" onsubmit="return validateReferences()" method="post">
-  <h3 id="description" class="form-signin-heading">1. Description Metadata</h2>
-  <hr>
   {{ description_form.media }}
   {% include "project/metadata_inline_form_snippet.html" with form=description_form %}
   {% include 'project/item_list.html' with item="reference" item_label="References" formset=reference_formset max_forms=20 form_name="project-reference-content_type-object_id" %}
@@ -156,39 +154,6 @@
 </form>
 <br>
 <hr>
-
-<form action="{% url 'project_metadata' project.id %}" method="post">
-  <h3 id="access" class="form-signin-heading">2. Access</h2>
-  <hr>
-  <p>The <a href="{% url 'author_guidelines' %}#access" target="_blank">
-     access policy</a> controls access to the files. A
-     <a href="{% url 'licenses' %}" target="_blank">license</a> is
-     always required, and a <a href="{% url 'duas' %}" target="_blank">
-     data use agreement</a> (DUA) is only required for non-open
-     projects.</p>
-
-   <p>We strongly encourage setting the 'open' access policy, and will
-      reject non-open submissions that are not justified.</p>
-  <br>
-  {% include "project/metadata_inline_form_snippet.html" with form=access_form %}
-  <button class="btn btn-lg btn-primary" type="submit" name="edit_access">Save Access Information</button>
-</form>
-<br>
-<hr>
-
-<form action="{% url 'project_metadata' project.id %}" method="post">
-  <h3 id="identifiers" class="form-signin-heading">3. Identifiers</h2>
-  <hr>
-  {# Topics, external home page, citations #}
-  {% include "project/metadata_inline_form_snippet.html" with form=identifier_form %}
-  {% include 'project/item_list.html' with item="contact" item_label="Contacts" formset=contact_formset max_forms=3 form_name="project-contact-content_type-object_id" %}
-  {% include 'project/item_list.html' with item="publication" item_label="Publications" formset=publication_formset max_forms=3 form_name="project-publication-content_type-object_id" %}
-  {% include 'project/item_list.html' with item="topic" item_label="Topics" formset=topic_formset max_forms=20 form_name="topics" %}
-
-  <button class="btn btn-lg btn-primary" type="submit" name="edit_identifiers">Save Identifiers</button>
-</form>
-<br>
-
 
 <script>
   // Control the DUA selection based on access policy
