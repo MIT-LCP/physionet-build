@@ -1,0 +1,20 @@
+{% extends "project/project.html" %}
+
+{% load static %}
+
+{% block title %}Project Access - {{ project }}{% endblock %}
+
+
+{% block main_content %}
+<h2 class="form-signin-heading">Project Access</h2>
+<hr>
+
+<form action="{% url 'project_access' project.id %}" method="post">
+  {% include 'about/access_policies.html'%}
+
+  {% include "project/metadata_inline_form_snippet.html" with form=access_form %}
+  <button class="btn btn-lg btn-primary" type="submit" name="edit_access">Save Access Information</button>
+</form>
+<br>
+<hr>
+{% endblock %}
