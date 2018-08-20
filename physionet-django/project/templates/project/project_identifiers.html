@@ -1,0 +1,20 @@
+{% extends "project/project.html" %}
+
+{% load static %}
+
+{% block title %}Project Identifiers - {{ project }}{% endblock %}
+
+
+{% block main_content %}
+<h2 class="form-signin-heading">Project Identifiers</h2>
+<hr>
+
+<form action="{% url 'project_identifiers' project.id %}" method="post">
+  {# Topics, external home page, citations #}
+  {% include "project/metadata_inline_form_snippet.html" with form=identifier_form %}
+  {% include 'project/item_list.html' with item="publication" item_label="Publications" formset=publication_formset max_forms=3 form_name="project-publication-content_type-object_id" %}
+  {% include 'project/item_list.html' with item="topic" item_label="Topics" formset=topic_formset max_forms=20 form_name="topics" %}
+  <button class="btn btn-lg btn-primary" type="submit" name="edit_identifiers">Save Identifiers</button>
+</form>
+<br>
+{% endblock %}
