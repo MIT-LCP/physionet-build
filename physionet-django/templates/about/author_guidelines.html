@@ -106,30 +106,7 @@ Author Guidelines
 
 
   <h2 id="access">Access Policies</h2>
-  <p>Each published project has an access policy chosen by the
-     submitting author. The descriptive metadata of all published
-     projects are publically visible. The following access policies
-     control access to the files:</p>
-  <ol>
-    <li><strong>Open</strong>: Anyone can access the files, as long
-        as they conform to the terms of the specified
-        <a href="{% url 'licenses' %}" target="_blank">license</a>.
-        No data use agreement (DUA) is provided.</li>
-    <li><strong>Restricted</strong>: Only logged in users who sign
-        the specified
-        <a href="{% url 'duas' %}" target="_blank">DUA</a> can
-        access the files.</li>
-    <li><strong>Credentialed</strong>: Only PhysioNet credentialed
-        users who sign the specified DUA can access the files. This
-        tier is only for sensitive  databases. Please
-        <a href="{% url 'contact' %}" target="_blank">
-        contact us</a> beforehand if you would like to contribute
-        such a resource.</li>
-  </ol>
-
-  <p>We strongly encourage using the 'open' access policy, and will
-     reject non-open submissions that are not justified.</p>
-  <br>
+  {% include 'about/access_policies.html' %}
   <hr>
 
 

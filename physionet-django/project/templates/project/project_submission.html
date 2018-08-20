@@ -12,7 +12,7 @@
         $.ajax({url: "{% url 'check_publishable' project.id %}",
                 success: function(result){
                     if (result.is_publishable){
-                        $("#publishable").html("<i class='fas fa-check' style='color:green'></i> The automatic checks have passed. You may submit the project for review.");
+                        $("#publishable").html("<i class='fas fa-check' style='color:green'></i> The automatic checks have passed. You may submit the project for review. Note: The project will no longer be editable.");
                         document.getElementById("request-review").disabled = false;
                     }
                     else{
@@ -61,7 +61,7 @@
        request a review</p>
     {% if user == project.submitting_author %}
     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#submit-modal" onclick="checkPublishable()">
-      <i class="fas fa-glasses"></i> Request Review
+      Request Review
     </button>
 
     <div class="modal fade" id="submit-modal" tabindex="-1" role="dialog" aria-labelledby="submit-modal" aria-hidden="true">
@@ -79,7 +79,7 @@
               <p id="publishable"><i class="fas fa-spinner"></i> Running checks on project...</p>
             </div>
             <div class="modal-footer">
-              <button id="request-review" class="btn btn-primary" type="submit" name="submit_project" disabled><i class="fas fa-glasses"></i> Request Review</button>
+              <button id="request-review" class="btn btn-primary" type="submit" name="submit_project" disabled>Request Review</button>
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
             </div>
           </form>

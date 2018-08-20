@@ -252,12 +252,12 @@ class Metadata(models.Model):
     class Meta:
         abstract = True
 
-    resource_types = (
+    RESOURCE_TYPES = (
         (0, 'Database'),
         (1, 'Software'),
     )
 
-    access_policies = (
+    ACCESS_POLICIES = (
         (0, 'Open'),
         (1, 'Restricted'),
         (2, 'Credentialed'),
@@ -265,7 +265,7 @@ class Metadata(models.Model):
 
     # Main body descriptive metadata
 
-    resource_type = models.PositiveSmallIntegerField(choices=resource_types)
+    resource_type = models.PositiveSmallIntegerField(choices=RESOURCE_TYPES)
     title = models.CharField(max_length=200)
     # datacite: "A brief description of the resource and the context in
     # which the resource was created"
@@ -286,7 +286,7 @@ class Metadata(models.Model):
     changelog_summary = RichTextField(blank=True)
 
     # One of three: open, dua signature, credentialed user + dua signature
-    access_policy = models.SmallIntegerField(choices=access_policies,
+    access_policy = models.SmallIntegerField(choices=ACCESS_POLICIES,
                                              default=0)
     license = models.ForeignKey('project.License', null=True)
 

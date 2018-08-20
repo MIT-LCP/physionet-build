@@ -9,18 +9,26 @@ urlpatterns = [
     # Individual project pages
     url(r'^(?P<project_id>\d+)/overview/$', views.project_overview,
         name='project_overview'),
+
     url(r'^(?P<project_id>\d+)/authors/$', views.project_authors,
         name='project_authors'),
     url(r'^(?P<project_id>\d+)/authors/move/$', views.move_author,
         name='move_author'),
     url(r'^(?P<project_id>\d+)/authors/edit-affiliation/$', views.edit_affiliation,
         name='edit_affiliation'),
+
     url(r'^(?P<project_id>\d+)/metadata/$', views.project_metadata,
         name='project_metadata'),
     # Edit a metadata item and reload the formset section
     url(r'^(?P<project_id>\d+)/metadata/edit-item/$',
         views.edit_metadata_item,
         name='edit_metadata_item'),
+
+    url(r'^(?P<project_id>\d+)/access/$', views.project_access,
+        name='project_access'),
+
+    url(r'^(?P<project_id>\d+)/identifiers/$', views.project_identifiers,
+        name='project_identifiers'),
 
     url(r'^(?P<project_id>\d+)/files/$', views.project_files,
         name='project_files'),
