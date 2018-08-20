@@ -48,8 +48,8 @@ def dua_content(request, dua_slug):
 def about_physionet(request):
     return render(request, 'about/about_physionet.html')
 
-def new_site(request):
-    return render(request, 'about/new_site.html')
+def development(request):
+    return render(request, 'about/development.html')
 
 def faq(request):
     return render(request, 'about/faq.html')
