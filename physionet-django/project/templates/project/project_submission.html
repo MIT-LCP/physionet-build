@@ -29,23 +29,23 @@
 </script>
 
 
-<h2 class="form-signin-heading">Project Submission</h2>
+<h2 class="form-signin-heading">6. Project Submission</h2>
 <hr>
 
 <h3>Submission Checklist</h3>
 
 <ol>
-    <li>Ensure all <a href="{% url 'project_authors' project.id %}">
-        authors</a> to be credited for creating the resource, have been
-        added to the project and filled in their details.</li>
-    <li>Fill in all the mandatory, and the desired optional
-        <a href="{% url 'project_metadata' project.id %}">metadata</a>
-        fields.</li>
-    <li>Upload the project <a href="{% url 'project_files' project.id %}">
-        files</a>.</li>
-    <li>Inspect the project <a href="{% url 'project_preview' project.id %}" target="_blank">
-        preview</a> to see how the published project would look. Make
-        sure to address any errors.</li>
+  <li>Ensure all <a href="{% url 'project_authors' project.id %}">
+    authors</a> to be credited for creating the resource, have been
+    added to the project and filled in their details.</li>
+  <li>Fill in all the mandatory, and the desired optional
+    <a href="{% url 'project_metadata' project.id %}">metadata</a>
+    fields.</li>
+  <li>Upload the project <a href="{% url 'project_files' project.id %}">
+    files</a>.</li>
+  <li>Inspect the project <a href="{% url 'project_preview' project.id %}" target="_blank">
+    preview</a> to see how the published project would look. Make
+    sure to address any errors.</li>
 </ol>
 
 <p>For more details, see the <a href="{% url 'author_guidelines' %}" target="_blank">
@@ -55,11 +55,11 @@
 
 <h3>Submission Status</h3>
 {% if not project.under_submission %}
-    <p>The project is not under submission. If the
-       <a href="{% url 'project_preview' project.id %}" target="_blank">
-       preview</a> appears satisfactory, the submitting author may
-       request a review</p>
-    {% if user == project.submitting_author %}
+  <p>The project is not under submission. If the
+    <a href="{% url 'project_preview' project.id %}" target="_blank">
+    preview</a> appears satisfactory, the submitting author may request a
+    review</p>
+  {% if user == project.submitting_author %}
     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#submit-modal" onclick="checkPublishable()">
       Request Review
     </button>
@@ -86,7 +86,7 @@
         </div>
       </div>
     </div>
-    {% endif %}
+  {% endif %}
 {% else %}
     <ul class="list-group">
     <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The project was submitted for review on {{ submission.presubmission_datetime|date }}.</li>
