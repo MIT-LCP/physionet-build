@@ -1,8 +1,8 @@
 {% load i18n %}{% autoescape off %}
-Dear Sir or Madam
+Dear {{ name }}
 
-Your invitation to {{ author_email }} to co-author your project: {{ project_title }}, has been {{ response }}.
+Your invitation to {{ author_email }} to co-author your project: {{ project.title }}, has been {{ response }}.
 
-{% blocktrans %}The {{ domain }} team{% endblocktrans %}
-
+Regards
+The PhysioNet Team
 {% endautoescape %}

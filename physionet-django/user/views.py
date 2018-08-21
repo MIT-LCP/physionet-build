@@ -60,7 +60,7 @@ def remove_email(request, email_id):
         email = associated_email.email
         associated_email.delete()
         logger.info('Removed email {0} from user {1}'.format(email, user.id))
-        messages.success(request, 'Your email: %s has been removed from your account.' % email)
+        messages.success(request, 'Your email: {0} has been removed from your account.'.format(email))
 
 def set_primary_email(request, primary_email_form):
     "Set the selected email as the primary email"
@@ -72,7 +72,7 @@ def set_primary_email(request, primary_email_form):
             logger.info('Primary email changed from: {0} to {1}'.format(user.email, associated_email.email))
             user.email = associated_email.email
             user.save(update_fields=['email'])
-            messages.success(request, 'Your email: %s has been set as your new primary email.' % user.email)
+            messages.success(request, 'Your email: {0} has been set as your new primary email.'.format(user.email))
 
 def set_public_email(request, public_email_form):
     "Set the selected email as the public email"
@@ -89,9 +89,9 @@ def set_public_email(request, public_email_form):
             if associated_email:
                 associated_email.is_public = True
                 associated_email.save()
-                messages.success(request, 'Your email: %s has been set to public.' % associated_email.email)
+                messages.success(request, 'Your email: {0} has been set to public.'.format(associated_email.email))
             else:
-                messages.success(request, 'Your email: %s is no longer public.' % current_public_email.email)
+                messages.success(request, 'Your email: {0} has been set to private.'.format(current_public_email.email))
 
 def add_email(request, add_email_form):
     user = request.user
@@ -107,7 +107,7 @@ def add_email(request, add_email_form):
         body = loader.render_to_string('user/email/verify_email_email.html', context)
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
             [add_email_form.cleaned_data['email']], fail_silently=False)
-        messages.success(request, 'A verification link has been sent to: %s' % associated_email.email)
+        messages.success(request, 'A verification link has been sent to: {0}'.format(associated_email.email))
 
 @login_required
 def edit_emails(request):

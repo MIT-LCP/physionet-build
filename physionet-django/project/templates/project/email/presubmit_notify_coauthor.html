@@ -1,0 +1,10 @@
+{% load i18n %}{% autoescape off %}
+Dear {{ name }}
+
+Your co-authoring project: {{ project.title }}, has been pre-submitted for review. When all of the project's co-authors approve the submission, the project will be submitted.
+
+You can approve the submission, and keep track of the submission status at: http://{{ domain }}{% url "project_submission" project.id %}
+
+Regards
+The PhysioNet Team
+{% endautoescape %}

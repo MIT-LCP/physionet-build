@@ -26,6 +26,7 @@
         </thead>
         <tbody>
         {% for submission in submissions %}
+          <tr>
             <td>{{ submission.id }}</td>
             <td><a href="{% url 'project_overview' submission.project.id %}">{{ submission.project }}</a></td>
             <td><a href="{% url 'public_profile' submission.project.submitting_author.username %}">{{ submission.project.submitting_author.username }}</a> - {{ submission.project.submitting_author.email }}</td>
@@ -38,6 +39,7 @@
                     <a style="color:red">Awaiting Editor Assignment</a>
                 {% endif %}
             </td>
+          </tr>
         {% endfor %}
         </tbody>
       </table>

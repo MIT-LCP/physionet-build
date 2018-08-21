@@ -1,0 +1,8 @@
+{% load i18n %}{% autoescape off %}
+Dear {{ name }}
+
+Your {{ allowance}}GB storage request for project: {{ project.title }}, has been {{ response }}.
+
+Regards
+The PhysioNet Team
+{% endautoescape %}
