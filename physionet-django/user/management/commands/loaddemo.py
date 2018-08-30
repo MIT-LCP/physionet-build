@@ -46,4 +46,4 @@ def link_demo_media(subdir):
     link_subdir = os.path.join(settings.MEDIA_ROOT, subdir)
 
     for item in os.listdir(demo_subdir):
-            os.symlink(os.path.join(demo_subdir, item), os.path.join(link_subdir, item))
+        os.symlink(os.path.join(demo_subdir, item), os.path.join(link_subdir, item))
