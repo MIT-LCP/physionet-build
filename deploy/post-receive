@@ -9,7 +9,6 @@ cd $destination
 source /physionet/python-env/physionet/bin/activate
 sudo /bin/chgrp www-data /physionet/physionet-build/deploy
 sudo /bin/chmod g+w /physionet/physionet-build/deploy
-sed -i -e 's/<staging OR production>/staging/g' /physionet/physionet-build/deploy/physionet_uwsgi.ini
 pip install -r requirements.txt
 cd physionet-django
 python manage.py collectstatic --noinput
@@ -18,4 +17,3 @@ python manage.py migrate
 touch physionet/wsgi.py
 
 echo "Done"
-
