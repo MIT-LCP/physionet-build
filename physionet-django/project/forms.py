@@ -334,7 +334,7 @@ class DatabaseMetadataForm(forms.ModelForm):
                       'methods': '* The methodology employed for the study or research.',
                       'background': '* The study background',
                       'content_description': '* Describe the files, how they are named and structured, and how they are to be used.',
-                      'acknowledgements': '* Any general acknowledgements',
+                      'acknowledgements': 'Any general acknowledgements',
                       'version': '* The version number of the resource. Suggested format: <MAJOR>.<MINOR>.<PATCH>',
                       'changelog_summary': '* Summary of changes from the previous release'}
 
