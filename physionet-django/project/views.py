@@ -344,11 +344,9 @@ def project_authors(request, project_id):
         if 'edit_affiliations' in request.POST:
             affiliation_formset = AffiliationFormSet(instance=author,
                 data=request.POST)
-            print('we err')
             if edit_affiliations(request, affiliation_formset):
                 affiliation_formset = AffiliationFormSet(
                     instance=author)
-                print('we here')
         elif 'invite_author' in request.POST:
             invite_author_form = forms.InviteAuthorForm(project, user, request.POST)
             if invite_author(request, invite_author_form):
