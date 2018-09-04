@@ -5,6 +5,7 @@
 - `physionet_uwsgi.ini`: Initialization file for uWSGI.
 - `uwsgi_params`: Generic parameters for uWSGI.
 - `post-receive`: The post-receive hook that runs in the bare repository in the staging/production servers.
+- `uwsgi.service`: The uWSGI emperor mode configuration service file.
 
 # Development Workflow
 
@@ -125,16 +126,9 @@ sudo ln -s /physionet/physionet-build/deploy/physionet_uwsgi.ini /etc/uwsgi/vass
 
 ## Setting up the system to run uwsgi upon startup
 
-The `/etc/rc.local` file runs upon system startup. Create it and make it executable
-(755) and owned by root if not already existing. Ensure the following is contained
-in the file:
-```
-#!/bin/sh -e
+A service file was created to be controlled  by systemctl. This file will say requirements
+for this service to run, it will set the user and group for the emperor mode, and 
+sets the log location to syslog.
 
-uwsgi --emperor /etc/uwsgi/vassals --uid pn --gid www-data
 
-exit 0
 
-```
-
-Kill the emperor mode process if needed.
