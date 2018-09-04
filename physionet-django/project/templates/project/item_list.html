@@ -3,10 +3,11 @@
 
   <div class="form-group row">
     <div class="col-md-11">
-      <label title="{{ formset.help_text }}">{{ item_label }}</label>
+      <label>{{ item_label }}</label>
         {% if formset.help_text|slice:"0:1" == "*" %}
           <a style="color:red"> *</a>
         {% endif %}
+      <i class="fas fa-question-circle" data-toggle="popover" data-placement="right" data-content="{{ formset.help_text }}" onmouseover="" style="cursor: pointer;"></i>
     </div>
 
     <div class="col-md-1">
