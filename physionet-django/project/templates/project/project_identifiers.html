@@ -4,6 +4,9 @@
 
 {% block title %}Project Identifiers - {{ project }}{% endblock %}
 
+{% block local_js_bottom %}
+<script type="text/javascript" src="{% static 'custom/js/enable-popover.js' %}"></script>
+{% endblock %}
 
 {% block main_content %}
 <h2 class="form-signin-heading">4. Project Identifiers</h2>
