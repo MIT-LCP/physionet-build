@@ -8,11 +8,10 @@
 <script type="text/javascript" src="{% static 'custom/js/cookie.js' %}"></script>
 {% endblock %}
 
-
 {% block main_content %}
 <h2 class="form-signin-heading">2. Project Metadata</h2>
 <hr>
-<p>Hover over a field label to see its description. (<a style="color:red">*</a>) indicates a required field, although you do not need to fill in all fields before saving. Only the submitting author may edit the metadata.</p>
+<p>Required fields are indicated by a <a style="color:red">*</a>. Only the submitting author may edit the metadata.</p>
 <hr>
 
 <script>
@@ -143,11 +142,6 @@
     return true;
   }
 
-// Enabling popovers
-$(function () {
-  $('[data-toggle="popover"]').popover()
-})
-
 </script>
 
 
@@ -187,5 +181,6 @@ $(function () {
 {% endblock %}
 
 {% block local_js_bottom %}
-  <script type="text/javascript" src="{% static 'custom/js/resize-ck.js' %}"></script>
+<script type="text/javascript" src="{% static 'custom/js/resize-ck.js' %}"></script>
+<script type="text/javascript" src="{% static 'custom/js/enable-popover.js' %}"></script>
 {% endblock %}

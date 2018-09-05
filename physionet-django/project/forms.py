@@ -335,8 +335,15 @@ class DatabaseMetadataForm(forms.ModelForm):
                       'background': '* The study background',
                       'content_description': '* Describe the files, how they are named and structured, and how they are to be used.',
                       'acknowledgements': 'Any general acknowledgements',
-                      'version': '* The version number of the resource. Suggested format: <MAJOR>.<MINOR>.<PATCH>',
+                      'version': '* The version number of the resource. Suggested format: <MAJOR>.<MINOR>.<PATCH> (example: 1.0.0)',
                       'changelog_summary': '* Summary of changes from the previous release'}
+
+    def __init__(self, include_changelog=False, *args, **kwargs):
+        super(DatabaseMetadataForm, self).__init__(*args, **kwargs)
+        if not include_changelog:
+            del(self.fields['changelog_summary'])
+
+        self.fields['content_description'].label = 'Data description'
 
 
     def clean_title(self):
@@ -367,7 +374,7 @@ class SoftwareMetadataForm(forms.ModelForm):
 
 
 # The modelform for editing metadata for each resource type
-metadata_forms = {0: DatabaseMetadataForm,
+METADATA_FORMS = {0: DatabaseMetadataForm,
                   1: SoftwareMetadataForm}
 
 

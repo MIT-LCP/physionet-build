@@ -389,14 +389,9 @@ def project_metadata(request, project_id):
     ReferenceFormSet = generic_inlineformset_factory(Reference,
         fields=('description',), extra=0, max_num=20, can_delete=False)
 
-
-    description_form = forms.metadata_forms[project.resource_type](instance=project)
+    description_form = forms.METADATA_FORMS[project.resource_type](instance=project)
     reference_formset = ReferenceFormSet(instance=project)
-
-
-
     reference_formset.help_text = METADATA_FORMSET_HELP_TEXT['reference']
-
 
     if request.method == 'POST':
 
