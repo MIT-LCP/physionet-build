@@ -329,16 +329,17 @@ class DatabaseMetadataForm(forms.ModelForm):
     class Meta:
         model = Project
         fields = ('title', 'abstract', 'background', 'methods',
-                  'content_description', 'acknowledgements', 'conflicts_of_interest',
-            'version', 'changelog_summary',)
-        help_texts = {'title': '* Title of the resource',
+                  'content_description', 'usage_notes', 'acknowledgements',
+                  'conflicts_of_interest', 'version', 'changelog_summary',)
+        help_texts = {'title': '* Title of the resource.',
                       'abstract': '* A brief description of the resource and the context in which the resource was created.',
-                      'methods': '* The methodology employed for the study or research.',
-                      'background': '* The study background',
+                      'background': '* The study background.',
+                      'methods': '* The methodology employed for the study or research. Describe how the data was collected.',
                       'content_description': '* Describe the files, how they are named and structured, and how they are to be used.',
-                      'acknowledgements': 'Any general acknowledgements',
-                      'version': '* The version number of the resource. Suggested format: <MAJOR>.<MINOR>.<PATCH> (example: 1.0.0)',
-                      'changelog_summary': '* Summary of changes from the previous release'}
+                      'usage_notes': 'If the data requires special software to use, list it here.',
+                      'acknowledgements': 'Any general acknowledgements.',
+                      'version': '* The version number of the resource. Suggested format: <MAJOR>.<MINOR>.<PATCH> (example: 1.0.0).',
+                      'changelog_summary': '* Summary of changes from the previous release.'}
 
     def __init__(self, include_changelog=False, *args, **kwargs):
         super(DatabaseMetadataForm, self).__init__(*args, **kwargs)
