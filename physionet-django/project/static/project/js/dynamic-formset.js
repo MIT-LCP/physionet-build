@@ -106,3 +106,25 @@ function removeItem(trigger_button, item, form_name, remove_item_url){
     });
   }
 };
+
+
+// Ensure items in a formset are not duplicated
+function validateItems(list_div_id, input_id_suffix, item_name) {
+  item_div = document.getElementById(list_div_id);
+  item_inputs = item_div.getElementsByTagName("input");
+  var counts = [];
+
+  for (var i=0; i < item_inputs.length; i++) {
+      if (item_inputs[i].id.endsWith(input_id_suffix)){
+        if (counts[item_inputs[i].value] === undefined) {
+          counts[item_inputs[i].value] = 1;
+        }
+        else{
+           item_inputs[i].select();
+           alert(item_name + " must be unique");
+           return false;
+        }
+    }
+  }
+  return true;
+}

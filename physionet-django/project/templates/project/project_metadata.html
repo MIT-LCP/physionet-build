@@ -15,31 +15,7 @@
 <p>Required fields are indicated by a <a style="color:red">*</a>. Only the submitting author may edit the metadata.</p>
 <hr>
 
-<script>
-  // Ensure references are not duplicated
-  function validateReferences() {
-    reference_div = document.getElementById("reference-list");
-    reference_inputs = reference_div.getElementsByTagName("input");
-    var counts = [];
-
-    for (var i = 0; i < reference_inputs.length; i++) {
-        if (reference_inputs[i].id.endsWith("description")){
-          if (counts[reference_inputs[i].value] === undefined) {
-            counts[reference_inputs[i].value] = 1;
-          }
-          else{
-             reference_inputs[i].select();
-             alert("References must be unique");
-             return false;
-          }
-      }
-    }
-    return true;
-  }
-
-</script>
-
-<form action="{% url 'project_metadata' project.id %}" onsubmit="return validateReferences()" method="post">
+<form action="{% url 'project_metadata' project.id %}" onsubmit="return validateItems('reference-list', 'description', 'References')" method="post">
   {{ description_form.media }}
   {% include "project/metadata_inline_form_snippet.html" with form=description_form %}
   {% url 'edit_metadata_item' project.id as edit_item_url %}
