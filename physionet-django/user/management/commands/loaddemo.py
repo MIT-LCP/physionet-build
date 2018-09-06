@@ -14,6 +14,8 @@ from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
+from physionet.utility import get_project_apps
+
 
 class Command(BaseCommand):
 
@@ -29,10 +31,9 @@ class Command(BaseCommand):
                     sys.exit('Exiting from load. No actions applied.')
             print('Continuing loading demo data')
 
-        project_apps = ['user', 'project']
+        project_apps = get_project_apps()
         demo_fixtures = ['demo-' + app for app in project_apps]
 
-        # Remove data from all tables. Tables are kept.
         call_command('loaddata', *demo_fixtures, verbosity=1)
 
         # Link the demo project and user media content

@@ -11,31 +11,31 @@ PhysioNet Databases
 
 {% block content %}
 <div class="container">
-    <h1>PhysioNet Databases</h1>
+  <h1>PhysioNet Databases</h1>
+  <hr>
+  {% for published_project, authors , topics in projects_authors_topics %}
+    <p>{{ published_project.resource_type|resource_badge|safe }}
+       {{ published_project.access_policy|access_badge|safe }}
+    </p>
+    <a href="{% url 'published_project' published_project.id %}"><h2>{{ published_project.title }}</h2></a>
+    <p class="text-muted">
+      <strong>Authors:
+        {% for author in authors %}
+          {{ author|author_name }}
+        {% endfor %}
+      </strong>
+    </p>
+    {{ published_project.abstract|safe }}
+    <p class="text-muted">
+      Published: {{ published_project.publish_datetime|date }}.
+      Version: {{ published_project.version }}
+      <br>
+      {% for topic in topics %}
+        <a href="#" class="badge badge-info">{{ topic.description }}</a>
+      {% endfor %}
+    </p>
     <hr>
-    {% for published_project, authors , topics in projects_authors_topics %}
-        <p>{{ published_project.resource_type|resource_badge|safe }}
-           {{ published_project.access_policy|access_badge|safe }}
-        </p>
-        <a href="{% url 'published_project' published_project.id %}"><h2>{{ published_project.title }}</h2></a>
-        <p class="text-muted">
-            <strong>Authors:
-            {% for author in authors %}
-                {{ author|author_name }}
-            {% endfor %}
-            </strong>
-        </p>
-        {{ published_project.abstract|safe }}
-        <p class="text-muted">
-            Published: {{ published_project.publish_datetime|date }}.
-            Version: {{ published_project.version }}
-            <br>
-            {% for topic in topics %}
-                <a href="#" class="badge badge-info">{{ topic.description }}</a>
-            {% endfor %}
-        </p>
-        <hr>
-    {% endfor %}
-    <br>
+  {% endfor %}
+  <br>
 </div>
 {% endblock %}

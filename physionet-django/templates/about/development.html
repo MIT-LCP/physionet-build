@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+Development of PhysioNet
+{% endblock %}
+
+
+{% block content %}
+<div class="container">
+  <h1 class="text-center">Development of PhysioNet</h1>
+  <hr>
+
+  <p>The PhysioNet team is working a new dynamic web platform to
+     replace the original site. We have released the new site at
+     <a href="#">https://new.physionet.org</a>, which
+     does not yet have all of the intended functionality, alongside
+     the original at <a href="https://physionet.org">https://physionet.org</a>.
+     Users have a choice of using either, except in the
+     case of new submissions, which must come through the new site.
+  </p>
+
+  <p>Over time, we will add functionalities to the new site, until
+     we can retire the original site. Use this page to track the features
+     available throughout the development process. You may also visit
+     the <a href="https://github.com/MIT-LCP/physionet-build/" target="_blank">
+     development repository</a>.
+  </p>
+  <br>
+
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h2 class="mb-0">Done <i class="fas fa-check" style="color:green"></i></h2>
+          <hr>
+          <ul>
+            <li><a href="{% url 'create_project' %}">Project submission and publication</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h2 class="mb-0">Underway <i class="fas fa-wrench"></i></h2>
+          <hr>
+          <ul>
+            <li>Waveform viewer</li>
+            <li>Resource search</li>
+            <li>Waveform search</li>
+            <li>PhysioNet challenge</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -12,14 +12,17 @@ urlpatterns = [
     url(r'^console/', include('console.urls')),
     # user app
     url(r'^', include('user.urls')),
-    # projects app
+    # project app
     url(r'^projects/', include('project.urls')),
+    # notification app
+    url(r'^', include('notification.urls')),
 
     url(r'^$', views.home, name='home'),
     # about pages
     url(r'^about/author-guidelines/$', views.author_guidelines,
         name='author_guidelines'),
     url(r'^about/physionet/$', views.about_physionet, name='about_physionet'),
+    url(r'^about/development/$', views.development, name='development'),
     url(r'^about/faq/$', views.faq, name='faq'),
     url(r'^about/licenses/$', views.licenses, name='licenses'),
     url(r'^about/licenses/(?P<license_slug>[\w-]+)/$', views.license_content,
