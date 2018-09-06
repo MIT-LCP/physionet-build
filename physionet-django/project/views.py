@@ -901,7 +901,6 @@ def edit_metadata_item(request, project_id):
     Either add the first form, or remove an item.
 
     """
-    print('hi')
     model_dict = {'reference': Reference, 'publication': Publication,
                   'topic': Topic, 'contact': Contact}
     # Whether the item relation is generic
@@ -927,37 +926,37 @@ def edit_metadata_item(request, project_id):
                   'topic': 'topics',
                   'contact': 'project-contact-content_type-object_id'}
 
-    if request.method == 'POST':
-        project = Project.objects.get(id=project_id)
-        item = request.POST['item']
+    project = Project.objects.get(id=project_id)
 
+    # Reload the formset with the first empty form
+    if request.method == 'GET' and 'add_first' in request.GET:
+        item = request.GET['item']
         model = model_dict[item]
-        # Whether to add the first empty form in the formset
-        extra = int('add_first' in request.POST)
+        extra_forms = 1
+    # Remove an object
+    elif request.method == 'POST' and 'remove_id' in request.POST:
+        item = request.POST['item']
+        model = model_dict[item]
+        extra_forms = 0
+        item_id = int(request.POST['remove_id'])
+        model.objects.filter(id=item_id).delete()
 
-        # Use the correct formset factory function
-        if is_generic_relation[item]:
-            ItemFormSet = generic_inlineformset_factory(model,
-                fields=metadata_item_fields[item], extra=extra,
-                max_num=max_forms[item], can_delete=False,
-                formset=custom_formsets[item])
-        else:
-            ItemFormSet = inlineformset_factory(Project, model,
-                fields=metadata_item_fields[item], extra=extra,
-                max_num=max_forms[item], can_delete=False,
-                formset=custom_formsets[item])
+    # Create the formset
+    if is_generic_relation[item]:
+        ItemFormSet = generic_inlineformset_factory(model,
+            fields=metadata_item_fields[item], extra=extra_forms,
+            max_num=max_forms[item], can_delete=False,
+            formset=custom_formsets[item])
+    else:
+        ItemFormSet = inlineformset_factory(Project, model,
+            fields=metadata_item_fields[item], extra=extra_forms,
+            max_num=max_forms[item], can_delete=False,
+            formset=custom_formsets[item])
 
-        if 'remove_id' in request.POST:
-            # Check this post key
-            item_id = int(request.POST['remove_id'])
-            model.objects.filter(id=item_id).delete()
+    formset = ItemFormSet(instance=project)
 
-        formset = ItemFormSet(instance=project)
-        # formset.help_text = METADATA_FORMSET_HELP_TEXT[item]
-
-        return render(request, 'project/item_list.html',
+    return render(request, 'project/item_list.html',
             {'formset':formset, 'item':item, 'item_label':item_labels[item],
              'form_name':form_names[item], 'max_forms':max_forms[item]})
 
-    else:
-        return Http404()
+
