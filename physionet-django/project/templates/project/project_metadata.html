@@ -155,23 +155,7 @@
 <hr>
 
 <script>
-  // Control the DUA selection based on access policy
-  access_policy_input = document.getElementById("id_access_policy");
-
-  function controlDUA() {
-    // No dua allowed if open-access
-    dua_input = document.getElementById("id_data_use_agreement");
-    if (access_policy_input.value == "0") {
-      dua_input.selectedIndex = 0;
-      dua_input.disabled = true;
-    }
-    else {
-      dua_input.disabled = false;
-    }
-  }
-  access_policy_input.onload = controlDUA();
-  access_policy_input.onchange = controlDUA;
-
+  // Disable submission for non-submitting authors
   {% if user != project.submitting_author %}
     $('button').attr('disabled',true);
     $('input').attr('disabled',true);
