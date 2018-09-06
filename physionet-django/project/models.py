@@ -276,18 +276,21 @@ class Metadata(models.Model):
     references = GenericRelation(Reference, blank=True)
     acknowledgements = RichTextField(blank=True)
     conflicts_of_interest = RichTextField(blank=True)
+    version = models.CharField(max_length=15, default='', blank=True)
+    changelog_summary = RichTextField(blank=True)
 
     # Supplementary descriptive fields
 
     # The additional papers to cite when citing the database
     project_citations = GenericRelation(Reference, blank=True)
-    version = models.CharField(max_length=15, default='', blank=True)
-    changelog_summary = RichTextField(blank=True)
 
-    # One of three: open, dua signature, credentialed user + dua signature
+
+
+    # Access information
     access_policy = models.SmallIntegerField(choices=ACCESS_POLICIES,
                                              default=0)
     license = models.ForeignKey('project.License', null=True)
+
 
     # Identifiers
     external_home_page = models.URLField(blank=True, null=True)
@@ -318,6 +321,11 @@ class Project(Metadata):
                                            null=True, blank=True)
 
     INDIVIDUAL_FILE_SIZE_LIMIT = 100 * 1024**2
+
+    REQUIRED_FIELDS = {0:['title', 'abstract', 'background', 'methods',
+                          'content_description', 'version', 'license',],
+                       1:['title', 'abstract', 'background', 'methods',
+                          'content_description', 'version', 'license',]}
 
     class Meta:
         unique_together = (('title', 'submitting_author', 'resource_type'),)
@@ -421,8 +429,7 @@ class Project(Metadata):
                 if not author.organization_name:
                     self.publish_errors.append('Organizational author with no name')
         # Metadata
-        for attr in ['abstract', 'background', 'methods', 'content_description',
-                     'license', 'version']:
+        for attr in Project.REQUIRED_FIELDS[self.resource_type]:
             if not getattr(self, attr):
                 self.publish_errors.append('Missing required field: {0}'.format(attr))
 
