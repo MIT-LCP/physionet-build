@@ -158,22 +158,22 @@ def edit_profile(request):
     Edit the profile fields
     """
     user = request.user
-    form = ProfileForm(instance=user.profile)
+    profile = user.profile
 
     if request.method == 'POST':
-        # Update the profile and return to the same page. Place a message
-        # at the top of the page: 'your profile has been updated'
-        form = ProfileForm(data=request.POST, files=request.FILES,
-                           instance=user.profile)
-        if form.is_valid():
-            # Delete the existing photo file if needed. form.save()
-            # uploads the new image
-            if 'photo-clear' in request.POST or ('photo' in form.cleaned_data and hasattr(form, 'photo_path')):
-                os.remove(form.photo_path)
-            form.save()
-            messages.success(request, 'Your profile has been updated.')
-            # Form needs to be reloaded to show photo changes
-            form = ProfileForm(instance=user.profile)
+        if 'edit_profile' in request.POST:
+            # Update the profile and return to the same page. Place a message
+            # at the top of the page: 'your profile has been updated'
+            form = ProfileForm(data=request.POST, files=request.FILES,
+                               instance=profile)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Your profile has been updated.')
+        elif 'delete_photo' in request.POST:
+            profile.delete_photo()
+            messages.success(request, 'Your profile photo has been deleted.')
+
+    form = ProfileForm(instance=profile)
 
     return render(request, 'user/edit_profile.html', {'user':user, 'form':form,
         'messages':messages.get_messages(request)})

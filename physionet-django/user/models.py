@@ -1,7 +1,7 @@
+import os
 import pdb
 
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-# from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -223,6 +223,15 @@ class Profile(models.Model):
 
     def get_names(self):
         return self.first_name, self.middle_names, self.last_name
+
+    def delete_photo(self):
+        """
+        Delete the photo
+        """
+        if self.photo:
+            os.remove(self.photo.path)
+            self.photo = None
+            self.save()
 
 
 class DualAuthModelBackend():
