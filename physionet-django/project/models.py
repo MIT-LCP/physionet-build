@@ -291,9 +291,7 @@ class Metadata(models.Model):
                                              default=0)
     license = models.ForeignKey('project.License', null=True)
 
-
     # Identifiers
-    external_home_page = models.URLField(blank=True, null=True)
     publications = GenericRelation(Publication, blank=True)
     topics = GenericRelation(Topic, blank=True)
     contacts = GenericRelation(Contact, blank=True)

@@ -28,9 +28,7 @@ RESPONSE_ACTIONS = {0:'rejected', 1:'accepted'}
 
 # Help test for formsets, rather than individual form fields.
 METADATA_FORMSET_HELP_TEXT = {
-    'publication': 'Associated publications for the project.',
-    'topic': 'Keyword topics associated with the project. Maximum of 20.',
-    'contact':'* Persons to contact for questions about the project. This will only be visible to logged in users. Minimum of 1, maximum of 3.'}
+    'publication': 'Associated publications for the project.'}
 
 
 def is_admin(user, *args, **kwargs):
@@ -447,22 +445,19 @@ def project_identifiers(request, project_id):
     admin_inspect = user.is_admin and not is_author(user, project)
 
     TopicFormSet = inlineformset_factory(Project, Topic,
-        fields=('description',), extra=0, max_num=20, can_delete=False)
+        fields=('description',), extra=0, max_num=20, can_delete=False,
+        formset=forms.TopicFormSet)
     PublicationFormSet = generic_inlineformset_factory(Publication,
         fields=('citation', 'url'), extra=0, max_num=3, can_delete=False)
 
-    identifier_form = forms.IdentifierMetadataForm(instance=project)
     publication_formset = PublicationFormSet(instance=project)
     topic_formset = TopicFormSet(instance=project)
 
     if request.method == 'POST':
-        identifier_form = forms.IdentifierMetadataForm(request.POST,
-                                                       instance=project)
         publication_formset = PublicationFormSet(request.POST,
                                                  instance=project)
         topic_formset = TopicFormSet(request.POST, instance=project)
-        if identifier_form.is_valid() and topic_formset.is_valid() and publication_formset.is_valid():
-            identifier_form.save()
+        if topic_formset.is_valid() and publication_formset.is_valid():
             contact_formset.save()
             publication_formset.save()
             topic_formset.save()
@@ -472,10 +467,8 @@ def project_identifiers(request, project_id):
             messages.error(request,
                 'Invalid submission. See errors below.')
         publication_formset.help_text = METADATA_FORMSET_HELP_TEXT['publication']
-        topic_formset.help_text = METADATA_FORMSET_HELP_TEXT['topic']
 
     return render(request, 'project/project_identifiers.html', {'project':project,
-        'identifier_form':identifier_form,
         'publication_formset':publication_formset,
         'topic_formset':topic_formset})
 
@@ -908,13 +901,15 @@ def edit_metadata_item(request, project_id):
     Either add the first form, or remove an item.
 
     """
+    print('hi')
     model_dict = {'reference': Reference, 'publication': Publication,
                   'topic': Topic, 'contact': Contact}
     # Whether the item relation is generic
     is_generic_relation = {'reference': True, 'publication': True,
-                        'topic': False, 'contact': True}
+                           'topic': False, 'contact': True}
 
-    custom_formsets = {'reference':forms.ReferenceFormSet}
+    custom_formsets = {'reference':forms.ReferenceFormSet,
+                       'topics':forms.TopicFormSet}
 
     # The fields of each formset
     metadata_item_fields = {'reference': ('description',),
@@ -949,7 +944,8 @@ def edit_metadata_item(request, project_id):
         else:
             ItemFormSet = inlineformset_factory(Project, model,
                 fields=metadata_item_fields[item], extra=extra,
-                max_num=max_forms[item], can_delete=False)
+                max_num=max_forms[item], can_delete=False,
+                formset=custom_formsets[item])
 
         if 'remove_id' in request.POST:
             # Check this post key
