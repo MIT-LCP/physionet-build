@@ -7,14 +7,13 @@
         {% if formset.help_text|slice:"0:1" == "*" %}
           <a style="color:red"> *</a>
         {% endif %}
-      <i class="fas fa-question-circle" data-toggle="popover" data-placement="right" data-content="{{ formset.help_text }}" onmouseover="" style="cursor: pointer;"></i>
+      <i class="fas fa-question-circle" data-toggle="popover" data-placement="right" data-content="{{ formset.help_text|safe }}" data-html="true" onmouseover="" style="cursor: pointer;"></i>
     </div>
 
     <div class="col-md-1">
       <button class="btn btn-sm btn-info" type="button" onclick="addItem('{{ item }}', '{{ form_name }}', '{{ max_forms }}')" title="Add {{ item }}"><i class="fas fa-plus"></i></button>
     </div>
   </div>
-
   {% for form in formset %}
     {# This {{ item }}-%d id is identifying the form number on the page #}
     <div class="form-group row {{ item }}-body" id="{{ item }}-{{ forloop.counter }}">

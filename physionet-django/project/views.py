@@ -27,8 +27,8 @@ from user.models import User
 RESPONSE_ACTIONS = {0:'rejected', 1:'accepted'}
 
 # Help test for formsets, rather than individual form fields.
-METADATA_FORMSET_HELP_TEXT = {'reference': "Numbered references specified in descriptive information. Note: different from 'publications' in section 3. Maximum of 20.",
-    'publication': "Associated publications for the project. Note: different from 'references' in section 1. Maximum of 20",
+METADATA_FORMSET_HELP_TEXT = {'reference': 'Numbered references specified in descriptive information. Please provide references in <a href=http://www.bibme.org/citation-guide/apa/ target=_blank>APA</a> format. Maximum of 20.',
+    'publication': 'Associated publications for the project.',
     'topic': 'Keyword topics associated with the project. Maximum of 20.',
     'contact':'* Persons to contact for questions about the project. This will only be visible to logged in users. Minimum of 1, maximum of 3.'}
 
@@ -394,8 +394,7 @@ def project_metadata(request, project_id):
     reference_formset.help_text = METADATA_FORMSET_HELP_TEXT['reference']
 
     if request.method == 'POST':
-
-        description_form = forms.metadata_forms[project.resource_type](request.POST,
+        description_form = forms.METADATA_FORMS[project.resource_type](request.POST,
             instance=project)
         reference_formset = ReferenceFormSet(request.POST, instance=project)
         if description_form.is_valid() and reference_formset.is_valid():
