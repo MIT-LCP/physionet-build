@@ -201,7 +201,7 @@ class PublishedTopic(models.Model):
 
 class Reference(models.Model):
     """
-    General reference field for projects, for the descriptive metadata
+    Reference field for Project/PublishedProject
     """
     description = models.CharField(max_length=250)
     # Project or PublishedProject
@@ -229,7 +229,7 @@ class Contact(models.Model):
 
 class Publication(models.Model):
     """
-    The related publications for a project.
+    The publication to cite when referencing the software/dataset.
     """
     citation = models.CharField(max_length=250)
     url = models.URLField()
@@ -263,25 +263,24 @@ class Metadata(models.Model):
         (2, 'Credentialed'),
     )
 
+    resource_type = models.PositiveSmallIntegerField(choices=RESOURCE_TYPES)
+
     # Main body descriptive metadata
 
-    resource_type = models.PositiveSmallIntegerField(choices=RESOURCE_TYPES)
     title = models.CharField(max_length=200)
-    # datacite: "A brief description of the resource and the context in
-    # which the resource was created"
     abstract = RichTextField(max_length=10000, blank=True)
     background = RichTextField(blank=True)
     methods = RichTextField(blank=True)
     content_description = RichTextField(blank=True)
-    technical_validation = RichTextField(blank=True)
     usage_notes = RichTextField(blank=True)
-    acknowledgements = RichTextField(blank=True)
     references = GenericRelation(Reference, blank=True)
+    acknowledgements = RichTextField(blank=True)
+    conflicts_of_interest = RichTextField(blank=True)
 
     # Supplementary descriptive fields
 
     # The additional papers to cite when citing the database
-    project_citations =GenericRelation(Reference, blank=True)
+    project_citations = GenericRelation(Reference, blank=True)
     version = models.CharField(max_length=15, default='', blank=True)
     changelog_summary = RichTextField(blank=True)
 
@@ -526,8 +525,7 @@ class Project(Metadata):
 
         # Direct copy over fields
         for attr in ['title', 'abstract', 'background', 'methods',
-                     'content_description', 'technical_validation',
-                     'usage_notes', 'acknowledgements', 'external_home_page',
+                     'content_description', 'usage_notes', 'acknowledgements',
                      'version', 'resource_type', 'access_policy',
                      'changelog_summary', 'access_policy', 'license']:
             setattr(published_project, attr, getattr(self, attr))

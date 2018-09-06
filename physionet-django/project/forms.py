@@ -370,7 +370,10 @@ class SoftwareMetadataForm(forms.ModelForm):
     """
     class Meta:
         model = Project
-        fields = ('title', 'abstract', 'technical_validation', 'usage_notes')
+        fields = ('title', 'abstract', 'usage_notes')
+
+
+
 
 
 # The modelform for editing metadata for each resource type
