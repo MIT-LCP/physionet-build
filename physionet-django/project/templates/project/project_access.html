@@ -12,12 +12,42 @@
 <h2 class="form-signin-heading">3. Project Access</h2>
 <hr>
 
-<form action="{% url 'project_access' project.id %}" method="post">
-  {% include 'about/access_policies.html'%}
+{% include 'about/access_policies.html'%}
 
+<form action="{% url 'project_access' project.id %}" method="post">
   {% include "project/metadata_inline_form_snippet.html" with form=access_form %}
   <button class="btn btn-lg btn-primary" type="submit" name="edit_access">Save Access Information</button>
 </form>
 <br>
 <hr>
+
+<script>
+  access_policy_input = document.getElementById("id_access_policy");
+
+  function controlDUA() {
+    // Control the DUA selection based on access policy
+    dua_input = document.getElementById("id_data_use_agreement");
+    if (access_policy_input.value == "0") {
+      dua_input.selectedIndex = 0;
+      dua_input.disabled = true;
+      dua_input.hidden = true;
+      dua_input.required = true;
+      $('label[for="data_use_agreement"]').hide();
+    }
+    else {
+      dua_input.disabled = false;
+      dua_input.hidden = false;
+      $('label[for="data_use_agreement"]').show ();
+    }
+  }
+  access_policy_input.onload = controlDUA();
+  access_policy_input.onchange = controlDUA;
+
+  // Disable submission for non-submitting authors
+  {% if user != project.submitting_author %}
+    $('button').attr('disabled',true);
+    $('input').attr('disabled',true);
+    $('select').attr('disabled',true);
+  {% endif %}
+</script>
 {% endblock %}

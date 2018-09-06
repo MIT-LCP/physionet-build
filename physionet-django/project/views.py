@@ -27,7 +27,7 @@ from user.models import User
 RESPONSE_ACTIONS = {0:'rejected', 1:'accepted'}
 
 # Help test for formsets, rather than individual form fields.
-METADATA_FORMSET_HELP_TEXT = {'reference': 'Numbered references specified in descriptive information. Please provide references in <a href=http://www.bibme.org/citation-guide/apa/ target=_blank>APA</a> format. Maximum of 20.',
+METADATA_FORMSET_HELP_TEXT = {
     'publication': 'Associated publications for the project.',
     'topic': 'Keyword topics associated with the project. Maximum of 20.',
     'contact':'* Persons to contact for questions about the project. This will only be visible to logged in users. Minimum of 1, maximum of 3.'}
@@ -387,14 +387,14 @@ def project_metadata(request, project_id):
 
     # There are several forms for different types of metadata
     ReferenceFormSet = generic_inlineformset_factory(Reference,
-        fields=('description',), extra=0, max_num=20, can_delete=False)
+        fields=('description',), extra=0, max_num=20, can_delete=False,
+        formset=forms.ReferenceFormSet)
 
     description_form = forms.METADATA_FORMS[project.resource_type](instance=project)
     reference_formset = ReferenceFormSet(instance=project)
-    reference_formset.help_text = METADATA_FORMSET_HELP_TEXT['reference']
 
     if request.method == 'POST':
-        description_form = forms.METADATA_FORMS[project.resource_type](request.POST,
+        description_form = forms.METADATA_FORMS[project.resource_type](data=request.POST,
             instance=project)
         reference_formset = ReferenceFormSet(request.POST, instance=project)
         if description_form.is_valid() and reference_formset.is_valid():
@@ -405,7 +405,6 @@ def project_metadata(request, project_id):
         else:
             messages.error(request,
                 'Invalid submission. See errors below.')
-        reference_formset.help_text = METADATA_FORMSET_HELP_TEXT['reference']
 
     return render(request, 'project/project_metadata.html', {'project':project,
         'description_form':description_form, 'reference_formset':reference_formset,
@@ -909,12 +908,14 @@ def edit_metadata_item(request, project_id):
     Either add the first form, or remove an item.
 
     """
-
     model_dict = {'reference': Reference, 'publication': Publication,
                   'topic': Topic, 'contact': Contact}
     # Whether the item relation is generic
     is_generic_relation = {'reference': True, 'publication': True,
                         'topic': False, 'contact': True}
+
+    custom_formsets = {'reference':forms.ReferenceFormSet}
+
     # The fields of each formset
     metadata_item_fields = {'reference': ('description',),
                             'publication': ('citation', 'url'),
@@ -943,7 +944,8 @@ def edit_metadata_item(request, project_id):
         if is_generic_relation[item]:
             ItemFormSet = generic_inlineformset_factory(model,
                 fields=metadata_item_fields[item], extra=extra,
-                max_num=max_forms[item], can_delete=False)
+                max_num=max_forms[item], can_delete=False,
+                formset=custom_formsets[item])
         else:
             ItemFormSet = inlineformset_factory(Project, model,
                 fields=metadata_item_fields[item], extra=extra,
@@ -955,7 +957,7 @@ def edit_metadata_item(request, project_id):
             model.objects.filter(id=item_id).delete()
 
         formset = ItemFormSet(instance=project)
-        formset.help_text = METADATA_FORMSET_HELP_TEXT[item]
+        # formset.help_text = METADATA_FORMSET_HELP_TEXT[item]
 
         return render(request, 'project/item_list.html',
             {'formset':formset, 'item':item, 'item_label':item_labels[item],

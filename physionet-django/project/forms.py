@@ -1,12 +1,14 @@
+import os
+import pdb
+
 from django import forms
-from django.forms import BaseInlineFormSet, Select, Textarea
+from django.contrib.contenttypes.forms import BaseGenericInlineFormSet
+# from django.forms import , Select, Textarea
 from django.template.defaultfilters import slugify
 from django.utils import timezone
-import os
 
 from .models import Affiliation, Author, Invitation, Project, StorageRequest
 from . import utility
-import pdb
 
 
 RESPONSE_CHOICES = (
@@ -327,7 +329,7 @@ class DatabaseMetadataForm(forms.ModelForm):
     class Meta:
         model = Project
         fields = ('title', 'abstract', 'background', 'methods',
-            'content_description', 'acknowledgements',
+                  'content_description', 'acknowledgements', 'conflicts_of_interest',
             'version', 'changelog_summary',)
         help_texts = {'title': '* Title of the resource',
                       'abstract': '* A brief description of the resource and the context in which the resource was created.',
@@ -373,12 +375,18 @@ class SoftwareMetadataForm(forms.ModelForm):
         fields = ('title', 'abstract', 'usage_notes')
 
 
-
-
-
 # The modelform for editing metadata for each resource type
 METADATA_FORMS = {0: DatabaseMetadataForm,
                   1: SoftwareMetadataForm}
+
+
+class ReferenceFormSet(BaseGenericInlineFormSet):
+    """
+    Formset for adding a Project's references
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.help_text = 'Numbered references specified in the metadata, in <a href=http://www.bibme.org/citation-guide/apa/ target=_blank>APA</a> format. Maximum of 20.'
 
 
 class AccessMetadataForm(forms.ModelForm):
@@ -391,6 +399,7 @@ class AccessMetadataForm(forms.ModelForm):
         help_texts = {'access_policy': '* Access policy for files.',
                       'license': '* License for usage',
                       'data_use_agreement': 'Specific conditions for usage'}
+
     def clean(self):
         """
         Check the combination of access policy and dua
@@ -534,8 +543,8 @@ class InvitationResponseForm(forms.ModelForm):
     class Meta:
         model = Invitation
         fields = ('response', 'response_message')
-        widgets={'response':Select(choices=RESPONSE_CHOICES),
-                 'response_message':Textarea()}
+        widgets={'response':forms.Select(choices=RESPONSE_CHOICES),
+                 'response_message':forms.Textarea()}
 
     def clean(self):
         """
