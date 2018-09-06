@@ -334,9 +334,9 @@ class DatabaseMetadataForm(forms.ModelForm):
         help_texts = {'title': '* Title of the resource.',
                       'abstract': '* A brief description of the resource and the context in which the resource was created.',
                       'background': '* The study background.',
-                      'methods': '* The methodology employed for the study or research. Describe how the data was collected.',
+                      'methods': '* The methodology employed for the study or research. Describe how the data was collected. If your project has an external home page, you should include it here.',
                       'content_description': '* Describe the files, how they are named and structured, and how they are to be used.',
-                      'usage_notes': 'If the data requires special software to use, list it here.',
+                      'usage_notes': 'How the data is to be used. List any related software developed for the dataset, and any special software required to use the data.',
                       'acknowledgements': 'Any general acknowledgements.',
                       'version': '* The version number of the resource. Suggested format: <MAJOR>.<MINOR>.<PATCH> (example: 1.0.0).',
                       'changelog_summary': '* Summary of changes from the previous release.'}
@@ -359,7 +359,6 @@ class DatabaseMetadataForm(forms.ModelForm):
                 title=data,
                 resource_type=self.instance.resource_type,
                 submitting_author=self.instance.submitting_author).exclude(id=self.instance.id).exists():
-
             raise forms.ValidationError(
                   'You already have a project with this title and resource type')
 
@@ -390,6 +389,15 @@ class ReferenceFormSet(BaseGenericInlineFormSet):
         self.help_text = 'Numbered references specified in the metadata, in <a href=http://www.bibme.org/citation-guide/apa/ target=_blank>APA</a> format. Maximum of 20.'
 
 
+class TopicFormSet(forms.BaseInlineFormSet):
+    """
+    Formset for adding a Project's topics
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.help_text = 'Keyword topics associated with the project. Maximum of 20.'
+
+
 class AccessMetadataForm(forms.ModelForm):
     """
     For editing project access metadata
@@ -409,16 +417,6 @@ class AccessMetadataForm(forms.ModelForm):
         if cleaned_data['access_policy'] == 0 and cleaned_data['data_use_agreement'] is not None:
             raise forms.ValidationError('Open-acess projects cannot have DUAs')
         return cleaned_data
-
-
-class IdentifierMetadataForm(forms.ModelForm):
-    """
-    For editing project identifier metadata
-    """
-    class Meta:
-        model = Project
-        fields = ('external_home_page',)
-        help_texts = {'external_home_page': 'External home page for project'}
 
 
 class InviteAuthorForm(forms.ModelForm):
