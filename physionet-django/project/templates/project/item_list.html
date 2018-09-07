@@ -11,7 +11,7 @@
     </div>
 
     <div class="col-md-1">
-      <button class="btn btn-sm btn-info" type="button" onclick="addItem('{{ item }}', '{{ form_name }}', '{{ max_forms }}', '{{ add_item_url }}')" title="Add {{ item }}"><i class="fas fa-plus"></i></button>
+      <button class="btn btn-sm btn-info" id="add-{{ item }}-button" type="button" onclick="addItem(this, '{{ item }}', '{{ form_name }}', '{{ max_forms }}', '{{ add_item_url }}')" title="Add {{ item }} (max {{ max_forms }})"><i class="fas fa-plus"></i></button>
     </div>
   </div>
   {% for form in formset %}
@@ -43,4 +43,3 @@
   {% endfor %}
 
 </div>
-

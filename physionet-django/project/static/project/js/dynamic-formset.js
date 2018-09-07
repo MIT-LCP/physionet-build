@@ -27,7 +27,7 @@ function cloneFormElement(selector, form_name){
 
 
 // Add another form to a formset
-function addItem(item, form_name, max_forms, add_item_url){
+function addItem(trigger_button, item, form_name, max_forms, add_item_url){
   var total_forms = parseInt($('#id_' + form_name + '-TOTAL_FORMS').val());
 
   if (total_forms < max_forms){
@@ -39,7 +39,9 @@ function addItem(item, form_name, max_forms, add_item_url){
       total_forms++;
       new_item_div.id = item + "-" + (total_forms);
       new_item_div.getElementsByClassName(item + "-number")[0].innerHTML = total_forms + "."
-
+      if (total_forms == max_forms){
+        trigger_button.disabled = true;
+      }
     }
     // Reload the item list section with an additional form
     else{
@@ -51,7 +53,7 @@ function addItem(item, form_name, max_forms, add_item_url){
                      'add_first':true, 'item':item
               },
               success: function reloadSection(result){
-                  $("#" + item + "-list").html(result);
+                  $("#" + item + "-list").replaceWith(result);
               },
       });
     }
@@ -88,7 +90,8 @@ function removeItem(trigger_button, item, form_name, remove_item_url){
     }
     // update the form count
     total_forms--;
-    $('#id_' + form_name + '-TOTAL_FORMS').val(total_forms);
+    $('#id_' + form_name + '-TOTAL_FORMS').val(total_forms)
+    document.getElementById('add-' + item + '-button').disabled = false
   }
   // The item object exists. Send ajax query to remove it and
   // reload the page section.
@@ -101,7 +104,7 @@ function removeItem(trigger_button, item, form_name, remove_item_url){
                    'remove_id':item_instance_id
             },
             success: function reloadSection(result){
-                $("#" + item + "-list").html(result);
+                $("#" + item + "-list").replaceWith(result);
             },
     });
   }
@@ -115,7 +118,7 @@ function validateItems(list_div_id, input_id_suffix, item_name) {
   var counts = [];
 
   for (var i=0; i < item_inputs.length; i++) {
-      if (item_inputs[i].id.endsWith(input_id_suffix)){
+      if (item_inputs[i].id.endsWith(input_id_suffix) && item_inputs[i].value){
         if (counts[item_inputs[i].value] === undefined) {
           counts[item_inputs[i].value] = 1;
         }
