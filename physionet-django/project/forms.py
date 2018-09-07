@@ -380,22 +380,40 @@ METADATA_FORMS = {0: DatabaseMetadataForm,
                   1: SoftwareMetadataForm}
 
 
+class AffiliationFormSet(BaseGenericInlineFormSet):
+    """
+    Formset for adding an author's affiliations
+    """
+    max_forms = 3
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.max_forms = AffiliationFormSet.max_forms
+        self.help_text = 'Institutions you are affiliated with. Maximum of {}.'.format(self.max_forms)
+
+
 class ReferenceFormSet(BaseGenericInlineFormSet):
     """
     Formset for adding a Project's references
     """
+    max_forms = 20
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.help_text = 'Numbered references specified in the metadata, in <a href=http://www.bibme.org/citation-guide/apa/ target=_blank>APA</a> format. Maximum of 20.'
+        self.max_forms = ReferenceFormSet.max_forms
+        self.help_text = 'Numbered references specified in the metadata, in <a href=http://www.bibme.org/citation-guide/apa/ target=_blank>APA</a> format. Maximum of {}.'.format(self.max_forms)
 
 
 class TopicFormSet(forms.BaseInlineFormSet):
     """
     Formset for adding a Project's topics
     """
+    max_forms = 20
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.help_text = 'Keyword topics associated with the project. Maximum of 20.'
+        self.max_forms = TopicFormSet.max_forms
+        self.help_text = 'Keyword topics associated with the project. Maximum of {}.'.format(self.max_forms)
 
 
 class AccessMetadataForm(forms.ModelForm):

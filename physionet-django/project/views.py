@@ -279,7 +279,11 @@ def move_author(request, project_id):
 @authorization_required(auth_functions=(is_author,))
 def edit_affiliation(request, project_id):
     """
-    Either add the first form for, or remove an author affiliation.
+    Function accessed via ajax for editing an author's affiliation in a
+    formset.
+
+    Either add the first form, or remove an affiliation, returning the
+    rendered template of the formset.
 
     """
     # Todo: access control
@@ -291,27 +295,27 @@ def edit_affiliation(request, project_id):
     item_label = 'Affiliations'
     form_name = 'project-affiliation-content_type-object_id'
 
-    if request.method == 'POST':
-        # Whether to add the first empty form in the formset
-        extra = int('add_first' in request.POST)
+    # Reload the formset with the first empty form
+    if request.method == 'GET' and 'add_first' in request.GET:
+        extra_forms = 1
+    # Remove an object
+    elif request.method == 'POST' and 'remove_id' in request.POST:
+        extra_forms = 0
+        item_id = int(request.POST['remove_id'])
+        Affiliation.objects.filter(id=item_id).delete()
 
-        AffiliationFormSet = generic_inlineformset_factory(Affiliation,
-            fields=('name',), extra=extra, max_num=3, can_delete=False)
+    AffiliationFormSet = generic_inlineformset_factory(Affiliation,
+        fields=('name',), extra=extra_forms,
+        max_num=forms.AffiliationFormSet.max_forms, can_delete=False,
+        formset=forms.AffiliationFormSet)
+    formset = AffiliationFormSet(instance=author)
+    edit_url = reverse('edit_affiliation', args=[project.id])
 
-        if 'remove_id' in request.POST:
-            # Check this post key
-            item_id = int(request.POST['remove_id'])
-            Affiliation.objects.filter(id=item_id).delete()
-
-        formset = AffiliationFormSet(instance=author)
-        formset.help_text = 'Institutions you are affiliated with'
-
-        return render(request, 'project/item_list.html',
+    return render(request, 'project/item_list.html',
             {'formset':formset, 'item':'affiliation', 'item_label':'Affiliations',
-             'form_name':form_name, 'max_forms':3})
+             'form_name':form_name, 'add_item_url':edit_url,
+             'remove_item_url':edit_url})
 
-    else:
-        return Http404()
 
 @authorization_required(auth_functions=(is_author, is_admin))
 def project_authors(request, project_id):
@@ -323,13 +327,14 @@ def project_authors(request, project_id):
     authors = project.authors.all().order_by('display_order')
     admin_inspect = user.is_admin and user not in [a.user for a in authors]
 
-    # Deal with case when user is a non-author admin
     if admin_inspect:
         affiliation_formset, invite_author_form, add_author_form = None, None, None
     else:
         author = authors.get(user=user)
         AffiliationFormSet = generic_inlineformset_factory(Affiliation,
-            fields=('name',), extra=0, max_num=3, can_delete=False)
+            fields=('name',), extra=0,
+            max_num=forms.AffiliationFormSet.max_forms, can_delete=False,
+            formset = forms.AffiliationFormSet)
         affiliation_formset = AffiliationFormSet(instance=author)
 
         if user == project.submitting_author:
@@ -367,13 +372,81 @@ def project_authors(request, project_id):
 
     invitations = project.invitations.filter(invitation_type='author',
         is_active=True)
-
+    edit_affiliations_url = reverse('edit_affiliation', args=[project.id])
     return render(request, 'project/project_authors.html', {'project':project,
         'authors':authors, 'invitations':invitations,
         'affiliation_formset':affiliation_formset,
-        'invite_author_form':invite_author_form,
-        'admin_inspect':admin_inspect})
+        'invite_author_form':invite_author_form, 'admin_inspect':admin_inspect,
+        'add_item_url':edit_affiliations_url, 'remove_item_url':edit_affiliations_url})
 
+
+@authorization_required(auth_functions=(is_author,))
+def edit_metadata_item(request, project_id):
+    """
+    Function accessed via ajax for editing a project's related item
+    in a formset.
+
+    Either add the first form, or remove an item, returning the rendered
+    template of the formset.
+
+    """
+    model_dict = {'reference': Reference, 'publication': Publication,
+                  'topic': Topic, 'contact': Contact}
+    # Whether the item relation is generic
+    is_generic_relation = {'reference': True, 'publication': True,
+                           'topic': False, 'contact': True}
+
+    custom_formsets = {'reference':forms.ReferenceFormSet,
+                       'topics':forms.TopicFormSet}
+
+    # The fields of each formset
+    metadata_item_fields = {'reference': ('description',),
+                            'publication': ('citation', 'url'),
+                            'topic': ('description',),
+                            'contact': ('name', 'affiliation', 'email')}
+
+    # These are for the template
+    item_labels = {'reference': 'References', 'publication': 'Publications',
+                   'topic': 'Topics', 'contact': 'Contacts'}
+    form_names = {'reference': 'project-reference-content_type-object_id',
+                  'publication': 'project-publication-content_type-object_id',
+                  'topic': 'topics',
+                  'contact': 'project-contact-content_type-object_id'}
+
+    project = Project.objects.get(id=project_id)
+
+    # Reload the formset with the first empty form
+    if request.method == 'GET' and 'add_first' in request.GET:
+        item = request.GET['item']
+        model = model_dict[item]
+        extra_forms = 1
+    # Remove an object
+    elif request.method == 'POST' and 'remove_id' in request.POST:
+        item = request.POST['item']
+        model = model_dict[item]
+        extra_forms = 0
+        item_id = int(request.POST['remove_id'])
+        model.objects.filter(id=item_id).delete()
+
+    # Create the formset
+    if is_generic_relation[item]:
+        ItemFormSet = generic_inlineformset_factory(model,
+            fields=metadata_item_fields[item], extra=extra_forms,
+            max_num=custom_formsets[item].max_forms, can_delete=False,
+            formset=custom_formsets[item])
+    else:
+        ItemFormSet = inlineformset_factory(Project, model,
+            fields=metadata_item_fields[item], extra=extra_forms,
+            max_num=custom_formsets[item].max_forms, can_delete=False,
+            formset=custom_formsets[item])
+
+    formset = ItemFormSet(instance=project)
+    edit_url = reverse('edit_metadata_item', args=[project.id])
+
+    return render(request, 'project/item_list.html',
+            {'formset':formset, 'item':item, 'item_label':item_labels[item],
+             'form_name':form_names[item], 'add_item_url':edit_url,
+             'remove_item_url':edit_url})
 
 @authorization_required(auth_functions=(is_author, is_admin))
 def project_metadata(request, project_id):
@@ -386,7 +459,8 @@ def project_metadata(request, project_id):
 
     # There are several forms for different types of metadata
     ReferenceFormSet = generic_inlineformset_factory(Reference,
-        fields=('description',), extra=0, max_num=20, can_delete=False,
+        fields=('description',), extra=0,
+        max_num=forms.ReferenceFormSet.max_forms, can_delete=False,
         formset=forms.ReferenceFormSet)
 
     description_form = forms.METADATA_FORMS[project.resource_type](instance=project)
@@ -404,10 +478,12 @@ def project_metadata(request, project_id):
         else:
             messages.error(request,
                 'Invalid submission. See errors below.')
+    edit_url = reverse('edit_metadata_item', args=[project.id])
 
     return render(request, 'project/project_metadata.html', {'project':project,
         'description_form':description_form, 'reference_formset':reference_formset,
-        'messages':messages.get_messages(request), 'admin_inspect':admin_inspect})
+        'messages':messages.get_messages(request), 'admin_inspect':admin_inspect,
+        'add_item_url':edit_url, 'remove_item_url':edit_url})
 
 
 @authorization_required(auth_functions=(is_author, is_admin))
@@ -894,70 +970,3 @@ def published_project(request, published_project_id):
 
     if published_project.resource_type == 0:
         return database(request, published_project)
-
-
-@authorization_required(auth_functions=(is_author,))
-def edit_metadata_item(request, project_id):
-    """
-    Either add the first form, or remove an item.
-
-    """
-    model_dict = {'reference': Reference, 'publication': Publication,
-                  'topic': Topic, 'contact': Contact}
-    # Whether the item relation is generic
-    is_generic_relation = {'reference': True, 'publication': True,
-                           'topic': False, 'contact': True}
-
-    custom_formsets = {'reference':forms.ReferenceFormSet,
-                       'topics':forms.TopicFormSet}
-
-    # The fields of each formset
-    metadata_item_fields = {'reference': ('description',),
-                            'publication': ('citation', 'url'),
-                            'topic': ('description',),
-                            'contact': ('name', 'affiliation', 'email')}
-    max_forms = {'reference': 20, 'publication': 3, 'topic': 20,
-                 'contact': 3}
-
-    # These are for the template
-    item_labels = {'reference': 'References', 'publication': 'Publications',
-                   'topic': 'Topics', 'contact': 'Contacts'}
-    form_names = {'reference': 'project-reference-content_type-object_id',
-                  'publication': 'project-publication-content_type-object_id',
-                  'topic': 'topics',
-                  'contact': 'project-contact-content_type-object_id'}
-
-    project = Project.objects.get(id=project_id)
-
-    # Reload the formset with the first empty form
-    if request.method == 'GET' and 'add_first' in request.GET:
-        item = request.GET['item']
-        model = model_dict[item]
-        extra_forms = 1
-    # Remove an object
-    elif request.method == 'POST' and 'remove_id' in request.POST:
-        item = request.POST['item']
-        model = model_dict[item]
-        extra_forms = 0
-        item_id = int(request.POST['remove_id'])
-        model.objects.filter(id=item_id).delete()
-    # Create the formset
-    if is_generic_relation[item]:
-        ItemFormSet = generic_inlineformset_factory(model,
-            fields=metadata_item_fields[item], extra=extra_forms,
-            max_num=max_forms[item], can_delete=False,
-            formset=custom_formsets[item])
-    else:
-        ItemFormSet = inlineformset_factory(Project, model,
-            fields=metadata_item_fields[item], extra=extra_forms,
-            max_num=max_forms[item], can_delete=False,
-            formset=custom_formsets[item])
-
-    formset = ItemFormSet(instance=project)
-
-    return render(request, 'project/item_list.html',
-            {'formset':formset, 'item':item, 'item_label':item_labels[item],
-             'form_name':form_names[item], 'max_forms':max_forms[item],
-             'add_item_url':reverse('edit_metadata_item', args=[project.id])})
-
-

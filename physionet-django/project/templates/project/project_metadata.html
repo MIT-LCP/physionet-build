@@ -18,8 +18,7 @@
 <form action="{% url 'project_metadata' project.id %}" onsubmit="return validateItems('reference-list', 'description', 'References')" method="post">
   {{ description_form.media }}
   {% include "project/metadata_inline_form_snippet.html" with form=description_form %}
-  {% url 'edit_metadata_item' project.id as edit_item_url %}
-  {% include 'project/item_list.html' with item="reference" item_label="References" formset=reference_formset form_name="project-reference-content_type-object_id" max_forms=20 add_item_url=edit_item_url remove_item_url=edit_item_url %}
+  {% include 'project/item_list.html' with item="reference" item_label="References" formset=reference_formset form_name="project-reference-content_type-object_id" add_item_url=add_item_url remove_item_url=remove_item_url %}
   <button class="btn btn-lg btn-primary" type="submit" name="edit_description">Save Description</button>
 </form>
 <br>
