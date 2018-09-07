@@ -13,6 +13,7 @@ from django.forms import formset_factory, inlineformset_factory, modelformset_fa
 from django.http import HttpResponse, Http404, JsonResponse
 from django.shortcuts import render, redirect
 from django.template import loader
+from django.urls import reverse
 from django.utils import timezone
 
 from . import forms
@@ -940,7 +941,6 @@ def edit_metadata_item(request, project_id):
         extra_forms = 0
         item_id = int(request.POST['remove_id'])
         model.objects.filter(id=item_id).delete()
-
     # Create the formset
     if is_generic_relation[item]:
         ItemFormSet = generic_inlineformset_factory(model,
@@ -957,6 +957,7 @@ def edit_metadata_item(request, project_id):
 
     return render(request, 'project/item_list.html',
             {'formset':formset, 'item':item, 'item_label':item_labels[item],
-             'form_name':form_names[item], 'max_forms':max_forms[item]})
+             'form_name':form_names[item], 'max_forms':max_forms[item],
+             'add_item_url':reverse('edit_metadata_item', args=[project.id])})
 
 
