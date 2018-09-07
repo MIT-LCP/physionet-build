@@ -54,6 +54,7 @@ function addItem(trigger_button, item, form_name, max_forms, add_item_url){
               },
               success: function reloadSection(result){
                   $("#" + item + "-list").replaceWith(result);
+                  $('[data-toggle="popover"]').popover()
               },
       });
     }
@@ -105,6 +106,7 @@ function removeItem(trigger_button, item, form_name, remove_item_url){
             },
             success: function reloadSection(result){
                 $("#" + item + "-list").replaceWith(result);
+                $('[data-toggle="popover"]').popover()
             },
     });
   }
