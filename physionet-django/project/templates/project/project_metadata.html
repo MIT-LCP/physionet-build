@@ -24,6 +24,11 @@
 <br>
 <hr>
 
+{% endblock %}
+
+{% block local_js_bottom %}
+<script type="text/javascript" src="{% static 'custom/js/resize-ck.js' %}"></script>
+<script type="text/javascript" src="{% static 'custom/js/enable-popover.js' %}"></script>
 <script>
   disableAddButtons();
 
@@ -34,9 +39,5 @@
     $('select').attr('disabled',true);
   {% endif %}
 </script>
-{% endblock %}
 
-{% block local_js_bottom %}
-<script type="text/javascript" src="{% static 'custom/js/resize-ck.js' %}"></script>
-<script type="text/javascript" src="{% static 'custom/js/enable-popover.js' %}"></script>
 {% endblock %}

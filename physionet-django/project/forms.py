@@ -19,6 +19,22 @@ RESPONSE_CHOICES = (
 ILLEGAL_PATTERNS = ['/','..',]
 
 
+class SelectAuthorForm(forms.ModelForm):
+    """
+    Select an author belonging to a project
+    """
+    class Meta:
+        model = Project
+        fields = ('corresponding_author',)
+
+    # def __init__(self, project, *args, **kwargs):
+    #     super(ProjectFilesForm, self).__init__(*args, **kwargs)
+    #     self.project = project
+    #     self.author.queryset = project.authors.all()
+
+
+
+
 class ProjectFilesForm(forms.Form):
     """
     Inherited form for manipulating project files/directories. Upload

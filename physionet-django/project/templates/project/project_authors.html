@@ -9,20 +9,6 @@
 {% block local_js_top %}
 <script type="text/javascript" src="{% static 'custom/js/cookie.js' %}"></script>
 <script type="text/javascript" src="{% static 'project/js/dynamic-formset.js' %}"></script>
-{% endblock %}
-
-{% block main_content %}
-
-
-<h2 class="form-signin-heading">1. Project Authors</h2>
-<hr>
-
-<p>Each project has one or more <strong>authors</strong>, including the single <strong>submitting author</strong> who creates the project. Authors are credited for creating the resource when it is published.</p>
-
-<p>Authors must be invited and accept authorship, and fill in their own affiliations. Only the submitting author may invite authors, remove authors, and change the final author display order.</p>
-
-<hr>
-
 <script>
   // Ajax call to update authors list
   function moveAuthor(author_id, direction){
@@ -39,13 +25,26 @@
       });
   };
 </script>
+{% endblock %}
+
+{% block main_content %}
+
+
+<h2 class="form-signin-heading">1. Project Authors</h2>
+<hr>
+
+<p>Each project has one or more <strong>authors</strong>, including the single <strong>submitting author</strong> who creates the project. Authors are credited for creating the resource when it is published.</p>
+
+<p>Authors must be invited and accept authorship, and fill in their own affiliations. Only the submitting author may invite authors, remove authors, and change the final author display order.</p>
+
+<hr>
 
 {% include "project/author_list.html" %}
 <br>
 
 <div class="card">
   <div class="card card-header">
-    <h4>Outstanding Author Invitations</h4>
+    <h3>Outstanding Author Invitations</h3>
   </div>
   {% if invitations %}
   <ul class="list-group list-group-flush">
@@ -71,7 +70,17 @@
 
 {% if user == project.submitting_author %}
   <br>
-  <h4>Invite Author</h4>
+  <h3>Invite Author</h3>
+  <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
+    {% csrf_token %}
+    {% include "inline_form_snippet.html" with form=invite_author_form %}
+    <button class="btn btn-success btn-fixed" name="invite_author" type="submit">Invite Author</button>
+  </form>
+  <hr>
+
+  <br>
+  <h3>Corresponding Author</h3>
+  <p>One author must be selected as the corresponding author.</p>
   <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
     {% csrf_token %}
     {% include "inline_form_snippet.html" with form=invite_author_form %}
@@ -137,7 +146,7 @@
 <br>
 
 {% if not admin_inspect %}
-  <h4>Your Author Affiliations</h4>
+  <h3>Your Author Affiliations</h3>
   <p>Set up to three affiliations for your author profile. Note: these fields are not tied to your user profile.</p>
   <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin" onsubmit="return validateItems('affiliation-list', 'name', 'Affiliations')">
     {% csrf_token %}
@@ -145,11 +154,13 @@
     <button class="btn btn-primary btn-fixed" name="edit_affiliations" type="submit">Set Affiliations</button>
   </form>
   <hr>
-  <script>disableAddButtons();</script>
 {% endif %}
 
 {% endblock %}
 
 {% block local_js_bottom %}
 <script type="text/javascript" src="{% static 'custom/js/enable-popover.js' %}"></script>
+<script>
+  disableAddButtons();
+</script>
 {% endblock %}

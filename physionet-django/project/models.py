@@ -111,9 +111,13 @@ class Author(Member):
     # Authors must have physionet profiles, unless they are organizations.
     user = models.ForeignKey('user.User', related_name='authorships',
         blank=True, null=True)
+    corresponding_email = models.EmailField()
 
     class Meta:
         unique_together = (('user', 'project'), ('user', 'published_project'),)
+
+    def __str__(self):
+        return self.user.__str__()
 
     def natural_key(self):
         return self.user.natural_key() + (self.project,)
@@ -306,6 +310,7 @@ class Project(Metadata):
 
     # Maximum allowed storage capacity in GB
     storage_allowance = models.SmallIntegerField(default=1)
+    # Misnomer - actually a User object, not an Author object.
     submitting_author = models.ForeignKey('user.User',
         related_name='submitting_projects')
     # If it has any published versions
@@ -317,6 +322,8 @@ class Project(Metadata):
     # Access fields
     data_use_agreement = models.ForeignKey('project.DataUseAgreement',
                                            null=True, blank=True)
+    corresponding_author = models.OneToOneField('project.Author',
+        related_name='corresponding_projects')
 
     INDIVIDUAL_FILE_SIZE_LIMIT = 100 * 1024**2
 
