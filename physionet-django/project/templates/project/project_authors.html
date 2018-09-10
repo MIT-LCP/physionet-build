@@ -145,10 +145,11 @@
     <button class="btn btn-primary btn-fixed" name="edit_affiliations" type="submit">Set Affiliations</button>
   </form>
   <hr>
+  <script>disableAddButtons();</script>
 {% endif %}
 
 {% endblock %}
 
-{% block base_js_bottom %}
+{% block local_js_bottom %}
 <script type="text/javascript" src="{% static 'custom/js/enable-popover.js' %}"></script>
 {% endblock %}

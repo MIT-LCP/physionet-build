@@ -11,6 +11,7 @@
 
 {% block local_js_bottom %}
 <script type="text/javascript" src="{% static 'custom/js/enable-popover.js' %}"></script>
+<script>disableAddButtons();</script>
 {% endblock %}
 
 {% block main_content %}
@@ -24,4 +25,5 @@
   <button class="btn btn-lg btn-primary" type="submit" name="edit_identifiers">Save Identifiers</button>
 </form>
 <br>
+
 {% endblock %}

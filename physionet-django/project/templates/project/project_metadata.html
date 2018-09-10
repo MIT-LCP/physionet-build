@@ -25,6 +25,8 @@
 <hr>
 
 <script>
+  disableAddButtons();
+
   // Disable submission for non-submitting authors
   {% if user != project.submitting_author %}
     $('button').attr('disabled',true);

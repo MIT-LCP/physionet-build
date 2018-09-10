@@ -28,17 +28,17 @@ function cloneFormElement(selector, form_name){
 
 // Add another form to a formset
 function addItem(trigger_button, item, form_name, max_forms, add_item_url){
-  var total_forms = parseInt($('#id_' + form_name + '-TOTAL_FORMS').val());
+  var total_forms = parseInt($('#id_' + form_name + '-TOTAL_FORMS').val())
 
   if (total_forms < max_forms){
     if (total_forms > 0){
       // Clone the existing html
       cloneFormElement("." + item + "-body:last", form_name);
       // Change the number id and display label of the newly cloned element
-      new_item_div = document.getElementsByClassName(item + "-body")[total_forms]
+      new_item_div = document.getElementsByClassName(item + "-body")[total_forms];
       total_forms++;
       new_item_div.id = item + "-" + (total_forms);
-      new_item_div.getElementsByClassName(item + "-number")[0].innerHTML = total_forms + "."
+      new_item_div.getElementsByClassName(item + "-number")[0].innerHTML = total_forms + ".";
       if (total_forms == max_forms){
         trigger_button.disabled = true;
       }
@@ -54,7 +54,7 @@ function addItem(trigger_button, item, form_name, max_forms, add_item_url){
               },
               success: function reloadSection(result){
                   $("#" + item + "-list").replaceWith(result);
-                  $('[data-toggle="popover"]').popover()
+                  $('[data-toggle="popover"]').popover();
               },
       });
     }
@@ -82,17 +82,17 @@ function removeItem(trigger_button, item, form_name, remove_item_url){
     var item_list_div = item_div.parentElement;
     var total_forms = item_list_div.getElementsByClassName(item + "-body").length;
     // delete the selected item's html
-    item_div.remove()
+    item_div.remove();
     // All item forms with greater numbers must be decremented
     for (i=item_number+1; i<total_forms+1; i++){
       var higher_item_div = document.getElementById(item + "-" + i);
-      higher_item_div.getElementsByClassName(item + "-number")[0].innerHTML = (i-1) + "."
-      higher_item_div.id = item + "-" + (i-1)
+      higher_item_div.getElementsByClassName(item + "-number")[0].innerHTML = (i-1) + ".";
+      higher_item_div.id = item + "-" + (i-1);
     }
     // update the form count
     total_forms--;
-    $('#id_' + form_name + '-TOTAL_FORMS').val(total_forms)
-    document.getElementById('add-' + item + '-button').disabled = false
+    $('#id_' + form_name + '-TOTAL_FORMS').val(total_forms);
+    document.getElementById('add-' + item + '-button').disabled = false;
   }
   // The item object exists. Send ajax query to remove it and
   // reload the page section.
@@ -113,7 +113,7 @@ function removeItem(trigger_button, item, form_name, remove_item_url){
 };
 
 
-// Ensure items in a formset are not duplicated
+// Block submission of a formset if there are duplicate items
 function validateItems(list_div_id, input_id_suffix, item_name) {
   item_div = document.getElementById(list_div_id);
   item_inputs = item_div.getElementsByTagName("input");
@@ -132,4 +132,21 @@ function validateItems(list_div_id, input_id_suffix, item_name) {
     }
   }
   return true;
+}
+
+
+// Disable the dynamic formset add buttons, if the number of forms
+// matches the max number of forms. Called once when page loads.
+function disableAddButtons() {
+  var maxFormInputs = $( "input[name$='MAX_NUM_FORMS']" );
+  for (var i = 0; i < maxFormInputs.length; i += 1) {
+    var maxFormInput = maxFormInputs[i];
+    var itemListDiv = maxFormInput.parentElement;
+    var totalFormInput = itemListDiv.querySelector("[name$=TOTAL_FORMS]");
+    if (totalFormInput.value == maxFormInput.value) {
+      itemListDiv.querySelector("[id$=-button]").disabled = true;
+    }
+
+  }
+
 }
