@@ -337,6 +337,7 @@ def project_authors(request, project_id):
             invite_author_form = forms.InviteAuthorForm(project, user)
             # Removing organizational authors for now
             # add_author_form = forms.AddAuthorForm(project=project)
+            corresponding_author_form = forms.AuthorChoiceForm(project=project)
         else:
             invite_author_form, add_author_form = None, None
 
