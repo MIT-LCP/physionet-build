@@ -409,7 +409,7 @@
     "user": [
       "rgmark@mit.edu"
     ],
-    "corresponding_email": "rgmark@mit.edu",
+    "corresponding_email": 2,
     "is_corresponding": true
   }
 },
@@ -428,7 +428,7 @@
     "user": [
       "rgmark@mit.edu"
     ],
-    "corresponding_email": "rgmark@mit.edu"
+    "corresponding_email": 2
   }
 },
 {
@@ -446,7 +446,7 @@
     "user": [
       "george@mit.edu"
     ],
-    "corresponding_email": "george@mit.edu",
+    "corresponding_email": 3,
     "is_corresponding": true
   }
 },
@@ -465,7 +465,7 @@
     "user": [
       "aewj@mit.edu"
     ],
-    "corresponding_email": "aewj@mit.edu",
+    "corresponding_email": 7,
     "is_corresponding": true
   }
 },
@@ -484,7 +484,7 @@
     "user": [
       "rgmark@mit.edu"
     ],
-    "corresponding_email": "rgmark@mit.edu",
+    "corresponding_email": 2,
     "is_corresponding": true
 
   }

@@ -8,29 +8,34 @@ from django.contrib.auth import password_validation
 from .models import AssociatedEmail, User, Profile
 from .widgets import ProfilePhotoInput
 
+
 class AssociatedEmailChoiceForm(forms.Form):
     """
     For letting users choose one of their AssociatedEmails.
-    Ie. primary email, public email.
+    Ie. primary email, public email, corresponding email
     """
     associated_email = forms.ModelChoiceField(queryset=None, to_field_name='email',
-        label='email', widget=forms.Select(attrs={'class':'form-control custom-select'}))
+        label='Email', widget=forms.Select(attrs={'class':'form-control custom-select'}))
 
-    def __init__(self, user, selection_type, *args, **kwargs):
+    def __init__(self, user, selection_type, author=None, *args, **kwargs):
         # Email choices are those belonging to a user
         super(AssociatedEmailChoiceForm, self).__init__(*args, **kwargs)
 
         associated_emails = user.associated_emails.filter(is_verified=True).order_by('-is_primary_email')
         self.fields['associated_email'].queryset = associated_emails
 
-        # Primary email, or public email choice
         if selection_type == 'primary':
             self.fields['associated_email'].empty_label = None
-            self.fields['associated_email'].initial = associated_emails.filter(is_primary_email=True).first()
+            self.fields['associated_email'].initial = associated_emails.filter(
+                is_primary_email=True).first()
         elif selection_type == 'public':
             # This might be None
-            self.fields['associated_email'].initial = associated_emails.filter(is_public=True).first()
+            self.fields['associated_email'].initial = associated_emails.filter(
+                is_public=True).first()
             self.fields['associated_email'].required = False
+        elif selection_type == 'corresponding':
+            self.fields['associated_email'].empty_label = None
+            self.fields['associated_email'].initial = author.corresponding_email
 
 
 class AddEmailForm(forms.ModelForm):

@@ -42,21 +42,21 @@ class CorrespondingAuthorForm(forms.Form):
             new_c.save()
 
 
-class CorrespondingEmailForm(forms.ModelForm):
-    """
-    Select an email for correspondence
-    """
+# class CorrespondingEmailForm(forms.ModelForm):
+#     """
+#     Select an email for correspondence
+#     """
 
-    class Meta:
-        model = Author
-        fields = ('corresponding_email',)
+#     class Meta:
+#         model = Author
+#         fields = ('corresponding_email',)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['corresponding_email'] = forms.ChoiceField(
-            choices=((e, e) for e in self.instance.user.get_emails()))
-        # self.fields['corresponding_email'].initial = (
-        #     (self.instance.corresponding_email, self.instance.corresponding_email),)
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         self.fields['corresponding_email'] = forms.ChoiceField(
+#             choices=((e, e) for e in self.instance.user.get_emails()))
+#         # self.fields['corresponding_email'].initial = (
+#         #     (self.instance.corresponding_email, self.instance.corresponding_email),)
 
 
 class ProjectFilesForm(forms.Form):

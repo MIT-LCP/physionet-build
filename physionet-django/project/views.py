@@ -21,7 +21,7 @@ from .models import (Affiliation, Author, Invitation, Project,
     PublishedProject, StorageRequest, Reference,
     Topic, Contact, Publication)
 from . import utility
-from user.forms import ProfileForm
+from user.forms import ProfileForm, AssociatedEmailChoiceForm
 from user.models import User
 
 
@@ -87,7 +87,7 @@ def process_invitation_response(request, invitation_response_formset):
                 if invitation.response:
                     Author.objects.create(project=project, user=user,
                         display_order=project.authors.count() + 1,
-                        corresponding_email=user.email)
+                        corresponding_email=user.get_primary_email())
                 # Send an email notifying the submitting author
                 subject = 'PhysioNet Project Authorship Response'
                 email, name = project.get_submitting_author_info()
@@ -345,11 +345,11 @@ def project_authors(request, project_id):
             corresponding_author_form = forms.CorrespondingAuthorForm(
                 project=project)
         else:
-            invite_author_form, add_author_form = None, None
+            invite_author_form, add_author_form, corresponding_author_form = None, None, None
 
         if user == project.corresponding_author().user:
-            corresponding_email_form = forms.CorrespondingEmailForm(
-                instance=author)
+            corresponding_email_form = AssociatedEmailChoiceForm(
+                user=user, selection_type='corresponding', author=author)
         else:
             corresponding_email_form = None
 
@@ -386,12 +386,13 @@ def project_authors(request, project_id):
                 corresponding_author_form.update_corresponder()
                 messages.success(request, 'The corresponding author has been updated.')
         elif 'corresponding_email' in request.POST:
-            pdb.set_trace()
-            corresponding_email_form = forms.CorrespondingEmailForm(
-                instance=author, data=request.POST)
+            corresponding_email_form = AssociatedEmailChoiceForm(
+                user=user, selection_type='corresponding', author=author,
+                data=request.POST)
             if corresponding_email_form.is_valid():
-                corresponding_email_form.save()
-                messages.success(request, 'Your corresponding email has been set.')
+                author.corresponding_email = corresponding_email_form.cleaned_data['associated_email']
+                author.save()
+                messages.success(request, 'Your corresponding email has been updated.')
 
     invitations = project.invitations.filter(invitation_type='author',
         is_active=True)

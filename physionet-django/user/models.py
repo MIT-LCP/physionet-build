@@ -129,6 +129,12 @@ class User(AbstractBaseUser):
         "Get list of all email strings"
         return [ae.email for ae in self.associated_emails.filter(is_verified=True)]
 
+    def get_primary_email(self):
+        """
+        Get the primary associated email
+        """
+        return self.associated_emails.get(is_primary_email=True)
+
     def get_names(self):
         return self.profile.get_names()
 
