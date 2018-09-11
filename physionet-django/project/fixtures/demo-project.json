@@ -199,7 +199,6 @@
     "submitting_author": [
       "rgmark@mit.edu"
     ],
-    "corresponding_author": 1,
     "published": false,
     "under_submission": false,
     "data_use_agreement": null
@@ -227,7 +226,6 @@
     "submitting_author": [
       "rgmark@mit.edu"
     ],
-    "corresponding_author": 2,
     "published": false,
     "under_submission": false,
     "data_use_agreement": 1
@@ -255,7 +253,6 @@
     "submitting_author": [
       "george@mit.edu"
     ],
-    "corresponding_author": 3,
     "published": false,
     "under_submission": false,
     "data_use_agreement": null
@@ -283,7 +280,6 @@
     "submitting_author": [
       "rgmark@mit.edu"
     ],
-    "corresponding_author": 4,
     "published": false,
     "under_submission": false,
     "data_use_agreement": 1
@@ -412,7 +408,9 @@
     "display_order": 1,
     "user": [
       "rgmark@mit.edu"
-    ]
+    ],
+    "corresponding_email": "rgmark@mit.edu",
+    "is_corresponding": true
   }
 },
 {
@@ -429,7 +427,8 @@
     "display_order": 1,
     "user": [
       "rgmark@mit.edu"
-    ]
+    ],
+    "corresponding_email": "rgmark@mit.edu"
   }
 },
 {
@@ -446,7 +445,9 @@
     "display_order": 1,
     "user": [
       "george@mit.edu"
-    ]
+    ],
+    "corresponding_email": "george@mit.edu",
+    "is_corresponding": true
   }
 },
 {
@@ -463,7 +464,9 @@
     "display_order": 2,
     "user": [
       "aewj@mit.edu"
-    ]
+    ],
+    "corresponding_email": "aewj@mit.edu",
+    "is_corresponding": true
   }
 },
 {
@@ -480,7 +483,10 @@
     "display_order": 1,
     "user": [
       "rgmark@mit.edu"
-    ]
+    ],
+    "corresponding_email": "rgmark@mit.edu",
+    "is_corresponding": true
+
   }
 },
 {

@@ -86,7 +86,8 @@ def process_invitation_response(request, invitation_response_formset):
                 # Create a new Author object
                 if invitation.response:
                     Author.objects.create(project=project, user=user,
-                        display_order=project.authors.count() + 1)
+                        display_order=project.authors.count() + 1,
+                        corresponding_email=user.email)
                 # Send an email notifying the submitting author
                 subject = 'PhysioNet Project Authorship Response'
                 email, name = project.get_submitting_author_info()
@@ -142,6 +143,10 @@ def create_project(request):
         form = forms.CreateProjectForm(user=user)
 
     return render(request, 'project/create_project.html', {'form':form})
+
+
+def project_overview_redirect(request, project_id):
+    return redirect(reverse('project_overview', args=[project_id]))
 
 
 @authorization_required(auth_functions=(is_author, is_admin))
@@ -337,7 +342,7 @@ def project_authors(request, project_id):
             invite_author_form = forms.InviteAuthorForm(project, user)
             # Removing organizational authors for now
             # add_author_form = forms.AddAuthorForm(project=project)
-            corresponding_author_form = forms.AuthorChoiceForm(project=project)
+            corresponding_author_form = forms.SelectAuthorForm(project=project)
         else:
             invite_author_form, add_author_form = None, None
 
@@ -374,6 +379,7 @@ def project_authors(request, project_id):
         'authors':authors, 'invitations':invitations,
         'affiliation_formset':affiliation_formset,
         'invite_author_form':invite_author_form, 'admin_inspect':admin_inspect,
+        'corresponding_author_form':corresponding_author_form,
         'add_item_url':edit_affiliations_url, 'remove_item_url':edit_affiliations_url})
 
 

@@ -111,13 +111,14 @@ class Author(Member):
     # Authors must have physionet profiles, unless they are organizations.
     user = models.ForeignKey('user.User', related_name='authorships',
         blank=True, null=True)
+    is_corresponding = models.BooleanField(default=False)
     corresponding_email = models.EmailField()
 
     class Meta:
         unique_together = (('user', 'project'), ('user', 'published_project'),)
 
     def __str__(self):
-        return self.user.__str__()
+        return '{} --- {}'.format(self.user.username, self.corresponding_email)
 
     def natural_key(self):
         return self.user.natural_key() + (self.project,)
@@ -288,8 +289,6 @@ class Metadata(models.Model):
     # The additional papers to cite when citing the database
     project_citations = GenericRelation(Reference, blank=True)
 
-
-
     # Access information
     access_policy = models.SmallIntegerField(choices=ACCESS_POLICIES,
                                              default=0)
@@ -310,7 +309,7 @@ class Project(Metadata):
 
     # Maximum allowed storage capacity in GB
     storage_allowance = models.SmallIntegerField(default=1)
-    # Misnomer - actually a User object, not an Author object.
+    # Misnomers - actually a User object, not an Author object.
     submitting_author = models.ForeignKey('user.User',
         related_name='submitting_projects')
     # If it has any published versions
@@ -322,8 +321,6 @@ class Project(Metadata):
     # Access fields
     data_use_agreement = models.ForeignKey('project.DataUseAgreement',
                                            null=True, blank=True)
-    corresponding_author = models.OneToOneField('project.Author',
-        related_name='corresponding_projects')
 
     INDIVIDUAL_FILE_SIZE_LIMIT = 100 * 1024**2
 
@@ -337,6 +334,9 @@ class Project(Metadata):
 
     def __str__(self):
         return self.title
+
+    def corresponding_author(self):
+        return self.authors.get(is_corresponding=True)
 
     def file_root(self):
         "Root directory containing the project's files"
@@ -629,7 +629,8 @@ def setup_project(sender, **kwargs):
     """
     project = kwargs['instance']
     user = project.submitting_author
-    Author.objects.create(project=project, user=user, display_order=1)
+    Author.objects.create(project=project, user=user, display_order=1,
+        corresponding_email=user.email, is_corresponding=True)
     # Create file directory
     os.mkdir(project.file_root())
 
