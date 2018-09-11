@@ -127,7 +127,7 @@ class User(AbstractBaseUser):
     # Custom fields and methods
     def get_emails(self):
         "Get list of all email strings"
-        return [ae.email for ae in self.associated_emails.all()]
+        return [ae.email for ae in self.associated_emails.filter(is_verified=True)]
 
     def get_names(self):
         return self.profile.get_names()

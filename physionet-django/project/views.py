@@ -342,9 +342,16 @@ def project_authors(request, project_id):
             invite_author_form = forms.InviteAuthorForm(project, user)
             # Removing organizational authors for now
             # add_author_form = forms.AddAuthorForm(project=project)
-            corresponding_author_form = forms.SelectAuthorForm(project=project)
+            corresponding_author_form = forms.CorrespondingAuthorForm(
+                project=project)
         else:
             invite_author_form, add_author_form = None, None
+
+        if user == project.corresponding_author().user:
+            corresponding_email_form = forms.CorrespondingEmailForm(
+                instance=author)
+        else:
+            corresponding_email_form = None
 
     if request.method == 'POST':
         if 'edit_affiliations' in request.POST:
@@ -354,7 +361,8 @@ def project_authors(request, project_id):
                 affiliation_formset = AffiliationFormSet(
                     instance=author)
         elif 'invite_author' in request.POST:
-            invite_author_form = forms.InviteAuthorForm(project, user, request.POST)
+            invite_author_form = forms.InviteAuthorForm(project=project,
+                user=user, data=request.POST)
             if invite_author(request, invite_author_form):
                 invite_author_form = forms.InviteAuthorForm(project, user)
         # Removing organizational authors for now
@@ -371,6 +379,19 @@ def project_authors(request, project_id):
             # No form. Just get button value.
             invitation_id = int(request.POST['cancel_invitation'])
             cancel_invitation(request, invitation_id)
+        elif 'corresponding_author' in request.POST:
+            corresponding_author_form = forms.CorrespondingAuthorForm(
+                project=project, data=request.POST)
+            if user == project.submitting_author and corresponding_author_form.is_valid():
+                corresponding_author_form.update_corresponder()
+                messages.success(request, 'The corresponding author has been updated.')
+        elif 'corresponding_email' in request.POST:
+            pdb.set_trace()
+            corresponding_email_form = forms.CorrespondingEmailForm(
+                instance=author, data=request.POST)
+            if corresponding_email_form.is_valid():
+                corresponding_email_form.save()
+                messages.success(request, 'Your corresponding email has been set.')
 
     invitations = project.invitations.filter(invitation_type='author',
         is_active=True)
@@ -380,6 +401,7 @@ def project_authors(request, project_id):
         'affiliation_formset':affiliation_formset,
         'invite_author_form':invite_author_form, 'admin_inspect':admin_inspect,
         'corresponding_author_form':corresponding_author_form,
+        'corresponding_email_form':corresponding_email_form,
         'add_item_url':edit_affiliations_url, 'remove_item_url':edit_affiliations_url})
 
 

@@ -84,9 +84,23 @@
   <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
     {% csrf_token %}
     {% include "inline_form_snippet.html" with form=corresponding_author_form %}
-    <button class="btn btn-primary btn-fixed" name="corresponding_author" type="submit">Set Corresponding Author</button>
+    <button class="btn btn-primary btn-fixed" name="corresponding_author" type="submit">Set Corresponder</button>
   </form>
+  <hr>
 {% endif %}
+
+{% if corresponding_email_form %}
+  <br>
+  <h3>Corresponding Email</h3>
+  <p>You are the the selected corresponding author. Choose one of your emails to be listed for correspondence.</p>
+  <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
+    {% csrf_token %}
+    {% include "inline_form_snippet.html" with form=corresponding_email_form %}
+    <button class="btn btn-primary btn-fixed" name="corresponding_email" type="submit">Set Email</button>
+  </form>
+  <hr>
+{% endif %}
+
 <hr>
 
 {# Modals for removing authors and invitations #}
