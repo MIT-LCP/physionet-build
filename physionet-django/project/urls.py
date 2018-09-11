@@ -7,6 +7,8 @@ urlpatterns = [
     url(r'^create/$', views.create_project, name='create_project'),
 
     # Individual project pages
+    url(r'^(?P<project_id>\d+)/$', views.project_overview_redirect,
+        name='project_overview_redirect'),
     url(r'^(?P<project_id>\d+)/overview/$', views.project_overview,
         name='project_overview'),
 

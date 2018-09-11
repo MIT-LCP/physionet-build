@@ -106,7 +106,7 @@ class User(AbstractBaseUser):
         return self.profile.first_name
 
     def __str__(self):
-        return '{} - {}'.format(self.username, self.email)
+        return self.username
 
     objects = UserManager()
 

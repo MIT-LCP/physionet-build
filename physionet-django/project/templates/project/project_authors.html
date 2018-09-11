@@ -80,11 +80,11 @@
 
   <br>
   <h3>Corresponding Author</h3>
-  <p>One author must be selected as the corresponding author.</p>
+  <p>Select a corresponding author for the published project.</p>
   <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
     {% csrf_token %}
-    {% include "inline_form_snippet.html" with form=invite_author_form %}
-    <button class="btn btn-success btn-fixed" name="invite_author" type="submit">Invite Author</button>
+    {% include "inline_form_snippet.html" with form=corresponding_author_form %}
+    <button class="btn btn-primary btn-fixed" name="corresponding_author" type="submit">Set Corresponding Author</button>
   </form>
 {% endif %}
 <hr>

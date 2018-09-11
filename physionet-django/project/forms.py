@@ -19,20 +19,18 @@ RESPONSE_CHOICES = (
 ILLEGAL_PATTERNS = ['/','..',]
 
 
-class SelectAuthorForm(forms.ModelForm):
+class SelectAuthorForm(forms.Form):
     """
     Select an author belonging to a project
     """
-    class Meta:
-        model = Project
-        fields = ('corresponding_author',)
+    author = forms.ModelChoiceField(queryset=None)
 
-    # def __init__(self, project, *args, **kwargs):
-    #     super(ProjectFilesForm, self).__init__(*args, **kwargs)
-    #     self.project = project
-    #     self.author.queryset = project.authors.all()
-
-
+    def __init__(self, project, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.project = project
+        project_authors = project.authors.all()
+        self.fields['author'].queryset = project_authors
+        self.fields['author'].initial = project_authors.get(is_corresponding=True)
 
 
 class ProjectFilesForm(forms.Form):
@@ -334,6 +332,7 @@ class CreateProjectForm(forms.ModelForm):
     def save(self):
         project = super(CreateProjectForm, self).save(commit=False)
         project.submitting_author = self.user
+        project.corresponding_author = self.user
         project.save()
         return project
 
