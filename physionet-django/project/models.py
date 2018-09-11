@@ -112,7 +112,7 @@ class Author(Member):
     user = models.ForeignKey('user.User', related_name='authorships',
         blank=True, null=True)
     is_corresponding = models.BooleanField(default=False)
-    corresponding_email = models.EmailField()
+    corresponding_email = models.ForeignKey('user.AssociatedEmail')
 
     class Meta:
         unique_together = (('user', 'project'), ('user', 'published_project'),)
@@ -630,7 +630,7 @@ def setup_project(sender, **kwargs):
     project = kwargs['instance']
     user = project.submitting_author
     Author.objects.create(project=project, user=user, display_order=1,
-        corresponding_email=user.email, is_corresponding=True)
+        corresponding_email=user.get_primary_email(), is_corresponding=True)
     # Create file directory
     os.mkdir(project.file_root())
 
