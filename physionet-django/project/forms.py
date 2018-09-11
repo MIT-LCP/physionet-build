@@ -19,9 +19,9 @@ RESPONSE_CHOICES = (
 ILLEGAL_PATTERNS = ['/','..',]
 
 
-class SelectAuthorForm(forms.Form):
+class CorrespondingAuthorForm(forms.Form):
     """
-    Select an author belonging to a project
+    Select a corresponding author for a project
     """
     author = forms.ModelChoiceField(queryset=None)
 
@@ -31,6 +31,32 @@ class SelectAuthorForm(forms.Form):
         project_authors = project.authors.all()
         self.fields['author'].queryset = project_authors
         self.fields['author'].initial = project_authors.get(is_corresponding=True)
+
+    def update_corresponder(self):
+        old_c = self.project.corresponding_author()
+        new_c = self.cleaned_data['author']
+
+        if old_c != new_c:
+            old_c.is_corresponding, new_c.is_corresponding = False, True
+            old_c.save()
+            new_c.save()
+
+
+class CorrespondingEmailForm(forms.ModelForm):
+    """
+    Select an email for correspondence
+    """
+
+    class Meta:
+        model = Author
+        fields = ('corresponding_email',)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['corresponding_email'] = forms.ChoiceField(
+            choices=((e, e) for e in self.instance.user.get_emails()))
+        # self.fields['corresponding_email'].initial = (
+        #     (self.instance.corresponding_email, self.instance.corresponding_email),)
 
 
 class ProjectFilesForm(forms.Form):
