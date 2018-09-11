@@ -67,6 +67,7 @@
     </div>
   {% endif %}
 </div>
+<hr>
 
 {% if user == project.submitting_author %}
   <br>
@@ -100,8 +101,6 @@
   </form>
   <hr>
 {% endif %}
-
-<hr>
 
 {# Modals for removing authors and invitations #}
 {% if project.submitting_author == user %}

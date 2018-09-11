@@ -13,6 +13,11 @@
           {% if author.user == project.submitting_author %}
             <span class="badge badge-success">Submitting Author</span>
           {% endif %}
+          {% if author == project.corresponding_author %}
+            <span class="badge badge-info">Corresponding Author</span>
+            <br>
+            <strong>Email</strong>: {{ author.corresponding_email }}
+          {% endif %}
           {# Removing and reordering authors #}
           {% if user == project.submitting_author %}
             <a class="float-right">
