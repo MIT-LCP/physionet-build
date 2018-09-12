@@ -292,10 +292,6 @@ def edit_affiliation(request, project_id):
     project = Project.objects.get(id=project_id)
     author = project.authors.get(user=user)
 
-    # These are for the template
-    item_label = 'Affiliations'
-    form_name = 'project-affiliation-content_type-object_id'
-
     # Reload the formset with the first empty form
     if request.method == 'GET' and 'add_first' in request.GET:
         extra_forms = 1
@@ -313,8 +309,8 @@ def edit_affiliation(request, project_id):
     edit_url = reverse('edit_affiliation', args=[project.id])
 
     return render(request, 'project/item_list.html',
-            {'formset':formset, 'item':'affiliation', 'item_label':'Affiliations',
-             'form_name':form_name, 'add_item_url':edit_url,
+            {'formset':formset, 'item':'affiliation', 'item_label':formset.item_label,
+             'form_name':formset.form_name, 'add_item_url':edit_url,
              'remove_item_url':edit_url})
 
 
@@ -357,7 +353,6 @@ def project_authors(request, project_id):
         if 'edit_affiliations' in request.POST:
             affiliation_formset = AffiliationFormSet(instance=author,
                 data=request.POST)
-            pdb.set_trace()
             if edit_affiliations(request, affiliation_formset):
                 affiliation_formset = AffiliationFormSet(
                     instance=author)
@@ -555,11 +550,8 @@ def project_identifiers(request, project_id):
         publication_formset = PublicationFormSet(request.POST,
                                                  instance=project)
         topic_formset = TopicFormSet(request.POST, instance=project)
-        pdb.set_trace()
         if publication_formset.is_valid() and topic_formset.is_valid():
             print([f.instance.id for f in topic_formset.forms])
-            pdb.set_trace()
-
             publication_formset.save()
             topic_formset.save()
             messages.success(request, 'Your identifier information has been updated.')
