@@ -10,9 +10,21 @@
 <script type="text/javascript" src="{% static 'custom/js/cookie.js' %}"></script>
 {% endblock %}
 
+{% block local_js_bottom %}
+ {# Disable submission for non-submitting authors #}
+{% if user != project.submitting_author %}
+  <script type="text/javascript" src="{% static 'custom/js/disable-input.js' %}"></script>
+{% endif %}
+{% endblock %}
+
 {% block main_content %}
 <h2 class="form-signin-heading">5. Project Files</h2>
 <hr>
+{% if user != project.submitting_author %}
+<div class="alert alert-form alert-warning alert-dismissible">
+  <strong>Only the submitting author may edit files and request storage.</strong>
+</div>
+{% endif %}
 
 <div class="card">
   <div class="card-body">

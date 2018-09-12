@@ -363,7 +363,8 @@ class DatabaseMetadataForm(forms.ModelForm):
                       'content_description': '* Describe the files, how they are named and structured, and how they are to be used.',
                       'usage_notes': 'How the data is to be used. List any related software developed for the dataset, and any special software required to use the data.',
                       'acknowledgements': 'Any general acknowledgements.',
-                      'version': '* The version number of the resource. Suggested format: <MAJOR>.<MINOR>.<PATCH> (example: 1.0.0).',
+                      'conflicts_of_interest': '* Conflicts of interest of any authors. State explicitly if there are none.',
+                      'version': '* The version number of the resource. <a href=https://semver.org/ target=_blank>Semantic versioning</a> is encouraged (example: 1.0.0).',
                       'changelog_summary': '* Summary of changes from the previous release.'}
 
     def __init__(self, include_changelog=False, *args, **kwargs):

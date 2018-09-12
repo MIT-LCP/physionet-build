@@ -7,25 +7,25 @@
 {% block main_content %}
 
 <script>
-    // Check whether the project is publishable
-    function checkPublishable(){
-        $.ajax({url: "{% url 'check_publishable' project.id %}",
-                success: function(result){
-                    if (result.is_publishable){
-                        $("#publishable").html("<i class='fas fa-check' style='color:green'></i> The automatic checks have passed. You may submit the project for review. Note: The project will no longer be editable.");
-                        document.getElementById("request-review").disabled = false;
-                    }
-                    else{
-                        message = "<p><i class='fas fa-times' style='color:red'></i> The automatic checks have failed. The following errors must be addressed before you can submit the project:</p><ul>"
-                        for (i=0; i<result.publish_errors.length; i++){
-                            message += "<li>" + result.publish_errors[i] + "</li>"
-                        }
-                        message += "</ul>"
-                        $("#publishable").html(message);
-                    }
-                }
-        });
-    }
+  // Check whether the project is publishable
+  function checkPublishable(){
+    $.ajax({url: "{% url 'check_publishable' project.id %}",
+      success: function(result){
+        if (result.is_publishable){
+          $("#publishable").html("<i class='fas fa-check' style='color:green'></i> The automatic checks have passed. You may submit the project for review. Note: The project will no longer be editable.");
+          document.getElementById("request-review").disabled = false;
+        }
+        else{
+          message = "<p><i class='fas fa-times' style='color:red'></i> The automatic checks have failed. The following errors must be addressed before you can submit the project:</p><ul>"
+          for (i=0; i<result.publish_errors.length; i++) {
+            message += "<li>" + result.publish_errors[i] + "</li>"
+          }
+          message += "</ul>"
+          $("#publishable").html(message);
+        }
+      }
+    });
+  }
 </script>
 
 
@@ -41,6 +41,10 @@
   <li>Fill in all the mandatory, and the desired optional
     <a href="{% url 'project_metadata' project.id %}">metadata</a>
     fields.</li>
+  <li>Set the <a href="{% url 'project_access' project.id %}">access policy
+    and license</a>..</li>
+  <li>Add <a href="{% url 'project_identifiers' project.id %}">identifiers</a>
+    to your project.</li>
   <li>Upload the project <a href="{% url 'project_files' project.id %}">
     files</a>.</li>
   <li>Inspect the project <a href="{% url 'project_preview' project.id %}" target="_blank">
