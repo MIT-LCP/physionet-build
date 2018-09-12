@@ -18,7 +18,7 @@
 <form action="{% url 'project_metadata' project.id %}" onsubmit="return validateItems('reference-list', 'description', 'References')" method="post">
   {{ description_form.media }}
   {% include "project/metadata_inline_form_snippet.html" with form=description_form %}
-  {% include 'project/item_list.html' with item="reference" item_label="References" formset=reference_formset form_name="project-reference-content_type-object_id" add_item_url=add_item_url remove_item_url=remove_item_url %}
+  {% include 'project/item_list.html' with item="reference" item_label=reference_formset.item_label formset=reference_formset form_name=reference_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}
   <button class="btn btn-lg btn-primary" type="submit" name="edit_description">Save Description</button>
 </form>
 <br>
@@ -29,15 +29,9 @@
 {% block local_js_bottom %}
 <script type="text/javascript" src="{% static 'custom/js/resize-ck.js' %}"></script>
 <script type="text/javascript" src="{% static 'custom/js/enable-popover.js' %}"></script>
-<script>
-  disableAddButtons();
-
-  // Disable submission for non-submitting authors
-  {% if user != project.submitting_author %}
-    $('button').attr('disabled',true);
-    $('input').attr('disabled',true);
-    $('select').attr('disabled',true);
-  {% endif %}
-</script>
-
+<script>disableAddButtons();</script>
+{# Disable submission for non-submitting authors #}
+{% if user != project.submitting_author %}
+  <script type="text/javascript" src="{% static 'custom/js/disable-input.js' %}"></script>
+{% endif %}
 {% endblock %}

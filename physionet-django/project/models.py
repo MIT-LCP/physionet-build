@@ -190,6 +190,9 @@ class Topic(models.Model):
     description = models.CharField(max_length=50)
     project = models.ForeignKey('project.Project', related_name='topics')
 
+    class Meta:
+        unique_together = (('description', 'project'))
+
     def __str__(self):
         return self.description
 
@@ -237,7 +240,7 @@ class Publication(models.Model):
     The publication to cite when referencing the software/dataset.
     """
     citation = models.CharField(max_length=250)
-    url = models.URLField()
+    url = models.URLField(blank=True, default='')
 
     # Project or PublishedProject
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)

@@ -31,6 +31,7 @@ class CorrespondingAuthorForm(forms.Form):
         project_authors = project.authors.all()
         self.fields['author'].queryset = project_authors
         self.fields['author'].initial = project_authors.get(is_corresponding=True)
+        self.fields['author'].empty_label = None
 
     def update_corresponder(self):
         old_c = self.project.corresponding_author()
@@ -40,23 +41,6 @@ class CorrespondingAuthorForm(forms.Form):
             old_c.is_corresponding, new_c.is_corresponding = False, True
             old_c.save()
             new_c.save()
-
-
-# class CorrespondingEmailForm(forms.ModelForm):
-#     """
-#     Select an email for correspondence
-#     """
-
-#     class Meta:
-#         model = Author
-#         fields = ('corresponding_email',)
-
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-#         self.fields['corresponding_email'] = forms.ChoiceField(
-#             choices=((e, e) for e in self.instance.user.get_emails()))
-#         # self.fields['corresponding_email'].initial = (
-#         #     (self.instance.corresponding_email, self.instance.corresponding_email),)
 
 
 class ProjectFilesForm(forms.Form):
@@ -425,6 +409,8 @@ class AffiliationFormSet(BaseGenericInlineFormSet):
     """
     Formset for adding an author's affiliations
     """
+    form_name = 'topics'
+    item_label = 'Topics'
     max_forms = 3
 
     def __init__(self, *args, **kwargs):
@@ -437,7 +423,10 @@ class ReferenceFormSet(BaseGenericInlineFormSet):
     """
     Formset for adding a Project's references
     """
+    form_name = 'project-reference-content_type-object_id'
+    item_label = 'References'
     max_forms = 20
+
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -445,16 +434,33 @@ class ReferenceFormSet(BaseGenericInlineFormSet):
         self.help_text = 'Numbered references specified in the metadata, in <a href=http://www.bibme.org/citation-guide/apa/ target=_blank>APA</a> format. Maximum of {}.'.format(self.max_forms)
 
 
+class PublicationFormSet(BaseGenericInlineFormSet):
+    """
+    Formset for adding a Project's publication
+    """
+    form_name = 'project-publication-content_type-object_id'
+    item_label = 'Publication'
+    max_forms = 1
+
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.max_forms = PublicationFormSet.max_forms
+        self.help_text = 'The article publication to be cited, alongside this resource, in <a href=http://www.bibme.org/citation-guide/apa/ target=_blank>APA</a> format. If the article is in press, leave the URL blank and contact us to update it once it is available. Maximum of {}.'.format(self.max_forms)
+
+
 class TopicFormSet(forms.BaseInlineFormSet):
     """
     Formset for adding a Project's topics
     """
-    max_forms = 20
+    form_name = 'topics'
+    item_label = 'Topics'
+    max_forms = 3
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.max_forms = TopicFormSet.max_forms
-        self.help_text = 'Keyword topics associated with the project. Maximum of {}.'.format(self.max_forms)
+        self.help_text = 'Keyword topics associated with the project. Increases the visibility of your project. Maximum of {}.'.format(self.max_forms)
 
 
 class AccessMetadataForm(forms.ModelForm):

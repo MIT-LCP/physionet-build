@@ -308,7 +308,7 @@ def edit_affiliation(request, project_id):
     AffiliationFormSet = generic_inlineformset_factory(Affiliation,
         fields=('name',), extra=extra_forms,
         max_num=forms.AffiliationFormSet.max_forms, can_delete=False,
-        formset=forms.AffiliationFormSet)
+        formset=forms.AffiliationFormSet, validate_max=True)
     formset = AffiliationFormSet(instance=author)
     edit_url = reverse('edit_affiliation', args=[project.id])
 
@@ -335,7 +335,7 @@ def project_authors(request, project_id):
         AffiliationFormSet = generic_inlineformset_factory(Affiliation,
             fields=('name',), extra=0,
             max_num=forms.AffiliationFormSet.max_forms, can_delete=False,
-            formset = forms.AffiliationFormSet)
+            formset = forms.AffiliationFormSet, validate_max=True)
         affiliation_formset = AffiliationFormSet(instance=author)
 
         if user == project.submitting_author:
@@ -357,6 +357,7 @@ def project_authors(request, project_id):
         if 'edit_affiliations' in request.POST:
             affiliation_formset = AffiliationFormSet(instance=author,
                 data=request.POST)
+            pdb.set_trace()
             if edit_affiliations(request, affiliation_formset):
                 affiliation_formset = AffiliationFormSet(
                     instance=author)
@@ -417,26 +418,19 @@ def edit_metadata_item(request, project_id):
 
     """
     model_dict = {'reference': Reference, 'publication': Publication,
-                  'topic': Topic, 'contact': Contact}
+                  'topic': Topic}
     # Whether the item relation is generic
-    is_generic_relation = {'reference': True, 'topic': False}
+    is_generic_relation = {'reference': True, 'publication':True,
+                           'topic': False}
 
     custom_formsets = {'reference':forms.ReferenceFormSet,
+                       'publication':forms.PublicationFormSet,
                        'topic':forms.TopicFormSet}
 
     # The fields of each formset
     metadata_item_fields = {'reference': ('description',),
                             'publication': ('citation', 'url'),
-                            'topic': ('description',),
-                            'contact': ('name', 'affiliation', 'email')}
-
-    # These are for the template
-    item_labels = {'reference': 'References', 'publication': 'Publications',
-                   'topic': 'Topics', 'contact': 'Contacts'}
-    form_names = {'reference': 'project-reference-content_type-object_id',
-                  'publication': 'project-publication-content_type-object_id',
-                  'topic': 'topics',
-                  'contact': 'project-contact-content_type-object_id'}
+                            'topic': ('description',)}
 
     project = Project.objects.get(id=project_id)
 
@@ -458,19 +452,19 @@ def edit_metadata_item(request, project_id):
         ItemFormSet = generic_inlineformset_factory(model,
             fields=metadata_item_fields[item], extra=extra_forms,
             max_num=custom_formsets[item].max_forms, can_delete=False,
-            formset=custom_formsets[item])
+            formset=custom_formsets[item], validate_max=True)
     else:
         ItemFormSet = inlineformset_factory(Project, model,
             fields=metadata_item_fields[item], extra=extra_forms,
             max_num=custom_formsets[item].max_forms, can_delete=False,
-            formset=custom_formsets[item])
+            formset=custom_formsets[item], validate_max=True)
 
     formset = ItemFormSet(instance=project)
     edit_url = reverse('edit_metadata_item', args=[project.id])
 
     return render(request, 'project/item_list.html',
-            {'formset':formset, 'item':item, 'item_label':item_labels[item],
-             'form_name':form_names[item], 'add_item_url':edit_url,
+            {'formset':formset, 'item':item, 'item_label':formset.item_label,
+             'form_name':formset.form_name, 'add_item_url':edit_url,
              'remove_item_url':edit_url})
 
 @authorization_required(auth_functions=(is_author, is_admin))
@@ -548,29 +542,35 @@ def project_identifiers(request, project_id):
 
     TopicFormSet = inlineformset_factory(Project, Topic,
         fields=('description',), extra=0, max_num=forms.TopicFormSet.max_forms,
-        can_delete=False, formset=forms.TopicFormSet)
-    # PublicationFormSet = generic_inlineformset_factory(Publication,
-    #     fields=('citation', 'url'), extra=0, max_num=3, can_delete=False)
+        can_delete=False, formset=forms.TopicFormSet, validate_max=True)
+    PublicationFormSet = generic_inlineformset_factory(Publication,
+        fields=('citation', 'url'), extra=0,
+        max_num=forms.PublicationFormSet.max_forms, can_delete=False,
+        formset=forms.PublicationFormSet, validate_max=True)
 
-    # publication_formset = PublicationFormSet(instance=project)
+    publication_formset = PublicationFormSet(instance=project)
     topic_formset = TopicFormSet(instance=project)
 
     if request.method == 'POST':
-        # publication_formset = PublicationFormSet(request.POST,
-        #                                          instance=project)
+        publication_formset = PublicationFormSet(request.POST,
+                                                 instance=project)
         topic_formset = TopicFormSet(request.POST, instance=project)
-        if topic_formset.is_valid():
-            # publication_formset.save()
+        pdb.set_trace()
+        if publication_formset.is_valid() and topic_formset.is_valid():
+            print([f.instance.id for f in topic_formset.forms])
+            pdb.set_trace()
+
+            publication_formset.save()
             topic_formset.save()
-            messages.success(request, 'Your identifier metadata has been updated.')
+            messages.success(request, 'Your identifier information has been updated.')
             topic_formset = TopicFormSet(instance=project)
+            publication_formset = PublicationFormSet(instance=project)
         else:
             messages.error(request, 'Invalid submission. See errors below.')
 
     edit_url = reverse('edit_metadata_item', args=[project.id])
-
     return render(request, 'project/project_identifiers.html',
-        {'project':project, #'publication_formset':publication_formset,
+        {'project':project, 'publication_formset':publication_formset,
          'topic_formset':topic_formset, 'add_item_url':edit_url,
          'remove_item_url':edit_url})
 
