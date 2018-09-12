@@ -55,6 +55,9 @@ function addItem(trigger_button, item, form_name, max_forms, add_item_url){
               success: function reloadSection(result){
                   $("#" + item + "-list").replaceWith(result);
                   $('[data-toggle="popover"]').popover();
+                  if (max_forms == 1) {
+                    document.getElementById("add-" + item + "-button").disabled = true;
+                  }
               },
       });
     }

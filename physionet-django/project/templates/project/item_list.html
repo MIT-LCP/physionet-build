@@ -35,11 +35,15 @@
                 {{ field }}
               {% endfor %}
             {% endif %}
+            {% for error in form.non_field_errors %}
+              <div class="alert alert-danger">
+                <strong>{{ error|escape }}</strong>
+              </div>
+            {% endfor %}
         </div>
         <div class='col-md-1'>
           <button class="btn btn-sm btn-danger" type="button" title="Remove {{ item }}" onclick="removeItem(this, '{{ item }}', '{{ form_name }}', '{{ remove_item_url }}')"><i class="fas fa-times"></i></button>
         </div>
     </div>
   {% endfor %}
-
 </div>
