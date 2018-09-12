@@ -6,21 +6,6 @@
 
 {% block local_js_bottom %}
 <script type="text/javascript" src="{% static 'custom/js/enable-popover.js' %}"></script>
-{% endblock %}
-
-{% block main_content %}
-<h2 class="form-signin-heading">3. Project Access</h2>
-<hr>
-
-{% include 'about/access_policies.html'%}
-
-<form action="{% url 'project_access' project.id %}" method="post">
-  {% include "project/metadata_inline_form_snippet.html" with form=access_form %}
-  <button class="btn btn-lg btn-primary" type="submit" name="edit_access">Save Access Information</button>
-</form>
-<br>
-<hr>
-
 <script>
   access_policy_input = document.getElementById("id_access_policy");
 
@@ -42,12 +27,29 @@
   }
   access_policy_input.onload = controlDUA();
   access_policy_input.onchange = controlDUA;
-
-  // Disable submission for non-submitting authors
-  {% if user != project.submitting_author %}
-    $('button').attr('disabled',true);
-    $('input').attr('disabled',true);
-    $('select').attr('disabled',true);
-  {% endif %}
 </script>
+ {# Disable submission for non-submitting authors #}
+{% if user != project.submitting_author %}
+  <script type="text/javascript" src="{% static 'custom/js/disable-input.js' %}"></script>
+{% endif %}
+{% endblock %}
+
+{% block main_content %}
+<h2 class="form-signin-heading">3. Project Access</h2>
+<hr>
+
+{% include 'about/access_policies.html'%}
+
+<form action="{% url 'project_access' project.id %}" method="post">
+  {% if user != project.submitting_author %}
+  <div class="alert alert-form alert-warning alert-dismissible">
+    <strong>Only the submitting author may edit the project access.</strong>
+  </div>
+  {% endif %}
+  {% include "project/metadata_inline_form_snippet.html" with form=access_form %}
+  <button class="btn btn-lg btn-primary" type="submit" name="edit_access">Save Access Information</button>
+</form>
+<br>
+<hr>
+
 {% endblock %}

@@ -287,7 +287,6 @@ def edit_affiliation(request, project_id):
     rendered template of the formset.
 
     """
-    # Todo: access control
     user = request.user
     project = Project.objects.get(id=project_id)
     author = project.authors.get(user=user)
@@ -299,7 +298,12 @@ def edit_affiliation(request, project_id):
     elif request.method == 'POST' and 'remove_id' in request.POST:
         extra_forms = 0
         item_id = int(request.POST['remove_id'])
-        Affiliation.objects.filter(id=item_id).delete()
+        # Make sure that the affiliation belongs to the user
+        affiliation = Affiliation.objects.filter(id=item_id)
+        if user == affiliation.member_object.user:
+            affiliation.delete()
+        else:
+            raise Http404()
 
     AffiliationFormSet = generic_inlineformset_factory(Affiliation,
         fields=('name',), extra=extra_forms,
