@@ -42,7 +42,7 @@ class Affiliation(models.Model):
     objects = AffiliationManager()
 
     name = models.CharField(max_length=255)
-    # member_object points to a Creator or Contributor.
+
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     member_object = GenericForeignKey('content_type', 'object_id')

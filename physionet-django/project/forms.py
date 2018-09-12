@@ -409,7 +409,7 @@ class AffiliationFormSet(BaseGenericInlineFormSet):
     """
     Formset for adding an author's affiliations
     """
-    form_name = 'topics'
+    form_name = 'project-affiliation-content_type-object_id'
     item_label = 'Topics'
     max_forms = 3
 
@@ -418,6 +418,27 @@ class AffiliationFormSet(BaseGenericInlineFormSet):
         self.max_forms = AffiliationFormSet.max_forms
         self.help_text = 'Institutions you are affiliated with. Maximum of {}.'.format(self.max_forms)
 
+    def clean(self):
+        """
+        - Check max forms due to POST refresh issue
+        - validate unique_together values because generic relations
+          don't automatically check).
+        """
+        if any(self.errors):
+            return
+
+        if len(set([a.id for a in self.instance.affiliations.all()]
+                   + [f.instance.id for f in self.forms])) > self.max_forms:
+            raise forms.ValidationError('Maximum number of allowed items exceeded.')
+
+        names = []
+        for form in self.forms:
+            # This is to allow empty unsaved form
+            if 'name' in form.cleaned_data:
+                name = form.cleaned_data['name']
+                if name in names:
+                    raise forms.ValidationError('Affiliation names must be unique.')
+                names.append(name)
 
 class ReferenceFormSet(BaseGenericInlineFormSet):
     """
@@ -425,13 +446,34 @@ class ReferenceFormSet(BaseGenericInlineFormSet):
     """
     form_name = 'project-reference-content_type-object_id'
     item_label = 'References'
-    max_forms = 20
-
+    max_forms = 2
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.max_forms = ReferenceFormSet.max_forms
-        self.help_text = 'Numbered references specified in the metadata, in <a href=http://www.bibme.org/citation-guide/apa/ target=_blank>APA</a> format. Maximum of {}.'.format(self.max_forms)
+        self.help_text = 'Numbered references specified in the metadata. Article citations must be in <a href=http://www.bibme.org/citation-guide/apa/ target=_blank>APA</a> format. Maximum of {}.'.format(self.max_forms)
+
+    def clean(self):
+        """
+        - Check max forms due to POST refresh issue
+        - validate unique_together values because generic relations
+          don't automatically check).
+        """
+        if any(self.errors):
+            return
+
+        if len(set([r.id for r in self.instance.references.all()]
+                   + [f.instance.id for f in self.forms])) > self.max_forms:
+            raise forms.ValidationError('Maximum number of allowed items exceeded.')
+
+        descriptions = []
+        for form in self.forms:
+            # This is to allow empty unsaved form
+            if 'description' in form.cleaned_data:
+                description = form.cleaned_data['description']
+                if description in descriptions:
+                    raise forms.ValidationError('References must be unique.')
+                descriptions.append(description)
 
 
 class PublicationFormSet(BaseGenericInlineFormSet):
@@ -448,6 +490,17 @@ class PublicationFormSet(BaseGenericInlineFormSet):
         self.max_forms = PublicationFormSet.max_forms
         self.help_text = 'The article publication to be cited, alongside this resource, in <a href=http://www.bibme.org/citation-guide/apa/ target=_blank>APA</a> format. If the article is in press, leave the URL blank and contact us to update it once it is available. Maximum of {}.'.format(self.max_forms)
 
+    def clean(self):
+        """
+        - Check max forms due to POST refresh issue
+        """
+        if any(self.errors):
+            return
+
+        if len(set([p.id for p in self.instance.publications.all()]
+                   + [f.instance.id for f in self.forms])) > self.max_forms:
+            raise forms.ValidationError('Maximum number of allowed items exceeded.')
+
 
 class TopicFormSet(forms.BaseInlineFormSet):
     """
@@ -455,7 +508,7 @@ class TopicFormSet(forms.BaseInlineFormSet):
     """
     form_name = 'topics'
     item_label = 'Topics'
-    max_forms = 3
+    max_forms = 20
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
