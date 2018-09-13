@@ -206,19 +206,13 @@
       </div>
 
       <div class="card my-4">
-        <h5 class="card-header">Contact</h5>
+        <h5 class="card-header">Corresponding Author</h5>
         <div class="card-body">
-        {% if contacts %}
-          {% for contact in contacts %}
-            <p>
-              Name: {{ contact.name }}<br>
-              Affiliation: {{ contact.affiliation }}<br>
-              Email: {{ contact.email }}
-            </p>
-          {% endfor %}
-        {% else %}
-          <p><a style="color:red"><strong>* Required field missing</strong></a></p>
-        {% endif %}
+          <p>
+            <strong>Name:</strong> {{ corresponding_author.get_full_name }}<br>
+            <strong>Affiliation:</strong> {{ corresponding_author.display_affiliation }}<br>
+            <strong>Email:</strong> {{ corresponding_author.corresponding_email }}
+          </p>
         </div>
        </div>
     </div>

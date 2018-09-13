@@ -158,10 +158,7 @@ def project_overview(request, project_id):
     project = Project.objects.get(id=project_id)
     admin_inspect = user.is_admin and not is_author(user, project)
 
-    if project.published:
-        published_projects = project.published_projects.all().order_by('publish_datetime')
-    else:
-        published_projects = None
+    published_projects = project.published_projects.all().order_by('publish_datetime') if project.published else None
 
     return render(request, 'project/project_overview.html',
                   {'project':project, 'admin_inspect':admin_inspect,
@@ -745,10 +742,15 @@ def project_preview(request, project_id):
     authors = project.authors.all().order_by('display_order')
     author_info = [utility.AuthorInfo(a) for a in authors]
     invitations = project.invitations.filter(is_active=True)
+
+    # corresponding_author_info = utility.AuthorInfo(authors.get(is_corresponding=True))
+
+    corresponding_author = authors.get(is_corresponding=True)
+    # corresponding_author
+
     references = project.references.all()
     publications = project.publications.all()
     topics = project.topics.all()
-    contacts = project.contacts.all()
 
     is_publishable = project.is_publishable()
     version_clash = False
@@ -766,9 +768,9 @@ def project_preview(request, project_id):
 
     return render(request, 'project/project_preview.html', {
         'project':project, 'display_files':display_files, 'display_dirs':display_dirs,
-        'author_info':author_info,
+        'author_info':author_info, 'corresponding_author':corresponding_author,
         'invitations':invitations, 'references':references,
-        'publications':publications, 'topics':topics, 'contacts':contacts,
+        'publications':publications, 'topics':topics,
         'is_publishable':is_publishable, 'version_clash':version_clash,
         'admin_inspect':admin_inspect, 'dir_breadcrumbs':dir_breadcrumbs})
 

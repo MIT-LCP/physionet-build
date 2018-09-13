@@ -9,38 +9,34 @@
 <hr>
 
 <p>
-    {{ project.resource_type|resource_badge|safe }}
+  {{ project.resource_type|resource_badge|safe }}
+  {% if project.under_submission %}
+    <span class="badge badge-info"><i class="fas fa-glasses"></i> Under Submission</span>
+  {% endif %}
 </p>
 <p class="text-muted">
-    Created {{ project.creation_datetime|date }} Modified {{ project.modified_datetime|date }}
+  Created {{ project.creation_datetime|date }} Modified {{ project.modified_datetime|date }}
 </p>
 <p>
-    Submitting Author: <a href="{% url 'public_profile' project.submitting_author.username %}">{{ project.submitting_author.profile }}</a>
+  Submitting Author: <a href="{% url 'public_profile' project.submitting_author.username %}">{{ project.submitting_author.profile }}</a>
 </p>
-<hr>
-
-
-<h3>Published Versions</h3>
-{% if project.published %}
-    {% for published_project in published_projects %}
-        <a href="{% url 'published_project' published_project.id %}">Version {{ published_project.version }}. Published {{ published_project.publish_datetime|date }}</a>
-    {% endfor %}
-{% else %}
-    <p>This project has not been published.</p>
-{% endif %}
 <hr>
 
 <h3>Submission</h3>
 
-<p>The submission process is described in the
-   <a href="{% url 'author_guidelines' %}" target="_blank">author guidelines.</a></p>
-{% if project.under_submission %}
-    <p>The project is under submission. See the details from the
-       <a href="{% url 'project_submission' project.id %}">submission</a>
-       tab.</p>
-{% else %}
-    <p>The project is not under submission.</p>
-{% endif %}
+<p>To submit the project for publication, go through the following steps using the side panel:</p>
+
+{% include "about/submission_checklist.html" %}
+<hr>
+
+<h3>Published Versions</h3>
+
+{% for published_project in published_projects %}
+    <a href="{% url 'published_project' published_project.id %}">Version {{ published_project.version }}. Published {{ published_project.publish_datetime|date }}</a>
+{% empty %}
+  <p>This project has not been published.</p>
+{% endfor %}
+
 <hr>
 
 {% endblock %}

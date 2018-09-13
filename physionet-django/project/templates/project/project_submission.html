@@ -34,26 +34,7 @@
 
 <h3>Submission Checklist</h3>
 
-<ol>
-  <li>Ensure all <a href="{% url 'project_authors' project.id %}">
-    authors</a> to be credited for creating the resource, have been
-    added to the project and filled in their details.</li>
-  <li>Fill in all the mandatory, and the desired optional
-    <a href="{% url 'project_metadata' project.id %}">metadata</a>
-    fields.</li>
-  <li>Set the <a href="{% url 'project_access' project.id %}">access policy
-    and license</a>..</li>
-  <li>Add <a href="{% url 'project_identifiers' project.id %}">identifiers</a>
-    to your project.</li>
-  <li>Upload the project <a href="{% url 'project_files' project.id %}">
-    files</a>.</li>
-  <li>Inspect the project <a href="{% url 'project_preview' project.id %}" target="_blank">
-    preview</a> to see how the published project would look. Make
-    sure to address any errors.</li>
-</ol>
-
-<p>For more details, see the <a href="{% url 'author_guidelines' %}" target="_blank">
-   author guidelines</a>.</p>
+{% include "about/submission_checklist.html" %}
 
 <hr>
 
