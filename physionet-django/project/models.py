@@ -120,6 +120,9 @@ class Author(Member):
     def __str__(self):
         return '{} --- {}'.format(self.user.username, self.corresponding_email)
 
+    def display_affiliation(self):
+        return ', '.join([a.name for a in self.affiliations.all()])
+
     def natural_key(self):
         return self.user.natural_key() + (self.project,)
 
@@ -225,14 +228,13 @@ class Reference(models.Model):
 
 
 class Contact(models.Model):
+    """
+    Contact for a PublishedProject
+    """
     name = models.CharField(max_length=120)
-    affiliation = models.CharField(max_length=100)
+    affiliations = models.CharField(max_length=150)
     email = models.EmailField(max_length=255)
-
-    # Project or PublishedProject
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    project_object = GenericForeignKey('content_type', 'object_id')
+    published_project = models.ForeignKey('project.PublishedProject')
 
 
 class Publication(models.Model):
