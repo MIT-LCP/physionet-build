@@ -742,11 +742,7 @@ def project_preview(request, project_id):
     authors = project.authors.all().order_by('display_order')
     author_info = [utility.AuthorInfo(a) for a in authors]
     invitations = project.invitations.filter(is_active=True)
-
-    # corresponding_author_info = utility.AuthorInfo(authors.get(is_corresponding=True))
-
     corresponding_author = authors.get(is_corresponding=True)
-    # corresponding_author
 
     references = project.references.all()
     publications = project.publications.all()

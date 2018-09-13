@@ -144,6 +144,8 @@ def setup_author(sender, **kwargs):
         for field in ['first_name', 'middle_names', 'last_name']:
             setattr(author, field, getattr(profile, field))
         author.save()
+        Affiliation.objects.create(name=profile.affiliation,
+                                   member_object=author)
 
 
 class Contributor(Member):
@@ -234,7 +236,8 @@ class Contact(models.Model):
     name = models.CharField(max_length=120)
     affiliations = models.CharField(max_length=150)
     email = models.EmailField(max_length=255)
-    published_project = models.ForeignKey('project.PublishedProject')
+    published_project = models.ForeignKey('project.PublishedProject',
+        related_name='contacts')
 
 
 class Publication(models.Model):
@@ -302,7 +305,6 @@ class Metadata(models.Model):
     # Identifiers
     publications = GenericRelation(Publication, blank=True)
     topics = GenericRelation(Topic, blank=True)
-    contacts = GenericRelation(Contact, blank=True)
 
 
 class Project(Metadata):
@@ -330,9 +332,11 @@ class Project(Metadata):
     INDIVIDUAL_FILE_SIZE_LIMIT = 100 * 1024**2
 
     REQUIRED_FIELDS = {0:['title', 'abstract', 'background', 'methods',
-                          'content_description', 'version', 'license',],
+                          'content_description', 'conflicts_of_interest',
+                          'version', 'license',],
                        1:['title', 'abstract', 'background', 'methods',
-                          'content_description', 'version', 'license',]}
+                          'content_description', 'conflicts_of_interest',
+                          'version', 'license',]}
 
     class Meta:
         unique_together = (('title', 'submitting_author', 'resource_type'),)
@@ -441,13 +445,10 @@ class Project(Metadata):
         # Metadata
         for attr in Project.REQUIRED_FIELDS[self.resource_type]:
             if not getattr(self, attr):
-                self.publish_errors.append('Missing required field: {0}'.format(attr))
+                self.publish_errors.append('Missing required field: {0}'.format(attr.replace('_', ' ')))
 
         if self.access_policy and not self.data_use_agreement:
             self.publish_errors.append('Missing DUA for non-open access policy')
-
-        if not self.contacts.filter():
-            self.publish_errors.append('At least one contact is required')
 
         if self.published:
             published_versions = [p.version for p in self.published_projects.all()]
@@ -543,8 +544,9 @@ class Project(Metadata):
         # Direct copy over fields
         for attr in ['title', 'abstract', 'background', 'methods',
                      'content_description', 'usage_notes', 'acknowledgements',
-                     'version', 'resource_type', 'access_policy',
-                     'changelog_summary', 'access_policy', 'license']:
+                     'conflicts_of_interest', 'version', 'resource_type',
+                     'access_policy', 'changelog_summary', 'access_policy',
+                     'license']:
             setattr(published_project, attr, getattr(self, attr))
 
         # New content
@@ -595,10 +597,11 @@ class Project(Metadata):
                 affiliation_copy = Affiliation.objects.create(
                     name=affiliation.name, member_object=author_copy)
 
-        for contact in self.contacts.all():
-            contact_copy = Contact.objects.create(name=contact.name,
-                affiliation=contact.affiliation, email=contact.email,
-                project_object=published_project)
+        corresponding_author = self.authors.filter(is_corresponding=True)
+        contact = Contact.objects.create(name=corresponding_author.get_full_name(),
+            affiliations=corresponding_author.display_affiliation(),
+            email=corresponding_author.corresponding_email,
+            published_project=published_project)
 
         # Non-open access policy
         if self.access_policy:
