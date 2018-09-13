@@ -112,7 +112,7 @@ class Author(Member):
     user = models.ForeignKey('user.User', related_name='authorships',
         blank=True, null=True)
     is_corresponding = models.BooleanField(default=False)
-    corresponding_email = models.ForeignKey('user.AssociatedEmail')
+    corresponding_email = models.ForeignKey('user.AssociatedEmail', null=True)
 
     class Meta:
         unique_together = (('user', 'project'), ('user', 'published_project'),)

@@ -447,7 +447,7 @@ class ReferenceFormSet(BaseGenericInlineFormSet):
     """
     form_name = 'project-reference-content_type-object_id'
     item_label = 'References'
-    max_forms = 2
+    max_forms = 20
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
