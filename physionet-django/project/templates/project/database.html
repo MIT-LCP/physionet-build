@@ -144,9 +144,9 @@
         <div class="card-body">
           {% if user.is_authenticated %}
             <p>
-              Name: {{ contact.name }}<br>
-              Affiliations: {{ contact.affiliations }}<br>
-              Email: {{ contact.email }}
+              <strong>Name:</strong> {{ contact.name }}<br>
+              <strong>Affiliations:</strong> {{ contact.affiliations }}<br>
+              <strong>Email:</strong> {{ contact.email }}
             </p>
           {% else %}
             <em>You must be logged in to view the contact information.</em>
