@@ -965,7 +965,7 @@ def database(request, published_project):
     references = published_project.references.all()
     publications = published_project.publications.all()
     topics = published_project.topics.all()
-    contacts = published_project.contacts.all()
+    contact = Contact.objects.get(published_project=published_project)
 
     # The file and directory contents
     display_files, display_dirs = published_project.get_directory_content()
@@ -976,7 +976,7 @@ def database(request, published_project):
     return render(request, 'project/database.html',
         {'published_project':published_project, 'author_info':author_info,
          'references':references, 'publications':publications, 'topics':topics,
-         'contacts':contacts, 'dir_breadcrumbs':dir_breadcrumbs,
+         'contact':contact, 'dir_breadcrumbs':dir_breadcrumbs,
          'total_size':total_size, 'display_files':display_files,
          'display_dirs':display_dirs})
 

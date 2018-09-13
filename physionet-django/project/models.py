@@ -597,7 +597,7 @@ class Project(Metadata):
                 affiliation_copy = Affiliation.objects.create(
                     name=affiliation.name, member_object=author_copy)
 
-        corresponding_author = self.authors.filter(is_corresponding=True)
+        corresponding_author = self.authors.get(is_corresponding=True)
         contact = Contact.objects.create(name=corresponding_author.get_full_name(),
             affiliations=corresponding_author.display_affiliation(),
             email=corresponding_author.corresponding_email,
