@@ -101,16 +101,17 @@
     "title": "MIT-BIH Arrhythmia Database",
     "abstract": "<p>The MIT-BIH Arrhythmia Database contains 48 half-hour excerpts of two-channel ambulatory ECG recordings, obtained from 47 subjects studied by the BIH Arrhythmia Laboratory between 1975 and 1979. Twenty-three recordings were chosen at random from a set of 4000 24-hour ambulatory ECG recordings collected from a mixed population of inpatients (about 60%) and outpatients (about 40%) at Boston&#39;s Beth Israel Hospital; the remaining 25 recordings were selected from the same set to include less common but clinically significant arrhythmias that would not be well-represented in a small random sample.</p>",
     "background": "<p>Since 1975, our laboratories at Boston&#39;s Beth Israel Hospital (now the Beth Israel Deaconess Medical Center) and at MIT have supported our own research into arrhythmia analysis and related subjects. One of the first major products of that effort was the MIT-BIH Arrhythmia Database, which we completed and began distributing in 1980. The database was the first generally available set of standard test material for evaluation of arrhythmia detectors, and has been used for that purpose as well as for basic research into cardiac dynamics at more than 500 sites worldwide. Originally, we distributed the database on 9-track half-inch digital tape at 800 and 1600 bpi, and on quarter-inch IRIG-format FM analog tape. In August, 1989, we produced a CD-ROM version of the database.</p>",
-    "methods": "<p>The recordings were digitized at 360 samples per second per channel with 11-bit resolution over a 10 mV range. Two or more cardiologists independently annotated each record; disagreements were resolved to obtain the computer-readable reference annotations for each beat (approximately 110,000 annotations in all) included with the database.</p><p>The charts for each recording were given to two cardiologists, who worked independently, adding additional beat labels and deleting false detections as necessary, and changing the labels for abnormal beats. The cardiologists also added rhythm and signal quality labels. At this point the two sets of annotations were compared automatically and another chart recording was printed, showing the cardiologists&rsquo; annotations in the margin, with all discrepancies highlighted. Each discrepancy was examined and resolved by consensus.</p>",
+    "methods": "<p>The recordings were digitized at 360 samples per second per channel with 11-bit resolution over a 10 mV range. Two or more cardiologists independently annotated each record; disagreements were resolved to obtain the computer-readable reference annotations for each beat (approximately 110,000 annotations in all) included with the database.</p>\r\n\r\n<p>The charts for each recording were given to two cardiologists, who worked independently, adding additional beat labels and deleting false detections as necessary, and changing the labels for abnormal beats. The cardiologists also added rhythm and signal quality labels. At this point the two sets of annotations were compared automatically and another chart recording was printed, showing the cardiologists&rsquo; annotations in the margin, with all discrepancies highlighted. Each discrepancy was examined and resolved by consensus.</p>",
     "content_description": "<p>This directory contains the entire MIT-BIH Arrhythmia Database. About half (25 of 48 complete records, and reference annotation files for all 48 records) of this database has been freely available here since PhysioNet&#39;s inception in September 1999. The 23 remaining signal files, which had been available only on the MIT-BIH Arrhythmia Database CD-ROM, were posted here in February 2005.</p>",
     "usage_notes": "<p>Use one of the <a href=\"https://physionet.org/physiotools/wfdb.shtml\">WFDB</a> software package distributions to read the files. The WFDB record files contain the regularly sampled multichannel waveforms, and the <em>.atr annotation files contain the reference annotations.</em></p>",
     "acknowledgements": "<p>Thank you to the cardiologists who labelled over 100000 heartbeats.</p>",
+    "conflicts_of_interest": "<p>The authors declare no conflicts of interest.</p>",
     "version": "1.0.0",
     "changelog_summary": "",
     "access_policy": 0,
     "license": 1,
     "creation_datetime": "2017-10-30T14:30:30Z",
-    "modified_datetime": "2018-07-11T22:40:13.213Z",
+    "modified_datetime": "2018-09-13T17:26:24.820Z",
     "storage_allowance": 1,
     "submitting_author": [
       "rgmark@mit.edu"
@@ -132,12 +133,13 @@
     "content_description": "<p><strong>Patient characteristics</strong></p>\r\n\r\n<p>MIMIC-III contains data associated with 53,423 distinct hospital admissions for adult patients (aged 16 years or above) admitted to critical care units between 2001 and 2012. In addition, it contains data for 7870 neonates admitted between 2001 and 2008. The data covers 38,597 distinct adult patients and 49,785 hospital admissions. The median age of adult patients is 65.8 years (Q1&ndash;Q3: 52.8&ndash;77.8), 55.9% patients are male, and in-hospital mortality is 11.5%. The median length of an ICU stay is 2.1 days (Q1&ndash;Q3: 1.2&ndash;4.6) and the median length of a hospital stay is 6.9 days (Q1-Q3: 4.1&ndash;11.9). A mean of 4579 charted observations (&rsquo;chartevents&rsquo;) and 380 laboratory measurements (&rsquo;labevents&rsquo;) are available for each hospital admission. Table 1 provides a breakdown of the adult population by care unit.</p>\r\n\r\n<p><strong>Details of the MIMIC-III patient population by first critical care unit on hospital admission for patients aged 16 years and above.</strong></p>\r\n\r\n<p>The primary International Classification of Diseases (ICD-9) codes from the patient discharges are listed in Table 2. The top three codes across hospital admissions for patients aged 16 years and above were:</p>\r\n\r\n<p><strong>Distribution of primary International Classification of Diseases, 9th Edition (ICD-9) codes by care unit for patients aged 16 years and above.</strong></p>\r\n\r\n<ul>\r\n\t<li>\r\n\t<p>414.01 (&lsquo;Coronary atherosclerosis of native coronary artery&rsquo;), accounting for 7.1% of all hospital admissions;</p>\r\n\t</li>\r\n\t<li>\r\n\t<p>038.9 (&lsquo;Unspecified septicemia&rsquo;), accounting for 4.2% of all hospital admissions; and</p>\r\n\t</li>\r\n\t<li>\r\n\t<p>410.71 (&lsquo;Subendocardial infarction, initial episode of care&rsquo;), accounting for 3.6% of all hospital admissions.</p>\r\n\t</li>\r\n</ul>\r\n\r\n<p>Classes of data</p>\r\n\r\n<p>Data available in the MIMIC-III database ranges from time-stamped, nurse-verified physiological measurements made at the bedside to free-text interpretations of imaging studies provided by the radiology department. Table 3 gives an overview of the different classes of data available. Figure 2 shows sample data for a single patient stay in a medical intensive care unit. The patient, who was undergoing a course of chemotherapy at the time of admission, presented with febrile neutropenia, anemia, and thrombocytopenia.</p>\r\n\r\n<p>GCS is Glasgow Coma Scale; NIBP is non-invasive blood pressure; and O2 saturation is blood oxygen saturation.</p>",
     "usage_notes": "",
     "acknowledgements": "<p>This research and development was supported by grants NIH-R01-EB017205, NIH-R01-EB001659, and NIH-R01-GM104987 from the National Institutes of Health. The authors would also like to thank Philips Healthcare and staff at the Beth Israel Deaconess Medical Center, Boston, for supporting database development, and Ken Pierce for providing Fig. 1.</p>",
+    "conflicts_of_interest": "<p>The authors declare no conflicts of interest.</p>",
     "version": "1.3.0",
     "changelog_summary": "",
     "access_policy": 2,
     "license": 1,
     "creation_datetime": "2017-10-30T14:30:30Z",
-    "modified_datetime": "2018-07-03T23:01:38.129Z",
+    "modified_datetime": "2018-09-13T17:23:44.820Z",
     "storage_allowance": 1,
     "submitting_author": [
       "rgmark@mit.edu"
@@ -159,6 +161,7 @@
     "content_description": "",
     "usage_notes": "",
     "acknowledgements": "",
+    "conflicts_of_interest": "",
     "version": "",
     "changelog_summary": "",
     "access_policy": 0,
@@ -186,6 +189,7 @@
     "content_description": "<p>Limited information up to 100 patients. Notes are not included.</p>",
     "usage_notes": "",
     "acknowledgements": "",
+    "conflicts_of_interest": "",
     "version": "1.0.0",
     "changelog_summary": "",
     "access_policy": 1,
@@ -325,8 +329,8 @@
     "user": [
       "rgmark@mit.edu"
     ],
-    "corresponding_email": 2,
-    "is_corresponding": true
+    "is_corresponding": true,
+    "corresponding_email": 2
   }
 },
 {
@@ -344,6 +348,7 @@
     "user": [
       "rgmark@mit.edu"
     ],
+    "is_corresponding": false,
     "corresponding_email": 2
   }
 },
@@ -362,8 +367,8 @@
     "user": [
       "george@mit.edu"
     ],
-    "corresponding_email": 3,
-    "is_corresponding": true
+    "is_corresponding": true,
+    "corresponding_email": 3
   }
 },
 {
@@ -381,8 +386,8 @@
     "user": [
       "aewj@mit.edu"
     ],
-    "corresponding_email": 7,
-    "is_corresponding": true
+    "is_corresponding": true,
+    "corresponding_email": 7
   }
 },
 {
@@ -400,9 +405,8 @@
     "user": [
       "rgmark@mit.edu"
     ],
-    "corresponding_email": 2,
-    "is_corresponding": true
-
+    "is_corresponding": true,
+    "corresponding_email": 2
   }
 },
 {
