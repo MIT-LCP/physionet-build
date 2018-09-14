@@ -411,7 +411,7 @@ class AffiliationFormSet(BaseGenericInlineFormSet):
     Formset for adding an author's affiliations
     """
     form_name = 'project-affiliation-content_type-object_id'
-    item_label = 'Topics'
+    item_label = 'Affiliations'
     max_forms = 3
 
     def __init__(self, *args, **kwargs):
@@ -546,8 +546,8 @@ class InviteAuthorForm(forms.ModelForm):
     """
     def __init__(self, project, inviter, *args, **kwargs):
         super(InviteAuthorForm, self).__init__(*args, **kwargs)
-        self.inviter = inviter
         self.project = project
+        self.inviter = inviter
 
     class Meta:
         model = Invitation
