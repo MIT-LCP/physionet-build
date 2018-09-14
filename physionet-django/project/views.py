@@ -296,7 +296,7 @@ def edit_affiliation(request, project_id):
         extra_forms = 0
         item_id = int(request.POST['remove_id'])
         # Make sure that the affiliation belongs to the user
-        affiliation = Affiliation.objects.filter(id=item_id)
+        affiliation = Affiliation.objects.get(id=item_id)
         if user == affiliation.member_object.user:
             affiliation.delete()
         else:
@@ -336,7 +336,8 @@ def project_authors(request, project_id):
         affiliation_formset = AffiliationFormSet(instance=author)
 
         if user == project.submitting_author:
-            invite_author_form = forms.InviteAuthorForm(project, user)
+            invite_author_form = forms.InviteAuthorForm(project=project,
+                inviter=user)
             # Removing organizational authors for now
             # add_author_form = forms.AddAuthorForm(project=project)
             corresponding_author_form = forms.CorrespondingAuthorForm(
@@ -359,7 +360,7 @@ def project_authors(request, project_id):
                     instance=author)
         elif 'invite_author' in request.POST:
             invite_author_form = forms.InviteAuthorForm(project=project,
-                user=user, data=request.POST)
+                inviter=user, data=request.POST)
             if invite_author(request, invite_author_form):
                 invite_author_form = forms.InviteAuthorForm(project, user)
         # Removing organizational authors for now
