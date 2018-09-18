@@ -1,3 +1,5 @@
+import pdb
+
 from django import forms
 
 from project.models import Submission, Resubmission
@@ -10,6 +12,7 @@ RESPONSE_CHOICES = (
 )
 
 SUBMISSION_RESPONSE_CHOICES = (
+    ('', '-----------'),
     (3, 'Accept'),
     (1, 'Reject'),
     (2, 'Resubmit with changes')
@@ -33,8 +36,17 @@ class EditSubmissionForm(forms.ModelForm):
 
     class Meta:
         model = Submission
-        fields = ('comments', 'decision',)
-        widgets= {'decision':forms.Select(choices=SUBMISSION_RESPONSE_CHOICES)}
+        fields = ('editor_comments', 'decision',)
+        widgets= {'editor_comments':forms.Textarea(),
+                  'decision':forms.Select(choices=SUBMISSION_RESPONSE_CHOICES)}
+
+    def __init__(self, include_blank=False, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Include a blank option, even though it is a required field, in
+        # case the editor accidentally submits
+        if not include_blank:
+            self.fields['decision'].choices = (s for s in SUBMISSION_RESPONSE_CHOICES[2:])
+            pdb.set_trace()
 
     def clean(self):
         """

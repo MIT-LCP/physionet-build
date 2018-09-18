@@ -15,8 +15,7 @@
     {% elif response == 2 %}
       <p>You have rejected the submission.</p>
     {% else %}
-      <p>You have approved the submission. When the submitting author
-         confirms, the project will be published.</p>
+      <p>You have approved the submission. The project has been published <a href="{% url 'published_project' published_project.id }">here</a>.</p>
     {% endif %}
     <p>The authors have been notified of your decision. You may return to your
        <a href="{% url 'console_home' %}">console home</a>.</p>

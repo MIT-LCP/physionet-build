@@ -174,7 +174,7 @@ def edit_submission(request, submission_id):
             if submission.decision == 1:
                 pass
             # Reject
-            elif edit_submission_form.cleaned_data['decision'] == 2:
+            elif submission.decision == 2:
                 pass
             # Accept
             else:

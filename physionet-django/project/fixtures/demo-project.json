@@ -244,7 +244,7 @@
     "response": null,
     "response_message": "",
     "is_active": true,
-    "project": 1,
+    "project": 2,
     "email": "george@mit.edu",
     "inviter": [
       "rgmark@mit.edu"
@@ -261,25 +261,8 @@
     "response": null,
     "response_message": "",
     "is_active": true,
-    "project": 1,
-    "email": "george@gmail.com",
-    "inviter": [
-      "rgmark@mit.edu"
-    ],
-    "invitation_type": "author"
-  }
-},
-{
-  "model": "project.invitation",
-  "pk": 3,
-  "fields": {
-    "request_datetime": "2018-03-30T14:30:30Z",
-    "response_datetime": null,
-    "response": true,
-    "response_message": "",
-    "is_active": false,
     "project": 2,
-    "email": "aewj@mit.edu",
+    "email": "george@gmail.com",
     "inviter": [
       "rgmark@mit.edu"
     ],

@@ -538,7 +538,6 @@ class Project(Metadata):
         if not self.is_publishable():
             raise Exception('Nope')
 
-        submission = self.submissions.get(is_active=True)
         published_project = PublishedProject()
 
         # Direct copy over fields
@@ -552,8 +551,6 @@ class Project(Metadata):
         # New content
         published_project.base_project = self
         published_project.storage_size = self.storage_used()
-        # To be implemented...
-        published_project.doi = '10.13026/C2F305' + str(self.id)
         published_project.save()
 
         # Same content, different objects.
@@ -617,10 +614,6 @@ class Project(Metadata):
         # Copy over files
         shutil.copytree(self.file_root(), published_project.file_root())
 
-        submission.submission_status = 7
-        submission.is_active = False
-        submission.save()
-
         self.under_submission = False
         self.published = True
         self.save()
@@ -657,6 +650,7 @@ def cleanup_project(sender, **kwargs):
     elif os.path.isdir(project_root):
         shutil.rmtree(project_root)
 
+
 class PublishedProject(Metadata):
     """
     A published project. Immutable snapshot.
@@ -672,6 +666,7 @@ class PublishedProject(Metadata):
     publish_datetime = models.DateTimeField(auto_now_add=True)
     is_newest_version = models.BooleanField(default=True)
     doi = models.CharField(max_length=50, default='', unique=True)
+    doi_assigned = models.BooleanField(default=False)
 
     access_system = models.ForeignKey('project.AccessSystem', null=True,
                                        related_name='projects')
