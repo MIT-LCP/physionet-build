@@ -1,7 +1,13 @@
 {% load i18n %}{% autoescape off %}
 Dear {{ name}}
 
-The editor has accepted your publication request for project: {{ project.title }}. The project's submitting author may now make the final approval and publish your project at: http://{{ domain }}{% url "project_submission" project.id %}
+The editor has accepted the publication of your project: {{ published_project.title }}, with the following comments:
+
+"{{ editor_comments }}"
+
+Version {{ published_project.version }} of your project is now published on PhysioNet at: http://{{ domain }}{% url 'published_project' published_project.id %}. Your project is still accessible, and listed in your project home. You can use it to publish newer versions.
+
+Thank you for sharing your resources on PhysioNet.
 
 Regards
 The PhysioNet Team

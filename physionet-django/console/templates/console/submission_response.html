@@ -8,12 +8,12 @@
       Submission Response
   </div>
   <div class="card-body">
-    {% if response == 0 %}
+    {% if response == 1 %}
+    <p>You have requested a resubmission. The submitting author is to
+       make revisions and resubmit. You will be notified when they
+       have done so.</p>
+    {% elif response == 2 %}
       <p>You have rejected the submission.</p>
-    {% elif response == 1 %}
-      <p>You have requested a resubmission. The submitting author is to
-         make revisions and resubmit. You will be notified when they
-         have done so.</p>
     {% else %}
       <p>You have approved the submission. When the submitting author
          confirms, the project will be published.</p>

@@ -880,21 +880,6 @@ def project_submission(request, project_id):
                 messages.success(request, 'You have withdrawn your approval for the project submission.')
             else:
                 raise Http404()
-        # Submitting author approves publication of project
-        elif 'approve_publication' in request.POST:
-            if submission.submission_status == 6 and user == project.submitting_author:
-                published_project = project.publish()
-                # Send a notifying email
-                subject = 'Publication of project {0}'.format(project.title)
-                for email, name in project.get_author_info():
-                    body = loader.render_to_string(
-                        'project/email/publish_notify.html', {'name':name,
-                        'project':project, 'published_project':published_project,
-                        'domain':get_current_site(request)})
-                    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                              [email], fail_silently=False)
-                return render(request, 'project/publish_success.html',
-                    {'project':project, 'published_project':published_project})
 
     if project.under_submission:
         submission = project.submissions.get(is_active=True)

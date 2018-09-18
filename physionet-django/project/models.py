@@ -869,10 +869,8 @@ class Submission(models.Model):
     - 2 : all authors agree, awaiting editor assignment
     - 3 : editor assigned, awaiting decision.
     - 4 : decision 1 = resubmission requested (accept with changes).
-          Loops back to 3.
     - 5 : decision 2 = hard reject, final.
-    - 6 : decision 3 = accept, awaiting author approval to publish.
-    - 7 : author approves publishing, and project is published.
+    - 6 : decision 3 = accept and publish.
 
     """
     project = models.ForeignKey('project.Project', related_name='submissions')
@@ -884,14 +882,13 @@ class Submission(models.Model):
     presubmission_datetime = models.DateTimeField(auto_now_add=True)
     # Marks when all co-authors approve
     submission_datetime = models.DateTimeField(null=True)
-    # Marks when the editor decides the final accept/reject
-    response_datetime = models.DateTimeField(null=True)
     editor = models.ForeignKey('user.User', related_name='editing_submissions',
         null=True)
     # Comments for the final decision
     editor_comments = models.CharField(max_length=800)
-    # Set to 0 for reject or 1 for accept, when final decision is made.
-    response = models.NullBooleanField(null=True)
+    # Final decision. 2 or 3 for reject/accept
+    decision = models.SmallIntegerField(null=True)
+    decision_datetime = models.DateTimeField(null=True)
 
     def __str__(self):
         return 'Submission ID {0} - {1}'.format(self.id, self.project.title)
@@ -900,11 +897,14 @@ class Submission(models.Model):
 class Resubmission(models.Model):
     """
     Model for resubmissions, ie. when editor accepts with conditional
-    changes.
+    changes. The object is created when an editor requests a resubmission.
 
     """
     submission = models.ForeignKey('project.Submission',
         related_name='resubmissions')
-    response_datetime = models.DateTimeField(auto_now_add=True)
+    creation_datetime = models.DateTimeField(auto_now_add=True)
+    # 1, 2, or 3 for resubmit, reject, accept
+    decision = models.SmallIntegerField(null=True)
+    decision_datetime = models.DateTimeField(null=True)
     # Comments for this resubmission decision
     editor_comments = models.CharField(max_length=800)

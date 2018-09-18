@@ -166,34 +166,30 @@ def edit_submission(request, submission_id):
         return Http404()
 
     if request.method == 'POST':
-        edit_submission_form = forms.EditSubmissionForm(request.POST)
-        if edit_submission_form.is_valid() and submission.submission_status == 3:
-            # Reject
-            if edit_submission_form.cleaned_data['decision'] == 0:
-                submission.submission_status = 5
-                submission.decision = 0
-                submission.editor_comments = edit_submission_form.cleaned_data['comments']
+        edit_submission_form = forms.EditSubmissionForm(instance=submission,
+                                                        data=request.POST)
+        if edit_submission_form.is_valid():
+            submission = edit_submission_form.save()
             # Resubmit with changes
-            elif edit_submission_form.cleaned_data['decision'] == 1:
-                submission.submission_status = 4
-                resubmission = Resubmission.objects.create(submission=submission,
-                    editor_comments=edit_submission_form.cleaned_data['comments'])
+            if submission.decision == 1:
+                pass
+            # Reject
+            elif edit_submission_form.cleaned_data['decision'] == 2:
+                pass
             # Accept
             else:
-                submission.submission_status = 6
-                submission.decision = 1
-                submission.editor_comments = edit_submission_form.cleaned_data['comments']
+                published_project = project.publish()
                 # Notify authors of decision
                 subject = 'Submission accepted for project {0}'.format(submission.project.title)
                 for email, name in submission.project.get_author_info():
                     body = loader.render_to_string(
                         'console/email/accept_submission_notify.html',
-                        {'name':name, 'project':submission.project,
+                        {'name':name, 'published_project':published_project,
+                         'editor_comments':submission.editor_comments,
                          'domain':get_current_site(request)})
                     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                               [email], fail_silently=False)
 
-            submission.save()
             return render(request, 'console/submission_response.html',
                 {'response':edit_submission_form.cleaned_data['decision']})
 

@@ -114,16 +114,6 @@
             <li class="list-group-item"><i class="far fa-clock"></i> Awaiting editor response.</li></ul>
         {% elif submission.submission_status == 4 %}
             <p>The editor has requested a resubmission.</p>
-        {% elif submission.submission_status == 6 %}
-            <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The editor has accepted the submission. The submitting author may confirm to publish the project.</li></ul>
-            {% if user == project.submitting_author %}
-                <p>
-                    <form action="" method="post">
-                        {% csrf_token %}
-                        <button class="btn btn-success btn-lg" name="approve_publication"><i class="fas fa-book-open"></i> Publish</button>
-                    </form>
-                </p>
-            {% endif %}
         {% endif %}
     {% endif %}
 {% endif %}

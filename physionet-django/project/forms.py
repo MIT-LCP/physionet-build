@@ -659,7 +659,7 @@ class InvitationResponseForm(forms.ModelForm):
     class Meta:
         model = Invitation
         fields = ('response', 'response_message')
-        widgets={'response':forms.Select(choices=RESPONSE_CHOICES),
+        widgets= {'response':forms.Select(choices=RESPONSE_CHOICES),
                  'response_message':forms.Textarea()}
 
     def clean(self):
