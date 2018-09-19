@@ -867,54 +867,68 @@ class StorageRequest(BaseInvitation):
                                                self.project.__str__())
 
 
-class Submission(models.Model):
+class BaseSubmission(models.Model):
     """
-    Project submission. Object is created in presubmission mode when
-    submitting author submits. When all co-authors approve, official
-    submission begins. Object can be deleted if submitting author
-    retracts before all co-authors approve.
+    Class to be inherited by Submission and Resubmission
+
+    """
+    # Each project can have one active submission at a time
+    is_active = models.BooleanField(default=True)
+    # When the submitting author submits
+    submission_datetime = models.DateTimeField(null=True)
+    # Editor decision. 1 2 or 3 for reject/revise/accept
+    decision = models.SmallIntegerField(null=True)
+    decision_datetime = models.DateTimeField(null=True)
+    # Comments for the decision
+    editor_comments = models.CharField(max_length=800)
+
+    class Meta:
+        abstract = True
+
+
+class Submission(BaseSubmission):
+    """
+    Project submission. Object is created when submitting author submits.
 
     The submission_status field:
-    - 1 : submitting author submits.
-    - 2 : all authors agree, awaiting editor assignment
-    - 3 : editor assigned, awaiting decision.
-    - 4 : decision 1 = resubmission requested (accept with changes).
-    - 5 : decision 2 = hard reject, final.
-    - 6 : decision 3 = accept and publish.
+    - 0 : submitting author submits. Awaiting decision.
+    - 1 : decision 1 = reject.
+    - 2 : decision 2 = accept with revisions.
+    - 3 : decision 3 = accept. Ready to publish upon all authors' approval.
+    - 4 : Published.
 
     """
     project = models.ForeignKey('project.Project', related_name='submissions')
-    # Each project can have one active submission at a time
-    is_active = models.BooleanField(default=True)
-    submission_status = models.PositiveSmallIntegerField(default=1)
-    approved_authors = models.ManyToManyField('project.Author')
-    # Marks when the submitting author submits
-    presubmission_datetime = models.DateTimeField(auto_now_add=True)
-    # Marks when all co-authors approve
-    submission_datetime = models.DateTimeField(null=True)
     editor = models.ForeignKey('user.User', related_name='editing_submissions',
         null=True)
-    # Comments for the final decision
-    editor_comments = models.CharField(max_length=800)
-    # Final decision. 2 or 3 for reject/accept
-    decision = models.SmallIntegerField(null=True)
-    decision_datetime = models.DateTimeField(null=True)
+    submission_status = models.PositiveSmallIntegerField(default=1)
+
+    # All authors must approve for publication
+    approved_authors = models.ManyToManyField('project.Author')
+    # The published item, if decision is accept
+    published_project = models.OneToOneField('project.PublishedProject',
+        null=True, related_name='publishing_submission')
+    publish_datetime = models.DateTimeField(null=True)
 
     def __str__(self):
         return 'Submission ID {0} - {1}'.format(self.id, self.project.title)
 
+    def get_active_resubmission(self):
+        if self.is_active:
+            return self.resubmissions.get(is_active=True)
 
-class Resubmission(models.Model):
+    def get_resubmissions(self):
+        return self.resubmissions.all().order_by('creation_datetime')
+
+
+class Resubmission(BaseSubmission):
     """
     Model for resubmissions, ie. when editor accepts with conditional
-    changes. The object is created when an editor requests a resubmission.
+    changes.
+
+    The object is created when the submitting author makes a resubmission.
 
     """
     submission = models.ForeignKey('project.Submission',
         related_name='resubmissions')
-    creation_datetime = models.DateTimeField(auto_now_add=True)
-    # 1, 2, or 3 for resubmit, reject, accept
-    decision = models.SmallIntegerField(null=True)
-    decision_datetime = models.DateTimeField(null=True)
-    # Comments for this resubmission decision
-    editor_comments = models.CharField(max_length=800)
+

@@ -816,10 +816,9 @@ def project_submission(request, project_id):
                 raise Http404()
             else:
                 if project.is_publishable() and user == project.submitting_author:
-                    project.presubmit()
+                    project.submit()
                     email, name = project.get_submitting_author_info()
-                    # Submission is automatically triggered if only 1 author
-                    if project.submission_status() == 2:
+
                         subject = 'Submission of project {0}'.format(project.title)
                         body = loader.render_to_string(
                             'project/email/submit_notify.html',
@@ -827,25 +826,27 @@ def project_submission(request, project_id):
                         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                                   [email], fail_silently=False)
                         messages.success(request, 'Your project has been submitted for review.')
-                    # There are multiple authors
-                    else:
-                        # email submitting author
-                        subject = 'Presubmission of project {0}'.format(project.title)
-                        email_context = {'name':name, 'project':project,
-                                         'domain':get_current_site(request)}
+                    # There are multiple author
+
+                    # email authors submitting author
+                    subject = 'Submission of project {0}'.format(project.title)
+                    email_context = {'name':name, 'project':project,
+                                     'domain':get_current_site(request)}
+
+                    body = loader.render_to_string(
+                        'project/email/submit_notify.html', email_context)
+                    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                        [email], fail_silently=False)
+
+
+                    for email, name in project.get_coauthor_info():
+                        email_context['name'] = name
                         body = loader.render_to_string(
-                            'project/email/presubmit_notify.html', email_context)
+                            'project/email/submit_notify.html',
+                            email_context)
                         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                            [email], fail_silently=False)
-                        # email coauthors
-                        for email, name in project.get_coauthor_info():
-                            email_context['name'] = name
-                            body = loader.render_to_string(
-                                'project/email/presubmit_notify_coauthor.html',
-                                email_context)
-                            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                                      [email], fail_silently=False)
-                        messages.success(request, 'Your project has been pre-submitted. Awaiting co-authors to approve submission.')
+                                  [email], fail_silently=False)
+                    messages.success(request, 'Your project has been pre-submitted. Awaiting co-authors to approve submission.')
                 else:
                     messages.error(request, 'Fix the errors before submitting')
         # Project submission is withdrawn while under presubmission
@@ -863,8 +864,8 @@ def project_submission(request, project_id):
                 messages.success(request, 'Your project submission has been cancelled.')
             else:
                 raise Http404()
-        # Coauthor approves submission while under presubmission
-        elif 'approve_submission' in request.POST:
+        # Author approves publication
+        elif 'approve_publish' in request.POST:
             author = authors.get(user=user)
             if submission.submission_status == 1 and authors not in submission.approved_authors.all():
                 project.approve_author(author)
@@ -880,13 +881,6 @@ def project_submission(request, project_id):
                     messages.success(request, 'You have approved the submission. The project is now under review.')
                 else:
                     messages.success(request, 'You have approved the submission')
-            else:
-                raise Http404()
-        # Coauthor withdraws approval for submission while under presubmission
-        elif 'withdraw_approval' in request.POST:
-            if submission.submission_status == 1 and user in [a.user for a in approved_authors] and user != project.submitting_author:
-                submission.approved_authors.remove(authors.get(user=user))
-                messages.success(request, 'You have withdrawn your approval for the project submission.')
             else:
                 raise Http404()
 
@@ -905,11 +899,17 @@ def project_submission_history(request, project_id):
     """
     Submission history for a project
     """
+    user = request.user
     project = Project.objects.get(id=project_id)
     admin_inspect = user.is_admin and not is_author(user, project)
 
-    return render(request, 'project/submission_history.html',
-        {'project':project, 'admin_inspect':admin_inspect})
+    submissions = project.submissions.all()
+
+
+
+    return render(request, 'project/project_submission_history.html',
+        {'project':project, 'admin_inspect':admin_inspect,
+         'submissions':submissions})
 
 
 def published_files_panel(request, published_project_id):
