@@ -222,16 +222,24 @@ def remove_author(request, author_id):
     """
     user = request.user
     author = Author.objects.get(id=author_id)
+    project = author.project
 
-    if author.project.submitting_author == user:
+    if project.submitting_author == user:
+        authors = project.authors.all()
+        # Reset the corresponding author if necessary
+        if author.is_corresponding:
+            submitting_author = authors.get(user=project.submitting_author)
+            submitting_author.is_corresponding = True
+            submitting_author.save()
         # Other author orders may have to be decreased when this author
         # is removed
-        higher_authors = author.project.authors.filter(display_order__gt=author.display_order)
+        higher_authors = authors.filter(display_order__gt=author.display_order)
         author.delete()
         if higher_authors:
             for author in higher_authors:
                 author.display_order -= 1
                 author.save()
+
         messages.success(request, 'The author has been removed from the project')
         return True
 

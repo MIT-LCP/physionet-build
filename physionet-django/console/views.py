@@ -172,15 +172,33 @@ def edit_submission(request, submission_id):
             submission = edit_submission_form.save()
             # Resubmit with changes
             if submission.decision == 1:
-                pass
+                # Notify authors of decision
+                subject = 'Resubmission request for project {0}'.format(project.title)
+                for email, name in submission.project.get_author_info():
+                    body = loader.render_to_string(
+                        'console/email/resubmit_submission_notify.html',
+                        {'name':name, 'project':project,
+                         'editor_comments':submission.editor_comments,
+                         'domain':get_current_site(request)})
+                    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                              [email], fail_silently=False)
             # Reject
             elif submission.decision == 2:
-                pass
+                # Notify authors of decision
+                subject = 'Submission rejected for project {0}'.format(project.title)
+                for email, name in submission.project.get_author_info():
+                    body = loader.render_to_string(
+                        'console/email/reject_submission_notify.html',
+                        {'name':name, 'project':project,
+                         'editor_comments':submission.editor_comments,
+                         'domain':get_current_site(request)})
+                    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                              [email], fail_silently=False)
             # Accept
             else:
                 published_project = project.publish()
                 # Notify authors of decision
-                subject = 'Submission accepted for project {0}'.format(submission.project.title)
+                subject = 'Submission accepted for project {0}'.format(project.title)
                 for email, name in submission.project.get_author_info():
                     body = loader.render_to_string(
                         'console/email/accept_submission_notify.html',
