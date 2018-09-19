@@ -191,7 +191,8 @@ def edit_submission(request, submission_id):
                               [email], fail_silently=False)
 
             return render(request, 'console/submission_response.html',
-                {'response':edit_submission_form.cleaned_data['decision']})
+                {'decision':submission.decision,
+                 'published_project':published_project})
 
     edit_submission_form = forms.EditSubmissionForm()
 

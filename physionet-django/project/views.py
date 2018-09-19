@@ -753,7 +753,7 @@ def project_preview(request, project_id):
     version_clash = False
 
     if is_publishable:
-        messages.success(request, 'The project has passed all automatic checks and may be submitted.')
+        messages.success(request, 'The project has passed all automatic checks.')
     else:
         for e in project.publish_errors:
             messages.error(request, e)

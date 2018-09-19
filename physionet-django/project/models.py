@@ -36,7 +36,7 @@ class AffiliationManager(models.Manager):
 
 class Affiliation(models.Model):
     """
-    Affiliations belonging to an author or collaborator
+    Affiliations belonging to an author
 
     """
     objects = AffiliationManager()
@@ -665,7 +665,7 @@ class PublishedProject(Metadata):
     storage_size = models.IntegerField()
     publish_datetime = models.DateTimeField(auto_now_add=True)
     is_newest_version = models.BooleanField(default=True)
-    doi = models.CharField(max_length=50, default='', unique=True)
+    doi = models.CharField(max_length=50, default='')
     doi_assigned = models.BooleanField(default=False)
 
     access_system = models.ForeignKey('project.AccessSystem', null=True,
@@ -676,6 +676,19 @@ class PublishedProject(Metadata):
 
     def __str__(self):
         return ('{0} v{1}'.format(self.title, self.version))
+
+    def validate_doi(self, *args, **kwargs):
+        """
+        Validate uniqueness of doi, ignore empty ''
+        """
+        super().validate_unique(*args, **kwargs)
+        print('n\n\\n\nLAOEIFJAOEIFEAF\n\n\n\n')
+
+        published_projects = __class__.objects.filter(doi_assigned=True)
+        dois = [p.doi for p in published_projects]
+
+        if len(dois) != len(set(dois)):
+            raise ValidationError('Duplicate DOI')
 
     def file_root(self):
         "Root directory containing the published project's files"

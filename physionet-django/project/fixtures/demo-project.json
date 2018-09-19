@@ -375,7 +375,7 @@
 },
 {
   "model": "project.author",
-  "pk": 6,
+  "pk": 5,
   "fields": {
     "project": 4,
     "published_project": null,
@@ -394,9 +394,9 @@
 },
 {
   "model": "project.affiliation",
-  "pk": 16,
+  "pk": 1,
   "fields": {
-    "name": "Massachusets Institute of Technology",
+    "name": "Massachusetts Institute of Technology",
     "content_type": [
       "project",
       "author"
@@ -406,7 +406,7 @@
 },
 {
   "model": "project.affiliation",
-  "pk": 17,
+  "pk": 2,
   "fields": {
     "name": "Harvard University",
     "content_type": [
@@ -418,7 +418,7 @@
 },
 {
   "model": "project.affiliation",
-  "pk": 18,
+  "pk": 3,
   "fields": {
     "name": "Beth Israel Deaconess Medical Center",
     "content_type": [
@@ -430,19 +430,7 @@
 },
 {
   "model": "project.affiliation",
-  "pk": 19,
-  "fields": {
-    "name": "Massachusets Institute of Technology",
-    "content_type": [
-      "project",
-      "author"
-    ],
-    "object_id": 3
-  }
-},
-{
-  "model": "project.affiliation",
-  "pk": 20,
+  "pk": 4,
   "fields": {
     "name": "Massachusetts Institute of Technology",
     "content_type": [
@@ -454,7 +442,7 @@
 },
 {
   "model": "project.affiliation",
-  "pk": 21,
+  "pk": 5,
   "fields": {
     "name": "Harvard University",
     "content_type": [
@@ -466,7 +454,7 @@
 },
 {
   "model": "project.affiliation",
-  "pk": 22,
+  "pk": 6,
   "fields": {
     "name": "Beth Israel Deaconess Medical Center",
     "content_type": [
@@ -478,50 +466,38 @@
 },
 {
   "model": "project.affiliation",
-  "pk": 23,
+  "pk": 7,
   "fields": {
     "name": "Massachusetts Institute of Technology",
     "content_type": [
       "project",
       "author"
     ],
-    "object_id": 4
+    "object_id": 5
   }
 },
 {
   "model": "project.affiliation",
-  "pk": 24,
-  "fields": {
-    "name": "Massachusetts Institute of Technology",
-    "content_type": [
-      "project",
-      "author"
-    ],
-    "object_id": 6
-  }
-},
-{
-  "model": "project.affiliation",
-  "pk": 25,
+  "pk": 8,
   "fields": {
     "name": "Harvard University",
     "content_type": [
       "project",
       "author"
     ],
-    "object_id": 6
+    "object_id": 5
   }
 },
 {
   "model": "project.affiliation",
-  "pk": 26,
+  "pk": 9,
   "fields": {
     "name": "Beth Israel Deaconess Medical Center",
     "content_type": [
       "project",
       "author"
     ],
-    "object_id": 6
+    "object_id": 5
   }
 }
 ]

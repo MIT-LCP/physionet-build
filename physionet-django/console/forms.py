@@ -40,14 +40,6 @@ class EditSubmissionForm(forms.ModelForm):
         widgets= {'editor_comments':forms.Textarea(),
                   'decision':forms.Select(choices=SUBMISSION_RESPONSE_CHOICES)}
 
-    def __init__(self, include_blank=False, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Include a blank option, even though it is a required field, in
-        # case the editor accidentally submits
-        if not include_blank:
-            self.fields['decision'].choices = (s for s in SUBMISSION_RESPONSE_CHOICES[2:])
-            pdb.set_trace()
-
     def clean(self):
         """
         The submission must be awaiting an editor response
