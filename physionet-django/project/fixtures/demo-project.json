@@ -499,5 +499,17 @@
     ],
     "object_id": 5
   }
+},
+{
+  "model": "project.affiliation",
+  "pk": 10,
+  "fields": {
+    "name": "Massachusetts Institute of Technology",
+    "content_type": [
+      "project",
+      "author"
+    ],
+    "object_id": 4
+  }
 }
 ]

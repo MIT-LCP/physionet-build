@@ -52,7 +52,7 @@ class Affiliation(models.Model):
     natural_key.dependencies = ['project.Author']
 
     class Meta:
-        unique_together = (('name', 'content_type', 'object_id'))
+        unique_together = (('name', 'content_type', 'object_id'),)
 
 
 class Member(models.Model):
@@ -123,29 +123,29 @@ class Author(Member):
     def display_affiliation(self):
         return ', '.join([a.name for a in self.affiliations.all()])
 
+    def import_profile_info(self):
+        """
+        Import profile information (names) into the Author object.
+        Also create affiliation object if present in profile.
+
+        To be called when an author object is created
+        """
+        profile = self.user.profile
+        for field in ['first_name', 'middle_names', 'last_name']:
+            setattr(self, field, getattr(profile, field))
+        self.save()
+
+        if profile.affiliation:
+            Affiliation.objects.create(name=profile.affiliation,
+                member_object=self)
+
+
     def natural_key(self):
         return self.user.natural_key() + (self.project,)
 
     natural_key.dependencies = ['user.User', 'project.Project']
 
     objects = AuthorManager()
-
-
-@receiver(post_save, sender=Author)
-@new_creation
-def setup_author(sender, **kwargs):
-    """
-    When an Author is created:
-    - Import profile names.
-    """
-    author = kwargs['instance']
-    if author.is_human and author.user:
-        profile = author.user.profile
-        for field in ['first_name', 'middle_names', 'last_name']:
-            setattr(author, field, getattr(profile, field))
-        author.save()
-        Affiliation.objects.create(name=profile.affiliation,
-                                   member_object=author)
 
 
 class Contributor(Member):
@@ -196,7 +196,7 @@ class Topic(models.Model):
     project = models.ForeignKey('project.Project', related_name='topics')
 
     class Meta:
-        unique_together = (('description', 'project'))
+        unique_together = (('description', 'project'),)
 
     def __str__(self):
         return self.description
@@ -594,6 +594,7 @@ class Project(Metadata):
                 affiliation_copy = Affiliation.objects.create(
                     name=affiliation.name, member_object=author_copy)
 
+
         corresponding_author = self.authors.get(is_corresponding=True)
         contact = Contact.objects.create(name=corresponding_author.get_full_name(),
             affiliations=corresponding_author.display_affiliation(),
@@ -630,8 +631,9 @@ def setup_project(sender, **kwargs):
     """
     project = kwargs['instance']
     user = project.submitting_author
-    Author.objects.create(project=project, user=user, display_order=1,
+    author = Author.objects.create(project=project, user=user, display_order=1,
         corresponding_email=user.get_primary_email(), is_corresponding=True)
+    author.import_profile_info()
     # Create file directory
     os.mkdir(project.file_root())
 

@@ -85,9 +85,10 @@ def process_invitation_response(request, invitation_response_formset):
                     response_datetime=timezone.now(), is_active=False)
                 # Create a new Author object
                 if invitation.response:
-                    Author.objects.create(project=project, user=user,
+                    author = Author.objects.create(project=project, user=user,
                         display_order=project.authors.count() + 1,
                         corresponding_email=user.get_primary_email())
+                    author.import_profile_info()
                 # Send an email notifying the submitting author
                 subject = 'PhysioNet Project Authorship Response'
                 email, name = project.get_submitting_author_info()
