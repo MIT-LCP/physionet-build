@@ -29,71 +29,16 @@ def new_creation(receiver_function):
     return func_wrapper
 
 
-class AffiliationManager(models.Manager):
-    def get_by_natural_key(self, author_email, project, name):
-        return self.get(member_object__email=author_email, project=project,
-            name=name)
-
 class Affiliation(models.Model):
     """
     Affiliations belonging to an author
 
     """
-    objects = AffiliationManager()
-
     name = models.CharField(max_length=255)
-
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    member_object = GenericForeignKey('content_type', 'object_id')
-
-    def natural_key(self):
-        return self.member_object.natural_key() + (self.name,)
-    natural_key.dependencies = ['project.Author']
+    author = models.ForeignKey('project.Author', related_name='affiliations')
 
     class Meta:
-        unique_together = (('name', 'content_type', 'object_id'),)
-
-
-class Member(models.Model):
-    """
-    Inherited by the Author and Contributor classes.
-
-    """
-    # The member will point to a project OR published project
-    project = models.ForeignKey('project.Project', related_name='%(class)ss',
-        null=True, blank=True)
-    published_project =models.ForeignKey('project.PublishedProject',
-        related_name='%(class)ss', null=True, blank=True)
-
-    first_name = models.CharField(max_length=100, default='')
-    middle_names = models.CharField(max_length=200, default='', blank=True)
-    last_name = models.CharField(max_length=100, default='')
-    is_human = models.BooleanField(default=True)
-    organization_name = models.CharField(max_length=200, default='')
-    display_order = models.PositiveSmallIntegerField()
-    affiliations = GenericRelation(Affiliation)
-
-    def __str__(self):
-        if self.is_human:
-            return self.user.__str__()
-        else:
-            return self.organization_name
-
-    class Meta:
-        abstract = True
-
-    def get_full_name(self):
-        if self.middle_names:
-            return ' '.join([self.first_name, self.middle_names,
-                           self.last_name])
-        else:
-            return ' '.join([self.first_name, self.last_name])
-
-
-class AuthorManager(models.Manager):
-    def get_by_natural_key(self, user_email, project):
-        return self.get(user__email=user_email, project=project)
+        unique_together = (('name', 'author'),)
 
 
 class Author(Member):
@@ -101,16 +46,21 @@ class Author(Member):
     A project's author/creator (datacite). Credited for creating the
     resource.
 
-    Datacite definition:
-        "The main researchers involved
-        in producing the data, or the
-        authors of the publication, in
-        priority order."
+    Datacite definition: "The main researchers involved in producing the
+    data, or the authors of the publication, in priority order."
 
+    This model is used for both Project and PublishedProject
     """
-    # Authors must have physionet profiles, unless they are organizations.
-    user = models.ForeignKey('user.User', related_name='authorships',
-        blank=True, null=True)
+    project = models.ForeignKey('project.Project', related_name='%(class)ss',
+        null=True, blank=True)
+    published_project =models.ForeignKey('project.PublishedProject',
+        related_name='%(class)ss', null=True, blank=True)
+
+    user = models.ForeignKey('user.User', related_name='authorships')
+    first_name = models.CharField(max_length=100, default='')
+    middle_names = models.CharField(max_length=200, default='')
+    last_name = models.CharField(max_length=100, default='')
+    display_order = models.PositiveSmallIntegerField()
     is_corresponding = models.BooleanField(default=False)
     corresponding_email = models.ForeignKey('user.AssociatedEmail', null=True)
 
@@ -122,6 +72,13 @@ class Author(Member):
 
     def display_affiliation(self):
         return ', '.join([a.name for a in self.affiliations.all()])
+
+    def get_full_name(self):
+        if self.middle_names:
+            return ' '.join([self.first_name, self.middle_names,
+                           self.last_name])
+        else:
+            return ' '.join([self.first_name, self.last_name])
 
     def import_profile_info(self):
         """
@@ -137,55 +94,7 @@ class Author(Member):
 
         if profile.affiliation:
             Affiliation.objects.create(name=profile.affiliation,
-                member_object=self)
-
-
-    def natural_key(self):
-        return self.user.natural_key() + (self.project,)
-
-    natural_key.dependencies = ['user.User', 'project.Project']
-
-    objects = AuthorManager()
-
-
-class Contributor(Member):
-    """
-    A resource contributor.
-
-    Datacite definition:
-        "The institution or person
-        responsible for collecting,
-        managing, distributing, or
-        otherwise contributing to the
-        development of the resource."
-
-    """
-    contributor_type_choices = (
-        ('ContactPerson', 'Contact Person'),
-        ('DataCollector', 'Data Collector'),
-        ('DataCurator', 'Data Curator'),
-        ('DataManager', 'Data Manager'),
-        ('Distributor', 'Distributor'),
-        ('Editor', 'Editor'),
-        ('HostingInstitution', 'Hosting Institution'),
-        ('Producer', 'Producer'),
-        ('ProjectLeader', 'Project Leader'),
-        ('ProjectManager', 'Project Manager'),
-        ('ProjectMember', 'Project Member'),
-        ('RegistrationAgency', 'Registration Agency'),
-        ('RegistrationAuthority', 'Registration Authority'),
-        ('RelatedPerson', 'Related Person'),
-        ('Researcher', 'Researcher'),
-        ('ResearchGroup', 'Research Group'),
-        ('RightsHolder', 'Rights Holder'),
-        ('Sponsor', 'Sponsor'),
-        ('Supervisor', 'Supervisor'),
-        ('WorkPackageLeader', 'Work Package Leader'),
-        ('Other', 'Other'),
-    )
-
-    contributor_type = models.CharField(max_length=20,
-        choices=contributor_type_choices)
+                author=self)
 
 
 class Topic(models.Model):
@@ -931,4 +840,3 @@ class Resubmission(BaseSubmission):
     """
     submission = models.ForeignKey('project.Submission',
         related_name='resubmissions')
-

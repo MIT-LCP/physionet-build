@@ -817,33 +817,10 @@ def project_submission(request, project_id):
             else:
                 if project.is_publishable() and user == project.submitting_author:
                     project.submit()
-                    email, name = project.get_submitting_author_info()
-
-                        subject = 'Submission of project {0}'.format(project.title)
-                        body = loader.render_to_string(
-                            'project/email/submit_notify.html',
-                            {'name':name, 'project':project})
-                        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                                  [email], fail_silently=False)
-                        messages.success(request, 'Your project has been submitted for review.')
-                    # There are multiple author
-
-                    # email authors submitting author
-                    subject = 'Submission of project {0}'.format(project.title)
-                    email_context = {'name':name, 'project':project,
-                                     'domain':get_current_site(request)}
-
-                    body = loader.render_to_string(
-                        'project/email/submit_notify.html', email_context)
-                    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                        [email], fail_silently=False)
-
-
-                    for email, name in project.get_coauthor_info():
+                    for email, name in project.get_author_info():
                         email_context['name'] = name
                         body = loader.render_to_string(
-                            'project/email/submit_notify.html',
-                            email_context)
+                            'project/email/submit_notify.html', email_context)
                         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                                   [email], fail_silently=False)
                     messages.success(request, 'Your project has been pre-submitted. Awaiting co-authors to approve submission.')

@@ -306,8 +306,6 @@
     "first_name": "Roger",
     "middle_names": "Greenwood",
     "last_name": "Mark",
-    "is_human": true,
-    "organization_name": "",
     "display_order": 1,
     "user": [
       "rgmark@mit.edu"
@@ -325,8 +323,6 @@
     "first_name": "Roger",
     "middle_names": "Greenwood",
     "last_name": "Mark",
-    "is_human": true,
-    "organization_name": "",
     "display_order": 1,
     "user": [
       "rgmark@mit.edu"
@@ -344,8 +340,6 @@
     "first_name": "George",
     "middle_names": "",
     "last_name": "Moody",
-    "is_human": true,
-    "organization_name": "",
     "display_order": 1,
     "user": [
       "george@mit.edu"
@@ -363,8 +357,6 @@
     "first_name": "Alistair",
     "middle_names": "Edward William",
     "last_name": "Johnson",
-    "is_human": true,
-    "organization_name": "",
     "display_order": 2,
     "user": [
       "aewj@mit.edu"
@@ -382,8 +374,6 @@
     "first_name": "Roger Greenwood",
     "middle_names": "",
     "last_name": "Mark",
-    "is_human": true,
-    "organization_name": "",
     "display_order": 1,
     "user": [
       "rgmark@mit.edu"
@@ -397,11 +387,7 @@
   "pk": 1,
   "fields": {
     "name": "Massachusetts Institute of Technology",
-    "content_type": [
-      "project",
-      "author"
-    ],
-    "object_id": 1
+    "author": 1
   }
 },
 {
@@ -409,11 +395,7 @@
   "pk": 2,
   "fields": {
     "name": "Harvard University",
-    "content_type": [
-      "project",
-      "author"
-    ],
-    "object_id": 1
+    "author": 1
   }
 },
 {
@@ -421,11 +403,7 @@
   "pk": 3,
   "fields": {
     "name": "Beth Israel Deaconess Medical Center",
-    "content_type": [
-      "project",
-      "author"
-    ],
-    "object_id": 1
+    "author": 1
   }
 },
 {
@@ -433,11 +411,7 @@
   "pk": 4,
   "fields": {
     "name": "Massachusetts Institute of Technology",
-    "content_type": [
-      "project",
-      "author"
-    ],
-    "object_id": 2
+    "author": 2
   }
 },
 {
@@ -445,11 +419,7 @@
   "pk": 5,
   "fields": {
     "name": "Harvard University",
-    "content_type": [
-      "project",
-      "author"
-    ],
-    "object_id": 2
+    "author": 2
   }
 },
 {
@@ -457,11 +427,7 @@
   "pk": 6,
   "fields": {
     "name": "Beth Israel Deaconess Medical Center",
-    "content_type": [
-      "project",
-      "author"
-    ],
-    "object_id": 2
+    "author": 2
   }
 },
 {
@@ -469,11 +435,7 @@
   "pk": 7,
   "fields": {
     "name": "Massachusetts Institute of Technology",
-    "content_type": [
-      "project",
-      "author"
-    ],
-    "object_id": 5
+    "author": 5
   }
 },
 {
@@ -481,11 +443,7 @@
   "pk": 8,
   "fields": {
     "name": "Harvard University",
-    "content_type": [
-      "project",
-      "author"
-    ],
-    "object_id": 5
+    "author": 5
   }
 },
 {
@@ -493,11 +451,7 @@
   "pk": 9,
   "fields": {
     "name": "Beth Israel Deaconess Medical Center",
-    "content_type": [
-      "project",
-      "author"
-    ],
-    "object_id": 5
+    "author": 5
   }
 },
 {
@@ -505,11 +459,15 @@
   "pk": 10,
   "fields": {
     "name": "Massachusetts Institute of Technology",
-    "content_type": [
-      "project",
-      "author"
-    ],
-    "object_id": 4
+    "author": 3
+  }
+},
+{
+  "model": "project.affiliation",
+  "pk": 11,
+  "fields": {
+    "name": "Massachusetts Institute of Technology",
+    "author": 4
   }
 }
 ]
