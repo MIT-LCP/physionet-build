@@ -296,13 +296,13 @@ def edit_affiliation(request, project_id):
         item_id = int(request.POST['remove_id'])
         # Make sure that the affiliation belongs to the user
         affiliation = Affiliation.objects.get(id=item_id)
-        if user == affiliation.member_object.user:
+        if author == affiliation.author:
             affiliation.delete()
         else:
             raise Http404()
 
-    AffiliationFormSet = generic_inlineformset_factory(Affiliation,
-        fields=('name',), extra=extra_forms,
+    AffiliationFormSet = inlineformset_factory(parent_model=Author,
+        model=Affiliation, fields=('name',), extra=extra_forms,
         max_num=forms.AffiliationFormSet.max_forms, can_delete=False,
         formset=forms.AffiliationFormSet, validate_max=True)
     formset = AffiliationFormSet(instance=author)
@@ -328,8 +328,8 @@ def project_authors(request, project_id):
         affiliation_formset, invite_author_form = None, None
     else:
         author = authors.get(user=user)
-        AffiliationFormSet = generic_inlineformset_factory(Affiliation,
-            fields=('name',), extra=0,
+        AffiliationFormSet = inlineformset_factory(parent_model=Author,
+            model=Affiliation, fields=('name',), extra=0,
             max_num=forms.AffiliationFormSet.max_forms, can_delete=False,
             formset = forms.AffiliationFormSet, validate_max=True)
         affiliation_formset = AffiliationFormSet(instance=author)
@@ -442,7 +442,7 @@ def edit_metadata_item(request, project_id):
             max_num=custom_formsets[item].max_forms, can_delete=False,
             formset=custom_formsets[item], validate_max=True)
     else:
-        ItemFormSet = inlineformset_factory(Project, model,
+        ItemFormSet = inlineformset_factory(parent_model=Project, model=model,
             fields=metadata_item_fields[item], extra=extra_forms,
             max_num=custom_formsets[item].max_forms, can_delete=False,
             formset=custom_formsets[item], validate_max=True)

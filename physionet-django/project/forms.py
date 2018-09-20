@@ -404,11 +404,11 @@ METADATA_FORMS = {0: DatabaseMetadataForm,
                   1: SoftwareMetadataForm}
 
 
-class AffiliationFormSet(BaseGenericInlineFormSet):
+class AffiliationFormSet(forms.BaseInlineFormSet):
     """
     Formset for adding an author's affiliations
     """
-    form_name = 'project-affiliation-content_type-object_id'
+    form_name = 'affiliations'
     item_label = 'Affiliations'
     max_forms = 3
 
