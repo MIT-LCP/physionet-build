@@ -41,7 +41,7 @@ class Affiliation(models.Model):
         unique_together = (('name', 'author'),)
 
 
-class Author(Member):
+class Author(models.Model):
     """
     A project's author/creator (datacite). Credited for creating the
     resource.
@@ -310,7 +310,7 @@ class Project(Metadata):
         """
         Return queryset of non-submitting authors
         """
-        return self.authors.exclude(user=self.submitting_author, is_human=False)
+        return self.authors.exclude(user=self.submitting_author)
 
     def get_coauthor_info(self):
         """
@@ -328,43 +328,41 @@ class Project(Metadata):
         """
         Return tuple pairs of all author emails and names
         """
-        return ((a.user.email, a.user.get_full_name()) for a in self.authors.filter(is_human=True))
+        return ((a.user.email, a.user.get_full_name()) for a in self.authors.all())
 
-    def is_publishable(self):
+    def is_submittable(self):
         """
-        Whether the project can be published
+        Run integrity tests on metadata fields and return whether the
+        project can be submitted
         """
-        self.publish_errors = []
+        self.submit_errors = []
 
         # Invitations
         for invitation in self.invitations.filter(is_active=True):
-            self.publish_errors.append(
+            self.submit_errors.append(
                 'Outstanding author invitation to {0}'.format(invitation.email))
 
         # Authors
         for author in self.authors.all():
-            if author.is_human:
-                if not author.get_full_name():
-                    self.publish_errors.append('Author {0} has not fill in name'.format(author.user.username))
-                if not author.affiliations.all():
-                    self.publish_errors.append('Author {0} has not filled in affiliations'.format(author.user.username))
-            else:
-                if not author.organization_name:
-                    self.publish_errors.append('Organizational author with no name')
+            if not author.get_full_name():
+                self.submit_errors.append('Author {0} has not fill in name'.format(author.user.username))
+            if not author.affiliations.all():
+                self.submit_errors.append('Author {0} has not filled in affiliations'.format(author.user.username))
+
         # Metadata
         for attr in Project.REQUIRED_FIELDS[self.resource_type]:
             if not getattr(self, attr):
-                self.publish_errors.append('Missing required field: {0}'.format(attr.replace('_', ' ')))
+                self.submit_errors.append('Missing required field: {0}'.format(attr.replace('_', ' ')))
 
         if self.access_policy and not self.data_use_agreement:
-            self.publish_errors.append('Missing DUA for non-open access policy')
+            self.submit_errors.append('Missing DUA for non-open access policy')
 
         if self.published:
             published_versions = [p.version for p in self.published_projects.all()]
             if self.version in published_versions:
-                self.publish_errors.append('The version matches a previously published version.')
+                self.submit_errors.append('The version matches a previously published version.')
 
-        if self.publish_errors:
+        if self.submit_errors:
             return False
         else:
             return True
@@ -373,7 +371,7 @@ class Project(Metadata):
         """
         Initialize submission via the submitting author
         """
-        if not self.is_publishable():
+        if not self.is_submittable():
             raise Exception('Project is not publishable')
 
         if self.submissions.filter(is_active=True):
@@ -398,7 +396,7 @@ class Project(Metadata):
         if submission.submission_status == 1 and author not in submission.approved_authors.all():
             submission.approved_authors.add(author)
             # Make the submission if this was the last author
-            if submission.approved_authors.count() == self.authors.filter(is_human=True).count():
+            if submission.approved_authors.count() == self.authors.all().count():
                 self.submit()
 
     def cancel_submission(self):
@@ -444,7 +442,7 @@ class Project(Metadata):
         Create a published version of this project and update the
         submission status
         """
-        if not self.is_publishable():
+        if not self.is_submittable():
             raise Exception('Nope')
 
         published_project = PublishedProject()
@@ -485,23 +483,17 @@ class Project(Metadata):
                 published_project.topics.add(published_topic)
 
         for author in self.authors.all():
-            if author.is_human:
-                first_name, middle_names, last_name = author.user.get_names()
-            else:
-                first_name, middle_names, last_name = '', '', ''
-
             author_copy = Author.objects.create(
                 published_project=published_project,
-                first_name=first_name, middle_names=middle_names,
-                last_name=last_name, is_human=author.is_human,
-                organization_name=author.organization_name,
-                display_order=author.display_order, user=author.user
+                first_name=author.first_name, middle_names=author.middle_names,
+                last_name=author.last_name, display_order=author.display_order,
+                user=author.user
                 )
 
             affiliations = author.affiliations.all()
             for affiliation in affiliations:
                 affiliation_copy = Affiliation.objects.create(
-                    name=affiliation.name, member_object=author_copy)
+                    name=affiliation.name, author=author_copy)
 
 
         corresponding_author = self.authors.get(is_corresponding=True)

@@ -32,7 +32,7 @@ def is_admin(user, *args, **kwargs):
     return user.is_admin
 
 def is_author(user, project):
-    authors = project.authors.filter(is_human=True)
+    authors = project.authors.all()
     return (user in [a.user for a in authors])
 
 def is_submitting_author(user, project):
@@ -204,16 +204,6 @@ def invite_author(request, invite_author_form):
     else:
         messages.error(request, 'Submission unsuccessful. See form for errors.')
 
-def add_author(request, add_author_form):
-    """
-    Add an organizational author
-    """
-    if add_author_form.is_valid():
-        add_author_form.save()
-        messages.success(request, 'The organizational author has been added')
-        return True
-    else:
-        messages.error(request, 'Submission unsuccessful. See form for errors.')
 
 def remove_author(request, author_id):
     """
@@ -335,7 +325,7 @@ def project_authors(request, project_id):
     admin_inspect = user.is_admin and user not in [a.user for a in authors]
 
     if admin_inspect:
-        affiliation_formset, invite_author_form, add_author_form = None, None, None
+        affiliation_formset, invite_author_form = None, None
     else:
         author = authors.get(user=user)
         AffiliationFormSet = generic_inlineformset_factory(Affiliation,
@@ -347,12 +337,10 @@ def project_authors(request, project_id):
         if user == project.submitting_author:
             invite_author_form = forms.InviteAuthorForm(project=project,
                 inviter=user)
-            # Removing organizational authors for now
-            # add_author_form = forms.AddAuthorForm(project=project)
             corresponding_author_form = forms.CorrespondingAuthorForm(
                 project=project)
         else:
-            invite_author_form, add_author_form, corresponding_author_form = None, None, None
+            invite_author_form, corresponding_author_form = None, None
 
         if user == project.corresponding_author().user:
             corresponding_email_form = AssociatedEmailChoiceForm(
@@ -372,12 +360,6 @@ def project_authors(request, project_id):
                 inviter=user, data=request.POST)
             if invite_author(request, invite_author_form):
                 invite_author_form = forms.InviteAuthorForm(project, user)
-        # Removing organizational authors for now
-        # elif 'add_author' in request.POST:
-        #     add_author_form = forms.AddAuthorForm(project=project,
-        #                                           data=request.POST)
-        #     if add_author(request, add_author_form):
-        #         add_author_form = forms.AddAuthorForm(project=project)
         elif 'remove_author' in request.POST:
             # No form. Just get button value.
             author_id = int(request.POST['remove_author'])
@@ -758,10 +740,10 @@ def project_preview(request, project_id):
     publications = project.publications.all()
     topics = project.topics.all()
 
-    is_publishable = project.is_publishable()
+    is_submittable = project.is_submittable()
     version_clash = False
 
-    if is_publishable:
+    if is_submittable:
         messages.success(request, 'The project has passed all automatic checks.')
     else:
         for e in project.publish_errors:
@@ -777,7 +759,7 @@ def project_preview(request, project_id):
         'author_info':author_info, 'corresponding_author':corresponding_author,
         'invitations':invitations, 'references':references,
         'publications':publications, 'topics':topics,
-        'is_publishable':is_publishable, 'version_clash':version_clash,
+        'is_submittable':is_submittable, 'version_clash':version_clash,
         'admin_inspect':admin_inspect, 'dir_breadcrumbs':dir_breadcrumbs})
 
 
@@ -788,9 +770,9 @@ def check_publishable(request, project_id):
     """
     project = Project.objects.get(id=project_id)
 
-    result = project.is_publishable()
+    result = project.is_submittable()
 
-    return JsonResponse({'is_publishable':result,
+    return JsonResponse({'is_submittable':result,
         'publish_errors':project.publish_errors})
 
 
@@ -803,7 +785,7 @@ def project_submission(request, project_id):
     """
     user = request.user
     project = Project.objects.get(id=project_id)
-    authors = project.authors.filter(is_human=True)
+    authors = project.authors.all()
     admin_inspect = user.is_admin and user not in [a.user for a in authors]
     context = {'project':project, 'admin_inspect':admin_inspect}
 
@@ -815,7 +797,7 @@ def project_submission(request, project_id):
             if project.submission_status():
                 raise Http404()
             else:
-                if project.is_publishable() and user == project.submitting_author:
+                if project.is_submittable() and user == project.submitting_author:
                     project.submit()
                     for email, name in project.get_author_info():
                         email_context['name'] = name

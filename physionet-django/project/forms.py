@@ -555,7 +555,7 @@ class InviteAuthorForm(forms.ModelForm):
         "Ensure it is a fresh invite to a non-author"
         data = self.cleaned_data['email']
 
-        for author in self.project.authors.filter(is_human=True):
+        for author in self.project.authors.all():
             if data in author.user.get_emails():
                 raise forms.ValidationError(
                     'The user is already an author of this project',
@@ -579,37 +579,6 @@ class InviteAuthorForm(forms.ModelForm):
             + timezone.timedelta(days=21))
         invitation.save()
         return invitation
-
-
-class AddAuthorForm(forms.ModelForm):
-    """
-    Add a non-human author
-    """
-    class Meta:
-        model = Author
-        fields = ('organization_name',)
-
-    def __init__(self, project, *args, **kwargs):
-        "Make sure the user submitting this entry is the owner"
-        super(AddAuthorForm, self).__init__(*args, **kwargs)
-        self.project = project
-
-    def clean_organization_name(self):
-        """
-        Ensure uniqueness of organization name
-        """
-        data = self.cleaned_data['organization_name']
-        if self.project.authors.filter(organization_name=data).exists():
-            raise forms.ValidationError('Organizational author names must be unique')
-
-        return data
-
-    def save(self):
-        author = super(AddAuthorForm, self).save(commit=False)
-        author.project = self.project
-        author.is_human = False
-        author.display_order = self.project.authors.count() + 1
-        author.save()
 
 
 class StorageRequestForm(forms.ModelForm):
