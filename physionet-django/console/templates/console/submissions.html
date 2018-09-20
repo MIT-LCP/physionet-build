@@ -33,11 +33,11 @@
             <td>{{ submission.submission_status }}</td>
             <td>{{ submission.submission_datetime|date }}</td>
             <td>
-                {% if submission.editor %}
-                    {{ submission.editor }}
-                {% else %}
-                    <a style="color:red">Awaiting Editor Assignment</a>
-                {% endif %}
+              {% if submission.editor %}
+                {{ submission.editor }}
+              {% else %}
+                <a style="color:red">Awaiting Editor Assignment</a>
+              {% endif %}
             </td>
           </tr>
         {% endfor %}

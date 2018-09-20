@@ -9,13 +9,11 @@
   </div>
   <div class="card-body">
     {% if decision == 1 %}
-    <p>You have requested a resubmission. The submitting author is to
-       make revisions and resubmit. You will be notified when they
-       have done so.</p>
+      <p>You have requested a resubmission for: {{ project.title }}. The submitting author is to make revisions and resubmit. You will be notified when they have done so.</p>
     {% elif decision == 2 %}
-      <p>You have rejected the submission.</p>
+      <p>You have rejected the submission of: {{ project.title }}.</p>
     {% else %}
-      <p>You have approved the submission. The project has been published <a href="{% url 'published_project' published_project.id %}" target="_blank">here</a>.</p>
+      <p>You have approved the submission of: {{ project.title }}.</p>
     {% endif %}
     <p>The authors have been notified of your decision. You may return to your
        <a href="{% url 'console_home' %}">console home</a>.</p>

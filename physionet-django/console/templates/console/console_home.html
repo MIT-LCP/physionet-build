@@ -26,7 +26,7 @@
           <td> <a href="{% url 'public_profile' submission.project.submitting_author.username %}">{{ submission.project.submitting_author.username }}</a> - {{ submission.project.submitting_author.email }}</td>
           <td>{{ submission.submission_status }}</td>
           <td>{{ submission.submission_datetime|date }}</td>
-          <td>{% if submission.submission_status == 3 %}<a class="btn btn-primary btn-sm" href="{% url 'edit_submission' submission.id %}" role="button">Edit Submission</a>{% else %}Awaiting author action{% endif %}</td>
+          <td>{% if submission.submission_status == 0 %}<a class="btn btn-primary btn-sm" href="{% url 'edit_submission' submission.id %}" role="button">Edit Submission</a>{% else %}Awaiting author action{% endif %}</td>
         {% endfor %}
         </tbody>
       </table>

@@ -31,7 +31,7 @@ def console_home(request):
     List of submissions the editor is responsible for
     """
     submissions = Submission.objects.filter(is_active=True,
-        submission_status__in=[3, 4, 6], editor=request.user)
+        submission_status__in=[0], editor=request.user)
 
     return render(request, 'console/console_home.html',
         {'submissions':submissions})
@@ -130,7 +130,6 @@ def submissions(request):
         if assign_editor_form.is_valid():
             submission = assign_editor_form.cleaned_data['submission']
             submission.editor = assign_editor_form.cleaned_data['editor']
-            submission.submission_status = 3
             submission.save()
             # Send the notifying emails to authors
             subject = 'Editor assigned to project {0}'.format(submission.project.title)
@@ -143,10 +142,9 @@ def submissions(request):
                           [email], fail_silently=False)
             messages.success(request, 'The editor has been assigned')
 
-    submissions = Submission.objects.filter(is_active=True,
-        submission_status__gte=2).order_by('submission_status')
+    submissions = Submission.objects.filter(is_active=True).order_by('submission_status')
     assign_editor_form = forms.AssignEditorForm()
-    n_awaiting_editor = submissions.filter(submission_status=2).count()
+    n_awaiting_editor = submissions.filter(submission_status=0, editor=None).count()
 
     return render(request, 'console/submissions.html',
         {'submissions':submissions, 'assign_editor_form':assign_editor_form,
@@ -196,13 +194,12 @@ def edit_submission(request, submission_id):
                               [email], fail_silently=False)
             # Accept
             else:
-                published_project = project.publish()
                 # Notify authors of decision
                 subject = 'Submission accepted for project {0}'.format(project.title)
                 for email, name in submission.project.get_author_info():
                     body = loader.render_to_string(
                         'console/email/accept_submission_notify.html',
-                        {'name':name, 'published_project':published_project,
+                        {'name':name, 'project':project,
                          'editor_comments':submission.editor_comments,
                          'domain':get_current_site(request)})
                     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
@@ -210,7 +207,7 @@ def edit_submission(request, submission_id):
 
             return render(request, 'console/submission_response.html',
                 {'decision':submission.decision,
-                 'published_project':published_project})
+                 'project':project})
 
     edit_submission_form = forms.EditSubmissionForm()
 

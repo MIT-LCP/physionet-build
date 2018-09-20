@@ -14,8 +14,8 @@ RESPONSE_CHOICES = (
 SUBMISSION_RESPONSE_CHOICES = (
     ('', '-----------'),
     (3, 'Accept'),
+    (2, 'Resubmit with changes'),
     (1, 'Reject'),
-    (2, 'Resubmit with changes')
 )
 
 
@@ -24,7 +24,7 @@ class AssignEditorForm(forms.Form):
     Assign an editor to a submission
     """
     submission = forms.ModelChoiceField(queryset=Submission.objects.filter(
-        submission_status=2))
+        submission_status=0, editor=None))
     editor = forms.ModelChoiceField(queryset=User.objects.filter(is_admin=True))
 
 
@@ -46,24 +46,21 @@ class EditSubmissionForm(forms.ModelForm):
         """
         cleaned_data = super().clean()
 
-        if self.instance.submission_status not in [3, 4]:
+        if self.instance.submission_status != 0:
             raise forms.ValidationError(
-                'Submission is not awaiting an editor response')
+                'Unable to edit this submission')
 
         return cleaned_data
 
     def save(self):
         submission = super().save()
 
-        # Resubmit
+        # Reject
         if submission.decision == 1:
-            Resubmission.objects.create(submission=submission)
-        # Reject or accept
-        elif submission.decision in [2, 3]:
             submission.is_active = False
 
         # Update the submission status to reflect the decision
-        submission.submission_status = submission.decision + 3
+        submission.submission_status = submission.decision
         submission.save()
         return submission
 

@@ -746,7 +746,7 @@ def project_preview(request, project_id):
     if is_submittable:
         messages.success(request, 'The project has passed all automatic checks.')
     else:
-        for e in project.publish_errors:
+        for e in project.submit_errors:
             messages.error(request, e)
             if 'version' in e:
                 version_clash = True
@@ -764,16 +764,16 @@ def project_preview(request, project_id):
 
 
 @authorization_required(auth_functions=(is_author,))
-def check_publishable(request, project_id):
+def check_submittable(request, project_id):
     """
-    Check whether a project is publishable
+    Check whether a project is submittable
     """
     project = Project.objects.get(id=project_id)
 
     result = project.is_submittable()
 
     return JsonResponse({'is_submittable':result,
-        'publish_errors':project.publish_errors})
+        'submit_errors':project.submit_errors})
 
 
 @authorization_required(auth_functions=(is_author, is_admin))
@@ -793,62 +793,37 @@ def project_submission(request, project_id):
         if project.under_submission:
             submission = project.submissions.get(is_active=True)
         # Project is submitted for review
-        if 'submit_project' in request.POST:
-            if project.submission_status():
-                raise Http404()
-            else:
-                if project.is_submittable() and user == project.submitting_author:
-                    project.submit()
-                    for email, name in project.get_author_info():
-                        email_context['name'] = name
-                        body = loader.render_to_string(
-                            'project/email/submit_notify.html', email_context)
-                        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                                  [email], fail_silently=False)
-                    messages.success(request, 'Your project has been pre-submitted. Awaiting co-authors to approve submission.')
-                else:
-                    messages.error(request, 'Fix the errors before submitting')
-        # Project submission is withdrawn while under presubmission
-        elif 'cancel_submission' in request.POST:
-            if submission.submission_status == 1 and user == project.submitting_author:
-                project.cancel_submission()
-                # Send email to all authors
-                subject = 'Submission canceled for project {0}'.format(project.title)
+        if 'submit_project' in request.POST and not project.under_submission and user == project.submitting_author:
+            if project.is_submittable():
+                project.submit()
+                # Email all authors
+                subject = 'Submission of project {}'.format(project.title)
+                email_context = {'project':project}
                 for email, name in project.get_author_info():
+                    email_context['name'] = name
                     body = loader.render_to_string(
-                        'project/email/cancel_submit_notify.html',
-                        {'name':name, 'project':project})
+                        'project/email/submit_notify.html', email_context)
                     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                        [email], fail_silently=False)
-                messages.success(request, 'Your project submission has been cancelled.')
+                              [email], fail_silently=False)
+                messages.success(request, 'Your project has been submitted. You will be notified when an editor is assigned.')
             else:
-                raise Http404()
+                messages.error(request, 'Fix the errors before submitting')
         # Author approves publication
         elif 'approve_publish' in request.POST:
             author = authors.get(user=user)
-            if submission.submission_status == 1 and authors not in submission.approved_authors.all():
-                project.approve_author(author)
-                # Send out emails if this was the last outstanding approval
-                if project.submission_status() == 2:
-                    subject = 'Submission of project {0}'.format(project.title)
-                    for email, name in project.get_author_info():
-                        body = loader.render_to_string(
-                            'project/email/submit_notify_all.html',
-                            {'name':name, 'project':project})
-                        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                                  [email], fail_silently=False)
-                    messages.success(request, 'You have approved the submission. The project is now under review.')
-                else:
-                    messages.success(request, 'You have approved the submission')
+            if submission.submission_status == 3 and not author.approved_publish:
+                author.approved_publish = True
+                author.save()
+                messages.success(request, 'You have approved the publication.')
             else:
                 raise Http404()
 
     if project.under_submission:
         submission = project.submissions.get(is_active=True)
         context['submission'] = submission
-        if submission.submission_status == 1:
-            context['approved_authors'] = submission.approved_authors.all()
-            context['unapproved_authors'] = authors.difference(context['approved_authors'])
+        if submission.submission_status == 3:
+            context['approved_authors'] = authors.filter(approved_publish=True)
+            context['unapproved_authors'] = authors.filter(approved_publish=False)
 
     return render(request, 'project/project_submission.html', context)
 

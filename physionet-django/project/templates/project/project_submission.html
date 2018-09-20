@@ -7,21 +7,21 @@
 {% block main_content %}
 
 <script>
-  // Check whether the project is publishable
-  function checkPublishable(){
-    $.ajax({url: "{% url 'check_publishable' project.id %}",
+  // Check whether the project is submittable
+  function checkSubmittable(){
+    $.ajax({url: "{% url 'check_submittable' project.id %}",
       success: function(result){
-        if (result.is_publishable){
-          $("#publishable").html("<i class='fas fa-check' style='color:green'></i> The automatic checks have passed. You may submit the project for review. Note: The project will no longer be editable.");
+        if (result.is_submittable){
+          $("#submittable").html("<i class='fas fa-check' style='color:green'></i> The automatic checks have passed. You may submit the project for review. Note: The project will no longer be editable.");
           document.getElementById("request-review").disabled = false;
         }
         else{
           message = "<p><i class='fas fa-times' style='color:red'></i> The automatic checks have failed. The following errors must be addressed before you can submit the project:</p><ul>"
-          for (i=0; i<result.publish_errors.length; i++) {
-            message += "<li>" + result.publish_errors[i] + "</li>"
+          for (i=0; i<result.submit_errors.length; i++) {
+            message += "<li>" + result.submit_errors[i] + "</li>"
           }
           message += "</ul>"
-          $("#publishable").html(message);
+          $("#submittable").html(message);
         }
       }
     });
@@ -45,7 +45,7 @@
     preview</a> appears satisfactory, the submitting author may request a
     review</p>
   {% if user == project.submitting_author %}
-    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#submit-modal" onclick="checkPublishable()">
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#submit-modal" onclick="checkSubmittable()">
       Request Review
     </button>
 
@@ -61,7 +61,7 @@
           <form action="" method="post">
             <div class="modal-body">
               {% csrf_token %}
-              <p id="publishable"><i class="fas fa-spinner"></i> Running checks on project...</p>
+              <p id="submittable"><i class="fas fa-spinner"></i> Running checks on project...</p>
             </div>
             <div class="modal-footer">
               <button id="request-review" class="btn btn-primary" type="submit" name="submit_project" disabled>Request Review</button>
@@ -74,47 +74,48 @@
   {% endif %}
 {% else %}
     <ul class="list-group">
-    <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The project was submitted for review on {{ submission.presubmission_datetime|date }}.</li>
-    {% if submission.submission_status == 1 %}
-        </ul>
-        <br>
-        <div class="card">
-            <div class="card-header"><h5>Awaiting co-authors to approve the submission.</h5></div>
-                <form action="" method="post">
-                    {% csrf_token %}
-                <ul class="list-group">
-                    {% for author in approved_authors %}
-                        <li class="list-group-item">
-                            <i class="fas fa-check" style="color:green" title="Approved"></i> {{ author|author_name }}
-                            {% if author.user == project.submitting_author %}
-                                <span class="badge badge-success">Submitting Author</span>
-                            {% endif %}
-                            {% if user == author.user %}
-                                <button class="btn btn-danger" name="cancel_submission" style="float:right">Cancel Submission</button>
-                            {% endif %}
-                        </li>
-                    {% endfor %}
-                    {% for author in unapproved_authors %}
-                        <li class="list-group-item">
-                            <i class="far fa-clock" title="Waiting for approval"></i> {{ author|author_name }}
-                            {% if user == author.user %}
-                                <button class="btn btn-primary" name="approve_submission" style="float:right">Approve Submission</button>
-                            {% endif %}
-                        </li>
-                    {% endfor %}
-                </ul>
-                </form>
-        </div>
-    {% elif submission.submission_status == 2 %}
+    <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The project was submitted for review on {{ submission.submission_datetime|date }}.</li>
+    {% if submission.submission_status == 3 %}
+      </ul>
+      <br>
+      <div class="card">
+        <div class="card-header"><h5>Awaiting all authors to approve the publication.</h5></div>
+        <form action="" method="post">
+          {% csrf_token %}
+          <ul class="list-group">
+            {% for author in approved_authors %}
+              <li class="list-group-item">
+                <i class="fas fa-check" style="color:green" title="Approved"></i> {{ author|author_name }}
+                {% if author.user == project.submitting_author %}
+                  <span class="badge badge-success">Submitting Author</span>
+                {% endif %}
+              </li>
+            {% endfor %}
+            {% for author in unapproved_authors %}
+              <li class="list-group-item">
+                <i class="far fa-clock" title="Waiting for approval"></i> {{ author|author_name }}
+                {% if user == author.user %}
+
+                    <button class="btn btn-primary" name="approve_submission" style="float:right">Approve Submission</button>
+
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        </form>
+      </div>
+    {% elif submission.submission_status == 1 %}
+      {% if not submission.editor %}
         <li class="list-group-item"><i class="far fa-clock"></i> Awaiting an editor to be assigned.</li>
-    </ul>
-    {% else %}
+        </ul>
+      {% else %}
         <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The editor of this submission is: <a href="{% url 'public_profile' submission.editor.username %}">{{ submission.editor }}</a> ({{ submission.editor.email }}).</li>
         {% if submission.submission_status == 3 %}
             <li class="list-group-item"><i class="far fa-clock"></i> Awaiting editor response.</li></ul>
         {% elif submission.submission_status == 4 %}
             <p>The editor has requested a resubmission.</p>
         {% endif %}
+      {% endif %}
     {% endif %}
 {% endif %}
 

@@ -55,7 +55,7 @@ class Author(models.Model):
         null=True, blank=True)
     published_project =models.ForeignKey('project.PublishedProject',
         related_name='%(class)ss', null=True, blank=True)
-
+    approved_publish = models.BooleanField(default=False)
     user = models.ForeignKey('user.User', related_name='authorships')
     first_name = models.CharField(max_length=100, default='')
     middle_names = models.CharField(max_length=200, default='')
@@ -286,7 +286,6 @@ class Project(Metadata):
 
         return display_files, display_dirs
 
-
     def submission_status(self):
         """
         The submission status is kept track of in the active Submission
@@ -295,7 +294,7 @@ class Project(Metadata):
         if self.under_submission:
             return self.submissions.get(is_active=True).submission_status
         else:
-            return 0
+            return -1
 
     def is_frozen(self):
         """
@@ -367,75 +366,20 @@ class Project(Metadata):
         else:
             return True
 
-    def presubmit(self):
+    def submit(self):
         """
-        Initialize submission via the submitting author
+        Complete the submission after the last author agrees.
+        Set the submission statuses, and get reviewers + editor
         """
         if not self.is_submittable():
-            raise Exception('Project is not publishable')
+            raise Exception('Project is not submittable')
 
         if self.submissions.filter(is_active=True):
             raise Exception('Active submission exists')
 
         self.under_submission = True
         self.save()
-
-        submission = Submission.objects.create(project=self)
-        self.approve_author(self.authors.get(user=self.submitting_author))
-
-    def approve_author(self, author):
-        """
-        Add an author to the active submission's approved authors.
-        Triggers submission if it is the last author.
-        """
-        if self.submission_status() != 1:
-            raise Exception('Project is not under presubmission')
-
-        submission = self.submissions.get(is_active=True)
-
-        if submission.submission_status == 1 and author not in submission.approved_authors.all():
-            submission.approved_authors.add(author)
-            # Make the submission if this was the last author
-            if submission.approved_authors.count() == self.authors.all().count():
-                self.submit()
-
-    def cancel_submission(self):
-        """
-        Cancel a submission during presubmission phase at the request
-        of the submitting author
-        """
-        if self.submission_status() != 1:
-            raise Exception('Project is not under presubmission')
-
-        submission = self.submissions.get(is_active=True)
-        submission.delete()
-        self.under_submission = False
-        self.save()
-
-    def withdraw_submission_approval(self, author):
-        """
-        Withdraw a non-submitting author's submission approval during
-        presubmission phase
-        """
-        if self.submission_status != 1:
-            raise Exception('Project is not under presubmission')
-
-        # The `cancel_submission` function is the right one to use
-        if author == self.submitting_author:
-            raise Exception('Cannot withdraw submitting author.')
-
-        submission = self.submissions.get(is_active=True)
-        submission.approved_authors.remove(author)
-
-    def submit(self):
-        """
-        Complete the submission after the last author agrees.
-        Set the submission statuses, and get reviewers + editor
-        """
-        submission = self.submissions.get(is_active=True)
-        submission.submission_status = 2
-        submission.submission_datetime = timezone.now()
-        submission.save()
+        Submission.objects.create(project=self)
 
     def publish(self):
         """
@@ -776,7 +720,7 @@ class BaseSubmission(models.Model):
     # Each project can have one active submission at a time
     is_active = models.BooleanField(default=True)
     # When the submitting author submits
-    submission_datetime = models.DateTimeField(null=True)
+    submission_datetime = models.DateTimeField(auto_now_add=True)
     # Editor decision. 1 2 or 3 for reject/revise/accept
     decision = models.SmallIntegerField(null=True)
     decision_datetime = models.DateTimeField(null=True)
@@ -800,12 +744,11 @@ class Submission(BaseSubmission):
 
     """
     project = models.ForeignKey('project.Project', related_name='submissions')
+    # Editor is manually assigned
     editor = models.ForeignKey('user.User', related_name='editing_submissions',
         null=True)
-    submission_status = models.PositiveSmallIntegerField(default=1)
+    submission_status = models.PositiveSmallIntegerField(default=0)
 
-    # All authors must approve for publication
-    approved_authors = models.ManyToManyField('project.Author')
     # The published item, if decision is accept
     published_project = models.OneToOneField('project.PublishedProject',
         null=True, related_name='publishing_submission')
