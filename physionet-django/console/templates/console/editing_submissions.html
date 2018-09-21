@@ -5,7 +5,7 @@
 {% block content %}
 <div class="card mb-3">
   <div class="card-header">
-      <i class="fa fa-tachometer-alt"></i> Editing Submissions
+      <i class="fa fa-glasses"></i> Editing Submissions
   </div>
   <div class="card-body">
     <p>You are assigned to edit the following submissions.</p>
@@ -26,7 +26,15 @@
           <td> <a href="{% url 'public_profile' submission.project.submitting_author.username %}">{{ submission.project.submitting_author.username }}</a> - {{ submission.project.submitting_author.email }}</td>
           <td>{{ submission.submission_status }}</td>
           <td>{{ submission.submission_datetime|date }}</td>
-          <td>{% if submission.submission_status == 0 %}<a class="btn btn-primary btn-sm" href="{% url 'edit_submission' submission.id %}" role="button">Edit Submission</a>{% else %}Awaiting author action{% endif %}</td>
+          <td>
+            {% if submission.submission_status == 0 %}
+              <a class="btn btn-primary btn-sm" href="{% url 'edit_submission' submission.id %}" role="button">Edit Submission</a>
+            {% elif submission.submission_status == 3 %}
+              <a class="btn btn-primary btn-sm" href="{% url 'copyedit_submission' submission.id %}" role="button">Copyedit Submission</a>
+            {% else %}
+              Awaiting author action
+            {% endif %}
+          </td>
         {% endfor %}
         </tbody>
       </table>

@@ -1,0 +1,18 @@
+{% extends "console/base_console.html" %}
+
+{% block title %}Copyedit Submission{% endblock %}
+
+{% block content %}
+
+{% include "console/project_info_card.html" %}
+
+<div class="card mb-3">
+  <div class="card-header">
+      <i class="fa fa-glasses"></i> Copyedit Submission
+  </div>
+  <div class="card-body">
+    <p>Edit the submission how you like. For now, just move on below.</p>
+    <a class="btn btn-success btn-lg" href="{% url 'copyedit_submission' submission.id %}" role="button">Complete Copyedit</a>
+  </div>
+</div>
+{% endblock %}

@@ -742,8 +742,10 @@ class Submission(BaseSubmission):
     - 0 : submitting author submits. Awaiting decision.
     - 1 : decision 1 = reject.
     - 2 : decision 2 = accept with revisions.
-    - 3 : decision 3 = accept. Ready to publish upon all authors' approval.
-    - 4 : Published.
+    - 3 : decision 3 = accept. In copyedit stage.
+    - 4 : copyedit complete. Waiting for authors to approve publish.
+    - 5 : all authors approved publish. ready for editor to publish
+    - 10 : published
 
     """
     project = models.ForeignKey('project.Project', related_name='submissions')

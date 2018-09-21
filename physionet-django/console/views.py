@@ -63,7 +63,7 @@ def editing_submissions(request):
     List of submissions the editor is responsible for
     """
     submissions = Submission.objects.filter(is_active=True,
-        submission_status__in=[0], editor=request.user)
+        editor=request.user)
 
     return render(request, 'console/editing_submissions.html',
         {'submissions':submissions})
@@ -131,6 +131,28 @@ def edit_submission(request, submission_id):
 
     return render(request, 'console/edit_submission.html',
         {'submission':submission, 'edit_submission_form':edit_submission_form})
+
+
+@login_required
+@user_passes_test(is_admin)
+def copyedit_submission(request, submission_id):
+    """
+    Page to copyedit the submission
+    """
+    submission = Submission.objects.get(id=submission_id)
+    project = submission.project
+
+    return render(request, 'console/copyedit_submission.html', {
+        'project':project, 'submission':submission})
+
+
+@login_required
+@user_passes_test(is_admin)
+def publish_submission(request, submission_id):
+    """
+    Page to publish the submission
+    """
+    return render(request, 'console/publish_submission.html')
 
 
 def process_storage_response(request, storage_response_formset):
