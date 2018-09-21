@@ -19,6 +19,11 @@ SUBMISSION_RESPONSE_CHOICES = (
     (1, 'Reject'),
 )
 
+YES_NO = (
+    (1, 'Yes'),
+    (0, 'No')
+)
+
 
 class AssignEditorForm(forms.Form):
     """
@@ -65,4 +70,3 @@ class EditSubmissionForm(forms.ModelForm):
         submission.decision_datetime = timezone.now()
         submission.save()
         return submission
-

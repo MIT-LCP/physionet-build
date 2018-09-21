@@ -5,8 +5,6 @@
 {% block content %}
 {% include "message_snippet.html" %}
 
-
-
 <div class="card mb-3">
   <div class="card-header">
       <i class="fas fa-glasses"></i> Active Project Submissions
@@ -68,10 +66,33 @@
       <form action="" method="post" class="form-signin">
         {% csrf_token %}
         {% include "form_snippet.html" with form=assign_editor_form %}
-        <button class="btn btn-primary btn-fixed" name="invite_author" type="submit">Assign Editor</button>
+        <button class="btn btn-primary btn-fixed" name="assign_editor" type="submit">Assign Editor</button>
       </form>
     </div>
 </div>
 
+<div class="card mb-3">
+    <div class="card-header">
+      <i class="fa fa-bar-chart"></i> Publish Project</div>
+    <div class="card-body">
+      <p>
+        {% if not n_awaiting_publish %}
+          <i style="color:green" class="fas fa-check-circle"></i>
+        {% else %}
+          <i style="color:red" class="fas fa-exclamation-circle"></i>
+        {% endif %}
+        {% if n_awaiting_publish == 1 %}
+          There is one submission awaiting publication.
+        {% else %}
+          There are {{ n_awaiting_publish }} submissions awaiting publication.
+        {% endif %}
+        </p>
+      <form action="" method="post" class="form-signin">
+        {% csrf_token %}
+        {% include "form_snippet.html" with form=assign_editor_form %}
+        <button class="btn btn-primary btn-fixed" name="publish_project" type="submit">Publish Project</button>
+      </form>
+    </div>
+</div>
 {% endblock %}
 

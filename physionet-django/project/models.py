@@ -80,6 +80,9 @@ class Author(models.Model):
         else:
             return ' '.join([self.first_name, self.last_name])
 
+    def disp_name_email(self):
+        return '{} -- {}'.format(self.get_full_name(), self.user.email)
+
     def import_profile_info(self):
         """
         Import profile information (names) into the Author object.

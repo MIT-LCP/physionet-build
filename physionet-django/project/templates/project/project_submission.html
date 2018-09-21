@@ -101,9 +101,9 @@
               {% for author in authors %}
               <li>
                 {% if author.approved_publish %}
-                  <i class="fas fa-check-circle" style="color:green"></i> {{ author.get_full_name }} -- {{ author.user.email }}
+                  <i class="fas fa-check-circle" style="color:green"></i> {{ author.disp_name_email }}
                 {% else %}
-                  <i class="far fa-clock"></i> {{ author.get_full_name }} -- {{ author.user.email }}
+                  <i class="far fa-clock"></i> {{ author.disp_name_email }}
                 {% endif %}
 
               </li>
