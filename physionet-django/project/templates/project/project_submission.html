@@ -73,9 +73,17 @@
     </div>
   {% endif %}
 {% else %}
-    <ul class="list-group">
-    <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The project was submitted for review on {{ submission.submission_datetime|date }}.</li>
-    {% if submission.submission_status == 3 %}
+  {# The active submission status timeline #}
+  <div class="card">
+    <div class="card-header"><h4>Active Submission</h4></div>
+  <ul class="list-group">
+  <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The project was submitted for review on {{ submission.submission_datetime|date }}.</li>
+  {% if submission.submission_status == 3 %}
+    <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The submission was accepted by the editor on {{ submission.decision_datetime|date }}.</li>
+    {% if submission.all_authors_approved %}
+      <li class="list-group-item"><i class="far fa-clock"></i> All authors have approved the publication. Awaiting editor to publish.</li>
+    </ul>
+    {% else %}
       </ul>
       <br>
       <div class="card">
@@ -95,28 +103,27 @@
               <li class="list-group-item">
                 <i class="far fa-clock" title="Waiting for approval"></i> {{ author|author_name }}
                 {% if user == author.user %}
-
-                    <button class="btn btn-primary" name="approve_submission" style="float:right">Approve Submission</button>
-
+                  <button class="btn btn-primary" name="approve_publish" style="float:right">Approve Publication</button>
                 {% endif %}
               </li>
             {% endfor %}
           </ul>
         </form>
       </div>
-    {% elif submission.submission_status == 1 %}
-      {% if not submission.editor %}
-        <li class="list-group-item"><i class="far fa-clock"></i> Awaiting an editor to be assigned.</li>
-        </ul>
-      {% else %}
-        <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The editor of this submission is: <a href="{% url 'public_profile' submission.editor.username %}">{{ submission.editor }}</a> ({{ submission.editor.email }}).</li>
-        {% if submission.submission_status == 3 %}
-            <li class="list-group-item"><i class="far fa-clock"></i> Awaiting editor response.</li></ul>
-        {% elif submission.submission_status == 4 %}
-            <p>The editor has requested a resubmission.</p>
-        {% endif %}
+    {% endif %}
+  {% elif submission.submission_status == 1 %}
+    {% if not submission.editor %}
+      <li class="list-group-item"><i class="far fa-clock"></i> Awaiting an editor to be assigned.</li>
+      </ul>
+    {% else %}
+      <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The editor of this submission is: <a href="{% url 'public_profile' submission.editor.username %}">{{ submission.editor }}</a> ({{ submission.editor.email }}).</li>
+      {% if submission.submission_status == 3 %}
+          <li class="list-group-item"><i class="far fa-clock"></i> Awaiting editor response.</li></ul>
+      {% elif submission.submission_status == 4 %}
+          <p>The editor has requested a resubmission.</p>
       {% endif %}
     {% endif %}
+  {% endif %}
 {% endif %}
 
 <hr>

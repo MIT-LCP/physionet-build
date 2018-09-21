@@ -1,6 +1,7 @@
 import pdb
 
 from django import forms
+from django.utils import timezone
 
 from project.models import Submission, Resubmission
 from user.models import User
@@ -61,6 +62,7 @@ class EditSubmissionForm(forms.ModelForm):
 
         # Update the submission status to reflect the decision
         submission.submission_status = submission.decision
+        submission.decision_datetime = timezone.now()
         submission.save()
         return submission
 

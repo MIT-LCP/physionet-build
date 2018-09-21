@@ -439,7 +439,6 @@ class Project(Metadata):
                 affiliation_copy = Affiliation.objects.create(
                     name=affiliation.name, author=author_copy)
 
-
         corresponding_author = self.authors.get(is_corresponding=True)
         contact = Contact.objects.create(name=corresponding_author.get_full_name(),
             affiliations=corresponding_author.display_affiliation(),
@@ -463,6 +462,7 @@ class Project(Metadata):
         self.under_submission = False
         self.published = True
         self.save()
+        self.authors.all().update(approved_publish=False)
 
         return published_project
 
@@ -756,6 +756,10 @@ class Submission(BaseSubmission):
 
     def __str__(self):
         return 'Submission ID {0} - {1}'.format(self.id, self.project.title)
+
+    def all_authors_approved(self):
+        authors = self.project.authors.all()
+        return len(authors) == sum(a.approved_publish for a in authors)
 
     def get_active_resubmission(self):
         if self.is_active:
