@@ -785,7 +785,7 @@ def project_submission(request, project_id):
     """
     user = request.user
     project = Project.objects.get(id=project_id)
-    authors = project.authors.all()
+    authors = project.authors.all().order_by('display_order')
     admin_inspect = user.is_admin and user not in [a.user for a in authors]
     context = {'project':project, 'admin_inspect':admin_inspect}
 
@@ -821,9 +821,8 @@ def project_submission(request, project_id):
     if project.under_submission:
         submission = project.submissions.get(is_active=True)
         context['submission'] = submission
-        if submission.submission_status == 3:
-            context['approved_authors'] = authors.filter(approved_publish=True)
-            context['unapproved_authors'] = authors.filter(approved_publish=False)
+        context['authors'] = authors
+        context['author'] = authors.get(user=user)
 
     return render(request, 'project/project_submission.html', context)
 
