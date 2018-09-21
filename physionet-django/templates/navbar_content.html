@@ -76,7 +76,7 @@
         </a>
         <div class="dropdown-menu" aria-labelledby="account_dropdown">
           {% if user.is_admin %}
-            <a class="dropdown-item" href="{% url 'console_home' %}">
+            <a class="dropdown-item" href="{% url 'active_submissions' %}">
               Admin Console
             </a>
           {% endif %}
