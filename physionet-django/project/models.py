@@ -371,8 +371,7 @@ class Project(Metadata):
 
     def submit(self):
         """
-        Complete the submission after the last author agrees.
-        Set the submission statuses, and get reviewers + editor
+        Submit the project for review.
         """
         if not self.is_submittable():
             raise Exception('Project is not submittable')
@@ -383,6 +382,15 @@ class Project(Metadata):
         self.under_submission = True
         self.save()
         Submission.objects.create(project=self)
+
+    def is_publishable(self):
+        """
+        Check whether a project may be published
+        """
+        submission = self.submissions.get(is_active=True)
+
+
+
 
     def publish(self):
         """

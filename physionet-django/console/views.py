@@ -153,9 +153,7 @@ def copyedit_submission(request, submission_id):
     project = submission.project
 
     if request.method == 'POST':
-        print('yea')
         if 'complete_copyedit' in request.POST:
-            print('man')
             submission.submission_status = 4
             submission.save()
             return render(request, 'console/copyedit_complete.html')
@@ -170,7 +168,20 @@ def publish_submission(request, submission_id):
     """
     Page to publish the submission
     """
-    return render(request, 'console/publish_submission.html')
+    submission = Submission.objects.get(id=submission_id)
+    if submission.submission_status != 3:
+        return Http404()
+
+    project = submission.project
+
+    if request.method == 'POST':
+        if project.is_publishable():
+            submission.submission_status = 4
+            submission.save()
+            return render(request, 'console/publish_complete.html')
+
+    return render(request, 'console/publish_submission.html', {
+        'project':project, 'submission':submission})
 
 
 def process_storage_response(request, storage_response_formset):
