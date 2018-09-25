@@ -838,7 +838,6 @@ def project_submission_history(request, project_id):
     submissions = project.submissions.all()
 
 
-
     return render(request, 'project/project_submission_history.html',
         {'project':project, 'admin_inspect':admin_inspect,
          'submissions':submissions})

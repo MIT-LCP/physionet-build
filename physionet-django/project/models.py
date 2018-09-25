@@ -389,7 +389,10 @@ class Project(Metadata):
         """
         submission = self.submissions.get(is_active=True)
 
-
+        if submission.status == 5 and submission.all_authors_approved():
+            return True
+        else:
+            return False
 
 
     def publish(self):
@@ -397,8 +400,8 @@ class Project(Metadata):
         Create a published version of this project and update the
         submission status
         """
-        if not self.is_submittable():
-            raise Exception('Nope')
+        if not self.is_publishable():
+            raise Exception('The project is not publishable')
 
         published_project = PublishedProject()
 
@@ -473,6 +476,11 @@ class Project(Metadata):
         self.under_submission = False
         self.published = True
         self.save()
+
+        submission = self.submissions.get(is_active=True)
+        submission.submission_status = 6
+        submission.is_active = False
+        submission.save()
         self.authors.all().update(approved_publish=False)
 
         return published_project
@@ -762,7 +770,9 @@ class Submission(BaseSubmission):
         null=True)
     status = models.PositiveSmallIntegerField(default=0)
 
-    # The published item, if decision is accept
+    # When copyedit was complete
+    copyedit_datetime = models.DateTimeField(null=True)
+    # The published item, if published
     published_project = models.OneToOneField('project.PublishedProject',
         null=True, related_name='publishing_submission')
     publish_datetime = models.DateTimeField(null=True)

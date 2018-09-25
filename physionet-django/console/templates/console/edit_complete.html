@@ -13,9 +13,9 @@
     {% elif decision == 2 %}
       <p>You have rejected the submission of: {{ project.title }}.</p>
     {% else %}
-      <p>You have approved the submission of: {{ project.title }}. It is now in the copyedit stage.</p>
+      <p>You have approved the submission of: {{ project.title }}. The next step is for you to <a href="{% url 'copyedit_submission' submission.id %}">copyedit</a> the content.</p>
     {% endif %}
-    <p>The authors have been notified of your decision. You may return to your <a href="{% url 'editing_submissions' %}">editing submissions</a>..</p>
+    <p>The authors have been notified of your decision. You may return to your <a href="{% url 'editing_submissions' %}">editing submissions</a>.</p>
   </div>
 </div>
 {% endblock %}

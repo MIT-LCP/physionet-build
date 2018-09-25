@@ -55,12 +55,20 @@ def active_submissions(request):
             messages.success(request, 'The editor has been assigned')
 
     submissions = Submission.objects.filter(is_active=True).order_by('status')
+    n_active = len(submissions)
+    n_awaiting_editor = submissions.filter(status=0, editor__isnull=True).count()
+    n_awaiting_decision = submissions.filter(status=0, editor__isnull=False).count()
+    n_awaiting_copyedit = submissions.filter(status=3).count()
+    n_awaiting_publish = submissions.filter(status=5).count()
+
     assign_editor_form = forms.AssignEditorForm()
-    n_awaiting_editor = submissions.filter(status=0, editor=None).count()
 
     return render(request, 'console/active_submissions.html',
         {'submissions':submissions, 'assign_editor_form':assign_editor_form,
-         'n_awaiting_editor':n_awaiting_editor})
+         'n_active':n_active, 'n_awaiting_editor':n_awaiting_editor,
+         'n_awaiting_decision':n_awaiting_decision,
+         'n_awaiting_copyedit':n_awaiting_copyedit,
+         'n_awaiting_publish':n_awaiting_publish})
 
 
 @login_required
@@ -132,7 +140,7 @@ def edit_submission(request, submission_id):
 
             return render(request, 'console/edit_complete.html',
                 {'decision':submission.decision,
-                 'project':project})
+                 'project':project, 'submission':submission})
 
     edit_submission_form = forms.EditSubmissionForm()
 
@@ -155,6 +163,7 @@ def copyedit_submission(request, submission_id):
     if request.method == 'POST':
         if 'complete_copyedit' in request.POST:
             submission.status = 4
+            submission.copyedit_datetime = timezone.now()
             submission.save()
             return render(request, 'console/copyedit_complete.html')
 
@@ -169,19 +178,20 @@ def publish_submission(request, submission_id):
     Page to publish the submission
     """
     submission = Submission.objects.get(id=submission_id)
-    if submission.status != 3:
+    if submission.status != 5:
         return Http404()
 
     project = submission.project
 
     if request.method == 'POST':
         if project.is_publishable():
-            submission.status = 4
-            submission.save()
-            return render(request, 'console/publish_complete.html')
+            published_project = project.publish()
+            return render(request, 'console/publish_complete.html',
+                {'published_project':published_project})
 
+    publishable = project.is_publishable()
     return render(request, 'console/publish_submission.html', {
-        'project':project, 'submission':submission})
+        'submission':submission, 'publishable':publishable})
 
 
 def process_storage_response(request, storage_response_formset):
