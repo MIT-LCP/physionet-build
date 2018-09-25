@@ -7,7 +7,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
 from django.forms import modelformset_factory, Select, Textarea
 from django.http import Http404
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.template import loader
 from django.utils import timezone
 
@@ -23,6 +23,13 @@ def is_admin(user, *args, **kwargs):
 
 
 # ------------------------- Views begin ------------------------- #
+
+
+@login_required
+@user_passes_test(is_admin)
+def console_home(request):
+    return redirect('active_submissions')
+
 
 @login_required
 @user_passes_test(is_admin)
@@ -123,7 +130,7 @@ def edit_submission(request, submission_id):
                     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                               [email], fail_silently=False)
 
-            return render(request, 'console/submission_response.html',
+            return render(request, 'console/edit_complete.html',
                 {'decision':submission.decision,
                  'project':project})
 
@@ -140,7 +147,18 @@ def copyedit_submission(request, submission_id):
     Page to copyedit the submission
     """
     submission = Submission.objects.get(id=submission_id)
+    if submission.submission_status != 3:
+        return Http404()
+
     project = submission.project
+
+    if request.method == 'POST':
+        print('yea')
+        if 'complete_copyedit' in request.POST:
+            print('man')
+            submission.submission_status = 4
+            submission.save()
+            return render(request, 'console/copyedit_complete.html')
 
     return render(request, 'console/copyedit_submission.html', {
         'project':project, 'submission':submission})

@@ -3,6 +3,8 @@ from django.conf.urls import url
 from . import views
 
 urlpatterns = [
+    url(r'^$', views.console_home,
+        name='console_home'),
     url(r'^active-submissions/$', views.active_submissions,
         name='active_submissions'),
     url(r'^editing-submissions/$', views.editing_submissions,

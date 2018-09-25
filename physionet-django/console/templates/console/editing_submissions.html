@@ -5,7 +5,7 @@
 {% block content %}
 <div class="card mb-3">
   <div class="card-header">
-      <i class="fa fa-glasses"></i> Editing Submissions
+    <i class="fa fa-glasses"></i> Editing Submissions
   </div>
   <div class="card-body">
     <p>You are assigned to edit the following submissions.</p>
@@ -31,6 +31,8 @@
               <a class="btn btn-primary btn-sm" href="{% url 'edit_submission' submission.id %}" role="button">Edit Submission</a>
             {% elif submission.submission_status == 3 %}
               <a class="btn btn-primary btn-sm" href="{% url 'copyedit_submission' submission.id %}" role="button">Copyedit Submission</a>
+            {% elif submission.submission_status == 5 %}
+              <a class="btn btn-primary btn-sm" href="{% url 'publish_submission' submission.id %}" role="button">Publish Submission</a>
             {% else %}
               Awaiting author action
             {% endif %}

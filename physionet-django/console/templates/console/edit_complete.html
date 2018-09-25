@@ -1,11 +1,11 @@
 {% extends "console/base_console.html" %}
 
-{% block title %}Submission Reponse{% endblock %}
+{% block title %}Edit Complete{% endblock %}
 
 {% block content %}
 <div class="card mb-3">
   <div class="card-header">
-      Submission Response
+      Edit Complete
   </div>
   <div class="card-body">
     {% if decision == 1 %}
@@ -13,9 +13,9 @@
     {% elif decision == 2 %}
       <p>You have rejected the submission of: {{ project.title }}.</p>
     {% else %}
-      <p>You have approved the submission of: {{ project.title }}.</p>
+      <p>You have approved the submission of: {{ project.title }}. It is now in the copyedit stage.</p>
     {% endif %}
-    <p>The authors have been notified of your decision.</p>
+    <p>The authors have been notified of your decision. You may return to your <a href="{% url 'editing_submissions' %}">editing submissions</a>..</p>
   </div>
 </div>
 {% endblock %}

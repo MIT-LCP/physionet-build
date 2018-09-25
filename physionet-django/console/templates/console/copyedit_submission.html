@@ -8,11 +8,14 @@
 
 <div class="card mb-3">
   <div class="card-header">
-      <i class="fa fa-glasses"></i> Copyedit Submission
+    <i class="fa fa-glasses"></i> Copyedit Submission
   </div>
   <div class="card-body">
-    <p>Edit the submission how you like. For now, just move on below.</p>
-    <a class="btn btn-success btn-lg" href="{% url 'copyedit_submission' submission.id %}" role="button">Complete Copyedit</a>
+    <p>Make adjustments to metadata and files. For now, just move on below.</p>
+    <form action="" method="post">
+      {% csrf_token %}
+      <button class="btn btn-success btn-lg" name='complete_copyedit' type="submit">Complete Copyedit</a>
+    </form>
   </div>
 </div>
 {% endblock %}
