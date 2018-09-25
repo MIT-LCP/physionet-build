@@ -234,7 +234,7 @@ class Project(Metadata):
     # If it has any published versions
     published = models.BooleanField(default=False)
     # Under any stage of the submission process, from presubmission.
-    # 1 <= Submission.submission_status <= 4. The project is not
+    # 1 <= Submission.status <= 4. The project is not
     # editable when this is True.
     under_submission = models.BooleanField(default=False)
     # Access fields
@@ -289,13 +289,13 @@ class Project(Metadata):
 
         return display_files, display_dirs
 
-    def submission_status(self):
+    def status(self):
         """
         The submission status is kept track of in the active Submission
         object, if it exists.
         """
         if self.under_submission:
-            return self.submissions.get(is_active=True).submission_status
+            return self.submissions.get(is_active=True).status
         else:
             return -1
 
@@ -303,7 +303,7 @@ class Project(Metadata):
         """
         Project is not editable when frozen
         """
-        if self.submission_status() in [0, 4]:
+        if self.status() in [0, 4]:
             return False
         else:
             return True
@@ -746,7 +746,7 @@ class Submission(BaseSubmission):
     """
     Project submission. Object is created when submitting author submits.
 
-    The submission_status field:
+    The status field:
     - 0 : submitting author submits. Awaiting editor assignment or decision.
     - 1 : decision 1 = reject.
     - 2 : decision 2 = accept with revisions.
@@ -760,7 +760,7 @@ class Submission(BaseSubmission):
     # Editor is manually assigned
     editor = models.ForeignKey('user.User', related_name='editing_submissions',
         null=True)
-    submission_status = models.PositiveSmallIntegerField(default=0)
+    status = models.PositiveSmallIntegerField(default=0)
 
     # The published item, if decision is accept
     published_project = models.OneToOneField('project.PublishedProject',
@@ -778,7 +778,7 @@ class Submission(BaseSubmission):
         author.approved_publish = True
         author.save()
         if self.all_authors_approved():
-            self.submission_status = 5
+            self.status = 5
             self.save()
 
     def get_active_resubmission(self):

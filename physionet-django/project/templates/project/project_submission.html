@@ -84,17 +84,17 @@
       {% else %}
         <li class="list-group-item"><i class="far fa-clock"></i> Waiting for editor to be assigned.</li>
       {% endif %}
-      {% if submission.submission_status == 0 %}
+      {% if submission.status == 0 %}
         {% if submission.editor %}
           <li class="list-group-item"><i class="far fa-clock"></i> Waiting for editor decision.</li>
         {% endif %}
-      {% elif submission.submission_status == 2 %}
+      {% elif submission.status == 2 %}
         <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The editor has accepted the submission with revisions.</li>
-      {% elif submission.submission_status >= 3 %}
+      {% elif submission.status >= 3 %}
         <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The editor accepted the submission on {{ submission.decision_datetime|date }}</li>
-        {% if submission.submission_status == 3 %}
+        {% if submission.status == 3 %}
           <li class="list-group-item"><i class="far fa-clock"></i> Waiting for editor to complete copyedit.</li>
-        {% elif submission.submission_status == 4 %}
+        {% elif submission.status == 4 %}
           <li class="list-group-item"><i class="far fa-clock"></i> Waiting for all authors to approve the publication
             {% if not author.approved_publish %}<form action="" method="post">{% csrf_token %}<button class="btn btn-success" name="approve_publish" style="float:right">Approve Publication</button></form>{% endif %}
             <ol>
@@ -110,7 +110,7 @@
               {% endfor %}
             </ol>
           </li>
-        {% elif submission.submission_status == 5 %}
+        {% elif submission.status == 5 %}
           <li class="list-group-item"><i class="far fa-clock"></i> All authors have approved the publication. Waiting for editor to publish.</li>
         {% endif %}
       {% endif %}

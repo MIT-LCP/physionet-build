@@ -54,9 +54,9 @@ def active_submissions(request):
                           [email], fail_silently=False)
             messages.success(request, 'The editor has been assigned')
 
-    submissions = Submission.objects.filter(is_active=True).order_by('submission_status')
+    submissions = Submission.objects.filter(is_active=True).order_by('status')
     assign_editor_form = forms.AssignEditorForm()
-    n_awaiting_editor = submissions.filter(submission_status=0, editor=None).count()
+    n_awaiting_editor = submissions.filter(status=0, editor=None).count()
 
     return render(request, 'console/active_submissions.html',
         {'submissions':submissions, 'assign_editor_form':assign_editor_form,
@@ -147,14 +147,14 @@ def copyedit_submission(request, submission_id):
     Page to copyedit the submission
     """
     submission = Submission.objects.get(id=submission_id)
-    if submission.submission_status != 3:
+    if submission.status != 3:
         return Http404()
 
     project = submission.project
 
     if request.method == 'POST':
         if 'complete_copyedit' in request.POST:
-            submission.submission_status = 4
+            submission.status = 4
             submission.save()
             return render(request, 'console/copyedit_complete.html')
 
@@ -169,14 +169,14 @@ def publish_submission(request, submission_id):
     Page to publish the submission
     """
     submission = Submission.objects.get(id=submission_id)
-    if submission.submission_status != 3:
+    if submission.status != 3:
         return Http404()
 
     project = submission.project
 
     if request.method == 'POST':
         if project.is_publishable():
-            submission.submission_status = 4
+            submission.status = 4
             submission.save()
             return render(request, 'console/publish_complete.html')
 

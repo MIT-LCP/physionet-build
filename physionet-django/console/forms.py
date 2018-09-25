@@ -30,7 +30,7 @@ class AssignEditorForm(forms.Form):
     Assign an editor to a submission
     """
     submission = forms.ModelChoiceField(queryset=Submission.objects.filter(
-        submission_status=0, editor=None))
+        status=0, editor=None))
     editor = forms.ModelChoiceField(queryset=User.objects.filter(is_admin=True))
 
 
@@ -52,7 +52,7 @@ class EditSubmissionForm(forms.ModelForm):
         """
         cleaned_data = super().clean()
 
-        if self.instance.submission_status != 0:
+        if self.instance.status != 0:
             raise forms.ValidationError(
                 'Unable to edit this submission')
 
@@ -66,7 +66,7 @@ class EditSubmissionForm(forms.ModelForm):
             submission.is_active = False
 
         # Update the submission status to reflect the decision
-        submission.submission_status = submission.decision
+        submission.status = submission.decision
         submission.decision_datetime = timezone.now()
         submission.save()
         return submission

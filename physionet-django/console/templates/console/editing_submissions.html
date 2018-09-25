@@ -24,14 +24,14 @@
         {% for submission in submissions %}
           <td><a href="{% url 'project_overview' submission.project.id %}">{{ submission.project }}</a></td>
           <td> <a href="{% url 'public_profile' submission.project.submitting_author.username %}">{{ submission.project.submitting_author.username }}</a> - {{ submission.project.submitting_author.email }}</td>
-          <td>{{ submission.submission_status }}</td>
+          <td>{{ submission.status }}</td>
           <td>{{ submission.submission_datetime|date }}</td>
           <td>
-            {% if submission.submission_status == 0 %}
+            {% if submission.status == 0 %}
               <a class="btn btn-primary btn-sm" href="{% url 'edit_submission' submission.id %}" role="button">Edit Submission</a>
-            {% elif submission.submission_status == 3 %}
+            {% elif submission.status == 3 %}
               <a class="btn btn-primary btn-sm" href="{% url 'copyedit_submission' submission.id %}" role="button">Copyedit Submission</a>
-            {% elif submission.submission_status == 5 %}
+            {% elif submission.status == 5 %}
               <a class="btn btn-primary btn-sm" href="{% url 'publish_submission' submission.id %}" role="button">Publish Submission</a>
             {% else %}
               Awaiting author action
