@@ -811,8 +811,9 @@ def project_submission(request, project_id):
         # Author approves publication
         elif 'approve_publish' in request.POST:
             author = authors.get(user=user)
-            if submission.status == 4 and not author.approved_publish:
-                submission.add_approved_author(author)
+            if submission.status == 3 and not author.approved_publish:
+                author.approved_publish = True
+                author.save()
                 messages.success(request, 'You have approved the publication.')
             else:
                 raise Http404()

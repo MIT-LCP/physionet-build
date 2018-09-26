@@ -31,7 +31,7 @@
               <a class="btn btn-primary btn-sm" href="{% url 'edit_submission' submission.id %}" role="button">Edit Submission</a>
             {% elif submission.status == 3 %}
               <a class="btn btn-primary btn-sm" href="{% url 'copyedit_submission' submission.id %}" role="button">Copyedit Submission</a>
-            {% elif submission.status == 5 %}
+            {% elif submission.status == 4 %}
               <a class="btn btn-primary btn-sm" href="{% url 'publish_submission' submission.id %}" role="button">Publish Submission</a>
             {% else %}
               Awaiting author action

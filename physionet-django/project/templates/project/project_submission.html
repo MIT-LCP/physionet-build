@@ -80,7 +80,7 @@
     <ul class="list-group list-group-flush">
       <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The project was submitted for review on {{ submission.submission_datetime|date }}.</li>
       {% if submission.editor %}
-        <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The editor for the submission is: {{ submission.editor }}</li>
+        <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The editor for the submission is: {{ submission.editor.disp_name_email }}</li>
       {% else %}
         <li class="list-group-item"><i class="far fa-clock"></i> Waiting for editor to be assigned.</li>
       {% endif %}
@@ -89,32 +89,29 @@
           <li class="list-group-item"><i class="far fa-clock"></i> Waiting for editor decision.</li>
         {% endif %}
       {% elif submission.status == 2 %}
-        <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The editor has accepted the submission with revisions.</li>
+        <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The editor has accepted the submission with revisions. The submitting author must resubmit a revised version.</li>
       {% elif submission.status >= 3 %}
         <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The editor accepted the submission on {{ submission.decision_datetime|date }}</li>
         {% if submission.status == 3 %}
-          <li class="list-group-item"><i class="far fa-clock"></i> Waiting for editor to complete copyedit.</li>
+          <li class="list-group-item"><i class="far fa-clock"></i> The project is being copyedited by the editor. Email the editor to suggest changes. When all authors approve, the editor will complete this stage.
+            {% if not author.approved_publish %}
+              <form action="" method="post">{% csrf_token %}<button class="btn btn-success" name="approve_publish" style="float:right">Approve Publication</button><a class="btn btn-primary mr-1" href="{% url 'project_preview' project.id %}" target="_blank" role="button" style="float:right">Preview Project</a></form>
+            {% endif %}
+            <ol>
+              {% for author in authors %}
+              <li>
+                {% if author.approved_publish %}
+                  <i class="fas fa-check-circle" style="color:green"></i> {{ author.disp_name_email }}
+                {% else %}
+                  <i class="far fa-clock"></i> {{ author.disp_name_email }}
+                {% endif %}
+              </li>
+              {% endfor %}
+            </ol>
+          </li>
         {% else %}
-          <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The editor completed the copyedit on {{ submission.copyedit_datetime|date }}</li>
-          {% if submission.status == 4 %}
-            <li class="list-group-item"><i class="far fa-clock"></i> Waiting for all authors to approve the publication
-              {% if not author.approved_publish %}<form action="" method="post">{% csrf_token %}<button class="btn btn-success" name="approve_publish" style="float:right">Approve Publication</button><a class="btn btn-primary mr-1" href="{% url 'project_preview' project.id %}" target="_blank" role="button" style="float:right">Preview</a></form>{% endif %}
-              <ol>
-                {% for author in authors %}
-                <li>
-                  {% if author.approved_publish %}
-                    <i class="fas fa-check-circle" style="color:green"></i> {{ author.disp_name_email }}
-                  {% else %}
-                    <i class="far fa-clock"></i> {{ author.disp_name_email }}
-                  {% endif %}
-
-                </li>
-                {% endfor %}
-              </ol>
-            </li>
-          {% elif submission.status == 5 %}
-            <li class="list-group-item"><i class="far fa-clock"></i> All authors have approved the publication. Waiting for editor to publish.</li>
-          {% endif %}
+          <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The editor and all authors completed the copyedit on {{ submission.copyedit_datetime|date }}</li>
+          <li class="list-group-item"><i class="far fa-clock"></i> Waiting for editor to publish.</li>
         {% endif %}
       {% endif %}
     </ul>

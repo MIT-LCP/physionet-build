@@ -389,11 +389,10 @@ class Project(Metadata):
         """
         submission = self.submissions.get(is_active=True)
 
-        if submission.status == 5 and submission.all_authors_approved():
+        if submission.status == 4 and submission.all_authors_approved():
             return True
         else:
             return False
-
 
     def publish(self):
         """
@@ -755,13 +754,12 @@ class Submission(BaseSubmission):
     Project submission. Object is created when submitting author submits.
 
     The status field:
-    - 0 : submitting author submits. Awaiting editor assignment or decision.
-    - 1 : decision 1 = reject.
-    - 2 : decision 2 = accept with revisions.
-    - 3 : decision 3 = accept. In copyedit stage.
-    - 4 : copyedit complete. Waiting for authors to approve publish.
-    - 5 : all authors approved publish. ready for editor to publish
-    - 6 : published
+    - 0 : Submitting author submits. Awaiting editor assignment or decision.
+    - 1 : Decision 1 = reject.
+    - 2 : Decision 2 = accept with revisions.
+    - 3 : Decision 3 = accept. In copyedit stage. Requires author approval.
+    - 4 : Copyedit complete. Ready for editor to publish
+    - 5 : Published
 
     """
     project = models.ForeignKey('project.Project', related_name='submissions')
@@ -783,13 +781,6 @@ class Submission(BaseSubmission):
     def all_authors_approved(self):
         authors = self.project.authors.all()
         return len(authors) == sum(a.approved_publish for a in authors)
-
-    def add_approved_author(self, author):
-        author.approved_publish = True
-        author.save()
-        if self.all_authors_approved():
-            self.status = 5
-            self.save()
 
     def get_active_resubmission(self):
         if self.is_active:

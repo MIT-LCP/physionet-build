@@ -159,6 +159,7 @@ def copyedit_submission(request, submission_id):
         return Http404()
 
     project = submission.project
+    authors = project.authors.all()
 
     if request.method == 'POST':
         if 'complete_copyedit' in request.POST:
@@ -167,8 +168,12 @@ def copyedit_submission(request, submission_id):
             submission.save()
             return render(request, 'console/copyedit_complete.html')
 
+    author_emails = ';'.join(a.user.email for a in authors)
+    authors_approved = submission.all_authors_approved()
+
     return render(request, 'console/copyedit_submission.html', {
-        'project':project, 'submission':submission})
+        'project':project, 'submission':submission, 'authors':authors,
+        'authors_approved':authors_approved, 'author_emails':author_emails})
 
 
 @login_required
@@ -178,7 +183,7 @@ def publish_submission(request, submission_id):
     Page to publish the submission
     """
     submission = Submission.objects.get(id=submission_id)
-    if submission.status != 5:
+    if submission.status != 4:
         return Http404()
 
     project = submission.project
