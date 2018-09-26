@@ -94,7 +94,7 @@
         <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The editor accepted the submission on {{ submission.decision_datetime|date }}</li>
         {% if submission.status == 3 %}
           <li class="list-group-item"><i class="far fa-clock"></i> The project is being copyedited by the editor. Email the editor to suggest changes. When all authors approve, the editor will complete this stage.
-            {% if not author.approved_publish %}
+            {% if not admin_inspect and not author.approved_publish %}
               <form action="" method="post">{% csrf_token %}<button class="btn btn-success" name="approve_publish" style="float:right">Approve Publication</button><a class="btn btn-primary mr-1" href="{% url 'project_preview' project.id %}" target="_blank" role="button" style="float:right">Preview Project</a></form>
             {% endif %}
             <ol>

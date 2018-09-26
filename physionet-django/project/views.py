@@ -325,7 +325,8 @@ def project_authors(request, project_id):
     admin_inspect = user.is_admin and user not in [a.user for a in authors]
 
     if admin_inspect:
-        affiliation_formset, invite_author_form = None, None
+        (affiliation_formset, invite_author_form, corresponding_author_form,
+         corresponding_email_form) = None, None, None, None
     else:
         author = authors.get(user=user)
         AffiliationFormSet = inlineformset_factory(parent_model=Author,
@@ -822,7 +823,8 @@ def project_submission(request, project_id):
         submission = project.submissions.get(is_active=True)
         context['submission'] = submission
         context['authors'] = authors
-        context['author'] = authors.get(user=user)
+        if not admin_inspect:
+            context['author'] = authors.get(user=user)
 
     return render(request, 'project/project_submission.html', context)
 
