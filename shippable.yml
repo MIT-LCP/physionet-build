@@ -24,6 +24,7 @@ build:
   # http://docs.shippable.com/ci/shippableyml/#ci
   ci:
     - "cp .env.example .env"
+    - "pip install --upgrade pip"
     - "pip install -r requirements.txt"
     - "cd physionet-django"
     - "./manage.py resetdb"
