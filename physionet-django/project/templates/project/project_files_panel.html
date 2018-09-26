@@ -1,7 +1,7 @@
 {% load static %}
 
 <div id="forms-and-panel">
-  <form action="" method="post" type="submit" enctype="multipart/form-data">
+  <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {% include "project/project_files_form.html" %}
     <br>

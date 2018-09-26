@@ -4,6 +4,7 @@ import pdb
 from django import forms
 from django.contrib.auth import forms as auth_forms
 from django.contrib.auth import password_validation
+from django.core.files.uploadedfile import UploadedFile
 
 from .models import AssociatedEmail, User, Profile
 from .widgets import ProfilePhotoInput
@@ -105,7 +106,6 @@ class ProfileForm(forms.ModelForm):
     """
     For editing the profile
     """
-
     photo = forms.ImageField(required=False, widget=ProfilePhotoInput(
         attrs={'template_name':'user/profile_photo_input.html'}))
 
@@ -117,10 +117,12 @@ class ProfileForm(forms.ModelForm):
     def clean_photo(self):
         data = self.cleaned_data['photo']
         # Check size if file is being uploaded
-        if data:
+        if data and isinstance(data, UploadedFile):
             if data.size > Profile.MAX_PHOTO_SIZE:
                 raise forms.ValidationError('Exceeded maximum size: {0}'.format(Profile.MAX_PHOTO_SIZE))
-
+            if data.content_type not in ['image/png', 'image/jpeg', 'image/jpg']:
+                raise forms.ValidationError('Filetype not supported. Please use png or jpeg')
+ 
         # Save the existing file path in case it needs to be deleted.
         # After is_valid runs, the instance photo is already updated.
         if self.instance.photo:
