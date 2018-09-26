@@ -21,6 +21,7 @@ from .models import (Affiliation, Author, Invitation, Project,
     PublishedProject, StorageRequest, Reference,
     Topic, Contact, Publication)
 from . import utility
+import notification.utility as notification
 from user.forms import ProfileForm, AssociatedEmailChoiceForm
 from user.models import User
 
@@ -797,15 +798,7 @@ def project_submission(request, project_id):
         if 'submit_project' in request.POST and not project.under_submission and user == project.submitting_author:
             if project.is_submittable():
                 project.submit()
-                # Email all authors
-                subject = 'Submission of project {}'.format(project.title)
-                email_context = {'project':project}
-                for email, name in project.get_author_info():
-                    email_context['name'] = name
-                    body = loader.render_to_string(
-                        'project/email/submit_notify.html', email_context)
-                    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                              [email], fail_silently=False)
+                notification.submit_notify(project)
                 messages.success(request, 'Your project has been submitted. You will be notified when an editor is assigned.')
             else:
                 messages.error(request, 'Fix the errors before submitting')
