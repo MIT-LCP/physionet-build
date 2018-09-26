@@ -160,6 +160,9 @@ def edit_profile(request):
     user = request.user
     profile = user.profile
 
+
+    form = ProfileForm(instance=profile)
+
     if request.method == 'POST':
         if 'edit_profile' in request.POST:
             # Update the profile and return to the same page. Place a message
@@ -173,7 +176,8 @@ def edit_profile(request):
             profile.delete_photo()
             messages.success(request, 'Your profile photo has been deleted.')
 
-    form = ProfileForm(instance=profile)
+        if not form.errors:
+            form = ProfileForm(instance=profile)
 
     return render(request, 'user/edit_profile.html', {'user':user, 'form':form,
         'messages':messages.get_messages(request)})

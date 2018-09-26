@@ -1,5 +1,6 @@
 import os
 import pdb
+import re
 
 from django import forms
 from django.contrib.contenttypes.forms import BaseGenericInlineFormSet
@@ -15,9 +16,6 @@ RESPONSE_CHOICES = (
     (1, 'Accept'),
     (0, 'Reject')
 )
-
-ILLEGAL_PATTERNS = ['/','..',]
-
 
 class CorrespondingAuthorForm(forms.Form):
     """
@@ -81,10 +79,13 @@ class UploadFilesForm(ProjectFilesForm):
         """
         Check for file size limits and whether they are readable
         """
-        data = self.cleaned_data['file_field']
         files = self.files.getlist('file_field')
 
         for file in files:
+            if re.match(r'(?u)[^-\w.]', file.name):
+                raise forms.ValidationError('Invalid characters in file, allowed ' \
+                    'characters are: numbers, letters, dash, underscore, or dot: %(file_name)s',
+                    params={'file_name':file.name})
             # Special error
             if not file:
                 raise forms.ValidationError('Could not read file: %(file_name)s',
@@ -104,14 +105,14 @@ class UploadFilesForm(ProjectFilesForm):
                 'Total upload volume exceeds remaining quota',
                 code='exceed_remaining_quota',
             )
-
-        return data
+        return files
 
     def clean(self):
         """
         Check for name clash with existing files/folders in the directory
         """
-        data = self.cleaned_data
+        if self.errors: return
+
         files = self.files.getlist('file_field')
 
         self.taken_names = utility.list_items(self.file_dir, return_separate=False)
@@ -120,8 +121,6 @@ class UploadFilesForm(ProjectFilesForm):
             if file.name in self.taken_names:
                 raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
                     code='clashing_name', params={'taken_name':file.name})
-
-        return data
 
     def perform_action(self):
         """
@@ -138,28 +137,26 @@ class CreateFolderForm(ProjectFilesForm):
     Form for creating a new folder in a directory
     """
     folder_name = forms.CharField(max_length=50, required=False)
-
     def clean_folder_name(self):
         data = self.cleaned_data['folder_name']
-        for substring in ILLEGAL_PATTERNS:
-            if substring in data:
-                raise forms.ValidationError('Illegal pattern specified in item name: "%(illegal_pattern)s"',
-                code='illegal_pattern', params={'illegal_pattern':substring})
+        if re.match(r'(?u)[^-\w.]', data):
+            raise forms.ValidationError('Invalid characters in folder name, allowed ' \
+                'characters are: numbers, letters, dash, underscore, or dot: %(illegal_pattern)s',
+                params={'illegal_pattern':data})
         return data
 
     def clean(self):
         """
         Check for name clash with existing files/folders in the directory
         """
-        data = self.cleaned_data
+        if self.errors: return
+
         folder_name = self.cleaned_data['folder_name']
         self.taken_names = utility.list_items(self.file_dir, return_separate=False)
 
         if folder_name in self.taken_names:
             raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
                 code='clashing_name', params={'taken_name':folder_name})
-
-        return data
 
     def perform_action(self):
         """
@@ -217,14 +214,15 @@ class RenameItemForm(EditItemsForm):
         data = self.cleaned_data['new_name']
         taken_names = utility.list_items(self.file_dir, return_separate=False)
 
+        if re.match(r'(?u)[^-\w.]', data):
+            raise forms.ValidationError('Invalid characters in filename, allowed ' \
+                'characters are: numbers, letters, dash, underscore, or dot: %(file_name)s',
+                params={'file_name':data})
+
         if data in taken_names:
             raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
                 code='clashing_name', params={'taken_name':data})
 
-        for substring in ILLEGAL_PATTERNS:
-            if substring in data:
-                raise forms.ValidationError('Illegal pattern specified in item name: "%(illegal_pattern)s"',
-                code='illegal_pattern', params={'illegal_pattern':substring})
         return data
 
     def perform_action(self):
