@@ -12,6 +12,7 @@ from django.template import loader
 from django.utils import timezone
 
 from . import forms
+import notification.utility as notification
 from project.models import Project, Resubmission, StorageRequest, Submission
 from user.models import User
 
@@ -43,15 +44,7 @@ def active_submissions(request):
             submission = assign_editor_form.cleaned_data['submission']
             submission.editor = assign_editor_form.cleaned_data['editor']
             submission.save()
-            # Send the notifying emails to authors
-            subject = 'Editor assigned to project {0}'.format(submission.project.title)
-            for email, name in submission.project.get_author_info():
-                body = loader.render_to_string(
-                    'console/email/assign_editor_notify.html',
-                    {'name':name, 'project':submission.project,
-                     'editor':submission.editor})
-                send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                          [email], fail_silently=False)
+            notification.assign_editor_notify(submission)
             messages.success(request, 'The editor has been assigned')
 
     submissions = Submission.objects.filter(is_active=True).order_by('status')
@@ -93,7 +86,7 @@ def edit_submission(request, submission_id):
     submission = Submission.objects.get(id=submission_id)
     project = submission.project
     # The user must be the editor
-    if request.user != submission.editor:
+    if request.user != submission.editor or submission.status not in [0, 2]:
         return Http404()
 
     if request.method == 'POST':
@@ -103,40 +96,13 @@ def edit_submission(request, submission_id):
             submission = edit_submission_form.save()
             # Resubmit with changes
             if submission.decision == 1:
-                # Notify authors of decision
-                subject = 'Resubmission request for project {0}'.format(project.title)
-                for email, name in submission.project.get_author_info():
-                    body = loader.render_to_string(
-                        'console/email/resubmit_submission_notify.html',
-                        {'name':name, 'project':project,
-                         'editor_comments':submission.editor_comments,
-                         'domain':get_current_site(request)})
-                    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                              [email], fail_silently=False)
+                notification.edit_resubmit_notify(submission)
             # Reject
             elif submission.decision == 2:
-                # Notify authors of decision
-                subject = 'Submission rejected for project {0}'.format(project.title)
-                for email, name in submission.project.get_author_info():
-                    body = loader.render_to_string(
-                        'console/email/reject_submission_notify.html',
-                        {'name':name, 'project':project,
-                         'editor_comments':submission.editor_comments,
-                         'domain':get_current_site(request)})
-                    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                              [email], fail_silently=False)
+                notification.edit_reject_notify(submission)
             # Accept
             else:
-                # Notify authors of decision
-                subject = 'Submission accepted for project {0}'.format(project.title)
-                for email, name in submission.project.get_author_info():
-                    body = loader.render_to_string(
-                        'console/email/accept_submission_notify.html',
-                        {'name':name, 'project':project,
-                         'editor_comments':submission.editor_comments,
-                         'domain':get_current_site(request)})
-                    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                              [email], fail_silently=False)
+                notification.edit_accept_notify(submission)
 
             return render(request, 'console/edit_complete.html',
                 {'decision':submission.decision,
@@ -155,7 +121,7 @@ def copyedit_submission(request, submission_id):
     Page to copyedit the submission
     """
     submission = Submission.objects.get(id=submission_id)
-    if submission.status != 3:
+    if request.user != submission.editor or submission.status != 3:
         return Http404()
 
     project = submission.project
@@ -166,6 +132,7 @@ def copyedit_submission(request, submission_id):
             submission.status = 4
             submission.copyedit_datetime = timezone.now()
             submission.save()
+            notifcation.copyedit_complete_notify(submission)
             return render(request, 'console/copyedit_complete.html')
 
     author_emails = ';'.join(a.user.email for a in authors)
