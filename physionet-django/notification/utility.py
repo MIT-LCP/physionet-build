@@ -12,18 +12,19 @@ RESPONSE_ACTIONS = {0:'rejected', 1:'accepted'}
 
 # ---------- Project App ---------- #
 
-def invitation_notify(invite_author_form, target_email):
+def invitation_notify(request, invite_author_form, target_email):
     """
     Notify someone when they are invited to author a project
     """
     inviter = invite_author_form.inviter
-    subject = "PhysioNet Project Authorship Invitation"
+    project = invite_author_form.project
+    subject = 'Invitation to author project: {}'.format(project.title)
     email_context = {'inviter_name':inviter.get_full_name(),
                      'inviter_email':inviter.email,
-                     'project':invite_author_form.project,
+                     'project':project,
                      'domain':get_current_site(request)}
     body = loader.render_to_string('project/email/invite_author.html',
-                                       email_context)
+                                    email_context)
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [target_email], fail_silently=False)
 
@@ -80,7 +81,7 @@ def assign_editor_notify(submission):
                   [email], fail_silently=False)
 
 
-def edit_reject_notify(submission):
+def edit_reject_notify(request, submission):
     """
     Notify authors when an editor rejects a submission
     """
@@ -95,7 +96,7 @@ def edit_reject_notify(submission):
                   [email], fail_silently=False)
 
 
-def edit_resubmit_notify(submission):
+def edit_resubmit_notify(request, submission):
     """
     Notify authors when an editor requests a resubmission
     """
@@ -111,7 +112,7 @@ def edit_resubmit_notify(submission):
                   [email], fail_silently=False)
 
 
-def edit_accept_notify(submission):
+def edit_accept_notify(request, submission):
     """
     Notify authors when an editor accepts a submission
     """
@@ -127,7 +128,7 @@ def edit_accept_notify(submission):
                   [email], fail_silently=False)
 
 
-def copyedit_complete_notify(submission):
+def copyedit_complete_notify(request, submission):
     """
     Notify authors when the copyedit stage is complete
     """
@@ -153,7 +154,8 @@ def storage_response_notify(storage_request):
     email, name = project.get_submitting_author_info()
     body = loader.render_to_string('console/email/storage_response_notify.html',
         {'name':name, 'project':project, 'response':response,
-         'allowance':storage_request.request_allowance})
+         'allowance':storage_request.request_allowance,
+         'response_message':storage_request.response_message})
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [email], fail_silently=False)
 
