@@ -128,7 +128,7 @@ def copyedit_submission(request, submission_id):
             submission.status = 4
             submission.copyedit_datetime = timezone.now()
             submission.save()
-            notifcation.copyedit_complete_notify(request, submission)
+            notification.copyedit_complete_notify(request, submission)
             return render(request, 'console/copyedit_complete.html')
 
     author_emails = ';'.join(a.user.email for a in authors)
@@ -154,6 +154,7 @@ def publish_submission(request, submission_id):
     if request.method == 'POST':
         if project.is_publishable():
             published_project = project.publish()
+            notification.publish_notify(request, project, published_project)
             return render(request, 'console/publish_complete.html',
                 {'published_project':published_project})
 

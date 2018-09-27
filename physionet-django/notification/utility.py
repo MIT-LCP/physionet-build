@@ -29,7 +29,7 @@ def invitation_notify(request, invite_author_form, target_email):
                   [target_email], fail_silently=False)
 
 
-def invitation_response_notify(invitation):
+def invitation_response_notify(invitation, affected_emails):
     """
     Notify the submitting author when an invitation to join a project
     is processed.
@@ -85,8 +85,9 @@ def edit_reject_notify(request, submission):
     """
     Notify authors when an editor rejects a submission
     """
+    project = submission.project
     subject = 'Submission rejected for project {0}'.format(project.title)
-    for email, name in submission.project.get_author_info():
+    for email, name in project.get_author_info():
         body = loader.render_to_string(
             'console/email/reject_submission_notify.html',
             {'name':name, 'project':project,
@@ -100,9 +101,9 @@ def edit_resubmit_notify(request, submission):
     """
     Notify authors when an editor requests a resubmission
     """
-    subject = 'Resubmission request for project {0}'.format(
-        submission.project.title)
-    for email, name in submission.project.get_author_info():
+    project = submission.project
+    subject = 'Resubmission request for project {0}'.format(project.title)
+    for email, name in project.get_author_info():
         body = loader.render_to_string(
             'console/email/resubmit_submission_notify.html',
             {'name':name, 'project':project,
@@ -116,9 +117,9 @@ def edit_accept_notify(request, submission):
     """
     Notify authors when an editor accepts a submission
     """
-    subject = 'Submission accepted for project: {0}'.format(
-        submission.project.title)
-    for email, name in submission.project.get_author_info():
+    project = submission.project
+    subject = 'Submission accepted for project: {0}'.format(project.title)
+    for email, name in project.get_author_info():
         body = loader.render_to_string(
             'console/email/accept_submission_notify.html',
             {'name':name, 'project':project,
@@ -132,12 +133,27 @@ def copyedit_complete_notify(request, submission):
     """
     Notify authors when the copyedit stage is complete
     """
-    subject = 'Copyedit complete for project: {0}'.format(
-        submission.project.title)
+    project = submission.project
+    subject = 'Copyedit complete for project: {0}'.format(project.title)
     for email, name in submission.project.get_author_info():
         body = loader.render_to_string(
             'console/email/copyedit_complete_notify.html',
             {'name':name, 'project':project,
+             'domain':get_current_site(request)})
+        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                  [email], fail_silently=False)
+
+
+def publish_notify(request, project, published_project):
+    """
+    Notify authors when a project is published
+    """
+    subject = 'Your project has been published: {0}'.format(
+        published_project.title)
+    for email, name in project.get_author_info():
+        body = loader.render_to_string(
+            'console/email/publish_notify.html',
+            {'name':name, 'published_project':published_project,
              'domain':get_current_site(request)})
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)

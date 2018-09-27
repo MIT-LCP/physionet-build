@@ -55,8 +55,8 @@
               <form action="" method="post" enctype="multipart/form-data">
                 <div class="modal-body">
                   {% csrf_token %}
-                  <tr><td><label for="id_request_allowance">Request allowance (GB):</label></td><tr>
-                  {{ storage_request_form.request_allowance }}
+                  <p>We will only approve storage requests if the project and its files are adequately described.</p>
+                  {{ storage_request_form }}
                   <em>Current allowance: {{ storage_info.readable_allowance }}</em>
                 </div>
                 <div class="modal-footer">

@@ -561,8 +561,7 @@ class InviteAuthorForm(forms.ModelForm):
                     'The user is already an author of this project',
                     code='already_author')
 
-        invitations = self.project.invitations.filter(
-            invitation_type='author', is_active=True)
+        invitations = self.project.authorinvitations.filter(is_active=True)
 
         if data in [i.email for i in invitations]:
             raise forms.ValidationError(
@@ -574,7 +573,6 @@ class InviteAuthorForm(forms.ModelForm):
         invitation = super(InviteAuthorForm, self).save(commit=False)
         invitation.project = self.project
         invitation.inviter = self.inviter
-        invitation.invitation_type = 'author'
         invitation.expiration_date = (timezone.now().date()
             + timezone.timedelta(days=21))
         invitation.save()
@@ -589,9 +587,8 @@ class StorageRequestForm(forms.ModelForm):
         model = StorageRequest
         # Storage request allowance in GB
         fields = ('request_allowance',)
-        widgets = {
-            'request_allowance':forms.NumberInput(),
-        }
+        widgets = {'request_allowance':forms.NumberInput()}
+        labels = {'Request_allowance':'request allowance (GB)'}
 
     def __init__(self, project, *args, **kwargs):
         super(StorageRequestForm, self).__init__(*args, **kwargs)

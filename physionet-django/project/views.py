@@ -72,11 +72,9 @@ def process_invitation_response(request, invitation_response_formset):
                 invitation = invitation_response_form.instance
                 project = invitation.project
                 invitations = AuthorInvitation.objects.filter(is_active=True,
-                    email__in=user.get_emails(), project=project,
-                    invitation_type=invitation.invitation_type)
+                    email__in=user.get_emails(), project=project)
                 affected_emails = [i.email for i in invitations]
                 invitations.update(response=invitation.response,
-                    response_message=invitation.response_message,
                     response_datetime=timezone.now(), is_active=False)
                 # Create a new Author object
                 if invitation.response:
@@ -85,7 +83,8 @@ def process_invitation_response(request, invitation_response_formset):
                         corresponding_email=user.get_primary_email())
                     author.import_profile_info()
 
-                notification.invitation_response_notify(invitation)
+                notification.invitation_response_notify(invitation,
+                                                        affected_emails)
                 messages.success(request,'The invitation has been {0}.'.format(
                     notification.RESPONSE_ACTIONS[invitation.response]))
 
@@ -100,7 +99,7 @@ def project_home(request):
     user = request.user
     projects = Project.objects.filter(authors__in=user.authorships.all())
 
-    InvitationResponseFormSet = modelformset_factory(Invitation,
+    InvitationResponseFormSet = modelformset_factory(AuthorInvitation,
         form=forms.InvitationResponseForm, extra=0)
 
     if request.method == 'POST':
@@ -108,8 +107,7 @@ def project_home(request):
         process_invitation_response(request, invitation_response_formset)
 
     invitation_response_formset = InvitationResponseFormSet(
-        queryset=AuthorInvitation.get_user_invitations(user,
-        invitation_types=['author']))
+        queryset=AuthorInvitation.get_user_invitations(user))
 
     return render(request, 'project/project_home.html', {'projects':projects,
         'invitation_response_formset':invitation_response_formset})
@@ -358,8 +356,7 @@ def project_authors(request, project_id):
                 author.save()
                 messages.success(request, 'Your corresponding email has been updated.')
 
-    invitations = project.authorinvitations.filter(invitation_type='author',
-        is_active=True)
+    invitations = project.authorinvitations.filter(is_active=True)
     edit_affiliations_url = reverse('edit_affiliation', args=[project.id])
     return render(request, 'project/project_authors.html', {'project':project,
         'authors':authors, 'invitations':invitations,
@@ -708,7 +705,7 @@ def project_preview(request, project_id):
 
     authors = project.authors.all().order_by('display_order')
     author_info = [utility.AuthorInfo(a) for a in authors]
-    invitations = project.invitations.filter(is_active=True)
+    invitations = project.authorinvitations.filter(is_active=True)
     corresponding_author = authors.get(is_corresponding=True)
 
     references = project.references.all()
