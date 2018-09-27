@@ -182,7 +182,7 @@ def process_storage_response(request, storage_response_formset):
 
                 if storage_request.response:
                     project = storage_request.project
-                    project.storage_allowance = storage_request.request_allowance
+                    project.storage_allowance = storage_request.request_allowance * 1024
                     project.save()
 
                 notification.storage_response_notify(storage_request)

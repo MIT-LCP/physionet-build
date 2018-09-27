@@ -586,7 +586,7 @@ def project_files(request, project_id):
     "View and manipulate files in a project"
     project = Project.objects.get(id=project_id)
     admin_inspect = request.user.is_admin and not is_author(request.user, project)
-    storage_info = utility.get_storage_info(project.storage_allowance*1024**3,
+    storage_info = utility.get_storage_info(project.storage_allowance*1024**2,
             project.storage_used())
 
     if request.method == 'POST':
@@ -622,7 +622,7 @@ def project_files(request, project_id):
             subdir = ''
 
         # Reload the storage info.
-        storage_info = utility.get_storage_info(project.storage_allowance*1024**3,
+        storage_info = utility.get_storage_info(project.storage_allowance*1024**2,
             project.storage_used())
     else:
         # The subdirectory is just the base. Ajax calls to the file

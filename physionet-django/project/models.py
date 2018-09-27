@@ -226,9 +226,9 @@ class Project(Metadata):
     creation_datetime = models.DateTimeField(auto_now_add=True)
     modified_datetime = models.DateTimeField(auto_now=True)
 
-    # Maximum allowed storage capacity in GB
-    storage_allowance = models.SmallIntegerField(default=1)
-    # Misnomers - actually a User object, not an Author object.
+    # Maximum allowed storage capacity in MB
+    storage_allowance = models.PositiveIntegerField(default=100)
+    # Misnomer - actually a User object, not an Author object.
     submitting_author = models.ForeignKey('user.User',
         related_name='submitting_projects')
     # If it has any published versions
@@ -241,7 +241,7 @@ class Project(Metadata):
     data_use_agreement = models.ForeignKey('project.DataUseAgreement',
                                            null=True, blank=True)
 
-    INDIVIDUAL_FILE_SIZE_LIMIT = 100 * 1024**2
+    INDIVIDUAL_FILE_SIZE_LIMIT = 10 * 1024**3
 
     REQUIRED_FIELDS = {0:['title', 'abstract', 'background', 'methods',
                           'content_description', 'conflicts_of_interest',

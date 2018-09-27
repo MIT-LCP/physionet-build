@@ -44,3 +44,10 @@ def access_description(access_policy):
         2: 'Only PhysioNet credentialed users who sign the specified DUA can access the files.',
     }
     return descriptions[access_policy]
+
+@register.filter(name='mb_to_gb')
+def mb_to_gb(storage_allowance):
+    """
+    Convert storage allowance mb to a readable gb value
+    """
+    return '{:.2f}'.format(storage_allowance / 1024)
