@@ -2,9 +2,52 @@
 Module for generating notifications
 """
 from django.conf import settings
+from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
 from django.template import loader
 
+
+RESPONSE_ACTIONS = {0:'rejected', 1:'accepted'}
+
+
+# ---------- Project App ---------- #
+
+def invitation_notify(invite_author_form, target_email):
+    """
+    Notify someone when they are invited to author a project
+    """
+    inviter = invite_author_form.inviter
+    subject = "PhysioNet Project Authorship Invitation"
+    email_context = {'inviter_name':inviter.get_full_name(),
+                     'inviter_email':inviter.email,
+                     'project':invite_author_form.project,
+                     'domain':get_current_site(request)}
+    body = loader.render_to_string('project/email/invite_author.html',
+                                       email_context)
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                  [target_email], fail_silently=False)
+
+
+def invitation_response_notify(invitation):
+    """
+    Notify the submitting author when an invitation to join a project
+    is processed.
+    """
+    response = RESPONSE_ACTIONS[invitation.response]
+    project = invitation.project
+
+    subject = 'Authorship invitation {} for project: {}'.format(response,
+                                                                project.title)
+    email, name = project.get_submitting_author_info()
+    email_context = {'name':name, 'project':project,
+        'response':response}
+    # Send an email for each email belonging to the accepting user
+    for author_email in affected_emails:
+        email_context['author_email'] = author_email
+        body = loader.render_to_string(
+            'project/email/author_response.html', email_context)
+        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                  [email], fail_silently=False)
 
 def submit_notify(project):
     """
@@ -19,6 +62,8 @@ def submit_notify(project):
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                           [email], fail_silently=False)
 
+
+# ---------- Console App ---------- #
 
 def assign_editor_notify(submission):
     """
@@ -95,3 +140,20 @@ def copyedit_complete_notify(submission):
              'domain':get_current_site(request)})
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)
+
+
+def storage_response_notify(storage_request):
+    """
+    Notify submitting author when storage request is processed
+    """
+    project = storage_request.project
+    response = RESPONSE_ACTIONS[storage_request.response]
+    subject = 'Storage request {0} for project: {1}'.format(response,
+        project.title)
+    email, name = project.get_submitting_author_info()
+    body = loader.render_to_string('console/email/storage_response_notify.html',
+        {'name':name, 'project':project, 'response':response,
+         'allowance':storage_request.request_allowance})
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+              [email], fail_silently=False)
+
