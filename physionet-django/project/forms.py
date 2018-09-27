@@ -8,7 +8,7 @@ from django.contrib.contenttypes.forms import BaseGenericInlineFormSet
 from django.template.defaultfilters import slugify
 from django.utils import timezone
 
-from .models import Affiliation, Author, Invitation, Project, StorageRequest
+from .models import Affiliation, Author, AuthorInvitation, Project, StorageRequest
 from . import utility
 
 
@@ -548,7 +548,7 @@ class InviteAuthorForm(forms.ModelForm):
         self.inviter = inviter
 
     class Meta:
-        model = Invitation
+        model = AuthorInvitation
         fields = ('email',)
 
     def clean_email(self):
@@ -615,7 +615,7 @@ class StorageRequestForm(forms.ModelForm):
         """
         cleaned_data = super().clean()
 
-        if self.project.storage_requests.filter(is_active=True):
+        if self.project.storagerequests.filter(is_active=True):
             raise forms.ValidationError(
                   'This project already has an outstanding storage request.')
         return cleaned_data
@@ -626,10 +626,9 @@ class InvitationResponseForm(forms.ModelForm):
     For responding to an author invitation
     """
     class Meta:
-        model = Invitation
-        fields = ('response', 'response_message')
-        widgets= {'response':forms.Select(choices=RESPONSE_CHOICES),
-                 'response_message':forms.Textarea()}
+        model = AuthorInvitation
+        fields = ('response',)
+        widgets= {'response':forms.Select(choices=RESPONSE_CHOICES)}
 
     def clean(self):
         """
