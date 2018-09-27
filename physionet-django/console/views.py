@@ -1,10 +1,8 @@
 import pdb
 
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.mail import send_mail
 from django.forms import modelformset_factory, Select, Textarea
 from django.http import Http404
 from django.shortcuts import redirect, render
@@ -16,8 +14,6 @@ import notification.utility as notification
 from project.models import Project, Resubmission, StorageRequest, Submission
 from user.models import User
 
-
-RESPONSE_ACTIONS = {0:'rejected', 1:'accepted'}
 
 def is_admin(user, *args, **kwargs):
     return user.is_admin
@@ -189,17 +185,9 @@ def process_storage_response(request, storage_response_formset):
                     project.storage_allowance = storage_request.request_allowance
                     project.save()
 
-                # Send the notifying email to the submitting author
-                response = RESPONSE_ACTIONS[storage_request.response]
-                subject = 'Storage request {0} for project {1}'.format(response,
-                    project.title)
-                email, name = project.get_submitting_author_info()
-                body = loader.render_to_string('console/email/storage_response_notify.html',
-                    {'name':name, 'project':project, 'response':response,
-                     'allowance':storage_request.request_allowance})
-                send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                          [email], fail_silently=False)
-                messages.success(request, 'The storage request has been {0}.'.format(response))
+                notification.storage_response_notify(storage_request)
+                messages.success(request,
+                    'The storage request has been {}'.format(notification.RESPONSE_ACTIONS[storage_request.response]))
 
 @login_required
 @user_passes_test(is_admin)

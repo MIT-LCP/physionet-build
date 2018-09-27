@@ -2,13 +2,10 @@ import os
 import pdb
 import re
 
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
-from django.contrib.sites.shortcuts import get_current_site
-from django.core.mail import send_mail
 from django.forms import formset_factory, inlineformset_factory, modelformset_factory
 from django.http import HttpResponse, Http404, JsonResponse
 from django.shortcuts import render, redirect
@@ -24,9 +21,6 @@ from . import utility
 import notification.utility as notification
 from user.forms import ProfileForm, AssociatedEmailChoiceForm
 from user.models import User
-
-
-RESPONSE_ACTIONS = {0:'rejected', 1:'accepted'}
 
 
 def is_admin(user, *args, **kwargs):
@@ -90,21 +84,10 @@ def process_invitation_response(request, invitation_response_formset):
                         display_order=project.authors.count() + 1,
                         corresponding_email=user.get_primary_email())
                     author.import_profile_info()
-                # Send an email notifying the submitting author
-                subject = 'PhysioNet Project Authorship Response'
-                email, name = project.get_submitting_author_info()
-                email_context = {'name':name, 'project':project,
-                    'response':RESPONSE_ACTIONS[invitation.response]}
-                # Send an email for each email belonging to the accepting user
-                for author_email in affected_emails:
-                    email_context['author_email'] = author_email
-                    body = loader.render_to_string(
-                        'project/email/author_response.html', email_context)
-                    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                              [email], fail_silently=False)
 
+                notification.invitation_response_notify(invitation)
                 messages.success(request,'The invitation has been {0}.'.format(
-                    RESPONSE_ACTIONS[invitation.response]))
+                    notification.RESPONSE_ACTIONS[invitation.response]))
 
 
 @login_required
@@ -185,25 +168,7 @@ def invite_author(request, invite_author_form):
     Invite a user to be a collaborator.
     Helper function for `project_authors`.
     """
-    if invite_author_form.is_valid():
-        invite_author_form.save()
-        inviter = invite_author_form.inviter
-        target_email = invite_author_form.cleaned_data['email']
 
-        subject = "PhysioNet Project Authorship Invitation"
-        email_context = {'inviter_name':inviter.get_full_name(),
-                         'inviter_email':inviter.email,
-                         'project':invite_author_form.project,
-                         'domain':get_current_site(request)}
-        body = loader.render_to_string('project/email/invite_author.html',
-                                       email_context)
-        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                  [target_email], fail_silently=False)
-        messages.success(request,
-            'An invitation has been sent to {0}'.format(target_email))
-        return True
-    else:
-        messages.error(request, 'Submission unsuccessful. See form for errors.')
 
 
 def remove_author(request, author_id):
@@ -360,8 +325,15 @@ def project_authors(request, project_id):
         elif 'invite_author' in request.POST:
             invite_author_form = forms.InviteAuthorForm(project=project,
                 inviter=user, data=request.POST)
-            if invite_author(request, invite_author_form):
+            if invite_author_form.is_valid():
+                invite_author_form.save()
+                target_email = invite_author_form.cleaned_data['email']
+                notification.invitation_notify(invite_author_form, target_email)
+                messages.success(request,
+                    'An invitation has been sent to: {0}'.format(target_email))
                 invite_author_form = forms.InviteAuthorForm(project, user)
+            else:
+                messages.error(request, 'Submission unsuccessful. See form for errors.')
         elif 'remove_author' in request.POST:
             # No form. Just get button value.
             author_id = int(request.POST['remove_author'])
@@ -830,10 +802,7 @@ def project_submission_history(request, project_id):
     user = request.user
     project = Project.objects.get(id=project_id)
     admin_inspect = user.is_admin and not is_author(user, project)
-
     submissions = project.submissions.all()
-
-
     return render(request, 'project/project_submission_history.html',
         {'project':project, 'admin_inspect':admin_inspect,
          'submissions':submissions})
@@ -901,6 +870,7 @@ def database(request, published_project):
          'contact':contact, 'dir_breadcrumbs':dir_breadcrumbs,
          'total_size':total_size, 'display_files':display_files,
          'display_dirs':display_dirs})
+
 
 def published_project(request, published_project_id):
     """
