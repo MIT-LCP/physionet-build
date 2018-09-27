@@ -14,7 +14,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from . import forms
-from .models import (Affiliation, Author, Invitation, Project,
+from .models import (Affiliation, Author, AuthorInvitation, Project,
     PublishedProject, StorageRequest, Reference,
     Topic, Contact, Publication)
 from . import utility
@@ -71,7 +71,7 @@ def process_invitation_response(request, invitation_response_formset):
                 # same user, project, and invitation type
                 invitation = invitation_response_form.instance
                 project = invitation.project
-                invitations = Invitation.objects.filter(is_active=True,
+                invitations = AuthorInvitation.objects.filter(is_active=True,
                     email__in=user.get_emails(), project=project,
                     invitation_type=invitation.invitation_type)
                 affected_emails = [i.email for i in invitations]
@@ -108,7 +108,7 @@ def project_home(request):
         process_invitation_response(request, invitation_response_formset)
 
     invitation_response_formset = InvitationResponseFormSet(
-        queryset=Invitation.get_user_invitations(user,
+        queryset=AuthorInvitation.get_user_invitations(user,
         invitation_types=['author']))
 
     return render(request, 'project/project_home.html', {'projects':projects,
@@ -205,7 +205,7 @@ def cancel_invitation(request, invitation_id):
     Helper function for `project_authors`.
     """
     user = request.user
-    invitation = Invitation.objects.get(id=invitation_id)
+    invitation = AuthorInvitation.objects.get(id=invitation_id)
     if invitation.project.submitting_author == user:
         invitation.delete()
         messages.success(request, 'The invitation has been cancelled')
@@ -328,7 +328,8 @@ def project_authors(request, project_id):
             if invite_author_form.is_valid():
                 invite_author_form.save()
                 target_email = invite_author_form.cleaned_data['email']
-                notification.invitation_notify(invite_author_form, target_email)
+                notification.invitation_notify(request, invite_author_form,
+                                               target_email)
                 messages.success(request,
                     'An invitation has been sent to: {0}'.format(target_email))
                 invite_author_form = forms.InviteAuthorForm(project, user)
@@ -357,7 +358,7 @@ def project_authors(request, project_id):
                 author.save()
                 messages.success(request, 'Your corresponding email has been updated.')
 
-    invitations = project.invitations.filter(invitation_type='author',
+    invitations = project.authorinvitations.filter(invitation_type='author',
         is_active=True)
     edit_affiliations_url = reverse('edit_affiliation', args=[project.id])
     return render(request, 'project/project_authors.html', {'project':project,

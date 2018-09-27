@@ -2,7 +2,10 @@
 Dear {{ name }}
 
 Your {{ allowance}}GB storage request for project: {{ project.title }}, has been {{ response }}.
-
+{% if response_message %}
+The following message was included:
+"{{ response_message }}"
+{% endif %}
 Regards
 The PhysioNet Team
 {% endautoescape %}

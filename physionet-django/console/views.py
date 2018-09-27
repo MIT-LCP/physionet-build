@@ -92,13 +92,13 @@ def edit_submission(request, submission_id):
             submission = edit_submission_form.save()
             # Resubmit with changes
             if submission.decision == 1:
-                notification.edit_resubmit_notify(submission)
+                notification.edit_resubmit_notify(request, submission)
             # Reject
             elif submission.decision == 2:
-                notification.edit_reject_notify(submission)
+                notification.edit_reject_notify(request, submission)
             # Accept
             else:
-                notification.edit_accept_notify(submission)
+                notification.edit_accept_notify(request, submission)
 
             return render(request, 'console/edit_complete.html',
                 {'decision':submission.decision,
@@ -128,7 +128,7 @@ def copyedit_submission(request, submission_id):
             submission.status = 4
             submission.copyedit_datetime = timezone.now()
             submission.save()
-            notifcation.copyedit_complete_notify(submission)
+            notifcation.copyedit_complete_notify(request, submission)
             return render(request, 'console/copyedit_complete.html')
 
     author_emails = ';'.join(a.user.email for a in authors)
@@ -179,9 +179,8 @@ def process_storage_response(request, storage_response_formset):
                 storage_request.is_active = False
                 storage_request.save()
 
-                project = storage_request.project
-
                 if storage_request.response:
+                    project = storage_request.project
                     project.storage_allowance = storage_request.request_allowance
                     project.save()
 
