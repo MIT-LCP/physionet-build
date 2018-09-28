@@ -16,39 +16,36 @@ Author Guidelines
   <h1 class="text-center">Author Guidelines</h1>
   <hr>
 
-  <h2 id="overview">Publication Overview</h2>
+  <h2 id="overview">Publication Process</h2>
   <p>These are the steps for publishing a resource on PhysioNet:</p>
   <ul>
-    <li>Create a project with a specified resource type.</li>
-    <li>Invite co-authors to be credited on the publication.
-        Each co-authors must accept their invitation, and fill in
-        their name and affiliations.</li>
-    <li>Fill in project metadata, including license and access
-        policy.</li>
-    <li>Upload the files.</li>
-    <li>Check the project preview, and ensure that the automatic
-        checks pass.</li>
-    <li>Submit the project for review/publication. All co-authors
-        must approve the submission.</li>
-    <li>If the editor accepts the submission, a *version of the
-        project is published. If it is rejected, you may address
-        the issues and resubmit.</li>
-    <li>Optional: publish subsequent versions of the project.</li>
+    <li>Create a project.</li>
+    <li>Prepare the project for submission</li>
+    {# This should match submission_checklist.html #}
+    <ol>
+      <li>Invite co-authors to be credited for creating the resource.</li>
+      <li>Fill in the descriptive metadata.</li>
+      <li>Set the access policy and license.</li>
+      <li>Add identifiers.</li>
+      <li>Upload the files.</li>
+      <li>Preview the prospective published project.</li>
+    </ol>
+    <li>Submit the project for review.</li>
+    <ul>
+      <li>An editor is assigned and makes a decision:</li>
+      <ol>
+        <li>Reject - The content is not suitable for publication. Submission
+          ends.</li>
+        <li>Resubmit - The editor requests changes. The submitting author
+          makes these changes and resubmits.</li>
+        <li>Accept - The submission continues into the copyedit stage.</li>
+      </ol>
+      <li>The editor copyedits the metadata and files for any final changes.
+        When all authors approve, this editor can complete this step.</li>
+      <li>The editor publishes the project.</li>
+    </ul>
   </ul>
-
-  <p>See the following sections for details.</p>
-
-  <p>* It is important to separate the concepts of a project, and
-     published versions of a project. A user may create a project and
-     edit its fields. If it is submitted and accepted for publication,
-     a version of the project is published, which falls into the
-     public domain and cannot be edited. The original project remains,
-     and can be edited and resubmitted to publish subsequent versions
-     if desired.</p>
-  <br>
   <hr>
-
-
 
   <h2 id="project-creation">Project Creation</h2>
   <p>An account is required for creating projects. The
@@ -56,12 +53,9 @@ Author Guidelines
      creation page</a> can be found in the navbar under the
      <em>publish</em> panel, or your
      <a href="{% url 'project_home' %}" target="_blank">project
-     home</a> page, which lists all of your authoring projects.</p>
+     home</a> page, which lists all of your authoring projects.
+     Projects are not accessible by anyone except for their authors.
   </p>
-
-  <p>Projects are not accessible by, or even visible to anyone, except
-     initially for the submitting author, and subsequently also for
-     invited co-authors.</p>
 
   <p>When creating a project, choose the correct resource type, as
      this <strong>cannot be changed</strong> later. If you would like
@@ -69,8 +63,9 @@ Author Guidelines
      submit them in separate projects, and refer them to each other.</p>
   <br>
   <hr>
-
-  <h2 id="authors">Authors</h2>
+  <h2 id="authors">Preparing the Project for Submission</h2>
+  <br>
+  <h3 id="authors">1. Authors</h3>
   <p>Each project can have one <strong>submitting author</strong>, and
      many co-authors. The user who creates the project is the initial
      submitting author, though they can assign this role to another
@@ -104,13 +99,16 @@ Author Guidelines
   <br>
   <hr>
 
+  <h3 id="authors">2. Metadata</h3>
 
-  <h2 id="access">Access Policies</h2>
+  <h3 id="access">3. Access</h3>
   {% include 'about/access_policies.html' %}
+
+
+  <h3 id="authors">4. Identifiers</h3>
   <hr>
 
-
-  <h2 id="files">Uploading Files</h2>
+  <h3 id="files">5. Files</h3>
   <p>PhysioNet resources should be reusable by the greater scientific
       community. Data should be provided in an open format, such as
       text, csv, or wfdb. Large time-series data, especially
@@ -122,6 +120,8 @@ Author Guidelines
      author may request more storage if needed.</p>
   <br>
   <hr>
+
+  <h3 id="files">6. Preview</h3>
 
   <h2 id="review">Review Process</h2>
   <p>If the project passes all of its automatic checks, the submitting
@@ -136,5 +136,10 @@ Author Guidelines
      If it is rejected, you may address the issues and resubmit.</li></p>
 
   <br>
+
+  <h3>Editor Decision</h3>
+
+  <hr>
+
 </div>
 {% endblock %}
