@@ -129,7 +129,8 @@ def copyedit_submission(request, submission_id):
             submission.copyedit_datetime = timezone.now()
             submission.save()
             notification.copyedit_complete_notify(request, submission)
-            return render(request, 'console/copyedit_complete.html')
+            return render(request, 'console/copyedit_complete.html',
+                {'submission':submission})
 
     author_emails = ';'.join(a.user.email for a in authors)
     authors_approved = submission.all_authors_approved()
