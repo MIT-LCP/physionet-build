@@ -56,8 +56,8 @@ MIDDLEWARE = [
 ]
 
 CRON_CLASSES = [
-    "physionet.cron.Remove_Unverified_Emails",
-    "physionet.cron.Remove_Outstanging_invites",
+    "physionet.cron.RemoveUnverifiedEmails",
+    "physionet.cron.RemoveOutstandingInvites",
 ]
 
 ROOT_URLCONF = 'physionet.urls'
