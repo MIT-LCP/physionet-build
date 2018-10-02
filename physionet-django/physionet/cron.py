@@ -24,7 +24,7 @@ class RemoveUnverifiedEmails(CronJobBase):
         for person in users:
             if not person.is_verified:
                 dates = datetime.now(timezone.utc) - person.added_date
-                if dates.days == 0:# TIME_LIMIT:
+                if dates.days > TIME_LIMIT:
                     AssociatedEmail.objects.get(id=person.id).delete()
                     print('{0}: Deleted email {1} from user {2}'.format(
                         datetime.now().strftime('%Y-%m-%d %H:%M:%S'), person.email, 
