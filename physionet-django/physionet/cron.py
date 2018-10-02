@@ -1,9 +1,9 @@
-from datetime import datetime, timezone, timedelta
 from django_cron import CronJobBase, Schedule
 
 from django.conf import settings
 from django.core.mail import send_mail
 from django.template import loader
+from django.utils import timezone
 
 from user.models import AssociatedEmail
 from project.models import Invitation
@@ -21,11 +21,11 @@ class RemoveUnverifiedEmails(CronJobBase):
 
     def do(self):
         users = AssociatedEmail.objects.filter(is_primary_email=False, is_verified=False,
-            added_date__lt=datetime.now(timezone.utc) - timedelta(days=TIME_LIMIT))
+            added_date__lt=timezone.now() - timezone.timedelta(days=TIME_LIMIT))
         for person in users:
             AssociatedEmail.objects.get(id=person.id).delete()
             print('{0}: Deleted email {1} from user {2}'.format(
-                datetime.now().strftime('%Y-%m-%d %H:%M:%S'), person.email, 
+                timezone.now().strftime('%Y-%m-%d %H:%M:%S'), person.email, 
                 person.user.email))
             subject = "PhysioNet Unverified Email Removal"
             context = {'name':person.user.get_full_name(), 'email': person.email}
@@ -43,11 +43,11 @@ class RemoveOutstandingInvites(CronJobBase):
 
     def do(self):
         invitations = Invitation.objects.filter(invitation_type='author', is_active=True, 
-            request_datetime__lt=datetime.now(timezone.utc) - timedelta(days=TIME_LIMIT))
+            request_datetime__lt=timezone.now() - timezone.timedelta(days=TIME_LIMIT))
         for invite in invitations:
             invite.response_message = "Time limit for outstanding invitation passed."
             invite.response = False
-            invite.response_datetime = datetime.now(timezone.utc)
+            invite.response_datetime = timezone.now()
             invite.is_active = False
             invite.save()
             subject = "PhysioNet Unconfirmed Author Removal"
@@ -57,5 +57,5 @@ class RemoveOutstandingInvites(CronJobBase):
             send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                 [invite.inviter.email], fail_silently=False)
             print('{0}: Removed author invitation for project {1} from {2} to {3}'.format(
-                datetime.now().strftime('%Y-%m-%d %H:%M:%S'), invite.project.title, 
+                timezone.now().strftime('%Y-%m-%d %H:%M:%S'), invite.project.title, 
                 invite.inviter.email, invite.email))
