@@ -1,0 +1,12 @@
+{% load i18n %}{% autoescape off %}
+Dear {{ name}}
+
+The editor has rejected the publication of your project: {{ project.title }}, with the following comments:
+
+"{{ editor_comments }}"
+
+Your project is still accessible, and listed in your project home.
+
+Regards
+The PhysioNet Team
+{% endautoescape %}

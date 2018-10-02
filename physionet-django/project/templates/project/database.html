@@ -107,11 +107,12 @@
       <div class="card my-4">
         <h5 class="card-header">Identifiers</h5>
         <div class="card-body">
+          {% if published_project.doi_assigned %}
           <p><strong>DOI:</strong>
             <br>
             <span class="badge badge-info">{{ published_project.doi }}</span>
           </p>
-
+          {% endif %}
           {% if publications %}
             <p><strong>Related Publications:</strong>
               <br>

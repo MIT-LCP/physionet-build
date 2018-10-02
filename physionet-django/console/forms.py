@@ -1,6 +1,9 @@
-from django import forms
+import pdb
 
-from project.models import Submission
+from django import forms
+from django.utils import timezone
+
+from project.models import Submission, Resubmission
 from user.models import User
 
 
@@ -10,9 +13,15 @@ RESPONSE_CHOICES = (
 )
 
 SUBMISSION_RESPONSE_CHOICES = (
-    (2, 'Accept'),
-    (1, 'Resubmit with changes'),
-    (0, 'Reject'),
+    ('', '-----------'),
+    (3, 'Accept'),
+    (2, 'Resubmit with changes'),
+    (1, 'Reject'),
+)
+
+YES_NO = (
+    (1, 'Yes'),
+    (0, 'No')
 )
 
 
@@ -20,15 +29,44 @@ class AssignEditorForm(forms.Form):
     """
     Assign an editor to a submission
     """
-    submission = forms.ModelChoiceField(queryset=Submission.objects.filter(submission_status=2))
+    submission = forms.ModelChoiceField(queryset=Submission.objects.filter(
+        status=0, editor=None))
     editor = forms.ModelChoiceField(queryset=User.objects.filter(is_admin=True))
 
 
-class EditSubmissionForm(forms.Form):
+class EditSubmissionForm(forms.ModelForm):
     """
     For an editor to make a decision regarding a submission.
-    Not a ModelForm because we might need to create a resubmission object
+    There is another form for responding to resubmission
     """
 
-    comments = forms.CharField(widget=forms.Textarea)
-    decision = forms.ChoiceField(choices=SUBMISSION_RESPONSE_CHOICES)
+    class Meta:
+        model = Submission
+        fields = ('editor_comments', 'decision',)
+        widgets= {'editor_comments':forms.Textarea(),
+                  'decision':forms.Select(choices=SUBMISSION_RESPONSE_CHOICES)}
+
+    def clean(self):
+        """
+        The submission must be awaiting an editor response
+        """
+        cleaned_data = super().clean()
+
+        if self.instance.status != 0:
+            raise forms.ValidationError(
+                'Unable to edit this submission')
+
+        return cleaned_data
+
+    def save(self):
+        submission = super().save()
+
+        # Reject
+        if submission.decision == 1:
+            submission.is_active = False
+
+        # Update the submission status to reflect the decision
+        submission.status = submission.decision
+        submission.decision_datetime = timezone.now()
+        submission.save()
+        return submission

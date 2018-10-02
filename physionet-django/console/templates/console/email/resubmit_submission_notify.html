@@ -1,0 +1,12 @@
+{% load i18n %}{% autoescape off %}
+Dear {{ name}}
+
+The editor has requested a resubmission of your project: {{ project.title }}, with the following comments:
+
+"{{ editor_comments }}"
+
+The submitting author must address these issues and request another review when ready.
+
+Regards
+The PhysioNet Team
+{% endautoescape %}

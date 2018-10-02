@@ -7,7 +7,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
 from django.forms import modelformset_factory, Select, Textarea
 from django.http import Http404
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.template import loader
 from django.utils import timezone
 
@@ -24,17 +24,179 @@ def is_admin(user, *args, **kwargs):
 
 # ------------------------- Views begin ------------------------- #
 
+
 @login_required
 @user_passes_test(is_admin)
 def console_home(request):
+    return redirect('active_submissions')
+
+
+@login_required
+@user_passes_test(is_admin)
+def active_submissions(request):
+    """
+    List of active submissions. Editors are assigned here.
+    """
+    if request.method == 'POST':
+        assign_editor_form = forms.AssignEditorForm(request.POST)
+        if assign_editor_form.is_valid():
+            submission = assign_editor_form.cleaned_data['submission']
+            submission.editor = assign_editor_form.cleaned_data['editor']
+            submission.save()
+            # Send the notifying emails to authors
+            subject = 'Editor assigned to project {0}'.format(submission.project.title)
+            for email, name in submission.project.get_author_info():
+                body = loader.render_to_string(
+                    'console/email/assign_editor_notify.html',
+                    {'name':name, 'project':submission.project,
+                     'editor':submission.editor})
+                send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                          [email], fail_silently=False)
+            messages.success(request, 'The editor has been assigned')
+
+    submissions = Submission.objects.filter(is_active=True).order_by('status')
+    n_active = len(submissions)
+    n_awaiting_editor = submissions.filter(status=0, editor__isnull=True).count()
+    n_awaiting_decision = submissions.filter(status=0, editor__isnull=False).count()
+    n_awaiting_copyedit = submissions.filter(status=3).count()
+    n_awaiting_publish = submissions.filter(status=5).count()
+
+    assign_editor_form = forms.AssignEditorForm()
+
+    return render(request, 'console/active_submissions.html',
+        {'submissions':submissions, 'assign_editor_form':assign_editor_form,
+         'n_active':n_active, 'n_awaiting_editor':n_awaiting_editor,
+         'n_awaiting_decision':n_awaiting_decision,
+         'n_awaiting_copyedit':n_awaiting_copyedit,
+         'n_awaiting_publish':n_awaiting_publish})
+
+
+@login_required
+@user_passes_test(is_admin)
+def editing_submissions(request):
     """
     List of submissions the editor is responsible for
     """
     submissions = Submission.objects.filter(is_active=True,
-        submission_status__in=[3, 4, 6], editor=request.user)
+        editor=request.user)
 
-    return render(request, 'console/console_home.html',
+    return render(request, 'console/editing_submissions.html',
         {'submissions':submissions})
+
+
+@login_required
+@user_passes_test(is_admin)
+def edit_submission(request, submission_id):
+    """
+    Page to respond to a particular submission, as an editor
+    """
+    submission = Submission.objects.get(id=submission_id)
+    project = submission.project
+    # The user must be the editor
+    if request.user != submission.editor:
+        return Http404()
+
+    if request.method == 'POST':
+        edit_submission_form = forms.EditSubmissionForm(instance=submission,
+                                                        data=request.POST)
+        if edit_submission_form.is_valid():
+            submission = edit_submission_form.save()
+            # Resubmit with changes
+            if submission.decision == 1:
+                # Notify authors of decision
+                subject = 'Resubmission request for project {0}'.format(project.title)
+                for email, name in submission.project.get_author_info():
+                    body = loader.render_to_string(
+                        'console/email/resubmit_submission_notify.html',
+                        {'name':name, 'project':project,
+                         'editor_comments':submission.editor_comments,
+                         'domain':get_current_site(request)})
+                    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                              [email], fail_silently=False)
+            # Reject
+            elif submission.decision == 2:
+                # Notify authors of decision
+                subject = 'Submission rejected for project {0}'.format(project.title)
+                for email, name in submission.project.get_author_info():
+                    body = loader.render_to_string(
+                        'console/email/reject_submission_notify.html',
+                        {'name':name, 'project':project,
+                         'editor_comments':submission.editor_comments,
+                         'domain':get_current_site(request)})
+                    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                              [email], fail_silently=False)
+            # Accept
+            else:
+                # Notify authors of decision
+                subject = 'Submission accepted for project {0}'.format(project.title)
+                for email, name in submission.project.get_author_info():
+                    body = loader.render_to_string(
+                        'console/email/accept_submission_notify.html',
+                        {'name':name, 'project':project,
+                         'editor_comments':submission.editor_comments,
+                         'domain':get_current_site(request)})
+                    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                              [email], fail_silently=False)
+
+            return render(request, 'console/edit_complete.html',
+                {'decision':submission.decision,
+                 'project':project, 'submission':submission})
+
+    edit_submission_form = forms.EditSubmissionForm()
+
+    return render(request, 'console/edit_submission.html',
+        {'submission':submission, 'edit_submission_form':edit_submission_form})
+
+
+@login_required
+@user_passes_test(is_admin)
+def copyedit_submission(request, submission_id):
+    """
+    Page to copyedit the submission
+    """
+    submission = Submission.objects.get(id=submission_id)
+    if submission.status != 3:
+        return Http404()
+
+    project = submission.project
+    authors = project.authors.all()
+
+    if request.method == 'POST':
+        if 'complete_copyedit' in request.POST:
+            submission.status = 4
+            submission.copyedit_datetime = timezone.now()
+            submission.save()
+            return render(request, 'console/copyedit_complete.html')
+
+    author_emails = ';'.join(a.user.email for a in authors)
+    authors_approved = submission.all_authors_approved()
+
+    return render(request, 'console/copyedit_submission.html', {
+        'project':project, 'submission':submission, 'authors':authors,
+        'authors_approved':authors_approved, 'author_emails':author_emails})
+
+
+@login_required
+@user_passes_test(is_admin)
+def publish_submission(request, submission_id):
+    """
+    Page to publish the submission
+    """
+    submission = Submission.objects.get(id=submission_id)
+    if submission.status != 4:
+        return Http404()
+
+    project = submission.project
+
+    if request.method == 'POST':
+        if project.is_publishable():
+            published_project = project.publish()
+            return render(request, 'console/publish_complete.html',
+                {'published_project':published_project})
+
+    publishable = project.is_publishable()
+    return render(request, 'console/publish_submission.html', {
+        'submission':submission, 'publishable':publishable})
 
 
 def process_storage_response(request, storage_response_formset):
@@ -72,19 +234,6 @@ def process_storage_response(request, storage_response_formset):
                           [email], fail_silently=False)
                 messages.success(request, 'The storage request has been {0}.'.format(response))
 
-
-@login_required
-@user_passes_test(is_admin)
-def project_list(request):
-    """
-    View list of projects
-    """
-    projects = Project.objects.all()
-
-    # title, submitting author, creation date, published,
-    return render(request, 'console/project_list.html', {'projects':projects})
-
-
 @login_required
 @user_passes_test(is_admin)
 def storage_requests(request):
@@ -111,93 +260,21 @@ def storage_requests(request):
 
 @login_required
 @user_passes_test(is_admin)
+def project_list(request):
+    """
+    View list of projects
+    """
+    projects = Project.objects.all()
+
+    # title, submitting author, creation date, published,
+    return render(request, 'console/project_list.html', {'projects':projects})
+
+
+@login_required
+@user_passes_test(is_admin)
 def user_list(request):
     """
     View list of users
     """
     users = User.objects.all()
     return render(request, 'console/user_list.html', {'users':users})
-
-
-@login_required
-@user_passes_test(is_admin)
-def submissions(request):
-    """
-    Submission control panel. Editors are assigned here.
-    """
-    if request.method == 'POST':
-        assign_editor_form = forms.AssignEditorForm(request.POST)
-        if assign_editor_form.is_valid():
-            submission = assign_editor_form.cleaned_data['submission']
-            submission.editor = assign_editor_form.cleaned_data['editor']
-            submission.submission_status = 3
-            submission.save()
-            # Send the notifying emails to authors
-            subject = 'Editor assigned to project {0}'.format(submission.project.title)
-            for email, name in submission.project.get_author_info():
-                body = loader.render_to_string(
-                    'console/email/assign_editor_notify.html',
-                    {'name':name, 'project':submission.project,
-                     'editor':submission.editor})
-                send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                          [email], fail_silently=False)
-            messages.success(request, 'The editor has been assigned')
-
-    submissions = Submission.objects.filter(is_active=True,
-        submission_status__gte=2).order_by('submission_status')
-    assign_editor_form = forms.AssignEditorForm()
-    n_awaiting_editor = submissions.filter(submission_status=2).count()
-
-    return render(request, 'console/submissions.html',
-        {'submissions':submissions, 'assign_editor_form':assign_editor_form,
-         'n_awaiting_editor':n_awaiting_editor})
-
-
-@login_required
-@user_passes_test(is_admin)
-def edit_submission(request, submission_id):
-    """
-    Page to respond to a particular submission, as an editor
-    """
-    submission = Submission.objects.get(id=submission_id)
-    project = submission.project
-    # The user must be the editor
-    if request.user != submission.editor:
-        return Http404()
-
-    if request.method == 'POST':
-        edit_submission_form = forms.EditSubmissionForm(request.POST)
-        if edit_submission_form.is_valid() and submission.submission_status == 3:
-            # Reject
-            if edit_submission_form.cleaned_data['decision'] == 0:
-                submission.submission_status = 5
-                submission.decision = 0
-                submission.editor_comments = edit_submission_form.cleaned_data['comments']
-            # Resubmit with changes
-            elif edit_submission_form.cleaned_data['decision'] == 1:
-                submission.submission_status = 4
-                resubmission = Resubmission.objects.create(submission=submission,
-                    editor_comments=edit_submission_form.cleaned_data['comments'])
-            # Accept
-            else:
-                submission.submission_status = 6
-                submission.decision = 1
-                submission.editor_comments = edit_submission_form.cleaned_data['comments']
-                # Notify authors of decision
-                subject = 'Submission accepted for project {0}'.format(submission.project.title)
-                for email, name in submission.project.get_author_info():
-                    body = loader.render_to_string(
-                        'console/email/accept_submission_notify.html',
-                        {'name':name, 'project':submission.project,
-                         'domain':get_current_site(request)})
-                    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                              [email], fail_silently=False)
-
-            submission.save()
-            return render(request, 'console/submission_response.html',
-                {'response':edit_submission_form.cleaned_data['decision']})
-
-    edit_submission_form = forms.EditSubmissionForm()
-
-    return render(request, 'console/edit_submission.html',
-        {'submission':submission, 'edit_submission_form':edit_submission_form})

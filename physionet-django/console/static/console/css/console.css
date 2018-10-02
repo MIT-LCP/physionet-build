@@ -21,6 +21,10 @@ body.fixed-nav {
   padding-top: 56px;
 }
 
+.card-header {
+  font-weight: bold;
+}
+
 .content-wrapper {
   min-height: calc(100vh - 56px);
   padding-top: 1rem;

@@ -44,8 +44,8 @@ urlpatterns = [
     url(r'^(?P<project_id>\d+)/preview-files-panel/$', views.preview_files_panel,
         name='preview_files_panel'),
 
-    url(r'^(?P<project_id>\d+)/publishable/$', views.check_publishable,
-        name='check_publishable'),
+    url(r'^(?P<project_id>\d+)/submittable/$', views.check_submittable,
+        name='check_submittable'),
     url(r'^(?P<project_id>\d+)/submission/$', views.project_submission,
         name='project_submission'),
     url(r'^(?P<project_id>\d+)/submission/history/$', views.project_submission_history,
