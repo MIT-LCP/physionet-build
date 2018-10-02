@@ -404,11 +404,11 @@ METADATA_FORMS = {0: DatabaseMetadataForm,
                   1: SoftwareMetadataForm}
 
 
-class AffiliationFormSet(BaseGenericInlineFormSet):
+class AffiliationFormSet(forms.BaseInlineFormSet):
     """
     Formset for adding an author's affiliations
     """
-    form_name = 'project-affiliation-content_type-object_id'
+    form_name = 'affiliations'
     item_label = 'Affiliations'
     max_forms = 3
 
@@ -555,7 +555,7 @@ class InviteAuthorForm(forms.ModelForm):
         "Ensure it is a fresh invite to a non-author"
         data = self.cleaned_data['email']
 
-        for author in self.project.authors.filter(is_human=True):
+        for author in self.project.authors.all():
             if data in author.user.get_emails():
                 raise forms.ValidationError(
                     'The user is already an author of this project',
@@ -579,37 +579,6 @@ class InviteAuthorForm(forms.ModelForm):
             + timezone.timedelta(days=21))
         invitation.save()
         return invitation
-
-
-class AddAuthorForm(forms.ModelForm):
-    """
-    Add a non-human author
-    """
-    class Meta:
-        model = Author
-        fields = ('organization_name',)
-
-    def __init__(self, project, *args, **kwargs):
-        "Make sure the user submitting this entry is the owner"
-        super(AddAuthorForm, self).__init__(*args, **kwargs)
-        self.project = project
-
-    def clean_organization_name(self):
-        """
-        Ensure uniqueness of organization name
-        """
-        data = self.cleaned_data['organization_name']
-        if self.project.authors.filter(organization_name=data).exists():
-            raise forms.ValidationError('Organizational author names must be unique')
-
-        return data
-
-    def save(self):
-        author = super(AddAuthorForm, self).save(commit=False)
-        author.project = self.project
-        author.is_human = False
-        author.display_order = self.project.authors.count() + 1
-        author.save()
 
 
 class StorageRequestForm(forms.ModelForm):
@@ -659,7 +628,7 @@ class InvitationResponseForm(forms.ModelForm):
     class Meta:
         model = Invitation
         fields = ('response', 'response_message')
-        widgets={'response':forms.Select(choices=RESPONSE_CHOICES),
+        widgets= {'response':forms.Select(choices=RESPONSE_CHOICES),
                  'response_message':forms.Textarea()}
 
     def clean(self):

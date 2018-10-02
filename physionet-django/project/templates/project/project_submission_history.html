@@ -1,0 +1,34 @@
+{% extends "project/project.html" %}
+
+{% load static %}
+
+{% block title %}Project Submission History - {{ project }}{% endblock %}
+
+
+ {# Disable submission for non-submitting authors #}
+{% if user != project.submitting_author %}
+  <script type="text/javascript" src="{% static 'custom/js/disable-input.js' %}"></script>
+{% endif %}
+
+
+{% block main_content %}
+<h2 class="form-signin-heading">Project Submission History</h2>
+<hr>
+
+{% for submission in submissions %}
+  <h3>Submission {{ forloop.counter }}</h3>
+  <p>Submission Date: {{ submission.submission_datetime|date }}</p>
+
+  <h4>Editor Comments</h4>
+  <p>{{ submission.editor_comments }}</p>
+  <h4>Outcome</h4>
+  {% if submission.decision == 1%}
+  {% elif submission.decision == 2 %}
+  {% elif submission.decision == 3 %}
+
+  {% endif %}
+  <hr>
+{% empty %}
+  <p>There have been no submissions for this project.</p>
+{% endfor %}
+{% endblock %}

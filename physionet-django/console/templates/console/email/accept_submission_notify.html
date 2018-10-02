@@ -1,7 +1,11 @@
 {% load i18n %}{% autoescape off %}
 Dear {{ name}}
 
-The editor has accepted your publication request for project: {{ project.title }}. The project's submitting author may now make the final approval and publish your project at: http://{{ domain }}{% url "project_submission" project.id %}
+The editor has accepted the publication of your project: {{ project.title }}, with the following comments:
+
+"{{ editor_comments }}"
+
+We will publish the project when all of the project's authors confirm at: http://{{ domain }}{% url 'project_submission' project.id %}
 
 Regards
 The PhysioNet Team

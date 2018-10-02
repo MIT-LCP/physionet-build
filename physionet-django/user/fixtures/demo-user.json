@@ -20,7 +20,7 @@
     "email": "rgmark@mit.edu",
     "username": "rgmark",
     "join_date": "2017-11-11",
-    "last_login": "2018-09-13T17:25:48.833Z",
+    "last_login": "2018-09-19T00:11:25.144Z",
     "is_active": true,
     "is_admin": false
   }
@@ -46,7 +46,7 @@
     "email": "aewj@mit.edu",
     "username": "aewj",
     "join_date": "2018-03-30",
-    "last_login": "2018-03-30T19:57:32.431Z",
+    "last_login": "2018-09-19T01:01:37.635Z",
     "is_active": true,
     "is_admin": false
   }
@@ -220,9 +220,9 @@
     "first_name": "Alistair",
     "middle_names": "Edward William",
     "last_name": "Johnson",
-    "affiliation": "",
+    "affiliation": "Massachusetts Institute of Technology",
     "location": "",
-    "website": "",
+    "website": null,
     "photo": "",
     "is_credentialed": false,
     "credential_datetime": null

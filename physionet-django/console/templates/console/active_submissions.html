@@ -1,15 +1,13 @@
 {% extends "console/base_console.html" %}
 
-{% block title %}Project Submissions{% endblock %}
+{% block title %}Active Submissions{% endblock %}
 
 {% block content %}
 {% include "message_snippet.html" %}
 
-
-
 <div class="card mb-3">
   <div class="card-header">
-      <i class="fas fa-glasses"></i> Active Project Submissions
+      <i class="fas fa-clipboard-list"></i> Active Submissions
   </div>
   <div class="card-body">
     <div class="table-responsive">
@@ -30,20 +28,28 @@
             <td>{{ submission.id }}</td>
             <td><a href="{% url 'project_overview' submission.project.id %}">{{ submission.project }}</a></td>
             <td><a href="{% url 'public_profile' submission.project.submitting_author.username %}">{{ submission.project.submitting_author.username }}</a> - {{ submission.project.submitting_author.email }}</td>
-            <td>{{ submission.submission_status }}</td>
+            <td>{{ submission.status }}</td>
             <td>{{ submission.submission_datetime|date }}</td>
             <td>
-                {% if submission.editor %}
-                    {{ submission.editor }}
-                {% else %}
-                    <a style="color:red">Awaiting Editor Assignment</a>
-                {% endif %}
+              {% if submission.editor %}
+                {{ submission.editor }}
+              {% else %}
+                <a style="color:red">Awaiting Editor Assignment</a>
+              {% endif %}
             </td>
           </tr>
         {% endfor %}
         </tbody>
       </table>
     </div>
+    <br>
+    <h3>Active Submissions: {{ n_active }}</h3>
+    <ul>
+      <li>Awaiting editor assigment: {{ n_awaiting_editor }}</li>
+      <li>Awaiting editor decision: {{ n_awaiting_decision }}</li>
+      <li>Awaiting copyedit: {{ n_awaiting_copyedit }}</li>
+      <li>Awaiting publication: {{ n_awaiting_publish }}</li>
+    </ul>
   </div>
 </div>
 
@@ -68,7 +74,7 @@
       <form action="" method="post" class="form-signin">
         {% csrf_token %}
         {% include "form_snippet.html" with form=assign_editor_form %}
-        <button class="btn btn-primary btn-fixed" name="invite_author" type="submit">Assign Editor</button>
+        <button class="btn btn-primary btn-fixed" name="assign_editor" type="submit">Assign Editor</button>
       </form>
     </div>
 </div>

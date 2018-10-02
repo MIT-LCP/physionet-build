@@ -32,7 +32,7 @@ def is_admin(user, *args, **kwargs):
     return user.is_admin
 
 def is_author(user, project):
-    authors = project.authors.filter(is_human=True)
+    authors = project.authors.all()
     return (user in [a.user for a in authors])
 
 def is_submitting_author(user, project):
@@ -85,9 +85,10 @@ def process_invitation_response(request, invitation_response_formset):
                     response_datetime=timezone.now(), is_active=False)
                 # Create a new Author object
                 if invitation.response:
-                    Author.objects.create(project=project, user=user,
+                    author = Author.objects.create(project=project, user=user,
                         display_order=project.authors.count() + 1,
                         corresponding_email=user.get_primary_email())
+                    author.import_profile_info()
                 # Send an email notifying the submitting author
                 subject = 'PhysioNet Project Authorship Response'
                 email, name = project.get_submitting_author_info()
@@ -203,16 +204,6 @@ def invite_author(request, invite_author_form):
     else:
         messages.error(request, 'Submission unsuccessful. See form for errors.')
 
-def add_author(request, add_author_form):
-    """
-    Add an organizational author
-    """
-    if add_author_form.is_valid():
-        add_author_form.save()
-        messages.success(request, 'The organizational author has been added')
-        return True
-    else:
-        messages.error(request, 'Submission unsuccessful. See form for errors.')
 
 def remove_author(request, author_id):
     """
@@ -221,16 +212,24 @@ def remove_author(request, author_id):
     """
     user = request.user
     author = Author.objects.get(id=author_id)
+    project = author.project
 
-    if author.project.submitting_author == user:
+    if project.submitting_author == user:
+        authors = project.authors.all()
+        # Reset the corresponding author if necessary
+        if author.is_corresponding:
+            submitting_author = authors.get(user=project.submitting_author)
+            submitting_author.is_corresponding = True
+            submitting_author.save()
         # Other author orders may have to be decreased when this author
         # is removed
-        higher_authors = author.project.authors.filter(display_order__gt=author.display_order)
+        higher_authors = authors.filter(display_order__gt=author.display_order)
         author.delete()
         if higher_authors:
             for author in higher_authors:
                 author.display_order -= 1
                 author.save()
+
         messages.success(request, 'The author has been removed from the project')
         return True
 
@@ -297,13 +296,13 @@ def edit_affiliation(request, project_id):
         item_id = int(request.POST['remove_id'])
         # Make sure that the affiliation belongs to the user
         affiliation = Affiliation.objects.get(id=item_id)
-        if user == affiliation.member_object.user:
+        if author == affiliation.author:
             affiliation.delete()
         else:
             raise Http404()
 
-    AffiliationFormSet = generic_inlineformset_factory(Affiliation,
-        fields=('name',), extra=extra_forms,
+    AffiliationFormSet = inlineformset_factory(parent_model=Author,
+        model=Affiliation, fields=('name',), extra=extra_forms,
         max_num=forms.AffiliationFormSet.max_forms, can_delete=False,
         formset=forms.AffiliationFormSet, validate_max=True)
     formset = AffiliationFormSet(instance=author)
@@ -326,11 +325,12 @@ def project_authors(request, project_id):
     admin_inspect = user.is_admin and user not in [a.user for a in authors]
 
     if admin_inspect:
-        affiliation_formset, invite_author_form, add_author_form = None, None, None
+        (affiliation_formset, invite_author_form, corresponding_author_form,
+         corresponding_email_form) = None, None, None, None
     else:
         author = authors.get(user=user)
-        AffiliationFormSet = generic_inlineformset_factory(Affiliation,
-            fields=('name',), extra=0,
+        AffiliationFormSet = inlineformset_factory(parent_model=Author,
+            model=Affiliation, fields=('name',), extra=0,
             max_num=forms.AffiliationFormSet.max_forms, can_delete=False,
             formset = forms.AffiliationFormSet, validate_max=True)
         affiliation_formset = AffiliationFormSet(instance=author)
@@ -338,12 +338,10 @@ def project_authors(request, project_id):
         if user == project.submitting_author:
             invite_author_form = forms.InviteAuthorForm(project=project,
                 inviter=user)
-            # Removing organizational authors for now
-            # add_author_form = forms.AddAuthorForm(project=project)
             corresponding_author_form = forms.CorrespondingAuthorForm(
                 project=project)
         else:
-            invite_author_form, add_author_form, corresponding_author_form = None, None, None
+            invite_author_form, corresponding_author_form = None, None
 
         if user == project.corresponding_author().user:
             corresponding_email_form = AssociatedEmailChoiceForm(
@@ -363,12 +361,6 @@ def project_authors(request, project_id):
                 inviter=user, data=request.POST)
             if invite_author(request, invite_author_form):
                 invite_author_form = forms.InviteAuthorForm(project, user)
-        # Removing organizational authors for now
-        # elif 'add_author' in request.POST:
-        #     add_author_form = forms.AddAuthorForm(project=project,
-        #                                           data=request.POST)
-        #     if add_author(request, add_author_form):
-        #         add_author_form = forms.AddAuthorForm(project=project)
         elif 'remove_author' in request.POST:
             # No form. Just get button value.
             author_id = int(request.POST['remove_author'])
@@ -451,7 +443,7 @@ def edit_metadata_item(request, project_id):
             max_num=custom_formsets[item].max_forms, can_delete=False,
             formset=custom_formsets[item], validate_max=True)
     else:
-        ItemFormSet = inlineformset_factory(Project, model,
+        ItemFormSet = inlineformset_factory(parent_model=Project, model=model,
             fields=metadata_item_fields[item], extra=extra_forms,
             max_num=custom_formsets[item].max_forms, can_delete=False,
             formset=custom_formsets[item], validate_max=True)
@@ -749,13 +741,13 @@ def project_preview(request, project_id):
     publications = project.publications.all()
     topics = project.topics.all()
 
-    is_publishable = project.is_publishable()
+    is_submittable = project.is_submittable()
     version_clash = False
 
-    if is_publishable:
-        messages.success(request, 'The project has passed all automatic checks and may be submitted.')
+    if is_submittable:
+        messages.success(request, 'The project has passed all automatic checks.')
     else:
-        for e in project.publish_errors:
+        for e in project.submit_errors:
             messages.error(request, e)
             if 'version' in e:
                 version_clash = True
@@ -768,21 +760,21 @@ def project_preview(request, project_id):
         'author_info':author_info, 'corresponding_author':corresponding_author,
         'invitations':invitations, 'references':references,
         'publications':publications, 'topics':topics,
-        'is_publishable':is_publishable, 'version_clash':version_clash,
+        'is_submittable':is_submittable, 'version_clash':version_clash,
         'admin_inspect':admin_inspect, 'dir_breadcrumbs':dir_breadcrumbs})
 
 
 @authorization_required(auth_functions=(is_author,))
-def check_publishable(request, project_id):
+def check_submittable(request, project_id):
     """
-    Check whether a project is publishable
+    Check whether a project is submittable
     """
     project = Project.objects.get(id=project_id)
 
-    result = project.is_publishable()
+    result = project.is_submittable()
 
-    return JsonResponse({'is_publishable':result,
-        'publish_errors':project.publish_errors})
+    return JsonResponse({'is_submittable':result,
+        'submit_errors':project.submit_errors})
 
 
 @authorization_required(auth_functions=(is_author, is_admin))
@@ -794,7 +786,7 @@ def project_submission(request, project_id):
     """
     user = request.user
     project = Project.objects.get(id=project_id)
-    authors = project.authors.filter(is_human=True)
+    authors = project.authors.all().order_by('display_order')
     admin_inspect = user.is_admin and user not in [a.user for a in authors]
     context = {'project':project, 'admin_inspect':admin_inspect}
 
@@ -802,106 +794,37 @@ def project_submission(request, project_id):
         if project.under_submission:
             submission = project.submissions.get(is_active=True)
         # Project is submitted for review
-        if 'submit_project' in request.POST:
-            if project.submission_status():
-                raise Http404()
-            else:
-                if project.is_publishable() and user == project.submitting_author:
-                    project.presubmit()
-                    email, name = project.get_submitting_author_info()
-                    # Submission is automatically triggered if only 1 author
-                    if project.submission_status() == 2:
-                        subject = 'Submission of project {0}'.format(project.title)
-                        body = loader.render_to_string(
-                            'project/email/submit_notify.html',
-                            {'name':name, 'project':project})
-                        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                                  [email], fail_silently=False)
-                        messages.success(request, 'Your project has been submitted for review.')
-                    # There are multiple authors
-                    else:
-                        # email submitting author
-                        subject = 'Presubmission of project {0}'.format(project.title)
-                        email_context = {'name':name, 'project':project,
-                                         'domain':get_current_site(request)}
-                        body = loader.render_to_string(
-                            'project/email/presubmit_notify.html', email_context)
-                        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                            [email], fail_silently=False)
-                        # email coauthors
-                        for email, name in project.get_coauthor_info():
-                            email_context['name'] = name
-                            body = loader.render_to_string(
-                                'project/email/presubmit_notify_coauthor.html',
-                                email_context)
-                            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                                      [email], fail_silently=False)
-                        messages.success(request, 'Your project has been pre-submitted. Awaiting co-authors to approve submission.')
-                else:
-                    messages.error(request, 'Fix the errors before submitting')
-        # Project submission is withdrawn while under presubmission
-        elif 'cancel_submission' in request.POST:
-            if submission.submission_status == 1 and user == project.submitting_author:
-                project.cancel_submission()
-                # Send email to all authors
-                subject = 'Submission canceled for project {0}'.format(project.title)
+        if 'submit_project' in request.POST and not project.under_submission and user == project.submitting_author:
+            if project.is_submittable():
+                project.submit()
+                # Email all authors
+                subject = 'Submission of project {}'.format(project.title)
+                email_context = {'project':project}
                 for email, name in project.get_author_info():
+                    email_context['name'] = name
                     body = loader.render_to_string(
-                        'project/email/cancel_submit_notify.html',
-                        {'name':name, 'project':project})
-                    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                        [email], fail_silently=False)
-                messages.success(request, 'Your project submission has been cancelled.')
-            else:
-                raise Http404()
-        # Coauthor approves submission while under presubmission
-        elif 'approve_submission' in request.POST:
-            author = authors.get(user=user)
-            if submission.submission_status == 1 and authors not in submission.approved_authors.all():
-                project.approve_author(author)
-                # Send out emails if this was the last outstanding approval
-                if project.submission_status() == 2:
-                    subject = 'Submission of project {0}'.format(project.title)
-                    for email, name in project.get_author_info():
-                        body = loader.render_to_string(
-                            'project/email/submit_notify_all.html',
-                            {'name':name, 'project':project})
-                        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                                  [email], fail_silently=False)
-                    messages.success(request, 'You have approved the submission. The project is now under review.')
-                else:
-                    messages.success(request, 'You have approved the submission')
-            else:
-                raise Http404()
-        # Coauthor withdraws approval for submission while under presubmission
-        elif 'withdraw_approval' in request.POST:
-            if submission.submission_status == 1 and user in [a.user for a in approved_authors] and user != project.submitting_author:
-                submission.approved_authors.remove(authors.get(user=user))
-                messages.success(request, 'You have withdrawn your approval for the project submission.')
-            else:
-                raise Http404()
-        # Submitting author approves publication of project
-        elif 'approve_publication' in request.POST:
-            if submission.submission_status == 6 and user == project.submitting_author:
-                published_project = project.publish()
-                # Send a notifying email
-                subject = 'Publication of project {0}'.format(project.title)
-                for email, name in project.get_author_info():
-                    body = loader.render_to_string(
-                        'project/email/publish_notify.html', {'name':name,
-                        'project':project, 'published_project':published_project,
-                        'domain':get_current_site(request)})
+                        'project/email/submit_notify.html', email_context)
                     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                               [email], fail_silently=False)
-                return render(request, 'project/publish_success.html',
-                    {'project':project, 'published_project':published_project})
+                messages.success(request, 'Your project has been submitted. You will be notified when an editor is assigned.')
+            else:
+                messages.error(request, 'Fix the errors before submitting')
+        # Author approves publication
+        elif 'approve_publish' in request.POST:
+            author = authors.get(user=user)
+            if submission.status == 3 and not author.approved_publish:
+                author.approved_publish = True
+                author.save()
+                messages.success(request, 'You have approved the publication.')
+            else:
+                raise Http404()
 
     if project.under_submission:
         submission = project.submissions.get(is_active=True)
         context['submission'] = submission
-        if submission.submission_status == 1:
-            context['approved_authors'] = submission.approved_authors.all()
-            context['unapproved_authors'] = authors.difference(context['approved_authors'])
+        context['authors'] = authors
+        if not admin_inspect:
+            context['author'] = authors.get(user=user)
 
     return render(request, 'project/project_submission.html', context)
 
@@ -911,11 +834,16 @@ def project_submission_history(request, project_id):
     """
     Submission history for a project
     """
+    user = request.user
     project = Project.objects.get(id=project_id)
     admin_inspect = user.is_admin and not is_author(user, project)
 
-    return render(request, 'project/submission_history.html',
-        {'project':project, 'admin_inspect':admin_inspect})
+    submissions = project.submissions.all()
+
+
+    return render(request, 'project/project_submission_history.html',
+        {'project':project, 'admin_inspect':admin_inspect,
+         'submissions':submissions})
 
 
 def published_files_panel(request, published_project_id):

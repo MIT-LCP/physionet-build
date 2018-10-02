@@ -29,88 +29,38 @@ def new_creation(receiver_function):
     return func_wrapper
 
 
-class AffiliationManager(models.Manager):
-    def get_by_natural_key(self, author_email, project, name):
-        return self.get(member_object__email=author_email, project=project,
-            name=name)
-
 class Affiliation(models.Model):
     """
-    Affiliations belonging to an author or collaborator
+    Affiliations belonging to an author
 
     """
-    objects = AffiliationManager()
-
     name = models.CharField(max_length=255)
-
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    member_object = GenericForeignKey('content_type', 'object_id')
-
-    def natural_key(self):
-        return self.member_object.natural_key() + (self.name,)
-    natural_key.dependencies = ['project.Author']
+    author = models.ForeignKey('project.Author', related_name='affiliations')
 
     class Meta:
-        unique_together = (('name', 'content_type', 'object_id'))
+        unique_together = (('name', 'author'),)
 
 
-class Member(models.Model):
-    """
-    Inherited by the Author and Contributor classes.
-
-    """
-    # The member will point to a project OR published project
-    project = models.ForeignKey('project.Project', related_name='%(class)ss',
-        null=True, blank=True)
-    published_project =models.ForeignKey('project.PublishedProject',
-        related_name='%(class)ss', null=True, blank=True)
-
-    first_name = models.CharField(max_length=100, default='')
-    middle_names = models.CharField(max_length=200, default='', blank=True)
-    last_name = models.CharField(max_length=100, default='')
-    is_human = models.BooleanField(default=True)
-    organization_name = models.CharField(max_length=200, default='')
-    display_order = models.PositiveSmallIntegerField()
-    affiliations = GenericRelation(Affiliation)
-
-    def __str__(self):
-        if self.is_human:
-            return self.user.__str__()
-        else:
-            return self.organization_name
-
-    class Meta:
-        abstract = True
-
-    def get_full_name(self):
-        if self.middle_names:
-            return ' '.join([self.first_name, self.middle_names,
-                           self.last_name])
-        else:
-            return ' '.join([self.first_name, self.last_name])
-
-
-class AuthorManager(models.Manager):
-    def get_by_natural_key(self, user_email, project):
-        return self.get(user__email=user_email, project=project)
-
-
-class Author(Member):
+class Author(models.Model):
     """
     A project's author/creator (datacite). Credited for creating the
     resource.
 
-    Datacite definition:
-        "The main researchers involved
-        in producing the data, or the
-        authors of the publication, in
-        priority order."
+    Datacite definition: "The main researchers involved in producing the
+    data, or the authors of the publication, in priority order."
 
+    This model is used for both Project and PublishedProject
     """
-    # Authors must have physionet profiles, unless they are organizations.
-    user = models.ForeignKey('user.User', related_name='authorships',
-        blank=True, null=True)
+    project = models.ForeignKey('project.Project', related_name='%(class)ss',
+        null=True, blank=True)
+    published_project =models.ForeignKey('project.PublishedProject',
+        related_name='%(class)ss', null=True, blank=True)
+    approved_publish = models.BooleanField(default=False)
+    user = models.ForeignKey('user.User', related_name='authorships')
+    first_name = models.CharField(max_length=100, default='')
+    middle_names = models.CharField(max_length=200, default='')
+    last_name = models.CharField(max_length=100, default='')
+    display_order = models.PositiveSmallIntegerField()
     is_corresponding = models.BooleanField(default=False)
     corresponding_email = models.ForeignKey('user.AssociatedEmail', null=True)
 
@@ -123,69 +73,31 @@ class Author(Member):
     def display_affiliation(self):
         return ', '.join([a.name for a in self.affiliations.all()])
 
-    def natural_key(self):
-        return self.user.natural_key() + (self.project,)
+    def get_full_name(self):
+        if self.middle_names:
+            return ' '.join([self.first_name, self.middle_names,
+                           self.last_name])
+        else:
+            return ' '.join([self.first_name, self.last_name])
 
-    natural_key.dependencies = ['user.User', 'project.Project']
+    def disp_name_email(self):
+        return '{} -- {}'.format(self.get_full_name(), self.user.email)
 
-    objects = AuthorManager()
+    def import_profile_info(self):
+        """
+        Import profile information (names) into the Author object.
+        Also create affiliation object if present in profile.
 
-
-@receiver(post_save, sender=Author)
-@new_creation
-def setup_author(sender, **kwargs):
-    """
-    When an Author is created:
-    - Import profile names.
-    """
-    author = kwargs['instance']
-    if author.is_human and author.user:
-        profile = author.user.profile
+        To be called when an author object is created
+        """
+        profile = self.user.profile
         for field in ['first_name', 'middle_names', 'last_name']:
-            setattr(author, field, getattr(profile, field))
-        author.save()
-        Affiliation.objects.create(name=profile.affiliation,
-                                   member_object=author)
+            setattr(self, field, getattr(profile, field))
+        self.save()
 
-
-class Contributor(Member):
-    """
-    A resource contributor.
-
-    Datacite definition:
-        "The institution or person
-        responsible for collecting,
-        managing, distributing, or
-        otherwise contributing to the
-        development of the resource."
-
-    """
-    contributor_type_choices = (
-        ('ContactPerson', 'Contact Person'),
-        ('DataCollector', 'Data Collector'),
-        ('DataCurator', 'Data Curator'),
-        ('DataManager', 'Data Manager'),
-        ('Distributor', 'Distributor'),
-        ('Editor', 'Editor'),
-        ('HostingInstitution', 'Hosting Institution'),
-        ('Producer', 'Producer'),
-        ('ProjectLeader', 'Project Leader'),
-        ('ProjectManager', 'Project Manager'),
-        ('ProjectMember', 'Project Member'),
-        ('RegistrationAgency', 'Registration Agency'),
-        ('RegistrationAuthority', 'Registration Authority'),
-        ('RelatedPerson', 'Related Person'),
-        ('Researcher', 'Researcher'),
-        ('ResearchGroup', 'Research Group'),
-        ('RightsHolder', 'Rights Holder'),
-        ('Sponsor', 'Sponsor'),
-        ('Supervisor', 'Supervisor'),
-        ('WorkPackageLeader', 'Work Package Leader'),
-        ('Other', 'Other'),
-    )
-
-    contributor_type = models.CharField(max_length=20,
-        choices=contributor_type_choices)
+        if profile.affiliation:
+            Affiliation.objects.create(name=profile.affiliation,
+                author=self)
 
 
 class Topic(models.Model):
@@ -196,7 +108,7 @@ class Topic(models.Model):
     project = models.ForeignKey('project.Project', related_name='topics')
 
     class Meta:
-        unique_together = (('description', 'project'))
+        unique_together = (('description', 'project'),)
 
     def __str__(self):
         return self.description
@@ -322,7 +234,7 @@ class Project(Metadata):
     # If it has any published versions
     published = models.BooleanField(default=False)
     # Under any stage of the submission process, from presubmission.
-    # 1 <= Submission.submission_status <= 4. The project is not
+    # 1 <= Submission.status <= 4. The project is not
     # editable when this is True.
     under_submission = models.BooleanField(default=False)
     # Access fields
@@ -377,22 +289,21 @@ class Project(Metadata):
 
         return display_files, display_dirs
 
-
-    def submission_status(self):
+    def status(self):
         """
         The submission status is kept track of in the active Submission
         object, if it exists.
         """
         if self.under_submission:
-            return self.submissions.get(is_active=True).submission_status
+            return self.submissions.get(is_active=True).status
         else:
-            return 0
+            return -1
 
     def is_frozen(self):
         """
         Project is not editable when frozen
         """
-        if self.submission_status() in [0, 4]:
+        if self.status() in [0, 4]:
             return False
         else:
             return True
@@ -401,7 +312,7 @@ class Project(Metadata):
         """
         Return queryset of non-submitting authors
         """
-        return self.authors.exclude(user=self.submitting_author, is_human=False)
+        return self.authors.exclude(user=self.submitting_author)
 
     def get_coauthor_info(self):
         """
@@ -419,116 +330,69 @@ class Project(Metadata):
         """
         Return tuple pairs of all author emails and names
         """
-        return ((a.user.email, a.user.get_full_name()) for a in self.authors.filter(is_human=True))
+        return ((a.user.email, a.user.get_full_name()) for a in self.authors.all())
 
-    def is_publishable(self):
+    def is_submittable(self):
         """
-        Whether the project can be published
+        Run integrity tests on metadata fields and return whether the
+        project can be submitted
         """
-        self.publish_errors = []
+        self.submit_errors = []
 
         # Invitations
         for invitation in self.invitations.filter(is_active=True):
-            self.publish_errors.append(
+            self.submit_errors.append(
                 'Outstanding author invitation to {0}'.format(invitation.email))
 
         # Authors
         for author in self.authors.all():
-            if author.is_human:
-                if not author.get_full_name():
-                    self.publish_errors.append('Author {0} has not fill in name'.format(author.user.username))
-                if not author.affiliations.all():
-                    self.publish_errors.append('Author {0} has not filled in affiliations'.format(author.user.username))
-            else:
-                if not author.organization_name:
-                    self.publish_errors.append('Organizational author with no name')
+            if not author.get_full_name():
+                self.submit_errors.append('Author {0} has not fill in name'.format(author.user.username))
+            if not author.affiliations.all():
+                self.submit_errors.append('Author {0} has not filled in affiliations'.format(author.user.username))
+
         # Metadata
         for attr in Project.REQUIRED_FIELDS[self.resource_type]:
             if not getattr(self, attr):
-                self.publish_errors.append('Missing required field: {0}'.format(attr.replace('_', ' ')))
+                self.submit_errors.append('Missing required field: {0}'.format(attr.replace('_', ' ')))
 
         if self.access_policy and not self.data_use_agreement:
-            self.publish_errors.append('Missing DUA for non-open access policy')
+            self.submit_errors.append('Missing DUA for non-open access policy')
 
         if self.published:
             published_versions = [p.version for p in self.published_projects.all()]
             if self.version in published_versions:
-                self.publish_errors.append('The version matches a previously published version.')
+                self.submit_errors.append('The version matches a previously published version.')
 
-        if self.publish_errors:
+        if self.submit_errors:
             return False
         else:
             return True
 
-    def presubmit(self):
+    def submit(self):
         """
-        Initialize submission via the submitting author
+        Submit the project for review.
         """
-        if not self.is_publishable():
-            raise Exception('Project is not publishable')
+        if not self.is_submittable():
+            raise Exception('Project is not submittable')
 
         if self.submissions.filter(is_active=True):
             raise Exception('Active submission exists')
 
         self.under_submission = True
         self.save()
+        Submission.objects.create(project=self)
 
-        submission = Submission.objects.create(project=self)
-        self.approve_author(self.authors.get(user=self.submitting_author))
-
-    def approve_author(self, author):
+    def is_publishable(self):
         """
-        Add an author to the active submission's approved authors.
-        Triggers submission if it is the last author.
-        """
-        if self.submission_status() != 1:
-            raise Exception('Project is not under presubmission')
-
-        submission = self.submissions.get(is_active=True)
-
-        if submission.submission_status == 1 and author not in submission.approved_authors.all():
-            submission.approved_authors.add(author)
-            # Make the submission if this was the last author
-            if submission.approved_authors.count() == self.authors.filter(is_human=True).count():
-                self.submit()
-
-    def cancel_submission(self):
-        """
-        Cancel a submission during presubmission phase at the request
-        of the submitting author
-        """
-        if self.submission_status() != 1:
-            raise Exception('Project is not under presubmission')
-
-        submission = self.submissions.get(is_active=True)
-        submission.delete()
-        self.under_submission = False
-        self.save()
-
-    def withdraw_submission_approval(self, author):
-        """
-        Withdraw a non-submitting author's submission approval during
-        presubmission phase
-        """
-        if self.submission_status != 1:
-            raise Exception('Project is not under presubmission')
-
-        # The `cancel_submission` function is the right one to use
-        if author == self.submitting_author:
-            raise Exception('Cannot withdraw submitting author.')
-
-        submission = self.submissions.get(is_active=True)
-        submission.approved_authors.remove(author)
-
-    def submit(self):
-        """
-        Complete the submission after the last author agrees.
-        Set the submission statuses, and get reviewers + editor
+        Check whether a project may be published
         """
         submission = self.submissions.get(is_active=True)
-        submission.submission_status = 2
-        submission.submission_datetime = timezone.now()
-        submission.save()
+
+        if submission.status == 4 and submission.all_authors_approved():
+            return True
+        else:
+            return False
 
     def publish(self):
         """
@@ -536,9 +400,8 @@ class Project(Metadata):
         submission status
         """
         if not self.is_publishable():
-            raise Exception('Nope')
+            raise Exception('The project is not publishable')
 
-        submission = self.submissions.get(is_active=True)
         published_project = PublishedProject()
 
         # Direct copy over fields
@@ -552,8 +415,6 @@ class Project(Metadata):
         # New content
         published_project.base_project = self
         published_project.storage_size = self.storage_used()
-        # To be implemented...
-        published_project.doi = '10.13026/C2F305' + str(self.id)
         published_project.save()
 
         # Same content, different objects.
@@ -579,23 +440,17 @@ class Project(Metadata):
                 published_project.topics.add(published_topic)
 
         for author in self.authors.all():
-            if author.is_human:
-                first_name, middle_names, last_name = author.user.get_names()
-            else:
-                first_name, middle_names, last_name = '', '', ''
-
             author_copy = Author.objects.create(
                 published_project=published_project,
-                first_name=first_name, middle_names=middle_names,
-                last_name=last_name, is_human=author.is_human,
-                organization_name=author.organization_name,
-                display_order=author.display_order, user=author.user
+                first_name=author.first_name, middle_names=author.middle_names,
+                last_name=author.last_name, display_order=author.display_order,
+                user=author.user
                 )
 
             affiliations = author.affiliations.all()
             for affiliation in affiliations:
                 affiliation_copy = Affiliation.objects.create(
-                    name=affiliation.name, member_object=author_copy)
+                    name=affiliation.name, author=author_copy)
 
         corresponding_author = self.authors.get(is_corresponding=True)
         contact = Contact.objects.create(name=corresponding_author.get_full_name(),
@@ -617,13 +472,15 @@ class Project(Metadata):
         # Copy over files
         shutil.copytree(self.file_root(), published_project.file_root())
 
-        submission.submission_status = 7
-        submission.is_active = False
-        submission.save()
-
         self.under_submission = False
         self.published = True
         self.save()
+
+        submission = self.submissions.get(is_active=True)
+        submission.submission_status = 6
+        submission.is_active = False
+        submission.save()
+        self.authors.all().update(approved_publish=False)
 
         return published_project
 
@@ -637,8 +494,9 @@ def setup_project(sender, **kwargs):
     """
     project = kwargs['instance']
     user = project.submitting_author
-    Author.objects.create(project=project, user=user, display_order=1,
+    author = Author.objects.create(project=project, user=user, display_order=1,
         corresponding_email=user.get_primary_email(), is_corresponding=True)
+    author.import_profile_info()
     # Create file directory
     os.mkdir(project.file_root())
 
@@ -657,6 +515,7 @@ def cleanup_project(sender, **kwargs):
     elif os.path.isdir(project_root):
         shutil.rmtree(project_root)
 
+
 class PublishedProject(Metadata):
     """
     A published project. Immutable snapshot.
@@ -671,7 +530,8 @@ class PublishedProject(Metadata):
     storage_size = models.IntegerField()
     publish_datetime = models.DateTimeField(auto_now_add=True)
     is_newest_version = models.BooleanField(default=True)
-    doi = models.CharField(max_length=50, default='', unique=True)
+    doi = models.CharField(max_length=50, default='')
+    doi_assigned = models.BooleanField(default=False)
 
     access_system = models.ForeignKey('project.AccessSystem', null=True,
                                        related_name='projects')
@@ -681,6 +541,19 @@ class PublishedProject(Metadata):
 
     def __str__(self):
         return ('{0} v{1}'.format(self.title, self.version))
+
+    def validate_doi(self, *args, **kwargs):
+        """
+        Validate uniqueness of doi, ignore empty ''
+        """
+        super().validate_unique(*args, **kwargs)
+        print('n\n\\n\nLAOEIFJAOEIFEAF\n\n\n\n')
+
+        published_projects = __class__.objects.filter(doi_assigned=True)
+        dois = [p.doi for p in published_projects]
+
+        if len(dois) != len(set(dois)):
+            raise ValidationError('Duplicate DOI')
 
     def file_root(self):
         "Root directory containing the published project's files"
@@ -857,54 +730,73 @@ class StorageRequest(BaseInvitation):
                                                self.project.__str__())
 
 
-class Submission(models.Model):
+class BaseSubmission(models.Model):
     """
-    Project submission. Object is created in presubmission mode when
-    submitting author submits. When all co-authors approve, official
-    submission begins. Object can be deleted if submitting author
-    retracts before all co-authors approve.
+    Class to be inherited by Submission and Resubmission
 
-    The submission_status field:
-    - 1 : submitting author submits.
-    - 2 : all authors agree, awaiting editor assignment
-    - 3 : editor assigned, awaiting decision.
-    - 4 : decision 1 = resubmission requested (accept with changes).
-          Loops back to 3.
-    - 5 : decision 2 = hard reject, final.
-    - 6 : decision 3 = accept, awaiting author approval to publish.
-    - 7 : author approves publishing, and project is published.
+    """
+    # Each project can have one active submission at a time
+    is_active = models.BooleanField(default=True)
+    # When the submitting author submits
+    submission_datetime = models.DateTimeField(auto_now_add=True)
+    # Editor decision. 1 2 or 3 for reject/revise/accept
+    decision = models.SmallIntegerField(null=True)
+    decision_datetime = models.DateTimeField(null=True)
+    # Comments for the decision
+    editor_comments = models.CharField(max_length=800)
+
+    class Meta:
+        abstract = True
+
+
+class Submission(BaseSubmission):
+    """
+    Project submission. Object is created when submitting author submits.
+
+    The status field:
+    - 0 : Submitting author submits. Awaiting editor assignment or decision.
+    - 1 : Decision 1 = reject.
+    - 2 : Decision 2 = accept with revisions.
+    - 3 : Decision 3 = accept. In copyedit stage. Requires author approval.
+    - 4 : Copyedit complete. Ready for editor to publish
+    - 5 : Published
 
     """
     project = models.ForeignKey('project.Project', related_name='submissions')
-    # Each project can have one active submission at a time
-    is_active = models.BooleanField(default=True)
-    submission_status = models.PositiveSmallIntegerField(default=1)
-    approved_authors = models.ManyToManyField('project.Author')
-    # Marks when the submitting author submits
-    presubmission_datetime = models.DateTimeField(auto_now_add=True)
-    # Marks when all co-authors approve
-    submission_datetime = models.DateTimeField(null=True)
-    # Marks when the editor decides the final accept/reject
-    response_datetime = models.DateTimeField(null=True)
+    # Editor is manually assigned
     editor = models.ForeignKey('user.User', related_name='editing_submissions',
         null=True)
-    # Comments for the final decision
-    editor_comments = models.CharField(max_length=800)
-    # Set to 0 for reject or 1 for accept, when final decision is made.
-    response = models.NullBooleanField(null=True)
+    status = models.PositiveSmallIntegerField(default=0)
+
+    # When copyedit was complete
+    copyedit_datetime = models.DateTimeField(null=True)
+    # The published item, if published
+    published_project = models.OneToOneField('project.PublishedProject',
+        null=True, related_name='publishing_submission')
+    publish_datetime = models.DateTimeField(null=True)
 
     def __str__(self):
         return 'Submission ID {0} - {1}'.format(self.id, self.project.title)
 
+    def all_authors_approved(self):
+        authors = self.project.authors.all()
+        return len(authors) == sum(a.approved_publish for a in authors)
 
-class Resubmission(models.Model):
+    def get_active_resubmission(self):
+        if self.is_active:
+            return self.resubmissions.get(is_active=True)
+
+    def get_resubmissions(self):
+        return self.resubmissions.all().order_by('creation_datetime')
+
+
+class Resubmission(BaseSubmission):
     """
     Model for resubmissions, ie. when editor accepts with conditional
     changes.
 
+    The object is created when the submitting author makes a resubmission.
+
     """
     submission = models.ForeignKey('project.Submission',
         related_name='resubmissions')
-    response_datetime = models.DateTimeField(auto_now_add=True)
-    # Comments for this resubmission decision
-    editor_comments = models.CharField(max_length=800)

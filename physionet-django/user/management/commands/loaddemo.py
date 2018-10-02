@@ -32,7 +32,7 @@ class Command(BaseCommand):
             print('Continuing loading demo data')
 
         project_apps = get_project_apps()
-        demo_fixtures = ['demo-' + app for app in project_apps]
+        demo_fixtures = find_demo_fixtures(project_apps)
 
         call_command('loaddata', *demo_fixtures, verbosity=1)
 
@@ -40,6 +40,20 @@ class Command(BaseCommand):
         for content in ['user', 'project']:
             link_demo_media(content)
 
+
+def find_demo_fixtures(project_apps):
+    """
+    Find non-empty demo fixtures
+    """
+    demo_fixtures = []
+    for app in project_apps:
+        fixture = 'demo-{}'.format(app)
+        file_name = os.path.join(settings.BASE_DIR, app,
+                                 'fixtures', '{}.json'.format(fixture))
+        if os.path.exists(file_name) and open(file_name).read(4) != '[\n]\n':
+            demo_fixtures.append(fixture)
+
+    return demo_fixtures
 
 # Link the demo content from the specified subdirectory
 def link_demo_media(subdir):
