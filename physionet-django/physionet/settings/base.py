@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'ckeditor',
+    'django_cron',
 
     'user',
     'project',
@@ -52,6 +53,11 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+CRON_CLASSES = [
+    "physionet.cron.Remove_Unverified_Emails",
+    "physionet.cron.Remove_Outstanging_invites",
 ]
 
 ROOT_URLCONF = 'physionet.urls'
