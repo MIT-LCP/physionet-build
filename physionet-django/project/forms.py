@@ -7,6 +7,7 @@ from django.contrib.contenttypes.forms import BaseGenericInlineFormSet
 # from django.forms import , Select, Textarea
 from django.template.defaultfilters import slugify
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 
 from .models import Affiliation, Author, AuthorInvitation, Project, StorageRequest
 from . import utility
@@ -341,6 +342,10 @@ class CreateProjectForm(forms.ModelForm):
         project = super(CreateProjectForm, self).save(commit=False)
         project.submitting_author = self.user
         project.corresponding_author = self.user
+        slug = get_random_string(20)
+        while Project.objects.filter(slug=slug):
+            slug = get_random_string(20)
+        project.slug = slug
         project.save()
         return project
 

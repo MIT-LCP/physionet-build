@@ -219,6 +219,9 @@ class Metadata(models.Model):
     publications = GenericRelation(Publication, blank=True)
     topics = GenericRelation(Topic, blank=True)
 
+    # Public url slug
+    slug = models.SlugField(max_length=20, unique=True, db_index=True)
+
 
 class Project(Metadata):
     """
@@ -517,29 +520,11 @@ def cleanup_project(sender, **kwargs):
         shutil.rmtree(project_root)
 
 
-# def make_id(class_num):
-#     classes = [Project, PublishedProject]
-#     item_class = classes[class_num]
-
-#     while item_class.objects.filter(id=new_id):
-#         new_id = uuid.uuid4().int & (1<<64)-1
-#     return new_id
-
-
 class PublishedProject(Metadata):
     """
     A published project. Immutable snapshot.
 
     """
-    def make_id():
-        # classes = [Project, PublishedProject]
-        # item_class = classes[class_num]
-
-        # while self.__class__.objects.filter(id=new_id):
-        new_id = uuid.uuid4().int & (1<<64)-1
-        return new_id
-
-    id = models.BigIntegerField(primary_key=True, default=make_id())
     # The Project this object was created from
     base_project = models.ForeignKey('project.Project',
         related_name='published_projects', blank=True, null=True)
@@ -705,13 +690,13 @@ class AuthorInvitation(BaseInvitation):
 
         # Remove duplicate invitations to the same project
         if exclude_duplicates:
-            project_ids = []
+            project_slugs = []
             remove_ids = []
             for invitation in invitations:
-                if invitation.project.id in project_ids:
+                if invitation.project.id in project_slugs:
                     remove_ids.append(invitation.id)
                 else:
-                    project_ids.append(invitation.project.id)
+                    project_slugs.append(invitation.project.id)
             invitations = invitations.exclude(id__in=remove_ids)
 
         return invitations
