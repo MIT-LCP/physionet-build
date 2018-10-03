@@ -2,6 +2,7 @@ import datetime
 import os
 import shutil
 import pdb
+import uuid
 
 from django.conf import settings
 from django.http import HttpResponse, Http404
