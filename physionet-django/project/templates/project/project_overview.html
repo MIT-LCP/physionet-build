@@ -32,7 +32,7 @@
 <h3>Published Versions</h3>
 
 {% for published_project in published_projects %}
-    <a href="{% url 'published_project' published_project.id %}">Version {{ published_project.version }}. Published {{ published_project.publish_datetime|date }}</a>
+    <a href="{% url 'published_project' published_project.slug %}">Version {{ published_project.version }}. Published {{ published_project.publish_datetime|date }}</a>
 {% empty %}
   <p>This project has not been published.</p>
 {% endfor %}

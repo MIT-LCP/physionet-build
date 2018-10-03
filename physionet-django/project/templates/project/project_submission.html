@@ -9,7 +9,7 @@
 <script>
   // Check whether the project is submittable
   function checkSubmittable(){
-    $.ajax({url: "{% url 'check_submittable' project.id %}",
+    $.ajax({url: "{% url 'check_submittable' project.slug %}",
       success: function(result){
         if (result.is_submittable){
           $("#submittable").html("<i class='fas fa-check' style='color:green'></i> The automatic checks have passed. You may submit the project for review. Note: you will no longer be able to edit the project.");
@@ -36,7 +36,7 @@
 <h3>Current Submission</h3>
 {% if not project.under_submission %}
   <p>The project is not under submission. If the
-    <a href="{% url 'project_preview' project.id %}" target="_blank">
+    <a href="{% url 'project_preview' project.slug %}" target="_blank">
     preview</a> appears satisfactory to all authors, the submitting author may
     submit the project for review.</p>
   {% if user == project.submitting_author %}
@@ -90,7 +90,7 @@
         {% if submission.status == 3 %}
           <li class="list-group-item"><i class="far fa-clock"></i> The project is being copyedited by the editor. Email the editor to suggest changes. When all authors approve, the editor will complete this stage.
             {% if not admin_inspect and not author.approved_publish %}
-              <form action="" method="post">{% csrf_token %}<button class="btn btn-success" name="approve_publish" style="float:right">Approve Publication</button><a class="btn btn-primary mr-1" href="{% url 'project_preview' project.id %}" target="_blank" role="button" style="float:right">Preview Project</a></form>
+              <form action="" method="post">{% csrf_token %}<button class="btn btn-success" name="approve_publish" style="float:right">Approve Publication</button><a class="btn btn-primary mr-1" href="{% url 'project_preview' project.slug %}" target="_blank" role="button" style="float:right">Preview Project</a></form>
             {% endif %}
             <ol>
               {% for author in authors %}

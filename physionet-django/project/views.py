@@ -43,7 +43,7 @@ def authorization_required(auth_functions):
         @login_required
         def function_wrapper(request, *args, **kwargs):
             user = request.user
-            project = Project.objects.get(id=kwargs['project_slug'])
+            project = Project.objects.get(slug=kwargs['project_slug'])
 
             for auth_func in auth_functions:
                 if auth_func(user, project):
@@ -121,7 +121,7 @@ def create_project(request):
         form = forms.CreateProjectForm(user=user, data=request.POST)
         if form.is_valid():
             project = form.save()
-            return redirect('project_overview', project_slug=project.id)
+            return redirect('project_overview', project_slug=project.slug)
     else:
         form = forms.CreateProjectForm(user=user)
 
@@ -138,7 +138,7 @@ def project_overview(request, project_slug):
     Overview page of a project
     """
     user = request.user
-    project = Project.objects.get(id=project_slug)
+    project = Project.objects.get(slug=project_slug)
     admin_inspect = user.is_admin and not is_author(user, project)
 
     published_projects = project.published_projects.all().order_by('publish_datetime') if project.published else None
@@ -217,7 +217,7 @@ def move_author(request, project_slug):
     if successful. Called via ajax.
     """
     if request.method == 'POST':
-        project = Project.objects.get(id=project_slug)
+        project = Project.objects.get(slug=project_slug)
         author = Author.objects.get(id=int(request.POST['author_id']))
         direction = request.POST['direction']
         project_authors = project.authors.all()
@@ -248,7 +248,7 @@ def edit_affiliation(request, project_slug):
 
     """
     user = request.user
-    project = Project.objects.get(id=project_slug)
+    project = Project.objects.get(slug=project_slug)
     author = project.authors.get(user=user)
 
     # Reload the formset with the first empty form
@@ -270,7 +270,7 @@ def edit_affiliation(request, project_slug):
         max_num=forms.AffiliationFormSet.max_forms, can_delete=False,
         formset=forms.AffiliationFormSet, validate_max=True)
     formset = AffiliationFormSet(instance=author)
-    edit_url = reverse('edit_affiliation', args=[project.id])
+    edit_url = reverse('edit_affiliation', args=[project.slug])
 
     return render(request, 'project/item_list.html',
             {'formset':formset, 'item':'affiliation', 'item_label':formset.item_label,
@@ -284,7 +284,7 @@ def project_authors(request, project_slug):
     Page displaying author information and actions.
     """
     user = request.user
-    project = Project.objects.get(id=project_slug)
+    project = Project.objects.get(slug=project_slug)
     authors = project.authors.all().order_by('display_order')
     admin_inspect = user.is_admin and user not in [a.user for a in authors]
 
@@ -357,7 +357,7 @@ def project_authors(request, project_slug):
                 messages.success(request, 'Your corresponding email has been updated.')
 
     invitations = project.authorinvitations.filter(is_active=True)
-    edit_affiliations_url = reverse('edit_affiliation', args=[project.id])
+    edit_affiliations_url = reverse('edit_affiliation', args=[project.slug])
     return render(request, 'project/project_authors.html', {'project':project,
         'authors':authors, 'invitations':invitations,
         'affiliation_formset':affiliation_formset,
@@ -392,7 +392,7 @@ def edit_metadata_item(request, project_slug):
                             'publication': ('citation', 'url'),
                             'topic': ('description',)}
 
-    project = Project.objects.get(id=project_slug)
+    project = Project.objects.get(slug=project_slug)
 
     # Reload the formset with the first empty form
     if request.method == 'GET' and 'add_first' in request.GET:
@@ -420,7 +420,7 @@ def edit_metadata_item(request, project_slug):
             formset=custom_formsets[item], validate_max=True)
 
     formset = ItemFormSet(instance=project)
-    edit_url = reverse('edit_metadata_item', args=[project.id])
+    edit_url = reverse('edit_metadata_item', args=[project.slug])
 
     return render(request, 'project/item_list.html',
             {'formset':formset, 'item':item, 'item_label':formset.item_label,
@@ -433,7 +433,7 @@ def project_metadata(request, project_slug):
     For editing project metadata
     """
     user = request.user
-    project = Project.objects.get(id=project_slug)
+    project = Project.objects.get(slug=project_slug)
     admin_inspect = user.is_admin and not is_author(user, project)
 
     # There are several forms for different types of metadata
@@ -457,7 +457,7 @@ def project_metadata(request, project_slug):
         else:
             messages.error(request,
                 'Invalid submission. See errors below.')
-    edit_url = reverse('edit_metadata_item', args=[project.id])
+    edit_url = reverse('edit_metadata_item', args=[project.slug])
 
     return render(request, 'project/project_metadata.html', {'project':project,
         'description_form':description_form, 'reference_formset':reference_formset,
@@ -472,7 +472,7 @@ def project_access(request, project_slug):
 
     """
     user = request.user
-    project = Project.objects.get(id=project_slug)
+    project = Project.objects.get(slug=project_slug)
     admin_inspect = user.is_admin and not is_author(user, project)
 
     access_form = forms.AccessMetadataForm(instance=project)
@@ -491,13 +491,13 @@ def project_access(request, project_slug):
 
 
 @authorization_required(auth_functions=(is_author, is_admin))
-def project_slugentifiers(request, project_slug):
+def project_identifiers(request, project_slug):
     """
     Page to edit external project identifiers
 
     """
     user = request.user
-    project = Project.objects.get(id=project_slug)
+    project = Project.objects.get(slug=project_slug)
     admin_inspect = user.is_admin and not is_author(user, project)
 
     TopicFormSet = inlineformset_factory(Project, Topic,
@@ -525,8 +525,8 @@ def project_slugentifiers(request, project_slug):
         else:
             messages.error(request, 'Invalid submission. See errors below.')
 
-    edit_url = reverse('edit_metadata_item', args=[project.id])
-    return render(request, 'project/project_slugentifiers.html',
+    edit_url = reverse('edit_metadata_item', args=[project.slug])
+    return render(request, 'project/project_identifiers.html',
         {'project':project, 'publication_formset':publication_formset,
          'topic_formset':topic_formset, 'add_item_url':edit_url,
          'remove_item_url':edit_url})
@@ -538,7 +538,7 @@ def project_files_panel(request, project_slug):
     Return the file panel for the project, along with the forms used to
     manipulate them. Called via ajax to navigate directories.
     """
-    project = Project.objects.get(id=project_slug)
+    project = Project.objects.get(slug=project_slug)
     subdir = request.GET['subdir']
 
     display_files, display_dirs = project.get_directory_content(
@@ -584,7 +584,7 @@ def process_items(request, form):
 @authorization_required(auth_functions=(is_author, is_admin))
 def project_files(request, project_slug):
     "View and manipulate files in a project"
-    project = Project.objects.get(id=project_slug)
+    project = Project.objects.get(slug=project_slug)
     admin_inspect = request.user.is_admin and not is_author(request.user, project)
     storage_info = utility.get_storage_info(project.storage_allowance*1024**2,
             project.storage_used())
@@ -668,7 +668,7 @@ def serve_project_file(request, project_slug, file_name):
     Serve a file in a project. file_name is file path relative to
     project file root.
     """
-    project = Project.objects.get(id=project_slug)
+    project = Project.objects.get(slug=project_slug)
     file_path = os.path.join(project.file_root(), file_name)
     return utility.serve_file(request, file_path)
 
@@ -678,7 +678,7 @@ def preview_files_panel(request, project_slug):
     Return the file panel for the project, along with the forms used to
     manipulate them. Called via ajax to navigate directories.
     """
-    project = Project.objects.get(id=project_slug)
+    project = Project.objects.get(slug=project_slug)
     subdir = request.GET['subdir']
 
     display_files, display_dirs = project.get_directory_content(
@@ -699,7 +699,7 @@ def project_proofread(request, project_slug):
     """
     Proofreading page for project before submission
     """
-    project = Project.objects.get(id=project_slug)
+    project = Project.objects.get(slug=project_slug)
     admin_inspect = request.user.is_admin and not is_author(request.user, project)
 
     return render(request, 'project/project_proofread.html', {'project':project,
@@ -712,7 +712,7 @@ def project_preview(request, project_slug):
     serving files.
 
     """
-    project = Project.objects.get(id=project_slug)
+    project = Project.objects.get(slug=project_slug)
     admin_inspect = request.user.is_admin and not is_author(request.user, project)
 
     authors = project.authors.all().order_by('display_order')
@@ -752,7 +752,7 @@ def check_submittable(request, project_slug):
     """
     Check whether a project is submittable
     """
-    project = Project.objects.get(id=project_slug)
+    project = Project.objects.get(slug=project_slug)
 
     result = project.is_submittable()
 
@@ -768,7 +768,7 @@ def project_submission(request, project_slug):
     approval.
     """
     user = request.user
-    project = Project.objects.get(id=project_slug)
+    project = Project.objects.get(slug=project_slug)
     authors = project.authors.all().order_by('display_order')
     admin_inspect = user.is_admin and user not in [a.user for a in authors]
     context = {'project':project, 'admin_inspect':admin_inspect}
@@ -810,7 +810,7 @@ def project_submission_history(request, project_slug):
     Submission history for a project
     """
     user = request.user
-    project = Project.objects.get(id=project_slug)
+    project = Project.objects.get(slug=project_slug)
     admin_inspect = user.is_admin and not is_author(user, project)
     submissions = project.submissions.all()
     return render(request, 'project/project_submission_history.html',
@@ -823,7 +823,7 @@ def published_files_panel(request, published_project_slug):
     Return the file panel for the published project, for all access
     policies
     """
-    published_project = PublishedProject.objects.get(id=published_project_slug)
+    published_project = PublishedProject.objects.get(slug=published_project_slug)
     subdir = request.GET['subdir']
 
     display_files, display_dirs = published_project.get_directory_content(
@@ -852,7 +852,7 @@ def serve_published_project_file(request, published_project_slug, file_name):
 
     """
     # todo: protect this view
-    published_project = PublishedProject.objects.get(id=published_project_slug)
+    published_project = PublishedProject.objects.get(slug=published_project_slug)
     file_path = os.path.join(published_project.file_root(), file_name)
     return utility.serve_file(request, file_path)
 
@@ -887,7 +887,7 @@ def published_project(request, published_project_slug):
     Displays a published project
     """
 
-    published_project = PublishedProject.objects.get(id=published_project_slug)
+    published_project = PublishedProject.objects.get(slug=published_project_slug)
 
     if published_project.resource_type == 0:
         return database(request, published_project)

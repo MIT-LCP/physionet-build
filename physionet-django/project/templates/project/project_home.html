@@ -43,7 +43,7 @@
                 <span class="badge badge-primary"><i class="fas fa-book-open"></i> Published</span>
               {% endif %}
             </p>
-            <h4><a href="{% url 'project_overview' project.id %}">{{ project.title }}</a></h4>
+            <h4><a href="{% url 'project_overview' project.slug %}">{{ project.title }}</a></h4>
             <p class="list-group-item-text text-muted">
             <strong>Submitting Author: {{ project.submitting_author }}</strong><br>
             <small>Created {{ project.creation_datetime|date }} Modified {{ project.modified_datetime|date }}</small>

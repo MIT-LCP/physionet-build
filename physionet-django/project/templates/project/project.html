@@ -15,7 +15,7 @@
     <div class="col-6 col-md-2 sidebar-offcanvas" id="sidebar">
       {# Overview box is separate from preparation steps #}
       <div class="list-group">
-        {% url 'project_overview' project.id as overview_url %}
+        {% url 'project_overview' project.slug as overview_url %}
         <a href="{{ overview_url }}" class="list-group-item list-group-item-action{% if overview_url == request.path %} active{% endif %}">&nbsp;&nbsp;&nbsp;Overview</a>
       </div>
       <br>
@@ -23,7 +23,7 @@
       <div class="list-group">
         {% with 'authors metadata access identifiers files proofread' as project_settings %}
           {% for setting in project_settings.split %}
-            {% url 'project_'|add:setting project.id as setting_url %}
+            {% url 'project_'|add:setting project.slug as setting_url %}
             <a href={{ setting_url }} class="list-group-item list-group-item-action{% if setting_url == request.path %} active{% endif %}">{{ forloop.counter }}. {{ setting|title }}</a>
           {% endfor %}
         {% endwith %}
@@ -31,7 +31,7 @@
       <br>
 
       <div class="list-group">
-        {% url 'project_submission' project.id as submission_url %}
+        {% url 'project_submission' project.slug as submission_url %}
         <a href="{{ submission_url }}" class="list-group-item list-group-item-action{% if submission_url == request.path %} active{% endif %}">&nbsp;&nbsp;&nbsp;Submission</a>
       </div>
       <br>

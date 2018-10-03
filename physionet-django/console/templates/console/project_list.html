@@ -22,7 +22,7 @@
           <tbody>
           {% for project in projects %}
             <tr>
-              <td><a href="{% url 'project_overview' project.id %}">{{ project.title }}</a></td>
+              <td><a href="{% url 'project_overview' project.slug %}">{{ project.title }}</a></td>
               <td><a href="{% url 'public_profile' project.submitting_author.username %}">{{ project.submitting_author }}</td>
               <td>{{ project.creation_datetime|date }}</td>
               <td>{{ project.under_submission }}</td>

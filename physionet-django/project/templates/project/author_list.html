@@ -58,7 +58,7 @@
                 </div>
                 <div class="modal-footer">
                   <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                  <form action="{% url 'project_authors' project.id %}" method="post">
+                  <form action="{% url 'project_authors' project.slug %}" method="post">
                     {% csrf_token %}
                     <button class="btn btn-danger" name="remove_author" value="{{ author.id }}" type="submit">Remove Author</button>
                   </form>
