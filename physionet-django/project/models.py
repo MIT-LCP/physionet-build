@@ -340,7 +340,7 @@ class Project(Metadata):
         self.submit_errors = []
 
         # Invitations
-        for invitation in self.invitations.filter(is_active=True):
+        for invitation in self.authorinvitations.filter(is_active=True):
             self.submit_errors.append(
                 'Outstanding author invitation to {0}'.format(invitation.email))
 
@@ -649,49 +649,40 @@ class Approval(models.Model):
 
 class BaseInvitation(models.Model):
     """
-    Base class for project invitations and storage requests
+    Base class for authorship invitations and storage requests
     """
+    project = models.ForeignKey('project.Project', related_name='%(class)ss')
     request_datetime = models.DateTimeField(auto_now_add=True)
     response_datetime = models.DateTimeField(null=True)
     response = models.NullBooleanField(null=True)
-    response_message = models.CharField(max_length=50, default='', blank=True)
     is_active = models.BooleanField(default=True)
 
     class Meta:
         abstract = True
 
 
-class Invitation(BaseInvitation):
+class AuthorInvitation(BaseInvitation):
     """
-    Invitation to join a project as an, author, or reviewer
+    Invitation to join a project as an author
 
     """
-    project = models.ForeignKey('project.Project',
-        related_name='invitations')
     # The target email
     email = models.EmailField(max_length=255)
     # User who made the invitation
     inviter = models.ForeignKey('user.User')
-    # Either 'author', or 'reviewer'
-    invitation_type = models.CharField(max_length=10)
-
 
     def __str__(self):
         return 'Project: {0} To: {1} By: {2}'.format(self.project, self.email,
                                                      self.inviter)
 
-    def get_user_invitations(user, invitation_types='all',
-                             exclude_duplicates=True):
+    def get_user_invitations(user, exclude_duplicates=True):
         """
-        Get all active invitations to a user
+        Get all active author invitations to a user
 
         """
         emails = user.get_emails()
-        invitations = Invitation.objects.filter(email__in=emails,
+        invitations = AuthorInvitation.objects.filter(email__in=emails,
             is_active=True).order_by('-request_datetime')
-        if invitation_types != 'all':
-            invitations = invitations.filter(
-                invitation_type__in=invitation_types)
 
         # Remove duplicate invitations to the same project
         if exclude_duplicates:
@@ -706,10 +697,9 @@ class Invitation(BaseInvitation):
 
         return invitations
 
-    def is_invited(user, project, invitation_types='all'):
-        "Whether a user is invited to a project"
-        user_invitations = get_user_invitations(user=user,
-            invitation_types=invitation_types)
+    def is_invited(user, project):
+        "Whether a user is invited to author a project"
+        user_invitations = get_user_invitations(user=user)
 
         return bool(project in [inv.project for inv in invitations])
 
@@ -718,12 +708,11 @@ class StorageRequest(BaseInvitation):
     """
     A request for storage capacity for a project
     """
-    project = models.ForeignKey('project.Project', related_name='storage_requests')
     # Requested storage size in GB
     request_allowance = models.SmallIntegerField(
         validators=[MaxValueValidator(100), MinValueValidator(1)])
-    # The authorizer
     responder = models.ForeignKey('user.User', null=True)
+    response_message = models.CharField(max_length=50, default='', blank=True)
 
     def __str__(self):
         return '{0}GB for project: {1}'.format(self.request_allowance,

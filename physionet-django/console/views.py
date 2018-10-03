@@ -1,10 +1,8 @@
 import pdb
 
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.mail import send_mail
 from django.forms import modelformset_factory, Select, Textarea
 from django.http import Http404
 from django.shortcuts import redirect, render
@@ -12,11 +10,10 @@ from django.template import loader
 from django.utils import timezone
 
 from . import forms
+import notification.utility as notification
 from project.models import Project, Resubmission, StorageRequest, Submission
 from user.models import User
 
-
-RESPONSE_ACTIONS = {0:'rejected', 1:'accepted'}
 
 def is_admin(user, *args, **kwargs):
     return user.is_admin
@@ -43,15 +40,7 @@ def active_submissions(request):
             submission = assign_editor_form.cleaned_data['submission']
             submission.editor = assign_editor_form.cleaned_data['editor']
             submission.save()
-            # Send the notifying emails to authors
-            subject = 'Editor assigned to project {0}'.format(submission.project.title)
-            for email, name in submission.project.get_author_info():
-                body = loader.render_to_string(
-                    'console/email/assign_editor_notify.html',
-                    {'name':name, 'project':submission.project,
-                     'editor':submission.editor})
-                send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                          [email], fail_silently=False)
+            notification.assign_editor_notify(submission)
             messages.success(request, 'The editor has been assigned')
 
     submissions = Submission.objects.filter(is_active=True).order_by('status')
@@ -93,7 +82,7 @@ def edit_submission(request, submission_id):
     submission = Submission.objects.get(id=submission_id)
     project = submission.project
     # The user must be the editor
-    if request.user != submission.editor:
+    if request.user != submission.editor or submission.status not in [0, 2]:
         return Http404()
 
     if request.method == 'POST':
@@ -103,40 +92,13 @@ def edit_submission(request, submission_id):
             submission = edit_submission_form.save()
             # Resubmit with changes
             if submission.decision == 1:
-                # Notify authors of decision
-                subject = 'Resubmission request for project {0}'.format(project.title)
-                for email, name in submission.project.get_author_info():
-                    body = loader.render_to_string(
-                        'console/email/resubmit_submission_notify.html',
-                        {'name':name, 'project':project,
-                         'editor_comments':submission.editor_comments,
-                         'domain':get_current_site(request)})
-                    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                              [email], fail_silently=False)
+                notification.edit_resubmit_notify(request, submission)
             # Reject
             elif submission.decision == 2:
-                # Notify authors of decision
-                subject = 'Submission rejected for project {0}'.format(project.title)
-                for email, name in submission.project.get_author_info():
-                    body = loader.render_to_string(
-                        'console/email/reject_submission_notify.html',
-                        {'name':name, 'project':project,
-                         'editor_comments':submission.editor_comments,
-                         'domain':get_current_site(request)})
-                    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                              [email], fail_silently=False)
+                notification.edit_reject_notify(request, submission)
             # Accept
             else:
-                # Notify authors of decision
-                subject = 'Submission accepted for project {0}'.format(project.title)
-                for email, name in submission.project.get_author_info():
-                    body = loader.render_to_string(
-                        'console/email/accept_submission_notify.html',
-                        {'name':name, 'project':project,
-                         'editor_comments':submission.editor_comments,
-                         'domain':get_current_site(request)})
-                    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                              [email], fail_silently=False)
+                notification.edit_accept_notify(request, submission)
 
             return render(request, 'console/edit_complete.html',
                 {'decision':submission.decision,
@@ -155,7 +117,7 @@ def copyedit_submission(request, submission_id):
     Page to copyedit the submission
     """
     submission = Submission.objects.get(id=submission_id)
-    if submission.status != 3:
+    if request.user != submission.editor or submission.status != 3:
         return Http404()
 
     project = submission.project
@@ -166,6 +128,7 @@ def copyedit_submission(request, submission_id):
             submission.status = 4
             submission.copyedit_datetime = timezone.now()
             submission.save()
+            notification.copyedit_complete_notify(request, submission)
             return render(request, 'console/copyedit_complete.html')
 
     author_emails = ';'.join(a.user.email for a in authors)
@@ -191,6 +154,7 @@ def publish_submission(request, submission_id):
     if request.method == 'POST':
         if project.is_publishable():
             published_project = project.publish()
+            notification.publish_notify(request, project, published_project)
             return render(request, 'console/publish_complete.html',
                 {'published_project':published_project})
 
@@ -216,23 +180,14 @@ def process_storage_response(request, storage_response_formset):
                 storage_request.is_active = False
                 storage_request.save()
 
-                project = storage_request.project
-
                 if storage_request.response:
+                    project = storage_request.project
                     project.storage_allowance = storage_request.request_allowance
                     project.save()
 
-                # Send the notifying email to the submitting author
-                response = RESPONSE_ACTIONS[storage_request.response]
-                subject = 'Storage request {0} for project {1}'.format(response,
-                    project.title)
-                email, name = project.get_submitting_author_info()
-                body = loader.render_to_string('console/email/storage_response_notify.html',
-                    {'name':name, 'project':project, 'response':response,
-                     'allowance':storage_request.request_allowance})
-                send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                          [email], fail_silently=False)
-                messages.success(request, 'The storage request has been {0}.'.format(response))
+                notification.storage_response_notify(storage_request)
+                messages.success(request,
+                    'The storage request has been {}'.format(notification.RESPONSE_ACTIONS[storage_request.response]))
 
 @login_required
 @user_passes_test(is_admin)

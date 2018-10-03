@@ -236,37 +236,33 @@
   }
 },
 {
-  "model": "project.invitation",
+  "model": "project.authorinvitation",
   "pk": 1,
   "fields": {
     "request_datetime": "2017-11-02T14:30:30Z",
     "response_datetime": null,
     "response": null,
-    "response_message": "",
     "is_active": true,
     "project": 2,
     "email": "george@mit.edu",
     "inviter": [
       "rgmark@mit.edu"
-    ],
-    "invitation_type": "author"
+    ]
   }
 },
 {
-  "model": "project.invitation",
+  "model": "project.authorinvitation",
   "pk": 2,
   "fields": {
     "request_datetime": "2018-03-28T14:30:30Z",
     "response_datetime": null,
     "response": null,
-    "response_message": "",
     "is_active": true,
     "project": 2,
     "email": "george@gmail.com",
     "inviter": [
       "rgmark@mit.edu"
-    ],
-    "invitation_type": "author"
+    ]
   }
 },
 {
