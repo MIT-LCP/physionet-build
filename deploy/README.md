@@ -130,5 +130,7 @@ A service file was created to be controlled  by systemctl. This file will say re
 for this service to run, it will set the user and group for the emperor mode, and 
 sets the log location to syslog.
 
+## Setting up the cron for the scheduled tasks
 
-
+Scheduled tasks have been added, it uses the system cron executing the tasks twice a day. (this can be changed if needed.) 
+`0 */12 * * * export DJANGO_SETTINGS_MODULE=physionet.settings.staging  && source /physionet/python-env/physionet/bin/activate && python /physionet/physionet-build/physionet-django/manage.py runcrons >> /var/log/cronjob.log`

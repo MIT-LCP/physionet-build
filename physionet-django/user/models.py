@@ -81,6 +81,10 @@ class User(AbstractBaseUser):
 
     REQUIRED_FIELDS = ['email']
 
+
+    def is_superuser(self):
+        return (self.is_admin,)
+
     def natural_key(self):
         return (self.email,)
 
