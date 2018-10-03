@@ -13,6 +13,7 @@ from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 from django.template.defaultfilters import slugify
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 
 from user.models import User
 from .utility import get_tree_size, get_file_info, get_directory_info, list_items
@@ -419,6 +420,11 @@ class Project(Metadata):
         # New content
         published_project.base_project = self
         published_project.storage_size = self.storage_used()
+        # Generate a new slug
+        slug = get_random_string(20)
+        while PublishedProject.objects.filter(slug=slug):
+            slug = get_random_string(20)
+        published_project.slug = slug
         published_project.save()
 
         # Same content, different objects.
@@ -435,7 +441,8 @@ class Project(Metadata):
         for topic in self.topics.all():
             published_topic = PublishedTopic.objects.filter(
                 description=topic.description.lower())
-            # If same content object exists, add it. Otherwise create.
+            # Tag the published project with the topic. Create the published
+            # topic first if it doesn't exist
             if published_topic.count():
                 published_project.topics.add(published_topic.first())
             else:

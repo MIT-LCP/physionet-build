@@ -40,7 +40,7 @@
 
 {% include 'about/access_policies.html'%}
 
-<form action="{% url 'project_access' project.id %}" method="post">
+<form action="{% url 'project_access' project.slug %}" method="post">
   {% if user != project.submitting_author %}
   <div class="alert alert-form alert-warning alert-dismissible">
     <strong>Only the submitting author may edit the project access.</strong>

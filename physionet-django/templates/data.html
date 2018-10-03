@@ -17,7 +17,7 @@ PhysioNet Databases
     <p>{{ published_project.resource_type|resource_badge|safe }}
        {{ published_project.access_policy|access_badge|safe }}
     </p>
-    <a href="{% url 'published_project' published_project.id %}"><h2>{{ published_project.title }}</h2></a>
+    <a href="{% url 'published_project' published_project.slug %}"><h2>{{ published_project.title }}</h2></a>
     <p class="text-muted">
       <strong>Authors:
         {% for author in authors %}

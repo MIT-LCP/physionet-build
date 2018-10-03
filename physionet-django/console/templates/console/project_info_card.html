@@ -5,13 +5,13 @@
   </div>
   <div class="card-body">
     <p>{{ submission.project.resource_type|resource_badge|safe }}</p>
-    <h4 class="card-title"><a href="{% url 'project_overview' submission.project.id %}">{{ submission.project.title }}</a></h4>
+    <h4 class="card-title"><a href="{% url 'project_overview' submission.project.slug %}">{{ submission.project.title }}</a></h4>
     <p class="card-text">
       Submitting Author: <a href="{% url 'public_profile' submission.project.submitting_author.username %}">{{ submission.project.submitting_author.username }}</a> {{ submission.project.submitting_author.email }}<br>
       Created: {{ submission.project.creation_datetime|date }}<br>
       Submitted: {{ submission.submission_datetime|date }}
     </p>
-    <p><a class="btn btn-lg btn-primary" href="{% url 'project_preview' submission.project.id %}" role="button" target="_blank">
+    <p><a class="btn btn-lg btn-primary" href="{% url 'project_preview' submission.project.slug %}" role="button" target="_blank">
       View Project Preview</a>
     </p>
   </div>

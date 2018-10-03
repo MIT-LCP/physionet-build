@@ -1,13 +1,13 @@
 <ol>
-  <li>Invite <a href="{% url 'project_authors' project.id %}">
+  <li>Invite <a href="{% url 'project_authors' project.slug %}">
     authors</a> to be credited for creating the resource.</li>
   <li>Fill in the descriptive
-    <a href="{% url 'project_metadata' project.id %}">metadata</a></li>
-  <li>Set the <a href="{% url 'project_access' project.id %}">access policy
+    <a href="{% url 'project_metadata' project.slug %}">metadata</a></li>
+  <li>Set the <a href="{% url 'project_access' project.slug %}">access policy
     and license</a>.</li>
-  <li>Add <a href="{% url 'project_identifiers' project.id %}">identifiers</a></li>
-  <li>Upload the <a href="{% url 'project_files' project.id %}">files</a>.</li>
-  <li><a href="{% url 'project_proofread' project.id %}">
+  <li>Add <a href="{% url 'project_identifiers' project.slug %}">identifiers</a></li>
+  <li>Upload the <a href="{% url 'project_files' project.slug %}">files</a>.</li>
+  <li><a href="{% url 'project_proofread' project.slug %}">
     Proofread</a> the project and make sure it is ready for submission.</li>
 </ol>
 

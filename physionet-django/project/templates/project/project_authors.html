@@ -15,7 +15,7 @@
       var csrftoken = getCookie('csrftoken');
       $.ajax({
               type: "POST",
-              url: "{% url 'move_author' project.id %}",
+              url: "{% url 'move_author' project.slug %}",
               data: {'csrfmiddlewaretoken':csrftoken,
                      'author_id':author_id, 'direction':direction
               },
@@ -68,7 +68,7 @@
 {% if user == project.submitting_author %}
   <br>
   <h3>Invite Author</h3>
-  <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
+  <form action="{% url 'project_authors' project.slug %}" method="post" class="form-signin">
     {% csrf_token %}
     {% include "inline_form_snippet.html" with form=invite_author_form %}
     <button class="btn btn-success btn-fixed" name="invite_author" type="submit">Invite Author</button>
@@ -78,7 +78,7 @@
   <br>
   <h3>Corresponding Author</h3>
   <p>The corresponding author is responsible for responding to inquiries from users post publication.</p>
-  <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
+  <form action="{% url 'project_authors' project.slug %}" method="post" class="form-signin">
     {% csrf_token %}
     {% include "inline_form_snippet.html" with form=corresponding_author_form %}
     <button class="btn btn-primary btn-fixed" name="corresponding_author" type="submit">Set Corresponder</button>
@@ -90,7 +90,7 @@
   <br>
   <h3>Corresponding Email</h3>
   <p>You are the the selected corresponding author. Choose one of your emails to be listed for correspondence.</p>
-  <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin">
+  <form action="{% url 'project_authors' project.slug %}" method="post" class="form-signin">
     {% csrf_token %}
     {% include "inline_form_snippet.html" with form=corresponding_email_form %}
     <button class="btn btn-primary btn-fixed" name="corresponding_email" type="submit">Set Email</button>
@@ -157,7 +157,7 @@
 {% if not admin_inspect %}
   <h3>Your Author Affiliations</h3>
   <p>Set up to three affiliations for your author profile. Note: these fields are not tied to your user profile.</p>
-  <form action="{% url 'project_authors' project.id %}" method="post" class="form-signin" onsubmit="return validateItems('affiliation-list', 'name', 'Affiliations')">
+  <form action="{% url 'project_authors' project.slug %}" method="post" class="form-signin" onsubmit="return validateItems('affiliation-list', 'name', 'Affiliations')">
     {% csrf_token %}
     {% include 'project/item_list.html' with item="affiliation" item_label=affiliation_formset.item_label formset=affiliation_formset form_name=affiliation_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}
     <button class="btn btn-primary btn-fixed" name="edit_affiliations" type="submit">Set Affiliations</button>
