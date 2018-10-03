@@ -1,5 +1,6 @@
 import os
 import shutil
+import uuid
 import pdb
 
 from ckeditor.fields import RichTextField
@@ -516,11 +517,29 @@ def cleanup_project(sender, **kwargs):
         shutil.rmtree(project_root)
 
 
+# def make_id(class_num):
+#     classes = [Project, PublishedProject]
+#     item_class = classes[class_num]
+
+#     while item_class.objects.filter(id=new_id):
+#         new_id = uuid.uuid4().int & (1<<64)-1
+#     return new_id
+
+
 class PublishedProject(Metadata):
     """
     A published project. Immutable snapshot.
 
     """
+    def make_id():
+        # classes = [Project, PublishedProject]
+        # item_class = classes[class_num]
+
+        # while self.__class__.objects.filter(id=new_id):
+        new_id = uuid.uuid4().int & (1<<64)-1
+        return new_id
+
+    id = models.BigIntegerField(primary_key=True, default=make_id())
     # The Project this object was created from
     base_project = models.ForeignKey('project.Project',
         related_name='published_projects', blank=True, null=True)
@@ -542,13 +561,13 @@ class PublishedProject(Metadata):
     def __str__(self):
         return ('{0} v{1}'.format(self.title, self.version))
 
+
+
     def validate_doi(self, *args, **kwargs):
         """
         Validate uniqueness of doi, ignore empty ''
         """
         super().validate_unique(*args, **kwargs)
-        print('n\n\\n\nLAOEIFJAOEIFEAF\n\n\n\n')
-
         published_projects = __class__.objects.filter(doi_assigned=True)
         dois = [p.doi for p in published_projects]
 
