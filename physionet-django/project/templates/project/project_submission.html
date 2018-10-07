@@ -12,7 +12,7 @@
     $.ajax({url: "{% url 'check_submittable' project.id %}",
       success: function(result){
         if (result.is_submittable){
-          $("#submittable").html("<i class='fas fa-check' style='color:green'></i> The automatic checks have passed. You may submit the project for review. Note: The project will no longer be editable.");
+          $("#submittable").html("<i class='fas fa-check' style='color:green'></i> The automatic checks have passed. You may submit the project for review. Note: you will no longer be able to edit the project.");
           document.getElementById("request-review").disabled = false;
         }
         else{
@@ -29,24 +29,19 @@
 </script>
 
 
-<h2 class="form-signin-heading">6. Project Submission</h2>
+<h2 class="form-signin-heading">Project Submission</h2>
 <hr>
-
-<h3>Submission Checklist</h3>
-
-{% include "about/submission_checklist.html" %}
-
+<p>Use this page to keep track of project's past and current submissions.</p>
 <hr>
-
-<h3>Submission Status</h3>
+<h3>Current Submission</h3>
 {% if not project.under_submission %}
   <p>The project is not under submission. If the
     <a href="{% url 'project_preview' project.id %}" target="_blank">
-    preview</a> appears satisfactory, the submitting author may request a
-    review</p>
+    preview</a> appears satisfactory to all authors, the submitting author may
+    submit the project for review.</p>
   {% if user == project.submitting_author %}
-    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#submit-modal" onclick="checkSubmittable()">
-      Request Review
+    <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#submit-modal" onclick="checkSubmittable()">
+      Submit Project
     </button>
 
     <div class="modal fade" id="submit-modal" tabindex="-1" role="dialog" aria-labelledby="submit-modal" aria-hidden="true">
@@ -64,7 +59,7 @@
               <p id="submittable"><i class="fas fa-spinner"></i> Running checks on project...</p>
             </div>
             <div class="modal-footer">
-              <button id="request-review" class="btn btn-primary" type="submit" name="submit_project" disabled>Request Review</button>
+              <button id="request-review" class="btn btn-primary" type="submit" name="submit_project" disabled>Submit Project</button>
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
             </div>
           </form>
@@ -76,7 +71,7 @@
   <br>
   {# The active submission status timeline #}
   <div class="card">
-    <div class="card-header"><h4>Active Submission</h4></div>
+    <div class="card-header"><h4>Timeline and Status</h4></div>
     <ul class="list-group list-group-flush">
       <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The project was submitted for review on {{ submission.submission_datetime|date }}.</li>
       {% if submission.editor %}

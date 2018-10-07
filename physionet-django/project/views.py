@@ -586,7 +586,7 @@ def project_files(request, project_id):
     "View and manipulate files in a project"
     project = Project.objects.get(id=project_id)
     admin_inspect = request.user.is_admin and not is_author(request.user, project)
-    storage_info = utility.get_storage_info(project.storage_allowance*1024**3,
+    storage_info = utility.get_storage_info(project.storage_allowance*1024**2,
             project.storage_used())
 
     if request.method == 'POST':
@@ -622,7 +622,7 @@ def project_files(request, project_id):
             subdir = ''
 
         # Reload the storage info.
-        storage_info = utility.get_storage_info(project.storage_allowance*1024**3,
+        storage_info = utility.get_storage_info(project.storage_allowance*1024**2,
             project.storage_used())
     else:
         # The subdirectory is just the base. Ajax calls to the file
@@ -692,6 +692,18 @@ def preview_files_panel(request, project_id):
         {'project':project, 'subdir':subdir,
          'dir_breadcrumbs':dir_breadcrumbs, 'parent_dir':parent_dir,
          'display_files':display_files, 'display_dirs':display_dirs})
+
+
+@authorization_required(auth_functions=(is_author, is_admin))
+def project_proofread(request, project_id):
+    """
+    Proofreading page for project before submission
+    """
+    project = Project.objects.get(id=project_id)
+    admin_inspect = request.user.is_admin and not is_author(request.user, project)
+
+    return render(request, 'project/project_proofread.html', {'project':project,
+        'admin_inspect':admin_inspect})
 
 @authorization_required(auth_functions=(is_author, is_admin))
 def project_preview(request, project_id):

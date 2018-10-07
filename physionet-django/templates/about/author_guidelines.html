@@ -16,39 +16,36 @@ Author Guidelines
   <h1 class="text-center">Author Guidelines</h1>
   <hr>
 
-  <h2 id="overview">Publication Overview</h2>
+  <h2 id="overview">Publication Process</h2>
   <p>These are the steps for publishing a resource on PhysioNet:</p>
   <ul>
-    <li>Create a project with a specified resource type.</li>
-    <li>Invite co-authors to be credited on the publication.
-        Each co-authors must accept their invitation, and fill in
-        their name and affiliations.</li>
-    <li>Fill in project metadata, including license and access
-        policy.</li>
-    <li>Upload the files.</li>
-    <li>Check the project preview, and ensure that the automatic
-        checks pass.</li>
-    <li>Submit the project for review/publication. All co-authors
-        must approve the submission.</li>
-    <li>If the editor accepts the submission, a *version of the
-        project is published. If it is rejected, you may address
-        the issues and resubmit.</li>
-    <li>Optional: publish subsequent versions of the project.</li>
+    <li>Create a project.</li>
+    <li>Prepare the project for submission</li>
+    {# This should match preparation_checklist.html #}
+    <ol>
+      <li>Invite authors to be credited for creating the resource.</li>
+      <li>Fill in the descriptive metadata.</li>
+      <li>Set the access policy and license.</li>
+      <li>Add identifiers.</li>
+      <li>Upload the files.</li>
+      <li>Proofread your project and make sure it is ready for submission.</li>
+    </ol>
+    <li>Submit the project for review.</li>
+    <ol>
+      <li>An editor is assigned and makes a decision:</li>
+      <ol type="a">
+        <li>Reject - The content is not suitable for publication. Submission
+          ends.</li>
+        <li>Resubmit - The editor requests changes. The submitting author
+          makes these changes and resubmits.</li>
+        <li>Accept - The submission continues into the copyedit stage.</li>
+      </ol>
+      <li>The editor copyedits the metadata and files for any final changes.
+        When all authors approve, this editor can complete this step.</li>
+      <li>The editor publishes the project.</li>
+    </ol>
   </ul>
-
-  <p>See the following sections for details.</p>
-
-  <p>* It is important to separate the concepts of a project, and
-     published versions of a project. A user may create a project and
-     edit its fields. If it is submitted and accepted for publication,
-     a version of the project is published, which falls into the
-     public domain and cannot be edited. The original project remains,
-     and can be edited and resubmitted to publish subsequent versions
-     if desired.</p>
-  <br>
   <hr>
-
-
 
   <h2 id="project-creation">Project Creation</h2>
   <p>An account is required for creating projects. The
@@ -56,12 +53,9 @@ Author Guidelines
      creation page</a> can be found in the navbar under the
      <em>publish</em> panel, or your
      <a href="{% url 'project_home' %}" target="_blank">project
-     home</a> page, which lists all of your authoring projects.</p>
+     home</a> page, which lists all of your authoring projects.
+     Projects are not accessible by anyone except for their authors.
   </p>
-
-  <p>Projects are not accessible by, or even visible to anyone, except
-     initially for the submitting author, and subsequently also for
-     invited co-authors.</p>
 
   <p>When creating a project, choose the correct resource type, as
      this <strong>cannot be changed</strong> later. If you would like
@@ -70,71 +64,65 @@ Author Guidelines
   <br>
   <hr>
 
-  <h2 id="authors">Authors</h2>
-  <p>Each project can have one <strong>submitting author</strong>, and
-     many co-authors. The user who creates the project is the initial
-     submitting author, though they can assign this role to another
-     co-author if they want. Only the submitting author can invite,
-     remove, and *order co-authors, fill in the project metadata,
-     upload/edit files, and submit the project for review/publication.
-     * The author order is the order in which author names will be
-     displayed in the published project. The submitting author is
-     responsible for preparing the project for submission, but does
-     not need to be listed first.</p>
-
-  <p>The submitting author can invite a co-author to the project by
-     specifying an email address. An email will be sent to the target
-     email address. If a PhysioNet account is already associated with
-     the specified email, the invitation will appear in the user's
-     <a href="{% url 'project_home' %}" target="_blank">project
-     home</a> page. If not, once they associate the email to
-     their existing account, or create a new account with the email,
-     they will be able to view and accept the invitation in the
-     aforementioned location.</p>
-
-  <p>All authors must fill in their own affiliation information on a
-     project by project basis, which is not tied to the affiliations
-     listed in their PhysioNet profiles. Their names however, are
-     tied to the names specified in the profiles. Non-submitting
-     authors can view the project content as it is being prepared, but
-     are unable to make any edits to the files and descriptive
-     metadata. All non-submitting authors are required to approve
-     project submissions initiated by the submitting author.
-  </p>
+  <h2 id="preparing">Preparing the Project for Submission</h2>
   <br>
-  <hr>
 
-
-  <h2 id="access">Access Policies</h2>
-  {% include 'about/access_policies.html' %}
-  <hr>
-
-
-  <h2 id="files">Uploading Files</h2>
-  <p>PhysioNet resources should be reusable by the greater scientific
-      community. Data should be provided in an open format, such as
-      text, csv, or wfdb. Large time-series data, especially
-      physiological waveforms, should be provided in wfdb format. Code
-      should be submitted in source format.</p>
-
-  <p>Recall that only the submitting author can upload/edit files. All
-     projects start with a moderately low size quota. The submitting
-     author may request more storage if needed.</p>
+  <h3 id="authors">1. Authors</h3>
+  {% include "about/authors.html" %}
   <br>
-  <hr>
 
-  <h2 id="review">Review Process</h2>
+  <h3 id="metadata">2. Metadata</h3>
+  {% include "about/metadata.html" %}
+  <br>
+
+  <h3 id="access">3. Access</h3>
+  {% include "about/access_policies.html" %}
+  <br>
+
+  <h3 id="identifiers">4. Identifiers</h3>
+  {% include "about/identifiers.html" %}
+  <br>
+
+  <h3 id="files">5. Files</h3>
+  {% include "about/files.html" %}
+  <br>
+
+  <h3 id="preview">6. Proofread</h3>
+  {% include "about/proofread.html" %}
+  <br>
+
+  <hr>
+  <h2 id="submission">Submission</h2>
   <p>If the project passes all of its automatic checks, the submitting
-     author may submit the project for review/publication. Once all
-     the co-authors approve the review submission, a set of reviewers
-     is assigned to the project. While under review, the project
+     author may submit the project for review, where an editor will be
+     assigned. While under review, the project
      cannot be edited.</p>
-
-  <p>Once all the reviewers have completed their review, the editor
-     will make the decision to accept or reject the publication. If
-     the, submission is accepted, a version of the project is published.
-     If it is rejected, you may address the issues and resubmit.</li></p>
-
   <br>
+
+  <h3>Editor Decision</h3>
+  <p>The editor will decide whether the project is suitable for publication:</p>
+  <ol>
+    <li>Reject - The content is not suitable for publication. Submission ends.</li>
+    <li>Resubmit - The content is suitable for publication, but changes are
+        required from the submitting author to make it more clear or reusable.
+        Changes may include adding required information, restructuring the files,
+        and rewording content. Once the submitting author has made these changes,
+        they may resubmit the project for review.</li>
+    <li>Accept - The editor is mostly satisfied with the content. The submission
+        continues into the copyedit stage.</li>
+  </ol>
+
+  <h3>Copyedit</h3>
+  <p>The editor makes small changes to the files and metadata that they deem
+     suitable for facilitating reuse of the project. Such changes may include
+     slight rewording of descriptions, renaming of files, and generating a
+     compressed archive of the whole set of files for easy download. When they
+     have finished making changes, they will email the authors. When all authors
+     approve of the changes, the editor may complete this stage.</p>
+
+  <h3>Publish</h3>
+  <p>The editor publishes the project.</p>
+
+  <hr>
 </div>
 {% endblock %}

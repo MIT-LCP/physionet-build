@@ -39,6 +39,9 @@ urlpatterns = [
     url(r'^(?P<project_id>\d+)/project-files-panel/$', views.project_files_panel,
         name='project_files_panel'),
 
+     url(r'^(?P<project_id>\d+)/proofread/$', views.project_proofread,
+        name='project_proofread'),
+
     url(r'^(?P<project_id>\d+)/preview/$', views.project_preview,
         name='project_preview'),
     url(r'^(?P<project_id>\d+)/preview-files-panel/$', views.preview_files_panel,

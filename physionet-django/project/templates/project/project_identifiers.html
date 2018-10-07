@@ -21,7 +21,7 @@
 {% block main_content %}
 <h2 class="form-signin-heading">4. Project Identifiers</h2>
 <hr>
-
+{% include 'about/identifiers.html' %}
 <form action="{% url 'project_identifiers' project.id %}" method="post" onsubmit="return validateItems('topic-list', 'description', 'Topics')">
   {% if user != project.submitting_author %}
   <div class="alert alert-form alert-warning alert-dismissible">

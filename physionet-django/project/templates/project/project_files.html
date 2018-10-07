@@ -20,6 +20,9 @@
 {% block main_content %}
 <h2 class="form-signin-heading">5. Project Files</h2>
 <hr>
+{% include "about/files.html" %}
+<br>
+
 {% if user != project.submitting_author %}
 <div class="alert alert-form alert-warning alert-dismissible">
   <strong>Only the submitting author may edit files and request storage.</strong>

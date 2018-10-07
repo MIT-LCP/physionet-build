@@ -112,7 +112,7 @@
     "license": 1,
     "creation_datetime": "2017-10-30T14:30:30Z",
     "modified_datetime": "2018-09-13T17:26:24.820Z",
-    "storage_allowance": 1,
+    "storage_allowance": 100,
     "submitting_author": [
       "rgmark@mit.edu"
     ],
@@ -140,7 +140,7 @@
     "license": 1,
     "creation_datetime": "2017-10-30T14:30:30Z",
     "modified_datetime": "2018-09-13T17:23:44.820Z",
-    "storage_allowance": 1,
+    "storage_allowance": 100,
     "submitting_author": [
       "rgmark@mit.edu"
     ],
@@ -168,7 +168,7 @@
     "license": null,
     "creation_datetime": "2017-10-30T14:30:30Z",
     "modified_datetime": "2017-10-30T14:30:30Z",
-    "storage_allowance": 1,
+    "storage_allowance": 100,
     "submitting_author": [
       "george@mit.edu"
     ],
@@ -196,7 +196,7 @@
     "license": 1,
     "creation_datetime": "2018-07-23T21:48:39.068Z",
     "modified_datetime": "2018-07-23T22:03:10.736Z",
-    "storage_allowance": 1,
+    "storage_allowance": 100,
     "submitting_author": [
       "rgmark@mit.edu"
     ],
@@ -275,7 +275,7 @@
     "response_message": "",
     "is_active": true,
     "project": 3,
-    "request_allowance": 3,
+    "request_allowance": 1,
     "responder": null
   }
 },

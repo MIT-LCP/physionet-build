@@ -129,7 +129,8 @@ def copyedit_submission(request, submission_id):
             submission.copyedit_datetime = timezone.now()
             submission.save()
             notification.copyedit_complete_notify(request, submission)
-            return render(request, 'console/copyedit_complete.html')
+            return render(request, 'console/copyedit_complete.html',
+                {'submission':submission})
 
     author_emails = ';'.join(a.user.email for a in authors)
     authors_approved = submission.all_authors_approved()
@@ -182,7 +183,7 @@ def process_storage_response(request, storage_response_formset):
 
                 if storage_request.response:
                     project = storage_request.project
-                    project.storage_allowance = storage_request.request_allowance
+                    project.storage_allowance = storage_request.request_allowance * 1024
                     project.save()
 
                 notification.storage_response_notify(storage_request)

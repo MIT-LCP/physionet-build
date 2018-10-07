@@ -581,14 +581,15 @@ class InviteAuthorForm(forms.ModelForm):
 
 class StorageRequestForm(forms.ModelForm):
     """
-    Making a request for storage capacity for a project
+    Making a request for storage capacity for a project.
+    Request allowance is in GB
     """
     class Meta:
         model = StorageRequest
         # Storage request allowance in GB
         fields = ('request_allowance',)
         widgets = {'request_allowance':forms.NumberInput()}
-        labels = {'Request_allowance':'request allowance (GB)'}
+        labels = {'request_allowance':'Request allowance (GB)'}
 
     def __init__(self, project, *args, **kwargs):
         super(StorageRequestForm, self).__init__(*args, **kwargs)
@@ -599,8 +600,8 @@ class StorageRequestForm(forms.ModelForm):
         Storage size must be reasonable
         """
         data = self.cleaned_data['request_allowance']
-
-        if data <= self.project.storage_allowance:
+        # Comparing GB form field to MB model field
+        if data * 1024 <= self.project.storage_allowance:
             raise forms.ValidationError('Project already has the requested allowance.',
                 code='already_has_allowance')
 
