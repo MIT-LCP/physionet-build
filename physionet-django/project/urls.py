@@ -51,6 +51,6 @@ urlpatterns = [
         name='check_submittable'),
     url(r'^(?P<project_slug>\w+)/submission/$', views.project_submission,
         name='project_submission'),
-    url(r'^(?P<project_slug>\w+)/submission/history/$', views.project_submission_history,
-        name='project_submission_history'),
+    url(r'^(?P<project_slug>\w+)/submission/(?P<submission_number>\d+)/$',
+        views.project_submission_details, name='project_submission_details'),
 ]

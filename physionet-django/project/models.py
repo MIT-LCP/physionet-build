@@ -384,9 +384,11 @@ class Project(Metadata):
         if self.submissions.filter(is_active=True):
             raise Exception('Active submission exists')
 
+        n_past_submissions = self.submissions.all().count()
+
         self.under_submission = True
         self.save()
-        Submission.objects.create(project=self)
+        Submission.objects.create(project=self, number=n_past_submissions+1)
 
     def is_publishable(self):
         """
@@ -766,6 +768,7 @@ class Submission(BaseSubmission):
     # Editor is manually assigned
     editor = models.ForeignKey('user.User', related_name='editing_submissions',
         null=True)
+    number = models.PositiveSmallIntegerField()
     status = models.PositiveSmallIntegerField(default=0)
 
     # When copyedit was complete

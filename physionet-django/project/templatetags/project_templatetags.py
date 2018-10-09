@@ -51,3 +51,16 @@ def mb_to_gb(storage_allowance):
     Convert storage allowance mb to a readable gb value
     """
     return '{:.2f}'.format(storage_allowance / 1024)
+
+@register.filter(name='submission_result_label')
+def submission_result_label(submission):
+    """
+    Shows a word label for the result of a submission given its status
+    """
+    if submission.status == 5:
+        result = 'Accepted and published'
+    elif submission.status == 1:
+        result == 'Rejected'
+    else:
+        result = 'Ongoing'
+    return result

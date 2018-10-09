@@ -770,8 +770,10 @@ def project_submission(request, project_slug):
     user = request.user
     project = Project.objects.get(slug=project_slug)
     authors = project.authors.all().order_by('display_order')
+    all_submissions = project.submissions.all().order_by('submission_datetime')
     admin_inspect = user.is_admin and user not in [a.user for a in authors]
-    context = {'project':project, 'admin_inspect':admin_inspect}
+    context = {'project':project, 'admin_inspect':admin_inspect,
+               'all_submissions':all_submissions}
 
     if request.method == 'POST':
         if project.under_submission:
@@ -805,17 +807,17 @@ def project_submission(request, project_slug):
 
 
 @authorization_required(auth_functions=(is_author, is_admin))
-def project_submission_history(request, project_slug):
+def project_submission_details(request, project_slug, submission_number):
     """
-    Submission history for a project
+    Full details for a submission
     """
     user = request.user
     project = Project.objects.get(slug=project_slug)
     admin_inspect = user.is_admin and not is_author(user, project)
-    submissions = project.submissions.all()
-    return render(request, 'project/project_submission_history.html',
+    submission = project.submissions.get(number=submission_number)
+    return render(request, 'project/project_submission_details.html',
         {'project':project, 'admin_inspect':admin_inspect,
-         'submissions':submissions})
+         'submission':submission})
 
 
 def published_files_panel(request, published_project_slug):

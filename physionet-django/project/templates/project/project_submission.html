@@ -31,8 +31,23 @@
 
 <h2 class="form-signin-heading">Project Submission</h2>
 <hr>
-<p>Use this page to keep track of project's past and current submissions.</p>
+<p>Use this page to keep track of the project's past and current submissions.</p>
 <hr>
+
+<h3>Submission History</h3>
+{% if all_submissions %}
+<ul>
+  {% for submission in all_submissions %}
+  <li>
+    <a href="{% url 'project_submission_details' project.slug submission.number %}">Submission {{ forloop.counter }}</a> - Submitted: {{ submission.submission_datetime|date }}. Result: {{ submission|submission_result_label }}
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>This project has no submission history.</p>
+{% endif %}
+<hr>
+
 <h3>Current Submission</h3>
 {% if not project.under_submission %}
   <p>The project is not under submission. If the
