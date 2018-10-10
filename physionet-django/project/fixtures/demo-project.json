@@ -38,7 +38,7 @@
     "description": "Charles, D., King, J., Patel, V. & Furukawa, M. Adoption of Electronic Health record Systems among U.S. Non-federal Acute Care Hospitals. ONC Data Brief No. 9, 1\u20139 (2013).",
     "content_type": [
       "project",
-      "project"
+      "activeproject"
     ],
     "object_id": 2
   }
@@ -50,7 +50,7 @@
     "description": "Collins, F. S. & Tabak, L. A. NIH plans to enhance reproducibility. Nature 505, 612\u2013613 (2014).",
     "content_type": [
       "project",
-      "project"
+      "activeproject"
     ],
     "object_id": 2
   }
@@ -62,7 +62,7 @@
     "description": "Pollard, T. J., & Johnson, A. E. W. The MIMIC-III Clinical Database http://dx.doi.org/10.13026/C2XW26 (2016)",
     "content_type": [
       "project",
-      "project"
+      "activeproject"
     ],
     "object_id": 2
   }
@@ -75,7 +75,7 @@
     "url": "https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=932724",
     "content_type": [
       "project",
-      "project"
+      "activeproject"
     ],
     "object_id": 1
   }
@@ -88,13 +88,13 @@
     "url": "https://www.nature.com/articles/sdata201635",
     "content_type": [
       "project",
-      "project"
+      "activeproject"
     ],
     "object_id": 2
   }
 },
 {
-  "model": "project.project",
+  "model": "project.activeproject",
   "pk": 1,
   "fields": {
     "resource_type": 0,
@@ -121,7 +121,7 @@
   }
 },
 {
-  "model": "project.project",
+  "model": "project.activeproject",
   "pk": 2,
   "fields": {
     "resource_type": 0,
@@ -148,7 +148,7 @@
   }
 },
 {
-  "model": "project.project",
+  "model": "project.activeproject",
   "pk": 3,
   "fields": {
     "resource_type": 1,
@@ -175,7 +175,7 @@
   }
 },
 {
-  "model": "project.project",
+  "model": "project.activeproject",
   "pk": 4,
   "fields": {
     "resource_type": 0,

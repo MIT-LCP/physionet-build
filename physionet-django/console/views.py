@@ -11,7 +11,7 @@ from django.utils import timezone
 
 from . import forms
 import notification.utility as notification
-from project.models import Project, Resubmission, StorageRequest, Submission
+from project.models import ActiveProject, Resubmission, StorageRequest, Submission
 from user.models import User
 
 
@@ -220,7 +220,7 @@ def project_list(request):
     """
     View list of projects
     """
-    projects = Project.objects.all()
+    projects = ActiveProject.objects.all()
 
     # title, submitting author, creation date, published,
     return render(request, 'console/project_list.html', {'projects':projects})

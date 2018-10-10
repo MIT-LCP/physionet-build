@@ -14,7 +14,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from . import forms
-from .models import (Affiliation, Author, AuthorInvitation, Project,
+from .models import (Affiliation, Author, AuthorInvitation, ActiveProject,
     PublishedProject, StorageRequest, Reference,
     Topic, Contact, Publication)
 from . import utility
@@ -43,7 +43,7 @@ def authorization_required(auth_functions):
         @login_required
         def function_wrapper(request, *args, **kwargs):
             user = request.user
-            project = Project.objects.get(slug=kwargs['project_slug'])
+            project = ActiveProject.objects.get(slug=kwargs['project_slug'])
 
             for auth_func in auth_functions:
                 if auth_func(user, project):
@@ -93,11 +93,12 @@ def process_invitation_response(request, invitation_response_formset):
 def project_home(request):
     """
     Project home page, listing:
-    - authoring projects
+    - active projects
+    - published projects
     - project invitations and response form
     """
     user = request.user
-    projects = Project.objects.filter(authors__in=user.authorships.all())
+    projects = ActiveProject.objects.filter(authors__in=user.authorships.all())
 
     InvitationResponseFormSet = modelformset_factory(AuthorInvitation,
         form=forms.InvitationResponseForm, extra=0)
@@ -118,12 +119,12 @@ def create_project(request):
     user = request.user
 
     if request.method == 'POST':
-        form = forms.CreateProjectForm(user=user, data=request.POST)
+        form = forms.CreateActiveProjectForm(user=user, data=request.POST)
         if form.is_valid():
             project = form.save()
             return redirect('project_overview', project_slug=project.slug)
     else:
-        form = forms.CreateProjectForm(user=user)
+        form = forms.CreateActiveProjectForm(user=user)
 
     return render(request, 'project/create_project.html', {'form':form})
 
@@ -138,7 +139,7 @@ def project_overview(request, project_slug):
     Overview page of a project
     """
     user = request.user
-    project = Project.objects.get(slug=project_slug)
+    project = ActiveProject.objects.get(slug=project_slug)
     admin_inspect = user.is_admin and not is_author(user, project)
 
     published_projects = project.published_projects.all().order_by('publish_datetime') if project.published else None
@@ -217,7 +218,7 @@ def move_author(request, project_slug):
     if successful. Called via ajax.
     """
     if request.method == 'POST':
-        project = Project.objects.get(slug=project_slug)
+        project = ActiveProject.objects.get(slug=project_slug)
         author = Author.objects.get(id=int(request.POST['author_id']))
         direction = request.POST['direction']
         project_authors = project.authors.all()
@@ -248,7 +249,7 @@ def edit_affiliation(request, project_slug):
 
     """
     user = request.user
-    project = Project.objects.get(slug=project_slug)
+    project = ActiveProject.objects.get(slug=project_slug)
     author = project.authors.get(user=user)
 
     # Reload the formset with the first empty form
@@ -284,7 +285,7 @@ def project_authors(request, project_slug):
     Page displaying author information and actions.
     """
     user = request.user
-    project = Project.objects.get(slug=project_slug)
+    project = ActiveProject.objects.get(slug=project_slug)
     authors = project.authors.all().order_by('display_order')
     admin_inspect = user.is_admin and user not in [a.user for a in authors]
 
@@ -392,7 +393,7 @@ def edit_metadata_item(request, project_slug):
                             'publication': ('citation', 'url'),
                             'topic': ('description',)}
 
-    project = Project.objects.get(slug=project_slug)
+    project = ActiveProject.objects.get(slug=project_slug)
 
     # Reload the formset with the first empty form
     if request.method == 'GET' and 'add_first' in request.GET:
@@ -414,7 +415,7 @@ def edit_metadata_item(request, project_slug):
             max_num=custom_formsets[item].max_forms, can_delete=False,
             formset=custom_formsets[item], validate_max=True)
     else:
-        ItemFormSet = inlineformset_factory(parent_model=Project, model=model,
+        ItemFormSet = inlineformset_factory(parent_model=ActiveProject, model=model,
             fields=metadata_item_fields[item], extra=extra_forms,
             max_num=custom_formsets[item].max_forms, can_delete=False,
             formset=custom_formsets[item], validate_max=True)
@@ -433,7 +434,7 @@ def project_metadata(request, project_slug):
     For editing project metadata
     """
     user = request.user
-    project = Project.objects.get(slug=project_slug)
+    project = ActiveProject.objects.get(slug=project_slug)
     admin_inspect = user.is_admin and not is_author(user, project)
 
     # There are several forms for different types of metadata
@@ -472,7 +473,7 @@ def project_access(request, project_slug):
 
     """
     user = request.user
-    project = Project.objects.get(slug=project_slug)
+    project = ActiveProject.objects.get(slug=project_slug)
     admin_inspect = user.is_admin and not is_author(user, project)
 
     access_form = forms.AccessMetadataForm(instance=project)
@@ -497,10 +498,10 @@ def project_identifiers(request, project_slug):
 
     """
     user = request.user
-    project = Project.objects.get(slug=project_slug)
+    project = ActiveProject.objects.get(slug=project_slug)
     admin_inspect = user.is_admin and not is_author(user, project)
 
-    TopicFormSet = inlineformset_factory(Project, Topic,
+    TopicFormSet = inlineformset_factory(ActiveProject, Topic,
         fields=('description',), extra=0, max_num=forms.TopicFormSet.max_forms,
         can_delete=False, formset=forms.TopicFormSet, validate_max=True)
     PublicationFormSet = generic_inlineformset_factory(Publication,
@@ -538,7 +539,7 @@ def project_files_panel(request, project_slug):
     Return the file panel for the project, along with the forms used to
     manipulate them. Called via ajax to navigate directories.
     """
-    project = Project.objects.get(slug=project_slug)
+    project = ActiveProject.objects.get(slug=project_slug)
     subdir = request.GET['subdir']
 
     display_files, display_dirs = project.get_directory_content(
@@ -584,7 +585,7 @@ def process_items(request, form):
 @authorization_required(auth_functions=(is_author, is_admin))
 def project_files(request, project_slug):
     "View and manipulate files in a project"
-    project = Project.objects.get(slug=project_slug)
+    project = ActiveProject.objects.get(slug=project_slug)
     admin_inspect = request.user.is_admin and not is_author(request.user, project)
     storage_info = utility.get_storage_info(project.storage_allowance*1024**2,
             project.storage_used())
@@ -668,7 +669,7 @@ def serve_project_file(request, project_slug, file_name):
     Serve a file in a project. file_name is file path relative to
     project file root.
     """
-    project = Project.objects.get(slug=project_slug)
+    project = ActiveProject.objects.get(slug=project_slug)
     file_path = os.path.join(project.file_root(), file_name)
     return utility.serve_file(request, file_path)
 
@@ -678,7 +679,7 @@ def preview_files_panel(request, project_slug):
     Return the file panel for the project, along with the forms used to
     manipulate them. Called via ajax to navigate directories.
     """
-    project = Project.objects.get(slug=project_slug)
+    project = ActiveProject.objects.get(slug=project_slug)
     subdir = request.GET['subdir']
 
     display_files, display_dirs = project.get_directory_content(
@@ -699,7 +700,7 @@ def project_proofread(request, project_slug):
     """
     Proofreading page for project before submission
     """
-    project = Project.objects.get(slug=project_slug)
+    project = ActiveProject.objects.get(slug=project_slug)
     admin_inspect = request.user.is_admin and not is_author(request.user, project)
 
     return render(request, 'project/project_proofread.html', {'project':project,
@@ -712,7 +713,7 @@ def project_preview(request, project_slug):
     serving files.
 
     """
-    project = Project.objects.get(slug=project_slug)
+    project = ActiveProject.objects.get(slug=project_slug)
     admin_inspect = request.user.is_admin and not is_author(request.user, project)
 
     authors = project.authors.all().order_by('display_order')
@@ -752,7 +753,7 @@ def check_submittable(request, project_slug):
     """
     Check whether a project is submittable
     """
-    project = Project.objects.get(slug=project_slug)
+    project = ActiveProject.objects.get(slug=project_slug)
 
     result = project.is_submittable()
 
@@ -768,7 +769,7 @@ def project_submission(request, project_slug):
     approval.
     """
     user = request.user
-    project = Project.objects.get(slug=project_slug)
+    project = ActiveProject.objects.get(slug=project_slug)
     authors = project.authors.all().order_by('display_order')
     all_submissions = project.submissions.all().order_by('submission_datetime')
     admin_inspect = user.is_admin and user not in [a.user for a in authors]
@@ -778,7 +779,7 @@ def project_submission(request, project_slug):
     if request.method == 'POST':
         if project.under_submission:
             submission = project.submissions.get(is_active=True)
-        # Project is submitted for review
+        # ActiveProject is submitted for review
         if 'submit_project' in request.POST and not project.under_submission and user == project.submitting_author:
             if project.is_submittable():
                 project.submit()
@@ -812,7 +813,7 @@ def project_submission_details(request, project_slug, submission_number):
     Full details for a submission
     """
     user = request.user
-    project = Project.objects.get(slug=project_slug)
+    project = ActiveProject.objects.get(slug=project_slug)
     admin_inspect = user.is_admin and not is_author(user, project)
     submission = project.submissions.get(number=submission_number)
     return render(request, 'project/project_submission_details.html',

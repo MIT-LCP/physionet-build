@@ -51,18 +51,20 @@ class Author(models.Model):
     Datacite definition: "The main researchers involved in producing the
     data, or the authors of the publication, in priority order."
 
-    This model is used for both Project and PublishedProject
+    This model is used for both ActiveProject and PublishedProject
     """
-    project = models.ForeignKey('project.Project', related_name='%(class)ss',
-        null=True, blank=True)
-    published_project =models.ForeignKey('project.PublishedProject',
-        related_name='%(class)ss', null=True, blank=True)
+    project = models.ForeignKey('project.ActiveProject', related_name='authors',
+        null=True)
+    published_project = models.ForeignKey('project.PublishedProject',
+        related_name='authors', null=True)
+
     approved_publish = models.BooleanField(default=False)
     user = models.ForeignKey('user.User', related_name='authorships')
     first_name = models.CharField(max_length=100, default='')
     middle_names = models.CharField(max_length=200, default='')
     last_name = models.CharField(max_length=100, default='')
     display_order = models.PositiveSmallIntegerField()
+    is_submitting = models.BooleanField(default=False)
     is_corresponding = models.BooleanField(default=False)
     corresponding_email = models.ForeignKey('user.AssociatedEmail', null=True)
 
@@ -107,7 +109,7 @@ class Topic(models.Model):
     Topic information to tag projects
     """
     description = models.CharField(max_length=50)
-    project = models.ForeignKey('project.Project', related_name='topics')
+    project = models.ForeignKey('project.ActiveProject', related_name='topics')
 
     class Meta:
         unique_together = (('description', 'project'),)
@@ -128,10 +130,10 @@ class PublishedTopic(models.Model):
 
 class Reference(models.Model):
     """
-    Reference field for Project/PublishedProject
+    Reference field for ActiveProject/PublishedProject
     """
     description = models.CharField(max_length=250)
-    # Project or PublishedProject
+    # ActiveProject or PublishedProject
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     project_object = GenericForeignKey('content_type', 'object_id')
@@ -161,15 +163,28 @@ class Publication(models.Model):
     citation = models.CharField(max_length=250)
     url = models.URLField(blank=True, default='')
 
-    # Project or PublishedProject
+    # ActiveProject or PublishedProject
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     project_object = GenericForeignKey('content_type', 'object_id')
 
 
+class CoreProject(models.Model):
+    """
+    The core underlying object that links all versions of the project in
+    its various states
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    creation_datetime = models.DateTimeField(auto_now_add=True)
+    # doi pointing to the latest version of the published project
+    doi = models.CharField(max_length=50, default='')
+    # Maximum allowed storage capacity in MB
+    storage_allowance = models.PositiveIntegerField(default=100)
+
+
 class Metadata(models.Model):
     """
-    Metadata for Projects and PublishedProjects.
+    Metadata for ArchivedProjects, ActiveProjects, and PublishedProjects.
 
     https://schema.datacite.org/
     https://schema.datacite.org/meta/kernel-4.0/doc/DataCite-MetadataKernel_v4.1.pdf
@@ -215,36 +230,36 @@ class Metadata(models.Model):
     access_policy = models.SmallIntegerField(choices=ACCESS_POLICIES,
                                              default=0)
     license = models.ForeignKey('project.License', null=True)
+    data_use_agreement = models.ForeignKey('project.DataUseAgreement',
+                                           null=True, blank=True)
 
     # Identifiers
     publications = GenericRelation(Publication, blank=True)
     topics = GenericRelation(Topic, blank=True)
 
-    # Public url slug
+    # Public url slug, also used as a submitting project id.
     slug = models.SlugField(max_length=20, unique=True, db_index=True)
+    core_project = models.ForeignKey('project.CoreProject',
+                                     related_name='%(class)ss')
 
 
-class Project(Metadata):
+class ArchivedProject(Metadata):
     """
-    The model for user-owned projects.
+    An archived project. Created when (maps to archive_reason):
+    1. A user chooses to 'delete' their ActiveProject.
+    2. An ActiveProject is not submitted for too long.
+    3. An ActiveProject is submitted and rejected.
+    4. An ActiveProject is submitted and times out.
+    """
+    archive_datetime = models.DateTimeField(auto_now_add=True)
+    archive_reason = models.PositiveSmallIntegerField()
+
+class ActiveProject(Metadata):
+    """
+    The project used for submitting
     """
     creation_datetime = models.DateTimeField(auto_now_add=True)
     modified_datetime = models.DateTimeField(auto_now=True)
-
-    # Maximum allowed storage capacity in MB
-    storage_allowance = models.PositiveIntegerField(default=100)
-    # Misnomer - actually a User object, not an Author object.
-    submitting_author = models.ForeignKey('user.User',
-        related_name='submitting_projects')
-    # If it has any published versions
-    published = models.BooleanField(default=False)
-    # Under any stage of the submission process, from presubmission.
-    # 1 <= Submission.status <= 4. The project is not
-    # editable when this is True.
-    under_submission = models.BooleanField(default=False)
-    # Access fields
-    data_use_agreement = models.ForeignKey('project.DataUseAgreement',
-                                           null=True, blank=True)
 
     INDIVIDUAL_FILE_SIZE_LIMIT = 10 * 1024**3
 
@@ -255,14 +270,14 @@ class Project(Metadata):
                           'content_description', 'conflicts_of_interest',
                           'version', 'license',]}
 
-    class Meta:
-        unique_together = (('title', 'submitting_author', 'resource_type'),)
-
     def __str__(self):
         return self.title
 
     def corresponding_author(self):
         return self.authors.get(is_corresponding=True)
+
+    def submitting_author(self):
+        return self.authors.get(is_submitting=True)
 
     def file_root(self):
         "Root directory containing the project's files"
@@ -306,7 +321,7 @@ class Project(Metadata):
 
     def is_frozen(self):
         """
-        Project is not editable when frozen
+        ActiveProject is not editable when frozen
         """
         if self.status() in [0, 4]:
             return False
@@ -337,6 +352,14 @@ class Project(Metadata):
         """
         return ((a.user.email, a.user.get_full_name()) for a in self.authors.all())
 
+    def archive(self, reason):
+        """
+        Archive the project. Create an ArchivedProject object, copy over
+        the fields, and delete this object
+        """
+        ArchivedProject.objects.create(archive_reason=reason)
+        self.delete()
+
     def is_submittable(self):
         """
         Run integrity tests on metadata fields and return whether the
@@ -357,7 +380,7 @@ class Project(Metadata):
                 self.submit_errors.append('Author {0} has not filled in affiliations'.format(author.user.username))
 
         # Metadata
-        for attr in Project.REQUIRED_FIELDS[self.resource_type]:
+        for attr in ActiveProject.REQUIRED_FIELDS[self.resource_type]:
             if not getattr(self, attr):
                 self.submit_errors.append('Missing required field: {0}'.format(attr.replace('_', ' ')))
 
@@ -379,7 +402,7 @@ class Project(Metadata):
         Submit the project for review.
         """
         if not self.is_submittable():
-            raise Exception('Project is not submittable')
+            raise Exception('ActiveProject is not submittable')
 
         if self.submissions.filter(is_active=True):
             raise Exception('Active submission exists')
@@ -497,11 +520,11 @@ class Project(Metadata):
 
         return published_project
 
-@receiver(post_save, sender=Project)
+@receiver(post_save, sender=ActiveProject)
 @new_creation
 def setup_project(sender, **kwargs):
     """
-    When a Project is created:
+    When a ActiveProject is created:
     - create an Author object from the submitting_author field
     - create the project file directory
     """
@@ -513,10 +536,10 @@ def setup_project(sender, **kwargs):
     # Create file directory
     os.mkdir(project.file_root())
 
-@receiver(pre_delete, sender=Project)
+@receiver(pre_delete, sender=ActiveProject)
 def cleanup_project(sender, **kwargs):
     """
-    Before a Project is deleted:
+    Before a ActiveProject is deleted:
     - delete the project file directory
     """
     project = kwargs['instance']
@@ -534,20 +557,17 @@ class PublishedProject(Metadata):
     A published project. Immutable snapshot.
 
     """
-    # The Project this object was created from
-    base_project = models.ForeignKey('project.Project',
-        related_name='published_projects', blank=True, null=True)
+    core_project = models.ForeignKey('project.CoreProject',
+        related_name='published_projects')
     topics = models.ManyToManyField('project.PublishedTopic',
                                     related_name='tagged_projects')
     # Total file storage size in bytes
-    storage_size = models.IntegerField()
+    storage_size = models.PositiveIntegerField()
     publish_datetime = models.DateTimeField(auto_now_add=True)
     is_newest_version = models.BooleanField(default=True)
+    newest_version = models.ForeignKey('project.PublishedProject', null=True,
+                                       related_name='older_versions')
     doi = models.CharField(max_length=50, default='')
-    doi_assigned = models.BooleanField(default=False)
-
-    access_system = models.ForeignKey('project.AccessSystem', null=True,
-                                       related_name='projects')
 
     class Meta:
         unique_together = (('base_project', 'version'),)
@@ -562,8 +582,8 @@ class PublishedProject(Metadata):
         Validate uniqueness of doi, ignore empty ''
         """
         super().validate_unique(*args, **kwargs)
-        published_projects = __class__.objects.filter(doi_assigned=True)
-        dois = [p.doi for p in published_projects]
+        published_projects = __class__.objects.all()
+        dois = [p.doi for p in published_projects if doi]
 
         if len(dois) != len(set(dois)):
             raise ValidationError('Duplicate DOI')
@@ -664,7 +684,7 @@ class BaseInvitation(models.Model):
     """
     Base class for authorship invitations and storage requests
     """
-    project = models.ForeignKey('project.Project', related_name='%(class)ss')
+    project = models.ForeignKey('project.ActiveProject', related_name='%(class)ss')
     request_datetime = models.DateTimeField(auto_now_add=True)
     response_datetime = models.DateTimeField(null=True)
     response = models.NullBooleanField(null=True)
@@ -685,7 +705,7 @@ class AuthorInvitation(BaseInvitation):
     inviter = models.ForeignKey('user.User')
 
     def __str__(self):
-        return 'Project: {0} To: {1} By: {2}'.format(self.project, self.email,
+        return 'ActiveProject: {0} To: {1} By: {2}'.format(self.project, self.email,
                                                      self.inviter)
 
     def get_user_invitations(user, exclude_duplicates=True):
@@ -753,7 +773,7 @@ class BaseSubmission(models.Model):
 
 class Submission(BaseSubmission):
     """
-    Project submission. Object is created when submitting author submits.
+    ActiveProject submission. Object is created when submitting author submits.
 
     The status field:
     - 0 : Submitting author submits. Awaiting editor assignment or decision.
@@ -764,7 +784,7 @@ class Submission(BaseSubmission):
     - 5 : Published
 
     """
-    project = models.ForeignKey('project.Project', related_name='submissions')
+    project = models.ForeignKey('project.ActiveProject', related_name='submissions')
     # Editor is manually assigned
     editor = models.ForeignKey('user.User', related_name='editing_submissions',
         null=True)
