@@ -43,23 +43,15 @@ class Affiliation(models.Model):
         unique_together = (('name', 'author'),)
 
 
-class Author(models.Model):
+class BaseAuthor(models.Model):
     """
-    A project's author/creator (datacite). Credited for creating the
+    Base model for a project's author/creator. Credited for creating the
     resource.
 
     Datacite definition: "The main researchers involved in producing the
     data, or the authors of the publication, in priority order."
-
-    This model is used for both ActiveProject and PublishedProject
     """
-    project = models.ForeignKey('project.ActiveProject', related_name='authors',
-        null=True)
-    published_project = models.ForeignKey('project.PublishedProject',
-        related_name='authors', null=True)
-
-    approved_publish = models.BooleanField(default=False)
-    user = models.ForeignKey('user.User', related_name='authorships')
+    user = models.ForeignKey('user.User', related_name='%(class)ss')
     first_name = models.CharField(max_length=100, default='')
     middle_names = models.CharField(max_length=200, default='')
     last_name = models.CharField(max_length=100, default='')
@@ -69,7 +61,7 @@ class Author(models.Model):
     corresponding_email = models.ForeignKey('user.AssociatedEmail', null=True)
 
     class Meta:
-        unique_together = (('user', 'project'), ('user', 'published_project'),)
+        abstract = True
 
     def __str__(self):
         return '{} --- {}'.format(self.user.username, self.corresponding_email)
@@ -86,6 +78,18 @@ class Author(models.Model):
 
     def disp_name_email(self):
         return '{} -- {}'.format(self.get_full_name(), self.user.email)
+
+
+class Author(BaseAuthor):
+    """
+    The author model for BaseProject/ActiveProject
+    """
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    project = GenericForeignKey('content_type', 'object_id')
+
+    class Meta:
+        unique_together = (('user', 'content_type', 'object_id',),)
 
     def import_profile_info(self):
         """
@@ -104,15 +108,30 @@ class Author(models.Model):
                 author=self)
 
 
-class Topic(models.Model):
+class PublishedAuthor(BaseAuthor):
     """
-    Topic information to tag projects
+    The author model for PublishedProject
     """
-    description = models.CharField(max_length=50)
-    project = models.ForeignKey('project.ActiveProject', related_name='topics')
+    published_project = models.ForeignKey('project.PublishedProject',
+        related_name='authors', db_index=True)
 
     class Meta:
-        unique_together = (('description', 'project'),)
+        unique_together = (('user', 'published_project'),)
+
+
+class Topic(models.Model):
+    """
+    Topic information to tag ActiveProject/ArchivedProject
+    """
+
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    project = GenericForeignKey('content_type', 'object_id')
+
+    description = models.CharField(max_length=50)
+
+    class Meta:
+        unique_together = (('description', 'content_type', 'object_id'),)
 
     def __str__(self):
         return self.description
@@ -120,7 +139,7 @@ class Topic(models.Model):
 
 class PublishedTopic(models.Model):
     """
-    Topic information to tag published projects
+    Topic information to tag PublishedProject
     """
     description = models.CharField(max_length=50)
 
@@ -130,10 +149,10 @@ class PublishedTopic(models.Model):
 
 class Reference(models.Model):
     """
-    Reference field for ActiveProject/PublishedProject
+    Reference field for ActiveProject/ArchivedProject
     """
     description = models.CharField(max_length=250)
-    # ActiveProject or PublishedProject
+
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     project_object = GenericForeignKey('content_type', 'object_id')
@@ -156,17 +175,31 @@ class Contact(models.Model):
         related_name='contacts')
 
 
-class Publication(models.Model):
+class BasePublication(models.Model):
     """
-    The publication to cite when referencing the software/dataset.
+    Base model for the publication to cite when referencing the
+    resource
     """
     citation = models.CharField(max_length=250)
     url = models.URLField(blank=True, default='')
 
-    # ActiveProject or PublishedProject
+    class Meta:
+        abstract = True
+
+class Publication(BasePublication):
+    """
+    Publication for ArchivedProject/ActiveProject
+    """
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
-    project_object = GenericForeignKey('content_type', 'object_id')
+    project = GenericForeignKey('content_type', 'object_id')
+
+
+class PublishedPublication(BasePublication):
+    """
+    """
+    published_project = models.ForeignKey('project.PublishedProject',
+        db_index=True)
 
 
 class CoreProject(models.Model):
@@ -184,7 +217,7 @@ class CoreProject(models.Model):
 
 class Metadata(models.Model):
     """
-    Metadata for ArchivedProjects, ActiveProjects, and PublishedProjects.
+    Metadata for projects
 
     https://schema.datacite.org/
     https://schema.datacite.org/meta/kernel-4.0/doc/DataCite-MetadataKernel_v4.1.pdf
@@ -443,7 +476,7 @@ class ActiveProject(Metadata):
             setattr(published_project, attr, getattr(self, attr))
 
         # New content
-        published_project.base_project = self
+        published_project.core_project = self.core_project
         published_project.storage_size = self.storage_used()
         # Generate a new slug
         slug = get_random_string(20)
@@ -557,8 +590,6 @@ class PublishedProject(Metadata):
     A published project. Immutable snapshot.
 
     """
-    core_project = models.ForeignKey('project.CoreProject',
-        related_name='published_projects')
     topics = models.ManyToManyField('project.PublishedTopic',
                                     related_name='tagged_projects')
     # Total file storage size in bytes
@@ -570,12 +601,10 @@ class PublishedProject(Metadata):
     doi = models.CharField(max_length=50, default='')
 
     class Meta:
-        unique_together = (('base_project', 'version'),)
+        unique_together = (('core_project', 'version'),)
 
     def __str__(self):
         return ('{0} v{1}'.format(self.title, self.version))
-
-
 
     def validate_doi(self, *args, **kwargs):
         """

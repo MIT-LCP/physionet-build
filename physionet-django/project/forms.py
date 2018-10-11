@@ -4,12 +4,11 @@ import re
 
 from django import forms
 from django.contrib.contenttypes.forms import BaseGenericInlineFormSet
-# from django.forms import , Select, Textarea
 from django.template.defaultfilters import slugify
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 
-from .models import Affiliation, Author, AuthorInvitation, ActiveProject, StorageRequest
+from .models import (Affiliation, Author, AuthorInvitation, ActiveProject, CoreProject, StorageRequest)
 from . import utility
 
 
@@ -326,7 +325,10 @@ class CreateActiveProjectForm(forms.ModelForm):
         fields = ('resource_type', 'title', 'abstract',)
 
     def save(self):
-        project = super(CreateActiveProjectForm, self).save(commit=False)
+        core_project = CoreProject.objects.create()
+        # project = super(CreateActiveProjectForm, self).save(commit=False)
+        project = super().save(commit=False)
+        project.core_project = core_project
         project.submitting_author = self.user
         project.corresponding_author = self.user
         slug = get_random_string(20)

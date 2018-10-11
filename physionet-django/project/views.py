@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
+from django.contrib.contenttypes.models import ContentType
 from django.forms import formset_factory, inlineformset_factory, modelformset_factory
 from django.http import HttpResponse, Http404, JsonResponse
 from django.shortcuts import render, redirect
@@ -16,7 +17,7 @@ from django.utils import timezone
 from . import forms
 from .models import (Affiliation, Author, AuthorInvitation, ActiveProject,
     PublishedProject, StorageRequest, Reference,
-    Topic, Contact, Publication)
+    Topic, Contact, Publication, PublishedAuthor)
 from . import utility
 import notification.utility as notification
 from user.forms import ProfileForm, AssociatedEmailChoiceForm
@@ -98,7 +99,14 @@ def project_home(request):
     - project invitations and response form
     """
     user = request.user
-    projects = ActiveProject.objects.filter(authors__in=user.authorships.all())
+
+    active_authors = Author.objects.filter(user=user,
+        content_type=ContentType.objects.get_for_model(ActiveProject))
+    published_authors = PublishedAuthor.objects.filter(user=user)
+
+    # Get the projects and published projects
+    projects = [a.project for a in active_authors]
+    published_projects = [a.project for a in published_authors]
 
     InvitationResponseFormSet = modelformset_factory(AuthorInvitation,
         form=forms.InvitationResponseForm, extra=0)
@@ -160,14 +168,6 @@ def edit_affiliations(request, affiliation_formset):
         return True
     else:
         messages.error(request, 'Submission unsuccessful. See form for errors.')
-
-
-def invite_author(request, invite_author_form):
-    """
-    Invite a user to be a collaborator.
-    Helper function for `project_authors`.
-    """
-
 
 
 def remove_author(request, author_id):
