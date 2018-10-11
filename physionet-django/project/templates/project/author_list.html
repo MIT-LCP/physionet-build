@@ -9,7 +9,7 @@
     {% for author in authors %}
       <li class="list-group-item">
         <strong>User</strong>: {{ author.user }}
-        {% if author.user == project.submitting_author %}
+        {% if author.is_submitting %}
           <span class="badge badge-success">Submitting Author</span>
         {% endif %}
         {% if author == project.corresponding_author %}

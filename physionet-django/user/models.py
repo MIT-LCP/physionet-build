@@ -139,7 +139,7 @@ class User(AbstractBaseUser):
         return self.profile.get_names()
 
     def disp_name_email(self):
-        return '{} -- {}'.format(self.get_full_name(), self.email)
+        return '{} --- {}'.format(self.get_full_name(), self.email)
 
 
 class AssociatedEmail(models.Model):

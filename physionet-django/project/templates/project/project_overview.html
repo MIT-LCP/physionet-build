@@ -18,7 +18,7 @@
   Created {{ project.creation_datetime|date }} Modified {{ project.modified_datetime|date }}
 </p>
 <p>
-  Submitting Author: <a href="{% url 'public_profile' project.submitting_author.username %}">{{ project.submitting_author.profile }}</a>
+  Submitting Author: {{ project.submitting_author.disp_name_email }}</a>
 </p>
 <hr>
 
@@ -29,14 +29,5 @@
 {% include "about/preparation_checklist.html" %}
 <hr>
 
-<h3>Published Versions</h3>
-
-{% for published_project in published_projects %}
-    <a href="{% url 'published_project' published_project.slug %}">Version {{ published_project.version }}. Published {{ published_project.publish_datetime|date }}</a>
-{% empty %}
-  <p>This project has not been published.</p>
-{% endfor %}
-
-<hr>
 
 {% endblock %}

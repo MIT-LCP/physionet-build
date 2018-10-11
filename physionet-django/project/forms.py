@@ -325,17 +325,22 @@ class CreateActiveProjectForm(forms.ModelForm):
         fields = ('resource_type', 'title', 'abstract',)
 
     def save(self):
-        core_project = CoreProject.objects.create()
-        # project = super(CreateActiveProjectForm, self).save(commit=False)
         project = super().save(commit=False)
+        # Set the core project and slug
+        core_project = CoreProject.objects.create()
         project.core_project = core_project
-        project.submitting_author = self.user
-        project.corresponding_author = self.user
         slug = get_random_string(20)
         while ActiveProject.objects.filter(slug=slug):
             slug = get_random_string(20)
         project.slug = slug
         project.save()
+        # Create the author object for the user
+        author = Author.objects.create(project=project, user=self.user,
+            display_order=1, corresponding_email=self.user.get_primary_email(),
+            is_submitting=True, is_corresponding=True)
+        author.import_profile_info()
+        # Create file directory
+        os.mkdir(project.file_root())
         return project
 
 

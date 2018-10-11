@@ -19,18 +19,6 @@ from user.models import User
 from .utility import get_tree_size, get_file_info, get_directory_info, list_items
 
 
-def new_creation(receiver_function):
-    """
-    Decorator for a receiver function to only trigger upon model
-    creation from non-fixtures.
-    """
-    def func_wrapper(*args, **kwargs):
-        if kwargs.get('created') and not kwargs.get('raw'):
-            return receiver_function(*args, **kwargs)
-
-    return func_wrapper
-
-
 class Affiliation(models.Model):
     """
     Affiliations belonging to an author
@@ -52,9 +40,6 @@ class BaseAuthor(models.Model):
     data, or the authors of the publication, in priority order."
     """
     user = models.ForeignKey('user.User', related_name='%(class)ss')
-    first_name = models.CharField(max_length=100, default='')
-    middle_names = models.CharField(max_length=200, default='')
-    last_name = models.CharField(max_length=100, default='')
     display_order = models.PositiveSmallIntegerField()
     is_submitting = models.BooleanField(default=False)
     is_corresponding = models.BooleanField(default=False)
@@ -63,21 +48,10 @@ class BaseAuthor(models.Model):
     class Meta:
         abstract = True
 
-    def __str__(self):
-        return '{} --- {}'.format(self.user.username, self.corresponding_email)
-
     def display_affiliation(self):
         return ', '.join([a.name for a in self.affiliations.all()])
 
-    def get_full_name(self):
-        if self.middle_names:
-            return ' '.join([self.first_name, self.middle_names,
-                           self.last_name])
-        else:
-            return ' '.join([self.first_name, self.last_name])
 
-    def disp_name_email(self):
-        return '{} -- {}'.format(self.get_full_name(), self.user.email)
 
 
 class Author(BaseAuthor):
@@ -91,12 +65,31 @@ class Author(BaseAuthor):
     class Meta:
         unique_together = (('user', 'content_type', 'object_id',),)
 
+    def __str__(self):
+        # Best representation for form display
+        return '{} --- {}'.format(self.user.username, self.corresponding_email)
+
+    def get_full_name(self):
+        """
+        The name is tied to the profile. There is no form for authors
+        to change their names
+        """
+        profile = self.user.profile
+
+        if profile.middle_names:
+            return ' '.join([profile.first_name, profile.middle_names,
+                           profile.last_name])
+        else:
+            return ' '.join([profile.first_name, profile.last_name])
+
+    def disp_name_email(self):
+        return '{} ({})'.format(self.get_full_name(), self.user.email)
+
     def import_profile_info(self):
         """
         Import profile information (names) into the Author object.
         Also create affiliation object if present in profile.
 
-        To be called when an author object is created
         """
         profile = self.user.profile
         for field in ['first_name', 'middle_names', 'last_name']:
@@ -112,6 +105,10 @@ class PublishedAuthor(BaseAuthor):
     """
     The author model for PublishedProject
     """
+    first_name = models.CharField(max_length=100, default='')
+    middle_names = models.CharField(max_length=200, default='')
+    last_name = models.CharField(max_length=100, default='')
+
     published_project = models.ForeignKey('project.PublishedProject',
         related_name='authors', db_index=True)
 
@@ -291,6 +288,7 @@ class ActiveProject(Metadata):
     """
     The project used for submitting
     """
+    authors = GenericRelation('project.Author')
     creation_datetime = models.DateTimeField(auto_now_add=True)
     modified_datetime = models.DateTimeField(auto_now=True)
 
@@ -511,7 +509,7 @@ class ActiveProject(Metadata):
         for author in self.authors.all():
             author_copy = Author.objects.create(
                 published_project=published_project,
-                first_name=author.first_name, middle_names=author.middle_names,
+                first_name=author.user.first_name, middle_names=author.user.middle_names,
                 last_name=author.last_name, display_order=author.display_order,
                 user=author.user
                 )
@@ -553,21 +551,6 @@ class ActiveProject(Metadata):
 
         return published_project
 
-@receiver(post_save, sender=ActiveProject)
-@new_creation
-def setup_project(sender, **kwargs):
-    """
-    When a ActiveProject is created:
-    - create an Author object from the submitting_author field
-    - create the project file directory
-    """
-    project = kwargs['instance']
-    user = project.submitting_author
-    author = Author.objects.create(project=project, user=user, display_order=1,
-        corresponding_email=user.get_primary_email(), is_corresponding=True)
-    author.import_profile_info()
-    # Create file directory
-    os.mkdir(project.file_root())
 
 @receiver(pre_delete, sender=ActiveProject)
 def cleanup_project(sender, **kwargs):
