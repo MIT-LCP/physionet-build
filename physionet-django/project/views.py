@@ -77,7 +77,6 @@ def project_auth(auth_mode=0):
     return real_decorator
 
 
-
 def authorization_required(auth_functions):
     """
     A generic authorization requirement decorator for projects.
@@ -403,8 +402,8 @@ def project_authors(request, project_slug, **kwargs):
         'add_item_url':edit_affiliations_url, 'remove_item_url':edit_affiliations_url})
 
 
-@authorization_required(auth_functions=(is_author,))
-def edit_metadata_item(request, project_slug):
+@project_auth(auth_mode=1)
+def edit_metadata_item(request, project_slug, **kwargs):
     """
     Function accessed via ajax for editing a project's related item
     in a formset.
@@ -413,6 +412,8 @@ def edit_metadata_item(request, project_slug):
     template of the formset.
 
     """
+    project = kwargs['project']
+
     model_dict = {'reference': Reference, 'publication': Publication,
                   'topic': Topic}
     # Whether the item relation is generic
@@ -427,8 +428,6 @@ def edit_metadata_item(request, project_slug):
     metadata_item_fields = {'reference': ('description',),
                             'publication': ('citation', 'url'),
                             'topic': ('description',)}
-
-    project = ActiveProject.objects.get(slug=project_slug)
 
     # Reload the formset with the first empty form
     if request.method == 'GET' and 'add_first' in request.GET:
@@ -463,14 +462,13 @@ def edit_metadata_item(request, project_slug):
              'form_name':formset.form_name, 'add_item_url':edit_url,
              'remove_item_url':edit_url})
 
-@authorization_required(auth_functions=(is_author, is_admin))
-def project_metadata(request, project_slug):
+@project_auth(auth_mode=0)
+def project_metadata(request, project_slug, **kwargs):
     """
     For editing project metadata
     """
-    user = request.user
-    project = ActiveProject.objects.get(slug=project_slug)
-    admin_inspect = user.is_admin and not is_author(user, project)
+    user, project, authors, is_submitting, admin_inspect = (kwargs[k] for k in
+        ('user', 'project', 'authors', 'is_submitting', 'admin_inspect'))
 
     # There are several forms for different types of metadata
     ReferenceFormSet = generic_inlineformset_factory(Reference,
@@ -497,20 +495,18 @@ def project_metadata(request, project_slug):
 
     return render(request, 'project/project_metadata.html', {'project':project,
         'description_form':description_form, 'reference_formset':reference_formset,
-        'messages':messages.get_messages(request), 'admin_inspect':admin_inspect,
+        'messages':messages.get_messages(request),
+        'is_submitting':is_submitting, 'admin_inspect':admin_inspect,
         'add_item_url':edit_url, 'remove_item_url':edit_url})
 
 
-@authorization_required(auth_functions=(is_author, is_admin))
-def project_access(request, project_slug):
+@project_auth(auth_mode=0)
+def project_access(request, project_slug, **kwargs):
     """
     Page to edit project access policy
 
     """
-    user = request.user
-    project = ActiveProject.objects.get(slug=project_slug)
-    admin_inspect = user.is_admin and not is_author(user, project)
-
+    project = kwargs['project']
     access_form = forms.AccessMetadataForm(instance=project)
 
     if request.method == 'POST':
@@ -523,7 +519,8 @@ def project_access(request, project_slug):
                 'Invalid submission. See errors below.')
 
     return render(request, 'project/project_access.html', {'project':project,
-                  'access_form':access_form, 'admin_inspect':admin_inspect})
+        'access_form':access_form, 'is_submitting':kwargs['is_submitting'],
+        'admin_inspect':kwargs['admin_inspect']})
 
 
 @authorization_required(auth_functions=(is_author, is_admin))
@@ -536,7 +533,10 @@ def project_identifiers(request, project_slug):
     project = ActiveProject.objects.get(slug=project_slug)
     admin_inspect = user.is_admin and not is_author(user, project)
 
-    TopicFormSet = inlineformset_factory(ActiveProject, Topic,
+    # TopicFormSet = inlineformset_factory(ActiveProject, Topic,
+    #     fields=('description',), extra=0, max_num=forms.TopicFormSet.max_forms,
+    #     can_delete=False, formset=forms.TopicFormSet, validate_max=True)
+    TopicFormSet = generic_inlineformset_factory(Topic,
         fields=('description',), extra=0, max_num=forms.TopicFormSet.max_forms,
         can_delete=False, formset=forms.TopicFormSet, validate_max=True)
     PublicationFormSet = generic_inlineformset_factory(Publication,
@@ -560,7 +560,6 @@ def project_identifiers(request, project_slug):
             publication_formset = PublicationFormSet(instance=project)
         else:
             messages.error(request, 'Invalid submission. See errors below.')
-
     edit_url = reverse('edit_metadata_item', args=[project.slug])
     return render(request, 'project/project_identifiers.html',
         {'project':project, 'publication_formset':publication_formset,
@@ -568,13 +567,13 @@ def project_identifiers(request, project_slug):
          'remove_item_url':edit_url})
 
 
-@authorization_required(auth_functions=(is_author, is_admin))
-def project_files_panel(request, project_slug):
+@project_auth(auth_mode=0)
+def project_files_panel(request, project_slug, **kwargs):
     """
     Return the file panel for the project, along with the forms used to
     manipulate them. Called via ajax to navigate directories.
     """
-    project = ActiveProject.objects.get(slug=project_slug)
+    project = kwargs['project']
     subdir = request.GET['subdir']
 
     display_files, display_dirs = project.get_directory_content(
@@ -617,16 +616,17 @@ def process_items(request, form):
         else:
             return ''
 
-@authorization_required(auth_functions=(is_author, is_admin))
-def project_files(request, project_slug):
+@project_auth(auth_mode=0)
+def project_files(request, project_slug, **kwargs):
     "View and manipulate files in a project"
-    project = ActiveProject.objects.get(slug=project_slug)
-    admin_inspect = request.user.is_admin and not is_author(request.user, project)
-    storage_info = utility.get_storage_info(project.storage_allowance*1024**2,
-            project.storage_used())
+    project, is_submitting, admin_inspect = (kwargs[k] for k in
+        ('project', 'is_submitting', 'admin_inspect'))
+
+    storage_info = utility.get_storage_info(
+        project.core_project.storage_allowance*1024**2, project.storage_used())
 
     if request.method == 'POST':
-        if request.user != project.submitting_author:
+        if not is_submitting:
             return Http404()
 
         if 'request_storage' in request.POST:
@@ -658,7 +658,8 @@ def project_files(request, project_slug):
             subdir = ''
 
         # Reload the storage info.
-        storage_info = utility.get_storage_info(project.storage_allowance*1024**2,
+        storage_info = utility.get_storage_info(
+            project.core_project.storage_allowance*1024**2,
             project.storage_used())
     else:
         # The subdirectory is just the base. Ajax calls to the file
@@ -694,22 +695,23 @@ def project_files(request, project_slug):
         'create_folder_form':create_folder_form,
         'rename_item_form':rename_item_form,
         'move_items_form':move_items_form,
-        'delete_items_form':delete_items_form, 'admin_inspect':admin_inspect,
+        'delete_items_form':delete_items_form,
+        'is_submitting':is_submitting,
+        'admin_inspect':admin_inspect,
         'dir_breadcrumbs':dir_breadcrumbs})
 
 
-@authorization_required(auth_functions=(is_author, is_admin))
-def serve_project_file(request, project_slug, file_name):
+@project_auth(auth_mode=0)
+def serve_project_file(request, project_slug, file_name, **kwargs):
     """
     Serve a file in a project. file_name is file path relative to
     project file root.
     """
-    project = ActiveProject.objects.get(slug=project_slug)
-    file_path = os.path.join(project.file_root(), file_name)
+    file_path = os.path.join(kwargs['project'].file_root(), file_name)
     return utility.serve_file(request, file_path)
 
-@authorization_required(auth_functions=(is_author, is_admin))
-def preview_files_panel(request, project_slug):
+@project_auth(auth_mode=0)
+def preview_files_panel(request, project_slug, **kwargs):
     """
     Return the file panel for the project, along with the forms used to
     manipulate them. Called via ajax to navigate directories.

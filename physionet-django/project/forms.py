@@ -372,22 +372,6 @@ class DatabaseMetadataForm(forms.ModelForm):
         self.fields['content_description'].label = 'Data description'
 
 
-    def clean_title(self):
-        """
-        Check that the title and resource type are unique for the user
-        """
-        data = self.cleaned_data['title']
-
-        if ActiveProject.objects.filter(
-                title=data,
-                resource_type=self.instance.resource_type,
-                submitting_author=self.instance.submitting_author).exclude(id=self.instance.id).exists():
-            raise forms.ValidationError(
-                  'You already have a project with this title and resource type')
-
-        return data
-
-
 class SoftwareMetadataForm(forms.ModelForm):
     """
     Form for editing the metadata of a project with resource_type == database
@@ -500,7 +484,7 @@ class PublicationFormSet(BaseGenericInlineFormSet):
             raise forms.ValidationError('Maximum number of allowed items exceeded.')
 
 
-class TopicFormSet(forms.BaseInlineFormSet):
+class TopicFormSet(BaseGenericInlineFormSet):
     """
     Formset for adding a ActiveProject's topics
     """
