@@ -13,6 +13,7 @@ class DataUseAgreementAdmin(admin.ModelAdmin):
 
 admin.site.register(models.Author)
 admin.site.register(models.AuthorInvitation)
+admin.site.register(models.CoreProject)
 admin.site.register(models.DataUseAgreement, DataUseAgreementAdmin)
 admin.site.register(models.License, LicenseAdmin)
 admin.site.register(models.ActiveProject)

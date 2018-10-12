@@ -190,7 +190,8 @@ def project_overview(request, project_slug, **kwargs):
     Overview page of a project
     """
     return render(request, 'project/project_overview.html',
-        {'project':kwargs['project'], 'admin_inspect':kwargs['admin_inspect']})
+        {'project':kwargs['project'], 'admin_inspect':kwargs['admin_inspect'],
+         'submitting_author':kwargs['authors'].get(is_submitting=True)})
 
 
 def edit_affiliations(request, affiliation_formset):
@@ -206,45 +207,40 @@ def edit_affiliations(request, affiliation_formset):
         messages.error(request, 'Submission unsuccessful. See form for errors.')
 
 
-def remove_author(request, author_id):
+def remove_author(request, author_id, project, authors, is_submitting):
     """
     Remove an author from a project
     Helper function for `project_authors`.
     """
-    user = request.user
-    author = Author.objects.get(id=author_id)
-    project = author.project
+    rm_author = Author.objects.get(id=author_id)
 
-    if project.submitting_author == user:
-        authors = project.authors.all()
+    if is_submitting and rm_author in authors:
         # Reset the corresponding author if necessary
-        if author.is_corresponding:
-            submitting_author = authors.get(user=project.submitting_author)
+        if rm_author.is_corresponding:
+            submitting_author = authors.get(is_submitting=True)
             submitting_author.is_corresponding = True
             submitting_author.save()
         # Other author orders may have to be decreased when this author
         # is removed
         higher_authors = authors.filter(display_order__gt=author.display_order)
-        author.delete()
+        rm_author.delete()
         if higher_authors:
             for author in higher_authors:
                 author.display_order -= 1
                 author.save()
 
         messages.success(request, 'The author has been removed from the project')
-        return True
 
-def cancel_invitation(request, invitation_id):
+def cancel_invitation(request, invitation_id, project, is_submitting):
     """
     Cancel an author invitation for a project.
     Helper function for `project_authors`.
     """
-    user = request.user
-    invitation = AuthorInvitation.objects.get(id=invitation_id)
-    if invitation.project.submitting_author == user:
-        invitation.delete()
-        messages.success(request, 'The invitation has been cancelled')
-        return True
+    if is_submitting:
+        invitation = AuthorInvitation.objects.get(id=invitation_id)
+        if invidation.project == project:
+            invitation.delete()
+            messages.success(request, 'The invitation has been cancelled')
 
 
 @project_auth(auth_mode=2)
@@ -320,8 +316,8 @@ def project_authors(request, project_slug, **kwargs):
     """
     Page displaying author information and actions.
     """
-    user, project, authors, admin_inspect = (kwargs[k] for k in ('user',
-        'project', 'authors', 'admin_inspect'))
+    user, project, authors, is_submitting, admin_inspect = (kwargs[k] for k in
+        ('user', 'project', 'authors', 'is_submitting', 'admin_inspect'))
 
     if admin_inspect:
         (affiliation_formset, invite_author_form, corresponding_author_form,
@@ -334,7 +330,7 @@ def project_authors(request, project_slug, **kwargs):
             formset = forms.AffiliationFormSet, validate_max=True)
         affiliation_formset = AffiliationFormSet(instance=author)
 
-        if user == project.submitting_author:
+        if is_submitting:
             invite_author_form = forms.InviteAuthorForm(project=project,
                 inviter=user)
             corresponding_author_form = forms.CorrespondingAuthorForm(
@@ -371,15 +367,15 @@ def project_authors(request, project_slug, **kwargs):
         elif 'remove_author' in request.POST:
             # No form. Just get button value.
             author_id = int(request.POST['remove_author'])
-            remove_author(request, author_id)
+            remove_author(request, author_id, project, authors, is_submitting)
         elif 'cancel_invitation' in request.POST:
             # No form. Just get button value.
             invitation_id = int(request.POST['cancel_invitation'])
-            cancel_invitation(request, invitation_id)
+            cancel_invitation(request, invitation_id, project, is_submitting)
         elif 'corresponding_author' in request.POST:
             corresponding_author_form = forms.CorrespondingAuthorForm(
                 project=project, data=request.POST)
-            if user == project.submitting_author and corresponding_author_form.is_valid():
+            if is_submitting and corresponding_author_form.is_valid():
                 corresponding_author_form.update_corresponder()
                 messages.success(request, 'The corresponding author has been updated.')
         elif 'corresponding_email' in request.POST:
@@ -390,7 +386,8 @@ def project_authors(request, project_slug, **kwargs):
                 author.corresponding_email = corresponding_email_form.cleaned_data['associated_email']
                 author.save()
                 messages.success(request, 'Your corresponding email has been updated.')
-
+        # Refresh the author properties
+        authors = project.authors.all()
     invitations = project.authorinvitations.filter(is_active=True)
     edit_affiliations_url = reverse('edit_affiliation', args=[project.slug])
     return render(request, 'project/project_authors.html', {'project':project,
@@ -399,7 +396,8 @@ def project_authors(request, project_slug, **kwargs):
         'invite_author_form':invite_author_form, 'admin_inspect':admin_inspect,
         'corresponding_author_form':corresponding_author_form,
         'corresponding_email_form':corresponding_email_form,
-        'add_item_url':edit_affiliations_url, 'remove_item_url':edit_affiliations_url})
+        'add_item_url':edit_affiliations_url, 'remove_item_url':edit_affiliations_url,
+        'is_submitting':is_submitting})
 
 
 @project_auth(auth_mode=1)
@@ -732,28 +730,23 @@ def preview_files_panel(request, project_slug, **kwargs):
          'display_files':display_files, 'display_dirs':display_dirs})
 
 
-@authorization_required(auth_functions=(is_author, is_admin))
-def project_proofread(request, project_slug):
+@project_auth(auth_mode=0)
+def project_proofread(request, project_slug, **kwargs):
     """
     Proofreading page for project before submission
     """
-    project = ActiveProject.objects.get(slug=project_slug)
-    admin_inspect = request.user.is_admin and not is_author(request.user, project)
+    return render(request, 'project/project_proofread.html',
+        {'project':kwargs['project'], 'admin_inspect':kwargs['admin_inspect']})
 
-    return render(request, 'project/project_proofread.html', {'project':project,
-        'admin_inspect':admin_inspect})
-
-@authorization_required(auth_functions=(is_author, is_admin))
-def project_preview(request, project_slug):
+@project_auth(auth_mode=0)
+def project_preview(request, project_slug, **kwargs):
     """
     Preview what the published project would look like. Includes
     serving files.
 
     """
-    project = ActiveProject.objects.get(slug=project_slug)
-    admin_inspect = request.user.is_admin and not is_author(request.user, project)
-
-    authors = project.authors.all().order_by('display_order')
+    project, admin_inspect, authors = (kwargs[k] for k in ('project',
+        'admin_inspect', 'authors'))
     author_info = [utility.AuthorInfo(a) for a in authors]
     invitations = project.authorinvitations.filter(is_active=True)
     corresponding_author = authors.get(is_corresponding=True)
@@ -763,9 +756,9 @@ def project_preview(request, project_slug):
     topics = project.topics.all()
 
     is_submittable = project.is_submittable()
-    version_clash = False
 
     if is_submittable:
+        version_clash = False
         messages.success(request, 'The project has passed all automatic checks.')
     else:
         for e in project.submit_errors:
@@ -797,19 +790,16 @@ def check_submittable(request, project_slug):
     return JsonResponse({'is_submittable':result,
         'submit_errors':project.submit_errors})
 
-
-@authorization_required(auth_functions=(is_author, is_admin))
-def project_submission(request, project_slug):
+@project_auth(auth_mode=0)
+def project_submission(request, project_slug, **kwargs):
     """
     View submission details regarding a project, submit the project
     for review, cancel a submission, approve a submission, and withdraw
     approval.
     """
-    user = request.user
-    project = ActiveProject.objects.get(slug=project_slug)
-    authors = project.authors.all().order_by('display_order')
+    user, project, authors, admin_inspect = (kwargs[k] for k in ('user',
+        'project', 'authors', 'admin_inspect'))
     all_submissions = project.submissions.all().order_by('submission_datetime')
-    admin_inspect = user.is_admin and user not in [a.user for a in authors]
     context = {'project':project, 'admin_inspect':admin_inspect,
                'all_submissions':all_submissions}
 
@@ -817,7 +807,7 @@ def project_submission(request, project_slug):
         if project.under_submission:
             submission = project.submissions.get(is_active=True)
         # ActiveProject is submitted for review
-        if 'submit_project' in request.POST and not project.under_submission and user == project.submitting_author:
+        if 'submit_project' in request.POST and not project.under_submission and is_submitting:
             if project.is_submittable():
                 project.submit()
                 notification.submit_notify(project)

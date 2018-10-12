@@ -39,9 +39,6 @@
               {% if project.under_submission %}
                 <span class="badge badge-info"><i class="fas fa-glasses"></i> Under Submission</span>
               {% endif %}
-              {% if project.published %}
-                <span class="badge badge-primary"><i class="fas fa-book-open"></i> Published</span>
-              {% endif %}
             </p>
             <h4><a href="{% url 'project_overview' project.slug %}">{{ project.title }}</a></h4>
             <p class="list-group-item-text text-muted">

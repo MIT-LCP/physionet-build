@@ -4,7 +4,11 @@
   "pk": 1,
   "fields": {
     "description": "ecg",
-    "project": 1
+        "content_type": [
+      "project",
+      "activeproject"
+    ],
+    "object_id": 1
   }
 },
 {
@@ -12,7 +16,11 @@
   "pk": 2,
   "fields": {
     "description": "arrthythmia",
-    "project": 1
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
+    "object_id": 2
   }
 },
 {
@@ -20,7 +28,11 @@
   "pk": 3,
   "fields": {
     "description": "critical care",
-    "project": 2
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
+    "object_id": 2
   }
 },
 {
@@ -28,7 +40,11 @@
   "pk": 4,
   "fields": {
     "description": "intensive care unit",
-    "project": 2
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
+    "object_id": 2
   }
 },
 {
@@ -94,9 +110,42 @@
   }
 },
 {
+  "model": "project.coreproject",
+  "pk": "950032c4-2d96-43d6-84d5-e1652f451a79",
+  "fields": {
+    "creation_datetime": "2017-10-30T14:30:30Z",
+    "storage_allowance": 100
+  }
+},
+{
+  "model": "project.coreproject",
+  "pk": "2e780890-644d-4166-b0ca-e3d31596405b",
+  "fields": {
+    "creation_datetime": "2017-10-30T14:30:30Z",
+    "storage_allowance": 100
+  }
+},
+{
+  "model": "project.coreproject",
+  "pk": "ba881793-f671-4215-9487-070c04bdb4e2",
+  "fields": {
+    "creation_datetime": "2017-10-30T14:30:30Z",
+    "storage_allowance": 100
+  }
+},
+{
+  "model": "project.coreproject",
+  "pk": "ff038b01-14a2-4af1-9a7d-9f9845c45219",
+  "fields": {
+    "creation_datetime": "2017-10-30T14:30:30Z",
+    "storage_allowance": 100
+  }
+},
+{
   "model": "project.activeproject",
   "pk": 1,
   "fields": {
+    "core_project": "950032c4-2d96-43d6-84d5-e1652f451a79",
     "resource_type": 0,
     "title": "MIT-BIH Arrhythmia Database",
     "abstract": "<p>The MIT-BIH Arrhythmia Database contains 48 half-hour excerpts of two-channel ambulatory ECG recordings, obtained from 47 subjects studied by the BIH Arrhythmia Laboratory between 1975 and 1979. Twenty-three recordings were chosen at random from a set of 4000 24-hour ambulatory ECG recordings collected from a mixed population of inpatients (about 60%) and outpatients (about 40%) at Boston&#39;s Beth Israel Hospital; the remaining 25 recordings were selected from the same set to include less common but clinically significant arrhythmias that would not be well-represented in a small random sample.</p>",
@@ -112,10 +161,6 @@
     "license": 1,
     "creation_datetime": "2017-10-30T14:30:30Z",
     "modified_datetime": "2018-09-13T17:26:24.820Z",
-    "storage_allowance": 100,
-    "submitting_author": 2,
-    "published": false,
-    "under_submission": false,
     "data_use_agreement": null,
     "slug":"SHuKI1APLrwWCqxSQnSk"
   }
@@ -124,6 +169,7 @@
   "model": "project.activeproject",
   "pk": 2,
   "fields": {
+    "core_project": "ff038b01-14a2-4af1-9a7d-9f9845c45219",
     "resource_type": 0,
     "title": "MIMIC-III Clinical Database",
     "abstract": "<p>MIMIC-III (Medical Information Mart for Intensive Care III) is a large, freely-available database comprising deidentified health-related data associated with over forty thousand patients who stayed in critical care units of the Beth Israel Deaconess Medical Center between 2001 and 2012.</p>\r\n\r\n<p>The database includes information such as demographics, vital sign measurements made at the bedside (~1 data point per hour), laboratory test results, procedures, medications, caregiver notes, imaging reports, and mortality (both in and out of hospital).</p>",
@@ -139,10 +185,6 @@
     "license": 1,
     "creation_datetime": "2017-10-30T14:30:30Z",
     "modified_datetime": "2018-09-13T17:23:44.820Z",
-    "storage_allowance": 100,
-    "submitting_author": 2,
-    "published": false,
-    "under_submission": false,
     "data_use_agreement": 1,
     "slug":"T108xFtYkRAxiRiuOLEJ"
   }
@@ -151,6 +193,7 @@
   "model": "project.activeproject",
   "pk": 3,
   "fields": {
+    "core_project": "ba881793-f671-4215-9487-070c04bdb4e2",
     "resource_type": 1,
     "title": "WFDB",
     "abstract": "<p>Effective use of PhysioBank data requires specialized software. We have developed a large collection of such software over the past twenty years, and much of it is contained within the WFDB (WaveForm DataBase) Software Package, the GPLed successor to the MIT DB Software Package.</p><p>The major components of the WFDB Software Package are the WFDB library, about 75 WFDB applications for signal processing and automated analysis, and the WAVE software for viewing, annotation, and interactive analysis of waveform data. A comprehensive collection of documentation, including tutorials and reference manuals, is also included in the package.</p>",
@@ -166,10 +209,6 @@
     "license": null,
     "creation_datetime": "2017-10-30T14:30:30Z",
     "modified_datetime": "2017-10-30T14:30:30Z",
-    "storage_allowance": 100,
-    "submitting_author": 3,
-    "published": false,
-    "under_submission": false,
     "data_use_agreement": null,
     "slug":"kadzWaIVz0DQd72mL1cm"
   }
@@ -178,6 +217,7 @@
   "model": "project.activeproject",
   "pk": 4,
   "fields": {
+    "core_project": "ff038b01-14a2-4af1-9a7d-9f9845c45219",
     "resource_type": 0,
     "title": "MIMIC-III Clinical Database Demo",
     "abstract": "<p>The MIMIC-III (Medical Information Mart for Intensive Care) Clinical Database contains comprehensive clinical data from tens of thousands of Intensive Care Unit (ICU) patients. This project is a demo version which has only 100 patients and excludes the noteevents table.</p>",
@@ -193,10 +233,6 @@
     "license": 1,
     "creation_datetime": "2018-07-23T21:48:39.068Z",
     "modified_datetime": "2018-07-23T22:03:10.736Z",
-    "storage_allowance": 100,
-    "submitting_author": 2,
-    "published": false,
-    "under_submission": false,
     "data_use_agreement": 1,
     "slug":"Revkx24XL77vUm2KTFYU"
   }
@@ -289,11 +325,11 @@
   "model": "project.author",
   "pk": 1,
   "fields": {
-    "project": 1,
-    "published_project": null,
-    "first_name": "Roger",
-    "middle_names": "Greenwood",
-    "last_name": "Mark",
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
+    "object_id": 1,
     "display_order": 1,
     "user": 2,
     "is_corresponding": true,
@@ -304,11 +340,11 @@
   "model": "project.author",
   "pk": 2,
   "fields": {
-    "project": 2,
-    "published_project": null,
-    "first_name": "Roger",
-    "middle_names": "Greenwood",
-    "last_name": "Mark",
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
+    "object_id": 2,
     "display_order": 1,
     "user": 2,
     "is_corresponding": false,
@@ -319,11 +355,11 @@
   "model": "project.author",
   "pk": 3,
   "fields": {
-    "project": 3,
-    "published_project": null,
-    "first_name": "George",
-    "middle_names": "",
-    "last_name": "Moody",
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
+    "object_id": 3,
     "display_order": 1,
     "user": 3,
     "is_corresponding": true,
@@ -334,11 +370,11 @@
   "model": "project.author",
   "pk": 4,
   "fields": {
-    "project": 2,
-    "published_project": null,
-    "first_name": "Alistair",
-    "middle_names": "Edward William",
-    "last_name": "Johnson",
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
+    "object_id": 2,
     "display_order": 2,
     "user": 4,
     "is_corresponding": true,
@@ -349,11 +385,11 @@
   "model": "project.author",
   "pk": 5,
   "fields": {
-    "project": 4,
-    "published_project": null,
-    "first_name": "Roger Greenwood",
-    "middle_names": "",
-    "last_name": "Mark",
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
+    "object_id": 4,
     "display_order": 1,
     "user": 2,
     "is_corresponding": true,

@@ -43,14 +43,13 @@ class BaseAuthor(models.Model):
     display_order = models.PositiveSmallIntegerField()
     is_submitting = models.BooleanField(default=False)
     is_corresponding = models.BooleanField(default=False)
-    corresponding_email = models.ForeignKey('user.AssociatedEmail', null=True)
+
 
     class Meta:
         abstract = True
 
     def display_affiliation(self):
         return ', '.join([a.name for a in self.affiliations.all()])
-
 
 
 
@@ -61,6 +60,7 @@ class Author(BaseAuthor):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     project = GenericForeignKey('content_type', 'object_id')
+    corresponding_email = models.ForeignKey('user.AssociatedEmail', null=True)
 
     class Meta:
         unique_together = (('user', 'content_type', 'object_id',),)
@@ -92,10 +92,6 @@ class Author(BaseAuthor):
 
         """
         profile = self.user.profile
-        for field in ['first_name', 'middle_names', 'last_name']:
-            setattr(self, field, getattr(profile, field))
-        self.save()
-
         if profile.affiliation:
             Affiliation.objects.create(name=profile.affiliation,
                 author=self)
@@ -375,7 +371,7 @@ class ActiveProject(Metadata):
         """
         Return the email and name of the submitting author
         """
-        return self.submitting_author.email, self.submitting_author.get_full_name()
+        return self.submitting_author().email, self.submitting_author().get_full_name()
 
     def get_author_info(self):
         """
@@ -418,10 +414,10 @@ class ActiveProject(Metadata):
         if self.access_policy and not self.data_use_agreement:
             self.submit_errors.append('Missing DUA for non-open access policy')
 
-        if self.published:
-            published_versions = [p.version for p in self.published_projects.all()]
-            if self.version in published_versions:
-                self.submit_errors.append('The version matches a previously published version.')
+        # if self.published:
+        #     published_versions = [p.version for p in self.published_projects.all()]
+        #     if self.version in published_versions:
+        #         self.submit_errors.append('The version matches a previously published version.')
 
         if self.submit_errors:
             return False
