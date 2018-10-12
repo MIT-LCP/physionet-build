@@ -35,28 +35,46 @@ def is_submitting_author(user, project):
     return user == project.submitting_author
 
 
-def project_auth(base_view):
+def project_auth(auth_mode=0):
     """
-    Authorization decorator for project
+    Authorization decorator for project. Also adds project information
+    to kwargs.
+
+    auth_mode is one of the following:
+    - 0 : the user must be an author, or an admin
+    - 1 : the user must be an author
+    - 2 : the user must be the submitting author
     """
-    @login_required
-    def view_wrapper(request, *args, **kwargs):
-        user = request.user
-        project = ActiveProject.objects.get(slug=kwargs['project_slug'])
-        authors = project.authors.all()
+    def real_decorator(base_view):
+        @login_required
+        def view_wrapper(request, *args, **kwargs):
+            user = request.user
+            project = ActiveProject.objects.get(slug=kwargs['project_slug'])
+            authors = project.authors.all().order_by('display_order')
 
-        is_author = (user in [a.user for a in authors])
-        is_submitting = (user == authors.get(is_submitting=True).user)
-        is_admin = user.is_admin
+            is_author = (user in [a.user for a in authors])
+            is_submitting = (user == authors.get(is_submitting=True).user)
+            is_admin = user.is_admin
+            admin_inspect = is_admin and not is_author
 
-        admin_inspect = is_admin and not is_author
+            if auth_mode == 2:
+                allow = is_submitting
+            elif auth_mode == 1:
+                allow = is_author
+            else:
+                allow = is_author or admin_inspect
 
-        if not is_author and not admin_inspect:
+            if allow:
+                kwargs['user'] = user
+                kwargs['project'] = project
+                kwargs['authors'] = authors
+                kwargs['is_author'] = is_author
+                kwargs['is_submitting'] = is_submitting
+                kwargs['admin_inspect'] = admin_inspect
+                return base_view(request, *args, **kwargs)
             raise Http404('Unable to access page')
-
-
-        return base_view(request, *args, **kwargs)
-    return view_wrapper
+        return view_wrapper
+    return real_decorator
 
 
 
@@ -137,8 +155,6 @@ def project_home(request):
     InvitationResponseFormSet = modelformset_factory(AuthorInvitation,
         form=forms.InvitationResponseForm, extra=0)
 
-    # pdb.set_trace()
-
     if request.method == 'POST':
         invitation_response_formset = InvitationResponseFormSet(request.POST)
         process_invitation_response(request, invitation_response_formset)
@@ -169,18 +185,13 @@ def project_overview_redirect(request, project_slug):
     return redirect(reverse('project_overview', args=[project_slug]))
 
 
-# @authorization_required(auth_functions=(is_author, is_admin))
-@project_auth
-def project_overview(request, project_slug, *args, **kwargs):
+@project_auth(auth_mode=0)
+def project_overview(request, project_slug, **kwargs):
     """
     Overview page of a project
     """
-    user = request.user
-    project = ActiveProject.objects.get(slug=project_slug)
-    # admin_inspect = user.is_admin and not is_author(user, project)
-
     return render(request, 'project/project_overview.html',
-                  {'project':project, 'admin_inspect':admin_inspect})
+        {'project':kwargs['project'], 'admin_inspect':kwargs['admin_inspect']})
 
 
 def edit_affiliations(request, affiliation_formset):
@@ -237,7 +248,7 @@ def cancel_invitation(request, invitation_id):
         return True
 
 
-@authorization_required(auth_functions=(is_submitting_author,))
+@project_auth(auth_mode=2)
 def move_author(request, project_slug):
     """
     Change an author display order. Return the updated authors list html
@@ -305,15 +316,13 @@ def edit_affiliation(request, project_slug):
              'remove_item_url':edit_url})
 
 
-@authorization_required(auth_functions=(is_author, is_admin))
-def project_authors(request, project_slug):
+@project_auth(auth_mode=0)
+def project_authors(request, project_slug, **kwargs):
     """
     Page displaying author information and actions.
     """
-    user = request.user
-    project = ActiveProject.objects.get(slug=project_slug)
-    authors = project.authors.all().order_by('display_order')
-    admin_inspect = user.is_admin and user not in [a.user for a in authors]
+    user, project, authors, admin_inspect = (kwargs[k] for k in ('user',
+        'project', 'authors', 'admin_inspect'))
 
     if admin_inspect:
         (affiliation_formset, invite_author_form, corresponding_author_form,
