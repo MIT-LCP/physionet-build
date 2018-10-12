@@ -8,6 +8,9 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
+from django.core.validators import EmailValidator
+from django.utils.translation import ugettext as _
+
 from .validators import UsernameValidator
 
 import logging
@@ -17,7 +20,6 @@ logger = logging.getLogger(__name__)
 class Affiliation(models.Model):
     """
     Profile affiliation
-
     """
     order = models.SmallIntegerField(default=0)
     name = models.CharField(max_length=100)
@@ -55,8 +57,18 @@ class UserManager(BaseUserManager):
                                 username=username, is_admin=True)
         return user
 
-    def get_by_natural_key(self, email):
-        return self.get(email=email)
+
+def validate_unique_email(email):
+    """
+    Add additional check to the non-primary AssociatedEmail objects.
+    The email field in User should be in sync with primary AssociatedEmails.
+    """
+    if AssociatedEmail.objects.filter(email=email.lower(), is_primary_email=False):
+        raise ValidationError(_("User with this email already exists."),
+            code='email_not_unique',)
+    if User.objects.filter(email=email.lower()):
+        raise ValidationError(_("User with this email already exists."),
+            code='email_not_unique',)
 
 
 class User(AbstractBaseUser):
@@ -64,7 +76,8 @@ class User(AbstractBaseUser):
     The user authentication model
     """
 
-    email = models.EmailField(max_length=255, unique=True)
+    email = models.EmailField(max_length=255, unique=True,
+        validators=[validate_unique_email, EmailValidator()])
     username = models.CharField(max_length=150, unique=True,
         help_text='Required. 150 characters or fewer. Letters, digits and - only.',
         validators=[UsernameValidator()],
@@ -84,23 +97,6 @@ class User(AbstractBaseUser):
 
     def is_superuser(self):
         return (self.is_admin,)
-
-    def natural_key(self):
-        return (self.email,)
-
-    def validate_unique(self, exclude=None):
-        """
-        Add additional check to the non-primary AssociatedEmail objects.
-        The email field in User should be in sync with primary AssociatedEmails.
-        """
-        super(User, self).validate_unique(exclude=exclude)
-
-        if AssociatedEmail.objects.filter(email=self.email.lower(), is_primary_email=False):
-            raise ValidationError({'email':'User with this email already exists.'})
-        if User.objects.filter(email=self.email.lower()):
-            raise ValidationError({'email':'User with this email already exists.'})
-        if User.objects.filter(username=self.username.lower()):
-            raise ValidationError({'username':'User with this username already exists.'})
 
     # Mandatory methods for default authentication backend
     def get_full_name(self):
@@ -151,7 +147,8 @@ class AssociatedEmail(models.Model):
     An email the user associates with their account
     """
     user = models.ForeignKey('user.User', related_name='associated_emails')
-    email = models.EmailField(max_length=255, unique=True)
+    email = models.EmailField(max_length=255, unique=True,
+        validators=[validate_unique_email, EmailValidator()])
     is_primary_email = models.BooleanField(default=False)
     added_date = models.DateTimeField(auto_now_add=True, null=True)
     verification_date = models.DateTimeField(null=True)
@@ -160,7 +157,6 @@ class AssociatedEmail(models.Model):
 
     def __str__(self):
         return self.email
-
 
 @receiver(post_save, sender=User)
 def create_associated_email(sender, **kwargs):

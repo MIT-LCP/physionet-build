@@ -5,9 +5,11 @@ from django import forms
 from django.contrib.auth import forms as auth_forms
 from django.contrib.auth import password_validation
 from django.core.files.uploadedfile import UploadedFile
+from django.core.validators import EmailValidator
 
 from .models import AssociatedEmail, User, Profile
 from .widgets import ProfilePhotoInput
+from .validators import UsernameValidator
 
 
 class AssociatedEmailChoiceForm(forms.Form):
@@ -47,7 +49,8 @@ class AddEmailForm(forms.ModelForm):
         model = AssociatedEmail
         fields = ('email',)
         widgets = {
-            'email':forms.EmailInput(attrs={'class':'form-control dropemail'}),
+            'email':forms.EmailInput(attrs={'class':'form-control dropemail',
+                'validators':[EmailValidator]}),
         }
 
     def clean_email(self):
@@ -101,6 +104,17 @@ class UserChangeForm(forms.ModelForm):
         # field does not have access to the initial value
         return self.initial["password"]
 
+class UsernameChangeForm(forms.ModelForm):
+    """
+    Updating the username filed
+    """
+
+    class Meta:
+        model = User
+        fields = ('username',)
+        widgets = {
+            'username':forms.TextInput(attrs={'class':'form-control', 'validators':[UsernameValidator]}),
+        }
 
 class ProfileForm(forms.ModelForm):
     """
@@ -159,7 +173,8 @@ class UserCreationForm(forms.ModelForm):
         model = User
         fields = ('email','username',)
         widgets = {
-            'email':forms.EmailInput(attrs={'class':'form-control dropemail'}),
+            'email':forms.EmailInput(attrs={'class':'form-control dropemail', 
+                'validators':[EmailValidator]}),
             'username':forms.TextInput(attrs={'class':'form-control'}),
         }
 
@@ -177,6 +192,9 @@ class UserCreationForm(forms.ModelForm):
 
     def save(self, commit=True):
         # Save the provided password in hashed format
+
+        if self.errors: return
+
         user = super(UserCreationForm, self).save(commit=False)
         user.set_password(self.cleaned_data['password1'])
         user.email = user.email.lower()

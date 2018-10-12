@@ -17,7 +17,7 @@ from django.utils import timezone
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
-from .forms import AddEmailForm, AssociatedEmailChoiceForm, ProfileForm, UserCreationForm
+from .forms import AddEmailForm, AssociatedEmailChoiceForm, ProfileForm, UserCreationForm, UsernameChangeForm
 from .models import AssociatedEmail, Profile, User
 from physionet import utility
 
@@ -288,4 +288,24 @@ def verify_email(request, uidb64, token):
     return render(request, 'user/verify_email.html',
         {'title':'Invalid Verification Link', 'isvalid':False})
 
+@login_required
+def edit_username(request):
+    """
+    Home page/dashboard for individual users
+    """
+    user = request.user
+
+    form = UsernameChangeForm(instance=user)
+    if request.method == 'POST':
+        form = UsernameChangeForm(instance=user, data=request.POST)
+
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your username has been updated.')
+        else:
+            user = User.objects.get(id=user.id)
+
+
+    return render(request, 'user/edit_username.html', {'user':user, 'form':form,
+        'messages':messages.get_messages(request)})
 

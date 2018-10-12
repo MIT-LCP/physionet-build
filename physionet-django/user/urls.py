@@ -50,6 +50,7 @@ urlpatterns = [
         name='edit_password'),
     url(r'^settings/password/changed/$', views.edit_password_complete, name='edit_password_complete'),
     url(r'^settings/emails/$', views.edit_emails, name='edit_emails'),
+    url(r'^settings/username/$', views.edit_username, name='edit_username'),
     url(r'^verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
         views.verify_email, name='verify_email'),
 

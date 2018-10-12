@@ -1,10 +1,11 @@
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext as _
+
 from zxcvbn import zxcvbn
 import re
 
-class ComplexityValidator(object):
+class ComplexityValidator():
     """
     Require at least one symbol
     """
@@ -29,7 +30,7 @@ class ComplexityValidator(object):
             "Your password is too weak."
         )
 
-class MaximumLengthValidator(object):
+class MaximumLengthValidator():
     """
     Validate whether the password is too long
     """
@@ -51,7 +52,7 @@ class MaximumLengthValidator(object):
         )
 
 
-class AlphabeticRequirementValidator(object):
+class AlphabeticRequirementValidator():
     """
     Require at least one upper-case and one lower-case alphabetic character
     """
@@ -68,7 +69,7 @@ class AlphabeticRequirementValidator(object):
         )
 
 
-class NumericRequirementValidator(object):
+class NumericRequirementValidator():
     """
     Require at least one numerical digit
     """
@@ -89,7 +90,7 @@ class NumericRequirementValidator(object):
         )
 
 
-class SymbolicRequirementValidator(object):
+class SymbolicRequirementValidator():
     """
     Require at least one symbol
     """
@@ -133,3 +134,5 @@ class UsernameValidator(UnicodeUsernameValidator):
     message = _(
         'Enter a valid username. This value may contain only letters, '
                 "numbers, and - character.")
+
+
