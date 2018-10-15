@@ -8,7 +8,8 @@ from django.template.defaultfilters import slugify
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 
-from .models import (Affiliation, Author, AuthorInvitation, ActiveProject, CoreProject, StorageRequest)
+from .models import (Affiliation, Author, AuthorInvitation, ActiveProject,
+    CoreProject, StorageRequest, SubmissionLog)
 from . import utility
 from . import validators
 

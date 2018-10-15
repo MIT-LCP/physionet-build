@@ -270,7 +270,7 @@ class Metadata(models.Model):
 
 class UnpublishedProject(models.Model):
     """
-    Abstract fields inherited by ArchivedProject/ActiveProject
+    Abstract model inherited by ArchivedProject/ActiveProject
     """
     modified_datetime = models.DateTimeField(auto_now=True)
 
@@ -278,6 +278,8 @@ class UnpublishedProject(models.Model):
     references = GenericRelation('project.Reference')
     publications = GenericRelation('project.Publication')
     topics = GenericRelation('project.Topic')
+
+    submission_log = GenericRelation('project.SubmissionLog')
 
     class Meta:
         abstract = True
@@ -311,7 +313,19 @@ class ArchivedProject(Metadata, UnpublishedProject):
 class ActiveProject(Metadata, UnpublishedProject):
     """
     The project used for submitting
+
+    The submission_status field:
+    - 0 : Not submitted
+    - 1 : Submitting author submits. Awaiting editor assignment or decision.
+    - 2 : Rejected.
+    - 3 : Accept with revisions. Waiting for resubmission.
+    - 4 : Accepted. In copyedit stage. Requires author approval.
+    - 5 : Editor completes copyedit. Authors may approve.
+    - 6 : Authors approve copyedit. Ready for editor to publish
+
     """
+    submission_status = models.PositiveSmallIntegerField(default=0)
+
     INDIVIDUAL_FILE_SIZE_LIMIT = 10 * 1024**3
 
     REQUIRED_FIELDS = {0:['title', 'abstract', 'background', 'methods',
@@ -351,18 +365,20 @@ class ActiveProject(Metadata, UnpublishedProject):
 
         return display_files, display_dirs
 
-    def status(self):
+    def under_submission(self):
         """
-        The submission status is kept track of in the active Submission
-        object, if it exists.
+        Whether the project is under submission
         """
-        return self.submission_log.status
+        if self.submission_status in [1, 3, 4, 5]:
+            return True
+        else:
+            return False
 
     def is_frozen(self):
         """
         ActiveProject is not editable when frozen
         """
-        if self.status() in [0, 4]:
+        if self.submission_status in [0, 4]:
             return False
         else:
             return True
@@ -427,10 +443,11 @@ class ActiveProject(Metadata, UnpublishedProject):
         if self.access_policy and not self.data_use_agreement:
             self.submit_errors.append('Missing DUA for non-open access policy')
 
-        # if self.published:
-        #     published_versions = [p.version for p in self.published_projects.all()]
-        #     if self.version in published_versions:
-        #         self.submit_errors.append('The version matches a previously published version.')
+        published_projects = self.core_project.publishedprojects.all()
+        if published_projects:
+            published_versions = [p.version for p in published_projects]
+            if self.version in published_versions:
+                self.submit_errors.append('The version matches a previously published version.')
 
         if self.submit_errors:
             return False
@@ -444,14 +461,14 @@ class ActiveProject(Metadata, UnpublishedProject):
         if not self.is_submittable():
             raise Exception('ActiveProject is not submittable')
 
-        if self.submissions.filter(is_active=True):
-            raise Exception('Active submission exists')
+        # This should never be the case
+        if self.submission_log.filter():
+            raise Exception('Duplicate submission log')
 
-        n_past_submissions = self.submissions.all().count()
-
-        self.under_submission = True
+        self.submission_status = 1
         self.save()
-        Submission.objects.create(project=self, number=n_past_submissions+1)
+        # Create the submission log
+        SubmissionLog.objects.create(project=project)
 
     def is_publishable(self):
         """
@@ -788,18 +805,9 @@ class BaseSubmissionLog(models.Model):
         abstract = True
 
 
-
 class SubmissionLog(BaseSubmissionLog):
     """
     Submission log for ActiveProject/ArchivedProject
-
-    The status field:
-    - 0 : Submitting author submits. Awaiting editor assignment or decision.
-    - 1 : Decision 1 = reject.
-    - 2 : Decision 2 = accept with revisions.
-    - 3 : Decision 3 = accept. In copyedit stage. Requires author approval.
-    -   : Editor completes copyedit. Authors may approve.
-    - 4 : Authors approve copyedit. Ready for editor to publish
 
     """
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
@@ -808,7 +816,6 @@ class SubmissionLog(BaseSubmissionLog):
 
     editor = models.ForeignKey('user.User', related_name='editing_submissions',
         null=True)
-    status = models.PositiveSmallIntegerField(default=0)
     # When (if) the editor completes the copyedit
     copyedit_datetime = models.DateTimeField(null=True)
     # When (if) the authors approve the copyedit

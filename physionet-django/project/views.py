@@ -795,17 +795,14 @@ def project_submission(request, project_slug, **kwargs):
     for review, cancel a submission, approve a submission, and withdraw
     approval.
     """
-    user, project, authors, admin_inspect = (kwargs[k] for k in ('user',
-        'project', 'authors', 'admin_inspect'))
-    all_submissions = project.submissions.all().order_by('submission_datetime')
-    context = {'project':project, 'admin_inspect':admin_inspect,
-               'all_submissions':all_submissions}
+    user, project, authors, is_submitting, admin_inspect = (kwargs[k] for k in
+        ('user', 'project', 'authors', 'is_submitting', 'admin_inspect'))
 
     if request.method == 'POST':
-        if project.under_submission:
+        if project.under_submission():
             submission = project.submissions.get(is_active=True)
         # ActiveProject is submitted for review
-        if 'submit_project' in request.POST and not project.under_submission and is_submitting:
+        if 'submit_project' in request.POST and not project.under_submission() and is_submitting:
             if project.is_submittable():
                 project.submit()
                 notification.submit_notify(project)
@@ -819,17 +816,21 @@ def project_submission(request, project_slug, **kwargs):
                 author.approved_publish = True
                 author.save()
                 messages.success(request, 'You have approved the publication.')
+                authors = project.authors.all()
             else:
                 raise Http404()
 
-    if project.under_submission:
-        submission = project.submissions.get(is_active=True)
-        context['submission'] = submission
-        context['authors'] = authors
+    if project.under_submission():
+        submission_log = project.submission_log.get()
         if not admin_inspect:
-            context['author'] = authors.get(user=user)
+            author = authors.get(user=user)
+    else:
+        submission_log, author = None, None
 
-    return render(request, 'project/project_submission.html', context)
+    return render(request, 'project/project_submission.html', {
+        'project':project, 'authors':authors, 'author':author,
+        'submission_log':submission_log, 'is_submitting':is_submitting,
+        'is_admin':is_admin})
 
 
 @authorization_required(auth_functions=(is_author, is_admin))

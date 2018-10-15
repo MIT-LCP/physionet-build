@@ -30,7 +30,7 @@ class AssignEditorForm(forms.Form):
     Assign an editor to a submission
     """
     submission = forms.ModelChoiceField(queryset=SubmissionLog.objects.filter(
-        status=0, editor=None))
+        editor=None))
     editor = forms.ModelChoiceField(queryset=User.objects.filter(is_admin=True))
 
 
