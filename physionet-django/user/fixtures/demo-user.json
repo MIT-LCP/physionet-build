@@ -120,7 +120,7 @@
   "model": "user.associatedemail",
   "pk": 6,
   "fields": {
-    "user": 2,
+    "user": 3,
     "email": "george@gmail.com",
     "is_primary_email": false,
     "added_date": "2018-03-28T17:17:14.082Z",
