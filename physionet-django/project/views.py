@@ -777,13 +777,12 @@ def project_preview(request, project_slug, **kwargs):
         'admin_inspect':admin_inspect, 'dir_breadcrumbs':dir_breadcrumbs})
 
 
-@authorization_required(auth_functions=(is_author,))
-def check_submittable(request, project_slug):
+@project_auth(auth_mode=0)
+def check_submittable(request, project_slug, **kwargs):
     """
     Check whether a project is submittable
     """
-    project = ActiveProject.objects.get(slug=project_slug)
-
+    project = kwargs['project']
     result = project.is_submittable()
 
     return JsonResponse({'is_submittable':result,

@@ -13,6 +13,6 @@ def validate_filename(value):
     """
     if not re.fullmatch(r'\w+([\w\-\.]*\w+)?', value) or '..' in value:
         raise ValidationError('Invalid filename: "%(filename)s" ' \
-            'Allowed characters are: numbers, letters, dash, underscore, ' \
-            'and dot. Names may not contain adjacent dots, begin with, ' \
+            'Filenames may only contain letters, numbers, dashes, underscorees, ' \
+            'and dots. They may not contain adjacent dots, begin with, ' \
             'or end with a dot.', params={'filename':value})

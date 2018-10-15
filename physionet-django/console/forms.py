@@ -3,7 +3,7 @@ import pdb
 from django import forms
 from django.utils import timezone
 
-from project.models import Submission, Resubmission
+from project.models import SubmissionLog, ResubmissionLog
 from user.models import User
 
 
@@ -29,19 +29,19 @@ class AssignEditorForm(forms.Form):
     """
     Assign an editor to a submission
     """
-    submission = forms.ModelChoiceField(queryset=Submission.objects.filter(
+    submission = forms.ModelChoiceField(queryset=SubmissionLog.objects.filter(
         status=0, editor=None))
     editor = forms.ModelChoiceField(queryset=User.objects.filter(is_admin=True))
 
 
-class EditSubmissionForm(forms.ModelForm):
+class EditSubmissionLogForm(forms.ModelForm):
     """
     For an editor to make a decision regarding a submission.
     There is another form for responding to resubmission
     """
 
     class Meta:
-        model = Submission
+        model = SubmissionLog
         fields = ('editor_comments', 'decision',)
         widgets= {'editor_comments':forms.Textarea(),
                   'decision':forms.Select(choices=SUBMISSION_RESPONSE_CHOICES)}

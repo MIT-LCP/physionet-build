@@ -11,7 +11,7 @@ from django.utils import timezone
 
 from . import forms
 import notification.utility as notification
-from project.models import ActiveProject, Resubmission, StorageRequest, Submission
+from project.models import ActiveProject, ResubmissionLog, StorageRequest, SubmissionLog
 from user.models import User
 
 
@@ -43,7 +43,7 @@ def active_submissions(request):
             notification.assign_editor_notify(submission)
             messages.success(request, 'The editor has been assigned')
 
-    submissions = Submission.objects.filter(is_active=True).order_by('status')
+    submissions = SubmissionLog.objects.filter(is_active=True).order_by('status')
     n_active = len(submissions)
     n_awaiting_editor = submissions.filter(status=0, editor__isnull=True).count()
     n_awaiting_decision = submissions.filter(status=0, editor__isnull=False).count()
@@ -66,7 +66,7 @@ def editing_submissions(request):
     """
     List of submissions the editor is responsible for
     """
-    submissions = Submission.objects.filter(is_active=True,
+    submissions = SubmissionLog.objects.filter(is_active=True,
         editor=request.user)
 
     return render(request, 'console/editing_submissions.html',
@@ -79,14 +79,14 @@ def edit_submission(request, submission_id):
     """
     Page to respond to a particular submission, as an editor
     """
-    submission = Submission.objects.get(id=submission_id)
+    submission = SubmissionLog.objects.get(id=submission_id)
     project = submission.project
     # The user must be the editor
     if request.user != submission.editor or submission.status not in [0, 2]:
         return Http404()
 
     if request.method == 'POST':
-        edit_submission_form = forms.EditSubmissionForm(instance=submission,
+        edit_submission_form = forms.EditSubmissionLogForm(instance=submission,
                                                         data=request.POST)
         if edit_submission_form.is_valid():
             submission = edit_submission_form.save()
@@ -104,7 +104,7 @@ def edit_submission(request, submission_id):
                 {'decision':submission.decision,
                  'project':project, 'submission':submission})
 
-    edit_submission_form = forms.EditSubmissionForm()
+    edit_submission_form = forms.EditSubmissionLogForm()
 
     return render(request, 'console/edit_submission.html',
         {'submission':submission, 'edit_submission_form':edit_submission_form})
@@ -116,7 +116,7 @@ def copyedit_submission(request, submission_id):
     """
     Page to copyedit the submission
     """
-    submission = Submission.objects.get(id=submission_id)
+    submission = SubmissionLog.objects.get(id=submission_id)
     if request.user != submission.editor or submission.status != 3:
         return Http404()
 
@@ -146,7 +146,7 @@ def publish_submission(request, submission_id):
     """
     Page to publish the submission
     """
-    submission = Submission.objects.get(id=submission_id)
+    submission = SubmissionLog.objects.get(id=submission_id)
     if submission.status != 4:
         return Http404()
 

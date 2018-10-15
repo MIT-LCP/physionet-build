@@ -207,7 +207,7 @@ class CoreProject(models.Model):
 
 class Metadata(models.Model):
     """
-    Metadata for projects
+    Metadata for all projects
 
     https://schema.datacite.org/
     https://schema.datacite.org/meta/kernel-4.0/doc/DataCite-MetadataKernel_v4.1.pdf
@@ -264,9 +264,35 @@ class Metadata(models.Model):
     slug = models.SlugField(max_length=20, unique=True, db_index=True)
     core_project = models.ForeignKey('project.CoreProject',
                                      related_name='%(class)ss')
+    # When the submitting project was created
+    creation_datetime = models.DateTimeField(auto_now_add=True)
 
 
-class ArchivedProject(Metadata):
+class UnpublishedProject(models.Model):
+    """
+    Abstract fields inherited by ArchivedProject/ActiveProject
+    """
+    modified_datetime = models.DateTimeField(auto_now=True)
+
+    authors = GenericRelation('project.Author')
+    references = GenericRelation('project.Reference')
+    publications = GenericRelation('project.Publication')
+    topics = GenericRelation('project.Topic')
+
+    class Meta:
+        abstract = True
+
+    def __str__(self):
+        return self.title
+
+    def corresponding_author(self):
+        return self.authors.get(is_corresponding=True)
+
+    def submitting_author(self):
+        return self.authors.get(is_submitting=True)
+
+
+class ArchivedProject(Metadata, UnpublishedProject):
     """
     An archived project. Created when (maps to archive_reason):
     1. A user chooses to 'delete' their ActiveProject.
@@ -277,14 +303,15 @@ class ArchivedProject(Metadata):
     archive_datetime = models.DateTimeField(auto_now_add=True)
     archive_reason = models.PositiveSmallIntegerField()
 
-class ActiveProject(Metadata):
+    def file_root(self):
+        "Root directory containing the project's files"
+        return os.path.join(settings.MEDIA_ROOT, 'archived-project', str(self.id))
+
+
+class ActiveProject(Metadata, UnpublishedProject):
     """
     The project used for submitting
     """
-    authors = GenericRelation('project.Author')
-    creation_datetime = models.DateTimeField(auto_now_add=True)
-    modified_datetime = models.DateTimeField(auto_now=True)
-
     INDIVIDUAL_FILE_SIZE_LIMIT = 10 * 1024**3
 
     REQUIRED_FIELDS = {0:['title', 'abstract', 'background', 'methods',
@@ -293,15 +320,6 @@ class ActiveProject(Metadata):
                        1:['title', 'abstract', 'background', 'methods',
                           'content_description', 'conflicts_of_interest',
                           'version', 'license',]}
-
-    def __str__(self):
-        return self.title
-
-    def corresponding_author(self):
-        return self.authors.get(is_corresponding=True)
-
-    def submitting_author(self):
-        return self.authors.get(is_submitting=True)
 
     def file_root(self):
         "Root directory containing the project's files"
@@ -338,10 +356,7 @@ class ActiveProject(Metadata):
         The submission status is kept track of in the active Submission
         object, if it exists.
         """
-        if self.under_submission:
-            return self.submissions.get(is_active=True).status
-        else:
-            return -1
+        return self.submission_log.status
 
     def is_frozen(self):
         """
@@ -567,8 +582,6 @@ class PublishedProject(Metadata):
     A published project. Immutable snapshot.
 
     """
-    topics = models.ManyToManyField('project.PublishedTopic',
-                                    related_name='tagged_projects')
     # Total file storage size in bytes
     storage_size = models.PositiveIntegerField()
     publish_datetime = models.DateTimeField(auto_now_add=True)
@@ -758,14 +771,12 @@ class StorageRequest(BaseInvitation):
                                                self.project.__str__())
 
 
-class BaseSubmission(models.Model):
+class BaseSubmissionLog(models.Model):
     """
-    Class to be inherited by Submission and Resubmission
+    Class to be inherited by SubmissionLog and ResubmissionLog
 
     """
-    # Each project can have one active submission at a time
-    is_active = models.BooleanField(default=True)
-    # When the submitting author submits
+    # When the submitting author submits/resubmits
     submission_datetime = models.DateTimeField(auto_now_add=True)
     # Editor decision. 1 2 or 3 for reject/revise/accept
     decision = models.SmallIntegerField(null=True)
@@ -777,32 +788,31 @@ class BaseSubmission(models.Model):
         abstract = True
 
 
-class Submission(BaseSubmission):
+
+class SubmissionLog(BaseSubmissionLog):
     """
-    ActiveProject submission. Object is created when submitting author submits.
+    Submission log for ActiveProject/ArchivedProject
 
     The status field:
     - 0 : Submitting author submits. Awaiting editor assignment or decision.
     - 1 : Decision 1 = reject.
     - 2 : Decision 2 = accept with revisions.
     - 3 : Decision 3 = accept. In copyedit stage. Requires author approval.
-    - 4 : Copyedit complete. Ready for editor to publish
-    - 5 : Published
+    -   : Editor completes copyedit. Authors may approve.
+    - 4 : Authors approve copyedit. Ready for editor to publish
 
     """
-    project = models.ForeignKey('project.ActiveProject', related_name='submissions')
-    # Editor is manually assigned
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    project = GenericForeignKey('content_type', 'object_id')
+
     editor = models.ForeignKey('user.User', related_name='editing_submissions',
         null=True)
-    number = models.PositiveSmallIntegerField()
     status = models.PositiveSmallIntegerField(default=0)
-
-    # When copyedit was complete
+    # When (if) the editor completes the copyedit
     copyedit_datetime = models.DateTimeField(null=True)
-    # The published item, if published
-    published_project = models.OneToOneField('project.PublishedProject',
-        null=True, related_name='publishing_submission')
-    publish_datetime = models.DateTimeField(null=True)
+    # When (if) the authors approve the copyedit
+    copyedit_approve_datetime = models.DateTimeField(null=True)
 
     def __str__(self):
         return 'Submission ID {0} - {1}'.format(self.id, self.project.title)
@@ -811,15 +821,23 @@ class Submission(BaseSubmission):
         authors = self.project.authors.all()
         return len(authors) == sum(a.approved_publish for a in authors)
 
-    def get_active_resubmission(self):
-        if self.is_active:
-            return self.resubmissions.get(is_active=True)
-
     def get_resubmissions(self):
         return self.resubmissions.all().order_by('creation_datetime')
 
+    def final_decision(self):
+        """
+        The final editor decision. May be contained in a resubmission
+        log. May be null.
+        """
+        resubmissions = self.get_resubmissions()
 
-class Resubmission(BaseSubmission):
+        if resubmissions:
+            return resubmissions[-1].decision
+        else:
+            return self.decision
+
+
+class ResubmissionLog(BaseSubmissionLog):
     """
     Model for resubmissions, ie. when editor accepts with conditional
     changes.
@@ -827,5 +845,23 @@ class Resubmission(BaseSubmission):
     The object is created when the submitting author makes a resubmission.
 
     """
-    submission = models.ForeignKey('project.Submission',
-        related_name='resubmissions')
+    submission = models.ForeignKey('project.SubmissionLog',
+        related_name='resubmission_logs')
+
+
+class PublishedSubmissionLog(BaseSubmissionLog):
+    """
+    Submission log for published projects
+    """
+    published_project = models.OneToOneField('project.PublishedProject',
+        related_name='publishing_submission', db_index=True)
+    editor = models.ForeignKey('user.User',
+        related_name='published_submissions')
+
+
+class PublishedResubmissionLog(BaseSubmissionLog):
+    """
+    Resubmission log for published submission
+    """
+    published_submission = models.ForeignKey('project.SubmissionLog',
+        related_name='published_resubmission_logs', db_index=True)
