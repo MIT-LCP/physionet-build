@@ -182,9 +182,9 @@ def process_storage_response(request, storage_response_formset):
                 storage_request.save()
 
                 if storage_request.response:
-                    project = storage_request.project
-                    project.storage_allowance = storage_request.request_allowance * 1024
-                    project.save()
+                    core_project = storage_request.project.core_project
+                    core_project.storage_allowance = storage_request.request_allowance * 1024
+                    core_project.save()
 
                 notification.storage_response_notify(storage_request)
                 messages.success(request,
@@ -196,8 +196,6 @@ def storage_requests(request):
     """
     Page for listing and responding to project storage requests
     """
-    user = request.user
-
     StorageResponseFormSet = modelformset_factory(StorageRequest,
         fields=('response', 'response_message'),
         widgets={'response':Select(choices=forms.RESPONSE_CHOICES),
@@ -210,8 +208,8 @@ def storage_requests(request):
     storage_response_formset = StorageResponseFormSet(
         queryset=StorageRequest.objects.filter(is_active=True))
 
-    return render(request, 'console/storage_requests.html', {'user':user,
-        'storage_response_formset':storage_response_formset})
+    return render(request, 'console/storage_requests.html',
+        {'storage_response_formset':storage_response_formset})
 
 
 @login_required

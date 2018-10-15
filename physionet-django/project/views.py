@@ -222,7 +222,7 @@ def remove_author(request, author_id, project, authors, is_submitting):
             submitting_author.save()
         # Other author orders may have to be decreased when this author
         # is removed
-        higher_authors = authors.filter(display_order__gt=author.display_order)
+        higher_authors = authors.filter(display_order__gt=rm_author.display_order)
         rm_author.delete()
         if higher_authors:
             for author in higher_authors:
@@ -416,7 +416,7 @@ def edit_metadata_item(request, project_slug, **kwargs):
                   'topic': Topic}
     # Whether the item relation is generic
     is_generic_relation = {'reference': True, 'publication':True,
-                           'topic': False}
+                           'topic': True}
 
     custom_formsets = {'reference':forms.ReferenceFormSet,
                        'publication':forms.PublicationFormSet,
@@ -521,19 +521,15 @@ def project_access(request, project_slug, **kwargs):
         'admin_inspect':kwargs['admin_inspect']})
 
 
-@authorization_required(auth_functions=(is_author, is_admin))
-def project_identifiers(request, project_slug):
+@project_auth(auth_mode=0)
+def project_identifiers(request, project_slug, **kwargs):
     """
     Page to edit external project identifiers
 
     """
-    user = request.user
-    project = ActiveProject.objects.get(slug=project_slug)
-    admin_inspect = user.is_admin and not is_author(user, project)
+    project, is_submitting, admin_inspect = (kwargs[k] for k in ('project',
+        'is_submitting', 'admin_inspect'))
 
-    # TopicFormSet = inlineformset_factory(ActiveProject, Topic,
-    #     fields=('description',), extra=0, max_num=forms.TopicFormSet.max_forms,
-    #     can_delete=False, formset=forms.TopicFormSet, validate_max=True)
     TopicFormSet = generic_inlineformset_factory(Topic,
         fields=('description',), extra=0, max_num=forms.TopicFormSet.max_forms,
         can_delete=False, formset=forms.TopicFormSet, validate_max=True)
@@ -562,7 +558,8 @@ def project_identifiers(request, project_slug):
     return render(request, 'project/project_identifiers.html',
         {'project':project, 'publication_formset':publication_formset,
          'topic_formset':topic_formset, 'add_item_url':edit_url,
-         'remove_item_url':edit_url})
+         'remove_item_url':edit_url, 'is_submitting':is_submitting,
+         'admin_inspect':admin_inspect})
 
 
 @project_auth(auth_mode=0)
@@ -571,7 +568,8 @@ def project_files_panel(request, project_slug, **kwargs):
     Return the file panel for the project, along with the forms used to
     manipulate them. Called via ajax to navigate directories.
     """
-    project = kwargs['project']
+    project, is_submitting, admin_inspect = (kwargs[k] for k in ('project',
+        'is_submitting', 'admin_inspect'))
     subdir = request.GET['subdir']
 
     display_files, display_dirs = project.get_directory_content(
@@ -596,7 +594,8 @@ def project_files_panel(request, project_slug, **kwargs):
          'create_folder_form':create_folder_form,
          'rename_item_form':rename_item_form,
          'move_items_form':move_items_form,
-         'delete_items_form':delete_items_form,})
+         'delete_items_form':delete_items_form,
+         'is_submitting':is_submitting, 'admin_inspect':admin_inspect})
 
 def process_items(request, form):
     """

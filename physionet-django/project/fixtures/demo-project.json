@@ -332,6 +332,7 @@
     "object_id": 1,
     "display_order": 1,
     "user": 2,
+    "is_submitting": true,
     "is_corresponding": true,
     "corresponding_email": 2
   }
@@ -347,6 +348,7 @@
     "object_id": 2,
     "display_order": 1,
     "user": 2,
+    "is_submitting": true,
     "is_corresponding": false,
     "corresponding_email": 2
   }
@@ -362,6 +364,7 @@
     "object_id": 3,
     "display_order": 1,
     "user": 3,
+    "is_submitting": true,
     "is_corresponding": true,
     "corresponding_email": 3
   }
@@ -392,6 +395,7 @@
     "object_id": 4,
     "display_order": 1,
     "user": 2,
+    "is_submitting": true,
     "is_corresponding": true,
     "corresponding_email": 2
   }

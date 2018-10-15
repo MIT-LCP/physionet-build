@@ -10,6 +10,7 @@ from django.utils.crypto import get_random_string
 
 from .models import (Affiliation, Author, AuthorInvitation, ActiveProject, CoreProject, StorageRequest)
 from . import utility
+from . import validators
 
 
 RESPONSE_CHOICES = (
@@ -77,15 +78,13 @@ class UploadFilesForm(ActiveProjectFilesForm):
 
     def clean_file_field(self):
         """
-        Check for file size limits and whether they are readable
+        Check for file name, size limits and whether they are readable
         """
         files = self.files.getlist('file_field')
 
         for file in files:
-            if re.match(r'(?u)[^-\w.]', file.name):
-                raise forms.ValidationError('Invalid characters in file, allowed ' \
-                    'characters are: numbers, letters, dash, underscore, or dot: %(file_name)s',
-                    params={'file_name':file.name})
+            validators.validate_filename(file.name)
+
             # Special error
             if not file:
                 raise forms.ValidationError('Could not read file: %(file_name)s',
@@ -100,7 +99,7 @@ class UploadFilesForm(ActiveProjectFilesForm):
                             'individual_size_limit':utility.readable_size(ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT)}
                 )
 
-        if sum(f.size for f in files) > self.project.storage_allowance*1024**3 - self.project.storage_used():
+        if sum(f.size for f in files) > self.project.core_project.storage_allowance*1024**2 - self.project.storage_used():
             raise forms.ValidationError(
                 'Total upload volume exceeds remaining quota',
                 code='exceed_remaining_quota',
@@ -136,14 +135,8 @@ class CreateFolderForm(ActiveProjectFilesForm):
     """
     Form for creating a new folder in a directory
     """
-    folder_name = forms.CharField(max_length=50, required=False)
-    def clean_folder_name(self):
-        data = self.cleaned_data['folder_name']
-        if re.match(r'(?u)[^-\w.]', data):
-            raise forms.ValidationError('Invalid characters in folder name, allowed ' \
-                'characters are: numbers, letters, dash, underscore, or dot: %(illegal_pattern)s',
-                params={'illegal_pattern':data})
-        return data
+    folder_name = forms.CharField(max_length=50, required=False,
+        validators=[validators.validate_filename])
 
     def clean(self):
         """
@@ -201,7 +194,8 @@ class RenameItemForm(EditItemsForm):
     """
     # The name is 'items' to override the parent class field.
     items = forms.ChoiceField(required=False)
-    new_name = forms.CharField(max_length=50, required=False)
+    new_name = forms.CharField(max_length=50, required=False,
+        validators=[validators.validate_filename])
 
     field_order = ['subdir', 'items', 'new_name']
 
@@ -213,11 +207,6 @@ class RenameItemForm(EditItemsForm):
         """
         data = self.cleaned_data['new_name']
         taken_names = utility.list_items(self.file_dir, return_separate=False)
-
-        if re.match(r'(?u)[^-\w.]', data):
-            raise forms.ValidationError('Invalid characters in filename, allowed ' \
-                'characters are: numbers, letters, dash, underscore, or dot: %(file_name)s',
-                params={'file_name':data})
 
         if data in taken_names:
             raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
@@ -232,6 +221,7 @@ class RenameItemForm(EditItemsForm):
         os.rename(os.path.join(self.file_dir, self.cleaned_data['items']),
             os.path.join(self.file_dir, self.cleaned_data['new_name']))
         return 'Your item has been renamed'
+
 
 
 class MoveItemsForm(EditItemsForm):
@@ -488,7 +478,7 @@ class TopicFormSet(BaseGenericInlineFormSet):
     """
     Formset for adding a ActiveProject's topics
     """
-    form_name = 'topics'
+    form_name = 'project-topic-content_type-object_id'
     item_label = 'Topics'
     max_forms = 20
 
@@ -584,8 +574,8 @@ class StorageRequestForm(forms.ModelForm):
         """
         data = self.cleaned_data['request_allowance']
         # Comparing GB form field to MB model field
-        if data * 1024 <= self.project.storage_allowance:
-            raise forms.ValidationError('ActiveProject already has the requested allowance.',
+        if data * 1024 <= self.project.core_project.storage_allowance:
+            raise forms.ValidationError('Project already has the requested allowance.',
                 code='already_has_allowance')
 
         return data

@@ -28,7 +28,7 @@
             <tr>
               <td><a href="{% url 'project_overview' storage_response_form.instance.project.slug %}">{{ storage_response_form.instance.project.title }}</a></td>
               <td>{{ storage_response_form.instance.request_allowance }}</td>
-              <td>{{ storage_response_form.instance.project.storage_allowance|mb_to_gb }}</td>
+              <td>{{ storage_response_form.instance.project.core_project.storage_allowance|mb_to_gb }}</td>
               <td>{{ storage_response_form.instance.request_datetime|date }}</td>
               <td><button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#storage-response-modal-{{ storage_response_form.instance.id }}">Respond</button></td>
             </tr>

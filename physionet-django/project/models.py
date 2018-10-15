@@ -44,7 +44,6 @@ class BaseAuthor(models.Model):
     is_submitting = models.BooleanField(default=False)
     is_corresponding = models.BooleanField(default=False)
 
-
     class Meta:
         abstract = True
 
@@ -52,10 +51,9 @@ class BaseAuthor(models.Model):
         return ', '.join([a.name for a in self.affiliations.all()])
 
 
-
 class Author(BaseAuthor):
     """
-    The author model for BaseProject/ActiveProject
+    The author model for ArchivedProject/ActiveProject
     """
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
@@ -116,7 +114,6 @@ class Topic(models.Model):
     """
     Topic information to tag ActiveProject/ArchivedProject
     """
-
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     project = GenericForeignKey('content_type', 'object_id')
@@ -359,7 +356,7 @@ class ActiveProject(Metadata):
         """
         Return queryset of non-submitting authors
         """
-        return self.authors.exclude(user=self.submitting_author)
+        return self.authors.filter(is_submitting=False)
 
     def get_coauthor_info(self):
         """
@@ -371,7 +368,8 @@ class ActiveProject(Metadata):
         """
         Return the email and name of the submitting author
         """
-        return self.submitting_author().email, self.submitting_author().get_full_name()
+        user = self.submitting_author().user
+        return user.email, user.get_full_name()
 
     def get_author_info(self):
         """
