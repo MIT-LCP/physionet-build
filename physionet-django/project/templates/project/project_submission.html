@@ -70,17 +70,17 @@
   <div class="card">
     <div class="card-header"><h4>Timeline and Status</h4></div>
     <ul class="list-group list-group-flush">
-      <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The project was submitted for review on {{ submission.submission_datetime|date }}.</li>
+      <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The project was submitted for review on {{ submission_log.submission_datetime|date }}.</li>
       {% if submission.editor %}
-        <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The editor for the submission is: {{ submission.editor.disp_name_email }}</li>
+        <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The editor for the submission is: {{ submission_log.editor.disp_name_email }}</li>
       {% else %}
         <li class="list-group-item"><i class="far fa-clock"></i> Waiting for editor to be assigned.</li>
       {% endif %}
-      {% if submission.status == 0 %}
+      {% if project.submission_status == 1 %}
         {% if submission.editor %}
           <li class="list-group-item"><i class="far fa-clock"></i> Waiting for editor decision.</li>
         {% endif %}
-      {% elif submission.status == 2 %}
+      {% elif project.submission_status == 2 %}
         <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The editor has accepted the submission with revisions. The submitting author must resubmit a revised version.</li>
       {% elif submission.status >= 3 %}
         <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The editor accepted the submission on {{ submission.decision_datetime|date }}</li>

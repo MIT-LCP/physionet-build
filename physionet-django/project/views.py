@@ -799,8 +799,6 @@ def project_submission(request, project_slug, **kwargs):
         ('user', 'project', 'authors', 'is_submitting', 'admin_inspect'))
 
     if request.method == 'POST':
-        if project.under_submission():
-            submission = project.submissions.get(is_active=True)
         # ActiveProject is submitted for review
         if 'submit_project' in request.POST and not project.under_submission() and is_submitting:
             if project.is_submittable():

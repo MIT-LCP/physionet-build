@@ -23,10 +23,10 @@
           </tr>
         </thead>
         <tbody>
-        {% for submission in submissions %}
+        {% for submission_log in submission_logs %}
           <tr>
-            <td>{{ submission.id }}</td>
-            <td><a href="{% url 'project_overview' submission.project.slug %}">{{ submission.project }}</a></td>
+            <td>{{ submission_log.id }}</td>
+            <td><a href="{% url 'project_overview' submission_log.project.slug %}">{{ submission_log.project }}</a></td>
             <td><a href="{% url 'public_profile' submission.project.submitting_author.username %}">{{ submission.project.submitting_author.username }}</a> - {{ submission.project.submitting_author.email }}</td>
             <td>{{ submission.status }}</td>
             <td>{{ submission.submission_datetime|date }}</td>

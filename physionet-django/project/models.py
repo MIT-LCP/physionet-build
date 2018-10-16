@@ -468,7 +468,7 @@ class ActiveProject(Metadata, UnpublishedProject):
         self.submission_status = 1
         self.save()
         # Create the submission log
-        SubmissionLog.objects.create(project=project)
+        SubmissionLog.objects.create(project=self)
 
     def is_publishable(self):
         """

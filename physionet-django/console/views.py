@@ -43,8 +43,8 @@ def active_submissions(request):
             notification.assign_editor_notify(submission)
             messages.success(request, 'The editor has been assigned')
 
-    submissions = SubmissionLog.objects.filter(is_active=True).order_by('status')
-    n_active = len(submissions)
+    projects = ActiveProject.objects.filter(submission_status__gt=0).order_by('submission_status')
+    n_active = len(projects)
     n_awaiting_editor = submissions.filter(status=0, editor__isnull=True).count()
     n_awaiting_decision = submissions.filter(status=0, editor__isnull=False).count()
     n_awaiting_copyedit = submissions.filter(status=3).count()
