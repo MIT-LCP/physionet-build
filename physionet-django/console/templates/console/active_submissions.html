@@ -5,61 +5,24 @@
 {% block content %}
 {% include "message_snippet.html" %}
 
-<div class="card mb-3">
+<div class="card">
   <div class="card-header">
-    1. Awaiting Editor Assignment - {{ n_awaiting_editor }}
-  </div>
-  <div class="card-body">
-    <div class="table-responsive">
-      <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-        <thead>
-          <tr>
-            <th>Project</th>
-            <th>Submitting Author</th>
-            <th>Submission Status <a data-toggle="modal" data-target="#submissionStatusModal" href="#"><i class="fas fa-question-circle"></i></a></th>
-            <th>Submission Date</th>
-            <th>Editor</th>
-          </tr>
-        </thead>
-        <tbody>
-        {% for project in projects %}
-          <tr>
-            <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
-            <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author.user.username }}</a> - {{ project.submitting_author.user.email }}</td>
-            <td>{{ project.status }}</td>
-            <td>{{ project.submission_datetime|date }}</td>
-            <td>
-              {% if project.editor %}
-                {{ project.editor }}
-              {% else %}
-                <a style="color:red">Awaiting Editor Assignment</a>
-              {% endif %}
-            </td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    <br>
-    <br>
-    <br>
-    <br>
-    <h3>Active Submissions: {{ n_active }}</h3>
-    <ul>
-      <li>Awaiting editor assigment: {{ n_awaiting_editor }}</li>
-      <li>Awaiting editor decision: {{ n_awaiting_decision }}</li>
-      <li>Awaiting copyedit: {{ n_awaiting_copyedit }}</li>
-      <li>Awaiting publication: {{ n_awaiting_publish }}</li>
+    <ul class="nav nav-tabs card-header-tabs">
+      <li class="nav-item">
+        <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">1. Awaiting Editor Assigment</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false">2. Awaiting Decision</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="contact-tab" data-toggle="tab" href="#contact" role="tab" aria-controls="contact" aria-selected="false">3. Awaiting Copyedit</a>
+      </li>
     </ul>
   </div>
-</div>
-
-<div class="card mb-3">
-  <div class="card-header">
-    2. Awaiting Editor Decision - {{ n_awaiting_decision }}
-  </div>
   <div class="card-body">
-    <div class="table-responsive">
+    <div class="tab-content" id="myTabContent">
+      <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+            <div class="table-responsive">
       <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
         <thead>
           <tr>
@@ -89,50 +52,20 @@
         </tbody>
       </table>
     </div>
-  </div>
-</div>
-
-
-<div class="card mb-3">
-  <div class="card-header">
-    3. Awaiting Copyedits - {{ n_awaiting_copyedit }}
-  </div>
-  <div class="card-body">
-    <div class="table-responsive">
-      <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-        <thead>
-          <tr>
-            <th>Project</th>
-            <th>Submitting Author</th>
-            <th>Submission Status <a data-toggle="modal" data-target="#submissionStatusModal" href="#"><i class="fas fa-question-circle"></i></a></th>
-            <th>Submission Date</th>
-            <th>Editor</th>
-          </tr>
-        </thead>
-        <tbody>
-        {% for project in projects %}
-          <tr>
-            <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
-            <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author.user.username }}</a> - {{ project.submitting_author.user.email }}</td>
-            <td>{{ project.status }}</td>
-            <td>{{ project.submission_datetime|date }}</td>
-            <td>
-              {% if project.editor %}
-                {{ project.editor }}
-              {% else %}
-                <a style="color:red">Awaiting Editor Assignment</a>
-              {% endif %}
-            </td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
+      </div>
+      <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">Mate</div>
+      <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">Go</div>
     </div>
   </div>
 </div>
 
-
-{% include "console/submission_status_modal.html" %}
+<br><br><br>
+<br><br><br>
+<br><br><br>
+<br><br><br>
+<br><br><br>
+<br><br><br>
+<br><br><br>
 
 <div class="card mb-3">
     <div class="card-header">
