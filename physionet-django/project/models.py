@@ -470,6 +470,15 @@ class ActiveProject(Metadata, UnpublishedProject):
         # Create the submission log
         SubmissionLog.objects.create(project=self)
 
+    def set_submission_info(self):
+        """
+        Set attributes regarding its submission information
+        """
+        submission_log = self.submission_log.get()
+        self.editor = submission_log.editor
+        self.submission_datetime = submission_log.submission_datetime
+        self.submitting_author = self.submitting_author()
+
     def is_publishable(self):
         """
         Check whether a project may be published

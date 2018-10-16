@@ -1,20 +1,19 @@
 {% extends "console/base_console.html" %}
 
-{% block title %}Active Submissions{% endblock %}
+{% block title %}Ongoing Submissions{% endblock %}
 
 {% block content %}
 {% include "message_snippet.html" %}
 
 <div class="card mb-3">
   <div class="card-header">
-      <i class="fas fa-clipboard-list"></i> Active Submissions
+    1. Awaiting Editor Assignment - {{ n_awaiting_editor }}
   </div>
   <div class="card-body">
     <div class="table-responsive">
       <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
         <thead>
           <tr>
-            <th>Submission ID</th>
             <th>Project</th>
             <th>Submitting Author</th>
             <th>Submission Status <a data-toggle="modal" data-target="#submissionStatusModal" href="#"><i class="fas fa-question-circle"></i></a></th>
@@ -23,16 +22,15 @@
           </tr>
         </thead>
         <tbody>
-        {% for submission_log in submission_logs %}
+        {% for project in projects %}
           <tr>
-            <td>{{ submission_log.id }}</td>
-            <td><a href="{% url 'project_overview' submission_log.project.slug %}">{{ submission_log.project }}</a></td>
-            <td><a href="{% url 'public_profile' submission.project.submitting_author.username %}">{{ submission.project.submitting_author.username }}</a> - {{ submission.project.submitting_author.email }}</td>
-            <td>{{ submission.status }}</td>
-            <td>{{ submission.submission_datetime|date }}</td>
+            <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
+            <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author.user.username }}</a> - {{ project.submitting_author.user.email }}</td>
+            <td>{{ project.status }}</td>
+            <td>{{ project.submission_datetime|date }}</td>
             <td>
-              {% if submission.editor %}
-                {{ submission.editor }}
+              {% if project.editor %}
+                {{ project.editor }}
               {% else %}
                 <a style="color:red">Awaiting Editor Assignment</a>
               {% endif %}
@@ -43,6 +41,9 @@
       </table>
     </div>
     <br>
+    <br>
+    <br>
+    <br>
     <h3>Active Submissions: {{ n_active }}</h3>
     <ul>
       <li>Awaiting editor assigment: {{ n_awaiting_editor }}</li>
@@ -52,6 +53,84 @@
     </ul>
   </div>
 </div>
+
+<div class="card mb-3">
+  <div class="card-header">
+    2. Awaiting Editor Decision - {{ n_awaiting_decision }}
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+        <thead>
+          <tr>
+            <th>Project</th>
+            <th>Submitting Author</th>
+            <th>Submission Status <a data-toggle="modal" data-target="#submissionStatusModal" href="#"><i class="fas fa-question-circle"></i></a></th>
+            <th>Submission Date</th>
+            <th>Editor</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for project in projects %}
+          <tr>
+            <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
+            <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author.user.username }}</a> - {{ project.submitting_author.user.email }}</td>
+            <td>{{ project.status }}</td>
+            <td>{{ project.submission_datetime|date }}</td>
+            <td>
+              {% if project.editor %}
+                {{ project.editor }}
+              {% else %}
+                <a style="color:red">Awaiting Editor Assignment</a>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+
+<div class="card mb-3">
+  <div class="card-header">
+    3. Awaiting Copyedits - {{ n_awaiting_copyedit }}
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+        <thead>
+          <tr>
+            <th>Project</th>
+            <th>Submitting Author</th>
+            <th>Submission Status <a data-toggle="modal" data-target="#submissionStatusModal" href="#"><i class="fas fa-question-circle"></i></a></th>
+            <th>Submission Date</th>
+            <th>Editor</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for project in projects %}
+          <tr>
+            <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
+            <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author.user.username }}</a> - {{ project.submitting_author.user.email }}</td>
+            <td>{{ project.status }}</td>
+            <td>{{ project.submission_datetime|date }}</td>
+            <td>
+              {% if project.editor %}
+                {{ project.editor }}
+              {% else %}
+                <a style="color:red">Awaiting Editor Assignment</a>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 
 {% include "console/submission_status_modal.html" %}
 

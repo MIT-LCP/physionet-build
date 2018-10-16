@@ -44,16 +44,21 @@ def active_submissions(request):
             messages.success(request, 'The editor has been assigned')
 
     projects = ActiveProject.objects.filter(submission_status__gt=0).order_by('submission_status')
+    for p in projects:
+        p.set_submission_info()
+
+
     n_active = len(projects)
-    n_awaiting_editor = submissions.filter(status=0, editor__isnull=True).count()
-    n_awaiting_decision = submissions.filter(status=0, editor__isnull=False).count()
-    n_awaiting_copyedit = submissions.filter(status=3).count()
-    n_awaiting_publish = submissions.filter(status=5).count()
+    n_awaiting_editor = projects.filter(submission_status=1).count()
+    n_awaiting_decision = projects.filter(submission_status=2).count()
+    n_awaiting_copyedit = projects.filter(submission_status=3).count()
+    n_awaiting_publish = projects.filter(submission_status=5).count()
 
     assign_editor_form = forms.AssignEditorForm()
 
     return render(request, 'console/active_submissions.html',
-        {'submissions':submissions, 'assign_editor_form':assign_editor_form,
+        {'projects':projects,
+         'assign_editor_form':assign_editor_form,
          'n_active':n_active, 'n_awaiting_editor':n_awaiting_editor,
          'n_awaiting_decision':n_awaiting_decision,
          'n_awaiting_copyedit':n_awaiting_copyedit,
