@@ -78,8 +78,8 @@ class User(AbstractBaseUser):
 
     email = models.EmailField(max_length=255, unique=True,
         validators=[validate_unique_email, EmailValidator()])
-    username = models.CharField(max_length=150, unique=True,
-        help_text='Required. 150 characters or fewer. Letters, digits and - only.',
+    username = models.CharField(max_length=50, unique=True,
+        help_text='Required. 4 to 50 characters. Letters, digits and - only. Must start with a letter.',
         validators=[UsernameValidator()],
         error_messages={
             'unique': "A user with that username already exists."})

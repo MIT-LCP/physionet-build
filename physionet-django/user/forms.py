@@ -136,7 +136,7 @@ class ProfileForm(forms.ModelForm):
                 raise forms.ValidationError('Exceeded maximum size: {0}'.format(Profile.MAX_PHOTO_SIZE))
             if data.content_type not in ['image/png', 'image/jpeg', 'image/jpg']:
                 raise forms.ValidationError('Filetype not supported. Please use png or jpeg')
- 
+
         # Save the existing file path in case it needs to be deleted.
         # After is_valid runs, the instance photo is already updated.
         if self.instance.photo:
@@ -173,7 +173,7 @@ class UserCreationForm(forms.ModelForm):
         model = User
         fields = ('email','username',)
         widgets = {
-            'email':forms.EmailInput(attrs={'class':'form-control dropemail', 
+            'email':forms.EmailInput(attrs={'class':'form-control dropemail',
                 'validators':[EmailValidator]}),
             'username':forms.TextInput(attrs={'class':'form-control'}),
         }

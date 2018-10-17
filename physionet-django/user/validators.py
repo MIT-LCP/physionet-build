@@ -130,9 +130,8 @@ class MixedCharacterValidator(AlphabeticRequirementValidator,
         )
 
 class UsernameValidator(UnicodeUsernameValidator):
-    regex = r'^[a-zA-Z0-9-]+$'
+    regex = r'^[a-zA-Z][a-zA-Z0-9-]{3,49}$'
     message = _(
-        'Enter a valid username. This value may contain only letters, '
-                "numbers, and - character.")
+        'The username must contain 4 to 50 characters. Letters, digits and - only. Must start with a letter.')
 
 
