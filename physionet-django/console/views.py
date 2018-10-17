@@ -52,8 +52,6 @@ def submitted_projects(request):
     b_projects = projects.filter(submission_status=2)
     c_projects = projects.filter(submission_status=3)
 
-
-
     n_active = len(projects)
     n_awaiting_editor = projects.filter(submission_status=1).count()
     n_awaiting_decision = projects.filter(submission_status=2).count()
@@ -62,7 +60,7 @@ def submitted_projects(request):
 
     assign_editor_form = forms.AssignEditorForm()
 
-    return render(request, 'console/active_submissions.html',
+    return render(request, 'console/submitted_projects.html',
         {'projects':projects,
          'assign_editor_form':assign_editor_form,
          'a_projects':a_projects,

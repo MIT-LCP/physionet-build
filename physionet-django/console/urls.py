@@ -5,7 +5,7 @@ from . import views
 urlpatterns = [
     url(r'^$', views.console_home,
         name='console_home'),
-    url(r'^active-submissions/$', views.submitted_projects,
+    url(r'^submitted-projects/$', views.submitted_projects,
         name='submitted_projects'),
     url(r'^editing-submissions/$', views.editing_submissions,
         name='editing_submissions'),
