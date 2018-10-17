@@ -1,0 +1,15 @@
+{% extends "user/settings.html" %}
+
+{% block title %}
+Edit Username
+{% endblock %}
+
+{% block main_content %}
+
+<form action="{% url 'edit_username' %}" method="post" class="form-signin">
+  <h2 class="form-signin-heading">Edit Username</h2>
+  <hr>
+  {% include "inline_form_snippet.html" %}
+  <button class="btn btn-primary btn-custom" type="submit">Update Username</button>
+</form>
+{% endblock %}

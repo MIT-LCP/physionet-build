@@ -113,9 +113,7 @@
     "creation_datetime": "2017-10-30T14:30:30Z",
     "modified_datetime": "2018-09-13T17:26:24.820Z",
     "storage_allowance": 100,
-    "submitting_author": [
-      "rgmark@mit.edu"
-    ],
+    "submitting_author": 2,
     "published": false,
     "under_submission": false,
     "data_use_agreement": null,
@@ -142,9 +140,7 @@
     "creation_datetime": "2017-10-30T14:30:30Z",
     "modified_datetime": "2018-09-13T17:23:44.820Z",
     "storage_allowance": 100,
-    "submitting_author": [
-      "rgmark@mit.edu"
-    ],
+    "submitting_author": 2,
     "published": false,
     "under_submission": false,
     "data_use_agreement": 1,
@@ -171,9 +167,7 @@
     "creation_datetime": "2017-10-30T14:30:30Z",
     "modified_datetime": "2017-10-30T14:30:30Z",
     "storage_allowance": 100,
-    "submitting_author": [
-      "george@mit.edu"
-    ],
+    "submitting_author": 3,
     "published": false,
     "under_submission": false,
     "data_use_agreement": null,
@@ -200,9 +194,7 @@
     "creation_datetime": "2018-07-23T21:48:39.068Z",
     "modified_datetime": "2018-07-23T22:03:10.736Z",
     "storage_allowance": 100,
-    "submitting_author": [
-      "rgmark@mit.edu"
-    ],
+    "submitting_author": 2,
     "published": false,
     "under_submission": false,
     "data_use_agreement": 1,
@@ -249,9 +241,7 @@
     "is_active": true,
     "project": 2,
     "email": "george@mit.edu",
-    "inviter": [
-      "rgmark@mit.edu"
-    ]
+    "inviter": 2
   }
 },
 {
@@ -264,9 +254,7 @@
     "is_active": true,
     "project": 2,
     "email": "george@gmail.com",
-    "inviter": [
-      "rgmark@mit.edu"
-    ]
+    "inviter": 2
   }
 },
 {
@@ -307,9 +295,7 @@
     "middle_names": "Greenwood",
     "last_name": "Mark",
     "display_order": 1,
-    "user": [
-      "rgmark@mit.edu"
-    ],
+    "user": 2,
     "is_corresponding": true,
     "corresponding_email": 2
   }
@@ -324,9 +310,7 @@
     "middle_names": "Greenwood",
     "last_name": "Mark",
     "display_order": 1,
-    "user": [
-      "rgmark@mit.edu"
-    ],
+    "user": 2,
     "is_corresponding": false,
     "corresponding_email": 2
   }
@@ -341,9 +325,7 @@
     "middle_names": "",
     "last_name": "Moody",
     "display_order": 1,
-    "user": [
-      "george@mit.edu"
-    ],
+    "user": 3,
     "is_corresponding": true,
     "corresponding_email": 3
   }
@@ -358,9 +340,7 @@
     "middle_names": "Edward William",
     "last_name": "Johnson",
     "display_order": 2,
-    "user": [
-      "aewj@mit.edu"
-    ],
+    "user": 4,
     "is_corresponding": true,
     "corresponding_email": 7
   }
@@ -375,9 +355,7 @@
     "middle_names": "",
     "last_name": "Mark",
     "display_order": 1,
-    "user": [
-      "rgmark@mit.edu"
-    ],
+    "user": 2,
     "is_corresponding": true,
     "corresponding_email": 2
   }

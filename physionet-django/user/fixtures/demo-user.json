@@ -55,9 +55,7 @@
   "model": "user.associatedemail",
   "pk": 1,
   "fields": {
-    "user": [
-      "admin@mit.edu"
-    ],
+    "user": 1,
     "email": "admin@mit.edu",
     "is_primary_email": true,
     "added_date": "2018-03-28T16:06:29.431Z",
@@ -70,9 +68,7 @@
   "model": "user.associatedemail",
   "pk": 2,
   "fields": {
-    "user": [
-      "rgmark@mit.edu"
-    ],
+    "user": 2,
     "email": "rgmark@mit.edu",
     "is_primary_email": true,
     "added_date": "2018-03-28T16:06:29.433Z",
@@ -85,9 +81,7 @@
   "model": "user.associatedemail",
   "pk": 3,
   "fields": {
-    "user": [
-      "george@mit.edu"
-    ],
+    "user": 3,
     "email": "george@mit.edu",
     "is_primary_email": true,
     "added_date": "2018-03-28T16:06:29.436Z",
@@ -100,9 +94,7 @@
   "model": "user.associatedemail",
   "pk": 4,
   "fields": {
-    "user": [
-      "admin@mit.edu"
-    ],
+    "user": 1,
     "email": "admin2@mit.edu",
     "is_primary_email": false,
     "added_date": null,
@@ -115,9 +107,7 @@
   "model": "user.associatedemail",
   "pk": 5,
   "fields": {
-    "user": [
-      "admin@mit.edu"
-    ],
+    "user": 1,
     "email": "admin3@mit.edu",
     "is_primary_email": false,
     "added_date": null,
@@ -130,9 +120,7 @@
   "model": "user.associatedemail",
   "pk": 6,
   "fields": {
-    "user": [
-      "george@mit.edu"
-    ],
+    "user": 3,
     "email": "george@gmail.com",
     "is_primary_email": false,
     "added_date": "2018-03-28T17:17:14.082Z",
@@ -145,9 +133,7 @@
   "model": "user.associatedemail",
   "pk": 7,
   "fields": {
-    "user": [
-      "aewj@mit.edu"
-    ],
+    "user": 4,
     "email": "aewj@mit.edu",
     "is_primary_email": true,
     "added_date": "2018-03-30T19:36:57.684Z",
@@ -160,9 +146,7 @@
   "model": "user.profile",
   "pk": 1,
   "fields": {
-    "user": [
-      "admin@mit.edu"
-    ],
+    "user": 1,
     "first_name": "Admin",
     "middle_names": "",
     "last_name": "Bot",
@@ -178,9 +162,7 @@
   "model": "user.profile",
   "pk": 2,
   "fields": {
-    "user": [
-      "rgmark@mit.edu"
-    ],
+    "user": 2,
     "first_name": "Roger",
     "middle_names": "Greenwood",
     "last_name": "Mark",
@@ -196,9 +178,7 @@
   "model": "user.profile",
   "pk": 3,
   "fields": {
-    "user": [
-      "george@mit.edu"
-    ],
+    "user": 3,
     "first_name": "George",
     "middle_names": "",
     "last_name": "Moody",
@@ -214,9 +194,7 @@
   "model": "user.profile",
   "pk": 4,
   "fields": {
-    "user": [
-      "aewj@mit.edu"
-    ],
+    "user": 4,
     "first_name": "Alistair",
     "middle_names": "Edward William",
     "last_name": "Johnson",
