@@ -10,59 +10,31 @@
   </button>
 
   <div class="collapse navbar-collapse" id="navbarResponsive">
-
     <ul class="navbar-nav navbar-sidenav" id="sideAccordion">
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
-        <a class="nav-link" href="{% url 'active_submissions' %}">
-          <i class="fas fa-clipboard-list"></i></i></i>
-          <span class="nav-link-text">Active Submissions</span>
-        </a>
-      </li>
-      <li class="nav-item" data-toggle="tooltip" data-placement="right">
         <a class="nav-link" href="{% url 'editing_submissions' %}">
           <i class="fas fa-glasses"></i>
           <span class="nav-link-text">Editor Home</span>
         </a>
       </li>
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
-        <a class="nav-link" href="{% url 'editing_submissions' %}">
-          <i class="fas fa-glasses"></i>
-          <span class="nav-link-text">Editor Home</span>
+        <a class="nav-link" href="{% url 'unsubmitted_projects' %}">
+          <i class="fas fa-gavel"></i>
+          <span class="nav-link-text">Unsubmitted Projects</span>
         </a>
       </li>
 
-
-
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
-        <a class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#collapseProjects" data-parent="#sideAccordion">
-          <i class="fas fa-archive"></i>
-          <span class="nav-link-text">All Projects</span>
+        <a class="nav-link" href="{% url 'submitted_projects' %}">
+          <i class="fas fa-clipboard-list"></i>
+          <span class="nav-link-text">Submitted Projects</span>
         </a>
-        <ul class="sidenav-second-level collapse" id="collapseProjects">
-          <li>
-            <a href="#">Active Unsubmitted</a>
-          </li>
-          <li>
-            <a class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#collapseSubmitted" data-parent="#collapseProjects">Active Submitted</a>
-            <ul class="sidenav-third-level collapse" id="collapseSubmitted">
-              <li>
-                <a href="#">1. Awaiting Assignment</a>
-              </li>
-              <li>
-                <a href="#">2. Awaiting Decision</a>
-              </li>
-              <li>
-                <a href="#">3. Awaiting Copyedits</a>
-              </li>
-              <li>
-                <a href="#">4. Awaiting Publish</a>
-              </li>
-            </ul>
-          </li>
-          <li>
-            <a href="#">Published</a>
-          </li>
-        </ul>
+      </li>
+      <li class="nav-item" data-toggle="tooltip" data-placement="right">
+        <a class="nav-link" href="{% url 'unsubmitted_projects' %}">
+          <i class="fas fa-book-open"></i>
+          <span class="nav-link-text">Published Projects</span>
+        </a>
       </li>
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
         <a class="nav-link" href="{% url 'storage_requests' %}">

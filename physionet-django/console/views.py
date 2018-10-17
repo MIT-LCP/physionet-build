@@ -25,12 +25,12 @@ def is_admin(user, *args, **kwargs):
 @login_required
 @user_passes_test(is_admin)
 def console_home(request):
-    return redirect('active_submissions')
+    return redirect('submitted_projects')
 
 
 @login_required
 @user_passes_test(is_admin)
-def active_submissions(request):
+def submitted_projects(request):
     """
     List of active submissions. Editors are assigned here.
     """
@@ -225,14 +225,14 @@ def storage_requests(request):
 
 @login_required
 @user_passes_test(is_admin)
-def project_list(request):
+def unsubmitted_projects(request):
     """
-    View list of projects
+    List of unsubmitted projects
     """
-    projects = ActiveProject.objects.all()
-
+    projects = ActiveProject.objects.filter(submission_status=0)
     # title, submitting author, creation date, published,
-    return render(request, 'console/project_list.html', {'projects':projects})
+    return render(request, 'console/unsubmitted_projects.html',
+        {'projects':projects})
 
 
 @login_required

@@ -477,6 +477,9 @@ class ActiveProject(Metadata, UnpublishedProject):
         self.submission_datetime = submission_log.submission_datetime
         self.submitting_author = self.submitting_author()
 
+    def set_submitting_author(self):
+        self.submitting_author = self.submitting_author()
+
     def is_publishable(self):
         """
         Check whether a project may be published

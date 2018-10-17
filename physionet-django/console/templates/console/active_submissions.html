@@ -1,6 +1,6 @@
 {% extends "console/base_console.html" %}
 
-{% block title %}Ongoing Submissions{% endblock %}
+{% block title %}Submitted Projects{% endblock %}
 
 {% block content %}
 {% include "message_snippet.html" %}
@@ -53,9 +53,6 @@
                 </tr>
               {% endfor %}
               </tbody>
-              <tfoot>
-                <tr><td>Total: {{ a_projects|length }} / {{ projects|length }}</td></tr>
-              </tfoot>
             </table>
           </div>
           {# Assign editor modal #}
