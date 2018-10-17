@@ -9,87 +9,102 @@
   <div class="card-header">
     <ul class="nav nav-tabs card-header-tabs">
       <li class="nav-item">
-        <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">1. Awaiting Editor Assigment</a>
+        <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">a. Awaiting Editor Assigment <span class="badge badge-pill badge-{% if a_projects %}danger{% else %}success{% endif %}">{{ a_projects|length }}</span></a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false">2. Awaiting Decision</a>
+        <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false">b. Awaiting Decision <span class="badge badge-pill badge-{% if b_projects %}danger{% else %}success{% endif %}">{{ b_projects|length }}</span></a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" id="contact-tab" data-toggle="tab" href="#contact" role="tab" aria-controls="contact" aria-selected="false">3. Awaiting Copyedit</a>
+        <a class="nav-link" id="contact-tab" data-toggle="tab" href="#contact" role="tab" aria-controls="contact" aria-selected="false">c. Awaiting Revisions <span class="badge badge-pill badge-{% if c_projects %}danger{% else %}success{% endif %}">{{ c_projects|length }}</span></a></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="contact-tab" data-toggle="tab" href="#contact" role="tab" aria-controls="contact" aria-selected="false">d. Awaiting Copyedit <span class="badge badge-pill badge-{% if d_projects %}danger{% else %}success{% endif %}">{{ d_projects|length }}</span></a></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="contact-tab" data-toggle="tab" href="#contact" role="tab" aria-controls="contact" aria-selected="false">e. Awaiting Approval <span class="badge badge-pill badge-{% if e_projects %}danger{% else %}success{% endif %}">{{ e_projects|length }}</span></a></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="contact-tab" data-toggle="tab" href="#contact" role="tab" aria-controls="contact" aria-selected="false">f. Awaiting Publish <span class="badge badge-pill badge-{% if f_projects %}danger{% else %}success{% endif %}">{{ f_projects|length }}</span></a></a>
       </li>
     </ul>
   </div>
   <div class="card-body">
+    {# a. Awaiting editor assignment #}
     <div class="tab-content" id="myTabContent">
       <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
-            <div class="table-responsive">
-      <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-        <thead>
-          <tr>
-            <th>Project</th>
-            <th>Submitting Author</th>
-            <th>Submission Status <a data-toggle="modal" data-target="#submissionStatusModal" href="#"><i class="fas fa-question-circle"></i></a></th>
-            <th>Submission Date</th>
-            <th>Editor</th>
-          </tr>
-        </thead>
-        <tbody>
-        {% for project in projects %}
-          <tr>
-            <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
-            <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author.user.username }}</a> - {{ project.submitting_author.user.email }}</td>
-            <td>{{ project.status }}</td>
-            <td>{{ project.submission_datetime|date }}</td>
-            <td>
-              {% if project.editor %}
-                {{ project.editor }}
-              {% else %}
-                <a style="color:red">Awaiting Editor Assignment</a>
-              {% endif %}
-            </td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-    </div>
+        {% if a_projects %}
+          <p><button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#exampleModal">
+        Assign Editor</button></p>
+          <div class="table-responsive">
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+              <thead>
+                <tr>
+                  <th>Project</th>
+                  <th>Submitting Author</th>
+                  <th>Submission Date</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for project in a_projects %}
+                <tr>
+                  <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
+                  <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author.user.username }}</a> - {{ project.submitting_author.user.email }}</td>
+                  <td>{{ project.submission_datetime|date }}</td>
+                </tr>
+              {% endfor %}
+              </tbody>
+              <tfoot>
+                <tr><td>Total: {{ a_projects|length }} / {{ projects|length }}</td></tr>
+              </tfoot>
+            </table>
+          </div>
+          {# Assign editor modal #}
+          <div class="modal" tabindex="-1" role="dialog" id="exampleModal">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">Assign Editor</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <form action="" method="post" class="form-signin">
+                    {% csrf_token %}
+                    {% include "form_snippet.html" with form=assign_editor_form %}
+                  </form>
+                </div>
+                <div class="modal-footer">
+                  <button class="btn btn-primary btn-fixed" name="assign_editor" type="submit">Assign Editor</button>
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% else %}
+          <p><i class="fas fa-check" style="color:green"></i> No projects to show.</p>
+        {% endif %}
       </div>
-      <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">Mate</div>
-      <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">Go</div>
+      {# Awaiting decision #}
+      <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+        {% if b_projects %}
+        {% else %}
+          <p><i class="fas fa-check" style="color:green"></i> No projects to show.</p>
+        {% endif %}
+      </div>
+
+      {# Awaiting copyedit #}
+      <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">Go
+      </div>
     </div>
   </div>
 </div>
 
-<br><br><br>
-<br><br><br>
-<br><br><br>
-<br><br><br>
-<br><br><br>
-<br><br><br>
-<br><br><br>
 
-<div class="card mb-3">
-    <div class="card-header">
-      <i class="fa fa-bar-chart"></i> Assign Editor</div>
-    <div class="card-body">
-      <p>
-        {% if not n_awaiting_editor %}
-          <i style="color:green" class="fas fa-check-circle"></i>
-        {% else %}
-          <i style="color:red" class="fas fa-exclamation-circle"></i>
-        {% endif %}
-        {% if n_awaiting_editor == 1 %}
-          There is one submission awaiting an editor.
-        {% else %}
-          There are {{ n_awaiting_editor }} submissions awaiting an editor.
-        {% endif %}
-        </p>
-      <form action="" method="post" class="form-signin">
-        {% csrf_token %}
-        {% include "form_snippet.html" with form=assign_editor_form %}
-        <button class="btn btn-primary btn-fixed" name="assign_editor" type="submit">Assign Editor</button>
-      </form>
-    </div>
-</div>
+
+
+
+
 
 {% endblock %}
 

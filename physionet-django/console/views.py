@@ -47,6 +47,12 @@ def active_submissions(request):
     for p in projects:
         p.set_submission_info()
 
+    # Separate projects by submission status
+    a_projects = projects.filter(submission_status=1)
+    b_projects = projects.filter(submission_status=2)
+    c_projects = projects.filter(submission_status=3)
+
+
 
     n_active = len(projects)
     n_awaiting_editor = projects.filter(submission_status=1).count()
@@ -59,10 +65,10 @@ def active_submissions(request):
     return render(request, 'console/active_submissions.html',
         {'projects':projects,
          'assign_editor_form':assign_editor_form,
-         'n_active':n_active, 'n_awaiting_editor':n_awaiting_editor,
-         'n_awaiting_decision':n_awaiting_decision,
-         'n_awaiting_copyedit':n_awaiting_copyedit,
-         'n_awaiting_publish':n_awaiting_publish})
+         'a_projects':a_projects,
+         'b_projects':b_projects,
+         'c_projects':c_projects,
+         })
 
 
 @login_required

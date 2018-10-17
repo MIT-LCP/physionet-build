@@ -238,7 +238,7 @@ def cancel_invitation(request, invitation_id, project, is_submitting):
     """
     if is_submitting:
         invitation = AuthorInvitation.objects.get(id=invitation_id)
-        if invidation.project == project:
+        if invitation.project == project:
             invitation.delete()
             messages.success(request, 'The invitation has been cancelled')
 

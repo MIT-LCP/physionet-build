@@ -316,11 +316,12 @@ class ActiveProject(Metadata, UnpublishedProject):
 
     The submission_status field:
     - 0 : Not submitted
-    - 1 : Submitting author submits. Awaiting editor assignment or decision.
-    - 2 : Rejected.
-    - 3 : Accept with revisions. Waiting for resubmission.
-    - 4 : Accepted. In copyedit stage. Requires author approval.
-    - 5 : Editor completes copyedit. Authors may approve.
+    - 1 : Submitting author submits. Awaiting editor assignment.
+    - 2 : Editor assigned. Awaiting editor decision.
+    - 3 : Accepted with revisions. Waiting for resubmission. Loops back
+          to 2.
+    - 4 : Accepted. In copyedit stage. Awaiting editor to copyedit.
+    - 5 : Editor completes copyedit. Awaiting authors to approve.
     - 6 : Authors approve copyedit. Ready for editor to publish
 
     """
@@ -369,10 +370,7 @@ class ActiveProject(Metadata, UnpublishedProject):
         """
         Whether the project is under submission
         """
-        if self.submission_status in [1, 3, 4, 5]:
-            return True
-        else:
-            return False
+        return bool(self.submission_status)
 
     def is_frozen(self):
         """
