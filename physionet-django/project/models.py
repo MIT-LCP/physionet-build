@@ -316,16 +316,18 @@ class ActiveProject(Metadata, UnpublishedProject):
 
     The submission_status field:
     - 0 : Not submitted
-    - 1 : Submitting author submits. Awaiting editor assignment.
-    - 2 : Editor assigned. Awaiting editor decision.
-    - 3 : Accepted with revisions. Waiting for resubmission. Loops back
-          to 2.
-    - 4 : Accepted. In copyedit stage. Awaiting editor to copyedit.
-    - 5 : Editor completes copyedit. Awaiting authors to approve.
-    - 6 : Authors approve copyedit. Ready for editor to publish
+    - 10 : Submitting author submits. Awaiting editor assignment.
+    - 20 : Editor assigned. Awaiting editor decision.
+    - 30 : Accepted with revisions. Waiting for resubmission. Loops back
+          to 20.
+    - 40 : Accepted. In copyedit stage. Awaiting editor to copyedit.
+    - 50 : Editor completes copyedit. Awaiting authors to approve.
+    - 60 : Authors approve copyedit. Ready for editor to publish
 
     """
     submission_status = models.PositiveSmallIntegerField(default=0)
+    editor = models.ForeignKey('user.User', null=True)
+    submission_datetime = models.DateTimeField(null=True)
 
     INDIVIDUAL_FILE_SIZE_LIMIT = 10 * 1024**3
 
@@ -460,25 +462,28 @@ class ActiveProject(Metadata, UnpublishedProject):
             raise Exception('ActiveProject is not submittable')
 
         # This should never be the case
-        if self.submission_log.filter():
+        if self.submission_log.filter() or self.submission_status:
             raise Exception('Duplicate submission log')
 
-        self.submission_status = 1
+        self.submission_status = 10
+        self.submission_datetime = timezone.now()
         self.save()
         # Create the submission log
         SubmissionLog.objects.create(project=self)
 
-    def set_submission_info(self):
+    def set_submitting_author(self):
         """
-        Set attributes regarding its submission information
+        Used to save query time in templates
         """
-        submission_log = self.submission_log.get()
-        self.editor = submission_log.editor
-        self.submission_datetime = submission_log.submission_datetime
         self.submitting_author = self.submitting_author()
 
-    def set_submitting_author(self):
-        self.submitting_author = self.submitting_author()
+    def assign_editor(self, editor):
+        """
+        Assign an editor to the project
+        """
+        self.editor = editor
+        self.submission_status = 20
+        self.save()
 
     def is_publishable(self):
         """

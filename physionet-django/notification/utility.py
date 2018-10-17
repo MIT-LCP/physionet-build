@@ -66,17 +66,17 @@ def submit_notify(project):
 
 # ---------- Console App ---------- #
 
-def assign_editor_notify(submission):
+def assign_editor_notify(project):
     """
     Notify authors when an editor is assigned
     """
     subject = 'Editor assigned to submission of project: {0}'.format(
-        submission.project.title)
-    for email, name in submission.project.get_author_info():
+        project.title)
+    for email, name in project.get_author_info():
         body = loader.render_to_string(
             'console/email/assign_editor_notify.html',
-            {'name':name, 'project':submission.project,
-             'editor':submission.editor})
+            {'name':name, 'project':project,
+             'editor':project.editor})
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)
 

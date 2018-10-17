@@ -1,11 +1,11 @@
 {% extends "console/base_console.html" %}
 
-{% block title %}User List{% endblock %}
+{% block title %}Users{% endblock %}
 
 {% block content %}
  <div class="card mb-3">
     <div class="card-header">
-        <i class="fa fa-user-check"></i> User List
+      <i class="fa fa-user-check"></i> PhysioNet Users <span class="badge badge-pill badge-info">{{ users|length }}</span>
     </div>
     <div class="card-body">
       <div class="table-responsive">

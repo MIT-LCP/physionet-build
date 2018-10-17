@@ -37,26 +37,20 @@ def submitted_projects(request):
     if request.method == 'POST':
         assign_editor_form = forms.AssignEditorForm(request.POST)
         if assign_editor_form.is_valid():
-            submission = assign_editor_form.cleaned_data['submission']
-            submission.editor = assign_editor_form.cleaned_data['editor']
-            submission.save()
-            notification.assign_editor_notify(submission)
+            # Move this into project method
+            project = assign_editor_form.cleaned_data['project']
+            project.assign_editor(assign_editor_form.cleaned_data['editor'])
+            notification.assign_editor_notify(project)
             messages.success(request, 'The editor has been assigned')
 
-    projects = ActiveProject.objects.filter(submission_status__gt=0).order_by('submission_status')
-    for p in projects:
-        p.set_submission_info()
+    # Need to filter this by submission datetime
+    projects = ActiveProject.objects.filter(submission_status__gt=0).order_by(
+        'submission_datetime')
 
     # Separate projects by submission status
-    a_projects = projects.filter(submission_status=1)
-    b_projects = projects.filter(submission_status=2)
-    c_projects = projects.filter(submission_status=3)
-
-    n_active = len(projects)
-    n_awaiting_editor = projects.filter(submission_status=1).count()
-    n_awaiting_decision = projects.filter(submission_status=2).count()
-    n_awaiting_copyedit = projects.filter(submission_status=3).count()
-    n_awaiting_publish = projects.filter(submission_status=5).count()
+    a_projects = projects.filter(submission_status=10)
+    b_projects = projects.filter(submission_status=20)
+    c_projects = projects.filter(submission_status=30)
 
     assign_editor_form = forms.AssignEditorForm()
 
@@ -71,15 +65,13 @@ def submitted_projects(request):
 
 @login_required
 @user_passes_test(is_admin)
-def editing_submissions(request):
+def editor_home(request):
     """
     List of submissions the editor is responsible for
     """
-    submissions = SubmissionLog.objects.filter(is_active=True,
-        editor=request.user)
-
-    return render(request, 'console/editing_submissions.html',
-        {'submissions':submissions})
+    projects = ActiveProject.objects.filter(editor=request.user)
+    return render(request, 'console/editor_home.html',
+        {'projects':projects})
 
 
 @login_required
@@ -235,9 +227,9 @@ def unsubmitted_projects(request):
 
 @login_required
 @user_passes_test(is_admin)
-def user_list(request):
+def users(request):
     """
-    View list of users
+    List of users
     """
     users = User.objects.all()
-    return render(request, 'console/user_list.html', {'users':users})
+    return render(request, 'console/users.html', {'users':users})

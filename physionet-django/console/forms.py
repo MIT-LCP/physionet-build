@@ -3,7 +3,7 @@ import pdb
 from django import forms
 from django.utils import timezone
 
-from project.models import SubmissionLog, ResubmissionLog
+from project.models import ActiveProject, SubmissionLog, ResubmissionLog
 from user.models import User
 
 
@@ -27,11 +27,12 @@ YES_NO = (
 
 class AssignEditorForm(forms.Form):
     """
-    Assign an editor to a submission
+    Assign an editor to a project under submission
     """
-    submission = forms.ModelChoiceField(queryset=SubmissionLog.objects.filter(
-        editor=None))
-    editor = forms.ModelChoiceField(queryset=User.objects.filter(is_admin=True))
+    project = forms.ModelChoiceField(queryset=ActiveProject.objects.filter(
+        submission_status=10))
+    editor = forms.ModelChoiceField(queryset=User.objects.filter(
+        is_admin=True))
 
 
 class EditSubmissionLogForm(forms.ModelForm):
