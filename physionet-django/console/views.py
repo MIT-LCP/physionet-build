@@ -48,9 +48,15 @@ def submitted_projects(request):
         'submission_datetime')
 
     # Separate projects by submission status
+    # Awaiting editor assignment
     a_projects = projects.filter(submission_status=10)
+    # Awaiting editor decision
     b_projects = projects.filter(submission_status=20)
+    # Awaiting author revisions
     c_projects = projects.filter(submission_status=30)
+    # Awaiting editor copyedit
+    # Awaiting author approval
+    # Awaiting editor publish
 
     assign_editor_form = forms.AssignEditorForm()
 
@@ -69,21 +75,25 @@ def editor_home(request):
     """
     List of submissions the editor is responsible for
     """
-    projects = ActiveProject.objects.filter(editor=request.user)
+    projects = ActiveProject.objects.filter(editor=request.user).order_by(
+        'submission_datetime')
+
+    # awaiting editor decision
+    a_projects = projects.filter(submission_status=20)
     return render(request, 'console/editor_home.html',
-        {'projects':projects})
+        {'a_projects':a_projects})
 
 
 @login_required
 @user_passes_test(is_admin)
-def edit_submission(request, submission_id):
+def edit_submission(request, project_slug):
     """
     Page to respond to a particular submission, as an editor
     """
-    submission = SubmissionLog.objects.get(id=submission_id)
-    project = submission.project
+    project = ActiveProject.objects.get(slug=project_slug)
+    submission_log = project.submission_log.get()
     # The user must be the editor
-    if request.user != submission.editor or submission.status not in [0, 2]:
+    if request.user != project.editor or project.submission_status not in [20, 30]:
         return Http404()
 
     if request.method == 'POST':
@@ -105,10 +115,10 @@ def edit_submission(request, submission_id):
                 {'decision':submission.decision,
                  'project':project, 'submission':submission})
 
-    edit_submission_form = forms.EditSubmissionLogForm()
+    edit_submission_form = forms.EditSubmissionForm(instance=submission_log)
 
     return render(request, 'console/edit_submission.html',
-        {'submission':submission, 'edit_submission_form':edit_submission_form})
+        {'project':project, 'submission_log':submission_log, 'edit_submission_form':edit_submission_form})
 
 
 @login_required

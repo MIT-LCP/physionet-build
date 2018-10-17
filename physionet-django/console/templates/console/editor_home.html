@@ -9,7 +9,7 @@
     <i class="fa fa-glasses"></i> Awaiting Your Decision <span class="badge badge-pill badge-{% if a_projects %}danger{% else %}success{% endif %}">{{ a_projects|length }}</span>
   </div>
   <div class="card-body">
-    <p>You are assigned to review the following projects.</p>
+    <p>You are assigned to edit the following projects.</p>
     {% if a_projects %}
       <div class="table-responsive">
         <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
@@ -18,14 +18,16 @@
               <th>Project</th>
               <th>Submitting Author</th>
               <th>Submission Date</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
           {% for project in a_projects %}
             <tr>
               <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
-              <td><a href="{% url 'public_profile' project.submitting_author.username %}">{{ project.submitting_author }}</a></td>
-              <td>{{ submission.submission_datetime|date }}</td>
+              <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
+              <td>{{ project.submission_datetime|date }}</td>
+              <td><a class="btn btn-primary btn-sm" href="{% url 'edit_submission' project.slug %}" role="button">Edit Project</a></td>
             </tr>
           {% endfor %}
           </tbody>
@@ -59,7 +61,7 @@
           {% for project in b_projects %}
             <tr>
               <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
-              <td><a href="{% url 'public_profile' project.submitting_author.username %}">{{ project.submitting_author }}</a></td>
+              <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
               <td>{{ submission.submission_datetime|date }}</td>
             </tr>
           {% endfor %}
@@ -158,7 +160,7 @@
               <th>Submitting Author</th>
               <th>Submission Date</th>
               <th>Editor Approval Date</th>
-              <th>Author Approval Date</th>
+              <th>Authors Approval Date</th>
             </tr>
           </thead>
           <tbody>

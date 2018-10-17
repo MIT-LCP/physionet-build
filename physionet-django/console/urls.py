@@ -7,16 +7,21 @@ urlpatterns = [
         name='console_home'),
     url(r'^editor-home/$', views.editor_home,
         name='editor_home'),
+    # Lists of projects
     url(r'^unsubmitted-projects/$', views.unsubmitted_projects,
         name='unsubmitted_projects'),
     url(r'^submitted-projects/$', views.submitted_projects,
         name='submitted_projects'),
-    url(r'^submissions/(?P<submission_id>\d+)/edit/$',
+    # published projects
+
+    # Individual edit pages
+    url(r'^submissions/(?P<project_slug>\w+)/edit/$',
         views.edit_submission, name='edit_submission'),
-    url(r'^submissions/(?P<submission_id>\d+)/copyedit/$',
+    url(r'^submissions/(?P<submission_id>\w+)/copyedit/$',
         views.copyedit_submission, name='copyedit_submission'),
-    url(r'^submissions/(?P<submission_id>\d+)/publish/$',
+    url(r'^submissions/(?P<submission_id>\w+)/publish/$',
         views.publish_submission, name='publish_submission'),
+
     url(r'^storage-requests/$', views.storage_requests,
         name='storage_requests'),
     url(r'^users/$', views.users, name='user_list'),

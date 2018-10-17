@@ -820,8 +820,7 @@ def project_submission(request, project_slug, **kwargs):
 
     if project.under_submission():
         submission_log = project.submission_log.get()
-        if not admin_inspect:
-            author = authors.get(user=user)
+        author = None if admin_inspect else authors.get(user=user)
     else:
         submission_log, author = None, None
 

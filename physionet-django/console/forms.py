@@ -20,6 +20,7 @@ SUBMISSION_RESPONSE_CHOICES = (
 )
 
 YES_NO = (
+    ('', '-----------'),
     (1, 'Yes'),
     (0, 'No')
 )
@@ -35,7 +36,7 @@ class AssignEditorForm(forms.Form):
         is_admin=True))
 
 
-class EditSubmissionLogForm(forms.ModelForm):
+class EditSubmissionForm(forms.ModelForm):
     """
     For an editor to make a decision regarding a submission.
     There is another form for responding to resubmission
@@ -43,21 +44,42 @@ class EditSubmissionLogForm(forms.ModelForm):
 
     class Meta:
         model = SubmissionLog
-        fields = ('editor_comments', 'decision',)
-        widgets= {'editor_comments':forms.Textarea(),
-                  'decision':forms.Select(choices=SUBMISSION_RESPONSE_CHOICES)}
+        fields = ('well_described', 'data_open_format',
+            'data_machine_readable', 'reusable', 'editor_comments', 'decision')
+        labels = {'well_described':'The project is well described by the metadata',
+            'data_open_format':'The data files are provided in an open format',
+            'data_machine_readable':'The data files are machine readable',
+            'reusable':'The resource is reusable by other investigators',
+            'editor_comments':'Comments to authors'}
+        widgets = {'well_described':forms.Select(choices=YES_NO),
+            'data_open_format':forms.Select(choices=YES_NO),
+            'data_machine_readable':forms.Select(choices=YES_NO),
+            'reusable':forms.Select(choices=YES_NO),
+            'editor_comments':forms.Textarea(),
+            'decision':forms.Select(choices=SUBMISSION_RESPONSE_CHOICES)}
+
+    def __init__(self, resource_type=0, *args, **kwargs):
+        """
+        Set the choice fields to required
+        """
+        super().__init__(*args, **kwargs)
+        self.resource_type = resource_type
+        for f in ['well_described', 'data_open_format', 'data_machine_readable', 'reusable']:
+            self.fields[f].required = True
 
     def clean(self):
         """
-        The submission must be awaiting an editor response
+        May not accept if the quality assurance fields are not all True
         """
-        cleaned_data = super().clean()
+        if self.errors:
+            return
 
-        if self.instance.status != 0:
-            raise forms.ValidationError(
-                'Unable to edit this submission')
+        if self.cleaned_data['decision'] != 3:
+            for field in :
+                if self.cleaned_data[field]:
+                    raise forms.ValidationError(
+                        'The quality assurance fields must all pass before you accept the project')
 
-        return cleaned_data
 
     def save(self):
         submission = super().save()

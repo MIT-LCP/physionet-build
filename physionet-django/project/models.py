@@ -319,7 +319,7 @@ class ActiveProject(Metadata, UnpublishedProject):
     - 10 : Submitting author submits. Awaiting editor assignment.
     - 20 : Editor assigned. Awaiting editor decision.
     - 30 : Accepted with revisions. Waiting for resubmission. Loops back
-          to 20.
+          to 20 when author resubmits.
     - 40 : Accepted. In copyedit stage. Awaiting editor to copyedit.
     - 50 : Editor completes copyedit. Awaiting authors to approve.
     - 60 : Authors approve copyedit. Ready for editor to publish
@@ -810,11 +810,18 @@ class BaseSubmissionLog(models.Model):
     """
     # When the submitting author submits/resubmits
     submission_datetime = models.DateTimeField(auto_now_add=True)
+    # Quality assurance fields
+    well_described = models.NullBooleanField(null=True, blank=False)
+    data_open_format = models.NullBooleanField(null=True, blank=False)
+    data_machine_readable = models.NullBooleanField(null=True, blank=False)
+    reusable = models.NullBooleanField(null=True, blank=False)
+
     # Editor decision. 1 2 or 3 for reject/revise/accept
     decision = models.SmallIntegerField(null=True)
     decision_datetime = models.DateTimeField(null=True)
     # Comments for the decision
     editor_comments = models.CharField(max_length=800)
+
 
     class Meta:
         abstract = True
