@@ -15,7 +15,7 @@
         <a class="nav-link" id="decision-tab" data-toggle="tab" href="#decision" role="tab" aria-controls="decision" aria-selected="false">Awaiting Decision {{ decision_projects|task_count_badge|safe }}</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" id="revision-tab" data-toggle="tab" href="#revision" role="tab" aria-controls="revision" aria-selected="false">Awaiting Author Revisions {{ revision_projects|task_count_badge|safe }}</span></a></a>
+        <a class="nav-link" id="revision-tab" data-toggle="tab" href="#revision" role="tab" aria-controls="revision" aria-selected="false">Awaiting Author Revisions {{ revision_projects|task_count_badge|safe }}</span></a>
       </li>
       <li class="nav-item">
         <a class="nav-link" id="copyedit-tab" data-toggle="tab" href="#copyedit" role="tab" aria-controls="copyedit" aria-selected="false">Awaiting Copyedit {{ copyedit_projects|task_count_badge|safe }}</a>
@@ -234,11 +234,6 @@
     </div>
   </div>
 </div>
-
-
-
-
-
 
 
 {% endblock %}

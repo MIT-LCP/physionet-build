@@ -11,6 +11,10 @@ h1 {
   padding: 10px 20px;
 }
 
+.jumbotron h1 {
+    font-size: 40px;
+}
+
 html {
   position: relative;
   min-height: 100%;

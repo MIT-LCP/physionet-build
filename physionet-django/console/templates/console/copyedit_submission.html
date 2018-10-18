@@ -16,60 +16,120 @@
 {% endblock %}
 
 {% block content %}
-<h1>Copyediting Project: {{ project }}</h1>
-<hr>
+<h1>Copyedit Project: {{ project }}</h1>
+<hr><br>
+<p>Make adjustments to the metadata and files. </p>
+<p>Contact the authors via email to discuss changes.</p>
+<p><button class="btn btn-primary" onclick="copyToClipboard('{{ author_emails }}')">Copy Emails to Clipboard</button></p>
+<br>
 {% include "console/project_info_card.html" %}
 
-<div class="card mb-3">
+<div class="card">
   <div class="card-header">
-    <i class="fas fa-edit"></i> Copyedit Submission
+    <ul class="nav nav-tabs card-header-tabs">
+      <li class="nav-item">
+        <a class="nav-link active" id="assignment-tab" data-toggle="tab" href="#assignment" role="tab" aria-controls="assignment" aria-selected="true">Edit Metadata</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="decision-tab" data-toggle="tab" href="#decision" role="tab" aria-controls="decision" aria-selected="false">Edit Files</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="revision-tab" data-toggle="tab" href="#revision" role="tab" aria-controls="revision" aria-selected="false">Complete Copyedit</a>
+      </li>
+    </ul>
   </div>
   <div class="card-body">
-    <p>Make adjustments to the metadata and files. Contact the authors via email to discuss changes, or to indicate that you have finished making changes.</p>
-    <p>
-      <button class="btn btn-primary" onclick="copyToClipboard('{{ author_emails }}')">Copy Emails to Clipboard</button>
-    </p>
-    <h4>Author Approval</h4>
-    <p>When you and all of the authors approve of the final state of the project, you may complete this step.</p>
-    <ol>
-    {% for author in authors %}
-      <li>
-        {% if author.approved_publish %}
-          <i class="fas fa-check-circle" style="color:green"></i> {{ author.disp_name_email }}
+    {# Edit Metadata #}
+    <div class="tab-content" id="tabContent">
+      <div class="tab-pane fade show active" id="assigmnent" role="tabpanel" aria-labelledby="home-tab">
+        {% if assignment_projects %}
+          <p><button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#assignModal">
+        Assign Editor</button></p>
+          <div class="table-responsive">
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Project</th>
+                  <th>Submitting Author</th>
+                  <th>Submission Date</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for project in assignment_projects %}
+                <tr>
+                  <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
+                  <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
+                  <td>{{ project.submission_datetime|date }}</td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
         {% else %}
-          <i class="far fa-clock"></i> {{ author.disp_name_email }}
+          <p><i class="fas fa-check" style="color:green"></i> No projects to show.</p>
         {% endif %}
-      </li>
-    {% endfor %}
-    </ol>
-    <button class="btn btn-success btn-lg" data-toggle="modal" data-target="#complete-modal" {% if not authors_approved %}disabled{% endif %}>Complete Copyedit</a>
-  </div>
-</div>
-
-{% if all_authors_approved %}
-<div class="modal" id="complete-modal" tabindex="-1" role="dialog">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Complete Copyedit</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
       </div>
-      <div class="modal-body">
-        <p>If you are satisfied with project's files and metadata, you may complete the copyedit. You will no longer be able to edit the project.</p>
+      {# Edit Files #}
+      <div class="tab-pane fade" id="publish" role="tabpanel" aria-labelledby="publish-tab">
+        {% if publish_projects %}
+          <div class="table-responsive">
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Project</th>
+                  <th>Submitting Author</th>
+                  <th>Submission Date</th>
+                  <th>Editor</th>
+                  <th>Is Resubmission</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for project in publish_projects %}
+                <tr>
+                  <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
+                  <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author.user.username }}</a> - {{ project.submitting_author.user.email }}</td>
+                  <td>{{ project.submission_datetime|date }}</td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p><i class="fas fa-check" style="color:green"></i> No projects to show.</p>
+        {% endif %}
       </div>
-      <div class="modal-footer">
-        <form action="" method="post">
-          {% csrf_token %}
-          <button class="btn btn-success" name="complete_copyedit" type="submit">Complete Copyedit</button>
-        </form>
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      {# Complete Copyedit #}
+      <div class="tab-pane fade" id="publish" role="tabpanel" aria-labelledby="publish-tab">
+        {% if publish_projects %}
+          <div class="table-responsive">
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Project</th>
+                  <th>Submitting Author</th>
+                  <th>Submission Date</th>
+                  <th>Editor</th>
+                  <th>Is Resubmission</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for project in publish_projects %}
+                <tr>
+                  <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
+                  <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author.user.username }}</a> - {{ project.submitting_author.user.email }}</td>
+                  <td>{{ project.submission_datetime|date }}</td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p><i class="fas fa-check" style="color:green"></i> No projects to show.</p>
+        {% endif %}
       </div>
     </div>
   </div>
 </div>
-{% endif %}
 
 
 {% endblock %}
