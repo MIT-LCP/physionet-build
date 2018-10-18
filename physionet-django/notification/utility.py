@@ -113,17 +113,17 @@ def edit_resubmit_notify(request, submission):
                   [email], fail_silently=False)
 
 
-def edit_accept_notify(request, submission):
+def edit_accept_notify(request, submission_log):
     """
     Notify authors when an editor accepts a submission
     """
-    project = submission.project
+    project = submission_log.project
     subject = 'Submission accepted for project: {0}'.format(project.title)
     for email, name in project.get_author_info():
         body = loader.render_to_string(
             'console/email/accept_submission_notify.html',
             {'name':name, 'project':project,
-             'editor_comments':submission.editor_comments,
+             'editor_comments':submission_log.editor_comments,
              'domain':get_current_site(request)})
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)

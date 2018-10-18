@@ -808,13 +808,17 @@ class BaseSubmissionLog(models.Model):
     Class to be inherited by SubmissionLog and ResubmissionLog
 
     """
+    editor = models.ForeignKey('user.User', null=True)
     # When the submitting author submits/resubmits
     submission_datetime = models.DateTimeField(auto_now_add=True)
     # Quality assurance fields
+    soundly_produced = models.NullBooleanField(null=True)
     well_described = models.NullBooleanField(null=True, blank=False)
-    data_open_format = models.NullBooleanField(null=True, blank=False)
+    open_format = models.NullBooleanField(null=True, blank=False)
     data_machine_readable = models.NullBooleanField(null=True, blank=False)
     reusable = models.NullBooleanField(null=True, blank=False)
+    no_phi = models.NullBooleanField(null=True)
+    pn_suitable = models.NullBooleanField(null=True)
 
     # Editor decision. 1 2 or 3 for reject/revise/accept
     decision = models.SmallIntegerField(null=True)

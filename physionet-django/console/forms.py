@@ -14,9 +14,9 @@ RESPONSE_CHOICES = (
 
 SUBMISSION_RESPONSE_CHOICES = (
     ('', '-----------'),
-    (3, 'Accept'),
-    (2, 'Resubmit with changes'),
-    (1, 'Reject'),
+    (2, 'Accept'),
+    (1, 'Resubmit with changes'),
+    (0, 'Reject'),
 )
 
 YES_NO = (
@@ -39,33 +39,60 @@ class AssignEditorForm(forms.Form):
 class EditSubmissionForm(forms.ModelForm):
     """
     For an editor to make a decision regarding a submission.
-    There is another form for responding to resubmission
     """
+    # Quality assurance fields for data
+    DATA_FIELDS = ('soundly_produced', 'well_described', 'open_format',
+        'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable')
+    SOFTWARE_FIELDS = ()
 
     class Meta:
+        # Populated with fields and labels for both data and software
+        # fields. The __init__ function removes unnecessary fields and
+        # renames fields
         model = SubmissionLog
-        fields = ('well_described', 'data_open_format',
-            'data_machine_readable', 'reusable', 'editor_comments', 'decision')
-        labels = {'well_described':'The project is well described by the metadata',
-            'data_open_format':'The data files are provided in an open format',
+        fields = ('soundly_produced', 'well_described', 'open_format',
+            'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable',
+            'editor_comments', 'decision')
+        labels = {
+            'soundly_produced':'The data is produced in a sound manner',
+            'well_described':'The data is adequately described',
+            'open_format':'The data files are provided in an open format',
             'data_machine_readable':'The data files are machine readable',
-            'reusable':'The resource is reusable by other investigators',
-            'editor_comments':'Comments to authors'}
-        widgets = {'well_described':forms.Select(choices=YES_NO),
-            'data_open_format':forms.Select(choices=YES_NO),
+            'reusable':'All the information needed for reuse is present',
+            'no_phi':'No protected health information is contained',
+            'pn_suitable':'The content is suitable for PhysioNet',
+            'editor_comments':'Comments to authors',
+        }
+        widgets = {
+            'soundly_produced':forms.Select(choices=YES_NO),
+            'well_described':forms.Select(choices=YES_NO),
+            'open_format':forms.Select(choices=YES_NO),
             'data_machine_readable':forms.Select(choices=YES_NO),
             'reusable':forms.Select(choices=YES_NO),
+            'no_phi':forms.Select(choices=YES_NO),
+            'pn_suitable':forms.Select(choices=YES_NO),
             'editor_comments':forms.Textarea(),
-            'decision':forms.Select(choices=SUBMISSION_RESPONSE_CHOICES)}
+            'decision':forms.Select(choices=SUBMISSION_RESPONSE_CHOICES)
+        }
 
     def __init__(self, resource_type=0, *args, **kwargs):
         """
-        Set the choice fields to required
+        Set the appropriate fields for the given resource type, and
+        set the choice fields to required.
         """
         super().__init__(*args, **kwargs)
         self.resource_type = resource_type
-        for f in ['well_described', 'data_open_format', 'data_machine_readable', 'reusable']:
-            self.fields[f].required = True
+        if resource_type == 0:
+            for f in set(self.__class__.SOFTWARE_FIELDS) - set(self.__class__.DATA_FIELDS):
+                del(self.fields[f])
+            for f in self.__class__.DATA_FIELDS:
+                self.fields[f].required = True
+
+        elif resource_type == 1:
+            for f in set(SOFTWARE_FIELDS) - set(DATA_FIELDS):
+                del(self.fields[f])
+            for f in DATA_FIELDS:
+                self.fields[f].required = True
 
     def clean(self):
         """
@@ -75,21 +102,29 @@ class EditSubmissionForm(forms.ModelForm):
             return
 
         if self.cleaned_data['decision'] != 3:
-            for field in :
-                if self.cleaned_data[field]:
+            for field in self.__class__.DATA_FIELDS:
+                if not self.cleaned_data[field]:
                     raise forms.ValidationError(
                         'The quality assurance fields must all pass before you accept the project')
 
-
     def save(self):
-        submission = super().save()
-
+        """
+        Process the editor decision
+        """
+        submission_log = super().save()
+        project = submission_log.project
         # Reject
-        if submission.decision == 1:
-            submission.is_active = False
+        if submission_log.decision == 0:
+            pass
+        # Resubmit with revisions
+        elif submission_log.decision == 1:
+            pass
+        # Accept
+        else:
+            project.submission_status = 40
 
-        # Update the submission status to reflect the decision
-        submission.status = submission.decision
-        submission.decision_datetime = timezone.now()
-        submission.save()
-        return submission
+        project.save()
+        submission_log.editor = project.editor
+        submission_log.decision_datetime = timezone.now()
+        submission_log.save()
+        return submission_log

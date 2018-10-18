@@ -1,7 +1,8 @@
 {% csrf_token %}
 {% for field in form.visible_fields %}
   <div class="form-group">
-    {{ field.label_tag }} {{ field }}
+    <label for="{{ field.name }}" title="{{ field.help_text }}">{{ field.label }}
+    </label> {{ field }}
     {% for error in field.errors %}
       <div class="alert alert-danger">
         <strong>{{ error|escape }}</strong>

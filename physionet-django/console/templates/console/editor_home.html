@@ -81,7 +81,7 @@
   </div>
   <div class="card-body">
     <p>You have accepted these projects for publication. Make any copyedits necessary to ensure their quality.</p>
-    {% if a_projects %}
+    {% if c_projects %}
       <div class="table-responsive">
         <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
           <thead>
@@ -96,8 +96,8 @@
           {% for project in c_projects %}
             <tr>
               <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
-              <td><a href="{% url 'public_profile' project.submitting_author.username %}">{{ project.submitting_author }}</a></td>
-              <td>{{ submission.submission_datetime|date }}</td>
+              <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
+              <td>{{ project.submission_datetime|date }}</td>
             </tr>
           {% endfor %}
           </tbody>

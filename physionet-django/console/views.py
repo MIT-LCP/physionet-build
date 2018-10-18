@@ -80,8 +80,13 @@ def editor_home(request):
 
     # awaiting editor decision
     a_projects = projects.filter(submission_status=20)
+    # awaiting author revisions
+    b_projects = projects.filter(submission_status=30)
+    # awaiting editor
+    c_projects = projects.filter(submission_status=40)
     return render(request, 'console/editor_home.html',
-        {'a_projects':a_projects})
+        {'a_projects':a_projects, 'b_projects':b_projects,
+         'c_projects':c_projects})
 
 
 @login_required
@@ -97,28 +102,32 @@ def edit_submission(request, project_slug):
         return Http404()
 
     if request.method == 'POST':
-        edit_submission_form = forms.EditSubmissionLogForm(instance=submission,
-                                                        data=request.POST)
+        edit_submission_form = forms.EditSubmissionForm(
+            instance=submission_log, data=request.POST)
         if edit_submission_form.is_valid():
-            submission = edit_submission_form.save()
+            # This processes the resulting decision
+            submission_log = edit_submission_form.save()
             # Resubmit with changes
-            if submission.decision == 1:
-                notification.edit_resubmit_notify(request, submission)
+            if submission_log.decision == 0:
+                notification.edit_resubmit_notify(request, submission_log)
             # Reject
-            elif submission.decision == 2:
-                notification.edit_reject_notify(request, submission)
+            elif submission_log.decision == 1:
+                notification.edit_reject_notify(request, submission_log)
             # Accept
             else:
-                notification.edit_accept_notify(request, submission)
+                notification.edit_accept_notify(request, submission_log)
 
             return render(request, 'console/edit_complete.html',
-                {'decision':submission.decision,
-                 'project':project, 'submission':submission})
-
-    edit_submission_form = forms.EditSubmissionForm(instance=submission_log)
+                {'decision':submission_log.decision,
+                 'project':project, 'submission_log':submission_log})
+        else:
+            messages.error(request, 'Invalid response. See form below.')
+    else:
+        edit_submission_form = forms.EditSubmissionForm(instance=submission_log)
 
     return render(request, 'console/edit_submission.html',
-        {'project':project, 'submission_log':submission_log, 'edit_submission_form':edit_submission_form})
+        {'project':project, 'submission_log':submission_log,
+         'edit_submission_form':edit_submission_form})
 
 
 @login_required
