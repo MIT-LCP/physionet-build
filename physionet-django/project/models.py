@@ -59,6 +59,7 @@ class Author(BaseAuthor):
     object_id = models.PositiveIntegerField()
     project = GenericForeignKey('content_type', 'object_id')
     corresponding_email = models.ForeignKey('user.AssociatedEmail', null=True)
+    approved_publish = models.BooleanField(default=False)
 
     class Meta:
         unique_together = (('user', 'content_type', 'object_id',),)
@@ -494,6 +495,11 @@ class ActiveProject(Metadata, UnpublishedProject):
             # Need to account for resubmissions
             return submission_log.decision_datetime
 
+    def all_authors_approved(self):
+        "Whether all authors have approved the publication"
+        authors = self.authors.all()
+        return len(authors) == len(authors.filter(approved_publish=True))
+
     def is_publishable(self):
         """
         Check whether a project may be published
@@ -597,7 +603,6 @@ class ActiveProject(Metadata, UnpublishedProject):
         submission.submission_status = 6
         submission.is_active = False
         submission.save()
-        self.authors.all().update(approved_publish=False)
 
         return published_project
 
@@ -856,12 +861,12 @@ class SubmissionLog(BaseSubmissionLog):
     # When (if) the authors approve the copyedit
     copyedit_approve_datetime = models.DateTimeField(null=True)
 
+    class Meta:
+        # Each project may have only one submission log
+        unique_together = (('content_type', 'object_id'),)
+
     def __str__(self):
         return 'Submission ID {0} - {1}'.format(self.id, self.project.title)
-
-    def all_authors_approved(self):
-        authors = self.project.authors.all()
-        return len(authors) == sum(a.approved_publish for a in authors)
 
     def get_resubmissions(self):
         return self.resubmissions.all().order_by('creation_datetime')

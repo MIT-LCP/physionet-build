@@ -16,7 +16,8 @@
 {% endblock %}
 
 {% block content %}
-
+<h1>Copyediting Project: {{ project }}</h1>
+<hr>
 {% include "console/project_info_card.html" %}
 
 <div class="card mb-3">
@@ -45,7 +46,7 @@
   </div>
 </div>
 
-{% if authors_approved %}
+{% if all_authors_approved %}
 <div class="modal" id="complete-modal" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document">
     <div class="modal-content">

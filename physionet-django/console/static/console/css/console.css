@@ -1,13 +1,14 @@
 /* Based on sb-admin.css from start-bootstrap */
 
-table {
-  width="100%" cellspacing="0"
+h1 {
+  margin-top: 10px;
+  font-size: 36px;
 }
 
 .jumbotron {
   text-align: center;
   background-color: transparent;
-  padding: 15px 20px;
+  padding: 10px 20px;
 }
 
 html {

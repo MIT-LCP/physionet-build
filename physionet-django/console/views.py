@@ -135,20 +135,22 @@ def edit_submission(request, project_slug):
 
 @login_required
 @user_passes_test(is_admin)
-def copyedit_submission(request, submission_id):
+def copyedit_submission(request, project_slug):
     """
     Page to copyedit the submission
     """
-    submission = SubmissionLog.objects.get(id=submission_id)
-    if request.user != submission.editor or submission.status != 3:
+    project = ActiveProject.objects.get(slug=project_slug)
+    submission_log = project.submission_log.get()
+    # Copyedit statuses: 40 is before the editor allows authors to
+    # approve. 50 is when the authors are approving
+    if request.user != project.editor or project.submission_status not in [40, 50]:
         return Http404()
 
-    project = submission.project
     authors = project.authors.all()
 
     if request.method == 'POST':
         if 'complete_copyedit' in request.POST:
-            submission.status = 4
+            submission_log.status = 50
             submission.copyedit_datetime = timezone.now()
             submission.save()
             notification.copyedit_complete_notify(request, submission)
@@ -156,11 +158,11 @@ def copyedit_submission(request, submission_id):
                 {'submission':submission})
 
     author_emails = ';'.join(a.user.email for a in authors)
-    authors_approved = submission.all_authors_approved()
+    all_authors_approved = (len(authors) == len(authors.filter(approved_publish=True)))
 
     return render(request, 'console/copyedit_submission.html', {
-        'project':project, 'submission':submission, 'authors':authors,
-        'authors_approved':authors_approved, 'author_emails':author_emails})
+        'project':project, 'submission_log':submission_log, 'authors':authors,
+        'all_authors_approved':all_authors_approved, 'author_emails':author_emails})
 
 
 @login_required

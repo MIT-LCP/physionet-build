@@ -15,11 +15,11 @@ urlpatterns = [
     # published projects
 
     # Individual edit pages
-    url(r'^submissions/(?P<project_slug>\w+)/edit/$',
+    url(r'^submitted-projects/(?P<project_slug>\w+)/edit/$',
         views.edit_submission, name='edit_submission'),
-    url(r'^submissions/(?P<submission_id>\w+)/copyedit/$',
+    url(r'^submitted-projects/(?P<project_slug>\w+)/copyedit/$',
         views.copyedit_submission, name='copyedit_submission'),
-    url(r'^submissions/(?P<submission_id>\w+)/publish/$',
+    url(r'^submitted-projects/(?P<project_slug>\w+)/publish/$',
         views.publish_submission, name='publish_submission'),
 
     url(r'^storage-requests/$', views.storage_requests,
