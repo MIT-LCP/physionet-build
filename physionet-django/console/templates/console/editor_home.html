@@ -2,17 +2,25 @@
 
 {% block title %}Editing Submissions{% endblock %}
 
+{% load console_templatetags %}
+
 {% block content %}
+<div class="jumbotron">
+  <h1>Editor Home</h1>
+  <p class="lead">Welcome to your editor home. Here you can access the
+  project submissions you are responsible for.</p>
+</div>
+
 {# Awaiting editor decision #}
 <div class="card mb-3">
   <div class="card-header">
-    <i class="fa fa-glasses"></i> Awaiting Your Decision <span class="badge badge-pill badge-{% if a_projects %}danger{% else %}success{% endif %}">{{ a_projects|length }}</span>
+    <i class="fa fa-glasses"></i> Awaiting Your Decision {{ decision_projects|task_count_badge|safe }}
   </div>
   <div class="card-body">
     <p>You are assigned to edit the following projects.</p>
-    {% if a_projects %}
+    {% if decision_projects %}
       <div class="table-responsive">
-        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+        <table class="table table-bordered">
           <thead>
             <tr>
               <th>Project</th>
@@ -22,7 +30,7 @@
             </tr>
           </thead>
           <tbody>
-          {% for project in a_projects %}
+          {% for project in decision_projects %}
             <tr>
               <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
               <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
@@ -42,13 +50,13 @@
 {# Awaiting revisions #}
 <div class="card mb-3">
   <div class="card-header">
-    <i class="fa fa-clock"></i> Awaiting Author Revisions <span class="badge badge-pill badge-{% if b_projects %}danger{% else %}success{% endif %}">{{ b_projects|length }}</span>
+    <i class="fa fa-clock"></i> Awaiting Author Revisions {{ revision_projects|task_count_badge|safe }}
   </div>
   <div class="card-body">
     <p>You have instructed the following projects to be revised by their authors.</p>
-    {% if b_projects %}
+    {% if revision_projects %}
       <div class="table-responsive">
-        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+        <table class="table table-bordered">
           <thead>
             <tr>
               <th>Project</th>
@@ -58,7 +66,7 @@
             </tr>
           </thead>
           <tbody>
-          {% for project in b_projects %}
+          {% for project in revision_projects %}
             <tr>
               <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
               <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
@@ -77,27 +85,30 @@
 {# Awaiting editor copyedit #}
 <div class="card mb-3">
   <div class="card-header">
-    <i class="fa fa-glasses"></i> Awaiting Your Copyedits <span class="badge badge-pill badge-{% if c_projects %}danger{% else %}success{% endif %}">{{ c_projects|length }}</span>
+    <i class="fa fa-glasses"></i> Awaiting Your Copyedits {{ copyedit_projects|task_count_badge|safe }}
   </div>
   <div class="card-body">
     <p>You have accepted these projects for publication. Make any copyedits necessary to ensure their quality.</p>
-    {% if c_projects %}
+    {% if copyedit_projects %}
       <div class="table-responsive">
-        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+        <table class="table table-bordered">
           <thead>
             <tr>
               <th>Project</th>
               <th>Submitting Author</th>
               <th>Submission Date</th>
-              <th>Editor Approval Date</th>
+              <th>Editor Accept Date</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
-          {% for project in c_projects %}
+          {% for project in copyedit_projects %}
             <tr>
               <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
               <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
               <td>{{ project.submission_datetime|date }}</td>
+              <td>{{ project.accept_datetime|date }}</td>
+              <td><a class="btn btn-primary btn-sm" href="{% url 'copyedit_submission' project.slug %}" role="button">Copyedit Project</a></td>
             </tr>
           {% endfor %}
           </tbody>
@@ -112,13 +123,12 @@
 {# Awaiting author approval #}
 <div class="card mb-3">
   <div class="card-header">
-    <i class="fa fa-clock"></i> Awaiting Author Approval <span class="badge badge-pill badge-{% if d_projects %}danger{% else %}success{% endif %}">{{ d_projects|length }}</span>
-  </div>
+    <i class="fa fa-clock"></i> Awaiting Author Approval {{ approval_projects|task_count_badge|safe }}
   <div class="card-body">
     <p>You have copyedited these projects. Awaiting all authors to approve the final project.</p>
-    {% if d_projects %}
+    {% if approval_projects %}
       <div class="table-responsive">
-        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+        <table class="table table-bordered">
           <thead>
             <tr>
               <th>Project</th>
@@ -128,7 +138,7 @@
             </tr>
           </thead>
           <tbody>
-          {% for project in d_projects %}
+          {% for project in approval_projects %}
             <tr>
               <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
               <td><a href="{% url 'public_profile' project.submitting_author.username %}">{{ project.submitting_author }}</a></td>
@@ -147,13 +157,13 @@
 {# Awaiting editor publish #}
 <div class="card mb-3">
   <div class="card-header">
-    <i class="fa fa-glasses"></i> Awaiting Your Publishing <span class="badge badge-pill badge-{% if e_projects %}danger{% else %}success{% endif %}">{{ e_projects|length }}</span>
+    <i class="fa fa-glasses"></i> Awaiting Your Publishing {{ publish_projects|task_count_badge|safe }}
   </div>
   <div class="card-body">
     <p>All authors have accepted the project for publication. You may publish them.</p>
-    {% if a_projects %}
+    {% if publish_projects %}
       <div class="table-responsive">
-        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+        <table class="table table-bordered">
           <thead>
             <tr>
               <th>Project</th>
@@ -164,7 +174,7 @@
             </tr>
           </thead>
           <tbody>
-          {% for project in e_projects %}
+          {% for project in publish_projects %}
             <tr>
               <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
               <td><a href="{% url 'public_profile' project.submitting_author.username %}">{{ project.submitting_author }}</a></td>

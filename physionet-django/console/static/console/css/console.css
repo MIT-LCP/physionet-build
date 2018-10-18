@@ -1,5 +1,15 @@
 /* Based on sb-admin.css from start-bootstrap */
 
+table {
+  width="100%" cellspacing="0"
+}
+
+.jumbotron {
+  text-align: center;
+  background-color: transparent;
+  padding: 15px 20px;
+}
+
 html {
   position: relative;
   min-height: 100%;

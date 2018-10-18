@@ -485,6 +485,15 @@ class ActiveProject(Metadata, UnpublishedProject):
         self.submission_status = 20
         self.save()
 
+    def accept_datetime(self):
+        """
+        When the project was accepted by the editor
+        """
+        if self.submission_status in [40, 50, 60]:
+            submission_log = self.submission_log.get()
+            # Need to account for resubmissions
+            return submission_log.decision_datetime
+
     def is_publishable(self):
         """
         Check whether a project may be published

@@ -49,12 +49,13 @@ def submitted_projects(request):
 
     # Separate projects by submission status
     # Awaiting editor assignment
-    a_projects = projects.filter(submission_status=10)
+    assignment_projects = projects.filter(submission_status=10)
     # Awaiting editor decision
-    b_projects = projects.filter(submission_status=20)
+    decision_projects = projects.filter(submission_status=20)
     # Awaiting author revisions
-    c_projects = projects.filter(submission_status=30)
+    revision_projects = projects.filter(submission_status=30)
     # Awaiting editor copyedit
+    copyedit_projects = projects.filter(submission_status=40)
     # Awaiting author approval
     # Awaiting editor publish
 
@@ -63,9 +64,10 @@ def submitted_projects(request):
     return render(request, 'console/submitted_projects.html',
         {'projects':projects,
          'assign_editor_form':assign_editor_form,
-         'a_projects':a_projects,
-         'b_projects':b_projects,
-         'c_projects':c_projects,
+         'assignment_projects':assignment_projects,
+         'decision_projects':decision_projects,
+         'revision_projects':revision_projects,
+         'copyedit_projects':copyedit_projects,
          })
 
 
@@ -79,14 +81,15 @@ def editor_home(request):
         'submission_datetime')
 
     # awaiting editor decision
-    a_projects = projects.filter(submission_status=20)
+    decision_projects = projects.filter(submission_status=20)
     # awaiting author revisions
-    b_projects = projects.filter(submission_status=30)
-    # awaiting editor
-    c_projects = projects.filter(submission_status=40)
+    revision_projects = projects.filter(submission_status=30)
+    # awaiting editor copyedit
+    copyedit_projects = projects.filter(submission_status=40)
     return render(request, 'console/editor_home.html',
-        {'a_projects':a_projects, 'b_projects':b_projects,
-         'c_projects':c_projects})
+        {'decision_projects':decision_projects,
+         'revision_projects':revision_projects,
+         'copyedit_projects':copyedit_projects})
 
 
 @login_required
