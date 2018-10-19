@@ -35,7 +35,7 @@ def is_submitting_author(user, project):
     return user == project.submitting_author
 
 
-def project_auth(auth_mode=0):
+def project_auth(auth_mode=0, post_auth_mode=0):
     """
     Authorization decorator for project. Also adds project information
     to kwargs.
@@ -44,6 +44,13 @@ def project_auth(auth_mode=0):
     - 0 : the user must be an author, or an admin
     - 1 : the user must be an author
     - 2 : the user must be the submitting author
+    - 3 : the user must be the submitting author during an editable
+          stage, or the editor during copyedit stage.
+
+    post_auth_mode is one of the following and applies only to post:
+    - 0 : no additional check
+    - 1 : the project must be in one of its editable stages by authors
+
     """
     def real_decorator(base_view):
         @login_required
@@ -54,15 +61,21 @@ def project_auth(auth_mode=0):
 
             is_author = (user in [a.user for a in authors])
             is_submitting = (user == authors.get(is_submitting=True).user)
-            is_admin = user.is_admin
-            admin_inspect = is_admin and not is_author
+            admin_inspect = user.is_admin and not is_author
 
-            if auth_mode == 2:
-                allow = is_submitting
+            if auth_mode == 0:
+                allow = is_author or admin_inspect
             elif auth_mode == 1:
                 allow = is_author
+            elif auth_mode == 2:
+                allow = is_submitting
             else:
-                allow = is_author or admin_inspect
+                allow = ((is_submitting and project.author_editable())
+                         or (user == project.editor and project.copyeditable()))
+
+            if request.method == 'POST':
+                if post_auth_mode == 1:
+                    allow = allow and project.author_editable()
 
             if allow:
                 kwargs['user'] = user
@@ -243,35 +256,34 @@ def cancel_invitation(request, invitation_id, project, is_submitting):
             messages.success(request, 'The invitation has been cancelled')
 
 
-@project_auth(auth_mode=2)
-def move_author(request, project_slug):
+@project_auth(auth_mode=2, post_auth_mode=1)
+def move_author(request, project_slug, **kwargs):
     """
     Change an author display order. Return the updated authors list html
     if successful. Called via ajax.
     """
     if request.method == 'POST':
-        project = ActiveProject.objects.get(slug=project_slug)
-        author = Author.objects.get(id=int(request.POST['author_id']))
+        project, authors = kwargs['project'], kwargs['authors']
+        author = authors.get(id=int(request.POST['author_id']))
         direction = request.POST['direction']
-        project_authors = project.authors.all()
-        n_authors = project_authors.count()
-        if author.project == project and n_authors > 1:
+        n_authors = authors.count()
+        if n_authors > 1:
             if direction == 'up' and 1 < author.display_order <= n_authors:
-                swap_author = project_authors.get(display_order=author.display_order - 1)
+                swap_author = authors.get(display_order=author.display_order - 1)
             elif direction == 'down' and 1 <= author.display_order < n_authors:
-                swap_author = project_authors.get(display_order=author.display_order + 1)
+                swap_author = authors.get(display_order=author.display_order + 1)
             else:
                 raise Http404()
             author.display_order, swap_author.display_order = swap_author.display_order, author.display_order
             author.save()
             swap_author.save()
-            authors = project_authors.order_by('display_order')
+            authors = authors.order_by('display_order')
             return render(request, 'project/author_list.html',
                                   {'project':project, 'authors':authors})
     raise Http404()
 
-@authorization_required(auth_functions=(is_author,))
-def edit_affiliation(request, project_slug):
+@project_auth(auth_mode=1)
+def edit_affiliation(request, project_slug, **kwargs):
     """
     Function accessed via ajax for editing an author's affiliation in a
     formset.
@@ -280,9 +292,11 @@ def edit_affiliation(request, project_slug):
     rendered template of the formset.
 
     """
-    user = request.user
-    project = ActiveProject.objects.get(slug=project_slug)
-    author = project.authors.get(user=user)
+    project, authors = kwargs['project'], kwargs['authors']
+    author = authors.get(user=request.user)
+
+    if project.submission_status not in [0, 30]:
+        raise Http404()
 
     # Reload the formset with the first empty form
     if request.method == 'GET' and 'add_first' in request.GET:
@@ -311,7 +325,7 @@ def edit_affiliation(request, project_slug):
              'remove_item_url':edit_url})
 
 
-@project_auth(auth_mode=0)
+@project_auth(auth_mode=0, post_auth_mode=1)
 def project_authors(request, project_slug, **kwargs):
     """
     Page displaying author information and actions.
@@ -399,8 +413,7 @@ def project_authors(request, project_slug, **kwargs):
         'add_item_url':edit_affiliations_url, 'remove_item_url':edit_affiliations_url,
         'is_submitting':is_submitting})
 
-
-@project_auth(auth_mode=1)
+@project_auth(auth_mode=3)
 def edit_metadata_item(request, project_slug, **kwargs):
     """
     Function accessed via ajax for editing a project's related item
@@ -409,8 +422,11 @@ def edit_metadata_item(request, project_slug, **kwargs):
     Either add the first form, or remove an item, returning the rendered
     template of the formset.
 
+    Accessed by submitting authors during edit stage, or editor during
+    copyedit stage
+
     """
-    project = kwargs['project']
+    project = ActiveProject.objects.get(slug=project_slug)
 
     model_dict = {'reference': Reference, 'publication': Publication,
                   'topic': Topic}
@@ -447,8 +463,8 @@ def edit_metadata_item(request, project_slug, **kwargs):
             max_num=custom_formsets[item].max_forms, can_delete=False,
             formset=custom_formsets[item], validate_max=True)
     else:
-        ItemFormSet = inlineformset_factory(parent_model=ActiveProject, model=model,
-            fields=metadata_item_fields[item], extra=extra_forms,
+        ItemFormSet = inlineformset_factory(parent_model=ActiveProject,
+            model=model, fields=metadata_item_fields[item], extra=extra_forms,
             max_num=custom_formsets[item].max_forms, can_delete=False,
             formset=custom_formsets[item], validate_max=True)
 
@@ -460,7 +476,7 @@ def edit_metadata_item(request, project_slug, **kwargs):
              'form_name':formset.form_name, 'add_item_url':edit_url,
              'remove_item_url':edit_url})
 
-@project_auth(auth_mode=0)
+@project_auth(auth_mode=0, post_auth_mode=1)
 def project_metadata(request, project_slug, **kwargs):
     """
     For editing project metadata
@@ -498,7 +514,7 @@ def project_metadata(request, project_slug, **kwargs):
         'add_item_url':edit_url, 'remove_item_url':edit_url})
 
 
-@project_auth(auth_mode=0)
+@project_auth(auth_mode=0, post_auth_mode=1)
 def project_access(request, project_slug, **kwargs):
     """
     Page to edit project access policy
@@ -521,7 +537,7 @@ def project_access(request, project_slug, **kwargs):
         'admin_inspect':kwargs['admin_inspect']})
 
 
-@project_auth(auth_mode=0)
+@project_auth(auth_mode=0, post_auth_mode=1)
 def project_identifiers(request, project_slug, **kwargs):
     """
     Page to edit external project identifiers
@@ -601,6 +617,8 @@ def process_items(request, form):
     """
     Process the file manipulation items with the appropriate form and
     action. Returns the working subdirectory.
+
+    Helper function for `project_files`.
     """
     if form.is_valid():
         messages.success(request, form.perform_action())
@@ -613,7 +631,7 @@ def process_items(request, form):
         else:
             return ''
 
-@project_auth(auth_mode=0)
+@project_auth(auth_mode=0, post_auth_mode=1)
 def project_files(request, project_slug, **kwargs):
     "View and manipulate files in a project"
     project, is_submitting, admin_inspect = (kwargs[k] for k in
@@ -736,6 +754,7 @@ def project_proofread(request, project_slug, **kwargs):
     """
     return render(request, 'project/project_proofread.html',
         {'project':kwargs['project'], 'admin_inspect':kwargs['admin_inspect']})
+
 
 @project_auth(auth_mode=0)
 def project_preview(request, project_slug, **kwargs):

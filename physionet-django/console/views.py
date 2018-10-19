@@ -8,6 +8,7 @@ from django.forms import modelformset_factory, Select, Textarea
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.template import loader
+from django.urls import reverse
 from django.utils import timezone
 
 from . import forms
@@ -213,6 +214,8 @@ def copyedit_submission(request, project_slug):
             return render(request, 'console/copyedit_complete.html',
                 {'submission':submission})
 
+    edit_url = reverse('edit_metadata_item', args=[project.slug])
+
     return render(request, 'console/copyedit_submission.html', {
         'project':project, 'submission_log':submission_log,
         'description_form':description_form,
@@ -221,7 +224,8 @@ def copyedit_submission(request, project_slug):
         'publication_formset':publication_formset,
         'topic_formset':topic_formset,
         'authors':authors,
-        'all_authors_approved':all_authors_approved, 'author_emails':author_emails})
+        'all_authors_approved':all_authors_approved, 'author_emails':author_emails,
+        'add_item_url':edit_url, 'remove_item_url':edit_url})
 
 
 @login_required

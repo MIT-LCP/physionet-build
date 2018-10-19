@@ -375,13 +375,18 @@ class ActiveProject(Metadata, UnpublishedProject):
         """
         return bool(self.submission_status)
 
-    def is_frozen(self):
+    def author_editable(self):
         """
-        ActiveProject is not editable when frozen
+        Whether the project can be edited by its authors
         """
-        if self.submission_status in [0, 4]:
-            return False
-        else:
+        if self.submission_status in [0, 30]:
+            return True
+
+    def copyeditable(self):
+        """
+        Whether the project can be copyedited
+        """
+        if self.submission_status in [40, 50]:
             return True
 
     def get_coauthors(self):
