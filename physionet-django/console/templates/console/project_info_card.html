@@ -7,12 +7,16 @@
     <p>{{ project.resource_type|resource_badge|safe }}</p>
     <h4 class="card-title"><a href="{% url 'project_overview' project.slug %}">{{ project.title }}</a></h4>
     <p class="card-text">
-      Submitting Author: <a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a><br>
+      Submitting Author: <a href="{% url 'public_profile' submitting_author.user.username %}">{{ submitting_author }}</a><br>
+      Coauthors: {% for author in coauthors %}<a href="{% url 'public_profile' author.user.username %}">{{ author }}</a> {% endfor %}<br>
       Created: {{ project.creation_datetime|date }}<br>
       Submitted: {{ project.submission_datetime|date }}
     </p>
     <p><a class="btn btn-lg btn-primary" href="{% url 'project_preview' project.slug %}" role="button" target="_blank">
       View Project Preview</a>
+
+      <button class="btn btn-primary" onclick="copyToClipboard('{{ author_emails }}')">Copy Author Emails to Clipboard</button>
+
     </p>
   </div>
 </div>

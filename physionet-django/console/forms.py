@@ -128,3 +128,13 @@ class EditSubmissionForm(forms.ModelForm):
         submission_log.decision_datetime = timezone.now()
         submission_log.save()
         return submission_log
+
+
+class CompleteCopyeditForm(forms.Form):
+    """
+    Submit form to complete copyedit
+    """
+    made_changes = forms.ChoiceField(choices=YES_NO)
+    changelog_summary = forms.CharField(max_length=800,
+        widget=forms.Textarea())
+

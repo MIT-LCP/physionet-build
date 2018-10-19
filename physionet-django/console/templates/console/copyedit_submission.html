@@ -7,16 +7,7 @@
 {% block local_js_top %}
 <script type="text/javascript" src="{% static 'custom/js/cookie.js' %}"></script>
 <script type="text/javascript" src="{% static 'project/js/dynamic-formset.js' %}"></script>
-<script>
-  function copyToClipboard(str){
-    var el = document.createElement('textarea');
-    el.value = str;
-    document.body.appendChild(el);
-    el.select();
-    document.execCommand('copy');
-    document.body.removeChild(el);
-  }
-</script>
+<script type="text/javascript" src="{% static 'custom/js/copy-to-clipboard.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -63,8 +54,9 @@
         <p>When you are satisfied with the final state of the project, you
            may complete this step. If you made any changes, summarize them
            below.</p>
-        <form>
-
+        <form action="" method="post">
+          {% include "form_snippet.html" with form=complete_copyedit_form %}
+          <button class="btn btn-lg btn-primary" type="submit" name="complete_copyedit">Complete Copyedit</button>
         </form>
       </div>
     </div>

@@ -39,8 +39,8 @@
           </a>
         {% endif %}
         <br>
-        <strong>Name</strong>: {{ author.user|author_name }}<br>
-        <strong>Affiliations</strong>: {{ author|author_affiliations }}
+        <strong>Name</strong>: {{ author.name }}<br>
+        <strong>Affiliations</strong>: {{ author.text_affiliations|delimit }}
 
         {% if is_submitting and not author.is_submitting %}
           {# Remove author modal #}

@@ -47,9 +47,6 @@ class BaseAuthor(models.Model):
     class Meta:
         abstract = True
 
-    def display_affiliation(self):
-        return ', '.join([a.name for a in self.affiliations.all()])
-
 
 class Author(BaseAuthor):
     """
@@ -66,20 +63,15 @@ class Author(BaseAuthor):
 
     def __str__(self):
         # Best representation for form display
-        return '{} --- {}'.format(self.user.username, self.corresponding_email)
+        user = self.user
+        return '{} --- {}'.format(user.username, user.email)
 
     def get_full_name(self):
         """
         The name is tied to the profile. There is no form for authors
         to change their names
         """
-        profile = self.user.profile
-
-        if profile.middle_names:
-            return ' '.join([profile.first_name, profile.middle_names,
-                           profile.last_name])
-        else:
-            return ' '.join([profile.first_name, profile.last_name])
+        return self.user.profile.get_full_name()
 
     def disp_name_email(self):
         return '{} ({})'.format(self.get_full_name(), self.user.email)
@@ -94,6 +86,18 @@ class Author(BaseAuthor):
         if profile.affiliation:
             Affiliation.objects.create(name=profile.affiliation,
                 author=self)
+
+    def set_display_info(self, set_affiliations=True):
+        """
+        Set the fields used to display the author
+        """
+        user = self.user
+        self.name = user.profile.get_full_name
+        self.email = user.email
+        self.username = user.username
+
+        if set_affiliations:
+            self.text_affiliations = [a.name for a in self.affiliations.all()]
 
 
 class PublishedAuthor(BaseAuthor):
@@ -408,11 +412,25 @@ class ActiveProject(Metadata, UnpublishedProject):
         user = self.submitting_author().user
         return user.email, user.get_full_name()
 
-    def get_author_info(self):
+    def get_author_info(self, separate_submitting=False, include_emails=False):
         """
-        Return tuple pairs of all author emails and names
+        Get the project's authors, setting information needed to display
+        their attributes.
         """
-        return ((a.user.email, a.user.get_full_name()) for a in self.authors.all())
+        authors = self.authors.all().order_by('display_order')
+        author_emails = ';'.join(a.user.email for a in authors)
+
+        if separate_submitting:
+            submitting_author = authors.get(is_submitting=True)
+            coauthors = authors.filter(is_submitting=False)
+            submitting_author.set_display_info()
+            for a in coauthors:
+                a.set_display_info()
+            return submitting_author, coauthors
+        else:
+            for a in authors:
+                a.set_display_info()
+            return authors
 
     def archive(self, reason):
         """

@@ -149,9 +149,8 @@ def copyedit_submission(request, project_slug):
     if request.user != project.editor or project.submission_status not in [40, 50]:
         return Http404()
 
-    authors = project.authors.all()
-    author_emails = ';'.join(a.user.email for a in authors)
-    all_authors_approved = (len(authors) == len(authors.filter(approved_publish=True)))
+    submitting_author, coauthors, author_emails = project.get_author_info()
+    # all_authors_approved = (len(authors) == len(authors.filter(approved_publish=True)))
 
     # Metadata forms and formsets
     ReferenceFormSet = generic_inlineformset_factory(Reference,
@@ -173,6 +172,8 @@ def copyedit_submission(request, project_slug):
     reference_formset = ReferenceFormSet(instance=project)
     publication_formset = PublicationFormSet(instance=project)
     topic_formset = TopicFormSet(instance=project)
+
+    complete_copyedit_form = forms.CompleteCopyeditForm()
 
     if request.method == 'POST':
         if 'edit_metadata' in request.POST:
@@ -223,8 +224,10 @@ def copyedit_submission(request, project_slug):
         'reference_formset':reference_formset,
         'publication_formset':publication_formset,
         'topic_formset':topic_formset,
-        'authors':authors,
-        'all_authors_approved':all_authors_approved, 'author_emails':author_emails,
+        'complete_copyedit_form':complete_copyedit_form,
+        # 'all_authors_approved':all_authors_approved,
+        'submitting_author':submitting_author, 'coauthors':coauthors,
+        'author_emails':author_emails,
         'add_item_url':edit_url, 'remove_item_url':edit_url})
 
 

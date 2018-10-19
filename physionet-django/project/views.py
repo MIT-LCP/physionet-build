@@ -156,6 +156,13 @@ def project_home(request):
     """
     user = request.user
 
+    InvitationResponseFormSet = modelformset_factory(AuthorInvitation,
+        form=forms.InvitationResponseForm, extra=0)
+
+    if request.method == 'POST':
+        invitation_response_formset = InvitationResponseFormSet(request.POST)
+        process_invitation_response(request, invitation_response_formset)
+
     active_authors = Author.objects.filter(user=user,
         content_type=ContentType.objects.get_for_model(ActiveProject))
     published_authors = PublishedAuthor.objects.filter(user=user)
@@ -163,13 +170,6 @@ def project_home(request):
     # Get the projects and published projects
     projects = [a.project for a in active_authors]
     published_projects = [a.project for a in published_authors]
-
-    InvitationResponseFormSet = modelformset_factory(AuthorInvitation,
-        form=forms.InvitationResponseForm, extra=0)
-
-    if request.method == 'POST':
-        invitation_response_formset = InvitationResponseFormSet(request.POST)
-        process_invitation_response(request, invitation_response_formset)
 
     invitation_response_formset = InvitationResponseFormSet(
         queryset=AuthorInvitation.get_user_invitations(user))
@@ -403,8 +403,8 @@ def project_authors(request, project_slug, **kwargs):
                 author.corresponding_email = corresponding_email_form.cleaned_data['associated_email']
                 author.save()
                 messages.success(request, 'Your corresponding email has been updated.')
-        # Refresh the author properties
-        authors = project.authors.all()
+
+    authors = project.get_author_info()
     invitations = project.authorinvitations.filter(is_active=True)
     edit_affiliations_url = reverse('edit_affiliation', args=[project.slug])
     return render(request, 'project/project_authors.html', {'project':project,
