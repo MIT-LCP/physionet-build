@@ -426,11 +426,17 @@ class ActiveProject(Metadata, UnpublishedProject):
             submitting_author.set_display_info()
             for a in coauthors:
                 a.set_display_info()
-            return submitting_author, coauthors
+            r = (submitting_author, coauthors)
         else:
             for a in authors:
                 a.set_display_info()
-            return authors
+            r = (authors,)
+
+        if include_emails:
+            r = r + (author_emails,)
+
+        return r
+
 
     def archive(self, reason):
         """

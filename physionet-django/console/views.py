@@ -149,7 +149,8 @@ def copyedit_submission(request, project_slug):
     if request.user != project.editor or project.submission_status not in [40, 50]:
         return Http404()
 
-    submitting_author, coauthors, author_emails = project.get_author_info()
+    submitting_author, coauthors, author_emails = project.get_author_info(
+        separate_submitting=True, include_emails=True)
     # all_authors_approved = (len(authors) == len(authors.filter(approved_publish=True)))
 
     # Metadata forms and formsets
