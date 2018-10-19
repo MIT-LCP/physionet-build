@@ -262,8 +262,10 @@ def move_author(request, project_slug, **kwargs):
     Change an author display order. Return the updated authors list html
     if successful. Called via ajax.
     """
+    project, authors, is_submitting = (kwargs[k] for k in
+        ('project', 'authors', 'is_submitting'))
+
     if request.method == 'POST':
-        project, authors = kwargs['project'], kwargs['authors']
         author = authors.get(id=int(request.POST['author_id']))
         direction = request.POST['direction']
         n_authors = authors.count()
@@ -279,7 +281,8 @@ def move_author(request, project_slug, **kwargs):
             swap_author.save()
             authors = authors.order_by('display_order')
             return render(request, 'project/author_list.html',
-                                  {'project':project, 'authors':authors})
+                {'project':project, 'authors':authors,
+                'is_submitting':is_submitting})
     raise Http404()
 
 @project_auth(auth_mode=1)

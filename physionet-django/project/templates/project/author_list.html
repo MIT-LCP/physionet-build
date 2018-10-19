@@ -31,7 +31,7 @@
               <button class="btn btn-sm" type="button" style="background:none; color:white"><i class="fa-arrow-down"></i></button>
             {% endif %}
             {# Remove button. Leads to modal. #}
-            {% if author.user != project.submitting_author %}
+            {% if not author.is_submitting %}
               <button class="btn btn-sm" type="button" title="Remove Author" style="background:none; color:#cb2431" data-toggle="modal" data-target="#remove-{{ author.id }}-modal"><i class="fas fa-user-times"></i></button>
             {% else %}
               <button class="btn btn-sm" type="button" style="background:none; color:white"><i class="fas fa-user-times"></i></button>
@@ -42,7 +42,7 @@
         <strong>Name</strong>: {{ author.user|author_name }}<br>
         <strong>Affiliations</strong>: {{ author|author_affiliations }}
 
-        {% if user == project.submitting_author and author.user != project.submitting_author %}
+        {% if is_submitting and not author.is_submitting %}
           {# Remove author modal #}
           <div class="modal fade" id="remove-{{ author.id }}-modal" role="dialog" aria-labelledby="remove-{{ author.id }}-modal" aria-hidden="true">
             <div class="modal-dialog" role="document">
