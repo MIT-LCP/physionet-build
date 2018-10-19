@@ -472,7 +472,7 @@ def project_metadata(request, project_slug, **kwargs):
     ReferenceFormSet = generic_inlineformset_factory(Reference,
         fields=('description',), extra=0,
         max_num=forms.ReferenceFormSet.max_forms, can_delete=False,
-        formset=forms.ReferenceFormSet)
+        formset=forms.ReferenceFormSet, validate_max=True)
 
     description_form = forms.METADATA_FORMS[project.resource_type](instance=project)
     reference_formset = ReferenceFormSet(instance=project)

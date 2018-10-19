@@ -1,8 +1,12 @@
 {% extends "console/base_console.html" %}
 
+{% load static %}
+
 {% block title %}Copyedit Submission{% endblock %}
 
 {% block local_js_top %}
+<script type="text/javascript" src="{% static 'custom/js/cookie.js' %}"></script>
+<script type="text/javascript" src="{% static 'project/js/dynamic-formset.js' %}"></script>
 <script>
   function copyToClipboard(str){
     var el = document.createElement('textarea');
@@ -17,119 +21,61 @@
 
 {% block content %}
 <h1>Copyedit Project: {{ project }}</h1>
-<hr><br>
-<p>Make adjustments to the metadata and files. </p>
-<p>Contact the authors via email to discuss changes.</p>
-<p><button class="btn btn-primary" onclick="copyToClipboard('{{ author_emails }}')">Copy Emails to Clipboard</button></p>
-<br>
+<hr>
 {% include "console/project_info_card.html" %}
 
 <div class="card">
   <div class="card-header">
     <ul class="nav nav-tabs card-header-tabs">
       <li class="nav-item">
-        <a class="nav-link active" id="assignment-tab" data-toggle="tab" href="#assignment" role="tab" aria-controls="assignment" aria-selected="true">Edit Metadata</a>
+        <a class="nav-link active" id="metadata-tab" data-toggle="tab" href="#metadata" role="tab" aria-controls="metadata" aria-selected="true">Edit Metadata</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" id="decision-tab" data-toggle="tab" href="#decision" role="tab" aria-controls="decision" aria-selected="false">Edit Files</a>
+        <a class="nav-link" id="files-tab" data-toggle="tab" href="#files" role="tab" aria-controls="files" aria-selected="false">Edit Files</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" id="revision-tab" data-toggle="tab" href="#revision" role="tab" aria-controls="revision" aria-selected="false">Complete Copyedit</a>
+        <a class="nav-link" id="complete-tab" data-toggle="tab" href="#complete" role="tab" aria-controls="complete" aria-selected="false">Complete Copyedit</a>
       </li>
     </ul>
   </div>
   <div class="card-body">
     {# Edit Metadata #}
     <div class="tab-content" id="tabContent">
-      <div class="tab-pane fade show active" id="assigmnent" role="tabpanel" aria-labelledby="home-tab">
-        {% if assignment_projects %}
-          <p><button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#assignModal">
-        Assign Editor</button></p>
-          <div class="table-responsive">
-            <table class="table table-bordered">
-              <thead>
-                <tr>
-                  <th>Project</th>
-                  <th>Submitting Author</th>
-                  <th>Submission Date</th>
-                </tr>
-              </thead>
-              <tbody>
-              {% for project in assignment_projects %}
-                <tr>
-                  <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
-                  <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
-                  <td>{{ project.submission_datetime|date }}</td>
-                </tr>
-              {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        {% else %}
-          <p><i class="fas fa-check" style="color:green"></i> No projects to show.</p>
-        {% endif %}
+      <div class="tab-pane fade show active" id="metadata" role="tabpanel" aria-labelledby="metadata-tab">
+        <form action="" method="post">
+          {{ description_form.media }}
+          {% include "project/metadata_inline_form_snippet.html" with form=description_form %}
+          {% include 'project/item_list.html' with item="reference" item_label=reference_formset.item_label formset=reference_formset form_name=reference_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}
+          <br><br>
+          {% include "project/metadata_inline_form_snippet.html" with form=access_form %}
+          <br><br>
+          {% include 'project/item_list.html' with item="publication" item_label=publication_formset.item_label formset=publication_formset form_name=publication_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}
+          {% include 'project/item_list.html' with item="topic" item_label=topic_formset.item_label formset=topic_formset form_name=topic_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}
+          <button class="btn btn-lg btn-primary" type="submit" name="edit_metadata">Save Metadata</button>
+        </form>
       </div>
       {# Edit Files #}
-      <div class="tab-pane fade" id="publish" role="tabpanel" aria-labelledby="publish-tab">
-        {% if publish_projects %}
-          <div class="table-responsive">
-            <table class="table table-bordered">
-              <thead>
-                <tr>
-                  <th>Project</th>
-                  <th>Submitting Author</th>
-                  <th>Submission Date</th>
-                  <th>Editor</th>
-                  <th>Is Resubmission</th>
-                </tr>
-              </thead>
-              <tbody>
-              {% for project in publish_projects %}
-                <tr>
-                  <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
-                  <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author.user.username }}</a> - {{ project.submitting_author.user.email }}</td>
-                  <td>{{ project.submission_datetime|date }}</td>
-                </tr>
-              {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        {% else %}
-          <p><i class="fas fa-check" style="color:green"></i> No projects to show.</p>
-        {% endif %}
+      <div class="tab-pane fade" id="files" role="tabpanel" aria-labelledby="files-tab">
+        <p>Files</p>
       </div>
       {# Complete Copyedit #}
-      <div class="tab-pane fade" id="publish" role="tabpanel" aria-labelledby="publish-tab">
-        {% if publish_projects %}
-          <div class="table-responsive">
-            <table class="table table-bordered">
-              <thead>
-                <tr>
-                  <th>Project</th>
-                  <th>Submitting Author</th>
-                  <th>Submission Date</th>
-                  <th>Editor</th>
-                  <th>Is Resubmission</th>
-                </tr>
-              </thead>
-              <tbody>
-              {% for project in publish_projects %}
-                <tr>
-                  <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
-                  <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author.user.username }}</a> - {{ project.submitting_author.user.email }}</td>
-                  <td>{{ project.submission_datetime|date }}</td>
-                </tr>
-              {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        {% else %}
-          <p><i class="fas fa-check" style="color:green"></i> No projects to show.</p>
-        {% endif %}
+      <div class="tab-pane fade" id="complete" role="tabpanel" aria-labelledby="complete-tab">
+        <p>When you are satisfied with the final state of the project, you
+           may complete this step. If you made any changes, summarize them
+           below.</p>
+        <form>
+
+        </form>
       </div>
     </div>
   </div>
 </div>
 
 
+{% endblock %}
+
+{% block local_js_bottom %}
+<script type="text/javascript" src="{% static 'custom/js/resize-ck.js' %}"></script>
+<script type="text/javascript" src="{% static 'custom/js/enable-popover.js' %}"></script>
+<script>disableAddButtons();</script>
 {% endblock %}

@@ -2,6 +2,7 @@ import pdb
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.sites.shortcuts import get_current_site
 from django.forms import modelformset_factory, Select, Textarea
 from django.http import Http404
@@ -11,7 +12,8 @@ from django.utils import timezone
 
 from . import forms
 import notification.utility as notification
-from project.models import ActiveProject, ResubmissionLog, StorageRequest, SubmissionLog
+import project.forms as project_forms
+from project.models import ActiveProject, ResubmissionLog, StorageRequest, SubmissionLog, Reference, Topic, Publication
 from user.models import User
 
 
@@ -147,9 +149,63 @@ def copyedit_submission(request, project_slug):
         return Http404()
 
     authors = project.authors.all()
+    author_emails = ';'.join(a.user.email for a in authors)
+    all_authors_approved = (len(authors) == len(authors.filter(approved_publish=True)))
+
+    # Metadata forms and formsets
+    ReferenceFormSet = generic_inlineformset_factory(Reference,
+        fields=('description',), extra=0,
+        max_num=project_forms.ReferenceFormSet.max_forms, can_delete=False,
+        formset=project_forms.ReferenceFormSet, validate_max=True)
+    TopicFormSet = generic_inlineformset_factory(Topic,
+        fields=('description',), extra=0,
+        max_num=project_forms.TopicFormSet.max_forms, can_delete=False,
+        formset=project_forms.TopicFormSet, validate_max=True)
+    PublicationFormSet = generic_inlineformset_factory(Publication,
+        fields=('citation', 'url'), extra=0,
+        max_num=project_forms.PublicationFormSet.max_forms, can_delete=False,
+        formset=project_forms.PublicationFormSet, validate_max=True)
+
+    description_form = project_forms.METADATA_FORMS[project.resource_type](
+        instance=project)
+    access_form = project_forms.AccessMetadataForm(instance=project)
+    reference_formset = ReferenceFormSet(instance=project)
+    publication_formset = PublicationFormSet(instance=project)
+    topic_formset = TopicFormSet(instance=project)
 
     if request.method == 'POST':
-        if 'complete_copyedit' in request.POST:
+        if 'edit_metadata' in request.POST:
+            description_form = project_forms.METADATA_FORMS[project.resource_type](
+                data=request.POST, instance=project)
+            access_form = project_forms.AccessMetadataForm(request.POST,
+                instance=project)
+            reference_formset = ReferenceFormSet(request.POST,
+                instance=project)
+            publication_formset = PublicationFormSet(request.POST,
+                                                 instance=project)
+            topic_formset = TopicFormSet(request.POST, instance=project)
+            if (description_form.is_valid() and access_form.is_valid()
+                                            and reference_formset.is_valid()
+                                            and publication_formset.is_valid()
+                                            and topic_formset.is_valid()):
+                description_form.save()
+                access_form.save()
+                reference_formset.save()
+                publication_formset.save()
+                topic_formset.save()
+                messages.success(request,
+                    'The project metadata has been updated.')
+
+                # Reload formsets
+                reference_formset = ReferenceFormSet(instance=project)
+                publication_formset = PublicationFormSet(instance=project)
+                topic_formset = TopicFormSet(instance=project)
+            else:
+                messages.error(request,
+                    'Invalid submission. See errors below.')
+        elif 'edit_files' in request.POST:
+            pass
+        elif 'complete_copyedit' in request.POST:
             submission_log.status = 50
             submission.copyedit_datetime = timezone.now()
             submission.save()
@@ -157,11 +213,14 @@ def copyedit_submission(request, project_slug):
             return render(request, 'console/copyedit_complete.html',
                 {'submission':submission})
 
-    author_emails = ';'.join(a.user.email for a in authors)
-    all_authors_approved = (len(authors) == len(authors.filter(approved_publish=True)))
-
     return render(request, 'console/copyedit_submission.html', {
-        'project':project, 'submission_log':submission_log, 'authors':authors,
+        'project':project, 'submission_log':submission_log,
+        'description_form':description_form,
+        'access_form':access_form,
+        'reference_formset':reference_formset,
+        'publication_formset':publication_formset,
+        'topic_formset':topic_formset,
+        'authors':authors,
         'all_authors_approved':all_authors_approved, 'author_emails':author_emails})
 
 

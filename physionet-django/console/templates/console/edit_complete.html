@@ -15,7 +15,7 @@
     {% else %}
       <p>You have approved the submission of: {{ project.title }}. The next step is for you to <a href="{% url 'copyedit_submission' project.slug %}">copyedit</a> the content.</p>
     {% endif %}
-    <p>The authors have been notified of your decision. You may return to your <a href="{% url 'editing_submissions' %}">editor home</a>.</p>
+    <p>You may also return to your <a href="{% url 'editor_home' %}">editor home</a>.</p>
   </div>
 </div>
 {% endblock %}
