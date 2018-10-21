@@ -405,6 +405,7 @@ def project_authors(request, project_slug, **kwargs):
                 messages.success(request, 'Your corresponding email has been updated.')
 
     authors = project.get_author_info()
+    pdb.set_trace()
     invitations = project.authorinvitations.filter(is_active=True)
     edit_affiliations_url = reverse('edit_affiliation', args=[project.slug])
     return render(request, 'project/project_authors.html', {'project':project,

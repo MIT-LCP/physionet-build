@@ -151,7 +151,6 @@ def copyedit_submission(request, project_slug):
 
     submitting_author, coauthors, author_emails = project.get_author_info(
         separate_submitting=True, include_emails=True)
-    # all_authors_approved = (len(authors) == len(authors.filter(approved_publish=True)))
 
     # Metadata forms and formsets
     ReferenceFormSet = generic_inlineformset_factory(Reference,

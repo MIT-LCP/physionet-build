@@ -92,7 +92,7 @@ class Author(BaseAuthor):
         Set the fields used to display the author
         """
         user = self.user
-        self.name = user.profile.get_full_name
+        self.name = user.profile.get_full_name()
         self.email = user.email
         self.username = user.username
 
