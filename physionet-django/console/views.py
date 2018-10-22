@@ -15,6 +15,8 @@ from . import forms
 import notification.utility as notification
 import project.forms as project_forms
 from project.models import ActiveProject, ResubmissionLog, StorageRequest, SubmissionLog, Reference, Topic, Publication
+from project.views import get_file_forms, get_project_file_info, process_files_post
+from project.utility import get_storage_info
 from user.models import User
 
 
@@ -143,7 +145,6 @@ def copyedit_submission(request, project_slug):
     Page to copyedit the submission
     """
     project = ActiveProject.objects.get(slug=project_slug)
-    submission_log = project.submission_log.get()
     # Copyedit statuses: 40 is before the editor allows authors to
     # approve. 50 is when the authors are approving
     if request.user != project.editor or project.submission_status not in [40, 50]:
@@ -205,27 +206,54 @@ def copyedit_submission(request, project_slug):
             else:
                 messages.error(request,
                     'Invalid submission. See errors below.')
-        elif 'edit_files' in request.POST:
-            pass
         elif 'complete_copyedit' in request.POST:
-            submission_log.status = 50
-            submission.copyedit_datetime = timezone.now()
-            submission.save()
-            notification.copyedit_complete_notify(request, submission)
-            return render(request, 'console/copyedit_complete.html',
-                {'submission':submission})
+            if project.status == 40:
+                submission_log = project.submission_log.get()
+                project.status = 50
+                project.save()
+                submission_log.copyedit_datetime = timezone.now()
+                submission_log.save()
+                notification.copyedit_complete_notify(request, submission)
+                return render(request, 'console/copyedit_complete.html',
+                   {'submission':submission})
+        else:
+            # process the file manipulation post
+            subdir = process_files_post(request, project)
+
+    if 'subdir' not in vars():
+        subdir = ''
+
+    storage_info = get_storage_info(
+        project.core_project.storage_allowance*1024**2, project.storage_used())
+
+    (upload_files_form, create_folder_form, rename_item_form,
+        move_items_form, delete_items_form) = get_file_forms(project=project,
+        subdir=subdir)
+
+    display_files, display_dirs, dir_breadcrumbs, _ = get_project_file_info(
+        project=project, subdir=subdir)
 
     edit_url = reverse('edit_metadata_item', args=[project.slug])
 
     return render(request, 'console/copyedit_submission.html', {
-        'project':project, 'submission_log':submission_log,
+        'project':project,
         'description_form':description_form,
         'access_form':access_form,
         'reference_formset':reference_formset,
         'publication_formset':publication_formset,
         'topic_formset':topic_formset,
+
+        'storage_info':storage_info,
+        'upload_files_form':upload_files_form,
+        'create_folder_form':create_folder_form,
+        'rename_item_form':rename_item_form,
+        'move_items_form':move_items_form,
+        'delete_items_form':delete_items_form,
+
+        'display_files':display_files, 'display_dirs':display_dirs, 'dir_breadcrumbs':dir_breadcrumbs,
+        'is_editor':True,
         'complete_copyedit_form':complete_copyedit_form,
-        # 'all_authors_approved':all_authors_approved,
+
         'submitting_author':submitting_author, 'coauthors':coauthors,
         'author_emails':author_emails,
         'add_item_url':edit_url, 'remove_item_url':edit_url})

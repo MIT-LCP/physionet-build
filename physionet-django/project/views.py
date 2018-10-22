@@ -582,29 +582,45 @@ def project_identifiers(request, project_slug, **kwargs):
          'admin_inspect':admin_inspect})
 
 
+
+
+def get_file_forms(project, subdir):
+    """
+    Get the file processing forms
+    """
+    upload_files_form = forms.UploadFilesForm(project=project)
+    create_folder_form = forms.CreateFolderForm(project=project)
+    rename_item_form = forms.RenameItemForm(project=project)
+    move_items_form = forms.MoveItemsForm(project=project, subdir=subdir)
+    delete_items_form = forms.EditItemsForm(project=project)
+
+    return (upload_files_form, create_folder_form, rename_item_form,
+            move_items_form, delete_items_form)
+
+def get_project_file_info(project, subdir):
+    """
+    """
+    display_files, display_dirs = project.get_directory_content(
+        subdir=subdir)
+    # Breadcrumbs
+    dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
+    parent_dir = os.path.split(subdir)[0]
+    return display_files, display_dirs, dir_breadcrumbs, parent_dir
+
 @project_auth(auth_mode=0)
 def project_files_panel(request, project_slug, **kwargs):
     """
     Return the file panel for the project, along with the forms used to
     manipulate them. Called via ajax to navigate directories.
     """
-    project, is_submitting, admin_inspect = (kwargs[k] for k in ('project',
-        'is_submitting', 'admin_inspect'))
+    project, is_submitting = (kwargs[k] for k in ('project', 'is_submitting'))
+    is_editor = request.user == project.editor
     subdir = request.GET['subdir']
 
-    display_files, display_dirs = project.get_directory_content(
-        subdir=subdir)
-
-    # Breadcrumbs
-    dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
-    parent_dir = os.path.split(subdir)[0]
-
-    # Forms
-    upload_files_form = forms.UploadFilesForm(project=project)
-    create_folder_form = forms.CreateFolderForm(project=project)
-    rename_item_form = forms.RenameItemForm(project=project)
-    move_items_form = forms.MoveItemsForm(project=project, subdir=subdir)
-    delete_items_form = forms.EditItemsForm(project=project)
+    display_files, display_dirs, dir_breadcrumbs, parent_dir = get_project_file_info(
+        project=project,subdir=subdir)
+    (upload_files_form, create_folder_form, rename_item_form,
+        move_items_form, delete_items_form) = get_file_forms(project, subdir)
 
     return render(request, 'project/project_files_panel.html',
         {'project':project, 'subdir':subdir,
@@ -615,7 +631,8 @@ def project_files_panel(request, project_slug, **kwargs):
          'rename_item_form':rename_item_form,
          'move_items_form':move_items_form,
          'delete_items_form':delete_items_form,
-         'is_submitting':is_submitting, 'admin_inspect':admin_inspect})
+         'is_submitting':is_submitting,
+         'is_editor':is_editor})
 
 def process_items(request, form):
     """
@@ -635,14 +652,35 @@ def process_items(request, form):
         else:
             return ''
 
+def process_files_post(request, project):
+    """
+    Helper function for `project_files`
+    """
+    if 'upload_files' in request.POST:
+        form = forms.UploadFilesForm(project=project, data=request.POST,
+            files=request.FILES)
+        subdir = process_items(request, form)
+    elif 'create_folder' in request.POST:
+        form = forms.CreateFolderForm(project=project, data=request.POST)
+        subdir = process_items(request, form)
+    elif 'rename_item' in request.POST:
+        form = forms.RenameItemForm(project=project, data=request.POST)
+        subdir = process_items(request, form)
+    elif 'move_items' in request.POST:
+        form = forms.MoveItemsForm(project=project, data=request.POST)
+        subdir = process_items(request, form)
+    elif 'delete_items' in request.POST:
+        form = forms.EditItemsForm(project=project, data=request.POST)
+        subdir = process_items(request, form)
+
+    return subdir
+
+
 @project_auth(auth_mode=0, post_auth_mode=1)
 def project_files(request, project_slug, **kwargs):
     "View and manipulate files in a project"
     project, is_submitting, admin_inspect = (kwargs[k] for k in
         ('project', 'is_submitting', 'admin_inspect'))
-
-    storage_info = utility.get_storage_info(
-        project.core_project.storage_allowance*1024**2, project.storage_used())
 
     if request.method == 'POST':
         if not is_submitting:
@@ -657,33 +695,16 @@ def project_files(request, project_slug, **kwargs):
                 messages.success(request, 'Your storage request has been received.')
             else:
                 messages.error(request, utility.get_form_errors(storage_request_form))
-            subdir = ''
-        elif 'upload_files' in request.POST:
-            form = forms.UploadFilesForm(project=project, data=request.POST, files=request.FILES)
-            subdir = process_items(request, form)
-        elif 'create_folder' in request.POST:
-            form = forms.CreateFolderForm(project=project, data=request.POST)
-            subdir = process_items(request, form)
-        elif 'rename_item' in request.POST:
-            form = forms.RenameItemForm(project=project, data=request.POST)
-            subdir = process_items(request, form)
-        elif 'move_items' in request.POST:
-            form = forms.MoveItemsForm(project=project, data=request.POST)
-            subdir = process_items(request, form)
-        elif 'delete_items' in request.POST:
-            form = forms.EditItemsForm(project=project, data=request.POST)
-            subdir = process_items(request, form)
-        else:
-            subdir = ''
 
-        # Reload the storage info.
-        storage_info = utility.get_storage_info(
-            project.core_project.storage_allowance*1024**2,
-            project.storage_used())
-    else:
-        # The subdirectory is just the base. Ajax calls to the file
-        # panel will not call this view.
+        else:
+            # process the file manipulation post
+            subdir = process_files_post(request, project)
+
+    if 'subdir' not in vars():
         subdir = ''
+
+    storage_info = utility.get_storage_info(
+        project.core_project.storage_allowance*1024**2, project.storage_used())
 
     storage_request = StorageRequest.objects.filter(project=project,
                                                     is_active=True).first()
@@ -693,15 +714,12 @@ def project_files(request, project_slug, **kwargs):
     else:
         storage_request_form = forms.StorageRequestForm(project=project)
 
-    upload_files_form = forms.UploadFilesForm(project=project)
-    create_folder_form = forms.CreateFolderForm(project=project)
-    rename_item_form = forms.RenameItemForm(project=project)
-    move_items_form = forms.MoveItemsForm(project=project, subdir=subdir)
-    delete_items_form = forms.EditItemsForm(project=project)
+    (upload_files_form, create_folder_form, rename_item_form,
+        move_items_form, delete_items_form) = get_file_forms(project=project,
+        subdir=subdir)
 
-    # The contents of the directory
-    display_files, display_dirs = project.get_directory_content(subdir=subdir)
-    dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
+    display_files, display_dirs, dir_breadcrumbs, xx = get_project_file_info(
+        project=project,subdir=subdir)
 
     return render(request, 'project/project_files.html', {'project':project,
         'subdir':subdir,
@@ -735,15 +753,11 @@ def preview_files_panel(request, project_slug, **kwargs):
     Return the file panel for the project, along with the forms used to
     manipulate them. Called via ajax to navigate directories.
     """
-    project = ActiveProject.objects.get(slug=project_slug)
+    project = kwargs['project']
     subdir = request.GET['subdir']
 
-    display_files, display_dirs = project.get_directory_content(
-        subdir=subdir)
-
-    # Breadcrumbs
-    dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
-    parent_dir = os.path.split(subdir)[0]
+    display_files, display_dirs, dir_breadcrumbs, parent_dir = get_project_file_info(
+        project=project,subdir=subdir)
 
     return render(request, 'project/preview_files_panel.html',
         {'project':project, 'subdir':subdir,

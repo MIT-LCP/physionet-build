@@ -1,4 +1,4 @@
-{% if is_submitting %}
+{% if is_submitting or is_editor %}
   <input name="subdir" value="{{ subdir }}" type="hidden">
 
   <!-- Content manipulation buttons to trigger modals -->
