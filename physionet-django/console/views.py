@@ -62,6 +62,7 @@ def submitted_projects(request):
     # Awaiting editor copyedit
     copyedit_projects = projects.filter(submission_status=40)
     # Awaiting author approval
+    approval_projects = projects.filter(submission_status=50)
     # Awaiting editor publish
 
     assign_editor_form = forms.AssignEditorForm()
@@ -73,6 +74,7 @@ def submitted_projects(request):
          'decision_projects':decision_projects,
          'revision_projects':revision_projects,
          'copyedit_projects':copyedit_projects,
+         'approval_projects':approval_projects
          })
 
 
@@ -85,16 +87,19 @@ def editor_home(request):
     projects = ActiveProject.objects.filter(editor=request.user).order_by(
         'submission_datetime')
 
-    # awaiting editor decision
+    # Awaiting editor decision
     decision_projects = projects.filter(submission_status=20)
-    # awaiting author revisions
+    # Awaiting author revisions
     revision_projects = projects.filter(submission_status=30)
-    # awaiting editor copyedit
+    # Awaiting editor copyedit
     copyedit_projects = projects.filter(submission_status=40)
+    # Awaiting author approval
+    approval_projects = projects.filter(submission_status=50)
     return render(request, 'console/editor_home.html',
         {'decision_projects':decision_projects,
          'revision_projects':revision_projects,
-         'copyedit_projects':copyedit_projects})
+         'copyedit_projects':copyedit_projects,
+         'approval_projects':approval_projects})
 
 
 @login_required
@@ -151,10 +156,10 @@ def copyedit_submission(request, project_slug):
     Page to copyedit the submission
     """
     project = ActiveProject.objects.get(slug=project_slug)
-    # Copyedit statuses: 40 is before the editor allows authors to
-    # approve. 50 is when the authors are approving
-    if request.user != project.editor or project.submission_status not in [40, 50]:
+    if request.user != project.editor or project.submission_status != 40:
         return Http404()
+
+    copyedit_log = project.copyedit_logs.get(complete_datetime=None)
 
     submitting_author, coauthors, author_emails = project.get_author_info(
         separate_submitting=True, include_emails=True)
@@ -180,7 +185,7 @@ def copyedit_submission(request, project_slug):
     publication_formset = PublicationFormSet(instance=project)
     topic_formset = TopicFormSet(instance=project)
 
-    complete_copyedit_form = forms.CompleteCopyeditForm()
+    copyedit_form = forms.CopyeditForm(instance=copyedit_log)
 
     if request.method == 'POST':
         if 'edit_metadata' in request.POST:
@@ -213,21 +218,13 @@ def copyedit_submission(request, project_slug):
                     'Invalid submission. See errors below.')
         elif 'complete_copyedit' in request.POST:
             if project.submission_status == 40:
-                complete_copyedit_form = forms.CompleteCopyeditForm(
-                    request.POST)
-                if complete_copyedit_form.is_valid():
-                    project.complete_copyedit(complete_copyedit_form)
-
-
-                    edit_log = project.edit_log.get()
-                    project.submission_status = 50
-                    project.save()
-                    edit_log.copyedit_datetime = timezone.now()
-                    edit_log.save()
+                copyedit_form = forms.CopyeditForm(request.POST,
+                    instance=copyedit_log)
+                if copyedit_form.is_valid():
+                    copyedit_log = copyedit_form.save()
                     notification.copyedit_complete_notify(request, project)
-
                     return render(request, 'console/copyedit_complete.html',
-                        {'submission':submission})
+                        {'project':project, 'copyedit_log':copyedit_log})
                 else:
                     messages.error(request, 'Invalid submission. See errors below.')
         else:
@@ -261,7 +258,7 @@ def copyedit_submission(request, project_slug):
         'delete_items_form':delete_items_form,
         'subdir':subdir, 'display_files':display_files,
         'display_dirs':display_dirs, 'dir_breadcrumbs':dir_breadcrumbs,
-        'is_editor':True, 'complete_copyedit_form':complete_copyedit_form,
+        'is_editor':True, 'copyedit_form':copyedit_form,
         'submitting_author':submitting_author, 'coauthors':coauthors,
         'author_emails':author_emails,
         'add_item_url':edit_url, 'remove_item_url':edit_url})
@@ -269,7 +266,28 @@ def copyedit_submission(request, project_slug):
 
 @login_required
 @user_passes_test(is_admin)
-def publish_submission(request, submission_id):
+def awaiting_authors(request, project_slug):
+    """
+    View the authors who have and have not approved the project for
+    publication
+    """
+    project = ActiveProject.objects.get(slug=project_slug)
+
+    submitting_author, coauthors, author_emails = project.get_author_info(
+        separate_submitting=True, include_emails=True)
+    authors = project.authors.all().order_by('approval_datetime')
+    for a in authors:
+        a.set_display_info()
+
+    return render(request, 'console/awaiting_authors.html',
+        {'project':project, 'authors':authors,
+         'submitting_author':submitting_author,
+         'coauthors':coauthors, 'author_emails':author_emails})
+
+
+@login_required
+@user_passes_test(is_admin)
+def publish_submission(request, project_slug):
     """
     Page to publish the submission
     """

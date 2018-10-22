@@ -60,14 +60,13 @@
           <button class="btn btn-lg btn-primary" type="submit" name="edit_metadata">Save Metadata</button>
         </form>
       </div>
-
       {# Complete Copyedit #}
       <div class="tab-pane fade" id="complete" role="tabpanel" aria-labelledby="complete-tab">
         <p>When you are satisfied with the final state of the project, you
            may complete this step. If you made any changes, summarize them
            below.</p>
         <form action="" method="post">
-          {% include "form_snippet.html" with form=complete_copyedit_form %}
+          {% include "form_snippet.html" with form=copyedit_form %}
           <button class="btn btn-lg btn-primary" type="submit" name="complete_copyedit">Complete Copyedit</button>
         </form>
       </div>

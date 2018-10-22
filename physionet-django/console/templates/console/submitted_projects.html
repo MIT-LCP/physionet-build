@@ -5,6 +5,8 @@
 {% load console_templatetags %}
 
 {% block content %}
+<h1>Submitted Projects</h1>
+<hr>
 <div class="card">
   <div class="card-header">
     <ul class="nav nav-tabs card-header-tabs">
@@ -30,8 +32,8 @@
   </div>
   <div class="card-body">
     {# Awaiting editor assignment #}
-    <div class="tab-content" id="tabContent">
-      <div class="tab-pane fade show active" id="assigmnent" role="tabpanel" aria-labelledby="home-tab">
+    <div class="tab-content">
+      <div class="tab-pane fade show active" id="assignment" role="tabpanel" aria-labelledby="assignment-tab">
         {% if assignment_projects %}
           <p><button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#assignModal">
         Assign Editor</button></p>
@@ -183,16 +185,20 @@
                   <th>Project</th>
                   <th>Submitting Author</th>
                   <th>Submission Date</th>
+                  <th>Editor Accept Date</th>
+                  <th>Copyedit Completion Date</th>
                   <th>Editor</th>
-                  <th>Is Resubmission</th>
                 </tr>
               </thead>
               <tbody>
               {% for project in approval_projects %}
                 <tr>
                   <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
-                  <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author.user.username }}</a> - {{ project.submitting_author.user.email }}</td>
+                  <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</td>
                   <td>{{ project.submission_datetime|date }}</td>
+                  <td>{{ project.editor_accept_datetime|date }}</td>
+                  <td>{{ project.copyedit_completion_datetime|date }}</td>
+                  <td>{{ project.editor }}</td>
                 </tr>
               {% endfor %}
               </tbody>

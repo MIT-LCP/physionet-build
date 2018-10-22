@@ -3,7 +3,7 @@ import pdb
 from django import forms
 from django.utils import timezone
 
-from project.models import ActiveProject, EditLog
+from project.models import ActiveProject, EditLog, CopyeditLog
 from user.models import User
 
 
@@ -111,32 +111,39 @@ class EditSubmissionForm(forms.ModelForm):
         """
         Process the editor decision
         """
-        submission_log = super().save()
-        project = submission_log.project
+        edit_log = super().save()
+        project = edit_log.project
+        now = timezone.now()
+
         # Reject
-        if submission_log.decision == 0:
+        if edit_log.decision == 0:
             pass
         # Resubmit with revisions
-        elif submission_log.decision == 1:
+        elif edit_log.decision == 1:
             pass
         # Accept
         else:
             project.submission_status = 40
+            project.editor_accept_datetime = now
+            CopyeditLog.objects.create(project=project)
 
         project.save()
-        submission_log.editor = project.editor
-        submission_log.decision_datetime = timezone.now()
-        submission_log.save()
-        return submission_log
+        edit_log.decision_datetime = now
+        edit_log.save()
+        return edit_log
 
 
-class CompleteCopyeditForm(forms.Form):
+class CopyeditForm(forms.ModelForm):
     """
     Submit form to complete copyedit
     """
-    made_changes = forms.ChoiceField(choices=YES_NO)
-    changelog_summary = forms.CharField(max_length=800,
-        widget=forms.Textarea(), required=False)
+    class Meta:
+        model = CopyeditLog
+        fields = ('made_changes', 'changelog_summary')
+        widgets = {
+            'made_changes':forms.Select(choices=YES_NO),
+            'changelog_summary':forms.Textarea()
+        }
 
     def clean(self):
         if self.errors:
@@ -144,4 +151,18 @@ class CompleteCopyeditForm(forms.Form):
         if self.cleaned_data['made_changes'] and not self.cleaned_data['changelog_summary']:
             raise forms.ValidationError('Describe the changes you made.')
         if not self.cleaned_data['made_changes'] and self.cleaned_data['changelog_summary']:
-            raise forms.ValidationError('If you made changes, you must state so.')
+            raise forms.ValidationError('If you describe changes, you must state that changes were made.')
+
+    def save(self):
+        """
+        Complete the copyedit
+        """
+        copyedit_log = super().save()
+        project = copyedit_log.project
+        now = timezone.now()
+        copyedit_log.complete_datetime = now
+        copyedit_log.save()
+        project.submission_status = 50
+        project.copyedit_completion_datetime = now
+        project.save()
+        return copyedit_log

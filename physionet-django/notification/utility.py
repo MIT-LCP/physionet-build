@@ -129,7 +129,7 @@ def edit_accept_notify(request, submission_log):
                   [email], fail_silently=False)
 
 
-def copyedit_complete_notify(request, project):
+def copyedit_complete_notify(request, project, copyedit_log):
     """
     Notify authors when the copyedit stage is complete
     """

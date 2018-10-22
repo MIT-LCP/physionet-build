@@ -56,7 +56,8 @@ class Author(BaseAuthor):
     object_id = models.PositiveIntegerField()
     project = GenericForeignKey('content_type', 'object_id')
     corresponding_email = models.ForeignKey('user.AssociatedEmail', null=True)
-    approved_publish = models.BooleanField(default=False)
+    # When they approved the project for publication
+    approval_datetime = models.DateTimeField(null=True)
 
     class Meta:
         unique_together = (('user', 'content_type', 'object_id',),)
@@ -271,6 +272,7 @@ class Metadata(models.Model):
     creation_datetime = models.DateTimeField(auto_now_add=True)
 
     edit_logs = GenericRelation('project.EditLog')
+    copyedit_logs = GenericRelation('project.CopyeditLog')
 
 class SubmissionInfo(models.Model):
     """
@@ -281,7 +283,7 @@ class SubmissionInfo(models.Model):
     # The very first submission
     submission_datetime = models.DateTimeField(null=True)
     editor_assignment_datetime = models.DateTimeField(null=True)
-    editor_approval_datetime = models.DateTimeField(null=True)
+    editor_accept_datetime = models.DateTimeField(null=True)
     # The very last copyedit
     copyedit_completion_datetime = models.DateTimeField(null=True)
     author_approval_datetime = models.DateTimeField(null=True)
@@ -523,15 +525,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         self.submission_status = 20
         self.editor_assignment_datetime = timezone.now()
         self.save()
-
-    def accept_datetime(self):
-        """
-        When the project was accepted by the editor
-        """
-        if self.submission_status in [40, 50, 60]:
-            submission_log = self.submission_log.get()
-            # Need to account for resubmissions
-            return submission_log.decision_datetime
 
     def all_authors_approved(self):
         "Whether all authors have approved the publication"
@@ -869,10 +862,10 @@ class EditLog(models.Model):
     is_resubmission = models.BooleanField(default=False)
     # Quality assurance fields
     soundly_produced = models.NullBooleanField(null=True)
-    well_described = models.NullBooleanField(null=True, blank=False)
-    open_format = models.NullBooleanField(null=True, blank=False)
-    data_machine_readable = models.NullBooleanField(null=True, blank=False)
-    reusable = models.NullBooleanField(null=True, blank=False)
+    well_described = models.NullBooleanField(null=True)
+    open_format = models.NullBooleanField(null=True)
+    data_machine_readable = models.NullBooleanField(null=True)
+    reusable = models.NullBooleanField(null=True)
     no_phi = models.NullBooleanField(null=True)
     pn_suitable = models.NullBooleanField(null=True)
     # Editor decision. 1 2 or 3 for reject/revise/accept
@@ -892,6 +885,6 @@ class CopyeditLog(models.Model):
     project = GenericForeignKey('content_type', 'object_id')
 
     start_datetime = models.DateTimeField(auto_now_add=True)
-    made_changes = models.BooleanField()
-    changelog_summary = models.CharField(default='', max_length=800)
+    made_changes = models.NullBooleanField(null=True)
+    changelog_summary = models.CharField(default='', max_length=800, blank=True)
     complete_datetime = models.DateTimeField(null=True)

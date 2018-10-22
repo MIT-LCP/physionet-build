@@ -13,7 +13,7 @@
     {% elif decision == 1 %}
       <p>You have rejected the submission of: {{ project.title }}.</p>
     {% else %}
-      <p>You have approved the submission of: {{ project.title }}. The next step is for you to <a href="{% url 'copyedit_submission' project.slug %}">copyedit</a> the content.</p>
+      <p>You have accepted the submission of: {{ project.title }}. The next step is for you to <a href="{% url 'copyedit_submission' project.slug %}">copyedit</a> the content.</p>
     {% endif %}
     <p>You may also return to your <a href="{% url 'editor_home' %}">editor home</a>.</p>
   </div>
