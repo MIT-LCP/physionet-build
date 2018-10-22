@@ -222,7 +222,8 @@ def copyedit_submission(request, project_slug):
                     instance=copyedit_log)
                 if copyedit_form.is_valid():
                     copyedit_log = copyedit_form.save()
-                    notification.copyedit_complete_notify(request, project)
+                    notification.copyedit_complete_notify(request, project,
+                        copyedit_log)
                     return render(request, 'console/copyedit_complete.html',
                         {'project':project, 'copyedit_log':copyedit_log})
                 else:

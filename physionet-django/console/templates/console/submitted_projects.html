@@ -164,7 +164,7 @@
                   <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
                   <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</td>
                   <td>{{ project.submission_datetime|date }}</td>
-                  <td>{{ project.accept_datetime|date }}</td>
+                  <td>{{ project.editor_accept_datetime|date }}</td>
                   <td>{{ project.editor }}</td>
                 </tr>
               {% endfor %}

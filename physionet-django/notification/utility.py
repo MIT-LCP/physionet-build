@@ -143,7 +143,7 @@ def copyedit_complete_notify(request, project, copyedit_log):
                   [email], fail_silently=False)
 
 
-def repopen_copyedit_notify(request, project):
+def reopen_copyedit_notify(request, project):
     """
     Notify authors when an editor reopens a project for copyediting
     """
