@@ -75,6 +75,7 @@
         Are you sure you want to reopen the project for copyediting? Do not
         do this unless you need to make additional changes to the project.
         <form action="" method="post" class="form-signin">
+          {% csrf_token %}
       </div>
       <div class="modal-footer">
         <button class="btn btn-danger btn-fixed" name="reopen_copyedit" type="submit">Reopen Copyedit</button>

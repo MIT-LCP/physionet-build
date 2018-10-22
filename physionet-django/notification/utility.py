@@ -131,17 +131,30 @@ def edit_accept_notify(request, submission_log):
 
 def copyedit_complete_notify(request, project, copyedit_log):
     """
-    Notify authors when the copyedit stage is complete
+    Notify authors when the editor has finished copyediting
     """
     subject = 'Copyedit complete for project: {0}'.format(project.title)
     for email, name in project.author_contact_info():
         body = loader.render_to_string(
             'console/email/copyedit_complete_notify.html',
-            {'name':name, 'project':project,
+            {'name':name, 'project':project, 'copyedit_log':copyedit_log,
              'domain':get_current_site(request)})
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)
 
+
+def repopen_copyedit_notify(request, project):
+    """
+    Notify authors when an editor reopens a project for copyediting
+    """
+    subject = 'Project reopened for copyediting: {0}'.format(project.title)
+    for email, name in project.author_contact_info():
+        body = loader.render_to_string(
+            'console/email/reopen_copyedit_notify.html',
+            {'name':name, 'project':project,
+             'domain':get_current_site(request)})
+        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                  [email], fail_silently=False)
 
 def publish_notify(request, project, published_project):
     """

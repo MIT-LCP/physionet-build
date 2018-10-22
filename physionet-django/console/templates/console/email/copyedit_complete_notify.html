@@ -1,7 +1,16 @@
 {% load i18n %}{% autoescape off %}
 Dear {{ name}}
 
-All authors have approved of the editor's copyedits to your project. The editor has completed the copyedit stage and will shortly publish your project.
+The editor has finished copyediting your project.
+
+{% if made_changes %}
+The changes made are summarized as follows:
+
+{{ copyedit_log.changelog_summary }}
+{% else %}
+They were satisfied with the state of your project and no changes were made.
+{% endif %}
+When all authors approve of the changes, the editor will publish your project.
 
 Regards
 The PhysioNet Team

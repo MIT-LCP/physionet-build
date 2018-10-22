@@ -1,0 +1,15 @@
+{% extends "console/base_console.html" %}
+
+{% block title %}Reopened Copyedit - {{ project.title }}{% endblock %}
+
+{% block content %}
+<div class="card mb-3">
+  <div class="card-header">
+    Reopened Copyedit
+  </div>
+  <div class="card-body">
+    <p>You have reopened {{ project.title }} for <a href="{% url 'copyedit_submission' project.slug %}">copyediting</a>. Please make the changes needed.</p>
+    <p>You may also return to your <a href="{% url 'editor_home' %}">editor home</a>.</p>
+  </div>
+</div>
+{% endblock %}

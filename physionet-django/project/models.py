@@ -534,7 +534,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             self.submission_status = 40
             self.copyedit_completion_datetime = None
             self.save()
-            CopyeditLog.objects.create(project=project)
+            CopyeditLog.objects.create(project=self)
             self.authors.all().update(approval_datetime=None)
 
     def all_authors_approved(self):
