@@ -526,6 +526,17 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         self.editor_assignment_datetime = timezone.now()
         self.save()
 
+    def reopen_copyedit(self):
+        """
+        Reopen the project for copyediting
+        """
+        if self.submission_status == 50:
+            self.submission_status = 40
+            self.copyedit_completion_datetime = None
+            self.save()
+            CopyeditLog.objects.create(project=project)
+            self.authors.all().update(approval_datetime=None)
+
     def all_authors_approved(self):
         "Whether all authors have approved the publication"
         authors = self.authors.all()

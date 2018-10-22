@@ -126,7 +126,7 @@
     <i class="fa fa-clock"></i> Awaiting Author Approval {{ approval_projects|task_count_badge|safe }}
   </div>
   <div class="card-body">
-    <p>You have copyedited these projects. Awaiting all authors to approve the final project.</p>
+    <p>You have copyedited these projects. Awaiting all authors to approve the final project. If the authors have requested additional changes, you may reopen the project for copyediting.</p>
     {% if approval_projects %}
       <div class="table-responsive">
         <table class="table table-bordered">
@@ -137,7 +137,7 @@
               <th>Submission Date</th>
               <th>Editor Accept Date</th>
               <th>Copyedit Completion Date</th>
-              <th>Authors</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -175,7 +175,7 @@
               <th>Project</th>
               <th>Submitting Author</th>
               <th>Submission Date</th>
-              <th>Editor Approval Date</th>
+              <th>Editor Accept Date</th>
               <th>Authors Approval Date</th>
             </tr>
           </thead>

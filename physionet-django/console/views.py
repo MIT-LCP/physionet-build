@@ -269,7 +269,9 @@ def copyedit_submission(request, project_slug):
 def awaiting_authors(request, project_slug):
     """
     View the authors who have and have not approved the project for
-    publication
+    publication.
+
+    Also the page to reopen the project for copyediting.
     """
     project = ActiveProject.objects.get(slug=project_slug)
 
@@ -279,10 +281,21 @@ def awaiting_authors(request, project_slug):
     for a in authors:
         a.set_display_info()
 
+    outstanding_emails = ';'.join([a.user.email for a in authors.filter(
+        approval_datetime=None)])
+
+    if request.method == 'POST' and 'reopen_copyedit' in request.POST:
+        if project.submission_status == 50:
+            project.reopen_copyedit()
+            notification.reopen_copyedit_notify(request, project)
+            return render(request, 'console/reopen_copyedit_complete.html',
+                {'project':project})
+
     return render(request, 'console/awaiting_authors.html',
         {'project':project, 'authors':authors,
          'submitting_author':submitting_author,
-         'coauthors':coauthors, 'author_emails':author_emails})
+         'coauthors':coauthors, 'author_emails':author_emails,
+         'outstanding_emails':outstanding_emails})
 
 
 @login_required
