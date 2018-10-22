@@ -56,7 +56,7 @@ def submit_notify(project):
     """
     subject = 'Submission of project: {}'.format(project.title)
     email_context = {'project':project}
-    for email, name in project.get_author_info():
+    for email, name in project.author_contact_info():
         email_context['name'] = name
         body = loader.render_to_string(
             'project/email/submit_notify.html', email_context)
@@ -72,7 +72,7 @@ def assign_editor_notify(project):
     """
     subject = 'Editor assigned to submission of project: {0}'.format(
         project.title)
-    for email, name in project.get_author_info():
+    for email, name in project.author_contact_info():
         body = loader.render_to_string(
             'console/email/assign_editor_notify.html',
             {'name':name, 'project':project,
@@ -87,7 +87,7 @@ def edit_reject_notify(request, submission):
     """
     project = submission.project
     subject = 'Submission rejected for project {0}'.format(project.title)
-    for email, name in project.get_author_info():
+    for email, name in project.author_contact_info():
         body = loader.render_to_string(
             'console/email/reject_submission_notify.html',
             {'name':name, 'project':project,
@@ -103,7 +103,7 @@ def edit_resubmit_notify(request, submission):
     """
     project = submission.project
     subject = 'Resubmission request for project {0}'.format(project.title)
-    for email, name in project.get_author_info():
+    for email, name in project.author_contact_info():
         body = loader.render_to_string(
             'console/email/resubmit_submission_notify.html',
             {'name':name, 'project':project,
@@ -119,7 +119,7 @@ def edit_accept_notify(request, submission_log):
     """
     project = submission_log.project
     subject = 'Submission accepted for project: {0}'.format(project.title)
-    for email, name in project.get_author_info():
+    for email, name in project.author_contact_info():
         body = loader.render_to_string(
             'console/email/accept_submission_notify.html',
             {'name':name, 'project':project,
@@ -129,13 +129,12 @@ def edit_accept_notify(request, submission_log):
                   [email], fail_silently=False)
 
 
-def copyedit_complete_notify(request, submission):
+def copyedit_complete_notify(request, project):
     """
     Notify authors when the copyedit stage is complete
     """
-    project = submission.project
     subject = 'Copyedit complete for project: {0}'.format(project.title)
-    for email, name in submission.project.get_author_info():
+    for email, name in project.author_contact_info():
         body = loader.render_to_string(
             'console/email/copyedit_complete_notify.html',
             {'name':name, 'project':project,
@@ -150,7 +149,7 @@ def publish_notify(request, project, published_project):
     """
     subject = 'Your project has been published: {0}'.format(
         published_project.title)
-    for email, name in project.get_author_info():
+    for email, name in project.author_contact_info():
         body = loader.render_to_string(
             'console/email/publish_notify.html',
             {'name':name, 'published_project':published_project,

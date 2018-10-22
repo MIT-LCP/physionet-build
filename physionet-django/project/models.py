@@ -393,24 +393,12 @@ class ActiveProject(Metadata, UnpublishedProject):
         if self.submission_status in [40, 50]:
             return True
 
-    def get_coauthors(self):
+    def author_contact_info(self):
         """
-        Return queryset of non-submitting authors
+        Get the names and emails of the project's authors
         """
-        return self.authors.filter(is_submitting=False)
-
-    def get_coauthor_info(self):
-        """
-        Return tuple pairs of non-submitting author emails and names
-        """
-        return ((a.user.email, a.user.get_full_name()) for a in self.get_coauthors())
-
-    def get_submitting_author_info(self):
-        """
-        Return the email and name of the submitting author
-        """
-        user = self.submitting_author().user
-        return user.email, user.get_full_name()
+        users = [a.user for a in self.authors.all()]
+        return ((u.email, u.get_full_name()) for u in users)
 
     def get_author_info(self, separate_submitting=False, include_emails=False):
         """

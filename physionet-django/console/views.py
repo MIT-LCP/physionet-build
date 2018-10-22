@@ -133,9 +133,14 @@ def edit_submission(request, project_slug):
     else:
         edit_submission_form = forms.EditSubmissionForm(instance=submission_log)
 
+    submitting_author, coauthors, author_emails = project.get_author_info(
+        separate_submitting=True, include_emails=True)
+
     return render(request, 'console/edit_submission.html',
         {'project':project, 'submission_log':submission_log,
-         'edit_submission_form':edit_submission_form})
+         'edit_submission_form':edit_submission_form,
+         'submitting_author':submitting_author, 'coauthors':coauthors,
+         'author_emails':author_emails})
 
 
 @login_required
@@ -198,7 +203,6 @@ def copyedit_submission(request, project_slug):
                 topic_formset.save()
                 messages.success(request,
                     'The project metadata has been updated.')
-
                 # Reload formsets
                 reference_formset = ReferenceFormSet(instance=project)
                 publication_formset = PublicationFormSet(instance=project)
@@ -207,15 +211,20 @@ def copyedit_submission(request, project_slug):
                 messages.error(request,
                     'Invalid submission. See errors below.')
         elif 'complete_copyedit' in request.POST:
-            if project.status == 40:
-                submission_log = project.submission_log.get()
-                project.status = 50
-                project.save()
-                submission_log.copyedit_datetime = timezone.now()
-                submission_log.save()
-                notification.copyedit_complete_notify(request, submission)
-                return render(request, 'console/copyedit_complete.html',
-                   {'submission':submission})
+            if project.submission_status == 40:
+                complete_copyedit_form = forms.CompleteCopyeditForm(
+                    request.POST)
+                if complete_copyedit_form.is_valid():
+                    submission_log = project.submission_log.get()
+                    project.submission_status = 50
+                    project.save()
+                    submission_log.copyedit_datetime = timezone.now()
+                    submission_log.save()
+                    notification.copyedit_complete_notify(request, project)
+                    return render(request, 'console/copyedit_complete.html',
+                        {'submission':submission})
+                else:
+                    messages.error(request, 'Invalid submission. See errors below.')
         else:
             # process the file manipulation post
             subdir = process_files_post(request, project)
@@ -236,24 +245,18 @@ def copyedit_submission(request, project_slug):
     edit_url = reverse('edit_metadata_item', args=[project.slug])
 
     return render(request, 'console/copyedit_submission.html', {
-        'project':project,
-        'description_form':description_form,
-        'access_form':access_form,
-        'reference_formset':reference_formset,
+        'project':project, 'description_form':description_form,
+        'access_form':access_form, 'reference_formset':reference_formset,
         'publication_formset':publication_formset,
         'topic_formset':topic_formset,
-
-        'storage_info':storage_info,
-        'upload_files_form':upload_files_form,
+        'storage_info':storage_info, 'upload_files_form':upload_files_form,
         'create_folder_form':create_folder_form,
         'rename_item_form':rename_item_form,
         'move_items_form':move_items_form,
         'delete_items_form':delete_items_form,
-
-        'display_files':display_files, 'display_dirs':display_dirs, 'dir_breadcrumbs':dir_breadcrumbs,
-        'is_editor':True,
-        'complete_copyedit_form':complete_copyedit_form,
-
+        'subdir':subdir, 'display_files':display_files,
+        'display_dirs':display_dirs, 'dir_breadcrumbs':dir_breadcrumbs,
+        'is_editor':True, 'complete_copyedit_form':complete_copyedit_form,
         'submitting_author':submitting_author, 'coauthors':coauthors,
         'author_emails':author_emails,
         'add_item_url':edit_url, 'remove_item_url':edit_url})

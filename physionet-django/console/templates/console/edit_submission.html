@@ -1,6 +1,12 @@
 {% extends "console/base_console.html" %}
 
+{% load static %}
+
 {% block title %}Edit Submission{% endblock %}
+
+{% block local_js_top %}
+<script type="text/javascript" src="{% static 'custom/js/copy-to-clipboard.js' %}"></script>
+{% endblock %}
 
 {% block content %}
 <h1>Edit Project: {{ project }}</h1>
@@ -18,4 +24,8 @@
       </form>
   </div>
 </div>
+{% endblock %}
+
+{% block local_js_bottom %}
+<script type="text/javascript" src="{% static 'custom/js/enable-popover.js' %}"></script>
 {% endblock %}

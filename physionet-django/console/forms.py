@@ -136,5 +136,12 @@ class CompleteCopyeditForm(forms.Form):
     """
     made_changes = forms.ChoiceField(choices=YES_NO)
     changelog_summary = forms.CharField(max_length=800,
-        widget=forms.Textarea())
+        widget=forms.Textarea(), required=False)
 
+    def clean(self):
+        if self.errors:
+            return
+        if self.cleaned_data['made_changes'] and not self.cleaned_data['changelog_summary']:
+            raise forms.ValidationError('Describe the changes you made.')
+        if not self.cleaned_data['made_changes'] and self.cleaned_data['changelog_summary']:
+            raise forms.ValidationError('If you made changes, you must state so.')

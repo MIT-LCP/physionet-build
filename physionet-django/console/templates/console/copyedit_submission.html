@@ -19,10 +19,10 @@
   <div class="card-header">
     <ul class="nav nav-tabs card-header-tabs">
       <li class="nav-item">
-        <a class="nav-link active" id="metadata-tab" data-toggle="tab" href="#metadata" role="tab" aria-controls="metadata" aria-selected="true">Edit Metadata</a>
+        <a class="nav-link active" id="files-tab" data-toggle="tab" href="#files" role="tab" aria-controls="files" aria-selected="false">Edit Files</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" id="files-tab" data-toggle="tab" href="#files" role="tab" aria-controls="files" aria-selected="false">Edit Files</a>
+        <a class="nav-link" id="metadata-tab" data-toggle="tab" href="#metadata" role="tab" aria-controls="metadata" aria-selected="true">Edit Metadata</a>
       </li>
       <li class="nav-item">
         <a class="nav-link" id="complete-tab" data-toggle="tab" href="#complete" role="tab" aria-controls="complete" aria-selected="false">Complete Copyedit</a>
@@ -32,7 +32,22 @@
   <div class="card-body">
     {# Edit Metadata #}
     <div class="tab-content" id="tabContent">
-      <div class="tab-pane fade show active" id="metadata" role="tabpanel" aria-labelledby="metadata-tab">
+      {# Edit Files #}
+      <div class="tab-pane fade show active" id="files" role="tabpanel" aria-labelledby="files-tab">
+        <div class="card">
+          <div class="card-body">
+            <h4 class="card-title">Storage Allowance: {{ storage_info.readable_allowance }}</h4>
+            <p class="card-text">Used: {{ storage_info.readable_used }} ( {{ storage_info.p_used }}% ) <a style="float:right">Remaining: {{ storage_info.readable_remaining }} ( {{ storage_info.p_remaining }}% )</a></p>
+            <div class="progress">
+              <div class="progress-bar progress-bar-striped" role="progressbar" style="width: {{ storage_info.p_used }}%;" aria-valuenow="{{ storage_info.p_used }}" aria-valuemin="0" aria-valuemax="100">
+              </div>
+            </div>
+          </div>
+        </div>
+        <br>
+        {% include "project/project_files_panel.html" %}
+      </div>
+      <div class="tab-pane fade" id="metadata" role="tabpanel" aria-labelledby="metadata-tab">
         <form action="" method="post">
           {{ description_form.media }}
           {% include "project/metadata_inline_form_snippet.html" with form=description_form %}
@@ -45,10 +60,7 @@
           <button class="btn btn-lg btn-primary" type="submit" name="edit_metadata">Save Metadata</button>
         </form>
       </div>
-      {# Edit Files #}
-      <div class="tab-pane fade" id="files" role="tabpanel" aria-labelledby="files-tab">
-        {% include "project/project_files_panel.html" %}
-      </div>
+
       {# Complete Copyedit #}
       <div class="tab-pane fade" id="complete" role="tabpanel" aria-labelledby="complete-tab">
         <p>When you are satisfied with the final state of the project, you

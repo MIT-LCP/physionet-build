@@ -73,7 +73,7 @@ def author_popover(author, include_email=False, show_corresponding=False):
     if show_corresponding and author.is_corresponding:
         popover_body += '<p><strong>Corresponding Email</strong><br> {}</p>'.format(author.corresponding_email)
 
-    return '{} <i class="fas fa-info-circle" data-toggle="popover" data-original-title="<strong>Author Info</strong>" data-placement="bottom" data-content="{}" data-html="true" style="cursor: pointer;"></i>'.format(
+    return '<a class="author">{}</a> <i class="fas fa-info-circle" data-toggle="popover" data-original-title="<strong>Author Info</strong>" data-placement="bottom" data-content="{}" data-html="true" style="cursor: pointer;"></i>'.format(
         author.name, popover_body)
 
 
