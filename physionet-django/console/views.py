@@ -14,7 +14,7 @@ from django.utils import timezone
 from . import forms
 import notification.utility as notification
 import project.forms as project_forms
-from project.models import ActiveProject, ResubmissionLog, StorageRequest, SubmissionLog, Reference, Topic, Publication
+from project.models import ActiveProject, StorageRequest, EditLog, Reference, Topic, Publication
 from project.views import get_file_forms, get_project_file_info, process_files_post
 from project.utility import get_storage_info
 from user.models import User
@@ -104,40 +104,41 @@ def edit_submission(request, project_slug):
     Page to respond to a particular submission, as an editor
     """
     project = ActiveProject.objects.get(slug=project_slug)
-    submission_log = project.submission_log.get()
+    edit_log = project.edit_logs.get()
+
     # The user must be the editor
     if request.user != project.editor or project.submission_status not in [20, 30]:
         return Http404()
 
     if request.method == 'POST':
         edit_submission_form = forms.EditSubmissionForm(
-            instance=submission_log, data=request.POST)
+            instance=edit_log, data=request.POST)
         if edit_submission_form.is_valid():
             # This processes the resulting decision
-            submission_log = edit_submission_form.save()
+            edit_log = edit_submission_form.save()
             # Resubmit with changes
-            if submission_log.decision == 0:
-                notification.edit_resubmit_notify(request, submission_log)
+            if edit_log.decision == 0:
+                notification.edit_resubmit_notify(request, edit_log)
             # Reject
-            elif submission_log.decision == 1:
-                notification.edit_reject_notify(request, submission_log)
+            elif edit_log.decision == 1:
+                notification.edit_reject_notify(request, edit_log)
             # Accept
             else:
-                notification.edit_accept_notify(request, submission_log)
+                notification.edit_accept_notify(request, edit_log)
 
             return render(request, 'console/edit_complete.html',
-                {'decision':submission_log.decision,
-                 'project':project, 'submission_log':submission_log})
+                {'decision':edit_log.decision,
+                 'project':project, 'edit_log':edit_log})
         else:
             messages.error(request, 'Invalid response. See form below.')
     else:
-        edit_submission_form = forms.EditSubmissionForm(instance=submission_log)
+        edit_submission_form = forms.EditSubmissionForm(instance=edit_log)
 
     submitting_author, coauthors, author_emails = project.get_author_info(
         separate_submitting=True, include_emails=True)
 
     return render(request, 'console/edit_submission.html',
-        {'project':project, 'submission_log':submission_log,
+        {'project':project,
          'edit_submission_form':edit_submission_form,
          'submitting_author':submitting_author, 'coauthors':coauthors,
          'author_emails':author_emails})
@@ -215,12 +216,16 @@ def copyedit_submission(request, project_slug):
                 complete_copyedit_form = forms.CompleteCopyeditForm(
                     request.POST)
                 if complete_copyedit_form.is_valid():
-                    submission_log = project.submission_log.get()
+                    project.complete_copyedit(complete_copyedit_form)
+
+
+                    edit_log = project.edit_log.get()
                     project.submission_status = 50
                     project.save()
-                    submission_log.copyedit_datetime = timezone.now()
-                    submission_log.save()
+                    edit_log.copyedit_datetime = timezone.now()
+                    edit_log.save()
                     notification.copyedit_complete_notify(request, project)
+
                     return render(request, 'console/copyedit_complete.html',
                         {'submission':submission})
                 else:

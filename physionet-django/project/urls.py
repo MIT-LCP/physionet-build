@@ -47,8 +47,8 @@ urlpatterns = [
     url(r'^(?P<project_slug>\w+)/preview-files-panel/$', views.preview_files_panel,
         name='preview_files_panel'),
 
-    url(r'^(?P<project_slug>\w+)/submittable/$', views.check_submittable,
-        name='check_submittable'),
+    url(r'^(?P<project_slug>\w+)/integrity/$', views.check_integrity,
+        name='check_integrity'),
     url(r'^(?P<project_slug>\w+)/submission/$', views.project_submission,
         name='project_submission'),
     url(r'^(?P<project_slug>\w+)/submission/(?P<submission_number>\d+)/$',

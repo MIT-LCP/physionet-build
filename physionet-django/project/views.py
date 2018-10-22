@@ -790,16 +790,13 @@ def project_preview(request, project_slug, **kwargs):
     publications = project.publications.all()
     topics = project.topics.all()
 
-    is_submittable = project.is_submittable()
+    passes_checks = project.check_integrity()
 
-    if is_submittable:
-        version_clash = False
+    if passes_checks:
         messages.success(request, 'The project has passed all automatic checks.')
     else:
         for e in project.submit_errors:
             messages.error(request, e)
-            if 'version' in e:
-                version_clash = True
 
     display_files, display_dirs = project.get_directory_content()
     dir_breadcrumbs = utility.get_dir_breadcrumbs('')
@@ -809,20 +806,20 @@ def project_preview(request, project_slug, **kwargs):
         'author_info':author_info, 'corresponding_author':corresponding_author,
         'invitations':invitations, 'references':references,
         'publications':publications, 'topics':topics,
-        'is_submittable':is_submittable, 'version_clash':version_clash,
+        'passes_checks':passes_checks,
         'admin_inspect':admin_inspect, 'dir_breadcrumbs':dir_breadcrumbs})
 
 
 @project_auth(auth_mode=0)
-def check_submittable(request, project_slug, **kwargs):
+def check_integrity(request, project_slug, **kwargs):
     """
     Check whether a project is submittable
     """
     project = kwargs['project']
-    result = project.is_submittable()
+    result = project.check_integrity()
 
-    return JsonResponse({'is_submittable':result,
-        'submit_errors':project.submit_errors})
+    return JsonResponse({'passes_checks':result,
+        'integrity_errors':project.integrity_errors})
 
 @project_auth(auth_mode=0)
 def project_submission(request, project_slug, **kwargs):
@@ -836,7 +833,7 @@ def project_submission(request, project_slug, **kwargs):
 
     if request.method == 'POST':
         # ActiveProject is submitted for review
-        if 'submit_project' in request.POST and not project.under_submission() and is_submitting:
+        if 'submit_project' in request.POST and is_submitting:
             if project.is_submittable():
                 project.submit()
                 notification.submit_notify(project)
@@ -854,15 +851,16 @@ def project_submission(request, project_slug, **kwargs):
             else:
                 raise Http404()
 
-    if project.under_submission():
-        submission_log = project.submission_log.get()
-        author = None if admin_inspect else authors.get(user=user)
-    else:
-        submission_log, author = None, None
+    # if project.under_submission():
+    #     submission_log = project.submission_log.get()
+    #     author = None if admin_inspect else authors.get(user=user)
+    # else:
+    #     submission_log, author = None, None
+    author = None
 
     return render(request, 'project/project_submission.html', {
         'project':project, 'authors':authors, 'author':author,
-        'submission_log':submission_log, 'is_submitting':is_submitting,
+        'is_submitting':is_submitting,
         'is_admin':is_admin})
 
 

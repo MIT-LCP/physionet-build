@@ -9,7 +9,7 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 
 from .models import (Affiliation, Author, AuthorInvitation, ActiveProject,
-    CoreProject, StorageRequest, SubmissionLog)
+    CoreProject, StorageRequest)
 from . import utility
 from . import validators
 

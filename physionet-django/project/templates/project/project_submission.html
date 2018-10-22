@@ -7,21 +7,21 @@
 {% block main_content %}
 
 <script>
-  // Check whether the project is submittable
-  function checkSubmittable(){
-    $.ajax({url: "{% url 'check_submittable' project.slug %}",
+  // Check the integrity of the metadata fields
+  function checkIntegrity(){
+    $.ajax({url: "{% url 'check_integrity' project.slug %}",
       success: function(result){
-        if (result.is_submittable){
-          $("#submittable").html("<i class='fas fa-check' style='color:green'></i> The automatic checks have passed. You may submit the project for review. Note: you will no longer be able to edit the project.");
+        if (result.passes_checks){
+          $("#passes-checks").html("<i class='fas fa-check' style='color:green'></i> The automatic checks have passed. You may submit the project for review. Note: you will no longer be able to edit the project.");
           document.getElementById("request-review").disabled = false;
         }
         else{
           message = "<p><i class='fas fa-times' style='color:red'></i> The automatic checks have failed. The following errors must be addressed before you can submit the project:</p><ul>"
-          for (i=0; i<result.submit_errors.length; i++) {
-            message += "<li>" + result.submit_errors[i] + "</li>"
+          for (i=0; i<result.integrity_errors.length; i++) {
+            message += "<li>" + result.integrity_errors[i] + "</li>"
           }
           message += "</ul>"
-          $("#submittable").html(message);
+          $("#passes-checks").html(message);
         }
       }
     });
@@ -37,7 +37,7 @@
     preview</a> appears satisfactory to all authors, the submitting author may
     submit the project for review.</p>
   {% if is_submitting %}
-    <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#submit-modal" onclick="checkSubmittable()">
+    <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#submit-modal" onclick="checkIntegrity()">
       Submit Project
     </button>
 
@@ -53,7 +53,7 @@
           <form action="" method="post">
             <div class="modal-body">
               {% csrf_token %}
-              <p id="submittable"><i class="fas fa-spinner"></i> Running checks on project...</p>
+              <p id="passes-checks"><i class="fas fa-spinner"></i> Running checks on project...</p>
             </div>
             <div class="modal-footer">
               <button id="request-review" class="btn btn-primary" type="submit" name="submit_project" disabled>Submit Project</button>

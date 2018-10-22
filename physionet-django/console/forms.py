@@ -3,7 +3,7 @@ import pdb
 from django import forms
 from django.utils import timezone
 
-from project.models import ActiveProject, SubmissionLog, ResubmissionLog
+from project.models import ActiveProject, EditLog
 from user.models import User
 
 
@@ -49,7 +49,7 @@ class EditSubmissionForm(forms.ModelForm):
         # Populated with fields and labels for both data and software
         # fields. The __init__ function removes unnecessary fields and
         # renames fields
-        model = SubmissionLog
+        model = EditLog
         fields = ('soundly_produced', 'well_described', 'open_format',
             'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable',
             'editor_comments', 'decision')

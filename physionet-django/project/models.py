@@ -136,6 +136,8 @@ class PublishedTopic(models.Model):
     """
     Topic information to tag PublishedProject
     """
+    projects = models.ManyToManyField('project.PublishedProject',
+        related_name='topics')
     description = models.CharField(max_length=50)
 
     def __str__(self):
@@ -146,17 +148,26 @@ class Reference(models.Model):
     """
     Reference field for ActiveProject/ArchivedProject
     """
-    description = models.CharField(max_length=250)
-
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     project_object = GenericForeignKey('content_type', 'object_id')
+
+    description = models.CharField(max_length=250)
 
     class Meta:
         unique_together = (('description', 'content_type', 'object_id'),)
 
     def __str__(self):
         return self.description
+
+
+class PublishedReference(models.Model):
+    description = models.CharField(max_length=250)
+    published_project = models.ForeignKey('project.PublishedProject',
+        related_name='references')
+
+    class Meta:
+        unique_together = (('description', 'published_project'))
 
 
 class Contact(models.Model):
@@ -236,41 +247,48 @@ class Metadata(models.Model):
     resource_type = models.PositiveSmallIntegerField(choices=RESOURCE_TYPES)
 
     # Main body descriptive metadata
-
     title = models.CharField(max_length=200)
     abstract = RichTextField(max_length=10000, blank=True)
     background = RichTextField(blank=True)
     methods = RichTextField(blank=True)
     content_description = RichTextField(blank=True)
     usage_notes = RichTextField(blank=True)
-    references = GenericRelation(Reference, blank=True)
     acknowledgements = RichTextField(blank=True)
     conflicts_of_interest = RichTextField(blank=True)
     version = models.CharField(max_length=15, default='', blank=True)
     changelog_summary = RichTextField(blank=True)
-
-    # Supplementary descriptive fields
-
-    # The additional papers to cite when citing the database
-    project_citations = GenericRelation(Reference, blank=True)
-
     # Access information
     access_policy = models.SmallIntegerField(choices=ACCESS_POLICIES,
                                              default=0)
     license = models.ForeignKey('project.License', null=True)
     data_use_agreement = models.ForeignKey('project.DataUseAgreement',
                                            null=True, blank=True)
-
-    # Identifiers
-    publications = GenericRelation(Publication, blank=True)
-    topics = GenericRelation(Topic, blank=True)
-
     # Public url slug, also used as a submitting project id.
     slug = models.SlugField(max_length=20, unique=True, db_index=True)
     core_project = models.ForeignKey('project.CoreProject',
                                      related_name='%(class)ss')
     # When the submitting project was created
     creation_datetime = models.DateTimeField(auto_now_add=True)
+
+    edit_logs = GenericRelation('project.EditLog')
+
+class SubmissionInfo(models.Model):
+    """
+    Submission information, inherited by all projects.
+    """
+    editor = models.ForeignKey('user.User',
+        related_name='editing_%(class)ss', null=True)
+    # The very first submission
+    submission_datetime = models.DateTimeField(null=True)
+    editor_assignment_datetime = models.DateTimeField(null=True)
+    editor_approval_datetime = models.DateTimeField(null=True)
+    # The very last copyedit
+    copyedit_completion_datetime = models.DateTimeField(null=True)
+    author_approval_datetime = models.DateTimeField(null=True)
+    publish_datetime = models.DateTimeField(null=True)
+
+    class Meta:
+        abstract = True
 
 
 class UnpublishedProject(models.Model):
@@ -283,8 +301,6 @@ class UnpublishedProject(models.Model):
     references = GenericRelation('project.Reference')
     publications = GenericRelation('project.Publication')
     topics = GenericRelation('project.Topic')
-
-    submission_log = GenericRelation('project.SubmissionLog')
 
     class Meta:
         abstract = True
@@ -299,7 +315,7 @@ class UnpublishedProject(models.Model):
         return self.authors.get(is_submitting=True)
 
 
-class ArchivedProject(Metadata, UnpublishedProject):
+class ArchivedProject(Metadata, UnpublishedProject, SubmissionInfo):
     """
     An archived project. Created when (maps to archive_reason):
     1. A user chooses to 'delete' their ActiveProject.
@@ -315,7 +331,7 @@ class ArchivedProject(Metadata, UnpublishedProject):
         return os.path.join(settings.MEDIA_ROOT, 'archived-project', str(self.id))
 
 
-class ActiveProject(Metadata, UnpublishedProject):
+class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     """
     The project used for submitting
 
@@ -331,8 +347,6 @@ class ActiveProject(Metadata, UnpublishedProject):
 
     """
     submission_status = models.PositiveSmallIntegerField(default=0)
-    editor = models.ForeignKey('user.User', null=True)
-    submission_datetime = models.DateTimeField(null=True)
 
     INDIVIDUAL_FILE_SIZE_LIMIT = 10 * 1024**3
 
@@ -414,16 +428,17 @@ class ActiveProject(Metadata, UnpublishedProject):
             submitting_author.set_display_info()
             for a in coauthors:
                 a.set_display_info()
-            r = (submitting_author, coauthors)
+            if include_emails:
+                return submitting_author, coauthors, author_emails
+            else:
+                return submitting_author, coauthors
         else:
             for a in authors:
                 a.set_display_info()
-            r = (authors,)
-
-        if include_emails:
-            r = r + (author_emails,)
-
-        return r
+            if include_emails:
+                return authors, author_emails
+            else:
+                return authors
 
 
     def archive(self, reason):
@@ -434,43 +449,52 @@ class ActiveProject(Metadata, UnpublishedProject):
         ArchivedProject.objects.create(archive_reason=reason)
         self.delete()
 
-    def is_submittable(self):
+    def check_integrity(self):
         """
         Run integrity tests on metadata fields and return whether the
-        project can be submitted
+        project passes the checks
         """
-        self.submit_errors = []
+        self.integrity_errors = []
 
         # Invitations
         for invitation in self.authorinvitations.filter(is_active=True):
-            self.submit_errors.append(
+            self.integrity_errors.append(
                 'Outstanding author invitation to {0}'.format(invitation.email))
 
         # Authors
         for author in self.authors.all():
             if not author.get_full_name():
-                self.submit_errors.append('Author {0} has not fill in name'.format(author.user.username))
+                self.integrity_errors.append('Author {0} has not fill in name'.format(author.user.username))
             if not author.affiliations.all():
-                self.submit_errors.append('Author {0} has not filled in affiliations'.format(author.user.username))
+                self.integrity_errors.append('Author {0} has not filled in affiliations'.format(author.user.username))
 
         # Metadata
         for attr in ActiveProject.REQUIRED_FIELDS[self.resource_type]:
             if not getattr(self, attr):
-                self.submit_errors.append('Missing required field: {0}'.format(attr.replace('_', ' ')))
+                self.integrity_errors.append('Missing required field: {0}'.format(attr.replace('_', ' ')))
 
         if self.access_policy and not self.data_use_agreement:
-            self.submit_errors.append('Missing DUA for non-open access policy')
+            self.integrity_errors.append('Missing DUA for non-open access policy')
 
         published_projects = self.core_project.publishedprojects.all()
         if published_projects:
             published_versions = [p.version for p in published_projects]
             if self.version in published_versions:
-                self.submit_errors.append('The version matches a previously published version.')
+                self.integrity_errors.append('The version matches a previously published version.')
+                self.version_clash = True
+            else:
+                self.version_clash = False
 
-        if self.submit_errors:
+        if self.integrity_errors:
             return False
         else:
             return True
+
+    def is_submittable(self):
+        "Whether the project can be submitted"
+        if not self.under_submission() and self.check_integrity():
+            return True
+        return False
 
     def submit(self):
         """
@@ -479,15 +503,11 @@ class ActiveProject(Metadata, UnpublishedProject):
         if not self.is_submittable():
             raise Exception('ActiveProject is not submittable')
 
-        # This should never be the case
-        if self.submission_log.filter() or self.submission_status:
-            raise Exception('Duplicate submission log')
-
         self.submission_status = 10
         self.submission_datetime = timezone.now()
         self.save()
-        # Create the submission log
-        SubmissionLog.objects.create(project=self)
+        # Create the first edit log
+        EditLog.objects.create(project=self)
 
     def set_submitting_author(self):
         """
@@ -501,6 +521,7 @@ class ActiveProject(Metadata, UnpublishedProject):
         """
         self.editor = editor
         self.submission_status = 20
+        self.editor_assignment_datetime = timezone.now()
         self.save()
 
     def accept_datetime(self):
@@ -640,7 +661,7 @@ def cleanup_project(sender, **kwargs):
         shutil.rmtree(project_root)
 
 
-class PublishedProject(Metadata):
+class PublishedProject(Metadata, SubmissionInfo):
     """
     A published project. Immutable snapshot.
 
@@ -834,14 +855,18 @@ class StorageRequest(BaseInvitation):
                                                self.project.__str__())
 
 
-class BaseSubmissionLog(models.Model):
+class EditLog(models.Model):
     """
-    Class to be inherited by SubmissionLog and ResubmissionLog
+    Log for an editor decision
 
     """
-    editor = models.ForeignKey('user.User', null=True)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    project = GenericForeignKey('content_type', 'object_id')
+
     # When the submitting author submits/resubmits
     submission_datetime = models.DateTimeField(auto_now_add=True)
+    is_resubmission = models.BooleanField(default=False)
     # Quality assurance fields
     soundly_produced = models.NullBooleanField(null=True)
     well_described = models.NullBooleanField(null=True, blank=False)
@@ -850,7 +875,6 @@ class BaseSubmissionLog(models.Model):
     reusable = models.NullBooleanField(null=True, blank=False)
     no_phi = models.NullBooleanField(null=True)
     pn_suitable = models.NullBooleanField(null=True)
-
     # Editor decision. 1 2 or 3 for reject/revise/accept
     decision = models.SmallIntegerField(null=True)
     decision_datetime = models.DateTimeField(null=True)
@@ -858,74 +882,16 @@ class BaseSubmissionLog(models.Model):
     editor_comments = models.CharField(max_length=800)
 
 
-    class Meta:
-        abstract = True
-
-
-class SubmissionLog(BaseSubmissionLog):
+class CopyeditLog(models.Model):
     """
-    Submission log for ActiveProject/ArchivedProject
+    Log for an editor copyedit
 
     """
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     project = GenericForeignKey('content_type', 'object_id')
 
-    editor = models.ForeignKey('user.User', related_name='editing_submissions',
-        null=True)
-    # When (if) the editor completes the copyedit
-    copyedit_datetime = models.DateTimeField(null=True)
-    # When (if) the authors approve the copyedit
-    copyedit_approve_datetime = models.DateTimeField(null=True)
-
-    class Meta:
-        # Each project may have only one submission log
-        unique_together = (('content_type', 'object_id'),)
-
-    def __str__(self):
-        return 'Submission ID {0} - {1}'.format(self.id, self.project.title)
-
-    def get_resubmissions(self):
-        return self.resubmissions.all().order_by('creation_datetime')
-
-    def final_decision(self):
-        """
-        The final editor decision. May be contained in a resubmission
-        log. May be null.
-        """
-        resubmissions = self.get_resubmissions()
-
-        if resubmissions:
-            return resubmissions[-1].decision
-        else:
-            return self.decision
-
-
-class ResubmissionLog(BaseSubmissionLog):
-    """
-    Model for resubmissions, ie. when editor accepts with conditional
-    changes.
-
-    The object is created when the submitting author makes a resubmission.
-
-    """
-    submission = models.ForeignKey('project.SubmissionLog',
-        related_name='resubmission_logs')
-
-
-class PublishedSubmissionLog(BaseSubmissionLog):
-    """
-    Submission log for published projects
-    """
-    published_project = models.OneToOneField('project.PublishedProject',
-        related_name='publishing_submission', db_index=True)
-    editor = models.ForeignKey('user.User',
-        related_name='published_submissions')
-
-
-class PublishedResubmissionLog(BaseSubmissionLog):
-    """
-    Resubmission log for published submission
-    """
-    published_submission = models.ForeignKey('project.SubmissionLog',
-        related_name='published_resubmission_logs', db_index=True)
+    start_datetime = models.DateTimeField(auto_now_add=True)
+    made_changes = models.BooleanField()
+    changelog_summary = models.CharField(default='', max_length=800)
+    complete_datetime = models.DateTimeField(null=True)
