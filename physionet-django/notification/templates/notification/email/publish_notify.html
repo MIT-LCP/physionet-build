@@ -1,7 +1,7 @@
 {% load i18n %}{% autoescape off %}
 Dear {{ name}}
 
-Version {{ published_project.version }} of your project is now published on PhysioNet at: http://{{ domain }}{% url 'published_project' published_project.slug %}. Your project is still accessible, and listed in your project home. You can use it to publish newer versions.
+Your project: {{ published_project.title }} version {{ published_project.version }}, is now published on PhysioNet at: http://{{ domain }}{% url 'published_project' published_project.slug %}.
 
 Thank you for sharing your resources on PhysioNet.
 

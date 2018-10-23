@@ -273,6 +273,8 @@ class Metadata(models.Model):
 
     edit_logs = GenericRelation('project.EditLog')
     copyedit_logs = GenericRelation('project.CopyeditLog')
+    # For ordering projects with multiple versions
+    version_order = models.PositiveSmallIntegerField(default=0)
 
 class SubmissionInfo(models.Model):
     """
@@ -287,7 +289,6 @@ class SubmissionInfo(models.Model):
     # The very last copyedit
     copyedit_completion_datetime = models.DateTimeField(null=True)
     author_approval_datetime = models.DateTimeField(null=True)
-    publish_datetime = models.DateTimeField(null=True)
 
     class Meta:
         abstract = True
@@ -563,14 +564,11 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         Check whether a project may be published
         """
-        submission = self.submissions.get(is_active=True)
-
-        if submission.status == 4 and submission.all_authors_approved():
+        if self.submission_status == 60 and self.check_integrity() and self.all_authors_approved():
             return True
-        else:
-            return False
+        return False
 
-    def publish(self):
+    def publish(self, make_zip=True):
         """
         Create a published version of this project and update the
         submission status
@@ -581,15 +579,21 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         published_project = PublishedProject()
 
         # Direct copy over fields
-        for attr in ['title', 'abstract', 'background', 'methods',
-                     'content_description', 'usage_notes', 'acknowledgements',
-                     'conflicts_of_interest', 'version', 'resource_type',
-                     'access_policy', 'changelog_summary', 'access_policy',
-                     'license']:
+        for attr in [
+                # Metadata info
+                'title', 'abstract', 'background', 'methods',
+                'content_description', 'usage_notes', 'acknowledgements',
+                'conflicts_of_interest', 'version', 'resource_type',
+                'access_policy', 'changelog_summary', 'access_policy',
+                'license',
+                # Publishing info
+                'editor', 'creation_datetime', 'submission_datetime',
+                'editor_assignment_datetime', 'editor_accept_datetime',
+                'copyedit_completion_datetime', 'author_approval_datetime',
+                'version_order', 'core_project']:
             setattr(published_project, attr, getattr(self, attr))
 
-        # New content
-        published_project.core_project = self.core_project
+        # New fields
         published_project.storage_size = self.storage_used()
         # Generate a new slug
         slug = get_random_string(20)
@@ -651,17 +655,21 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             published_project.access_system = access_system
             published_project.save()
 
-        # Copy over files
-        shutil.copytree(self.file_root(), published_project.file_root())
+        # Move over files
+        os.rename(self.file_root(), published_project.file_root())
+        # Create zip
 
-        self.under_submission = False
-        self.published = True
-        self.save()
 
-        submission = self.submissions.get(is_active=True)
-        submission.submission_status = 6
-        submission.is_active = False
-        submission.save()
+        # Move the edit and copyedit logs
+        for edit_log in project.edit_logs.all():
+            edit_log.project = published_project
+            edit_log.save()
+        for copyedit_log in project.copyedit_logs:
+            copyedit_log.project = published_project
+            copyedit_log.save()
+
+        # Remove the ActiveProject
+        self.delete()
 
         return published_project
 

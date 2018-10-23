@@ -854,7 +854,7 @@ def project_submission(request, project_slug, **kwargs):
             else:
                 messages.error(request, 'Invalid')
 
-    # Whether
+    # Whether the submission is currently waiting for the user to approve
     awaiting_user_approval = False
     if project.under_submission():
         edit_logs = project.edit_logs.all()

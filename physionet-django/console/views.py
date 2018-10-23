@@ -311,17 +311,20 @@ def publish_submission(request, project_slug):
     Page to publish the submission
     """
     project = ActiveProject.objects.get(slug=project_slug)
-
+    submitting_author, coauthors, author_emails = project.get_author_info(
+        separate_submitting=True, include_emails=True)
     if request.method == 'POST':
         if project.is_publishable():
             published_project = project.publish()
-            notification.publish_notify(request, project, published_project)
+            notification.publish_notify(request, published_project)
             return render(request, 'console/publish_complete.html',
                 {'published_project':published_project})
 
     publishable = project.is_publishable()
     return render(request, 'console/publish_submission.html', {
-        'project':project, 'publishable':publishable})
+        'project':project, 'publishable':publishable,
+        'submitting_author':submitting_author, 'coauthors':coauthors,
+        'author_emails':author_emails})
 
 
 def process_storage_response(request, storage_response_formset):

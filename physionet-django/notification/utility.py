@@ -168,7 +168,7 @@ def all_approved_notify(request, project):
                   [email], fail_silently=False)
 
 
-def publish_notify(request, project, published_project):
+def publish_notify(request, published_project):
     """
     Notify authors when a project is published
     """
