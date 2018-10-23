@@ -11,9 +11,9 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
-from django.template.defaultfilters import slugify
 from django.utils import timezone
 from django.utils.crypto import get_random_string
+from django.utils.text import slugify
 
 from user.models import User
 from .utility import get_tree_size, get_file_info, get_directory_info, list_items
@@ -352,6 +352,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     submission_status = models.PositiveSmallIntegerField(default=0)
 
     INDIVIDUAL_FILE_SIZE_LIMIT = 10 * 1024**3
+    # Where all the active project files are kept
+    FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'active-projects')
 
     REQUIRED_FIELDS = {0:['title', 'abstract', 'background', 'methods',
                           'content_description', 'conflicts_of_interest',
@@ -362,7 +364,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
     def file_root(self):
         "Root directory containing the project's files"
-        return os.path.join(settings.MEDIA_ROOT, 'project', str(self.id))
+        return os.path.join(ActiveProject.FILE_ROOT, self.slug)
 
     def storage_used(self):
         "Total storage used in bytes"
@@ -655,9 +657,13 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             published_project.access_system = access_system
             published_project.save()
 
+        # Create file root
+        os.mkdir(published_project.file_root())
         # Move over files
-        os.rename(self.file_root(), published_project.file_root())
+        os.rename(self.file_root(), os.path.join(published_project.file_root(), 'files'))
         # Create zip
+        if make_zip:
+            published_project.file_root()
 
 
         # Move the edit and copyedit logs
@@ -703,6 +709,14 @@ class PublishedProject(Metadata, SubmissionInfo):
                                        related_name='older_versions')
     doi = models.CharField(max_length=50, default='')
 
+    # Where all the published project files are kept, depending on access.
+    PROTECTED_FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'published-projects')
+    # Temporary workaround for development
+    if os.environ['DJANGO_SETTINGS_MODULE'] == 'physionet.settings.development':
+        PUBLIC_FILE_ROOT = os.path.join(settings.STATICFILES_DIRS[0], 'published-projects')
+    else:
+        PUBLIC_FILE_ROOT = os.path.join(settings.STATIC_ROOT, 'published-projects')
+
     class Meta:
         unique_together = (('core_project', 'version'),)
 
@@ -723,13 +737,10 @@ class PublishedProject(Metadata, SubmissionInfo):
     def file_root(self):
         "Root directory containing the published project's files"
         if self.access_policy:
-            return os.path.join(settings.MEDIA_ROOT, 'published-project', str(self.id))
+            return os.path.join(PublishedProject.PROTECTED_FILE_ROOT, self.slug)
         else:
-            # Temporary workaround for development
-            if os.environ['DJANGO_SETTINGS_MODULE'] == 'physionet.settings.development':
-                return os.path.join(settings.STATICFILES_DIRS[0], 'published-project', str(self.id))
-            else:
-                return os.path.join(settings.STATIC_ROOT, 'published-project', str(self.id))
+            return os.path.join(PublishedProject.Public_FILE_ROOT, self.slug)
+
 
     def get_directory_content(self, subdir=''):
         """

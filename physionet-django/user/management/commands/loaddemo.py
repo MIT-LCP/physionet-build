@@ -37,7 +37,7 @@ class Command(BaseCommand):
         call_command('loaddata', *demo_fixtures, verbosity=1)
 
         # Link the demo project and user media content
-        for content in ['user', 'project']:
+        for content in ['users', 'active-projects']:
             link_demo_media(content)
 
 

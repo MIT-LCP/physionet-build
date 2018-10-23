@@ -1,6 +1,7 @@
 import os
 import pdb
 
+from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
@@ -93,7 +94,8 @@ class User(AbstractBaseUser):
     EMAIL_FIELD = 'email'
 
     REQUIRED_FIELDS = ['email']
-
+    # Where all the users' files are kept
+    FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'users')
 
     def is_superuser(self):
         return (self.is_admin,)
