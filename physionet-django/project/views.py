@@ -841,15 +841,18 @@ def project_submission(request, project_slug, **kwargs):
             else:
                 messages.error(request, 'Fix the errors before submitting')
         # Author approves publication
-        elif 'approve_publish' in request.POST:
+        elif 'approve_publication' in request.POST:
             author = authors.get(user=user)
-            if project.submission_status == 3 and not author.approved_publish:
-                author.approved_publish = True
-                author.save()
-                messages.success(request, 'You have approved the publication.')
+            # Register the approval if valid
+            if project.approve_author(author):
+                if project.submission_status == 60:
+                    messages.success(request, 'You have approved the publication of your project. The editor will publish it shortly')
+                    notification.all_approved_notify(request, project)
+                else:
+                    messages.success(request, 'You have approved the publication of your project.')
                 authors = project.authors.all()
             else:
-                raise Http404()
+                messages.error(request, 'Invalid')
 
     # Whether
     awaiting_user_approval = False
@@ -867,9 +870,9 @@ def project_submission(request, project_slug, **kwargs):
         edit_logs, copyedit_logs = None, None
 
     return render(request, 'project/project_submission.html', {
-        'project':project, 'authors':authors, 'author':author,
+        'project':project, 'authors':authors,
         'is_submitting':is_submitting,
-        'is_admin':is_admin,
+        'admin_inspect':admin_inspect,
         'edit_logs':edit_logs, 'copyedit_logs':copyedit_logs,
         'awaiting_user_approval':awaiting_user_approval})
 

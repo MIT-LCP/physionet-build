@@ -537,10 +537,26 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             CopyeditLog.objects.create(project=self)
             self.authors.all().update(approval_datetime=None)
 
+    def approve_author(self, author):
+        """"
+        Approve an author. Move the project into the next state if the
+        author is the final outstanding one. Return whether the
+        process was successful.
+        """
+        if self.submission_status == 50 and not author.approval_datetime:
+            now = timezone.now()
+            author.approval_datetime = now
+            author.save()
+            if self.all_authors_approved():
+                self.submission_status = 60
+                self.save()
+            return True
+
     def all_authors_approved(self):
         "Whether all authors have approved the publication"
         authors = self.authors.all()
-        return len(authors) == len(authors.filter(approved_publish=True))
+        return len(authors) == len(authors.filter(
+            approval_datetime__isnull=False))
 
     def is_publishable(self):
         """
