@@ -879,7 +879,7 @@ class EditLog(models.Model):
     reusable = models.NullBooleanField(null=True)
     no_phi = models.NullBooleanField(null=True)
     pn_suitable = models.NullBooleanField(null=True)
-    # Editor decision. 1 2 or 3 for reject/revise/accept
+    # Editor decision. 0 1 2 for reject/revise/accept
     decision = models.SmallIntegerField(null=True)
     decision_datetime = models.DateTimeField(null=True)
     # Comments for the decision
@@ -896,6 +896,8 @@ class CopyeditLog(models.Model):
     project = GenericForeignKey('content_type', 'object_id')
 
     start_datetime = models.DateTimeField(auto_now_add=True)
+    # Whether the submission was reopened for copyediting
+    is_reedit = models.BooleanField(default=False)
     made_changes = models.NullBooleanField(null=True)
     changelog_summary = models.CharField(default='', max_length=800, blank=True)
     complete_datetime = models.DateTimeField(null=True)

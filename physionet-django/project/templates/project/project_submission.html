@@ -65,45 +65,93 @@
     </div>
   {% endif %}
 {% else %}
-  <br>
   {# The active submission status timeline #}
   <div class="card">
-    <div class="card-header"><h4>Timeline and Status</h4></div>
+    <div class="card-header"><h4>Submission Timeline</h4></div>
     <ul class="list-group list-group-flush">
-      <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The project was submitted for review on {{ submission_log.submission_datetime|date }}.</li>
-      {% if submission.editor %}
-        <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The editor for the submission is: {{ submission_log.editor.disp_name_email }}</li>
-      {% else %}
+      <li class="list-group-item">The project was submitted for review on {{ project.submission_datetime|date }}.</li>
+      {# Waiting for editor #}
+      {% if project.submission_status == 10 %}
         <li class="list-group-item"><i class="far fa-clock"></i> Waiting for editor to be assigned.</li>
-      {% endif %}
-      {% if project.submission_status == 1 %}
-        {% if submission.editor %}
-          <li class="list-group-item"><i class="far fa-clock"></i> Waiting for editor decision.</li>
-        {% endif %}
-      {% elif project.submission_status == 2 %}
-        <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The editor has accepted the submission with revisions. The submitting author must resubmit a revised version.</li>
-      {% elif submission.status >= 3 %}
-        <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The editor accepted the submission on {{ submission.decision_datetime|date }}</li>
-        {% if submission.status == 3 %}
-          <li class="list-group-item"><i class="far fa-clock"></i> The project is being copyedited by the editor. Email the editor to suggest changes. When all authors approve, the editor will complete this stage.
-            {% if not admin_inspect and not author.approved_publish %}
-              <form action="" method="post">{% csrf_token %}<button class="btn btn-success" name="approve_publish" style="float:right">Approve Publication</button><a class="btn btn-primary mr-1" href="{% url 'project_preview' project.slug %}" target="_blank" role="button" style="float:right">Preview Project</a></form>
+      {# Editor assigned #}
+      {% else %}
+        <li class="list-group-item">The editor for the submission is: {{ project.editor.disp_name_email }}</li>
+        {# At this point, there may have been any number of submissions #}
+        {% for e in edit_logs %}
+          {% if e.decision_datetime %}
+            {% if e.decision == 0 %}
+              <li class="list-group-item">The editor rejected the submission on {{ e.decision_datetime|date }}.
+            {% elif e.decision == 1 %}
+              <li class="list-group-item">The editor requested a resubmission with revisions on {{ e.decision_datetime|date }}.
+            {% elif e.decision == 2 %}
+              <li class="list-group-item">The editor accepted the submission on {{ e.decision_datetime|date }}.
             {% endif %}
-            <ol>
-              {% for author in authors %}
-              <li>
-                {% if author.approved_publish %}
-                  <i class="fas fa-check-circle" style="color:green"></i> {{ author.disp_name_email }}
+            <p>The editor comments regarding the submission are as follows:</p>
+            {{ e.editor_comments }}
+            </li>
+          {# No decision yet #}
+          {% else %}
+            <li class="list-group-item"><i class="far fa-clock"></i> Waiting for editor to edit submission.</li>
+          {% endif %}
+        {% endfor %}
+        {% if project.submission_status >= 40 %}
+          {# At this point, there may have been any number of copyedits #}
+          {% for c in copyedit_logs %}
+            {# The copyedit is complete #}
+            {% if c.complete_datetime %}
+              <li class="list-group-item">
+                The editor finished copyediting the submission on {{ c.complete_datetime|date }}.
+                {% if c.made_changes %}
+                <p>The editor comments regarding the changes made are as follows:</p>
+                {{ c.changelog_summary }}
                 {% else %}
-                  <i class="far fa-clock"></i> {{ author.disp_name_email }}
+                <p>No changes were made during the copyedit.</p>
                 {% endif %}
               </li>
-              {% endfor %}
-            </ol>
+            {% else %}
+              <li class="list-group-item">
+                <i class="far fa-clock"></i> Waiting for editor to copyedit submission.
+              </li>
+            {% endif %}
+          {% endfor %}
+
+        {% endif %}
+        {# Awaiting authors to approve final project #}
+        {% if project.submission_status == 50 %}
+          <li class="list-group-item">
+            <p><i class="far fa-clock"></i> Waiting for all authors to approve the final project.</p>
+            {% include "project/awaiting_authors_table.html" %}
+            <form method="post" action="">
+              <a class="btn btn-primary" href="{% url 'project_preview' project.slug %}" role="button" target="_blank">View Project Preview</a>
+              {% if awaiting_user_approval %}
+                <button class="btn btn-success" type="submit" name="approve_publication">Approve Publication</button>
+                <div class="modal fade" id="submit-modal" tabindex="-1" role="dialog" aria-labelledby="submit-modal" aria-hidden="true">
+                  <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title">Approve Publication</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                        </button>
+                      </div>
+                      <form action="" method="post">
+                        <div class="modal-body">
+                          {% csrf_token %}
+                          <p id="passes-checks"><i class="fas fa-spinner"></i> Running checks on project...</p>
+                        </div>
+                        <div class="modal-footer">
+                          <button id="request-review" class="btn btn-primary" type="submit" name="submit_project" disabled>Submit Project</button>
+                          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              {% endif %}
+            </form>
           </li>
-        {% else %}
-          <li class="list-group-item"><i class="fas fa-check-circle" style="color:green"></i> The editor and all authors completed the copyedit on {{ submission.copyedit_datetime|date }}</li>
-          <li class="list-group-item"><i class="far fa-clock"></i> Waiting for editor to publish.</li>
+        {% elif project.submission_status == 60 %}
+          <li class="list-group-item"><i class="far fa-clock"></i> Waiting for editor to publish submission.</li>
         {% endif %}
       {% endif %}
     </ul>

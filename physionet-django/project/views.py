@@ -17,7 +17,7 @@ from django.utils import timezone
 from . import forms
 from .models import (Affiliation, Author, AuthorInvitation, ActiveProject,
     PublishedProject, StorageRequest, Reference,
-    Topic, Contact, Publication, PublishedAuthor)
+    Topic, Contact, Publication, PublishedAuthor, EditLog, CopyeditLog)
 from . import utility
 import notification.utility as notification
 from user.forms import ProfileForm, AssociatedEmailChoiceForm
@@ -843,7 +843,7 @@ def project_submission(request, project_slug, **kwargs):
         # Author approves publication
         elif 'approve_publish' in request.POST:
             author = authors.get(user=user)
-            if submission.status == 3 and not author.approved_publish:
+            if project.submission_status == 3 and not author.approved_publish:
                 author.approved_publish = True
                 author.save()
                 messages.success(request, 'You have approved the publication.')
@@ -851,17 +851,27 @@ def project_submission(request, project_slug, **kwargs):
             else:
                 raise Http404()
 
-    # if project.under_submission():
-    #     submission_log = project.submission_log.get()
-    #     author = None if admin_inspect else authors.get(user=user)
-    # else:
-    #     submission_log, author = None, None
-    author = None
+    # Whether
+    awaiting_user_approval = False
+    if project.under_submission():
+        edit_logs = project.edit_logs.all()
+        copyedit_logs = project.copyedit_logs.all()
+        # Awaiting authors
+        if project.submission_status == 50:
+            authors = authors.order_by('approval_datetime')
+            for a in authors:
+                a.set_display_info()
+                if user == a.user and not a.approval_datetime:
+                    awaiting_user_approval = True
+    else:
+        edit_logs, copyedit_logs = None, None
 
     return render(request, 'project/project_submission.html', {
         'project':project, 'authors':authors, 'author':author,
         'is_submitting':is_submitting,
-        'is_admin':is_admin})
+        'is_admin':is_admin,
+        'edit_logs':edit_logs, 'copyedit_logs':copyedit_logs,
+        'awaiting_user_approval':awaiting_user_approval})
 
 
 @authorization_required(auth_functions=(is_author, is_admin))
