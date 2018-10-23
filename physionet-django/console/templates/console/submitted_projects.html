@@ -218,8 +218,10 @@
                   <th>Project</th>
                   <th>Submitting Author</th>
                   <th>Submission Date</th>
+                  <th>Editor Accept Date</th>
+                  <th>Copyedit Completion Date</th>
+                  <th>Author Approval Date</th>
                   <th>Editor</th>
-                  <th>Is Resubmission</th>
                 </tr>
               </thead>
               <tbody>
@@ -228,6 +230,10 @@
                   <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
                   <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author.user.username }}</a> - {{ project.submitting_author.user.email }}</td>
                   <td>{{ project.submission_datetime|date }}</td>
+                  <td>{{ project.editor_accept_datetime|date }}</td>
+                  <td>{{ project.copyedit_completion_datetime|date }}</td>
+                  <td>{{ project.author_approval_datetime|date }}</td>
+                  <td>{{ project.editor }}</td>
                 </tr>
               {% endfor %}
               </tbody>

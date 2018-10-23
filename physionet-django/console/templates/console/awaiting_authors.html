@@ -18,33 +18,9 @@
   </div>
   <div class="card-body">
     <div class="table-responsive">
-      <table class="table table-bordered">
-        <thead>
-          <tr>
-            <th>Author</th>
-            <th>Email</th>
-            <th>Profile</th>
-            <th>Approval Date</th>
-          </tr>
-        </thead>
-        <tbody>
-        {% for author in authors %}
-          <tr>
-            <td>{{ author.name }}</td>
-            <td>{{ author.email }}</td>
-            <td><a href="{% url 'public_profile' author.user.username %}">{{ author.username }}</a></td>
-            <td>
-              {% if author.approval_datetime %}
-                <i class="fas fa-check" style="color:green"></i> {{ author.approval_datetime }}
-              {% else %}
-                <i class="far fa-clock"></i> Waiting
-              {% endif %}
-            </td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
+      {% include "project/awaiting_authors_table.html" %}
       <button class="btn btn-lg btn-primary" onclick="copyToClipboard('{{ outstanding_emails }}')">Copy Outstanding Emails</button>
+      }
     </div>
     <hr>
 

@@ -48,10 +48,9 @@ def submitted_projects(request):
             notification.assign_editor_notify(project)
             messages.success(request, 'The editor has been assigned')
 
-    # Need to filter this by submission datetime
+    # Submitted projects
     projects = ActiveProject.objects.filter(submission_status__gt=0).order_by(
         'submission_datetime')
-
     # Separate projects by submission status
     # Awaiting editor assignment
     assignment_projects = projects.filter(submission_status=10)
@@ -64,17 +63,19 @@ def submitted_projects(request):
     # Awaiting author approval
     approval_projects = projects.filter(submission_status=50)
     # Awaiting editor publish
+    publish_projects = projects.filter(submission_status=60)
 
     assign_editor_form = forms.AssignEditorForm()
 
     return render(request, 'console/submitted_projects.html',
-        {'projects':projects,
+        {
          'assign_editor_form':assign_editor_form,
          'assignment_projects':assignment_projects,
          'decision_projects':decision_projects,
          'revision_projects':revision_projects,
          'copyedit_projects':copyedit_projects,
-         'approval_projects':approval_projects
+         'approval_projects':approval_projects,
+         'publish_projects':publish_projects
          })
 
 
@@ -95,11 +96,15 @@ def editor_home(request):
     copyedit_projects = projects.filter(submission_status=40)
     # Awaiting author approval
     approval_projects = projects.filter(submission_status=50)
+    # Awaiting editor publish
+    publish_projects = projects.filter(submission_status=60)
+
     return render(request, 'console/editor_home.html',
         {'decision_projects':decision_projects,
          'revision_projects':revision_projects,
          'copyedit_projects':copyedit_projects,
-         'approval_projects':approval_projects})
+         'approval_projects':approval_projects,
+         'publish_projects':publish_projects})
 
 
 @login_required
@@ -305,11 +310,7 @@ def publish_submission(request, project_slug):
     """
     Page to publish the submission
     """
-    submission = SubmissionLog.objects.get(id=submission_id)
-    if submission.status != 4:
-        return Http404()
-
-    project = submission.project
+    project = ActiveProject.objects.get(slug=project_slug)
 
     if request.method == 'POST':
         if project.is_publishable():
@@ -320,7 +321,7 @@ def publish_submission(request, project_slug):
 
     publishable = project.is_publishable()
     return render(request, 'console/publish_submission.html', {
-        'submission':submission, 'publishable':publishable})
+        'project':project, 'publishable':publishable})
 
 
 def process_storage_response(request, storage_response_formset):

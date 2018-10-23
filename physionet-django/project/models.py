@@ -548,6 +548,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             author.approval_datetime = now
             author.save()
             if self.all_authors_approved():
+                self.author_approval_datetime = now
                 self.submission_status = 60
                 self.save()
             return True

@@ -152,6 +152,7 @@
             {% endif %}
           </li>
         {% elif project.submission_status == 60 %}
+          <li class="list-group-item">All authors approved the final project for publication on {{ author_approval_datetime|date }}.</li>
           <li class="list-group-item"><i class="far fa-clock"></i> Waiting for editor to publish submission.</li>
         {% endif %}
       {% endif %}
