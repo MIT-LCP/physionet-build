@@ -694,7 +694,12 @@ def project_files(request, project_slug, **kwargs):
                 messages.success(request, 'Your storage request has been received.')
             else:
                 messages.error(request, utility.get_form_errors(storage_request_form))
-
+        elif 'cancel_request' in request.POST:
+            storage_request = StorageRequest.objects.filter(project=project,
+                is_active=True)
+            if storage_request:
+                storage_request.get().delete()
+                messages.success(request, 'Your storage request has ben cancelled.')
         else:
             # process the file manipulation post
             subdir = process_files_post(request, project)
@@ -795,7 +800,7 @@ def project_preview(request, project_slug, **kwargs):
     if passes_checks:
         messages.success(request, 'The project has passed all automatic checks.')
     else:
-        for e in project.submit_errors:
+        for e in project.integrity_errors:
             messages.error(request, e)
 
     display_files, display_dirs = project.get_directory_content()

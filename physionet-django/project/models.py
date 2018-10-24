@@ -476,6 +476,11 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             self.integrity_errors.append(
                 'Outstanding author invitation to {0}'.format(invitation.email))
 
+        # Storage requests
+        for storage_request in self.storagerequests.filter(
+                is_active=True):
+            self.integrity_errors.append('Outstanding storage request')
+
         # Authors
         for author in self.authors.all():
             if not author.get_full_name():
@@ -699,7 +704,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             # Rename the 'files' directory temporarily for the zip file
             zip_name = published_project.zip_file(include_extension=False,
                 full_path=True)
-            pdb.set_trace()
             os.rename(published_project.main_file_root(), zip_name)
             shutil.make_archive(
                 base_name=zip_name, format='zip',

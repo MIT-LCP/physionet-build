@@ -89,9 +89,6 @@ def clear_media_files():
         dir_items = [os.path.join(root_dir, item) for item in os.listdir(root_dir) if item != '.gitkeep']
 
         for item in dir_items:
-            if os.path.islink(item):
-                os.unlink(item)
-            elif os.path.isdir(item):
-                shutil.rmtree(item)
+            shutil.rmtree(item)
 
 
