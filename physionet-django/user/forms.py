@@ -116,6 +116,32 @@ class UsernameChangeForm(forms.ModelForm):
             'username':forms.TextInput(attrs={'class':'form-control', 'validators':[UsernameValidator]}),
         }
 
+    def clean_username(self):
+        "Record the original username in case it is needed"
+        self.old_username = self.instance.username
+        self.old_file_root = self.instance.file_root()
+        return self.cleaned_data['username']
+
+    def save(self):
+        """
+        Change the media file directory name and photo name if any,
+        to match the new username
+        """
+        super().save()
+        new_username = self.cleaned_data['username']
+
+        if self.old_username != new_username:
+            profile = self.instance.profile
+            if profile.photo:
+                # user/<username>/profile-photo.ext
+                name_components = profile.photo.name.split('/')
+                name_components[1] = new_username
+                profile.photo.name = '/'.join(name_components)
+                profile.save()
+
+            os.rename(self.old_file_root, self.instance.file_root())
+
+
 class ProfileForm(forms.ModelForm):
     """
     For editing the profile

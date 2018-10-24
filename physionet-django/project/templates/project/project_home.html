@@ -42,7 +42,7 @@
             </p>
             <h4><a href="{% url 'project_overview' project.slug %}">{{ project.title }}</a></h4>
             <p class="list-group-item-text text-muted">
-            <strong>Submitting Author: {{ project.submitting_author.disp_name_email }}</strong><br>
+            <strong>Submitting Author: {{ project.submitting_author.get_full_name }}</strong><br>
             <small>Created {{ project.creation_datetime|date }} Modified {{ project.modified_datetime|date }}</small>
             </p>
           </li>
@@ -68,17 +68,12 @@
           <li class="list-group-item">
             <p>
               {{ project.resource_type|resource_badge|safe }}
-              {% if project.under_submission %}
-                <span class="badge badge-info"><i class="fas fa-glasses"></i> Under Submission</span>
-              {% endif %}
-              {% if project.published %}
-                <span class="badge badge-primary"><i class="fas fa-book-open"></i> Published</span>
-              {% endif %}
+              {{ project.access_policy|access_badge|safe }}
             </p>
-            <h4><a href="{% url 'project_overview' project.slug %}">{{ project.title }}</a></h4>
+            <h4><a href="{% url 'published_project' project.slug %}">{{ project.title }}</a></h4>
             <p class="list-group-item-text text-muted">
-            <strong>Submitting Author: {{ project.title }}</strong><br>
-            <small>Created {{ project.creation_datetime|date }} Modified {{ project.modified_datetime|date }}</small>
+            <strong>Submitting Author: {{ project.submitting_author.get_full_name }}</strong><br>
+            <small>Created {{ project.creation_datetime|date }} Published {{ project.publish_datetime|date }}</small>
             </p>
           </li>
         {% endfor %}

@@ -174,7 +174,8 @@ def project_home(request):
     invitation_response_formset = InvitationResponseFormSet(
         queryset=AuthorInvitation.get_user_invitations(user))
 
-    return render(request, 'project/project_home.html', {'projects':projects,
+    return render(request, 'project/project_home.html', {
+        'projects':projects, 'published_projects':published_projects,
         'invitation_response_formset':invitation_response_formset})
 
 

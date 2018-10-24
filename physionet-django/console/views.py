@@ -14,7 +14,7 @@ from django.utils import timezone
 from . import forms
 import notification.utility as notification
 import project.forms as project_forms
-from project.models import ActiveProject, StorageRequest, EditLog, Reference, Topic, Publication
+from project.models import ActiveProject, StorageRequest, EditLog, Reference, Topic, Publication, PublishedProject
 from project.views import get_file_forms, get_project_file_info, process_files_post
 from project.utility import get_storage_info
 from user.models import User
@@ -381,9 +381,21 @@ def unsubmitted_projects(request):
     """
     List of unsubmitted projects
     """
-    projects = ActiveProject.objects.filter(submission_status=0)
-    # title, submitting author, creation date, published,
+    projects = ActiveProject.objects.filter(submission_status=0).order_by(
+        'creation_datetime')
     return render(request, 'console/unsubmitted_projects.html',
+        {'projects':projects})
+
+
+@login_required
+@user_passes_test(is_admin)
+def published_projects(request):
+    """
+    List of published projects
+    """
+    projects = PublishedProject.objects.all().order_by('publish_datetime')
+    # title, submitting author, creation date, published,
+    return render(request, 'console/published_projects.html',
         {'projects':projects})
 
 

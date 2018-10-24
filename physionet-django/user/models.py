@@ -143,6 +143,10 @@ class User(AbstractBaseUser):
     def disp_name_email(self):
         return '{} --- {}'.format(self.get_full_name(), self.email)
 
+    def file_root(self):
+        "Where the user's files are stored"
+        return os.path.join(User.FILE_ROOT, self.username)
+
 
 class AssociatedEmail(models.Model):
     """
@@ -193,9 +197,10 @@ def update_associated_emails(sender, **kwargs):
 
 def photo_path(instance, filename):
     """
-    Storage path of profile photo. Keep the original file extension only.
+    Storage path of profile photo relative to media root.
+    Keep the original file extension only.
     """
-    return 'user/{0}/{1}'.format(instance.user.id, '.'.join(['profile-photo', filename.split('.')[-1]]))
+    return 'users/{0}/{1}'.format(instance.user.username, '.'.join(['profile-photo', filename.split('.')[-1]]))
 
 class Profile(models.Model):
     """
@@ -222,6 +227,9 @@ class Profile(models.Model):
 
     MAX_PHOTO_SIZE = 2 * 1024 ** 2
 
+    # Where all the users' files are kept
+    FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'users')
+
     def __str__(self):
         return self.get_full_name()
 
@@ -243,6 +251,10 @@ class Profile(models.Model):
             os.remove(self.photo.path)
             self.photo = None
             self.save()
+
+    def file_root(self):
+        "Where the profile's files are stored"
+        return os.path.join(Profile.FILE_ROOT, self.username)
 
 
 class DualAuthModelBackend():

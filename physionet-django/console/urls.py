@@ -12,7 +12,8 @@ urlpatterns = [
         name='unsubmitted_projects'),
     url(r'^submitted-projects/$', views.submitted_projects,
         name='submitted_projects'),
-    # published projects
+    url(r'^published-projects/$', views.published_projects,
+        name='published_projects'),
 
     # Individual edit pages
     url(r'^submitted-projects/(?P<project_slug>\w+)/edit/$',

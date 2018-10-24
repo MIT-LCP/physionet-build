@@ -174,7 +174,7 @@ def publish_notify(request, published_project):
     """
     subject = 'Your project has been published: {0}'.format(
         published_project.title)
-    for email, name in project.author_contact_info():
+    for email, name in published_project.author_contact_info():
         body = loader.render_to_string(
             'notification/email/publish_notify.html',
             {'name':name, 'published_project':published_project,

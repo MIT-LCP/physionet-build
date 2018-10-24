@@ -59,6 +59,11 @@ class BaseAuthor(models.Model):
     class Meta:
         abstract = True
 
+    def __str__(self):
+        # Best representation for form display
+        user = self.user
+        return '{} --- {}'.format(user.username, user.email)
+
 
 class Author(BaseAuthor):
     """
@@ -71,11 +76,6 @@ class Author(BaseAuthor):
 
     class Meta:
         unique_together = (('user', 'content_type', 'object_id',),)
-
-    def __str__(self):
-        # Best representation for form display
-        user = self.user
-        return '{} --- {}'.format(user.username, user.email)
 
     def get_full_name(self):
         """
@@ -124,6 +124,13 @@ class PublishedAuthor(BaseAuthor):
 
     class Meta:
         unique_together = (('user', 'project'),)
+
+    def get_full_name(self):
+        if self.middle_names:
+            return ' '.join([self.first_name, self.middle_names,
+                           self.last_name])
+        else:
+            return ' '.join([self.first_name, self.last_name])
 
 
 class Topic(models.Model):
@@ -216,7 +223,7 @@ class PublishedPublication(BasePublication):
     """
     """
     project = models.ForeignKey('project.PublishedProject',
-        db_index=True)
+        db_index=True, related_name='publications')
 
 
 class CoreProject(models.Model):
@@ -241,9 +248,6 @@ class Metadata(models.Model):
     https://www.nature.com/sdata/publish/for-authors#format
 
     """
-    class Meta:
-        abstract = True
-
     RESOURCE_TYPES = (
         (0, 'Database'),
         (1, 'Software'),
@@ -286,6 +290,23 @@ class Metadata(models.Model):
     # For ordering projects with multiple versions
     version_order = models.PositiveSmallIntegerField(default=0)
 
+    class Meta:
+        abstract = True
+
+    def author_contact_info(self):
+        """
+        Get the names and emails of the project's authors
+        """
+        users = [a.user for a in self.authors.all()]
+        return ((u.email, u.get_full_name()) for u in users)
+
+    def corresponding_author(self):
+        return self.authors.get(is_corresponding=True)
+
+    def submitting_author(self):
+        return self.authors.get(is_submitting=True)
+
+
 class SubmissionInfo(models.Model):
     """
     Submission information, inherited by all projects.
@@ -320,12 +341,6 @@ class UnpublishedProject(models.Model):
 
     def __str__(self):
         return self.title
-
-    def corresponding_author(self):
-        return self.authors.get(is_corresponding=True)
-
-    def submitting_author(self):
-        return self.authors.get(is_submitting=True)
 
 
 class ArchivedProject(Metadata, UnpublishedProject, SubmissionInfo):
@@ -421,13 +436,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         if self.submission_status in [40, 50]:
             return True
-
-    def author_contact_info(self):
-        """
-        Get the names and emails of the project's authors
-        """
-        users = [a.user for a in self.authors.all()]
-        return ((u.email, u.get_full_name()) for u in users)
 
     def get_author_info(self, separate_submitting=False, include_emails=False):
         """

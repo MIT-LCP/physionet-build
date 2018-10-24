@@ -157,10 +157,7 @@ def edit_profile(request):
     """
     Edit the profile fields
     """
-    user = request.user
-    profile = user.profile
-
-
+    profile = request.user.profile
     form = ProfileForm(instance=profile)
 
     if request.method == 'POST':
@@ -179,7 +176,7 @@ def edit_profile(request):
         if not form.errors:
             form = ProfileForm(instance=profile)
 
-    return render(request, 'user/edit_profile.html', {'user':user, 'form':form,
+    return render(request, 'user/edit_profile.html', {'form':form,
         'messages':messages.get_messages(request)})
 
 
