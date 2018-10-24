@@ -27,12 +27,44 @@
 
   <div class="card" >
     <div class="card-header">
-      <h4>Authoring Projects</h4>
+      <h4>Active Projects</h4>
     </div>
 
     <ul class="list-group list-group-flush">
       {% if projects %}
         {% for project in projects %}
+          <li class="list-group-item">
+            <p>
+              {{ project.resource_type|resource_badge|safe }}
+              {% if project.under_submission %}
+                <span class="badge badge-info"><i class="fas fa-glasses"></i> Under Submission</span>
+              {% endif %}
+            </p>
+            <h4><a href="{% url 'project_overview' project.slug %}">{{ project.title }}</a></h4>
+            <p class="list-group-item-text text-muted">
+            <strong>Submitting Author: {{ project.submitting_author.disp_name_email }}</strong><br>
+            <small>Created {{ project.creation_datetime|date }} Modified {{ project.modified_datetime|date }}</small>
+            </p>
+          </li>
+        {% endfor %}
+      {% else %}
+        <div class="card-body text-center">
+          <h4 class="card-title">No projects to show</h4>
+          <p class="card-text">You are not currently working on any projects.</p>
+        </div>
+      {% endif %}
+    </ul>
+  </div>
+  <br>
+
+  <div class="card" >
+    <div class="card-header">
+      <h4>Published Projects</h4>
+    </div>
+
+    <ul class="list-group list-group-flush">
+      {% if published_projects %}
+        {% for project in published_projects %}
           <li class="list-group-item">
             <p>
               {{ project.resource_type|resource_badge|safe }}
@@ -45,7 +77,7 @@
             </p>
             <h4><a href="{% url 'project_overview' project.slug %}">{{ project.title }}</a></h4>
             <p class="list-group-item-text text-muted">
-            <strong>Submitting Author: {{ project.submitting_author }}</strong><br>
+            <strong>Submitting Author: {{ project.title }}</strong><br>
             <small>Created {{ project.creation_datetime|date }} Modified {{ project.modified_datetime|date }}</small>
             </p>
           </li>
@@ -53,7 +85,7 @@
       {% else %}
         <div class="card-body text-center">
           <h4 class="card-title">No projects to show</h4>
-          <p class="card-text">You are not currently working on any projects.</p>
+          <p class="card-text">You have not published any projects.</p>
         </div>
       {% endif %}
     </ul>

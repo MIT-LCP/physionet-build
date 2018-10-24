@@ -1,5 +1,5 @@
 from django.apps import AppConfig
 
 
-class ProjectConfig(AppConfig):
+class ActiveProjectConfig(AppConfig):
     name = 'project'

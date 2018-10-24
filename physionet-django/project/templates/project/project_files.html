@@ -12,7 +12,7 @@
 
 {% block local_js_bottom %}
  {# Disable submission for non-submitting authors #}
-{% if user != project.submitting_author %}
+{% if not is_submitting %}
   <script type="text/javascript" src="{% static 'custom/js/disable-input.js' %}"></script>
 {% endif %}
 {% endblock %}
@@ -23,7 +23,7 @@
 {% include "about/files.html" %}
 <br>
 
-{% if user != project.submitting_author %}
+{% if not is_submitting %}
 <div class="alert alert-form alert-warning alert-dismissible">
   <strong>Only the submitting author may edit files and request storage.</strong>
 </div>
@@ -41,7 +41,7 @@
     {% if storage_request %}
       <em>Storage request for {{ storage_request.request_allowance }}GB pending</em>
     {% else %}
-      {% if user == project.submitting_author %}
+      {% if is_submitting %}
         <button id="request-storage-button" type="button" class="btn btn-primary" data-toggle="modal" data-target="#request-storage-modal">
           <i class="fa fa-cube"></i> Request Storage
         </button>

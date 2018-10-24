@@ -11,7 +11,7 @@ from django.utils import timezone
 
 from . import forms
 import notification.utility as notification
-from project.models import Project, Resubmission, StorageRequest, Submission
+from project.models import ActiveProject, ResubmissionLog, StorageRequest, SubmissionLog
 from user.models import User
 
 
@@ -25,12 +25,12 @@ def is_admin(user, *args, **kwargs):
 @login_required
 @user_passes_test(is_admin)
 def console_home(request):
-    return redirect('active_submissions')
+    return redirect('submitted_projects')
 
 
 @login_required
 @user_passes_test(is_admin)
-def active_submissions(request):
+def submitted_projects(request):
     """
     List of active submissions. Editors are assigned here.
     """
@@ -43,21 +43,30 @@ def active_submissions(request):
             notification.assign_editor_notify(submission)
             messages.success(request, 'The editor has been assigned')
 
-    submissions = Submission.objects.filter(is_active=True).order_by('status')
-    n_active = len(submissions)
-    n_awaiting_editor = submissions.filter(status=0, editor__isnull=True).count()
-    n_awaiting_decision = submissions.filter(status=0, editor__isnull=False).count()
-    n_awaiting_copyedit = submissions.filter(status=3).count()
-    n_awaiting_publish = submissions.filter(status=5).count()
+    projects = ActiveProject.objects.filter(submission_status__gt=0).order_by('submission_status')
+    for p in projects:
+        p.set_submission_info()
+
+    # Separate projects by submission status
+    a_projects = projects.filter(submission_status=1)
+    b_projects = projects.filter(submission_status=2)
+    c_projects = projects.filter(submission_status=3)
+
+    n_active = len(projects)
+    n_awaiting_editor = projects.filter(submission_status=1).count()
+    n_awaiting_decision = projects.filter(submission_status=2).count()
+    n_awaiting_copyedit = projects.filter(submission_status=3).count()
+    n_awaiting_publish = projects.filter(submission_status=5).count()
 
     assign_editor_form = forms.AssignEditorForm()
 
-    return render(request, 'console/active_submissions.html',
-        {'submissions':submissions, 'assign_editor_form':assign_editor_form,
-         'n_active':n_active, 'n_awaiting_editor':n_awaiting_editor,
-         'n_awaiting_decision':n_awaiting_decision,
-         'n_awaiting_copyedit':n_awaiting_copyedit,
-         'n_awaiting_publish':n_awaiting_publish})
+    return render(request, 'console/submitted_projects.html',
+        {'projects':projects,
+         'assign_editor_form':assign_editor_form,
+         'a_projects':a_projects,
+         'b_projects':b_projects,
+         'c_projects':c_projects,
+         })
 
 
 @login_required
@@ -66,7 +75,7 @@ def editing_submissions(request):
     """
     List of submissions the editor is responsible for
     """
-    submissions = Submission.objects.filter(is_active=True,
+    submissions = SubmissionLog.objects.filter(is_active=True,
         editor=request.user)
 
     return render(request, 'console/editing_submissions.html',
@@ -79,14 +88,14 @@ def edit_submission(request, submission_id):
     """
     Page to respond to a particular submission, as an editor
     """
-    submission = Submission.objects.get(id=submission_id)
+    submission = SubmissionLog.objects.get(id=submission_id)
     project = submission.project
     # The user must be the editor
     if request.user != submission.editor or submission.status not in [0, 2]:
         return Http404()
 
     if request.method == 'POST':
-        edit_submission_form = forms.EditSubmissionForm(instance=submission,
+        edit_submission_form = forms.EditSubmissionLogForm(instance=submission,
                                                         data=request.POST)
         if edit_submission_form.is_valid():
             submission = edit_submission_form.save()
@@ -104,7 +113,7 @@ def edit_submission(request, submission_id):
                 {'decision':submission.decision,
                  'project':project, 'submission':submission})
 
-    edit_submission_form = forms.EditSubmissionForm()
+    edit_submission_form = forms.EditSubmissionLogForm()
 
     return render(request, 'console/edit_submission.html',
         {'submission':submission, 'edit_submission_form':edit_submission_form})
@@ -116,7 +125,7 @@ def copyedit_submission(request, submission_id):
     """
     Page to copyedit the submission
     """
-    submission = Submission.objects.get(id=submission_id)
+    submission = SubmissionLog.objects.get(id=submission_id)
     if request.user != submission.editor or submission.status != 3:
         return Http404()
 
@@ -146,7 +155,7 @@ def publish_submission(request, submission_id):
     """
     Page to publish the submission
     """
-    submission = Submission.objects.get(id=submission_id)
+    submission = SubmissionLog.objects.get(id=submission_id)
     if submission.status != 4:
         return Http404()
 
@@ -182,9 +191,9 @@ def process_storage_response(request, storage_response_formset):
                 storage_request.save()
 
                 if storage_request.response:
-                    project = storage_request.project
-                    project.storage_allowance = storage_request.request_allowance * 1024
-                    project.save()
+                    core_project = storage_request.project.core_project
+                    core_project.storage_allowance = storage_request.request_allowance * 1024
+                    core_project.save()
 
                 notification.storage_response_notify(storage_request)
                 messages.success(request,
@@ -196,8 +205,6 @@ def storage_requests(request):
     """
     Page for listing and responding to project storage requests
     """
-    user = request.user
-
     StorageResponseFormSet = modelformset_factory(StorageRequest,
         fields=('response', 'response_message'),
         widgets={'response':Select(choices=forms.RESPONSE_CHOICES),
@@ -210,20 +217,20 @@ def storage_requests(request):
     storage_response_formset = StorageResponseFormSet(
         queryset=StorageRequest.objects.filter(is_active=True))
 
-    return render(request, 'console/storage_requests.html', {'user':user,
-        'storage_response_formset':storage_response_formset})
+    return render(request, 'console/storage_requests.html',
+        {'storage_response_formset':storage_response_formset})
 
 
 @login_required
 @user_passes_test(is_admin)
-def project_list(request):
+def unsubmitted_projects(request):
     """
-    View list of projects
+    List of unsubmitted projects
     """
-    projects = Project.objects.all()
-
+    projects = ActiveProject.objects.filter(submission_status=0)
     # title, submitting author, creation date, published,
-    return render(request, 'console/project_list.html', {'projects':projects})
+    return render(request, 'console/unsubmitted_projects.html',
+        {'projects':projects})
 
 
 @login_required

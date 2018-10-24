@@ -46,14 +46,14 @@
   <ul class="list-group list-group-flush">
     {% for invitation in invitations %}
       <li class="list-group-item">
-          <strong>Email</strong>: {{ invitation.email }}<br>
-            {% if project.submitting_author == user %}
-              <a class="float-right">
-                  <button class="btn btn-sm" type="button" style="background:none" data-toggle="modal" data-target="#cancel-{{ invitation.id }}-modal"><i class="fas fa-user-times" style="color:#cb2431"></i></button>
-              </a>
-            {% endif %}
-          <strong>Inviter</strong>: {{ invitation.inviter }}<br>
-          <strong>Sent</strong>: {{ invitation.request_datetime|date }}
+        <strong>Email</strong>: {{ invitation.email }}<br>
+          {% if is_submitting %}
+            <a class="float-right">
+              <button class="btn btn-sm" type="button" style="background:none" data-toggle="modal" data-target="#cancel-{{ invitation.id }}-modal"><i class="fas fa-user-times" style="color:#cb2431"></i></button>
+            </a>
+          {% endif %}
+        <strong>Inviter</strong>: {{ invitation.inviter }}<br>
+        <strong>Sent</strong>: {{ invitation.request_datetime|date }}
       </li>
     {% endfor %}
   </ul>
@@ -65,7 +65,7 @@
 </div>
 <hr>
 
-{% if user == project.submitting_author %}
+{% if is_submitting %}
   <br>
   <h3>Invite Author</h3>
   <form action="{% url 'project_authors' project.slug %}" method="post" class="form-signin">
@@ -99,7 +99,7 @@
 {% endif %}
 
 {# Modals for removing authors and invitations #}
-{% if project.submitting_author == user %}
+{% if is_submitting %}
   {% for author in authors %}
     {% if not author.is_submitting_author %}
       <div class="modal fade" id="remove-{{ author.id }}-modal" role="dialog" aria-labelledby="remove-{{ author.id }}-modal" aria-hidden="true">

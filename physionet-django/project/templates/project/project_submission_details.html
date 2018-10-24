@@ -2,17 +2,10 @@
 
 {% load static %}
 
-{% block title %}Project Submission History - {{ project }}{% endblock %}
-
-
- {# Disable submission for non-submitting authors #}
-{% if user != project.submitting_author %}
-  <script type="text/javascript" src="{% static 'custom/js/disable-input.js' %}"></script>
-{% endif %}
-
+{% block title %}Submission Details - {{ project }}{% endblock %}
 
 {% block main_content %}
-<h2 class="form-signin-heading">Project Submission History</h2>
+<h2 class="form-signin-heading">Submission Number {{ submission.number }}</h2>
 <hr>
 
 {% for submission in submissions %}

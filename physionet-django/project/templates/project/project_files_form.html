@@ -1,4 +1,4 @@
-{% if user == project.submitting_author %}
+{% if is_submitting %}
   <input name="subdir" value="{{ subdir }}" type="hidden">
 
   <!-- Content manipulation buttons to trigger modals -->

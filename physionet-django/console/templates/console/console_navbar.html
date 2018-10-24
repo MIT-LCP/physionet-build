@@ -10,30 +10,36 @@
   </button>
 
   <div class="collapse navbar-collapse" id="navbarResponsive">
-
     <ul class="navbar-nav navbar-sidenav" id="sideAccordion">
-      <li class="nav-item" data-toggle="tooltip" data-placement="right">
-        <a class="nav-link" href="{% url 'active_submissions' %}">
-          <i class="fas fa-clipboard-list"></i></i></i>
-          <span class="nav-link-text">Active Submissions</span>
-        </a>
-      </li>
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
         <a class="nav-link" href="{% url 'editing_submissions' %}">
           <i class="fas fa-glasses"></i>
-          <span class="nav-link-text">Editing Submissions</span>
+          <span class="nav-link-text">Editor Home</span>
+        </a>
+      </li>
+      <li class="nav-item" data-toggle="tooltip" data-placement="right">
+        <a class="nav-link" href="{% url 'unsubmitted_projects' %}">
+          <i class="fas fa-gavel"></i>
+          <span class="nav-link-text">Unsubmitted Projects</span>
+        </a>
+      </li>
+
+      <li class="nav-item" data-toggle="tooltip" data-placement="right">
+        <a class="nav-link" href="{% url 'submitted_projects' %}">
+          <i class="fas fa-clipboard-list"></i>
+          <span class="nav-link-text">Submitted Projects</span>
+        </a>
+      </li>
+      <li class="nav-item" data-toggle="tooltip" data-placement="right">
+        <a class="nav-link" href="{% url 'unsubmitted_projects' %}">
+          <i class="fas fa-book-open"></i>
+          <span class="nav-link-text">Published Projects</span>
         </a>
       </li>
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
         <a class="nav-link" href="{% url 'storage_requests' %}">
           <i class="fa fa-cube"></i>
           <span class="nav-link-text">Storage Requests</span>
-        </a>
-      </li>
-      <li class="nav-item" data-toggle="tooltip" data-placement="right">
-        <a class="nav-link" href="{% url 'project_list' %}">
-          <i class="fa fa-archive"></i>
-          <span class="nav-link-text">Projects</span>
         </a>
       </li>
       <li class="nav-item" data-toggle="tooltip" data-placement="right">

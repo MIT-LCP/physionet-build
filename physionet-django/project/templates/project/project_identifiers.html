@@ -13,7 +13,7 @@
 <script type="text/javascript" src="{% static 'custom/js/enable-popover.js' %}"></script>
 <script>disableAddButtons();</script>
 {# Disable submission for non-submitting authors #}
-{% if user != project.submitting_author %}
+{% if not is_submitting %}
   <script type="text/javascript" src="{% static 'custom/js/disable-input.js' %}"></script>
 {% endif %}
 {% endblock %}
@@ -23,7 +23,7 @@
 <hr>
 {% include 'about/identifiers.html' %}
 <form action="{% url 'project_identifiers' project.slug %}" method="post" onsubmit="return validateItems('topic-list', 'description', 'Topics')">
-  {% if user != project.submitting_author %}
+  {% if not is_submitting %}
   <div class="alert alert-form alert-warning alert-dismissible">
     <strong>Only the submitting author may edit the identifiers.</strong>
   </div>

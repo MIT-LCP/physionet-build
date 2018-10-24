@@ -4,13 +4,14 @@ import re
 
 from django import forms
 from django.contrib.contenttypes.forms import BaseGenericInlineFormSet
-# from django.forms import , Select, Textarea
 from django.template.defaultfilters import slugify
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 
-from .models import Affiliation, Author, AuthorInvitation, Project, StorageRequest
+from .models import (Affiliation, Author, AuthorInvitation, ActiveProject,
+    CoreProject, StorageRequest, SubmissionLog)
 from . import utility
+from . import validators
 
 
 RESPONSE_CHOICES = (
@@ -42,7 +43,7 @@ class CorrespondingAuthorForm(forms.Form):
             new_c.save()
 
 
-class ProjectFilesForm(forms.Form):
+class ActiveProjectFilesForm(forms.Form):
     """
     Inherited form for manipulating project files/directories. Upload
     and create folders, move, rename, delete items.
@@ -51,7 +52,7 @@ class ProjectFilesForm(forms.Form):
     subdir = forms.CharField(widget=forms.HiddenInput(), required=False)
 
     def __init__(self, project, *args, **kwargs):
-        super(ProjectFilesForm, self).__init__(*args, **kwargs)
+        super(ActiveProjectFilesForm, self).__init__(*args, **kwargs)
         self.project = project
 
     def clean_subdir(self):
@@ -68,7 +69,7 @@ class ProjectFilesForm(forms.Form):
         return data
 
 
-class UploadFilesForm(ProjectFilesForm):
+class UploadFilesForm(ActiveProjectFilesForm):
     """
     Form for uploading multiple files to a project.
     `subdir` is the project subdirectory relative to the file root.
@@ -78,30 +79,28 @@ class UploadFilesForm(ProjectFilesForm):
 
     def clean_file_field(self):
         """
-        Check for file size limits and whether they are readable
+        Check for file name, size limits and whether they are readable
         """
         files = self.files.getlist('file_field')
 
         for file in files:
-            if re.match(r'(?u)[^-\w.]', file.name):
-                raise forms.ValidationError('Invalid characters in file, allowed ' \
-                    'characters are: numbers, letters, dash, underscore, or dot: %(file_name)s',
-                    params={'file_name':file.name})
+            validators.validate_filename(file.name)
+
             # Special error
             if not file:
                 raise forms.ValidationError('Could not read file: %(file_name)s',
                     params={'file_name':file.name})
 
         for file in files:
-            if file.size > Project.INDIVIDUAL_FILE_SIZE_LIMIT:
+            if file.size > ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT:
                 raise forms.ValidationError(
                     'File %(file_name)s is larger than the individual size limit: %(individual_size_limit)s',
                     code='exceed_individual_limit',
                     params={'file_name':file.name,
-                            'individual_size_limit':utility.readable_size(Project.INDIVIDUAL_FILE_SIZE_LIMIT)}
+                            'individual_size_limit':utility.readable_size(ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT)}
                 )
 
-        if sum(f.size for f in files) > self.project.storage_allowance*1024**3 - self.project.storage_used():
+        if sum(f.size for f in files) > self.project.core_project.storage_allowance*1024**2 - self.project.storage_used():
             raise forms.ValidationError(
                 'Total upload volume exceeds remaining quota',
                 code='exceed_remaining_quota',
@@ -133,18 +132,12 @@ class UploadFilesForm(ProjectFilesForm):
         return 'Your files have been uploaded'
 
 
-class CreateFolderForm(ProjectFilesForm):
+class CreateFolderForm(ActiveProjectFilesForm):
     """
     Form for creating a new folder in a directory
     """
-    folder_name = forms.CharField(max_length=50, required=False)
-    def clean_folder_name(self):
-        data = self.cleaned_data['folder_name']
-        if re.match(r'(?u)[^-\w.]', data):
-            raise forms.ValidationError('Invalid characters in folder name, allowed ' \
-                'characters are: numbers, letters, dash, underscore, or dot: %(illegal_pattern)s',
-                params={'illegal_pattern':data})
-        return data
+    folder_name = forms.CharField(max_length=50, required=False,
+        validators=[validators.validate_filename])
 
     def clean(self):
         """
@@ -167,7 +160,7 @@ class CreateFolderForm(ProjectFilesForm):
         return 'Your folder has been created'
 
 
-class EditItemsForm(ProjectFilesForm):
+class EditItemsForm(ActiveProjectFilesForm):
     """
     Inherited form for manipulating existing files/directories.
     Rename, edit, delete. This is also the form for deleting items.
@@ -202,7 +195,8 @@ class RenameItemForm(EditItemsForm):
     """
     # The name is 'items' to override the parent class field.
     items = forms.ChoiceField(required=False)
-    new_name = forms.CharField(max_length=50, required=False)
+    new_name = forms.CharField(max_length=50, required=False,
+        validators=[validators.validate_filename])
 
     field_order = ['subdir', 'items', 'new_name']
 
@@ -214,11 +208,6 @@ class RenameItemForm(EditItemsForm):
         """
         data = self.cleaned_data['new_name']
         taken_names = utility.list_items(self.file_dir, return_separate=False)
-
-        if re.match(r'(?u)[^-\w.]', data):
-            raise forms.ValidationError('Invalid characters in filename, allowed ' \
-                'characters are: numbers, letters, dash, underscore, or dot: %(file_name)s',
-                params={'file_name':data})
 
         if data in taken_names:
             raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
@@ -233,6 +222,7 @@ class RenameItemForm(EditItemsForm):
         os.rename(os.path.join(self.file_dir, self.cleaned_data['items']),
             os.path.join(self.file_dir, self.cleaned_data['new_name']))
         return 'Your item has been renamed'
+
 
 
 class MoveItemsForm(EditItemsForm):
@@ -313,40 +303,35 @@ class MoveItemsForm(EditItemsForm):
         return 'Your items have been moved'
 
 
-class CreateProjectForm(forms.ModelForm):
+class CreateActiveProjectForm(forms.ModelForm):
     """
     For creating projects
     """
     def __init__(self, user, *args, **kwargs):
-        super(CreateProjectForm, self).__init__(*args, **kwargs)
+        super(CreateActiveProjectForm, self).__init__(*args, **kwargs)
         self.user = user
 
     class Meta:
-        model = Project
+        model = ActiveProject
         fields = ('resource_type', 'title', 'abstract',)
 
-    def clean(self):
-        """
-        Check that the title and resource type are unique for the user.
-        Needs to be run because submitting_author is not a form field.
-        """
-        cleaned_data = super().clean()
-        if Project.objects.filter(resource_type=cleaned_data['resource_type'],
-                                  title=cleaned_data['title'],
-                                  submitting_author=self.user).exists():
-            raise forms.ValidationError(
-                  'You already have a project with this title and resource type')
-        return cleaned_data
-
     def save(self):
-        project = super(CreateProjectForm, self).save(commit=False)
-        project.submitting_author = self.user
-        project.corresponding_author = self.user
+        project = super().save(commit=False)
+        # Set the core project and slug
+        core_project = CoreProject.objects.create()
+        project.core_project = core_project
         slug = get_random_string(20)
-        while Project.objects.filter(slug=slug):
+        while ActiveProject.objects.filter(slug=slug):
             slug = get_random_string(20)
         project.slug = slug
         project.save()
+        # Create the author object for the user
+        author = Author.objects.create(project=project, user=self.user,
+            display_order=1, corresponding_email=self.user.get_primary_email(),
+            is_submitting=True, is_corresponding=True)
+        author.import_profile_info()
+        # Create file directory
+        os.mkdir(project.file_root())
         return project
 
 
@@ -355,7 +340,7 @@ class DatabaseMetadataForm(forms.ModelForm):
     Form for editing the metadata of a project with resource_type == database
     """
     class Meta:
-        model = Project
+        model = ActiveProject
         fields = ('title', 'abstract', 'background', 'methods',
                   'content_description', 'usage_notes', 'acknowledgements',
                   'conflicts_of_interest', 'version', 'changelog_summary',)
@@ -378,29 +363,13 @@ class DatabaseMetadataForm(forms.ModelForm):
         self.fields['content_description'].label = 'Data description'
 
 
-    def clean_title(self):
-        """
-        Check that the title and resource type are unique for the user
-        """
-        data = self.cleaned_data['title']
-
-        if Project.objects.filter(
-                title=data,
-                resource_type=self.instance.resource_type,
-                submitting_author=self.instance.submitting_author).exclude(id=self.instance.id).exists():
-            raise forms.ValidationError(
-                  'You already have a project with this title and resource type')
-
-        return data
-
-
 class SoftwareMetadataForm(forms.ModelForm):
     """
     Form for editing the metadata of a project with resource_type == database
     NOT DONE
     """
     class Meta:
-        model = Project
+        model = ActiveProject
         fields = ('title', 'abstract', 'usage_notes')
 
 
@@ -446,7 +415,7 @@ class AffiliationFormSet(forms.BaseInlineFormSet):
 
 class ReferenceFormSet(BaseGenericInlineFormSet):
     """
-    Formset for adding a Project's references
+    Formset for adding a ActiveProject's references
     """
     form_name = 'project-reference-content_type-object_id'
     item_label = 'References'
@@ -482,7 +451,7 @@ class ReferenceFormSet(BaseGenericInlineFormSet):
 
 class PublicationFormSet(BaseGenericInlineFormSet):
     """
-    Formset for adding a Project's publication
+    Formset for adding a ActiveProject's publication
     """
     form_name = 'project-publication-content_type-object_id'
     item_label = 'Publication'
@@ -506,11 +475,11 @@ class PublicationFormSet(BaseGenericInlineFormSet):
             raise forms.ValidationError('Maximum number of allowed items exceeded.')
 
 
-class TopicFormSet(forms.BaseInlineFormSet):
+class TopicFormSet(BaseGenericInlineFormSet):
     """
-    Formset for adding a Project's topics
+    Formset for adding a ActiveProject's topics
     """
-    form_name = 'topics'
+    form_name = 'project-topic-content_type-object_id'
     item_label = 'Topics'
     max_forms = 20
 
@@ -525,7 +494,7 @@ class AccessMetadataForm(forms.ModelForm):
     For editing project access metadata
     """
     class Meta:
-        model = Project
+        model = ActiveProject
         fields = ('access_policy', 'license', 'data_use_agreement')
         help_texts = {'access_policy': '* Access policy for files.',
                       'license': '* License for usage',
@@ -606,7 +575,7 @@ class StorageRequestForm(forms.ModelForm):
         """
         data = self.cleaned_data['request_allowance']
         # Comparing GB form field to MB model field
-        if data * 1024 <= self.project.storage_allowance:
+        if data * 1024 <= self.project.core_project.storage_allowance:
             raise forms.ValidationError('Project already has the requested allowance.',
                 code='already_has_allowance')
 
