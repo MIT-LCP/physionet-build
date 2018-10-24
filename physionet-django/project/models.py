@@ -681,7 +681,14 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         #     published_project.access_system = access_system
         #     published_project.save()
 
-        pdb.set_trace()
+        # Move the edit and copyedit logs
+        for edit_log in self.edit_logs.all():
+            edit_log.project = published_project
+            edit_log.save()
+        for copyedit_log in self.copyedit_logs.all():
+            copyedit_log.project = published_project
+            copyedit_log.save()
+
         # Create file root
         os.mkdir(published_project.file_root())
         # Move over files
@@ -690,22 +697,16 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         if make_zip:
             # The zip name is made from the title and the version
             # Rename the 'files' directory temporarily for the zip file
-            tmp_dir_name = os.path.join(published_project.file_root(),
-                published_project.slugged_label())
-            os.rename(published_project.main_file_root(), tmp_dir_name)
-            shutil.make_archive(base_name=published_project.slugged_label(),
-                format='zip', root_dir=published_project.file_root(),
+            zip_name = published_project.zip_file(include_extension=False,
+                full_path=True)
+            pdb.set_trace()
+            os.rename(published_project.main_file_root(), zip_name)
+            shutil.make_archive(
+                base_name=zip_name, format='zip',
+                root_dir=published_project.file_root(),
                 base_dir=published_project.slugged_label())
             # Change the directory name back to 'files'
-            os.rename(tmp_dir_name, published_project.main_file_root())
-
-        # Move the edit and copyedit logs
-        for edit_log in self.edit_logs.all():
-            edit_log.project = published_project
-            edit_log.save()
-        for copyedit_log in self.copyedit_logs.all():
-            copyedit_log.project = published_project
-            copyedit_log.save()
+            os.rename(zip_name, published_project.main_file_root())
 
         # Remove the ActiveProject
         self.delete()
@@ -774,16 +775,18 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         return '-'.join((slugify(self.title), self.version.replace(' ', '-')))
 
-    def zip_file(self, full_path=False):
+    def zip_file(self, include_extension=True, full_path=False):
         """
-        Name of the zip of the project's files. Return either the base
-        file name, or the full path.
+        Name of the zip of the project's files.
+        With or without .zip extension and full path.
         """
-        file_name = '.'.join(self.slugged_label(), 'zip')
+        file_name = self.slugged_label()
+
+        if include_extension:
+            file_name = '.'.join(file_name, 'zip')
         if full_path:
-            return os.path.join(self.file_root(), file_name)
-        else:
-            return file_name
+            file_name = os.path.join(self.file_root(), file_name)
+        return file_name
 
     def get_directory_content(self, subdir=''):
         """

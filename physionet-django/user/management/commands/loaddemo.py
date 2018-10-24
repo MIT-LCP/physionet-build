@@ -36,9 +36,9 @@ class Command(BaseCommand):
 
         call_command('loaddata', *demo_fixtures, verbosity=1)
 
-        # Link the demo project and user media content
+        # Copy the demo project and user media content
         for content in ['users', 'active-projects']:
-            link_demo_media(content)
+            copy_demo_media(content)
 
 
 def find_demo_fixtures(project_apps):
@@ -55,8 +55,9 @@ def find_demo_fixtures(project_apps):
 
     return demo_fixtures
 
-# Link the demo content from the specified subdirectory
-def link_demo_media(subdir):
+
+def copy_demo_media(subdir):
+    "Copy the demo content from the specified subdirectory"
     demo_subdir = os.path.join(settings.MEDIA_ROOT, 'demo', subdir)
     link_subdir = os.path.join(settings.MEDIA_ROOT, subdir)
 
