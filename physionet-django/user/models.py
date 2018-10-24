@@ -210,11 +210,11 @@ class Profile(models.Model):
     """
     user = models.OneToOneField('user.User', related_name='profile')
 
-    first_name = models.CharField(max_length=30)
+    first_name = models.CharField(max_length=50)
     middle_names = models.CharField(max_length=100, blank=True, default='')
-    last_name = models.CharField(max_length=30)
+    last_name = models.CharField(max_length=50)
     affiliation = models.CharField(max_length=60, blank=True, default='')
-    location = models.CharField(max_length=60, blank=True, default='')
+    location = models.CharField(max_length=100, blank=True, default='')
     website = models.URLField(default='', blank=True, null=True)
     photo = models.ImageField(upload_to=photo_path, blank=True, null=True)
     is_credentialed = models.BooleanField(default=False)

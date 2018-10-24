@@ -847,7 +847,7 @@ def project_submission(request, project_slug, **kwargs):
             if project.approve_author(author):
                 if project.submission_status == 60:
                     messages.success(request, 'You have approved the publication of your project. The editor will publish it shortly')
-                    notification.all_approved_notify(request, project)
+                    notification.authors_approved_notify(request, project)
                 else:
                     messages.success(request, 'You have approved the publication of your project.')
                 authors = project.authors.all()

@@ -24,8 +24,18 @@ class Affiliation(models.Model):
     Affiliations belonging to an author
 
     """
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=202)
     author = models.ForeignKey('project.Author', related_name='affiliations')
+
+    class Meta:
+        unique_together = (('name', 'author'),)
+
+
+class PublishedAffiliation(models.Model):
+    "Affiliations belonging to a published author"
+    name = models.CharField(max_length=202)
+    author = models.ForeignKey('project.PublishedAuthor',
+        related_name='affiliations')
 
     class Meta:
         unique_together = (('name', 'author'),)
@@ -43,6 +53,8 @@ class BaseAuthor(models.Model):
     display_order = models.PositiveSmallIntegerField()
     is_submitting = models.BooleanField(default=False)
     is_corresponding = models.BooleanField(default=False)
+    # When they approved the project for publication
+    approval_datetime = models.DateTimeField(null=True)
 
     class Meta:
         abstract = True
@@ -56,8 +68,6 @@ class Author(BaseAuthor):
     object_id = models.PositiveIntegerField()
     project = GenericForeignKey('content_type', 'object_id')
     corresponding_email = models.ForeignKey('user.AssociatedEmail', null=True)
-    # When they approved the project for publication
-    approval_datetime = models.DateTimeField(null=True)
 
     class Meta:
         unique_together = (('user', 'content_type', 'object_id',),)
@@ -109,11 +119,11 @@ class PublishedAuthor(BaseAuthor):
     middle_names = models.CharField(max_length=200, default='')
     last_name = models.CharField(max_length=100, default='')
 
-    published_project = models.ForeignKey('project.PublishedProject',
+    project = models.ForeignKey('project.PublishedProject',
         related_name='authors', db_index=True)
 
     class Meta:
-        unique_together = (('user', 'published_project'),)
+        unique_together = (('user', 'project'),)
 
 
 class Topic(models.Model):
@@ -164,11 +174,11 @@ class Reference(models.Model):
 
 class PublishedReference(models.Model):
     description = models.CharField(max_length=250)
-    published_project = models.ForeignKey('project.PublishedProject',
+    project = models.ForeignKey('project.PublishedProject',
         related_name='references')
 
     class Meta:
-        unique_together = (('description', 'published_project'))
+        unique_together = (('description', 'project'))
 
 
 class Contact(models.Model):
@@ -178,7 +188,7 @@ class Contact(models.Model):
     name = models.CharField(max_length=120)
     affiliations = models.CharField(max_length=150)
     email = models.EmailField(max_length=255)
-    published_project = models.ForeignKey('project.PublishedProject',
+    project = models.ForeignKey('project.PublishedProject',
         related_name='contacts')
 
 
@@ -205,7 +215,7 @@ class Publication(BasePublication):
 class PublishedPublication(BasePublication):
     """
     """
-    published_project = models.ForeignKey('project.PublishedProject',
+    project = models.ForeignKey('project.PublishedProject',
         db_index=True)
 
 
@@ -570,6 +580,16 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             return True
         return False
 
+    def cleanup_files(self):
+        """
+        Delete the project file directory
+        """
+        project_root = project.file_root()
+        if os.path.islink(project_root):
+            os.unlink(project_root)
+        elif os.path.isdir(project_root):
+            shutil.rmtree(project_root)
+
     def publish(self, make_zip=True):
         """
         Create a published version of this project and update the
@@ -606,14 +626,14 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
         # Same content, different objects.
         for reference in self.references.all():
-            reference_copy = Reference.objects.create(
+            published_reference = PublishedReference.objects.create(
                 description=reference.description,
-                project_object=published_project)
+                project=published_project)
 
         for publication in self.publications.all():
-            publication_copy = Publication.objects.create(
+            published_publication = PublishedPublication.objects.create(
                 citation=publication.citation, url=publication.url,
-                project_object=published_project)
+                project=published_project)
 
         for topic in self.topics.all():
             published_topic = PublishedTopic.objects.filter(
@@ -621,56 +641,69 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             # Tag the published project with the topic. Create the published
             # topic first if it doesn't exist
             if published_topic.count():
-                published_project.topics.add(published_topic.first())
+                published_topic = published_topic.get()
             else:
                 published_topic = PublishedTopic.objects.create(
                     description=topic.description.lower())
-                published_project.topics.add(published_topic)
+            published_topic.projects.add(published_project)
 
         for author in self.authors.all():
-            author_copy = Author.objects.create(
-                published_project=published_project,
-                first_name=author.user.first_name, middle_names=author.user.middle_names,
-                last_name=author.last_name, display_order=author.display_order,
-                user=author.user
+            author_profile = author.user.profile
+            published_author = PublishedAuthor.objects.create(
+                project=published_project, user=author.user,
+                is_submitting=author.is_submitting,
+                is_corresponding=author.is_corresponding,
+                approval_datetime=author.approval_datetime,
+                display_order=author.display_order,
+                first_name=author_profile.first_name,
+                middle_names=author_profile.middle_names,
+                last_name=author_profile.last_name,
                 )
 
             affiliations = author.affiliations.all()
             for affiliation in affiliations:
-                affiliation_copy = Affiliation.objects.create(
-                    name=affiliation.name, author=author_copy)
+                published_affiliation = PublishedAffiliation.objects.create(
+                    name=affiliation.name, author=published_author)
 
-        corresponding_author = self.authors.get(is_corresponding=True)
-        contact = Contact.objects.create(name=corresponding_author.get_full_name(),
-            affiliations=corresponding_author.display_affiliation(),
-            email=corresponding_author.corresponding_email,
-            published_project=published_project)
+            if author.is_corresponding:
+                contact = Contact.objects.create(name=author.get_full_name(),
+                affiliations=';'.join(a.name for a in affiliations),
+                email=author.corresponding_email, project=published_project)
 
         # Non-open access policy
-        if self.access_policy:
-            access_system = AccessSystem.objects.create(
-                name=published_project.__str__(),
-                license=self.license,
-                data_use_agreement=self.data_use_agreement,
-                requires_credentialed=bool(self.access_policy-1)
-                )
-            published_project.access_system = access_system
-            published_project.save()
+        # if self.access_policy:
+        #     access_system = AccessSystem.objects.create(
+        #         name=published_project.__str__(),
+        #         license=self.license,
+        #         data_use_agreement=self.data_use_agreement,
+        #         requires_credentialed=bool(self.access_policy-1)
+        #         )
+        #     published_project.access_system = access_system
+        #     published_project.save()
 
+        pdb.set_trace()
         # Create file root
         os.mkdir(published_project.file_root())
         # Move over files
-        os.rename(self.file_root(), os.path.join(published_project.file_root(), 'files'))
+        os.rename(self.file_root(), published_project.main_file_root())
         # Create zip
         if make_zip:
-            published_project.file_root()
-
+            # The zip name is made from the title and the version
+            # Rename the 'files' directory temporarily for the zip file
+            tmp_dir_name = os.path.join(published_project.file_root(),
+                published_project.slugged_label())
+            os.rename(published_project.main_file_root(), tmp_dir_name)
+            shutil.make_archive(base_name=published_project.slugged_label(),
+                format='zip', root_dir=published_project.file_root(),
+                base_dir=published_project.slugged_label())
+            # Change the directory name back to 'files'
+            os.rename(tmp_dir_name, published_project.main_file_root())
 
         # Move the edit and copyedit logs
-        for edit_log in project.edit_logs.all():
+        for edit_log in self.edit_logs.all():
             edit_log.project = published_project
             edit_log.save()
-        for copyedit_log in project.copyedit_logs:
+        for copyedit_log in self.copyedit_logs.all():
             copyedit_log.project = published_project
             copyedit_log.save()
 
@@ -678,22 +711,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         self.delete()
 
         return published_project
-
-
-@receiver(pre_delete, sender=ActiveProject)
-def cleanup_project(sender, **kwargs):
-    """
-    Before a ActiveProject is deleted:
-    - delete the project file directory
-    """
-    project = kwargs['instance']
-
-    # Delete file directory
-    project_root = project.file_root()
-    if os.path.islink(project_root):
-        os.unlink(project_root)
-    elif os.path.isdir(project_root):
-        shutil.rmtree(project_root)
 
 
 class PublishedProject(Metadata, SubmissionInfo):
@@ -711,7 +728,7 @@ class PublishedProject(Metadata, SubmissionInfo):
 
     # Where all the published project files are kept, depending on access.
     PROTECTED_FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'published-projects')
-    # Temporary workaround for development
+    # Workaround for development
     if os.environ['DJANGO_SETTINGS_MODULE'] == 'physionet.settings.development':
         PUBLIC_FILE_ROOT = os.path.join(settings.STATICFILES_DIRS[0], 'published-projects')
     else:
@@ -735,12 +752,38 @@ class PublishedProject(Metadata, SubmissionInfo):
             raise ValidationError('Duplicate DOI')
 
     def file_root(self):
-        "Root directory containing the published project's files"
+        """
+        Root directory containing the published project's files.
+
+        This is the parent directory of the main files, and also
+        contains the zip and checksum of the main files.
+        """
         if self.access_policy:
             return os.path.join(PublishedProject.PROTECTED_FILE_ROOT, self.slug)
         else:
-            return os.path.join(PublishedProject.Public_FILE_ROOT, self.slug)
+            return os.path.join(PublishedProject.PUBLIC_FILE_ROOT, self.slug)
 
+    def main_file_root(self):
+        "Root directory where the main user uploaded files are located"
+        return os.path.join(self.file_root(), 'files')
+
+    def slugged_label(self):
+        """
+        Slugged readable label from the title and version. Used for
+        the project's zipped files
+        """
+        return '-'.join((slugify(self.title), self.version.replace(' ', '-')))
+
+    def zip_file(self, full_path=False):
+        """
+        Name of the zip of the project's files. Return either the base
+        file name, or the full path.
+        """
+        file_name = '.'.join(self.slugged_label(), 'zip')
+        if full_path:
+            return os.path.join(self.file_root(), file_name)
+        else:
+            return file_name
 
     def get_directory_content(self, subdir=''):
         """

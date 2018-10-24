@@ -156,12 +156,12 @@ def reopen_copyedit_notify(request, project):
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)
 
-def all_approved_notify(request, project):
+def authors_approved_notify(request, project):
     subject = 'All authors approved publication of project: {0}'.format(
         project.title)
     for email, name in project.author_contact_info():
         body = loader.render_to_string(
-            'notification/email/all_approved_notify.html',
+            'notification/email/authors_approved_notify.html',
             {'name':name, 'project':project,
              'domain':get_current_site(request)})
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
