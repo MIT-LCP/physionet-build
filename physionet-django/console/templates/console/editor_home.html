@@ -70,7 +70,8 @@
             <tr>
               <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
               <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
-              <td>{{ submission.submission_datetime|date }}</td>
+              <td>{{ project.submission_datetime|date }}</td>
+              <td>{{ project.decision_datetime|date }}</td>
             </tr>
           {% endfor %}
           </tbody>

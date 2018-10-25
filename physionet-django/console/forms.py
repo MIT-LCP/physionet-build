@@ -116,6 +116,7 @@ class EditSubmissionForm(forms.ModelForm):
         # Resubmit with revisions
         elif edit_log.decision == 1:
             project.submission_status = 30
+            project.revision_request_datetime = now
         # Accept
         else:
             project.submission_status = 40

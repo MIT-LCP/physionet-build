@@ -1,0 +1,15 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}Project Submission Info - {{ project }}{% endblock %}
+
+{% block local_js_top %}
+<script type="text/javascript" src="{% static 'custom/js/copy-to-clipboard.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<h1>Project Submission Info: {{ project }}</h1>
+<hr>
+{% include "console/project_info_card.html" %}
+{% endblock %}

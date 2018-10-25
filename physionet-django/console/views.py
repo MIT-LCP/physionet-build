@@ -107,6 +107,26 @@ def editor_home(request):
          'publish_projects':publish_projects})
 
 
+def submission_info_redirect(request, project_slug):
+    return redirect('submission_info', project_slug=project_slug)
+
+
+@login_required
+@user_passes_test(is_admin)
+def submission_info(request, project_slug):
+    """
+    View information about a project under submission
+    """
+    project = ActiveProject.objects.get(slug=project_slug)
+    submitting_author, coauthors, author_emails = project.get_author_info(
+        separate_submitting=True, include_emails=True)
+
+    return render(request, 'console/submission_info.html',
+        {'project':project,
+         'submitting_author':submitting_author, 'coauthors':coauthors,
+         'author_emails':author_emails})
+
+
 @login_required
 @user_passes_test(is_admin)
 def edit_submission(request, project_slug):
