@@ -81,7 +81,7 @@ def assign_editor_notify(project):
                   [email], fail_silently=False)
 
 
-def edit_reject_notify(request, submission):
+def edit_reject_notify(request, project, edit_log):
     """
     Notify authors when an editor rejects a submission
     """
@@ -97,11 +97,11 @@ def edit_reject_notify(request, submission):
                   [email], fail_silently=False)
 
 
-def edit_resubmit_notify(request, submission):
+def edit_resubmit_notify(request, project, edit_log):
     """
     Notify authors when an editor requests a resubmission
     """
-    project = submission.project
+    project = edit.project
     subject = 'Resubmission request for project {0}'.format(project.title)
     for email, name in project.author_contact_info():
         body = loader.render_to_string(
@@ -113,17 +113,41 @@ def edit_resubmit_notify(request, submission):
                   [email], fail_silently=False)
 
 
-def edit_accept_notify(request, submission_log):
+def edit_accept_notify(request, project, edit_log):
     """
     Notify authors when an editor accepts a submission
     """
-    project = submission_log.project
     subject = 'Submission accepted for project: {0}'.format(project.title)
     for email, name in project.author_contact_info():
         body = loader.render_to_string(
             'notification/email/accept_submission_notify.html',
             {'name':name, 'project':project,
-             'editor_comments':submission_log.editor_comments,
+             'editor_comments':edit_log.editor_comments,
+             'domain':get_current_site(request)})
+        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                  [email], fail_silently=False)
+
+
+def edit_decision_notify(request, project, edit_log):
+    """
+    Notify authors when an editor makes a decision
+    """
+    # Reject
+    if edit_log.decision == 0:
+        subject = 'Submission rejected for project {}'.format(project.title)
+        template = 'notification/email/reject_submission_notify.html'
+    # Resubmit with revisions
+    elif edit_log.decision == 1:
+        subject = 'Revisions requested for project {}'.format(project.title)
+        template = 'notification/email/revise_submission_notify.html'
+    # Accept
+    else:
+        subject = 'Submission accepted for project: {}'.format(project.title)
+        template = 'notification/email/accept_submission_notify.html'
+
+    for email, name in project.author_contact_info():
+        body = loader.render_to_string(template,
+            {'name':name, 'project':project, 'edit_log':edit_log,
              'domain':get_current_site(request)})
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)

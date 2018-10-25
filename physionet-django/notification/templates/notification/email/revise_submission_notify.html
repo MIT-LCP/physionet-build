@@ -1,0 +1,18 @@
+{% load i18n %}{% autoescape off %}
+Dear {{ name}}
+
+The editor has requested revisions for your project: {{ project.title }}.
+
+The standard quality assurance results are as follows:
+{% for result in edit_log.quality_assurance_results %}- {{ result }}{% endfor %}
+
+The following comments were made:
+"""
+{{ edit_log.editor_comments }}
+"""
+
+The submitting author must address the issues and resubmit the project when ready.
+
+Regards
+The PhysioNet Team
+{% endautoescape %}

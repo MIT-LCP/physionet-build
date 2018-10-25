@@ -1,9 +1,15 @@
 {% load i18n %}{% autoescape off %}
 Dear {{ name}}
 
-The editor has accepted the publication of your project: {{ project.title }}, with the following comments:
+The editor has accepted the submission of your project: {{ project.title }}.
 
-"{{ editor_comments }}"
+The standard quality assurance results are as follows:
+{% for result in edit_log.quality_assurance_results %}- {{ result }}{% endfor %}
+
+The following comments were made:
+"""
+{{ edit_log.editor_comments }}
+"""
 
 The editor will now copyedit the project's metadata and files for any final changes. They will email you when they have finished making changes, to ask for your approval. When all of the project's authors approve of the copyedits at: http://{{ domain }}{% url 'project_submission' project.slug %}, the editor will be able to complete this step and publish the project.
 

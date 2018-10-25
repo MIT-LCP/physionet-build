@@ -126,16 +126,8 @@ def edit_submission(request, project_slug):
         if edit_submission_form.is_valid():
             # This processes the resulting decision
             edit_log = edit_submission_form.save()
-            # Resubmit with changes
-            if edit_log.decision == 0:
-                notification.edit_resubmit_notify(request, edit_log)
-            # Reject
-            elif edit_log.decision == 1:
-                notification.edit_reject_notify(request, edit_log)
-            # Accept
-            else:
-                notification.edit_accept_notify(request, edit_log)
-
+            # Notify the authors
+            notification.edit_decision_notify(request, project, edit_log)
             return render(request, 'console/edit_complete.html',
                 {'decision':edit_log.decision,
                  'project':project, 'edit_log':edit_log})

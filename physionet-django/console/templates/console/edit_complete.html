@@ -9,13 +9,13 @@
   </div>
   <div class="card-body">
     {% if decision == 0 %}
-      <p>You have requested a resubmission for: {{ project.title }}. The submitting author is to make revisions and resubmit. You will be notified when they have done so.</p>
-    {% elif decision == 1 %}
       <p>You have rejected the submission of: {{ project.title }}.</p>
+    {% elif decision == 1 %}
+      <p>You have requested revisions for: {{ project.title }}. The submitting author is to make revisions and resubmit. You will be notified when they have done so.</p>
     {% else %}
       <p>You have accepted the submission of: {{ project.title }}. The next step is for you to <a href="{% url 'copyedit_submission' project.slug %}">copyedit</a> the content.</p>
     {% endif %}
-    <p>You may also return to your <a href="{% url 'editor_home' %}">editor home</a>.</p>
+    <p>You may return to your <a href="{% url 'editor_home' %}">editor home</a>.</p>
   </div>
 </div>
 {% endblock %}

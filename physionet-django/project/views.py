@@ -865,6 +865,8 @@ def project_submission(request, project_slug, **kwargs):
     if project.under_submission():
         edit_logs = project.edit_logs.all()
         copyedit_logs = project.copyedit_logs.all()
+        for e in edit_logs:
+            e.set_quality_assurance_results()
         # Awaiting authors
         if project.submission_status == 50:
             authors = authors.order_by('approval_datetime')

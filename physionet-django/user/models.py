@@ -19,18 +19,6 @@ from .validators import UsernameValidator
 
 logger = logging.getLogger(__name__)
 
-class Affiliation(models.Model):
-    """
-    Profile affiliation
-    """
-    order = models.SmallIntegerField(default=0)
-    name = models.CharField(max_length=100)
-    department = models.CharField(max_length=100, default='')
-    city = models.CharField(max_length=50)
-    country = models.CharField(max_length=100)
-
-    profile = models.ForeignKey('user.Profile', related_name='affiliations')
-
 
 class UserManager(BaseUserManager):
     """
