@@ -15,7 +15,6 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.text import slugify
 
-from user.models import User
 from .utility import get_tree_size, get_file_info, get_directory_info, list_items
 
 

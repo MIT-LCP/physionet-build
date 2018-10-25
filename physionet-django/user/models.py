@@ -1,3 +1,4 @@
+import logging
 import os
 import pdb
 
@@ -14,7 +15,7 @@ from django.utils.translation import ugettext as _
 
 from .validators import UsernameValidator
 
-import logging
+
 
 logger = logging.getLogger(__name__)
 
