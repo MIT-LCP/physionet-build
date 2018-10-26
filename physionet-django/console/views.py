@@ -118,10 +118,7 @@ def submission_info(request, project_slug):
     View information about a project under submission
     """
     project = ActiveProject.objects.get(slug=project_slug)
-    authors, author_emails = project.get_author_info(include_emails=True)
-
-    edit_logs = project.edit_logs.all()
-    copyedit_logs = project.copyedit_logs.all()
+    authors, author_emails, storage_info, edit_logs, copyedit_logs = project.info_card()
 
     return render(request, 'console/submission_info.html',
         {'project':project, 'authors':authors, 'author_emails':author_emails,
@@ -135,7 +132,7 @@ def edit_submission(request, project_slug):
     Page to respond to a particular submission, as an editor
     """
     project = ActiveProject.objects.get(slug=project_slug)
-    edit_log = project.edit_logs.get()
+    edit_log = project.edit_logs.get(decision_datetime__isnull=True)
 
     # The user must be the editor
     if request.user != project.editor or project.submission_status not in [20, 30]:
@@ -157,14 +154,14 @@ def edit_submission(request, project_slug):
     else:
         edit_submission_form = forms.EditSubmissionForm(instance=edit_log)
 
-    submitting_author, coauthors, author_emails = project.get_author_info(
-        separate_submitting=True, include_emails=True)
+    authors, author_emails, storage_info, edit_logs, _ = project.info_card()
 
     return render(request, 'console/edit_submission.html',
         {'project':project,
          'edit_submission_form':edit_submission_form,
-         'submitting_author':submitting_author, 'coauthors':coauthors,
-         'author_emails':author_emails})
+         'authors':authors,
+         'author_emails':author_emails, 'storage_info':storage_info,
+         'edit_logs':edit_logs})
 
 
 @login_required

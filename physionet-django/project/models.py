@@ -599,6 +599,17 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         return len(authors) == len(authors.filter(
             approval_datetime__isnull=False))
 
+    def info_card(self):
+        """
+        Get all the information needed for the submission info card
+        seen by an admin/editor
+        """
+        authors, author_emails = self.get_author_info(include_emails=True)
+        storage_info = self.get_storage_info()
+        edit_logs = self.edit_logs.all()
+        copyedit_logs = self.copyedit_logs.all()
+        return authors, author_emails, storage_info, edit_logs, copyedit_logs
+
     def is_publishable(self):
         """
         Check whether a project may be published

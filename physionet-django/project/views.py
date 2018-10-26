@@ -840,6 +840,11 @@ def project_submission(request, project_slug, **kwargs):
                 messages.success(request, 'Your project has been submitted. You will be notified when an editor is assigned.')
             else:
                 messages.error(request, 'Fix the errors before submitting')
+        elif 'resubmit_project' in request.POST and is_submitting:
+            if project.is_resubmittable():
+                project.resubmit()
+                notification.resubmit_notify(project)
+                messages.success(request, 'Your project has been resubmitted. You will be notified when the editor makes their decision.')
         # Author approves publication
         elif 'approve_publication' in request.POST:
             author = authors.get(user=user)
