@@ -708,17 +708,11 @@ def project_files(request, project_slug, **kwargs):
     if 'subdir' not in vars():
         subdir = ''
 
-    storage_info = utility.get_storage_info(
-        project.core_project.storage_allowance*1024**2, project.storage_used())
-
+    storage_info = project.get_storage_info()
     storage_request = StorageRequest.objects.filter(project=project,
                                                     is_active=True).first()
     # Forms
-    if storage_request:
-        storage_request_form = None
-    else:
-        storage_request_form = forms.StorageRequestForm(project=project)
-
+    storage_request_form = forms.StorageRequestForm(project=project) if (not storage_request and is_submitting) else None
     (upload_files_form, create_folder_form, rename_item_form,
         move_items_form, delete_items_form) = get_file_forms(project=project,
         subdir=subdir)

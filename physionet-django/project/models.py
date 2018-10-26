@@ -15,7 +15,7 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.text import slugify
 
-from .utility import get_tree_size, get_file_info, get_directory_info, list_items
+from .utility import get_tree_size, get_file_info, get_directory_info, list_items, get_storage_info
 
 
 class Affiliation(models.Model):
@@ -234,8 +234,11 @@ class CoreProject(models.Model):
     creation_datetime = models.DateTimeField(auto_now_add=True)
     # doi pointing to the latest version of the published project
     doi = models.CharField(max_length=50, default='')
-    # Maximum allowed storage capacity in MB
-    storage_allowance = models.PositiveIntegerField(default=100)
+    # Maximum allowed storage capacity in bytes.
+    # Default = 100Mb. Max = 10Tb
+    storage_allowance = models.BigIntegerField(default=104857600,
+        validators=[MaxValueValidator(109951162777600),
+                    MinValueValidator(104857600)])
 
 
 class Metadata(models.Model):
@@ -297,17 +300,25 @@ class Metadata(models.Model):
         Get the names and emails of the project's authors.
         """
         if only_submitting:
-            user = self.authors.get(is_submitting=True)
+            user = self.authors.get(is_submitting=True).user
             return user.email, user.get_full_name
         else:
             users = [a.user for a in self.authors.all()]
-        return ((u.email, u.get_full_name()) for u in users)
+            return ((u.email, u.get_full_name()) for u in users)
 
     def corresponding_author(self):
         return self.authors.get(is_corresponding=True)
 
     def submitting_author(self):
         return self.authors.get(is_submitting=True)
+
+    def get_storage_info(self):
+        """
+        Return an object containing information about the project's
+        storage usage.
+        """
+        return get_storage_info(allowance=self.core_project.storage_allowance,
+            used=self.storage_used())
 
 
 class SubmissionInfo(models.Model):
@@ -941,9 +952,9 @@ class StorageRequest(BaseInvitation):
     """
     A request for storage capacity for a project
     """
-    # Requested storage size in GB
+    # Requested storage size in GB. Max = 10Tb
     request_allowance = models.SmallIntegerField(
-        validators=[MaxValueValidator(100), MinValueValidator(1)])
+        validators=[MaxValueValidator(10240), MinValueValidator(1)])
     responder = models.ForeignKey('user.User', null=True)
     response_message = models.CharField(max_length=50, default='', blank=True)
 

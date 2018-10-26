@@ -100,7 +100,7 @@ class UploadFilesForm(ActiveProjectFilesForm):
                             'individual_size_limit':utility.readable_size(ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT)}
                 )
 
-        if sum(f.size for f in files) > self.project.core_project.storage_allowance*1024**2 - self.project.storage_used():
+        if sum(f.size for f in files) > self.project.core_project.storage_allowance - self.project.storage_used():
             raise forms.ValidationError(
                 'Total upload volume exceeds remaining quota',
                 code='exceed_remaining_quota',
@@ -579,8 +579,8 @@ class StorageRequestForm(forms.ModelForm):
         Storage size must be reasonable
         """
         data = self.cleaned_data['request_allowance']
-        # Comparing GB form field to MB model field
-        if data * 1024 <= self.project.core_project.storage_allowance:
+        # Comparing GB form field to bytes model field
+        if data * 1024 ** 3 <= self.project.core_project.storage_allowance:
             raise forms.ValidationError('Project already has the requested allowance.',
                 code='already_has_allowance')
 

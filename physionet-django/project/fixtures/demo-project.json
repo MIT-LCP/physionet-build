@@ -113,32 +113,28 @@
   "model": "project.coreproject",
   "pk": "950032c4-2d96-43d6-84d5-e1652f451a79",
   "fields": {
-    "creation_datetime": "2017-10-30T14:30:30Z",
-    "storage_allowance": 100
+    "creation_datetime": "2017-10-30T14:30:30Z"
   }
 },
 {
   "model": "project.coreproject",
   "pk": "2e780890-644d-4166-b0ca-e3d31596405b",
   "fields": {
-    "creation_datetime": "2017-10-30T14:30:30Z",
-    "storage_allowance": 100
+    "creation_datetime": "2017-10-30T14:30:30Z"
   }
 },
 {
   "model": "project.coreproject",
   "pk": "ba881793-f671-4215-9487-070c04bdb4e2",
   "fields": {
-    "creation_datetime": "2017-10-30T14:30:30Z",
-    "storage_allowance": 100
+    "creation_datetime": "2017-10-30T14:30:30Z"
   }
 },
 {
   "model": "project.coreproject",
   "pk": "ff038b01-14a2-4af1-9a7d-9f9845c45219",
   "fields": {
-    "creation_datetime": "2017-10-30T14:30:30Z",
-    "storage_allowance": 100
+    "creation_datetime": "2017-10-30T14:30:30Z"
   }
 },
 {

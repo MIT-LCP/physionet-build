@@ -119,6 +119,7 @@ def submission_info(request, project_slug):
     """
     project = ActiveProject.objects.get(slug=project_slug)
     authors, author_emails = project.get_author_info(include_emails=True)
+
     edit_logs = project.edit_logs.all()
     copyedit_logs = project.copyedit_logs.all()
 
@@ -252,8 +253,7 @@ def copyedit_submission(request, project_slug):
     if 'subdir' not in vars():
         subdir = ''
 
-    storage_info = get_storage_info(
-        project.core_project.storage_allowance*1024**2, project.storage_used())
+    storage_info = project.get_storage_info()
 
     (upload_files_form, create_folder_form, rename_item_form,
         move_items_form, delete_items_form) = get_file_forms(project=project,
@@ -358,7 +358,7 @@ def process_storage_response(request, storage_response_formset):
 
                 if storage_request.response:
                     core_project = storage_request.project.core_project
-                    core_project.storage_allowance = storage_request.request_allowance * 1024
+                    core_project.storage_allowance = storage_request.request_allowance * 1024 ** 3
                     core_project.save()
 
                 notification.storage_response_notify(storage_request)

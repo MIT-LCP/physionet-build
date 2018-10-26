@@ -37,12 +37,15 @@ def access_description(access_policy):
     }
     return descriptions[access_policy]
 
-@register.filter(name='mb_to_gb')
-def mb_to_gb(storage_allowance):
+@register.filter(name='bytes_to_gb')
+def bytes_to_gb(n_bytes):
     """
-    Convert storage allowance mb to a readable gb value
+    Convert storage allowance bytes to a readable gb value
     """
-    return '{:.2f}'.format(storage_allowance / 1024)
+    if n_bytes < 1073741824:
+        return '{:.2f}'.format(n_bytes / 1073741824)
+    else:
+        return '{:d}'.format(int(n_bytes / 1073741824))
 
 @register.filter(name='submission_result_label')
 def submission_result_label(submission):
