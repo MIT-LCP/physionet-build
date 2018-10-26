@@ -122,7 +122,8 @@ def submission_info(request, project_slug):
 
     return render(request, 'console/submission_info.html',
         {'project':project, 'authors':authors, 'author_emails':author_emails,
-         'edit_logs':edit_logs, 'copyedit_logs':copyedit_logs})
+         'storage_info':storage_info, 'edit_logs':edit_logs,
+         'copyedit_logs':copyedit_logs})
 
 
 @login_required
@@ -175,9 +176,6 @@ def copyedit_submission(request, project_slug):
         return Http404()
 
     copyedit_log = project.copyedit_logs.get(complete_datetime=None)
-
-    submitting_author, coauthors, author_emails = project.get_author_info(
-        separate_submitting=True, include_emails=True)
 
     # Metadata forms and formsets
     ReferenceFormSet = generic_inlineformset_factory(Reference,
@@ -250,7 +248,7 @@ def copyedit_submission(request, project_slug):
     if 'subdir' not in vars():
         subdir = ''
 
-    storage_info = project.get_storage_info()
+    authors, author_emails, storage_info, edit_logs, copyedit_logs = project.info_card()
 
     (upload_files_form, create_folder_form, rename_item_form,
         move_items_form, delete_items_form) = get_file_forms(project=project,
@@ -274,8 +272,8 @@ def copyedit_submission(request, project_slug):
         'subdir':subdir, 'display_files':display_files,
         'display_dirs':display_dirs, 'dir_breadcrumbs':dir_breadcrumbs,
         'is_editor':True, 'copyedit_form':copyedit_form,
-        'submitting_author':submitting_author, 'coauthors':coauthors,
-        'author_emails':author_emails,
+        'authors':authors, 'author_emails':author_emails,
+        'storage_info':storage_info, 'edit_logs':edit_logs, 'copyedit_logs':copyedit_logs,
         'add_item_url':edit_url, 'remove_item_url':edit_url})
 
 
@@ -290,12 +288,7 @@ def awaiting_authors(request, project_slug):
     """
     project = ActiveProject.objects.get(slug=project_slug)
 
-    submitting_author, coauthors, author_emails = project.get_author_info(
-        separate_submitting=True, include_emails=True)
-    authors = project.authors.all().order_by('approval_datetime')
-    for a in authors:
-        a.set_display_info()
-
+    authors, author_emails, storage_info, edit_logs, copyedit_logs = project.info_card()
     outstanding_emails = ';'.join([a.user.email for a in authors.filter(
         approval_datetime=None)])
 
@@ -308,8 +301,8 @@ def awaiting_authors(request, project_slug):
 
     return render(request, 'console/awaiting_authors.html',
         {'project':project, 'authors':authors,
-         'submitting_author':submitting_author,
-         'coauthors':coauthors, 'author_emails':author_emails,
+         'author_emails':author_emails, 'storage_info':storage_info,
+         'edit_logs':edit_logs, 'copyedit_logs':copyedit_logs,
          'outstanding_emails':outstanding_emails})
 
 
@@ -320,8 +313,7 @@ def publish_submission(request, project_slug):
     Page to publish the submission
     """
     project = ActiveProject.objects.get(slug=project_slug)
-    submitting_author, coauthors, author_emails = project.get_author_info(
-        separate_submitting=True, include_emails=True)
+    authors, author_emails, storage_info, edit_logs, copyedit_logs = project.info_card()
     if request.method == 'POST':
         if project.is_publishable():
             published_project = project.publish()
@@ -330,10 +322,10 @@ def publish_submission(request, project_slug):
                 {'published_project':published_project})
 
     publishable = project.is_publishable()
-    return render(request, 'console/publish_submission.html', {
-        'project':project, 'publishable':publishable,
-        'submitting_author':submitting_author, 'coauthors':coauthors,
-        'author_emails':author_emails})
+    return render(request, 'console/publish_submission.html',
+        {'project':project, 'publishable':publishable, 'authors':authors,
+         'author_emails':author_emails, 'storage_info':storage_info,
+         'edit_logs':edit_logs, 'copyedit_logs':copyedit_logs})
 
 
 def process_storage_response(request, storage_response_formset):

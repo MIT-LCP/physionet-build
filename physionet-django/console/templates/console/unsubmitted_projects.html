@@ -12,7 +12,7 @@
       <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
         <thead>
           <tr>
-            <th>Title</th>
+            <th>Project</th>
             <th>Submitting Author</th>
             <th>Creation Date</th>
           </tr>
@@ -20,7 +20,7 @@
         <tbody>
         {% for project in projects %}
           <tr>
-            <td><a href="{% url 'project_overview' project.slug %}">{{ project.title }}</a></td>
+            <td><a href="{% url 'project_preview' project.slug %}">{{ project.title }}</a></td>
             <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</td>
             <td>{{ project.creation_datetime|date }}</td>
           </tr>

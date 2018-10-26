@@ -1044,7 +1044,9 @@ class CopyeditLog(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     project = GenericForeignKey('content_type', 'object_id')
-
+    # Either the time the project was accepted and moved into copyedit
+    # from the edit stage, or the time it was reopened for copyedit from
+    # the author approval stage.
     start_datetime = models.DateTimeField(auto_now_add=True)
     # Whether the submission was reopened for copyediting
     is_reedit = models.BooleanField(default=False)

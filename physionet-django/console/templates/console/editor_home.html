@@ -32,7 +32,7 @@
           <tbody>
           {% for project in decision_projects %}
             <tr>
-              <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
+              <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
               <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
               <td>{{ project.submission_datetime|date }}</td>
               <td><a class="btn btn-primary btn-sm" href="{% url 'edit_submission' project.slug %}" role="button">Edit Project</a></td>
@@ -68,7 +68,7 @@
           <tbody>
           {% for project in revision_projects %}
             <tr>
-              <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
+              <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
               <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
               <td>{{ project.submission_datetime|date }}</td>
               <td>{{ project.decision_datetime|date }}</td>
@@ -105,7 +105,7 @@
           <tbody>
           {% for project in copyedit_projects %}
             <tr>
-              <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
+              <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
               <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
               <td>{{ project.submission_datetime|date }}</td>
               <td>{{ project.editor_accept_datetime|date }}</td>
@@ -144,7 +144,7 @@
           <tbody>
           {% for project in approval_projects %}
             <tr>
-              <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
+              <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
               <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
               <td>{{ project.submission_datetime|date }}</td>
               <td>{{ project.editor_accept_datetime|date }}</td>
@@ -185,7 +185,7 @@
           <tbody>
           {% for project in publish_projects %}
             <tr>
-              <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
+              <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
               <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author.user.username }}</a> - {{ project.submitting_author.user.email }}</td>
               <td>{{ project.submission_datetime|date }}</td>
               <td>{{ project.editor_accept_datetime|date }}</td>

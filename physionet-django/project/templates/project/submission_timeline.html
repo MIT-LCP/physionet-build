@@ -37,6 +37,9 @@
     {% elif project.submission_status >= 40 %}
       {# At this point, there may have been any number of copyedits #}
       {% for c in copyedit_logs %}
+        {% if c.is_reedit %}
+        <li class="list-group-item">{{ c.start_datetime|date }}: The editor reopened the submission for copyediting.</li>
+        {% endif %}
         {# The copyedit is complete #}
         {% if c.complete_datetime %}
           <li class="list-group-item">
