@@ -12,4 +12,13 @@
 <h1>Project Submission Info: {{ project }}</h1>
 <hr>
 {% include "console/project_info_card.html" %}
+
+{% include "project/submission_timeline_card.html" %}
+
+
+{% endblock %}
+
+
+{% block local_js_bottom %}
+<script type="text/javascript" src="{% static 'custom/js/enable-popover.js' %}"></script>
 {% endblock %}

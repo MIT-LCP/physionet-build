@@ -1,0 +1,72 @@
+{# Card containing a non-interactive view of a project's submission history #}
+<div class="card">
+  <div class="card-header">Submission Timeline</div>
+  <ul class="list-group list-group-flush">
+    <li class="list-group-item">{{ project.submission_datetime|date }}: The project was submitted for review.</li>
+    {# Waiting for editor #}
+    {% if project.submission_status == 10 %}
+      <li class="list-group-item"><i class="far fa-clock"></i> Waiting for editor to be assigned.</li>
+    {# Editor assigned #}
+    {% else %}
+      <li class="list-group-item">{{ project.editor_assignment_datetime|date }}: The project was assigned the editor: {{ project.editor.disp_name_email }}</li>
+      {# At this point, there may have been any number of submissions #}
+      {% for e in edit_logs %}
+        {% if e.decision_datetime %}
+          {% if e.decision == 0 %}
+            <li class="list-group-item"><p>{{ e.decision_datetime|date }}: The editor rejected the submission.</p>
+          {% elif e.decision == 1 %}
+            <li class="list-group-item"><p>{{ e.decision_datetime|date }}: The editor requested a resubmission with revisions.</p>
+          {% elif e.decision == 2 %}
+            <li class="list-group-item"><p>{{ e.decision_datetime|date }}: The editor accepted the submission.</p>
+          {% endif %}
+          <p>The standard quality assurance results are as follows:</p>
+          <ul>
+            {% for result in e.quality_assurance_results %}
+              <li>{{ result }}</li>
+            {% endfor %}
+          </ul>
+          <p>The editor comments regarding the submission are as follows:</p>
+          {{ e.editor_comments }}
+          </li>
+        {# No decision yet #}
+        {% else %}
+          <li class="list-group-item"><i class="far fa-clock"></i> Waiting for editor to edit submission.</li>
+        {% endif %}
+      {% endfor %}
+      {# Waiting for revisions #}
+      {% if project.submission_status == 30 %}
+        <li class="list-group-item"><i class="far fa-clock"></i> Waiting for submitting author to make revisions and resubmit.</li>
+      {% elif project.submission_status >= 40 %}
+        {# At this point, there may have been any number of copyedits #}
+        {% for c in copyedit_logs %}
+          {# The copyedit is complete #}
+          {% if c.complete_datetime %}
+            <li class="list-group-item">
+              {{ c.complete_datetime|date }}: The editor finished copyediting the submission.
+              {% if c.made_changes %}
+              <p>The editor comments regarding the changes made are as follows:</p>
+              {{ c.changelog_summary }}
+              {% else %}
+              <p>No changes were made during the copyedit.</p>
+              {% endif %}
+            </li>
+          {% else %}
+            <li class="list-group-item">
+              <i class="far fa-clock"></i> Waiting for editor to copyedit submission.
+            </li>
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+      {# Awaiting authors to approve final project #}
+      {% if project.submission_status == 50 %}
+        <li class="list-group-item">
+          <p><i class="far fa-clock"></i> Waiting for all authors to approve the final project.</p>
+          {% include "project/awaiting_authors_table.html" %}
+        </li>
+      {% elif project.submission_status == 60 %}
+        <li class="list-group-item">{{ project.author_approval_datetime|date }}: All authors approved the final project for publication.</li>
+        <li class="list-group-item"><i class="far fa-clock"></i> Waiting for editor to publish submission.</li>
+      {% endif %}
+    {% endif %}
+  </ul>
+</div>

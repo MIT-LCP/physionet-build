@@ -7,10 +7,9 @@
     <p>{{ project.resource_type|resource_badge|safe }}</p>
     <h4 class="card-title"><a href="{% url 'project_overview' project.slug %}">{{ project.title }}</a></h4>
     <p class="card-text">
-      Submitting Author: {{ submitting_author|show_all_author_info|safe }}<br>
-      Coauthors: {% for author in coauthors %}{{ author|show_all_author_info|safe }} {% empty %}None{% endfor %}<br>
-      Created: {{ project.creation_datetime|date }}<br>
-      Submitted: {{ project.submission_datetime|date }}
+      Authors: {% for author in authors %}{{ author|show_all_author_info|safe }}{% endfor %}<br>
+      Created: {{ project.creation_datetime|date }}. Submitted: {{ project.submission_datetime|date }}.<br>
+      Storage Used: 10Mb/100Gb
     </p>
     <p><a class="btn btn-lg btn-primary" href="{% url 'project_preview' project.slug %}" role="button" target="_blank">
       View Project Preview</a>

@@ -77,7 +77,7 @@
 {% else %}
   {# The active submission status timeline #}
   <div class="card">
-    <div class="card-header"><h4>Submission Timeline</h4></div>
+    <div class="card-header">Submission Timeline</div>
     <ul class="list-group list-group-flush">
       <li class="list-group-item">{{ project.submission_datetime|date }}: The project was submitted for review.</li>
       {# Waiting for editor #}
@@ -197,7 +197,7 @@
             {% endif %}
           </li>
         {% elif project.submission_status == 60 %}
-          <li class="list-group-item">{{ author_approval_datetime|date }}: All authors approved the final project for publication.</li>
+          <li class="list-group-item">{{ project.author_approval_datetime|date }}: All authors approved the final project for publication.</li>
           <li class="list-group-item"><i class="far fa-clock"></i> Waiting for editor to publish submission.</li>
         {% endif %}
       {% endif %}

@@ -292,11 +292,15 @@ class Metadata(models.Model):
     class Meta:
         abstract = True
 
-    def author_contact_info(self):
+    def author_contact_info(self, only_submitting=False):
         """
-        Get the names and emails of the project's authors
+        Get the names and emails of the project's authors.
         """
-        users = [a.user for a in self.authors.all()]
+        if only_submitting:
+            user = self.authors.get(is_submitting=True)
+            return user.email, user.get_full_name
+        else:
+            users = [a.user for a in self.authors.all()]
         return ((u.email, u.get_full_name()) for u in users)
 
     def corresponding_author(self):
@@ -559,7 +563,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             self.submission_status = 40
             self.copyedit_completion_datetime = None
             self.save()
-            CopyeditLog.objects.create(project=self)
+            CopyeditLog.objects.create(project=self, is_reedit=True)
             self.authors.all().update(approval_datetime=None)
 
     def approve_author(self, author):
@@ -596,11 +600,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         Delete the project file directory
         """
-        project_root = project.file_root()
-        if os.path.islink(project_root):
-            os.unlink(project_root)
-        elif os.path.isdir(project_root):
-            shutil.rmtree(project_root)
+        shutil.rmtree(self.file_root())
 
     def publish(self, make_zip=True):
         """

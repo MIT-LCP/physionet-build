@@ -118,13 +118,13 @@ def submission_info(request, project_slug):
     View information about a project under submission
     """
     project = ActiveProject.objects.get(slug=project_slug)
-    submitting_author, coauthors, author_emails = project.get_author_info(
-        separate_submitting=True, include_emails=True)
+    authors, author_emails = project.get_author_info(include_emails=True)
+    edit_logs = project.edit_logs.all()
+    copyedit_logs = project.copyedit_logs.all()
 
     return render(request, 'console/submission_info.html',
-        {'project':project,
-         'submitting_author':submitting_author, 'coauthors':coauthors,
-         'author_emails':author_emails})
+        {'project':project, 'authors':authors, 'author_emails':author_emails,
+         'edit_logs':edit_logs, 'copyedit_logs':copyedit_logs})
 
 
 @login_required

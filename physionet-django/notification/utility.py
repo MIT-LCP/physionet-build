@@ -39,7 +39,7 @@ def invitation_response_notify(invitation, affected_emails):
 
     subject = 'Authorship invitation {} for project: {}'.format(response,
                                                                 project.title)
-    email, name = project.get_submitting_author_info()
+    email, name = project.author_contact_info(only_submitting=True)
     email_context = {'name':name, 'project':project,
         'response':response}
     # Send an email for each email belonging to the accepting user
@@ -215,7 +215,7 @@ def storage_response_notify(storage_request):
     response = RESPONSE_ACTIONS[storage_request.response]
     subject = 'Storage request {0} for project: {1}'.format(response,
         project.title)
-    email, name = project.get_submitting_author_info()
+    email, name = project.author_contact_info(only_submitting=True)
     body = loader.render_to_string('notification/email/storage_response_notify.html',
         {'name':name, 'project':project, 'response':response,
          'allowance':storage_request.request_allowance,
