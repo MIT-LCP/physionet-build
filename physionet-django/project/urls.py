@@ -51,6 +51,7 @@ urlpatterns = [
         name='check_integrity'),
     url(r'^(?P<project_slug>\w+)/submission/$', views.project_submission,
         name='project_submission'),
-    url(r'^(?P<project_slug>\w+)/submission/(?P<submission_number>\d+)/$',
-        views.project_submission_details, name='project_submission_details'),
+
+    url(r'^(?P<project_slug>\w+)/submission-history/$', views.published_submission_history,
+        name='published_submission_history'),
 ]

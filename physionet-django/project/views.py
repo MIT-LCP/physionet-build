@@ -884,18 +884,18 @@ def project_submission(request, project_slug, **kwargs):
         'awaiting_user_approval':awaiting_user_approval})
 
 
-@authorization_required(auth_functions=(is_author, is_admin))
-def project_submission_details(request, project_slug, submission_number):
+def published_submission_history(request, project_slug):
     """
-    Full details for a submission
+    Submission history for a published project
     """
-    user = request.user
-    project = ActiveProject.objects.get(slug=project_slug)
-    admin_inspect = user.is_admin and not is_author(user, project)
-    submission = project.submissions.get(number=submission_number)
-    return render(request, 'project/project_submission_details.html',
-        {'project':project, 'admin_inspect':admin_inspect,
-         'submission':submission})
+    project = PublishedProject.objects.get(slug=project_slug)
+
+    edit_logs = project.edit_logs.all()
+    copyedit_logs = project.copyedit_logs.all()
+
+    return render(request, 'project/published_submission_history.html',
+        {'project':project, 'edit_logs':edit_logs,
+         'copyedit_logs':copyedit_logs})
 
 
 def published_files_panel(request, published_project_slug):
@@ -939,23 +939,21 @@ def serve_published_project_file(request, published_project_slug, file_name):
 
 def database(request, published_project):
     """
-    Displays a published database project
+    Displays a published database project.
+    Helper function to `published_project` view.
     """
     authors = published_project.authors.all().order_by('display_order')
-    author_info = [utility.AuthorInfo(a) for a in authors]
     references = published_project.references.all()
     publications = published_project.publications.all()
     topics = published_project.topics.all()
-    contact = Contact.objects.get(published_project=published_project)
-
+    contact = Contact.objects.get(project=published_project)
     # The file and directory contents
     display_files, display_dirs = published_project.get_directory_content()
-
     dir_breadcrumbs = utility.get_dir_breadcrumbs('')
     total_size = utility.readable_size(published_project.storage_size)
 
     return render(request, 'project/database.html',
-        {'published_project':published_project, 'author_info':author_info,
+        {'published_project':published_project, 'authors':authors,
          'references':references, 'publications':publications, 'topics':topics,
          'contact':contact, 'dir_breadcrumbs':dir_breadcrumbs,
          'total_size':total_size, 'display_files':display_files,

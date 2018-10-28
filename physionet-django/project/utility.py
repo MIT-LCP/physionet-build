@@ -8,16 +8,6 @@ from django.conf import settings
 from django.http import HttpResponse, Http404
 
 
-class AuthorInfo():
-    """
-    For displaying author information
-    """
-    def __init__(self, author):
-        self.name = author.get_full_name()
-        self.affiliations = [a.name for a in author.affiliations.all()]
-        self.affiliations = '\n'.join(self.affiliations)
-
-
 class FileInfo():
     """
     For displaying lists of files in project pages

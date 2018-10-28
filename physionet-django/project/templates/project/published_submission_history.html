@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Submission History - {{ project }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>Submission History - {{ project }}</h1>
+  <hr>
+  <div class="card mb-3">
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item">{{ project.submission_datetime|date }}: The project was submitted for review.</li>
+      <li class="list-group-item">{{ project.editor_assignment_datetime|date }}: The project was assigned the editor: {{ project.editor.disp_name_email }}</li>
+       {# There may have been any number of submissions #}
+      {% for e in edit_logs %}
+        {% if e.decision == 0 %}
+          <li class="list-group-item"><p>{{ e.decision_datetime|date }}: The editor rejected the submission.</p>
+        {% elif e.decision == 1 %}
+          <li class="list-group-item"><p>{{ e.decision_datetime|date }}: The editor requested a resubmission with revisions.</p>
+        {% elif e.decision == 2 %}
+          <li class="list-group-item"><p>{{ e.decision_datetime|date }}: The editor accepted the submission.</p>
+        {% endif %}
+        <p>The standard quality assurance results are as follows:</p>
+        <ul>
+          {% for result in e.quality_assurance_results %}
+            <li>{{ result }}</li>
+          {% endfor %}
+        </ul>
+        <p>The editor comments regarding the submission are as follows:</p>
+        {{ e.editor_comments }}
+        </li>
+      {% endfor %}
+      {# There may have been any number of copyedits #}
+      {% for c in copyedit_logs %}
+        {% if c.is_reedit %}
+          <li class="list-group-item">{{ c.start_datetime|date }}: The editor reopened the submission for copyediting.</li>
+        {% endif %}
+        <li class="list-group-item">
+          {{ c.complete_datetime|date }}: The editor finished copyediting the submission.
+          {% if c.made_changes %}
+          <p>The editor comments regarding the changes made are as follows:</p>
+          {{ c.changelog_summary }}
+          {% else %}
+          <p>No changes were made during the copyedit.</p>
+          {% endif %}
+        </li>
+      {% endfor %}
+      <li class="list-group-item">{{ project.author_approval_datetime|date }}: All authors approved the final project for publication.</li>
+      <li class="list-group-item">{{ project.publish_datetime|date }}: The project was published.</li>
+    </ul>
+  </div>
+  <p><a href="{% url 'project_home' %}">Return to Project Home</a></p>
+</div>
+{% endblock %}

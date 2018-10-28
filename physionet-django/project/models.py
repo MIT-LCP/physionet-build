@@ -836,7 +836,7 @@ class PublishedProject(Metadata, SubmissionInfo):
             if self.access_policy:
                 file_info.full_file_name = os.path.join(subdir, file)
             else:
-                file_info.static_url = os.path.join('published-project', str(self.id), subdir, file)
+                file_info.static_url = os.path.join('published-project', str(self.slug), subdir, file)
             display_files.append(file_info)
 
         # Directories require
