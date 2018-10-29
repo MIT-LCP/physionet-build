@@ -21,7 +21,7 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
 from physionet.utility import get_project_apps
-from project.models import ActiveProject, PublishedProject
+from project.models import ActiveProject, PublishedProject, ArchivedProject
 from user.models import User
 
 
@@ -58,7 +58,7 @@ class Command(BaseCommand):
                 for file in migration_files:
                     os.remove(file)
 
-        # Remove created user/project/published project files
+        # Remove created media project files
         clear_media_files()
         # Remake and apply the migrations
         call_command('makemigrations')
@@ -85,7 +85,7 @@ def clear_media_files():
     """
     for root_dir in (User.FILE_ROOT, ActiveProject.FILE_ROOT,
             PublishedProject.PROTECTED_FILE_ROOT,
-            PublishedProject.PUBLIC_FILE_ROOT):
+            PublishedProject.PUBLIC_FILE_ROOT, ArchivedProject.FILE_ROOT):
         dir_items = [os.path.join(root_dir, item) for item in os.listdir(root_dir) if item != '.gitkeep']
 
         for item in dir_items:

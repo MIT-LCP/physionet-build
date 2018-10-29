@@ -176,7 +176,7 @@ class Reference(models.Model):
     """
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
-    project_object = GenericForeignKey('content_type', 'object_id')
+    project = GenericForeignKey('content_type', 'object_id')
 
     description = models.CharField(max_length=250)
 
@@ -271,7 +271,6 @@ class Metadata(models.Model):
     )
 
     resource_type = models.PositiveSmallIntegerField(choices=RESOURCE_TYPES)
-
     # Main body descriptive metadata
     title = models.CharField(max_length=200)
     abstract = RichTextField(max_length=10000, blank=True)
@@ -365,6 +364,10 @@ class UnpublishedProject(models.Model):
     def __str__(self):
         return self.title
 
+    def file_root(self):
+        "Root directory containing the project's files"
+        return os.path.join(self.__class__.FILE_ROOT, self.slug)
+
 
 class ArchivedProject(Metadata, UnpublishedProject, SubmissionInfo):
     """
@@ -377,9 +380,8 @@ class ArchivedProject(Metadata, UnpublishedProject, SubmissionInfo):
     archive_datetime = models.DateTimeField(auto_now_add=True)
     archive_reason = models.PositiveSmallIntegerField()
 
-    def file_root(self):
-        "Root directory containing the project's files"
-        return os.path.join(settings.MEDIA_ROOT, 'archived-project', str(self.id))
+    # Where all the archived project files are kept
+    FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'archived-projects')
 
 
 class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
@@ -409,10 +411,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                        1:['title', 'abstract', 'background', 'methods',
                           'content_description', 'conflicts_of_interest',
                           'version', 'license',]}
-
-    def file_root(self):
-        "Root directory containing the project's files"
-        return os.path.join(ActiveProject.FILE_ROOT, self.slug)
 
     def storage_used(self):
         "Total storage used in bytes"
@@ -486,14 +484,59 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             else:
                 return authors
 
-
-    def archive(self, reason):
+    def archive(self, archive_reason):
         """
         Archive the project. Create an ArchivedProject object, copy over
         the fields, and delete this object
         """
-        ArchivedProject.objects.create(archive_reason=reason)
-        self.delete()
+        archived_project = ArchivedProject(archive_reason=archive_reason)
+
+        # Direct copy over fields
+        for attr in [
+                # Management fields
+                'core_project', 'slug',
+                # Metadata info
+                'resource_type', 'title', 'abstract', 'background', 'methods',
+                'content_description', 'usage_notes', 'acknowledgements',
+                'conflicts_of_interest', 'version', 'access_policy',
+                'changelog_summary', 'access_policy', 'license',
+                # Publishing info
+                'editor', 'creation_datetime', 'submission_datetime',
+                'editor_assignment_datetime', 'editor_accept_datetime',
+                'copyedit_completion_datetime', 'author_approval_datetime',
+                'version_order']:
+            setattr(archived_project, attr, getattr(self, attr))
+
+        archived_project.save()
+
+        # Redirect the related objects
+        for reference in self.references.all():
+            reference.project = archived_project
+            reference.save()
+        for publication in self.publications.all():
+            publication.project = archived_project
+            publication.save()
+        for topic in self.topics.all():
+            topic.project = archived_project
+            topic.save()
+        for author in self.authors.all():
+            author.project = archived_project
+            author.save()
+        for edit_log in self.edit_logs.all():
+            edit_log.project = archived_project
+            edit_log.save()
+            pdb.set_trace()
+        for copyedit_log in self.copyedit_logs.all():
+            copyedit_log.project = archived_project
+            copyedit_log.save()
+
+        # Move over files
+        os.rename(self.file_root(), archived_project.file_root())
+        return self.delete()
+
+    def reject(self):
+        "Reject a project under submission"
+        self.archive(archive_reason=3)
 
     def check_integrity(self):
         """
@@ -645,17 +688,18 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
         # Direct copy over fields
         for attr in [
+                # Management fields
+                'core_project',
                 # Metadata info
-                'title', 'abstract', 'background', 'methods',
+                'resource_type', 'title', 'abstract', 'background', 'methods',
                 'content_description', 'usage_notes', 'acknowledgements',
-                'conflicts_of_interest', 'version', 'resource_type',
-                'access_policy', 'changelog_summary', 'access_policy',
-                'license',
+                'conflicts_of_interest', 'version', 'access_policy',
+                'changelog_summary', 'access_policy', 'license',
                 # Publishing info
                 'editor', 'creation_datetime', 'submission_datetime',
                 'editor_assignment_datetime', 'editor_accept_datetime',
                 'copyedit_completion_datetime', 'author_approval_datetime',
-                'version_order', 'core_project']:
+                'version_order']:
             setattr(published_project, attr, getattr(self, attr))
 
         # New fields

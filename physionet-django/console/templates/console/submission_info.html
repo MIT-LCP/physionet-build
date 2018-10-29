@@ -12,6 +12,9 @@
 <h1>Project Submission Info: {{ project }}</h1>
 <hr>
 {% include "console/submission_info_card.html" %}
+<p>
+<a href="{% url 'editor_home' %}">Return to editor home</a></p>
+<p><a href="{% url 'submitted_projects' %}">Return to submitted projects</a></p>
 {% endblock %}
 
 {% block local_js_bottom %}

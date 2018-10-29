@@ -52,6 +52,8 @@ urlpatterns = [
     url(r'^(?P<project_slug>\w+)/submission/$', views.project_submission,
         name='project_submission'),
 
-    url(r'^(?P<project_slug>\w+)/submission-history/$', views.published_submission_history,
+    url(r'^rejected/(?P<project_slug>\w+)/submission-history/$', views.rejected_submission_history,
+        name='rejected_submission_history'),
+    url(r'^published/(?P<project_slug>\w+)/submission-history/$', views.published_submission_history,
         name='published_submission_history'),
 ]

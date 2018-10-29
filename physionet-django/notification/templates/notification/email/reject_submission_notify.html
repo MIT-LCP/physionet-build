@@ -1,11 +1,18 @@
 {% load i18n %}{% autoescape off %}
 Dear {{ name}}
 
-The editor has rejected the publication of your project: {{ project.title }}, with the following comments:
+The editor has rejected the submission of your project: {{ project.title }}.
 
-"{{ editor_comments }}"
+The standard quality assurance results are as follows:
+{% for result in edit_log.quality_assurance_results %}- {{ result }}
+{% endfor %}
 
-Your project is still accessible, and listed in your project home.
+The following comments were made:
+"""
+{{ edit_log.editor_comments }}
+"""
+
+Your project has been closed.
 
 Regards
 The PhysioNet Team

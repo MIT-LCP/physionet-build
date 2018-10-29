@@ -16,23 +16,12 @@ from django.utils import timezone
 
 from . import forms
 from .models import (Affiliation, Author, AuthorInvitation, ActiveProject,
-    PublishedProject, StorageRequest, Reference,
+    PublishedProject, StorageRequest, Reference, ArchivedProject,
     Topic, Contact, Publication, PublishedAuthor, EditLog, CopyeditLog)
 from . import utility
 import notification.utility as notification
 from user.forms import ProfileForm, AssociatedEmailChoiceForm
 from user.models import User
-
-
-def is_admin(user, *args, **kwargs):
-    return user.is_admin
-
-def is_author(user, project):
-    authors = project.authors.all()
-    return (user in [a.user for a in authors])
-
-def is_submitting_author(user, project):
-    return user == project.submitting_author
 
 
 def project_auth(auth_mode=0, post_auth_mode=0):
@@ -41,11 +30,9 @@ def project_auth(auth_mode=0, post_auth_mode=0):
     to kwargs.
 
     auth_mode is one of the following:
-    - 0 : the user must be an author, or an admin
-    - 1 : the user must be an author
-    - 2 : the user must be the submitting author
-    - 3 : the user must be the submitting author during an editable
-          stage, or the editor during copyedit stage.
+    - 0 : the user must be an author.
+    - 1 : the user must be the submitting author.
+    - 2 : the user must be an author, an admin, or a reviewer.
 
     post_auth_mode is one of the following and applies only to post:
     - 0 : no additional check
@@ -61,14 +48,13 @@ def project_auth(auth_mode=0, post_auth_mode=0):
 
             is_author = (user in [a.user for a in authors])
             is_submitting = (user == authors.get(is_submitting=True).user)
-            admin_inspect = user.is_admin and not is_author
 
             if auth_mode == 0:
-                allow = is_author or admin_inspect
-            elif auth_mode == 1:
                 allow = is_author
-            elif auth_mode == 2:
+            elif auth_mode == 1:
                 allow = is_submitting
+            elif auth_mode == 2:
+                allow = is_submitting or user.is_admin
             else:
                 allow = ((is_submitting and project.author_editable())
                          or (user == project.editor and project.copyeditable()))
@@ -83,32 +69,9 @@ def project_auth(auth_mode=0, post_auth_mode=0):
                 kwargs['authors'] = authors
                 kwargs['is_author'] = is_author
                 kwargs['is_submitting'] = is_submitting
-                kwargs['admin_inspect'] = admin_inspect
                 return base_view(request, *args, **kwargs)
             raise Http404('Unable to access page')
         return view_wrapper
-    return real_decorator
-
-
-def authorization_required(auth_functions):
-    """
-    A generic authorization requirement decorator for projects.
-    Accepts an iterable of functions, and grants access if any of the
-    functions return True.
-    """
-    def real_decorator(base_function):
-        @login_required
-        def function_wrapper(request, *args, **kwargs):
-            user = request.user
-            project = ActiveProject.objects.get(slug=kwargs['project_slug'])
-
-            for auth_func in auth_functions:
-                if auth_func(user, project):
-                    return base_function(request, *args, **kwargs)
-
-            raise Http404('Unable to access page')
-
-        return function_wrapper
     return real_decorator
 
 
@@ -165,17 +128,21 @@ def project_home(request):
 
     active_authors = Author.objects.filter(user=user,
         content_type=ContentType.objects.get_for_model(ActiveProject))
+    archived_authors = Author.objects.filter(user=user,
+        content_type=ContentType.objects.get_for_model(ArchivedProject))
     published_authors = PublishedAuthor.objects.filter(user=user)
 
     # Get the projects and published projects
     projects = [a.project for a in active_authors]
     published_projects = [a.project for a in published_authors]
+    rejected_projects = [a.project for a in archived_authors if a.project.archive_reason == 3]
 
     invitation_response_formset = InvitationResponseFormSet(
         queryset=AuthorInvitation.get_user_invitations(user))
 
     return render(request, 'project/project_home.html', {
         'projects':projects, 'published_projects':published_projects,
+        'rejected_projects':rejected_projects,
         'invitation_response_formset':invitation_response_formset})
 
 
@@ -204,7 +171,7 @@ def project_overview(request, project_slug, **kwargs):
     Overview page of a project
     """
     return render(request, 'project/project_overview.html',
-        {'project':kwargs['project'], 'admin_inspect':kwargs['admin_inspect'],
+        {'project':kwargs['project'],
          'submitting_author':kwargs['authors'].get(is_submitting=True)})
 
 
@@ -257,7 +224,7 @@ def cancel_invitation(request, invitation_id, project, is_submitting):
             messages.success(request, 'The invitation has been cancelled')
 
 
-@project_auth(auth_mode=2, post_auth_mode=1)
+@project_auth(auth_mode=1, post_auth_mode=1)
 def move_author(request, project_slug, **kwargs):
     """
     Change an author display order. Return the updated authors list html
@@ -334,33 +301,29 @@ def project_authors(request, project_slug, **kwargs):
     """
     Page displaying author information and actions.
     """
-    user, project, authors, is_submitting, admin_inspect = (kwargs[k] for k in
-        ('user', 'project', 'authors', 'is_submitting', 'admin_inspect'))
+    user, project, authors, is_submitting, = (kwargs[k] for k in
+        ('user', 'project', 'authors', 'is_submitting'))
 
-    if admin_inspect:
-        (affiliation_formset, invite_author_form, corresponding_author_form,
-         corresponding_email_form) = None, None, None, None
+    author = authors.get(user=user)
+    AffiliationFormSet = inlineformset_factory(parent_model=Author,
+        model=Affiliation, fields=('name',), extra=0,
+        max_num=forms.AffiliationFormSet.max_forms, can_delete=False,
+        formset = forms.AffiliationFormSet, validate_max=True)
+    affiliation_formset = AffiliationFormSet(instance=author)
+
+    if is_submitting:
+        invite_author_form = forms.InviteAuthorForm(project=project,
+            inviter=user)
+        corresponding_author_form = forms.CorrespondingAuthorForm(
+            project=project)
     else:
-        author = authors.get(user=user)
-        AffiliationFormSet = inlineformset_factory(parent_model=Author,
-            model=Affiliation, fields=('name',), extra=0,
-            max_num=forms.AffiliationFormSet.max_forms, can_delete=False,
-            formset = forms.AffiliationFormSet, validate_max=True)
-        affiliation_formset = AffiliationFormSet(instance=author)
+        invite_author_form, corresponding_author_form = None, None
 
-        if is_submitting:
-            invite_author_form = forms.InviteAuthorForm(project=project,
-                inviter=user)
-            corresponding_author_form = forms.CorrespondingAuthorForm(
-                project=project)
-        else:
-            invite_author_form, corresponding_author_form = None, None
-
-        if user == project.corresponding_author().user:
-            corresponding_email_form = AssociatedEmailChoiceForm(
-                user=user, selection_type='corresponding', author=author)
-        else:
-            corresponding_email_form = None
+    if user == project.corresponding_author().user:
+        corresponding_email_form = AssociatedEmailChoiceForm(
+            user=user, selection_type='corresponding', author=author)
+    else:
+        corresponding_email_form = None
 
     if request.method == 'POST':
         if 'edit_affiliations' in request.POST:
@@ -411,7 +374,7 @@ def project_authors(request, project_slug, **kwargs):
     return render(request, 'project/project_authors.html', {'project':project,
         'authors':authors, 'invitations':invitations,
         'affiliation_formset':affiliation_formset,
-        'invite_author_form':invite_author_form, 'admin_inspect':admin_inspect,
+        'invite_author_form':invite_author_form,
         'corresponding_author_form':corresponding_author_form,
         'corresponding_email_form':corresponding_email_form,
         'add_item_url':edit_affiliations_url, 'remove_item_url':edit_affiliations_url,
@@ -485,8 +448,8 @@ def project_metadata(request, project_slug, **kwargs):
     """
     For editing project metadata
     """
-    user, project, authors, is_submitting, admin_inspect = (kwargs[k] for k in
-        ('user', 'project', 'authors', 'is_submitting', 'admin_inspect'))
+    user, project, authors, is_submitting = (kwargs[k] for k in
+        ('user', 'project', 'authors', 'is_submitting'))
 
     # There are several forms for different types of metadata
     ReferenceFormSet = generic_inlineformset_factory(Reference,
@@ -514,7 +477,7 @@ def project_metadata(request, project_slug, **kwargs):
     return render(request, 'project/project_metadata.html', {'project':project,
         'description_form':description_form, 'reference_formset':reference_formset,
         'messages':messages.get_messages(request),
-        'is_submitting':is_submitting, 'admin_inspect':admin_inspect,
+        'is_submitting':is_submitting,
         'add_item_url':edit_url, 'remove_item_url':edit_url})
 
 
@@ -537,8 +500,7 @@ def project_access(request, project_slug, **kwargs):
                 'Invalid submission. See errors below.')
 
     return render(request, 'project/project_access.html', {'project':project,
-        'access_form':access_form, 'is_submitting':kwargs['is_submitting'],
-        'admin_inspect':kwargs['admin_inspect']})
+        'access_form':access_form, 'is_submitting':kwargs['is_submitting']})
 
 
 @project_auth(auth_mode=0, post_auth_mode=1)
@@ -547,8 +509,8 @@ def project_identifiers(request, project_slug, **kwargs):
     Page to edit external project identifiers
 
     """
-    project, is_submitting, admin_inspect = (kwargs[k] for k in ('project',
-        'is_submitting', 'admin_inspect'))
+    project, is_submitting = (kwargs[k] for k in ('project',
+        'is_submitting'))
 
     TopicFormSet = generic_inlineformset_factory(Topic,
         fields=('description',), extra=0, max_num=forms.TopicFormSet.max_forms,
@@ -578,8 +540,7 @@ def project_identifiers(request, project_slug, **kwargs):
     return render(request, 'project/project_identifiers.html',
         {'project':project, 'publication_formset':publication_formset,
          'topic_formset':topic_formset, 'add_item_url':edit_url,
-         'remove_item_url':edit_url, 'is_submitting':is_submitting,
-         'admin_inspect':admin_inspect})
+         'remove_item_url':edit_url, 'is_submitting':is_submitting})
 
 
 
@@ -679,8 +640,8 @@ def process_files_post(request, project):
 @project_auth(auth_mode=0, post_auth_mode=1)
 def project_files(request, project_slug, **kwargs):
     "View and manipulate files in a project"
-    project, is_submitting, admin_inspect = (kwargs[k] for k in
-        ('project', 'is_submitting', 'admin_inspect'))
+    project, is_submitting = (kwargs[k] for k in
+        ('project', 'is_submitting'))
 
     if request.method == 'POST':
         if not is_submitting:
@@ -733,7 +694,6 @@ def project_files(request, project_slug, **kwargs):
         'move_items_form':move_items_form,
         'delete_items_form':delete_items_form,
         'is_submitting':is_submitting,
-        'admin_inspect':admin_inspect,
         'dir_breadcrumbs':dir_breadcrumbs})
 
 
@@ -746,7 +706,7 @@ def serve_project_file(request, project_slug, file_name, **kwargs):
     file_path = os.path.join(kwargs['project'].file_root(), file_name)
     return utility.serve_file(request, file_path)
 
-@project_auth(auth_mode=0)
+@project_auth(auth_mode=2)
 def preview_files_panel(request, project_slug, **kwargs):
     """
     Return the file panel for the project, along with the forms used to
@@ -763,25 +723,14 @@ def preview_files_panel(request, project_slug, **kwargs):
          'dir_breadcrumbs':dir_breadcrumbs, 'parent_dir':parent_dir,
          'display_files':display_files, 'display_dirs':display_dirs})
 
-
-@project_auth(auth_mode=0)
-def project_proofread(request, project_slug, **kwargs):
-    """
-    Proofreading page for project before submission
-    """
-    return render(request, 'project/project_proofread.html',
-        {'project':kwargs['project'], 'admin_inspect':kwargs['admin_inspect']})
-
-
-@project_auth(auth_mode=0)
+@project_auth(auth_mode=2)
 def project_preview(request, project_slug, **kwargs):
     """
     Preview what the published project would look like. Includes
     serving files.
 
     """
-    project, admin_inspect, authors = (kwargs[k] for k in ('project',
-        'admin_inspect', 'authors'))
+    project, authors = (kwargs[k] for k in ('project', 'authors'))
     authors = project.get_author_info()
     invitations = project.authorinvitations.filter(is_active=True)
     corresponding_author = authors.get(is_corresponding=True)
@@ -808,19 +757,29 @@ def project_preview(request, project_slug, **kwargs):
         'invitations':invitations, 'references':references,
         'publications':publications, 'topics':topics,
         'passes_checks':passes_checks,
-        'admin_inspect':admin_inspect, 'dir_breadcrumbs':dir_breadcrumbs})
+        'dir_breadcrumbs':dir_breadcrumbs})
+
+
+@project_auth(auth_mode=0)
+def project_proofread(request, project_slug, **kwargs):
+    """
+    Proofreading page for project before submission
+    """
+    return render(request, 'project/project_proofread.html',
+        {'project':kwargs['project']})
 
 
 @project_auth(auth_mode=0)
 def check_integrity(request, project_slug, **kwargs):
     """
-    Check whether a project is submittable
+    Check whether a project is submittable. Called via ajax
     """
     project = kwargs['project']
     result = project.check_integrity()
 
     return JsonResponse({'passes_checks':result,
         'integrity_errors':project.integrity_errors})
+
 
 @project_auth(auth_mode=0)
 def project_submission(request, project_slug, **kwargs):
@@ -829,8 +788,8 @@ def project_submission(request, project_slug, **kwargs):
     for review, cancel a submission, approve a submission, and withdraw
     approval.
     """
-    user, project, authors, is_submitting, admin_inspect = (kwargs[k] for k in
-        ('user', 'project', 'authors', 'is_submitting', 'admin_inspect'))
+    user, project, authors, is_submitting = (kwargs[k] for k in
+        ('user', 'project', 'authors', 'is_submitting'))
 
     if request.method == 'POST':
         # ActiveProject is submitted for review
@@ -880,9 +839,24 @@ def project_submission(request, project_slug, **kwargs):
     return render(request, 'project/project_submission.html', {
         'project':project, 'authors':authors,
         'is_submitting':is_submitting,
-        'admin_inspect':admin_inspect,
         'edit_logs':edit_logs, 'copyedit_logs':copyedit_logs,
         'awaiting_user_approval':awaiting_user_approval})
+
+
+def rejected_submission_history(request, project_slug):
+    """
+    Submission history for a published project
+    """
+    project = ArchivedProject.objects.get(slug=project_slug, archive_reason=3)
+
+    edit_logs = project.edit_logs.all()
+    for e in edit_logs:
+        e.set_quality_assurance_results()
+    copyedit_logs = project.copyedit_logs.all()
+
+    return render(request, 'project/rejected_submission_history.html',
+        {'project':project, 'edit_logs':edit_logs,
+         'copyedit_logs':copyedit_logs})
 
 
 def published_submission_history(request, project_slug):
@@ -892,6 +866,8 @@ def published_submission_history(request, project_slug):
     project = PublishedProject.objects.get(slug=project_slug)
 
     edit_logs = project.edit_logs.all()
+    for e in edit_logs:
+        e.set_quality_assurance_results()
     copyedit_logs = project.copyedit_logs.all()
 
     return render(request, 'project/published_submission_history.html',

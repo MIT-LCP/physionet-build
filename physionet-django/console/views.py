@@ -14,7 +14,7 @@ from django.utils import timezone
 from . import forms
 import notification.utility as notification
 import project.forms as project_forms
-from project.models import ActiveProject, StorageRequest, EditLog, Reference, Topic, Publication, PublishedProject
+from project.models import ActiveProject, ArchivedProject, StorageRequest, EditLog, Reference, Topic, Publication, PublishedProject
 from project.views import get_file_forms, get_project_file_info, process_files_post
 from project.utility import get_storage_info
 from user.models import User
@@ -145,6 +145,11 @@ def edit_submission(request, project_slug):
         if edit_submission_form.is_valid():
             # This processes the resulting decision
             edit_log = edit_submission_form.save()
+            # Set the display labels for the quality assurance results
+            edit_log.set_quality_assurance_results()
+            # The original object will be deleted if the decision is reject
+            if edit_log.decision == 0:
+                project = ArchivedProject.objects.get(slug=project_slug)
             # Notify the authors
             notification.edit_decision_notify(request, project, edit_log)
             return render(request, 'console/edit_complete.html',

@@ -110,23 +110,27 @@ class EditSubmissionForm(forms.ModelForm):
         edit_log = super().save()
         project = edit_log.project
         now = timezone.now()
+        # This object has to be saved first before calling reject, which
+        # edits the related EditLog objects (this).
+        edit_log.decision_datetime = now
+        edit_log.save()
         # Reject
         if edit_log.decision == 0:
-            pass
+            project.reject()
+            # Have to reload this object which is changed by the reject
+            # funciton
+            edit_log = EditLog.objects.get(id=edit_log.id)
         # Resubmit with revisions
         elif edit_log.decision == 1:
             project.submission_status = 30
             project.revision_request_datetime = now
+            project.save()
         # Accept
         else:
             project.submission_status = 40
             project.editor_accept_datetime = now
             CopyeditLog.objects.create(project=project)
-        project.save()
-        edit_log.decision_datetime = now
-        edit_log.save()
-        # Set the display labels for the quality assurance results
-        self.instance.set_quality_assurance_results()
+            project.save()
 
         return edit_log
 
