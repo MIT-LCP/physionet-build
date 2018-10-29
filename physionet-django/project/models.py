@@ -338,8 +338,12 @@ class SubmissionInfo(models.Model):
     # The very first submission
     submission_datetime = models.DateTimeField(null=True)
     editor_assignment_datetime = models.DateTimeField(null=True)
+    # The last resubmission request (if any)
+    resubmission_request_datetime = models.DateTimeField(null=True)
+    # The last resubmission (if any)
+    resubmission_datetime = models.DateTimeField(null=True)
     editor_accept_datetime = models.DateTimeField(null=True)
-    # The very last copyedit
+    # The last copyedit (if any)
     copyedit_completion_datetime = models.DateTimeField(null=True)
     author_approval_datetime = models.DateTimeField(null=True)
 
@@ -392,7 +396,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     - 0 : Not submitted
     - 10 : Submitting author submits. Awaiting editor assignment.
     - 20 : Editor assigned. Awaiting editor decision.
-    - 30 : Accepted with revisions. Waiting for resubmission. Loops back
+    - 30 : Revisions requested. Waiting for resubmission. Loops back
           to 20 when author resubmits.
     - 40 : Accepted. In copyedit stage. Awaiting editor to copyedit.
     - 50 : Editor completes copyedit. Awaiting authors to approve.
@@ -534,10 +538,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         os.rename(self.file_root(), archived_project.file_root())
         return self.delete()
 
-    def reject(self):
-        "Reject a project under submission"
-        self.archive(archive_reason=3)
-
     def check_integrity(self):
         """
         Run integrity tests on metadata fields and return whether the
@@ -586,9 +586,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
     def is_submittable(self):
         "Whether the project can be submitted"
-        if not self.under_submission() and self.check_integrity():
-            return True
-        return False
+        return (not self.under_submission() and self.check_integrity())
 
     def submit(self):
         """
@@ -617,6 +615,26 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         self.submission_status = 20
         self.editor_assignment_datetime = timezone.now()
         self.save()
+
+    def reject(self):
+        "Reject a project under submission"
+        self.archive(archive_reason=3)
+
+    def is_resubmittable(self):
+        """
+        Submit the project for review.
+        """
+        return (self.submission_status == 30 and self.check_integrity())
+
+    def resubmit(self):
+        if not self.is_resubmittable():
+            raise Exception('ActiveProject is not resubmittable')
+
+        self.submission_status = 20
+        self.resubmission_datetime = timezone.now()
+        self.save()
+        # Create a new edit log
+        EditLog.objects.create(project=self, is_resubmission=True)
 
     def reopen_copyedit(self):
         """
@@ -659,6 +677,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         authors, author_emails = self.get_author_info(include_emails=True)
         storage_info = self.get_storage_info()
         edit_logs = self.edit_logs.all()
+        for e in edit_logs:
+            e.set_quality_assurance_results()
         copyedit_logs = self.copyedit_logs.all()
         return authors, author_emails, storage_info, edit_logs, copyedit_logs
 

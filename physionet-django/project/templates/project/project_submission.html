@@ -78,8 +78,17 @@
   {# The active submission status timeline #}
   <div class="card">
     <div class="card-header">Submission Timeline</div>
+    {% include "project/active_submission_timeline.html" %}
+
+
+
     <ul class="list-group list-group-flush">
-      <li class="list-group-item">{{ project.submission_datetime|date }}: The project was submitted for review.</li>
+      <li class="list-group-item">
+        <div class="row">
+          <div class="col-md-2">{{ project.submission_datetime|date }}</div>
+          <div class="col-md-10">The project was submitted for review.</div>
+        </div>
+      </li>
       {# Waiting for editor #}
       {% if project.submission_status == 10 %}
         <li class="list-group-item"><i class="far fa-clock"></i> Waiting for editor to be assigned.</li>
@@ -113,32 +122,7 @@
         {# Waiting for revisions #}
         {% if project.submission_status == 30 %}
           <li class="list-group-item"><i class="far fa-clock"></i> Waiting for submitting author to make revisions and resubmit.
-            {% if is_submitting %}
-              <br><br>
-              <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#resubmit-modal" onclick="checkIntegrity(true)">Resubmit Project</button>
-              <div class="modal fade" id="resubmit-modal" tabindex="-1" role="dialog" aria-labelledby="resubmit-modal" aria-hidden="true">
-                <div class="modal-dialog" role="document">
-                  <div class="modal-content">
-                    <div class="modal-header">
-                      <h5 class="modal-title">Resubmit Project</h5>
-                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                      </button>
-                    </div>
-                    <form action="" method="post">
-                      <div class="modal-body">
-                        {% csrf_token %}
-                        <p id="passes-checks-resubmission"><i class="fas fa-spinner"></i> Running checks on project...</p>
-                      </div>
-                      <div class="modal-footer">
-                        <button id="resubmit-project-button" class="btn btn-primary" type="submit" name="resubmit_project" disabled>Reubmit Project</button>
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                      </div>
-                    </form>
-                  </div>
-                </div>
-              </div>
-            {% endif %}
+
           </li>
         {% elif project.submission_status >= 40 %}
           {# At this point, there may have been any number of copyedits #}
