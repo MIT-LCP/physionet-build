@@ -131,6 +131,15 @@ class PublishedAuthor(BaseAuthor):
         else:
             return ' '.join([self.first_name, self.last_name])
 
+    def set_display_info(self):
+        """
+        Set the fields used to display the author
+        """
+        self.name = self.get_full_name()
+        self.username = self.user.username
+        self.text_affiliations = [a.name for a in self.affiliations.all()]
+
+
 
 class Topic(models.Model):
     """

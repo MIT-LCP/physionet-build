@@ -782,9 +782,10 @@ def project_preview(request, project_slug, **kwargs):
     """
     project, admin_inspect, authors = (kwargs[k] for k in ('project',
         'admin_inspect', 'authors'))
-    author_info = [utility.AuthorInfo(a) for a in authors]
+    authors = project.get_author_info()
     invitations = project.authorinvitations.filter(is_active=True)
     corresponding_author = authors.get(is_corresponding=True)
+    corresponding_author.text_affiliations = ', '.join(a.name for a in corresponding_author.affiliations.all())
 
     references = project.references.all()
     publications = project.publications.all()
@@ -803,7 +804,7 @@ def project_preview(request, project_slug, **kwargs):
 
     return render(request, 'project/project_preview.html', {
         'project':project, 'display_files':display_files, 'display_dirs':display_dirs,
-        'author_info':author_info, 'corresponding_author':corresponding_author,
+        'authors':authors, 'corresponding_author':corresponding_author,
         'invitations':invitations, 'references':references,
         'publications':publications, 'topics':topics,
         'passes_checks':passes_checks,
@@ -943,6 +944,8 @@ def database(request, published_project):
     Helper function to `published_project` view.
     """
     authors = published_project.authors.all().order_by('display_order')
+    for a in authors:
+        a.set_display_info()
     references = published_project.references.all()
     publications = published_project.publications.all()
     topics = published_project.topics.all()
