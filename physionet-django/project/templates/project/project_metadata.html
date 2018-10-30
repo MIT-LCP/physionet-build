@@ -13,7 +13,7 @@
 <h2 class="form-signin-heading">2. Project Metadata</h2>
 <hr>
 {% include "about/metadata.html" %}
-<p>Required fields are indicated by a <a style="color:red">*</a>.</p>
+<p>Please adhere to the standards specified in the helpstrings. Required fields are indicated by a <a style="color:red">*</a>.</p>
 <hr>
 
 <form action="{% url 'project_metadata' project.slug %}" onsubmit="return validateItems('reference-list', 'description', 'References')" method="post">
