@@ -111,12 +111,6 @@ def move_items(items, target_folder):
     for item in items:
         os.rename(item, os.path.join(target_folder, os.path.split(item)[-1]))
 
-
-def get_project_file_info(file_path, sub_dir):
-    file_info = get_file_info(file_path)
-    file_info.media_url = os.path.join(settings.MEDIA_ROOT, )
-    return file_info
-
 def get_file_info(file_path):
     "Given a file path, get the information used to display it"
     name = os.path.split(file_path)[-1]

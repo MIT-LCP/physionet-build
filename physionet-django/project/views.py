@@ -528,9 +528,10 @@ def project_identifiers(request, project_slug, **kwargs):
                                                  instance=project)
         topic_formset = TopicFormSet(request.POST, instance=project)
         if publication_formset.is_valid() and topic_formset.is_valid():
-            print([f.instance.id for f in topic_formset.forms])
             publication_formset.save()
             topic_formset.save()
+            project.modified_datetime = timezone.now()
+            project.save()
             messages.success(request, 'Your identifier information has been updated.')
             topic_formset = TopicFormSet(instance=project)
             publication_formset = PublicationFormSet(instance=project)
@@ -541,8 +542,6 @@ def project_identifiers(request, project_slug, **kwargs):
         {'project':project, 'publication_formset':publication_formset,
          'topic_formset':topic_formset, 'add_item_url':edit_url,
          'remove_item_url':edit_url, 'is_submitting':is_submitting})
-
-
 
 
 def get_file_forms(project, subdir):
@@ -560,6 +559,9 @@ def get_file_forms(project, subdir):
 
 def get_project_file_info(project, subdir):
     """
+    Get the files, directories, and breadcrumb info for a project's
+    subdirectory.
+    Helper function for generating the files panel
     """
     display_files, display_dirs = project.get_directory_content(
         subdir=subdir)
@@ -579,7 +581,7 @@ def project_files_panel(request, project_slug, **kwargs):
     subdir = request.GET['subdir']
 
     display_files, display_dirs, dir_breadcrumbs, parent_dir = get_project_file_info(
-        project=project,subdir=subdir)
+        project=project, subdir=subdir)
     (upload_files_form, create_folder_form, rename_item_form,
         move_items_form, delete_items_form) = get_file_forms(project, subdir)
 
@@ -665,7 +667,7 @@ def project_files(request, project_slug, **kwargs):
         else:
             # process the file manipulation post
             subdir = process_files_post(request, project)
-
+            project.modified_datetime = datetime.now()
     if 'subdir' not in vars():
         subdir = ''
 
@@ -678,8 +680,8 @@ def project_files(request, project_slug, **kwargs):
         move_items_form, delete_items_form) = get_file_forms(project=project,
         subdir=subdir)
 
-    display_files, display_dirs, dir_breadcrumbs, xx = get_project_file_info(
-        project=project,subdir=subdir)
+    display_files, display_dirs, dir_breadcrumbs, _ = get_project_file_info(
+        project=project, subdir=subdir)
 
     return render(request, 'project/project_files.html', {'project':project,
         'subdir':subdir,
