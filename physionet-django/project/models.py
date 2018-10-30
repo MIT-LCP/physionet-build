@@ -909,7 +909,7 @@ class PublishedProject(Metadata, SubmissionInfo):
             if self.access_policy:
                 file_info.full_file_name = os.path.join(subdir, file)
             else:
-                file_info.static_url = os.path.join('published-project', str(self.slug), subdir, file)
+                file_info.static_url = os.path.join('published-projects', str(self.slug), subdir, file)
             display_files.append(file_info)
 
         # Directories require
@@ -1091,7 +1091,7 @@ class EditLog(models.Model):
     decision = models.SmallIntegerField(null=True)
     decision_datetime = models.DateTimeField(null=True)
     # Comments for the decision
-    editor_comments = models.CharField(max_length=800)
+    editor_comments = models.CharField(max_length=2500)
 
     def set_quality_assurance_results(self):
         """
@@ -1124,5 +1124,5 @@ class CopyeditLog(models.Model):
     # Whether the submission was reopened for copyediting
     is_reedit = models.BooleanField(default=False)
     made_changes = models.NullBooleanField(null=True)
-    changelog_summary = models.CharField(default='', max_length=800, blank=True)
+    changelog_summary = models.CharField(default='', max_length=2500, blank=True)
     complete_datetime = models.DateTimeField(null=True)

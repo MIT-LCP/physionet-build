@@ -1,4 +1,4 @@
-{# A view of an active project's submission timeline #}
+{# Submission timeline for an project under submission #}
 <ul class="list-group list-group-flush">
   <li class="list-group-item">
     <div class="row">
@@ -130,6 +130,35 @@
           <div class="col-md-10">
             <p><i class="far fa-clock"></i> Waiting for all authors to approve the final project.</p>
             {% include "project/awaiting_authors_table.html" %}
+            <a class="btn btn-primary" href="{% url 'project_preview' project.slug %}" role="button" target="_blank">View Project Preview</a>
+            {# The user is an author and has yet to approve #}
+            {% if awaiting_user_approval %}
+              <button type="button" class="btn btn-success" data-toggle="modal" data-target="#approve-modal">Approve Publication</button>
+              <br><br>
+              <p>If you would like to suggest changes, you may contact the editor to reopen the copyedit.</p>
+              <div class="modal fade" id="approve-modal" tabindex="-1" role="dialog" aria-labelledby="submit-modal" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title">Approve Publication</h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    <form action="" method="post">
+                      <div class="modal-body">
+                        {% csrf_token %}
+                        <p>If you are satisfied with the final state of the project, you may approve the publication.</p>
+                      </div>
+                      <div class="modal-footer">
+                        <button id="request-review" class="btn btn-success" type="submit" name="approve_publication">Approve Publication</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            {% endif %}
           </div>
         </div>
       </li>

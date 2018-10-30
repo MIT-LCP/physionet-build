@@ -872,7 +872,7 @@ def published_submission_history(request, project_slug):
 
     return render(request, 'project/published_submission_history.html',
         {'project':project, 'edit_logs':edit_logs,
-         'copyedit_logs':copyedit_logs})
+         'copyedit_logs':copyedit_logs, 'published':True})
 
 
 def published_files_panel(request, published_project_slug):
