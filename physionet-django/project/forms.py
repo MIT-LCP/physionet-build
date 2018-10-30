@@ -9,7 +9,7 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 
 from .models import (Affiliation, Author, AuthorInvitation, ActiveProject,
-    CoreProject, StorageRequest)
+    CoreProject, StorageRequest, exists_project_slug)
 from . import utility
 from . import validators
 
@@ -321,7 +321,7 @@ class CreateActiveProjectForm(forms.ModelForm):
         core_project = CoreProject.objects.create()
         project.core_project = core_project
         slug = get_random_string(20)
-        while ActiveProject.objects.filter(slug=slug):
+        while exists_project_slug(slug):
             slug = get_random_string(20)
         project.slug = slug
         project.save()

@@ -724,7 +724,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         # Direct copy over fields
         for attr in [
                 # Management fields
-                'core_project',
+                'core_project', 'slug',
                 # Metadata info
                 'resource_type', 'title', 'abstract', 'background', 'methods',
                 'content_description', 'usage_notes', 'acknowledgements',
@@ -739,11 +739,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
         # New fields
         published_project.storage_size = self.storage_used()
-        # Generate a new slug
-        slug = get_random_string(20)
-        while PublishedProject.objects.filter(slug=slug):
-            slug = get_random_string(20)
-        published_project.slug = slug
         published_project.save()
 
         # Same content, different objects.
@@ -934,6 +929,14 @@ class PublishedProject(Metadata, SubmissionInfo):
             display_dirs.append(dir_info)
 
         return display_files, display_dirs
+
+
+def exists_project_slug(slug):
+    if (ActiveProject.objects.filter(slug=slug)
+            or ArchivedProject.objects.filter(slug=slug)
+            or PublishedProject.objects.filter(slug=slug)):
+        return True
+    return False
 
 
 class License(models.Model):
