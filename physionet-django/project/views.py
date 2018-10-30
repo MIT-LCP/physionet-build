@@ -150,6 +150,11 @@ def project_home(request):
 def create_project(request):
     user = request.user
 
+    n_submitting = Author.objects.filter(user=user, is_submitting=True,
+        content_type=ContentType.objects.get_for_model(ActiveProject)).count()
+    if n_submitting >= ActiveProject.MAX_SUBMITTING_PROJECTS:
+        return redirect('project_limit_reached')
+
     if request.method == 'POST':
         form = forms.CreateActiveProjectForm(user=user, data=request.POST)
         if form.is_valid():
@@ -159,6 +164,11 @@ def create_project(request):
         form = forms.CreateActiveProjectForm(user=user)
 
     return render(request, 'project/create_project.html', {'form':form})
+
+@login_required
+def project_limit_reached(request):
+    "Tell users they have too many projects"
+    return render(request, 'project/project_limit_reached.html')
 
 
 def project_overview_redirect(request, project_slug):
