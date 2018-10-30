@@ -100,7 +100,6 @@ def assign_editor_notify(project):
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)
 
-
 def edit_decision_notify(request, project, edit_log):
     """
     Notify authors when an editor makes a decision

@@ -1,11 +1,12 @@
 {% load i18n %}{% autoescape off %}
 Dear {{ name}}
 
-The editor has finished copyediting your project: {{ project.title }}
+The editor has finished copyediting your project: {{ project.title }}.
 {% if copyedit_log.made_changes %}
 The changes made are summarized as follows:
-
+"""
 {{ copyedit_log.changelog_summary }}
+"""
 {% else %}
 They were satisfied with the state of your project and no changes were made.
 {% endif %}

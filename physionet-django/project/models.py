@@ -1107,8 +1107,8 @@ class EditLog(models.Model):
         NO_YES = ('No', 'Yes')
 
         quality_assurance_fields = self.__class__.QUALITY_ASSURANCE_FIELDS[self.project.resource_type]
-        self.quality_assurance_results = ('{}: {}'.format(
-            self.__class__.labels[f], NO_YES[getattr(self, f)]) for f in quality_assurance_fields)
+        self.quality_assurance_results = ['{}: {}'.format(
+            self.__class__.labels[f], NO_YES[getattr(self, f)]) for f in quality_assurance_fields]
 
 
 class CopyeditLog(models.Model):

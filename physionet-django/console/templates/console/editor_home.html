@@ -39,7 +39,8 @@
               <td>
                 {% if project.resubmission_datetime %}
                   {{ project.resubmission_datetime|date }}
-
+                {% else %}
+                  Not a resubmission
                 {% endif %}
               </td>
               <td><a class="btn btn-primary btn-sm" href="{% url 'edit_submission' project.slug %}" role="button">Edit Project</a></td>

@@ -147,7 +147,6 @@ def edit_submission(request, project_slug):
             edit_log = edit_submission_form.save()
             # Set the display labels for the quality assurance results
             edit_log.set_quality_assurance_results()
-            pdb.set_trace()
             # The original object will be deleted if the decision is reject
             if edit_log.decision == 0:
                 project = ArchivedProject.objects.get(slug=project_slug)

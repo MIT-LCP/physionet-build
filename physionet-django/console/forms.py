@@ -118,7 +118,7 @@ class EditSubmissionForm(forms.ModelForm):
         if edit_log.decision == 0:
             project.reject()
             # Have to reload this object which is changed by the reject
-            # funciton
+            # function
             edit_log = EditLog.objects.get(id=edit_log.id)
         # Resubmit with revisions
         elif edit_log.decision == 1:
@@ -131,7 +131,6 @@ class EditSubmissionForm(forms.ModelForm):
             project.editor_accept_datetime = now
             CopyeditLog.objects.create(project=project)
             project.save()
-
         return edit_log
 
 

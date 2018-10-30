@@ -96,6 +96,7 @@
                   <th>Submitting Author</th>
                   <th>Editor</th>
                   <th>Submission Date</th>
+                  <th>Resubmission Date</th>
                 </tr>
               </thead>
               <tbody>
@@ -105,6 +106,13 @@
                   <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
                   <td>{{ project.editor }}</td>
                   <td>{{ project.submission_datetime|date }}</td>
+                  <td>
+                    {% if project.resubmission_datetime %}
+                      {{ project.resubmission_datetime|date }}
+                    {% else %}
+                      Not a resubmission
+                    {% endif %}
+                  </td>
                 </tr>
               {% endfor %}
               </tbody>
