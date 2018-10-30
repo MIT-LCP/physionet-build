@@ -21,7 +21,7 @@ PhysioNet Databases
     <p class="text-muted">
       <strong>Authors:
         {% for author in authors %}
-          {{ author|author_name }}
+          {{ author.get_full_name }}
         {% endfor %}
       </strong>
     </p>

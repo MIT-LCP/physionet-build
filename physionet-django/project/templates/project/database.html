@@ -22,9 +22,7 @@
     <strong>Authors:
     {% for author in authors %}
       {{ author|show_author_info|safe }}
-      {% if forloop.counter < authors|length %}
-      ,&nbsp;
-      {% endif %}
+      {% if forloop.counter < authors|length %},&nbsp;{% endif %}
     {% endfor %}
     </strong>
   </p>
