@@ -5,7 +5,7 @@
 {% block content %}
  <div class="card mb-3">
   <div class="card-header">
-    <i class="fas fa-gavel"></i>Published Projects - <span class="badge badge-pill badge-info">{{ projects|length}}</span>
+    <i class="fas fa-book-open"></i> Published Projects <span class="badge badge-pill badge-info">{{ projects|length}}</span>
   </div>
   <div class="card-body">
     <div class="table-responsive">
@@ -13,16 +13,22 @@
         <thead>
           <tr>
             <th>Title</th>
+            <th>Version</th>
             <th>Submitting Author</th>
+            <th>Editor</th>
             <th>Creation Date</th>
+            <th>Publish Date</th>
           </tr>
         </thead>
         <tbody>
         {% for project in projects %}
           <tr>
-            <td><a href="{% url 'project_overview' project.slug %}">{{ project.title }}</a></td>
+            <td><a href="{% url 'published_project' project.slug %}">{{ project.title }}</a></td>
+            <td>{{ project.version }}</td>
             <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</td>
+            <td>{{ project.editor }}</td>
             <td>{{ project.creation_datetime|date }}</td>
+            <td>{{ project.publish_datetime|date }}</td>
           </tr>
         {% endfor %}
         </tbody>

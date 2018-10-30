@@ -1,74 +1,85 @@
 {% extends "console/base_console.html" %}
 
+{% load static %}
+
 {% block title %}Copyedit Submission{% endblock %}
 
 {% block local_js_top %}
-<script>
-  function copyToClipboard(str){
-    var el = document.createElement('textarea');
-    el.value = str;
-    document.body.appendChild(el);
-    el.select();
-    document.execCommand('copy');
-    document.body.removeChild(el);
-  }
-</script>
+<script type="text/javascript" src="{% static 'custom/js/cookie.js' %}"></script>
+<script type="text/javascript" src="{% static 'project/js/dynamic-formset.js' %}"></script>
+<script type="text/javascript" src="{% static 'custom/js/copy-to-clipboard.js' %}"></script>
 {% endblock %}
 
 {% block content %}
-
+<h1>Copyedit Project: {{ project }}</h1>
+<hr>
 {% include "console/project_info_card.html" %}
 
-<div class="card mb-3">
+<div class="card">
   <div class="card-header">
-    <i class="fas fa-edit"></i> Copyedit Submission
+    <ul class="nav nav-tabs card-header-tabs">
+      <li class="nav-item">
+        <a class="nav-link active" id="files-tab" data-toggle="tab" href="#files" role="tab" aria-controls="files" aria-selected="false">Edit Files</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="metadata-tab" data-toggle="tab" href="#metadata" role="tab" aria-controls="metadata" aria-selected="true">Edit Metadata</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="complete-tab" data-toggle="tab" href="#complete" role="tab" aria-controls="complete" aria-selected="false">Complete Copyedit</a>
+      </li>
+    </ul>
   </div>
   <div class="card-body">
-    <p>Make adjustments to the metadata and files. Contact the authors via email to discuss changes, or to indicate that you have finished making changes.</p>
-    <p>
-      <button class="btn btn-primary" onclick="copyToClipboard('{{ author_emails }}')">Copy Emails to Clipboard</button>
-    </p>
-    <h4>Author Approval</h4>
-    <p>When you and all of the authors approve of the final state of the project, you may complete this step.</p>
-    <ol>
-    {% for author in authors %}
-      <li>
-        {% if author.approved_publish %}
-          <i class="fas fa-check-circle" style="color:green"></i> {{ author.disp_name_email }}
-        {% else %}
-          <i class="far fa-clock"></i> {{ author.disp_name_email }}
-        {% endif %}
-      </li>
-    {% endfor %}
-    </ol>
-    <button class="btn btn-success btn-lg" data-toggle="modal" data-target="#complete-modal" {% if not authors_approved %}disabled{% endif %}>Complete Copyedit</a>
-  </div>
-</div>
-
-{% if authors_approved %}
-<div class="modal" id="complete-modal" tabindex="-1" role="dialog">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Complete Copyedit</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
+    {# Edit Metadata #}
+    <div class="tab-content" id="tabContent">
+      {# Edit Files #}
+      <div class="tab-pane fade show active" id="files" role="tabpanel" aria-labelledby="files-tab">
+        <div class="card">
+          <div class="card-body">
+            <h4 class="card-title">Storage Allowance: {{ storage_info.readable_allowance }}</h4>
+            <p class="card-text">Used: {{ storage_info.readable_used }} ( {{ storage_info.p_used }}% ) <a style="float:right">Remaining: {{ storage_info.readable_remaining }} ( {{ storage_info.p_remaining }}% )</a></p>
+            <div class="progress">
+              <div class="progress-bar progress-bar-striped" role="progressbar" style="width: {{ storage_info.p_used }}%;" aria-valuenow="{{ storage_info.p_used }}" aria-valuemin="0" aria-valuemax="100">
+              </div>
+            </div>
+          </div>
+        </div>
+        <br>
+        {% include "project/project_files_panel.html" %}
       </div>
-      <div class="modal-body">
-        <p>If you are satisfied with project's files and metadata, you may complete the copyedit. You will no longer be able to edit the project.</p>
-      </div>
-      <div class="modal-footer">
+      <div class="tab-pane fade" id="metadata" role="tabpanel" aria-labelledby="metadata-tab">
         <form action="" method="post">
-          {% csrf_token %}
-          <button class="btn btn-success" name="complete_copyedit" type="submit">Complete Copyedit</button>
+          {{ description_form.media }}
+          {% include "project/metadata_inline_form_snippet.html" with form=description_form %}
+          {% include 'project/item_list.html' with item="reference" item_label=reference_formset.item_label formset=reference_formset form_name=reference_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}
+          <br><br>
+          {% include "project/metadata_inline_form_snippet.html" with form=access_form %}
+          <br><br>
+          {% include 'project/item_list.html' with item="publication" item_label=publication_formset.item_label formset=publication_formset form_name=publication_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}
+          {% include 'project/item_list.html' with item="topic" item_label=topic_formset.item_label formset=topic_formset form_name=topic_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}
+          <button class="btn btn-lg btn-primary" type="submit" name="edit_metadata">Save Metadata</button>
         </form>
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+      {# Complete Copyedit #}
+      <div class="tab-pane fade" id="complete" role="tabpanel" aria-labelledby="complete-tab">
+        <p>When you are satisfied with the final state of the project, you
+           may complete this step. If you made any changes, summarize them
+           below.</p>
+        <form action="" method="post">
+          {% include "form_snippet.html" with form=copyedit_form %}
+          <button class="btn btn-lg btn-primary" type="submit" name="complete_copyedit">Complete Copyedit</button>
+        </form>
       </div>
     </div>
   </div>
 </div>
-{% endif %}
 
 
+{% endblock %}
+
+{% block local_js_bottom %}
+<script type="text/javascript" src="{% static 'custom/js/resize-ck.js' %}"></script>
+<script type="text/javascript" src="{% static 'custom/js/enable-popover.js' %}"></script>
+<script>disableAddButtons();</script>
+<script type="text/javascript" src="{% static 'project/js/access-form-control.js' %}"></script>
 {% endblock %}

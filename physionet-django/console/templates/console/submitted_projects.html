@@ -2,41 +2,43 @@
 
 {% block title %}Submitted Projects{% endblock %}
 
-{% block content %}
-{% include "message_snippet.html" %}
+{% load console_templatetags %}
 
+{% block content %}
+<h1>Submitted Projects</h1>
+<hr>
 <div class="card">
   <div class="card-header">
     <ul class="nav nav-tabs card-header-tabs">
       <li class="nav-item">
-        <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">Awaiting Editor Assigment <span class="badge badge-pill badge-{% if a_projects %}danger{% else %}success{% endif %}">{{ a_projects|length }}</span></a>
+        <a class="nav-link active" id="assignment-tab" data-toggle="tab" href="#assignment" role="tab" aria-controls="assignment" aria-selected="true">Awaiting Editor Assigment {{ assignment_projects|task_count_badge|safe }}</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false">Awaiting Decision <span class="badge badge-pill badge-{% if b_projects %}danger{% else %}success{% endif %}">{{ b_projects|length }}</span></a>
+        <a class="nav-link" id="decision-tab" data-toggle="tab" href="#decision" role="tab" aria-controls="decision" aria-selected="false">Awaiting Decision {{ decision_projects|task_count_badge|safe }}</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" id="contact-tab" data-toggle="tab" href="#contact" role="tab" aria-controls="contact" aria-selected="false">Awaiting Revisions <span class="badge badge-pill badge-{% if c_projects %}danger{% else %}success{% endif %}">{{ c_projects|length }}</span></a></a>
+        <a class="nav-link" id="revision-tab" data-toggle="tab" href="#revision" role="tab" aria-controls="revision" aria-selected="false">Awaiting Author Revisions {{ revision_projects|task_count_badge|safe }}</span></a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" id="contact-tab" data-toggle="tab" href="#contact" role="tab" aria-controls="contact" aria-selected="false">Awaiting Copyedit <span class="badge badge-pill badge-{% if d_projects %}danger{% else %}success{% endif %}">{{ d_projects|length }}</span></a></a>
+        <a class="nav-link" id="copyedit-tab" data-toggle="tab" href="#copyedit" role="tab" aria-controls="copyedit" aria-selected="false">Awaiting Copyedit {{ copyedit_projects|task_count_badge|safe }}</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" id="contact-tab" data-toggle="tab" href="#contact" role="tab" aria-controls="contact" aria-selected="false">Awaiting Approval <span class="badge badge-pill badge-{% if e_projects %}danger{% else %}success{% endif %}">{{ e_projects|length }}</span></a></a>
+        <a class="nav-link" id="approval-tab" data-toggle="tab" href="#approval" role="tab" aria-controls="approval" aria-selected="false">Awaiting Author Approval {{ approval_projects|task_count_badge|safe }}</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" id="contact-tab" data-toggle="tab" href="#contact" role="tab" aria-controls="contact" aria-selected="false">Awaiting Publish <span class="badge badge-pill badge-{% if f_projects %}danger{% else %}success{% endif %}">{{ f_projects|length }}</span></a></a>
+        <a class="nav-link" id="publish-tab" data-toggle="tab" href="#publish" role="tab" aria-controls="publish" aria-selected="false">Awaiting Publish {{ publish_projects|task_count_badge|safe }}</a>
       </li>
     </ul>
   </div>
   <div class="card-body">
-    {# a. Awaiting editor assignment #}
-    <div class="tab-content" id="myTabContent">
-      <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
-        {% if a_projects %}
-          <p><button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#exampleModal">
+    {# Awaiting editor assignment #}
+    <div class="tab-content">
+      <div class="tab-pane fade show active" id="assignment" role="tabpanel" aria-labelledby="assignment-tab">
+        {% if assignment_projects %}
+          <p><button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#assignModal">
         Assign Editor</button></p>
           <div class="table-responsive">
-            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+            <table class="table table-bordered">
               <thead>
                 <tr>
                   <th>Project</th>
@@ -45,10 +47,10 @@
                 </tr>
               </thead>
               <tbody>
-              {% for project in a_projects %}
+              {% for project in assignment_projects %}
                 <tr>
                   <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
-                  <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author.user.username }}</a> - {{ project.submitting_author.user.email }}</td>
+                  <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
                   <td>{{ project.submission_datetime|date }}</td>
                 </tr>
               {% endfor %}
@@ -56,7 +58,7 @@
             </table>
           </div>
           {# Assign editor modal #}
-          <div class="modal" tabindex="-1" role="dialog" id="exampleModal">
+          <div class="modal" tabindex="-1" role="dialog" id="assignModal">
             <div class="modal-dialog" role="document">
               <div class="modal-content">
                 <div class="modal-header">
@@ -69,10 +71,11 @@
                   <form action="" method="post" class="form-signin">
                     {% csrf_token %}
                     {% include "form_snippet.html" with form=assign_editor_form %}
-                  </form>
+
                 </div>
                 <div class="modal-footer">
                   <button class="btn btn-primary btn-fixed" name="assign_editor" type="submit">Assign Editor</button>
+                  </form>
                   <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 </div>
               </div>
@@ -83,24 +86,166 @@
         {% endif %}
       </div>
       {# Awaiting decision #}
-      <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
-        {% if b_projects %}
+      <div class="tab-pane fade" id="decision" role="tabpanel" aria-labelledby="decision-tab">
+        {% if decision_projects %}
+          <div class="table-responsive">
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Project</th>
+                  <th>Submitting Author</th>
+                  <th>Editor</th>
+                  <th>Submission Date</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for project in decision_projects %}
+                <tr>
+                  <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
+                  <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
+                  <td>{{ project.editor }}</td>
+                  <td>{{ project.submission_datetime|date }}</td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
         {% else %}
           <p><i class="fas fa-check" style="color:green"></i> No projects to show.</p>
         {% endif %}
       </div>
-
+      {# Awaiting author revisions #}
+      <div class="tab-pane fade" id="revision" role="tabpanel" aria-labelledby="revision-tab">
+        {% if revision_projects %}
+          <div class="table-responsive">
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Project</th>
+                  <th>Submitting Author</th>
+                  <th>Submission Date</th>
+                  <th>Revision Request Date</th>
+                  <th>Editor</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for project in revision_projects %}
+                <tr>
+                  <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
+                  <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
+                  <td>{{ project.submission_datetime|date }}</td>
+                  <td>{{ project.editor }}</td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p><i class="fas fa-check" style="color:green"></i> No projects to show.</p>
+        {% endif %}
+      </div>
       {# Awaiting copyedit #}
-      <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">Go
+      <div class="tab-pane fade" id="copyedit" role="tabpanel" aria-labelledby="copyedit-tab">
+        {% if copyedit_projects %}
+          <div class="table-responsive">
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Project</th>
+                  <th>Submitting Author</th>
+                  <th>Submission Date</th>
+                  <th>Editor Accept Date</th>
+                  <th>Editor</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for project in copyedit_projects %}
+                <tr>
+                  <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
+                  <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</td>
+                  <td>{{ project.submission_datetime|date }}</td>
+                  <td>{{ project.editor_accept_datetime|date }}</td>
+                  <td>{{ project.editor }}</td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p><i class="fas fa-check" style="color:green"></i> No projects to show.</p>
+        {% endif %}
+      </div>
+      {# Awaiting author approval #}
+      <div class="tab-pane fade" id="approval" role="tabpanel" aria-labelledby="approval-tab">
+        {% if approval_projects %}
+          <div class="table-responsive">
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Project</th>
+                  <th>Submitting Author</th>
+                  <th>Submission Date</th>
+                  <th>Editor Accept Date</th>
+                  <th>Copyedit Completion Date</th>
+                  <th>Editor</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for project in approval_projects %}
+                <tr>
+                  <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
+                  <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</td>
+                  <td>{{ project.submission_datetime|date }}</td>
+                  <td>{{ project.editor_accept_datetime|date }}</td>
+                  <td>{{ project.copyedit_completion_datetime|date }}</td>
+                  <td>{{ project.editor }}</td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p><i class="fas fa-check" style="color:green"></i> No projects to show.</p>
+        {% endif %}
+      </div>
+      {# Awaiting publish #}
+      <div class="tab-pane fade" id="publish" role="tabpanel" aria-labelledby="publish-tab">
+        {% if publish_projects %}
+          <div class="table-responsive">
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Project</th>
+                  <th>Submitting Author</th>
+                  <th>Submission Date</th>
+                  <th>Editor Accept Date</th>
+                  <th>Copyedit Completion Date</th>
+                  <th>Author Approval Date</th>
+                  <th>Editor</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for project in publish_projects %}
+                <tr>
+                  <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
+                  <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author.user.username }}</a> - {{ project.submitting_author.user.email }}</td>
+                  <td>{{ project.submission_datetime|date }}</td>
+                  <td>{{ project.editor_accept_datetime|date }}</td>
+                  <td>{{ project.copyedit_completion_datetime|date }}</td>
+                  <td>{{ project.author_approval_datetime|date }}</td>
+                  <td>{{ project.editor }}</td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p><i class="fas fa-check" style="color:green"></i> No projects to show.</p>
+        {% endif %}
       </div>
     </div>
   </div>
 </div>
-
-
-
-
-
 
 
 {% endblock %}

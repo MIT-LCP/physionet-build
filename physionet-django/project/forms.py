@@ -9,7 +9,7 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 
 from .models import (Affiliation, Author, AuthorInvitation, ActiveProject,
-    CoreProject, StorageRequest, SubmissionLog)
+    CoreProject, StorageRequest)
 from . import utility
 from . import validators
 
@@ -505,8 +505,13 @@ class AccessMetadataForm(forms.ModelForm):
         Check the combination of access policy and dua
         """
         cleaned_data = super().clean()
-        if cleaned_data['access_policy'] == 0 and cleaned_data['data_use_agreement'] is not None:
-            raise forms.ValidationError('Open-acess projects cannot have DUAs')
+        if cleaned_data['access_policy'] == 0:
+            if cleaned_data['data_use_agreement']:
+                raise forms.ValidationError('Open-acess projects cannot have DUAs')
+        else:
+            if not cleaned_data['data_use_agreement']:
+                raise form.ValidationError('Non-open access project must have a DUA')
+
         return cleaned_data
 
 

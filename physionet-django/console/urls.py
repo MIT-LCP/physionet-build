@@ -5,20 +5,28 @@ from . import views
 urlpatterns = [
     url(r'^$', views.console_home,
         name='console_home'),
-    url(r'^submitted-projects/$', views.submitted_projects,
-        name='submitted_projects'),
-    url(r'^editing-submissions/$', views.editing_submissions,
-        name='editing_submissions'),
-    url(r'^submissions/(?P<submission_id>\d+)/edit/$',
-        views.edit_submission, name='edit_submission'),
-    url(r'^submissions/(?P<submission_id>\d+)/copyedit/$',
-        views.copyedit_submission, name='copyedit_submission'),
-    url(r'^submissions/(?P<submission_id>\d+)/publish/$',
-        views.publish_submission, name='publish_submission'),
+    url(r'^editor-home/$', views.editor_home,
+        name='editor_home'),
+    # Lists of projects
     url(r'^unsubmitted-projects/$', views.unsubmitted_projects,
         name='unsubmitted_projects'),
+    url(r'^submitted-projects/$', views.submitted_projects,
+        name='submitted_projects'),
+    url(r'^published-projects/$', views.published_projects,
+        name='published_projects'),
+
+    # Individual edit pages
+    url(r'^submitted-projects/(?P<project_slug>\w+)/edit/$',
+        views.edit_submission, name='edit_submission'),
+    url(r'^submitted-projects/(?P<project_slug>\w+)/copyedit/$',
+        views.copyedit_submission, name='copyedit_submission'),
+    url(r'^submitted-projects/(?P<project_slug>\w+)/awaiting-authors/$',
+        views.awaiting_authors, name='awaiting_authors'),
+    url(r'^submitted-projects/(?P<project_slug>\w+)/publish/$',
+        views.publish_submission, name='publish_submission'),
+
     url(r'^storage-requests/$', views.storage_requests,
         name='storage_requests'),
-    url(r'^user-list/$', views.user_list, name='user_list'),
+    url(r'^users/$', views.users, name='user_list'),
 
 ]

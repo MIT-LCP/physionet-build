@@ -2,16 +2,21 @@ import pdb
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.sites.shortcuts import get_current_site
 from django.forms import modelformset_factory, Select, Textarea
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.template import loader
+from django.urls import reverse
 from django.utils import timezone
 
 from . import forms
 import notification.utility as notification
-from project.models import ActiveProject, ResubmissionLog, StorageRequest, SubmissionLog
+import project.forms as project_forms
+from project.models import ActiveProject, StorageRequest, EditLog, Reference, Topic, Publication, PublishedProject
+from project.views import get_file_forms, get_project_file_info, process_files_post
+from project.utility import get_storage_info
 from user.models import User
 
 
@@ -37,140 +42,289 @@ def submitted_projects(request):
     if request.method == 'POST':
         assign_editor_form = forms.AssignEditorForm(request.POST)
         if assign_editor_form.is_valid():
-            submission = assign_editor_form.cleaned_data['submission']
-            submission.editor = assign_editor_form.cleaned_data['editor']
-            submission.save()
-            notification.assign_editor_notify(submission)
+            # Move this into project method
+            project = assign_editor_form.cleaned_data['project']
+            project.assign_editor(assign_editor_form.cleaned_data['editor'])
+            notification.assign_editor_notify(project)
             messages.success(request, 'The editor has been assigned')
 
-    projects = ActiveProject.objects.filter(submission_status__gt=0).order_by('submission_status')
-    for p in projects:
-        p.set_submission_info()
-
+    # Submitted projects
+    projects = ActiveProject.objects.filter(submission_status__gt=0).order_by(
+        'submission_datetime')
     # Separate projects by submission status
-    a_projects = projects.filter(submission_status=1)
-    b_projects = projects.filter(submission_status=2)
-    c_projects = projects.filter(submission_status=3)
-
-    n_active = len(projects)
-    n_awaiting_editor = projects.filter(submission_status=1).count()
-    n_awaiting_decision = projects.filter(submission_status=2).count()
-    n_awaiting_copyedit = projects.filter(submission_status=3).count()
-    n_awaiting_publish = projects.filter(submission_status=5).count()
+    # Awaiting editor assignment
+    assignment_projects = projects.filter(submission_status=10)
+    # Awaiting editor decision
+    decision_projects = projects.filter(submission_status=20)
+    # Awaiting author revisions
+    revision_projects = projects.filter(submission_status=30)
+    # Awaiting editor copyedit
+    copyedit_projects = projects.filter(submission_status=40)
+    # Awaiting author approval
+    approval_projects = projects.filter(submission_status=50)
+    # Awaiting editor publish
+    publish_projects = projects.filter(submission_status=60)
 
     assign_editor_form = forms.AssignEditorForm()
 
     return render(request, 'console/submitted_projects.html',
-        {'projects':projects,
+        {
          'assign_editor_form':assign_editor_form,
-         'a_projects':a_projects,
-         'b_projects':b_projects,
-         'c_projects':c_projects,
+         'assignment_projects':assignment_projects,
+         'decision_projects':decision_projects,
+         'revision_projects':revision_projects,
+         'copyedit_projects':copyedit_projects,
+         'approval_projects':approval_projects,
+         'publish_projects':publish_projects
          })
 
 
 @login_required
 @user_passes_test(is_admin)
-def editing_submissions(request):
+def editor_home(request):
     """
     List of submissions the editor is responsible for
     """
-    submissions = SubmissionLog.objects.filter(is_active=True,
-        editor=request.user)
+    projects = ActiveProject.objects.filter(editor=request.user).order_by(
+        'submission_datetime')
 
-    return render(request, 'console/editing_submissions.html',
-        {'submissions':submissions})
+    # Awaiting editor decision
+    decision_projects = projects.filter(submission_status=20)
+    # Awaiting author revisions
+    revision_projects = projects.filter(submission_status=30)
+    # Awaiting editor copyedit
+    copyedit_projects = projects.filter(submission_status=40)
+    # Awaiting author approval
+    approval_projects = projects.filter(submission_status=50)
+    # Awaiting editor publish
+    publish_projects = projects.filter(submission_status=60)
+
+    return render(request, 'console/editor_home.html',
+        {'decision_projects':decision_projects,
+         'revision_projects':revision_projects,
+         'copyedit_projects':copyedit_projects,
+         'approval_projects':approval_projects,
+         'publish_projects':publish_projects})
 
 
 @login_required
 @user_passes_test(is_admin)
-def edit_submission(request, submission_id):
+def edit_submission(request, project_slug):
     """
     Page to respond to a particular submission, as an editor
     """
-    submission = SubmissionLog.objects.get(id=submission_id)
-    project = submission.project
+    project = ActiveProject.objects.get(slug=project_slug)
+    edit_log = project.edit_logs.get()
+
     # The user must be the editor
-    if request.user != submission.editor or submission.status not in [0, 2]:
+    if request.user != project.editor or project.submission_status not in [20, 30]:
         return Http404()
 
     if request.method == 'POST':
-        edit_submission_form = forms.EditSubmissionLogForm(instance=submission,
-                                                        data=request.POST)
+        edit_submission_form = forms.EditSubmissionForm(
+            instance=edit_log, data=request.POST)
         if edit_submission_form.is_valid():
-            submission = edit_submission_form.save()
+            # This processes the resulting decision
+            edit_log = edit_submission_form.save()
             # Resubmit with changes
-            if submission.decision == 1:
-                notification.edit_resubmit_notify(request, submission)
+            if edit_log.decision == 0:
+                notification.edit_resubmit_notify(request, edit_log)
             # Reject
-            elif submission.decision == 2:
-                notification.edit_reject_notify(request, submission)
+            elif edit_log.decision == 1:
+                notification.edit_reject_notify(request, edit_log)
             # Accept
             else:
-                notification.edit_accept_notify(request, submission)
+                notification.edit_accept_notify(request, edit_log)
 
             return render(request, 'console/edit_complete.html',
-                {'decision':submission.decision,
-                 'project':project, 'submission':submission})
+                {'decision':edit_log.decision,
+                 'project':project, 'edit_log':edit_log})
+        else:
+            messages.error(request, 'Invalid response. See form below.')
+    else:
+        edit_submission_form = forms.EditSubmissionForm(instance=edit_log)
 
-    edit_submission_form = forms.EditSubmissionLogForm()
+    submitting_author, coauthors, author_emails = project.get_author_info(
+        separate_submitting=True, include_emails=True)
 
     return render(request, 'console/edit_submission.html',
-        {'submission':submission, 'edit_submission_form':edit_submission_form})
+        {'project':project,
+         'edit_submission_form':edit_submission_form,
+         'submitting_author':submitting_author, 'coauthors':coauthors,
+         'author_emails':author_emails})
 
 
 @login_required
 @user_passes_test(is_admin)
-def copyedit_submission(request, submission_id):
+def copyedit_submission(request, project_slug):
     """
     Page to copyedit the submission
     """
-    submission = SubmissionLog.objects.get(id=submission_id)
-    if request.user != submission.editor or submission.status != 3:
+    project = ActiveProject.objects.get(slug=project_slug)
+    if request.user != project.editor or project.submission_status != 40:
         return Http404()
 
-    project = submission.project
-    authors = project.authors.all()
+    copyedit_log = project.copyedit_logs.get(complete_datetime=None)
+
+    submitting_author, coauthors, author_emails = project.get_author_info(
+        separate_submitting=True, include_emails=True)
+
+    # Metadata forms and formsets
+    ReferenceFormSet = generic_inlineformset_factory(Reference,
+        fields=('description',), extra=0,
+        max_num=project_forms.ReferenceFormSet.max_forms, can_delete=False,
+        formset=project_forms.ReferenceFormSet, validate_max=True)
+    TopicFormSet = generic_inlineformset_factory(Topic,
+        fields=('description',), extra=0,
+        max_num=project_forms.TopicFormSet.max_forms, can_delete=False,
+        formset=project_forms.TopicFormSet, validate_max=True)
+    PublicationFormSet = generic_inlineformset_factory(Publication,
+        fields=('citation', 'url'), extra=0,
+        max_num=project_forms.PublicationFormSet.max_forms, can_delete=False,
+        formset=project_forms.PublicationFormSet, validate_max=True)
+
+    description_form = project_forms.METADATA_FORMS[project.resource_type](
+        instance=project)
+    access_form = project_forms.AccessMetadataForm(instance=project)
+    reference_formset = ReferenceFormSet(instance=project)
+    publication_formset = PublicationFormSet(instance=project)
+    topic_formset = TopicFormSet(instance=project)
+
+    copyedit_form = forms.CopyeditForm(instance=copyedit_log)
 
     if request.method == 'POST':
-        if 'complete_copyedit' in request.POST:
-            submission.status = 4
-            submission.copyedit_datetime = timezone.now()
-            submission.save()
-            notification.copyedit_complete_notify(request, submission)
-            return render(request, 'console/copyedit_complete.html',
-                {'submission':submission})
+        if 'edit_metadata' in request.POST:
+            description_form = project_forms.METADATA_FORMS[project.resource_type](
+                data=request.POST, instance=project)
+            access_form = project_forms.AccessMetadataForm(request.POST,
+                instance=project)
+            reference_formset = ReferenceFormSet(request.POST,
+                instance=project)
+            publication_formset = PublicationFormSet(request.POST,
+                                                 instance=project)
+            topic_formset = TopicFormSet(request.POST, instance=project)
+            if (description_form.is_valid() and access_form.is_valid()
+                                            and reference_formset.is_valid()
+                                            and publication_formset.is_valid()
+                                            and topic_formset.is_valid()):
+                description_form.save()
+                access_form.save()
+                reference_formset.save()
+                publication_formset.save()
+                topic_formset.save()
+                messages.success(request,
+                    'The project metadata has been updated.')
+                # Reload formsets
+                reference_formset = ReferenceFormSet(instance=project)
+                publication_formset = PublicationFormSet(instance=project)
+                topic_formset = TopicFormSet(instance=project)
+            else:
+                messages.error(request,
+                    'Invalid submission. See errors below.')
+        elif 'complete_copyedit' in request.POST:
+            if project.submission_status == 40:
+                copyedit_form = forms.CopyeditForm(request.POST,
+                    instance=copyedit_log)
+                if copyedit_form.is_valid():
+                    copyedit_log = copyedit_form.save()
+                    notification.copyedit_complete_notify(request, project,
+                        copyedit_log)
+                    return render(request, 'console/copyedit_complete.html',
+                        {'project':project, 'copyedit_log':copyedit_log})
+                else:
+                    messages.error(request, 'Invalid submission. See errors below.')
+        else:
+            # process the file manipulation post
+            subdir = process_files_post(request, project)
 
-    author_emails = ';'.join(a.user.email for a in authors)
-    authors_approved = submission.all_authors_approved()
+    if 'subdir' not in vars():
+        subdir = ''
+
+    storage_info = get_storage_info(
+        project.core_project.storage_allowance*1024**2, project.storage_used())
+
+    (upload_files_form, create_folder_form, rename_item_form,
+        move_items_form, delete_items_form) = get_file_forms(project=project,
+        subdir=subdir)
+
+    display_files, display_dirs, dir_breadcrumbs, _ = get_project_file_info(
+        project=project, subdir=subdir)
+
+    edit_url = reverse('edit_metadata_item', args=[project.slug])
 
     return render(request, 'console/copyedit_submission.html', {
-        'project':project, 'submission':submission, 'authors':authors,
-        'authors_approved':authors_approved, 'author_emails':author_emails})
+        'project':project, 'description_form':description_form,
+        'access_form':access_form, 'reference_formset':reference_formset,
+        'publication_formset':publication_formset,
+        'topic_formset':topic_formset,
+        'storage_info':storage_info, 'upload_files_form':upload_files_form,
+        'create_folder_form':create_folder_form,
+        'rename_item_form':rename_item_form,
+        'move_items_form':move_items_form,
+        'delete_items_form':delete_items_form,
+        'subdir':subdir, 'display_files':display_files,
+        'display_dirs':display_dirs, 'dir_breadcrumbs':dir_breadcrumbs,
+        'is_editor':True, 'copyedit_form':copyedit_form,
+        'submitting_author':submitting_author, 'coauthors':coauthors,
+        'author_emails':author_emails,
+        'add_item_url':edit_url, 'remove_item_url':edit_url})
 
 
 @login_required
 @user_passes_test(is_admin)
-def publish_submission(request, submission_id):
+def awaiting_authors(request, project_slug):
+    """
+    View the authors who have and have not approved the project for
+    publication.
+
+    Also the page to reopen the project for copyediting.
+    """
+    project = ActiveProject.objects.get(slug=project_slug)
+
+    submitting_author, coauthors, author_emails = project.get_author_info(
+        separate_submitting=True, include_emails=True)
+    authors = project.authors.all().order_by('approval_datetime')
+    for a in authors:
+        a.set_display_info()
+
+    outstanding_emails = ';'.join([a.user.email for a in authors.filter(
+        approval_datetime=None)])
+
+    if request.method == 'POST' and 'reopen_copyedit' in request.POST:
+        if project.submission_status == 50:
+            project.reopen_copyedit()
+            notification.reopen_copyedit_notify(request, project)
+            return render(request, 'console/reopen_copyedit_complete.html',
+                {'project':project})
+
+    return render(request, 'console/awaiting_authors.html',
+        {'project':project, 'authors':authors,
+         'submitting_author':submitting_author,
+         'coauthors':coauthors, 'author_emails':author_emails,
+         'outstanding_emails':outstanding_emails})
+
+
+@login_required
+@user_passes_test(is_admin)
+def publish_submission(request, project_slug):
     """
     Page to publish the submission
     """
-    submission = SubmissionLog.objects.get(id=submission_id)
-    if submission.status != 4:
-        return Http404()
-
-    project = submission.project
-
+    project = ActiveProject.objects.get(slug=project_slug)
+    submitting_author, coauthors, author_emails = project.get_author_info(
+        separate_submitting=True, include_emails=True)
     if request.method == 'POST':
         if project.is_publishable():
             published_project = project.publish()
-            notification.publish_notify(request, project, published_project)
+            notification.publish_notify(request, published_project)
             return render(request, 'console/publish_complete.html',
                 {'published_project':published_project})
 
     publishable = project.is_publishable()
     return render(request, 'console/publish_submission.html', {
-        'submission':submission, 'publishable':publishable})
+        'project':project, 'publishable':publishable,
+        'submitting_author':submitting_author, 'coauthors':coauthors,
+        'author_emails':author_emails})
 
 
 def process_storage_response(request, storage_response_formset):
@@ -227,17 +381,29 @@ def unsubmitted_projects(request):
     """
     List of unsubmitted projects
     """
-    projects = ActiveProject.objects.filter(submission_status=0)
-    # title, submitting author, creation date, published,
+    projects = ActiveProject.objects.filter(submission_status=0).order_by(
+        'creation_datetime')
     return render(request, 'console/unsubmitted_projects.html',
         {'projects':projects})
 
 
 @login_required
 @user_passes_test(is_admin)
-def user_list(request):
+def published_projects(request):
     """
-    View list of users
+    List of published projects
+    """
+    projects = PublishedProject.objects.all().order_by('publish_datetime')
+    # title, submitting author, creation date, published,
+    return render(request, 'console/published_projects.html',
+        {'projects':projects})
+
+
+@login_required
+@user_passes_test(is_admin)
+def users(request):
+    """
+    List of users
     """
     users = User.objects.all()
-    return render(request, 'console/user_list.html', {'users':users})
+    return render(request, 'console/users.html', {'users':users})

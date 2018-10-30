@@ -6,10 +6,10 @@ db.sqlite3
 physionet-django/*/migrations/0*.py
 
 # Project folders created during testing
-media/project/*
-media/published-project/*
-media/user/*
-physionet-django/static/published-project/*
+media/active-projects/*
+media/published-projects/*
+media/users/*
+physionet-django/static/published-projects/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

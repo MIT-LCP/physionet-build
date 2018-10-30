@@ -1,7 +1,7 @@
 """
 Command to:
 - load all fixtures named 'demo-*.*'
-- create symbolic links of demo projects to projects directory
+- create copy the demo media files
 
 This should only be called in a clean database, such as after
 `resetdb` is run. This should generally only be used in
@@ -9,6 +9,7 @@ development environments.
 
 """
 import os
+import shutil
 
 from django.conf import settings
 from django.core.management import call_command
@@ -36,9 +37,9 @@ class Command(BaseCommand):
 
         call_command('loaddata', *demo_fixtures, verbosity=1)
 
-        # Link the demo project and user media content
-        for content in ['user', 'project']:
-            link_demo_media(content)
+        # Copy the demo project and user media content
+        for content in ['users', 'active-projects']:
+            copy_demo_media(content)
 
 
 def find_demo_fixtures(project_apps):
@@ -55,10 +56,12 @@ def find_demo_fixtures(project_apps):
 
     return demo_fixtures
 
-# Link the demo content from the specified subdirectory
-def link_demo_media(subdir):
+
+def copy_demo_media(subdir):
+    "Copy the demo content from the specified subdirectory"
     demo_subdir = os.path.join(settings.MEDIA_ROOT, 'demo', subdir)
-    link_subdir = os.path.join(settings.MEDIA_ROOT, subdir)
+    target_subdir = os.path.join(settings.MEDIA_ROOT, subdir)
 
     for item in os.listdir(demo_subdir):
-        os.symlink(os.path.join(demo_subdir, item), os.path.join(link_subdir, item))
+        shutil.copytree(os.path.join(demo_subdir, item),
+                        os.path.join(target_subdir, item))

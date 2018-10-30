@@ -8,7 +8,7 @@
     Copyedit Complete
   </div>
   <div class="card-body">
-    <p>You have completed the copyedit stage. The final step is for you to <a href="{% url 'publish_submission' submission.id %}">publish</a> the project.</p>
+    <p>You have finished copyediting the project: {{ project.title }}. All authors must approve the final state of the project before you may publish it. You may return to your <a href="{% url 'editor_home' %}">editor home</a>.</p>
   </div>
 </div>
 {% endblock %}

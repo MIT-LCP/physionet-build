@@ -21,6 +21,8 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
 from physionet.utility import get_project_apps
+from project.models import ActiveProject, PublishedProject
+from user.models import User
 
 
 class Command(BaseCommand):
@@ -81,19 +83,12 @@ def clear_media_files():
     """
     Remove all media files
     """
-    project_root = os.path.join(settings.MEDIA_ROOT, 'project')
-    user_root = os.path.join(settings.MEDIA_ROOT, 'user')
-    published_project_roots = [os.path.join(settings.MEDIA_ROOT, 'published-project'),
-        # os.path.join(settings.STATIC_ROOT, 'published-projects'),
-        os.path.join(settings.STATICFILES_DIRS[0], 'published-project')]
+    for root_dir in (User.FILE_ROOT, ActiveProject.FILE_ROOT,
+            PublishedProject.PROTECTED_FILE_ROOT,
+            PublishedProject.PUBLIC_FILE_ROOT):
+        dir_items = [os.path.join(root_dir, item) for item in os.listdir(root_dir) if item != '.gitkeep']
 
-    for root_dir in [user_root, project_root] + published_project_roots:
-        project_items = [os.path.join(root_dir, item) for item in os.listdir(root_dir) if item != '.gitkeep']
-
-        for item in project_items:
-            if os.path.islink(item):
-                os.unlink(item)
-            elif os.path.isdir(item):
-                shutil.rmtree(item)
+        for item in dir_items:
+            shutil.rmtree(item)
 
 

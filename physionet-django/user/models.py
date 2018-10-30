@@ -1,6 +1,7 @@
 import os
 import pdb
 
+from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
@@ -93,7 +94,8 @@ class User(AbstractBaseUser):
     EMAIL_FIELD = 'email'
 
     REQUIRED_FIELDS = ['email']
-
+    # Where all the users' files are kept
+    FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'users')
 
     def is_superuser(self):
         return (self.is_admin,)
@@ -140,6 +142,10 @@ class User(AbstractBaseUser):
 
     def disp_name_email(self):
         return '{} --- {}'.format(self.get_full_name(), self.email)
+
+    def file_root(self):
+        "Where the user's files are stored"
+        return os.path.join(User.FILE_ROOT, self.username)
 
 
 class AssociatedEmail(models.Model):
@@ -191,9 +197,10 @@ def update_associated_emails(sender, **kwargs):
 
 def photo_path(instance, filename):
     """
-    Storage path of profile photo. Keep the original file extension only.
+    Storage path of profile photo relative to media root.
+    Keep the original file extension only.
     """
-    return 'user/{0}/{1}'.format(instance.user.id, '.'.join(['profile-photo', filename.split('.')[-1]]))
+    return 'users/{0}/{1}'.format(instance.user.username, '.'.join(['profile-photo', filename.split('.')[-1]]))
 
 class Profile(models.Model):
     """
@@ -208,17 +215,20 @@ class Profile(models.Model):
     """
     user = models.OneToOneField('user.User', related_name='profile')
 
-    first_name = models.CharField(max_length=30)
+    first_name = models.CharField(max_length=50)
     middle_names = models.CharField(max_length=100, blank=True, default='')
-    last_name = models.CharField(max_length=30)
+    last_name = models.CharField(max_length=50)
     affiliation = models.CharField(max_length=60, blank=True, default='')
-    location = models.CharField(max_length=60, blank=True, default='')
+    location = models.CharField(max_length=100, blank=True, default='')
     website = models.URLField(default='', blank=True, null=True)
     photo = models.ImageField(upload_to=photo_path, blank=True, null=True)
     is_credentialed = models.BooleanField(default=False)
     credential_datetime = models.DateTimeField(blank=True, null=True)
 
     MAX_PHOTO_SIZE = 2 * 1024 ** 2
+
+    # Where all the users' files are kept
+    FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'users')
 
     def __str__(self):
         return self.get_full_name()
@@ -241,6 +251,10 @@ class Profile(models.Model):
             os.remove(self.photo.path)
             self.photo = None
             self.save()
+
+    def file_root(self):
+        "Where the profile's files are stored"
+        return os.path.join(Profile.FILE_ROOT, self.username)
 
 
 class DualAuthModelBackend():

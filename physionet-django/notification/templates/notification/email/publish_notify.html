@@ -1,0 +1,10 @@
+{% load i18n %}{% autoescape off %}
+Dear {{ name}}
+
+Your project: {{ published_project.title }} version {{ published_project.version }}, is now published on PhysioNet at: http://{{ domain }}{% url 'published_project' published_project.slug %}.
+
+Thank you for sharing your resources on PhysioNet.
+
+Regards
+The PhysioNet Team
+{% endautoescape %}

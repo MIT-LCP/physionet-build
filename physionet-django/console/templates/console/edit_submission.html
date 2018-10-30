@@ -1,13 +1,20 @@
 {% extends "console/base_console.html" %}
 
-{% block title %}Edit Submission{% endblock %}
+{% load static %}
+
+{% block title %}Edit Submission - {{ project }}{% endblock %}
+
+{% block local_js_top %}
+<script type="text/javascript" src="{% static 'custom/js/copy-to-clipboard.js' %}"></script>
+{% endblock %}
 
 {% block content %}
+<h1>Edit Project: {{ project }}</h1>
+<hr>
 {% include "console/project_info_card.html" %}
-
 <div class="card mb-3">
   <div class="card-header">
-    Editor Response
+    Your Editor Response
   </div>
   <div class="card-body">
     <form action="" method="post" class="form-signin">
@@ -17,4 +24,8 @@
       </form>
   </div>
 </div>
+{% endblock %}
+
+{% block local_js_bottom %}
+<script type="text/javascript" src="{% static 'custom/js/enable-popover.js' %}"></script>
 {% endblock %}
