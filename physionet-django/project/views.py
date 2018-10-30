@@ -153,26 +153,21 @@ def create_project(request):
     n_submitting = Author.objects.filter(user=user, is_submitting=True,
         content_type=ContentType.objects.get_for_model(ActiveProject)).count()
     if n_submitting >= ActiveProject.MAX_SUBMITTING_PROJECTS:
-        return redirect('project_limit_reached')
+        return render(request, 'project/project_limit_reached.html',
+            {'max_projects':ActiveProject.MAX_SUBMITTING_PROJECTS})
 
     if request.method == 'POST':
         form = forms.CreateActiveProjectForm(user=user, data=request.POST)
         if form.is_valid():
             project = form.save()
-            return redirect('project_overview', project_slug=project.slug)
     else:
         form = forms.CreateActiveProjectForm(user=user)
 
     return render(request, 'project/create_project.html', {'form':form})
 
-@login_required
-def project_limit_reached(request):
-    "Tell users they have too many projects"
-    return render(request, 'project/project_limit_reached.html')
-
 
 def project_overview_redirect(request, project_slug):
-    return redirect(reverse('project_overview', args=[project_slug]))
+    return redirect('project_overview', project_slug=project_slug)
 
 
 @project_auth(auth_mode=0)
@@ -180,9 +175,22 @@ def project_overview(request, project_slug, **kwargs):
     """
     Overview page of a project
     """
+    project, is_submitting = kwargs['project'], kwargs['is_submitting']
+    under_submission = project.under_submission()
+
+    if request.method == 'POST' and 'delete_project' in request.POST and is_submitting and not under_submission:
+        project.fake_delete()
+        return redirect('delete_project_success')
+
     return render(request, 'project/project_overview.html',
-        {'project':kwargs['project'],
+        {'project':project, 'is_submitting':is_submitting,
+         'under_submission':under_submission,
          'submitting_author':kwargs['authors'].get(is_submitting=True)})
+
+
+@login_required
+def delete_project_success(request):
+    return render(request, 'project/delete_project_success.html')
 
 
 def edit_affiliations(request, affiliation_formset):

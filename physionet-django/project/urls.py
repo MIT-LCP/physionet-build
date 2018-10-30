@@ -5,13 +5,13 @@ from . import views
 urlpatterns = [
     url(r'^$', views.project_home, name='project_home'),
     url(r'^create/$', views.create_project, name='create_project'),
-    url(r'^limit-reached/$', views.project_limit_reached, name='project_limit_reached'),
 
     # Individual project pages
     url(r'^(?P<project_slug>\w+)/$', views.project_overview_redirect,
         name='project_overview_redirect'),
     url(r'^(?P<project_slug>\w+)/overview/$', views.project_overview,
         name='project_overview'),
+    url(r'^delete-project-success/$', views.delete_project_success, name='delete_project_success'),
 
     url(r'^(?P<project_slug>\w+)/authors/$', views.project_authors,
         name='project_authors'),

@@ -538,9 +538,20 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             copyedit_log.project = archived_project
             copyedit_log.save()
 
-        # Move over files
-        os.rename(self.file_root(), archived_project.file_root())
+        # Voluntary delete
+        if archive_reason == 1:
+            self.clear_files()
+        else:
+            # Move over files
+            os.rename(self.file_root(), archived_project.file_root())
         return self.delete()
+
+    def fake_delete(self):
+        """
+        Appear to delete this project. Actually archive it.
+        """
+        self.archive(archive_reason=1)
+
 
     def check_integrity(self):
         """
@@ -694,7 +705,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             return True
         return False
 
-    def cleanup_files(self):
+    def clear_files(self):
         """
         Delete the project file directory
         """
