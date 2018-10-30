@@ -2,10 +2,15 @@
 
 {% block title %}Project Submission - {{ project }}"{% endblock %}
 
+{% load static %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'project/css/submission-timeline.css' %}">
+{% endblock %}
+
 {% load project_templatetags %}
 
 {% block main_content %}
-
 <script>
   // Check the integrity of the metadata fields and enable/disable the
   // submission buttons

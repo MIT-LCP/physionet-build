@@ -4,6 +4,10 @@
 
 {% block title %}Awaiting Authors - {{ project }}{% endblock %}
 
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'project/css/submission-timeline.css' %}">
+{% endblock %}
+
 {% block local_js_top %}
 <script type="text/javascript" src="{% static 'custom/js/copy-to-clipboard.js' %}"></script>
 {% endblock %}

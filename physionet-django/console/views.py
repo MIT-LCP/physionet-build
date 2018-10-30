@@ -147,6 +147,7 @@ def edit_submission(request, project_slug):
             edit_log = edit_submission_form.save()
             # Set the display labels for the quality assurance results
             edit_log.set_quality_assurance_results()
+            pdb.set_trace()
             # The original object will be deleted if the decision is reject
             if edit_log.decision == 0:
                 project = ArchivedProject.objects.get(slug=project_slug)
@@ -400,8 +401,17 @@ def published_projects(request):
     List of published projects
     """
     projects = PublishedProject.objects.all().order_by('publish_datetime')
-    # title, submitting author, creation date, published,
     return render(request, 'console/published_projects.html',
+        {'projects':projects})
+
+@login_required
+@user_passes_test(is_admin)
+def rejected_submissions(request):
+    """
+    List of rejected submissions
+    """
+    projects = ArchivedProject.objects.filter(archive_reason=3).order_by('archive_datetime')
+    return render(request, 'console/rejected_submissions.html',
         {'projects':projects})
 
 

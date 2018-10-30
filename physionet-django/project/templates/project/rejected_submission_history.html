@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 {% block title %}Rejected Submission History - {{ project }}{% endblock %}
 
+{% load static %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'project/css/submission-timeline.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="container">
   <h1>Submission History - {{ project }}</h1>

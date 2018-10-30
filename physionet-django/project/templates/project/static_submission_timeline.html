@@ -20,7 +20,7 @@
         <div class="col-md-2">{{ e.decision_datetime|date }}</div>
         <div class="col-md-10">
           {% if e.decision == 0 %}
-            <p>: The editor rejected the submission.</p>
+            <p>The editor rejected the submission.</p>
           {% elif e.decision == 1 %}
             <p>The editor requested a resubmission with revisions.</p>
           {% elif e.decision == 2 %}
@@ -34,7 +34,7 @@
           </ul>
           <br>
           <p>The editor comments regarding the submission are as follows:</p>
-          {{ e.editor_comments|linebreaks }}
+          <a class="editor-comments" style="text:muted">{{ e.editor_comments|linebreaks }}</a>
         </div>
       </div>
     </li>
@@ -58,7 +58,7 @@
             <p>The editor finished copyediting the submission.</p>
             {% if c.made_changes %}
               <p>The editor comments regarding the changes made are as follows:</p>
-              {{ c.changelog_summary|linebreaks }}
+              <p class="editor-comments">{{ c.changelog_summary|linebreaks }}</p>
             {% else %}
               <p>No changes were made during the copyedit.</p>
             {% endif %}

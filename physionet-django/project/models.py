@@ -338,8 +338,8 @@ class SubmissionInfo(models.Model):
     # The very first submission
     submission_datetime = models.DateTimeField(null=True)
     editor_assignment_datetime = models.DateTimeField(null=True)
-    # The last resubmission request (if any)
-    resubmission_request_datetime = models.DateTimeField(null=True)
+    # The last revision request (if any)
+    revision_request_datetime = models.DateTimeField(null=True)
     # The last resubmission (if any)
     resubmission_datetime = models.DateTimeField(null=True)
     editor_accept_datetime = models.DateTimeField(null=True)
@@ -386,6 +386,9 @@ class ArchivedProject(Metadata, UnpublishedProject, SubmissionInfo):
 
     # Where all the archived project files are kept
     FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'archived-projects')
+
+    def __str__(self):
+        return ('{0} v{1}'.format(self.title, self.version))
 
 
 class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
@@ -529,7 +532,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         for edit_log in self.edit_logs.all():
             edit_log.project = archived_project
             edit_log.save()
-            pdb.set_trace()
         for copyedit_log in self.copyedit_logs.all():
             copyedit_log.project = archived_project
             copyedit_log.save()

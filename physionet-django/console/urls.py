@@ -14,6 +14,8 @@ urlpatterns = [
         name='submitted_projects'),
     url(r'^published-projects/$', views.published_projects,
         name='published_projects'),
+    url(r'^rejected-submissions/$', views.rejected_submissions,
+        name='rejected_submissions'),
 
     # Individual edit pages
     url(r'^submitted-projects/(?P<project_slug>\w+)/$',
