@@ -18,8 +18,3 @@ def validate_filename(value):
             'and dots. They may not contain adjacent dots, begin with, ' \
             'or end with a dot.', params={'filename':value})
 
-
-def validate_alphaplus(value):
-    if not re.fullmatch(r'[a-zA-Z0-9][\w\ -]*', value):
-        raise ValidationError('Letters, numbers, spaces, underscores, and hyphens only. Must begin with a letter or number.')
-

@@ -39,6 +39,10 @@ class UsernameValidator(UnicodeUsernameValidator):
 
 
 def validate_name(value):
-    if not re.fullmatch(r'[^\W\d_]([^\W_]|[ -])*', value):
-        raise ValidationError('Letters, numbers, spaces, and hyphens only. Must begin with a letter.')
+    if not re.fullmatch(r'[^\W\d_]([^\W_]|[\'\ -])*', value):
+        raise ValidationError('Letters, numbers, spaces, hyphens, and apostrophes only. Must begin with a letter.')
 
+
+def validate_alphaplus(value):
+    if not re.fullmatch(r'[a-zA-Z0-9][\w\ -]*', value):
+        raise ValidationError('Letters, numbers, spaces, underscores, and hyphens only. Must begin with a letter or number.')

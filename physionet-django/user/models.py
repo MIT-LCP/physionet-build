@@ -13,8 +13,7 @@ from django.utils import timezone
 from django.core.validators import EmailValidator
 from django.utils.translation import ugettext as _
 
-from .validators import UsernameValidator, validate_name
-
+from .validators import UsernameValidator, validate_name, validate_alphaplus
 
 
 logger = logging.getLogger(__name__)
@@ -208,7 +207,8 @@ class Profile(models.Model):
     middle_names = models.CharField(max_length=100, blank=True, default='',
         validators=[validate_name])
     last_name = models.CharField(max_length=50, validators=[validate_name])
-    affiliation = models.CharField(max_length=60, blank=True, default='')
+    affiliation = models.CharField(max_length=60, blank=True, default='',
+        validators=[validate_alphaplus])
     location = models.CharField(max_length=100, blank=True, default='')
     website = models.URLField(default='', blank=True, null=True)
     photo = models.ImageField(upload_to=photo_path, blank=True, null=True)
