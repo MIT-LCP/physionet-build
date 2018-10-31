@@ -279,6 +279,8 @@ class Metadata(models.Model):
     methods = RichTextField(blank=True)
     content_description = RichTextField(blank=True)
     usage_notes = RichTextField(blank=True)
+    installation = RichTextField(blank=True)
+    subject_identifiers = RichTextField(blank=True)
     acknowledgements = RichTextField(blank=True)
     conflicts_of_interest = RichTextField(blank=True)
     version = models.CharField(max_length=15, default='', blank=True)
@@ -289,6 +291,7 @@ class Metadata(models.Model):
     license = models.ForeignKey('project.License', null=True)
     data_use_agreement = models.ForeignKey('project.DataUseAgreement',
                                            null=True, blank=True)
+    project_home_page = models.URLField(default='')
     # Public url slug, also used as a submitting project id.
     slug = models.SlugField(max_length=20, unique=True, db_index=True)
     core_project = models.ForeignKey('project.CoreProject',
@@ -362,6 +365,7 @@ class UnpublishedProject(models.Model):
     references = GenericRelation('project.Reference')
     publications = GenericRelation('project.Publication')
     topics = GenericRelation('project.Topic')
+    languages = GenericRelation('project.ProgrammingLanguage')
 
     class Meta:
         abstract = True
@@ -938,6 +942,35 @@ def exists_project_slug(slug):
             or PublishedProject.objects.filter(slug=slug)):
         return True
     return False
+
+
+class ProgrammingLanguage(models.Model):
+    """
+    Language to tag ActiveProject/ArchivedProject
+    """
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    project = GenericForeignKey('content_type', 'object_id')
+
+    language = models.CharField(max_length=50)
+
+    class Meta:
+        unique_together = (('language', 'content_type', 'object_id'),)
+
+    def __str__(self):
+        return self.language
+
+
+class PublishedProgrammingLanguage(models.Model):
+    """
+    Language to tag PublishedProject
+    """
+    projects = models.ManyToManyField('project.PublishedProject',
+        related_name='languages')
+    language = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.language
 
 
 class License(models.Model):

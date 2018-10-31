@@ -350,6 +350,7 @@ class DatabaseMetadataForm(forms.ModelForm):
                       'methods': '* The methodology employed for the study or research. Describe how the data was collected. If your project has an external home page, you should include it here.',
                       'content_description': '* Describe the files, how they are named and structured, and how they are to be used.',
                       'usage_notes': 'How the data is to be used. List any related software developed for the dataset, and any special software required to use the data.',
+                      'subject_identifiers': '* State explicitly if there are none.',
                       'acknowledgements': 'Any general acknowledgements.',
                       'conflicts_of_interest': '* Conflicts of interest of any authors. State explicitly if there are none.',
                       'version': '* The version number of the resource. <a href=https://semver.org/ target=_blank>Semantic versioning</a> is encouraged (example: 1.0.0).',
@@ -363,14 +364,73 @@ class DatabaseMetadataForm(forms.ModelForm):
         self.fields['content_description'].label = 'Data description'
 
 
-class SoftwareMetadataForm(forms.ModelForm):
+class MetadataForm(forms.ModelForm):
     """
-    Form for editing the metadata of a project with resource_type == database
-    NOT DONE
+    Form for editing the metadata of a project
     """
+
+    FIELDS = (
+        ('title', 'abstract', 'background', 'methods', 'content_description',
+         'usage_notes', 'acknowledgements', 'conflicts_of_interest', 'version',
+         'changelog_summary'),
+        ('title', 'abstract', 'background', 'methods', 'content_description',
+         'usage_notes', 'acknowledgements', 'conflicts_of_interest', 'version',
+         'changelog_summary'),
+    )
+
+    LABELS = (
+        {'content_description': 'Data description'},
+        {'content_description': 'Software description'}
+    )
+
+    HELP_TEXTS = (
+        {'usage_notes': '* How the data is to be used. List any related software developed for the dataset, and any special software required to use the data.',}
+        {'usage_notes': '* How the software is to be used. List some example calls.'}
+    )
+
+
+
     class Meta:
         model = ActiveProject
-        fields = ('title', 'abstract', 'usage_notes')
+        fields = ('title', 'abstract', 'background', 'methods',
+                  'content_description', 'usage_notes', 'installation',
+                  'acknowledgements',
+                  'conflicts_of_interest', 'version', 'changelog_summary',)
+
+        help_texts = {'title': '* Title of the resource.',
+                      'abstract': '* A brief description of the resource and the context in which the resource was created.',
+                      'background': '* The study background.',
+                      'methods': '* The methodology employed for the study or research. Describe how the data was collected.',
+                      'content_description': '* Describe the files, how they are named and structured, and how they are to be used.',
+                      'installation': '* Instructions on how to install the software. List any required dependencies here, or specify the file in which they are listed.'
+                      'subject_identifiers': ''
+                      'acknowledgements': 'Any general acknowledgements.',
+                      'conflicts_of_interest': '* Conflicts of interest of any authors. State explicitly if there are none.',
+                      'version': '* The version number of the resource. <a href=https://semver.org/ target=_blank>Semantic versioning</a> is encouraged (example: 1.0.0).',
+                      'changelog_summary': '* Summary of changes from the previous release.'}
+
+    def __init__(self, resource_type, include_changelog=False, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+        rm_fields =
+
+
+        for l in LABELS[resource_type]:
+            self.fields[l].label = LABELS[resource_type][l]
+
+        for h in HELP_TEXTS[resource_type]:
+            self.fields[l].help_text = HELP_TEXTS[resource_type][h]
+
+        if not include_changelog:
+            del(self.fields['changelog_summary'])
+
+class IdentifiersForm(forms.ModelForm):
+
+    class Meta:
+        model = ActiveProject
+        fields = ('home_page',)
+        help_texts = {'home_page': 'External home page for the project.'}
 
 
 # The modelform for editing metadata for each resource type
