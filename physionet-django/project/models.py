@@ -179,7 +179,7 @@ class Reference(models.Model):
     object_id = models.PositiveIntegerField()
     project = GenericForeignKey('content_type', 'object_id')
 
-    description = models.CharField(max_length=250, validators=[validate_alphaplus])
+    description = models.CharField(max_length=250)
 
     class Meta:
         unique_together = (('description', 'content_type', 'object_id'),)
@@ -189,7 +189,7 @@ class Reference(models.Model):
 
 
 class PublishedReference(models.Model):
-    description = models.CharField(max_length=250, validators=[validate_alphaplus])
+    description = models.CharField(max_length=250)
     project = models.ForeignKey('project.PublishedProject',
         related_name='references')
 
@@ -419,12 +419,12 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     # Where all the active project files are kept
     FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'active-projects')
 
-    REQUIRED_FIELDS = {0:['title', 'abstract', 'background', 'methods',
-                          'content_description', 'conflicts_of_interest',
-                          'version', 'license',],
-                       1:['title', 'abstract', 'background', 'methods',
-                          'content_description', 'conflicts_of_interest',
-                          'version', 'license',]}
+    REQUIRED_FIELDS = (
+        ('title', 'abstract', 'background', 'methods', 'content_description',
+         'conflicts_of_interest', 'subject_identifiers', 'version', 'license'),
+        ('title', 'abstract', 'background', 'methods', 'content_description',
+         'installation', 'conflicts_of_interest', 'version', 'license')
+    )
 
     def storage_used(self):
         "Total storage used in bytes"
