@@ -3,7 +3,7 @@ from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin as DefaultUserAdmin
 
 from .models import AssociatedEmail, Profile, User
-from .forms import UserCreationForm, UserChangeForm
+from .forms import RegistrationForm, UserChangeForm
 
 
 class UserAdmin(DefaultUserAdmin):
@@ -18,7 +18,7 @@ class UserAdmin(DefaultUserAdmin):
 
     # The forms to add and change user instances in the admin panel
     form = UserChangeForm
-    add_form = UserCreationForm
+    add_form = RegistrationForm
 
     # The fields to be used in displaying the User model.
     list_display = ('email', 'is_active', 'is_admin', 'profile')

@@ -13,7 +13,7 @@ from django.utils import timezone
 from django.core.validators import EmailValidator
 from django.utils.translation import ugettext as _
 
-from .validators import UsernameValidator
+from .validators import UsernameValidator, validate_name
 
 
 
@@ -204,9 +204,10 @@ class Profile(models.Model):
     """
     user = models.OneToOneField('user.User', related_name='profile')
 
-    first_name = models.CharField(max_length=50)
-    middle_names = models.CharField(max_length=100, blank=True, default='')
-    last_name = models.CharField(max_length=50)
+    first_name = models.CharField(max_length=50, validators=[validate_name])
+    middle_names = models.CharField(max_length=100, blank=True, default='',
+        validators=[validate_name])
+    last_name = models.CharField(max_length=50, validators=[validate_name])
     affiliation = models.CharField(max_length=60, blank=True, default='')
     location = models.CharField(max_length=100, blank=True, default='')
     website = models.URLField(default='', blank=True, null=True)

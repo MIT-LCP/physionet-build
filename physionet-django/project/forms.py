@@ -303,12 +303,12 @@ class MoveItemsForm(EditItemsForm):
         return 'Your items have been moved'
 
 
-class CreateActiveProjectForm(forms.ModelForm):
+class CreateProjectForm(forms.ModelForm):
     """
     For creating projects
     """
     def __init__(self, user, *args, **kwargs):
-        super(CreateActiveProjectForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.user = user
 
     class Meta:

@@ -16,6 +16,7 @@ from django.utils.crypto import get_random_string
 from django.utils.text import slugify
 
 from .utility import get_tree_size, get_file_info, get_directory_info, list_items, get_storage_info
+from .validators import validate_alphaplus
 
 
 class Affiliation(models.Model):
@@ -23,7 +24,7 @@ class Affiliation(models.Model):
     Affiliations belonging to an author
 
     """
-    name = models.CharField(max_length=202)
+    name = models.CharField(max_length=202, validators=[validate_alphaplus])
     author = models.ForeignKey('project.Author', related_name='affiliations')
 
     class Meta:
@@ -32,7 +33,7 @@ class Affiliation(models.Model):
 
 class PublishedAffiliation(models.Model):
     "Affiliations belonging to a published author"
-    name = models.CharField(max_length=202)
+    name = models.CharField(max_length=202, validators=[validate_alphaplus])
     author = models.ForeignKey('project.PublishedAuthor',
         related_name='affiliations')
 
@@ -149,7 +150,7 @@ class Topic(models.Model):
     object_id = models.PositiveIntegerField()
     project = GenericForeignKey('content_type', 'object_id')
 
-    description = models.CharField(max_length=50)
+    description = models.CharField(max_length=50, validators=[validate_alphaplus])
 
     class Meta:
         unique_together = (('description', 'content_type', 'object_id'),)
@@ -164,7 +165,7 @@ class PublishedTopic(models.Model):
     """
     projects = models.ManyToManyField('project.PublishedProject',
         related_name='topics')
-    description = models.CharField(max_length=50)
+    description = models.CharField(max_length=50, validators=[validate_alphaplus])
 
     def __str__(self):
         return self.description
@@ -178,7 +179,7 @@ class Reference(models.Model):
     object_id = models.PositiveIntegerField()
     project = GenericForeignKey('content_type', 'object_id')
 
-    description = models.CharField(max_length=250)
+    description = models.CharField(max_length=250, validators=[validate_alphaplus])
 
     class Meta:
         unique_together = (('description', 'content_type', 'object_id'),)
@@ -188,7 +189,7 @@ class Reference(models.Model):
 
 
 class PublishedReference(models.Model):
-    description = models.CharField(max_length=250)
+    description = models.CharField(max_length=250, validators=[validate_alphaplus])
     project = models.ForeignKey('project.PublishedProject',
         related_name='references')
 
@@ -272,7 +273,7 @@ class Metadata(models.Model):
 
     resource_type = models.PositiveSmallIntegerField(choices=RESOURCE_TYPES)
     # Main body descriptive metadata
-    title = models.CharField(max_length=200)
+    title = models.CharField(max_length=200, validators=[validate_alphaplus])
     abstract = RichTextField(max_length=10000, blank=True)
     background = RichTextField(blank=True)
     methods = RichTextField(blank=True)

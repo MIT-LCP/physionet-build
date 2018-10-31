@@ -17,7 +17,7 @@ from django.utils import timezone
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
-from .forms import AddEmailForm, AssociatedEmailChoiceForm, ProfileForm, UserCreationForm, UsernameChangeForm
+from .forms import AddEmailForm, AssociatedEmailChoiceForm, ProfileForm, RegistrationForm, UsernameChangeForm
 from .models import AssociatedEmail, Profile, User
 from physionet import utility
 from project.models import Author
@@ -230,7 +230,7 @@ def register(request):
         return redirect('user_home')
 
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = RegistrationForm(request.POST)
         if form.is_valid():
             # Create the new user
             user = form.save()
@@ -247,7 +247,7 @@ def register(request):
             # Registration successful
             return render(request, 'user/register_done.html', {'email':user.email})
     else:
-        form = UserCreationForm()
+        form = RegistrationForm()
 
     return render(request, 'user/register.html', {'form':form})
 

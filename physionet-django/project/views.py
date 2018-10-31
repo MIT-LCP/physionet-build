@@ -157,11 +157,12 @@ def create_project(request):
             {'max_projects':ActiveProject.MAX_SUBMITTING_PROJECTS})
 
     if request.method == 'POST':
-        form = forms.CreateActiveProjectForm(user=user, data=request.POST)
+        form = forms.CreateProjectForm(user=user, data=request.POST)
         if form.is_valid():
             project = form.save()
+            return redirect('project_overview', project_slug=project.slug)
     else:
-        form = forms.CreateActiveProjectForm(user=user)
+        form = forms.CreateProjectForm(user=user)
 
     return render(request, 'project/create_project.html', {'form':form})
 
