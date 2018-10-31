@@ -686,7 +686,7 @@ def project_files(request, project_slug, **kwargs):
         else:
             # process the file manipulation post
             subdir = process_files_post(request, project)
-            project.modified_datetime = datetime.now()
+            project.modified_datetime = timezone.now()
     if 'subdir' not in vars():
         subdir = ''
 
