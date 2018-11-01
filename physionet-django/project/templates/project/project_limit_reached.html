@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Project Limit Reached{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>Project Limit Reached</h1>
+  <hr>
+  <p>You are already the submitting author of the maximum number of allowed active projects: {{ max_projects }}. You must publish or delete some of them if you want to create more.</p>
+  <p><a href="{% url 'project_home' %}">Back to project home</a></p>
+</div>
+{% endblock %}

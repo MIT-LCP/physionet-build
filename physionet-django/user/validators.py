@@ -1,9 +1,10 @@
+import re
+
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext as _
-
 from zxcvbn import zxcvbn
-import re
+
 
 class ComplexityValidator():
     """
@@ -30,104 +31,6 @@ class ComplexityValidator():
             "Your password is too weak."
         )
 
-class MaximumLengthValidator():
-    """
-    Validate whether the password is too long
-    """
-    def __init__(self, max_length=25):
-        self.max_length = max_length
-
-    def validate(self, password, user=None):
-        if len(password) > self.max_length:
-            raise ValidationError(
-                _('This password must be no more than %(max_length)d characters.'),
-                code='password_too_long',
-                params={'max_length': self.max_length},
-            )
-
-    def get_help_text(self):
-        return _(
-            'Your password cannot contain more than {max_length:d} characters.'
-                .format(max_length=self.max_length)
-        )
-
-
-class AlphabeticRequirementValidator():
-    """
-    Require at least one upper-case and one lower-case alphabetic character
-    """
-    def validate(self, password, user=None):
-        if password.upper() == password.lower():
-            raise ValidationError(
-                _("This password must contain at least one upper-case and one lower-case letter."),
-                code='password_no_alphabetics',
-            )
-
-    def get_help_text(self):
-        return _(
-            "Your password must contain at least one upper-case and one lower-case letter."
-        )
-
-
-class NumericRequirementValidator():
-    """
-    Require at least one numerical digit
-    """
-    def __init__(self):
-        super(NumericRequirementValidator, self).__init__()
-        self.rx_numeric = re.compile(r'\d')
-
-    def validate(self, password, user=None):
-        if not bool(self.rx_numeric.search(password)):
-            raise ValidationError(
-                _("This password must contain at least one numeric character."),
-                code='password_no_numerics',
-            )
-
-    def get_help_text(self):
-        return _(
-            "Your password must contain at least one numeric character."
-        )
-
-
-class SymbolicRequirementValidator():
-    """
-    Require at least one symbol
-    """
-    def __init__(self):
-        super(SymbolicRequirementValidator, self).__init__()
-        self.rx_symbol = re.compile(r"""[~!@#$%&^*?'"<>]""")
-
-    def validate(self, password, user=None):
-        if not bool(self.rx_symbol.search(password)):
-            raise ValidationError(
-                _("This password must contain at least one special character."),
-                code='password_no_symbols',
-            )
-
-    def get_help_text(self):
-        return _(
-            "Your password must contain at least one symbol."
-        )
-
-
-class MixedCharacterValidator(AlphabeticRequirementValidator,
-    NumericRequirementValidator, SymbolicRequirementValidator):
-    """
-    Combining minimum alphabetic, numeric, and symbolic character requirements
-    """
-
-    def __init__(self):
-        super(MixedCharacterValidator, self).__init__()
-
-    def validate(self, password, user=None):
-        for cls in MixedCharacterValidator.__bases__:
-            cls.validate(self, password, user)
-
-    def get_help_text(self):
-        return _(
-            "Your password must contain a mixture of letters, numbers, and symbols."
-        )
 
 class UsernameValidator(UnicodeUsernameValidator):
     regex = r'^[a-zA-Z][a-zA-Z0-9-]{3,49}$'
@@ -135,3 +38,11 @@ class UsernameValidator(UnicodeUsernameValidator):
         'The username must contain 4 to 50 characters. Letters, digits and - only. Must start with a letter.')
 
 
+def validate_name(value):
+    if not re.fullmatch(r'[^\W\d_]([^\W_]|[\'\ -])*', value):
+        raise ValidationError('Letters, numbers, spaces, hyphens, and apostrophes only. Must begin with a letter.')
+
+
+def validate_alphaplus(value):
+    if not re.fullmatch(r'[a-zA-Z0-9][\w\ -]*', value):
+        raise ValidationError('Letters, numbers, spaces, underscores, and hyphens only. Must begin with a letter or number.')

@@ -5,8 +5,9 @@ physionet-django/private-tests.py
 db.sqlite3
 physionet-django/*/migrations/0*.py
 
-# Project folders created during testing
+# Media content created during testing
 media/active-projects/*
+media/archived-projects/*
 media/published-projects/*
 media/users/*
 physionet-django/static/published-projects/*

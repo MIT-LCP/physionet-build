@@ -14,8 +14,14 @@ urlpatterns = [
         name='submitted_projects'),
     url(r'^published-projects/$', views.published_projects,
         name='published_projects'),
+    url(r'^rejected-submissions/$', views.rejected_submissions,
+        name='rejected_submissions'),
 
     # Individual edit pages
+    url(r'^submitted-projects/(?P<project_slug>\w+)/$',
+        views.submission_info_redirect, name='submission_info_redirect'),
+    url(r'^submitted-projects/(?P<project_slug>\w+)/info/$',
+        views.submission_info, name='submission_info'),
     url(r'^submitted-projects/(?P<project_slug>\w+)/edit/$',
         views.edit_submission, name='edit_submission'),
     url(r'^submitted-projects/(?P<project_slug>\w+)/copyedit/$',

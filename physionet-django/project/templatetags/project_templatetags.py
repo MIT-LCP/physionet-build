@@ -37,12 +37,15 @@ def access_description(access_policy):
     }
     return descriptions[access_policy]
 
-@register.filter(name='mb_to_gb')
-def mb_to_gb(storage_allowance):
+@register.filter(name='bytes_to_gb')
+def bytes_to_gb(n_bytes):
     """
-    Convert storage allowance mb to a readable gb value
+    Convert storage allowance bytes to a readable gb value
     """
-    return '{:.2f}'.format(storage_allowance / 1024)
+    if n_bytes < 1073741824:
+        return '{:.2f}'.format(n_bytes / 1073741824)
+    else:
+        return '{:d}'.format(int(n_bytes / 1073741824))
 
 @register.filter(name='submission_result_label')
 def submission_result_label(submission):
@@ -58,7 +61,8 @@ def submission_result_label(submission):
     return result
 
 
-def author_popover(author, include_email=False, show_corresponding=False):
+def author_popover(author, show_submitting=False, show_email=False,
+                   show_corresponding=False):
     """
     Helper function for the popover of show_author_info and
     show_all_author_info
@@ -67,7 +71,10 @@ def author_popover(author, include_email=False, show_corresponding=False):
     profile_info = '<p><b>PhysioNet Profile</b><br><a href=/users/{} target=_blank>{}</a></p>'.format(author.username, author.username)
     popover_body = ''.join((affiliation_info, profile_info))
 
-    if include_email:
+    if show_submitting and author.is_submitting:
+        popover_body = '<p><strong>Submitting Author</strong></p>' + popover_body
+
+    if show_email:
         popover_body += '<p><strong>User Email</strong><br> {}</p>'.format(author.email)
 
     if show_corresponding and author.is_corresponding:
@@ -85,7 +92,7 @@ def show_author_info(author):
 
     Requires set_display_info method to be called by author beforehand.
     """
-    return author_popover(author, include_email=False)
+    return author_popover(author)
 
 
 @register.filter(name='show_all_author_info')
@@ -95,4 +102,5 @@ def show_all_author_info(author):
 
     Requires set_display_info method to be called by author beforehand.
     """
-    return author_popover(author, include_email=True, show_corresponding=True)
+    return author_popover(author, show_submitting=True, show_email=True,
+                          show_corresponding=True)

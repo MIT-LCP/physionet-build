@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Published Submission History - {{ project }}{% endblock %}
+
+{% load static %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'project/css/submission-timeline.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>Submission History - {{ project }}</h1>
+  <hr>
+  <div class="card mb-3">
+    {% include "project/static_submission_timeline.html" %}
+  </div>
+  <p><a href="{% url 'project_home' %}">Return to Project Home</a></p>
+</div>
+{% endblock %}

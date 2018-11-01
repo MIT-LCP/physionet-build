@@ -9,7 +9,7 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 
 from .models import (Affiliation, Author, AuthorInvitation, ActiveProject,
-    CoreProject, StorageRequest)
+    CoreProject, StorageRequest, exists_project_slug)
 from . import utility
 from . import validators
 
@@ -100,7 +100,7 @@ class UploadFilesForm(ActiveProjectFilesForm):
                             'individual_size_limit':utility.readable_size(ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT)}
                 )
 
-        if sum(f.size for f in files) > self.project.core_project.storage_allowance*1024**2 - self.project.storage_used():
+        if sum(f.size for f in files) > self.project.core_project.storage_allowance - self.project.storage_used():
             raise forms.ValidationError(
                 'Total upload volume exceeds remaining quota',
                 code='exceed_remaining_quota',
@@ -303,12 +303,12 @@ class MoveItemsForm(EditItemsForm):
         return 'Your items have been moved'
 
 
-class CreateActiveProjectForm(forms.ModelForm):
+class CreateProjectForm(forms.ModelForm):
     """
     For creating projects
     """
     def __init__(self, user, *args, **kwargs):
-        super(CreateActiveProjectForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.user = user
 
     class Meta:
@@ -321,7 +321,7 @@ class CreateActiveProjectForm(forms.ModelForm):
         core_project = CoreProject.objects.create()
         project.core_project = core_project
         slug = get_random_string(20)
-        while ActiveProject.objects.filter(slug=slug):
+        while exists_project_slug(slug):
             slug = get_random_string(20)
         project.slug = slug
         project.save()
@@ -579,8 +579,8 @@ class StorageRequestForm(forms.ModelForm):
         Storage size must be reasonable
         """
         data = self.cleaned_data['request_allowance']
-        # Comparing GB form field to MB model field
-        if data * 1024 <= self.project.core_project.storage_allowance:
+        # Comparing GB form field to bytes model field
+        if data * 1024 ** 3 <= self.project.core_project.storage_allowance:
             raise forms.ValidationError('Project already has the requested allowance.',
                 code='already_has_allowance')
 

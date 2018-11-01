@@ -9,7 +9,7 @@ from django.core.validators import EmailValidator
 
 from .models import AssociatedEmail, User, Profile
 from .widgets import ProfilePhotoInput
-from .validators import UsernameValidator
+from .validators import UsernameValidator, validate_name
 
 
 class AssociatedEmailChoiceForm(forms.Form):
@@ -178,18 +178,20 @@ class ProfileForm(forms.ModelForm):
         super(ProfileForm, self).save()
 
 
-class UserCreationForm(forms.ModelForm):
+class RegistrationForm(forms.ModelForm):
     """A form for creating new users. Includes all the required
     fields, plus a repeated password.
     """
 
     first_name = forms.CharField(max_length = 30, label='First Name',
-                    widget=forms.TextInput(attrs={'class':'form-control'}))
+                    widget=forms.TextInput(attrs={'class':'form-control'}),
+                    validators=[validate_name])
     middle_names = forms.CharField(max_length = 100, label='Middle Names',
                     widget=forms.TextInput(attrs={'class':'form-control'}),
-                    required=False)
+                    required=False, validators=[validate_name])
     last_name = forms.CharField(max_length = 30, label='Last Name',
-                    widget=forms.TextInput(attrs={'class':'form-control'}))
+                    widget=forms.TextInput(attrs={'class':'form-control'}),
+                    validators=[validate_name])
     password1 = forms.CharField(label='Password',
                     widget=forms.PasswordInput(attrs={'class':'form-control'}))
     password2 = forms.CharField(label='Password Confirmation',
@@ -221,7 +223,7 @@ class UserCreationForm(forms.ModelForm):
 
         if self.errors: return
 
-        user = super(UserCreationForm, self).save(commit=False)
+        user = super(RegistrationForm, self).save(commit=False)
         user.set_password(self.cleaned_data['password1'])
         user.email = user.email.lower()
         user.username = user.username.lower()

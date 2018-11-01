@@ -39,7 +39,7 @@ def invitation_response_notify(invitation, affected_emails):
 
     subject = 'Authorship invitation {} for project: {}'.format(response,
                                                                 project.title)
-    email, name = project.get_submitting_author_info()
+    email, name = project.author_contact_info(only_submitting=True)
     email_context = {'name':name, 'project':project,
         'response':response}
     # Send an email for each email belonging to the accepting user
@@ -49,6 +49,7 @@ def invitation_response_notify(invitation, affected_emails):
             'notification/email/author_response.html', email_context)
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)
+
 
 def submit_notify(project):
     """
@@ -61,8 +62,27 @@ def submit_notify(project):
         body = loader.render_to_string(
             'notification/email/submit_notify.html', email_context)
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                  [email], fail_silently=False)
+
+
+def resubmit_notify(project):
+    """
+    Notify authors and the editor when a project is resubmitted
+    """
+    subject = 'Resubmission of project: {}'.format(project.title)
+    email_context = {'project':project}
+    for email, name in project.author_contact_info():
+        email_context['name'] = name
+        body = loader.render_to_string(
+            'notification/email/resubmit_notify.html', email_context)
+        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                           [email], fail_silently=False)
 
+    email_context['name'] = project.editor.get_full_name()
+    body = loader.render_to_string(
+        'notification/email/resubmit_notify_editor.html', email_context)
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+              [project.editor.email], fail_silently=False)
 
 # ---------- Console App ---------- #
 
@@ -80,50 +100,26 @@ def assign_editor_notify(project):
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)
 
+def edit_decision_notify(request, project, edit_log):
+    """
+    Notify authors when an editor makes a decision
+    """
+    # Reject
+    if edit_log.decision == 0:
+        subject = 'Submission rejected for project {}'.format(project.title)
+        template = 'notification/email/reject_submission_notify.html'
+    # Resubmit with revisions
+    elif edit_log.decision == 1:
+        subject = 'Revisions requested for project {}'.format(project.title)
+        template = 'notification/email/revise_submission_notify.html'
+    # Accept
+    else:
+        subject = 'Submission accepted for project: {}'.format(project.title)
+        template = 'notification/email/accept_submission_notify.html'
 
-def edit_reject_notify(request, submission):
-    """
-    Notify authors when an editor rejects a submission
-    """
-    project = submission.project
-    subject = 'Submission rejected for project {0}'.format(project.title)
     for email, name in project.author_contact_info():
-        body = loader.render_to_string(
-            'notification/email/reject_submission_notify.html',
-            {'name':name, 'project':project,
-             'editor_comments':submission.editor_comments,
-             'domain':get_current_site(request)})
-        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                  [email], fail_silently=False)
-
-
-def edit_resubmit_notify(request, submission):
-    """
-    Notify authors when an editor requests a resubmission
-    """
-    project = submission.project
-    subject = 'Resubmission request for project {0}'.format(project.title)
-    for email, name in project.author_contact_info():
-        body = loader.render_to_string(
-            'notification/email/resubmit_submission_notify.html',
-            {'name':name, 'project':project,
-             'editor_comments':submission.editor_comments,
-             'domain':get_current_site(request)})
-        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                  [email], fail_silently=False)
-
-
-def edit_accept_notify(request, submission_log):
-    """
-    Notify authors when an editor accepts a submission
-    """
-    project = submission_log.project
-    subject = 'Submission accepted for project: {0}'.format(project.title)
-    for email, name in project.author_contact_info():
-        body = loader.render_to_string(
-            'notification/email/accept_submission_notify.html',
-            {'name':name, 'project':project,
-             'editor_comments':submission_log.editor_comments,
+        body = loader.render_to_string(template,
+            {'name':name, 'project':project, 'edit_log':edit_log,
              'domain':get_current_site(request)})
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)
@@ -191,7 +187,7 @@ def storage_response_notify(storage_request):
     response = RESPONSE_ACTIONS[storage_request.response]
     subject = 'Storage request {0} for project: {1}'.format(response,
         project.title)
-    email, name = project.get_submitting_author_info()
+    email, name = project.author_contact_info(only_submitting=True)
     body = loader.render_to_string('notification/email/storage_response_notify.html',
         {'name':name, 'project':project, 'response':response,
          'allowance':storage_request.request_allowance,

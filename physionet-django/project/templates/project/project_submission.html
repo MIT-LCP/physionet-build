@@ -2,18 +2,33 @@
 
 {% block title %}Project Submission - {{ project }}"{% endblock %}
 
+{% load static %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'project/css/submission-timeline.css' %}">
+{% endblock %}
+
 {% load project_templatetags %}
 
 {% block main_content %}
-
 <script>
-  // Check the integrity of the metadata fields
-  function checkIntegrity(){
+  // Check the integrity of the metadata fields and enable/disable the
+  // submission buttons
+  function checkIntegrity(is_resubmission){
+    if (Boolean(is_resubmission)){
+      var target_modal = "#passes-checks-resubmission"
+      var button_id = "resubmit-project-button"
+    }
+    else{
+      var target_modal = "#passes-checks"
+      var button_id = "submit-project-button"
+    }
+
     $.ajax({url: "{% url 'check_integrity' project.slug %}",
       success: function(result){
         if (result.passes_checks){
-          $("#passes-checks").html("<i class='fas fa-check' style='color:green'></i> The automatic checks have passed. You may submit the project for review. Note: you will no longer be able to edit the project.");
-          document.getElementById("request-review").disabled = false;
+          $(target_modal).html("<i class='fas fa-check' style='color:green'></i> The automatic checks have passed. You may submit the project for review. Note: you will no longer be able to edit the project.");
+          document.getElementById(button_id).disabled = false;
         }
         else{
           message = "<p><i class='fas fa-times' style='color:red'></i> The automatic checks have failed. The following errors must be addressed before you can submit the project:</p><ul>"
@@ -21,7 +36,7 @@
             message += "<li>" + result.integrity_errors[i] + "</li>"
           }
           message += "</ul>"
-          $("#passes-checks").html(message);
+          $(target_modal).html(message);
         }
       }
     });
@@ -37,7 +52,7 @@
     preview</a> appears satisfactory to all authors, the submitting author may
     submit the project for review.</p>
   {% if is_submitting %}
-    <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#submit-modal" onclick="checkIntegrity()">
+    <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#submit-modal" onclick="checkIntegrity(false)">
       Submit Project
     </button>
 
@@ -56,7 +71,7 @@
               <p id="passes-checks"><i class="fas fa-spinner"></i> Running checks on project...</p>
             </div>
             <div class="modal-footer">
-              <button id="request-review" class="btn btn-primary" type="submit" name="submit_project" disabled>Submit Project</button>
+              <button id="submit-project-button" class="btn btn-primary" type="submit" name="submit_project" disabled>Submit Project</button>
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
             </div>
           </form>
@@ -67,99 +82,10 @@
 {% else %}
   {# The active submission status timeline #}
   <div class="card">
-    <div class="card-header"><h4>Submission Timeline</h4></div>
-    <ul class="list-group list-group-flush">
-      <li class="list-group-item">The project was submitted for review on {{ project.submission_datetime|date }}.</li>
-      {# Waiting for editor #}
-      {% if project.submission_status == 10 %}
-        <li class="list-group-item"><i class="far fa-clock"></i> Waiting for editor to be assigned.</li>
-      {# Editor assigned #}
-      {% else %}
-        <li class="list-group-item">The editor for the submission is: {{ project.editor.disp_name_email }}</li>
-        {# At this point, there may have been any number of submissions #}
-        {% for e in edit_logs %}
-          {% if e.decision_datetime %}
-            {% if e.decision == 0 %}
-              <li class="list-group-item">The editor rejected the submission on {{ e.decision_datetime|date }}.
-            {% elif e.decision == 1 %}
-              <li class="list-group-item">The editor requested a resubmission with revisions on {{ e.decision_datetime|date }}.
-            {% elif e.decision == 2 %}
-              <li class="list-group-item">The editor accepted the submission on {{ e.decision_datetime|date }}.
-            {% endif %}
-            <p>The editor comments regarding the submission are as follows:</p>
-            {{ e.editor_comments }}
-            </li>
-          {# No decision yet #}
-          {% else %}
-            <li class="list-group-item"><i class="far fa-clock"></i> Waiting for editor to edit submission.</li>
-          {% endif %}
-        {% endfor %}
-        {% if project.submission_status >= 40 %}
-          {# At this point, there may have been any number of copyedits #}
-          {% for c in copyedit_logs %}
-            {# The copyedit is complete #}
-            {% if c.complete_datetime %}
-              <li class="list-group-item">
-                The editor finished copyediting the submission on {{ c.complete_datetime|date }}.
-                {% if c.made_changes %}
-                <p>The editor comments regarding the changes made are as follows:</p>
-                {{ c.changelog_summary }}
-                {% else %}
-                <p>No changes were made during the copyedit.</p>
-                {% endif %}
-              </li>
-            {% else %}
-              <li class="list-group-item">
-                <i class="far fa-clock"></i> Waiting for editor to copyedit submission.
-              </li>
-            {% endif %}
-          {% endfor %}
-
-        {% endif %}
-        {# Awaiting authors to approve final project #}
-        {% if project.submission_status == 50 %}
-          <li class="list-group-item">
-            <p><i class="far fa-clock"></i> Waiting for all authors to approve the final project.</p>
-            {% include "project/awaiting_authors_table.html" %}
-            <a class="btn btn-primary" href="{% url 'project_preview' project.slug %}" role="button" target="_blank">View Project Preview</a>
-            {# The user is an author and has yet to approve #}
-            {% if awaiting_user_approval %}
-              <button type="button" class="btn btn-success" data-toggle="modal" data-target="#approve-modal">Approve Publication</button>
-              <br><br>
-              <p>If you would like to suggest changes, you may contact the editor to reopen the copyedit.</p>
-              <div class="modal fade" id="approve-modal" tabindex="-1" role="dialog" aria-labelledby="submit-modal" aria-hidden="true">
-                <div class="modal-dialog" role="document">
-                  <div class="modal-content">
-                    <div class="modal-header">
-                      <h5 class="modal-title">Approve Publication</h5>
-                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                      </button>
-                    </div>
-                    <form action="" method="post">
-                      <div class="modal-body">
-                        {% csrf_token %}
-                        <p>If you are satisfied with the final state of the project, you may approve the publication.</p>
-                      </div>
-                      <div class="modal-footer">
-                        <button id="request-review" class="btn btn-success" type="submit" name="approve_publication">Approve Publication</button>
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                      </div>
-                    </form>
-                  </div>
-                </div>
-              </div>
-            {% endif %}
-          </li>
-        {% elif project.submission_status == 60 %}
-          <li class="list-group-item">All authors approved the final project for publication on {{ author_approval_datetime|date }}.</li>
-          <li class="list-group-item"><i class="far fa-clock"></i> Waiting for editor to publish submission.</li>
-        {% endif %}
-      {% endif %}
-    </ul>
+    <div class="card-header">Submission Timeline</div>
+    {% include "project/active_submission_timeline.html" %}
   </div>
 {% endif %}
-
 <hr>
 
 {% endblock %}

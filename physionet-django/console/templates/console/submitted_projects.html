@@ -49,7 +49,7 @@
               <tbody>
               {% for project in assignment_projects %}
                 <tr>
-                  <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
+                  <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
                   <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
                   <td>{{ project.submission_datetime|date }}</td>
                 </tr>
@@ -96,15 +96,23 @@
                   <th>Submitting Author</th>
                   <th>Editor</th>
                   <th>Submission Date</th>
+                  <th>Resubmission Date</th>
                 </tr>
               </thead>
               <tbody>
               {% for project in decision_projects %}
                 <tr>
-                  <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
+                  <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
                   <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
                   <td>{{ project.editor }}</td>
                   <td>{{ project.submission_datetime|date }}</td>
+                  <td>
+                    {% if project.resubmission_datetime %}
+                      {{ project.resubmission_datetime|date }}
+                    {% else %}
+                      Not a resubmission
+                    {% endif %}
+                  </td>
                 </tr>
               {% endfor %}
               </tbody>
@@ -131,9 +139,10 @@
               <tbody>
               {% for project in revision_projects %}
                 <tr>
-                  <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
+                  <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
                   <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
                   <td>{{ project.submission_datetime|date }}</td>
+                  <td>{{ project.revision_request_datetime|date }}</td>
                   <td>{{ project.editor }}</td>
                 </tr>
               {% endfor %}
@@ -161,7 +170,7 @@
               <tbody>
               {% for project in copyedit_projects %}
                 <tr>
-                  <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
+                  <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
                   <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</td>
                   <td>{{ project.submission_datetime|date }}</td>
                   <td>{{ project.editor_accept_datetime|date }}</td>
@@ -193,7 +202,7 @@
               <tbody>
               {% for project in approval_projects %}
                 <tr>
-                  <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
+                  <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
                   <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</td>
                   <td>{{ project.submission_datetime|date }}</td>
                   <td>{{ project.editor_accept_datetime|date }}</td>
@@ -227,7 +236,7 @@
               <tbody>
               {% for project in publish_projects %}
                 <tr>
-                  <td><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></td>
+                  <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
                   <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author.user.username }}</a> - {{ project.submitting_author.user.email }}</td>
                   <td>{{ project.submission_datetime|date }}</td>
                   <td>{{ project.editor_accept_datetime|date }}</td>

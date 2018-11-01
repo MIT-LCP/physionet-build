@@ -1,3 +1,4 @@
+import logging
 import os
 import pdb
 
@@ -12,23 +13,10 @@ from django.utils import timezone
 from django.core.validators import EmailValidator
 from django.utils.translation import ugettext as _
 
-from .validators import UsernameValidator
+from .validators import UsernameValidator, validate_name, validate_alphaplus
 
-import logging
 
 logger = logging.getLogger(__name__)
-
-class Affiliation(models.Model):
-    """
-    Profile affiliation
-    """
-    order = models.SmallIntegerField(default=0)
-    name = models.CharField(max_length=100)
-    department = models.CharField(max_length=100, default='')
-    city = models.CharField(max_length=50)
-    country = models.CharField(max_length=100)
-
-    profile = models.ForeignKey('user.Profile', related_name='affiliations')
 
 
 class UserManager(BaseUserManager):
@@ -215,10 +203,12 @@ class Profile(models.Model):
     """
     user = models.OneToOneField('user.User', related_name='profile')
 
-    first_name = models.CharField(max_length=50)
-    middle_names = models.CharField(max_length=100, blank=True, default='')
-    last_name = models.CharField(max_length=50)
-    affiliation = models.CharField(max_length=60, blank=True, default='')
+    first_name = models.CharField(max_length=50, validators=[validate_name])
+    middle_names = models.CharField(max_length=100, blank=True, default='',
+        validators=[validate_name])
+    last_name = models.CharField(max_length=50, validators=[validate_name])
+    affiliation = models.CharField(max_length=60, blank=True, default='',
+        validators=[validate_alphaplus])
     location = models.CharField(max_length=100, blank=True, default='')
     website = models.URLField(default='', blank=True, null=True)
     photo = models.ImageField(upload_to=photo_path, blank=True, null=True)

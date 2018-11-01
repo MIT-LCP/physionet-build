@@ -1,0 +1,36 @@
+{% load project_templatetags %}
+<div class="card mb-3">
+  <div class="card-header">
+    <ul class="nav nav-tabs card-header-tabs">
+      <li class="nav-item">
+        <a class="nav-link active" id="info-tab" data-toggle="tab" href="#info" role="tab" aria-controls="info" aria-selected="true">Project Information</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="timeline-tab" data-toggle="tab" href="#timeline" role="tab" aria-controls="timeline" aria-selected="false">Submission Timeline</a>
+      </li>
+    </ul>
+  </div>
+  <div class="card-body">
+    {# Awaiting editor assignment #}
+    <div class="tab-content">
+      <div class="tab-pane fade show active" id="info" role="tabpanel" aria-labelledby="info-tab">
+        <p>{{ project.resource_type|resource_badge|safe }} {{ project.access_policy|access_badge|safe }}</p>
+        <h4 class="card-title">{{ project.title }}</h4>
+        <p class="card-text">
+          Authors: {% for author in authors %}{{ author|show_all_author_info|safe }} {% endfor %}<br>
+          Created: {{ project.creation_datetime|date }}. Submitted: {{ project.submission_datetime|date }}.<br>
+          Storage Used: {{ storage_info.readable_used }} / {{ storage_info.readable_allowance }}<br>
+          Version: {{ project.version }}
+        </p>
+        <p><a class="btn btn-lg btn-primary" href="{% url 'project_preview' project.slug %}" role="button" target="_blank">
+          View Project Preview</a>
+          <button class="btn btn-lg btn-primary" onclick="copyToClipboard('{{ author_emails }}')">Copy Author Emails</button>
+        </p>
+      </div>
+      {# Awaiting decision #}
+      <div class="tab-pane fade" id="timeline" role="tabpanel" aria-labelledby="timeline-tab">
+        {% include "project/active_submission_timeline.html" %}
+      </div>
+    </div>
+  </div>
+</div>

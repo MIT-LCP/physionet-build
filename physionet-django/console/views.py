@@ -14,7 +14,7 @@ from django.utils import timezone
 from . import forms
 import notification.utility as notification
 import project.forms as project_forms
-from project.models import ActiveProject, StorageRequest, EditLog, Reference, Topic, Publication, PublishedProject
+from project.models import ActiveProject, ArchivedProject, StorageRequest, EditLog, Reference, Topic, Publication, PublishedProject
 from project.views import get_file_forms, get_project_file_info, process_files_post
 from project.utility import get_storage_info
 from user.models import User
@@ -107,6 +107,25 @@ def editor_home(request):
          'publish_projects':publish_projects})
 
 
+def submission_info_redirect(request, project_slug):
+    return redirect('submission_info', project_slug=project_slug)
+
+
+@login_required
+@user_passes_test(is_admin)
+def submission_info(request, project_slug):
+    """
+    View information about a project under submission
+    """
+    project = ActiveProject.objects.get(slug=project_slug)
+    authors, author_emails, storage_info, edit_logs, copyedit_logs = project.info_card()
+
+    return render(request, 'console/submission_info.html',
+        {'project':project, 'authors':authors, 'author_emails':author_emails,
+         'storage_info':storage_info, 'edit_logs':edit_logs,
+         'copyedit_logs':copyedit_logs})
+
+
 @login_required
 @user_passes_test(is_admin)
 def edit_submission(request, project_slug):
@@ -114,7 +133,7 @@ def edit_submission(request, project_slug):
     Page to respond to a particular submission, as an editor
     """
     project = ActiveProject.objects.get(slug=project_slug)
-    edit_log = project.edit_logs.get()
+    edit_log = project.edit_logs.get(decision_datetime__isnull=True)
 
     # The user must be the editor
     if request.user != project.editor or project.submission_status not in [20, 30]:
@@ -126,16 +145,13 @@ def edit_submission(request, project_slug):
         if edit_submission_form.is_valid():
             # This processes the resulting decision
             edit_log = edit_submission_form.save()
-            # Resubmit with changes
+            # Set the display labels for the quality assurance results
+            edit_log.set_quality_assurance_results()
+            # The original object will be deleted if the decision is reject
             if edit_log.decision == 0:
-                notification.edit_resubmit_notify(request, edit_log)
-            # Reject
-            elif edit_log.decision == 1:
-                notification.edit_reject_notify(request, edit_log)
-            # Accept
-            else:
-                notification.edit_accept_notify(request, edit_log)
-
+                project = ArchivedProject.objects.get(slug=project_slug)
+            # Notify the authors
+            notification.edit_decision_notify(request, project, edit_log)
             return render(request, 'console/edit_complete.html',
                 {'decision':edit_log.decision,
                  'project':project, 'edit_log':edit_log})
@@ -144,14 +160,14 @@ def edit_submission(request, project_slug):
     else:
         edit_submission_form = forms.EditSubmissionForm(instance=edit_log)
 
-    submitting_author, coauthors, author_emails = project.get_author_info(
-        separate_submitting=True, include_emails=True)
+    authors, author_emails, storage_info, edit_logs, _ = project.info_card()
 
     return render(request, 'console/edit_submission.html',
         {'project':project,
          'edit_submission_form':edit_submission_form,
-         'submitting_author':submitting_author, 'coauthors':coauthors,
-         'author_emails':author_emails})
+         'authors':authors,
+         'author_emails':author_emails, 'storage_info':storage_info,
+         'edit_logs':edit_logs})
 
 
 @login_required
@@ -165,9 +181,6 @@ def copyedit_submission(request, project_slug):
         return Http404()
 
     copyedit_log = project.copyedit_logs.get(complete_datetime=None)
-
-    submitting_author, coauthors, author_emails = project.get_author_info(
-        separate_submitting=True, include_emails=True)
 
     # Metadata forms and formsets
     ReferenceFormSet = generic_inlineformset_factory(Reference,
@@ -240,8 +253,7 @@ def copyedit_submission(request, project_slug):
     if 'subdir' not in vars():
         subdir = ''
 
-    storage_info = get_storage_info(
-        project.core_project.storage_allowance*1024**2, project.storage_used())
+    authors, author_emails, storage_info, edit_logs, copyedit_logs = project.info_card()
 
     (upload_files_form, create_folder_form, rename_item_form,
         move_items_form, delete_items_form) = get_file_forms(project=project,
@@ -265,8 +277,8 @@ def copyedit_submission(request, project_slug):
         'subdir':subdir, 'display_files':display_files,
         'display_dirs':display_dirs, 'dir_breadcrumbs':dir_breadcrumbs,
         'is_editor':True, 'copyedit_form':copyedit_form,
-        'submitting_author':submitting_author, 'coauthors':coauthors,
-        'author_emails':author_emails,
+        'authors':authors, 'author_emails':author_emails,
+        'storage_info':storage_info, 'edit_logs':edit_logs, 'copyedit_logs':copyedit_logs,
         'add_item_url':edit_url, 'remove_item_url':edit_url})
 
 
@@ -281,12 +293,7 @@ def awaiting_authors(request, project_slug):
     """
     project = ActiveProject.objects.get(slug=project_slug)
 
-    submitting_author, coauthors, author_emails = project.get_author_info(
-        separate_submitting=True, include_emails=True)
-    authors = project.authors.all().order_by('approval_datetime')
-    for a in authors:
-        a.set_display_info()
-
+    authors, author_emails, storage_info, edit_logs, copyedit_logs = project.info_card()
     outstanding_emails = ';'.join([a.user.email for a in authors.filter(
         approval_datetime=None)])
 
@@ -299,8 +306,8 @@ def awaiting_authors(request, project_slug):
 
     return render(request, 'console/awaiting_authors.html',
         {'project':project, 'authors':authors,
-         'submitting_author':submitting_author,
-         'coauthors':coauthors, 'author_emails':author_emails,
+         'author_emails':author_emails, 'storage_info':storage_info,
+         'edit_logs':edit_logs, 'copyedit_logs':copyedit_logs,
          'outstanding_emails':outstanding_emails})
 
 
@@ -311,8 +318,7 @@ def publish_submission(request, project_slug):
     Page to publish the submission
     """
     project = ActiveProject.objects.get(slug=project_slug)
-    submitting_author, coauthors, author_emails = project.get_author_info(
-        separate_submitting=True, include_emails=True)
+    authors, author_emails, storage_info, edit_logs, copyedit_logs = project.info_card()
     if request.method == 'POST':
         if project.is_publishable():
             published_project = project.publish()
@@ -321,10 +327,10 @@ def publish_submission(request, project_slug):
                 {'published_project':published_project})
 
     publishable = project.is_publishable()
-    return render(request, 'console/publish_submission.html', {
-        'project':project, 'publishable':publishable,
-        'submitting_author':submitting_author, 'coauthors':coauthors,
-        'author_emails':author_emails})
+    return render(request, 'console/publish_submission.html',
+        {'project':project, 'publishable':publishable, 'authors':authors,
+         'author_emails':author_emails, 'storage_info':storage_info,
+         'edit_logs':edit_logs, 'copyedit_logs':copyedit_logs})
 
 
 def process_storage_response(request, storage_response_formset):
@@ -346,7 +352,7 @@ def process_storage_response(request, storage_response_formset):
 
                 if storage_request.response:
                     core_project = storage_request.project.core_project
-                    core_project.storage_allowance = storage_request.request_allowance * 1024
+                    core_project.storage_allowance = storage_request.request_allowance * 1024 ** 3
                     core_project.save()
 
                 notification.storage_response_notify(storage_request)
@@ -394,8 +400,17 @@ def published_projects(request):
     List of published projects
     """
     projects = PublishedProject.objects.all().order_by('publish_datetime')
-    # title, submitting author, creation date, published,
     return render(request, 'console/published_projects.html',
+        {'projects':projects})
+
+@login_required
+@user_passes_test(is_admin)
+def rejected_submissions(request):
+    """
+    List of rejected submissions
+    """
+    projects = ArchivedProject.objects.filter(archive_reason=3).order_by('archive_datetime')
+    return render(request, 'console/rejected_submissions.html',
         {'projects':projects})
 
 

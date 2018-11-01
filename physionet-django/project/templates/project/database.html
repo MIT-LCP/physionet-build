@@ -18,13 +18,11 @@
     {{ published_project.access_policy|access_badge|safe }}
   </p>
   <h1 class="form-signin-heading">{{ published_project.title }}</h1>
-  <p class="text-muted">
+  <p>
     <strong>Authors:
-    {% for author in author_info %}
-      <a title="{{ author.affiliations }}">{{ author.name }}</a>
-      {% if forloop.counter < author_info|length|add:"-1" %}
-      ,&nbsp;
-      {% endif %}
+    {% for author in authors %}
+      {{ author|show_author_info|safe }}
+      {% if forloop.counter < authors|length %},&nbsp;{% endif %}
     {% endfor %}
     </strong>
   </p>
@@ -157,8 +155,7 @@
     </div>
     <!-- /.sidebar -->
   </div>
-
-  <br><br>
+  <h2>Files</h2>
   {% if published_project.access_policy %}
     {% include "project/protected_files_panel.html" %}
   {% else %}
@@ -167,4 +164,8 @@
   <br>
 
 </div>
+{% endblock %}
+
+{% block local_js_bottom %}
+<script type="text/javascript" src="{% static 'custom/js/enable-popover.js' %}"></script>
 {% endblock %}

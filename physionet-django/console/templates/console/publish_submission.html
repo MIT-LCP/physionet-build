@@ -4,12 +4,18 @@
 
 {% block title %}Publish Submission{% endblock %}
 
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'project/css/submission-timeline.css' %}">
+{% endblock %}
+
 {% block local_js_top %}
 <script type="text/javascript" src="{% static 'custom/js/copy-to-clipboard.js' %}"></script>
 {% endblock %}
 
 {% block content %}
-{% include "console/project_info_card.html" %}
+<h1>Publish Submission - {{ project.title }}</h1>
+<hr>
+{% include "console/submission_info_card.html" %}
 
 <div class="card mb-3">
   <div class="card-header">

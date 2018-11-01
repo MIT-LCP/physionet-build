@@ -17,9 +17,10 @@ from django.utils import timezone
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
-from .forms import AddEmailForm, AssociatedEmailChoiceForm, ProfileForm, UserCreationForm, UsernameChangeForm
+from .forms import AddEmailForm, AssociatedEmailChoiceForm, ProfileForm, RegistrationForm, UsernameChangeForm
 from .models import AssociatedEmail, Profile, User
 from physionet import utility
+from project.models import Author
 
 
 logger = logging.getLogger(__name__)
@@ -72,7 +73,15 @@ def set_primary_email(request, primary_email_form):
             logger.info('Primary email changed from: {0} to {1}'.format(user.email, associated_email.email))
             user.email = associated_email.email
             user.save(update_fields=['email'])
+            # Change the email field of author objects belonging to
+            # the user. Warn them if they are the corresponding
+            # author of any projects
+            authors = Author.objects.filter(user=user)
+            authors.update(corresponding_email=associated_email)
             messages.success(request, 'Your email: {0} has been set as your new primary email.'.format(user.email))
+            if authors.filter(is_corresponding=True):
+                messages.info(request, 'The corresponding email in all your authoring projects has been set to your new primary email.')
+
 
 def set_public_email(request, public_email_form):
     "Set the selected email as the public email"
@@ -221,7 +230,7 @@ def register(request):
         return redirect('user_home')
 
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = RegistrationForm(request.POST)
         if form.is_valid():
             # Create the new user
             user = form.save()
@@ -238,7 +247,7 @@ def register(request):
             # Registration successful
             return render(request, 'user/register_done.html', {'email':user.email})
     else:
-        form = UserCreationForm()
+        form = RegistrationForm()
 
     return render(request, 'user/register.html', {'form':form})
 

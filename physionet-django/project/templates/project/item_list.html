@@ -26,6 +26,11 @@
           {% for field in form.visible_fields %}
             {{ field.label }}
             {{ field }}
+            {% for error in field.errors %}
+              <div class="alert alert-danger">
+                <strong>{{ error|escape }}</strong>
+              </div>
+            {% endfor %}
           {% endfor %}
           {% for field in form.hidden_fields %}
             {{ field }}
@@ -33,6 +38,11 @@
         {% else %}
           {% for field in form %}
             {{ field }}
+            {% for error in field.errors %}
+              <div class="alert alert-danger">
+                <strong>{{ error|escape }}</strong>
+              </div>
+            {% endfor %}
           {% endfor %}
         {% endif %}
         {% for error in form.non_field_errors %}

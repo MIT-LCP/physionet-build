@@ -11,6 +11,7 @@ urlpatterns = [
         name='project_overview_redirect'),
     url(r'^(?P<project_slug>\w+)/overview/$', views.project_overview,
         name='project_overview'),
+    url(r'^delete-project-success/$', views.delete_project_success, name='delete_project_success'),
 
     url(r'^(?P<project_slug>\w+)/authors/$', views.project_authors,
         name='project_authors'),
@@ -51,6 +52,9 @@ urlpatterns = [
         name='check_integrity'),
     url(r'^(?P<project_slug>\w+)/submission/$', views.project_submission,
         name='project_submission'),
-    url(r'^(?P<project_slug>\w+)/submission/(?P<submission_number>\d+)/$',
-        views.project_submission_details, name='project_submission_details'),
+
+    url(r'^rejected/(?P<project_slug>\w+)/submission-history/$', views.rejected_submission_history,
+        name='rejected_submission_history'),
+    url(r'^published/(?P<project_slug>\w+)/submission-history/$', views.published_submission_history,
+        name='published_submission_history'),
 ]

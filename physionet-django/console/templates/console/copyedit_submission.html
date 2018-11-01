@@ -4,6 +4,10 @@
 
 {% block title %}Copyedit Submission{% endblock %}
 
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'project/css/submission-timeline.css' %}">
+{% endblock %}
+
 {% block local_js_top %}
 <script type="text/javascript" src="{% static 'custom/js/cookie.js' %}"></script>
 <script type="text/javascript" src="{% static 'project/js/dynamic-formset.js' %}"></script>
@@ -13,7 +17,7 @@
 {% block content %}
 <h1>Copyedit Project: {{ project }}</h1>
 <hr>
-{% include "console/project_info_card.html" %}
+{% include "console/submission_info_card.html" %}
 
 <div class="card">
   <div class="card-header">

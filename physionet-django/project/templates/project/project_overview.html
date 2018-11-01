@@ -29,5 +29,30 @@
 {% include "about/preparation_checklist.html" %}
 <hr>
 
+{% if is_submitting %}
+  <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#delete-project-modal" {% if under_submission %}disabled title="Cannot delete while under submission"{% endif %}>Delete Project</button>
+  <div class="modal fade" id="delete-project-modal" tabindex="-1" role="dialog" aria-labelledby="delete-project-modal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Delete Project</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form action="" method="post">
+          <div class="modal-body">
+            {% csrf_token %}
+            <p>Are you sure you wish to delete your project?</p>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-danger" name="delete_project" type="submit" {% if under_submission %}disabled title="Cannot delete while under submission"{% endif %}>Delete Project</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endif %}
 
 {% endblock %}

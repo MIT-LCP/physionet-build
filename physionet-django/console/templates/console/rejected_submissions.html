@@ -1,28 +1,36 @@
 {% extends "console/base_console.html" %}
 
-{% block title %}Unsubmitted Projects{% endblock %}
+{% block title %}Rejected Submissions{% endblock %}
 
 {% block content %}
- <div class="card mb-3">
+<div class="card mb-3">
   <div class="card-header">
-    <i class="fas fa-gavel"></i>Unsubmitted Projects <span class="badge badge-pill badge-info">{{ projects|length}}</span>
+    <i class="far fa-hand-paper"></i> Rejected Submissions <span class="badge badge-pill badge-info">{{ projects|length}}</span>
   </div>
   <div class="card-body">
     <div class="table-responsive">
-      <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+      <table class="table table-bordered">
         <thead>
           <tr>
             <th>Project</th>
+            <th>Submission History</th>
+            <th>Version</th>
             <th>Submitting Author</th>
+            <th>Editor</th>
             <th>Creation Date</th>
+            <th>Rejection Date</th>
           </tr>
         </thead>
         <tbody>
         {% for project in projects %}
           <tr>
-            <td><a href="{% url 'project_preview' project.slug %}">{{ project.title }}</a></td>
+            <td>{{ project.title }}</td>
+            <td><a href="{% url 'rejected_submission_history' project.slug %}">View History</a></td>
+            <td>{{ project.version }}</td>
             <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</td>
+            <td>{{ project.editor }}</td>
             <td>{{ project.creation_datetime|date }}</td>
+            <td>{{ project.archive_datetime|date }}</td>
           </tr>
         {% endfor %}
         </tbody>

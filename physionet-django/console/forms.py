@@ -15,7 +15,7 @@ RESPONSE_CHOICES = (
 SUBMISSION_RESPONSE_CHOICES = (
     ('', '-----------'),
     (2, 'Accept'),
-    (1, 'Resubmit with changes'),
+    (1, 'Resubmit with revisions'),
     (0, 'Reject'),
 )
 
@@ -40,11 +40,6 @@ class EditSubmissionForm(forms.ModelForm):
     """
     For an editor to make a decision regarding a submission.
     """
-    # Quality assurance fields for data
-    DATA_FIELDS = ('soundly_produced', 'well_described', 'open_format',
-        'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable')
-    SOFTWARE_FIELDS = ()
-
     class Meta:
         # Populated with fields and labels for both data and software
         # fields. The __init__ function removes unnecessary fields and
@@ -53,16 +48,10 @@ class EditSubmissionForm(forms.ModelForm):
         fields = ('soundly_produced', 'well_described', 'open_format',
             'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable',
             'editor_comments', 'decision')
-        labels = {
-            'soundly_produced':'The data is produced in a sound manner',
-            'well_described':'The data is adequately described',
-            'open_format':'The data files are provided in an open format',
-            'data_machine_readable':'The data files are machine readable',
-            'reusable':'All the information needed for reuse is present',
-            'no_phi':'No protected health information is contained',
-            'pn_suitable':'The content is suitable for PhysioNet',
-            'editor_comments':'Comments to authors',
-        }
+        # The labels are stored in the model because it requires them
+        # to render results without using this form
+        labels = EditLog.labels
+
         widgets = {
             'soundly_produced':forms.Select(choices=YES_NO),
             'well_described':forms.Select(choices=YES_NO),
@@ -82,17 +71,15 @@ class EditSubmissionForm(forms.ModelForm):
         """
         super().__init__(*args, **kwargs)
         self.resource_type = resource_type
-        if resource_type == 0:
-            for f in set(self.__class__.SOFTWARE_FIELDS) - set(self.__class__.DATA_FIELDS):
-                del(self.fields[f])
-            for f in self.__class__.DATA_FIELDS:
-                self.fields[f].required = True
+        # Remove quality assurance fields for resources of other
+        # categories, and enforce the requirement for those of this
+        # category
+        self.quality_assurance_fields = EditLog.QUALITY_ASSURANCE_FIELDS[resource_type]
 
-        elif resource_type == 1:
-            for f in set(SOFTWARE_FIELDS) - set(DATA_FIELDS):
-                del(self.fields[f])
-            for f in DATA_FIELDS:
-                self.fields[f].required = True
+        for f in self.quality_assurance_fields:
+            self.fields[f].required = True
+        for f in set(self.fields) - set(self.quality_assurance_fields + EditLog.EDITOR_FIELDS):
+            del(self.fields[f])
 
     def clean(self):
         """
@@ -101,11 +88,20 @@ class EditSubmissionForm(forms.ModelForm):
         if self.errors:
             return
 
-        if self.cleaned_data['decision'] != 3:
-            for field in self.__class__.DATA_FIELDS:
+        if self.cleaned_data['decision'] == 2:
+            for field in self.quality_assurance_fields:
                 if not self.cleaned_data[field]:
                     raise forms.ValidationError(
                         'The quality assurance fields must all pass before you accept the project')
+
+    def set_quality_assurance_results(self):
+        """
+        Prepare the string fields for the editor's decisions of the
+        quality assurance fields, to be used in notifications
+        """
+        self.instance.quality_assurance_results = (
+            '{} : {}'.format(self.fields[f].label,
+            self.cleaned_data[f]) for f in self.quality_assurance_fields)
 
     def save(self):
         """
@@ -114,22 +110,27 @@ class EditSubmissionForm(forms.ModelForm):
         edit_log = super().save()
         project = edit_log.project
         now = timezone.now()
-
+        # This object has to be saved first before calling reject, which
+        # edits the related EditLog objects (this).
+        edit_log.decision_datetime = now
+        edit_log.save()
         # Reject
         if edit_log.decision == 0:
-            pass
+            project.reject()
+            # Have to reload this object which is changed by the reject
+            # function
+            edit_log = EditLog.objects.get(id=edit_log.id)
         # Resubmit with revisions
         elif edit_log.decision == 1:
-            pass
+            project.submission_status = 30
+            project.revision_request_datetime = now
+            project.save()
         # Accept
         else:
             project.submission_status = 40
             project.editor_accept_datetime = now
             CopyeditLog.objects.create(project=project)
-
-        project.save()
-        edit_log.decision_datetime = now
-        edit_log.save()
+            project.save()
         return edit_log
 
 

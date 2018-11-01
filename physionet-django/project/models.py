@@ -15,8 +15,8 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.text import slugify
 
-from user.models import User
-from .utility import get_tree_size, get_file_info, get_directory_info, list_items
+from .utility import get_tree_size, get_file_info, get_directory_info, list_items, get_storage_info
+from user.validators import validate_alphaplus
 
 
 class Affiliation(models.Model):
@@ -24,7 +24,7 @@ class Affiliation(models.Model):
     Affiliations belonging to an author
 
     """
-    name = models.CharField(max_length=202)
+    name = models.CharField(max_length=202, validators=[validate_alphaplus])
     author = models.ForeignKey('project.Author', related_name='affiliations')
 
     class Meta:
@@ -33,7 +33,7 @@ class Affiliation(models.Model):
 
 class PublishedAffiliation(models.Model):
     "Affiliations belonging to a published author"
-    name = models.CharField(max_length=202)
+    name = models.CharField(max_length=202, validators=[validate_alphaplus])
     author = models.ForeignKey('project.PublishedAuthor',
         related_name='affiliations')
 
@@ -132,6 +132,15 @@ class PublishedAuthor(BaseAuthor):
         else:
             return ' '.join([self.first_name, self.last_name])
 
+    def set_display_info(self):
+        """
+        Set the fields used to display the author
+        """
+        self.name = self.get_full_name()
+        self.username = self.user.username
+        self.text_affiliations = [a.name for a in self.affiliations.all()]
+
+
 
 class Topic(models.Model):
     """
@@ -141,7 +150,7 @@ class Topic(models.Model):
     object_id = models.PositiveIntegerField()
     project = GenericForeignKey('content_type', 'object_id')
 
-    description = models.CharField(max_length=50)
+    description = models.CharField(max_length=50, validators=[validate_alphaplus])
 
     class Meta:
         unique_together = (('description', 'content_type', 'object_id'),)
@@ -156,7 +165,7 @@ class PublishedTopic(models.Model):
     """
     projects = models.ManyToManyField('project.PublishedProject',
         related_name='topics')
-    description = models.CharField(max_length=50)
+    description = models.CharField(max_length=50, validators=[validate_alphaplus])
 
     def __str__(self):
         return self.description
@@ -168,9 +177,9 @@ class Reference(models.Model):
     """
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
-    project_object = GenericForeignKey('content_type', 'object_id')
+    project = GenericForeignKey('content_type', 'object_id')
 
-    description = models.CharField(max_length=250)
+    description = models.CharField(max_length=250, validators=[validate_alphaplus])
 
     class Meta:
         unique_together = (('description', 'content_type', 'object_id'),)
@@ -180,7 +189,7 @@ class Reference(models.Model):
 
 
 class PublishedReference(models.Model):
-    description = models.CharField(max_length=250)
+    description = models.CharField(max_length=250, validators=[validate_alphaplus])
     project = models.ForeignKey('project.PublishedProject',
         related_name='references')
 
@@ -235,8 +244,11 @@ class CoreProject(models.Model):
     creation_datetime = models.DateTimeField(auto_now_add=True)
     # doi pointing to the latest version of the published project
     doi = models.CharField(max_length=50, default='')
-    # Maximum allowed storage capacity in MB
-    storage_allowance = models.PositiveIntegerField(default=100)
+    # Maximum allowed storage capacity in bytes.
+    # Default = 100Mb. Max = 10Tb
+    storage_allowance = models.BigIntegerField(default=104857600,
+        validators=[MaxValueValidator(109951162777600),
+                    MinValueValidator(104857600)])
 
 
 class Metadata(models.Model):
@@ -260,9 +272,8 @@ class Metadata(models.Model):
     )
 
     resource_type = models.PositiveSmallIntegerField(choices=RESOURCE_TYPES)
-
     # Main body descriptive metadata
-    title = models.CharField(max_length=200)
+    title = models.CharField(max_length=200, validators=[validate_alphaplus])
     abstract = RichTextField(max_length=10000, blank=True)
     background = RichTextField(blank=True)
     methods = RichTextField(blank=True)
@@ -293,18 +304,30 @@ class Metadata(models.Model):
     class Meta:
         abstract = True
 
-    def author_contact_info(self):
+    def author_contact_info(self, only_submitting=False):
         """
-        Get the names and emails of the project's authors
+        Get the names and emails of the project's authors.
         """
-        users = [a.user for a in self.authors.all()]
-        return ((u.email, u.get_full_name()) for u in users)
+        if only_submitting:
+            user = self.authors.get(is_submitting=True).user
+            return user.email, user.get_full_name
+        else:
+            users = [a.user for a in self.authors.all()]
+            return ((u.email, u.get_full_name()) for u in users)
 
     def corresponding_author(self):
         return self.authors.get(is_corresponding=True)
 
     def submitting_author(self):
         return self.authors.get(is_submitting=True)
+
+    def get_storage_info(self):
+        """
+        Return an object containing information about the project's
+        storage usage.
+        """
+        return get_storage_info(allowance=self.core_project.storage_allowance,
+            used=self.storage_used())
 
 
 class SubmissionInfo(models.Model):
@@ -316,8 +339,12 @@ class SubmissionInfo(models.Model):
     # The very first submission
     submission_datetime = models.DateTimeField(null=True)
     editor_assignment_datetime = models.DateTimeField(null=True)
+    # The last revision request (if any)
+    revision_request_datetime = models.DateTimeField(null=True)
+    # The last resubmission (if any)
+    resubmission_datetime = models.DateTimeField(null=True)
     editor_accept_datetime = models.DateTimeField(null=True)
-    # The very last copyedit
+    # The last copyedit (if any)
     copyedit_completion_datetime = models.DateTimeField(null=True)
     author_approval_datetime = models.DateTimeField(null=True)
 
@@ -342,6 +369,10 @@ class UnpublishedProject(models.Model):
     def __str__(self):
         return self.title
 
+    def file_root(self):
+        "Root directory containing the project's files"
+        return os.path.join(self.__class__.FILE_ROOT, self.slug)
+
 
 class ArchivedProject(Metadata, UnpublishedProject, SubmissionInfo):
     """
@@ -354,9 +385,11 @@ class ArchivedProject(Metadata, UnpublishedProject, SubmissionInfo):
     archive_datetime = models.DateTimeField(auto_now_add=True)
     archive_reason = models.PositiveSmallIntegerField()
 
-    def file_root(self):
-        "Root directory containing the project's files"
-        return os.path.join(settings.MEDIA_ROOT, 'archived-project', str(self.id))
+    # Where all the archived project files are kept
+    FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'archived-projects')
+
+    def __str__(self):
+        return ('{0} v{1}'.format(self.title, self.version))
 
 
 class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
@@ -367,7 +400,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     - 0 : Not submitted
     - 10 : Submitting author submits. Awaiting editor assignment.
     - 20 : Editor assigned. Awaiting editor decision.
-    - 30 : Accepted with revisions. Waiting for resubmission. Loops back
+    - 30 : Revisions requested. Waiting for resubmission. Loops back
           to 20 when author resubmits.
     - 40 : Accepted. In copyedit stage. Awaiting editor to copyedit.
     - 50 : Editor completes copyedit. Awaiting authors to approve.
@@ -376,6 +409,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     """
     submission_status = models.PositiveSmallIntegerField(default=0)
 
+    # Max number of active submitting projects a user is allowed to have
+    MAX_SUBMITTING_PROJECTS = 10
     INDIVIDUAL_FILE_SIZE_LIMIT = 10 * 1024**3
     # Where all the active project files are kept
     FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'active-projects')
@@ -386,10 +421,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                        1:['title', 'abstract', 'background', 'methods',
                           'content_description', 'conflicts_of_interest',
                           'version', 'license',]}
-
-    def file_root(self):
-        "Root directory containing the project's files"
-        return os.path.join(ActiveProject.FILE_ROOT, self.slug)
 
     def storage_used(self):
         "Total storage used in bytes"
@@ -463,14 +494,65 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             else:
                 return authors
 
-
-    def archive(self, reason):
+    def archive(self, archive_reason):
         """
         Archive the project. Create an ArchivedProject object, copy over
         the fields, and delete this object
         """
-        ArchivedProject.objects.create(archive_reason=reason)
-        self.delete()
+        archived_project = ArchivedProject(archive_reason=archive_reason)
+
+        # Direct copy over fields
+        for attr in [
+                # Management fields
+                'core_project', 'slug',
+                # Metadata info
+                'resource_type', 'title', 'abstract', 'background', 'methods',
+                'content_description', 'usage_notes', 'acknowledgements',
+                'conflicts_of_interest', 'version', 'access_policy',
+                'changelog_summary', 'access_policy', 'license',
+                # Publishing info
+                'editor', 'creation_datetime', 'submission_datetime',
+                'editor_assignment_datetime', 'editor_accept_datetime',
+                'copyedit_completion_datetime', 'author_approval_datetime',
+                'version_order']:
+            setattr(archived_project, attr, getattr(self, attr))
+
+        archived_project.save()
+
+        # Redirect the related objects
+        for reference in self.references.all():
+            reference.project = archived_project
+            reference.save()
+        for publication in self.publications.all():
+            publication.project = archived_project
+            publication.save()
+        for topic in self.topics.all():
+            topic.project = archived_project
+            topic.save()
+        for author in self.authors.all():
+            author.project = archived_project
+            author.save()
+        for edit_log in self.edit_logs.all():
+            edit_log.project = archived_project
+            edit_log.save()
+        for copyedit_log in self.copyedit_logs.all():
+            copyedit_log.project = archived_project
+            copyedit_log.save()
+
+        # Voluntary delete
+        if archive_reason == 1:
+            self.clear_files()
+        else:
+            # Move over files
+            os.rename(self.file_root(), archived_project.file_root())
+        return self.delete()
+
+    def fake_delete(self):
+        """
+        Appear to delete this project. Actually archive it.
+        """
+        self.archive(archive_reason=1)
+
 
     def check_integrity(self):
         """
@@ -520,9 +602,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
     def is_submittable(self):
         "Whether the project can be submitted"
-        if not self.under_submission() and self.check_integrity():
-            return True
-        return False
+        return (not self.under_submission() and self.check_integrity())
 
     def submit(self):
         """
@@ -552,6 +632,26 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         self.editor_assignment_datetime = timezone.now()
         self.save()
 
+    def reject(self):
+        "Reject a project under submission"
+        self.archive(archive_reason=3)
+
+    def is_resubmittable(self):
+        """
+        Submit the project for review.
+        """
+        return (self.submission_status == 30 and self.check_integrity())
+
+    def resubmit(self):
+        if not self.is_resubmittable():
+            raise Exception('ActiveProject is not resubmittable')
+
+        self.submission_status = 20
+        self.resubmission_datetime = timezone.now()
+        self.save()
+        # Create a new edit log
+        EditLog.objects.create(project=self, is_resubmission=True)
+
     def reopen_copyedit(self):
         """
         Reopen the project for copyediting
@@ -560,7 +660,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             self.submission_status = 40
             self.copyedit_completion_datetime = None
             self.save()
-            CopyeditLog.objects.create(project=self)
+            CopyeditLog.objects.create(project=self, is_reedit=True)
             self.authors.all().update(approval_datetime=None)
 
     def approve_author(self, author):
@@ -585,6 +685,19 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         return len(authors) == len(authors.filter(
             approval_datetime__isnull=False))
 
+    def info_card(self):
+        """
+        Get all the information needed for the submission info card
+        seen by an admin/editor
+        """
+        authors, author_emails = self.get_author_info(include_emails=True)
+        storage_info = self.get_storage_info()
+        edit_logs = self.edit_logs.all()
+        for e in edit_logs:
+            e.set_quality_assurance_results()
+        copyedit_logs = self.copyedit_logs.all()
+        return authors, author_emails, storage_info, edit_logs, copyedit_logs
+
     def is_publishable(self):
         """
         Check whether a project may be published
@@ -593,15 +706,11 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             return True
         return False
 
-    def cleanup_files(self):
+    def clear_files(self):
         """
         Delete the project file directory
         """
-        project_root = project.file_root()
-        if os.path.islink(project_root):
-            os.unlink(project_root)
-        elif os.path.isdir(project_root):
-            shutil.rmtree(project_root)
+        shutil.rmtree(self.file_root())
 
     def publish(self, make_zip=True):
         """
@@ -615,26 +724,22 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
         # Direct copy over fields
         for attr in [
+                # Management fields
+                'core_project', 'slug',
                 # Metadata info
-                'title', 'abstract', 'background', 'methods',
+                'resource_type', 'title', 'abstract', 'background', 'methods',
                 'content_description', 'usage_notes', 'acknowledgements',
-                'conflicts_of_interest', 'version', 'resource_type',
-                'access_policy', 'changelog_summary', 'access_policy',
-                'license',
+                'conflicts_of_interest', 'version', 'access_policy',
+                'changelog_summary', 'access_policy', 'license',
                 # Publishing info
                 'editor', 'creation_datetime', 'submission_datetime',
                 'editor_assignment_datetime', 'editor_accept_datetime',
                 'copyedit_completion_datetime', 'author_approval_datetime',
-                'version_order', 'core_project']:
+                'version_order']:
             setattr(published_project, attr, getattr(self, attr))
 
         # New fields
         published_project.storage_size = self.storage_used()
-        # Generate a new slug
-        slug = get_random_string(20)
-        while PublishedProject.objects.filter(slug=slug):
-            slug = get_random_string(20)
-        published_project.slug = slug
         published_project.save()
 
         # Same content, different objects.
@@ -815,7 +920,7 @@ class PublishedProject(Metadata, SubmissionInfo):
             if self.access_policy:
                 file_info.full_file_name = os.path.join(subdir, file)
             else:
-                file_info.static_url = os.path.join('published-project', str(self.id), subdir, file)
+                file_info.static_url = os.path.join('published-projects', str(self.slug), subdir, file)
             display_files.append(file_info)
 
         # Directories require
@@ -825,6 +930,14 @@ class PublishedProject(Metadata, SubmissionInfo):
             display_dirs.append(dir_info)
 
         return display_files, display_dirs
+
+
+def exists_project_slug(slug):
+    if (ActiveProject.objects.filter(slug=slug)
+            or ArchivedProject.objects.filter(slug=slug)
+            or PublishedProject.objects.filter(slug=slug)):
+        return True
+    return False
 
 
 class License(models.Model):
@@ -942,9 +1055,9 @@ class StorageRequest(BaseInvitation):
     """
     A request for storage capacity for a project
     """
-    # Requested storage size in GB
+    # Requested storage size in GB. Max = 10Tb
     request_allowance = models.SmallIntegerField(
-        validators=[MaxValueValidator(100), MinValueValidator(1)])
+        validators=[MaxValueValidator(10240), MinValueValidator(1)])
     responder = models.ForeignKey('user.User', null=True)
     response_message = models.CharField(max_length=50, default='', blank=True)
 
@@ -958,6 +1071,26 @@ class EditLog(models.Model):
     Log for an editor decision
 
     """
+    # Quality assurance fields for data and software
+    QUALITY_ASSURANCE_FIELDS = (
+        ('soundly_produced', 'well_described', 'open_format',
+        'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable'),
+        (),
+    )
+    # The editor's free input fields
+    EDITOR_FIELDS = ('editor_comments', 'decision')
+
+    labels = {
+        'soundly_produced':'The data is produced in a sound manner',
+        'well_described':'The data is adequately described',
+        'open_format':'The data files are provided in an open format',
+        'data_machine_readable':'The data files are machine readable',
+        'reusable':'All the information needed for reuse is present',
+        'no_phi':'No protected health information is contained',
+        'pn_suitable':'The content is suitable for PhysioNet',
+        'editor_comments':'Comments to authors',
+    }
+
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     project = GenericForeignKey('content_type', 'object_id')
@@ -977,7 +1110,22 @@ class EditLog(models.Model):
     decision = models.SmallIntegerField(null=True)
     decision_datetime = models.DateTimeField(null=True)
     # Comments for the decision
-    editor_comments = models.CharField(max_length=800)
+    editor_comments = models.CharField(max_length=2500)
+
+    def set_quality_assurance_results(self):
+        """
+        Prepare the string fields for the editor's decisions of the
+        quality assurance fields, to be displayed. Does nothing if the
+        decision has not been made.
+        """
+        if not self.decision_datetime:
+            return
+
+        NO_YES = ('No', 'Yes')
+
+        quality_assurance_fields = self.__class__.QUALITY_ASSURANCE_FIELDS[self.project.resource_type]
+        self.quality_assurance_results = ['{}: {}'.format(
+            self.__class__.labels[f], NO_YES[getattr(self, f)]) for f in quality_assurance_fields]
 
 
 class CopyeditLog(models.Model):
@@ -988,10 +1136,12 @@ class CopyeditLog(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     project = GenericForeignKey('content_type', 'object_id')
-
+    # Either the time the project was accepted and moved into copyedit
+    # from the edit stage, or the time it was reopened for copyedit from
+    # the author approval stage.
     start_datetime = models.DateTimeField(auto_now_add=True)
     # Whether the submission was reopened for copyediting
     is_reedit = models.BooleanField(default=False)
     made_changes = models.NullBooleanField(null=True)
-    changelog_summary = models.CharField(default='', max_length=800, blank=True)
+    changelog_summary = models.CharField(default='', max_length=2500, blank=True)
     complete_datetime = models.DateTimeField(null=True)

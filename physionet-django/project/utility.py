@@ -8,16 +8,6 @@ from django.conf import settings
 from django.http import HttpResponse, Http404
 
 
-class AuthorInfo():
-    """
-    For displaying author information
-    """
-    def __init__(self, author):
-        self.name = author.get_full_name()
-        self.affiliations = [a.name for a in author.affiliations.all()]
-        self.affiliations = '\n'.join(self.affiliations)
-
-
 class FileInfo():
     """
     For displaying lists of files in project pages
@@ -120,12 +110,6 @@ def move_items(items, target_folder):
     """
     for item in items:
         os.rename(item, os.path.join(target_folder, os.path.split(item)[-1]))
-
-
-def get_project_file_info(file_path, sub_dir):
-    file_info = get_file_info(file_path)
-    file_info.media_url = os.path.join(settings.MEDIA_ROOT, )
-    return file_info
 
 def get_file_info(file_path):
     "Given a file path, get the information used to display it"

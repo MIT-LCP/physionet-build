@@ -46,17 +46,13 @@
     {{ project.resource_type|resource_badge|safe }}
     {{ project.access_policy|access_badge|safe }}
   </p>
-  <h1 class="form-signin-heading"><em>[Preview]:</em> {{ project.title }} {% if admin_inspect %}
-    (<i class="fas fa-user-secret" title="Admin Inspection"></i>)
-    {% endif %}
+  <h1 class="form-signin-heading"><em>[Preview]:</em> {{ project.title }}
   </h1>
-  <p class="text-muted">
+  <p>
     <strong>Authors:
-    {% for author in author_info %}
-      <a title="{{ author.affiliations }}">{{ author.name }}</a>
-      {% if forloop.counter < author_info|length|add:"-1" %}
-        ,&nbsp;
-      {% endif %}
+    {% for author in authors %}
+      {{ author|show_author_info|safe }}
+      {% if forloop.counter < authors|length %},&nbsp;{% endif %}
     {% endfor %}
     {% for invitation in invitations %}
       <a style="color:red">* Outstanding Invitation: {{ invitation.email }}</a>
@@ -224,7 +220,7 @@
         <div class="card-body">
           <p>
             <strong>Name:</strong> {{ corresponding_author.get_full_name }}<br>
-            <strong>Affiliations:</strong> {{ corresponding_author.display_affiliation }}<br>
+            <strong>Affiliations:</strong> {{ corresponding_author.text_affiliations }}<br>
             <strong>Email:</strong> {{ corresponding_author.corresponding_email }}
           </p>
         </div>
@@ -232,10 +228,13 @@
     </div>
       <!-- /.sidebar -->
   </div>
-
-  <br><br>
+  <h2>Files</h2>
   {% include "project/preview_files_panel.html" %}
   <br>
 
 </div>
+{% endblock %}
+
+{% block local_js_bottom %}
+<script type="text/javascript" src="{% static 'custom/js/enable-popover.js' %}"></script>
 {% endblock %}

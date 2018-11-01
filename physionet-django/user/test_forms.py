@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from user.forms import (AssociatedEmailChoiceForm, AddEmailForm,
-    LoginForm, ProfileForm, UserCreationForm)
+    LoginForm, ProfileForm, RegistrationForm)
 from user.models import User
 
 
@@ -64,7 +64,7 @@ class TestForms(TestCase):
         self.run_test_forms({'last_name': ['This field is required.']})
 
     def test_user_creation_form(self):
-        self.create_test_forms(UserCreationForm, {'email':'tester0@mit.edu',
+        self.create_test_forms(RegistrationForm, {'email':'tester0@mit.edu',
             'username':'The-Tester', 'first_name':'Tester', 'middle_names':'Mid',
             'last_name':'Bot','password1':'Very5trongt0t@11y',
             'password2':'Very5trongt0t@11y'},{'email':'tester0@mit.edu',
