@@ -1113,7 +1113,7 @@ class EditLog(models.Model):
     # The editor's free input fields
     EDITOR_FIELDS = ('editor_comments', 'decision')
 
-    labels = {
+    COMMON_LABELS = {
         'soundly_produced':'The data is produced in a sound manner',
         'well_described':'The data is adequately described',
         'open_format':'The data files are provided in an open format',
@@ -1122,6 +1122,10 @@ class EditLog(models.Model):
         'no_phi':'No protected health information is contained',
         'pn_suitable':'The content is suitable for PhysioNet',
         'editor_comments':'Comments to authors',
+    }
+
+    LABELS = {
+
     }
 
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
@@ -1154,11 +1158,13 @@ class EditLog(models.Model):
         if not self.decision_datetime:
             return
 
+        resource_type = self.project.resource_type
+
         NO_YES = ('No', 'Yes')
 
         quality_assurance_fields = self.__class__.QUALITY_ASSURANCE_FIELDS[self.project.resource_type]
         self.quality_assurance_results = ['{}: {}'.format(
-            self.__class__.labels[f], NO_YES[getattr(self, f)]) for f in quality_assurance_fields]
+            self.__class__.LABELS[f], NO_YES[getattr(self, f)]) for f in quality_assurance_fields]
 
 
 class CopyeditLog(models.Model):

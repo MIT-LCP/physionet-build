@@ -40,6 +40,21 @@ class EditSubmissionForm(forms.ModelForm):
     """
     For an editor to make a decision regarding a submission.
     """
+
+    FIELDS = (
+        ('title', 'abstract', 'background', 'methods', 'content_description',
+         'usage_notes', 'subject_identifiers', 'acknowledgements',
+         'conflicts_of_interest', 'version', 'changelog_summary'),
+        ('title', 'abstract', 'background', 'methods', 'content_description',
+         'usage_notes', 'installation', 'acknowledgements',
+         'conflicts_of_interest', 'version', 'changelog_summary'),
+    )
+
+    LABELS = (
+        {'content_description': 'Data description'},
+        {'content_description': 'Software description'}
+    )
+
     class Meta:
         # Populated with fields and labels for both data and software
         # fields. The __init__ function removes unnecessary fields and
@@ -50,7 +65,7 @@ class EditSubmissionForm(forms.ModelForm):
             'editor_comments', 'decision')
         # The labels are stored in the model because it requires them
         # to render results without using this form
-        labels = EditLog.labels
+        labels = EditLog.COMMON_LABELS
 
         widgets = {
             'soundly_produced':forms.Select(choices=YES_NO),
