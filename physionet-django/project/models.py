@@ -271,6 +271,10 @@ class Metadata(models.Model):
         (2, 'Credentialed'),
     )
 
+    # Fields which can be directly transferred between all types of
+    # projects
+    DIRECT_FIELDS = ()
+
     resource_type = models.PositiveSmallIntegerField(choices=RESOURCE_TYPES)
     # Main body descriptive metadata
     title = models.CharField(max_length=200, validators=[validate_alphaplus])
@@ -506,19 +510,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         archived_project = ArchivedProject(archive_reason=archive_reason)
 
         # Direct copy over fields
-        for attr in [
-                # Management fields
-                'core_project', 'slug',
-                # Metadata info
-                'resource_type', 'title', 'abstract', 'background', 'methods',
-                'content_description', 'usage_notes', 'acknowledgements',
-                'conflicts_of_interest', 'version', 'access_policy',
-                'changelog_summary', 'access_policy', 'license',
-                # Publishing info
-                'editor', 'creation_datetime', 'submission_datetime',
-                'editor_assignment_datetime', 'editor_accept_datetime',
-                'copyedit_completion_datetime', 'author_approval_datetime',
-                'version_order']:
+        for attr in [f.name for f in Metadata._meta.fields] + [f.name for f in SubmissionInfo._meta.fields] + ['modified_datetime']:
             setattr(archived_project, attr, getattr(self, attr))
 
         archived_project.save()
@@ -727,19 +719,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         published_project = PublishedProject()
 
         # Direct copy over fields
-        for attr in [
-                # Management fields
-                'core_project', 'slug',
-                # Metadata info
-                'resource_type', 'title', 'abstract', 'background', 'methods',
-                'content_description', 'usage_notes', 'acknowledgements',
-                'conflicts_of_interest', 'version', 'access_policy',
-                'changelog_summary', 'access_policy', 'license',
-                # Publishing info
-                'editor', 'creation_datetime', 'submission_datetime',
-                'editor_assignment_datetime', 'editor_accept_datetime',
-                'copyedit_completion_datetime', 'author_approval_datetime',
-                'version_order']:
+        for attr in [f.name for f in Metadata._meta.fields] + [f.name for f in SubmissionInfo._meta.fields]:
             setattr(published_project, attr, getattr(self, attr))
 
         # New fields
