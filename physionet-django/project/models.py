@@ -1107,26 +1107,27 @@ class EditLog(models.Model):
     # Quality assurance fields for data and software
     QUALITY_ASSURANCE_FIELDS = (
         ('soundly_produced', 'well_described', 'open_format',
-        'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable'),
-        (),
+         'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable'),
+        ('well_described', 'open_format', 'reusable', 'pn_suitable'),
     )
     # The editor's free input fields
     EDITOR_FIELDS = ('editor_comments', 'decision')
 
     COMMON_LABELS = {
-        'soundly_produced':'The data is produced in a sound manner',
-        'well_described':'The data is adequately described',
-        'open_format':'The data files are provided in an open format',
-        'data_machine_readable':'The data files are machine readable',
         'reusable':'All the information needed for reuse is present',
-        'no_phi':'No protected health information is contained',
         'pn_suitable':'The content is suitable for PhysioNet',
         'editor_comments':'Comments to authors',
     }
 
-    LABELS = {
-
-    }
+    LABELS = (
+        {'soundly_produced':'The data is produced in a sound manner',
+         'well_described':'The data is adequately described',
+         'open_format':'The data files are provided in an open format',
+         'data_machine_readable':'The data files are machine readable',
+         'no_phi':'No protected health information is contained'},
+        {'well_described':'The software is adequately described',
+         'open_format':'The software is provided in source format'}
+    )
 
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
@@ -1159,12 +1160,15 @@ class EditLog(models.Model):
             return
 
         resource_type = self.project.resource_type
-
         NO_YES = ('No', 'Yes')
+        # The quality assurance fields we want.
+        # Retrieve their labels and results.
+        quality_assurance_fields = self.__class__.QUALITY_ASSURANCE_FIELDS[resource_type]
+        # Create the labels dictionary for this resource type
+        labels = {**self.__class__.COMMON_LABELS, **self.__class__.LABELS[resource_type]}
 
-        quality_assurance_fields = self.__class__.QUALITY_ASSURANCE_FIELDS[self.project.resource_type]
         self.quality_assurance_results = ['{}: {}'.format(
-            self.__class__.LABELS[f], NO_YES[getattr(self, f)]) for f in quality_assurance_fields]
+            labels[f], NO_YES[getattr(self, f)]) for f in quality_assurance_fields]
 
 
 class CopyeditLog(models.Model):

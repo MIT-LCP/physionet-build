@@ -948,6 +948,19 @@ def database(request, published_project):
     Displays a published database project.
     Helper function to `published_project` view.
     """
+
+
+    return render(request, 'project/database.html',
+        )
+
+
+def published_project(request, published_project_slug):
+    """
+    Displays a published project
+    """
+
+    published_project = PublishedProject.objects.get(slug=published_project_slug)
+
     authors = published_project.authors.all().order_by('display_order')
     for a in authors:
         a.set_display_info()
@@ -960,20 +973,13 @@ def database(request, published_project):
     dir_breadcrumbs = utility.get_dir_breadcrumbs('')
     total_size = utility.readable_size(published_project.storage_size)
 
-    return render(request, 'project/database.html',
-        {'published_project':published_project, 'authors':authors,
-         'references':references, 'publications':publications, 'topics':topics,
-         'contact':contact, 'dir_breadcrumbs':dir_breadcrumbs,
-         'total_size':total_size, 'display_files':display_files,
-         'display_dirs':display_dirs})
+    context = {'published_project':published_project, 'authors':authors,
+        'references':references, 'publications':publications, 'topics':topics,
+        'contact':contact, 'dir_breadcrumbs':dir_breadcrumbs,
+        'total_size':total_size, 'display_files':display_files,
+        'display_dirs':display_dirs}
 
+    if published_project.resource_type == 1:
+        pass
 
-def published_project(request, published_project_slug):
-    """
-    Displays a published project
-    """
-
-    published_project = PublishedProject.objects.get(slug=published_project_slug)
-
-    if published_project.resource_type == 0:
-        return database(request, published_project)
+    return render(request, 'project/published_project.html', context)

@@ -39,22 +39,12 @@ class AssignEditorForm(forms.Form):
 class EditSubmissionForm(forms.ModelForm):
     """
     For an editor to make a decision regarding a submission.
+    Fields are specified for each resource type
+
+    The labels are stored in the model because it requires them to
+    render results without using this form
+
     """
-
-    FIELDS = (
-        ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'subject_identifiers', 'acknowledgements',
-         'conflicts_of_interest', 'version', 'changelog_summary'),
-        ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'installation', 'acknowledgements',
-         'conflicts_of_interest', 'version', 'changelog_summary'),
-    )
-
-    LABELS = (
-        {'content_description': 'Data description'},
-        {'content_description': 'Software description'}
-    )
-
     class Meta:
         # Populated with fields and labels for both data and software
         # fields. The __init__ function removes unnecessary fields and
@@ -63,8 +53,7 @@ class EditSubmissionForm(forms.ModelForm):
         fields = ('soundly_produced', 'well_described', 'open_format',
             'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable',
             'editor_comments', 'decision')
-        # The labels are stored in the model because it requires them
-        # to render results without using this form
+
         labels = EditLog.COMMON_LABELS
 
         widgets = {
@@ -79,22 +68,27 @@ class EditSubmissionForm(forms.ModelForm):
             'decision':forms.Select(choices=SUBMISSION_RESPONSE_CHOICES)
         }
 
-    def __init__(self, resource_type=0, *args, **kwargs):
+    def __init__(self, resource_type, *args, **kwargs):
         """
-        Set the appropriate fields for the given resource type, and
-        set the choice fields to required.
+        Set the appropriate fields/labels for the given resource type,
+        and make them required. Remove irrelevant fields.
         """
         super().__init__(*args, **kwargs)
         self.resource_type = resource_type
-        # Remove quality assurance fields for resources of other
-        # categories, and enforce the requirement for those of this
-        # category
+
+        # This will be used in clean
         self.quality_assurance_fields = EditLog.QUALITY_ASSURANCE_FIELDS[resource_type]
 
+        rm_fields = set(self.base_fields) - set(self.quality_assurance_fields) - set(EditLog.EDITOR_FIELDS)
+        for f in rm_fields:
+            del(self.fields[f])
+
+        for l in EditLog.LABELS[resource_type]:
+            self.fields[l].label = EditLog.LABELS[resource_type][l]
+
+        # Enforce the requirement of quality assurance fields
         for f in self.quality_assurance_fields:
             self.fields[f].required = True
-        for f in set(self.fields) - set(self.quality_assurance_fields + EditLog.EDITOR_FIELDS):
-            del(self.fields[f])
 
     def clean(self):
         """
@@ -108,15 +102,6 @@ class EditSubmissionForm(forms.ModelForm):
                 if not self.cleaned_data[field]:
                     raise forms.ValidationError(
                         'The quality assurance fields must all pass before you accept the project')
-
-    def set_quality_assurance_results(self):
-        """
-        Prepare the string fields for the editor's decisions of the
-        quality assurance fields, to be used in notifications
-        """
-        self.instance.quality_assurance_results = (
-            '{} : {}'.format(self.fields[f].label,
-            self.cleaned_data[f]) for f in self.quality_assurance_fields)
 
     def save(self):
         """
