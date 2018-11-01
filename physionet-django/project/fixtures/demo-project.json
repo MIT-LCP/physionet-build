@@ -420,7 +420,7 @@
     "version": "1.0.0",
     "changelog_summary": "",
     "access_policy": 0,
-    "license": null,
+    "license": 3,
     "data_use_agreement": null,
     "project_home_page": "https://physionet.org/physiotools/wfdb.shtml",
     "slug": "kadzWaIVz0DQd72mL1cm",
@@ -435,7 +435,7 @@
     "editor_accept_datetime": null,
     "copyedit_completion_datetime": null,
     "author_approval_datetime": null,
-    "modified_datetime": "2018-11-01T18:31:55.570Z",
+    "modified_datetime": "2018-11-01T19:14:54.420Z",
     "submission_status": 0
   }
 },
@@ -554,20 +554,6 @@
     "inviter": [
       "rgmark"
     ]
-  }
-},
-{
-  "model": "project.storagerequest",
-  "pk": 1,
-  "fields": {
-    "project": 3,
-    "request_datetime": "2017-10-30T14:30:30Z",
-    "response_datetime": null,
-    "response": null,
-    "is_active": true,
-    "request_allowance": 1,
-    "responder": null,
-    "response_message": ""
   }
 },
 {
