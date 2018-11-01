@@ -338,7 +338,9 @@ class CreateProjectForm(forms.ModelForm):
 class MetadataForm(forms.ModelForm):
     """
     Form for editing the metadata of a project.
-    Fields are defined for various resource types.
+    Fields, labels, and help texts may be defined differently for
+    different resource types.
+
     """
 
     FIELDS = (
@@ -351,15 +353,15 @@ class MetadataForm(forms.ModelForm):
     )
 
     LABELS = (
-        {'methods': '* The methodology employed for the study or research. Describe how the data was collected.',,
-         'content_description': 'Data description'},
-        {'methods': '* The methodology employed for the study or research.',
-         'content_description': 'Software description'}
+        {'content_description': 'Data description'},
+        {'content_description': 'Software description'}
     )
 
     HELP_TEXTS = (
-        {'usage_notes': '* How the data is to be used. List any related software developed for the dataset, and any special software required to use the data.'},
-        {'usage_notes': '* How the software is to be used. List some example function calls.'}
+        {'methods': '* The methodology employed for the study or research. Describe how the data was collected.',
+         'usage_notes': '* How the data is to be used. List any related software developed for the dataset, and any special software required to use the data.'},
+        {'methods': '* The methodology employed for the study or research.',
+         'usage_notes': '* How the software is to be used. List some example function calls.'}
     )
 
     class Meta:

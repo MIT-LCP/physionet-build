@@ -1,402 +1,5 @@
 [
 {
-  "model": "project.topic",
-  "pk": 1,
-  "fields": {
-    "description": "ecg",
-        "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 1
-  }
-},
-{
-  "model": "project.topic",
-  "pk": 2,
-  "fields": {
-    "description": "arrthythmia",
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 2
-  }
-},
-{
-  "model": "project.topic",
-  "pk": 3,
-  "fields": {
-    "description": "critical care",
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 2
-  }
-},
-{
-  "model": "project.topic",
-  "pk": 4,
-  "fields": {
-    "description": "intensive care unit",
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 2
-  }
-},
-{
-  "model": "project.reference",
-  "pk": 1,
-  "fields": {
-    "description": "Charles, D., King, J., Patel, V. & Furukawa, M. Adoption of Electronic Health record Systems among U.S. Non-federal Acute Care Hospitals. ONC Data Brief No. 9, 1\u20139 (2013).",
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 2
-  }
-},
-{
-  "model": "project.reference",
-  "pk": 2,
-  "fields": {
-    "description": "Collins, F. S. & Tabak, L. A. NIH plans to enhance reproducibility. Nature 505, 612\u2013613 (2014).",
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 2
-  }
-},
-{
-  "model": "project.reference",
-  "pk": 3,
-  "fields": {
-    "description": "Pollard, T. J., & Johnson, A. E. W. The MIMIC-III Clinical Database http://dx.doi.org/10.13026/C2XW26 (2016)",
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 2
-  }
-},
-{
-  "model": "project.publication",
-  "pk": 1,
-  "fields": {
-    "citation": "Moody GB, Mark RG. The impact of the MIT-BIH Arrhythmia Database. IEEE Eng in Med and Biol 20(3):45-50 (May-June 2001). (PMID: 11446209)",
-    "url": "https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=932724",
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 1
-  }
-},
-{
-  "model": "project.publication",
-  "pk": 2,
-  "fields": {
-    "citation": "Johnson, A. E. W. et al. MIMIC-III, a freely accessible critical care database. Sci. Data 3:160035 doi: 10.1038/sdata.2016.35 (2016).",
-    "url": "https://www.nature.com/articles/sdata201635",
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 2
-  }
-},
-{
-  "model": "project.coreproject",
-  "pk": "950032c4-2d96-43d6-84d5-e1652f451a79",
-  "fields": {
-    "creation_datetime": "2017-10-30T14:30:30Z"
-  }
-},
-{
-  "model": "project.coreproject",
-  "pk": "2e780890-644d-4166-b0ca-e3d31596405b",
-  "fields": {
-    "creation_datetime": "2017-10-30T14:30:30Z"
-  }
-},
-{
-  "model": "project.coreproject",
-  "pk": "ba881793-f671-4215-9487-070c04bdb4e2",
-  "fields": {
-    "creation_datetime": "2017-10-30T14:30:30Z"
-  }
-},
-{
-  "model": "project.coreproject",
-  "pk": "ff038b01-14a2-4af1-9a7d-9f9845c45219",
-  "fields": {
-    "creation_datetime": "2017-10-30T14:30:30Z"
-  }
-},
-{
-  "model": "project.activeproject",
-  "pk": 1,
-  "fields": {
-    "core_project": "950032c4-2d96-43d6-84d5-e1652f451a79",
-    "resource_type": 0,
-    "title": "MIT-BIH Arrhythmia Database",
-    "abstract": "<p>The MIT-BIH Arrhythmia Database contains 48 half-hour excerpts of two-channel ambulatory ECG recordings, obtained from 47 subjects studied by the BIH Arrhythmia Laboratory between 1975 and 1979. Twenty-three recordings were chosen at random from a set of 4000 24-hour ambulatory ECG recordings collected from a mixed population of inpatients (about 60%) and outpatients (about 40%) at Boston&#39;s Beth Israel Hospital; the remaining 25 recordings were selected from the same set to include less common but clinically significant arrhythmias that would not be well-represented in a small random sample.</p>",
-    "background": "<p>Since 1975, our laboratories at Boston&#39;s Beth Israel Hospital (now the Beth Israel Deaconess Medical Center) and at MIT have supported our own research into arrhythmia analysis and related subjects. One of the first major products of that effort was the MIT-BIH Arrhythmia Database, which we completed and began distributing in 1980. The database was the first generally available set of standard test material for evaluation of arrhythmia detectors, and has been used for that purpose as well as for basic research into cardiac dynamics at more than 500 sites worldwide. Originally, we distributed the database on 9-track half-inch digital tape at 800 and 1600 bpi, and on quarter-inch IRIG-format FM analog tape. In August, 1989, we produced a CD-ROM version of the database.</p>",
-    "methods": "<p>The recordings were digitized at 360 samples per second per channel with 11-bit resolution over a 10 mV range. Two or more cardiologists independently annotated each record; disagreements were resolved to obtain the computer-readable reference annotations for each beat (approximately 110,000 annotations in all) included with the database.</p>\r\n\r\n<p>The charts for each recording were given to two cardiologists, who worked independently, adding additional beat labels and deleting false detections as necessary, and changing the labels for abnormal beats. The cardiologists also added rhythm and signal quality labels. At this point the two sets of annotations were compared automatically and another chart recording was printed, showing the cardiologists&rsquo; annotations in the margin, with all discrepancies highlighted. Each discrepancy was examined and resolved by consensus.</p>",
-    "content_description": "<p>This directory contains the entire MIT-BIH Arrhythmia Database. About half (25 of 48 complete records, and reference annotation files for all 48 records) of this database has been freely available here since PhysioNet&#39;s inception in September 1999. The 23 remaining signal files, which had been available only on the MIT-BIH Arrhythmia Database CD-ROM, were posted here in February 2005.</p>",
-    "usage_notes": "<p>Use one of the <a href=\"https://physionet.org/physiotools/wfdb.shtml\">WFDB</a> software package distributions to read the files. The WFDB record files contain the regularly sampled multichannel waveforms, and the <em>.atr annotation files contain the reference annotations.</em></p>",
-    "acknowledgements": "<p>Thank you to the cardiologists who labelled over 100000 heartbeats.</p>",
-    "conflicts_of_interest": "<p>The authors declare no conflicts of interest.</p>",
-    "version": "1.0.0",
-    "changelog_summary": "",
-    "access_policy": 0,
-    "license": 1,
-    "creation_datetime": "2017-10-30T14:30:30Z",
-    "modified_datetime": "2018-09-13T17:26:24.820Z",
-    "data_use_agreement": null,
-    "slug":"SHuKI1APLrwWCqxSQnSk"
-  }
-},
-{
-  "model": "project.activeproject",
-  "pk": 2,
-  "fields": {
-    "core_project": "ff038b01-14a2-4af1-9a7d-9f9845c45219",
-    "resource_type": 0,
-    "title": "MIMIC-III Clinical Database",
-    "abstract": "<p>MIMIC-III (Medical Information Mart for Intensive Care III) is a large, freely-available database comprising deidentified health-related data associated with over forty thousand patients who stayed in critical care units of the Beth Israel Deaconess Medical Center between 2001 and 2012.</p>\r\n\r\n<p>The database includes information such as demographics, vital sign measurements made at the bedside (~1 data point per hour), laboratory test results, procedures, medications, caregiver notes, imaging reports, and mortality (both in and out of hospital).</p>",
-    "background": "<p>In recent years there has been a concerted move towards the adoption of digital health record systems in hospitals. In the US, for example, the number of non-federal acute care hospitals with basic digital systems increased from 9.4 to 75.5% over the 7 year period between 2008 and 2014 [1].</p>\r\n\r\n<p>Despite this advance, interoperability of digital systems remains an open issue, leading to challenges in data integration. As a result, the potential that hospital data offers in terms of understanding and improving care is yet to be fully realized. In parallel, the scientific research community is increasingly coming under criticism for the lack of reproducibility of studies [2].</p>\r\n\r\n<p>Here we report the release of the MIMIC-III database [3], an update to the widely-used MIMIC-II database. MIMIC-III integrates deidentified, comprehensive clinical data of patients admitted to the Beth Israel Deaconess Medical Center in Boston, Massachusetts, and makes it widely accessible to researchers internationally under a data use agreement. The open nature of the data allows clinical studies to be reproduced and improved in ways that would not otherwise be possible.</p>\r\n\r\n<p>Based on our experience with the previous major release of MIMIC (MIMIC-II, released in 2010) we anticipate MIMIC-III to be widely used internationally in areas such as academic and industrial research, quality improvement initiatives, and higher education coursework.</p>\r\n\r\n<p>To recognize the increasingly broad usage of MIMIC, we have renamed the full title of the database from &lsquo;Multiparameter Intelligent Monitoring in Intensive Care&rsquo; to &lsquo;Medical Information Mart for Intensive Care&rsquo;. The MIMIC-III critical care database is unique and notable for the following reasons:</p>\r\n\r\n<ul>\r\n\t<li>\r\n\t<p>it is the only freely accessible critical care database of its kind</p>\r\n\t</li>\r\n\t<li>\r\n\t<p>the dataset spans more than a decade, with detailed information about individual patient care</p>\r\n\t</li>\r\n\t<li>\r\n\t<p>analysis is unrestricted once a data use agreement is accepted, enabling clinical research and education around the world.</p>\r\n\t</li>\r\n</ul>",
-    "methods": "<p>The Laboratory for Computational Physiology at Massachusetts Institute of Technology is an interdisciplinary team of data scientists and practicing physicians. MIMIC-III is the third iteration of the MIMIC critical care database, enabling us to draw upon prior experience with regard to data management and integration</p>\r\n\r\n<p><strong>Database development</strong></p>\r\n\r\n<p>The MIMIC-III database was populated with data that had been acquired during routine hospital care, so there was no associated burden on caregivers and no interference with their workflow. Data was downloaded from several sources, including:</p>\r\n\r\n<ul>\r\n\t<li>\r\n\t<p>archives from critical care information systems.</p>\r\n\t</li>\r\n\t<li>\r\n\t<p>hospital electronic health record databases.</p>\r\n\t</li>\r\n\t<li>\r\n\t<p>Social Security Administration Death Master File.</p>\r\n\t</li>\r\n</ul>\r\n\r\n<p>Two different critical care information systems were in place over the data collection period: Philips CareVue Clinical Information System (models M2331A and M1215A; Philips Health-care, Andover, MA) and iMDsoft MetaVision ICU (iMDsoft, Needham, MA). These systems were the source of clinical data such as:</p>\r\n\r\n<ul>\r\n\t<li>\r\n\t<p>time-stamped nurse-verified physiological measurements (for example, hourly documentation of heart rate, arterial blood pressure, or respiratory rate);</p>\r\n\t</li>\r\n\t<li>\r\n\t<p>documented progress notes by care providers;</p>\r\n\t</li>\r\n\t<li>\r\n\t<p>continuous intravenous drip medications and fluid balances.</p>\r\n\t</li>\r\n</ul>\r\n\r\n<p>With exception to data relating to fluid intake, which differed significantly in structure between the CareVue and MetaVision systems, data was merged when building the database tables. Data which could not be merged is given a suffix to denote the data source. For example, inputs for patients monitored with the CareVue system are stored in INPUTEVENTS_CV, whereas inputs for patients monitored with the Metavision system are stored in INPUTEVENTS_MV. Additional information was collected from hospital and laboratory health record systems, including:</p>\r\n\r\n<ul>\r\n\t<li>\r\n\t<p>patient demographics and in-hospital mortality.</p>\r\n\t</li>\r\n\t<li>\r\n\t<p>laboratory test results (for example, hematology, chemistry, and microbiology results).</p>\r\n\t</li>\r\n\t<li>\r\n\t<p>discharge summaries and reports of electrocardiogram and imaging studies.</p>\r\n\t</li>\r\n\t<li>\r\n\t<p>billing-related information such as International Classification of Disease, 9th Edition (ICD-9) codes, Diagnosis Related Group (DRG) codes, and Current Procedural Terminology (CPT) codes.</p>\r\n\t</li>\r\n</ul>\r\n\r\n<p>Out-of-hospital mortality dates were obtained using the Social Security Administration Death Master File. A more detailed description of the data is shown in Table 1. Physiological waveforms obtained from bedside monitors (such as electrocardiograms, blood pressure waveforms, photoplethysmograms, impedance pneumograms) were obtained for a subset of patients.</p>\r\n\r\n<p>Several projects are ongoing to map concepts within the MIMIC database to standardized dictionaries. For example, researchers at the National Library of Medicine National Institutes of Health have mapped laboratory tests and medications in MIMIC-II to LOINC and RxNorm, respectively<a href=\"https://www.nature.com/articles/sdata201635#ref4\" id=\"ref-link-section-4\" title=\" Abhyankar, S., Demner-Fushman, D. &amp; McDonald, C. J. Standardizing clinical laboratory data for secondary use. J Biomed Inform 45, 642\u2013650 (2012). \">4</a>. Efforts are also underway to transform MIMIC to common data models, such as the Observational Medical Outcomes Partnership Common Data Model, to support the application of standardized tools and methods<a href=\"https://www.nature.com/articles/sdata201635#ref5\" id=\"ref-link-section-5\" title=\" Observational Medical Outcomes Partnership Common Data Model. Website http://www.ohdsi.org/data-standardization/the-common-data-model/(Accessed: March 2016). \">5</a>. These developments are progressively incorporated into the MIMIC database where possible.</p>\r\n\r\n<p>The project was approved by the Institutional Review Boards of Beth Israel Deaconess Medical Center (Boston, MA) and the Massachusetts Institute of Technology (Cambridge, MA). Requirement for individual patient consent was waived because the project did not impact clinical care and all protected health information was deidentified.</p>\r\n\r\n<p><strong>Deidentification</strong></p>\r\n\r\n<p>Before data was incorporated into the MIMIC-III database, it was first deidentified in accordance with Health Insurance Portability and Accountability Act (HIPAA) standards using structured data cleansing and date shifting. The deidentification process for structured data required the removal of all eighteen of the identifying data elements listed in HIPAA, including fields such as patient name, telephone number, address, and dates. In particular, dates were shifted into the future by a random offset for each individual patient in a consistent manner to preserve intervals, resulting in stays which occur sometime between the years 2100 and 2200. Time of day, day of the week, and approximate seasonality were conserved during date shifting. Dates of birth for patients aged over 89 were shifted to obscure their true age and comply with HIPAA regulations: these patients appear in the database with ages of over 300 years.</p>\r\n\r\n<p>Protected health information was removed from free text fields, such as diagnostic reports and physician notes, using a rigorously evaluated deidentification system based on extensive dictionary look-ups and pattern-matching with regular expressions. The components of this deidentification system are continually expanded as new data is acquired.</p>",
-    "content_description": "<p><strong>Patient characteristics</strong></p>\r\n\r\n<p>MIMIC-III contains data associated with 53,423 distinct hospital admissions for adult patients (aged 16 years or above) admitted to critical care units between 2001 and 2012. In addition, it contains data for 7870 neonates admitted between 2001 and 2008. The data covers 38,597 distinct adult patients and 49,785 hospital admissions. The median age of adult patients is 65.8 years (Q1&ndash;Q3: 52.8&ndash;77.8), 55.9% patients are male, and in-hospital mortality is 11.5%. The median length of an ICU stay is 2.1 days (Q1&ndash;Q3: 1.2&ndash;4.6) and the median length of a hospital stay is 6.9 days (Q1-Q3: 4.1&ndash;11.9). A mean of 4579 charted observations (&rsquo;chartevents&rsquo;) and 380 laboratory measurements (&rsquo;labevents&rsquo;) are available for each hospital admission. Table 1 provides a breakdown of the adult population by care unit.</p>\r\n\r\n<p><strong>Details of the MIMIC-III patient population by first critical care unit on hospital admission for patients aged 16 years and above.</strong></p>\r\n\r\n<p>The primary International Classification of Diseases (ICD-9) codes from the patient discharges are listed in Table 2. The top three codes across hospital admissions for patients aged 16 years and above were:</p>\r\n\r\n<p><strong>Distribution of primary International Classification of Diseases, 9th Edition (ICD-9) codes by care unit for patients aged 16 years and above.</strong></p>\r\n\r\n<ul>\r\n\t<li>\r\n\t<p>414.01 (&lsquo;Coronary atherosclerosis of native coronary artery&rsquo;), accounting for 7.1% of all hospital admissions;</p>\r\n\t</li>\r\n\t<li>\r\n\t<p>038.9 (&lsquo;Unspecified septicemia&rsquo;), accounting for 4.2% of all hospital admissions; and</p>\r\n\t</li>\r\n\t<li>\r\n\t<p>410.71 (&lsquo;Subendocardial infarction, initial episode of care&rsquo;), accounting for 3.6% of all hospital admissions.</p>\r\n\t</li>\r\n</ul>\r\n\r\n<p>Classes of data</p>\r\n\r\n<p>Data available in the MIMIC-III database ranges from time-stamped, nurse-verified physiological measurements made at the bedside to free-text interpretations of imaging studies provided by the radiology department. Table 3 gives an overview of the different classes of data available. Figure 2 shows sample data for a single patient stay in a medical intensive care unit. The patient, who was undergoing a course of chemotherapy at the time of admission, presented with febrile neutropenia, anemia, and thrombocytopenia.</p>\r\n\r\n<p>GCS is Glasgow Coma Scale; NIBP is non-invasive blood pressure; and O2 saturation is blood oxygen saturation.</p>",
-    "usage_notes": "",
-    "acknowledgements": "<p>This research and development was supported by grants NIH-R01-EB017205, NIH-R01-EB001659, and NIH-R01-GM104987 from the National Institutes of Health. The authors would also like to thank Philips Healthcare and staff at the Beth Israel Deaconess Medical Center, Boston, for supporting database development, and Ken Pierce for providing Fig. 1.</p>",
-    "conflicts_of_interest": "<p>The authors declare no conflicts of interest.</p>",
-    "version": "1.3.0",
-    "changelog_summary": "",
-    "access_policy": 2,
-    "license": 1,
-    "creation_datetime": "2017-10-30T14:30:30Z",
-    "modified_datetime": "2018-09-13T17:23:44.820Z",
-    "data_use_agreement": 1,
-    "slug":"T108xFtYkRAxiRiuOLEJ"
-  }
-},
-{
-  "model": "project.activeproject",
-  "pk": 3,
-  "fields": {
-    "core_project": "ba881793-f671-4215-9487-070c04bdb4e2",
-    "resource_type": 1,
-    "title": "WFDB",
-    "abstract": "<p>Effective use of PhysioBank data requires specialized software. We have developed a large collection of such software over the past twenty years, and much of it is contained within the WFDB (WaveForm DataBase) Software Package, the GPLed successor to the MIT DB Software Package.</p><p>The major components of the WFDB Software Package are the WFDB library, about 75 WFDB applications for signal processing and automated analysis, and the WAVE software for viewing, annotation, and interactive analysis of waveform data. A comprehensive collection of documentation, including tutorials and reference manuals, is also included in the package.</p>",
-    "background": "",
-    "methods": "",
-    "content_description": "",
-    "usage_notes": "",
-    "acknowledgements": "",
-    "conflicts_of_interest": "",
-    "version": "",
-    "changelog_summary": "",
-    "access_policy": 0,
-    "license": null,
-    "creation_datetime": "2017-10-30T14:30:30Z",
-    "modified_datetime": "2017-10-30T14:30:30Z",
-    "data_use_agreement": null,
-    "slug":"kadzWaIVz0DQd72mL1cm"
-  }
-},
-{
-  "model": "project.activeproject",
-  "pk": 4,
-  "fields": {
-    "core_project": "ff038b01-14a2-4af1-9a7d-9f9845c45219",
-    "resource_type": 0,
-    "title": "MIMIC-III Clinical Database Demo",
-    "abstract": "<p>The MIMIC-III (Medical Information Mart for Intensive Care) Clinical Database contains comprehensive clinical data from tens of thousands of Intensive Care Unit (ICU) patients. This project is a demo version which has only 100 patients and excludes the noteevents table.</p>",
-    "background": "<p>Many found that it would be useful to explore the structure of the database before installing the full version.</p>",
-    "methods": "<p>Took 100 patients from the full database.</p>",
-    "content_description": "<p>Limited information up to 100 patients. Notes are not included.</p>",
-    "usage_notes": "",
-    "acknowledgements": "",
-    "conflicts_of_interest": "",
-    "version": "1.0.0",
-    "changelog_summary": "",
-    "access_policy": 1,
-    "license": 1,
-    "creation_datetime": "2018-07-23T21:48:39.068Z",
-    "modified_datetime": "2018-07-23T22:03:10.736Z",
-    "data_use_agreement": 1,
-    "slug":"Revkx24XL77vUm2KTFYU"
-  }
-},
-{
-  "model": "project.license",
-  "pk": 1,
-  "fields": {
-    "name": "Creative Commons Attribution 4.0 International Public License",
-    "slug": "creative-commons-attribution-40-international-public-license",
-    "description": "<p>By exercising the Licensed Rights (defined below), You accept and agree to be bound by the terms and conditions of this Creative Commons Attribution 4.0 International Public License (&quot;Public License&quot;). To the extent this Public License may be interpreted as a contract, You are granted the Licensed Rights in consideration of Your acceptance of these terms and conditions, and the Licensor grants You such rights in consideration of benefits the Licensor receives from making the Licensed Material available under these terms and conditions.</p>\r\n\r\n<p><strong>Section 1 &ndash; Definitions.</strong></p>\r\n\r\n<ol style=\"list-style-type:lower-alpha\">\r\n\t<li><strong>Adapted Material</strong> means material subject to Copyright and Similar Rights that is derived from or based upon the Licensed Material and in which the Licensed Material is translated, altered, arranged, transformed, or otherwise modified in a manner requiring permission under the Copyright and Similar Rights held by the Licensor. For purposes of this Public License, where the Licensed Material is a musical work, performance, or sound recording, Adapted Material is always produced where the Licensed Material is synched in timed relation with a moving image.</li>\r\n\t<li><strong>Adapter&#39;s License</strong> means the license You apply to Your Copyright and Similar Rights in Your contributions to Adapted Material in accordance with the terms and conditions of this Public License.</li>\r\n\t<li><strong>Copyright and Similar Rights</strong> means copyright and/or similar rights closely related to copyright including, without limitation, performance, broadcast, sound recording, and Sui Generis Database Rights, without regard to how the rights are labeled or categorized. For purposes of this Public License, the rights specified in Section <a href=\"https://creativecommons.org/licenses/by/4.0/legalcode#s2b\">2(b)(1)-(2)</a> are not Copyright and Similar Rights.</li>\r\n\t<li><strong>Effective Technological Measures</strong> means those measures that, in the absence of proper authority, may not be circumvented under laws fulfilling obligations under Article 11 of the WIPO Copyright Treaty adopted on December 20, 1996, and/or similar international agreements.</li>\r\n\t<li><strong>Exceptions and Limitations</strong> means fair use, fair dealing, and/or any other exception or limitation to Copyright and Similar Rights that applies to Your use of the Licensed Material.</li>\r\n\t<li><strong>Licensed Material</strong> means the artistic or literary work, database, or other material to which the Licensor applied this Public License.</li>\r\n\t<li><strong>Licensed Rights</strong> means the rights granted to You subject to the terms and conditions of this Public License, which are limited to all Copyright and Similar Rights that apply to Your use of the Licensed Material and that the Licensor has authority to license.</li>\r\n\t<li><strong>Licensor</strong> means the individual(s) or entity(ies) granting rights under this Public License.</li>\r\n\t<li><strong>Share</strong> means to provide material to the public by any means or process that requires permission under the Licensed Rights, such as reproduction, public display, public performance, distribution, dissemination, communication, or importation, and to make material available to the public including in ways that members of the public may access the material from a place and at a time individually chosen by them.</li>\r\n\t<li><strong>Sui Generis Database Rights</strong> means rights other than copyright resulting from Directive 96/9/EC of the European Parliament and of the Council of 11 March 1996 on the legal protection of databases, as amended and/or succeeded, as well as other essentially equivalent rights anywhere in the world.</li>\r\n\t<li><strong>You</strong> means the individual or entity exercising the Licensed Rights under this Public License. <strong>Your</strong> has a corresponding meaning.</li>\r\n</ol>\r\n\r\n<p><strong>Section 2 &ndash; Scope.</strong></p>\r\n\r\n<ol style=\"list-style-type:lower-alpha\">\r\n\t<li><strong>License grant</strong>.\r\n\r\n\t<ol>\r\n\t\t<li>Subject to the terms and conditions of this Public License, the Licensor hereby grants You a worldwide, royalty-free, non-sublicensable, non-exclusive, irrevocable license to exercise the Licensed Rights in the Licensed Material to:\r\n\t\t<ol style=\"list-style-type:upper-alpha\">\r\n\t\t\t<li>reproduce and Share the Licensed Material, in whole or in part; and</li>\r\n\t\t\t<li>produce, reproduce, and Share Adapted Material.</li>\r\n\t\t</ol>\r\n\t\t</li>\r\n\t\t<li><u>Exceptions and Limitations</u>. For the avoidance of doubt, where Exceptions and Limitations apply to Your use, this Public License does not apply, and You do not need to comply with its terms and conditions.</li>\r\n\t\t<li><u>Term</u>. The term of this Public License is specified in Section <a href=\"https://creativecommons.org/licenses/by/4.0/legalcode#s6a\">6(a)</a>.</li>\r\n\t\t<li><u>Media and formats; technical modifications allowed</u>. The Licensor authorizes You to exercise the Licensed Rights in all media and formats whether now known or hereafter created, and to make technical modifications necessary to do so. The Licensor waives and/or agrees not to assert any right or authority to forbid You from making technical modifications necessary to exercise the Licensed Rights, including technical modifications necessary to circumvent Effective Technological Measures. For purposes of this Public License, simply making modifications authorized by this Section <a href=\"https://creativecommons.org/licenses/by/4.0/legalcode#s2a4\">2(a)(4)</a> never produces Adapted Material.</li>\r\n\t\t<li><u>Downstream recipients</u>.\r\n\t\t<ol style=\"list-style-type:upper-alpha\">\r\n\t\t\t<li><u>Offer from the Licensor &ndash; Licensed Material</u>. Every recipient of the Licensed Material automatically receives an offer from the Licensor to exercise the Licensed Rights under the terms and conditions of this Public License.</li>\r\n\t\t\t<li><u>No downstream restrictions</u>. You may not offer or impose any additional or different terms or conditions on, or apply any Effective Technological Measures to, the Licensed Material if doing so restricts exercise of the Licensed Rights by any recipient of the Licensed Material.</li>\r\n\t\t</ol>\r\n\t\t</li>\r\n\t\t<li><u>No endorsement</u>. Nothing in this Public License constitutes or may be construed as permission to assert or imply that You are, or that Your use of the Licensed Material is, connected with, or sponsored, endorsed, or granted official status by, the Licensor or others designated to receive attribution as provided in Section <a href=\"https://creativecommons.org/licenses/by/4.0/legalcode#s3a1Ai\">3(a)(1)(A)(i)</a>.</li>\r\n\t</ol>\r\n\t</li>\r\n\t<li>\r\n\t<p><strong>Other rights</strong>.</p>\r\n\r\n\t<ol>\r\n\t\t<li>Moral rights, such as the right of integrity, are not licensed under this Public License, nor are publicity, privacy, and/or other similar personality rights; however, to the extent possible, the Licensor waives and/or agrees not to assert any such rights held by the Licensor to the limited extent necessary to allow You to exercise the Licensed Rights, but not otherwise.</li>\r\n\t\t<li>Patent and trademark rights are not licensed under this Public License.</li>\r\n\t\t<li>To the extent possible, the Licensor waives any right to collect royalties from You for the exercise of the Licensed Rights, whether directly or through a collecting society under any voluntary or waivable statutory or compulsory licensing scheme. In all other cases the Licensor expressly reserves any right to collect such royalties.</li>\r\n\t</ol>\r\n\t</li>\r\n</ol>\r\n\r\n<p><strong>Section 3 &ndash; License Conditions.</strong></p>\r\n\r\n<p>Your exercise of the Licensed Rights is expressly made subject to the following conditions.</p>\r\n\r\n<ol style=\"list-style-type:lower-alpha\">\r\n\t<li>\r\n\t<p><strong>Attribution</strong>.</p>\r\n\r\n\t<ol>\r\n\t\t<li>\r\n\t\t<p>If You Share the Licensed Material (including in modified form), You must:</p>\r\n\r\n\t\t<ol style=\"list-style-type:upper-alpha\">\r\n\t\t\t<li>retain the following if it is supplied by the Licensor with the Licensed Material:\r\n\t\t\t<ol style=\"list-style-type:lower-roman\">\r\n\t\t\t\t<li>identification of the creator(s) of the Licensed Material and any others designated to receive attribution, in any reasonable manner requested by the Licensor (including by pseudonym if designated);</li>\r\n\t\t\t\t<li>a copyright notice;</li>\r\n\t\t\t\t<li>a notice that refers to this Public License;</li>\r\n\t\t\t\t<li>a notice that refers to the disclaimer of warranties;</li>\r\n\t\t\t\t<li>a URI or hyperlink to the Licensed Material to the extent reasonably practicable;</li>\r\n\t\t\t</ol>\r\n\t\t\t</li>\r\n\t\t\t<li>indicate if You modified the Licensed Material and retain an indication of any previous modifications; and</li>\r\n\t\t\t<li>indicate the Licensed Material is licensed under this Public License, and include the text of, or the URI or hyperlink to, this Public License.</li>\r\n\t\t</ol>\r\n\t\t</li>\r\n\t\t<li>You may satisfy the conditions in Section <a href=\"https://creativecommons.org/licenses/by/4.0/legalcode#s3a1\">3(a)(1)</a> in any reasonable manner based on the medium, means, and context in which You Share the Licensed Material. For example, it may be reasonable to satisfy the conditions by providing a URI or hyperlink to a resource that includes the required information.</li>\r\n\t\t<li>If requested by the Licensor, You must remove any of the information required by Section <a href=\"https://creativecommons.org/licenses/by/4.0/legalcode#s3a1A\">3(a)(1)(A)</a> to the extent reasonably practicable.</li>\r\n\t\t<li>If You Share Adapted Material You produce, the Adapter&#39;s License You apply must not prevent recipients of the Adapted Material from complying with this Public License.</li>\r\n\t</ol>\r\n\t</li>\r\n</ol>\r\n\r\n<p><strong>Section 4 &ndash; Sui Generis Database Rights.</strong></p>\r\n\r\n<p>Where the Licensed Rights include Sui Generis Database Rights that apply to Your use of the Licensed Material:</p>\r\n\r\n<ol style=\"list-style-type:lower-alpha\">\r\n\t<li>for the avoidance of doubt, Section <a href=\"https://creativecommons.org/licenses/by/4.0/legalcode#s2a1\">2(a)(1)</a> grants You the right to extract, reuse, reproduce, and Share all or a substantial portion of the contents of the database;</li>\r\n\t<li>if You include all or a substantial portion of the database contents in a database in which You have Sui Generis Database Rights, then the database in which You have Sui Generis Database Rights (but not its individual contents) is Adapted Material; and</li>\r\n\t<li>You must comply with the conditions in Section <a href=\"https://creativecommons.org/licenses/by/4.0/legalcode#s3a\">3(a)</a> if You Share all or a substantial portion of the contents of the database.</li>\r\n</ol>\r\n\r\n<p>For the avoidance of doubt, this Section <a href=\"https://creativecommons.org/licenses/by/4.0/legalcode#s4\">4</a> supplements and does not replace Your obligations under this Public License where the Licensed Rights include other Copyright and Similar Rights.</p>\r\n\r\n<p><strong>Section 5 &ndash; Disclaimer of Warranties and Limitation of Liability.</strong></p>\r\n\r\n<ol style=\"list-style-type:lower-alpha\">\r\n\t<li><strong>Unless otherwise separately undertaken by the Licensor, to the extent possible, the Licensor offers the Licensed Material as-is and as-available, and makes no representations or warranties of any kind concerning the Licensed Material, whether express, implied, statutory, or other. This includes, without limitation, warranties of title, merchantability, fitness for a particular purpose, non-infringement, absence of latent or other defects, accuracy, or the presence or absence of errors, whether or not known or discoverable. Where disclaimers of warranties are not allowed in full or in part, this disclaimer may not apply to You.</strong></li>\r\n\t<li><strong>To the extent possible, in no event will the Licensor be liable to You on any legal theory (including, without limitation, negligence) or otherwise for any direct, special, indirect, incidental, consequential, punitive, exemplary, or other losses, costs, expenses, or damages arising out of this Public License or use of the Licensed Material, even if the Licensor has been advised of the possibility of such losses, costs, expenses, or damages. Where a limitation of liability is not allowed in full or in part, this limitation may not apply to You.</strong></li>\r\n</ol>\r\n\r\n<ol start=\"3\" style=\"list-style-type:lower-alpha\">\r\n\t<li>The disclaimer of warranties and limitation of liability provided above shall be interpreted in a manner that, to the extent possible, most closely approximates an absolute disclaimer and waiver of all liability.</li>\r\n</ol>\r\n\r\n<p><strong>Section 6 &ndash; Term and Termination.</strong></p>\r\n\r\n<ol style=\"list-style-type:lower-alpha\">\r\n\t<li>This Public License applies for the term of the Copyright and Similar Rights licensed here. However, if You fail to comply with this Public License, then Your rights under this Public License terminate automatically.</li>\r\n\t<li>\r\n\t<p>Where Your right to use the Licensed Material has terminated under Section <a href=\"https://creativecommons.org/licenses/by/4.0/legalcode#s6a\">6(a)</a>, it reinstates:</p>\r\n\r\n\t<ol>\r\n\t\t<li>automatically as of the date the violation is cured, provided it is cured within 30 days of Your discovery of the violation; or</li>\r\n\t\t<li>upon express reinstatement by the Licensor.</li>\r\n\t</ol>\r\n\tFor the avoidance of doubt, this Section <a href=\"https://creativecommons.org/licenses/by/4.0/legalcode#s6b\">6(b)</a> does not affect any right the Licensor may have to seek remedies for Your violations of this Public License.</li>\r\n\t<li>For the avoidance of doubt, the Licensor may also offer the Licensed Material under separate terms or conditions or stop distributing the Licensed Material at any time; however, doing so will not terminate this Public License.</li>\r\n\t<li>Sections <a href=\"https://creativecommons.org/licenses/by/4.0/legalcode#s1\">1</a>, <a href=\"https://creativecommons.org/licenses/by/4.0/legalcode#s5\">5</a>, <a href=\"https://creativecommons.org/licenses/by/4.0/legalcode#s6\">6</a>, <a href=\"https://creativecommons.org/licenses/by/4.0/legalcode#s7\">7</a>, and <a href=\"https://creativecommons.org/licenses/by/4.0/legalcode#s8\">8</a> survive termination of this Public License.</li>\r\n</ol>\r\n\r\n<p><strong>Section 7 &ndash; Other Terms and Conditions.</strong></p>\r\n\r\n<ol style=\"list-style-type:lower-alpha\">\r\n\t<li>The Licensor shall not be bound by any additional or different terms or conditions communicated by You unless expressly agreed.</li>\r\n\t<li>Any arrangements, understandings, or agreements regarding the Licensed Material not stated herein are separate from and independent of the terms and conditions of this Public License.</li>\r\n</ol>\r\n\r\n<p><strong>Section 8 &ndash; Interpretation.</strong></p>\r\n\r\n<ol style=\"list-style-type:lower-alpha\">\r\n\t<li>For the avoidance of doubt, this Public License does not, and shall not be interpreted to, reduce, limit, restrict, or impose conditions on any use of the Licensed Material that could lawfully be made without permission under this Public License.</li>\r\n\t<li>To the extent possible, if any provision of this Public License is deemed unenforceable, it shall be automatically reformed to the minimum extent necessary to make it enforceable. If the provision cannot be reformed, it shall be severed from this Public License without affecting the enforceability of the remaining terms and conditions.</li>\r\n\t<li>No term or condition of this Public License will be waived and no failure to comply consented to unless expressly agreed to by the Licensor.</li>\r\n\t<li>Nothing in this Public License constitutes or may be interpreted as a limitation upon, or waiver of, any privileges and immunities that apply to the Licensor or You, including from the legal processes of any jurisdiction or authority.</li>\r\n</ol>",
-    "url": "https://creativecommons.org/licenses/by/4.0/legalcode"
-  }
-},
-{
-  "model": "project.license",
-  "pk": 2,
-  "fields": {
-    "name": "Creative Commons Attribution-ShareAlike 4.0 International Public License",
-    "slug": "creative-commons-attribution-sharealike-40-international-public-license",
-    "description": "<p>By exercising the Licensed Rights (defined below), You accept and agree to be bound by the terms and conditions of this Creative Commons Attribution-ShareAlike 4.0 International Public License (&quot;Public License&quot;). To the extent this Public License may be interpreted as a contract, You are granted the Licensed Rights in consideration of Your acceptance of these terms and conditions, and the Licensor grants You such rights in consideration of benefits the Licensor receives from making the Licensed Material available under these terms and conditions.</p>\r\n\r\n<p><strong>Section 1 &ndash; Definitions.</strong></p>\r\n\r\n<ol style=\"list-style-type:lower-alpha\">\r\n\t<li><strong>Adapted Material</strong> means material subject to Copyright and Similar Rights that is derived from or based upon the Licensed Material and in which the Licensed Material is translated, altered, arranged, transformed, or otherwise modified in a manner requiring permission under the Copyright and Similar Rights held by the Licensor. For purposes of this Public License, where the Licensed Material is a musical work, performance, or sound recording, Adapted Material is always produced where the Licensed Material is synched in timed relation with a moving image.</li>\r\n\t<li><strong>Adapter&#39;s License</strong> means the license You apply to Your Copyright and Similar Rights in Your contributions to Adapted Material in accordance with the terms and conditions of this Public License.</li>\r\n\t<li><strong>BY-SA Compatible License</strong> means a license listed at <a href=\"https://creativecommons.org/compatiblelicenses\"> creativecommons.org/compatiblelicenses</a>, approved by Creative Commons as essentially the equivalent of this Public License.</li>\r\n\t<li><strong>Copyright and Similar Rights</strong> means copyright and/or similar rights closely related to copyright including, without limitation, performance, broadcast, sound recording, and Sui Generis Database Rights, without regard to how the rights are labeled or categorized. For purposes of this Public License, the rights specified in Section <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s2b\">2(b)(1)-(2)</a> are not Copyright and Similar Rights.</li>\r\n\t<li><strong>Effective Technological Measures</strong> means those measures that, in the absence of proper authority, may not be circumvented under laws fulfilling obligations under Article 11 of the WIPO Copyright Treaty adopted on December 20, 1996, and/or similar international agreements.</li>\r\n\t<li><strong>Exceptions and Limitations</strong> means fair use, fair dealing, and/or any other exception or limitation to Copyright and Similar Rights that applies to Your use of the Licensed Material.</li>\r\n\t<li><strong>License Elements</strong> means the license attributes listed in the name of a Creative Commons Public License. The License Elements of this Public License are Attribution and ShareAlike.</li>\r\n\t<li><strong>Licensed Material</strong> means the artistic or literary work, database, or other material to which the Licensor applied this Public License.</li>\r\n\t<li><strong>Licensed Rights</strong> means the rights granted to You subject to the terms and conditions of this Public License, which are limited to all Copyright and Similar Rights that apply to Your use of the Licensed Material and that the Licensor has authority to license.</li>\r\n\t<li><strong>Licensor</strong> means the individual(s) or entity(ies) granting rights under this Public License.</li>\r\n\t<li><strong>Share</strong> means to provide material to the public by any means or process that requires permission under the Licensed Rights, such as reproduction, public display, public performance, distribution, dissemination, communication, or importation, and to make material available to the public including in ways that members of the public may access the material from a place and at a time individually chosen by them.</li>\r\n\t<li><strong>Sui Generis Database Rights</strong> means rights other than copyright resulting from Directive 96/9/EC of the European Parliament and of the Council of 11 March 1996 on the legal protection of databases, as amended and/or succeeded, as well as other essentially equivalent rights anywhere in the world.</li>\r\n\t<li><strong>You</strong> means the individual or entity exercising the Licensed Rights under this Public License. <strong>Your</strong> has a corresponding meaning.</li>\r\n</ol>\r\n\r\n<p><strong>Section 2 &ndash; Scope.</strong></p>\r\n\r\n<ol style=\"list-style-type:lower-alpha\">\r\n\t<li><strong>License grant</strong>.\r\n\r\n\t<ol>\r\n\t\t<li>Subject to the terms and conditions of this Public License, the Licensor hereby grants You a worldwide, royalty-free, non-sublicensable, non-exclusive, irrevocable license to exercise the Licensed Rights in the Licensed Material to:\r\n\t\t<ol style=\"list-style-type:upper-alpha\">\r\n\t\t\t<li>reproduce and Share the Licensed Material, in whole or in part; and</li>\r\n\t\t\t<li>produce, reproduce, and Share Adapted Material.</li>\r\n\t\t</ol>\r\n\t\t</li>\r\n\t\t<li><u>Exceptions and Limitations</u>. For the avoidance of doubt, where Exceptions and Limitations apply to Your use, this Public License does not apply, and You do not need to comply with its terms and conditions.</li>\r\n\t\t<li><u>Term</u>. The term of this Public License is specified in Section <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s6a\">6(a)</a>.</li>\r\n\t\t<li><u>Media and formats; technical modifications allowed</u>. The Licensor authorizes You to exercise the Licensed Rights in all media and formats whether now known or hereafter created, and to make technical modifications necessary to do so. The Licensor waives and/or agrees not to assert any right or authority to forbid You from making technical modifications necessary to exercise the Licensed Rights, including technical modifications necessary to circumvent Effective Technological Measures. For purposes of this Public License, simply making modifications authorized by this Section <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s2a4\">2(a)(4)</a> never produces Adapted Material.</li>\r\n\t\t<li><u>Downstream recipients</u>.\r\n\t\t<ol style=\"list-style-type:upper-alpha\">\r\n\t\t\t<li><u>Offer from the Licensor &ndash; Licensed Material</u>. Every recipient of the Licensed Material automatically receives an offer from the Licensor to exercise the Licensed Rights under the terms and conditions of this Public License.</li>\r\n\t\t\t<li><u>Additional offer from the Licensor &ndash; Adapted Material</u>. Every recipient of Adapted Material from You automatically receives an offer from the Licensor to exercise the Licensed Rights in the Adapted Material under the conditions of the Adapter&rsquo;s License You apply.</li>\r\n\t\t\t<li><u>No downstream restrictions</u>. You may not offer or impose any additional or different terms or conditions on, or apply any Effective Technological Measures to, the Licensed Material if doing so restricts exercise of the Licensed Rights by any recipient of the Licensed Material.</li>\r\n\t\t</ol>\r\n\t\t</li>\r\n\t\t<li><u>No endorsement</u>. Nothing in this Public License constitutes or may be construed as permission to assert or imply that You are, or that Your use of the Licensed Material is, connected with, or sponsored, endorsed, or granted official status by, the Licensor or others designated to receive attribution as provided in Section <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s3a1Ai\">3(a)(1)(A)(i)</a>.</li>\r\n\t</ol>\r\n\t</li>\r\n\t<li>\r\n\t<p><strong>Other rights</strong>.</p>\r\n\r\n\t<ol>\r\n\t\t<li>Moral rights, such as the right of integrity, are not licensed under this Public License, nor are publicity, privacy, and/or other similar personality rights; however, to the extent possible, the Licensor waives and/or agrees not to assert any such rights held by the Licensor to the limited extent necessary to allow You to exercise the Licensed Rights, but not otherwise.</li>\r\n\t\t<li>Patent and trademark rights are not licensed under this Public License.</li>\r\n\t\t<li>To the extent possible, the Licensor waives any right to collect royalties from You for the exercise of the Licensed Rights, whether directly or through a collecting society under any voluntary or waivable statutory or compulsory licensing scheme. In all other cases the Licensor expressly reserves any right to collect such royalties.</li>\r\n\t</ol>\r\n\t</li>\r\n</ol>\r\n\r\n<p><strong>Section 3 &ndash; License Conditions.</strong></p>\r\n\r\n<p>Your exercise of the Licensed Rights is expressly made subject to the following conditions.</p>\r\n\r\n<ol style=\"list-style-type:lower-alpha\">\r\n\t<li>\r\n\t<p><strong>Attribution</strong>.</p>\r\n\r\n\t<ol>\r\n\t\t<li>\r\n\t\t<p>If You Share the Licensed Material (including in modified form), You must:</p>\r\n\r\n\t\t<ol style=\"list-style-type:upper-alpha\">\r\n\t\t\t<li>retain the following if it is supplied by the Licensor with the Licensed Material:\r\n\t\t\t<ol style=\"list-style-type:lower-roman\">\r\n\t\t\t\t<li>identification of the creator(s) of the Licensed Material and any others designated to receive attribution, in any reasonable manner requested by the Licensor (including by pseudonym if designated);</li>\r\n\t\t\t\t<li>a copyright notice;</li>\r\n\t\t\t\t<li>a notice that refers to this Public License;</li>\r\n\t\t\t\t<li>a notice that refers to the disclaimer of warranties;</li>\r\n\t\t\t\t<li>a URI or hyperlink to the Licensed Material to the extent reasonably practicable;</li>\r\n\t\t\t</ol>\r\n\t\t\t</li>\r\n\t\t\t<li>indicate if You modified the Licensed Material and retain an indication of any previous modifications; and</li>\r\n\t\t\t<li>indicate the Licensed Material is licensed under this Public License, and include the text of, or the URI or hyperlink to, this Public License.</li>\r\n\t\t</ol>\r\n\t\t</li>\r\n\t\t<li>You may satisfy the conditions in Section <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s3a1\">3(a)(1)</a> in any reasonable manner based on the medium, means, and context in which You Share the Licensed Material. For example, it may be reasonable to satisfy the conditions by providing a URI or hyperlink to a resource that includes the required information.</li>\r\n\t\t<li>If requested by the Licensor, You must remove any of the information required by Section <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s3a1A\">3(a)(1)(A)</a> to the extent reasonably practicable.</li>\r\n\t</ol>\r\n\t</li>\r\n\t<li><strong>ShareAlike</strong>.\r\n\t<p>In addition to the conditions in Section <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s3a\">3(a)</a>, if You Share Adapted Material You produce, the following conditions also apply.</p>\r\n\r\n\t<ol>\r\n\t\t<li>The Adapter&rsquo;s License You apply must be a Creative Commons license with the same License Elements, this version or later, or a BY-SA Compatible License.</li>\r\n\t\t<li>You must include the text of, or the URI or hyperlink to, the Adapter&#39;s License You apply. You may satisfy this condition in any reasonable manner based on the medium, means, and context in which You Share Adapted Material.</li>\r\n\t\t<li>You may not offer or impose any additional or different terms or conditions on, or apply any Effective Technological Measures to, Adapted Material that restrict exercise of the rights granted under the Adapter&#39;s License You apply.</li>\r\n\t</ol>\r\n\t</li>\r\n</ol>\r\n\r\n<p><strong>Section 4 &ndash; Sui Generis Database Rights.</strong></p>\r\n\r\n<p>Where the Licensed Rights include Sui Generis Database Rights that apply to Your use of the Licensed Material:</p>\r\n\r\n<ol style=\"list-style-type:lower-alpha\">\r\n\t<li>for the avoidance of doubt, Section <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s2a1\">2(a)(1)</a> grants You the right to extract, reuse, reproduce, and Share all or a substantial portion of the contents of the database;</li>\r\n\t<li>if You include all or a substantial portion of the database contents in a database in which You have Sui Generis Database Rights, then the database in which You have Sui Generis Database Rights (but not its individual contents) is Adapted Material, including for purposes of Section <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s3b\">3(b)</a>; and</li>\r\n\t<li>You must comply with the conditions in Section <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s3a\">3(a)</a> if You Share all or a substantial portion of the contents of the database.</li>\r\n</ol>\r\n\r\n<p>For the avoidance of doubt, this Section <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s4\">4</a> supplements and does not replace Your obligations under this Public License where the Licensed Rights include other Copyright and Similar Rights.</p>\r\n\r\n<p><strong>Section 5 &ndash; Disclaimer of Warranties and Limitation of Liability.</strong></p>\r\n\r\n<ol style=\"list-style-type:lower-alpha\">\r\n\t<li><strong>Unless otherwise separately undertaken by the Licensor, to the extent possible, the Licensor offers the Licensed Material as-is and as-available, and makes no representations or warranties of any kind concerning the Licensed Material, whether express, implied, statutory, or other. This includes, without limitation, warranties of title, merchantability, fitness for a particular purpose, non-infringement, absence of latent or other defects, accuracy, or the presence or absence of errors, whether or not known or discoverable. Where disclaimers of warranties are not allowed in full or in part, this disclaimer may not apply to You.</strong></li>\r\n\t<li><strong>To the extent possible, in no event will the Licensor be liable to You on any legal theory (including, without limitation, negligence) or otherwise for any direct, special, indirect, incidental, consequential, punitive, exemplary, or other losses, costs, expenses, or damages arising out of this Public License or use of the Licensed Material, even if the Licensor has been advised of the possibility of such losses, costs, expenses, or damages. Where a limitation of liability is not allowed in full or in part, this limitation may not apply to You.</strong></li>\r\n</ol>\r\n\r\n<ol start=\"3\" style=\"list-style-type:lower-alpha\">\r\n\t<li>The disclaimer of warranties and limitation of liability provided above shall be interpreted in a manner that, to the extent possible, most closely approximates an absolute disclaimer and waiver of all liability.</li>\r\n</ol>\r\n\r\n<p><strong>Section 6 &ndash; Term and Termination.</strong></p>\r\n\r\n<ol style=\"list-style-type:lower-alpha\">\r\n\t<li>This Public License applies for the term of the Copyright and Similar Rights licensed here. However, if You fail to comply with this Public License, then Your rights under this Public License terminate automatically.</li>\r\n\t<li>\r\n\t<p>Where Your right to use the Licensed Material has terminated under Section <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s6a\">6(a)</a>, it reinstates:</p>\r\n\r\n\t<ol>\r\n\t\t<li>automatically as of the date the violation is cured, provided it is cured within 30 days of Your discovery of the violation; or</li>\r\n\t\t<li>upon express reinstatement by the Licensor.</li>\r\n\t</ol>\r\n\tFor the avoidance of doubt, this Section <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s6b\">6(b)</a> does not affect any right the Licensor may have to seek remedies for Your violations of this Public License.</li>\r\n\t<li>For the avoidance of doubt, the Licensor may also offer the Licensed Material under separate terms or conditions or stop distributing the Licensed Material at any time; however, doing so will not terminate this Public License.</li>\r\n\t<li>Sections <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s1\">1</a>, <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s5\">5</a>, <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s6\">6</a>, <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s7\">7</a>, and <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s8\">8</a> survive termination of this Public License.</li>\r\n</ol>\r\n\r\n<p><strong>Section 7 &ndash; Other Terms and Conditions.</strong></p>\r\n\r\n<ol style=\"list-style-type:lower-alpha\">\r\n\t<li>The Licensor shall not be bound by any additional or different terms or conditions communicated by You unless expressly agreed.</li>\r\n\t<li>Any arrangements, understandings, or agreements regarding the Licensed Material not stated herein are separate from and independent of the terms and conditions of this Public License.</li>\r\n</ol>\r\n\r\n<p><strong>Section 8 &ndash; Interpretation.</strong></p>\r\n\r\n<ol style=\"list-style-type:lower-alpha\">\r\n\t<li>For the avoidance of doubt, this Public License does not, and shall not be interpreted to, reduce, limit, restrict, or impose conditions on any use of the Licensed Material that could lawfully be made without permission under this Public License.</li>\r\n\t<li>To the extent possible, if any provision of this Public License is deemed unenforceable, it shall be automatically reformed to the minimum extent necessary to make it enforceable. If the provision cannot be reformed, it shall be severed from this Public License without affecting the enforceability of the remaining terms and conditions.</li>\r\n\t<li>No term or condition of this Public License will be waived and no failure to comply consented to unless expressly agreed to by the Licensor.</li>\r\n\t<li>Nothing in this Public License constitutes or may be interpreted as a limitation upon, or waiver of, any privileges and immunities that apply to the Licensor or You, including from the legal processes of any jurisdiction or authority.</li>\r\n</ol>",
-    "url": "https://creativecommons.org/licenses/by-sa/4.0/legalcode"
-  }
-},
-{
-  "model": "project.datauseagreement",
-  "pk": 1,
-  "fields": {
-    "name": "PhysioNet Clinical Database Restricted Data Use Agreement",
-    "slug": "physionet-clinical-database-restricted-data-use-agreement",
-    "description": "<ol>\r\n\t<li>I will not attempt to identify any individual or institution referenced in PhysioNet restricted data.</li>\r\n\t<li>I will exercise all reasonable and prudent care to avoid disclosure of the identity of any individual or institution referenced in PhysioNet restricted data in any publication or other communication.</li>\r\n\t<li>I will not share access to PhysioNet restricted data with anyone else.</li>\r\n\t<li>I will exercise all reasonable and prudent care to maintain the physical and electronic security of PhysioNet restricted data.</li>\r\n\t<li>If I find information within PhysioNet restricted data that I believe might permit identification of any individual or institution, I will report the location of this information promptly by email to <a href=\"mailto:PHI-report@physionet.org\">PHI-report@physionet.org</a>, citing the location of the specific information in question so that it can be investigated and removed if necessary.</li>\r\n\t<li>I have requested access to PhysioNet restricted data for the sole purpose of lawful use in scientific research, and I will use my privilege of access, if it is granted, for this purpose and no other.</li>\r\n\t<li>I have completed a training program in human research subject protections and HIPAA regulations, and I am submitting proof of having done so.</li>\r\n\t<li>I will indicate the general purpose for which I intend to use the database in my application.</li>\r\n\t<li>If I openly disseminate my results, I will also contribute the code used to produce those results to a repository that is open to the research community.</li>\r\n\t<li>This agreement may be terminated by either party at any time, but my obligations with respect to restricted data from PhysioNet shall continue after termination.</li>\r\n</ol>",
-    "creation_datetime": "2018-06-27T17:52:03.517Z"
-  }
-},
-{
-  "model": "project.authorinvitation",
-  "pk": 1,
-  "fields": {
-    "request_datetime": "2017-11-02T14:30:30Z",
-    "response_datetime": null,
-    "response": null,
-    "is_active": true,
-    "project": 2,
-    "email": "george@mit.edu",
-    "inviter": 2
-  }
-},
-{
-  "model": "project.authorinvitation",
-  "pk": 2,
-  "fields": {
-    "request_datetime": "2018-03-28T14:30:30Z",
-    "response_datetime": null,
-    "response": null,
-    "is_active": true,
-    "project": 2,
-    "email": "george@gmail.com",
-    "inviter": 2
-  }
-},
-{
-  "model": "project.storagerequest",
-  "pk": 1,
-  "fields": {
-    "request_datetime": "2017-10-30T14:30:30Z",
-    "response_datetime": null,
-    "response": null,
-    "response_message": "",
-    "is_active": true,
-    "project": 3,
-    "request_allowance": 1,
-    "responder": null
-  }
-},
-{
-  "model": "project.storagerequest",
-  "pk": 2,
-  "fields": {
-    "request_datetime": "2018-05-07T20:27:01.572Z",
-    "response_datetime": null,
-    "response": null,
-    "response_message": "",
-    "is_active": true,
-    "project": 2,
-    "request_allowance": 80,
-    "responder": null
-  }
-},
-{
-  "model": "project.author",
-  "pk": 1,
-  "fields": {
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 1,
-    "display_order": 1,
-    "user": 2,
-    "is_submitting": true,
-    "is_corresponding": true,
-    "corresponding_email": 2
-  }
-},
-{
-  "model": "project.author",
-  "pk": 2,
-  "fields": {
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 2,
-    "display_order": 1,
-    "user": 2,
-    "is_submitting": true,
-    "is_corresponding": false,
-    "corresponding_email": 2
-  }
-},
-{
-  "model": "project.author",
-  "pk": 3,
-  "fields": {
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 3,
-    "display_order": 1,
-    "user": 3,
-    "is_submitting": true,
-    "is_corresponding": true,
-    "corresponding_email": 3
-  }
-},
-{
-  "model": "project.author",
-  "pk": 4,
-  "fields": {
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 2,
-    "display_order": 2,
-    "user": 4,
-    "is_corresponding": true,
-    "corresponding_email": 7
-  }
-},
-{
-  "model": "project.author",
-  "pk": 5,
-  "fields": {
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 4,
-    "display_order": 1,
-    "user": 2,
-    "is_submitting": true,
-    "is_corresponding": true,
-    "corresponding_email": 2
-  }
-},
-{
   "model": "project.affiliation",
   "pk": 1,
   "fields": {
@@ -482,6 +85,503 @@
   "fields": {
     "name": "Massachusetts Institute of Technology",
     "author": 4
+  }
+},
+{
+  "model": "project.author",
+  "pk": 1,
+  "fields": {
+    "user": [
+      "rgmark"
+    ],
+    "display_order": 1,
+    "is_submitting": true,
+    "is_corresponding": true,
+    "approval_datetime": null,
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
+    "object_id": 1,
+    "corresponding_email": 2
+  }
+},
+{
+  "model": "project.author",
+  "pk": 2,
+  "fields": {
+    "user": [
+      "rgmark"
+    ],
+    "display_order": 1,
+    "is_submitting": true,
+    "is_corresponding": false,
+    "approval_datetime": null,
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
+    "object_id": 2,
+    "corresponding_email": 2
+  }
+},
+{
+  "model": "project.author",
+  "pk": 3,
+  "fields": {
+    "user": [
+      "george"
+    ],
+    "display_order": 1,
+    "is_submitting": true,
+    "is_corresponding": true,
+    "approval_datetime": null,
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
+    "object_id": 3,
+    "corresponding_email": 3
+  }
+},
+{
+  "model": "project.author",
+  "pk": 4,
+  "fields": {
+    "user": [
+      "aewj"
+    ],
+    "display_order": 2,
+    "is_submitting": false,
+    "is_corresponding": true,
+    "approval_datetime": null,
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
+    "object_id": 2,
+    "corresponding_email": 7
+  }
+},
+{
+  "model": "project.author",
+  "pk": 5,
+  "fields": {
+    "user": [
+      "rgmark"
+    ],
+    "display_order": 1,
+    "is_submitting": true,
+    "is_corresponding": true,
+    "approval_datetime": null,
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
+    "object_id": 4,
+    "corresponding_email": 2
+  }
+},
+{
+  "model": "project.topic",
+  "pk": 1,
+  "fields": {
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
+    "object_id": 1,
+    "description": "ecg"
+  }
+},
+{
+  "model": "project.topic",
+  "pk": 2,
+  "fields": {
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
+    "object_id": 2,
+    "description": "arrthythmia"
+  }
+},
+{
+  "model": "project.topic",
+  "pk": 3,
+  "fields": {
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
+    "object_id": 2,
+    "description": "critical care"
+  }
+},
+{
+  "model": "project.topic",
+  "pk": 4,
+  "fields": {
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
+    "object_id": 2,
+    "description": "intensive care unit"
+  }
+},
+{
+  "model": "project.reference",
+  "pk": 1,
+  "fields": {
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
+    "object_id": 2,
+    "description": "Charles, D., King, J., Patel, V. & Furukawa, M. Adoption of Electronic Health record Systems among U.S. Non-federal Acute Care Hospitals. ONC Data Brief No. 9, 1\u20139 (2013)."
+  }
+},
+{
+  "model": "project.reference",
+  "pk": 2,
+  "fields": {
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
+    "object_id": 2,
+    "description": "Collins, F. S. & Tabak, L. A. NIH plans to enhance reproducibility. Nature 505, 612\u2013613 (2014)."
+  }
+},
+{
+  "model": "project.reference",
+  "pk": 3,
+  "fields": {
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
+    "object_id": 2,
+    "description": "Pollard, T. J., & Johnson, A. E. W. The MIMIC-III Clinical Database http://dx.doi.org/10.13026/C2XW26 (2016)"
+  }
+},
+{
+  "model": "project.publication",
+  "pk": 1,
+  "fields": {
+    "citation": "Moody GB, Mark RG. The impact of the MIT-BIH Arrhythmia Database. IEEE Eng in Med and Biol 20(3):45-50 (May-June 2001). (PMID: 11446209)",
+    "url": "https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=932724",
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
+    "object_id": 1
+  }
+},
+{
+  "model": "project.publication",
+  "pk": 2,
+  "fields": {
+    "citation": "Johnson, A. E. W. et al. MIMIC-III, a freely accessible critical care database. Sci. Data 3:160035 doi: 10.1038/sdata.2016.35 (2016).",
+    "url": "https://www.nature.com/articles/sdata201635",
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
+    "object_id": 2
+  }
+},
+{
+  "model": "project.coreproject",
+  "pk": "2e780890-644d-4166-b0ca-e3d31596405b",
+  "fields": {
+    "creation_datetime": "2017-10-30T14:30:30Z",
+    "doi": "",
+    "storage_allowance": 104857600
+  }
+},
+{
+  "model": "project.coreproject",
+  "pk": "950032c4-2d96-43d6-84d5-e1652f451a79",
+  "fields": {
+    "creation_datetime": "2017-10-30T14:30:30Z",
+    "doi": "",
+    "storage_allowance": 104857600
+  }
+},
+{
+  "model": "project.coreproject",
+  "pk": "ba881793-f671-4215-9487-070c04bdb4e2",
+  "fields": {
+    "creation_datetime": "2017-10-30T14:30:30Z",
+    "doi": "",
+    "storage_allowance": 104857600
+  }
+},
+{
+  "model": "project.coreproject",
+  "pk": "ff038b01-14a2-4af1-9a7d-9f9845c45219",
+  "fields": {
+    "creation_datetime": "2017-10-30T14:30:30Z",
+    "doi": "",
+    "storage_allowance": 104857600
+  }
+},
+{
+  "model": "project.activeproject",
+  "pk": 1,
+  "fields": {
+    "resource_type": 0,
+    "title": "MIT-BIH Arrhythmia Database",
+    "abstract": "<p>The MIT-BIH Arrhythmia Database contains 48 half-hour excerpts of two-channel ambulatory ECG recordings, obtained from 47 subjects studied by the BIH Arrhythmia Laboratory between 1975 and 1979. Twenty-three recordings were chosen at random from a set of 4000 24-hour ambulatory ECG recordings collected from a mixed population of inpatients (about 60%) and outpatients (about 40%) at Boston&#39;s Beth Israel Hospital; the remaining 25 recordings were selected from the same set to include less common but clinically significant arrhythmias that would not be well-represented in a small random sample.</p>",
+    "background": "<p>Since 1975, our laboratories at Boston&#39;s Beth Israel Hospital (now the Beth Israel Deaconess Medical Center) and at MIT have supported our own research into arrhythmia analysis and related subjects. One of the first major products of that effort was the MIT-BIH Arrhythmia Database, which we completed and began distributing in 1980. The database was the first generally available set of standard test material for evaluation of arrhythmia detectors, and has been used for that purpose as well as for basic research into cardiac dynamics at more than 500 sites worldwide. Originally, we distributed the database on 9-track half-inch digital tape at 800 and 1600 bpi, and on quarter-inch IRIG-format FM analog tape. In August, 1989, we produced a CD-ROM version of the database.</p>",
+    "methods": "<p>The recordings were digitized at 360 samples per second per channel with 11-bit resolution over a 10 mV range. Two or more cardiologists independently annotated each record; disagreements were resolved to obtain the computer-readable reference annotations for each beat (approximately 110,000 annotations in all) included with the database.</p>\r\n\r\n<p>The charts for each recording were given to two cardiologists, who worked independently, adding additional beat labels and deleting false detections as necessary, and changing the labels for abnormal beats. The cardiologists also added rhythm and signal quality labels. At this point the two sets of annotations were compared automatically and another chart recording was printed, showing the cardiologists&rsquo; annotations in the margin, with all discrepancies highlighted. Each discrepancy was examined and resolved by consensus.</p>",
+    "content_description": "<p>This directory contains the entire MIT-BIH Arrhythmia Database. About half (25 of 48 complete records, and reference annotation files for all 48 records) of this database has been freely available here since PhysioNet&#39;s inception in September 1999. The 23 remaining signal files, which had been available only on the MIT-BIH Arrhythmia Database CD-ROM, were posted here in February 2005.</p>",
+    "usage_notes": "<p>Use one of the <a href=\"https://physionet.org/physiotools/wfdb.shtml\">WFDB</a> software package distributions to read the files. The WFDB record files contain the regularly sampled multichannel waveforms, and the <em>.atr annotation files contain the reference annotations.</em></p>",
+    "installation": "",
+    "subject_identifiers": "There are only ages and genders. No dates are present.",
+    "acknowledgements": "<p>Thank you to the cardiologists who labelled over 100000 heartbeats.</p>",
+    "conflicts_of_interest": "<p>The authors declare no conflicts of interest.</p>",
+    "version": "1.0.0",
+    "changelog_summary": "",
+    "access_policy": 0,
+    "license": 1,
+    "data_use_agreement": null,
+    "project_home_page": "https://physionet.org/physiobank/database/mitdb/",
+    "slug": "SHuKI1APLrwWCqxSQnSk",
+    "core_project": "950032c4-2d96-43d6-84d5-e1652f451a79",
+    "creation_datetime": "2017-10-30T14:30:30Z",
+    "version_order": 0,
+    "editor": null,
+    "submission_datetime": null,
+    "editor_assignment_datetime": null,
+    "revision_request_datetime": null,
+    "resubmission_datetime": null,
+    "editor_accept_datetime": null,
+    "copyedit_completion_datetime": null,
+    "author_approval_datetime": null,
+    "modified_datetime": "2018-09-13T17:26:24.820Z",
+    "submission_status": 0
+  }
+},
+{
+  "model": "project.activeproject",
+  "pk": 2,
+  "fields": {
+    "resource_type": 0,
+    "title": "MIMIC-III Clinical Database",
+    "abstract": "<p>MIMIC-III (Medical Information Mart for Intensive Care III) is a large, freely-available database comprising deidentified health-related data associated with over forty thousand patients who stayed in critical care units of the Beth Israel Deaconess Medical Center between 2001 and 2012.</p>\r\n\r\n<p>The database includes information such as demographics, vital sign measurements made at the bedside (~1 data point per hour), laboratory test results, procedures, medications, caregiver notes, imaging reports, and mortality (both in and out of hospital).</p>",
+    "background": "<p>In recent years there has been a concerted move towards the adoption of digital health record systems in hospitals. In the US, for example, the number of non-federal acute care hospitals with basic digital systems increased from 9.4 to 75.5% over the 7 year period between 2008 and 2014 [1].</p>\r\n\r\n<p>Despite this advance, interoperability of digital systems remains an open issue, leading to challenges in data integration. As a result, the potential that hospital data offers in terms of understanding and improving care is yet to be fully realized. In parallel, the scientific research community is increasingly coming under criticism for the lack of reproducibility of studies [2].</p>\r\n\r\n<p>Here we report the release of the MIMIC-III database [3], an update to the widely-used MIMIC-II database. MIMIC-III integrates deidentified, comprehensive clinical data of patients admitted to the Beth Israel Deaconess Medical Center in Boston, Massachusetts, and makes it widely accessible to researchers internationally under a data use agreement. The open nature of the data allows clinical studies to be reproduced and improved in ways that would not otherwise be possible.</p>\r\n\r\n<p>Based on our experience with the previous major release of MIMIC (MIMIC-II, released in 2010) we anticipate MIMIC-III to be widely used internationally in areas such as academic and industrial research, quality improvement initiatives, and higher education coursework.</p>\r\n\r\n<p>To recognize the increasingly broad usage of MIMIC, we have renamed the full title of the database from &lsquo;Multiparameter Intelligent Monitoring in Intensive Care&rsquo; to &lsquo;Medical Information Mart for Intensive Care&rsquo;. The MIMIC-III critical care database is unique and notable for the following reasons:</p>\r\n\r\n<ul>\r\n\t<li>\r\n\t<p>it is the only freely accessible critical care database of its kind</p>\r\n\t</li>\r\n\t<li>\r\n\t<p>the dataset spans more than a decade, with detailed information about individual patient care</p>\r\n\t</li>\r\n\t<li>\r\n\t<p>analysis is unrestricted once a data use agreement is accepted, enabling clinical research and education around the world.</p>\r\n\t</li>\r\n</ul>",
+    "methods": "<p>The Laboratory for Computational Physiology at Massachusetts Institute of Technology is an interdisciplinary team of data scientists and practicing physicians. MIMIC-III is the third iteration of the MIMIC critical care database, enabling us to draw upon prior experience with regard to data management and integration</p>\r\n\r\n<p><strong>Database development</strong></p>\r\n\r\n<p>The MIMIC-III database was populated with data that had been acquired during routine hospital care, so there was no associated burden on caregivers and no interference with their workflow. Data was downloaded from several sources, including:</p>\r\n\r\n<ul>\r\n\t<li>\r\n\t<p>archives from critical care information systems.</p>\r\n\t</li>\r\n\t<li>\r\n\t<p>hospital electronic health record databases.</p>\r\n\t</li>\r\n\t<li>\r\n\t<p>Social Security Administration Death Master File.</p>\r\n\t</li>\r\n</ul>\r\n\r\n<p>Two different critical care information systems were in place over the data collection period: Philips CareVue Clinical Information System (models M2331A and M1215A; Philips Health-care, Andover, MA) and iMDsoft MetaVision ICU (iMDsoft, Needham, MA). These systems were the source of clinical data such as:</p>\r\n\r\n<ul>\r\n\t<li>\r\n\t<p>time-stamped nurse-verified physiological measurements (for example, hourly documentation of heart rate, arterial blood pressure, or respiratory rate);</p>\r\n\t</li>\r\n\t<li>\r\n\t<p>documented progress notes by care providers;</p>\r\n\t</li>\r\n\t<li>\r\n\t<p>continuous intravenous drip medications and fluid balances.</p>\r\n\t</li>\r\n</ul>\r\n\r\n<p>With exception to data relating to fluid intake, which differed significantly in structure between the CareVue and MetaVision systems, data was merged when building the database tables. Data which could not be merged is given a suffix to denote the data source. For example, inputs for patients monitored with the CareVue system are stored in INPUTEVENTS_CV, whereas inputs for patients monitored with the Metavision system are stored in INPUTEVENTS_MV. Additional information was collected from hospital and laboratory health record systems, including:</p>\r\n\r\n<ul>\r\n\t<li>\r\n\t<p>patient demographics and in-hospital mortality.</p>\r\n\t</li>\r\n\t<li>\r\n\t<p>laboratory test results (for example, hematology, chemistry, and microbiology results).</p>\r\n\t</li>\r\n\t<li>\r\n\t<p>discharge summaries and reports of electrocardiogram and imaging studies.</p>\r\n\t</li>\r\n\t<li>\r\n\t<p>billing-related information such as International Classification of Disease, 9th Edition (ICD-9) codes, Diagnosis Related Group (DRG) codes, and Current Procedural Terminology (CPT) codes.</p>\r\n\t</li>\r\n</ul>\r\n\r\n<p>Out-of-hospital mortality dates were obtained using the Social Security Administration Death Master File. A more detailed description of the data is shown in Table 1. Physiological waveforms obtained from bedside monitors (such as electrocardiograms, blood pressure waveforms, photoplethysmograms, impedance pneumograms) were obtained for a subset of patients.</p>\r\n\r\n<p>Several projects are ongoing to map concepts within the MIMIC database to standardized dictionaries. For example, researchers at the National Library of Medicine National Institutes of Health have mapped laboratory tests and medications in MIMIC-II to LOINC and RxNorm, respectively<a href=\"https://www.nature.com/articles/sdata201635#ref4\" id=\"ref-link-section-4\" title=\" Abhyankar, S., Demner-Fushman, D. &amp; McDonald, C. J. Standardizing clinical laboratory data for secondary use. J Biomed Inform 45, 642\u2013650 (2012). \">4</a>. Efforts are also underway to transform MIMIC to common data models, such as the Observational Medical Outcomes Partnership Common Data Model, to support the application of standardized tools and methods<a href=\"https://www.nature.com/articles/sdata201635#ref5\" id=\"ref-link-section-5\" title=\" Observational Medical Outcomes Partnership Common Data Model. Website http://www.ohdsi.org/data-standardization/the-common-data-model/(Accessed: March 2016). \">5</a>. These developments are progressively incorporated into the MIMIC database where possible.</p>\r\n\r\n<p>The project was approved by the Institutional Review Boards of Beth Israel Deaconess Medical Center (Boston, MA) and the Massachusetts Institute of Technology (Cambridge, MA). Requirement for individual patient consent was waived because the project did not impact clinical care and all protected health information was deidentified.</p>\r\n\r\n<p><strong>Deidentification</strong></p>\r\n\r\n<p>Before data was incorporated into the MIMIC-III database, it was first deidentified in accordance with Health Insurance Portability and Accountability Act (HIPAA) standards using structured data cleansing and date shifting. The deidentification process for structured data required the removal of all eighteen of the identifying data elements listed in HIPAA, including fields such as patient name, telephone number, address, and dates. In particular, dates were shifted into the future by a random offset for each individual patient in a consistent manner to preserve intervals, resulting in stays which occur sometime between the years 2100 and 2200. Time of day, day of the week, and approximate seasonality were conserved during date shifting. Dates of birth for patients aged over 89 were shifted to obscure their true age and comply with HIPAA regulations: these patients appear in the database with ages of over 300 years.</p>\r\n\r\n<p>Protected health information was removed from free text fields, such as diagnostic reports and physician notes, using a rigorously evaluated deidentification system based on extensive dictionary look-ups and pattern-matching with regular expressions. The components of this deidentification system are continually expanded as new data is acquired.</p>",
+    "content_description": "<p><strong>Patient characteristics</strong></p>\r\n\r\n<p>MIMIC-III contains data associated with 53,423 distinct hospital admissions for adult patients (aged 16 years or above) admitted to critical care units between 2001 and 2012. In addition, it contains data for 7870 neonates admitted between 2001 and 2008. The data covers 38,597 distinct adult patients and 49,785 hospital admissions. The median age of adult patients is 65.8 years (Q1&ndash;Q3: 52.8&ndash;77.8), 55.9% patients are male, and in-hospital mortality is 11.5%. The median length of an ICU stay is 2.1 days (Q1&ndash;Q3: 1.2&ndash;4.6) and the median length of a hospital stay is 6.9 days (Q1-Q3: 4.1&ndash;11.9). A mean of 4579 charted observations (&rsquo;chartevents&rsquo;) and 380 laboratory measurements (&rsquo;labevents&rsquo;) are available for each hospital admission. Table 1 provides a breakdown of the adult population by care unit.</p>\r\n\r\n<p><strong>Details of the MIMIC-III patient population by first critical care unit on hospital admission for patients aged 16 years and above.</strong></p>\r\n\r\n<p>The primary International Classification of Diseases (ICD-9) codes from the patient discharges are listed in Table 2. The top three codes across hospital admissions for patients aged 16 years and above were:</p>\r\n\r\n<p><strong>Distribution of primary International Classification of Diseases, 9th Edition (ICD-9) codes by care unit for patients aged 16 years and above.</strong></p>\r\n\r\n<ul>\r\n\t<li>\r\n\t<p>414.01 (&lsquo;Coronary atherosclerosis of native coronary artery&rsquo;), accounting for 7.1% of all hospital admissions;</p>\r\n\t</li>\r\n\t<li>\r\n\t<p>038.9 (&lsquo;Unspecified septicemia&rsquo;), accounting for 4.2% of all hospital admissions; and</p>\r\n\t</li>\r\n\t<li>\r\n\t<p>410.71 (&lsquo;Subendocardial infarction, initial episode of care&rsquo;), accounting for 3.6% of all hospital admissions.</p>\r\n\t</li>\r\n</ul>\r\n\r\n<p>Classes of data</p>\r\n\r\n<p>Data available in the MIMIC-III database ranges from time-stamped, nurse-verified physiological measurements made at the bedside to free-text interpretations of imaging studies provided by the radiology department. Table 3 gives an overview of the different classes of data available. Figure 2 shows sample data for a single patient stay in a medical intensive care unit. The patient, who was undergoing a course of chemotherapy at the time of admission, presented with febrile neutropenia, anemia, and thrombocytopenia.</p>\r\n\r\n<p>GCS is Glasgow Coma Scale; NIBP is non-invasive blood pressure; and O2 saturation is blood oxygen saturation.</p>",
+    "usage_notes": "",
+    "installation": "",
+    "subject_identifiers": "",
+    "acknowledgements": "<p>This research and development was supported by grants NIH-R01-EB017205, NIH-R01-EB001659, and NIH-R01-GM104987 from the National Institutes of Health. The authors would also like to thank Philips Healthcare and staff at the Beth Israel Deaconess Medical Center, Boston, for supporting database development, and Ken Pierce for providing Fig. 1.</p>",
+    "conflicts_of_interest": "<p>The authors declare no conflicts of interest.</p>",
+    "version": "1.3.0",
+    "changelog_summary": "",
+    "access_policy": 2,
+    "license": 1,
+    "data_use_agreement": 1,
+    "project_home_page": "",
+    "slug": "T108xFtYkRAxiRiuOLEJ",
+    "core_project": "ff038b01-14a2-4af1-9a7d-9f9845c45219",
+    "creation_datetime": "2017-10-30T14:30:30Z",
+    "version_order": 0,
+    "editor": null,
+    "submission_datetime": null,
+    "editor_assignment_datetime": null,
+    "revision_request_datetime": null,
+    "resubmission_datetime": null,
+    "editor_accept_datetime": null,
+    "copyedit_completion_datetime": null,
+    "author_approval_datetime": null,
+    "modified_datetime": "2018-09-13T17:23:44.820Z",
+    "submission_status": 0
+  }
+},
+{
+  "model": "project.activeproject",
+  "pk": 3,
+  "fields": {
+    "resource_type": 1,
+    "title": "WFDB",
+    "abstract": "<p>The major components of the WFDB Software Package are the WFDB library, about 75 WFDB applications for signal processing and automated analysis, and the WAVE software for viewing, annotation, and interactive analysis of waveform data. A comprehensive collection of documentation, including tutorials and reference manuals, is also included in the package.</p>",
+    "background": "<p>Effective use of PhysioBank data requires specialized software. We have developed a large collection of such software over the past twenty years, and much of it is contained within the WFDB (WaveForm DataBase) Software Package, the GPLed successor to the MIT DB Software Package.</p>",
+    "methods": "<p>Two American National Standards, ANSI/AAMI EC38:1998 (Ambulatory Electrocardiographs) and ANSI/AAMI EC57:1998 (Testing and Reporting Performance Results of Cardiac Rhythm and ST Segment Measurement Algorithms) require the use of several of the WFDB applications for evaluation of certain devices and algorithms. For details, see <a href=\"https://physionet.org/physiotools/wag/eval.htm\">Evaluating ECG Analyzers</a> in the <em>WFDB Applications Guide</em>.</p>",
+    "content_description": "<p><strong>WFDB library</strong></p>\r\n\r\n<p>This is a <a href=\"https://physionet.org/physiotools/wfdb/lib/\">set of functions</a> (subroutines) for reading and writing files in the formats used by PhysioBank databases (among others). The WFDB library is <a href=\"https://physionet.org/physiotools/wfdb/lib/COPYING.LIB\">LGPL</a>ed, and can be used by programs written in ANSI/ISO C, K&amp;R C, C++, or Fortran, running under any operating system for which an ANSI/ISO or K&amp;R C compiler is available, including all versions of Unix, MS-DOS, MS-Windows, the Macintosh OS, and VMS.</p>\r\n\r\n<p>Optionally, the WFDB library may be compiled with support for reading input directly from web (HTTP) and FTP servers without the use of a web browser or an FTP client. This optional feature allows applications linked with the WFDB library to view or analyze data such as those available from <a href=\"https://physionet.org/physiobank/\">PhysioBank</a> without the need to download entire records and to store them locally. To enable this feature, you will also need either the World Wide Web Consortium&#39;s <a href=\"https://physionet.org/physiotools/libwww/\">libwww</a> package, or the modern and enhanced alternative, <a href=\"https://physionet.org/physiotools/libcurl/\">libcurl</a>.</p>\r\n\r\n<p>The WFDB library is documented by the <em>WFDB Programmer&#39;s Guide</em> (available as <a href=\"https://physionet.org/physiotools/wpg/wpg.htm\">HTML</a> or <a href=\"https://physionet.org/physiotools/wpg/wpg.pdf\">PDF</a>). Texinfo sources for the <em>WFDB Programmer&#39;s Guide</em> are included in the <a href=\"https://physionet.org/physiotools/wfdb/doc/\">doc</a> directory of the WFDB Software Package.</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p><strong>WFDB applications</strong></p>\r\n\r\n<p>A large set of well-tested, interoperable command-line tools for signal processing and automated analysis is included in the <a href=\"https://physionet.org/physiotools/wfdb/app/\">app</a>, <a href=\"https://physionet.org/physiotools/wfdb/convert/\">convert</a>, and <a href=\"https://physionet.org/physiotools/wfdb/psd/\">psd</a> directories of the WFDB Software Package. These applications are described in the <em>WFDB Applications Guide</em> (available as <a href=\"https://physionet.org/physiotools/wag/wag.htm\">HTML</a> or <a href=\"https://physionet.org/physiotools/wag/wag.pdf\">PDF</a>). The troff (Unix man page) sources for the <em>WFDB Applications Guide</em> are included in the <a href=\"https://physionet.org/physiotools/wfdb/doc/\">doc</a> directory of the WFDB Software Package.</p>",
+    "usage_notes": "<p>Individual application instructions are contained in the man pages.</p>",
+    "installation": "<p>Run the makefile.</p>",
+    "subject_identifiers": "",
+    "acknowledgements": "",
+    "conflicts_of_interest": "<p>None to declare.</p>",
+    "version": "1.0.0",
+    "changelog_summary": "",
+    "access_policy": 0,
+    "license": null,
+    "data_use_agreement": null,
+    "project_home_page": "https://physionet.org/physiotools/wfdb.shtml",
+    "slug": "kadzWaIVz0DQd72mL1cm",
+    "core_project": "ba881793-f671-4215-9487-070c04bdb4e2",
+    "creation_datetime": "2017-10-30T14:30:30Z",
+    "version_order": 0,
+    "editor": null,
+    "submission_datetime": null,
+    "editor_assignment_datetime": null,
+    "revision_request_datetime": null,
+    "resubmission_datetime": null,
+    "editor_accept_datetime": null,
+    "copyedit_completion_datetime": null,
+    "author_approval_datetime": null,
+    "modified_datetime": "2018-11-01T18:31:55.570Z",
+    "submission_status": 0
+  }
+},
+{
+  "model": "project.activeproject",
+  "pk": 4,
+  "fields": {
+    "resource_type": 0,
+    "title": "MIMIC-III Clinical Database Demo",
+    "abstract": "<p>The MIMIC-III (Medical Information Mart for Intensive Care) Clinical Database contains comprehensive clinical data from tens of thousands of Intensive Care Unit (ICU) patients. This project is a demo version which has only 100 patients and excludes the noteevents table.</p>",
+    "background": "<p>Many found that it would be useful to explore the structure of the database before installing the full version.</p>",
+    "methods": "<p>Took 100 patients from the full database.</p>",
+    "content_description": "<p>Limited information up to 100 patients. Notes are not included.</p>",
+    "usage_notes": "",
+    "installation": "",
+    "subject_identifiers": "",
+    "acknowledgements": "",
+    "conflicts_of_interest": "",
+    "version": "1.0.0",
+    "changelog_summary": "",
+    "access_policy": 1,
+    "license": 1,
+    "data_use_agreement": 1,
+    "project_home_page": "",
+    "slug": "Revkx24XL77vUm2KTFYU",
+    "core_project": "ff038b01-14a2-4af1-9a7d-9f9845c45219",
+    "creation_datetime": "2018-07-23T21:48:39.068Z",
+    "version_order": 0,
+    "editor": null,
+    "submission_datetime": null,
+    "editor_assignment_datetime": null,
+    "revision_request_datetime": null,
+    "resubmission_datetime": null,
+    "editor_accept_datetime": null,
+    "copyedit_completion_datetime": null,
+    "author_approval_datetime": null,
+    "modified_datetime": "2018-07-23T22:03:10.736Z",
+    "submission_status": 0
+  }
+},
+{
+  "model": "project.license",
+  "pk": 1,
+  "fields": {
+    "name": "Creative Commons Attribution 4.0 International Public License",
+    "slug": "creative-commons-attribution-40-international-public-license",
+    "description": "<p>By exercising the Licensed Rights (defined below), You accept and agree to be bound by the terms and conditions of this Creative Commons Attribution 4.0 International Public License (&quot;Public License&quot;). To the extent this Public License may be interpreted as a contract, You are granted the Licensed Rights in consideration of Your acceptance of these terms and conditions, and the Licensor grants You such rights in consideration of benefits the Licensor receives from making the Licensed Material available under these terms and conditions.</p>\r\n\r\n<p><strong>Section 1 &ndash; Definitions.</strong></p>\r\n\r\n<ol style=\"list-style-type:lower-alpha\">\r\n\t<li><strong>Adapted Material</strong> means material subject to Copyright and Similar Rights that is derived from or based upon the Licensed Material and in which the Licensed Material is translated, altered, arranged, transformed, or otherwise modified in a manner requiring permission under the Copyright and Similar Rights held by the Licensor. For purposes of this Public License, where the Licensed Material is a musical work, performance, or sound recording, Adapted Material is always produced where the Licensed Material is synched in timed relation with a moving image.</li>\r\n\t<li><strong>Adapter&#39;s License</strong> means the license You apply to Your Copyright and Similar Rights in Your contributions to Adapted Material in accordance with the terms and conditions of this Public License.</li>\r\n\t<li><strong>Copyright and Similar Rights</strong> means copyright and/or similar rights closely related to copyright including, without limitation, performance, broadcast, sound recording, and Sui Generis Database Rights, without regard to how the rights are labeled or categorized. For purposes of this Public License, the rights specified in Section <a href=\"https://creativecommons.org/licenses/by/4.0/legalcode#s2b\">2(b)(1)-(2)</a> are not Copyright and Similar Rights.</li>\r\n\t<li><strong>Effective Technological Measures</strong> means those measures that, in the absence of proper authority, may not be circumvented under laws fulfilling obligations under Article 11 of the WIPO Copyright Treaty adopted on December 20, 1996, and/or similar international agreements.</li>\r\n\t<li><strong>Exceptions and Limitations</strong> means fair use, fair dealing, and/or any other exception or limitation to Copyright and Similar Rights that applies to Your use of the Licensed Material.</li>\r\n\t<li><strong>Licensed Material</strong> means the artistic or literary work, database, or other material to which the Licensor applied this Public License.</li>\r\n\t<li><strong>Licensed Rights</strong> means the rights granted to You subject to the terms and conditions of this Public License, which are limited to all Copyright and Similar Rights that apply to Your use of the Licensed Material and that the Licensor has authority to license.</li>\r\n\t<li><strong>Licensor</strong> means the individual(s) or entity(ies) granting rights under this Public License.</li>\r\n\t<li><strong>Share</strong> means to provide material to the public by any means or process that requires permission under the Licensed Rights, such as reproduction, public display, public performance, distribution, dissemination, communication, or importation, and to make material available to the public including in ways that members of the public may access the material from a place and at a time individually chosen by them.</li>\r\n\t<li><strong>Sui Generis Database Rights</strong> means rights other than copyright resulting from Directive 96/9/EC of the European Parliament and of the Council of 11 March 1996 on the legal protection of databases, as amended and/or succeeded, as well as other essentially equivalent rights anywhere in the world.</li>\r\n\t<li><strong>You</strong> means the individual or entity exercising the Licensed Rights under this Public License. <strong>Your</strong> has a corresponding meaning.</li>\r\n</ol>\r\n\r\n<p><strong>Section 2 &ndash; Scope.</strong></p>\r\n\r\n<ol style=\"list-style-type:lower-alpha\">\r\n\t<li><strong>License grant</strong>.\r\n\r\n\t<ol>\r\n\t\t<li>Subject to the terms and conditions of this Public License, the Licensor hereby grants You a worldwide, royalty-free, non-sublicensable, non-exclusive, irrevocable license to exercise the Licensed Rights in the Licensed Material to:\r\n\t\t<ol style=\"list-style-type:upper-alpha\">\r\n\t\t\t<li>reproduce and Share the Licensed Material, in whole or in part; and</li>\r\n\t\t\t<li>produce, reproduce, and Share Adapted Material.</li>\r\n\t\t</ol>\r\n\t\t</li>\r\n\t\t<li><u>Exceptions and Limitations</u>. For the avoidance of doubt, where Exceptions and Limitations apply to Your use, this Public License does not apply, and You do not need to comply with its terms and conditions.</li>\r\n\t\t<li><u>Term</u>. The term of this Public License is specified in Section <a href=\"https://creativecommons.org/licenses/by/4.0/legalcode#s6a\">6(a)</a>.</li>\r\n\t\t<li><u>Media and formats; technical modifications allowed</u>. The Licensor authorizes You to exercise the Licensed Rights in all media and formats whether now known or hereafter created, and to make technical modifications necessary to do so. The Licensor waives and/or agrees not to assert any right or authority to forbid You from making technical modifications necessary to exercise the Licensed Rights, including technical modifications necessary to circumvent Effective Technological Measures. For purposes of this Public License, simply making modifications authorized by this Section <a href=\"https://creativecommons.org/licenses/by/4.0/legalcode#s2a4\">2(a)(4)</a> never produces Adapted Material.</li>\r\n\t\t<li><u>Downstream recipients</u>.\r\n\t\t<ol style=\"list-style-type:upper-alpha\">\r\n\t\t\t<li><u>Offer from the Licensor &ndash; Licensed Material</u>. Every recipient of the Licensed Material automatically receives an offer from the Licensor to exercise the Licensed Rights under the terms and conditions of this Public License.</li>\r\n\t\t\t<li><u>No downstream restrictions</u>. You may not offer or impose any additional or different terms or conditions on, or apply any Effective Technological Measures to, the Licensed Material if doing so restricts exercise of the Licensed Rights by any recipient of the Licensed Material.</li>\r\n\t\t</ol>\r\n\t\t</li>\r\n\t\t<li><u>No endorsement</u>. Nothing in this Public License constitutes or may be construed as permission to assert or imply that You are, or that Your use of the Licensed Material is, connected with, or sponsored, endorsed, or granted official status by, the Licensor or others designated to receive attribution as provided in Section <a href=\"https://creativecommons.org/licenses/by/4.0/legalcode#s3a1Ai\">3(a)(1)(A)(i)</a>.</li>\r\n\t</ol>\r\n\t</li>\r\n\t<li>\r\n\t<p><strong>Other rights</strong>.</p>\r\n\r\n\t<ol>\r\n\t\t<li>Moral rights, such as the right of integrity, are not licensed under this Public License, nor are publicity, privacy, and/or other similar personality rights; however, to the extent possible, the Licensor waives and/or agrees not to assert any such rights held by the Licensor to the limited extent necessary to allow You to exercise the Licensed Rights, but not otherwise.</li>\r\n\t\t<li>Patent and trademark rights are not licensed under this Public License.</li>\r\n\t\t<li>To the extent possible, the Licensor waives any right to collect royalties from You for the exercise of the Licensed Rights, whether directly or through a collecting society under any voluntary or waivable statutory or compulsory licensing scheme. In all other cases the Licensor expressly reserves any right to collect such royalties.</li>\r\n\t</ol>\r\n\t</li>\r\n</ol>\r\n\r\n<p><strong>Section 3 &ndash; License Conditions.</strong></p>\r\n\r\n<p>Your exercise of the Licensed Rights is expressly made subject to the following conditions.</p>\r\n\r\n<ol style=\"list-style-type:lower-alpha\">\r\n\t<li>\r\n\t<p><strong>Attribution</strong>.</p>\r\n\r\n\t<ol>\r\n\t\t<li>\r\n\t\t<p>If You Share the Licensed Material (including in modified form), You must:</p>\r\n\r\n\t\t<ol style=\"list-style-type:upper-alpha\">\r\n\t\t\t<li>retain the following if it is supplied by the Licensor with the Licensed Material:\r\n\t\t\t<ol style=\"list-style-type:lower-roman\">\r\n\t\t\t\t<li>identification of the creator(s) of the Licensed Material and any others designated to receive attribution, in any reasonable manner requested by the Licensor (including by pseudonym if designated);</li>\r\n\t\t\t\t<li>a copyright notice;</li>\r\n\t\t\t\t<li>a notice that refers to this Public License;</li>\r\n\t\t\t\t<li>a notice that refers to the disclaimer of warranties;</li>\r\n\t\t\t\t<li>a URI or hyperlink to the Licensed Material to the extent reasonably practicable;</li>\r\n\t\t\t</ol>\r\n\t\t\t</li>\r\n\t\t\t<li>indicate if You modified the Licensed Material and retain an indication of any previous modifications; and</li>\r\n\t\t\t<li>indicate the Licensed Material is licensed under this Public License, and include the text of, or the URI or hyperlink to, this Public License.</li>\r\n\t\t</ol>\r\n\t\t</li>\r\n\t\t<li>You may satisfy the conditions in Section <a href=\"https://creativecommons.org/licenses/by/4.0/legalcode#s3a1\">3(a)(1)</a> in any reasonable manner based on the medium, means, and context in which You Share the Licensed Material. For example, it may be reasonable to satisfy the conditions by providing a URI or hyperlink to a resource that includes the required information.</li>\r\n\t\t<li>If requested by the Licensor, You must remove any of the information required by Section <a href=\"https://creativecommons.org/licenses/by/4.0/legalcode#s3a1A\">3(a)(1)(A)</a> to the extent reasonably practicable.</li>\r\n\t\t<li>If You Share Adapted Material You produce, the Adapter&#39;s License You apply must not prevent recipients of the Adapted Material from complying with this Public License.</li>\r\n\t</ol>\r\n\t</li>\r\n</ol>\r\n\r\n<p><strong>Section 4 &ndash; Sui Generis Database Rights.</strong></p>\r\n\r\n<p>Where the Licensed Rights include Sui Generis Database Rights that apply to Your use of the Licensed Material:</p>\r\n\r\n<ol style=\"list-style-type:lower-alpha\">\r\n\t<li>for the avoidance of doubt, Section <a href=\"https://creativecommons.org/licenses/by/4.0/legalcode#s2a1\">2(a)(1)</a> grants You the right to extract, reuse, reproduce, and Share all or a substantial portion of the contents of the database;</li>\r\n\t<li>if You include all or a substantial portion of the database contents in a database in which You have Sui Generis Database Rights, then the database in which You have Sui Generis Database Rights (but not its individual contents) is Adapted Material; and</li>\r\n\t<li>You must comply with the conditions in Section <a href=\"https://creativecommons.org/licenses/by/4.0/legalcode#s3a\">3(a)</a> if You Share all or a substantial portion of the contents of the database.</li>\r\n</ol>\r\n\r\n<p>For the avoidance of doubt, this Section <a href=\"https://creativecommons.org/licenses/by/4.0/legalcode#s4\">4</a> supplements and does not replace Your obligations under this Public License where the Licensed Rights include other Copyright and Similar Rights.</p>\r\n\r\n<p><strong>Section 5 &ndash; Disclaimer of Warranties and Limitation of Liability.</strong></p>\r\n\r\n<ol style=\"list-style-type:lower-alpha\">\r\n\t<li><strong>Unless otherwise separately undertaken by the Licensor, to the extent possible, the Licensor offers the Licensed Material as-is and as-available, and makes no representations or warranties of any kind concerning the Licensed Material, whether express, implied, statutory, or other. This includes, without limitation, warranties of title, merchantability, fitness for a particular purpose, non-infringement, absence of latent or other defects, accuracy, or the presence or absence of errors, whether or not known or discoverable. Where disclaimers of warranties are not allowed in full or in part, this disclaimer may not apply to You.</strong></li>\r\n\t<li><strong>To the extent possible, in no event will the Licensor be liable to You on any legal theory (including, without limitation, negligence) or otherwise for any direct, special, indirect, incidental, consequential, punitive, exemplary, or other losses, costs, expenses, or damages arising out of this Public License or use of the Licensed Material, even if the Licensor has been advised of the possibility of such losses, costs, expenses, or damages. Where a limitation of liability is not allowed in full or in part, this limitation may not apply to You.</strong></li>\r\n</ol>\r\n\r\n<ol start=\"3\" style=\"list-style-type:lower-alpha\">\r\n\t<li>The disclaimer of warranties and limitation of liability provided above shall be interpreted in a manner that, to the extent possible, most closely approximates an absolute disclaimer and waiver of all liability.</li>\r\n</ol>\r\n\r\n<p><strong>Section 6 &ndash; Term and Termination.</strong></p>\r\n\r\n<ol style=\"list-style-type:lower-alpha\">\r\n\t<li>This Public License applies for the term of the Copyright and Similar Rights licensed here. However, if You fail to comply with this Public License, then Your rights under this Public License terminate automatically.</li>\r\n\t<li>\r\n\t<p>Where Your right to use the Licensed Material has terminated under Section <a href=\"https://creativecommons.org/licenses/by/4.0/legalcode#s6a\">6(a)</a>, it reinstates:</p>\r\n\r\n\t<ol>\r\n\t\t<li>automatically as of the date the violation is cured, provided it is cured within 30 days of Your discovery of the violation; or</li>\r\n\t\t<li>upon express reinstatement by the Licensor.</li>\r\n\t</ol>\r\n\tFor the avoidance of doubt, this Section <a href=\"https://creativecommons.org/licenses/by/4.0/legalcode#s6b\">6(b)</a> does not affect any right the Licensor may have to seek remedies for Your violations of this Public License.</li>\r\n\t<li>For the avoidance of doubt, the Licensor may also offer the Licensed Material under separate terms or conditions or stop distributing the Licensed Material at any time; however, doing so will not terminate this Public License.</li>\r\n\t<li>Sections <a href=\"https://creativecommons.org/licenses/by/4.0/legalcode#s1\">1</a>, <a href=\"https://creativecommons.org/licenses/by/4.0/legalcode#s5\">5</a>, <a href=\"https://creativecommons.org/licenses/by/4.0/legalcode#s6\">6</a>, <a href=\"https://creativecommons.org/licenses/by/4.0/legalcode#s7\">7</a>, and <a href=\"https://creativecommons.org/licenses/by/4.0/legalcode#s8\">8</a> survive termination of this Public License.</li>\r\n</ol>\r\n\r\n<p><strong>Section 7 &ndash; Other Terms and Conditions.</strong></p>\r\n\r\n<ol style=\"list-style-type:lower-alpha\">\r\n\t<li>The Licensor shall not be bound by any additional or different terms or conditions communicated by You unless expressly agreed.</li>\r\n\t<li>Any arrangements, understandings, or agreements regarding the Licensed Material not stated herein are separate from and independent of the terms and conditions of this Public License.</li>\r\n</ol>\r\n\r\n<p><strong>Section 8 &ndash; Interpretation.</strong></p>\r\n\r\n<ol style=\"list-style-type:lower-alpha\">\r\n\t<li>For the avoidance of doubt, this Public License does not, and shall not be interpreted to, reduce, limit, restrict, or impose conditions on any use of the Licensed Material that could lawfully be made without permission under this Public License.</li>\r\n\t<li>To the extent possible, if any provision of this Public License is deemed unenforceable, it shall be automatically reformed to the minimum extent necessary to make it enforceable. If the provision cannot be reformed, it shall be severed from this Public License without affecting the enforceability of the remaining terms and conditions.</li>\r\n\t<li>No term or condition of this Public License will be waived and no failure to comply consented to unless expressly agreed to by the Licensor.</li>\r\n\t<li>Nothing in this Public License constitutes or may be interpreted as a limitation upon, or waiver of, any privileges and immunities that apply to the Licensor or You, including from the legal processes of any jurisdiction or authority.</li>\r\n</ol>",
+    "url": "https://creativecommons.org/licenses/by/4.0/legalcode"
+  }
+},
+{
+  "model": "project.license",
+  "pk": 2,
+  "fields": {
+    "name": "Creative Commons Attribution-ShareAlike 4.0 International Public License",
+    "slug": "creative-commons-attribution-sharealike-40-international-public-license",
+    "description": "<p>By exercising the Licensed Rights (defined below), You accept and agree to be bound by the terms and conditions of this Creative Commons Attribution-ShareAlike 4.0 International Public License (&quot;Public License&quot;). To the extent this Public License may be interpreted as a contract, You are granted the Licensed Rights in consideration of Your acceptance of these terms and conditions, and the Licensor grants You such rights in consideration of benefits the Licensor receives from making the Licensed Material available under these terms and conditions.</p>\r\n\r\n<p><strong>Section 1 &ndash; Definitions.</strong></p>\r\n\r\n<ol style=\"list-style-type:lower-alpha\">\r\n\t<li><strong>Adapted Material</strong> means material subject to Copyright and Similar Rights that is derived from or based upon the Licensed Material and in which the Licensed Material is translated, altered, arranged, transformed, or otherwise modified in a manner requiring permission under the Copyright and Similar Rights held by the Licensor. For purposes of this Public License, where the Licensed Material is a musical work, performance, or sound recording, Adapted Material is always produced where the Licensed Material is synched in timed relation with a moving image.</li>\r\n\t<li><strong>Adapter&#39;s License</strong> means the license You apply to Your Copyright and Similar Rights in Your contributions to Adapted Material in accordance with the terms and conditions of this Public License.</li>\r\n\t<li><strong>BY-SA Compatible License</strong> means a license listed at <a href=\"https://creativecommons.org/compatiblelicenses\"> creativecommons.org/compatiblelicenses</a>, approved by Creative Commons as essentially the equivalent of this Public License.</li>\r\n\t<li><strong>Copyright and Similar Rights</strong> means copyright and/or similar rights closely related to copyright including, without limitation, performance, broadcast, sound recording, and Sui Generis Database Rights, without regard to how the rights are labeled or categorized. For purposes of this Public License, the rights specified in Section <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s2b\">2(b)(1)-(2)</a> are not Copyright and Similar Rights.</li>\r\n\t<li><strong>Effective Technological Measures</strong> means those measures that, in the absence of proper authority, may not be circumvented under laws fulfilling obligations under Article 11 of the WIPO Copyright Treaty adopted on December 20, 1996, and/or similar international agreements.</li>\r\n\t<li><strong>Exceptions and Limitations</strong> means fair use, fair dealing, and/or any other exception or limitation to Copyright and Similar Rights that applies to Your use of the Licensed Material.</li>\r\n\t<li><strong>License Elements</strong> means the license attributes listed in the name of a Creative Commons Public License. The License Elements of this Public License are Attribution and ShareAlike.</li>\r\n\t<li><strong>Licensed Material</strong> means the artistic or literary work, database, or other material to which the Licensor applied this Public License.</li>\r\n\t<li><strong>Licensed Rights</strong> means the rights granted to You subject to the terms and conditions of this Public License, which are limited to all Copyright and Similar Rights that apply to Your use of the Licensed Material and that the Licensor has authority to license.</li>\r\n\t<li><strong>Licensor</strong> means the individual(s) or entity(ies) granting rights under this Public License.</li>\r\n\t<li><strong>Share</strong> means to provide material to the public by any means or process that requires permission under the Licensed Rights, such as reproduction, public display, public performance, distribution, dissemination, communication, or importation, and to make material available to the public including in ways that members of the public may access the material from a place and at a time individually chosen by them.</li>\r\n\t<li><strong>Sui Generis Database Rights</strong> means rights other than copyright resulting from Directive 96/9/EC of the European Parliament and of the Council of 11 March 1996 on the legal protection of databases, as amended and/or succeeded, as well as other essentially equivalent rights anywhere in the world.</li>\r\n\t<li><strong>You</strong> means the individual or entity exercising the Licensed Rights under this Public License. <strong>Your</strong> has a corresponding meaning.</li>\r\n</ol>\r\n\r\n<p><strong>Section 2 &ndash; Scope.</strong></p>\r\n\r\n<ol style=\"list-style-type:lower-alpha\">\r\n\t<li><strong>License grant</strong>.\r\n\r\n\t<ol>\r\n\t\t<li>Subject to the terms and conditions of this Public License, the Licensor hereby grants You a worldwide, royalty-free, non-sublicensable, non-exclusive, irrevocable license to exercise the Licensed Rights in the Licensed Material to:\r\n\t\t<ol style=\"list-style-type:upper-alpha\">\r\n\t\t\t<li>reproduce and Share the Licensed Material, in whole or in part; and</li>\r\n\t\t\t<li>produce, reproduce, and Share Adapted Material.</li>\r\n\t\t</ol>\r\n\t\t</li>\r\n\t\t<li><u>Exceptions and Limitations</u>. For the avoidance of doubt, where Exceptions and Limitations apply to Your use, this Public License does not apply, and You do not need to comply with its terms and conditions.</li>\r\n\t\t<li><u>Term</u>. The term of this Public License is specified in Section <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s6a\">6(a)</a>.</li>\r\n\t\t<li><u>Media and formats; technical modifications allowed</u>. The Licensor authorizes You to exercise the Licensed Rights in all media and formats whether now known or hereafter created, and to make technical modifications necessary to do so. The Licensor waives and/or agrees not to assert any right or authority to forbid You from making technical modifications necessary to exercise the Licensed Rights, including technical modifications necessary to circumvent Effective Technological Measures. For purposes of this Public License, simply making modifications authorized by this Section <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s2a4\">2(a)(4)</a> never produces Adapted Material.</li>\r\n\t\t<li><u>Downstream recipients</u>.\r\n\t\t<ol style=\"list-style-type:upper-alpha\">\r\n\t\t\t<li><u>Offer from the Licensor &ndash; Licensed Material</u>. Every recipient of the Licensed Material automatically receives an offer from the Licensor to exercise the Licensed Rights under the terms and conditions of this Public License.</li>\r\n\t\t\t<li><u>Additional offer from the Licensor &ndash; Adapted Material</u>. Every recipient of Adapted Material from You automatically receives an offer from the Licensor to exercise the Licensed Rights in the Adapted Material under the conditions of the Adapter&rsquo;s License You apply.</li>\r\n\t\t\t<li><u>No downstream restrictions</u>. You may not offer or impose any additional or different terms or conditions on, or apply any Effective Technological Measures to, the Licensed Material if doing so restricts exercise of the Licensed Rights by any recipient of the Licensed Material.</li>\r\n\t\t</ol>\r\n\t\t</li>\r\n\t\t<li><u>No endorsement</u>. Nothing in this Public License constitutes or may be construed as permission to assert or imply that You are, or that Your use of the Licensed Material is, connected with, or sponsored, endorsed, or granted official status by, the Licensor or others designated to receive attribution as provided in Section <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s3a1Ai\">3(a)(1)(A)(i)</a>.</li>\r\n\t</ol>\r\n\t</li>\r\n\t<li>\r\n\t<p><strong>Other rights</strong>.</p>\r\n\r\n\t<ol>\r\n\t\t<li>Moral rights, such as the right of integrity, are not licensed under this Public License, nor are publicity, privacy, and/or other similar personality rights; however, to the extent possible, the Licensor waives and/or agrees not to assert any such rights held by the Licensor to the limited extent necessary to allow You to exercise the Licensed Rights, but not otherwise.</li>\r\n\t\t<li>Patent and trademark rights are not licensed under this Public License.</li>\r\n\t\t<li>To the extent possible, the Licensor waives any right to collect royalties from You for the exercise of the Licensed Rights, whether directly or through a collecting society under any voluntary or waivable statutory or compulsory licensing scheme. In all other cases the Licensor expressly reserves any right to collect such royalties.</li>\r\n\t</ol>\r\n\t</li>\r\n</ol>\r\n\r\n<p><strong>Section 3 &ndash; License Conditions.</strong></p>\r\n\r\n<p>Your exercise of the Licensed Rights is expressly made subject to the following conditions.</p>\r\n\r\n<ol style=\"list-style-type:lower-alpha\">\r\n\t<li>\r\n\t<p><strong>Attribution</strong>.</p>\r\n\r\n\t<ol>\r\n\t\t<li>\r\n\t\t<p>If You Share the Licensed Material (including in modified form), You must:</p>\r\n\r\n\t\t<ol style=\"list-style-type:upper-alpha\">\r\n\t\t\t<li>retain the following if it is supplied by the Licensor with the Licensed Material:\r\n\t\t\t<ol style=\"list-style-type:lower-roman\">\r\n\t\t\t\t<li>identification of the creator(s) of the Licensed Material and any others designated to receive attribution, in any reasonable manner requested by the Licensor (including by pseudonym if designated);</li>\r\n\t\t\t\t<li>a copyright notice;</li>\r\n\t\t\t\t<li>a notice that refers to this Public License;</li>\r\n\t\t\t\t<li>a notice that refers to the disclaimer of warranties;</li>\r\n\t\t\t\t<li>a URI or hyperlink to the Licensed Material to the extent reasonably practicable;</li>\r\n\t\t\t</ol>\r\n\t\t\t</li>\r\n\t\t\t<li>indicate if You modified the Licensed Material and retain an indication of any previous modifications; and</li>\r\n\t\t\t<li>indicate the Licensed Material is licensed under this Public License, and include the text of, or the URI or hyperlink to, this Public License.</li>\r\n\t\t</ol>\r\n\t\t</li>\r\n\t\t<li>You may satisfy the conditions in Section <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s3a1\">3(a)(1)</a> in any reasonable manner based on the medium, means, and context in which You Share the Licensed Material. For example, it may be reasonable to satisfy the conditions by providing a URI or hyperlink to a resource that includes the required information.</li>\r\n\t\t<li>If requested by the Licensor, You must remove any of the information required by Section <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s3a1A\">3(a)(1)(A)</a> to the extent reasonably practicable.</li>\r\n\t</ol>\r\n\t</li>\r\n\t<li><strong>ShareAlike</strong>.\r\n\t<p>In addition to the conditions in Section <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s3a\">3(a)</a>, if You Share Adapted Material You produce, the following conditions also apply.</p>\r\n\r\n\t<ol>\r\n\t\t<li>The Adapter&rsquo;s License You apply must be a Creative Commons license with the same License Elements, this version or later, or a BY-SA Compatible License.</li>\r\n\t\t<li>You must include the text of, or the URI or hyperlink to, the Adapter&#39;s License You apply. You may satisfy this condition in any reasonable manner based on the medium, means, and context in which You Share Adapted Material.</li>\r\n\t\t<li>You may not offer or impose any additional or different terms or conditions on, or apply any Effective Technological Measures to, Adapted Material that restrict exercise of the rights granted under the Adapter&#39;s License You apply.</li>\r\n\t</ol>\r\n\t</li>\r\n</ol>\r\n\r\n<p><strong>Section 4 &ndash; Sui Generis Database Rights.</strong></p>\r\n\r\n<p>Where the Licensed Rights include Sui Generis Database Rights that apply to Your use of the Licensed Material:</p>\r\n\r\n<ol style=\"list-style-type:lower-alpha\">\r\n\t<li>for the avoidance of doubt, Section <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s2a1\">2(a)(1)</a> grants You the right to extract, reuse, reproduce, and Share all or a substantial portion of the contents of the database;</li>\r\n\t<li>if You include all or a substantial portion of the database contents in a database in which You have Sui Generis Database Rights, then the database in which You have Sui Generis Database Rights (but not its individual contents) is Adapted Material, including for purposes of Section <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s3b\">3(b)</a>; and</li>\r\n\t<li>You must comply with the conditions in Section <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s3a\">3(a)</a> if You Share all or a substantial portion of the contents of the database.</li>\r\n</ol>\r\n\r\n<p>For the avoidance of doubt, this Section <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s4\">4</a> supplements and does not replace Your obligations under this Public License where the Licensed Rights include other Copyright and Similar Rights.</p>\r\n\r\n<p><strong>Section 5 &ndash; Disclaimer of Warranties and Limitation of Liability.</strong></p>\r\n\r\n<ol style=\"list-style-type:lower-alpha\">\r\n\t<li><strong>Unless otherwise separately undertaken by the Licensor, to the extent possible, the Licensor offers the Licensed Material as-is and as-available, and makes no representations or warranties of any kind concerning the Licensed Material, whether express, implied, statutory, or other. This includes, without limitation, warranties of title, merchantability, fitness for a particular purpose, non-infringement, absence of latent or other defects, accuracy, or the presence or absence of errors, whether or not known or discoverable. Where disclaimers of warranties are not allowed in full or in part, this disclaimer may not apply to You.</strong></li>\r\n\t<li><strong>To the extent possible, in no event will the Licensor be liable to You on any legal theory (including, without limitation, negligence) or otherwise for any direct, special, indirect, incidental, consequential, punitive, exemplary, or other losses, costs, expenses, or damages arising out of this Public License or use of the Licensed Material, even if the Licensor has been advised of the possibility of such losses, costs, expenses, or damages. Where a limitation of liability is not allowed in full or in part, this limitation may not apply to You.</strong></li>\r\n</ol>\r\n\r\n<ol start=\"3\" style=\"list-style-type:lower-alpha\">\r\n\t<li>The disclaimer of warranties and limitation of liability provided above shall be interpreted in a manner that, to the extent possible, most closely approximates an absolute disclaimer and waiver of all liability.</li>\r\n</ol>\r\n\r\n<p><strong>Section 6 &ndash; Term and Termination.</strong></p>\r\n\r\n<ol style=\"list-style-type:lower-alpha\">\r\n\t<li>This Public License applies for the term of the Copyright and Similar Rights licensed here. However, if You fail to comply with this Public License, then Your rights under this Public License terminate automatically.</li>\r\n\t<li>\r\n\t<p>Where Your right to use the Licensed Material has terminated under Section <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s6a\">6(a)</a>, it reinstates:</p>\r\n\r\n\t<ol>\r\n\t\t<li>automatically as of the date the violation is cured, provided it is cured within 30 days of Your discovery of the violation; or</li>\r\n\t\t<li>upon express reinstatement by the Licensor.</li>\r\n\t</ol>\r\n\tFor the avoidance of doubt, this Section <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s6b\">6(b)</a> does not affect any right the Licensor may have to seek remedies for Your violations of this Public License.</li>\r\n\t<li>For the avoidance of doubt, the Licensor may also offer the Licensed Material under separate terms or conditions or stop distributing the Licensed Material at any time; however, doing so will not terminate this Public License.</li>\r\n\t<li>Sections <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s1\">1</a>, <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s5\">5</a>, <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s6\">6</a>, <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s7\">7</a>, and <a href=\"https://creativecommons.org/licenses/by-sa/4.0/legalcode#s8\">8</a> survive termination of this Public License.</li>\r\n</ol>\r\n\r\n<p><strong>Section 7 &ndash; Other Terms and Conditions.</strong></p>\r\n\r\n<ol style=\"list-style-type:lower-alpha\">\r\n\t<li>The Licensor shall not be bound by any additional or different terms or conditions communicated by You unless expressly agreed.</li>\r\n\t<li>Any arrangements, understandings, or agreements regarding the Licensed Material not stated herein are separate from and independent of the terms and conditions of this Public License.</li>\r\n</ol>\r\n\r\n<p><strong>Section 8 &ndash; Interpretation.</strong></p>\r\n\r\n<ol style=\"list-style-type:lower-alpha\">\r\n\t<li>For the avoidance of doubt, this Public License does not, and shall not be interpreted to, reduce, limit, restrict, or impose conditions on any use of the Licensed Material that could lawfully be made without permission under this Public License.</li>\r\n\t<li>To the extent possible, if any provision of this Public License is deemed unenforceable, it shall be automatically reformed to the minimum extent necessary to make it enforceable. If the provision cannot be reformed, it shall be severed from this Public License without affecting the enforceability of the remaining terms and conditions.</li>\r\n\t<li>No term or condition of this Public License will be waived and no failure to comply consented to unless expressly agreed to by the Licensor.</li>\r\n\t<li>Nothing in this Public License constitutes or may be interpreted as a limitation upon, or waiver of, any privileges and immunities that apply to the Licensor or You, including from the legal processes of any jurisdiction or authority.</li>\r\n</ol>",
+    "url": "https://creativecommons.org/licenses/by-sa/4.0/legalcode"
+  }
+},
+{
+  "model": "project.license",
+  "pk": 3,
+  "fields": {
+    "name": "MIT License",
+    "slug": "mit-license",
+    "description": "<p>Copyright 2018 PhysioNet</p>\r\n\r\n<p><br />\r\nPermission is hereby granted, free of charge, to any person obtaining a copyof this software and associated documentation files (the &quot;Software&quot;), to dealin the Software without restriction, including without limitation the rightsto use, copy, modify, merge, publish, distribute, sublicense, and/or sellcopies of the Software, and to permit persons to whom the Software isfurnished to do so, subject to the following conditions:</p>\r\n\r\n<p><br />\r\nThe above copyright notice and this permission notice shall be included in allcopies or substantial portions of the Software.</p>\r\n\r\n<p><br />\r\nTHE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS ORIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THEAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHERLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THESOFTWARE.</p>",
+    "url": "https://opensource.org/licenses/MIT"
+  }
+},
+{
+  "model": "project.license",
+  "pk": 4,
+  "fields": {
+    "name": "The 3-Clause BSD License",
+    "slug": "3-clause-bsd-license",
+    "description": "<p>Copyright (c) PhysioNet and individual contributors. All rights reserved.</p>\r\n\r\n<p><br />\r\nRedistribution and use in source and binary forms, with or without modification,are permitted provided that the following conditions are met:</p>\r\n\r\n<p><br />\r\n1. Redistributions of source code must retain the above copyright notice,this list of conditions and the following disclaimer.<br />\r\n2. Redistributions in binary form must reproduce the above copyrightnotice, this list of conditions and the following disclaimer in thedocumentation and/or other materials provided with the distribution.<br />\r\n3. Neither the name of Django nor the names of its contributors may be usedto endorse or promote products derived from this software withoutspecific prior written permission.</p>\r\n\r\n<p><br />\r\nTHIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &quot;AS IS&quot; ANDANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIEDWARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE AREDISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FORANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ONANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>",
+    "url": "https://opensource.org/licenses/BSD-3-Clause"
+  }
+},
+{
+  "model": "project.datauseagreement",
+  "pk": 1,
+  "fields": {
+    "name": "PhysioNet Clinical Database Restricted Data Use Agreement",
+    "slug": "physionet-clinical-database-restricted-data-use-agreement",
+    "description": "<ol>\r\n\t<li>I will not attempt to identify any individual or institution referenced in PhysioNet restricted data.</li>\r\n\t<li>I will exercise all reasonable and prudent care to avoid disclosure of the identity of any individual or institution referenced in PhysioNet restricted data in any publication or other communication.</li>\r\n\t<li>I will not share access to PhysioNet restricted data with anyone else.</li>\r\n\t<li>I will exercise all reasonable and prudent care to maintain the physical and electronic security of PhysioNet restricted data.</li>\r\n\t<li>If I find information within PhysioNet restricted data that I believe might permit identification of any individual or institution, I will report the location of this information promptly by email to <a href=\"mailto:PHI-report@physionet.org\">PHI-report@physionet.org</a>, citing the location of the specific information in question so that it can be investigated and removed if necessary.</li>\r\n\t<li>I have requested access to PhysioNet restricted data for the sole purpose of lawful use in scientific research, and I will use my privilege of access, if it is granted, for this purpose and no other.</li>\r\n\t<li>I have completed a training program in human research subject protections and HIPAA regulations, and I am submitting proof of having done so.</li>\r\n\t<li>I will indicate the general purpose for which I intend to use the database in my application.</li>\r\n\t<li>If I openly disseminate my results, I will also contribute the code used to produce those results to a repository that is open to the research community.</li>\r\n\t<li>This agreement may be terminated by either party at any time, but my obligations with respect to restricted data from PhysioNet shall continue after termination.</li>\r\n</ol>",
+    "creation_datetime": "2018-06-27T17:52:03.517Z"
+  }
+},
+{
+  "model": "project.authorinvitation",
+  "pk": 1,
+  "fields": {
+    "project": 2,
+    "request_datetime": "2017-11-02T14:30:30Z",
+    "response_datetime": null,
+    "response": null,
+    "is_active": true,
+    "email": "george@mit.edu",
+    "inviter": [
+      "rgmark"
+    ]
+  }
+},
+{
+  "model": "project.authorinvitation",
+  "pk": 2,
+  "fields": {
+    "project": 2,
+    "request_datetime": "2018-03-28T14:30:30Z",
+    "response_datetime": null,
+    "response": null,
+    "is_active": true,
+    "email": "george@gmail.com",
+    "inviter": [
+      "rgmark"
+    ]
+  }
+},
+{
+  "model": "project.storagerequest",
+  "pk": 1,
+  "fields": {
+    "project": 3,
+    "request_datetime": "2017-10-30T14:30:30Z",
+    "response_datetime": null,
+    "response": null,
+    "is_active": true,
+    "request_allowance": 1,
+    "responder": null,
+    "response_message": ""
+  }
+},
+{
+  "model": "project.storagerequest",
+  "pk": 2,
+  "fields": {
+    "project": 2,
+    "request_datetime": "2018-05-07T20:27:01.572Z",
+    "response_datetime": null,
+    "response": null,
+    "is_active": true,
+    "request_allowance": 80,
+    "responder": null,
+    "response_message": ""
   }
 }
 ]
