@@ -231,6 +231,66 @@
   }
 },
 {
+  "model": "project.topic",
+  "pk": 5,
+  "fields": {
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
+    "object_id": 3,
+    "description": "ecg"
+  }
+},
+{
+  "model": "project.topic",
+  "pk": 6,
+  "fields": {
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
+    "object_id": 3,
+    "description": "signals"
+  }
+},
+{
+  "model": "project.topic",
+  "pk": 7,
+  "fields": {
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
+    "object_id": 3,
+    "description": "qrs"
+  }
+},
+{
+  "model": "project.topic",
+  "pk": 8,
+  "fields": {
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
+    "object_id": 3,
+    "description": "heart rate variability"
+  }
+},
+{
+  "model": "project.topic",
+  "pk": 9,
+  "fields": {
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
+    "object_id": 3,
+    "description": "signal quality index"
+  }
+},
+{
   "model": "project.reference",
   "pk": 1,
   "fields": {
@@ -264,6 +324,30 @@
     ],
     "object_id": 2,
     "description": "Pollard, T. J., & Johnson, A. E. W. The MIMIC-III Clinical Database http://dx.doi.org/10.13026/C2XW26 (2016)"
+  }
+},
+{
+  "model": "project.reference",
+  "pk": 4,
+  "fields": {
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
+    "object_id": 3,
+    "description": "https://physionet.org/physiotools/wag/"
+  }
+},
+{
+  "model": "project.reference",
+  "pk": 5,
+  "fields": {
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
+    "object_id": 3,
+    "description": "https://physionet.org/physiotools/wpg/"
   }
 },
 {
@@ -435,7 +519,7 @@
     "editor_accept_datetime": null,
     "copyedit_completion_datetime": null,
     "author_approval_datetime": null,
-    "modified_datetime": "2018-11-01T19:14:54.420Z",
+    "modified_datetime": "2018-11-01T23:02:48.520Z",
     "submission_status": 0
   }
 },
