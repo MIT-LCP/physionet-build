@@ -148,7 +148,7 @@ def edit_submission(request, project_slug, *args, **kwargs):
     edit_log = project.edit_logs.get(decision_datetime__isnull=True)
 
     # The user must be the editor
-    if request.user != project.editor or project.submission_status not in [20, 30]:
+    if project.submission_status not in [20, 30]:
         return Http404()
 
     if request.method == 'POST':
@@ -190,7 +190,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
     Page to copyedit the submission
     """
     project = kwargs['project']
-    if request.user != project.editor or project.submission_status != 40:
+    if project.submission_status != 40:
         return Http404()
 
     copyedit_log = project.copyedit_logs.get(complete_datetime=None)
@@ -249,17 +249,16 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
                 messages.error(request,
                     'Invalid submission. See errors below.')
         elif 'complete_copyedit' in request.POST:
-            if project.submission_status == 40:
-                copyedit_form = forms.CopyeditForm(request.POST,
-                    instance=copyedit_log)
-                if copyedit_form.is_valid():
-                    copyedit_log = copyedit_form.save()
-                    notification.copyedit_complete_notify(request, project,
-                        copyedit_log)
-                    return render(request, 'console/copyedit_complete.html',
-                        {'project':project, 'copyedit_log':copyedit_log})
-                else:
-                    messages.error(request, 'Invalid submission. See errors below.')
+            copyedit_form = forms.CopyeditForm(request.POST,
+                instance=copyedit_log)
+            if copyedit_form.is_valid():
+                copyedit_log = copyedit_form.save()
+                notification.copyedit_complete_notify(request, project,
+                    copyedit_log)
+                return render(request, 'console/copyedit_complete.html',
+                    {'project':project, 'copyedit_log':copyedit_log})
+            else:
+                messages.error(request, 'Invalid submission. See errors below.')
         else:
             # process the file manipulation post
             subdir = process_files_post(request, project)

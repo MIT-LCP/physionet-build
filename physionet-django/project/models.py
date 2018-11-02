@@ -476,7 +476,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         Whether the project can be copyedited
         """
-        if self.submission_status in [40, 50]:
+        if self.submission_status == 40:
             return True
 
     def get_author_info(self, separate_submitting=False, include_emails=False):
