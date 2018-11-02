@@ -9,19 +9,19 @@
 <script type="text/javascript" src="{% static 'project/js/dynamic-formset.js' %}"></script>
 {% endblock %}
 
-{% block local_js_bottom %}
-<script type="text/javascript" src="{% static 'custom/js/enable-popover.js' %}"></script>
-<script>disableAddButtons();</script>
-{# Disable submission for non-submitting authors #}
-{% if not is_submitting %}
-  <script type="text/javascript" src="{% static 'custom/js/disable-input.js' %}"></script>
-{% endif %}
-{% endblock %}
-
 {% block main_content %}
 <h2 class="form-signin-heading">4. Project Identifiers</h2>
 <hr>
 {% include 'about/identifiers.html' %}
+{% if not project.author_editable %}
+  <div class="alert alert-form alert-warning alert-dismissible">
+    <strong>The project cannot be edited right now.</strong>
+  </div>
+{% elif not is_submitting %}
+  <div class="alert alert-form alert-warning alert-dismissible">
+    <strong>Only the submitting author may edit the metadata.</strong>
+  </div>
+{% endif %}
 <form action="{% url 'project_identifiers' project.slug %}" method="post" onsubmit="return validateItems('topic-list', 'description', 'Topics')">
   {% if not is_submitting %}
   <div class="alert alert-form alert-warning alert-dismissible">
@@ -34,5 +34,13 @@
   <button class="btn btn-lg btn-primary" type="submit" name="edit_identifiers">Save Identifiers</button>
 </form>
 <br>
+{% endblock %}
 
+{% block local_js_bottom %}
+<script type="text/javascript" src="{% static 'custom/js/enable-popover.js' %}"></script>
+<script>disableAddButtons();</script>
+{# Disable submission if not currently editable or not submitting author #}
+{% if not is_submitting or not project.author_editable %}
+  <script type="text/javascript" src="{% static 'custom/js/disable-input.js' %}"></script>
+{% endif %}
 {% endblock %}

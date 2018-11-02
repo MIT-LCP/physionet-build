@@ -4,31 +4,35 @@
 
 {% block title %}Project Access - {{ project }}{% endblock %}
 
-{% block local_js_bottom %}
-<script type="text/javascript" src="{% static 'custom/js/enable-popover.js' %}"></script>
-<script type="text/javascript" src="{% static 'project/js/access-form-control.js' %}"></script>
- {# Disable submission for non-submitting authors #}
-{% if not is_submitting %}
-  <script type="text/javascript" src="{% static 'custom/js/disable-input.js' %}"></script>
-{% endif %}
-{% endblock %}
-
 {% block main_content %}
 <h2 class="form-signin-heading">3. Project Access</h2>
 <hr>
 
 {% include 'about/access_policies.html'%}
 
-<form action="{% url 'project_access' project.slug %}" method="post">
-  {% if not is_submitting %}
+{% if not project.author_editable %}
   <div class="alert alert-form alert-warning alert-dismissible">
-    <strong>Only the submitting author may edit the project access.</strong>
+    <strong>The project cannot be edited right now.</strong>
   </div>
-  {% endif %}
+{% elif not is_submitting %}
+  <div class="alert alert-form alert-warning alert-dismissible">
+    <strong>Only the submitting author may edit the metadata.</strong>
+  </div>
+{% endif %}
+
+<form action="{% url 'project_access' project.slug %}" method="post">
   {% include "project/metadata_inline_form_snippet.html" with form=access_form %}
   <button class="btn btn-lg btn-primary" type="submit" name="edit_access">Save Access Information</button>
 </form>
 <br>
 <hr>
+{% endblock %}
 
+{% block local_js_bottom %}
+<script type="text/javascript" src="{% static 'custom/js/enable-popover.js' %}"></script>
+<script type="text/javascript" src="{% static 'project/js/access-form-control.js' %}"></script>
+{# Disable submission if not currently editable or not submitting author #}
+{% if not is_submitting or not project.author_editable %}
+  <script type="text/javascript" src="{% static 'custom/js/disable-input.js' %}"></script>
+{% endif %}
 {% endblock %}

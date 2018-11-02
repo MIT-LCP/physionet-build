@@ -10,23 +10,20 @@
 <script type="text/javascript" src="{% static 'custom/js/cookie.js' %}"></script>
 {% endblock %}
 
-{% block local_js_bottom %}
- {# Disable submission for non-submitting authors #}
-{% if not is_submitting %}
-  <script type="text/javascript" src="{% static 'custom/js/disable-input.js' %}"></script>
-{% endif %}
-{% endblock %}
-
 {% block main_content %}
 <h2 class="form-signin-heading">5. Project Files</h2>
 <hr>
 {% include "about/files.html" %}
 <br>
 
-{% if not is_submitting %}
-<div class="alert alert-form alert-warning alert-dismissible">
-  <strong>Only the submitting author may edit files and request storage.</strong>
-</div>
+{% if not project.author_editable %}
+  <div class="alert alert-form alert-warning alert-dismissible">
+    <strong>The project cannot be edited right now.</strong>
+  </div>
+{% elif not is_submitting %}
+  <div class="alert alert-form alert-warning alert-dismissible">
+    <strong>Only the submitting author may edit the metadata.</strong>
+  </div>
 {% endif %}
 
 <div class="card">

@@ -17,10 +17,14 @@
 <hr>
 
 <form action="{% url 'project_metadata' project.slug %}" onsubmit="return validateItems('reference-list', 'description', 'References')" method="post">
-  {% if not is_submitting %}
-  <div class="alert alert-form alert-warning alert-dismissible">
-    <strong>Only the submitting author may edit the metadata.</strong>
-  </div>
+  {% if not project.author_editable %}
+    <div class="alert alert-form alert-warning alert-dismissible">
+      <strong>The project cannot be edited right now.</strong>
+    </div>
+  {% elif not is_submitting %}
+    <div class="alert alert-form alert-warning alert-dismissible">
+      <strong>Only the submitting author may edit the metadata.</strong>
+    </div>
   {% endif %}
 
   {{ description_form.media }}
@@ -37,8 +41,8 @@
 <script type="text/javascript" src="{% static 'custom/js/resize-ck.js' %}"></script>
 <script type="text/javascript" src="{% static 'custom/js/enable-popover.js' %}"></script>
 <script>disableAddButtons();</script>
-{# Disable submission for non-submitting authors #}
-{% if not is_submitting %}
+{# Disable submission if not currently editable or not submitting author #}
+{% if not is_submitting or not project.author_editable %}
   <script type="text/javascript" src="{% static 'custom/js/disable-input.js' %}"></script>
 {% endif %}
 {% endblock %}

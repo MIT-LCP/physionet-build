@@ -37,6 +37,12 @@
 {% include "about/authors.html" %}
 <hr>
 
+{% if not project.author_editable %}
+  <div class="alert alert-form alert-warning alert-dismissible">
+    <strong>The project cannot be edited right now.</strong>
+  </div>
+{% endif %}
+
 {% include "project/author_list.html" %}
 <br>
 
@@ -171,4 +177,8 @@
 <script>
   disableAddButtons();
 </script>
+{# Disable submission if not currently editable #}
+{% if not project.author_editable %}
+  <script type="text/javascript" src="{% static 'custom/js/disable-input.js' %}"></script>
+{% endif %}
 {% endblock %}
