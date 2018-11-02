@@ -542,13 +542,14 @@ def project_identifiers(request, project_slug, **kwargs):
         max_num=forms.PublicationFormSet.max_forms, can_delete=False,
         formset=forms.PublicationFormSet, validate_max=True)
 
-    identifiers_form = forms.IdentifiersForm(instance=project)
+    identifiers_form = forms.IdentifiersForm(resource_type=project.resource_type,
+        instance=project)
     publication_formset = PublicationFormSet(instance=project)
     topic_formset = TopicFormSet(instance=project)
 
     if request.method == 'POST':
-        identifiers_form = forms.IdentifiersForm(data=request.POST,
-                                                 instance=project)
+        identifiers_form = forms.IdentifiersForm(resource_type=project.resource_type,
+            data=request.POST, instance=project)
         publication_formset = PublicationFormSet(request.POST,
                                                  instance=project)
         topic_formset = TopicFormSet(request.POST, instance=project)
@@ -945,22 +946,10 @@ def serve_published_project_file(request, published_project_slug, file_name):
     return utility.serve_file(request, file_path)
 
 
-def database(request, published_project):
-    """
-    Displays a published database project.
-    Helper function to `published_project` view.
-    """
-
-
-    return render(request, 'project/database.html',
-        )
-
-
 def published_project(request, published_project_slug):
     """
     Displays a published project
     """
-
     published_project = PublishedProject.objects.get(slug=published_project_slug)
 
     authors = published_project.authors.all().order_by('display_order')

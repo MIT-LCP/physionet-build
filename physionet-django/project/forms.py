@@ -403,7 +403,9 @@ class MetadataForm(forms.ModelForm):
 
 
 class IdentifiersForm(forms.ModelForm):
-
+    """
+    Add identifiers to the project
+    """
     programming_languages = forms.ModelMultipleChoiceField(
         queryset=ProgrammingLanguage.objects.all().order_by('name'),
         widget=forms.SelectMultiple(attrs={'size':'10'}),
@@ -416,6 +418,10 @@ class IdentifiersForm(forms.ModelForm):
             'project_home_page': 'External home page for the project.'
         }
 
+    def __init__(self, resource_type, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if resource_type != 1:
+            del(self.fields['programming_languages'])
 
 class AffiliationFormSet(forms.BaseInlineFormSet):
     """

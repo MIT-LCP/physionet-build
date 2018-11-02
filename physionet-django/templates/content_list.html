@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block title %}
-PhysioNet Databases
+PhysioNet {{ content_name }}
 {% endblock %}
 
 {% load project_templatetags %}
@@ -11,7 +11,7 @@ PhysioNet Databases
 
 {% block content %}
 <div class="container">
-  <h1>PhysioNet Databases</h1>
+  <h1>PhysioNet {{ content_name }}</h1>
   <hr>
   {% for published_project, authors , topics in projects_authors_topics %}
     <p>{{ published_project.resource_type|resource_badge|safe }}

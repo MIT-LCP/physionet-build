@@ -35,7 +35,7 @@ urlpatterns = [
     # content pages
     url(r'^data/$', views.data, name='data'),
     url(r'^software/$', views.software, name='software'),
-    url(r'^challenge/$', views.challenge, name='challenge'),
+    url(r'^content/$', views.content, name='content'),
 
     # published projects
     url(r'^content/(?P<published_project_slug>\w+)/$',
