@@ -32,12 +32,14 @@ def project_auth(auth_mode=0, post_auth_mode=0):
     auth_mode is one of the following:
     - 0 : the user must be an author.
     - 1 : the user must be the submitting author.
-    - 2 : the user must be an author, an admin, or a reviewer.
+    - 2 : the user must be an author or an admin
 
     post_auth_mode is one of the following and applies only to post:
     - 0 : no additional check
-    - 1 : the project must be in one of its editable stages by authors
-
+    - 1 : the user must be an author, and the project must be in one of
+          its author editable stages.
+    - 2 : the user must be the submitting author, and the project must
+          be in one of its author editable stages.
     """
     def real_decorator(base_view):
         @login_required
@@ -55,13 +57,12 @@ def project_auth(auth_mode=0, post_auth_mode=0):
                 allow = is_submitting
             elif auth_mode == 2:
                 allow = is_submitting or user.is_admin
-            else:
-                allow = ((is_submitting and project.author_editable())
-                         or (user == project.editor and project.copyeditable()))
 
             if request.method == 'POST':
                 if post_auth_mode == 1:
-                    allow = allow and project.author_editable()
+                    allow = is_author and project.author_editable()
+                elif post_auth_mode == 2:
+                    allow = is_submitting and project.author_editable()
 
             if allow:
                 kwargs['user'] = user
@@ -243,7 +244,7 @@ def cancel_invitation(request, invitation_id, project, is_submitting):
             messages.success(request, 'The invitation has been cancelled')
 
 
-@project_auth(auth_mode=1, post_auth_mode=1)
+@project_auth(auth_mode=1, post_auth_mode=2)
 def move_author(request, project_slug, **kwargs):
     """
     Change an author display order. Return the updated authors list html
@@ -272,7 +273,8 @@ def move_author(request, project_slug, **kwargs):
                 'is_submitting':is_submitting})
     raise Http404()
 
-@project_auth(auth_mode=1)
+
+@project_auth(auth_mode=0, post_auth_mode=1)
 def edit_affiliation(request, project_slug, **kwargs):
     """
     Function accessed via ajax for editing an author's affiliation in a
@@ -399,7 +401,8 @@ def project_authors(request, project_slug, **kwargs):
         'add_item_url':edit_affiliations_url, 'remove_item_url':edit_affiliations_url,
         'is_submitting':is_submitting})
 
-@project_auth(auth_mode=3)
+
+@project_auth(auth_mode=1, post_auth_mode=2)
 def edit_metadata_item(request, project_slug, **kwargs):
     """
     Function accessed via ajax for editing a project's related item
@@ -462,7 +465,8 @@ def edit_metadata_item(request, project_slug, **kwargs):
              'form_name':formset.form_name, 'add_item_url':edit_url,
              'remove_item_url':edit_url})
 
-@project_auth(auth_mode=0, post_auth_mode=1)
+
+@project_auth(auth_mode=0, post_auth_mode=2)
 def project_metadata(request, project_slug, **kwargs):
     """
     For editing project metadata
@@ -503,7 +507,7 @@ def project_metadata(request, project_slug, **kwargs):
         'add_item_url':edit_url, 'remove_item_url':edit_url})
 
 
-@project_auth(auth_mode=0, post_auth_mode=1)
+@project_auth(auth_mode=0, post_auth_mode=2)
 def project_access(request, project_slug, **kwargs):
     """
     Page to edit project access policy
@@ -525,7 +529,7 @@ def project_access(request, project_slug, **kwargs):
         'access_form':access_form, 'is_submitting':kwargs['is_submitting']})
 
 
-@project_auth(auth_mode=0, post_auth_mode=1)
+@project_auth(auth_mode=0, post_auth_mode=2)
 def project_identifiers(request, project_slug, **kwargs):
     """
     Page to edit external project identifiers
@@ -668,7 +672,7 @@ def process_files_post(request, project):
     return subdir
 
 
-@project_auth(auth_mode=0, post_auth_mode=1)
+@project_auth(auth_mode=0, post_auth_mode=2)
 def project_files(request, project_slug, **kwargs):
     "View and manipulate files in a project"
     project, is_submitting = (kwargs[k] for k in
@@ -728,7 +732,7 @@ def project_files(request, project_slug, **kwargs):
         'dir_breadcrumbs':dir_breadcrumbs})
 
 
-@project_auth(auth_mode=0)
+@project_auth(auth_mode=2)
 def serve_project_file(request, project_slug, file_name, **kwargs):
     """
     Serve a file in a project. file_name is file path relative to
@@ -875,6 +879,7 @@ def project_submission(request, project_slug, **kwargs):
         'awaiting_user_approval':awaiting_user_approval})
 
 
+@project_auth(auth_mode=2)
 def rejected_submission_history(request, project_slug):
     """
     Submission history for a published project
@@ -891,6 +896,7 @@ def rejected_submission_history(request, project_slug):
          'copyedit_logs':copyedit_logs})
 
 
+@project_auth(auth_mode=2)
 def published_submission_history(request, project_slug):
     """
     Submission history for a published project
