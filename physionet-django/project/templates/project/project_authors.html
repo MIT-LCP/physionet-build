@@ -9,22 +9,24 @@
 {% block local_js_top %}
 <script type="text/javascript" src="{% static 'custom/js/cookie.js' %}"></script>
 <script type="text/javascript" src="{% static 'project/js/dynamic-formset.js' %}"></script>
-<script>
-  // Ajax call to update authors list
-  function moveAuthor(author_id, direction){
-      var csrftoken = getCookie('csrftoken');
-      $.ajax({
-              type: "POST",
-              url: "{% url 'move_author' project.slug %}",
-              data: {'csrfmiddlewaretoken':csrftoken,
-                     'author_id':author_id, 'direction':direction
-              },
-              success: function reloadSection(result){
-                  $("#author-list").html(result);
-              },
-      });
-  };
-</script>
+{% if is_submitting %}
+  <script>
+    // Ajax call to update authors list
+    function moveAuthor(author_id, direction){
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+                type: "POST",
+                url: "{% url 'move_author' project.slug %}",
+                data: {'csrfmiddlewaretoken':csrftoken,
+                       'author_id':author_id, 'direction':direction
+                },
+                success: function reloadSection(result){
+                    $("#author-list").html(result);
+                },
+        });
+    };
+  </script>
+{% endif %}
 {% endblock %}
 
 {% block main_content %}
