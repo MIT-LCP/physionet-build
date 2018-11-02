@@ -137,6 +137,15 @@
             </p>
           {% endif %}
 
+          {% if languages %}
+            <p><strong>Programming Languages:</strong>
+            <br>
+            {% for language in languages %}
+              <a href="#" class="badge badge-info">{{ language.name }}</a>
+            {% endfor %}
+            </p>
+          {% endif %}
+
           {% if topics %}
             <p><strong>Topics:</strong>
             <br>

@@ -9,7 +9,7 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 
 from .models import (Affiliation, Author, AuthorInvitation, ActiveProject,
-    CoreProject, StorageRequest, exists_project_slug)
+    CoreProject, StorageRequest, ProgrammingLanguage, exists_project_slug)
 from . import utility
 from . import validators
 
@@ -404,10 +404,17 @@ class MetadataForm(forms.ModelForm):
 
 class IdentifiersForm(forms.ModelForm):
 
+    programming_languages = forms.ModelMultipleChoiceField(
+        queryset=ProgrammingLanguage.objects.all().order_by('name'),
+        widget=forms.SelectMultiple(attrs={'size':'10'}),
+        help_text='The programming languages used. Hold ctrl to select multiple. If your language is not listed here, <a href=/about/contact>contact us</a>.')
+
     class Meta:
         model = ActiveProject
-        fields = ('project_home_page',)
-        help_texts = {'project_home_page': 'External home page for the project.'}
+        fields = ('project_home_page', 'programming_languages')
+        help_texts = {
+            'project_home_page': 'External home page for the project.'
+        }
 
 
 class AffiliationFormSet(forms.BaseInlineFormSet):
@@ -519,6 +526,42 @@ class TopicFormSet(BaseGenericInlineFormSet):
         super().__init__(*args, **kwargs)
         self.max_forms = TopicFormSet.max_forms
         self.help_text = 'Keyword topics associated with the project. Increases the visibility of your project. Maximum of {}.'.format(self.max_forms)
+
+
+class LanguageFormSet(BaseGenericInlineFormSet):
+    """
+    Formset for adding a ActiveProject's programming languages
+    """
+    form_name = 'project-programminglanguage-content_type-object_id'
+    item_label = 'Programming Languages'
+    max_forms = 10
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.max_forms = LanguageFormSet.max_forms
+        self.help_text = 'Programming languages used in this software. Maximum of {}.'.format(self.max_forms)
+
+    def clean(self):
+        """
+        - Check max forms due to POST refresh issue
+        - validate unique_together values because generic relations
+          don't automatically check).
+        """
+        if any(self.errors):
+            return
+
+        if len(set([r.id for r in self.instance.languages.all()]
+                   + [f.instance.id for f in self.forms])) > self.max_forms:
+            raise forms.ValidationError('Maximum number of allowed items exceeded.')
+
+        names = []
+        for form in self.forms:
+            # This is to allow empty unsaved form
+            if 'name' in form.cleaned_data:
+                name = form.cleaned_data['name']
+                if name in names:
+                    raise forms.ValidationError('Languages must be unique.')
+                names.append(name)
 
 
 class AccessMetadataForm(forms.ModelForm):

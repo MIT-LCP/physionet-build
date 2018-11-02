@@ -446,7 +446,8 @@
     "copyedit_completion_datetime": null,
     "author_approval_datetime": null,
     "modified_datetime": "2018-09-13T17:26:24.820Z",
-    "submission_status": 0
+    "submission_status": 0,
+    "programming_languages": []
   }
 },
 {
@@ -483,7 +484,8 @@
     "copyedit_completion_datetime": null,
     "author_approval_datetime": null,
     "modified_datetime": "2018-09-13T17:23:44.820Z",
-    "submission_status": 0
+    "submission_status": 0,
+    "programming_languages": []
   }
 },
 {
@@ -519,8 +521,12 @@
     "editor_accept_datetime": null,
     "copyedit_completion_datetime": null,
     "author_approval_datetime": null,
-    "modified_datetime": "2018-11-01T23:02:48.520Z",
-    "submission_status": 0
+    "modified_datetime": "2018-11-02T16:12:33.922Z",
+    "submission_status": 0,
+    "programming_languages": [
+      1,
+      4
+    ]
   }
 },
 {
@@ -557,7 +563,141 @@
     "copyedit_completion_datetime": null,
     "author_approval_datetime": null,
     "modified_datetime": "2018-07-23T22:03:10.736Z",
-    "submission_status": 0
+    "submission_status": 0,
+    "programming_languages": []
+  }
+},
+{
+  "model": "project.programminglanguage",
+  "pk": 1,
+  "fields": {
+    "name": "Bash"
+  }
+},
+{
+  "model": "project.programminglanguage",
+  "pk": 2,
+  "fields": {
+    "name": "BASIC"
+  }
+},
+{
+  "model": "project.programminglanguage",
+  "pk": 3,
+  "fields": {
+    "name": "Bourne Shell"
+  }
+},
+{
+  "model": "project.programminglanguage",
+  "pk": 4,
+  "fields": {
+    "name": "C"
+  }
+},
+{
+  "model": "project.programminglanguage",
+  "pk": 5,
+  "fields": {
+    "name": "C++"
+  }
+},
+{
+  "model": "project.programminglanguage",
+  "pk": 6,
+  "fields": {
+    "name": "C#"
+  }
+},
+{
+  "model": "project.programminglanguage",
+  "pk": 7,
+  "fields": {
+    "name": "Go"
+  }
+},
+{
+  "model": "project.programminglanguage",
+  "pk": 8,
+  "fields": {
+    "name": "Java"
+  }
+},
+{
+  "model": "project.programminglanguage",
+  "pk": 9,
+  "fields": {
+    "name": "Javascript"
+  }
+},
+{
+  "model": "project.programminglanguage",
+  "pk": 10,
+  "fields": {
+    "name": "Matlab"
+  }
+},
+{
+  "model": "project.programminglanguage",
+  "pk": 11,
+  "fields": {
+    "name": "Objective-C"
+  }
+},
+{
+  "model": "project.programminglanguage",
+  "pk": 12,
+  "fields": {
+    "name": "Pascal"
+  }
+},
+{
+  "model": "project.programminglanguage",
+  "pk": 13,
+  "fields": {
+    "name": "Perl"
+  }
+},
+{
+  "model": "project.programminglanguage",
+  "pk": 14,
+  "fields": {
+    "name": "PHP"
+  }
+},
+{
+  "model": "project.programminglanguage",
+  "pk": 15,
+  "fields": {
+    "name": "Python"
+  }
+},
+{
+  "model": "project.programminglanguage",
+  "pk": 16,
+  "fields": {
+    "name": "R"
+  }
+},
+{
+  "model": "project.programminglanguage",
+  "pk": 17,
+  "fields": {
+    "name": "Ruby"
+  }
+},
+{
+  "model": "project.programminglanguage",
+  "pk": 18,
+  "fields": {
+    "name": "SQL"
+  }
+},
+{
+  "model": "project.programminglanguage",
+  "pk": 19,
+  "fields": {
+    "name": "Swift"
   }
 },
 {

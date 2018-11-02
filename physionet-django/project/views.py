@@ -16,7 +16,7 @@ from django.utils import timezone
 
 from . import forms
 from .models import (Affiliation, Author, AuthorInvitation, ActiveProject,
-    PublishedProject, StorageRequest, Reference, ArchivedProject,
+    PublishedProject, StorageRequest, Reference, ArchivedProject, ProgrammingLanguage,
     Topic, Contact, Publication, PublishedAuthor, EditLog, CopyeditLog)
 from . import utility
 import notification.utility as notification
@@ -552,6 +552,7 @@ def project_identifiers(request, project_slug, **kwargs):
         publication_formset = PublicationFormSet(request.POST,
                                                  instance=project)
         topic_formset = TopicFormSet(request.POST, instance=project)
+
         if identifiers_form.is_valid() and publication_formset.is_valid() and topic_formset.is_valid():
             identifiers_form.save()
             publication_formset.save()
@@ -768,6 +769,7 @@ def project_preview(request, project_slug, **kwargs):
     references = project.references.all()
     publications = project.publications.all()
     topics = project.topics.all()
+    languages = project.programming_languages.all()
 
     passes_checks = project.check_integrity()
 
@@ -784,7 +786,7 @@ def project_preview(request, project_slug, **kwargs):
         'project':project, 'display_files':display_files, 'display_dirs':display_dirs,
         'authors':authors, 'corresponding_author':corresponding_author,
         'invitations':invitations, 'references':references,
-        'publications':publications, 'topics':topics,
+        'publications':publications, 'topics':topics, 'languages':languages,
         'passes_checks':passes_checks,
         'dir_breadcrumbs':dir_breadcrumbs})
 
@@ -967,6 +969,7 @@ def published_project(request, published_project_slug):
     references = published_project.references.all()
     publications = published_project.publications.all()
     topics = published_project.topics.all()
+    languages = published_project.programming_languages.all()
     contact = Contact.objects.get(project=published_project)
     # The file and directory contents
     display_files, display_dirs = published_project.get_directory_content()
@@ -975,11 +978,8 @@ def published_project(request, published_project_slug):
 
     context = {'published_project':published_project, 'authors':authors,
         'references':references, 'publications':publications, 'topics':topics,
-        'contact':contact, 'dir_breadcrumbs':dir_breadcrumbs,
-        'total_size':total_size, 'display_files':display_files,
-        'display_dirs':display_dirs}
-
-    if published_project.resource_type == 1:
-        pass
+        'languages':languages, 'contact':contact,
+        'dir_breadcrumbs':dir_breadcrumbs, 'total_size':total_size,
+        'display_files':display_files, 'display_dirs':display_dirs}
 
     return render(request, 'project/published_project.html', context)

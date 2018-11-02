@@ -296,6 +296,8 @@ class Metadata(models.Model):
     data_use_agreement = models.ForeignKey('project.DataUseAgreement',
                                            null=True, blank=True)
     project_home_page = models.URLField(default='')
+    programming_languages = models.ManyToManyField(
+        'project.ProgrammingLanguage', related_name='%(class)ss')
     # Public url slug, also used as a submitting project id.
     slug = models.SlugField(max_length=20, unique=True, db_index=True)
     core_project = models.ForeignKey('project.CoreProject',
@@ -307,6 +309,7 @@ class Metadata(models.Model):
     copyedit_logs = GenericRelation('project.CopyeditLog')
     # For ordering projects with multiple versions
     version_order = models.PositiveSmallIntegerField(default=0)
+
 
     class Meta:
         abstract = True
@@ -335,6 +338,7 @@ class Metadata(models.Model):
         """
         return get_storage_info(allowance=self.core_project.storage_allowance,
             used=self.storage_used())
+
 
 
 class SubmissionInfo(models.Model):
@@ -369,7 +373,6 @@ class UnpublishedProject(models.Model):
     references = GenericRelation('project.Reference')
     publications = GenericRelation('project.Publication')
     topics = GenericRelation('project.Topic')
-    languages = GenericRelation('project.ProgrammingLanguage')
 
     class Meta:
         abstract = True
@@ -534,6 +537,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         for copyedit_log in self.copyedit_logs.all():
             copyedit_log.project = archived_project
             copyedit_log.save()
+        if self.resource_type == 1:
+            languages = self.programming_languages.all()
+            if languages:
+                archived_project.programming_languages.add(*list(languages))
 
         # Voluntary delete
         if archive_reason == 1:
@@ -749,6 +756,11 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                     description=topic.description.lower())
             published_topic.projects.add(published_project)
 
+        if self.resource_type == 1:
+            languages = self.programming_languages.all()
+            if languages:
+                published_project.programming_languages.add(*list(languages))
+
         for author in self.authors.all():
             author_profile = author.user.profile
             published_author = PublishedAuthor.objects.create(
@@ -926,31 +938,12 @@ def exists_project_slug(slug):
 
 class ProgrammingLanguage(models.Model):
     """
-    Language to tag ActiveProject/ArchivedProject
+    Language to tag all projects
     """
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    project = GenericForeignKey('content_type', 'object_id')
-
-    language = models.CharField(max_length=50)
-
-    class Meta:
-        unique_together = (('language', 'content_type', 'object_id'),)
+    name = models.CharField(max_length=50, unique=True)
 
     def __str__(self):
-        return self.language
-
-
-class PublishedProgrammingLanguage(models.Model):
-    """
-    Language to tag PublishedProject
-    """
-    projects = models.ManyToManyField('project.PublishedProject',
-        related_name='languages')
-    language = models.CharField(max_length=50)
-
-    def __str__(self):
-        return self.language
+        return self.name
 
 
 class License(models.Model):
