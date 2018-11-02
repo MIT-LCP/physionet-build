@@ -19,15 +19,10 @@
   </div>
 {% elif not is_submitting %}
   <div class="alert alert-form alert-warning alert-dismissible">
-    <strong>Only the submitting author may edit the metadata.</strong>
+    <strong>Only the submitting author may edit the identifiers.</strong>
   </div>
 {% endif %}
 <form action="{% url 'project_identifiers' project.slug %}" method="post" onsubmit="return validateItems('topic-list', 'description', 'Topics')">
-  {% if not is_submitting %}
-  <div class="alert alert-form alert-warning alert-dismissible">
-    <strong>Only the submitting author may edit the identifiers.</strong>
-  </div>
-  {% endif %}
   {% include "project/metadata_inline_form_snippet.html" with form=identifiers_form %}
   {% include 'project/item_list.html' with item="publication" item_label=publication_formset.item_label formset=publication_formset form_name=publication_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}
   {% include 'project/item_list.html' with item="topic" item_label=topic_formset.item_label formset=topic_formset form_name=topic_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}
