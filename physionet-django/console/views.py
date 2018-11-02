@@ -23,6 +23,19 @@ from user.models import User
 def is_admin(user, *args, **kwargs):
     return user.is_admin
 
+def handling_editor(base_view):
+    """
+    Access decorator. The user must be the editor of the project.
+    """
+    @login_required
+    def handling_view(request, *args, **kwargs):
+        user = request.user
+        project = ActiveProject.objects.get(slug=kwargs['project_slug'])
+        if user.is_admin and user == project.editor:
+            kwargs['project'] = project
+            return base_view(request, *args, **kwargs)
+        raise Http404('Unable to access page')
+    return handling_view
 
 # ------------------------- Views begin ------------------------- #
 
@@ -126,13 +139,12 @@ def submission_info(request, project_slug):
          'copyedit_logs':copyedit_logs})
 
 
-@login_required
-@user_passes_test(is_admin)
-def edit_submission(request, project_slug):
+@handling_editor
+def edit_submission(request, project_slug, *args, **kwargs):
     """
     Page to respond to a particular submission, as an editor
     """
-    project = ActiveProject.objects.get(slug=project_slug)
+    project = kwargs['project']
     edit_log = project.edit_logs.get(decision_datetime__isnull=True)
 
     # The user must be the editor
@@ -172,13 +184,12 @@ def edit_submission(request, project_slug):
          'edit_logs':edit_logs})
 
 
-@login_required
-@user_passes_test(is_admin)
-def copyedit_submission(request, project_slug):
+@handling_editor
+def copyedit_submission(request, project_slug, *args, **kwargs):
     """
     Page to copyedit the submission
     """
-    project = ActiveProject.objects.get(slug=project_slug)
+    project = kwargs['project']
     if request.user != project.editor or project.submission_status != 40:
         return Http404()
 
@@ -285,16 +296,15 @@ def copyedit_submission(request, project_slug):
         'add_item_url':edit_url, 'remove_item_url':edit_url})
 
 
-@login_required
-@user_passes_test(is_admin)
-def awaiting_authors(request, project_slug):
+@handling_editor
+def awaiting_authors(request, project_slug, *args, **kwargs):
     """
     View the authors who have and have not approved the project for
     publication.
 
     Also the page to reopen the project for copyediting.
     """
-    project = ActiveProject.objects.get(slug=project_slug)
+    project = kwargs['project']
 
     authors, author_emails, storage_info, edit_logs, copyedit_logs = project.info_card()
     outstanding_emails = ';'.join([a.user.email for a in authors.filter(
@@ -314,13 +324,12 @@ def awaiting_authors(request, project_slug):
          'outstanding_emails':outstanding_emails})
 
 
-@login_required
-@user_passes_test(is_admin)
-def publish_submission(request, project_slug):
+@handling_editor
+def publish_submission(request, project_slug, *args, **kwargs):
     """
     Page to publish the submission
     """
-    project = ActiveProject.objects.get(slug=project_slug)
+    project = kwargs['project']
     authors, author_emails, storage_info, edit_logs, copyedit_logs = project.info_card()
     if request.method == 'POST':
         if project.is_publishable():
