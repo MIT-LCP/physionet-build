@@ -17,8 +17,8 @@ from django.utils import timezone
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
-from .forms import AddEmailForm, AssociatedEmailChoiceForm, ProfileForm, RegistrationForm, UsernameChangeForm
-from .models import AssociatedEmail, Profile, User
+from .forms import AddEmailForm, AssociatedEmailChoiceForm, ProfileForm, RegistrationForm, UsernameChangeForm, CredentialApplicationForm
+from .models import AssociatedEmail, Profile, User, CredentialApplication
 from physionet import utility
 from project.models import Author
 
@@ -297,7 +297,7 @@ def verify_email(request, uidb64, token):
 @login_required
 def edit_username(request):
     """
-    Home page/dashboard for individual users
+    Edit username settings page
     """
     user = request.user
 
@@ -314,4 +314,57 @@ def edit_username(request):
 
     return render(request, 'user/edit_username.html', {'user':user, 'form':form,
         'messages':messages.get_messages(request)})
+
+
+@login_required
+def edit_credentialing(request):
+    """
+    Credentials settings page.
+    - form to apply for credentialling
+    - list of past credential applications
+
+    """
+    user = request.user
+    profile = user.profile
+
+    credential_applications = CredentialApplication.objects.filter(user=user)
+    # Create an application form if the user is not already credentialed
+    # and doesn't have one pending
+    current_application = credential_applications.filter(status=0)
+
+    if not profile.is_credentialed and not current_application:
+        form = CredentialApplicationForm(user=user)
+    else:
+        current_application = current_application.first()
+        form = None
+
+    if request.method == 'POST' and not profile.is_credentialed and not current_application:
+        form = CredentialApplicationForm(user=user, data=request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your application has been received and will be reviewed shortly.')
+        else:
+            messages.error(request, 'Invalid submission. See errors below.')
+
+    return render(request, 'user/edit_credentialing.html', {'form':form,
+        'credential_applications':credential_applications,
+        'current_application':current_application,
+        'messages':messages.get_messages(request)})
+
+
+@login_required
+def credential_application(request):
+    """
+    Page to apply for credentially
+    """
+    user = request.user
+    profile = user.profile
+
+    if profile.is_credentialed or CredentialApplication.objects.filter(user=user, status=0):
+        return redirect(request, 'edit_credentialing')
+
+    form = CredentialApplicationForm(user=user)
+    return render(request, 'user/credential_application.html', {'form':form,
+        'messages':messages.get_messages(request)})
+
 

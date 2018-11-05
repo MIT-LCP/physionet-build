@@ -13,7 +13,8 @@ from django.utils import timezone
 from django.core.validators import EmailValidator
 from django.utils.translation import ugettext as _
 
-from .validators import UsernameValidator, validate_name, validate_alphaplus
+from .validators import (UsernameValidator, validate_name, validate_alphaplus,
+    phone_validator)
 
 
 logger = logging.getLogger(__name__)
@@ -190,6 +191,12 @@ def photo_path(instance, filename):
     """
     return 'users/{0}/{1}'.format(instance.user.username, '.'.join(['profile-photo', filename.split('.')[-1]]))
 
+def training_report_path(instance):
+    """
+    Storage path of CITI training report
+    """
+    return 'users/{}/{}'.format(instance.user.username, 'training-report.pdf')
+
 class Profile(models.Model):
     """
     Class storing profile information which is
@@ -271,3 +278,60 @@ class DualAuthModelBackend():
             return get_user_model().objects.get(pk=username)
         except get_user_model().DoesNotExist:
             return None
+
+
+class CredentialApplication(models.Model):
+    """
+    An application to become PhysioNet credentialed
+    """
+    RESEARCHER_CATEGORIES = (
+        (0, 'Student'),
+        (1, 'Postdoc'),
+        (2, 'Academic Researcher'),
+        (3, 'Industry Researcher'),
+        (4, ),
+    )
+
+    REFERENCE_CATEGORIES = (
+        (0, 'Supervisor'),
+        (1, 'Colleague'),
+        (2, 'Coauthor'),
+        (3, 'Other'),
+    )
+
+    application_datetime = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey('user.User', related_name='credential_applications')
+    # Personal fields
+    full_name = models.CharField(max_length=202, validators=[validate_name])
+    # Organization fields
+    organization_name = models.CharField(max_length=60,
+        validators=[validate_alphaplus])
+    job_title = models.CharField(max_length=50)
+    city = models.CharField(max_length=100)
+    state_province = models.CharField(max_length=100)
+    country = models.CharField(max_length=60)
+
+    website = models.URLField(default='', blank=True)
+    # Human resources training
+    training_course_name = models.CharField(max_length=100)
+    training_completion_report = models.FileField(upload_to=training_report_path)
+    training_completion_date = models.DateField()
+
+    researcher_category = models.PositiveSmallIntegerField(choices=RESEARCHER_CATEGORIES)
+
+
+
+    # Reference
+    reference_category = models.PositiveSmallIntegerField(
+        choices=REFERENCE_CATEGORIES)
+    reference_name = models.CharField(max_length=202, validators=[validate_name])
+    reference_email = models.EmailField()
+    reference_title = models.CharField(max_length=50)
+
+    research_description = models.CharField(max_length=1000)
+    # 0 1 2 = pending, rejected, accepted
+    status = models.PositiveSmallIntegerField()
+    decision_datetime = models.DateTimeField(null=True)
+    responder = models.ForeignKey('user.User', null=True, related_name='responded_applications')
+    responder_comments = models.CharField(max_length=500, default='',
+        blank=True)

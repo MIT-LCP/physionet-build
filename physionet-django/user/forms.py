@@ -7,7 +7,7 @@ from django.contrib.auth import password_validation
 from django.core.files.uploadedfile import UploadedFile
 from django.core.validators import EmailValidator
 
-from .models import AssociatedEmail, User, Profile
+from .models import AssociatedEmail, User, Profile, CredentialApplication
 from .widgets import ProfilePhotoInput
 from .validators import UsernameValidator, validate_name
 
@@ -235,3 +235,44 @@ class RegistrationForm(forms.ModelForm):
                 middle_names=self.cleaned_data['middle_names'],
                 last_name=self.cleaned_data['last_name'])
         return user
+
+
+class CredentialApplicationForm(forms.ModelForm):
+    """
+    Form to apply for PhysioNet credentialling
+    """
+
+    class Meta:
+        model = CredentialApplication
+        fields = ('full_name', 'organization_name',
+            'job_title', 'city', 'state_province',
+            'country', 'website',
+            'training_course_name', 'training_completion_date',
+            'training_completion_report',
+            'researcher_category',
+
+
+            'reference_category', 'reference_name',
+            'reference_email', 'reference_title', 'research_description')
+
+        labels = {
+            'state_province':'State/Province',
+        }
+
+        widgets = {
+            'research_desciption':forms.Textarea(),
+        }
+
+
+    def __init__(self, user, *args, **kwargs):
+        super().__init__()
+        self.user = user
+        self.email = user.email
+
+    def save():
+        credential_application = self.save(commit=False)
+
+        credential_application.user = self.user
+        credential_application.user = self.user
+
+        return credential_application

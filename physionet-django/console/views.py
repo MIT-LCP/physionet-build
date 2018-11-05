@@ -433,3 +433,14 @@ def users(request):
     """
     users = User.objects.all()
     return render(request, 'console/users.html', {'users':users})
+
+
+@login_required
+@user_passes_test(is_admin)
+def credential_applications(request):
+    """
+    Ongoing credential applications
+    """
+    applications = CredentialApplication.objects.filter(status=0).order_by('application_datetime')
+    return render(request, 'console/credential_applications.html',
+        {'applications':applications})

@@ -51,6 +51,7 @@ urlpatterns = [
     url(r'^settings/password/changed/$', views.edit_password_complete, name='edit_password_complete'),
     url(r'^settings/emails/$', views.edit_emails, name='edit_emails'),
     url(r'^settings/username/$', views.edit_username, name='edit_username'),
+    url(r'^settings/credentialing/$', views.edit_credentialing, name='edit_credentialing'),
     url(r'^verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
         views.verify_email, name='verify_email'),
 
@@ -62,5 +63,8 @@ urlpatterns = [
         name='public_profile'),
     url(r'^users/(?P<username>[\w\-\.]+)/profile-photo/$', views.profile_photo,
         name='profile_photo'),
+
+    url(r'^credential-application/$', views.credential_application,
+        name='credential_application'),
 ]
 

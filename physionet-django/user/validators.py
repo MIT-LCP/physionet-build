@@ -2,6 +2,7 @@ import re
 
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from django.utils.translation import ugettext as _
 from zxcvbn import zxcvbn
 
@@ -46,3 +47,8 @@ def validate_name(value):
 def validate_alphaplus(value):
     if not re.fullmatch(r'[a-zA-Z0-9][\w\ -]*', value):
         raise ValidationError('Letters, numbers, spaces, underscores, and hyphens only. Must begin with a letter or number.')
+
+phone_validator = RegexValidator(regex=r'^\+?1?\d{9,15}$',
+    message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.")
+
+

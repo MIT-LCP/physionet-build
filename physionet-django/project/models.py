@@ -958,46 +958,18 @@ class License(models.Model):
 
 class DataUseAgreement(models.Model):
     """
-    Data use agreement, for PublishedProjects via their AccessSystem.
+    Data use agreement
     """
     name = models.CharField(max_length=150)
     slug = models.SlugField(max_length=170)
     description = RichTextField()
     creation_datetime = models.DateTimeField(auto_now_add=True)
+    version = models.CharField(max_length=20)
+
+    signed_users = models.ManyToManyField('user.User', related_name='signed_duas')
 
     def __str__(self):
-        return self.name
-
-
-class AccessSystem(models.Model):
-    """
-    Access control for published projects. This is a separate model
-    so that multiple published projects can share the same
-    access system and list of approved users.
-
-    Also we use this intermediate object to change the dua/license
-    for a published project without publishing a new version
-
-    """
-    name = models.CharField(max_length=100, unique=True)
-    # This license field is used if the PublishedProject has an
-    # AccessSystem object (not open). Otherwise the
-    # PublishedProject.license field is used.
-    license = models.ForeignKey('project.License')
-    data_use_agreement = models.ForeignKey('project.DataUseAgreement')
-    requires_credentialed = models.BooleanField(default=False)
-    creation_datetime = models.DateTimeField(auto_now_add=True)
-
-
-class Approval(models.Model):
-    """
-    Object indicating that a user is approved to access a project
-    """
-    access_system = models.ForeignKey('project.AccessSystem')
-    user = models.ForeignKey('user.User')
-    first_approval_datetime = models.DateTimeField()
-    approval_datetime = models.DateTimeField()
-    requires_update = models.BooleanField(default=False)
+        return ' v '.join([self.name, self.version])
 
 
 class BaseInvitation(models.Model):

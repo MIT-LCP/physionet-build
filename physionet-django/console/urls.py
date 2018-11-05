@@ -35,4 +35,5 @@ urlpatterns = [
         name='storage_requests'),
     url(r'^users/$', views.users, name='user_list'),
 
+    url(r'^credential-applications/$', views.credential_applications, name='credential_applications'),
 ]
