@@ -244,23 +244,48 @@ class CredentialApplicationForm(forms.ModelForm):
 
     class Meta:
         model = CredentialApplication
-        fields = ('full_name', 'organization_name',
+        fields = ('full_name', 'researcher_category', 'organization_name',
             'job_title', 'city', 'state_province',
             'country', 'website',
             'training_course_name', 'training_completion_date',
             'training_completion_report',
-            'researcher_category',
 
+
+            'course_category', 'course_name', 'course_number',
 
             'reference_category', 'reference_name',
-            'reference_email', 'reference_title', 'research_description')
+            'reference_email', 'reference_title')
 
         labels = {
             'state_province':'State/Province',
+            'course_type':'Is this for a course?'
         }
 
-        widgets = {
-            'research_desciption':forms.Textarea(),
+
+        help_texts = {
+            'full_name':'Your full name.',
+            'organization_name':"The name of your organization. Put 'None' if you are an independent researcher.",
+            'job_title':'The title of your job/role.',
+            'city':'The city you live in.',
+            'state_province':'The state or province that you live in.',
+            'country':'The country that you live in.',
+            'website':"Your organization's website. If possible, put a page listing your role. This helps us confirm your identity.",
+            'training_course_name':"The name of the human subjects training course you took. ie. 'CITI Data or Specimens Only Research Course'",
+            'training_completion_date':'The date on which you finished your human subjects training. Must match the date in your training completion report.',
+            'training_completion_report':"A pdf of the completion report from the CITI 'Data or Specimens Only Research' training program. The completion report lists all modules completed, with dates and scores.",
+
+            'course_category':'Specify if you are using this data for a course.',
+            'course_name':'The name of the course you are taking/teaching.',
+            'course_number':'Number or code for the course.',
+
+            'researcher_category':'The type of researcher you are.',
+
+
+            'reference_category': 'If you are a student or postdoc, this must be your supervisor.',
+
+            'reference_name':'The full name of your reference.',
+            'reference_email':'The email address of your reference.',
+            'reference_title':'The title of your reference. ie: Professor, Dr.',
         }
 
 

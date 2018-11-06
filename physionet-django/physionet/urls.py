@@ -31,6 +31,7 @@ urlpatterns = [
     url(r'^about/duas/(?P<dua_slug>[\w-]+)/$', views.dua_content,
         name='dua_content'),
     url(r'^about/contact/$', views.contact, name='contact'),
+    url(r'^about/citi-instructions/$', views.citi_instructions, name='citi_instructions'),
 
     # content pages
     url(r'^data/$', views.data, name='data'),
