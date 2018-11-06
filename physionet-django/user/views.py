@@ -294,6 +294,7 @@ def verify_email(request, uidb64, token):
     return render(request, 'user/verify_email.html',
         {'title':'Invalid Verification Link', 'isvalid':False})
 
+
 @login_required
 def edit_username(request):
     """
@@ -311,9 +312,8 @@ def edit_username(request):
         else:
             user = User.objects.get(id=user.id)
 
-
-    return render(request, 'user/edit_username.html', {'user':user, 'form':form,
-        'messages':messages.get_messages(request)})
+    return render(request, 'user/edit_username.html', {'form':form,
+        'user':user})
 
 
 @login_required
@@ -364,6 +364,19 @@ def credential_application(request):
         return redirect(request, 'edit_credentialing')
 
     form = CredentialApplicationForm(user=user)
+
+    if request.method == 'POST':
+        form = CredentialApplicationForm(user=user, data=request.POST,
+            files=request.FILES)
+        if form.is_valid():
+            form.save()
+            return render(request, 'user/credential_application_complete.html')
+        else:
+            messages.error(request, 'Invalid submission. See errors below.')
+            print(form.errors)
+
+        pdb.set_trace()
+
     return render(request, 'user/credential_application.html', {'form':form,
         'messages':messages.get_messages(request)})
 
