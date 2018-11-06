@@ -271,8 +271,8 @@ class CredentialApplicationForm(forms.ModelForm):
             'country':'The country that you live in.',
             'website':"Your organization's website. If possible, put a page listing your role. This helps us confirm your identity.",
             'training_course_name':"The name of the human subjects training course you took. ie. 'CITI Data or Specimens Only Research Course'",
-            'training_completion_date':'The date on which you finished your human subjects training. Must match the date in your training completion report.',
-            'training_completion_report':"A pdf of the completion report from the CITI 'Data or Specimens Only Research' training program. The completion report lists all modules completed, with dates and scores.",
+            'training_completion_date':'The date on which you finished your human subjects training course. Must match the date in your training completion report.',
+            'training_completion_report':"A pdf of the training completion report from your training program. The CITI completion report lists all modules completed, with dates and scores. Do NOT upload the completion certificate.",
 
             'course_category':'Specify if you are using this data for a course.',
             'course_name':'The name of the course you are taking/teaching.',
