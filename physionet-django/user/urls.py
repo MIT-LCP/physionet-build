@@ -66,5 +66,8 @@ urlpatterns = [
 
     url(r'^credential-application/$', views.credential_application,
         name='credential_application'),
+    url(r'^verify-credential-application/(?P<reference_slug>\w+)/$',
+        views.verify_credential_application,
+        name='verify_credential_application'),
 ]
 

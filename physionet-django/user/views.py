@@ -185,8 +185,7 @@ def edit_profile(request):
         if not form.errors:
             form = ProfileForm(instance=profile)
 
-    return render(request, 'user/edit_profile.html', {'form':form,
-        'messages':messages.get_messages(request)})
+    return render(request, 'user/edit_profile.html', {'form':form})
 
 
 @login_required
@@ -330,7 +329,7 @@ def edit_credentialing(request):
     credential_applications = CredentialApplication.objects.filter(user=user)
     # Create an application form if the user is not already credentialed
     # and doesn't have one pending
-    current_application = credential_applications.filter(status=0)
+    current_application = credential_applications.filter(status__in=[0, 1])
 
     if not profile.is_credentialed and not current_application:
         form = CredentialApplicationForm(user=user)
@@ -348,8 +347,7 @@ def edit_credentialing(request):
 
     return render(request, 'user/edit_credentialing.html', {'form':form,
         'credential_applications':credential_applications,
-        'current_application':current_application,
-        'messages':messages.get_messages(request)})
+        'current_application':current_application})
 
 
 @login_required
@@ -360,24 +358,44 @@ def credential_application(request):
     user = request.user
     profile = user.profile
 
-    if profile.is_credentialed or CredentialApplication.objects.filter(user=user, status=0):
-        return redirect(request, 'edit_credentialing')
+    if profile.is_credentialed or CredentialApplication.objects.filter(
+            user=user, status__in=[0, 1]):
+        return redirect('edit_credentialing')
 
     form = CredentialApplicationForm(user=user)
 
     if request.method == 'POST':
-        form = CredentialApplicationForm(user=user, data=request.POST,
-            files=request.FILES)
+        form = CredentialApplicationForm(user=user, require_courses=False,
+            data=request.POST, files=request.FILES)
         if form.is_valid():
             form.save()
             return render(request, 'user/credential_application_complete.html')
         else:
             messages.error(request, 'Invalid submission. See errors below.')
-            print(form.errors)
 
-        pdb.set_trace()
+    return render(request, 'user/credential_application.html', {'form':form})
 
-    return render(request, 'user/credential_application.html', {'form':form,
-        'messages':messages.get_messages(request)})
+
+@login_required
+def verify_credential_application(request, reference_slug):
+    """
+    Page for a reference to verify or reject a credential application
+    """
+    credential_application = CredentialApplication.objects.get(
+        reference_slug=reference_slug)
+
+    form = CredentialReferenceForm()
+
+    if request.method == 'POST':
+        form = CredentialApplicationForm(data=request.POST)
+        if form.is_valid():
+            form.save()
+            return render(request, 'user/credential_application_complete.html')
+        else:
+            messages.error(request, 'Invalid submission. See errors below.')
+
+
+    return render(request, 'user/verify_credential_application.html',
+        {'form':form,})
 
 

@@ -195,3 +195,14 @@ def storage_response_notify(storage_request):
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [email], fail_silently=False)
 
+
+def contact_reference(application):
+    """
+    Request verification from a credentialing applicant's reference
+    """
+    subject = 'Please verify {} for PhysioNet credentialing'.format(
+        application.full_name)
+    body = loader.render_to_string('notification/email/contact_reference.html',
+        {application})
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+              [application.reference_email], fail_silently=False)

@@ -17,7 +17,7 @@ import project.forms as project_forms
 from project.models import ActiveProject, ArchivedProject, StorageRequest, EditLog, Reference, Topic, Publication, PublishedProject
 from project.views import get_file_forms, get_project_file_info, process_files_post
 from project.utility import get_storage_info
-from user.models import User
+from user.models import User, CredentialApplication
 
 
 def is_admin(user, *args, **kwargs):
@@ -441,6 +441,38 @@ def credential_applications(request):
     """
     Ongoing credential applications
     """
-    applications = CredentialApplication.objects.filter(status=0).order_by('application_datetime')
+    review_applications = CredentialApplication.objects.filter(status=0)
+    reference_applications = CredentialApplication.objects.filter(status=1)
+
     return render(request, 'console/credential_applications.html',
-        {'applications':applications})
+        {'review_applications':review_applications,
+         'reference_applications':reference_applications})
+
+
+@login_required
+@user_passes_test(is_admin)
+def process_credential_application(request, username):
+    """
+    Process a credential application
+    """
+    application = CredentialApplication.objects.get(user__username=username,
+        status__in=[0, 1])
+
+    if request.method == 'POST':
+        if 'contact_reference' in request.POST:
+            contact_reference_form = forms.ContactReferenceForm(
+                application=application, data=request.POST)
+            if contact_reference_form.is_valid():
+                application.generate_reference_url()
+                notification.contact_reference(email, message)
+                messages.success(request, 'The reference has been contacted.')
+        elif 'accept_application' in request.POST:
+            return render('console/process_credential_complete.html',
+                {'accept':True})
+        elif 'reject_application' in request.POST:
+            return render('console/process_credential_complete.html',
+                {'accept':False})
+
+    return render(request, 'console/process_credential_application.html',
+        {'application':application, 'app_user':application.user,
+         'contact_reference_form':contact_reference_form})

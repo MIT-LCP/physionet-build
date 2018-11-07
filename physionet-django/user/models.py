@@ -443,7 +443,7 @@ def photo_path(instance, filename):
     """
     return 'users/{0}/{1}'.format(instance.user.username, '.'.join(['profile-photo', filename.split('.')[-1]]))
 
-def training_report_path(instance):
+def training_report_path(instance, filename):
     """
     Storage path of CITI training report
     """
@@ -542,7 +542,8 @@ class CredentialApplication(models.Model):
         (2, 'Academic Researcher'),
         (3, 'Hospital Researcher'),
         (4, 'Industry Researcher'),
-        (5, 'Independent Researcher')
+        (5, 'Government Researcher'),
+        (6, 'Independent Researcher')
     )
 
     REFERENCE_CATEGORIES = (
@@ -573,8 +574,8 @@ class CredentialApplication(models.Model):
     website = models.URLField(default='', blank=True)
     # Human resources training
     training_course_name = models.CharField(max_length=100)
-    training_completion_report = models.FileField(upload_to=training_report_path)
     training_completion_date = models.DateField()
+    training_completion_report = models.FileField(upload_to=training_report_path)
     # Course info
     course_category = models.PositiveSmallIntegerField(choices=COURSE_CATEGORIES)
     course_name = models.CharField(max_length=60)
@@ -585,9 +586,16 @@ class CredentialApplication(models.Model):
     reference_name = models.CharField(max_length=202, validators=[validate_name])
     reference_email = models.EmailField()
     reference_title = models.CharField(max_length=60)
-    # 0 1 2 = pending, rejected, accepted
-    status = models.PositiveSmallIntegerField()
+    # 0 1 2 3 = pending, pending awaiting reference, rejected, accepted
+    status = models.PositiveSmallIntegerField(default=0)
+    reference_contact_datetime = models.DateTimeField(null=True)
+    reference_response_datetime = models.DateTimeField(null=True)
+    # The slug for the reference to verify the applicant
+    reference_slug = models.SlugField(max_length=20, unique=True, db_index=True)
+    # Whether reference verifies the applicant
+    reference_response = models.NullBooleanField()
     decision_datetime = models.DateTimeField(null=True)
-    responder = models.ForeignKey('user.User', null=True, related_name='responded_applications')
+    responder = models.ForeignKey('user.User', null=True,
+        related_name='responded_applications')
     responder_comments = models.CharField(max_length=500, default='',
         blank=True)

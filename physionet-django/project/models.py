@@ -12,7 +12,6 @@ from django.db import models
 from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 from django.utils import timezone
-from django.utils.crypto import get_random_string
 from django.utils.text import slugify
 
 from .utility import get_tree_size, get_file_info, get_directory_info, list_items, get_storage_info

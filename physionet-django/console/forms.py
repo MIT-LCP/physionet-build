@@ -4,7 +4,7 @@ from django import forms
 from django.utils import timezone
 
 from project.models import ActiveProject, EditLog, CopyeditLog
-from user.models import User
+from user.models import User, CredentialApplication
 
 
 RESPONSE_CHOICES = (

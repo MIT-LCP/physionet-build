@@ -35,5 +35,8 @@ urlpatterns = [
         name='storage_requests'),
     url(r'^users/$', views.users, name='user_list'),
 
-    url(r'^credential-applications/$', views.credential_applications, name='credential_applications'),
+    url(r'^credential-applications/$', views.credential_applications,
+        name='credential_applications'),
+    url(r'^credential-applications/(?P<username>\w+)$',
+        views.process_credential_application, name='process_credential_application'),
 ]

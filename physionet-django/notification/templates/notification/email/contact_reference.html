@@ -1,0 +1,12 @@
+{% load i18n %}{% autoescape off %}
+Dear {{ application.reference_name }}
+
+{{ application.full_name }} has listed you as their reference for their PhysioNet credentialing application.
+
+If you recognize them, please verify their application before it expires by using the form at: http://{{ domain }}{% url 'verify_credential_application' application.reference_slug %}
+
+If you do not recognize them, you can ignore this email, or reject them from the same link.
+
+Regards
+The PhysioNet team
+{% endautoescape %}

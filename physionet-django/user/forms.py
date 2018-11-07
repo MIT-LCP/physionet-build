@@ -7,6 +7,7 @@ from django.contrib.auth import password_validation
 from django.core.files.uploadedfile import UploadedFile
 from django.core.validators import EmailValidator
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 
 from .models import AssociatedEmail, User, Profile, CredentialApplication
 from .widgets import ProfilePhotoInput
@@ -288,11 +289,14 @@ class CredentialApplicationForm(forms.ModelForm):
         }
 
 
-    def __init__(self, user, *args, **kwargs):
+    def __init__(self, user, require_courses=True, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = user
         self.profile = user.profile
 
+        if not require_courses:
+            self.fields['course_name'].required = False
+            self.fields['course_number'].required = False
 
         self.initial = {'full_name':self.profile.get_full_name(),
             'organization_name':self.profile.affiliation,
@@ -309,7 +313,6 @@ class CredentialApplicationForm(forms.ModelForm):
         # Students and postdocs must provide their supervisor as a reference
         if data['researcher_category'] in [0, 1] and data['reference_category'] != 0:
             raise forms.ValidationError('If you are a student or postdoc, you must provide your supervisor as a reference.')
-
         # If the application is not for a course, they cannot put one.
         if data['course_category'] == 0 and (data['course_name'] or data['course_number']):
             raise forms.ValidationError('If you are not using the data for a course, do not put one in.')
@@ -317,10 +320,12 @@ class CredentialApplicationForm(forms.ModelForm):
         elif data['course_category'] > 0 and (not data['course_name'] or not data['course_number']):
             raise forms.ValidationError('If you are using the data for a course, you must specify the course information.')
 
-    def save():
-        credential_application = self.save(commit=False)
-
+    def save(self):
+        credential_application = super().save(commit=False)
+        slug = get_random_string(20)
+        while CredentialApplication.objects.filter(reference_slug=slug):
+            slug = get_random_string(20)
         credential_application.user = self.user
-        credential_application.user = self.user
-
+        credential_application.reference_slug = slug
+        credential_application.save()
         return credential_application
