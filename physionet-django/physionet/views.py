@@ -61,18 +61,51 @@ def contact(request):
 
 # Content pages
 
-def data(request):
-    published_projects = PublishedProject.objects.all().order_by('publish_datetime')
+
+def get_content(resource_type=None):
+    """
+    Helper function to get content shown on a resource listing page
+    """
+    if resource_type is None:
+        published_projects = PublishedProject.objects.all().order_by(
+            'publish_datetime')
+    else:
+        published_projects = PublishedProject.objects.filter(
+            resource_type=resource_type).order_by('publish_datetime')
+
     authors = [p.authors.all() for p in published_projects]
     topics = [p.topics.all() for p in published_projects]
     projects_authors_topics = zip(published_projects, authors, topics)
 
-    return render(request, 'data.html', {'projects_authors_topics':projects_authors_topics})
+    return projects_authors_topics
+
+
+def content(request):
+    """
+    List of all published resources
+    """
+    projects_authors_topics = get_content()
+    return render(request, 'content_list.html', {'content_name':'Content',
+        'projects_authors_topics':projects_authors_topics})
+
+
+def data(request):
+    """
+    List of published databases
+    """
+    projects_authors_topics = get_content(resource_type=0)
+    return render(request, 'content_list.html', {'content_name':'Databases',
+        'projects_authors_topics':projects_authors_topics})
+
 
 def software(request):
-    return render(request, 'software.html')
+    """
+    List of published software projects
+    """
+    projects_authors_topics = get_content(resource_type=1)
+    return render(request, 'content_list.html', {'content_name':'Software',
+        'projects_authors_topics':projects_authors_topics})
 
-def challenge(request):
-    return render(request, 'challenge.html')
+
 
 

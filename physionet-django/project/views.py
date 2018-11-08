@@ -16,7 +16,7 @@ from django.utils import timezone
 
 from . import forms
 from .models import (Affiliation, Author, AuthorInvitation, ActiveProject,
-    PublishedProject, StorageRequest, Reference, ArchivedProject,
+    PublishedProject, StorageRequest, Reference, ArchivedProject, ProgrammingLanguage,
     Topic, Contact, Publication, PublishedAuthor, EditLog, CopyeditLog)
 from . import utility
 import notification.utility as notification
@@ -476,11 +476,14 @@ def project_metadata(request, project_slug, **kwargs):
         max_num=forms.ReferenceFormSet.max_forms, can_delete=False,
         formset=forms.ReferenceFormSet, validate_max=True)
 
-    description_form = forms.METADATA_FORMS[project.resource_type](instance=project)
+    description_form = forms.MetadataForm(resource_type=project.resource_type,
+        include_changelog=bool(project.version_order), instance=project)
     reference_formset = ReferenceFormSet(instance=project)
 
     if request.method == 'POST':
-        description_form = forms.METADATA_FORMS[project.resource_type](data=request.POST,
+        description_form = forms.MetadataForm(
+            resource_type=project.resource_type,
+            include_changelog=bool(project.version_order), data=request.POST,
             instance=project)
         reference_formset = ReferenceFormSet(request.POST, instance=project)
         if description_form.is_valid() and reference_formset.is_valid():
@@ -539,14 +542,20 @@ def project_identifiers(request, project_slug, **kwargs):
         max_num=forms.PublicationFormSet.max_forms, can_delete=False,
         formset=forms.PublicationFormSet, validate_max=True)
 
+    identifiers_form = forms.IdentifiersForm(resource_type=project.resource_type,
+        instance=project)
     publication_formset = PublicationFormSet(instance=project)
     topic_formset = TopicFormSet(instance=project)
 
     if request.method == 'POST':
+        identifiers_form = forms.IdentifiersForm(resource_type=project.resource_type,
+            data=request.POST, instance=project)
         publication_formset = PublicationFormSet(request.POST,
                                                  instance=project)
         topic_formset = TopicFormSet(request.POST, instance=project)
-        if publication_formset.is_valid() and topic_formset.is_valid():
+
+        if identifiers_form.is_valid() and publication_formset.is_valid() and topic_formset.is_valid():
+            identifiers_form.save()
             publication_formset.save()
             topic_formset.save()
             project.modified_datetime = timezone.now()
@@ -558,7 +567,8 @@ def project_identifiers(request, project_slug, **kwargs):
             messages.error(request, 'Invalid submission. See errors below.')
     edit_url = reverse('edit_metadata_item', args=[project.slug])
     return render(request, 'project/project_identifiers.html',
-        {'project':project, 'publication_formset':publication_formset,
+        {'project':project, 'identifiers_form':identifiers_form,
+         'publication_formset':publication_formset,
          'topic_formset':topic_formset, 'add_item_url':edit_url,
          'remove_item_url':edit_url, 'is_submitting':is_submitting})
 
@@ -760,6 +770,7 @@ def project_preview(request, project_slug, **kwargs):
     references = project.references.all()
     publications = project.publications.all()
     topics = project.topics.all()
+    languages = project.programming_languages.all()
 
     passes_checks = project.check_integrity()
 
@@ -776,7 +787,7 @@ def project_preview(request, project_slug, **kwargs):
         'project':project, 'display_files':display_files, 'display_dirs':display_dirs,
         'authors':authors, 'corresponding_author':corresponding_author,
         'invitations':invitations, 'references':references,
-        'publications':publications, 'topics':topics,
+        'publications':publications, 'topics':topics, 'languages':languages,
         'passes_checks':passes_checks,
         'dir_breadcrumbs':dir_breadcrumbs})
 
@@ -935,37 +946,29 @@ def serve_published_project_file(request, published_project_slug, file_name):
     return utility.serve_file(request, file_path)
 
 
-def database(request, published_project):
+def published_project(request, published_project_slug):
     """
-    Displays a published database project.
-    Helper function to `published_project` view.
+    Displays a published project
     """
+    published_project = PublishedProject.objects.get(slug=published_project_slug)
+
     authors = published_project.authors.all().order_by('display_order')
     for a in authors:
         a.set_display_info()
     references = published_project.references.all()
     publications = published_project.publications.all()
     topics = published_project.topics.all()
+    languages = published_project.programming_languages.all()
     contact = Contact.objects.get(project=published_project)
     # The file and directory contents
     display_files, display_dirs = published_project.get_directory_content()
     dir_breadcrumbs = utility.get_dir_breadcrumbs('')
     total_size = utility.readable_size(published_project.storage_size)
 
-    return render(request, 'project/database.html',
-        {'published_project':published_project, 'authors':authors,
-         'references':references, 'publications':publications, 'topics':topics,
-         'contact':contact, 'dir_breadcrumbs':dir_breadcrumbs,
-         'total_size':total_size, 'display_files':display_files,
-         'display_dirs':display_dirs})
+    context = {'published_project':published_project, 'authors':authors,
+        'references':references, 'publications':publications, 'topics':topics,
+        'languages':languages, 'contact':contact,
+        'dir_breadcrumbs':dir_breadcrumbs, 'total_size':total_size,
+        'display_files':display_files, 'display_dirs':display_dirs}
 
-
-def published_project(request, published_project_slug):
-    """
-    Displays a published project
-    """
-
-    published_project = PublishedProject.objects.get(slug=published_project_slug)
-
-    if published_project.resource_type == 0:
-        return database(request, published_project)
+    return render(request, 'project/published_project.html', context)

@@ -179,7 +179,7 @@ class Reference(models.Model):
     object_id = models.PositiveIntegerField()
     project = GenericForeignKey('content_type', 'object_id')
 
-    description = models.CharField(max_length=250, validators=[validate_alphaplus])
+    description = models.CharField(max_length=250)
 
     class Meta:
         unique_together = (('description', 'content_type', 'object_id'),)
@@ -189,7 +189,7 @@ class Reference(models.Model):
 
 
 class PublishedReference(models.Model):
-    description = models.CharField(max_length=250, validators=[validate_alphaplus])
+    description = models.CharField(max_length=250)
     project = models.ForeignKey('project.PublishedProject',
         related_name='references')
 
@@ -271,6 +271,10 @@ class Metadata(models.Model):
         (2, 'Credentialed'),
     )
 
+    # Fields which can be directly transferred between all types of
+    # projects
+    DIRECT_FIELDS = ()
+
     resource_type = models.PositiveSmallIntegerField(choices=RESOURCE_TYPES)
     # Main body descriptive metadata
     title = models.CharField(max_length=200, validators=[validate_alphaplus])
@@ -279,6 +283,8 @@ class Metadata(models.Model):
     methods = RichTextField(blank=True)
     content_description = RichTextField(blank=True)
     usage_notes = RichTextField(blank=True)
+    installation = RichTextField(blank=True)
+    subject_identifiers = RichTextField(blank=True)
     acknowledgements = RichTextField(blank=True)
     conflicts_of_interest = RichTextField(blank=True)
     version = models.CharField(max_length=15, default='', blank=True)
@@ -289,6 +295,9 @@ class Metadata(models.Model):
     license = models.ForeignKey('project.License', null=True)
     data_use_agreement = models.ForeignKey('project.DataUseAgreement',
                                            null=True, blank=True)
+    project_home_page = models.URLField(default='')
+    programming_languages = models.ManyToManyField(
+        'project.ProgrammingLanguage', related_name='%(class)ss')
     # Public url slug, also used as a submitting project id.
     slug = models.SlugField(max_length=20, unique=True, db_index=True)
     core_project = models.ForeignKey('project.CoreProject',
@@ -300,6 +309,7 @@ class Metadata(models.Model):
     copyedit_logs = GenericRelation('project.CopyeditLog')
     # For ordering projects with multiple versions
     version_order = models.PositiveSmallIntegerField(default=0)
+
 
     class Meta:
         abstract = True
@@ -328,6 +338,7 @@ class Metadata(models.Model):
         """
         return get_storage_info(allowance=self.core_project.storage_allowance,
             used=self.storage_used())
+
 
 
 class SubmissionInfo(models.Model):
@@ -415,12 +426,12 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     # Where all the active project files are kept
     FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'active-projects')
 
-    REQUIRED_FIELDS = {0:['title', 'abstract', 'background', 'methods',
-                          'content_description', 'conflicts_of_interest',
-                          'version', 'license',],
-                       1:['title', 'abstract', 'background', 'methods',
-                          'content_description', 'conflicts_of_interest',
-                          'version', 'license',]}
+    REQUIRED_FIELDS = (
+        ('title', 'abstract', 'background', 'methods', 'content_description',
+         'conflicts_of_interest', 'subject_identifiers', 'version', 'license'),
+        ('title', 'abstract', 'background', 'methods', 'content_description',
+         'installation', 'conflicts_of_interest', 'version', 'license')
+    )
 
     def storage_used(self):
         "Total storage used in bytes"
@@ -502,19 +513,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         archived_project = ArchivedProject(archive_reason=archive_reason)
 
         # Direct copy over fields
-        for attr in [
-                # Management fields
-                'core_project', 'slug',
-                # Metadata info
-                'resource_type', 'title', 'abstract', 'background', 'methods',
-                'content_description', 'usage_notes', 'acknowledgements',
-                'conflicts_of_interest', 'version', 'access_policy',
-                'changelog_summary', 'access_policy', 'license',
-                # Publishing info
-                'editor', 'creation_datetime', 'submission_datetime',
-                'editor_assignment_datetime', 'editor_accept_datetime',
-                'copyedit_completion_datetime', 'author_approval_datetime',
-                'version_order']:
+        for attr in [f.name for f in Metadata._meta.fields] + [f.name for f in SubmissionInfo._meta.fields] + ['modified_datetime']:
             setattr(archived_project, attr, getattr(self, attr))
 
         archived_project.save()
@@ -538,6 +537,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         for copyedit_log in self.copyedit_logs.all():
             copyedit_log.project = archived_project
             copyedit_log.save()
+        if self.resource_type == 1:
+            languages = self.programming_languages.all()
+            if languages:
+                archived_project.programming_languages.add(*list(languages))
 
         # Voluntary delete
         if archive_reason == 1:
@@ -723,19 +726,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         published_project = PublishedProject()
 
         # Direct copy over fields
-        for attr in [
-                # Management fields
-                'core_project', 'slug',
-                # Metadata info
-                'resource_type', 'title', 'abstract', 'background', 'methods',
-                'content_description', 'usage_notes', 'acknowledgements',
-                'conflicts_of_interest', 'version', 'access_policy',
-                'changelog_summary', 'access_policy', 'license',
-                # Publishing info
-                'editor', 'creation_datetime', 'submission_datetime',
-                'editor_assignment_datetime', 'editor_accept_datetime',
-                'copyedit_completion_datetime', 'author_approval_datetime',
-                'version_order']:
+        for attr in [f.name for f in Metadata._meta.fields] + [f.name for f in SubmissionInfo._meta.fields]:
             setattr(published_project, attr, getattr(self, attr))
 
         # New fields
@@ -764,6 +755,11 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 published_topic = PublishedTopic.objects.create(
                     description=topic.description.lower())
             published_topic.projects.add(published_project)
+
+        if self.resource_type == 1:
+            languages = self.programming_languages.all()
+            if languages:
+                published_project.programming_languages.add(*list(languages))
 
         for author in self.authors.all():
             author_profile = author.user.profile
@@ -940,6 +936,16 @@ def exists_project_slug(slug):
     return False
 
 
+class ProgrammingLanguage(models.Model):
+    """
+    Language to tag all projects
+    """
+    name = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
 class License(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=120)
@@ -1074,22 +1080,27 @@ class EditLog(models.Model):
     # Quality assurance fields for data and software
     QUALITY_ASSURANCE_FIELDS = (
         ('soundly_produced', 'well_described', 'open_format',
-        'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable'),
-        (),
+         'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable'),
+        ('well_described', 'open_format', 'reusable', 'pn_suitable'),
     )
     # The editor's free input fields
     EDITOR_FIELDS = ('editor_comments', 'decision')
 
-    labels = {
-        'soundly_produced':'The data is produced in a sound manner',
-        'well_described':'The data is adequately described',
-        'open_format':'The data files are provided in an open format',
-        'data_machine_readable':'The data files are machine readable',
+    COMMON_LABELS = {
         'reusable':'All the information needed for reuse is present',
-        'no_phi':'No protected health information is contained',
         'pn_suitable':'The content is suitable for PhysioNet',
         'editor_comments':'Comments to authors',
     }
+
+    LABELS = (
+        {'soundly_produced':'The data is produced in a sound manner',
+         'well_described':'The data is adequately described',
+         'open_format':'The data files are provided in an open format',
+         'data_machine_readable':'The data files are machine readable',
+         'no_phi':'No protected health information is contained'},
+        {'well_described':'The software is adequately described',
+         'open_format':'The software is provided in source format'}
+    )
 
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
@@ -1121,11 +1132,16 @@ class EditLog(models.Model):
         if not self.decision_datetime:
             return
 
+        resource_type = self.project.resource_type
         NO_YES = ('No', 'Yes')
+        # The quality assurance fields we want.
+        # Retrieve their labels and results.
+        quality_assurance_fields = self.__class__.QUALITY_ASSURANCE_FIELDS[resource_type]
+        # Create the labels dictionary for this resource type
+        labels = {**self.__class__.COMMON_LABELS, **self.__class__.LABELS[resource_type]}
 
-        quality_assurance_fields = self.__class__.QUALITY_ASSURANCE_FIELDS[self.project.resource_type]
         self.quality_assurance_results = ['{}: {}'.format(
-            self.__class__.labels[f], NO_YES[getattr(self, f)]) for f in quality_assurance_fields]
+            labels[f], NO_YES[getattr(self, f)]) for f in quality_assurance_fields]
 
 
 class CopyeditLog(models.Model):

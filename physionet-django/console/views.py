@@ -141,7 +141,8 @@ def edit_submission(request, project_slug):
 
     if request.method == 'POST':
         edit_submission_form = forms.EditSubmissionForm(
-            instance=edit_log, data=request.POST)
+            resource_type=project.resource_type, instance=edit_log,
+            data=request.POST)
         if edit_submission_form.is_valid():
             # This processes the resulting decision
             edit_log = edit_submission_form.save()
@@ -158,7 +159,8 @@ def edit_submission(request, project_slug):
         else:
             messages.error(request, 'Invalid response. See form below.')
     else:
-        edit_submission_form = forms.EditSubmissionForm(instance=edit_log)
+        edit_submission_form = forms.EditSubmissionForm(
+            resource_type=project.resource_type, instance=edit_log)
 
     authors, author_emails, storage_info, edit_logs, _ = project.info_card()
 
@@ -196,8 +198,8 @@ def copyedit_submission(request, project_slug):
         max_num=project_forms.PublicationFormSet.max_forms, can_delete=False,
         formset=project_forms.PublicationFormSet, validate_max=True)
 
-    description_form = project_forms.METADATA_FORMS[project.resource_type](
-        instance=project)
+    description_form = project_forms.MetadataForm(
+        resource_type=project.resource_type, instance=project)
     access_form = project_forms.AccessMetadataForm(instance=project)
     reference_formset = ReferenceFormSet(instance=project)
     publication_formset = PublicationFormSet(instance=project)
@@ -207,11 +209,12 @@ def copyedit_submission(request, project_slug):
 
     if request.method == 'POST':
         if 'edit_metadata' in request.POST:
-            description_form = project_forms.METADATA_FORMS[project.resource_type](
-                data=request.POST, instance=project)
-            access_form = project_forms.AccessMetadataForm(request.POST,
+            description_form = project_forms.MetadataForm(
+                resource_type=project.resource_type, data=request.POST,
                 instance=project)
-            reference_formset = ReferenceFormSet(request.POST,
+            access_form = project_forms.AccessMetadataForm(data=request.POST,
+                instance=project)
+            reference_formset = ReferenceFormSet(data=request.POST,
                 instance=project)
             publication_formset = PublicationFormSet(request.POST,
                                                  instance=project)

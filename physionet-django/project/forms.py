@@ -9,7 +9,7 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 
 from .models import (Affiliation, Author, AuthorInvitation, ActiveProject,
-    CoreProject, StorageRequest, exists_project_slug)
+    CoreProject, StorageRequest, ProgrammingLanguage, exists_project_slug)
 from . import utility
 from . import validators
 
@@ -335,48 +335,93 @@ class CreateProjectForm(forms.ModelForm):
         return project
 
 
-class DatabaseMetadataForm(forms.ModelForm):
+class MetadataForm(forms.ModelForm):
     """
-    Form for editing the metadata of a project with resource_type == database
+    Form for editing the metadata of a project.
+    Fields, labels, and help texts may be defined differently for
+    different resource types.
+
     """
+
+    FIELDS = (
+        ('title', 'abstract', 'background', 'methods', 'content_description',
+         'usage_notes', 'subject_identifiers', 'acknowledgements',
+         'conflicts_of_interest', 'version', 'changelog_summary'),
+        ('title', 'abstract', 'background', 'methods', 'content_description',
+         'usage_notes', 'installation', 'acknowledgements',
+         'conflicts_of_interest', 'version', 'changelog_summary'),
+    )
+
+    LABELS = (
+        {'content_description': 'Data description'},
+        {'content_description': 'Software description'}
+    )
+
+    HELP_TEXTS = (
+        {'methods': '* The methodology employed for the study or research. Describe how the data was collected.',
+         'usage_notes': '* How the data is to be used. List any related software developed for the dataset, and any special software required to use the data.'},
+        {'methods': '* The methodology employed for the study or research.',
+         'usage_notes': '* How the software is to be used. List some example function calls.'}
+    )
+
     class Meta:
         model = ActiveProject
         fields = ('title', 'abstract', 'background', 'methods',
-                  'content_description', 'usage_notes', 'acknowledgements',
+                  'content_description', 'usage_notes', 'subject_identifiers',
+                  'installation', 'acknowledgements',
                   'conflicts_of_interest', 'version', 'changelog_summary',)
-        help_texts = {'title': '* Title of the resource.',
-                      'abstract': '* A brief description of the resource and the context in which the resource was created.',
-                      'background': '* The study background.',
-                      'methods': '* The methodology employed for the study or research. Describe how the data was collected. If your project has an external home page, you should include it here.',
-                      'content_description': '* Describe the files, how they are named and structured, and how they are to be used.',
-                      'usage_notes': 'How the data is to be used. List any related software developed for the dataset, and any special software required to use the data.',
-                      'acknowledgements': 'Any general acknowledgements.',
-                      'conflicts_of_interest': '* Conflicts of interest of any authors. State explicitly if there are none.',
-                      'version': '* The version number of the resource. <a href=https://semver.org/ target=_blank>Semantic versioning</a> is encouraged (example: 1.0.0).',
-                      'changelog_summary': '* Summary of changes from the previous release.'}
 
-    def __init__(self, include_changelog=False, *args, **kwargs):
-        super(DatabaseMetadataForm, self).__init__(*args, **kwargs)
+        help_texts = {
+            'title': '* Title of the resource.',
+            'abstract': '* A brief description of the resource and the context in which the resource was created.',
+            'background': '* The study background.',
+            'content_description': '* Describe the files, how they are named and structured, and how they are to be used.',
+            'installation': '* Instructions on how to install the software. List any required dependencies here, or specify the file in which they are listed.',
+            'subject_identifiers': '* Describe the information present that may be used to identify individual subjects. State explicitly if there are none.',
+            'acknowledgements': 'Any general acknowledgements.',
+            'conflicts_of_interest': '* Conflicts of interest of any authors. State explicitly if there are none.',
+            'version': '* The version number of the resource. <a href=https://semver.org/ target=_blank>Semantic versioning</a> is encouraged (example: 1.0.0).',
+            'changelog_summary': '* Summary of changes from the previous release.'
+        }
+
+    def __init__(self, resource_type, include_changelog=False, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        rm_fields = set(self.base_fields) - set(self.__class__.FIELDS[resource_type])
+
+        for f in rm_fields:
+            del(self.fields[f])
+
+        for l in self.__class__.LABELS[resource_type]:
+            self.fields[l].label = self.__class__.LABELS[resource_type][l]
+
+        for h in self.__class__.HELP_TEXTS[resource_type]:
+            self.fields[h].help_text = self.__class__.HELP_TEXTS[resource_type][h]
+
         if not include_changelog:
             del(self.fields['changelog_summary'])
 
-        self.fields['content_description'].label = 'Data description'
 
+class IdentifiersForm(forms.ModelForm):
+    """
+    Add identifiers to the project
+    """
+    programming_languages = forms.ModelMultipleChoiceField(
+        queryset=ProgrammingLanguage.objects.all().order_by('name'),
+        widget=forms.SelectMultiple(attrs={'size':'10'}),
+        help_text='The programming languages used. Hold ctrl to select multiple. If your language is not listed here, <a href=/about/contact>contact us</a>.')
 
-class SoftwareMetadataForm(forms.ModelForm):
-    """
-    Form for editing the metadata of a project with resource_type == database
-    NOT DONE
-    """
     class Meta:
         model = ActiveProject
-        fields = ('title', 'abstract', 'usage_notes')
+        fields = ('project_home_page', 'programming_languages')
+        help_texts = {
+            'project_home_page': 'External home page for the project.'
+        }
 
-
-# The modelform for editing metadata for each resource type
-METADATA_FORMS = {0: DatabaseMetadataForm,
-                  1: SoftwareMetadataForm}
-
+    def __init__(self, resource_type, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if resource_type != 1:
+            del(self.fields['programming_languages'])
 
 class AffiliationFormSet(forms.BaseInlineFormSet):
     """
@@ -487,6 +532,42 @@ class TopicFormSet(BaseGenericInlineFormSet):
         super().__init__(*args, **kwargs)
         self.max_forms = TopicFormSet.max_forms
         self.help_text = 'Keyword topics associated with the project. Increases the visibility of your project. Maximum of {}.'.format(self.max_forms)
+
+
+class LanguageFormSet(BaseGenericInlineFormSet):
+    """
+    Formset for adding a ActiveProject's programming languages
+    """
+    form_name = 'project-programminglanguage-content_type-object_id'
+    item_label = 'Programming Languages'
+    max_forms = 10
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.max_forms = LanguageFormSet.max_forms
+        self.help_text = 'Programming languages used in this software. Maximum of {}.'.format(self.max_forms)
+
+    def clean(self):
+        """
+        - Check max forms due to POST refresh issue
+        - validate unique_together values because generic relations
+          don't automatically check).
+        """
+        if any(self.errors):
+            return
+
+        if len(set([r.id for r in self.instance.languages.all()]
+                   + [f.instance.id for f in self.forms])) > self.max_forms:
+            raise forms.ValidationError('Maximum number of allowed items exceeded.')
+
+        names = []
+        for form in self.forms:
+            # This is to allow empty unsaved form
+            if 'name' in form.cleaned_data:
+                name = form.cleaned_data['name']
+                if name in names:
+                    raise forms.ValidationError('Languages must be unique.')
+                names.append(name)
 
 
 class AccessMetadataForm(forms.ModelForm):

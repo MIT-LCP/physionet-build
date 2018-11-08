@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ published_project }}"{% endblock %}
+{% block title %}{{ published_project }}{% endblock %}
 
 {% load static %}
 
@@ -32,56 +32,19 @@
   <div class="row">
     <!-- Main column -->
     <div class="col-md-8">
-
-      <h2>Abstract</h2>
-      {{ published_project.abstract|safe }}
-      <hr>
-
-      <h2>Background</h2>
-      {{ published_project.background|safe }}
-      <hr>
-
-      <h2>Methods</h2>
-      {{ published_project.methods|safe }}
-      <hr>
-
-      <h2>Content Description</h2>
-      {{ published_project.content_description|safe }}
-      <hr>
-
-      {% if published_project.acknowledgements %}
-        <h2>Acknowledgements</h2>
-        {{ published_project.acknowledgements|safe }}
-        <hr>
+      {% if published_project.resource_type == 0 %}
+        {% include "project/database_metadata.html" %}
+      {% else %}
+        {% include "project/software_metadata.html" %}
       {% endif %}
+    </div>
+    <!-- /.main column -->
 
-      <h2>Conflicts of Interest</h2>
-      {{ published_project.conflicts_of_interest|safe }}
-      <hr>
-
-      {% if references %}
-        <h2>References</h2>
-        <ol>
-        {% for reference in references %}
-          <li>{{ reference.description }}</li>
-        {% endfor %}
-        </ol>
-        <hr>
-      {% endif %}
-
-      {% if published_project.changelog_summary %}
-        <h2>Changelog Summary</h2>
-          {{ published_project.changelog_summary|safe }}
-        <hr>
-      {% endif %}
-      </div>
-      <!-- /.main column -->
-
-      <!-- Sidebar Column -->
-      <div class="col-md-4">
-        <div class="card my-4">
-          <h5 class="card-header">Access</h5>
-          <div class="card-body">
+    <!-- Sidebar Column -->
+    <div class="col-md-4">
+      <div class="card my-4">
+        <h5 class="card-header">Access</h5>
+        <div class="card-body">
           <p>
             <strong>Access Policy:</strong>
             <br>
@@ -120,6 +83,15 @@
              </p>
           {% endif %}
 
+          {% if languages %}
+            <p><strong>Programming Languages:</strong>
+            <br>
+            {% for language in languages %}
+              <a href="#" class="badge badge-info">{{ language.name }}</a>
+            {% endfor %}
+            </p>
+          {% endif %}
+
           {% if topics %}
             <p><strong>Topics:</strong>
               <br>
@@ -129,10 +101,10 @@
             </p>
           {% endif %}
 
-          {% if published_project.external_home_page %}
+          {% if published_project.project_home_page %}
             <p><strong>Project Home Page:</strong>
               <br>
-              <a href="{{ published_project.external_home_page }}" target="_blank"><i class="fas fa-external-link-alt"></i> {{ published_project.external_home_page }}</a>
+              <a href="{{ published_project.project_home_page }}" target="_blank"><i class="fas fa-external-link-alt"></i> {{ published_project.project_home_page }}</a>
             </p>
           {% endif %}
         </div>

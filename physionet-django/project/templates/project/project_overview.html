@@ -28,7 +28,14 @@
 
 {% include "about/preparation_checklist.html" %}
 <hr>
-
+<h3>Quality Guidelines</h3>
+<p>Your contribution must satisfy the following guidelines:</p>
+{% if project.resource_type == 0 %}
+  {% include "about/data_quality_guidelines.html" %}
+{% else %}
+  {% include "about/software_quality_guidelines.html" %}
+{% endif %}
+<hr>
 {% if is_submitting %}
   <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#delete-project-modal" {% if under_submission %}disabled title="Cannot delete while under submission"{% endif %}>Delete Project</button>
   <div class="modal fade" id="delete-project-modal" tabindex="-1" role="dialog" aria-labelledby="delete-project-modal" aria-hidden="true">
