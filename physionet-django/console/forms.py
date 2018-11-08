@@ -186,7 +186,7 @@ class ProcessCredentialForm(forms.ModelForm):
         }
 
     def __init__(self, responder, *args, **kwargs):
-        super().__init__()
+        super().__init__(*args, **kwargs)
         self.responder = responder
 
     def clean(self):
@@ -198,6 +198,15 @@ class ProcessCredentialForm(forms.ModelForm):
 
     def save(self):
         application = super().save()
+        now = timezone.now()
+
+        if application.status == 2:
+            user = application.user
+            user.is_credentialed = True
+            user.credential_datetime = now
+            user.save()
+
         application.responder = self.responder
         application.decision_datetime = timezone.now()
         application.save()
+        return application

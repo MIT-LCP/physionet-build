@@ -1,0 +1,118 @@
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>Field</th>
+      <th>Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Application Date</td>
+      <td>{{ application.application_datetime|date }}</td></tr>
+    <tr>
+    <tr>
+      <td>User</td>
+      <td><a href="{% url 'public_profile' user.username %}">{{ user }}</a></td></tr>
+    <tr>
+      <td>Full Name</td>
+      <td>{{ application.full_name }}</td>
+    </tr>
+    <tr>
+      <td>Researcher Category</td>
+      <td>{{ application.get_researcher_category_display }}</td>
+    </tr>
+    <tr>
+      <td>Organization Name</td>
+      <td>{{ application.organization_name }}</td>
+    </tr>
+    <tr>
+      <td>City</td>
+      <td>{{ application.city }}</td>
+    </tr>
+    <tr>
+      <td>State/Province</td>
+      <td>{{ application.state_province }}</td>
+    </tr>
+    <tr>
+      <td>Country</td>
+      <td>{{ application.get_country_display }}</td>
+    </tr>
+    <tr>
+      <td>Website</td>
+      <td><a href="{{ application.website }}" target="_blank">{{ application.website }}</td>
+    </tr>
+    <tr>
+      <td>Training Course Name</td>
+      <td>{{ application.training_course_name }}</td>
+    </tr>
+    <tr>
+      <td>Training Completion Date</td>
+      <td>{{ application.training_completion_date }}</td>
+    </tr>
+    <tr>
+      <td>Training Completion Report</td>
+      <td>{{ application.training_completion_report }}</td>
+    </tr>
+    <tr>
+      <td>Course Category</td>
+      <td>{{ application.get_course_category_display }}</td>
+    </tr>
+    {% if application.course_name %}
+      <tr>
+        <td>Course Name</td>
+        <td>{{ application.course_name }}</td>
+      </tr>
+    {% endif %}
+    {% if application.course_number %}
+    <tr>
+      <td>Course Number</td>
+      <td>{{ application.course_number }}</td>
+    </tr>
+    {% endif %}
+    <tr>
+      <td>Reference Category</td>
+      <td>{{ application.get_reference_category_display }}</td>
+    </tr>
+    <tr>
+      <td>Reference Name</td>
+      <td>{{ application.reference_name }}</td>
+    </tr>
+    <tr>
+      <td>Reference Email</td>
+      <td>{{ application.reference_email }}</td>
+    </tr>
+    <tr>
+      <td>Reference Title</td>
+      <td>{{ application.reference_title }}</td>
+    {% if application.reference_contact_datetime %}
+      <tr><td><td></tr>
+      <tr>
+        <td>Reference Contact Date</td>
+        <td>{{ application.reference_contact_datetime|date }}</td>
+      </tr>
+      {% if application.reference_response_datetime %}
+        <tr>
+          <td>Reference Response Date</td>
+          <td>{{ application.reference_response_datetime|date }}</td>
+        </tr>
+        <tr>
+          <td>Reference Verified</td>
+          <td>{{ application.get_reference_response_display }}</td>
+        </tr>
+      {% endif %}
+    {% endif %}
+    {% if application.status %}
+    <tr><td><td></tr>
+    <tr>
+      <td>Outcome</td>
+      <td>{{ application.get_status_display }}</td>
+    </tr>
+    {% endif %}
+    {% if application.responder_comments %}
+    <tr>
+      <td>Admin Comments</td>
+      <td>{{ application.responder_comments|linebreaks }}</td>
+    </tr>
+    {% endif %}
+  </tbody>
+</table>

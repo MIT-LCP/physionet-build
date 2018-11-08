@@ -470,7 +470,7 @@ def process_credential_application(request, username):
         instance=application)
 
     if request.method == 'POST':
-        if 'contact_reference' in request.POST:
+        if 'contact_reference' in request.POST and not application.reference_contact_datetime:
             application.reference_contact_datetime = timezone.now()
             application.save()
             notification.contact_reference(request, application)
@@ -480,12 +480,11 @@ def process_credential_application(request, username):
                 responder=request.user, data=request.POST, instance=application)
             if process_credential_form.is_valid():
                 application = process_credential_form.save()
-                notification.credential_application
-                return render('console/process_credential_complete.html',
-                    {'accept':True})
+                notification.process_credential_complete(application)
+                return render(request, 'console/process_credential_complete.html',
+                    {'application':application})
             else:
                 messages.error(request, 'Invalid submission. See form below.')
-
     return render(request, 'console/process_credential_application.html',
         {'application':application, 'app_user':application.user,
          'process_credential_form':process_credential_form})

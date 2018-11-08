@@ -169,9 +169,7 @@
     "affiliation": "",
     "location": "",
     "website": "https://github.com/MIT-LCP/physionet-build",
-    "photo": "",
-    "is_credentialed": false,
-    "credential_datetime": null
+    "photo": ""
   }
 },
 {
@@ -187,9 +185,7 @@
     "affiliation": "Massachusetts Institute of Technology",
     "location": "Cambridge MA",
     "website": "http://imes.mit.edu/people/faculty/mark-roger/",
-    "photo": "users/rgmark/profile-photo.jpg",
-    "is_credentialed": false,
-    "credential_datetime": null
+    "photo": "users/rgmark/profile-photo.jpg"
   }
 },
 {
@@ -205,9 +201,7 @@
     "affiliation": "",
     "location": "",
     "website": "http://ecg.mit.edu/george/",
-    "photo": "",
-    "is_credentialed": false,
-    "credential_datetime": null
+    "photo": ""
   }
 },
 {
@@ -223,9 +217,7 @@
     "affiliation": "Massachusetts Institute of Technology",
     "location": "",
     "website": null,
-    "photo": "",
-    "is_credentialed": false,
-    "credential_datetime": null
+    "photo": ""
   }
 }
 ]

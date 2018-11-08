@@ -319,25 +319,23 @@ def edit_username(request):
 def edit_credentialing(request):
     """
     Credentials settings page.
-    - form to apply for credentialling
-    - list of past credential applications
 
     """
     user = request.user
-    profile = user.profile
 
-    credential_applications = CredentialApplication.objects.filter(user=user)
+    applications = CredentialApplication.objects.filter(user=user)
     # Create an application form if the user is not already credentialed
     # and doesn't have one pending
-    current_application = credential_applications.filter(status__in=[0, 1])
+    current_application = applications.filter(status=0)
 
-    if not profile.is_credentialed and not current_application:
+    if not user.is_credentialed and not current_application:
         form = CredentialApplicationForm(user=user)
     else:
+        # current_application may be nothing
         current_application = current_application.first()
         form = None
 
-    if request.method == 'POST' and not profile.is_credentialed and not current_application:
+    if request.method == 'POST' and not user.is_credentialed and not current_application:
         form = CredentialApplicationForm(user=user, data=request.POST)
         if form.is_valid():
             form.save()
@@ -346,8 +344,18 @@ def edit_credentialing(request):
             messages.error(request, 'Invalid submission. See errors below.')
 
     return render(request, 'user/edit_credentialing.html', {'form':form,
-        'credential_applications':credential_applications,
+        'applications':applications,
         'current_application':current_application})
+
+
+def user_credential_applications(request):
+    """
+    All the credential applications made by a user
+    """
+    applications = CredentialApplication.objects.filter(user=request.user)
+
+    return render(request, 'user/user_credential_applications.html',
+        {'applications':applications})
 
 
 @login_required
@@ -356,10 +364,9 @@ def credential_application(request):
     Page to apply for credentially
     """
     user = request.user
-    profile = user.profile
 
-    if profile.is_credentialed or CredentialApplication.objects.filter(
-            user=user, status__in=[0, 1]):
+    if user.is_credentialed or CredentialApplication.objects.filter(
+            user=user, status=0):
         return redirect('edit_credentialing')
 
     form = CredentialApplicationForm(user=user)

@@ -208,10 +208,10 @@ def contact_reference(request, application):
               [application.reference_email], fail_silently=False)
 
 
-def credential_application_processed(application):
+def process_credential_complete(application):
     response = 'rejected' if application.status == 1 else 'accepted'
     subject = 'PhysioNet credentialling {}'.format(response)
-    body = loader.render_to_string('notification/email/credential_application_processed.html',
+    body = loader.render_to_string('notification/email/process_credential_complete.html',
         {'application':application})
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [application.user.email], fail_silently=False)

@@ -331,6 +331,10 @@ class User(AbstractBaseUser):
     # Mandatory fields for the default authentication backend
     is_active = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
+
+    is_credentialed = models.BooleanField(default=False)
+    credential_datetime = models.DateTimeField(blank=True, null=True)
+
     USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'email'
 
@@ -471,8 +475,6 @@ class Profile(models.Model):
     location = models.CharField(max_length=100, blank=True, default='')
     website = models.URLField(default='', blank=True, null=True)
     photo = models.ImageField(upload_to=photo_path, blank=True, null=True)
-    is_credentialed = models.BooleanField(default=False)
-    credential_datetime = models.DateTimeField(blank=True, null=True)
 
     MAX_PHOTO_SIZE = 2 * 1024 ** 2
 
