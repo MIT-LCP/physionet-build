@@ -68,7 +68,7 @@ urlpatterns = [
 
     url(r'^credential-application/$', views.credential_application,
         name='credential_application'),
-    url(r'^credential-reference/(?P<reference_slug>\w+)/$',
+    url(r'^credential-reference/(?P<application_slug>\w+)/$',
         views.credential_reference,
         name='credential_reference'),
 ]

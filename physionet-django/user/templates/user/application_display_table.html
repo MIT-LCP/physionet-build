@@ -101,13 +101,17 @@
         </tr>
       {% endif %}
     {% endif %}
-    {% if application.status %}
     <tr><td><td></tr>
-    <tr>
-      <td>Outcome</td>
-      <td>{{ application.get_status_display }}</td>
-    </tr>
+    {% if application.decision_datetime %}
+      <tr>
+        <td>Decision Date</td>
+        <td>{{ application.decision_datetime|date }}</td>
+      </tr>
     {% endif %}
+    <tr>
+      <td>Decision</td>
+      <td>{% if application.status %}{{ application.get_status_display }}{% else %}<i class="fas fa-clock"></i> Pending{% endif %}</td>
+    </tr>
     {% if application.responder_comments %}
     <tr>
       <td>Admin Comments</td>

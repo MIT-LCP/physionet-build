@@ -323,10 +323,10 @@ class CredentialApplicationForm(forms.ModelForm):
     def save(self):
         credential_application = super().save(commit=False)
         slug = get_random_string(20)
-        while CredentialApplication.objects.filter(reference_slug=slug):
+        while CredentialApplication.objects.filter(slug=slug):
             slug = get_random_string(20)
         credential_application.user = self.user
-        credential_application.reference_slug = slug
+        credential_application.slug = slug
         credential_application.save()
         return credential_application
 

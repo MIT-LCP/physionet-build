@@ -459,12 +459,23 @@ def credential_applications(request):
 
 @login_required
 @user_passes_test(is_admin)
-def process_credential_application(request, username):
+def view_credential_application(request, application_slug):
+    """
+    View a credential application in any status.
+    """
+    application = CredentialApplication.objects.get(slug=application_slug)
+    return render(request, 'console/view_credential_application.html',
+        {'application':application, 'app_user':application.user})
+
+
+@login_required
+@user_passes_test(is_admin)
+def process_credential_application(request, application_slug):
     """
     Process a credential application. View details, contact reference,
     and make final decision.
     """
-    application = CredentialApplication.objects.get(user__username=username,
+    application = CredentialApplication.objects.get(slug=application_slug,
         status=0)
     process_credential_form = forms.ProcessCredentialForm(responder=request.user,
         instance=application)
@@ -480,7 +491,7 @@ def process_credential_application(request, username):
                 responder=request.user, data=request.POST, instance=application)
             if process_credential_form.is_valid():
                 application = process_credential_form.save()
-                notification.process_credential_complete(application)
+                notification.process_credential_complete(request, application)
                 return render(request, 'console/process_credential_complete.html',
                     {'application':application})
             else:
@@ -488,3 +499,35 @@ def process_credential_application(request, username):
     return render(request, 'console/process_credential_application.html',
         {'application':application, 'app_user':application.user,
          'process_credential_form':process_credential_form})
+
+
+@login_required
+@user_passes_test(is_admin)
+def past_credential_applications(request):
+    """
+    Inactive credential applications. Split into successful and
+    unsuccessful.
+
+    """
+    s_applications = CredentialApplication.objects.filter(status=2)
+    u_applications = CredentialApplication.objects.filter(status=1)
+    return render(request, 'console/past_credential_applications.html',
+        {'s_applications':s_applications,
+         'u_applications':u_applications})
+
+
+@login_required
+@user_passes_test(is_admin)
+def credentialed_users(request):
+    users = User.objects.filter(is_credentialed=True)
+    return render(request, 'console/credentialed_users.html', {'users':users})
+
+
+@login_required
+@user_passes_test(is_admin)
+def credentialed_user_info(request, username):
+    c_user = User.objects.get(username=username)
+    application = CredentialApplication.objects.get(user=c_user, status=2)
+    return render(request, 'console/credentialed_users.html', {'c_user':c_user,
+        'application':application})
+

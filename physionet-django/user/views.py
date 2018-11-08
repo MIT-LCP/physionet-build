@@ -352,7 +352,8 @@ def user_credential_applications(request):
     """
     All the credential applications made by a user
     """
-    applications = CredentialApplication.objects.filter(user=request.user)
+    applications = CredentialApplication.objects.filter(
+        user=request.user).order_by('-application_datetime')
 
     return render(request, 'user/user_credential_applications.html',
         {'applications':applications})
@@ -384,12 +385,12 @@ def credential_application(request):
 
 
 @login_required
-def credential_reference(request, reference_slug):
+def credential_reference(request, application_slug):
     """
     Page for a reference to verify or reject a credential application
     """
     application = CredentialApplication.objects.get(
-        reference_slug=reference_slug, reference_contact_datetime__isnull=False,
+        slug=application_slug, reference_contact_datetime__isnull=False,
         reference_response_datetime=None)
     form = CredentialReferenceForm(instance=application)
 
