@@ -559,6 +559,18 @@ class CredentialApplication(models.Model):
         (2, 'I am teaching a course using the data'),
     )
 
+    REFERENCE_RESPONSES = (
+        ('', '-----------'),
+        (1, 'No'),
+        (2, 'Yes')
+    )
+
+    REJECT_ACCEPT = (
+        ('', '-----------'),
+        (1, 'Reject'),
+        (2, 'Accept')
+    )
+
     application_datetime = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey('user.User', related_name='credential_applications')
     # Personal fields
@@ -586,14 +598,15 @@ class CredentialApplication(models.Model):
     reference_name = models.CharField(max_length=202, validators=[validate_name])
     reference_email = models.EmailField()
     reference_title = models.CharField(max_length=60)
-    # 0 1 2 3 = pending, pending awaiting reference, rejected, accepted
-    status = models.PositiveSmallIntegerField(default=0)
+    # 0 1 2 = pending, rejected, accepted
+    status = models.PositiveSmallIntegerField(default=0, choices=REJECT_ACCEPT)
     reference_contact_datetime = models.DateTimeField(null=True)
     reference_response_datetime = models.DateTimeField(null=True)
     # The slug for the reference to verify the applicant
     reference_slug = models.SlugField(max_length=20, unique=True, db_index=True)
-    # Whether reference verifies the applicant
-    reference_response = models.NullBooleanField()
+    # Whether reference verifies the applicant. 0 1 2 = null, no, yes
+    reference_response = models.PositiveSmallIntegerField(default=0,
+        choices=REFERENCE_RESPONSES)
     decision_datetime = models.DateTimeField(null=True)
     responder = models.ForeignKey('user.User', null=True,
         related_name='responded_applications')

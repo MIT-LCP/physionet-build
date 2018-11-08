@@ -329,3 +329,36 @@ class CredentialApplicationForm(forms.ModelForm):
         credential_application.reference_slug = slug
         credential_application.save()
         return credential_application
+
+
+class CredentialReferenceForm(forms.ModelForm):
+    """
+    Form to apply for PhysioNet credentialling. The name must match.
+    """
+    name = forms.CharField(max_length=60, label='Your full name')
+
+    class Meta:
+        model = CredentialApplication
+        fields = ('reference_response',)
+        labels = {
+            'reference_response':'Do you verify the applicant?'
+        }
+
+    def clean_name(self):
+        data = self.cleaned_data['name']
+        if data != self.instance.reference_name:
+            raise forms.ValidationError('The name provided does not match the given reference name.')
+        return data
+
+    def save(self):
+        """
+        Process the decision
+        """
+        application = super().save()
+
+        # Deny
+        if self.cleaned_data['reference_response'] == 1:
+            application.status = 1
+
+        application.reference_response_datetime = timezone.now()
+        application.save()

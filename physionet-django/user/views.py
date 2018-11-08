@@ -17,7 +17,7 @@ from django.utils import timezone
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
-from .forms import AddEmailForm, AssociatedEmailChoiceForm, ProfileForm, RegistrationForm, UsernameChangeForm, CredentialApplicationForm
+from .forms import AddEmailForm, AssociatedEmailChoiceForm, ProfileForm, RegistrationForm, UsernameChangeForm, CredentialApplicationForm, CredentialReferenceForm
 from .models import AssociatedEmail, Profile, User, CredentialApplication
 from physionet import utility
 from project.models import Author
@@ -377,25 +377,26 @@ def credential_application(request):
 
 
 @login_required
-def verify_credential_application(request, reference_slug):
+def credential_reference(request, reference_slug):
     """
     Page for a reference to verify or reject a credential application
     """
-    credential_application = CredentialApplication.objects.get(
-        reference_slug=reference_slug)
-
-    form = CredentialReferenceForm()
+    application = CredentialApplication.objects.get(
+        reference_slug=reference_slug, reference_contact_datetime__isnull=False,
+        reference_response_datetime=None)
+    form = CredentialReferenceForm(instance=application)
 
     if request.method == 'POST':
-        form = CredentialApplicationForm(data=request.POST)
+        form = CredentialReferenceForm(data=request.POST, instance=application)
         if form.is_valid():
             form.save()
-            return render(request, 'user/credential_application_complete.html')
+            response = 'verifying' if form.cleaned_data['reference_response'] == 2 else 'denying'
+            return render(request, 'user/credential_reference_complete.html',
+                {'response':response, 'application':application})
         else:
             messages.error(request, 'Invalid submission. See errors below.')
 
-
-    return render(request, 'user/verify_credential_application.html',
-        {'form':form,})
+    return render(request, 'user/credential_reference.html',
+        {'form':form, 'application':application})
 
 

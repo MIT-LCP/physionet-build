@@ -441,38 +441,51 @@ def credential_applications(request):
     """
     Ongoing credential applications
     """
-    review_applications = CredentialApplication.objects.filter(status=0)
-    reference_applications = CredentialApplication.objects.filter(status=1)
+    applications = CredentialApplication.objects.filter(status=0)
+    # Separated by reference status: not contacted, contacted,
+    # responded + verified. Responding and denying leads to automatic
+    # rejection.
+    nc_applications = applications.filter(reference_contact_datetime=None)
+    c_applications = applications.filter(
+        reference_contact_datetime__isnull=False, reference_response=0)
+    v_applications = applications.filter(
+        reference_contact_datetime__isnull=False, reference_response=2)
 
     return render(request, 'console/credential_applications.html',
-        {'review_applications':review_applications,
-         'reference_applications':reference_applications})
+        {'nc_applications':nc_applications,
+         'c_applications':c_applications,
+         'v_applications':v_applications})
 
 
 @login_required
 @user_passes_test(is_admin)
 def process_credential_application(request, username):
     """
-    Process a credential application
+    Process a credential application. View details, contact reference,
+    and make final decision.
     """
     application = CredentialApplication.objects.get(user__username=username,
-        status__in=[0, 1])
+        status=0)
+    process_credential_form = forms.ProcessCredentialForm(responder=request.user,
+        instance=application)
 
     if request.method == 'POST':
         if 'contact_reference' in request.POST:
-            contact_reference_form = forms.ContactReferenceForm(
-                application=application, data=request.POST)
-            if contact_reference_form.is_valid():
-                application.generate_reference_url()
-                notification.contact_reference(email, message)
-                messages.success(request, 'The reference has been contacted.')
-        elif 'accept_application' in request.POST:
-            return render('console/process_credential_complete.html',
-                {'accept':True})
-        elif 'reject_application' in request.POST:
-            return render('console/process_credential_complete.html',
-                {'accept':False})
+            application.reference_contact_datetime = timezone.now()
+            application.save()
+            notification.contact_reference(request, application)
+            messages.success(request, 'The reference has been contacted.')
+        elif 'process_application' in request.POST:
+            process_credential_form = forms.ProcessCredentialForm(
+                responder=request.user, data=request.POST, instance=application)
+            if process_credential_form.is_valid():
+                application = process_credential_form.save()
+                notification.credential_application
+                return render('console/process_credential_complete.html',
+                    {'accept':True})
+            else:
+                messages.error(request, 'Invalid submission. See form below.')
 
     return render(request, 'console/process_credential_application.html',
         {'application':application, 'app_user':application.user,
-         'contact_reference_form':contact_reference_form})
+         'process_credential_form':process_credential_form})

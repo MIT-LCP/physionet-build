@@ -196,13 +196,22 @@ def storage_response_notify(storage_request):
               [email], fail_silently=False)
 
 
-def contact_reference(application):
+def contact_reference(request, application):
     """
     Request verification from a credentialing applicant's reference
     """
     subject = 'Please verify {} for PhysioNet credentialing'.format(
         application.full_name)
     body = loader.render_to_string('notification/email/contact_reference.html',
-        {application})
+        {'application':application, 'domain':get_current_site(request)})
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [application.reference_email], fail_silently=False)
+
+
+def credential_application_processed(application):
+    response = 'rejected' if application.status == 1 else 'accepted'
+    subject = 'PhysioNet credentialling {}'.format(response)
+    body = loader.render_to_string('notification/email/credential_application_processed.html',
+        {'application':application})
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+              [application.user.email], fail_silently=False)
