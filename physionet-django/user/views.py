@@ -385,6 +385,16 @@ def credential_application(request):
 
 
 @login_required
+def training_report(request, application_slug):
+    """
+    Serve a training report file
+    """
+    application = CredentialApplication.objects.get(slug=application_slug)
+    if request.user == application.user or request.user.is_admin:
+        return utility.serve_file(request, application.training_completion_report.path)
+
+
+@login_required
 def credential_reference(request, application_slug):
     """
     Page for a reference to verify or reject a credential application

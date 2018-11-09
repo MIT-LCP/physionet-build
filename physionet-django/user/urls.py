@@ -57,6 +57,7 @@ urlpatterns = [
     url(r'^verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
         views.verify_email, name='verify_email'),
 
+
     # Individual home page/dashboard
     url(r'^home/$', views.user_home, name='user_home'),
 
@@ -69,7 +70,8 @@ urlpatterns = [
     url(r'^credential-application/$', views.credential_application,
         name='credential_application'),
     url(r'^credential-reference/(?P<application_slug>\w+)/$',
-        views.credential_reference,
-        name='credential_reference'),
+        views.credential_reference, name='credential_reference'),
+    url(r'^credential-applications/(?P<application_slug>\w+)/training-report/$',
+        views.training_report, name='training_report'),
 ]
 

@@ -451,7 +451,7 @@ def training_report_path(instance, filename):
     """
     Storage path of CITI training report
     """
-    return 'users/{}/{}'.format(instance.user.username, 'training-report.pdf')
+    return 'credential-applications/{}/{}'.format(instance.slug, 'training-report.pdf')
 
 class Profile(models.Model):
     """

@@ -528,6 +528,6 @@ def credentialed_users(request):
 def credentialed_user_info(request, username):
     c_user = User.objects.get(username=username)
     application = CredentialApplication.objects.get(user=c_user, status=2)
-    return render(request, 'console/credentialed_users.html', {'c_user':c_user,
-        'application':application})
+    return render(request, 'console/credentialed_user_info.html',
+        {'c_user':c_user, 'application':application})
 
