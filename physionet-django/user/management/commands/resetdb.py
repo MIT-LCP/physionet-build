@@ -22,7 +22,7 @@ from django.core.management.base import BaseCommand
 
 from physionet.utility import get_project_apps
 from project.models import ActiveProject, PublishedProject, ArchivedProject
-from user.models import User
+from user.models import User, CredentialApplication
 
 
 class Command(BaseCommand):
@@ -85,7 +85,8 @@ def clear_media_files():
     """
     for root_dir in (User.FILE_ROOT, ActiveProject.FILE_ROOT,
             PublishedProject.PROTECTED_FILE_ROOT,
-            PublishedProject.PUBLIC_FILE_ROOT, ArchivedProject.FILE_ROOT):
+            PublishedProject.PUBLIC_FILE_ROOT, ArchivedProject.FILE_ROOT,
+            CredentialApplication.FILE_ROOT):
         dir_items = [os.path.join(root_dir, item) for item in os.listdir(root_dir) if item != '.gitkeep']
 
         for item in dir_items:

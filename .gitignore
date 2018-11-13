@@ -10,6 +10,7 @@ media/active-projects/*
 media/archived-projects/*
 media/published-projects/*
 media/users/*
+media/credential-applications/*
 physionet-django/static/published-projects/*
 
 # Byte-compiled / optimized / DLL files

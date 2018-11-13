@@ -162,9 +162,6 @@ class ProfileForm(forms.ModelForm):
         if data and isinstance(data, UploadedFile):
             if data.size > Profile.MAX_PHOTO_SIZE:
                 raise forms.ValidationError('Exceeded maximum size: {0}'.format(Profile.MAX_PHOTO_SIZE))
-            if data.content_type not in ['image/png', 'image/jpeg', 'image/jpg']:
-                raise forms.ValidationError('Filetype not supported. Please use png or jpeg')
-
         # Save the existing file path in case it needs to be deleted.
         # After is_valid runs, the instance photo is already updated.
         if self.instance.photo:

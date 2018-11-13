@@ -6,6 +6,7 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -474,7 +475,9 @@ class Profile(models.Model):
         validators=[validate_alphaplus])
     location = models.CharField(max_length=100, blank=True, default='')
     website = models.URLField(default='', blank=True, null=True)
-    photo = models.ImageField(upload_to=photo_path, blank=True, null=True)
+    photo = models.ImageField(upload_to=photo_path, blank=True, null=True,
+        validators=[FileExtensionValidator(['png', 'jpg', 'jpeg'],
+        'Allowed filetypes are png and jpg only.')])
 
     MAX_PHOTO_SIZE = 2 * 1024 ** 2
 
@@ -573,6 +576,9 @@ class CredentialApplication(models.Model):
         (2, 'Accept')
     )
 
+    # Where the applications' files are kept
+    FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'credential-applications')
+
     slug = models.SlugField(max_length=20, unique=True, db_index=True)
     application_datetime = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey('user.User', related_name='credential_applications')
@@ -590,7 +596,9 @@ class CredentialApplication(models.Model):
     # Human resources training
     training_course_name = models.CharField(max_length=100)
     training_completion_date = models.DateField()
-    training_completion_report = models.FileField(upload_to=training_report_path)
+    training_completion_report = models.FileField(
+        upload_to=training_report_path, validators=[FileExtensionValidator(
+            ['pdf'], 'File must be a pdf.')])
     # Course info
     course_category = models.PositiveSmallIntegerField(choices=COURSE_CATEGORIES)
     course_name = models.CharField(max_length=60)
@@ -613,3 +621,7 @@ class CredentialApplication(models.Model):
         related_name='responded_applications')
     responder_comments = models.CharField(max_length=500, default='',
         blank=True)
+
+    def file_root(self):
+        "Where the application's files are stored"
+        return os.path.join(CredentialApplication.FILE_ROOT, self.slug)
