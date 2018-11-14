@@ -1,3 +1,4 @@
+import hashlib
 import os
 import shutil
 import uuid
@@ -14,7 +15,7 @@ from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.text import slugify
 
-from .utility import get_tree_size, get_file_info, get_directory_info, list_items, get_storage_info
+from .utility import get_tree_size, get_file_info, get_directory_info, list_items, get_storage_info, get_tree_files
 from user.validators import validate_alphaplus
 
 
@@ -783,17 +784,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 affiliations=';'.join(a.name for a in affiliations),
                 email=author.corresponding_email, project=published_project)
 
-        # Non-open access policy
-        # if self.access_policy:
-        #     access_system = AccessSystem.objects.create(
-        #         name=published_project.__str__(),
-        #         license=self.license,
-        #         data_use_agreement=self.data_use_agreement,
-        #         requires_credentialed=bool(self.access_policy-1)
-        #         )
-        #     published_project.access_system = access_system
-        #     published_project.save()
-
         # Move the edit and copyedit logs
         for edit_log in self.edit_logs.all():
             edit_log.project = published_project
@@ -804,22 +794,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
         # Create file root
         os.mkdir(published_project.file_root())
-        # Move over files
+        # Move over main files
         os.rename(self.file_root(), published_project.main_file_root())
-        # Create zip
-        if make_zip:
-            # The zip name is made from the title and the version
-            # Rename the 'files' directory temporarily for the zip file
-            zip_name = published_project.zip_file(include_extension=False,
-                full_path=True)
-            os.rename(published_project.main_file_root(), zip_name)
-            shutil.make_archive(
-                base_name=zip_name, format='zip',
-                root_dir=published_project.file_root(),
-                base_dir=published_project.slugged_label())
-            # Change the directory name back to 'files'
-            os.rename(zip_name, published_project.main_file_root())
-
+        # Create special files
+        published_project.make_special_files(make_zip=make_zip)
         # Remove the ActiveProject
         self.delete()
 
@@ -868,8 +846,8 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         Root directory containing the published project's files.
 
-        This is the parent directory of the main files, and also
-        contains the zip and checksum of the main files.
+        This is the parent directory of the main and special file
+        directories.
         """
         if self.access_policy:
             return os.path.join(PublishedProject.PROTECTED_FILE_ROOT, self.slug)
@@ -878,7 +856,11 @@ class PublishedProject(Metadata, SubmissionInfo):
 
     def main_file_root(self):
         "Root directory where the main user uploaded files are located"
-        return os.path.join(self.file_root(), 'files')
+        return os.path.join(self.file_root(), 'main-files')
+
+    def special_file_root(self):
+        "Root directory where the special files are located"
+        return os.path.join(self.file_root(), 'special-files')
 
     def slugged_label(self):
         """
@@ -887,18 +869,46 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         return '-'.join((slugify(self.title), self.version.replace(' ', '-')))
 
-    def zip_file(self, include_extension=True, full_path=False):
+    def make_zip(self):
         """
-        Name of the zip of the project's files.
-        With or without .zip extension and full path.
+        Make a zip file of the main and special files.
+        Move to the special file root.
         """
-        file_name = self.slugged_label()
+        os.chdir(self.file_root())
 
-        if include_extension:
-            file_name = '.'.join(file_name, 'zip')
-        if full_path:
-            file_name = os.path.join(self.file_root(), file_name)
-        return file_name
+        file = shutil.make_archive(
+            base_name=os.path.join('..', self.slugged_label()),
+            format='zip')
+        os.rename(file, os.path.join(self.special_file_root(), self.slugged_label() + '.zip'))
+
+    def make_files_list(self):
+        "Make a files list of the main files. Write to project file root"
+        files = get_tree_files(self.main_file_root(), full_path=False)
+        with open(os.path.join(self.special_file_root(), 'FILES'), 'w') as outfile:
+            for f in files:
+                outfile.write(f + '\n')
+
+    def make_checksum_file(self):
+        "Make the checksums file for the main files"
+        files = get_tree_files(self.main_file_root(), full_path=False)
+        with open(os.path.join(self.special_file_root(), 'SHA256SUMS'), 'w') as outfile:
+            for f in files:
+                outfile.write('{} {}\n'.format(
+                    hashlib.sha256(open(os.path.join(self.main_file_root(), f), 'rb').read()).hexdigest(), f))
+
+    def make_special_files(self, make_zip):
+        """
+        Make the special files for the database. zip file, files list,
+        checksum. Make the base directory for the special files if needed
+        """
+        if not os.path.isdir(self.special_file_root()):
+            os.mkdir(self.special_file_root())
+        self.make_files_list()
+        self.make_checksum_file()
+        # This should come last
+        if make_zip:
+            self.make_zip()
+
 
     def get_directory_content(self, subdir=''):
         """
