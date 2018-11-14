@@ -515,11 +515,14 @@ def project_access(request, project_slug, **kwargs):
     Page to edit project access policy
 
     """
-    project = kwargs['project']
-    access_form = forms.AccessMetadataForm(instance=project)
+    user, project = kwargs['user'], kwargs['project']
+    access_form = forms.AccessMetadataForm(
+        include_protected=user.lcp_affiliated, instance=project)
 
     if request.method == 'POST':
-        access_form = forms.AccessMetadataForm(request.POST, instance=project)
+        access_form = forms.AccessMetadataForm(
+            include_protected=user.lcp_affiliated, data=request.POST,
+            instance=project)
         if access_form.is_valid():
             access_form.save()
             messages.success(request, 'Your access metadata has been updated.')

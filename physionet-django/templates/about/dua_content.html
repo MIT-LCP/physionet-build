@@ -3,12 +3,12 @@
 {% load static %}
 
 {% block title %}
-Data Use Agreement - {{ dua.name }}
+Data Use Agreement - {{ dua }}
 {% endblock %}
 
 {% block content %}
 <div class="container">
-  <h1 class="text-center">{{ dua.name }}</h1>
+  <h1 class="text-center">{{ dua }}</h1>
   <hr>
   {{ dua.description|safe }}
   <br>

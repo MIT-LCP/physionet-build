@@ -581,6 +581,15 @@ class AccessMetadataForm(forms.ModelForm):
                       'license': '* License for usage',
                       'data_use_agreement': 'Specific conditions for usage'}
 
+    def __init__(self, include_protected, *args, **kwargs):
+        """
+        Control whether to only allow choosing the protected access policies
+        """
+        super().__init__(*args, **kwargs)
+        if not include_protected:
+            self.fields['access_policy'].choices = ((0, 'Open'),)
+
+
     def clean(self):
         """
         Check the combination of access policy and dua

@@ -9,7 +9,10 @@
     "join_date": "2017-11-11",
     "last_login": "2018-11-01T18:34:36.620Z",
     "is_active": true,
-    "is_admin": true
+    "is_admin": true,
+    "is_credentialed": false,
+    "credential_datetime": null,
+    "lcp_affiliated": true
   }
 },
 {
@@ -20,9 +23,12 @@
     "email": "rgmark@mit.edu",
     "username": "rgmark",
     "join_date": "2017-11-11",
-    "last_login": "2018-11-01T17:26:03.759Z",
+    "last_login": "2018-11-14T20:20:20.059Z",
     "is_active": true,
-    "is_admin": false
+    "is_admin": false,
+    "is_credentialed": false,
+    "credential_datetime": null,
+    "lcp_affiliated": true
   }
 },
 {
@@ -35,7 +41,10 @@
     "join_date": "2017-11-11",
     "last_login": "2018-11-01T17:40:35.971Z",
     "is_active": true,
-    "is_admin": false
+    "is_admin": false,
+    "is_credentialed": false,
+    "credential_datetime": null,
+    "lcp_affiliated": true
   }
 },
 {
@@ -48,7 +57,10 @@
     "join_date": "2018-03-30",
     "last_login": "2018-09-19T01:01:37.635Z",
     "is_active": true,
-    "is_admin": false
+    "is_admin": false,
+    "is_credentialed": false,
+    "credential_datetime": null,
+    "lcp_affiliated": true
   }
 },
 {

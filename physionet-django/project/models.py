@@ -271,10 +271,6 @@ class Metadata(models.Model):
         (2, 'Credentialed'),
     )
 
-    # Fields which can be directly transferred between all types of
-    # projects
-    DIRECT_FIELDS = ()
-
     resource_type = models.PositiveSmallIntegerField(choices=RESOURCE_TYPES)
     # Main body descriptive metadata
     title = models.CharField(max_length=200, validators=[validate_alphaplus])
