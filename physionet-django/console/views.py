@@ -17,12 +17,25 @@ import project.forms as project_forms
 from project.models import ActiveProject, ArchivedProject, StorageRequest, EditLog, Reference, Topic, Publication, PublishedProject
 from project.views import get_file_forms, get_project_file_info, process_files_post
 from project.utility import get_storage_info
-from user.models import User
+from user.models import User, CredentialApplication
 
 
 def is_admin(user, *args, **kwargs):
     return user.is_admin
 
+def handling_editor(base_view):
+    """
+    Access decorator. The user must be the editor of the project.
+    """
+    @login_required
+    def handling_view(request, *args, **kwargs):
+        user = request.user
+        project = ActiveProject.objects.get(slug=kwargs['project_slug'])
+        if user.is_admin and user == project.editor:
+            kwargs['project'] = project
+            return base_view(request, *args, **kwargs)
+        raise Http404('Unable to access page')
+    return handling_view
 
 # ------------------------- Views begin ------------------------- #
 
@@ -126,17 +139,16 @@ def submission_info(request, project_slug):
          'copyedit_logs':copyedit_logs})
 
 
-@login_required
-@user_passes_test(is_admin)
-def edit_submission(request, project_slug):
+@handling_editor
+def edit_submission(request, project_slug, *args, **kwargs):
     """
     Page to respond to a particular submission, as an editor
     """
-    project = ActiveProject.objects.get(slug=project_slug)
+    project = kwargs['project']
     edit_log = project.edit_logs.get(decision_datetime__isnull=True)
 
     # The user must be the editor
-    if request.user != project.editor or project.submission_status not in [20, 30]:
+    if project.submission_status not in [20, 30]:
         return Http404()
 
     if request.method == 'POST':
@@ -172,14 +184,13 @@ def edit_submission(request, project_slug):
          'edit_logs':edit_logs})
 
 
-@login_required
-@user_passes_test(is_admin)
-def copyedit_submission(request, project_slug):
+@handling_editor
+def copyedit_submission(request, project_slug, *args, **kwargs):
     """
     Page to copyedit the submission
     """
-    project = ActiveProject.objects.get(slug=project_slug)
-    if request.user != project.editor or project.submission_status != 40:
+    project = kwargs['project']
+    if project.submission_status != 40:
         return Http404()
 
     copyedit_log = project.copyedit_logs.get(complete_datetime=None)
@@ -238,17 +249,16 @@ def copyedit_submission(request, project_slug):
                 messages.error(request,
                     'Invalid submission. See errors below.')
         elif 'complete_copyedit' in request.POST:
-            if project.submission_status == 40:
-                copyedit_form = forms.CopyeditForm(request.POST,
-                    instance=copyedit_log)
-                if copyedit_form.is_valid():
-                    copyedit_log = copyedit_form.save()
-                    notification.copyedit_complete_notify(request, project,
-                        copyedit_log)
-                    return render(request, 'console/copyedit_complete.html',
-                        {'project':project, 'copyedit_log':copyedit_log})
-                else:
-                    messages.error(request, 'Invalid submission. See errors below.')
+            copyedit_form = forms.CopyeditForm(request.POST,
+                instance=copyedit_log)
+            if copyedit_form.is_valid():
+                copyedit_log = copyedit_form.save()
+                notification.copyedit_complete_notify(request, project,
+                    copyedit_log)
+                return render(request, 'console/copyedit_complete.html',
+                    {'project':project, 'copyedit_log':copyedit_log})
+            else:
+                messages.error(request, 'Invalid submission. See errors below.')
         else:
             # process the file manipulation post
             subdir = process_files_post(request, project)
@@ -285,16 +295,15 @@ def copyedit_submission(request, project_slug):
         'add_item_url':edit_url, 'remove_item_url':edit_url})
 
 
-@login_required
-@user_passes_test(is_admin)
-def awaiting_authors(request, project_slug):
+@handling_editor
+def awaiting_authors(request, project_slug, *args, **kwargs):
     """
     View the authors who have and have not approved the project for
     publication.
 
     Also the page to reopen the project for copyediting.
     """
-    project = ActiveProject.objects.get(slug=project_slug)
+    project = kwargs['project']
 
     authors, author_emails, storage_info, edit_logs, copyedit_logs = project.info_card()
     outstanding_emails = ';'.join([a.user.email for a in authors.filter(
@@ -314,13 +323,12 @@ def awaiting_authors(request, project_slug):
          'outstanding_emails':outstanding_emails})
 
 
-@login_required
-@user_passes_test(is_admin)
-def publish_submission(request, project_slug):
+@handling_editor
+def publish_submission(request, project_slug, *args, **kwargs):
     """
     Page to publish the submission
     """
-    project = ActiveProject.objects.get(slug=project_slug)
+    project = kwargs['project']
     authors, author_emails, storage_info, edit_logs, copyedit_logs = project.info_card()
     if request.method == 'POST':
         if project.is_publishable():
@@ -425,3 +433,101 @@ def users(request):
     """
     users = User.objects.all()
     return render(request, 'console/users.html', {'users':users})
+
+
+@login_required
+@user_passes_test(is_admin)
+def credential_applications(request):
+    """
+    Ongoing credential applications
+    """
+    applications = CredentialApplication.objects.filter(status=0)
+    # Separated by reference status: not contacted, contacted,
+    # responded + verified. Responding and denying leads to automatic
+    # rejection.
+    nc_applications = applications.filter(reference_contact_datetime=None)
+    c_applications = applications.filter(
+        reference_contact_datetime__isnull=False, reference_response=0)
+    v_applications = applications.filter(
+        reference_contact_datetime__isnull=False, reference_response=2)
+
+    return render(request, 'console/credential_applications.html',
+        {'nc_applications':nc_applications,
+         'c_applications':c_applications,
+         'v_applications':v_applications})
+
+
+@login_required
+@user_passes_test(is_admin)
+def view_credential_application(request, application_slug):
+    """
+    View a credential application in any status.
+    """
+    application = CredentialApplication.objects.get(slug=application_slug)
+    return render(request, 'console/view_credential_application.html',
+        {'application':application, 'app_user':application.user})
+
+
+@login_required
+@user_passes_test(is_admin)
+def process_credential_application(request, application_slug):
+    """
+    Process a credential application. View details, contact reference,
+    and make final decision.
+    """
+    application = CredentialApplication.objects.get(slug=application_slug,
+        status=0)
+    process_credential_form = forms.ProcessCredentialForm(responder=request.user,
+        instance=application)
+
+    if request.method == 'POST':
+        if 'contact_reference' in request.POST and not application.reference_contact_datetime:
+            application.reference_contact_datetime = timezone.now()
+            application.save()
+            notification.contact_reference(request, application)
+            messages.success(request, 'The reference has been contacted.')
+        elif 'process_application' in request.POST:
+            process_credential_form = forms.ProcessCredentialForm(
+                responder=request.user, data=request.POST, instance=application)
+            if process_credential_form.is_valid():
+                application = process_credential_form.save()
+                notification.process_credential_complete(request, application)
+                return render(request, 'console/process_credential_complete.html',
+                    {'application':application})
+            else:
+                messages.error(request, 'Invalid submission. See form below.')
+    return render(request, 'console/process_credential_application.html',
+        {'application':application, 'app_user':application.user,
+         'process_credential_form':process_credential_form})
+
+
+@login_required
+@user_passes_test(is_admin)
+def past_credential_applications(request):
+    """
+    Inactive credential applications. Split into successful and
+    unsuccessful.
+
+    """
+    s_applications = CredentialApplication.objects.filter(status=2)
+    u_applications = CredentialApplication.objects.filter(status=1)
+    return render(request, 'console/past_credential_applications.html',
+        {'s_applications':s_applications,
+         'u_applications':u_applications})
+
+
+@login_required
+@user_passes_test(is_admin)
+def credentialed_users(request):
+    users = User.objects.filter(is_credentialed=True)
+    return render(request, 'console/credentialed_users.html', {'users':users})
+
+
+@login_required
+@user_passes_test(is_admin)
+def credentialed_user_info(request, username):
+    c_user = User.objects.get(username=username)
+    application = CredentialApplication.objects.get(user=c_user, status=2)
+    return render(request, 'console/credentialed_user_info.html',
+        {'c_user':c_user, 'application':application})
+

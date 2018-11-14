@@ -6,8 +6,10 @@ from django.contrib.auth import forms as auth_forms
 from django.contrib.auth import password_validation
 from django.core.files.uploadedfile import UploadedFile
 from django.core.validators import EmailValidator
+from django.utils import timezone
+from django.utils.crypto import get_random_string
 
-from .models import AssociatedEmail, User, Profile
+from .models import AssociatedEmail, User, Profile, CredentialApplication
 from .widgets import ProfilePhotoInput
 from .validators import UsernameValidator, validate_name
 
@@ -160,9 +162,6 @@ class ProfileForm(forms.ModelForm):
         if data and isinstance(data, UploadedFile):
             if data.size > Profile.MAX_PHOTO_SIZE:
                 raise forms.ValidationError('Exceeded maximum size: {0}'.format(Profile.MAX_PHOTO_SIZE))
-            if data.content_type not in ['image/png', 'image/jpeg', 'image/jpg']:
-                raise forms.ValidationError('Filetype not supported. Please use png or jpeg')
-
         # Save the existing file path in case it needs to be deleted.
         # After is_valid runs, the instance photo is already updated.
         if self.instance.photo:
@@ -235,3 +234,128 @@ class RegistrationForm(forms.ModelForm):
                 middle_names=self.cleaned_data['middle_names'],
                 last_name=self.cleaned_data['last_name'])
         return user
+
+
+class CredentialApplicationForm(forms.ModelForm):
+    """
+    Form to apply for PhysioNet credentialling
+    """
+
+    class Meta:
+        model = CredentialApplication
+        fields = ('full_name', 'researcher_category', 'organization_name',
+            'job_title', 'city', 'state_province',
+            'country', 'website',
+            'training_course_name', 'training_completion_date',
+            'training_completion_report',
+
+
+            'course_category', 'course_name', 'course_number',
+
+            'reference_category', 'reference_name',
+            'reference_email', 'reference_title')
+
+        labels = {
+            'state_province':'State/Province',
+            'course_type':'Is this for a course?'
+        }
+
+        help_texts = {
+            'full_name':'Your full name.',
+            'researcher_category':'The type of researcher you are.',
+            'organization_name':"The name of your organization. Put 'None' if you are an independent researcher.",
+            'job_title':'The title of your job/role.',
+            'city':'The city you live in.',
+            'state_province':'The state or province that you live in.',
+            'country':'The country that you live in.',
+            'website':"Your organization's website. If possible, put a page listing your role. This helps us confirm your identity.",
+            'training_course_name':"The name of the human subjects training course you took. ie. 'CITI Data or Specimens Only Research Course'",
+            'training_completion_date':'The date on which you finished your human subjects training course. Must match the date in your training completion report.',
+            'training_completion_report':"A pdf of the training completion report from your training program. The CITI completion report lists all modules completed, with dates and scores. Do NOT upload the completion certificate.",
+            'course_category':'Specify if you are using this data for a course.',
+            'course_name':'The name of the course you are taking/teaching.',
+            'course_number':'The number or code of the course you are taking/teaching.',
+            'reference_category': "Your reference's relationship to you. If you are a student or postdoc, this must be your supervisor.",
+            'reference_name':'The full name of your reference.',
+            'reference_email':'The email address of your reference.',
+            'reference_title':'The title of your reference. ie: Professor, Dr.',
+        }
+
+        widgets = {
+            'training_completion_date':forms.SelectDateWidget(years=list(range(1990, timezone.now().year+1))),
+        }
+
+
+    def __init__(self, user, require_courses=True, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+        self.profile = user.profile
+
+        if not require_courses:
+            self.fields['course_name'].required = False
+            self.fields['course_number'].required = False
+
+        self.initial = {'full_name':self.profile.get_full_name(),
+            'organization_name':self.profile.affiliation,
+            'website':self.profile.website,
+            'training_course_name':'CITI Data or Specimens Only Research Course'}
+
+
+    def clean(self):
+        data = self.cleaned_data
+
+        if any(self.errors):
+            return
+
+        # Students and postdocs must provide their supervisor as a reference
+        if data['researcher_category'] in [0, 1] and data['reference_category'] != 0:
+            raise forms.ValidationError('If you are a student or postdoc, you must provide your supervisor as a reference.')
+        # If the application is not for a course, they cannot put one.
+        if data['course_category'] == 0 and (data['course_name'] or data['course_number']):
+            raise forms.ValidationError('If you are not using the data for a course, do not put one in.')
+        # If it is for a course, they must put one.
+        elif data['course_category'] > 0 and (not data['course_name'] or not data['course_number']):
+            raise forms.ValidationError('If you are using the data for a course, you must specify the course information.')
+
+    def save(self):
+        credential_application = super().save(commit=False)
+        slug = get_random_string(20)
+        while CredentialApplication.objects.filter(slug=slug):
+            slug = get_random_string(20)
+        credential_application.user = self.user
+        credential_application.slug = slug
+        credential_application.save()
+        return credential_application
+
+
+class CredentialReferenceForm(forms.ModelForm):
+    """
+    Form to apply for PhysioNet credentialling. The name must match.
+    """
+    name = forms.CharField(max_length=60, label='Your full name')
+
+    class Meta:
+        model = CredentialApplication
+        fields = ('reference_response',)
+        labels = {
+            'reference_response':'Do you verify the applicant?'
+        }
+
+    def clean_name(self):
+        data = self.cleaned_data['name']
+        if data != self.instance.reference_name:
+            raise forms.ValidationError('The name provided does not match the given reference name.')
+        return data
+
+    def save(self):
+        """
+        Process the decision
+        """
+        application = super().save()
+
+        # Deny
+        if self.cleaned_data['reference_response'] == 1:
+            application.status = 1
+
+        application.reference_response_datetime = timezone.now()
+        application.save()

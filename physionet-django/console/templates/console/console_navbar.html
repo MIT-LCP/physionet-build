@@ -49,6 +49,23 @@
         </a>
       </li>
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
+        <a class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#credentialComponents" data-parent="#sideAccordion">
+          <i class="fab fa-wpforms"></i>
+          <span class="nav-link-text">Credentialing</span>
+        </a>
+        <ul class="sidenav-second-level collapse" id="credentialComponents">
+          <li>
+            <a href="{% url 'credential_applications' %}">Ongoing Applications</a>
+          </li>
+          <li>
+            <a href="{% url 'past_credential_applications' %}">Past Applications</a>
+          </li>
+          <li>
+            <a href="{% url 'credentialed_users' %}">Credentialed Users</a>
+          </li>
+        </ul>
+      </li>
+      <li class="nav-item" data-toggle="tooltip" data-placement="right">
         <a class="nav-link" href="{% url 'user_list' %}">
           <i class="fas fa-user-check"></i>
           <span class="nav-link-text">Users</span>

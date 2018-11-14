@@ -120,7 +120,7 @@ function removeItem(trigger_button, item, form_name, remove_item_url){
 function validateItems(list_div_id, input_id_suffix, item_name) {
   item_div = document.getElementById(list_div_id);
   item_inputs = item_div.getElementsByTagName("input");
-  var counts = [];
+  var counts = {};
 
   for (var i=0; i < item_inputs.length; i++) {
       if (item_inputs[i].id.endsWith(input_id_suffix) && item_inputs[i].value){

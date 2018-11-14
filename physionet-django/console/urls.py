@@ -35,4 +35,19 @@ urlpatterns = [
         name='storage_requests'),
     url(r'^users/$', views.users, name='user_list'),
 
+    url(r'^credential-applications/$', views.credential_applications,
+        name='credential_applications'),
+    url(r'^past-credential-applications/$', views.past_credential_applications,
+        name='past_credential_applications'),
+    url(r'^credentialed-users/$', views.credentialed_users,
+        name='credentialed_users'),
+    url(r'^credentialed-users/(?P<username>[\w\-\.]+)/$',
+        views.credentialed_user_info, name='credentialed_user_info'),
+    url(r'^credential-applications/(?P<application_slug>\w+)/view/$',
+        views.view_credential_application,
+        name='view_credential_application'),
+    url(r'^credential-applications/(?P<application_slug>\w+)/process/$',
+        views.process_credential_application,
+        name='process_credential_application'),
+
 ]

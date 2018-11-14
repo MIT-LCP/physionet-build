@@ -58,6 +58,8 @@ def faq(request):
 def contact(request):
     return render(request, 'about/contact.html')
 
+def citi_instructions(request):
+    return render(request, 'about/citi_instructions.html')
 
 # Content pages
 

@@ -4,7 +4,7 @@ from django import forms
 from django.utils import timezone
 
 from project.models import ActiveProject, EditLog, CopyeditLog
-from user.models import User
+from user.models import User, CredentialApplication
 
 
 RESPONSE_CHOICES = (
@@ -167,3 +167,46 @@ class CopyeditForm(forms.ModelForm):
         project.copyedit_completion_datetime = now
         project.save()
         return copyedit_log
+
+
+class ProcessCredentialForm(forms.ModelForm):
+    """
+    Form to respond to a credential application
+    """
+
+    class Meta:
+        model = CredentialApplication
+        fields = ('responder_comments', 'status')
+        labels = {
+            'responder_comments':'Comments (for rejections)',
+            'status':'Decision',
+        }
+        widgets = {
+            'responder_comments':forms.Textarea(),
+        }
+
+    def __init__(self, responder, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.responder = responder
+
+    def clean(self):
+        if self.errors:
+            return
+
+        if self.cleaned_data['status'] == 1 and not self.cleaned_data['responder_comments']:
+            raise forms.ValidationError('If you reject, you must describe why.')
+
+    def save(self):
+        application = super().save()
+        now = timezone.now()
+
+        if application.status == 2:
+            user = application.user
+            user.is_credentialed = True
+            user.credential_datetime = now
+            user.save()
+
+        application.responder = self.responder
+        application.decision_datetime = timezone.now()
+        application.save()
+        return application

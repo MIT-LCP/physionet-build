@@ -181,3 +181,8 @@
   }
 
 </script>
+
+{# Disable submission if not currently editable or not submitting author #}
+{% if not is_submitting or not project.author_editable %}
+  <script type="text/javascript" src="{% static 'custom/js/disable-input.js' %}"></script>
+{% endif %}

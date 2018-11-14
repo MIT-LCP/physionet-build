@@ -17,8 +17,8 @@ from django.utils import timezone
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
-from .forms import AddEmailForm, AssociatedEmailChoiceForm, ProfileForm, RegistrationForm, UsernameChangeForm
-from .models import AssociatedEmail, Profile, User
+from .forms import AddEmailForm, AssociatedEmailChoiceForm, ProfileForm, RegistrationForm, UsernameChangeForm, CredentialApplicationForm, CredentialReferenceForm
+from .models import AssociatedEmail, Profile, User, CredentialApplication
 from physionet import utility
 from project.models import Author
 
@@ -185,8 +185,7 @@ def edit_profile(request):
         if not form.errors:
             form = ProfileForm(instance=profile)
 
-    return render(request, 'user/edit_profile.html', {'form':form,
-        'messages':messages.get_messages(request)})
+    return render(request, 'user/edit_profile.html', {'form':form})
 
 
 @login_required
@@ -294,10 +293,11 @@ def verify_email(request, uidb64, token):
     return render(request, 'user/verify_email.html',
         {'title':'Invalid Verification Link', 'isvalid':False})
 
+
 @login_required
 def edit_username(request):
     """
-    Home page/dashboard for individual users
+    Edit username settings page
     """
     user = request.user
 
@@ -311,7 +311,110 @@ def edit_username(request):
         else:
             user = User.objects.get(id=user.id)
 
+    return render(request, 'user/edit_username.html', {'form':form,
+        'user':user})
 
-    return render(request, 'user/edit_username.html', {'user':user, 'form':form,
-        'messages':messages.get_messages(request)})
+
+@login_required
+def edit_credentialing(request):
+    """
+    Credentials settings page.
+
+    """
+    user = request.user
+
+    applications = CredentialApplication.objects.filter(user=user)
+    # Create an application form if the user is not already credentialed
+    # and doesn't have one pending
+    current_application = applications.filter(status=0)
+
+    if not user.is_credentialed and not current_application:
+        form = CredentialApplicationForm(user=user)
+    else:
+        # current_application may be nothing
+        current_application = current_application.first()
+        form = None
+
+    if request.method == 'POST' and not user.is_credentialed and not current_application:
+        form = CredentialApplicationForm(user=user, data=request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your application has been received and will be reviewed shortly.')
+        else:
+            messages.error(request, 'Invalid submission. See errors below.')
+
+    return render(request, 'user/edit_credentialing.html', {'form':form,
+        'applications':applications,
+        'current_application':current_application})
+
+
+def user_credential_applications(request):
+    """
+    All the credential applications made by a user
+    """
+    applications = CredentialApplication.objects.filter(
+        user=request.user).order_by('-application_datetime')
+
+    return render(request, 'user/user_credential_applications.html',
+        {'applications':applications})
+
+
+@login_required
+def credential_application(request):
+    """
+    Page to apply for credentially
+    """
+    user = request.user
+
+    if user.is_credentialed or CredentialApplication.objects.filter(
+            user=user, status=0):
+        return redirect('edit_credentialing')
+
+    form = CredentialApplicationForm(user=user)
+
+    if request.method == 'POST':
+        form = CredentialApplicationForm(user=user, require_courses=False,
+            data=request.POST, files=request.FILES)
+        if form.is_valid():
+            form.save()
+            return render(request, 'user/credential_application_complete.html')
+        else:
+            messages.error(request, 'Invalid submission. See errors below.')
+
+    return render(request, 'user/credential_application.html', {'form':form})
+
+
+@login_required
+def training_report(request, application_slug):
+    """
+    Serve a training report file
+    """
+    application = CredentialApplication.objects.get(slug=application_slug)
+    if request.user == application.user or request.user.is_admin:
+        return utility.serve_file(request, application.training_completion_report.path)
+
+
+@login_required
+def credential_reference(request, application_slug):
+    """
+    Page for a reference to verify or reject a credential application
+    """
+    application = CredentialApplication.objects.get(
+        slug=application_slug, reference_contact_datetime__isnull=False,
+        reference_response_datetime=None)
+    form = CredentialReferenceForm(instance=application)
+
+    if request.method == 'POST':
+        form = CredentialReferenceForm(data=request.POST, instance=application)
+        if form.is_valid():
+            form.save()
+            response = 'verifying' if form.cleaned_data['reference_response'] == 2 else 'denying'
+            return render(request, 'user/credential_reference_complete.html',
+                {'response':response, 'application':application})
+        else:
+            messages.error(request, 'Invalid submission. See errors below.')
+
+    return render(request, 'user/credential_reference.html',
+        {'form':form, 'application':application})
+
 
