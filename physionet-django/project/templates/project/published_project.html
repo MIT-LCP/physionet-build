@@ -168,9 +168,16 @@
     {% include "project/protected_special_files_panel.html" %}
     <br>
     <h3>Main Files</h3>
-    {% include "project/protected_files_panel.html" %}
+    <div id="files-panel" class="card">
+      {% include "project/protected_files_panel.html" %}
+    </div>
   {% else %}
-    {% include "project/open_files_panel.html" %}
+    {% include "project/open_special_files_panel.html" %}
+    <br>
+    <h3>Main Files</h3>
+    <div id="files-panel" class="card">
+      {% include "project/open_files_panel.html" %}
+    </div>
   {% endif %}
   <br>
 
