@@ -15,7 +15,7 @@ from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.text import slugify
 
-from .utility import get_tree_size, get_file_info, get_directory_info, list_items, get_storage_info, get_tree_files
+from .utility import get_tree_size, get_file_info, get_directory_info, list_items, get_storage_info, get_tree_files, list_files
 from user.validators import validate_alphaplus
 
 
@@ -825,6 +825,11 @@ class PublishedProject(Metadata, SubmissionInfo):
     else:
         PUBLIC_FILE_ROOT = os.path.join(settings.STATIC_ROOT, 'published-projects')
 
+    SPECIAL_FILES = {
+        'FILES':'List of main files',
+        'SHA256SUMS':'Checksums of main files'
+    }
+
     class Meta:
         unique_together = (('core_project', 'version'),)
 
@@ -910,11 +915,12 @@ class PublishedProject(Metadata, SubmissionInfo):
             self.make_zip()
 
 
-    def get_directory_content(self, subdir=''):
+    def get_main_directory_content(self, subdir=''):
         """
-        Return information for displaying file and directories
+        Return information for displaying files and directories from
+        the main file root
         """
-        inspect_dir = os.path.join(self.file_root(), subdir)
+        inspect_dir = os.path.join(self.main_file_root(), subdir)
         file_names , dir_names = list_items(inspect_dir)
 
         display_files, display_dirs = [], []
@@ -925,7 +931,7 @@ class PublishedProject(Metadata, SubmissionInfo):
             if self.access_policy:
                 file_info.full_file_name = os.path.join(subdir, file)
             else:
-                file_info.static_url = os.path.join('published-projects', str(self.slug), subdir, file)
+                file_info.static_url = os.path.join('published-projects', str(self.slug), 'main-files', subdir, file)
             display_files.append(file_info)
 
         # Directories require
@@ -935,6 +941,33 @@ class PublishedProject(Metadata, SubmissionInfo):
             display_dirs.append(dir_info)
 
         return display_files, display_dirs
+
+    def get_special_directory_content(self):
+        """
+        Return information for displaying files from the special file root
+        """
+        inspect_dir = self.special_file_root()
+
+        file_names = list_files(inspect_dir)
+
+        display_files = []
+
+        # Files require desciptive info and download links
+        for file in file_names:
+            file_info = get_file_info(os.path.join(inspect_dir, file))
+            if self.access_policy:
+                file_info.full_file_name = file
+            else:
+                file_info.static_url = os.path.join('published-projects', str(self.slug), 'special-files', file)
+            # Add the description for the special files
+            if file.endswith('zip'):
+                file_info.description = 'All files zipped'
+            else:
+                file_info.description = PublishedProject.SPECIAL_FILES[file]
+
+            display_files.append(file_info)
+
+        return display_files
 
 
 def exists_project_slug(slug):

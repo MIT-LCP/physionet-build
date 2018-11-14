@@ -1,39 +1,39 @@
-<h2>Abstract</h2>
+<h2 id="abstract">Abstract</h2>
 {{ published_project.abstract|safe }}
 <hr>
 
-<h2>Background</h2>
+<h2 id="background">Background</h2>
 {{ published_project.background|safe }}
 <hr>
 
-<h2>Methods</h2>
+<h2 id="methods">Methods</h2>
 {{ published_project.methods|safe }}
 <hr>
 
-<h2>Data Description</h2>
+<h2 id="description">Data Description</h2>
 {{ published_project.content_description|safe }}
 <hr>
 
-<h2>Usage Notes</h2>
+<h2 id="usage-notes">Usage Notes</h2>
 {{ published_project.usage_notes|safe }}
 <hr>
 
-<h2>Subject Identifiers</h2>
+<h2 id="subject-identifiers">Subject Identifiers</h2>
 {{ published_project.subject_identifiers|safe }}
 <hr>
 
 {% if published_project.acknowledgements %}
-  <h2>Acknowledgements</h2>
+  <h2 id="acknowledgments">Acknowledgements</h2>
   {{ published_project.acknowledgements|safe }}
   <hr>
 {% endif %}
 
-<h2>Conflicts of Interest</h2>
+<h2 id="conflicts-of-interest">Conflicts of Interest</h2>
 {{ published_project.conflicts_of_interest|safe }}
 <hr>
 
 {% if references %}
-  <h2>References</h2>
+  <h2 id="references">References</h2>
   <ol>
   {% for reference in references %}
     <li>{{ reference.description }}</li>
@@ -43,7 +43,7 @@
 {% endif %}
 
 {% if published_project.changelog_summary %}
-  <h2>Changelog Summary</h2>
+  <h2 id="changelog-summary">Changelog Summary</h2>
     {{ published_project.changelog_summary|safe }}
   <hr>
 {% endif %}

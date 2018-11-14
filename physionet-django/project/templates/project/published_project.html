@@ -6,11 +6,18 @@
 
 {% load project_templatetags %}
 
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'project/css/contents.css' %}"/>
+{% endblock %}
+
 {% block local_js_top %}
 <script type="text/javascript" src="{% static 'custom/js/cookie.js' %}"></script>
 {% endblock %}
 
 {% block content %}
+<div class="contents">
+
+</div>
 
 <div class="container">
   <p>
@@ -26,9 +33,36 @@
     {% endfor %}
     </strong>
   </p>
-  <p>Published: {{ published_project.publish_datetime|date }}. Version: {{ published_project.version }}</p>
-  <hr>
 
+  Published: {{ published_project.publish_datetime|date }}. Version: {{ published_project.version }}
+
+  <button class="btn btn-secondary dropdown-toggle" style="float:right" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    Contents
+  </button>
+  <div class="dropdown-menu">
+    <a class="dropdown-item" href="#abstract">Abstract</a>
+    <a class="dropdown-item" href="#background">Background</a>
+    <a class="dropdown-item" href="#methods">Methods</a>
+    <a class="dropdown-item" href="#description">Description</a>
+    <a class="dropdown-item" href="#usage-notes">Usage Notes</a>
+    {% if published_project.installation %}
+      <a class="dropdown-item" href="#installation">Installation</a>
+    {% endif %}
+    {% if published_project.subject_identifiers %}
+      <a class="dropdown-item" href="#subject-identifiers">Subject Identifiers</a>
+    {% endif %}
+    {% if published_project.acknowledgments %}
+      <a class="dropdown-item" href="#acknowledgments">Acknowledgments</a>
+    {% endif %}
+    <a class="dropdown-item" href="#conflicts-of-interest">Conflicts of Interest</a>
+    {% if published_project.references %}
+      <a class="dropdown-item" href="#references">References</a>
+    {% endif %}
+    <div class="dropdown-divider"></div>
+    <a class="dropdown-item" href="#files">Files</a>
+  </div>
+
+  <hr>
   <div class="row">
     <!-- Main column -->
     <div class="col-md-8">
@@ -127,8 +161,13 @@
     </div>
     <!-- /.sidebar -->
   </div>
-  <h2>Files</h2>
+  <h2 id="files">Files</h2>
+  <br>
+  <h3>Special Files</h3>
   {% if published_project.access_policy %}
+    {% include "project/protected_special_files_panel.html" %}
+    <br>
+    <h3>Main Files</h3>
     {% include "project/protected_files_panel.html" %}
   {% else %}
     {% include "project/open_files_panel.html" %}
