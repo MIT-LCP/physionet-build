@@ -7,7 +7,7 @@
     "email": "admin@mit.edu",
     "username": "admin",
     "join_date": "2017-11-11",
-    "last_login": "2018-11-01T18:34:36.620Z",
+    "last_login": "2018-11-14T20:44:12.462Z",
     "is_active": true,
     "is_admin": true,
     "is_credentialed": false,
@@ -23,11 +23,11 @@
     "email": "rgmark@mit.edu",
     "username": "rgmark",
     "join_date": "2017-11-11",
-    "last_login": "2018-11-14T20:20:20.059Z",
+    "last_login": "2018-11-14T20:38:52.349Z",
     "is_active": true,
     "is_admin": false,
-    "is_credentialed": false,
-    "credential_datetime": null,
+    "is_credentialed": true,
+    "credential_datetime": "2018-11-14T20:45:53.071Z",
     "lcp_affiliated": true
   }
 },
@@ -230,6 +230,44 @@
     "location": "",
     "website": null,
     "photo": ""
+  }
+},
+{
+  "model": "user.credentialapplication",
+  "pk": 1,
+  "fields": {
+    "slug": "YgqTQmcerj0gLx4MAaZV",
+    "application_datetime": "2018-11-14T20:43:04.112Z",
+    "user": [
+      "rgmark"
+    ],
+    "full_name": "Roger Greenwood Mark",
+    "researcher_category": 2,
+    "organization_name": "Massachusetts Institute of Technology",
+    "job_title": "Professor",
+    "city": "Cambridge",
+    "state_province": "Massachussetts",
+    "country": "US",
+    "website": "http://imes.mit.edu/people/faculty/mark-roger/",
+    "training_course_name": "CITI Data or Specimens Only Research Course",
+    "training_completion_date": "2015-01-01",
+    "training_completion_report": "credential-applications/YgqTQmcerj0gLx4MAaZV/training-report.pdf",
+    "course_category": 0,
+    "course_name": "",
+    "course_number": "",
+    "reference_category": 1,
+    "reference_name": "Leo Celi",
+    "reference_email": "lceli@yahoo.com",
+    "reference_title": "Assistant Professor",
+    "status": 2,
+    "reference_contact_datetime": "2018-11-14T20:44:28.076Z",
+    "reference_response_datetime": "2018-11-14T20:45:30.682Z",
+    "reference_response": 2,
+    "decision_datetime": "2018-11-14T20:45:53.084Z",
+    "responder": [
+      "admin"
+    ],
+    "responder_comments": ""
   }
 }
 ]
