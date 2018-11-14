@@ -428,9 +428,11 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
     REQUIRED_FIELDS = (
         ('title', 'abstract', 'background', 'methods', 'content_description',
-         'conflicts_of_interest', 'subject_identifiers', 'version', 'license'),
+         'usage_notes', 'conflicts_of_interest', 'subject_identifiers',
+         'version', 'license'),
         ('title', 'abstract', 'background', 'methods', 'content_description',
-         'installation', 'conflicts_of_interest', 'version', 'license')
+         'usage_notes', 'installation', 'conflicts_of_interest', 'version',
+         'license')
     )
 
     def storage_used(self):
@@ -816,6 +818,7 @@ class PublishedProject(Metadata, SubmissionInfo):
     newest_version = models.ForeignKey('project.PublishedProject', null=True,
                                        related_name='older_versions')
     doi = models.CharField(max_length=50, default='')
+    approved_users = models.ManyToManyField('user.User')
 
     # Where all the published project files are kept, depending on access.
     PROTECTED_FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'published-projects')
@@ -969,6 +972,17 @@ class PublishedProject(Metadata, SubmissionInfo):
 
         return display_files
 
+    def has_access(self, user):
+        """
+        Whether the user has access to this project
+        """
+        if self.access_policy:
+            if self.approved_users.filter(id=user.id):
+                return True
+            else:
+                return False
+        else:
+            return True
 
 def exists_project_slug(slug):
     if (ActiveProject.objects.filter(slug=slug)

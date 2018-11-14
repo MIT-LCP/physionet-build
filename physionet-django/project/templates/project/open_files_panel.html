@@ -61,7 +61,7 @@
     var csrftoken = getCookie('csrftoken');
     $.ajax({
             type: "GET",
-            url: "{% url 'published_files_panel' published_project.slug %}",
+            url: "{% url 'published_files_panel' project.slug %}",
             data: {'csrfmiddlewaretoken':csrftoken, 'subdir':subdir
             },
             success: function reloadSection(result){

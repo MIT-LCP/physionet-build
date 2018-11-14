@@ -1,35 +1,35 @@
 <h2 id="abstract">Abstract</h2>
-{{ published_project.abstract|safe }}
+{{ project.abstract|safe }}
 <hr>
 
 <h2 id="background">Background</h2>
-{{ published_project.background|safe }}
+{{ project.background|safe }}
 <hr>
 
 <h2 id="methods">Methods</h2>
-{{ published_project.methods|safe }}
+{{ project.methods|safe }}
 <hr>
 
 <h2 id="description">Data Description</h2>
-{{ published_project.content_description|safe }}
+{{ project.content_description|safe }}
 <hr>
 
 <h2 id="usage-notes">Usage Notes</h2>
-{{ published_project.usage_notes|safe }}
+{{ project.usage_notes|safe }}
 <hr>
 
 <h2 id="subject-identifiers">Subject Identifiers</h2>
-{{ published_project.subject_identifiers|safe }}
+{{ project.subject_identifiers|safe }}
 <hr>
 
-{% if published_project.acknowledgements %}
+{% if project.acknowledgements %}
   <h2 id="acknowledgments">Acknowledgements</h2>
-  {{ published_project.acknowledgements|safe }}
+  {{ project.acknowledgements|safe }}
   <hr>
 {% endif %}
 
 <h2 id="conflicts-of-interest">Conflicts of Interest</h2>
-{{ published_project.conflicts_of_interest|safe }}
+{{ project.conflicts_of_interest|safe }}
 <hr>
 
 {% if references %}
@@ -42,8 +42,8 @@
   <hr>
 {% endif %}
 
-{% if published_project.changelog_summary %}
+{% if project.changelog_summary %}
   <h2 id="changelog-summary">Changelog Summary</h2>
-    {{ published_project.changelog_summary|safe }}
+    {{ project.changelog_summary|safe }}
   <hr>
 {% endif %}
