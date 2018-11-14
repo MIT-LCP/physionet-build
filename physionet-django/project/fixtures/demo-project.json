@@ -88,11 +88,11 @@
   }
 },
 {
-  "model": "project.affiliation",
-  "pk": 12,
+  "model": "project.publishedaffiliation",
+  "pk": 1,
   "fields": {
     "name": "Massachusetts Institute of Technology",
-    "author": 6
+    "author": 1
   }
 },
 {
@@ -191,8 +191,8 @@
   }
 },
 {
-  "model": "project.author",
-  "pk": 6,
+  "model": "project.publishedauthor",
+  "pk": 1,
   "fields": {
     "user": [
       "rgmark"
@@ -200,13 +200,11 @@
     "display_order": 1,
     "is_submitting": true,
     "is_corresponding": true,
-    "approval_datetime": null,
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 5,
-    "corresponding_email": 2
+    "approval_datetime": "2018-11-14T21:11:11.781Z",
+    "first_name": "Roger",
+    "middle_names": "Greenwood",
+    "last_name": "Mark",
+    "project": 1
   }
 },
 {
@@ -318,39 +316,33 @@
   }
 },
 {
-  "model": "project.topic",
-  "pk": 10,
+  "model": "project.publishedtopic",
+  "pk": 1,
   "fields": {
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 5,
-    "description": "telemedicine"
+    "description": "telemedicine",
+    "projects": [
+      1
+    ]
   }
 },
 {
-  "model": "project.topic",
-  "pk": 11,
+  "model": "project.publishedtopic",
+  "pk": 2,
   "fields": {
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 5,
-    "description": "intensive care unit"
+    "description": "intensive care unit",
+    "projects": [
+      1
+    ]
   }
 },
 {
-  "model": "project.topic",
-  "pk": 12,
+  "model": "project.publishedtopic",
+  "pk": 3,
   "fields": {
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 5,
-    "description": "critical care"
+    "description": "critical care",
+    "projects": [
+      1
+    ]
   }
 },
 {
@@ -414,27 +406,29 @@
   }
 },
 {
-  "model": "project.reference",
-  "pk": 6,
+  "model": "project.publishedreference",
+  "pk": 1,
   "fields": {
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 5,
-    "description": "https://eicu-crd.mit.edu/eicutables/admissiondrug/"
+    "description": "https://eicu-crd.mit.edu/eicutables/admissiondrug/",
+    "project": 1
   }
 },
 {
-  "model": "project.reference",
-  "pk": 7,
+  "model": "project.publishedreference",
+  "pk": 2,
   "fields": {
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 5,
-    "description": "https://eicu-crd.mit.edu/eicutables/apachepatientresult/"
+    "description": "https://eicu-crd.mit.edu/eicutables/apachepatientresult/",
+    "project": 1
+  }
+},
+{
+  "model": "project.contact",
+  "pk": 1,
+  "fields": {
+    "name": "Roger Greenwood Mark",
+    "affiliations": "Massachusetts Institute of Technology",
+    "email": "rgmark@mit.edu",
+    "project": 1
   }
 },
 {
@@ -464,16 +458,12 @@
   }
 },
 {
-  "model": "project.publication",
-  "pk": 3,
+  "model": "project.publishedpublication",
+  "pk": 1,
   "fields": {
     "citation": "Goldberger AL, Amaral LAN, Glass L, Hausdorff JM, Ivanov PCh, Mark RG, Mietus JE, Moody GB, Peng C-K, Stanley HE. PhysioBank, PhysioToolkit, and PhysioNet: Components of a New Research Resource for Complex Physiologic Signals. Circulation 101(23):e21",
     "url": "https://www.ncbi.nlm.nih.gov/pubmed/10851218",
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 5
+    "project": 1
   }
 },
 {
@@ -677,8 +667,8 @@
   }
 },
 {
-  "model": "project.activeproject",
-  "pk": 5,
+  "model": "project.publishedproject",
+  "pk": 1,
   "fields": {
     "resource_type": 0,
     "title": "eICU Collaborative Research Database",
@@ -699,19 +689,25 @@
     "project_home_page": "https://eicu-crd.mit.edu/",
     "slug": "3Yd8AnIWSd2jmgAErXUZ",
     "core_project": "66951d55-e473-4a98-a24f-4fad05ed967b",
-    "creation_datetime": "2018-11-14T20:20:39.944Z",
+    "creation_datetime": "2018-11-14T21:11:17.040Z",
     "version_order": 0,
-    "editor": null,
-    "submission_datetime": null,
-    "editor_assignment_datetime": null,
-    "revision_request_datetime": null,
-    "resubmission_datetime": null,
-    "editor_accept_datetime": null,
-    "copyedit_completion_datetime": null,
-    "author_approval_datetime": null,
-    "modified_datetime": "2018-11-14T20:35:25.160Z",
-    "submission_status": 0,
-    "programming_languages": []
+    "editor": [
+      "admin"
+    ],
+    "submission_datetime": "2018-11-14T21:09:38.666Z",
+    "editor_assignment_datetime": "2018-11-14T21:09:54.565Z",
+    "revision_request_datetime": "2018-11-14T21:10:19.855Z",
+    "resubmission_datetime": "2018-11-14T21:10:24.665Z",
+    "editor_accept_datetime": "2018-11-14T21:10:49.361Z",
+    "copyedit_completion_datetime": "2018-11-14T21:11:00.997Z",
+    "author_approval_datetime": "2018-11-14T21:11:11.781Z",
+    "storage_size": 81,
+    "publish_datetime": "2018-11-14T21:11:17.040Z",
+    "is_newest_version": true,
+    "newest_version": null,
+    "doi": "",
+    "programming_languages": [],
+    "approved_users": []
   }
 },
 {
@@ -940,6 +936,68 @@
     "request_allowance": 80,
     "responder": null,
     "response_message": ""
+  }
+},
+{
+  "model": "project.editlog",
+  "pk": 1,
+  "fields": {
+    "content_type": [
+      "project",
+      "publishedproject"
+    ],
+    "object_id": 1,
+    "submission_datetime": "2018-11-14T21:09:38.681Z",
+    "is_resubmission": false,
+    "soundly_produced": true,
+    "well_described": true,
+    "open_format": true,
+    "data_machine_readable": true,
+    "reusable": false,
+    "no_phi": true,
+    "pn_suitable": true,
+    "decision": 1,
+    "decision_datetime": "2018-11-14T21:10:19.855Z",
+    "editor_comments": "You missed some data files. Please upload them all."
+  }
+},
+{
+  "model": "project.editlog",
+  "pk": 2,
+  "fields": {
+    "content_type": [
+      "project",
+      "publishedproject"
+    ],
+    "object_id": 1,
+    "submission_datetime": "2018-11-14T21:10:24.680Z",
+    "is_resubmission": true,
+    "soundly_produced": true,
+    "well_described": true,
+    "open_format": true,
+    "data_machine_readable": true,
+    "reusable": true,
+    "no_phi": true,
+    "pn_suitable": true,
+    "decision": 2,
+    "decision_datetime": "2018-11-14T21:10:49.361Z",
+    "editor_comments": "Looks great. Thanks for your contribution."
+  }
+},
+{
+  "model": "project.copyeditlog",
+  "pk": 1,
+  "fields": {
+    "content_type": [
+      "project",
+      "publishedproject"
+    ],
+    "object_id": 1,
+    "start_datetime": "2018-11-14T21:10:49.367Z",
+    "is_reedit": false,
+    "made_changes": true,
+    "changelog_summary": "Fixed typos in the metadata.",
+    "complete_datetime": "2018-11-14T21:11:00.997Z"
   }
 }
 ]

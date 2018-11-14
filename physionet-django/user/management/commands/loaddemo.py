@@ -38,7 +38,8 @@ class Command(BaseCommand):
         call_command('loaddata', *demo_fixtures, verbosity=1)
 
         # Copy the demo project and user media content
-        for content in ['users', 'active-projects']:
+        for content in ['users', 'active-projects', 'published-projects',
+                        'credential-applications']:
             copy_demo_media(content)
 
 
