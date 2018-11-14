@@ -17,7 +17,7 @@ from django.utils import timezone
 from . import forms
 from .models import (Affiliation, Author, AuthorInvitation, ActiveProject,
     PublishedProject, StorageRequest, Reference, ArchivedProject, ProgrammingLanguage,
-    Topic, Contact, Publication, PublishedAuthor, EditLog, CopyeditLog)
+    Topic, Contact, Publication, PublishedAuthor, EditLog, CopyeditLog, DUASignature)
 from . import utility
 import notification.utility as notification
 from user.forms import ProfileForm, AssociatedEmailChoiceForm
@@ -944,15 +944,15 @@ def published_files_panel(request, published_project_slug):
              'display_files':display_files, 'display_dirs':display_dirs})
 
 
-def serve_published_project_file(request, published_project_slug, file_name):
+def serve_published_project_file(request, published_project_slug, full_file_name):
     """
     Serve a protected file of a published project
 
     """
-    # todo: protect this view
     project = PublishedProject.objects.get(slug=published_project_slug)
-    file_path = os.path.join(project.file_root(), file_name)
-    return utility.serve_file(request, file_path)
+    if project.has_access(request.user):
+        file_path = os.path.join(project.file_root(), full_file_name)
+        return utility.serve_file(request, file_path)
 
 
 def published_project(request, published_project_slug):
@@ -970,12 +970,12 @@ def published_project(request, published_project_slug):
     languages = project.programming_languages.all()
     contact = Contact.objects.get(project=project)
 
-    context ={'project':project, 'authors':authors,
+    has_access = project.has_access(request.user)
+    context = {'project':project, 'authors':authors,
         'references':references, 'publications':publications, 'topics':topics,
-        'languages':languages, 'contact':contact}
+        'languages':languages, 'contact':contact, 'has_access':has_access}
 
     # The file and directory contents
-    has_access = project.has_access(request.user)
     if has_access:
         display_files, display_dirs = project.get_main_directory_content()
         dir_breadcrumbs = utility.get_dir_breadcrumbs('')
@@ -990,15 +990,29 @@ def published_project(request, published_project_slug):
     return render(request, 'project/published_project.html', context)
 
 
-def sign_project_dua(request, published_project_slug):
+@login_required
+def sign_dua(request, published_project_slug):
     """
     Page to sign the dua for a protected project
     """
+    user = request.user
+
     project = PublishedProject.objects.get(slug=published_project_slug)
 
-    if not project.access_policy or project.has_access(request.user):
+    if not project.access_policy or project.has_access(user):
         return redirect('published_project',
             published_project_slug=published_project_slug)
 
+    if not user.is_credentialed:
+        return render(request, 'project/credential_required.html')
 
-    return render(request, 'project/sign_project_dua.html', {})
+    dua = project.data_use_agreement
+
+    if request.method == 'POST' and 'agree' in request.POST:
+        project.approved_users.add(user)
+        DUASignature.objects.create(user=user, project=project)
+        return render(request, 'project/sign_dua_complete.html', {
+            'project':project})
+
+    return render(request, 'project/sign_dua.html', {'project':project,
+        'dua':dua})

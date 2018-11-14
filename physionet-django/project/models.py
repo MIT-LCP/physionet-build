@@ -818,7 +818,7 @@ class PublishedProject(Metadata, SubmissionInfo):
     newest_version = models.ForeignKey('project.PublishedProject', null=True,
                                        related_name='older_versions')
     doi = models.CharField(max_length=50, default='')
-    approved_users = models.ManyToManyField('user.User')
+    approved_users = models.ManyToManyField('user.User', db_index=True)
 
     # Where all the published project files are kept, depending on access.
     PROTECTED_FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'published-projects')
@@ -927,16 +927,14 @@ class PublishedProject(Metadata, SubmissionInfo):
         file_names , dir_names = list_items(inspect_dir)
 
         display_files, display_dirs = [], []
-
         # Files require desciptive info and download links
         for file in file_names:
             file_info = get_file_info(os.path.join(inspect_dir, file))
             if self.access_policy:
-                file_info.full_file_name = os.path.join(subdir, file)
+                file_info.full_file_name = os.path.join('main-files', subdir, file)
             else:
                 file_info.static_url = os.path.join('published-projects', str(self.slug), 'main-files', subdir, file)
             display_files.append(file_info)
-
         # Directories require
         for dir_name in dir_names:
             dir_info = get_directory_info(os.path.join(inspect_dir, dir_name))
@@ -959,7 +957,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         for file in file_names:
             file_info = get_file_info(os.path.join(inspect_dir, file))
             if self.access_policy:
-                file_info.full_file_name = file
+                file_info.full_file_name = os.path.join('special-files', file)
             else:
                 file_info.static_url = os.path.join('published-projects', str(self.slug), 'special-files', file)
             # Add the description for the special files
@@ -1022,10 +1020,17 @@ class DataUseAgreement(models.Model):
     creation_datetime = models.DateTimeField(auto_now_add=True)
     version = models.CharField(max_length=20)
 
-    signed_users = models.ManyToManyField('user.User', related_name='signed_duas')
-
     def __str__(self):
         return ' v '.join([self.name, self.version])
+
+
+class DUASignature(models.Model):
+    """
+    Log of user signing DUA
+    """
+    project = models.ForeignKey('project.PublishedProject')
+    user = models.ForeignKey('user.User')
+    sign_datetime = models.DateTimeField(auto_now_add=True)
 
 
 class BaseInvitation(models.Model):

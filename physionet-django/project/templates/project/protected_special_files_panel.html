@@ -11,7 +11,7 @@
     {% for file in special_display_files %}
       <li class="list-group-item">
         <div class="row">
-          <div class="col-md-5">&nbsp;<i class="far fa-file"></i>&nbsp;&nbsp;&nbsp;<a href="{% url 'serve_published_project_file' published_project.slug file.full_file_name %}">{{ file.name }}</a></div>
+          <div class="col-md-5">&nbsp;<i class="far fa-file"></i>&nbsp;&nbsp;&nbsp;<a href="{% url 'serve_published_project_file' project.slug file.full_file_name %}">{{ file.name }}</a></div>
           <div class="col-md-3">{{ file.description }}</div>
           <div class="col-md-2">{{ file.size }}</div>
           <div class="col-md-2">{{ file.last_modified }}</div>

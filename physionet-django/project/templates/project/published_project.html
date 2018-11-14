@@ -174,7 +174,7 @@
       </div>
     {% else %}
     <div class="alert alert-danger" role="alert">
-      This is a restricted-access resource. To access the files, you must be a <a href="{% url 'edit_credentialing' %}">credentialed user</a> and <a href="">sign the DUA</a>.
+      This is a restricted-access resource. To access the files, you must be a <a href="{% url 'edit_credentialing' %}">credentialed user</a> and <a href="{% url 'sign_dua' project.slug %}">sign the DUA</a>.
     </div>
     {% endif %}
   {% else %}
