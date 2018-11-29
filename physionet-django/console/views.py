@@ -445,6 +445,42 @@ def users(request):
 
 @login_required
 @user_passes_test(is_admin)
+def lcp_affiliates(request):
+    """
+    LCP affiliated users
+    """
+    users = User.objects.filter(lcp_affiliated=True)
+
+    add_affiliate_form = forms.AddAffiliateForm()
+    remove_affiliate_form = forms.RemoveAffiliateForm()
+
+    if request.method == 'POST':
+        if 'add_affiliate' in request.POST:
+            add_affiliate_form = forms.AddAffiliateForm(request.POST)
+            if add_affiliate_form.is_valid():
+                add_affiliate_form.user.lcp_affiliated = True
+                add_affiliate_form.user.save()
+                messages.success(request, 'The user has been added.')
+            else:
+                messages.error(request, 'Invalid submission. See form below.')
+        elif 'remove_affiliate' in request.POST:
+            remove_affiliate_form = forms.RemoveAffiliateForm(request.POST)
+            if remove_affiliate_form.is_valid():
+                user = remove_affiliate_form.cleaned_data['user']
+                user.lcp_affiliated = False
+                user.save()
+                remove_affiliate_form = forms.RemoveAffiliateForm()
+                messages.success(request, 'The user has been removed.')
+            else:
+                messages.error(request, 'Invalid submission. See form below.')
+
+    return render(request, 'console/lcp_affiliates.html', {'users':users,
+        'add_affiliate_form':add_affiliate_form,
+        'remove_affiliate_form':remove_affiliate_form})
+
+
+@login_required
+@user_passes_test(is_admin)
 def credential_applications(request):
     """
     Ongoing credential applications

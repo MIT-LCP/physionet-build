@@ -23,7 +23,6 @@
           <span class="nav-link-text">Unsubmitted Projects</span>
         </a>
       </li>
-
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
         <a class="nav-link" href="{% url 'submitted_projects' %}">
           <i class="fas fa-clipboard-list"></i>
@@ -66,10 +65,18 @@
         </ul>
       </li>
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
-        <a class="nav-link" href="{% url 'user_list' %}">
+        <a class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#userComponents" data-parent="#sideAccordion">
           <i class="fas fa-user-check"></i>
           <span class="nav-link-text">Users</span>
         </a>
+        <ul class="sidenav-second-level collapse" id="userComponents">
+          <li>
+            <a class="nav-link" href="{% url 'user_list' %}">All Users</a>
+          </li>
+          <li>
+            <a href="{% url 'lcp_affiliates' %}">LCP Affiliates</a>
+          </li>
+        </ul>
       </li>
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
         <a class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#collapseComponents" data-parent="#sideAccordion">

@@ -1,0 +1,61 @@
+{% extends "console/base_console.html" %}
+
+{% block title %}LCP Affiliates{% endblock %}
+
+{% block content %}
+<div class="card mb-3">
+  <div class="card-header">
+    <i class="fa fa-user-check"></i> LCP Affiliates <span class="badge badge-pill badge-info">{{ users|length }}</span>
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Email</th>
+            <th>Join Date</th>
+            <th>Last Login</th>
+            <th>Credentialed</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for user in users %}
+          <tr>
+            <td><a href="{% url 'public_profile' user.username %}">{{ user.username }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.join_date }}</td>
+            <td>{{ user.last_login|date }}</td>
+            <td>{{ user.is_credentialed }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-header">
+    <i class="fa fa-user-check"></i> Manage Users
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <h2>Add Affiliate</h2>
+      <form action="" method="post">
+        {% csrf_token %}
+        {% include "form_snippet.html" with form=add_affiliate_form %}
+        <button class="btn btn-primary btn-fixed" name="add_affiliate" type="submit">Add Affiliate</button>
+      </form>
+
+      <br>
+      <h2>Remove Affiliate</h2>
+      <form action="" method="post">
+        {% csrf_token %}
+        {% include "form_snippet.html" with form=remove_affiliate_form %}
+        <button class="btn btn-danger btn-fixed" name="remove_affiliate" type="submit">Remove Affiliate</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -33,7 +33,6 @@ urlpatterns = [
 
     url(r'^storage-requests/$', views.storage_requests,
         name='storage_requests'),
-    url(r'^users/$', views.users, name='user_list'),
 
     url(r'^credential-applications/$', views.credential_applications,
         name='credential_applications'),
@@ -50,4 +49,6 @@ urlpatterns = [
         views.process_credential_application,
         name='process_credential_application'),
 
+    url(r'^users/all/$', views.users, name='user_list'),
+    url(r'^users/lcp/$', views.lcp_affiliates, name='lcp_affiliates'),
 ]
