@@ -17,6 +17,9 @@ urlpatterns = [
     url(r'^rejected-submissions/$', views.rejected_submissions,
         name='rejected_submissions'),
 
+    url(r'^published-projects/(?P<project_slug>\w+)/$',
+        views.manage_published_project, name='manage_published_project'),
+
     # Individual edit pages
     url(r'^submitted-projects/(?P<project_slug>\w+)/$',
         views.submission_info_redirect, name='submission_info_redirect'),

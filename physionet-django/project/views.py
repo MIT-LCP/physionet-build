@@ -48,7 +48,7 @@ def project_auth(auth_mode=0, post_auth_mode=0):
             project = ActiveProject.objects.get(slug=kwargs['project_slug'])
             authors = project.authors.all().order_by('display_order')
 
-            is_author = (user in [a.user for a in authors])
+            is_author = bool(authors.filter(user=user))
             is_submitting = (user == authors.get(is_submitting=True).user)
 
             if auth_mode == 0:
@@ -884,38 +884,40 @@ def project_submission(request, project_slug, **kwargs):
         'awaiting_user_approval':awaiting_user_approval})
 
 
-@project_auth(auth_mode=2)
 def rejected_submission_history(request, project_slug):
     """
-    Submission history for a published project
+    Submission history for a rejected project
     """
+    user = request.user
     project = ArchivedProject.objects.get(slug=project_slug, archive_reason=3)
 
-    edit_logs = project.edit_logs.all()
-    for e in edit_logs:
-        e.set_quality_assurance_results()
-    copyedit_logs = project.copyedit_logs.all()
+    if user.is_admin or project.authors.filter(user=user):
+        edit_logs = project.edit_logs.all()
+        for e in edit_logs:
+            e.set_quality_assurance_results()
+        copyedit_logs = project.copyedit_logs.all()
 
-    return render(request, 'project/rejected_submission_history.html',
-        {'project':project, 'edit_logs':edit_logs,
-         'copyedit_logs':copyedit_logs})
+        return render(request, 'project/rejected_submission_history.html',
+            {'project':project, 'edit_logs':edit_logs,
+             'copyedit_logs':copyedit_logs})
 
 
-@project_auth(auth_mode=2)
 def published_submission_history(request, project_slug):
     """
     Submission history for a published project
     """
+    user = request.user
     project = PublishedProject.objects.get(slug=project_slug)
 
-    edit_logs = project.edit_logs.all()
-    for e in edit_logs:
-        e.set_quality_assurance_results()
-    copyedit_logs = project.copyedit_logs.all()
+    if user.is_admin or project.authors.filter(user=user):
+        edit_logs = project.edit_logs.all()
+        for e in edit_logs:
+            e.set_quality_assurance_results()
+        copyedit_logs = project.copyedit_logs.all()
 
-    return render(request, 'project/published_submission_history.html',
-        {'project':project, 'edit_logs':edit_logs,
-         'copyedit_logs':copyedit_logs, 'published':True})
+        return render(request, 'project/published_submission_history.html',
+            {'project':project, 'edit_logs':edit_logs,
+             'copyedit_logs':copyedit_logs, 'published':True})
 
 
 def published_files_panel(request, published_project_slug):

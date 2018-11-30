@@ -3,7 +3,7 @@ import pdb
 from django import forms
 from django.utils import timezone
 
-from project.models import ActiveProject, EditLog, CopyeditLog
+from project.models import ActiveProject, EditLog, CopyeditLog, PublishedProject
 from user.models import User, CredentialApplication
 
 
@@ -167,6 +167,16 @@ class CopyeditForm(forms.ModelForm):
         project.copyedit_completion_datetime = now
         project.save()
         return copyedit_log
+
+
+class DOIForm(forms.ModelForm):
+    """
+    Form to set the doi of a published project
+    """
+    class Meta:
+        model = PublishedProject
+        fields = ('doi',)
+        labels = {'doi':'DOI'}
 
 
 class ProcessCredentialForm(forms.ModelForm):

@@ -16,7 +16,6 @@ import notification.utility as notification
 import project.forms as project_forms
 from project.models import ActiveProject, ArchivedProject, StorageRequest, EditLog, Reference, Topic, Publication, PublishedProject
 from project.views import get_file_forms, get_project_file_info, process_files_post
-from project.utility import get_storage_info
 from user.models import User, CredentialApplication
 
 
@@ -419,8 +418,41 @@ def published_projects(request):
     List of published projects
     """
     projects = PublishedProject.objects.all().order_by('publish_datetime')
+    doi_projects = projects.filter(doi='')
+
     return render(request, 'console/published_projects.html',
-        {'projects':projects})
+        {'projects':projects, 'doi_projects':doi_projects})
+
+@login_required
+@user_passes_test(is_admin)
+def manage_published_project(request, project_slug):
+    """
+    Manage a published project
+
+    - Set the DOI field (after doing it in datacite)
+    -
+
+    """
+    project = PublishedProject.objects.get(slug=project_slug)
+
+    authors, author_emails, storage_info, edit_logs, copyedit_logs = project.info_card()
+
+
+    doi_form = forms.DOIForm(instance=project)
+
+    if request.method == 'POST':
+        if 'set_doi' in request.POST:
+            doi_form = forms.DOIForm(data=request.POST, instance=project)
+            if doi_form.is_valid():
+                doi_form.save()
+                messages.success(request, 'The DOI has been set')
+            else:
+                messages.error(request, )
+
+    return render(request, 'console/manage_published_project.html',
+        {'project':project, 'authors':authors, 'author_emails':author_emails,
+         'storage_info':storage_info, 'edit_logs':edit_logs,
+         'copyedit_logs':copyedit_logs, 'published':True, 'doi_form':doi_form,})
 
 @login_required
 @user_passes_test(is_admin)
@@ -431,6 +463,8 @@ def rejected_submissions(request):
     projects = ArchivedProject.objects.filter(archive_reason=3).order_by('archive_datetime')
     return render(request, 'console/rejected_submissions.html',
         {'projects':projects})
+
+
 
 
 @login_required
@@ -449,8 +483,6 @@ def lcp_affiliates(request):
     """
     LCP affiliated users
     """
-    users = User.objects.filter(lcp_affiliated=True)
-
     add_affiliate_form = forms.AddAffiliateForm()
     remove_affiliate_form = forms.RemoveAffiliateForm()
 
@@ -460,6 +492,8 @@ def lcp_affiliates(request):
             if add_affiliate_form.is_valid():
                 add_affiliate_form.user.lcp_affiliated = True
                 add_affiliate_form.user.save()
+                add_affiliate_form = forms.AddAffiliateForm()
+                remove_affiliate_form = forms.RemoveAffiliateForm()
                 messages.success(request, 'The user has been added.')
             else:
                 messages.error(request, 'Invalid submission. See form below.')
@@ -473,6 +507,8 @@ def lcp_affiliates(request):
                 messages.success(request, 'The user has been removed.')
             else:
                 messages.error(request, 'Invalid submission. See form below.')
+
+    users = User.objects.filter(lcp_affiliated=True)
 
     return render(request, 'console/lcp_affiliates.html', {'users':users,
         'add_affiliate_form':add_affiliate_form,
