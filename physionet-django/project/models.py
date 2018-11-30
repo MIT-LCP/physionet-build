@@ -872,10 +872,18 @@ class PublishedProject(Metadata, SubmissionInfo):
         special = get_tree_size(self.special_file_root())
         return main, special, main+special
 
-    def set_storage_info(self):
-        "Sum up the file sizes of the project and set the storage info fields"
-        (self.main_storage_size, self.special_storage_size,
-            self.total_storage_size) = self.storage_used()
+    def set_storage_info(self, info_type='all'):
+        """
+        Sum up the file size(s) of the project and set the storage info
+        field(s)
+        """
+        if info_type == 'all':
+            (self.main_storage_size, self.special_storage_size,
+                self.total_storage_size) = self.storage_used()
+        elif info_type == 'main':
+            self.main_storage_size = get_tree_size(self.main_file_root())
+        elif info_type == 'special':
+            self.special_storage_size = get_tree_size(self.special_file_root())
         self.save()
 
     def slugged_label(self):
@@ -885,7 +893,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         return '-'.join((slugify(self.title), self.version.replace(' ', '-')))
 
-    def make_zip(self):
+    def make_zip(self, update_size=False):
         """
         Make a zip file of the main and special files.
         Move to the special file root.
@@ -897,14 +905,20 @@ class PublishedProject(Metadata, SubmissionInfo):
             format='zip')
         os.rename(file, os.path.join(self.special_file_root(), self.slugged_label() + '.zip'))
 
-    def make_files_list(self):
+        if update_size:
+            self.set_storage_size(info_type='special')
+
+    def make_files_list(self, update_size=False):
         "Make a files list of the main files. Write to project file root"
         files = get_tree_files(self.main_file_root(), full_path=False)
         with open(os.path.join(self.special_file_root(), 'FILES'), 'w') as outfile:
             for f in files:
                 outfile.write(f + '\n')
 
-    def make_checksum_file(self):
+        if update_size:
+            self.set_storage_size(info_type='special')
+
+    def make_checksum_file(self, update_size=False):
         "Make the checksums file for the main files"
         files = get_tree_files(self.main_file_root(), full_path=False)
         with open(os.path.join(self.special_file_root(), 'SHA256SUMS'), 'w') as outfile:
@@ -912,7 +926,10 @@ class PublishedProject(Metadata, SubmissionInfo):
                 outfile.write('{} {}\n'.format(
                     hashlib.sha256(open(os.path.join(self.main_file_root(), f), 'rb').read()).hexdigest(), f))
 
-    def make_special_files(self, make_zip):
+        if update_size:
+            self.set_storage_size(info_type='special')
+
+    def make_special_files(self, make_zip, update_size=False):
         """
         Make the special files for the database. zip file, files list,
         checksum. Make the base directory for the special files if needed
@@ -925,6 +942,9 @@ class PublishedProject(Metadata, SubmissionInfo):
         if make_zip:
             self.make_zip()
         self.set_storage_info()
+
+        if update_size:
+            self.set_storage_size(info_type='special')
 
     def get_main_directory_content(self, subdir=''):
         """

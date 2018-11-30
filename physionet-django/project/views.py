@@ -931,7 +931,7 @@ def published_files_panel(request, published_project_slug):
     if project.has_access(request.user):
         display_files, display_dirs = project.get_main_directory_content(
             subdir=subdir)
-        total_size = utility.readable_size(project.storage_size)
+        total_size = utility.readable_size(project.main_storage_size)
 
         # Breadcrumbs
         dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
@@ -984,7 +984,7 @@ def published_project(request, published_project_slug):
     if has_access:
         display_files, display_dirs = project.get_main_directory_content()
         dir_breadcrumbs = utility.get_dir_breadcrumbs('')
-        total_size = utility.readable_size(project.storage_size)
+        total_size = utility.readable_size(project.main_storage_size)
         # Special files
         special_display_files = project.get_special_directory_content()
         context = {**context, **{'dir_breadcrumbs':dir_breadcrumbs,
