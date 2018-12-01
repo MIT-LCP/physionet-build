@@ -102,7 +102,7 @@
       <div class="card my-4">
         <h5 class="card-header">Identifiers</h5>
         <div class="card-body">
-          {% if project.doi_assigned %}
+          {% if project.doi %}
           <p><strong>DOI:</strong>
             <br>
             <span class="badge badge-info">{{ project.doi }}</span>
@@ -174,7 +174,7 @@
       </div>
     {% else %}
     <div class="alert alert-danger" role="alert">
-      This is a restricted-access resource. To access the files, you must be a <a href="{% url 'edit_credentialing' %}">credentialed user</a> and <a href="{% url 'sign_dua' project.slug %}">sign the DUA</a>.
+      This is a restricted-access resource. To access the files, you must {% if not user.is_credentialed %}be a <a href="{% url 'edit_credentialing' %}">credentialed user</a> and {% endif %}<a href="{% url 'sign_dua' project.slug %}">sign the DUA</a>.
     </div>
     {% endif %}
   {% else %}

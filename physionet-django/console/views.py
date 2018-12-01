@@ -446,13 +446,13 @@ def manage_published_project(request, project_slug):
             else:
                 messages.error(request, 'Invalid submission. See form below.')
         elif 'make_files_list' in request.POST:
-            project.make_files_list()
+            project.make_files_list(update_size=True)
             messages.success(request, 'The files list has been generated.')
         elif 'make_checksum_file' in request.POST:
-            project.make_checksum_file()
+            project.make_checksum_file(update_size=True)
             messages.success(request, 'The files checksum list has been generated.')
         elif 'make_zip' in request.POST:
-            project.make_zip()
+            project.make_zip(update_size=True)
             messages.success(request, 'The zip of the main files has been generated.')
 
     return render(request, 'console/manage_published_project.html',

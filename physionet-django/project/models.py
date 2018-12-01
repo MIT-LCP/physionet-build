@@ -775,6 +775,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                     name=affiliation.name, author=published_author)
 
             if author.is_corresponding:
+                published_author.corresponding_email = author.corresponding_email.email
+                published_author.save()
                 contact = Contact.objects.create(name=author.get_full_name(),
                 affiliations=';'.join(a.name for a in affiliations),
                 email=author.corresponding_email, project=published_project)
@@ -807,8 +809,8 @@ class PublishedProject(Metadata, SubmissionInfo):
     """
     # File storage sizes in bytes
     main_storage_size = models.PositiveIntegerField()
-    special_storage_size = models.PositiveIntegerField()
-    total_storage_size = models.PositiveIntegerField()
+    special_storage_size = models.PositiveIntegerField(default=0)
+    total_storage_size = models.PositiveIntegerField(default=0)
     publish_datetime = models.DateTimeField(auto_now_add=True)
     is_newest_version = models.BooleanField(default=True)
     newest_version = models.ForeignKey('project.PublishedProject', null=True,
@@ -882,8 +884,10 @@ class PublishedProject(Metadata, SubmissionInfo):
                 self.total_storage_size) = self.storage_used()
         elif info_type == 'main':
             self.main_storage_size = get_tree_size(self.main_file_root())
+            self.total_storage_size = self.main_storage_size + self.special_storage_size
         elif info_type == 'special':
             self.special_storage_size = get_tree_size(self.special_file_root())
+            self.total_storage_size = self.main_storage_size + self.special_storage_size
         self.save()
 
     def slugged_label(self):
@@ -906,7 +910,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         os.rename(file, os.path.join(self.special_file_root(), self.slugged_label() + '.zip'))
 
         if update_size:
-            self.set_storage_size(info_type='special')
+            self.set_storage_info(info_type='special')
 
     def make_files_list(self, update_size=False):
         "Make a files list of the main files. Write to project file root"
@@ -916,7 +920,7 @@ class PublishedProject(Metadata, SubmissionInfo):
                 outfile.write(f + '\n')
 
         if update_size:
-            self.set_storage_size(info_type='special')
+            self.set_storage_info(info_type='special')
 
     def make_checksum_file(self, update_size=False):
         "Make the checksums file for the main files"
@@ -927,7 +931,7 @@ class PublishedProject(Metadata, SubmissionInfo):
                     hashlib.sha256(open(os.path.join(self.main_file_root(), f), 'rb').read()).hexdigest(), f))
 
         if update_size:
-            self.set_storage_size(info_type='special')
+            self.set_storage_info(info_type='special')
 
     def make_special_files(self, make_zip, update_size=False):
         """
@@ -941,10 +945,9 @@ class PublishedProject(Metadata, SubmissionInfo):
         # This should come last
         if make_zip:
             self.make_zip()
-        self.set_storage_info()
 
         if update_size:
-            self.set_storage_size(info_type='special')
+            self.set_storage_info(info_type='special')
 
     def get_main_directory_content(self, subdir=''):
         """
