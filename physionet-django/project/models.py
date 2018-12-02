@@ -789,12 +789,13 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             copyedit_log.project = published_project
             copyedit_log.save()
 
-        # Create file root
+        # Create file roots
         os.mkdir(published_project.file_root())
+        os.mkdir(published_project.special_file_root())
         # Move over main files
         os.rename(self.file_root(), published_project.main_file_root())
         # Create special files if there are files. Should always be the case.
-        if published_project.storage_used()[2]:
+        if bool(self.storage_used):
             published_project.make_special_files(make_zip=make_zip)
             published_project.set_storage_info()
         # Remove the ActiveProject

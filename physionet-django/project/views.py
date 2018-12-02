@@ -997,17 +997,17 @@ def published_project(request, published_project_slug):
 @login_required
 def sign_dua(request, published_project_slug):
     """
-    Page to sign the dua for a protected project
+    Page to sign the dua for a protected project.
+    Both restricted and credentialed policies.
     """
     user = request.user
-
     project = PublishedProject.objects.get(slug=published_project_slug)
 
     if not project.access_policy or project.has_access(user):
         return redirect('published_project',
             published_project_slug=published_project_slug)
 
-    if not user.is_credentialed:
+    if project.access_policy == 2 and not user.is_credentialed:
         return render(request, 'project/credential_required.html')
 
     dua = project.data_use_agreement
