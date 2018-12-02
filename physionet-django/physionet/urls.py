@@ -43,6 +43,9 @@ urlpatterns = [
         project_views.published_project, name='published_project'),
     url(r'^content/(?P<published_project_slug>\w+)/files-panel/$',
         project_views.published_files_panel, name='published_files_panel'),
-    url(r'^content/(?P<published_project_slug>\w+)/files/(?P<file_name>.+)$',
+    url(r'^content/(?P<published_project_slug>\w+)/files/(?P<full_file_name>.+)$',
         project_views.serve_published_project_file, name='serve_published_project_file'),
+
+    url(r'^sign-dua/(?P<published_project_slug>\w+)/$', project_views.sign_dua,
+        name='sign_dua'),
 ]

@@ -317,6 +317,9 @@ class CredentialApplicationForm(forms.ModelForm):
         elif data['course_category'] > 0 and (not data['course_name'] or not data['course_number']):
             raise forms.ValidationError('If you are using the data for a course, you must specify the course information.')
 
+        if not self.instance and CredentialApplication.objects.filter(user=self.user, status=0):
+            raise forms.ValidationError('Outstanding application exists.')
+
     def save(self):
         credential_application = super().save(commit=False)
         slug = get_random_string(20)
@@ -332,20 +335,12 @@ class CredentialReferenceForm(forms.ModelForm):
     """
     Form to apply for PhysioNet credentialling. The name must match.
     """
-    name = forms.CharField(max_length=60, label='Your full name')
-
     class Meta:
         model = CredentialApplication
         fields = ('reference_response',)
         labels = {
             'reference_response':'Do you verify the applicant?'
         }
-
-    def clean_name(self):
-        data = self.cleaned_data['name']
-        if data != self.instance.reference_name:
-            raise forms.ValidationError('The name provided does not match the given reference name.')
-        return data
 
     def save(self):
         """

@@ -17,7 +17,7 @@ from django.utils import timezone
 from . import forms
 from .models import (Affiliation, Author, AuthorInvitation, ActiveProject,
     PublishedProject, StorageRequest, Reference, ArchivedProject, ProgrammingLanguage,
-    Topic, Contact, Publication, PublishedAuthor, EditLog, CopyeditLog)
+    Topic, Contact, Publication, PublishedAuthor, EditLog, CopyeditLog, DUASignature)
 from . import utility
 import notification.utility as notification
 from user.forms import ProfileForm, AssociatedEmailChoiceForm
@@ -515,11 +515,14 @@ def project_access(request, project_slug, **kwargs):
     Page to edit project access policy
 
     """
-    project = kwargs['project']
-    access_form = forms.AccessMetadataForm(instance=project)
+    user, project = kwargs['user'], kwargs['project']
+    access_form = forms.AccessMetadataForm(
+        include_protected=user.lcp_affiliated, instance=project)
 
     if request.method == 'POST':
-        access_form = forms.AccessMetadataForm(request.POST, instance=project)
+        access_form = forms.AccessMetadataForm(
+            include_protected=user.lcp_affiliated, data=request.POST,
+            instance=project)
         if access_form.is_valid():
             access_form.save()
             messages.success(request, 'Your access metadata has been updated.')
@@ -917,66 +920,102 @@ def published_submission_history(request, project_slug):
 
 def published_files_panel(request, published_project_slug):
     """
-    Return the file panel for the published project, for all access
-    policies
+    Return the main file panel for the published project, for all access
+    policies.
     """
-    published_project = PublishedProject.objects.get(slug=published_project_slug)
+    project = PublishedProject.objects.get(slug=published_project_slug)
     subdir = request.GET['subdir']
 
-    display_files, display_dirs = published_project.get_directory_content(
-        subdir=subdir)
-    total_size = utility.readable_size(published_project.storage_size)
+    if project.has_access(request.user):
+        display_files, display_dirs = project.get_main_directory_content(
+            subdir=subdir)
+        total_size = utility.readable_size(project.storage_size)
 
-    # Breadcrumbs
-    dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
-    parent_dir = os.path.split(subdir)[0]
+        # Breadcrumbs
+        dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
+        parent_dir = os.path.split(subdir)[0]
 
-    if published_project.access_policy:
-        template = 'project/protected_files_panel.html'
-    else:
-        template = 'project/open_files_panel.html'
+        if project.access_policy:
+            template = 'project/protected_files_panel.html'
+        else:
+            template = 'project/open_files_panel.html'
 
-    return render(request, template,
-        {'published_project':published_project, 'subdir':subdir,
-         'dir_breadcrumbs':dir_breadcrumbs, 'total_size':total_size,
-         'parent_dir':parent_dir,
-         'display_files':display_files, 'display_dirs':display_dirs})
+        return render(request, template,
+            {'project':project, 'subdir':subdir,
+             'dir_breadcrumbs':dir_breadcrumbs, 'total_size':total_size,
+             'parent_dir':parent_dir,
+             'display_files':display_files, 'display_dirs':display_dirs})
 
 
-def serve_published_project_file(request, published_project_slug, file_name):
+def serve_published_project_file(request, published_project_slug, full_file_name):
     """
     Serve a protected file of a published project
 
     """
-    # todo: protect this view
-    published_project = PublishedProject.objects.get(slug=published_project_slug)
-    file_path = os.path.join(published_project.file_root(), file_name)
-    return utility.serve_file(request, file_path)
+    project = PublishedProject.objects.get(slug=published_project_slug)
+    if project.has_access(request.user):
+        file_path = os.path.join(project.file_root(), full_file_name)
+        return utility.serve_file(request, file_path)
 
 
 def published_project(request, published_project_slug):
     """
     Displays a published project
     """
-    published_project = PublishedProject.objects.get(slug=published_project_slug)
+    project = PublishedProject.objects.get(slug=published_project_slug)
 
-    authors = published_project.authors.all().order_by('display_order')
+    authors = project.authors.all().order_by('display_order')
     for a in authors:
         a.set_display_info()
-    references = published_project.references.all()
-    publications = published_project.publications.all()
-    topics = published_project.topics.all()
-    languages = published_project.programming_languages.all()
-    contact = Contact.objects.get(project=published_project)
-    # The file and directory contents
-    display_files, display_dirs = published_project.get_directory_content()
-    dir_breadcrumbs = utility.get_dir_breadcrumbs('')
-    total_size = utility.readable_size(published_project.storage_size)
+    references = project.references.all()
+    publications = project.publications.all()
+    topics = project.topics.all()
+    languages = project.programming_languages.all()
+    contact = Contact.objects.get(project=project)
 
-    context = {'published_project':published_project, 'authors':authors,
+    has_access = project.has_access(request.user)
+    context = {'project':project, 'authors':authors,
         'references':references, 'publications':publications, 'topics':topics,
-        'languages':languages, 'contact':contact,
-        'dir_breadcrumbs':dir_breadcrumbs, 'total_size':total_size,
-        'display_files':display_files, 'display_dirs':display_dirs}
+        'languages':languages, 'contact':contact, 'has_access':has_access}
+
+    # The file and directory contents
+    if has_access:
+        display_files, display_dirs = project.get_main_directory_content()
+        dir_breadcrumbs = utility.get_dir_breadcrumbs('')
+        total_size = utility.readable_size(project.storage_size)
+        # Special files
+        special_display_files = project.get_special_directory_content()
+        context = {**context, **{'dir_breadcrumbs':dir_breadcrumbs,
+            'total_size':total_size,
+            'display_files':display_files, 'display_dirs':display_dirs,
+            'special_display_files':special_display_files}}
 
     return render(request, 'project/published_project.html', context)
+
+
+@login_required
+def sign_dua(request, published_project_slug):
+    """
+    Page to sign the dua for a protected project
+    """
+    user = request.user
+
+    project = PublishedProject.objects.get(slug=published_project_slug)
+
+    if not project.access_policy or project.has_access(user):
+        return redirect('published_project',
+            published_project_slug=published_project_slug)
+
+    if not user.is_credentialed:
+        return render(request, 'project/credential_required.html')
+
+    dua = project.data_use_agreement
+
+    if request.method == 'POST' and 'agree' in request.POST:
+        project.approved_users.add(user)
+        DUASignature.objects.create(user=user, project=project)
+        return render(request, 'project/sign_dua_complete.html', {
+            'project':project})
+
+    return render(request, 'project/sign_dua.html', {'project':project,
+        'dua':dua})

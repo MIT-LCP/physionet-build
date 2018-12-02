@@ -88,6 +88,14 @@
   }
 },
 {
+  "model": "project.publishedaffiliation",
+  "pk": 1,
+  "fields": {
+    "name": "Massachusetts Institute of Technology",
+    "author": 1
+  }
+},
+{
   "model": "project.author",
   "pk": 1,
   "fields": {
@@ -180,6 +188,23 @@
     ],
     "object_id": 4,
     "corresponding_email": 2
+  }
+},
+{
+  "model": "project.publishedauthor",
+  "pk": 1,
+  "fields": {
+    "user": [
+      "rgmark"
+    ],
+    "display_order": 1,
+    "is_submitting": true,
+    "is_corresponding": true,
+    "approval_datetime": "2018-11-14T21:11:11.781Z",
+    "first_name": "Roger",
+    "middle_names": "Greenwood",
+    "last_name": "Mark",
+    "project": 1
   }
 },
 {
@@ -291,6 +316,36 @@
   }
 },
 {
+  "model": "project.publishedtopic",
+  "pk": 1,
+  "fields": {
+    "description": "telemedicine",
+    "projects": [
+      1
+    ]
+  }
+},
+{
+  "model": "project.publishedtopic",
+  "pk": 2,
+  "fields": {
+    "description": "intensive care unit",
+    "projects": [
+      1
+    ]
+  }
+},
+{
+  "model": "project.publishedtopic",
+  "pk": 3,
+  "fields": {
+    "description": "critical care",
+    "projects": [
+      1
+    ]
+  }
+},
+{
   "model": "project.reference",
   "pk": 1,
   "fields": {
@@ -351,6 +406,32 @@
   }
 },
 {
+  "model": "project.publishedreference",
+  "pk": 1,
+  "fields": {
+    "description": "https://eicu-crd.mit.edu/eicutables/admissiondrug/",
+    "project": 1
+  }
+},
+{
+  "model": "project.publishedreference",
+  "pk": 2,
+  "fields": {
+    "description": "https://eicu-crd.mit.edu/eicutables/apachepatientresult/",
+    "project": 1
+  }
+},
+{
+  "model": "project.contact",
+  "pk": 1,
+  "fields": {
+    "name": "Roger Greenwood Mark",
+    "affiliations": "Massachusetts Institute of Technology",
+    "email": "rgmark@mit.edu",
+    "project": 1
+  }
+},
+{
   "model": "project.publication",
   "pk": 1,
   "fields": {
@@ -377,10 +458,28 @@
   }
 },
 {
+  "model": "project.publishedpublication",
+  "pk": 1,
+  "fields": {
+    "citation": "Goldberger AL, Amaral LAN, Glass L, Hausdorff JM, Ivanov PCh, Mark RG, Mietus JE, Moody GB, Peng C-K, Stanley HE. PhysioBank, PhysioToolkit, and PhysioNet: Components of a New Research Resource for Complex Physiologic Signals. Circulation 101(23):e21",
+    "url": "https://www.ncbi.nlm.nih.gov/pubmed/10851218",
+    "project": 1
+  }
+},
+{
   "model": "project.coreproject",
   "pk": "2e780890-644d-4166-b0ca-e3d31596405b",
   "fields": {
     "creation_datetime": "2017-10-30T14:30:30Z",
+    "doi": "",
+    "storage_allowance": 104857600
+  }
+},
+{
+  "model": "project.coreproject",
+  "pk": "66951d55-e473-4a98-a24f-4fad05ed967b",
+  "fields": {
+    "creation_datetime": "2018-11-14T20:20:39.927Z",
     "doi": "",
     "storage_allowance": 104857600
   }
@@ -462,7 +561,7 @@
     "content_description": "<p><strong>Patient characteristics</strong></p>\r\n\r\n<p>MIMIC-III contains data associated with 53,423 distinct hospital admissions for adult patients (aged 16 years or above) admitted to critical care units between 2001 and 2012. In addition, it contains data for 7870 neonates admitted between 2001 and 2008. The data covers 38,597 distinct adult patients and 49,785 hospital admissions. The median age of adult patients is 65.8 years (Q1&ndash;Q3: 52.8&ndash;77.8), 55.9% patients are male, and in-hospital mortality is 11.5%. The median length of an ICU stay is 2.1 days (Q1&ndash;Q3: 1.2&ndash;4.6) and the median length of a hospital stay is 6.9 days (Q1-Q3: 4.1&ndash;11.9). A mean of 4579 charted observations (&rsquo;chartevents&rsquo;) and 380 laboratory measurements (&rsquo;labevents&rsquo;) are available for each hospital admission. Table 1 provides a breakdown of the adult population by care unit.</p>\r\n\r\n<p><strong>Details of the MIMIC-III patient population by first critical care unit on hospital admission for patients aged 16 years and above.</strong></p>\r\n\r\n<p>The primary International Classification of Diseases (ICD-9) codes from the patient discharges are listed in Table 2. The top three codes across hospital admissions for patients aged 16 years and above were:</p>\r\n\r\n<p><strong>Distribution of primary International Classification of Diseases, 9th Edition (ICD-9) codes by care unit for patients aged 16 years and above.</strong></p>\r\n\r\n<ul>\r\n\t<li>\r\n\t<p>414.01 (&lsquo;Coronary atherosclerosis of native coronary artery&rsquo;), accounting for 7.1% of all hospital admissions;</p>\r\n\t</li>\r\n\t<li>\r\n\t<p>038.9 (&lsquo;Unspecified septicemia&rsquo;), accounting for 4.2% of all hospital admissions; and</p>\r\n\t</li>\r\n\t<li>\r\n\t<p>410.71 (&lsquo;Subendocardial infarction, initial episode of care&rsquo;), accounting for 3.6% of all hospital admissions.</p>\r\n\t</li>\r\n</ul>\r\n\r\n<p>Classes of data</p>\r\n\r\n<p>Data available in the MIMIC-III database ranges from time-stamped, nurse-verified physiological measurements made at the bedside to free-text interpretations of imaging studies provided by the radiology department. Table 3 gives an overview of the different classes of data available. Figure 2 shows sample data for a single patient stay in a medical intensive care unit. The patient, who was undergoing a course of chemotherapy at the time of admission, presented with febrile neutropenia, anemia, and thrombocytopenia.</p>\r\n\r\n<p>GCS is Glasgow Coma Scale; NIBP is non-invasive blood pressure; and O2 saturation is blood oxygen saturation.</p>",
     "usage_notes": "",
     "installation": "",
-    "subject_identifiers": "",
+    "subject_identifiers": "<p>All deidentified</p>",
     "acknowledgements": "<p>This research and development was supported by grants NIH-R01-EB017205, NIH-R01-EB001659, and NIH-R01-GM104987 from the National Institutes of Health. The authors would also like to thank Philips Healthcare and staff at the Beth Israel Deaconess Medical Center, Boston, for supporting database development, and Ken Pierce for providing Fig. 1.</p>",
     "conflicts_of_interest": "<p>The authors declare no conflicts of interest.</p>",
     "version": "1.3.0",
@@ -565,6 +664,50 @@
     "modified_datetime": "2018-07-23T22:03:10.736Z",
     "submission_status": 0,
     "programming_languages": []
+  }
+},
+{
+  "model": "project.publishedproject",
+  "pk": 1,
+  "fields": {
+    "resource_type": 0,
+    "title": "eICU Collaborative Research Database",
+    "abstract": "<p>The eICU Collaborative Research Database is a large multi-center critical care database made available by Philips Healthcare in partnership with the MIT Laboratory for Computational Physiology.</p>",
+    "background": "<p>The <a href=\"http://www.usa.philips.com/healthcare/product/HCNOCTN503/eicu-program-telehealth-for-the-intensive-care-unit\">Philips eICU program</a> is a transformational critical care telehealth program that delivers need-to-know information to caregivers, empowering them to care for the patients. It is a supplement &mdash; not a replacement &mdash; to the bedside team, and the data utilized by the remote care givers is archived for research purposes.</p>\r\n\r\n<p>Through this work, we have generated a large database which has potential for facilitating additional research initiatives on patient outcomes, trends, and other best practice protocols in use today at most healthcare facilities. The Philips eICU Research Institute (eRI), which maintains the data, has generously contributed the eICU Collaborative Research Database described here.</p>",
+    "methods": "<p>The eICU Collaborative Research Database is populated with data from a combination of many critical care units throughout the continental United States. The data in the collaborative database covers patients who were admitted to critical care units in 2014 and 2015.</p>",
+    "content_description": "<p>Identifiers are used across the database to identify unique concepts such as patients, hospitals, ICU stays, and so on. These identifiers include:</p>\r\n\r\n<ul>\r\n\t<li>hospitalid - which uniquely identifies each hospital in the database.</li>\r\n\t<li>uniquepid - uniquely identifies patients (i.e. it is always the same value for the same person)</li>\r\n\t<li>patienthealthsystemsstayid - uniquely identifies hospitals stays</li>\r\n\t<li>patientunitstayid - uniquely identifies unit stays (usually the unit is an ICU within a hospital)</li>\r\n</ul>\r\n\r\n<p>Almost all tables use patientunitstayid as the primary identifier.</p>",
+    "usage_notes": "<p>Data from each patient is collected into a common warehouse only if certain &ldquo;interfaces&rdquo; are available. Each interface is used to transform and load a certain type of data: vital sign interfaces incorporate vital signs, laboratory interfaces provide measurements on blood samples, and so on. It is important to be aware that different care units may have different interfaces in place, and that the lack of an interface will result in no data being available for a given patient, even if those measurements were made in reality.</p>\r\n\r\n<p><strong>Inputs and Outputs</strong></p>\r\n\r\n<ul>\r\n\t<li>The medication table is essentially an interface to pharmacy data - i.e. prescribed medications.</li>\r\n\t<li>The intakeoutput and infusiondrug tables should be used for fluids and drugs, respectively. It is a challenge to decide whether a hospital is actually collecting and archiving data in the infusiondrug table.</li>\r\n</ul>\r\n\r\n<p><strong>Laboratory tests</strong></p>\r\n\r\n<ul>\r\n\t<li>The lab table is populated by ~160 &ldquo;standard&rdquo; laboratory measurements. When a hospital first participates in the eICU program, they must map these values to their local system. As a result, most common labs are well harmonized in this table. However, it is possible for the lab interface to be down and for standard labs to be recorded in the customlab table (e.g. during software upgrades). These downtimes are in principle rare, but an empirical study on how frequently this occurs is yet to be undertaken.</li>\r\n</ul>",
+    "installation": "",
+    "subject_identifiers": "<p>Identifiers are used across the database to identify unique concepts such as patients, hospitals, ICU stays, and so on. These identifiers include:</p>\r\n\r\n<ul>\r\n\t<li>hospitalid - which uniquely identifies each hospital in the database.</li>\r\n\t<li>uniquepid - uniquely identifies patients (i.e. it is always the same value for the same person)</li>\r\n\t<li>patienthealthsystemsstayid - uniquely identifies hospitals stays</li>\r\n\t<li>patientunitstayid - uniquely identifies unit stays (usually the unit is an ICU within a hospital)</li>\r\n</ul>\r\n\r\n<p>Almost all tables use patientunitstayid as the primary identifier.</p>",
+    "acknowledgements": "<p>The eICU Collaborative Research Database is made available largely through the work of Philips Healthcare and collaborators at MIT Laboratory for Computational Physiology. If you use the data, code or algorithms, please provide a citation to this project.</p>",
+    "conflicts_of_interest": "<p>None</p>",
+    "version": "2.0.0",
+    "changelog_summary": "",
+    "access_policy": 2,
+    "license": 1,
+    "data_use_agreement": 1,
+    "project_home_page": "https://eicu-crd.mit.edu/",
+    "slug": "3Yd8AnIWSd2jmgAErXUZ",
+    "core_project": "66951d55-e473-4a98-a24f-4fad05ed967b",
+    "creation_datetime": "2018-11-14T21:11:17.040Z",
+    "version_order": 0,
+    "editor": [
+      "admin"
+    ],
+    "submission_datetime": "2018-11-14T21:09:38.666Z",
+    "editor_assignment_datetime": "2018-11-14T21:09:54.565Z",
+    "revision_request_datetime": "2018-11-14T21:10:19.855Z",
+    "resubmission_datetime": "2018-11-14T21:10:24.665Z",
+    "editor_accept_datetime": "2018-11-14T21:10:49.361Z",
+    "copyedit_completion_datetime": "2018-11-14T21:11:00.997Z",
+    "author_approval_datetime": "2018-11-14T21:11:11.781Z",
+    "storage_size": 81,
+    "publish_datetime": "2018-11-14T21:11:17.040Z",
+    "is_newest_version": true,
+    "newest_version": null,
+    "doi": "",
+    "programming_languages": [],
+    "approved_users": []
   }
 },
 {
@@ -747,7 +890,8 @@
     "name": "PhysioNet Clinical Database Restricted Data Use Agreement",
     "slug": "physionet-clinical-database-restricted-data-use-agreement",
     "description": "<ol>\r\n\t<li>I will not attempt to identify any individual or institution referenced in PhysioNet restricted data.</li>\r\n\t<li>I will exercise all reasonable and prudent care to avoid disclosure of the identity of any individual or institution referenced in PhysioNet restricted data in any publication or other communication.</li>\r\n\t<li>I will not share access to PhysioNet restricted data with anyone else.</li>\r\n\t<li>I will exercise all reasonable and prudent care to maintain the physical and electronic security of PhysioNet restricted data.</li>\r\n\t<li>If I find information within PhysioNet restricted data that I believe might permit identification of any individual or institution, I will report the location of this information promptly by email to <a href=\"mailto:PHI-report@physionet.org\">PHI-report@physionet.org</a>, citing the location of the specific information in question so that it can be investigated and removed if necessary.</li>\r\n\t<li>I have requested access to PhysioNet restricted data for the sole purpose of lawful use in scientific research, and I will use my privilege of access, if it is granted, for this purpose and no other.</li>\r\n\t<li>I have completed a training program in human research subject protections and HIPAA regulations, and I am submitting proof of having done so.</li>\r\n\t<li>I will indicate the general purpose for which I intend to use the database in my application.</li>\r\n\t<li>If I openly disseminate my results, I will also contribute the code used to produce those results to a repository that is open to the research community.</li>\r\n\t<li>This agreement may be terminated by either party at any time, but my obligations with respect to restricted data from PhysioNet shall continue after termination.</li>\r\n</ol>",
-    "creation_datetime": "2018-06-27T17:52:03.517Z"
+    "creation_datetime": "2018-06-27T17:52:03.517Z",
+    "version": "1.0.0"
   }
 },
 {
@@ -792,6 +936,68 @@
     "request_allowance": 80,
     "responder": null,
     "response_message": ""
+  }
+},
+{
+  "model": "project.editlog",
+  "pk": 1,
+  "fields": {
+    "content_type": [
+      "project",
+      "publishedproject"
+    ],
+    "object_id": 1,
+    "submission_datetime": "2018-11-14T21:09:38.681Z",
+    "is_resubmission": false,
+    "soundly_produced": true,
+    "well_described": true,
+    "open_format": true,
+    "data_machine_readable": true,
+    "reusable": false,
+    "no_phi": true,
+    "pn_suitable": true,
+    "decision": 1,
+    "decision_datetime": "2018-11-14T21:10:19.855Z",
+    "editor_comments": "You missed some data files. Please upload them all."
+  }
+},
+{
+  "model": "project.editlog",
+  "pk": 2,
+  "fields": {
+    "content_type": [
+      "project",
+      "publishedproject"
+    ],
+    "object_id": 1,
+    "submission_datetime": "2018-11-14T21:10:24.680Z",
+    "is_resubmission": true,
+    "soundly_produced": true,
+    "well_described": true,
+    "open_format": true,
+    "data_machine_readable": true,
+    "reusable": true,
+    "no_phi": true,
+    "pn_suitable": true,
+    "decision": 2,
+    "decision_datetime": "2018-11-14T21:10:49.361Z",
+    "editor_comments": "Looks great. Thanks for your contribution."
+  }
+},
+{
+  "model": "project.copyeditlog",
+  "pk": 1,
+  "fields": {
+    "content_type": [
+      "project",
+      "publishedproject"
+    ],
+    "object_id": 1,
+    "start_datetime": "2018-11-14T21:10:49.367Z",
+    "is_reedit": false,
+    "made_changes": true,
+    "changelog_summary": "Fixed typos in the metadata.",
+    "complete_datetime": "2018-11-14T21:11:00.997Z"
   }
 }
 ]

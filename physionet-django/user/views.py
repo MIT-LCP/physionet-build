@@ -348,6 +348,7 @@ def edit_credentialing(request):
         'current_application':current_application})
 
 
+@login_required
 def user_credential_applications(request):
     """
     All the credential applications made by a user

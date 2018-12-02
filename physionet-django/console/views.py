@@ -149,7 +149,7 @@ def edit_submission(request, project_slug, *args, **kwargs):
 
     # The user must be the editor
     if project.submission_status not in [20, 30]:
-        return Http404()
+        return redirect('editor_home')
 
     if request.method == 'POST':
         edit_submission_form = forms.EditSubmissionForm(
@@ -190,8 +190,9 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
     Page to copyedit the submission
     """
     project = kwargs['project']
+
     if project.submission_status != 40:
-        return Http404()
+        return redirect('editor_home')
 
     copyedit_log = project.copyedit_logs.get(complete_datetime=None)
 
@@ -211,7 +212,8 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
 
     description_form = project_forms.MetadataForm(
         resource_type=project.resource_type, instance=project)
-    access_form = project_forms.AccessMetadataForm(instance=project)
+    access_form = project_forms.AccessMetadataForm(include_protected=True,
+        instance=project)
     reference_formset = ReferenceFormSet(instance=project)
     publication_formset = PublicationFormSet(instance=project)
     topic_formset = TopicFormSet(instance=project)
@@ -223,8 +225,8 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
             description_form = project_forms.MetadataForm(
                 resource_type=project.resource_type, data=request.POST,
                 instance=project)
-            access_form = project_forms.AccessMetadataForm(data=request.POST,
-                instance=project)
+            access_form = project_forms.AccessMetadataForm(
+                include_protected=True,data=request.POST, instance=project)
             reference_formset = ReferenceFormSet(data=request.POST,
                 instance=project)
             publication_formset = PublicationFormSet(request.POST,
@@ -305,16 +307,18 @@ def awaiting_authors(request, project_slug, *args, **kwargs):
     """
     project = kwargs['project']
 
+    if project.submission_status != 50:
+        return redirect('editor_home')
+
     authors, author_emails, storage_info, edit_logs, copyedit_logs = project.info_card()
     outstanding_emails = ';'.join([a.user.email for a in authors.filter(
         approval_datetime=None)])
 
     if request.method == 'POST' and 'reopen_copyedit' in request.POST:
-        if project.submission_status == 50:
-            project.reopen_copyedit()
-            notification.reopen_copyedit_notify(request, project)
-            return render(request, 'console/reopen_copyedit_complete.html',
-                {'project':project})
+        project.reopen_copyedit()
+        notification.reopen_copyedit_notify(request, project)
+        return render(request, 'console/reopen_copyedit_complete.html',
+            {'project':project})
 
     return render(request, 'console/awaiting_authors.html',
         {'project':project, 'authors':authors,
@@ -329,6 +333,10 @@ def publish_submission(request, project_slug, *args, **kwargs):
     Page to publish the submission
     """
     project = kwargs['project']
+
+    if project.submission_status != 60:
+        return redirect('editor_home')
+
     authors, author_emails, storage_info, edit_logs, copyedit_logs = project.info_card()
     if request.method == 'POST':
         if project.is_publishable():

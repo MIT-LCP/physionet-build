@@ -1,3 +1,4 @@
+import hashlib
 import os
 import shutil
 import uuid
@@ -14,7 +15,7 @@ from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.text import slugify
 
-from .utility import get_tree_size, get_file_info, get_directory_info, list_items, get_storage_info
+from .utility import get_tree_size, get_file_info, get_directory_info, list_items, get_storage_info, get_tree_files, list_files
 from user.validators import validate_alphaplus
 
 
@@ -270,10 +271,6 @@ class Metadata(models.Model):
         (2, 'Credentialed'),
     )
 
-    # Fields which can be directly transferred between all types of
-    # projects
-    DIRECT_FIELDS = ()
-
     resource_type = models.PositiveSmallIntegerField(choices=RESOURCE_TYPES)
     # Main body descriptive metadata
     title = models.CharField(max_length=200, validators=[validate_alphaplus])
@@ -427,9 +424,11 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
     REQUIRED_FIELDS = (
         ('title', 'abstract', 'background', 'methods', 'content_description',
-         'conflicts_of_interest', 'subject_identifiers', 'version', 'license'),
+         'usage_notes', 'conflicts_of_interest', 'subject_identifiers',
+         'version', 'license'),
         ('title', 'abstract', 'background', 'methods', 'content_description',
-         'installation', 'conflicts_of_interest', 'version', 'license')
+         'usage_notes', 'installation', 'conflicts_of_interest', 'version',
+         'license')
     )
 
     def storage_used(self):
@@ -783,17 +782,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 affiliations=';'.join(a.name for a in affiliations),
                 email=author.corresponding_email, project=published_project)
 
-        # Non-open access policy
-        # if self.access_policy:
-        #     access_system = AccessSystem.objects.create(
-        #         name=published_project.__str__(),
-        #         license=self.license,
-        #         data_use_agreement=self.data_use_agreement,
-        #         requires_credentialed=bool(self.access_policy-1)
-        #         )
-        #     published_project.access_system = access_system
-        #     published_project.save()
-
         # Move the edit and copyedit logs
         for edit_log in self.edit_logs.all():
             edit_log.project = published_project
@@ -804,22 +792,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
         # Create file root
         os.mkdir(published_project.file_root())
-        # Move over files
+        # Move over main files
         os.rename(self.file_root(), published_project.main_file_root())
-        # Create zip
-        if make_zip:
-            # The zip name is made from the title and the version
-            # Rename the 'files' directory temporarily for the zip file
-            zip_name = published_project.zip_file(include_extension=False,
-                full_path=True)
-            os.rename(published_project.main_file_root(), zip_name)
-            shutil.make_archive(
-                base_name=zip_name, format='zip',
-                root_dir=published_project.file_root(),
-                base_dir=published_project.slugged_label())
-            # Change the directory name back to 'files'
-            os.rename(zip_name, published_project.main_file_root())
-
+        # Create special files
+        published_project.make_special_files(make_zip=make_zip)
         # Remove the ActiveProject
         self.delete()
 
@@ -838,6 +814,7 @@ class PublishedProject(Metadata, SubmissionInfo):
     newest_version = models.ForeignKey('project.PublishedProject', null=True,
                                        related_name='older_versions')
     doi = models.CharField(max_length=50, default='')
+    approved_users = models.ManyToManyField('user.User', db_index=True)
 
     # Where all the published project files are kept, depending on access.
     PROTECTED_FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'published-projects')
@@ -846,6 +823,11 @@ class PublishedProject(Metadata, SubmissionInfo):
         PUBLIC_FILE_ROOT = os.path.join(settings.STATICFILES_DIRS[0], 'published-projects')
     else:
         PUBLIC_FILE_ROOT = os.path.join(settings.STATIC_ROOT, 'published-projects')
+
+    SPECIAL_FILES = {
+        'FILES':'List of main files',
+        'SHA256SUMS':'Checksums of main files'
+    }
 
     class Meta:
         unique_together = (('core_project', 'version'),)
@@ -868,8 +850,8 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         Root directory containing the published project's files.
 
-        This is the parent directory of the main files, and also
-        contains the zip and checksum of the main files.
+        This is the parent directory of the main and special file
+        directories.
         """
         if self.access_policy:
             return os.path.join(PublishedProject.PROTECTED_FILE_ROOT, self.slug)
@@ -878,7 +860,11 @@ class PublishedProject(Metadata, SubmissionInfo):
 
     def main_file_root(self):
         "Root directory where the main user uploaded files are located"
-        return os.path.join(self.file_root(), 'files')
+        return os.path.join(self.file_root(), 'main-files')
+
+    def special_file_root(self):
+        "Root directory where the special files are located"
+        return os.path.join(self.file_root(), 'special-files')
 
     def slugged_label(self):
         """
@@ -887,37 +873,64 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         return '-'.join((slugify(self.title), self.version.replace(' ', '-')))
 
-    def zip_file(self, include_extension=True, full_path=False):
+    def make_zip(self):
         """
-        Name of the zip of the project's files.
-        With or without .zip extension and full path.
+        Make a zip file of the main and special files.
+        Move to the special file root.
         """
-        file_name = self.slugged_label()
+        os.chdir(self.file_root())
 
-        if include_extension:
-            file_name = '.'.join(file_name, 'zip')
-        if full_path:
-            file_name = os.path.join(self.file_root(), file_name)
-        return file_name
+        file = shutil.make_archive(
+            base_name=os.path.join('..', self.slugged_label()),
+            format='zip')
+        os.rename(file, os.path.join(self.special_file_root(), self.slugged_label() + '.zip'))
 
-    def get_directory_content(self, subdir=''):
+    def make_files_list(self):
+        "Make a files list of the main files. Write to project file root"
+        files = get_tree_files(self.main_file_root(), full_path=False)
+        with open(os.path.join(self.special_file_root(), 'FILES'), 'w') as outfile:
+            for f in files:
+                outfile.write(f + '\n')
+
+    def make_checksum_file(self):
+        "Make the checksums file for the main files"
+        files = get_tree_files(self.main_file_root(), full_path=False)
+        with open(os.path.join(self.special_file_root(), 'SHA256SUMS'), 'w') as outfile:
+            for f in files:
+                outfile.write('{} {}\n'.format(
+                    hashlib.sha256(open(os.path.join(self.main_file_root(), f), 'rb').read()).hexdigest(), f))
+
+    def make_special_files(self, make_zip):
         """
-        Return information for displaying file and directories
+        Make the special files for the database. zip file, files list,
+        checksum. Make the base directory for the special files if needed
         """
-        inspect_dir = os.path.join(self.file_root(), subdir)
+        if not os.path.isdir(self.special_file_root()):
+            os.mkdir(self.special_file_root())
+        self.make_files_list()
+        self.make_checksum_file()
+        # This should come last
+        if make_zip:
+            self.make_zip()
+
+
+    def get_main_directory_content(self, subdir=''):
+        """
+        Return information for displaying files and directories from
+        the main file root
+        """
+        inspect_dir = os.path.join(self.main_file_root(), subdir)
         file_names , dir_names = list_items(inspect_dir)
 
         display_files, display_dirs = [], []
-
         # Files require desciptive info and download links
         for file in file_names:
             file_info = get_file_info(os.path.join(inspect_dir, file))
             if self.access_policy:
-                file_info.full_file_name = os.path.join(subdir, file)
+                file_info.full_file_name = os.path.join('main-files', subdir, file)
             else:
-                file_info.static_url = os.path.join('published-projects', str(self.slug), subdir, file)
+                file_info.static_url = os.path.join('published-projects', str(self.slug), 'main-files', subdir, file)
             display_files.append(file_info)
-
         # Directories require
         for dir_name in dir_names:
             dir_info = get_directory_info(os.path.join(inspect_dir, dir_name))
@@ -926,6 +939,44 @@ class PublishedProject(Metadata, SubmissionInfo):
 
         return display_files, display_dirs
 
+    def get_special_directory_content(self):
+        """
+        Return information for displaying files from the special file root
+        """
+        inspect_dir = self.special_file_root()
+
+        file_names = list_files(inspect_dir)
+
+        display_files = []
+
+        # Files require desciptive info and download links
+        for file in file_names:
+            file_info = get_file_info(os.path.join(inspect_dir, file))
+            if self.access_policy:
+                file_info.full_file_name = os.path.join('special-files', file)
+            else:
+                file_info.static_url = os.path.join('published-projects', str(self.slug), 'special-files', file)
+            # Add the description for the special files
+            if file.endswith('zip'):
+                file_info.description = 'All files zipped'
+            else:
+                file_info.description = PublishedProject.SPECIAL_FILES[file]
+
+            display_files.append(file_info)
+
+        return display_files
+
+    def has_access(self, user):
+        """
+        Whether the user has access to this project
+        """
+        if self.access_policy:
+            if self.approved_users.filter(id=user.id):
+                return True
+            else:
+                return False
+        else:
+            return True
 
 def exists_project_slug(slug):
     if (ActiveProject.objects.filter(slug=slug)
@@ -965,10 +1016,17 @@ class DataUseAgreement(models.Model):
     creation_datetime = models.DateTimeField(auto_now_add=True)
     version = models.CharField(max_length=20)
 
-    signed_users = models.ManyToManyField('user.User', related_name='signed_duas')
-
     def __str__(self):
         return ' v '.join([self.name, self.version])
+
+
+class DUASignature(models.Model):
+    """
+    Log of user signing DUA
+    """
+    project = models.ForeignKey('project.PublishedProject')
+    user = models.ForeignKey('user.User')
+    sign_datetime = models.DateTimeField(auto_now_add=True)
 
 
 class BaseInvitation(models.Model):

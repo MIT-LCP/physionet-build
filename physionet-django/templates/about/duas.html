@@ -6,28 +6,22 @@
 Data Use Agreements
 {% endblock %}
 
-
-{% block local_css %}
-{% endblock %}
-
-
 {% block content %}
 <div class="container">
-    <h1 class="text-center">Data Use Agreements</h1>
-    <hr>
-    <p>These are the available data use agreements (DUAs) for
-      <a href="{% url 'author_guidelines' %}">publishing content</a> on
-      PhysioNet. We encourage the publication of open-access projects, which do
-      not require DUAs.</p>
-    <br>
+  <h1 class="text-center">Data Use Agreements</h1>
+  <hr>
+  <p>These are the available data use agreements (DUAs) for
+    <a href="{% url 'author_guidelines' %}">publishing content</a> on
+    PhysioNet. We encourage the publication of open-access projects, which do
+    not require DUAs.</p>
+  <br>
 
-    {% for dua in duas %}
-      <p><strong>{{ dua.name }}</strong></p>
-      <ul>
-        <li><a href="{% url 'dua_content' dua.slug %}">Full content</a></li>
-      </ul>
-    {% endfor %}
-
-    <br>
+  {% for dua in duas %}
+    <p><strong>{{ dua }}</strong></p>
+    <ul>
+      <li><a href="{% url 'dua_content' dua.slug %}">Full content</a></li>
+    </ul>
+  {% endfor %}
+  <br>
 </div>
 {% endblock %}

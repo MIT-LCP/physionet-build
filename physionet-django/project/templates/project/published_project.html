@@ -1,23 +1,30 @@
 {% extends "base.html" %}
 
-{% block title %}{{ published_project }}{% endblock %}
+{% block title %}{{ project }}{% endblock %}
 
 {% load static %}
 
 {% load project_templatetags %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'project/css/contents.css' %}"/>
+{% endblock %}
 
 {% block local_js_top %}
 <script type="text/javascript" src="{% static 'custom/js/cookie.js' %}"></script>
 {% endblock %}
 
 {% block content %}
+<div class="contents">
+
+</div>
 
 <div class="container">
   <p>
-    {{ published_project.resource_type|resource_badge|safe }}
-    {{ published_project.access_policy|access_badge|safe }}
+    {{ project.resource_type|resource_badge|safe }}
+    {{ project.access_policy|access_badge|safe }}
   </p>
-  <h1 class="form-signin-heading">{{ published_project.title }}</h1>
+  <h1 class="form-signin-heading">{{ project.title }}</h1>
   <p>
     <strong>Authors:
     {% for author in authors %}
@@ -26,13 +33,40 @@
     {% endfor %}
     </strong>
   </p>
-  <p>Published: {{ published_project.publish_datetime|date }}. Version: {{ published_project.version }}</p>
-  <hr>
 
+  Published: {{ project.publish_datetime|date }}. Version: {{ project.version }}
+
+  <button class="btn btn-secondary dropdown-toggle" style="float:right" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    Contents
+  </button>
+  <div class="dropdown-menu">
+    <a class="dropdown-item" href="#abstract">Abstract</a>
+    <a class="dropdown-item" href="#background">Background</a>
+    <a class="dropdown-item" href="#methods">Methods</a>
+    <a class="dropdown-item" href="#description">Description</a>
+    <a class="dropdown-item" href="#usage-notes">Usage Notes</a>
+    {% if project.installation %}
+      <a class="dropdown-item" href="#installation">Installation</a>
+    {% endif %}
+    {% if project.subject_identifiers %}
+      <a class="dropdown-item" href="#subject-identifiers">Subject Identifiers</a>
+    {% endif %}
+    {% if project.acknowledgments %}
+      <a class="dropdown-item" href="#acknowledgments">Acknowledgments</a>
+    {% endif %}
+    <a class="dropdown-item" href="#conflicts-of-interest">Conflicts of Interest</a>
+    {% if references %}
+      <a class="dropdown-item" href="#references">References</a>
+    {% endif %}
+    <div class="dropdown-divider"></div>
+    <a class="dropdown-item" href="#files">Files</a>
+  </div>
+
+  <hr>
   <div class="row">
     <!-- Main column -->
     <div class="col-md-8">
-      {% if published_project.resource_type == 0 %}
+      {% if project.resource_type == 0 %}
         {% include "project/database_metadata.html" %}
       {% else %}
         {% include "project/software_metadata.html" %}
@@ -48,18 +82,18 @@
           <p>
             <strong>Access Policy:</strong>
             <br>
-            {{ published_project.access_policy|access_badge|safe}} {{ published_project.access_policy|access_description }}
+            {{ project.access_policy|access_badge|safe}} {{ project.access_policy|access_description }}
           </p>
           <p>
             <strong>License (for files):</strong>
             <br>
-            <a href="{% url 'license_content' published_project.license.slug %}" target="_blank">{{ published_project.license }}</a>
+            <a href="{% url 'license_content' project.license.slug %}" target="_blank">{{ project.license }}</a>
           </p>
-          {% if published_project.data_use_agreement %}
+          {% if project.data_use_agreement %}
             <p>
               <strong>Data Use Agreement:</strong>
               <br>
-              <a href="{% url 'dua_content' published_project.data_use_agreement.slug %}" target="_blank">{{ published_project.data_use_agreement.name }}</a>
+              <a href="{% url 'dua_content' project.data_use_agreement.slug %}" target="_blank">{{ project.data_use_agreement.name }}</a>
             </p>
           {% endif %}
         </div>
@@ -68,10 +102,10 @@
       <div class="card my-4">
         <h5 class="card-header">Identifiers</h5>
         <div class="card-body">
-          {% if published_project.doi_assigned %}
+          {% if project.doi_assigned %}
           <p><strong>DOI:</strong>
             <br>
-            <span class="badge badge-info">{{ published_project.doi }}</span>
+            <span class="badge badge-info">{{ project.doi }}</span>
           </p>
           {% endif %}
           {% if publications %}
@@ -101,10 +135,10 @@
             </p>
           {% endif %}
 
-          {% if published_project.project_home_page %}
+          {% if project.project_home_page %}
             <p><strong>Project Home Page:</strong>
               <br>
-              <a href="{{ published_project.project_home_page }}" target="_blank"><i class="fas fa-external-link-alt"></i> {{ published_project.project_home_page }}</a>
+              <a href="{{ project.project_home_page }}" target="_blank"><i class="fas fa-external-link-alt"></i> {{ project.project_home_page }}</a>
             </p>
           {% endif %}
         </div>
@@ -127,14 +161,32 @@
     </div>
     <!-- /.sidebar -->
   </div>
-  <h2>Files</h2>
-  {% if published_project.access_policy %}
-    {% include "project/protected_files_panel.html" %}
+  <h2 id="files">Files</h2>
+  <br>
+  {% if project.access_policy %}
+    {% if has_access %}
+      <h3>Special Files</h3>
+      {% include "project/protected_special_files_panel.html" %}
+      <br>
+      <h3>Main Files</h3>
+      <div id="files-panel" class="card">
+        {% include "project/protected_files_panel.html" %}
+      </div>
+    {% else %}
+    <div class="alert alert-danger" role="alert">
+      This is a restricted-access resource. To access the files, you must be a <a href="{% url 'edit_credentialing' %}">credentialed user</a> and <a href="{% url 'sign_dua' project.slug %}">sign the DUA</a>.
+    </div>
+    {% endif %}
   {% else %}
-    {% include "project/open_files_panel.html" %}
+    <h3>Special Files</h3>
+    {% include "project/open_special_files_panel.html" %}
+    <br>
+    <h3>Main Files</h3>
+    <div id="files-panel" class="card">
+      {% include "project/open_files_panel.html" %}
+    </div>
   {% endif %}
   <br>
-
 </div>
 {% endblock %}
 

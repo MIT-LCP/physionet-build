@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+Sign Data Use Agreement for {{ project }}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>Sign Data Use Agreement - {{ project }}</h1>
+  <hr>
+  <p>Sign the following data use agreement to access the files in <a href="{% url 'published_project' project.slug %}">{{ project }}</a>.</p>
+  <br>
+  <h2>{{ dua }}</h2>
+  <hr>
+  {{ dua.description|safe }}
+  <hr>
+  <form method="POST">
+    {% csrf_token %}
+    <p class="text-center">
+      <button class="btn btn-lg btn-success" name="agree" type="submit">I agree</button> <a class="btn btn-lg btn-danger" href="{% url 'published_project' project.slug %}">I do not agree</a>
+    </p>
+  </form>
+
+</div>
+{% endblock %}
