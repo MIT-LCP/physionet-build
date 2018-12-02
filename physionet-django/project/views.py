@@ -608,7 +608,7 @@ def get_project_file_info(project, subdir):
     parent_dir = os.path.split(subdir)[0]
     return display_files, display_dirs, dir_breadcrumbs, parent_dir
 
-@project_auth(auth_mode=0)
+@project_auth(auth_mode=2)
 def project_files_panel(request, project_slug, **kwargs):
     """
     Return the file panel for the project, along with the forms used to

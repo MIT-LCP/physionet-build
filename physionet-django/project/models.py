@@ -793,9 +793,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         os.mkdir(published_project.file_root())
         # Move over main files
         os.rename(self.file_root(), published_project.main_file_root())
-        # Create special files
-        published_project.make_special_files(make_zip=make_zip)
-        published_project.set_storage_info()
+        # Create special files if there are files. Should always be the case.
+        if published_project.storage_used()[2]:
+            published_project.make_special_files(make_zip=make_zip)
+            published_project.set_storage_info()
         # Remove the ActiveProject
         self.delete()
 
