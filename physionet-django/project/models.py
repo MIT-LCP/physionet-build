@@ -808,7 +808,7 @@ class PublishedProject(Metadata, SubmissionInfo):
 
     """
     # File storage sizes in bytes
-    main_storage_size = models.PositiveIntegerField()
+    main_storage_size = models.PositiveIntegerField(default=0)
     special_storage_size = models.PositiveIntegerField(default=0)
     total_storage_size = models.PositiveIntegerField(default=0)
     publish_datetime = models.DateTimeField(auto_now_add=True)

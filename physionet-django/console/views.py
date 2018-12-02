@@ -337,9 +337,12 @@ def publish_submission(request, project_slug, *args, **kwargs):
         return redirect('editor_home')
 
     authors, author_emails, storage_info, edit_logs, copyedit_logs = project.info_card()
+    publish_form = forms.PublishForm()
+
     if request.method == 'POST':
-        if project.is_publishable():
-            published_project = project.publish()
+        publish_form = forms.PublishForm(data=request.POST)
+        if project.is_publishable() and publish_form.is_valid():
+            published_project = project.publish(make_zip=int(publish_form.cleaned_data['make_zip']))
             notification.publish_notify(request, published_project)
             return render(request, 'console/publish_complete.html',
                 {'published_project':published_project})
@@ -348,7 +351,8 @@ def publish_submission(request, project_slug, *args, **kwargs):
     return render(request, 'console/publish_submission.html',
         {'project':project, 'publishable':publishable, 'authors':authors,
          'author_emails':author_emails, 'storage_info':storage_info,
-         'edit_logs':edit_logs, 'copyedit_logs':copyedit_logs})
+         'edit_logs':edit_logs, 'copyedit_logs':copyedit_logs,
+         'publish_form':publish_form})
 
 
 def process_storage_response(request, storage_response_formset):

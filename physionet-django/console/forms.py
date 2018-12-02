@@ -168,6 +168,12 @@ class CopyeditForm(forms.ModelForm):
         project.save()
         return copyedit_log
 
+class PublishForm(forms.Form):
+    """
+    Form for publishing a project
+    """
+    make_zip = forms.ChoiceField(choices=YES_NO, label='Make zip of all files')
+
 
 class DOIForm(forms.ModelForm):
     """
