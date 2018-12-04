@@ -376,7 +376,7 @@ class MetadataForm(forms.ModelForm):
             'abstract': '* A brief description of the resource and the context in which the resource was created.',
             'background': '* The study background.',
             'content_description': '* Describe the files, how they are named and structured, and how they are to be used.',
-            'installation': '* Instructions on how to install the software. List any required dependencies here, or specify the file in which they are listed.',
+            'installation': '* Instructions on how to install the software. List any required dependencies, or specify the files in which they are listed.',
             'subject_identifiers': '* Describe the information present that may be used to identify individual subjects. State explicitly if there are none.',
             'acknowledgements': 'Any general acknowledgements.',
             'conflicts_of_interest': '* Conflicts of interest of any authors. State explicitly if there are none.',
