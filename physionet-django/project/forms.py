@@ -345,7 +345,7 @@ class MetadataForm(forms.ModelForm):
 
     FIELDS = (
         ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'subject_identifiers', 'acknowledgements',
+         'usage_notes', 'acknowledgements',
          'conflicts_of_interest', 'version', 'changelog_summary'),
         ('title', 'abstract', 'background', 'methods', 'content_description',
          'usage_notes', 'installation', 'acknowledgements',
@@ -361,13 +361,13 @@ class MetadataForm(forms.ModelForm):
         {'methods': '* The methodology employed for the study or research. Describe how the data was collected.',
          'usage_notes': '* How the data is to be used. List any related software developed for the dataset, and any special software required to use the data.'},
         {'methods': '* The methodology employed for the study or research.',
-         'usage_notes': '* How the software is to be used. List some example function calls.'}
+         'usage_notes': '* How the software is to be used. List some example function calls or specify the demo file(s).'}
     )
 
     class Meta:
         model = ActiveProject
         fields = ('title', 'abstract', 'background', 'methods',
-                  'content_description', 'usage_notes', 'subject_identifiers',
+                  'content_description', 'usage_notes',
                   'installation', 'acknowledgements',
                   'conflicts_of_interest', 'version', 'changelog_summary',)
 
@@ -377,7 +377,6 @@ class MetadataForm(forms.ModelForm):
             'background': '* The study background.',
             'content_description': '* Describe the files, how they are named and structured, and how they are to be used.',
             'installation': '* Instructions on how to install the software. List any required dependencies, or specify the files in which they are listed.',
-            'subject_identifiers': '* Describe the information present that may be used to identify individual subjects. State explicitly if there are none.',
             'acknowledgements': 'Any general acknowledgements.',
             'conflicts_of_interest': '* Conflicts of interest of any authors. State explicitly if there are none.',
             'version': '* The version number of the resource. <a href=https://semver.org/ target=_blank>Semantic versioning</a> is encouraged (example: 1.0.0).',

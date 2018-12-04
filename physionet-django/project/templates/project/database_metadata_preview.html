@@ -35,13 +35,6 @@
   {{ project.usage_notes|safe }}
   <hr>
 {% endif %}
-
-<h2>Subject Identifiers</h2>
-{% if project.subject_identifiers %}
-  {{ project.subject_identifiers|safe }}
-{% else %}
-  <p style="color:red"><strong>* Required field missing</strong></p>
-{% endif %}
 <hr>
 
 {% if project.acknowledgements %}

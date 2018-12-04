@@ -280,7 +280,6 @@ class Metadata(models.Model):
     content_description = RichTextField(blank=True)
     usage_notes = RichTextField(blank=True)
     installation = RichTextField(blank=True)
-    subject_identifiers = RichTextField(blank=True)
     acknowledgements = RichTextField(blank=True)
     conflicts_of_interest = RichTextField(blank=True)
     version = models.CharField(max_length=15, default='', blank=True)
@@ -462,8 +461,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
     REQUIRED_FIELDS = (
         ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'conflicts_of_interest', 'subject_identifiers',
-         'version', 'license'),
+         'usage_notes', 'conflicts_of_interest', 'version', 'license'),
         ('title', 'abstract', 'background', 'methods', 'content_description',
          'usage_notes', 'installation', 'conflicts_of_interest', 'version',
          'license')
@@ -832,7 +830,7 @@ class PublishedProject(Metadata, SubmissionInfo):
     SPECIAL_FILES = {
         'files.txt':'List of main files',
         'sha256sums.txt':'Checksums of main files',
-        'subject-info.csv':'Spreadsheet of subject information',
+        'subject-info.csv':'Subject information spreadsheet',
         'wfdb-records.txt':'List of WFDB format records',
         'wfdb-annotators.csv':'List of WFDB annotation file types'
     }
@@ -903,17 +901,23 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         return '-'.join((slugify(self.title), self.version.replace(' ', '-')))
 
+    def zip_name(self):
+        return '{}.zip'.format(self.slugged_label())
+
     def make_zip(self, update_size=False):
         """
-        Make a zip file of the main and special files.
+        Make a (new) zip file of the main and special files.
         Move to the special file root.
         """
+        if os.path.isfile(os.path.join(self.special_file_root(), self.zip_name())):
+            os.remove(os.path.join(self.special_file_root(), self.zip_name()))
+
         os.chdir(self.file_root())
 
         file = shutil.make_archive(
             base_name=os.path.join('..', self.slugged_label()),
             format='zip')
-        os.rename(file, os.path.join(self.special_file_root(), self.slugged_label() + '.zip'))
+        os.rename(file, os.path.join(self.special_file_root(), self.zip_name()))
 
         if update_size:
             self.set_storage_info(info_type='special')
