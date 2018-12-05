@@ -1,0 +1,78 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% load project_templatetags %}
+
+{% block title %}Manage Project - {{ project }}{% endblock %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'project/css/submission-timeline.css' %}">
+{% endblock %}
+
+{% block local_js_top %}
+<script type="text/javascript" src="{% static 'custom/js/copy-to-clipboard.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<h1>Manage Project - {{ project }}</h1>
+<hr>
+<div class="card mb-3">
+  <div class="card-header">
+    <ul class="nav nav-tabs card-header-tabs">
+      <li class="nav-item">
+        <a class="nav-link active" id="info-tab" data-toggle="tab" href="#info" role="tab" aria-controls="info" aria-selected="true">Project Information</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="timeline-tab" data-toggle="tab" href="#timeline" role="tab" aria-controls="timeline" aria-selected="false">Submission Timeline</a>
+      </li>
+    </ul>
+  </div>
+  <div class="card-body">
+    <div class="tab-content">
+      <div class="tab-pane fade show active" id="info" role="tabpanel" aria-labelledby="info-tab">
+        <p>{{ project.resource_type|resource_badge|safe }} {{ project.access_policy|access_badge|safe }}</p>
+        <h4 class="card-title"><a href="{% url 'published_project' project.slug %}" target="_blank">{{ project.title }}</a></h4>
+        <p class="card-text">
+          Authors: {% for author in authors %}{{ author|show_all_author_info|safe }} {% endfor %}<br>
+          Created: {{ project.creation_datetime|date }}. Submitted: {{ project.submission_datetime|date }}. Published: {{ project.publish_datetime|date }}<br>
+          Storage Used: {{ storage_info.readable_main_used }} main files, {{ storage_info.readable_special_used }} special files, {{ storage_info.readable_used }} total, {{ storage_info.readable_allowance }} allowance.<br>
+          Version: {{ project.version }}
+        </p>
+        <p>
+          <button class="btn btn-primary" onclick="copyToClipboard('{{ author_emails }}')">Copy Author Emails</button>
+        </p>
+      </div>
+      <div class="tab-pane fade" id="timeline" role="tabpanel" aria-labelledby="timeline-tab">
+        {% include "project/static_submission_timeline.html" %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-header">
+    Manage Content
+  </div>
+  <div class="card-body">
+    <form action="" method="post">
+      {% csrf_token %}
+      {% include "form_snippet.html" with form=doi_form %}
+      <button class="btn btn-primary btn-fixed" name="set_doi" type="submit">Set DOI</button>
+    </form>
+    <br>
+    <h2>Special Files</h2>
+    <hr>
+    <form action="" method="post">
+      {% csrf_token %}
+      <button class="btn btn-primary btn-fixed" name="make_files_list" type="submit">Make Files List</button>
+      <button class="btn btn-primary btn-fixed" name="make_checksum_file" type="submit">Make Checksum File</button>
+      <button class="btn btn-primary btn-fixed" name="make_zip" type="submit">Make Zip</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block local_js_bottom %}
+<script type="text/javascript" src="{% static 'custom/js/enable-popover.js' %}"></script>
+{% endblock %}
