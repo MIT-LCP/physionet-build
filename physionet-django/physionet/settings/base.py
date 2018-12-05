@@ -128,7 +128,7 @@ USE_L10N = True
 USE_TZ = True
 
 DEFAULT_FROM_EMAIL = 'PhysioNet Webmaster <webmaster@dev.physionet.org>'
-
+CONTACT_EMAIL = 'PhysioNet Contact <contact@dev.physionet.org>'
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 

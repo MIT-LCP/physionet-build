@@ -9,18 +9,6 @@ p {
   line-height: 1.75;
 }
 
-/*a {
-  color: #fed136;
-}*/
-
-a:hover {
-  color: #fec503;
-}
-
-/*.text-primary {
-  color: #fed136 !important;
-}*/
-
 h1,
 h2,
 h3,
@@ -64,17 +52,6 @@ section h3.section-subheading {
 .btn-xl {
   font-size: 18px;
   padding: 20px 40px;
-}
-
-/*.btn-primary {
-  background-color: #fed136;
-  border-color: #fed136;
-}*/
-
-.btn-primary:active, .btn-primary:focus, .btn-primary:hover {
-  background-color: #fec810 !important;
-  border-color: #fec810 !important;
-  color: white;
 }
 
 .btn-primary:active, .btn-primary:focus {

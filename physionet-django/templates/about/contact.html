@@ -13,7 +13,7 @@ PhysioNet
 
 
 {% block content %}
-
+{% include "message_snippet.html" %}
 <section id="contact">
   <div class="container">
     <div class="row">
@@ -27,32 +27,33 @@ PhysioNet
     </div>
     <div class="row">
       <div class="col-lg-12">
-        <form id="contactForm" name="sentMessage" novalidate>
+        <form method="post">
+          {% csrf_token %}
           <div class="row">
             <div class="col-md-6">
               <div class="form-group">
-                <input class="form-control" id="name" type="text" placeholder="Name *" required data-validation-required-message="Please enter your name.">
+                {{ contact_form.name }}
                 <p class="help-block text-danger"></p>
               </div>
               <div class="form-group">
-                <input class="form-control" id="email" type="email" placeholder="Email *" required data-validation-required-message="Please enter your email address.">
+                {{ contact_form.email }}
                 <p class="help-block text-danger"></p>
               </div>
               <div class="form-group">
-                <input class="form-control" id="phone" type="text" placeholder="Subject *" required data-validation-required-message="Please specify the subject.">
+                {{ contact_form.subject }}
                 <p class="help-block text-danger"></p>
               </div>
             </div>
             <div class="col-md-6">
               <div class="form-group">
-                <textarea class="form-control" id="message" placeholder="Message *" required data-validation-required-message="Please enter a message."></textarea>
+                {{ contact_form.message }}
                 <p class="help-block text-danger"></p>
               </div>
             </div>
             <div class="clearfix"></div>
             <div class="col-lg-12 text-center">
               <div id="success"></div>
-              <button id="sendMessageButton" class="btn btn-primary btn-xl" type="submit">Send Message</button>
+              <button class="btn btn-primary btn-xl" type="submit">Send Message</button>
             </div>
           </div>
         </form>

@@ -1,8 +1,10 @@
+from django.contrib import messages
 from django.shortcuts import render
 
 from notification.models import News
+import notification.utility as notification
 from project.models import DataUseAgreement, License, PublishedProject
-
+from user.forms import ContactForm
 
 def home(request):
     published_projects = PublishedProject.objects.all().order_by('-publish_datetime')[:8]
@@ -56,7 +58,18 @@ def faq(request):
     return render(request, 'about/faq.html')
 
 def contact(request):
-    return render(request, 'about/contact.html')
+    if request.method == 'POST':
+        contact_form = ContactForm(request.POST)
+        if contact_form.is_valid():
+            notification.send_contact_message(contact_form)
+            messages.success(request, 'Your message has been received.')
+            contact_form = ContactForm()
+        else:
+            messages.error(request, 'Invalid submission. See form below.')
+    else:
+        contact_form = ContactForm()
+
+    return render(request, 'about/contact.html', {'contact_form':contact_form})
 
 def citi_instructions(request):
     return render(request, 'about/citi_instructions.html')

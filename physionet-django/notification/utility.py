@@ -10,6 +10,18 @@ from django.template import loader
 RESPONSE_ACTIONS = {0:'rejected', 1:'accepted'}
 
 
+def send_contact_message(contact_form):
+    """
+    Send a message to the contact email
+    """
+    body = 'From: {} {}\n\nMessage:\n{}'.format(
+        contact_form.cleaned_data['name'],
+        contact_form.cleaned_data['email'],
+        contact_form.cleaned_data['message'])
+    send_mail(contact_form.cleaned_data['subject'], body, settings.CONTACT_EMAIL,
+        [settings.CONTACT_EMAIL], fail_silently=False)
+
+
 # ---------- Project App ---------- #
 
 def invitation_notify(request, invite_author_form, target_email):

@@ -354,3 +354,17 @@ class CredentialReferenceForm(forms.ModelForm):
 
         application.reference_response_datetime = timezone.now()
         application.save()
+
+
+class ContactForm(forms.Form):
+    """
+    For contacting PhysioNet support
+    """
+    name = forms.CharField(max_length=100, widget=forms.TextInput(
+        attrs={'class':'form-control', 'placeholder':'Name *'}))
+    email = forms.EmailField(max_length=100, widget=forms.TextInput(
+        attrs={'class':'form-control', 'placeholder':'Email *'}))
+    subject = forms.CharField(max_length=100, widget=forms.TextInput(
+        attrs={'class':'form-control', 'placeholder':'Subject *'}))
+    message = forms.CharField(max_length=2000, widget=forms.Textarea(
+        attrs={'class':'form-control', 'placeholder':'Message *'}))
