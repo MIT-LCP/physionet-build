@@ -322,29 +322,10 @@ def edit_credentialing(request):
     Credentials settings page.
 
     """
-    user = request.user
+    applications = CredentialApplication.objects.filter(user=request.user)
+    current_application = applications.filter(status=0).first()
 
-    applications = CredentialApplication.objects.filter(user=user)
-    # Create an application form if the user is not already credentialed
-    # and doesn't have one pending
-    current_application = applications.filter(status=0)
-
-    if not user.is_credentialed and not current_application:
-        form = CredentialApplicationForm(user=user)
-    else:
-        # current_application may be nothing
-        current_application = current_application.first()
-        form = None
-
-    if request.method == 'POST' and not user.is_credentialed and not current_application:
-        form = CredentialApplicationForm(user=user, data=request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Your application has been received and will be reviewed shortly.')
-        else:
-            messages.error(request, 'Invalid submission. See errors below.')
-
-    return render(request, 'user/edit_credentialing.html', {'form':form,
+    return render(request, 'user/edit_credentialing.html', {
         'applications':applications,
         'current_application':current_application})
 
@@ -372,20 +353,17 @@ def credential_application(request):
             user=user, status=0):
         return redirect('edit_credentialing')
 
-    form = CredentialApplicationForm(user=user)
-
-
-
     if request.method == 'POST':
         # We use the individual forms to render the errors in the template
         # if not all valid
-        personal_form = forms.PersonalCAF(data=request.POST)
-        training_form = forms.TrainingCAF(data=requst.POST)
+        personal_form = forms.PersonalCAF(user=user, data=request.POST)
+        training_form = forms.TrainingCAF(data=request.POST,
+            files=request.FILES)
         reference_form = forms.ReferenceCAF(data=request.POST)
-        course_form = forms.CourseCAF(data=request.POST)
+        course_form = forms.CourseCAF(data=request.POST, require_courses=False)
 
-        form = CredentialApplicationForm(user=user, require_courses=False,
-            data=request.POST, files=request.FILES)
+        form = CredentialApplicationForm(user=user, data=request.POST,
+            files=request.FILES)
 
         if (personal_form.is_valid() and training_form.is_valid()
                 and reference_form.is_valid() and course_form.is_valid()
@@ -395,10 +373,11 @@ def credential_application(request):
         else:
             messages.error(request, 'Invalid submission. See errors below.')
     else:
-        personal_form = forms.PersonalCAF()
-        training_form = forms.TrainingCAF()
+        personal_form = forms.PersonalCAF(user=user)
+        training_form = forms.TrainingCAF(initial={'training_course_name':'CITI Data or Specimens Only Research Course'})
         reference_form = forms.ReferenceCAF()
         course_form = forms.CourseCAF()
+        form = None
 
     return render(request, 'user/credential_application.html', {'form':form,
         'personal_form':personal_form, 'training_form':training_form,

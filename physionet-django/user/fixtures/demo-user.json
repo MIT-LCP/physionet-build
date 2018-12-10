@@ -237,7 +237,8 @@
     "user": [
       "rgmark"
     ],
-    "full_name": "Roger Greenwood Mark",
+    "first_names": "Roger Greenwood",
+    "last_name": "Mark",
     "researcher_category": 2,
     "organization_name": "Massachusetts Institute of Technology",
     "job_title": "Professor",

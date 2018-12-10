@@ -577,7 +577,8 @@ class CredentialApplication(models.Model):
     application_datetime = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey('user.User', related_name='credential_applications')
     # Personal fields
-    full_name = models.CharField(max_length=202, validators=[validate_name])
+    first_names = models.CharField(max_length=100, validators=[validate_name])
+    last_name = models.CharField(max_length=50, validators=[validate_name])
     researcher_category = models.PositiveSmallIntegerField(choices=RESEARCHER_CATEGORIES)
     # Organization fields
     organization_name = models.CharField(max_length=60,

@@ -233,18 +233,18 @@ class RegistrationForm(forms.ModelForm):
 
 
 # Split the credential application forms into multiple forms
-
 class PersonalCAF(forms.ModelForm):
     """
     Credential application form personal attributes
     """
     class Meta:
         model = CredentialApplication
-        fields = ('full_name', 'researcher_category', 'organization_name',
-            'job_title', 'city', 'state_province',
+        fields = ('first_names', 'last_name', 'researcher_category',
+            'organization_name', 'job_title', 'city', 'state_province',
             'country', 'website',)
         help_texts = {
-            'full_name':'Your full name.',
+            'first_names':'Your first and middle names.',
+            'last_name':'Your last name',
             'researcher_category':'The type of researcher you are.',
             'organization_name':"The name of your organization. Put 'None' if you are an independent researcher.",
             'job_title':'The title of your job/role.',
@@ -257,6 +257,16 @@ class PersonalCAF(forms.ModelForm):
         labels = {
             'state_province':'State/Province'
         }
+
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+        self.profile = user.profile
+
+        self.initial = {'first_names':self.profile.first_names,
+            'last_name':self.profile.last_name,
+            'organization_name':self.profile.affiliation,
+            'website':self.profile.website}
 
 class TrainingCAF(forms.ModelForm):
     """
@@ -310,6 +320,17 @@ class CourseCAF(forms.ModelForm):
             'course_category':'Is this for a course?'
         }
 
+    def __init__(self, require_courses=True, *args, **kwargs):
+        """
+        The course info is required by default.
+        For post requests, do not enforce the fields.
+        """
+        super().__init__(*args, **kwargs)
+
+        if not require_courses:
+            self.fields['course_name'].required = False
+            self.fields['course_number'].required = False
+
 
 class CredentialApplicationForm(forms.ModelForm):
     """
@@ -320,8 +341,8 @@ class CredentialApplicationForm(forms.ModelForm):
         model = CredentialApplication
         fields = (
             # Personal
-            'full_name', 'researcher_category', 'organization_name',
-            'job_title', 'city', 'state_province',
+            'first_names', 'last_name', 'researcher_category',
+            'organization_name', 'job_title', 'city', 'state_province',
             'country', 'website',
             # Training course
             'training_course_name', 'training_completion_date',
@@ -332,20 +353,21 @@ class CredentialApplicationForm(forms.ModelForm):
             # Taking a course?
             'course_category', 'course_name', 'course_number',)
 
-    def __init__(self, user, require_courses=True, *args, **kwargs):
+        widgets = {
+            'training_completion_date':forms.SelectDateWidget(years=list(range(1990, timezone.now().year+1))),
+        }
+
+    def __init__(self, user, *args, **kwargs):
+        """
+        Because this form is only for processing post requests, do not
+        enforce the course name/number fields by default.
+        """
         super().__init__(*args, **kwargs)
         self.user = user
         self.profile = user.profile
 
-        if not require_courses:
-            self.fields['course_name'].required = False
-            self.fields['course_number'].required = False
-
-        self.initial = {'full_name':self.profile.get_full_name(),
-            'organization_name':self.profile.affiliation,
-            'website':self.profile.website,
-            'training_course_name':'CITI Data or Specimens Only Research Course'}
-
+        self.fields['course_name'].required = False
+        self.fields['course_number'].required = False
 
     def clean(self):
         data = self.cleaned_data
