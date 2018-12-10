@@ -401,7 +401,6 @@ def project_authors(request, project_slug, **kwargs):
         'is_submitting':is_submitting})
 
 
-@project_auth(auth_mode=1)
 def edit_metadata_item(request, project_slug, **kwargs):
     """
     Function accessed via ajax for editing a project's related item
@@ -414,7 +413,9 @@ def edit_metadata_item(request, project_slug, **kwargs):
     copyedit stage
 
     """
-    project, is_submitting = kwargs['project'], kwargs['is_submitting']
+    user = request.user
+    project = ActiveProject.objects.get(slug=project_slug)
+    is_submitting = bool(project.authors.filter(user=user, is_submitting=True))
 
     if not (is_submitting and project.author_editable()) and not (project.copyeditable() and user == project.editor):
         raise Http404()
