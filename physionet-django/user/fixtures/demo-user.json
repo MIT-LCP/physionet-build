@@ -175,8 +175,7 @@
     "user": [
       "admin"
     ],
-    "first_name": "Admin",
-    "middle_names": "",
+    "first_names": "Admin",
     "last_name": "Bot",
     "affiliation": "",
     "location": "",
@@ -191,8 +190,7 @@
     "user": [
       "rgmark"
     ],
-    "first_name": "Roger",
-    "middle_names": "Greenwood",
+    "first_names": "Roger Greenwood",
     "last_name": "Mark",
     "affiliation": "Massachusetts Institute of Technology",
     "location": "Cambridge MA",
@@ -207,8 +205,7 @@
     "user": [
       "george"
     ],
-    "first_name": "George",
-    "middle_names": "",
+    "first_names": "George",
     "last_name": "Moody",
     "affiliation": "",
     "location": "",
@@ -223,8 +220,7 @@
     "user": [
       "aewj"
     ],
-    "first_name": "Alistair",
-    "middle_names": "Edward William",
+    "first_names": "Alistair Edward William",
     "last_name": "Johnson",
     "affiliation": "Massachusetts Institute of Technology",
     "location": "",

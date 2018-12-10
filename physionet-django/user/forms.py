@@ -153,7 +153,7 @@ class ProfileForm(forms.ModelForm):
 
     class Meta:
         model = Profile
-        fields = ('first_name', 'middle_names', 'last_name', 'affiliation',
+        fields = ('first_names', 'last_name', 'affiliation',
                   'location', 'website', 'photo')
 
     def clean_photo(self):
@@ -182,13 +182,10 @@ class RegistrationForm(forms.ModelForm):
     fields, plus a repeated password.
     """
 
-    first_name = forms.CharField(max_length = 30, label='First Name',
+    first_names = forms.CharField(max_length=100, label='First Name',
                     widget=forms.TextInput(attrs={'class':'form-control'}),
                     validators=[validate_name])
-    middle_names = forms.CharField(max_length = 100, label='Middle Names',
-                    widget=forms.TextInput(attrs={'class':'form-control'}),
-                    required=False, validators=[validate_name])
-    last_name = forms.CharField(max_length = 30, label='Last Name',
+    last_name = forms.CharField(max_length=50, label='Last Name',
                     widget=forms.TextInput(attrs={'class':'form-control'}),
                     validators=[validate_name])
     password1 = forms.CharField(label='Password',
@@ -230,8 +227,7 @@ class RegistrationForm(forms.ModelForm):
             user.save()
             # Save additional fields in Profile model
             profile = Profile.objects.create(user=user,
-                first_name=self.cleaned_data['first_name'],
-                middle_names=self.cleaned_data['middle_names'],
+                first_names=self.cleaned_data['first_names'],
                 last_name=self.cleaned_data['last_name'])
         return user
 
