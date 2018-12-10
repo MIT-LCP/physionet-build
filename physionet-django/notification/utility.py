@@ -212,18 +212,22 @@ def contact_reference(request, application):
     """
     Request verification from a credentialing applicant's reference
     """
+    applicant_name = ' '.join([application.first_names, application.last_name])
     subject = 'Please verify {} for PhysioNet credentialing'.format(
-        application.full_name)
+        applicant_name)
     body = loader.render_to_string('notification/email/contact_reference.html',
-        {'application':application, 'domain':get_current_site(request)})
+        {'application':application, 'applicant_name':applicant_name,
+         'domain':get_current_site(request)})
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [application.reference_email], fail_silently=False)
 
 
 def process_credential_complete(request, application):
+    applicant_name = ' '.join([application.first_names, application.last_name])
     response = 'rejected' if application.status == 1 else 'accepted'
     subject = 'PhysioNet credentialling {}'.format(response)
     body = loader.render_to_string('notification/email/process_credential_complete.html',
-        {'application':application, 'domain':get_current_site(request)})
+        {'application':application, 'applicant_name':applicant_name,
+         'domain':get_current_site(request)})
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [application.user.email], fail_silently=False)

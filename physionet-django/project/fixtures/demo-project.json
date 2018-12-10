@@ -201,8 +201,7 @@
     "is_submitting": true,
     "is_corresponding": true,
     "approval_datetime": "2018-11-14T21:11:11.781Z",
-    "first_name": "Roger",
-    "middle_names": "Greenwood",
+    "first_names": "Roger Greenwood",
     "last_name": "Mark",
     "corresponding_email": "rgmark@mit.edu",
     "project": 1

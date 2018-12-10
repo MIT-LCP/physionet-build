@@ -115,9 +115,8 @@ class PublishedAuthor(BaseAuthor):
     """
     The author model for PublishedProject
     """
-    first_name = models.CharField(max_length=100, default='')
-    middle_names = models.CharField(max_length=200, default='')
-    last_name = models.CharField(max_length=100, default='')
+    first_names = models.CharField(max_length=100, default='')
+    last_name = models.CharField(max_length=50, default='')
     corresponding_email = models.EmailField(null=True)
     project = models.ForeignKey('project.PublishedProject',
         related_name='authors', db_index=True)
@@ -126,11 +125,7 @@ class PublishedAuthor(BaseAuthor):
         unique_together = (('user', 'project'),)
 
     def get_full_name(self):
-        if self.middle_names:
-            return ' '.join([self.first_name, self.middle_names,
-                           self.last_name])
-        else:
-            return ' '.join([self.first_name, self.last_name])
+        return ' '.join([self.first_names, self.last_name])
 
     def set_display_info(self):
         """
@@ -762,8 +757,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 is_corresponding=author.is_corresponding,
                 approval_datetime=author.approval_datetime,
                 display_order=author.display_order,
-                first_name=author_profile.first_name,
-                middle_names=author_profile.middle_names,
+                first_names=author_profile.first_names,
                 last_name=author_profile.last_name,
                 )
 

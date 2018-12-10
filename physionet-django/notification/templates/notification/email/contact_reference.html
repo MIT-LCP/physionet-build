@@ -1,7 +1,7 @@
 {% load i18n %}{% autoescape off %}
 Dear {{ application.reference_name }}
 
-{{ application.full_name }} has listed you as their reference for their PhysioNet credentialing application.
+{{ applicant_name }} has listed you as their reference for their PhysioNet credentialing application.
 
 If you recognize them, please verify their application before it expires by using the form at: http://{{ domain }}{% url 'credential_reference' application.slug %}
 

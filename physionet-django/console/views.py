@@ -571,7 +571,7 @@ def process_credential_application(request, application_slug):
         instance=application)
 
     if request.method == 'POST':
-        if 'contact_reference' in request.POST and not application.reference_contact_datetime:
+        if 'contact_reference' in request.POST:
             application.reference_contact_datetime = timezone.now()
             application.save()
             notification.contact_reference(request, application)
