@@ -24,6 +24,14 @@
     </li>
     {# At this point, there may have been any number of submissions #}
     {% for e in edit_logs %}
+      {% if e.is_resubmission %}
+        <li class="list-group-item">
+          <div class="row">
+            <div class="col-md-2">{{ e.submission_datetime|date }}</div>
+            <div class="col-md-10">The project was resubmitted for review.</div>
+          </div>
+        </li>
+      {% endif %}
       <li class="list-group-item">
         <div class="row">
         {% if e.decision_datetime %}

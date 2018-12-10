@@ -833,18 +833,22 @@ def project_submission(request, project_slug, **kwargs):
     user, project, authors, is_submitting = (kwargs[k] for k in
         ('user', 'project', 'authors', 'is_submitting'))
 
+    author_comments_form = forms.AuthorCommentsForm() if is_submitting and project.author_editable() else None
+
     if request.method == 'POST':
         # ActiveProject is submitted for review
         if 'submit_project' in request.POST and is_submitting:
-            if project.is_submittable():
-                project.submit()
+            author_comments_form = forms.AuthorCommentsForm(data=request.POST)
+            if project.is_submittable() and author_comments_form.is_valid():
+                project.submit(author_comments=author_comments_form.cleaned_data['author_comments'])
                 notification.submit_notify(project)
                 messages.success(request, 'Your project has been submitted. You will be notified when an editor is assigned.')
             else:
                 messages.error(request, 'Fix the errors before submitting')
         elif 'resubmit_project' in request.POST and is_submitting:
-            if project.is_resubmittable():
-                project.resubmit()
+            author_comments_form = forms.AuthorCommentsForm(data=request.POST)
+            if project.is_resubmittable() and author_comments_form.is_valid():
+                project.resubmit(author_comments=author_comments_form.cleaned_data['author_comments'])
                 notification.resubmit_notify(project)
                 messages.success(request, 'Your project has been resubmitted. You will be notified when the editor makes their decision.')
         # Author approves publication
@@ -880,7 +884,7 @@ def project_submission(request, project_slug, **kwargs):
 
     return render(request, 'project/project_submission.html', {
         'project':project, 'authors':authors,
-        'is_submitting':is_submitting,
+        'is_submitting':is_submitting, 'author_comments_form':author_comments_form,
         'edit_logs':edit_logs, 'copyedit_logs':copyedit_logs,
         'awaiting_user_approval':awaiting_user_approval})
 

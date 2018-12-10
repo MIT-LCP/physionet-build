@@ -69,6 +69,7 @@
             <div class="modal-body">
               {% csrf_token %}
               <p id="passes-checks"><i class="fas fa-spinner"></i> Running checks on project...</p>
+              {{ author_comments_form }}
             </div>
             <div class="modal-footer">
               <button id="submit-project-button" class="btn btn-primary" type="submit" name="submit_project" disabled>Submit Project</button>

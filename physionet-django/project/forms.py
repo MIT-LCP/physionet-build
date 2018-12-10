@@ -604,6 +604,10 @@ class AccessMetadataForm(forms.ModelForm):
         return cleaned_data
 
 
+class AuthorCommentsForm(forms.Form):
+    author_comments = forms.CharField(max_length=500, label='Comments for editor (optional)')
+
+
 class InviteAuthorForm(forms.ModelForm):
     """
     Form to invite new authors to a project.

@@ -369,6 +369,7 @@ class SubmissionInfo(models.Model):
         related_name='editing_%(class)ss', null=True)
     # The very first submission
     submission_datetime = models.DateTimeField(null=True)
+    author_comments = models.CharField(max_length=1000, default='')
     editor_assignment_datetime = models.DateTimeField(null=True)
     # The last revision request (if any)
     revision_request_datetime = models.DateTimeField(null=True)
@@ -610,7 +611,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         "Whether the project can be submitted"
         return (not self.under_submission() and self.check_integrity())
 
-    def submit(self):
+    def submit(self, author_comments):
         """
         Submit the project for review.
         """
@@ -619,9 +620,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
         self.submission_status = 10
         self.submission_datetime = timezone.now()
+        self.author_comments = author_comments
         self.save()
         # Create the first edit log
-        EditLog.objects.create(project=self)
+        EditLog.objects.create(project=self, author_comments=author_comments)
 
     def set_submitting_author(self):
         """
@@ -642,13 +644,13 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         "Reject a project under submission"
         self.archive(archive_reason=3)
 
-    def is_resubmittable(self):
+    def is_resubmittable(self, author_comments):
         """
         Submit the project for review.
         """
         return (self.submission_status == 30 and self.check_integrity())
 
-    def resubmit(self):
+    def resubmit(self, author_comments):
         if not self.is_resubmittable():
             raise Exception('ActiveProject is not resubmittable')
 
@@ -656,7 +658,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         self.resubmission_datetime = timezone.now()
         self.save()
         # Create a new edit log
-        EditLog.objects.create(project=self, is_resubmission=True)
+        EditLog.objects.create(project=self, is_resubmission=True,
+            author_comments=author_comments)
 
     def reopen_copyedit(self):
         """
@@ -1156,7 +1159,7 @@ class StorageRequest(BaseInvitation):
 
 class EditLog(models.Model):
     """
-    Log for an editor decision
+    Log for an editor decision. Also saves submission info.
 
     """
     # Quality assurance fields for data and software
@@ -1191,6 +1194,7 @@ class EditLog(models.Model):
     # When the submitting author submits/resubmits
     submission_datetime = models.DateTimeField(auto_now_add=True)
     is_resubmission = models.BooleanField(default=False)
+    author_comments = models.CharField(max_length=1000, default='')
     # Quality assurance fields
     soundly_produced = models.NullBooleanField(null=True)
     well_described = models.NullBooleanField(null=True)
