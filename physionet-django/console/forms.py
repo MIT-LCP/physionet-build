@@ -172,17 +172,30 @@ class PublishForm(forms.Form):
     """
     Form for publishing a project
     """
+    doi = forms.CharField(max_length=50, label='DOI')
     make_zip = forms.ChoiceField(choices=YES_NO, label='Make zip of all files')
+
+    def clean_doi(self):
+        data = self.cleaned_data['doi']
+        if PublishedProject.objects.filter(doi=data):
+            raise forms.ValidationError('Published project with DOI already exists.')
+        return data
 
 
 class DOIForm(forms.ModelForm):
     """
-    Form to set the doi of a published project
+    Form to edit the doi of a published project
     """
     class Meta:
         model = PublishedProject
         fields = ('doi',)
         labels = {'doi':'DOI'}
+
+    def clean_doi(self):
+        data = self.cleaned_data['doi']
+        if PublishedProject.objects.filter(doi=data).exclude(id=self.instance.id):
+            raise forms.ValidationError('Published project with DOI already exists.')
+        return data
 
 
 class ProcessCredentialForm(forms.ModelForm):

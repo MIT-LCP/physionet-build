@@ -705,7 +705,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         shutil.rmtree(self.file_root())
 
-    def publish(self, make_zip=True):
+    def publish(self, doi, make_zip=True):
         """
         Create a published version of this project and update the
         submission status
@@ -810,7 +810,7 @@ class PublishedProject(Metadata, SubmissionInfo):
     is_newest_version = models.BooleanField(default=True)
     newest_version = models.ForeignKey('project.PublishedProject', null=True,
                                        related_name='older_versions')
-    doi = models.CharField(max_length=50, default='')
+    doi = models.CharField(max_length=50, unique=True)
     approved_users = models.ManyToManyField('user.User', db_index=True)
 
     # Where all the published project files are kept, depending on access.
@@ -834,17 +834,6 @@ class PublishedProject(Metadata, SubmissionInfo):
 
     def __str__(self):
         return ('{0} v{1}'.format(self.title, self.version))
-
-    def validate_doi(self, *args, **kwargs):
-        """
-        Validate uniqueness of doi, ignore empty ''
-        """
-        super().validate_unique(*args, **kwargs)
-        published_projects = __class__.objects.all()
-        dois = [p.doi for p in published_projects if doi]
-
-        if len(dois) != len(set(dois)):
-            raise ValidationError('Duplicate DOI')
 
     def file_root(self):
         """

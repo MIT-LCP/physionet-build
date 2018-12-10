@@ -342,7 +342,9 @@ def publish_submission(request, project_slug, *args, **kwargs):
     if request.method == 'POST':
         publish_form = forms.PublishForm(data=request.POST)
         if project.is_publishable() and publish_form.is_valid():
-            published_project = project.publish(make_zip=int(publish_form.cleaned_data['make_zip']))
+            published_project = project.publish(
+                doi=publish_form.cleaned_data['doi'],
+                make_zip=int(publish_form.cleaned_data['make_zip']))
             notification.publish_notify(request, published_project)
             return render(request, 'console/publish_complete.html',
                 {'published_project':published_project})
