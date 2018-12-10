@@ -18,6 +18,7 @@ from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
 from .forms import AddEmailForm, AssociatedEmailChoiceForm, ProfileForm, RegistrationForm, UsernameChangeForm, CredentialApplicationForm, CredentialReferenceForm
+from . import forms
 from .models import AssociatedEmail, Profile, User, CredentialApplication
 from physionet import utility
 from project.models import Author
@@ -373,16 +374,35 @@ def credential_application(request):
 
     form = CredentialApplicationForm(user=user)
 
+
+
     if request.method == 'POST':
+        # We use the individual forms to render the errors in the template
+        # if not all valid
+        personal_form = forms.PersonalCAF(data=request.POST)
+        training_form = forms.TrainingCAF(data=requst.POST)
+        reference_form = forms.ReferenceCAF(data=request.POST)
+        course_form = forms.CourseCAF(data=request.POST)
+
         form = CredentialApplicationForm(user=user, require_courses=False,
             data=request.POST, files=request.FILES)
-        if form.is_valid():
+
+        if (personal_form.is_valid() and training_form.is_valid()
+                and reference_form.is_valid() and course_form.is_valid()
+                and form.is_valid()):
             form.save()
             return render(request, 'user/credential_application_complete.html')
         else:
             messages.error(request, 'Invalid submission. See errors below.')
+    else:
+        personal_form = forms.PersonalCAF()
+        training_form = forms.TrainingCAF()
+        reference_form = forms.ReferenceCAF()
+        course_form = forms.CourseCAF()
 
-    return render(request, 'user/credential_application.html', {'form':form})
+    return render(request, 'user/credential_application.html', {'form':form,
+        'personal_form':personal_form, 'training_form':training_form,
+        'reference_form':reference_form, 'course_form':course_form, })
 
 
 @login_required

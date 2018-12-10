@@ -236,30 +236,17 @@ class RegistrationForm(forms.ModelForm):
         return user
 
 
-class CredentialApplicationForm(forms.ModelForm):
-    """
-    Form to apply for PhysioNet credentialling
-    """
+# Split the credential application forms into multiple forms
 
+class PersonalCAF(forms.ModelForm):
+    """
+    Credential application form personal attributes
+    """
     class Meta:
         model = CredentialApplication
         fields = ('full_name', 'researcher_category', 'organization_name',
             'job_title', 'city', 'state_province',
-            'country', 'website',
-            'training_course_name', 'training_completion_date',
-            'training_completion_report',
-
-
-            'course_category', 'course_name', 'course_number',
-
-            'reference_category', 'reference_name',
-            'reference_email', 'reference_title')
-
-        labels = {
-            'state_province':'State/Province',
-            'course_type':'Is this for a course?'
-        }
-
+            'country', 'website',)
         help_texts = {
             'full_name':'Your full name.',
             'researcher_category':'The type of researcher you are.',
@@ -269,22 +256,85 @@ class CredentialApplicationForm(forms.ModelForm):
             'state_province':'The state or province that you live in.',
             'country':'The country that you live in.',
             'website':"Your organization's website. If possible, put a page listing your role. This helps us confirm your identity.",
+        }
+
+        labels = {
+            'state_province':'State/Province'
+        }
+
+class TrainingCAF(forms.ModelForm):
+    """
+    Credential application form training course attributes
+    """
+    class Meta:
+        model = CredentialApplication
+        fields = ('training_course_name', 'training_completion_date',
+            'training_completion_report',)
+        help_texts = {
             'training_course_name':"The name of the human subjects training course you took. ie. 'CITI Data or Specimens Only Research Course'",
             'training_completion_date':'The date on which you finished your human subjects training course. Must match the date in your training completion report.',
             'training_completion_report':"A pdf of the training completion report from your training program. The CITI completion report lists all modules completed, with dates and scores. Do NOT upload the completion certificate.",
-            'course_category':'Specify if you are using this data for a course.',
-            'course_name':'The name of the course you are taking/teaching.',
-            'course_number':'The number or code of the course you are taking/teaching.',
-            'reference_category': "Your reference's relationship to you. If you are a student or postdoc, this must be your supervisor.",
-            'reference_name':'The full name of your reference.',
-            'reference_email':'The email address of your reference.',
-            'reference_title':'The title of your reference. ie: Professor, Dr.',
         }
-
         widgets = {
             'training_completion_date':forms.SelectDateWidget(years=list(range(1990, timezone.now().year+1))),
         }
 
+
+class ReferenceCAF(forms.ModelForm):
+    """
+    Credential application form reference attributes
+    """
+    class Meta:
+        model = CredentialApplication
+        fields = ('reference_category', 'reference_name',
+            'reference_email', 'reference_title')
+        help_texts = {
+            'reference_category': "Your reference's relationship to you. If you are a student or postdoc, this must be your supervisor.",
+            'reference_name':'The full name of your reference.',
+            'reference_email':'The email address of your reference.',
+            'reference_title':'The title of your reference. ie: Professor, Dr.'
+        }
+
+
+class CourseCAF(forms.ModelForm):
+    """
+    Credential application form course information attributes
+    """
+    class Meta:
+        model = CredentialApplication
+        fields = (
+            'course_category', 'course_name', 'course_number')
+        help_texts = {
+            'course_category':'Specify if you are using this data for a course.',
+            'course_name':'The name of the course you are taking/teaching.',
+            'course_number':'The number or code of the course you are taking/teaching.'
+        }
+
+        labels = {
+            'course_category':'Is this for a course?'
+        }
+
+
+class CredentialApplicationForm(forms.ModelForm):
+    """
+    Form to apply for PhysioNet credentialling
+    """
+
+    class Meta:
+        model = CredentialApplication
+        fields = (
+            # Personal
+            'full_name', 'researcher_category', 'organization_name',
+            'job_title', 'city', 'state_province',
+            'country', 'website',
+            # Training course
+            'training_course_name', 'training_completion_date',
+            'training_completion_report',
+            # Reference
+            'reference_category', 'reference_name',
+            'reference_email', 'reference_title',
+            # Taking a course?
+            'course_category', 'course_name', 'course_number',)
 
     def __init__(self, user, require_courses=True, *args, **kwargs):
         super().__init__(*args, **kwargs)
