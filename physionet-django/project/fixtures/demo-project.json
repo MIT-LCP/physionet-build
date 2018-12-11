@@ -320,6 +320,7 @@
   "pk": 1,
   "fields": {
     "description": "telemedicine",
+    "project_count": 1,
     "projects": [
       1
     ]
@@ -330,6 +331,7 @@
   "pk": 2,
   "fields": {
     "description": "intensive care unit",
+    "project_count": 1,
     "projects": [
       1
     ]
@@ -340,6 +342,7 @@
   "pk": 3,
   "fields": {
     "description": "critical care",
+    "project_count": 1,
     "projects": [
       1
     ]

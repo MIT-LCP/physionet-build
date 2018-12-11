@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'project',
     'console',
     'notification',
+    'search',
 ]
 
 MIDDLEWARE = [

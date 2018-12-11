@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}
+Topic Search
+{% endblock %}
+
+{% load static %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/form-control-input.css' %}"/>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>Topic Search</h1>
+  <hr>
+  <p>Search published PhysioNet content with topic keywords.
+  </p>
+  <br>
+  <form method="GET" action="">
+    {% include "inline_form_snippet.html" %}
+    <button class="btn btn-primary btn-lg" type="submit" name="search">Search</button>
+  </form>
+
+  {# A search was made #}
+  {% if valid_search %}
+    <hr>
+    <h2>Results: "{{ topic }}"</h2>
+    <br>
+    {% for project in projects %}
+      <a href="{% url 'published_project' project.slug %}">{{ project.title }}</a><br>
+    {% empty %}
+      <p>No projects found</p>
+    {% endfor %}
+  {% endif %}
+  <hr>
+</div>
+{% endblock %}
