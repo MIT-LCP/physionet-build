@@ -11,8 +11,7 @@
     "is_active": true,
     "is_admin": true,
     "is_credentialed": false,
-    "credential_datetime": null,
-    "lcp_affiliated": true
+    "credential_datetime": null
   }
 },
 {
@@ -27,8 +26,7 @@
     "is_active": true,
     "is_admin": false,
     "is_credentialed": true,
-    "credential_datetime": "2018-11-14T20:45:53.071Z",
-    "lcp_affiliated": true
+    "credential_datetime": "2018-11-14T20:45:53.071Z"
   }
 },
 {
@@ -43,8 +41,7 @@
     "is_active": true,
     "is_admin": false,
     "is_credentialed": false,
-    "credential_datetime": null,
-    "lcp_affiliated": true
+    "credential_datetime": null
   }
 },
 {
@@ -59,8 +56,7 @@
     "is_active": true,
     "is_admin": false,
     "is_credentialed": false,
-    "credential_datetime": null,
-    "lcp_affiliated": true
+    "credential_datetime": null
   }
 },
 {

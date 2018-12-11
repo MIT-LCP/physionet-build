@@ -644,7 +644,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         "Reject a project under submission"
         self.archive(archive_reason=3)
 
-    def is_resubmittable(self, author_comments):
+    def is_resubmittable(self):
         """
         Submit the project for review.
         """
@@ -716,7 +716,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         if not self.is_publishable():
             raise Exception('The project is not publishable')
 
-        published_project = PublishedProject()
+        published_project = PublishedProject(doi=doi)
 
         # Direct copy over fields
         for attr in [f.name for f in Metadata._meta.fields] + [f.name for f in SubmissionInfo._meta.fields]:

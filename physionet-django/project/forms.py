@@ -580,13 +580,13 @@ class AccessMetadataForm(forms.ModelForm):
                       'license': '* License for usage',
                       'data_use_agreement': 'Specific conditions for usage'}
 
-    def __init__(self, include_protected, *args, **kwargs):
+    def __init__(self, include_credentialed, *args, **kwargs):
         """
         Control whether to only allow choosing the protected access policies
         """
         super().__init__(*args, **kwargs)
-        if not include_protected:
-            self.fields['access_policy'].choices = ((0, 'Open'),)
+        if not include_credentialed:
+            self.fields['access_policy'].choices = ((0, 'Open'),(1, 'Restricted'))
 
 
     def clean(self):
@@ -605,7 +605,8 @@ class AccessMetadataForm(forms.ModelForm):
 
 
 class AuthorCommentsForm(forms.Form):
-    author_comments = forms.CharField(max_length=500, label='Comments for editor (optional)')
+    author_comments = forms.CharField(max_length=500, required=False,
+        label='Comments for editor (optional)', widget=forms.Textarea())
 
 
 class InviteAuthorForm(forms.ModelForm):

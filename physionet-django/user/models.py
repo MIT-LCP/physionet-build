@@ -334,8 +334,6 @@ class User(AbstractBaseUser):
     is_credentialed = models.BooleanField(default=False)
     credential_datetime = models.DateTimeField(blank=True, null=True)
 
-    lcp_affiliated = models.BooleanField(default=False)
-
     USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'email'
 

@@ -518,11 +518,11 @@ def project_access(request, project_slug, **kwargs):
     """
     user, project = kwargs['user'], kwargs['project']
     access_form = forms.AccessMetadataForm(
-        include_protected=user.lcp_affiliated, instance=project)
+        include_credentialed=user.is_admin, instance=project)
 
     if request.method == 'POST':
         access_form = forms.AccessMetadataForm(
-            include_protected=user.lcp_affiliated, data=request.POST,
+            include_credentialed=user.is_admin, data=request.POST,
             instance=project)
         if access_form.is_valid():
             access_form.save()
