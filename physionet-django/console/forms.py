@@ -3,7 +3,7 @@ import pdb
 from django import forms
 from django.utils import timezone
 
-from project.models import ActiveProject, EditLog, CopyeditLog
+from project.models import ActiveProject, EditLog, CopyeditLog, PublishedProject
 from user.models import User, CredentialApplication
 
 
@@ -168,6 +168,22 @@ class CopyeditForm(forms.ModelForm):
         project.save()
         return copyedit_log
 
+class PublishForm(forms.Form):
+    """
+    Form for publishing a project
+    """
+    make_zip = forms.ChoiceField(choices=YES_NO, label='Make zip of all files')
+
+
+class DOIForm(forms.ModelForm):
+    """
+    Form to set the doi of a published project
+    """
+    class Meta:
+        model = PublishedProject
+        fields = ('doi',)
+        labels = {'doi':'DOI'}
+
 
 class ProcessCredentialForm(forms.ModelForm):
     """
@@ -210,3 +226,31 @@ class ProcessCredentialForm(forms.ModelForm):
         application.decision_datetime = timezone.now()
         application.save()
         return application
+
+
+class AddAffiliateForm(forms.Form):
+    """
+    Add a user to the list of LCP affiliates
+
+    """
+    username = forms.CharField(max_length=50)
+
+    def clean_username(self):
+        data = self.cleaned_data['username']
+        user = User.objects.filter(username=data)
+        if user:
+            user = user.get()
+            if user.lcp_affiliated:
+                raise forms.ValidationError('User is already LCP affiliated')
+            else:
+                self.user = user
+        else:
+            raise forms.ValidationError('User does not exist')
+        return data
+
+class RemoveAffiliateForm(forms.Form):
+    """
+    Remove a user from the list of LCP affiliates
+    """
+    user = forms.ModelChoiceField(queryset=User.objects.filter(
+        lcp_affiliated=True))

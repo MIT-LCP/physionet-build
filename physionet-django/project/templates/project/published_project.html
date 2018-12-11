@@ -15,10 +15,6 @@
 {% endblock %}
 
 {% block content %}
-<div class="contents">
-
-</div>
-
 <div class="container">
   <p>
     {{ project.resource_type|resource_badge|safe }}
@@ -102,7 +98,7 @@
       <div class="card my-4">
         <h5 class="card-header">Identifiers</h5>
         <div class="card-body">
-          {% if project.doi_assigned %}
+          {% if project.doi %}
           <p><strong>DOI:</strong>
             <br>
             <span class="badge badge-info">{{ project.doi }}</span>
@@ -166,22 +162,26 @@
   {% if project.access_policy %}
     {% if has_access %}
       <h3>Special Files</h3>
+      <p>Total file size: {{ special_size }}</p>
       {% include "project/protected_special_files_panel.html" %}
       <br>
       <h3>Main Files</h3>
+      <p>Total file size: {{ main_size }}</p>
       <div id="files-panel" class="card">
         {% include "project/protected_files_panel.html" %}
       </div>
     {% else %}
     <div class="alert alert-danger" role="alert">
-      This is a restricted-access resource. To access the files, you must be a <a href="{% url 'edit_credentialing' %}">credentialed user</a> and <a href="{% url 'sign_dua' project.slug %}">sign the DUA</a>.
+      This is a restricted-access resource. To access the files, you must {% if project.access_policy == 2 and not user.is_credentialed %}be a <a href="{% url 'edit_credentialing' %}">credentialed user</a> and {% endif %}<a href="{% url 'sign_dua' project.slug %}">sign the DUA</a>.
     </div>
     {% endif %}
   {% else %}
     <h3>Special Files</h3>
+    <p>Total file size: {{ special_size }}</p>
     {% include "project/open_special_files_panel.html" %}
     <br>
     <h3>Main Files</h3>
+    <p>Total file size: {{ main_size }}</p>
     <div id="files-panel" class="card">
       {% include "project/open_files_panel.html" %}
     </div>

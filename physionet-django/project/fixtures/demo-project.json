@@ -204,6 +204,7 @@
     "first_name": "Roger",
     "middle_names": "Greenwood",
     "last_name": "Mark",
+    "corresponding_email": "rgmark@mit.edu",
     "project": 1
   }
 },
@@ -701,7 +702,9 @@
     "editor_accept_datetime": "2018-11-14T21:10:49.361Z",
     "copyedit_completion_datetime": "2018-11-14T21:11:00.997Z",
     "author_approval_datetime": "2018-11-14T21:11:11.781Z",
-    "storage_size": 81,
+    "main_storage_size": 81,
+    "special_storage_size": 2672,
+    "total_storage_size": 2753,
     "publish_datetime": "2018-11-14T21:11:17.040Z",
     "is_newest_version": true,
     "newest_version": null,

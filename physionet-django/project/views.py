@@ -48,7 +48,7 @@ def project_auth(auth_mode=0, post_auth_mode=0):
             project = ActiveProject.objects.get(slug=kwargs['project_slug'])
             authors = project.authors.all().order_by('display_order')
 
-            is_author = (user in [a.user for a in authors])
+            is_author = bool(authors.filter(user=user))
             is_submitting = (user == authors.get(is_submitting=True).user)
 
             if auth_mode == 0:
@@ -608,7 +608,7 @@ def get_project_file_info(project, subdir):
     parent_dir = os.path.split(subdir)[0]
     return display_files, display_dirs, dir_breadcrumbs, parent_dir
 
-@project_auth(auth_mode=0)
+@project_auth(auth_mode=2)
 def project_files_panel(request, project_slug, **kwargs):
     """
     Return the file panel for the project, along with the forms used to
@@ -884,38 +884,40 @@ def project_submission(request, project_slug, **kwargs):
         'awaiting_user_approval':awaiting_user_approval})
 
 
-@project_auth(auth_mode=2)
 def rejected_submission_history(request, project_slug):
     """
-    Submission history for a published project
+    Submission history for a rejected project
     """
+    user = request.user
     project = ArchivedProject.objects.get(slug=project_slug, archive_reason=3)
 
-    edit_logs = project.edit_logs.all()
-    for e in edit_logs:
-        e.set_quality_assurance_results()
-    copyedit_logs = project.copyedit_logs.all()
+    if user.is_admin or project.authors.filter(user=user):
+        edit_logs = project.edit_logs.all()
+        for e in edit_logs:
+            e.set_quality_assurance_results()
+        copyedit_logs = project.copyedit_logs.all()
 
-    return render(request, 'project/rejected_submission_history.html',
-        {'project':project, 'edit_logs':edit_logs,
-         'copyedit_logs':copyedit_logs})
+        return render(request, 'project/rejected_submission_history.html',
+            {'project':project, 'edit_logs':edit_logs,
+             'copyedit_logs':copyedit_logs})
 
 
-@project_auth(auth_mode=2)
 def published_submission_history(request, project_slug):
     """
     Submission history for a published project
     """
+    user = request.user
     project = PublishedProject.objects.get(slug=project_slug)
 
-    edit_logs = project.edit_logs.all()
-    for e in edit_logs:
-        e.set_quality_assurance_results()
-    copyedit_logs = project.copyedit_logs.all()
+    if user.is_admin or project.authors.filter(user=user):
+        edit_logs = project.edit_logs.all()
+        for e in edit_logs:
+            e.set_quality_assurance_results()
+        copyedit_logs = project.copyedit_logs.all()
 
-    return render(request, 'project/published_submission_history.html',
-        {'project':project, 'edit_logs':edit_logs,
-         'copyedit_logs':copyedit_logs, 'published':True})
+        return render(request, 'project/published_submission_history.html',
+            {'project':project, 'edit_logs':edit_logs,
+             'copyedit_logs':copyedit_logs, 'published':True})
 
 
 def published_files_panel(request, published_project_slug):
@@ -929,8 +931,6 @@ def published_files_panel(request, published_project_slug):
     if project.has_access(request.user):
         display_files, display_dirs = project.get_main_directory_content(
             subdir=subdir)
-        total_size = utility.readable_size(project.storage_size)
-
         # Breadcrumbs
         dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
         parent_dir = os.path.split(subdir)[0]
@@ -942,7 +942,7 @@ def published_files_panel(request, published_project_slug):
 
         return render(request, template,
             {'project':project, 'subdir':subdir,
-             'dir_breadcrumbs':dir_breadcrumbs, 'total_size':total_size,
+             'dir_breadcrumbs':dir_breadcrumbs,
              'parent_dir':parent_dir,
              'display_files':display_files, 'display_dirs':display_dirs})
 
@@ -982,11 +982,12 @@ def published_project(request, published_project_slug):
     if has_access:
         display_files, display_dirs = project.get_main_directory_content()
         dir_breadcrumbs = utility.get_dir_breadcrumbs('')
-        total_size = utility.readable_size(project.storage_size)
+        main_size, special_size = [utility.readable_size(s) for s in
+            (project.main_storage_size, project.special_storage_size)]
         # Special files
         special_display_files = project.get_special_directory_content()
         context = {**context, **{'dir_breadcrumbs':dir_breadcrumbs,
-            'total_size':total_size,
+            'main_size':main_size, 'special_size':special_size,
             'display_files':display_files, 'display_dirs':display_dirs,
             'special_display_files':special_display_files}}
 
@@ -996,17 +997,17 @@ def published_project(request, published_project_slug):
 @login_required
 def sign_dua(request, published_project_slug):
     """
-    Page to sign the dua for a protected project
+    Page to sign the dua for a protected project.
+    Both restricted and credentialed policies.
     """
     user = request.user
-
     project = PublishedProject.objects.get(slug=published_project_slug)
 
     if not project.access_policy or project.has_access(user):
         return redirect('published_project',
             published_project_slug=published_project_slug)
 
-    if not user.is_credentialed:
+    if project.access_policy == 2 and not user.is_credentialed:
         return render(request, 'project/credential_required.html')
 
     dua = project.data_use_agreement

@@ -15,7 +15,7 @@ from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.text import slugify
 
-from .utility import get_tree_size, get_file_info, get_directory_info, list_items, get_storage_info, get_tree_files, list_files
+from .utility import get_tree_size, get_file_info, get_directory_info, list_items, StorageInfo, get_tree_files, list_files
 from user.validators import validate_alphaplus
 
 
@@ -118,7 +118,7 @@ class PublishedAuthor(BaseAuthor):
     first_name = models.CharField(max_length=100, default='')
     middle_names = models.CharField(max_length=200, default='')
     last_name = models.CharField(max_length=100, default='')
-
+    corresponding_email = models.EmailField(null=True)
     project = models.ForeignKey('project.PublishedProject',
         related_name='authors', db_index=True)
 
@@ -138,8 +138,8 @@ class PublishedAuthor(BaseAuthor):
         """
         self.name = self.get_full_name()
         self.username = self.user.username
+        self.email = self.user.email
         self.text_affiliations = [a.name for a in self.affiliations.all()]
-
 
 
 class Topic(models.Model):
@@ -327,14 +327,44 @@ class Metadata(models.Model):
     def submitting_author(self):
         return self.authors.get(is_submitting=True)
 
-    def get_storage_info(self):
+    def get_author_info(self, separate_submitting=False, include_emails=False):
         """
-        Return an object containing information about the project's
-        storage usage.
+        Get the project's authors, setting information needed to display
+        their attributes.
         """
-        return get_storage_info(allowance=self.core_project.storage_allowance,
-            used=self.storage_used())
+        authors = self.authors.all().order_by('display_order')
+        author_emails = ';'.join(a.user.email for a in authors)
 
+        if separate_submitting:
+            submitting_author = authors.get(is_submitting=True)
+            coauthors = authors.filter(is_submitting=False)
+            submitting_author.set_display_info()
+            for a in coauthors:
+                a.set_display_info()
+            if include_emails:
+                return submitting_author, coauthors, author_emails
+            else:
+                return submitting_author, coauthors
+        else:
+            for a in authors:
+                a.set_display_info()
+            if include_emails:
+                return authors, author_emails
+            else:
+                return authors
+
+    def info_card(self, include_emails=True):
+        """
+        Get all the information needed for the project info card
+        seen by an admin
+        """
+        authors, author_emails = self.get_author_info(include_emails=include_emails)
+        storage_info = self.get_storage_info()
+        edit_logs = self.edit_logs.all()
+        for e in edit_logs:
+            e.set_quality_assurance_results()
+        copyedit_logs = self.copyedit_logs.all()
+        return authors, author_emails, storage_info, edit_logs, copyedit_logs
 
 
 class SubmissionInfo(models.Model):
@@ -379,6 +409,14 @@ class UnpublishedProject(models.Model):
     def file_root(self):
         "Root directory containing the project's files"
         return os.path.join(self.__class__.FILE_ROOT, self.slug)
+
+    def get_storage_info(self):
+        """
+        Return an object containing information about the project's
+        storage usage.
+        """
+        return StorageInfo(allowance=self.core_project.storage_allowance,
+            used=self.storage_used(), include_remaining=True)
 
 
 class ArchivedProject(Metadata, UnpublishedProject, SubmissionInfo):
@@ -476,32 +514,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         if self.submission_status == 40:
             return True
-
-    def get_author_info(self, separate_submitting=False, include_emails=False):
-        """
-        Get the project's authors, setting information needed to display
-        their attributes.
-        """
-        authors = self.authors.all().order_by('display_order')
-        author_emails = ';'.join(a.user.email for a in authors)
-
-        if separate_submitting:
-            submitting_author = authors.get(is_submitting=True)
-            coauthors = authors.filter(is_submitting=False)
-            submitting_author.set_display_info()
-            for a in coauthors:
-                a.set_display_info()
-            if include_emails:
-                return submitting_author, coauthors, author_emails
-            else:
-                return submitting_author, coauthors
-        else:
-            for a in authors:
-                a.set_display_info()
-            if include_emails:
-                return authors, author_emails
-            else:
-                return authors
 
     def archive(self, archive_reason):
         """
@@ -686,19 +698,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         return len(authors) == len(authors.filter(
             approval_datetime__isnull=False))
 
-    def info_card(self):
-        """
-        Get all the information needed for the submission info card
-        seen by an admin/editor
-        """
-        authors, author_emails = self.get_author_info(include_emails=True)
-        storage_info = self.get_storage_info()
-        edit_logs = self.edit_logs.all()
-        for e in edit_logs:
-            e.set_quality_assurance_results()
-        copyedit_logs = self.copyedit_logs.all()
-        return authors, author_emails, storage_info, edit_logs, copyedit_logs
-
     def is_publishable(self):
         """
         Check whether a project may be published
@@ -727,8 +726,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         for attr in [f.name for f in Metadata._meta.fields] + [f.name for f in SubmissionInfo._meta.fields]:
             setattr(published_project, attr, getattr(self, attr))
 
-        # New fields
-        published_project.storage_size = self.storage_used()
         published_project.save()
 
         # Same content, different objects.
@@ -778,6 +775,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                     name=affiliation.name, author=published_author)
 
             if author.is_corresponding:
+                published_author.corresponding_email = author.corresponding_email.email
+                published_author.save()
                 contact = Contact.objects.create(name=author.get_full_name(),
                 affiliations=';'.join(a.name for a in affiliations),
                 email=author.corresponding_email, project=published_project)
@@ -790,12 +789,15 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             copyedit_log.project = published_project
             copyedit_log.save()
 
-        # Create file root
+        # Create file roots
         os.mkdir(published_project.file_root())
+        os.mkdir(published_project.special_file_root())
         # Move over main files
         os.rename(self.file_root(), published_project.main_file_root())
-        # Create special files
-        published_project.make_special_files(make_zip=make_zip)
+        # Create special files if there are files. Should always be the case.
+        if bool(self.storage_used):
+            published_project.make_special_files(make_zip=make_zip)
+            published_project.set_storage_info()
         # Remove the ActiveProject
         self.delete()
 
@@ -807,8 +809,10 @@ class PublishedProject(Metadata, SubmissionInfo):
     A published project. Immutable snapshot.
 
     """
-    # Total file storage size in bytes
-    storage_size = models.PositiveIntegerField()
+    # File storage sizes in bytes
+    main_storage_size = models.PositiveIntegerField(default=0)
+    special_storage_size = models.PositiveIntegerField(default=0)
+    total_storage_size = models.PositiveIntegerField(default=0)
     publish_datetime = models.DateTimeField(auto_now_add=True)
     is_newest_version = models.BooleanField(default=True)
     newest_version = models.ForeignKey('project.PublishedProject', null=True,
@@ -866,6 +870,28 @@ class PublishedProject(Metadata, SubmissionInfo):
         "Root directory where the special files are located"
         return os.path.join(self.file_root(), 'special-files')
 
+    def storage_used(self):
+        "Total storage used in bytes of main, special, and total files"
+        main = get_tree_size(self.main_file_root())
+        special = get_tree_size(self.special_file_root())
+        return main, special, main+special
+
+    def set_storage_info(self, info_type='all'):
+        """
+        Sum up the file size(s) of the project and set the storage info
+        field(s)
+        """
+        if info_type == 'all':
+            (self.main_storage_size, self.special_storage_size,
+                self.total_storage_size) = self.storage_used()
+        elif info_type == 'main':
+            self.main_storage_size = get_tree_size(self.main_file_root())
+            self.total_storage_size = self.main_storage_size + self.special_storage_size
+        elif info_type == 'special':
+            self.special_storage_size = get_tree_size(self.special_file_root())
+            self.total_storage_size = self.main_storage_size + self.special_storage_size
+        self.save()
+
     def slugged_label(self):
         """
         Slugged readable label from the title and version. Used for
@@ -873,7 +899,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         return '-'.join((slugify(self.title), self.version.replace(' ', '-')))
 
-    def make_zip(self):
+    def make_zip(self, update_size=False):
         """
         Make a zip file of the main and special files.
         Move to the special file root.
@@ -885,14 +911,20 @@ class PublishedProject(Metadata, SubmissionInfo):
             format='zip')
         os.rename(file, os.path.join(self.special_file_root(), self.slugged_label() + '.zip'))
 
-    def make_files_list(self):
+        if update_size:
+            self.set_storage_info(info_type='special')
+
+    def make_files_list(self, update_size=False):
         "Make a files list of the main files. Write to project file root"
         files = get_tree_files(self.main_file_root(), full_path=False)
         with open(os.path.join(self.special_file_root(), 'FILES'), 'w') as outfile:
             for f in files:
                 outfile.write(f + '\n')
 
-    def make_checksum_file(self):
+        if update_size:
+            self.set_storage_info(info_type='special')
+
+    def make_checksum_file(self, update_size=False):
         "Make the checksums file for the main files"
         files = get_tree_files(self.main_file_root(), full_path=False)
         with open(os.path.join(self.special_file_root(), 'SHA256SUMS'), 'w') as outfile:
@@ -900,7 +932,10 @@ class PublishedProject(Metadata, SubmissionInfo):
                 outfile.write('{} {}\n'.format(
                     hashlib.sha256(open(os.path.join(self.main_file_root(), f), 'rb').read()).hexdigest(), f))
 
-    def make_special_files(self, make_zip):
+        if update_size:
+            self.set_storage_info(info_type='special')
+
+    def make_special_files(self, make_zip, update_size=False):
         """
         Make the special files for the database. zip file, files list,
         checksum. Make the base directory for the special files if needed
@@ -913,6 +948,8 @@ class PublishedProject(Metadata, SubmissionInfo):
         if make_zip:
             self.make_zip()
 
+        if update_size:
+            self.set_storage_info(info_type='special')
 
     def get_main_directory_content(self, subdir=''):
         """
@@ -977,6 +1014,18 @@ class PublishedProject(Metadata, SubmissionInfo):
                 return False
         else:
             return True
+
+    def get_storage_info(self):
+        """
+        Return an object containing information about the project's
+        storage usage. Main, special, total files, and allowance.
+        """
+        main, special, total = self.storage_used()
+        return StorageInfo(allowance=self.core_project.storage_allowance,
+            used=total, include_remaining=False, main_used=main,
+            special_used=special)
+
+
 
 def exists_project_slug(slug):
     if (ActiveProject.objects.filter(slug=slug)

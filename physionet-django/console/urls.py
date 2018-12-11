@@ -17,6 +17,9 @@ urlpatterns = [
     url(r'^rejected-submissions/$', views.rejected_submissions,
         name='rejected_submissions'),
 
+    url(r'^published-projects/(?P<project_slug>\w+)/$',
+        views.manage_published_project, name='manage_published_project'),
+
     # Individual edit pages
     url(r'^submitted-projects/(?P<project_slug>\w+)/$',
         views.submission_info_redirect, name='submission_info_redirect'),
@@ -33,7 +36,6 @@ urlpatterns = [
 
     url(r'^storage-requests/$', views.storage_requests,
         name='storage_requests'),
-    url(r'^users/$', views.users, name='user_list'),
 
     url(r'^credential-applications/$', views.credential_applications,
         name='credential_applications'),
@@ -50,4 +52,6 @@ urlpatterns = [
         views.process_credential_application,
         name='process_credential_application'),
 
+    url(r'^users/all/$', views.users, name='user_list'),
+    url(r'^users/lcp/$', views.lcp_affiliates, name='lcp_affiliates'),
 ]

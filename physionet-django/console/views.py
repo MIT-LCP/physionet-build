@@ -16,7 +16,6 @@ import notification.utility as notification
 import project.forms as project_forms
 from project.models import ActiveProject, ArchivedProject, StorageRequest, EditLog, Reference, Topic, Publication, PublishedProject
 from project.views import get_file_forms, get_project_file_info, process_files_post
-from project.utility import get_storage_info
 from user.models import User, CredentialApplication
 
 
@@ -338,9 +337,12 @@ def publish_submission(request, project_slug, *args, **kwargs):
         return redirect('editor_home')
 
     authors, author_emails, storage_info, edit_logs, copyedit_logs = project.info_card()
+    publish_form = forms.PublishForm()
+
     if request.method == 'POST':
-        if project.is_publishable():
-            published_project = project.publish()
+        publish_form = forms.PublishForm(data=request.POST)
+        if project.is_publishable() and publish_form.is_valid():
+            published_project = project.publish(make_zip=int(publish_form.cleaned_data['make_zip']))
             notification.publish_notify(request, published_project)
             return render(request, 'console/publish_complete.html',
                 {'published_project':published_project})
@@ -349,7 +351,8 @@ def publish_submission(request, project_slug, *args, **kwargs):
     return render(request, 'console/publish_submission.html',
         {'project':project, 'publishable':publishable, 'authors':authors,
          'author_emails':author_emails, 'storage_info':storage_info,
-         'edit_logs':edit_logs, 'copyedit_logs':copyedit_logs})
+         'edit_logs':edit_logs, 'copyedit_logs':copyedit_logs,
+         'publish_form':publish_form})
 
 
 def process_storage_response(request, storage_response_formset):
@@ -419,8 +422,47 @@ def published_projects(request):
     List of published projects
     """
     projects = PublishedProject.objects.all().order_by('publish_datetime')
+    doi_projects = projects.filter(doi='')
+
     return render(request, 'console/published_projects.html',
-        {'projects':projects})
+        {'projects':projects, 'doi_projects':doi_projects})
+
+@login_required
+@user_passes_test(is_admin)
+def manage_published_project(request, project_slug):
+    """
+    Manage a published project
+
+    - Set the DOI field (after doing it in datacite)
+    -
+
+    """
+    project = PublishedProject.objects.get(slug=project_slug)
+    authors, author_emails, storage_info, edit_logs, copyedit_logs = project.info_card()
+    doi_form = forms.DOIForm(instance=project)
+
+    if request.method == 'POST':
+        if 'set_doi' in request.POST:
+            doi_form = forms.DOIForm(data=request.POST, instance=project)
+            if doi_form.is_valid():
+                doi_form.save()
+                messages.success(request, 'The DOI has been set')
+            else:
+                messages.error(request, 'Invalid submission. See form below.')
+        elif 'make_files_list' in request.POST:
+            project.make_files_list(update_size=True)
+            messages.success(request, 'The files list has been generated.')
+        elif 'make_checksum_file' in request.POST:
+            project.make_checksum_file(update_size=True)
+            messages.success(request, 'The files checksum list has been generated.')
+        elif 'make_zip' in request.POST:
+            project.make_zip(update_size=True)
+            messages.success(request, 'The zip of the main files has been generated.')
+
+    return render(request, 'console/manage_published_project.html',
+        {'project':project, 'authors':authors, 'author_emails':author_emails,
+         'storage_info':storage_info, 'edit_logs':edit_logs,
+         'copyedit_logs':copyedit_logs, 'published':True, 'doi_form':doi_form,})
 
 @login_required
 @user_passes_test(is_admin)
@@ -433,6 +475,8 @@ def rejected_submissions(request):
         {'projects':projects})
 
 
+
+
 @login_required
 @user_passes_test(is_admin)
 def users(request):
@@ -441,6 +485,44 @@ def users(request):
     """
     users = User.objects.all()
     return render(request, 'console/users.html', {'users':users})
+
+
+@login_required
+@user_passes_test(is_admin)
+def lcp_affiliates(request):
+    """
+    LCP affiliated users
+    """
+    add_affiliate_form = forms.AddAffiliateForm()
+    remove_affiliate_form = forms.RemoveAffiliateForm()
+
+    if request.method == 'POST':
+        if 'add_affiliate' in request.POST:
+            add_affiliate_form = forms.AddAffiliateForm(request.POST)
+            if add_affiliate_form.is_valid():
+                add_affiliate_form.user.lcp_affiliated = True
+                add_affiliate_form.user.save()
+                add_affiliate_form = forms.AddAffiliateForm()
+                remove_affiliate_form = forms.RemoveAffiliateForm()
+                messages.success(request, 'The user has been added.')
+            else:
+                messages.error(request, 'Invalid submission. See form below.')
+        elif 'remove_affiliate' in request.POST:
+            remove_affiliate_form = forms.RemoveAffiliateForm(request.POST)
+            if remove_affiliate_form.is_valid():
+                user = remove_affiliate_form.cleaned_data['user']
+                user.lcp_affiliated = False
+                user.save()
+                remove_affiliate_form = forms.RemoveAffiliateForm()
+                messages.success(request, 'The user has been removed.')
+            else:
+                messages.error(request, 'Invalid submission. See form below.')
+
+    users = User.objects.filter(lcp_affiliated=True)
+
+    return render(request, 'console/lcp_affiliates.html', {'users':users,
+        'add_affiliate_form':add_affiliate_form,
+        'remove_affiliate_form':remove_affiliate_form})
 
 
 @login_required

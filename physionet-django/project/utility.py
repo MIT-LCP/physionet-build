@@ -58,23 +58,35 @@ def get_dir_breadcrumbs(subdir):
 
 class StorageInfo():
     """
-    Information about a project's storage allowance, usage, and remaining.
+    Object for storing display information about a project's storage.
     """
-    def __init__(self, allowance, used, remaining, readable_allowance,
-        readable_used, readable_remaining, p_used, p_remaining):
-        # Integer fields
+    def __init__(self, allowance, used, include_remaining,
+        main_used=None, special_used=None):
+        """
+        Initialize fields with optional args for published and
+        unpublished projects
+        """
         self.allowance = allowance
+        self.readable_allowance = readable_size(allowance)
+
+        # Total used
         self.used = used
-        self.remaining = remaining
+        self.readable_used = readable_size(used)
 
-        # Readable string fields
-        self.readable_allowance = readable_allowance
-        self.readable_used = readable_used
-        self.readable_remaining = readable_remaining
+        if include_remaining:
+            remaining = allowance - used
+            self.remaining = remaining
+            self.readable_remaining = readable_size(remaining)
+            self.p_used = round(used *100 / allowance)
+            self.p_remaining = round(remaining *100 / allowance)
 
-        # Integer fields
-        self.p_used = p_used
-        self.p_remaining = p_remaining
+        if main_used is not None:
+            self.main_used = main_used
+            self.readable_main_used = readable_size(main_used)
+
+        if special_used is not None:
+            self.special_used = special_used
+            self.readable_special_used = readable_size(special_used)
 
 
 def list_files(directory):
@@ -164,17 +176,10 @@ def readable_size(num, suffix='B'):
     return '{:.1f}{:s}{:s}'.format(num, 'Y', suffix)
 
 
-def get_storage_info(allowance, used):
+def published_storage_usage_info(allowance, main, special, total):
     """
-    Get information about storage allowance, usage, and remaining.
-    Input variables are integers in bytes.
+    Return an object containing information about the
     """
-    remaining = allowance - used
-    p_used = round(used *100 / allowance)
-    p_remaining = round(remaining *100 / allowance)
-
-    return StorageInfo(allowance, used, remaining, readable_size(allowance),
-        readable_size(used), readable_size(remaining), p_used, p_remaining)
 
 
 def write_uploaded_file(file, write_file_path):

@@ -31,6 +31,7 @@
     </p>
     <form action="" method="post" class="form-signin">
       {% csrf_token %}
+      {% include "form_snippet.html" with form=publish_form %}
       <button class="btn btn-success btn-lg" name="publish_submission" type="submit">Publish Submission</button>
     </form>
   </div>
