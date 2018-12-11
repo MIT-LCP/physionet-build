@@ -211,7 +211,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
 
     description_form = project_forms.MetadataForm(
         resource_type=project.resource_type, instance=project)
-    access_form = project_forms.AccessMetadataForm(include_protected=True,
+    access_form = project_forms.AccessMetadataForm(include_credentialed=True,
         instance=project)
     reference_formset = ReferenceFormSet(instance=project)
     publication_formset = PublicationFormSet(instance=project)
@@ -225,7 +225,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
                 resource_type=project.resource_type, data=request.POST,
                 instance=project)
             access_form = project_forms.AccessMetadataForm(
-                include_protected=True,data=request.POST, instance=project)
+                include_credentialed=True, data=request.POST, instance=project)
             reference_formset = ReferenceFormSet(data=request.POST,
                 instance=project)
             publication_formset = PublicationFormSet(request.POST,

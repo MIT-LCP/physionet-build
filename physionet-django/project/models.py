@@ -16,7 +16,7 @@ from django.utils import timezone
 from django.utils.text import slugify
 
 from .utility import get_tree_size, get_file_info, get_directory_info, list_items, StorageInfo, get_tree_files, list_files
-from user.validators import validate_alphaplus
+from user.validators import validate_alphaplus, validate_alphaplusplus
 
 
 class Affiliation(models.Model):
@@ -24,7 +24,7 @@ class Affiliation(models.Model):
     Affiliations belonging to an author
 
     """
-    name = models.CharField(max_length=202, validators=[validate_alphaplus])
+    name = models.CharField(max_length=202, validators=[validate_alphaplusplus])
     author = models.ForeignKey('project.Author', related_name='affiliations')
 
     class Meta:

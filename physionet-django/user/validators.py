@@ -48,7 +48,10 @@ def validate_alphaplus(value):
     if not re.fullmatch(r'[a-zA-Z0-9][\w\ -]*', value):
         raise ValidationError('Letters, numbers, spaces, underscores, and hyphens only. Must begin with a letter or number.')
 
-phone_validator = RegexValidator(regex=r'^\+?1?\d{9,15}$',
-    message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.")
+
+def validate_alphaplusplus(value):
+    if not re.fullmatch(r'[a-zA-Z0-9][\'\,\.\w\ -]*', value):
+        raise ValidationError('Letters, numbers, spaces, underscores, hyphens, apostrophes, periods, and commas only. Must begin with a letter or number.')
+
 
 

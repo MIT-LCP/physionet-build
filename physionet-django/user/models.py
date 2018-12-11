@@ -15,7 +15,7 @@ from django.core.validators import EmailValidator
 from django.utils.translation import ugettext as _
 
 from .validators import (UsernameValidator, validate_name, validate_alphaplus,
-    phone_validator)
+    validate_alphaplusplus)
 
 
 logger = logging.getLogger(__name__)
@@ -468,8 +468,9 @@ class Profile(models.Model):
     first_names = models.CharField(max_length=100, validators=[validate_name])
     last_name = models.CharField(max_length=50, validators=[validate_name])
     affiliation = models.CharField(max_length=60, blank=True, default='',
-        validators=[validate_alphaplus])
-    location = models.CharField(max_length=100, blank=True, default='')
+        validators=[validate_alphaplusplus])
+    location = models.CharField(max_length=100, blank=True, default='',
+        validators=[validate_alphaplusplus])
     website = models.URLField(default='', blank=True, null=True)
     photo = models.ImageField(upload_to=photo_path, blank=True, null=True,
         validators=[FileExtensionValidator(['png', 'jpg', 'jpeg'],
@@ -580,28 +581,35 @@ class CredentialApplication(models.Model):
     researcher_category = models.PositiveSmallIntegerField(choices=RESEARCHER_CATEGORIES)
     # Organization fields
     organization_name = models.CharField(max_length=60,
-        validators=[validate_alphaplus])
-    job_title = models.CharField(max_length=60)
-    city = models.CharField(max_length=100)
-    state_province = models.CharField(max_length=100)
+        validators=[validate_alphaplusplus])
+    job_title = models.CharField(max_length=60,
+        validators=[validate_alphaplusplus])
+    city = models.CharField(max_length=100,
+        validators=[validate_alphaplusplus])
+    state_province = models.CharField(max_length=100,
+        validators=[validate_alphaplusplus])
     country = models.CharField(max_length=2, choices=COUNTRIES)
     website = models.URLField(default='', blank=True)
     # Human resources training
-    training_course_name = models.CharField(max_length=100)
+    training_course_name = models.CharField(max_length=100,
+        validators=[validate_alphaplusplus])
     training_completion_date = models.DateField()
     training_completion_report = models.FileField(
         upload_to=training_report_path, validators=[FileExtensionValidator(
             ['pdf'], 'File must be a pdf.')])
     # Course info
     course_category = models.PositiveSmallIntegerField(choices=COURSE_CATEGORIES)
-    course_name = models.CharField(max_length=60)
-    course_number = models.CharField(max_length=30)
+    course_name = models.CharField(max_length=60,
+        validators=[validate_alphaplusplus])
+    course_number = models.CharField(max_length=30,
+        validators=[validate_alphaplusplus])
     # Reference
     reference_category = models.PositiveSmallIntegerField(
         choices=REFERENCE_CATEGORIES)
     reference_name = models.CharField(max_length=202, validators=[validate_name])
     reference_email = models.EmailField()
-    reference_title = models.CharField(max_length=60)
+    reference_title = models.CharField(max_length=60,
+        validators=[validate_alphaplusplus])
     # 0 1 2 = pending, rejected, accepted
     status = models.PositiveSmallIntegerField(default=0, choices=REJECT_ACCEPT)
     reference_contact_datetime = models.DateTimeField(null=True)
