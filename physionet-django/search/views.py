@@ -39,9 +39,17 @@ def topic_search(request, topic=''):
     else:
         projects = PublishedProject.objects.filter(topics__description=topic) if topic else None
         form = forms.TopicSearchForm(initial={'description':topic})
-        valid_search = True
+        valid_search = True if topic else False
 
     return render(request, 'search/topic_search.html', {'topic':topic,
         'projects':projects, 'form':form, 'valid_search':valid_search})
 
 
+def all_topics(request):
+    """
+    Show all topics contained in PhysioNet
+
+    """
+    topics = PublishedTopic.objects.all().order_by('project_count')
+
+    return render(request, 'search/all_topics.html', {'topics':topics})
