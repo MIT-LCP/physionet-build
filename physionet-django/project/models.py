@@ -773,7 +773,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 published_author.corresponding_email = author.corresponding_email.email
                 published_author.save()
                 contact = Contact.objects.create(name=author.get_full_name(),
-                affiliations=';'.join(a.name for a in affiliations),
+                affiliations='; '.join(a.name for a in affiliations),
                 email=author.corresponding_email, project=published_project)
 
         # Move the edit and copyedit logs

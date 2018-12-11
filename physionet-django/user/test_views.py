@@ -116,7 +116,7 @@ class TestAuth(TestCase, TestMixin):
         self.tst_get_request(edit_profile)
 
         self.make_post_request('edit_profile',
-            data={'first_name': 'Roger', 'last_name': 'Federer'})
+            data={'first_names': 'Roger', 'last_name': 'Federer'})
         self.tst_post_request(edit_profile)
 
     def test_edit_password_complete(self):
@@ -198,7 +198,7 @@ class TestPublic(TestCase, TestMixin):
         self.tst_get_request(register, status_code=200)
         self.make_post_request('register',
             data={'email':'jackreacher@mit.edu', 'username':'awesomeness',
-            'first_name': 'Jack', 'last_name': 'Reacher',
+            'first_names': 'Jack', 'last_name': 'Reacher',
             'password1':'Very5trongt0t@11y', 'password2':'Very5trongt0t@11y'})
         # Recall that register uses same view upon success, so not 302
         self.tst_post_request(register, status_code=200)

@@ -30,7 +30,7 @@ class TestAuth(TestCase):
 
     def test_edit_profile(self):
         response = self.client.post(reverse('edit_profile'),
-            data={'first_name':'Roger', 'last_name':'Federer',
+            data={'first_names':'Roger', 'last_name':'Federer',
                   'edit_profile':''})
 
         self.assertEqual(response.status_code, 200)
