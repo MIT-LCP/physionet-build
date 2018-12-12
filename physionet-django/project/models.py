@@ -1058,8 +1058,13 @@ class ProgrammingLanguage(models.Model):
 class License(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=120)
-    description = RichTextField()
-    url = models.URLField(blank=True, null=True)
+    text_content = models.TextField()
+    home_page = models.URLField()
+    # A project must choose a license with a matching access policy and
+    # resource type
+    access_policy = models.SmallIntegerField(choices=Metadata.ACCESS_POLICIES,
+        default=0)
+    resource_type = models.PositiveSmallIntegerField(choices=Metadata.RESOURCE_TYPES)
 
     def __str__(self):
         return self.name

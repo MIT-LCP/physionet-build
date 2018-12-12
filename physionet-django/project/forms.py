@@ -582,9 +582,11 @@ class AccessMetadataForm(forms.ModelForm):
 
     def __init__(self, include_credentialed, *args, **kwargs):
         """
-        Control whether to only allow choosing the protected access policies
+        Control the allowed access policies, and resultant license and
+        dua choices.
         """
         super().__init__(*args, **kwargs)
+
         if not include_credentialed:
             self.fields['access_policy'].choices = ((0, 'Open'),(1, 'Restricted'))
 
