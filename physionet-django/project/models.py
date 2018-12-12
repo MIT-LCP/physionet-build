@@ -16,7 +16,7 @@ from django.utils import timezone
 from django.utils.text import slugify
 
 from .utility import get_tree_size, get_file_info, get_directory_info, list_items, StorageInfo, get_tree_files, list_files
-from user.validators import validate_alphaplus
+from user.validators import validate_alphaplus, validate_alphaplusplus
 
 
 class Affiliation(models.Model):
@@ -24,7 +24,7 @@ class Affiliation(models.Model):
     Affiliations belonging to an author
 
     """
-    name = models.CharField(max_length=202, validators=[validate_alphaplus])
+    name = models.CharField(max_length=202, validators=[validate_alphaplusplus])
     author = models.ForeignKey('project.Author', related_name='affiliations')
 
     class Meta:
@@ -115,9 +115,8 @@ class PublishedAuthor(BaseAuthor):
     """
     The author model for PublishedProject
     """
-    first_name = models.CharField(max_length=100, default='')
-    middle_names = models.CharField(max_length=200, default='')
-    last_name = models.CharField(max_length=100, default='')
+    first_names = models.CharField(max_length=100, default='')
+    last_name = models.CharField(max_length=50, default='')
     corresponding_email = models.EmailField(null=True)
     project = models.ForeignKey('project.PublishedProject',
         related_name='authors', db_index=True)
@@ -126,11 +125,7 @@ class PublishedAuthor(BaseAuthor):
         unique_together = (('user', 'project'),)
 
     def get_full_name(self):
-        if self.middle_names:
-            return ' '.join([self.first_name, self.middle_names,
-                           self.last_name])
-        else:
-            return ' '.join([self.first_name, self.last_name])
+        return ' '.join([self.first_names, self.last_name])
 
     def set_display_info(self):
         """
@@ -280,7 +275,6 @@ class Metadata(models.Model):
     content_description = RichTextField(blank=True)
     usage_notes = RichTextField(blank=True)
     installation = RichTextField(blank=True)
-    subject_identifiers = RichTextField(blank=True)
     acknowledgements = RichTextField(blank=True)
     conflicts_of_interest = RichTextField(blank=True)
     version = models.CharField(max_length=15, default='', blank=True)
@@ -375,6 +369,7 @@ class SubmissionInfo(models.Model):
         related_name='editing_%(class)ss', null=True)
     # The very first submission
     submission_datetime = models.DateTimeField(null=True)
+    author_comments = models.CharField(max_length=1000, default='')
     editor_assignment_datetime = models.DateTimeField(null=True)
     # The last revision request (if any)
     revision_request_datetime = models.DateTimeField(null=True)
@@ -462,8 +457,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
     REQUIRED_FIELDS = (
         ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'conflicts_of_interest', 'subject_identifiers',
-         'version', 'license'),
+         'usage_notes', 'conflicts_of_interest', 'version', 'license'),
         ('title', 'abstract', 'background', 'methods', 'content_description',
          'usage_notes', 'installation', 'conflicts_of_interest', 'version',
          'license')
@@ -617,7 +611,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         "Whether the project can be submitted"
         return (not self.under_submission() and self.check_integrity())
 
-    def submit(self):
+    def submit(self, author_comments):
         """
         Submit the project for review.
         """
@@ -626,9 +620,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
         self.submission_status = 10
         self.submission_datetime = timezone.now()
+        self.author_comments = author_comments
         self.save()
         # Create the first edit log
-        EditLog.objects.create(project=self)
+        EditLog.objects.create(project=self, author_comments=author_comments)
 
     def set_submitting_author(self):
         """
@@ -655,7 +650,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         return (self.submission_status == 30 and self.check_integrity())
 
-    def resubmit(self):
+    def resubmit(self, author_comments):
         if not self.is_resubmittable():
             raise Exception('ActiveProject is not resubmittable')
 
@@ -663,7 +658,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         self.resubmission_datetime = timezone.now()
         self.save()
         # Create a new edit log
-        EditLog.objects.create(project=self, is_resubmission=True)
+        EditLog.objects.create(project=self, is_resubmission=True,
+            author_comments=author_comments)
 
     def reopen_copyedit(self):
         """
@@ -712,7 +708,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         shutil.rmtree(self.file_root())
 
-    def publish(self, make_zip=True):
+    def publish(self, doi, make_zip=True):
         """
         Create a published version of this project and update the
         submission status
@@ -720,7 +716,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         if not self.is_publishable():
             raise Exception('The project is not publishable')
 
-        published_project = PublishedProject()
+        published_project = PublishedProject(doi=doi)
 
         # Direct copy over fields
         for attr in [f.name for f in Metadata._meta.fields] + [f.name for f in SubmissionInfo._meta.fields]:
@@ -764,8 +760,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 is_corresponding=author.is_corresponding,
                 approval_datetime=author.approval_datetime,
                 display_order=author.display_order,
-                first_name=author_profile.first_name,
-                middle_names=author_profile.middle_names,
+                first_names=author_profile.first_names,
                 last_name=author_profile.last_name,
                 )
 
@@ -796,8 +791,9 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         os.rename(self.file_root(), published_project.main_file_root())
         # Create special files if there are files. Should always be the case.
         if bool(self.storage_used):
+            published_project.move_special_files()
             published_project.make_special_files(make_zip=make_zip)
-            published_project.set_storage_info()
+        published_project.set_storage_info()
         # Remove the ActiveProject
         self.delete()
 
@@ -817,7 +813,7 @@ class PublishedProject(Metadata, SubmissionInfo):
     is_newest_version = models.BooleanField(default=True)
     newest_version = models.ForeignKey('project.PublishedProject', null=True,
                                        related_name='older_versions')
-    doi = models.CharField(max_length=50, default='')
+    doi = models.CharField(max_length=50, unique=True)
     approved_users = models.ManyToManyField('user.User', db_index=True)
 
     # Where all the published project files are kept, depending on access.
@@ -829,8 +825,11 @@ class PublishedProject(Metadata, SubmissionInfo):
         PUBLIC_FILE_ROOT = os.path.join(settings.STATIC_ROOT, 'published-projects')
 
     SPECIAL_FILES = {
-        'FILES':'List of main files',
-        'SHA256SUMS':'Checksums of main files'
+        'files.txt':'List of main files',
+        'sha256sums.txt':'Checksums of main files',
+        'subject-info.csv':'Subject information spreadsheet',
+        'wfdb-records.txt':'List of WFDB format records',
+        'wfdb-annotators.csv':'List of WFDB annotation file types'
     }
 
     class Meta:
@@ -838,17 +837,6 @@ class PublishedProject(Metadata, SubmissionInfo):
 
     def __str__(self):
         return ('{0} v{1}'.format(self.title, self.version))
-
-    def validate_doi(self, *args, **kwargs):
-        """
-        Validate uniqueness of doi, ignore empty ''
-        """
-        super().validate_unique(*args, **kwargs)
-        published_projects = __class__.objects.all()
-        dois = [p.doi for p in published_projects if doi]
-
-        if len(dois) != len(set(dois)):
-            raise ValidationError('Duplicate DOI')
 
     def file_root(self):
         """
@@ -899,17 +887,23 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         return '-'.join((slugify(self.title), self.version.replace(' ', '-')))
 
+    def zip_name(self):
+        return '{}.zip'.format(self.slugged_label())
+
     def make_zip(self, update_size=False):
         """
-        Make a zip file of the main and special files.
+        Make a (new) zip file of the main and special files.
         Move to the special file root.
         """
+        if os.path.isfile(os.path.join(self.special_file_root(), self.zip_name())):
+            os.remove(os.path.join(self.special_file_root(), self.zip_name()))
+
         os.chdir(self.file_root())
 
         file = shutil.make_archive(
             base_name=os.path.join('..', self.slugged_label()),
             format='zip')
-        os.rename(file, os.path.join(self.special_file_root(), self.slugged_label() + '.zip'))
+        os.rename(file, os.path.join(self.special_file_root(), self.zip_name()))
 
         if update_size:
             self.set_storage_info(info_type='special')
@@ -917,7 +911,7 @@ class PublishedProject(Metadata, SubmissionInfo):
     def make_files_list(self, update_size=False):
         "Make a files list of the main files. Write to project file root"
         files = get_tree_files(self.main_file_root(), full_path=False)
-        with open(os.path.join(self.special_file_root(), 'FILES'), 'w') as outfile:
+        with open(os.path.join(self.special_file_root(), 'files.txt'), 'w') as outfile:
             for f in files:
                 outfile.write(f + '\n')
 
@@ -927,7 +921,7 @@ class PublishedProject(Metadata, SubmissionInfo):
     def make_checksum_file(self, update_size=False):
         "Make the checksums file for the main files"
         files = get_tree_files(self.main_file_root(), full_path=False)
-        with open(os.path.join(self.special_file_root(), 'SHA256SUMS'), 'w') as outfile:
+        with open(os.path.join(self.special_file_root(), 'sha256sums.txt'), 'w') as outfile:
             for f in files:
                 outfile.write('{} {}\n'.format(
                     hashlib.sha256(open(os.path.join(self.main_file_root(), f), 'rb').read()).hexdigest(), f))
@@ -1002,6 +996,19 @@ class PublishedProject(Metadata, SubmissionInfo):
             display_files.append(file_info)
 
         return display_files
+
+    def move_special_files(self, update_size=False):
+        """
+        Move any special files uploaded by the user into the special
+        files directory.
+        """
+        for file in ['subject-info.csv', 'wfdb-records.txt', 'wfdb-annotators.csv']:
+            if os.path.isfile(os.path.join(self.main_file_root(), file)):
+                os.rename(os.path.join(self.main_file_root(), file),
+                    os.path.join(self.special_file_root(), file))
+
+        if update_size:
+            self.set_storage_info(info_type='all')
 
     def has_access(self, user):
         """
@@ -1152,7 +1159,7 @@ class StorageRequest(BaseInvitation):
 
 class EditLog(models.Model):
     """
-    Log for an editor decision
+    Log for an editor decision. Also saves submission info.
 
     """
     # Quality assurance fields for data and software
@@ -1187,6 +1194,7 @@ class EditLog(models.Model):
     # When the submitting author submits/resubmits
     submission_datetime = models.DateTimeField(auto_now_add=True)
     is_resubmission = models.BooleanField(default=False)
+    author_comments = models.CharField(max_length=1000, default='')
     # Quality assurance fields
     soundly_produced = models.NullBooleanField(null=True)
     well_described = models.NullBooleanField(null=True)

@@ -11,8 +11,7 @@
     "is_active": true,
     "is_admin": true,
     "is_credentialed": false,
-    "credential_datetime": null,
-    "lcp_affiliated": true
+    "credential_datetime": null
   }
 },
 {
@@ -27,8 +26,7 @@
     "is_active": true,
     "is_admin": false,
     "is_credentialed": true,
-    "credential_datetime": "2018-11-14T20:45:53.071Z",
-    "lcp_affiliated": true
+    "credential_datetime": "2018-11-14T20:45:53.071Z"
   }
 },
 {
@@ -43,8 +41,7 @@
     "is_active": true,
     "is_admin": false,
     "is_credentialed": false,
-    "credential_datetime": null,
-    "lcp_affiliated": true
+    "credential_datetime": null
   }
 },
 {
@@ -59,8 +56,7 @@
     "is_active": true,
     "is_admin": false,
     "is_credentialed": false,
-    "credential_datetime": null,
-    "lcp_affiliated": true
+    "credential_datetime": null
   }
 },
 {
@@ -175,8 +171,7 @@
     "user": [
       "admin"
     ],
-    "first_name": "Admin",
-    "middle_names": "",
+    "first_names": "Admin",
     "last_name": "Bot",
     "affiliation": "",
     "location": "",
@@ -191,8 +186,7 @@
     "user": [
       "rgmark"
     ],
-    "first_name": "Roger",
-    "middle_names": "Greenwood",
+    "first_names": "Roger Greenwood",
     "last_name": "Mark",
     "affiliation": "Massachusetts Institute of Technology",
     "location": "Cambridge MA",
@@ -207,8 +201,7 @@
     "user": [
       "george"
     ],
-    "first_name": "George",
-    "middle_names": "",
+    "first_names": "George",
     "last_name": "Moody",
     "affiliation": "",
     "location": "",
@@ -223,8 +216,7 @@
     "user": [
       "aewj"
     ],
-    "first_name": "Alistair",
-    "middle_names": "Edward William",
+    "first_names": "Alistair Edward William",
     "last_name": "Johnson",
     "affiliation": "Massachusetts Institute of Technology",
     "location": "",
@@ -241,7 +233,8 @@
     "user": [
       "rgmark"
     ],
-    "full_name": "Roger Greenwood Mark",
+    "first_names": "Roger Greenwood",
+    "last_name": "Mark",
     "researcher_category": 2,
     "organization_name": "Massachusetts Institute of Technology",
     "job_title": "Professor",

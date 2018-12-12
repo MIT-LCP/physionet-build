@@ -153,7 +153,7 @@ class ProfileForm(forms.ModelForm):
 
     class Meta:
         model = Profile
-        fields = ('first_name', 'middle_names', 'last_name', 'affiliation',
+        fields = ('first_names', 'last_name', 'affiliation',
                   'location', 'website', 'photo')
 
     def clean_photo(self):
@@ -182,13 +182,10 @@ class RegistrationForm(forms.ModelForm):
     fields, plus a repeated password.
     """
 
-    first_name = forms.CharField(max_length = 30, label='First Name',
+    first_names = forms.CharField(max_length=100, label='First Name',
                     widget=forms.TextInput(attrs={'class':'form-control'}),
                     validators=[validate_name])
-    middle_names = forms.CharField(max_length = 100, label='Middle Names',
-                    widget=forms.TextInput(attrs={'class':'form-control'}),
-                    required=False, validators=[validate_name])
-    last_name = forms.CharField(max_length = 30, label='Last Name',
+    last_name = forms.CharField(max_length=50, label='Last Name',
                     widget=forms.TextInput(attrs={'class':'form-control'}),
                     validators=[validate_name])
     password1 = forms.CharField(label='Password',
@@ -230,10 +227,109 @@ class RegistrationForm(forms.ModelForm):
             user.save()
             # Save additional fields in Profile model
             profile = Profile.objects.create(user=user,
-                first_name=self.cleaned_data['first_name'],
-                middle_names=self.cleaned_data['middle_names'],
+                first_names=self.cleaned_data['first_names'],
                 last_name=self.cleaned_data['last_name'])
         return user
+
+
+# Split the credential application forms into multiple forms
+class PersonalCAF(forms.ModelForm):
+    """
+    Credential application form personal attributes
+    """
+    class Meta:
+        model = CredentialApplication
+        fields = ('first_names', 'last_name', 'researcher_category',
+            'organization_name', 'job_title', 'city', 'state_province',
+            'country', 'website',)
+        help_texts = {
+            'first_names':'Your first and middle names.',
+            'last_name':'Your last name',
+            'researcher_category':'The type of researcher you are.',
+            'organization_name':"The name of your organization. Put 'None' if you are an independent researcher.",
+            'job_title':'The title of your job/role.',
+            'city':'The city you live in.',
+            'state_province':'The state or province that you live in.',
+            'country':'The country that you live in.',
+            'website':"Your organization's website. If possible, put a page listing your role. This helps us confirm your identity.",
+        }
+
+        labels = {
+            'state_province':'State/Province'
+        }
+
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+        self.profile = user.profile
+
+        self.initial = {'first_names':self.profile.first_names,
+            'last_name':self.profile.last_name,
+            'organization_name':self.profile.affiliation,
+            'website':self.profile.website}
+
+class TrainingCAF(forms.ModelForm):
+    """
+    Credential application form training course attributes
+    """
+    class Meta:
+        model = CredentialApplication
+        fields = ('training_course_name', 'training_completion_date',
+            'training_completion_report',)
+        help_texts = {
+            'training_course_name':"The name of the human subjects training course you took. ie. 'CITI Data or Specimens Only Research Course'",
+            'training_completion_date':'The date on which you finished your human subjects training course. Must match the date in your training completion report.',
+            'training_completion_report':"A pdf of the training completion report from your training program. The CITI completion report lists all modules completed, with dates and scores. Do NOT upload the completion certificate.",
+        }
+        widgets = {
+            'training_completion_date':forms.SelectDateWidget(years=list(range(1990, timezone.now().year+1))),
+        }
+
+
+class ReferenceCAF(forms.ModelForm):
+    """
+    Credential application form reference attributes
+    """
+    class Meta:
+        model = CredentialApplication
+        fields = ('reference_category', 'reference_name',
+            'reference_email', 'reference_title')
+        help_texts = {
+            'reference_category': "Your reference's relationship to you. If you are a student or postdoc, this must be your supervisor.",
+            'reference_name':'The full name of your reference.',
+            'reference_email':'The email address of your reference.',
+            'reference_title':'The title of your reference. ie: Professor, Dr.'
+        }
+
+
+class CourseCAF(forms.ModelForm):
+    """
+    Credential application form course information attributes
+    """
+    class Meta:
+        model = CredentialApplication
+        fields = (
+            'course_category', 'course_name', 'course_number')
+        help_texts = {
+            'course_category':'Specify if you are using this data for a course.',
+            'course_name':'The name of the course you are taking/teaching.',
+            'course_number':'The number or code of the course you are taking/teaching.'
+        }
+
+        labels = {
+            'course_category':'Is this for a course?'
+        }
+
+    def __init__(self, require_courses=True, *args, **kwargs):
+        """
+        The course info is required by default.
+        For post requests, do not enforce the fields.
+        """
+        super().__init__(*args, **kwargs)
+
+        if not require_courses:
+            self.fields['course_name'].required = False
+            self.fields['course_number'].required = False
 
 
 class CredentialApplicationForm(forms.ModelForm):
@@ -243,63 +339,35 @@ class CredentialApplicationForm(forms.ModelForm):
 
     class Meta:
         model = CredentialApplication
-        fields = ('full_name', 'researcher_category', 'organization_name',
-            'job_title', 'city', 'state_province',
+        fields = (
+            # Personal
+            'first_names', 'last_name', 'researcher_category',
+            'organization_name', 'job_title', 'city', 'state_province',
             'country', 'website',
+            # Training course
             'training_course_name', 'training_completion_date',
             'training_completion_report',
-
-
-            'course_category', 'course_name', 'course_number',
-
+            # Reference
             'reference_category', 'reference_name',
-            'reference_email', 'reference_title')
-
-        labels = {
-            'state_province':'State/Province',
-            'course_type':'Is this for a course?'
-        }
-
-        help_texts = {
-            'full_name':'Your full name.',
-            'researcher_category':'The type of researcher you are.',
-            'organization_name':"The name of your organization. Put 'None' if you are an independent researcher.",
-            'job_title':'The title of your job/role.',
-            'city':'The city you live in.',
-            'state_province':'The state or province that you live in.',
-            'country':'The country that you live in.',
-            'website':"Your organization's website. If possible, put a page listing your role. This helps us confirm your identity.",
-            'training_course_name':"The name of the human subjects training course you took. ie. 'CITI Data or Specimens Only Research Course'",
-            'training_completion_date':'The date on which you finished your human subjects training course. Must match the date in your training completion report.',
-            'training_completion_report':"A pdf of the training completion report from your training program. The CITI completion report lists all modules completed, with dates and scores. Do NOT upload the completion certificate.",
-            'course_category':'Specify if you are using this data for a course.',
-            'course_name':'The name of the course you are taking/teaching.',
-            'course_number':'The number or code of the course you are taking/teaching.',
-            'reference_category': "Your reference's relationship to you. If you are a student or postdoc, this must be your supervisor.",
-            'reference_name':'The full name of your reference.',
-            'reference_email':'The email address of your reference.',
-            'reference_title':'The title of your reference. ie: Professor, Dr.',
-        }
+            'reference_email', 'reference_title',
+            # Taking a course?
+            'course_category', 'course_name', 'course_number',)
 
         widgets = {
             'training_completion_date':forms.SelectDateWidget(years=list(range(1990, timezone.now().year+1))),
         }
 
-
-    def __init__(self, user, require_courses=True, *args, **kwargs):
+    def __init__(self, user, *args, **kwargs):
+        """
+        Because this form is only for processing post requests, do not
+        enforce the course name/number fields by default.
+        """
         super().__init__(*args, **kwargs)
         self.user = user
         self.profile = user.profile
 
-        if not require_courses:
-            self.fields['course_name'].required = False
-            self.fields['course_number'].required = False
-
-        self.initial = {'full_name':self.profile.get_full_name(),
-            'organization_name':self.profile.affiliation,
-            'website':self.profile.website,
-            'training_course_name':'CITI Data or Specimens Only Research Course'}
-
+        self.fields['course_name'].required = False
+        self.fields['course_number'].required = False
 
     def clean(self):
         data = self.cleaned_data
@@ -354,3 +422,17 @@ class CredentialReferenceForm(forms.ModelForm):
 
         application.reference_response_datetime = timezone.now()
         application.save()
+
+
+class ContactForm(forms.Form):
+    """
+    For contacting PhysioNet support
+    """
+    name = forms.CharField(max_length=100, widget=forms.TextInput(
+        attrs={'class':'form-control', 'placeholder':'Name *'}))
+    email = forms.EmailField(max_length=100, widget=forms.TextInput(
+        attrs={'class':'form-control', 'placeholder':'Email *'}))
+    subject = forms.CharField(max_length=100, widget=forms.TextInput(
+        attrs={'class':'form-control', 'placeholder':'Subject *'}))
+    message = forms.CharField(max_length=2000, widget=forms.Textarea(
+        attrs={'class':'form-control', 'placeholder':'Message *'}))

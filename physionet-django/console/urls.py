@@ -53,5 +53,5 @@ urlpatterns = [
         name='process_credential_application'),
 
     url(r'^users/all/$', views.users, name='user_list'),
-    url(r'^users/lcp/$', views.lcp_affiliates, name='lcp_affiliates'),
+    # url(r'^users/lcp/$', views.lcp_affiliates, name='lcp_affiliates'),
 ]

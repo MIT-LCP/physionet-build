@@ -3,7 +3,13 @@
   <li class="list-group-item">
     <div class="row">
       <div class="col-md-2">{{ project.submission_datetime|date }}</div>
-      <div class="col-md-10">The project was submitted for review.</div>
+      <div class="col-md-10">
+        <p>The project was submitted for review.</p>
+        {% if project.author_comments %}
+          <p>The submitting author included the following comments:</p>
+          <a class="editor-comments">{{ project.author_comments|linebreaks }}</a>
+        {% endif %}
+      </div>
     </div>
   </li>
   {# Waiting for editor #}
@@ -24,6 +30,20 @@
     </li>
     {# At this point, there may have been any number of submissions #}
     {% for e in edit_logs %}
+      {% if e.is_resubmission %}
+        <li class="list-group-item">
+          <div class="row">
+            <div class="col-md-2">{{ e.submission_datetime|date }}</div>
+            <div class="col-md-10">
+              <p>The project was resubmitted for review.</p>
+              {% if e.author_comments %}
+                <p>The submitting author included the following comments:</p>
+                <a class="editor-comments">{{ e.author_comments|linebreaks }}</a>
+              {% endif %}
+            </div>
+          </div>
+        </li>
+      {% endif %}
       <li class="list-group-item">
         <div class="row">
         {% if e.decision_datetime %}
@@ -77,6 +97,7 @@
                     <div class="modal-body">
                       {% csrf_token %}
                       <p id="passes-checks-resubmission"><i class="fas fa-spinner"></i> Running checks on project...</p>
+                      {{ author_comments_form }}
                     </div>
                     <div class="modal-footer">
                       <button id="resubmit-project-button" class="btn btn-primary" type="submit" name="resubmit_project" disabled>Reubmit Project</button>

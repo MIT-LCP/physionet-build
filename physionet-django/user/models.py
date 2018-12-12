@@ -15,7 +15,7 @@ from django.core.validators import EmailValidator
 from django.utils.translation import ugettext as _
 
 from .validators import (UsernameValidator, validate_name, validate_alphaplus,
-    phone_validator)
+    validate_alphaplusplus)
 
 
 logger = logging.getLogger(__name__)
@@ -279,8 +279,7 @@ class UserManager(BaseUserManager):
     User instances.
     """
     def create_user(self, email, password, username, is_active=False,
-                    is_admin=False, first_name='', middle_names='',
-                    last_name=''):
+                    is_admin=False, first_names='', last_name=''):
         if is_admin:
             is_active = True
 
@@ -290,8 +289,7 @@ class UserManager(BaseUserManager):
         user.set_password(password)
         user.save(using=self._db)
 
-        profile = Profile.objects.create(user=user, first_name=first_name,
-                                         middle_names=middle_names,
+        profile = Profile.objects.create(user=user, first_names=first_names,
                                          last_name=last_name)
         return user
 
@@ -336,8 +334,6 @@ class User(AbstractBaseUser):
     is_credentialed = models.BooleanField(default=False)
     credential_datetime = models.DateTimeField(blank=True, null=True)
 
-    lcp_affiliated = models.BooleanField(default=False)
-
     USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'email'
 
@@ -353,7 +349,7 @@ class User(AbstractBaseUser):
         return self.profile.get_full_name()
 
     def get_short_name(self):
-        return self.profile.first_name
+        return self.profile.first_names
 
     def __str__(self):
         return self.username
@@ -469,13 +465,12 @@ class Profile(models.Model):
     """
     user = models.OneToOneField('user.User', related_name='profile')
 
-    first_name = models.CharField(max_length=50, validators=[validate_name])
-    middle_names = models.CharField(max_length=100, blank=True, default='',
-        validators=[validate_name])
+    first_names = models.CharField(max_length=100, validators=[validate_name])
     last_name = models.CharField(max_length=50, validators=[validate_name])
     affiliation = models.CharField(max_length=60, blank=True, default='',
-        validators=[validate_alphaplus])
-    location = models.CharField(max_length=100, blank=True, default='')
+        validators=[validate_alphaplusplus])
+    location = models.CharField(max_length=100, blank=True, default='',
+        validators=[validate_alphaplusplus])
     website = models.URLField(default='', blank=True, null=True)
     photo = models.ImageField(upload_to=photo_path, blank=True, null=True,
         validators=[FileExtensionValidator(['png', 'jpg', 'jpeg'],
@@ -490,14 +485,10 @@ class Profile(models.Model):
         return self.get_full_name()
 
     def get_full_name(self):
-        if self.middle_names:
-            return ' '.join([self.first_name, self.middle_names,
-                           self.last_name])
-        else:
-            return ' '.join([self.first_name, self.last_name])
+        return ' '.join([self.first_names, self.last_name])
 
     def get_names(self):
-        return self.first_name, self.middle_names, self.last_name
+        return self.first_names, self.last_name
 
     def delete_photo(self):
         """
@@ -585,32 +576,40 @@ class CredentialApplication(models.Model):
     application_datetime = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey('user.User', related_name='credential_applications')
     # Personal fields
-    full_name = models.CharField(max_length=202, validators=[validate_name])
+    first_names = models.CharField(max_length=100, validators=[validate_name])
+    last_name = models.CharField(max_length=50, validators=[validate_name])
     researcher_category = models.PositiveSmallIntegerField(choices=RESEARCHER_CATEGORIES)
     # Organization fields
     organization_name = models.CharField(max_length=60,
-        validators=[validate_alphaplus])
-    job_title = models.CharField(max_length=60)
-    city = models.CharField(max_length=100)
-    state_province = models.CharField(max_length=100)
+        validators=[validate_alphaplusplus])
+    job_title = models.CharField(max_length=60,
+        validators=[validate_alphaplusplus])
+    city = models.CharField(max_length=100,
+        validators=[validate_alphaplusplus])
+    state_province = models.CharField(max_length=100,
+        validators=[validate_alphaplusplus])
     country = models.CharField(max_length=2, choices=COUNTRIES)
     website = models.URLField(default='', blank=True)
     # Human resources training
-    training_course_name = models.CharField(max_length=100)
+    training_course_name = models.CharField(max_length=100,
+        validators=[validate_alphaplusplus])
     training_completion_date = models.DateField()
     training_completion_report = models.FileField(
         upload_to=training_report_path, validators=[FileExtensionValidator(
             ['pdf'], 'File must be a pdf.')])
     # Course info
     course_category = models.PositiveSmallIntegerField(choices=COURSE_CATEGORIES)
-    course_name = models.CharField(max_length=60)
-    course_number = models.CharField(max_length=30)
+    course_name = models.CharField(max_length=60,
+        validators=[validate_alphaplusplus])
+    course_number = models.CharField(max_length=30,
+        validators=[validate_alphaplusplus])
     # Reference
     reference_category = models.PositiveSmallIntegerField(
         choices=REFERENCE_CATEGORIES)
     reference_name = models.CharField(max_length=202, validators=[validate_name])
     reference_email = models.EmailField()
-    reference_title = models.CharField(max_length=60)
+    reference_title = models.CharField(max_length=60,
+        validators=[validate_alphaplusplus])
     # 0 1 2 = pending, rejected, accepted
     status = models.PositiveSmallIntegerField(default=0, choices=REJECT_ACCEPT)
     reference_contact_datetime = models.DateTimeField(null=True)

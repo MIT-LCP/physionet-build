@@ -345,7 +345,7 @@ class MetadataForm(forms.ModelForm):
 
     FIELDS = (
         ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'subject_identifiers', 'acknowledgements',
+         'usage_notes', 'acknowledgements',
          'conflicts_of_interest', 'version', 'changelog_summary'),
         ('title', 'abstract', 'background', 'methods', 'content_description',
          'usage_notes', 'installation', 'acknowledgements',
@@ -361,13 +361,13 @@ class MetadataForm(forms.ModelForm):
         {'methods': '* The methodology employed for the study or research. Describe how the data was collected.',
          'usage_notes': '* How the data is to be used. List any related software developed for the dataset, and any special software required to use the data.'},
         {'methods': '* The methodology employed for the study or research.',
-         'usage_notes': '* How the software is to be used. List some example function calls.'}
+         'usage_notes': '* How the software is to be used. List some example function calls or specify the demo file(s).'}
     )
 
     class Meta:
         model = ActiveProject
         fields = ('title', 'abstract', 'background', 'methods',
-                  'content_description', 'usage_notes', 'subject_identifiers',
+                  'content_description', 'usage_notes',
                   'installation', 'acknowledgements',
                   'conflicts_of_interest', 'version', 'changelog_summary',)
 
@@ -376,8 +376,7 @@ class MetadataForm(forms.ModelForm):
             'abstract': '* A brief description of the resource and the context in which the resource was created.',
             'background': '* The study background.',
             'content_description': '* Describe the files, how they are named and structured, and how they are to be used.',
-            'installation': '* Instructions on how to install the software. List any required dependencies here, or specify the file in which they are listed.',
-            'subject_identifiers': '* Describe the information present that may be used to identify individual subjects. State explicitly if there are none.',
+            'installation': '* Instructions on how to install the software. List any required dependencies, or specify the files in which they are listed.',
             'acknowledgements': 'Any general acknowledgements.',
             'conflicts_of_interest': '* Conflicts of interest of any authors. State explicitly if there are none.',
             'version': '* The version number of the resource. <a href=https://semver.org/ target=_blank>Semantic versioning</a> is encouraged (example: 1.0.0).',
@@ -581,13 +580,13 @@ class AccessMetadataForm(forms.ModelForm):
                       'license': '* License for usage',
                       'data_use_agreement': 'Specific conditions for usage'}
 
-    def __init__(self, include_protected, *args, **kwargs):
+    def __init__(self, include_credentialed, *args, **kwargs):
         """
         Control whether to only allow choosing the protected access policies
         """
         super().__init__(*args, **kwargs)
-        if not include_protected:
-            self.fields['access_policy'].choices = ((0, 'Open'),)
+        if not include_credentialed:
+            self.fields['access_policy'].choices = ((0, 'Open'),(1, 'Restricted'))
 
 
     def clean(self):
@@ -603,6 +602,11 @@ class AccessMetadataForm(forms.ModelForm):
                 raise form.ValidationError('Non-open access project must have a DUA')
 
         return cleaned_data
+
+
+class AuthorCommentsForm(forms.Form):
+    author_comments = forms.CharField(max_length=500, required=False,
+        label='Comments for editor (optional)', widget=forms.Textarea())
 
 
 class InviteAuthorForm(forms.ModelForm):

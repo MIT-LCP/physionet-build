@@ -56,19 +56,19 @@ class TestForms(TestCase):
         self.run_test_forms({'__all__':['Please enter a correct username and password. Note that both fields may be case-sensitive.']})
 
     def test_profile_form(self):
-        self.create_test_forms(ProfileForm, {'first_name':'Tester',
-            'middle_names':'Mid', 'last_name':'Bot',
+        self.create_test_forms(ProfileForm, {'first_names':'Tester Mid',
+            'last_name':'Bot',
             'url':'http://physionet.org'},
-            {'first_name':'Tester','middle_names':'Mid',
+            {'first_names':'Tester Mid',
             'last_name':'', 'phone':'0'})
         self.run_test_forms({'last_name': ['This field is required.']})
 
     def test_user_creation_form(self):
         self.create_test_forms(RegistrationForm, {'email':'tester0@mit.edu',
-            'username':'The-Tester', 'first_name':'Tester', 'middle_names':'Mid',
+            'username':'The-Tester', 'first_names':'Tester Mid',
             'last_name':'Bot','password1':'Very5trongt0t@11y',
             'password2':'Very5trongt0t@11y'},{'email':'tester0@mit.edu',
-            'username':'bot-net', 'first_name':'', 'middle_names':'Mid',
+            'username':'bot-net', 'first_names':'',
             'last_name':'Bot', 'password1':'weakweak', 'password2':'weakweak'})
-        self.run_test_forms({'first_name':['This field is required.'],
+        self.run_test_forms({'first_names':['This field is required.'],
             'password2':['This password is too weak.']})

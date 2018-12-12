@@ -14,8 +14,12 @@
       <td>User</td>
       <td><a href="{% url 'public_profile' user.username %}">{{ user }}</a></td></tr>
     <tr>
-      <td>Full Name</td>
-      <td>{{ application.full_name }}</td>
+      <td>First Names</td>
+      <td>{{ application.first_names }}</td>
+    </tr>
+    <tr>
+      <td>Last Name</td>
+      <td>{{ application.last_name }}</td>
     </tr>
     <tr>
       <td>Researcher Category</td>

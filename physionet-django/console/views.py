@@ -211,7 +211,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
 
     description_form = project_forms.MetadataForm(
         resource_type=project.resource_type, instance=project)
-    access_form = project_forms.AccessMetadataForm(include_protected=True,
+    access_form = project_forms.AccessMetadataForm(include_credentialed=True,
         instance=project)
     reference_formset = ReferenceFormSet(instance=project)
     publication_formset = PublicationFormSet(instance=project)
@@ -225,7 +225,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
                 resource_type=project.resource_type, data=request.POST,
                 instance=project)
             access_form = project_forms.AccessMetadataForm(
-                include_protected=True,data=request.POST, instance=project)
+                include_credentialed=True, data=request.POST, instance=project)
             reference_formset = ReferenceFormSet(data=request.POST,
                 instance=project)
             publication_formset = PublicationFormSet(request.POST,
@@ -342,7 +342,9 @@ def publish_submission(request, project_slug, *args, **kwargs):
     if request.method == 'POST':
         publish_form = forms.PublishForm(data=request.POST)
         if project.is_publishable() and publish_form.is_valid():
-            published_project = project.publish(make_zip=int(publish_form.cleaned_data['make_zip']))
+            published_project = project.publish(
+                doi=publish_form.cleaned_data['doi'],
+                make_zip=int(publish_form.cleaned_data['make_zip']))
             notification.publish_notify(request, published_project)
             return render(request, 'console/publish_complete.html',
                 {'published_project':published_project})
@@ -487,42 +489,42 @@ def users(request):
     return render(request, 'console/users.html', {'users':users})
 
 
-@login_required
-@user_passes_test(is_admin)
-def lcp_affiliates(request):
-    """
-    LCP affiliated users
-    """
-    add_affiliate_form = forms.AddAffiliateForm()
-    remove_affiliate_form = forms.RemoveAffiliateForm()
+# @login_required
+# @user_passes_test(is_admin)
+# def lcp_affiliates(request):
+#     """
+#     LCP affiliated users
+#     """
+#     add_affiliate_form = forms.AddAffiliateForm()
+#     remove_affiliate_form = forms.RemoveAffiliateForm()
 
-    if request.method == 'POST':
-        if 'add_affiliate' in request.POST:
-            add_affiliate_form = forms.AddAffiliateForm(request.POST)
-            if add_affiliate_form.is_valid():
-                add_affiliate_form.user.lcp_affiliated = True
-                add_affiliate_form.user.save()
-                add_affiliate_form = forms.AddAffiliateForm()
-                remove_affiliate_form = forms.RemoveAffiliateForm()
-                messages.success(request, 'The user has been added.')
-            else:
-                messages.error(request, 'Invalid submission. See form below.')
-        elif 'remove_affiliate' in request.POST:
-            remove_affiliate_form = forms.RemoveAffiliateForm(request.POST)
-            if remove_affiliate_form.is_valid():
-                user = remove_affiliate_form.cleaned_data['user']
-                user.lcp_affiliated = False
-                user.save()
-                remove_affiliate_form = forms.RemoveAffiliateForm()
-                messages.success(request, 'The user has been removed.')
-            else:
-                messages.error(request, 'Invalid submission. See form below.')
+#     if request.method == 'POST':
+#         if 'add_affiliate' in request.POST:
+#             add_affiliate_form = forms.AddAffiliateForm(request.POST)
+#             if add_affiliate_form.is_valid():
+#                 add_affiliate_form.user.lcp_affiliated = True
+#                 add_affiliate_form.user.save()
+#                 add_affiliate_form = forms.AddAffiliateForm()
+#                 remove_affiliate_form = forms.RemoveAffiliateForm()
+#                 messages.success(request, 'The user has been added.')
+#             else:
+#                 messages.error(request, 'Invalid submission. See form below.')
+#         elif 'remove_affiliate' in request.POST:
+#             remove_affiliate_form = forms.RemoveAffiliateForm(request.POST)
+#             if remove_affiliate_form.is_valid():
+#                 user = remove_affiliate_form.cleaned_data['user']
+#                 user.lcp_affiliated = False
+#                 user.save()
+#                 remove_affiliate_form = forms.RemoveAffiliateForm()
+#                 messages.success(request, 'The user has been removed.')
+#             else:
+#                 messages.error(request, 'Invalid submission. See form below.')
 
-    users = User.objects.filter(lcp_affiliated=True)
+#     users = User.objects.filter(lcp_affiliated=True)
 
-    return render(request, 'console/lcp_affiliates.html', {'users':users,
-        'add_affiliate_form':add_affiliate_form,
-        'remove_affiliate_form':remove_affiliate_form})
+#     return render(request, 'console/lcp_affiliates.html', {'users':users,
+#         'add_affiliate_form':add_affiliate_form,
+#         'remove_affiliate_form':remove_affiliate_form})
 
 
 @login_required
@@ -571,7 +573,7 @@ def process_credential_application(request, application_slug):
         instance=application)
 
     if request.method == 'POST':
-        if 'contact_reference' in request.POST and not application.reference_contact_datetime:
+        if 'contact_reference' in request.POST:
             application.reference_contact_datetime = timezone.now()
             application.save()
             notification.contact_reference(request, application)

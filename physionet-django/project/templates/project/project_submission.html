@@ -6,6 +6,7 @@
 
 {% block local_css %}
 <link rel="stylesheet" type="text/css" href="{% static 'project/css/submission-timeline.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/form-control-input.css' %}">
 {% endblock %}
 
 {% load project_templatetags %}
@@ -16,26 +17,29 @@
   // submission buttons
   function checkIntegrity(is_resubmission){
     if (Boolean(is_resubmission)){
-      var target_modal = "#passes-checks-resubmission"
-      var button_id = "resubmit-project-button"
+      var target_modal = "#passes-checks-resubmission";
+      var button_id = "resubmit-project-button";
     }
     else{
-      var target_modal = "#passes-checks"
-      var button_id = "submit-project-button"
+      var target_modal = "#passes-checks";
+      var button_id = "submit-project-button";
     }
+    var comment_input_id = "id_author_comments";
+    document.getElementById(comment_input_id).disabled = true;
 
     $.ajax({url: "{% url 'check_integrity' project.slug %}",
       success: function(result){
         if (result.passes_checks){
           $(target_modal).html("<i class='fas fa-check' style='color:green'></i> The automatic checks have passed. You may submit the project for review. Note: you will no longer be able to edit the project.");
           document.getElementById(button_id).disabled = false;
+          document.getElementById(comment_input_id).disabled = false;
         }
         else{
-          message = "<p><i class='fas fa-times' style='color:red'></i> The automatic checks have failed. The following errors must be addressed before you can submit the project:</p><ul>"
+          message = "<p><i class='fas fa-times' style='color:red'></i> The automatic checks have failed. The following errors must be addressed before you can submit the project:</p><ul>";
           for (i=0; i<result.integrity_errors.length; i++) {
-            message += "<li>" + result.integrity_errors[i] + "</li>"
+            message += "<li>" + result.integrity_errors[i] + "</li>";
           }
-          message += "</ul>"
+          message += "</ul>";
           $(target_modal).html(message);
         }
       }
@@ -69,6 +73,7 @@
             <div class="modal-body">
               {% csrf_token %}
               <p id="passes-checks"><i class="fas fa-spinner"></i> Running checks on project...</p>
+              {{ author_comments_form }}
             </div>
             <div class="modal-footer">
               <button id="submit-project-button" class="btn btn-primary" type="submit" name="submit_project" disabled>Submit Project</button>
