@@ -15,17 +15,17 @@ Register
 
 {% block content %}
 <div class="container">
-    <form action="{% url 'register' %}" method="post" class="form-signin">
-        <h2 class="form-signin-heading">Create Account</h2>
-        {% include "form_snippet.html" %}
-		<div class="progress">
-			<div id="StrengthProgressBar" class="progress-bar"></div>
-		</div>
-        <button class="btn btn-lg btn-primary btn-block" type="submit">Register</button>
-    </form>
-    <div class="form-signin">
-        <p>Already have an account? <a href="{% url 'login' %}">Log In</a></p>
+  <form action="{% url 'register' %}" method="post" class="form-signin">
+    <h2 class="form-signin-heading">Create Account</h2>
+    {% include "form_snippet.html" %}
+  	<div class="progress">
+      <div id="StrengthProgressBar" class="progress-bar"></div>
     </div>
+    <button class="btn btn-lg btn-primary btn-block" type="submit">Register</button>
+  </form>
+  <div class="form-signin">
+    <p>Already have an account? <a href="{% url 'login' %}">Log In</a></p>
+  </div>
 </div>
 {% endblock %}
 
