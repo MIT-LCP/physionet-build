@@ -13,12 +13,23 @@ About PhysioNet
 
 
 {% block content %}
-
-<section id="about">
+<section id="physionet">
   <div class="container">
     <div class="row">
       <div class="col-lg-12">
-        <h2 class="section-heading text-center">PhysioNet</h2>
+        <div class="dropdown text-right">
+          <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Contents
+          </button>
+          <div class="dropdown-menu">
+            <a class="dropdown-item" href="#physionet">PhysioNet</a>
+            <a class="dropdown-item" href="#funding">Funding</a>
+            <a class="dropdown-item" href="#history">A Brief History</a>
+            <a class="dropdown-item" href="#team">The PhysioNet Team</a>
+            <a class="dropdown-item" href="#founders">Founders of PhysioNet</a>
+          </div>
+        </div>
+        <h2 class="section-heading text-center">PhysioNet </h2>
         <h3 class="section-subheading text-muted text-center">Find and publish physiologic tools and data.</h3>
         <p>PhysioNet is a platform for <a href="{% url 'author_guidelines' %}">publishing</a> and reusing physiologic <a href="{% url 'data' %}">data</a> and <a href="{% url 'software' %}">software</a>. It hosts large volumes of open-access and protected resources, and facilitates cooperative analysis of data, evaluation of algorithms, and the free open dissemination of information.</p>
 
@@ -43,8 +54,7 @@ About PhysioNet
 </section>
 
 
-<!-- About -->
-<section id="about">
+<section id="history">
   <div class="container">
     <div class="row">
       <div class="col-lg-12 text-center">
