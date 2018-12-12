@@ -241,6 +241,13 @@ class ProcessCredentialForm(forms.ModelForm):
         return application
 
 
+class NewsForm(forms.ModelForm):
+    """
+    To add and edit news items
+    """
+    class Meta:
+        fields = ('title', 'content', 'url')
+
 # class AddAffiliateForm(forms.Form):
 #     """
 #     Add a user to the list of LCP affiliates
@@ -267,3 +274,5 @@ class ProcessCredentialForm(forms.ModelForm):
 #     """
 #     user = forms.ModelChoiceField(queryset=User.objects.filter(
 #         lcp_affiliated=True))
+
+

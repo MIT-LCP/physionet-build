@@ -12,6 +12,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from . import forms
+from notification.models import News
 import notification.utility as notification
 import project.forms as project_forms
 from project.models import ActiveProject, ArchivedProject, StorageRequest, EditLog, Reference, Topic, Publication, PublishedProject
@@ -424,10 +425,8 @@ def published_projects(request):
     List of published projects
     """
     projects = PublishedProject.objects.all().order_by('publish_datetime')
-    doi_projects = projects.filter(doi='')
-
     return render(request, 'console/published_projects.html',
-        {'projects':projects, 'doi_projects':doi_projects})
+        {'projects':projects})
 
 @login_required
 @user_passes_test(is_admin)
@@ -623,3 +622,38 @@ def credentialed_user_info(request, username):
     return render(request, 'console/credentialed_user_info.html',
         {'c_user':c_user, 'application':application})
 
+
+@login_required
+@user_passes_test(is_admin)
+def console_news(request):
+    """
+    List of news items
+    """
+    news_items = News.objects.filter(datetime__year=int(year)).order_by('-datetime')
+    return render(request, 'console/news.html', {'news_items':news_items})
+
+
+@login_required
+@user_passes_test(is_admin)
+def edit_news(request, news_id):
+    news = News.objects.get(id=news_id)
+
+    if request.method == 'POST':
+        if 'update' in request.POST:
+            form = forms.NewsForm(data=request.POST, instance=news)
+            if form.is_valid():
+                form.save()
+                message.success(request, 'The news item has been updated')
+        elif 'delete' in request.POST:
+            news.delete()
+            return render(request, 'console/news_deleted.html')
+    else:
+        form = forms.NewsForm(instance=news)
+
+    return render(request, 'console/edit_news.html', {'form':form})
+
+
+def add_news(request):
+    form = forms.NewsForm()
+
+    return render(request, 'console/add_news.html', {'form':form})

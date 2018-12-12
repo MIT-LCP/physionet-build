@@ -8,16 +8,6 @@
     <i class="fas fa-book-open"></i> Published Projects <span class="badge badge-pill badge-info">{{ projects|length}}</span>
   </div>
   <div class="card-body">
-    {% if doi_projects %}
-      <p>The following projects require a DOI:</p>
-      <ul>
-        {% for project in doi_projects %}
-          <li><a href="{% url 'manage_published_project' project.slug %}">{{ project }}</a></li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p>All projects have been assigned a DOI.</p>
-    {% endif %}
     <div class="table-responsive">
       <table class="table table-bordered">
         <thead>

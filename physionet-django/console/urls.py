@@ -54,4 +54,8 @@ urlpatterns = [
 
     url(r'^users/all/$', views.users, name='user_list'),
     # url(r'^users/lcp/$', views.lcp_affiliates, name='lcp_affiliates'),
+
+    url(r'^news/$', views.console_news, name='console_news'),
+    url(r'^news/edit/(?P<news_id>\d+)/$', views.edit_news, name='edit_news'),
+    url(r'^news/add/$', views.add_news, name='add_news'),
 ]
