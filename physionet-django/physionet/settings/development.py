@@ -12,6 +12,9 @@ MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware', ]
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+DEFAULT_FROM_EMAIL = 'PhysioNet Automated System <auto@dev.physionet.org>'
+CONTACT_EMAIL = 'PhysioNet Contact <contact@dev.physionet.org>'
+
 DEBUG_TOOLBAR_CONFIG = {
     'JQUERY_URL': '',
 }
