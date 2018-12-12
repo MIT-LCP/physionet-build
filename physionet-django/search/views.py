@@ -32,7 +32,7 @@ def topic_search(request, topic=''):
     if 'search' in request.GET:
         form = forms.TopicSearchForm(request.GET)
         if form.is_valid():
-            return redirect('topic_search', topic=request.GET['description'])
+            return redirect('topic_search', topic=form.cleaned_data['description'].lower())
         else:
             projects = None
             valid_search = False
@@ -50,6 +50,6 @@ def all_topics(request):
     Show all topics contained in PhysioNet
 
     """
-    topics = PublishedTopic.objects.all().order_by('project_count')
+    topics = PublishedTopic.objects.all().order_by('-project_count')
 
     return render(request, 'search/all_topics.html', {'topics':topics})
