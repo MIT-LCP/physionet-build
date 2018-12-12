@@ -590,6 +590,9 @@ class AccessMetadataForm(forms.ModelForm):
         if not include_credentialed:
             self.fields['access_policy'].choices = ((0, 'Open'),(1, 'Restricted'))
 
+        self.license.queryset = License.objects.filter(
+            resource_type=self.instance.resource_type)
+
 
     def clean(self):
         """

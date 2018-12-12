@@ -9,9 +9,10 @@ License Content
 
 {% block content %}
 <div class="container">
-  <h1 class="text-center">{{ license.name }} <a href="{{ license.url }}"><i class="fas fa-external-link-alt"></i></a></h1>
+  <h1 class="text-center">{{ license.name }} <a href="{{ license.home_page }}"><i class="fas fa-external-link-alt"></i></a></h1>
   <hr>
-  {{ license.description|safe }}
+  <pre>{{ license.text_content }}</pre>
   <br>
 </div>
 {% endblock %}
+
