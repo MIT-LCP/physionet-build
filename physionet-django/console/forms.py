@@ -3,6 +3,7 @@ import pdb
 from django import forms
 from django.utils import timezone
 
+from notification.models import News
 from project.models import ActiveProject, EditLog, CopyeditLog, PublishedProject
 from user.models import User, CredentialApplication
 
@@ -246,6 +247,7 @@ class NewsForm(forms.ModelForm):
     To add and edit news items
     """
     class Meta:
+        model = News
         fields = ('title', 'content', 'url')
 
 # class AddAffiliateForm(forms.Form):

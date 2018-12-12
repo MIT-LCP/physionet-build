@@ -12,7 +12,7 @@ def home(request):
     authors = [p.authors.all() for p in published_projects]
     topics = [p.topics.all() for p in published_projects]
     projects_authors_topics = zip(published_projects, authors, topics)
-    news_pieces = News.objects.all().order_by('-datetime')[:5]
+    news_pieces = News.objects.all().order_by('-publish_datetime')[:5]
 
     return render(request, 'home.html', {
         'published_projects':published_projects, 'news_pieces':news_pieces,

@@ -629,8 +629,8 @@ def console_news(request):
     """
     List of news items
     """
-    news_items = News.objects.filter(datetime__year=int(year)).order_by('-datetime')
-    return render(request, 'console/news.html', {'news_items':news_items})
+    news_items = News.objects.all().order_by('-publish_datetime')
+    return render(request, 'console/console_news.html', {'news_items':news_items})
 
 
 @login_required
@@ -643,17 +643,24 @@ def edit_news(request, news_id):
             form = forms.NewsForm(data=request.POST, instance=news)
             if form.is_valid():
                 form.save()
-                message.success(request, 'The news item has been updated')
+                messages.success(request, 'The news item has been updated')
         elif 'delete' in request.POST:
             news.delete()
-            return render(request, 'console/news_deleted.html')
+            return render(request, 'console/news_done.html', {'action':'Deleted'})
     else:
         form = forms.NewsForm(instance=news)
 
-    return render(request, 'console/edit_news.html', {'form':form})
+    return render(request, 'console/edit_news.html', {'news':news,
+        'form':form})
 
 
 def add_news(request):
-    form = forms.NewsForm()
+    if request.method == 'POST':
+        form = forms.NewsForm(data=request.POST)
+        if form.is_valid():
+            form.save()
+            return render(request, 'console/news_done.html', {'action':'Added'})
+    else:
+        form = forms.NewsForm()
 
     return render(request, 'console/add_news.html', {'form':form})

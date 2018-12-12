@@ -22,7 +22,7 @@ PhysioNet News - {{ year }}
             {{ news.title }}
           {% endif %}
         </h2>
-        <p><a class="text-muted">{{ news.datetime|date }}</a></p>
+        <p><a class="text-muted">{{ news.publish_datetime|date }}</a></p>
         {{ news.content|safe }}
         <hr>
       {% endfor %}

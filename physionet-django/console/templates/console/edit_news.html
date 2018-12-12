@@ -1,0 +1,55 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}Edit News Item{% endblock %}
+
+{% block content %}
+<div class="card mb-3">
+  <div class="card-header">
+    Edit News Item
+  </div>
+  <div class="card-body">
+    <p>Item published on {{ news.publish_datetime }}</p>
+    <br>
+    <form method="POST" action="">
+      {% csrf_token %}
+      {{ form.media }}
+      {% include "inline_form_snippet.html" %}
+      <button class="btn btn-primary btn-lg" name="update" type="submit">Update</button>
+      <button type="button" class="btn btn-danger btn-lg" data-toggle="modal" data-target="#deleteModal" style="float:right">Delete Item</button>
+    </form>
+  </div>
+</div>
+<br>
+<p><a href="{% url 'console_news' %}">Back to news items</a></p>
+
+<div class="modal" id="deleteModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Delete News Item</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete this news item?</p>
+      </div>
+      <div class="modal-footer">
+        <form method="POST" action="">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger" name="delete">Delete</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block local_js_bottom %}
+  <script type="text/javascript" src="{% static 'custom/js/resize-ck.js' %}"></script>
+{% endblock %}
+

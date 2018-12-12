@@ -81,7 +81,7 @@ PhysioNet
                   {{ news.title }}
                 {% endif %}
               </h3>
-              <p><a class="text-muted">{{ news.datetime|date }}</a></p>
+              <p><a class="text-muted">{{ news.publish_datetime|date }}</a></p>
               {{ news.content|safe }}
               <hr>
             {% endfor %}
