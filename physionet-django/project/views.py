@@ -401,7 +401,7 @@ def project_authors(request, project_slug, **kwargs):
         'is_submitting':is_submitting})
 
 
-def edit_metadata_item(request, project_slug, **kwargs):
+def edit_metadata_item(request, project_slug):
     """
     Function accessed via ajax for editing a project's related item
     in a formset.
@@ -517,22 +517,45 @@ def project_access(request, project_slug, **kwargs):
 
     """
     user, project = kwargs['user'], kwargs['project']
-    access_form = forms.AccessMetadataForm(
-        include_credentialed=user.is_admin, instance=project)
+
 
     if request.method == 'POST':
         access_form = forms.AccessMetadataForm(
             include_credentialed=user.is_admin, data=request.POST,
             instance=project)
+        # The first validation is to check for valid access policy choice
         if access_form.is_valid():
-            access_form.save()
-            messages.success(request, 'Your access metadata has been updated.')
+            # The second validation is to check for valid license choice
+            access_form.set_license_queryset(access_policy=access_form.cleaned_data['access_policy'])
+            if access_form.is_valid():
+                access_form.save()
+                messages.success(request, 'Your access metadata has been updated.')
         else:
             messages.error(request,
                 'Invalid submission. See errors below.')
+    else:
+        access_form = forms.AccessMetadataForm(
+            include_credentialed=user.is_admin, instance=project)
+        access_form.set_license_queryset(access_policy=project.access_policy)
+
 
     return render(request, 'project/project_access.html', {'project':project,
         'access_form':access_form, 'is_submitting':kwargs['is_submitting']})
+
+
+def load_license(request, project_slug):
+    """
+    Reload the license input queryset with the right options for the
+    access form's current access policy choice. Called via ajax.
+    """
+    user = request.user
+    project = ActiveProject.objects.get(slug=project_slug)
+    form = forms.AccessMetadataForm(include_credentialed=request.user.is_admin,
+        instance=project)
+    form.set_license_queryset(access_policy=int(request.GET['access_policy']))
+
+    return render(request, 'project/license_input.html', {'form':form})
+
 
 
 @project_auth(auth_mode=0, post_auth_mode=2)

@@ -29,6 +29,8 @@ urlpatterns = [
 
     url(r'^(?P<project_slug>\w+)/access/$', views.project_access,
         name='project_access'),
+    url(r'^(?P<project_slug>\w+)/access/load-license/$', views.load_license,
+        name='load_license'),
 
     url(r'^(?P<project_slug>\w+)/identifiers/$', views.project_identifiers,
         name='project_identifiers'),

@@ -104,21 +104,6 @@
               <a style="color:red"><strong>* Required field missing</strong></a>
             {% endif %}
           </p>
-          {% if project.data_use_agreement %}
-            <p>
-              <strong>Data Use Agreement:</strong>
-              <br>
-              <a href="{% url 'dua_content' project.data_use_agreement.slug %}" target="_blank">{{ project.data_use_agreement.name }}</a>
-            </p>
-          {% else %}
-            {% if project.access_policy %}
-              <p>
-                <strong>Data Use Agreement:</strong>
-                <br>
-                <a style="color:red"><strong>* Missing DUA for non-open access policy</strong></a>
-              </p>
-            {% endif %}
-          {% endif %}
         </div>
       </div>
 

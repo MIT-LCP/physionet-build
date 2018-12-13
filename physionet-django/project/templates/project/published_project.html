@@ -78,13 +78,6 @@
             <br>
             <a href="{% url 'license_content' project.license.slug %}" target="_blank">{{ project.license }}</a>
           </p>
-          {% if project.data_use_agreement %}
-            <p>
-              <strong>Data Use Agreement:</strong>
-              <br>
-              <a href="{% url 'dua_content' project.data_use_agreement.slug %}" target="_blank">{{ project.data_use_agreement.name }}</a>
-            </p>
-          {% endif %}
         </div>
       </div>
 

@@ -284,8 +284,6 @@ class Metadata(models.Model):
     access_policy = models.SmallIntegerField(choices=ACCESS_POLICIES,
                                              default=0)
     license = models.ForeignKey('project.License', null=True)
-    data_use_agreement = models.ForeignKey('project.DataUseAgreement',
-                                           null=True, blank=True)
     project_home_page = models.URLField(default='')
     programming_languages = models.ManyToManyField(
         'project.ProgrammingLanguage', related_name='%(class)ss')
@@ -590,9 +588,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         for attr in ActiveProject.REQUIRED_FIELDS[self.resource_type]:
             if not getattr(self, attr):
                 self.integrity_errors.append('Missing required field: {0}'.format(attr.replace('_', ' ')))
-
-        if self.access_policy and not self.data_use_agreement:
-            self.integrity_errors.append('Missing DUA for non-open access policy')
 
         published_projects = self.core_project.publishedprojects.all()
         if published_projects:
@@ -1068,20 +1063,6 @@ class License(models.Model):
 
     def __str__(self):
         return self.name
-
-
-class DataUseAgreement(models.Model):
-    """
-    Data use agreement
-    """
-    name = models.CharField(max_length=150)
-    slug = models.SlugField(max_length=170)
-    description = RichTextField()
-    creation_datetime = models.DateTimeField(auto_now_add=True)
-    version = models.CharField(max_length=20)
-
-    def __str__(self):
-        return ' v '.join([self.name, self.version])
 
 
 class DUASignature(models.Model):

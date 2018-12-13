@@ -29,9 +29,6 @@ urlpatterns = [
     url(r'^about/licenses/$', views.licenses, name='licenses'),
     url(r'^about/licenses/(?P<license_slug>[\w-]+)/$', views.license_content,
         name='license_content'),
-    url(r'^about/duas/$', views.duas, name='duas'),
-    url(r'^about/duas/(?P<dua_slug>[\w-]+)/$', views.dua_content,
-        name='dua_content'),
     url(r'^about/contact/$', views.contact, name='contact'),
     url(r'^about/citi-instructions/$', views.citi_instructions, name='citi_instructions'),
 

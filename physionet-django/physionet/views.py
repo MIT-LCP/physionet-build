@@ -3,7 +3,7 @@ from django.shortcuts import render
 
 from notification.models import News
 import notification.utility as notification
-from project.models import DataUseAgreement, License, PublishedProject
+from project.models import License, PublishedProject
 from user.forms import ContactForm
 
 def home(request):
@@ -36,15 +36,6 @@ def license_content(request, license_slug):
     """
     license = License.objects.get(slug=license_slug)
     return render(request, 'about/license_content.html', {'license':license})
-
-def duas(request):
-    duas = DataUseAgreement.objects.all()
-    return render(request, 'about/duas.html', {'duas':duas})
-
-def dua_content(request, dua_slug):
-    dua = DataUseAgreement.objects.get(slug=dua_slug)
-    return render(request, 'about/dua_content.html', {'dua':dua})
-
 
 # About pages
 
@@ -120,7 +111,3 @@ def software(request):
     projects_authors_topics = get_content(resource_type=1)
     return render(request, 'content_list.html', {'content_name':'Software',
         'projects_authors_topics':projects_authors_topics})
-
-
-
-

@@ -214,6 +214,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
         resource_type=project.resource_type, instance=project)
     access_form = project_forms.AccessMetadataForm(include_credentialed=True,
         instance=project)
+    access_form.set_license_queryset(access_policy=project.access_policy)
     reference_formset = ReferenceFormSet(instance=project)
     publication_formset = PublicationFormSet(instance=project)
     topic_formset = TopicFormSet(instance=project)
@@ -250,6 +251,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
             else:
                 messages.error(request,
                     'Invalid submission. See errors below.')
+            access_form.set_license_queryset(access_policy=access_form.instance.access_policy)
         elif 'complete_copyedit' in request.POST:
             copyedit_form = forms.CopyeditForm(request.POST,
                 instance=copyedit_log)
