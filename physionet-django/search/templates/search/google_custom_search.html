@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}
+Google Search PhysioNet
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>Google Search PhysioNet</h1>
+  <hr>
+  <p>Use this page to perform a google custom search on this site. You may also use the <a href="{% url 'topic_search' %}">topic keyword search</a>.
+  </p>
+  <script>
+  (function() {
+    var cx = '017813254559716792938:1ntboy3qw9s';
+    var gcse = document.createElement('script');
+    gcse.type = 'text/javascript';
+    gcse.async = true;
+    gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(gcse, s);
+  })();
+  </script>
+  <gcse:search></gcse:search>
+  <hr>
+</div>
+{% endblock %}

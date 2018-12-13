@@ -22,7 +22,7 @@ PhysioNet News - {{ year }}
             {{ news.title }}
           {% endif %}
         </h2>
-        <p><a class="text-muted">{{ news.datetime|date }}</a></p>
+        <p><a class="text-muted">{{ news.publish_datetime|date }}</a></p>
         {{ news.content|safe }}
         <hr>
       {% endfor %}
@@ -48,12 +48,6 @@ PhysioNet News - {{ year }}
           <ul class="list-unstyled mb-0">
             <li>
               <a href="https://github.com/MIT-LCP/" target="_blank" style="text-decoration: none; color: #000000;"><i class="fab fa-github"></i> Github</a>
-            </li>
-            <li>
-              <a href="#" target="_blank" style="text-decoration: none; color: #000000;"><i class="fab fa-twitter"></i> Twitter</a>
-            </li>
-            <li>
-              <a href="#" target="_blank" style="text-decoration: none; color: #000000;"><i class="fa fa-envelope"></i> Email List</a>
             </li>
           </ul>
         </div>

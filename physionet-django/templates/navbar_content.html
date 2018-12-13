@@ -15,6 +15,10 @@
       <a class="dropdown-item" href="{% url 'content' %}">
         All content
       </a>
+      <div class="dropdown-divider"></div>
+      <a class="dropdown-item" href="{% url 'topic_search' %}">
+        Topic Search
+      </a>
     </div>
   </li>
 
@@ -105,10 +109,10 @@
       {% endif %}
     </div>
   </li>
-  <form class="form-inline my-2 my-lg-0 mr-lg-2">
-    <input id="search-box" class="form-control" type="text" placeholder="Search">
+  <form class="form-inline" action="{% url 'redirect_google_custom_search' %}">
+    <input name="query" class="form-control" type="text" placeholder="Search">
     <span class="input-group-btn">
-      <button id="search-button" class="btn btn-primary  my-2 my-sm-0" type="button"><i class="fa fa-search"></i></button>
+      <button id="search-button" type="submit" class="btn btn-primary  my-2 my-sm-0" type="button"><i class="fa fa-search"></i></button>
     </span>
   </form>
 </ul>

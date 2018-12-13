@@ -76,11 +76,25 @@
         </ul>
       </li>
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
-        <a class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#collapseComponents" data-parent="#sideAccordion">
+        <a class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#newsComponents" data-parent="#sideAccordion">
+          <i class="far fa-newspaper"></i>
+          <span class="nav-link-text">News</span>
+        </a>
+        <ul class="sidenav-second-level collapse" id="newsComponents">
+          <li>
+            <a class="nav-link" href="{% url 'add_news' %}">Add News</a>
+          </li>
+          <li>
+            <a class="nav-link" href="{% url 'console_news' %}">News Items</a>
+          </li>
+        </ul>
+      </li>
+      <li class="nav-item" data-toggle="tooltip" data-placement="right">
+        <a class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#statsComponents" data-parent="#sideAccordion">
           <i class="fas fa-chart-area"></i>
           <span class="nav-link-text">Usage Stats</span>
         </a>
-        <ul class="sidenav-second-level collapse" id="collapseComponents">
+        <ul class="sidenav-second-level collapse" id="statsComponents">
           <li>
             <a href="#">Not Implemented</a>
           </li>

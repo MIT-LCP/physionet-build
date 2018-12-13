@@ -1,0 +1,14 @@
+{% extends "console/base_console.html" %}
+
+{% block title %}News Item {{ action }}{% endblock %}
+
+{% block content %}
+<div class="card mb-3">
+  <div class="card-header">
+    News Item {{ action }}
+  </div>
+  <div class="card-body">
+    <p>You have {{ action|lower }} the news item. You may return to the <a href="{% url 'console_news' %}">list of news</a>.</p>
+  </div>
+</div>
+{% endblock %}

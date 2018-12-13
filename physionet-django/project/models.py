@@ -161,6 +161,7 @@ class PublishedTopic(models.Model):
     projects = models.ManyToManyField('project.PublishedProject',
         related_name='topics')
     description = models.CharField(max_length=50, validators=[validate_alphaplus])
+    project_count = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return self.description
@@ -746,6 +747,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 published_topic = PublishedTopic.objects.create(
                     description=topic.description.lower())
             published_topic.projects.add(published_project)
+            published_topic.project_count += 1
+            published_topic.save()
 
         if self.resource_type == 1:
             languages = self.programming_languages.all()
@@ -773,7 +776,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 published_author.corresponding_email = author.corresponding_email.email
                 published_author.save()
                 contact = Contact.objects.create(name=author.get_full_name(),
-                affiliations=';'.join(a.name for a in affiliations),
+                affiliations='; '.join(a.name for a in affiliations),
                 email=author.corresponding_email, project=published_project)
 
         # Move the edit and copyedit logs

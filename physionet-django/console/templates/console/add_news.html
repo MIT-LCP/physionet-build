@@ -1,0 +1,28 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}Add News Item{% endblock %}
+
+{% block content %}
+<div class="card mb-3">
+  <div class="card-header">
+    Add News Item
+  </div>
+  <div class="card-body">
+    <form method="POST" action="">
+      {% csrf_token %}
+      {{ form.media }}
+      {% include "inline_form_snippet.html" %}
+      <button class="btn btn-primary btn-lg" name="update" type="submit">Add News</button>
+    </form>
+  </div>
+</div>
+<br>
+<p><a href="{% url 'console_news' %}">Back to news items</a></p>
+{% endblock %}
+
+{% block local_js_bottom %}
+  <script type="text/javascript" src="{% static 'custom/js/resize-ck.js' %}"></script>
+{% endblock %}
+

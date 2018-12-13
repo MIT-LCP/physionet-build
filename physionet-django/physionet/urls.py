@@ -16,6 +16,8 @@ urlpatterns = [
     url(r'^projects/', include('project.urls')),
     # notification app
     url(r'^', include('notification.urls')),
+    # search app
+    url(r'^', include('search.urls')),
 
     url(r'^$', views.home, name='home'),
     # about pages

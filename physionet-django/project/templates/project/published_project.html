@@ -119,7 +119,7 @@
             <p><strong>Topics:</strong>
               <br>
               {% for topic in topics %}
-                <span class="badge badge-info">{{ topic.description }}</span>
+                <a href="{% url 'topic_search' topic.description %}"><span class="badge badge-info">{{ topic }}</span></a>
               {% endfor %}
             </p>
           {% endif %}

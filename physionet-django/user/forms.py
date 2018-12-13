@@ -182,7 +182,7 @@ class RegistrationForm(forms.ModelForm):
     fields, plus a repeated password.
     """
 
-    first_names = forms.CharField(max_length=100, label='First Name',
+    first_names = forms.CharField(max_length=100, label='First Names',
                     widget=forms.TextInput(attrs={'class':'form-control'}),
                     validators=[validate_name])
     last_name = forms.CharField(max_length=50, label='Last Name',

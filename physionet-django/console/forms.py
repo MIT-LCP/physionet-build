@@ -3,6 +3,7 @@ import pdb
 from django import forms
 from django.utils import timezone
 
+from notification.models import News
 from project.models import ActiveProject, EditLog, CopyeditLog, PublishedProject
 from user.models import User, CredentialApplication
 
@@ -241,6 +242,14 @@ class ProcessCredentialForm(forms.ModelForm):
         return application
 
 
+class NewsForm(forms.ModelForm):
+    """
+    To add and edit news items
+    """
+    class Meta:
+        model = News
+        fields = ('title', 'content', 'url')
+
 # class AddAffiliateForm(forms.Form):
 #     """
 #     Add a user to the list of LCP affiliates
@@ -267,3 +276,5 @@ class ProcessCredentialForm(forms.ModelForm):
 #     """
 #     user = forms.ModelChoiceField(queryset=User.objects.filter(
 #         lcp_affiliated=True))
+
+

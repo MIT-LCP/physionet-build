@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}
+PhysioNet Topics
+{% endblock %}
+
+{% load static %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/form-control-input.css' %}"/>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>PhysioNet Topics</h1>
+  <hr>
+  <p>Here are all the keyword topics that tag published PhysioNet projects.</p>
+  </p>
+  <p>
+    {% for topic in topics %}
+      <a href="{% url 'topic_search' topic.description %}"><span class="badge badge-info">{{ topic.description }} ({{ topic.project_count }})</span></a>
+    {% endfor %}
+  </p>
+  <br>
+
+</div>
+{% endblock %}

@@ -14,112 +14,85 @@ PhysioNet
 
 
 {% block content %}
-    <!-- Page Content -->
-    <div class="container">
+  <div class="container">
 
-      <header class="masthead">
-        <div class="container">
-          <div class="intro-text">
-            <div class="intro-heading">PhysioNet</div>
-            <div class="intro-lead-in">The distribution hub for physiologic tools and data</div>
-            <a class="btn btn-pn btn-light badge-pill intro-badge" href="{% url 'data' %}">&nbsp;<i class="fa fa-database"></i> Data&nbsp;</a>
-            <a class="btn btn-pn btn-light badge-pill intro-badge" href="{% url 'software' %}">&nbsp;<i class="fa fa-keyboard"></i> Software&nbsp;</a>
-            <a class="btn btn-pn btn-light badge-pill intro-badge" href="{% url 'create_project' %}">&nbsp;<i class="fa fa-book-open"></i> Publish&nbsp;</a>
-          </div>
+    <header class="masthead">
+      <div class="container">
+        <div class="intro-text">
+          <div class="intro-heading">PhysioNet</div>
+          <div class="intro-lead-in">Find and publish physiologic tools and data</div>
+          <a class="btn btn-pn btn-light badge-pill intro-badge" href="{% url 'data' %}">&nbsp;<i class="fa fa-database"></i> Data&nbsp;</a>
+          <a class="btn btn-pn btn-light badge-pill intro-badge" href="{% url 'software' %}">&nbsp;<i class="fa fa-keyboard"></i> Software&nbsp;</a>
+          <a class="btn btn-pn btn-light badge-pill intro-badge" href="{% url 'create_project' %}">&nbsp;<i class="fa fa-book-open"></i> Publish&nbsp;</a>
         </div>
-      </header>
-
-      <div class="row">
-        {# Left column #}
-        <div class="col-md-7">
-          <h1>Recent Publications</h1>
-          <hr>
-          {# A publication #}
-          {% for published_project, authors , topics in projects_authors_topics %}
-            <p>{{ published_project.resource_type|resource_badge|safe }}
-               {{ published_project.access_policy|access_badge|safe }}
-            </p>
-            <a href="{% url 'published_project' published_project.slug %}"><h2>{{ published_project.title }}</h2></a>
-            <p class="text-muted">
-              <strong>Authors:
-              {% for author in authors %}
-                {{ author.get_full_name }}
-              {% endfor %}
-              </strong>
-            </p>
-            {{ published_project.abstract|safe }}
-            <p class="text-muted">
-              Published: {{ published_project.publish_datetime|date }}.
-              Version: {{ published_project.version }}
-              <br>
-              {% for topic in topics %}
-                  <a href="#" class="badge badge-info">{{ topic.description }}</a>
-              {% endfor %}
-            </p>
-            <hr>
-          {% endfor %}
-
-          <a class="btn btn-outline-primary" href="{% url 'content' %}">More Publications</a>
-          <br><br>
-        </div>
-
-        <!--Right Column -->
-        <div class="col-md-5">
-          <div class="card mb-4">
-            <h2 class="card-header"><a href="{% url 'about_physionet' %}">About PhysioNet</a></h2>
-            <div class="card-body">
-              <p>PhysioNet is a distribution and <a href="{% url 'author_guidelines' %}">publishing</a> platform for physiologic <a href="{% url 'data' %}">data</a> and <a href="{% url 'software' %}">software</a>. It hosts large volumes of open-access and protected resources, and facilitates cooperative analysis of data, evaluation of algorithms, and the free open dissemination of information.</p>
-
-              <div class="row">
-                <div class="col-lg-6">
-                  <ul class="list-unstyled mb-0">
-                    <li>
-                      <a href="https://github.com/MIT-LCP/" target="_blank" style="text-decoration: none; color: #000000;"><i class="fab fa-github"></i> Github</a>
-                    </li>
-                    <li>
-                      <a href="#" target="_blank" style="text-decoration: none; color: #000000;"><i class="fab fa-twitter"></i> Twitter</a>
-                    </li>
-                  </ul>
-                </div>
-
-                <div class="col-lg-6">
-                  <ul class="list-unstyled mb-0">
-                    <li>
-                      <a href="#" target="_blank" style="text-decoration: none; color: #000000;"><i class="fa fa-envelope"></i> Email List</a>
-                    </li>
-                    <li>
-                      <a href="{% url 'contact' %}" target="_blank" style="text-decoration: none; color: #000000;"><i class="fa fa-comments"></i> Contact Us</a>
-                    </li>
-                  </ul>
-                </div>
-
-              </div>
-            </div>
-          </div>
-
-          <div class="card my-4">
-            <h2 class="card-header"><a href="{% url 'news' %}">News</a></h2>
-            <div class="card-body">
-              {% for news in news_pieces %}
-                <h3>
-                  {% if news.url %}
-                    <a href="{{ news.url }}">{{ news.title }}</a>
-                  {% else %}
-                    {{ news.title }}
-                  {% endif %}
-                </h3>
-                <p><a class="text-muted">{{ news.datetime|date }}</a></p>
-                {{ news.content|safe }}
-                <hr>
-              {% endfor %}
-              <a class="btn btn-outline-primary" href="{% url 'news' %}">More News</a>
-            </div>
-          </div>
-
-        </div>
-        <!-- /.column -->
       </div>
-      <!-- /.row -->
+    </header>
+
+    <div class="row">
+      {# Left column #}
+      <div class="col-md-7">
+        <h1>Recent Publications</h1>
+        <hr>
+        {# A publication #}
+        {% for published_project, authors , topics in projects_authors_topics %}
+          <p>{{ published_project.resource_type|resource_badge|safe }}
+             {{ published_project.access_policy|access_badge|safe }}
+          </p>
+          <a href="{% url 'published_project' published_project.slug %}"><h2>{{ published_project.title }}</h2></a>
+          <p class="text-muted">
+            <strong>Authors:
+            {% for author in authors %}
+              {{ author.get_full_name }}
+            {% endfor %}
+            </strong>
+          </p>
+          {{ published_project.abstract|safe }}
+          <p class="text-muted">
+            Published: {{ published_project.publish_datetime|date }}.
+            Version: {{ published_project.version }}
+            <br>
+            {% for topic in topics %}
+              <a href="{% url 'topic_search' topic.description %}"><span class="badge badge-info">{{ topic }}</span></a>
+            {% endfor %}
+          </p>
+          <hr>
+        {% endfor %}
+
+        <a class="btn btn-outline-primary" href="{% url 'content' %}">More Publications</a>
+        <br><br>
+      </div>
+
+      <!--Right Column -->
+      <div class="col-md-5">
+        <div class="card mb-4">
+          <h2 class="card-header"><a href="{% url 'about_physionet' %}">About PhysioNet</a></h2>
+          <div class="card-body">
+            <p>PhysioNet is a distribution and <a href="{% url 'author_guidelines' %}">publishing</a> platform for physiologic <a href="{% url 'data' %}">data</a> and <a href="{% url 'software' %}">software</a>. It hosts large volumes of open-access and protected resources, and facilitates cooperative analysis of data, evaluation of algorithms, and the free open dissemination of information.</p>
+          </div>
+        </div>
+        <div class="card my-4">
+          <h2 class="card-header"><a href="{% url 'news' %}">News</a></h2>
+          <div class="card-body">
+            {% for news in news_pieces %}
+              <h3>
+                {% if news.url %}
+                  <a href="{{ news.url }}">{{ news.title }}</a>
+                {% else %}
+                  {{ news.title }}
+                {% endif %}
+              </h3>
+              <p><a class="text-muted">{{ news.publish_datetime|date }}</a></p>
+              {{ news.content|safe }}
+              <hr>
+            {% endfor %}
+            <a class="btn btn-outline-primary" href="{% url 'news' %}">More News</a>
+          </div>
+        </div>
+
+      </div>
+      <!-- /.column -->
     </div>
-    <!-- /.container -->
+    <!-- /.row -->
+  </div>
+  <!-- /.container -->
 {% endblock %}

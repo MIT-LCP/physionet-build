@@ -1,0 +1,36 @@
+{% extends "console/base_console.html" %}
+
+{% block title %}News Items{% endblock %}
+
+{% block content %}
+ <div class="card mb-3">
+  <div class="card-header">
+    <i class="far fa-newspaper"></i> News Items <span class="badge badge-pill badge-info">{{ news_items|length }}</span>
+  </div>
+  <div class="card-body">
+    <p><a href="{% url 'add_news' %}" class="btn btn-lg btn-success">Add News Item</a></p>
+    <div class="table-responsive">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Url</th>
+            <th>Publish Datetime</th>
+            <th>Edit</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for news in news_items %}
+          <tr>
+            <td>{{ news.title }}</td>
+            <td>{% if news.url %}<a href="{{ news.url }}" target="_blank">{{ news.url }}</a>{% endif %}</td>
+            <td>{{ news.publish_datetime }}</td>
+            <td><a href="{% url 'edit_news' news.id %}" class="btn btn-sm btn-primary" role="button">Edit</a></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

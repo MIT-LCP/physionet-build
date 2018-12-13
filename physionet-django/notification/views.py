@@ -11,7 +11,7 @@ def news(request):
     return redirect('news_year', year=timezone.now().year)
 
 def news_year(request, year):
-    news_pieces = News.objects.filter(datetime__year=int(year)).order_by('-datetime')
+    news_pieces = News.objects.filter(publish_datetime__year=int(year)).order_by('-publish_datetime')
     # The year range of all the PN news in existence.
     # Yes, the start is hardcoded.
     news_years = list(range(2018, timezone.now().year + 1))

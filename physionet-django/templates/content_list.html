@@ -31,7 +31,7 @@ PhysioNet {{ content_name }}
       Version: {{ published_project.version }}
       <br>
       {% for topic in topics %}
-        <a href="#" class="badge badge-info">{{ topic.description }}</a>
+        <a href="{% url 'topic_search' topic.description %}"><span class="badge badge-info">{{ topic }}</span></a>
       {% endfor %}
     </p>
     <hr>
