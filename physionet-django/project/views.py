@@ -1038,7 +1038,7 @@ def sign_dua(request, published_project_slug):
     if project.access_policy == 2 and not user.is_credentialed:
         return render(request, 'project/credential_required.html')
 
-    dua = project.data_use_agreement
+    license = project.license
 
     if request.method == 'POST' and 'agree' in request.POST:
         project.approved_users.add(user)
@@ -1047,4 +1047,4 @@ def sign_dua(request, published_project_slug):
             'project':project})
 
     return render(request, 'project/sign_dua.html', {'project':project,
-        'dua':dua})
+        'license':license})

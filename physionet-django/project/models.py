@@ -824,6 +824,7 @@ class PublishedProject(Metadata, SubmissionInfo):
 
     SPECIAL_FILES = {
         'files.txt':'List of main files',
+        'license.txt':"License for using files",
         'sha256sums.txt':'Checksums of main files',
         'subject-info.csv':'Subject information spreadsheet',
         'wfdb-records.txt':'List of WFDB format records',
@@ -923,6 +924,18 @@ class PublishedProject(Metadata, SubmissionInfo):
             for f in files:
                 outfile.write('{} {}\n'.format(
                     hashlib.sha256(open(os.path.join(self.main_file_root(), f), 'rb').read()).hexdigest(), f))
+
+        if update_size:
+            self.set_storage_info(info_type='special')
+
+    def make_license_file(self, update_size=False):
+        "Make the license file"
+        author_names = ', '.join(a.get_full_name() for a in self.authors.all()) + '.'
+        license_text = self.license.text_content.replace('<COPYRIGHT HOLDER>', author_names, 1)
+        license_text = license_text.replace('<YEAR>', str(timezone.now().year), 1)
+
+        with open(os.path.join(self.special_file_root(), 'license.txt'), 'w') as outfile:
+            outfile.write(license_text)
 
         if update_size:
             self.set_storage_info(info_type='special')
@@ -1053,7 +1066,8 @@ class ProgrammingLanguage(models.Model):
 class License(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=120)
-    text_content = models.TextField()
+    text_content = models.TextField(default='')
+    html_content = RichTextField(default='')
     home_page = models.URLField()
     # A project must choose a license with a matching access policy and
     # resource type

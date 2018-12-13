@@ -23,7 +23,7 @@ Licenses
     {{ license.resource_type|resource_badge|safe }} {{ license.access_policy|access_badge|safe }}
     <h2>{{ license.name }}</h2>
     <ul>
-      <li><a href="{% url 'license_content' license.slug %}">Text content</a></li>
+      <li><a href="{% url 'license_content' license.slug %}">Content</a></li>
       <li><a href="{{ license.home_page }}" target="_blank">Home page <i class="fas fa-external-link-alt"></i></a></li>
     </ul>
     <br>

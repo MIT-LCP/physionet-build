@@ -142,7 +142,7 @@ CKEDITOR_CONFIGS = {
             ['Bold', 'Italic', 'Underline'],
             ['NumberedList', 'BulletedList', '-'],
             ['Link', 'Unlink'],
-            ['RemoveFormat']
+            ['RemoveFormat', 'Source']
         ],
         'width': '100%'
     }
