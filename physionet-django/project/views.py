@@ -825,6 +825,20 @@ def project_preview(request, project_slug, **kwargs):
         'dir_breadcrumbs':dir_breadcrumbs})
 
 
+@project_auth(auth_mode=2)
+def project_license_preview(request, project_slug, **kwargs):
+    """
+    View a project's license
+    """
+    project = kwargs['project']
+    license = project.license
+    license_content = project.license_content(fmt='html')
+
+    return render(request, 'project/project_license_preview.html',
+        {'project':project, 'license':license,
+        'license_content':license_content})
+
+
 @project_auth(auth_mode=0)
 def project_proofread(request, project_slug, **kwargs):
     """
@@ -986,6 +1000,18 @@ def serve_published_project_file(request, published_project_slug, full_file_name
         return utility.serve_file(request, file_path)
 
 
+def published_project_license(request, published_project_slug):
+    """
+    Displays a published project's license
+    """
+    project = PublishedProject.objects.get(slug=published_project_slug)
+    license = project.license
+    license_content = project.license_content(fmt='html')
+
+    return render(request, 'project/published_project_license.html',
+        {'project':project, 'license':license,
+        'license_content':license_content})
+
 def published_project(request, published_project_slug):
     """
     Displays a published project
@@ -1038,7 +1064,8 @@ def sign_dua(request, published_project_slug):
     if project.access_policy == 2 and not user.is_credentialed:
         return render(request, 'project/credential_required.html')
 
-    license = project.license
+    license_name = project.license.name
+    license_content = project.license_content(fmt='html')
 
     if request.method == 'POST' and 'agree' in request.POST:
         project.approved_users.add(user)
@@ -1047,4 +1074,4 @@ def sign_dua(request, published_project_slug):
             'project':project})
 
     return render(request, 'project/sign_dua.html', {'project':project,
-        'license':license})
+        'license_name':license_name, 'license_content':license_content})

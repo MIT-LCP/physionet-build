@@ -706,12 +706,7 @@
     "is_newest_version": true,
     "newest_version": null,
     "doi": "10.13026/C2F305",
-    "programming_languages": [],
-    "approved_users": [
-      [
-        "rgmark"
-      ]
-    ]
+    "programming_languages": []
   }
 },
 {
@@ -936,17 +931,6 @@
     "home_page": "https://github.com/MIT-LCP/license-and-dua/tree/master/drafts",
     "access_policy": 2,
     "resource_type": 0
-  }
-},
-{
-  "model": "project.duasignature",
-  "pk": 1,
-  "fields": {
-    "project": 1,
-    "user": [
-      "rgmark"
-    ],
-    "sign_datetime": "2018-12-13T17:01:07.914Z"
   }
 },
 {

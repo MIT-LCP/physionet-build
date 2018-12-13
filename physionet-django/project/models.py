@@ -359,6 +359,25 @@ class Metadata(models.Model):
         copyedit_logs = self.copyedit_logs.all()
         return authors, author_emails, storage_info, edit_logs, copyedit_logs
 
+    def license_content(self, fmt):
+        """
+        Get the license content of the project's license in text or html
+        content. Takes the selected license and fills in the year and
+        copyright holder.
+        """
+        author_names = ', '.join(a.get_full_name() for a in self.authors.all()) + '.'
+
+        if fmt == 'text':
+            content = self.license.text_content
+            content = content.replace('<COPYRIGHT HOLDER>', author_names, 1)
+            content = content.replace('<YEAR>', str(timezone.now().year), 1)
+        elif fmt == 'html':
+            content = self.license.html_content
+            content = content.replace('&lt;COPYRIGHT HOLDER&gt;', author_names, 1)
+            content = content.replace('&lt;YEAR&gt;', str(timezone.now().year), 1)
+
+        return content
+
 
 class SubmissionInfo(models.Model):
     """
@@ -929,13 +948,9 @@ class PublishedProject(Metadata, SubmissionInfo):
             self.set_storage_info(info_type='special')
 
     def make_license_file(self, update_size=False):
-        "Make the license file"
-        author_names = ', '.join(a.get_full_name() for a in self.authors.all()) + '.'
-        license_text = self.license.text_content.replace('<COPYRIGHT HOLDER>', author_names, 1)
-        license_text = license_text.replace('<YEAR>', str(timezone.now().year), 1)
-
+        "Make the license text file"
         with open(os.path.join(self.special_file_root(), 'license.txt'), 'w') as outfile:
-            outfile.write(license_text)
+            outfile.write(self.license_content(fmt='text'))
 
         if update_size:
             self.set_storage_info(info_type='special')
@@ -949,7 +964,8 @@ class PublishedProject(Metadata, SubmissionInfo):
             os.mkdir(self.special_file_root())
         self.make_files_list()
         self.make_checksum_file()
-        # This should come last
+        self.make_license_file()
+        # This should come last since it also zips the special files
         if make_zip:
             self.make_zip()
 

@@ -49,6 +49,8 @@ urlpatterns = [
         name='project_preview'),
     url(r'^(?P<project_slug>\w+)/preview-files-panel/$', views.preview_files_panel,
         name='preview_files_panel'),
+    url(r'^(?P<project_slug>\w+)/view-license/$', views.project_license_preview,
+        name='project_license_preview'),
 
     url(r'^(?P<project_slug>\w+)/integrity/$', views.check_integrity,
         name='check_integrity'),

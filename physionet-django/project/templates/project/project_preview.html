@@ -99,7 +99,7 @@
             <strong>License (for files):</strong>
             <br>
             {% if project.license %}
-              <a href="{% url 'license_content' project.license.slug %}" target="_blank">{{ project.license }}</a>
+              <a href="{% url 'project_license_preview' project.slug %}" target="_blank">{{ project.license }}</a>
             {% else %}
               <a style="color:red"><strong>* Required field missing</strong></a>
             {% endif %}
