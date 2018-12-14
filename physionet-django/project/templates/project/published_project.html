@@ -76,15 +76,8 @@
           <p>
             <strong>License (for files):</strong>
             <br>
-            <a href="{% url 'license_content' project.license.slug %}" target="_blank">{{ project.license }}</a>
+            <a href="{% url 'published_project_license' project.slug %}" target="_blank">{{ project.license }}</a>
           </p>
-          {% if project.data_use_agreement %}
-            <p>
-              <strong>Data Use Agreement:</strong>
-              <br>
-              <a href="{% url 'dua_content' project.data_use_agreement.slug %}" target="_blank">{{ project.data_use_agreement.name }}</a>
-            </p>
-          {% endif %}
         </div>
       </div>
 
@@ -165,7 +158,7 @@
       </div>
     {% else %}
     <div class="alert alert-danger" role="alert">
-      This is a restricted-access resource. To access the files, you must {% if project.access_policy == 2 and not user.is_credentialed %}be a <a href="{% url 'edit_credentialing' %}">credentialed user</a> and {% endif %}<a href="{% url 'sign_dua' project.slug %}">sign the DUA</a>.
+      This is a restricted-access resource. To access the files, you must {% if project.access_policy == 2 and not user.is_credentialed %}be a <a href="{% url 'edit_credentialing' %}">credentialed user</a> and {% endif %}<a href="{% url 'sign_dua' project.slug %}">sign the data use agreement</a> for the project.
     </div>
     {% endif %}
   {% else %}

@@ -9,7 +9,8 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 
 from .models import (Affiliation, Author, AuthorInvitation, ActiveProject,
-    CoreProject, StorageRequest, ProgrammingLanguage, exists_project_slug)
+    CoreProject, StorageRequest, ProgrammingLanguage, License,
+    exists_project_slug)
 from . import utility
 from . import validators
 
@@ -575,33 +576,32 @@ class AccessMetadataForm(forms.ModelForm):
     """
     class Meta:
         model = ActiveProject
-        fields = ('access_policy', 'license', 'data_use_agreement')
+        fields = ('access_policy', 'license')
         help_texts = {'access_policy': '* Access policy for files.',
-                      'license': '* License for usage',
-                      'data_use_agreement': 'Specific conditions for usage'}
+                      'license': '* License for usage'}
 
     def __init__(self, include_credentialed, *args, **kwargs):
         """
-        Control whether to only allow choosing the protected access policies
+        Control the allowed access policies, and resultant license and
+        dua choices.
+
+        Allow for all license choices
         """
         super().__init__(*args, **kwargs)
+
         if not include_credentialed:
             self.fields['access_policy'].choices = ((0, 'Open'),(1, 'Restricted'))
 
 
-    def clean(self):
+    def set_license_queryset(self, access_policy):
         """
-        Check the combination of access policy and dua
+        Set the license queryset according to the set or selected
+        access policy
         """
-        cleaned_data = super().clean()
-        if cleaned_data['access_policy'] == 0:
-            if cleaned_data['data_use_agreement']:
-                raise forms.ValidationError('Open-acess projects cannot have DUAs')
-        else:
-            if not cleaned_data['data_use_agreement']:
-                raise form.ValidationError('Non-open access project must have a DUA')
+        self.fields['license'].queryset = License.objects.filter(
+            resource_type=self.instance.resource_type,
+            access_policy=access_policy)
 
-        return cleaned_data
 
 
 class AuthorCommentsForm(forms.Form):

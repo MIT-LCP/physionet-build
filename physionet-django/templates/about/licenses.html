@@ -2,6 +2,8 @@
 
 {% load static %}
 
+{% load project_templatetags %}
+
 {% block title %}
 Licenses
 {% endblock %}
@@ -12,18 +14,19 @@ Licenses
   <h1 class="text-center">Licenses</h1>
   <hr>
   <p>These are the available licenses for
-     <a href="{% url 'author_guidelines' %}">publishing content</a> on
-     PhysioNet. If you would like to use a license that is not
-     currently listed, please <a href="{% url 'contact' %}">
-     contact us</a>.</p>
-  <br>
+     <a href="{% url 'author_guidelines' %}">publishing content</a> on PhysioNet. The license you choose for your project must match the resource and access types of the license.</p>
+
+  <p>If you would like to use a license that is not currently listed, please <a href="{% url 'contact' %}"> contact us</a>.</p>
+  <hr>
 
   {% for license in licenses %}
-    <p><strong>{{ license.name }}</strong></p>
+    {{ license.resource_type|resource_badge|safe }} {{ license.access_policy|access_badge|safe }}
+    <h2>{{ license.name }}</h2>
     <ul>
-      <li><a href="{% url 'license_content' license.slug %}">Full content</a></li>
-      <li><a href="{{ license.url }}" target="_blank">Home page <i class="fas fa-external-link-alt"></i></a></li>
+      <li><a href="{% url 'license_content' license.slug %}">Content</a></li>
+      <li><a href="{{ license.home_page }}" target="_blank">Home page <i class="fas fa-external-link-alt"></i></a></li>
     </ul>
+    <br>
   {% endfor %}
 
   <br>

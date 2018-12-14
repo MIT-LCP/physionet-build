@@ -29,9 +29,6 @@ urlpatterns = [
     url(r'^about/licenses/$', views.licenses, name='licenses'),
     url(r'^about/licenses/(?P<license_slug>[\w-]+)/$', views.license_content,
         name='license_content'),
-    url(r'^about/duas/$', views.duas, name='duas'),
-    url(r'^about/duas/(?P<dua_slug>[\w-]+)/$', views.dua_content,
-        name='dua_content'),
     url(r'^about/contact/$', views.contact, name='contact'),
     url(r'^about/citi-instructions/$', views.citi_instructions, name='citi_instructions'),
 
@@ -47,6 +44,8 @@ urlpatterns = [
         project_views.published_files_panel, name='published_files_panel'),
     url(r'^content/(?P<published_project_slug>\w+)/files/(?P<full_file_name>.+)$',
         project_views.serve_published_project_file, name='serve_published_project_file'),
+    url(r'^content/(?P<published_project_slug>\w+)/view-license/$',
+        project_views.published_project_license, name='published_project_license'),
 
     url(r'^sign-dua/(?P<published_project_slug>\w+)/$', project_views.sign_dua,
         name='sign_dua'),

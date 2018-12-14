@@ -29,6 +29,8 @@ urlpatterns = [
 
     url(r'^(?P<project_slug>\w+)/access/$', views.project_access,
         name='project_access'),
+    url(r'^(?P<project_slug>\w+)/access/load-license/$', views.load_license,
+        name='load_license'),
 
     url(r'^(?P<project_slug>\w+)/identifiers/$', views.project_identifiers,
         name='project_identifiers'),
@@ -47,6 +49,8 @@ urlpatterns = [
         name='project_preview'),
     url(r'^(?P<project_slug>\w+)/preview-files-panel/$', views.preview_files_panel,
         name='preview_files_panel'),
+    url(r'^(?P<project_slug>\w+)/view-license/$', views.project_license_preview,
+        name='project_license_preview'),
 
     url(r'^(?P<project_slug>\w+)/integrity/$', views.check_integrity,
         name='check_integrity'),

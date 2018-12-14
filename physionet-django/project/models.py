@@ -284,8 +284,6 @@ class Metadata(models.Model):
     access_policy = models.SmallIntegerField(choices=ACCESS_POLICIES,
                                              default=0)
     license = models.ForeignKey('project.License', null=True)
-    data_use_agreement = models.ForeignKey('project.DataUseAgreement',
-                                           null=True, blank=True)
     project_home_page = models.URLField(default='')
     programming_languages = models.ManyToManyField(
         'project.ProgrammingLanguage', related_name='%(class)ss')
@@ -360,6 +358,25 @@ class Metadata(models.Model):
             e.set_quality_assurance_results()
         copyedit_logs = self.copyedit_logs.all()
         return authors, author_emails, storage_info, edit_logs, copyedit_logs
+
+    def license_content(self, fmt):
+        """
+        Get the license content of the project's license in text or html
+        content. Takes the selected license and fills in the year and
+        copyright holder.
+        """
+        author_names = ', '.join(a.get_full_name() for a in self.authors.all()) + '.'
+
+        if fmt == 'text':
+            content = self.license.text_content
+            content = content.replace('<COPYRIGHT HOLDER>', author_names, 1)
+            content = content.replace('<YEAR>', str(timezone.now().year), 1)
+        elif fmt == 'html':
+            content = self.license.html_content
+            content = content.replace('&lt;COPYRIGHT HOLDER&gt;', author_names, 1)
+            content = content.replace('&lt;YEAR&gt;', str(timezone.now().year), 1)
+
+        return content
 
 
 class SubmissionInfo(models.Model):
@@ -590,9 +607,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         for attr in ActiveProject.REQUIRED_FIELDS[self.resource_type]:
             if not getattr(self, attr):
                 self.integrity_errors.append('Missing required field: {0}'.format(attr.replace('_', ' ')))
-
-        if self.access_policy and not self.data_use_agreement:
-            self.integrity_errors.append('Missing DUA for non-open access policy')
 
         published_projects = self.core_project.publishedprojects.all()
         if published_projects:
@@ -829,6 +843,7 @@ class PublishedProject(Metadata, SubmissionInfo):
 
     SPECIAL_FILES = {
         'files.txt':'List of main files',
+        'license.txt':"License for using files",
         'sha256sums.txt':'Checksums of main files',
         'subject-info.csv':'Subject information spreadsheet',
         'wfdb-records.txt':'List of WFDB format records',
@@ -932,6 +947,14 @@ class PublishedProject(Metadata, SubmissionInfo):
         if update_size:
             self.set_storage_info(info_type='special')
 
+    def make_license_file(self, update_size=False):
+        "Make the license text file"
+        with open(os.path.join(self.special_file_root(), 'license.txt'), 'w') as outfile:
+            outfile.write(self.license_content(fmt='text'))
+
+        if update_size:
+            self.set_storage_info(info_type='special')
+
     def make_special_files(self, make_zip, update_size=False):
         """
         Make the special files for the database. zip file, files list,
@@ -941,7 +964,8 @@ class PublishedProject(Metadata, SubmissionInfo):
             os.mkdir(self.special_file_root())
         self.make_files_list()
         self.make_checksum_file()
-        # This should come last
+        self.make_license_file()
+        # This should come last since it also zips the special files
         if make_zip:
             self.make_zip()
 
@@ -1058,25 +1082,17 @@ class ProgrammingLanguage(models.Model):
 class License(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=120)
-    description = RichTextField()
-    url = models.URLField(blank=True, null=True)
+    text_content = models.TextField(default='')
+    html_content = RichTextField(default='')
+    home_page = models.URLField()
+    # A project must choose a license with a matching access policy and
+    # resource type
+    access_policy = models.SmallIntegerField(choices=Metadata.ACCESS_POLICIES,
+        default=0)
+    resource_type = models.PositiveSmallIntegerField(choices=Metadata.RESOURCE_TYPES)
 
     def __str__(self):
         return self.name
-
-
-class DataUseAgreement(models.Model):
-    """
-    Data use agreement
-    """
-    name = models.CharField(max_length=150)
-    slug = models.SlugField(max_length=170)
-    description = RichTextField()
-    creation_datetime = models.DateTimeField(auto_now_add=True)
-    version = models.CharField(max_length=20)
-
-    def __str__(self):
-        return ' v '.join([self.name, self.version])
 
 
 class DUASignature(models.Model):
