@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import os
 import pdb
 import re
@@ -349,16 +350,9 @@ class MetadataForm(forms.ModelForm):
          'usage_notes', 'acknowledgements', 'conflicts_of_interest', 'version',
          'release_notes'),
         ('title', 'abstract', 'background', 'content_description',
-         'methods', 'usage_notes', 'installation',
+         'methods', 'installation', 'usage_notes',
          'acknowledgements', 'conflicts_of_interest', 'version',
          'release_notes'),
-    )
-
-    LABELS = (
-        {'content_description': 'Data Description'},
-        {'content_description': 'Software Description',
-         'methods': 'Technical Implementation',
-         'installation': 'Installation and Requirements'}
     )
 
     HELP_TEXTS = (
@@ -372,10 +366,11 @@ class MetadataForm(forms.ModelForm):
 
     class Meta:
         model = ActiveProject
+        # This includes fields for all resource types.
         fields = ('title', 'abstract', 'background', 'methods',
-                  'content_description', 'usage_notes',
-                  'installation', 'acknowledgements',
-                  'conflicts_of_interest', 'version', 'release_notes',)
+                  'content_description', 'installation', 'usage_notes',
+                  'acknowledgements', 'conflicts_of_interest',
+                  'version', 'release_notes',)
 
         help_texts = {
             'title': '* The title of the resource.',
@@ -389,18 +384,15 @@ class MetadataForm(forms.ModelForm):
         }
 
     def __init__(self, resource_type, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(MetadataForm, self).__init__(*args, **kwargs)
+        self.fields = OrderedDict((k, self.fields[k]) for k in self.FIELDS[resource_type])
 
-        rm_fields = set(self.base_fields) - set(self.__class__.FIELDS[resource_type])
-
-        for f in rm_fields:
-            del(self.fields[f])
-
-        for l in self.__class__.LABELS[resource_type]:
-            self.fields[l].label = self.__class__.LABELS[resource_type][l]
+        for l in ActiveProject.LABELS[resource_type]:
+            self.fields[l].label = ActiveProject.LABELS[resource_type][l]
 
         for h in self.__class__.HELP_TEXTS[resource_type]:
             self.fields[h].help_text = self.__class__.HELP_TEXTS[resource_type][h]
+
 
 
 class IdentifiersForm(forms.ModelForm):
@@ -583,16 +575,18 @@ class AccessMetadataForm(forms.ModelForm):
 
     def __init__(self, include_credentialed, *args, **kwargs):
         """
-        Control the allowed access policies, and resultant license and
-        dua choices.
+        Control the allowed access policies, and resultant license
+        choices.
 
-        Allow for all license choices
         """
         super().__init__(*args, **kwargs)
 
-        if not include_credentialed:
-            self.fields['access_policy'].choices = ((0, 'Open'),(1, 'Restricted'))
-
+        if self.instance.resource_type == 0:
+            if not include_credentialed:
+                self.fields['access_policy'].choices = ((0, 'Open'),(1, 'Restricted'))
+        # Software projects are all open
+        else:
+            self.fields['access_policy'].choices = ((0, 'Open'),)
 
     def set_license_queryset(self, access_policy):
         """

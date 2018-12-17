@@ -49,7 +49,7 @@
   <h1 class="form-signin-heading"><em>[Preview]:</em> {{ project.title }}
   </h1>
   <p>
-    <strong>Authors:
+    <strong>
     {% for author in authors %}
       {{ author|show_author_info|safe }}
       {% if forloop.counter < authors|length %},&nbsp;{% endif %}

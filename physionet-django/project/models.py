@@ -481,6 +481,14 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
          'license')
     )
 
+    # Custom labels that don't match model field names
+    LABELS = (
+        {'content_description': 'Data Description'},
+        {'content_description': 'Software Description',
+         'methods': 'Technical Implementation',
+         'installation': 'Installation and Requirements'}
+    )
+
     def storage_used(self):
         "Total storage used in bytes"
         return get_tree_size(self.file_root())
@@ -606,7 +614,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         # Metadata
         for attr in ActiveProject.REQUIRED_FIELDS[self.resource_type]:
             if not getattr(self, attr):
-                self.integrity_errors.append('Missing required field: {0}'.format(attr.replace('_', ' ')))
+                l = self.LABELS[self.resource_type][attr] if attr in self.LABELS[self.resource_type] else attr.title().replace('_', ' ')
+                self.integrity_errors.append('Missing required field: {0}'.format(l))
 
         published_projects = self.core_project.publishedprojects.all()
         if published_projects:
