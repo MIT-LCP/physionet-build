@@ -1021,7 +1021,7 @@ def published_project(request, published_project_slug):
     for a in authors:
         a.set_display_info()
     references = project.references.all()
-    publication = project.publications.all().get()
+    publication = project.publications.all().first()
     topics = project.topics.all()
     languages = project.programming_languages.all()
     contact = Contact.objects.get(project=project)

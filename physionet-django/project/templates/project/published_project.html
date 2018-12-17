@@ -6,8 +6,8 @@
 
 {% load project_templatetags %}
 
-{% block local_js_top %}
-<script type="text/javascript" src="{% static 'custom/js/cookie.js' %}"></script>
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'project/css/project-content.css' %}"/>
 {% endblock %}
 
 {% block content %}
@@ -63,10 +63,10 @@
 
   <hr>
   <strong>When using this content, please cite:</strong>
-  <p>{{ project.citation_text }}</p>
+  <p class="citation">{{ project.citation_text }}</p>
   {% if publication %}
   <strong>Please also cite:</strong>
-  <p>{{ publication.citation }}</p>
+  <p class="citation">{{ publication.citation }}</p>
   {% endif %}
   <hr>
   <div class="row">
