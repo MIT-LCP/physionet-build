@@ -1021,14 +1021,14 @@ def published_project(request, published_project_slug):
     for a in authors:
         a.set_display_info()
     references = project.references.all()
-    publications = project.publications.all()
+    publication = project.publications.all().get()
     topics = project.topics.all()
     languages = project.programming_languages.all()
     contact = Contact.objects.get(project=project)
 
     has_access = project.has_access(request.user)
     context = {'project':project, 'authors':authors,
-        'references':references, 'publications':publications, 'topics':topics,
+        'references':references, 'publication':publication, 'topics':topics,
         'languages':languages, 'contact':contact, 'has_access':has_access}
 
     # The file and directory contents

@@ -42,9 +42,6 @@ def license_content(request, license_slug):
 def about_physionet(request):
     return render(request, 'about/about_physionet.html')
 
-def development(request):
-    return render(request, 'about/development.html')
-
 def faq(request):
     return render(request, 'about/faq.html')
 

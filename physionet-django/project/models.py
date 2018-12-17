@@ -136,6 +136,8 @@ class PublishedAuthor(BaseAuthor):
         self.email = self.user.email
         self.text_affiliations = [a.name for a in self.affiliations.all()]
 
+    def initialed_name(self):
+        return '{}, {}'.format(self.last_name, ' '.join('{}.'.format(i[0]) for i in self.first_names.split()))
 
 class Topic(models.Model):
     """
@@ -1068,6 +1070,10 @@ class PublishedProject(Metadata, SubmissionInfo):
             used=total, include_remaining=False, main_used=main,
             special_used=special)
 
+    def citation_text(self):
+        return '{} ({}). {}. PhysioNet. doi:{}'.format(
+            ', '.join(a.initialed_name() for a in self.authors.all()),
+            timezone.now().year, self.title, self.doi)
 
 
 def exists_project_slug(slug):

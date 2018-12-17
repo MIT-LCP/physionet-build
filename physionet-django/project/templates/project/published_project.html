@@ -18,7 +18,7 @@
   </p>
   <h1 class="form-signin-heading">{{ project.title }}</h1>
   <p>
-    <strong>Authors:
+    <strong>
     {% for author in authors %}
       {{ author|show_author_info|safe }}
       {% if forloop.counter < authors|length %},&nbsp;{% endif %}
@@ -62,6 +62,13 @@
   </div>
 
   <hr>
+  <strong>When using this content, please cite:</strong>
+  <p>{{ project.citation_text }}</p>
+  {% if publication %}
+  <strong>Please also cite:</strong>
+  <p>{{ publication.citation }}</p>
+  {% endif %}
+  <hr>
   <div class="row">
     <!-- Main column -->
     <div class="col-md-8">
@@ -100,13 +107,11 @@
             <span class="badge badge-info">{{ project.doi }}</span>
           </p>
           {% endif %}
-          {% if publications %}
-            <p><strong>Related Publications:</strong>
+          {% if publication %}
+            <p><strong>Related Publication:</strong>
               <br>
-              {% for publication in publications %}
-                <a href="{{ publication.url }}" target="_blank">{{ publication.citation }}</a>
-              {% endfor %}
-             </p>
+              <a href="{{ publication.url }}" target="_blank">{{ publication.citation }}</a>
+            </p>
           {% endif %}
 
           {% if languages %}
