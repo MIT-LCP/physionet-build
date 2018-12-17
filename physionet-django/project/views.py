@@ -484,13 +484,12 @@ def project_metadata(request, project_slug, **kwargs):
         formset=forms.ReferenceFormSet, validate_max=True)
 
     description_form = forms.MetadataForm(resource_type=project.resource_type,
-        include_changelog=bool(project.version_order), instance=project)
+        instance=project)
     reference_formset = ReferenceFormSet(instance=project)
 
     if request.method == 'POST':
         description_form = forms.MetadataForm(
-            resource_type=project.resource_type,
-            include_changelog=bool(project.version_order), data=request.POST,
+            resource_type=project.resource_type, data=request.POST,
             instance=project)
         reference_formset = ReferenceFormSet(request.POST, instance=project)
         if description_form.is_valid() and reference_formset.is_valid():

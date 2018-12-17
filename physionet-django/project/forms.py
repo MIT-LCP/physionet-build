@@ -346,22 +346,27 @@ class MetadataForm(forms.ModelForm):
 
     FIELDS = (
         ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'acknowledgements',
-         'conflicts_of_interest', 'version', 'changelog_summary'),
-        ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'installation', 'acknowledgements',
-         'conflicts_of_interest', 'version', 'changelog_summary'),
+         'usage_notes', 'acknowledgements', 'conflicts_of_interest', 'version',
+         'release_notes'),
+        ('title', 'abstract', 'background', 'content_description',
+         'methods', 'usage_notes', 'installation',
+         'acknowledgements', 'conflicts_of_interest', 'version',
+         'release_notes'),
     )
 
     LABELS = (
-        {'content_description': 'Data description'},
-        {'content_description': 'Software description'}
+        {'content_description': 'Data Description'},
+        {'content_description': 'Software Description',
+         'methods': 'Technical Implementation',
+         'installation': 'Installation and Requirements'}
     )
 
     HELP_TEXTS = (
         {'methods': '* The methodology employed for the study or research. Describe how the data was collected.',
-         'usage_notes': '* How the data is to be used. List any related software developed for the dataset, and any special software required to use the data.'},
-        {'methods': '* The methodology employed for the study or research.',
+         'content_description': '* Describe the data, and how the files are named and structured.',
+         'usage_notes': '* How the data is to be used. List external documentation pages. List related software developed for the dataset, and any special software required to use the data.'},
+        {'content_description': '* Describe the software in this project.',
+         'methods': 'Details on the technical implementation. ie. the development process, and the underlying algorithms.',
          'usage_notes': '* How the software is to be used. List some example function calls or specify the demo file(s).'}
     )
 
@@ -370,21 +375,20 @@ class MetadataForm(forms.ModelForm):
         fields = ('title', 'abstract', 'background', 'methods',
                   'content_description', 'usage_notes',
                   'installation', 'acknowledgements',
-                  'conflicts_of_interest', 'version', 'changelog_summary',)
+                  'conflicts_of_interest', 'version', 'release_notes',)
 
         help_texts = {
-            'title': '* Title of the resource.',
-            'abstract': '* A brief description of the resource and the context in which the resource was created.',
-            'background': '* The study background.',
-            'content_description': '* Describe the files, how they are named and structured, and how they are to be used.',
-            'installation': '* Instructions on how to install the software. List any required dependencies, or specify the files in which they are listed.',
-            'acknowledgements': 'Any general acknowledgements.',
-            'conflicts_of_interest': '* Conflicts of interest of any authors. State explicitly if there are none.',
-            'version': '* The version number of the resource. <a href=https://semver.org/ target=_blank>Semantic versioning</a> is encouraged (example: 1.0.0).',
-            'changelog_summary': '* Summary of changes from the previous release.'
+            'title': '* The title of the resource.',
+            'abstract': '* A brief description of the resource and the context in which it was created.',
+            'background': '* The content or research background.',
+            'installation': '* Instructions on how to install the software, along with the required dependencies. Or specify the files in which they are listed.',
+            'acknowledgements': 'Thank the people who helped with the research but did not qualify for authorship. In addition, provide any funding information.',
+            'conflicts_of_interest': '* List whether any authors have a financial, commercial, legal, or professional relationship with other organizations, or with the people working with them, that could influence this research. State explicitly if there are none.',
+            'version': "* The version number of the resource. <a href=https://semver.org/ target=_blank>Semantic versioning</a> is encouraged. If unsure, put '1.0.0'.",
+            'release_notes': 'Important notes about the current release, and changes from previous versions.'
         }
 
-    def __init__(self, resource_type, include_changelog=False, *args, **kwargs):
+    def __init__(self, resource_type, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         rm_fields = set(self.base_fields) - set(self.__class__.FIELDS[resource_type])
@@ -397,9 +401,6 @@ class MetadataForm(forms.ModelForm):
 
         for h in self.__class__.HELP_TEXTS[resource_type]:
             self.fields[h].help_text = self.__class__.HELP_TEXTS[resource_type][h]
-
-        if not include_changelog:
-            del(self.fields['changelog_summary'])
 
 
 class IdentifiersForm(forms.ModelForm):
@@ -464,7 +465,7 @@ class ReferenceFormSet(BaseGenericInlineFormSet):
     """
     form_name = 'project-reference-content_type-object_id'
     item_label = 'References'
-    max_forms = 20
+    max_forms = 50
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

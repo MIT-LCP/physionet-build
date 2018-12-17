@@ -279,7 +279,7 @@ class Metadata(models.Model):
     acknowledgements = RichTextField(blank=True)
     conflicts_of_interest = RichTextField(blank=True)
     version = models.CharField(max_length=15, default='', blank=True)
-    changelog_summary = RichTextField(blank=True)
+    release_notes = RichTextField(blank=True)
     # Access information
     access_policy = models.SmallIntegerField(choices=ACCESS_POLICIES,
                                              default=0)
@@ -476,7 +476,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     REQUIRED_FIELDS = (
         ('title', 'abstract', 'background', 'methods', 'content_description',
          'usage_notes', 'conflicts_of_interest', 'version', 'license'),
-        ('title', 'abstract', 'background', 'methods', 'content_description',
+        ('title', 'abstract', 'background', 'content_description',
          'usage_notes', 'installation', 'conflicts_of_interest', 'version',
          'license')
     )
