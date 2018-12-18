@@ -1,4 +1,3 @@
-from django.contrib.auth.models import AnonymousUser
 from django.contrib.auth.views import LoginView
 from django.core import mail
 from django.test import TestCase
