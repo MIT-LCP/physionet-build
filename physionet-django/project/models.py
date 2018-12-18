@@ -10,8 +10,6 @@ from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelatio
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models.signals import post_save, pre_delete
-from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.text import slugify
 
@@ -432,6 +430,13 @@ class UnpublishedProject(models.Model):
         """
         return StorageInfo(allowance=self.core_project.storage_allowance,
             used=self.storage_used(), include_remaining=True)
+
+    def remove(self):
+        """
+        Delete this project's file content and the object
+        """
+        shutil.rmtree(self.file_root())
+        return self.delete()
 
 
 class ArchivedProject(Metadata, UnpublishedProject, SubmissionInfo):

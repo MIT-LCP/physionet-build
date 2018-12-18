@@ -347,12 +347,12 @@ class MetadataForm(forms.ModelForm):
 
     FIELDS = (
         ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'acknowledgements', 'conflicts_of_interest', 'version',
-         'release_notes'),
+         'usage_notes', 'version', 'release_notes', 'acknowledgements',
+         'conflicts_of_interest',
+         ),
         ('title', 'abstract', 'background', 'content_description',
-         'methods', 'installation', 'usage_notes',
-         'acknowledgements', 'conflicts_of_interest', 'version',
-         'release_notes'),
+         'methods', 'installation', 'usage_notes', 'version', 'release_notes'
+         'acknowledgements', 'conflicts_of_interest', ),
     )
 
     HELP_TEXTS = (

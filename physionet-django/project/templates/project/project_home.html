@@ -109,7 +109,7 @@
                   <div class="col-md-6">{{ invitation_response_form.instance.project  }}</div>
                   <div class="col-md-2">{{ invitation_response_form.instance.inviter }}</div>
                   <div class="col-md-2">{{ invitation_response_form.instance.request_datetime|date }}</div>
-                  <div class="col-md-2"><button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#invitation-response-modal-{{ invitation_response_form.instance.id }}">
+                  <div class="col-md-2"><button id="respond_button_{{ invitation_response_form.instance.project.id }}" type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#invitation-response-modal-{{ invitation_response_form.instance.id }}">
                     <i class="fa fa-reply"></i> Respond</button>
                   </div>
                 </div>
