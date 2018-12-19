@@ -1,6 +1,7 @@
 """
-Test functionality of publishing projects. Selenium tests are in
-different classes to enable parallelizing.
+Test functionality of publishing projects.
+
+Selenium tests are in different classes to enable parallelizing.
 """
 import logging
 import os
@@ -45,53 +46,78 @@ PROJECT_VIEWS = [
 ]
 
 
-# class TestCreate(TestCase):
-#     """
-#     Test creation
-#     """
-#     fixtures = ['demo-user', 'demo-project']
-
-#     def setUp(self):
-#         self.client.login(username='rgmark@mit.edu', password='Tester11!')
-
-#     @prevent_request_warnings
-#     def test_navigate_project(self):
-#         """
-#         Create a project and visit all views of it
-#         """
-#         response = self.client.post(reverse('create_project'),
-#             data={'title':'Database 1', 'resource_type':0})
-#         project = ActiveProject.objects.get(title='Database 1')
-#         self.assertRedirects(response, reverse('project_overview', args=(project.slug,)))
-
-#         # Visit all the views of the new project
-#         for view in PROJECT_VIEWS:
-#             response = self.client.get(reverse(view, args=(project.slug,)))
-#             self.assertEqual(response.status_code, 200)
-
-#         # Try again with a non-author who cannot access
-#         self.client.login(username='george@mit.edu', password='Tester11!')
-#         for view in PROJECT_VIEWS:
-#             response = self.client.get(reverse(view, args=(project.slug,)))
-#             self.assertEqual(response.status_code, 404)
-
-#     def test_submittable(self):
-#         """
-#         Make sure some projects are and others are not able to be
-#         submitted.
-#         """
-#         self.assertTrue(ActiveProject.objects.get(
-#             title='MIT-BIH Arrhythmia Database').is_submittable())
-#         self.assertFalse(ActiveProject.objects.get(
-#             title='MIMIC-III Clinical Database').is_submittable())
-
-
-
-class BaseSeleniumTest():
+class TestCreate(TestCase):
     """
-    Methods to inherit for all selenium test classes
+    Test creation
+    """
+    fixtures = ['demo-user', 'demo-project']
+
+    def setUp(self):
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+
+    @prevent_request_warnings
+    def test_navigate_project(self):
+        """
+        Create a project and visit all views of it
+        """
+        response = self.client.post(reverse('create_project'),
+            data={'title':'Database 1', 'resource_type':0})
+        project = ActiveProject.objects.get(title='Database 1')
+        self.assertRedirects(response, reverse('project_overview', args=(project.slug,)))
+
+        # Visit all the views of the new project
+        for view in PROJECT_VIEWS:
+            response = self.client.get(reverse(view, args=(project.slug,)))
+            self.assertEqual(response.status_code, 200)
+
+        # Try again with a non-author who cannot access
+        self.client.login(username='george@mit.edu', password='Tester11!')
+        for view in PROJECT_VIEWS:
+            response = self.client.get(reverse(view, args=(project.slug,)))
+            self.assertEqual(response.status_code, 404)
+
+    def test_submittable(self):
+        """
+        Make sure some projects are and others are not able to be
+        submitted.
+        """
+        self.assertTrue(ActiveProject.objects.get(
+            title='MIT-BIH Arrhythmia Database').is_submittable())
+        self.assertFalse(ActiveProject.objects.get(
+            title='MIMIC-III Clinical Database').is_submittable())
+
+
+class BaseSeleniumTest(StaticLiveServerTestCase, TestCase):
+    """
+    Class to inherit for all selenium test classes. This inherits also
+    from TestCase for its functionality in rolling back the database
+    after each test. LiveServerTestCase only inherits from
+    TransactionTestCase and produces errors when multiple tests are
+    included in the same module. From the docs:
+
+    https://docs.djangoproject.com/en/1.11/topics/testing/tools/#transactiontestcase
+
+    - A TransactionTestCase resets the database after the test runs by
+      truncating all tables. A TransactionTestCase may call commit and
+      rollback and observe the effects of these calls on the database.
+    - A TestCase, on the other hand, does not truncate tables after a
+      test. Instead, it encloses the test code in a database transaction
+      that is rolled back at the end of the test. This guarantees that
+      the rollback at the end of the test restores the database to its
+      initial state.
 
     """
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.selenium = WebDriver()
+        cls.selenium.implicitly_wait(10)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.selenium.quit()
+        super().tearDownClass()
+
     def selenium_login(self, username, password, new=False):
         """
         Log in. If new, log out of old account first.
@@ -116,44 +142,15 @@ class BaseSeleniumTest():
         self.selenium.switch_to.default_content()
 
 
-class SeleniumTestSubmit(StaticLiveServerTestCase, BaseSeleniumTest):
+class Nothing(BaseSeleniumTest):
 
     fixtures = ['demo-user', 'demo-project']
 
-    @classmethod
-    def setUpClass(cls):
-        print('set 1 begin')
-        # pdb.set_trace()
-        super(SeleniumTestSubmit, cls).setUpClass()
-        cls.selenium = WebDriver()
-        cls.selenium.implicitly_wait(5)
-        print('set 1 finish')
-
-    @classmethod
-    def tearDownClass(cls):
-        print('tear 1 begin')
-        # project = ActiveProject.objects.filter(title='Data Project 1').first()
-        # if project:
-        #     project.remove()
-        cls.selenium.quit()
-        super(SeleniumTestSubmit, cls).tearDownClass()
-        print('tear 2 finish')
-
-    # def setUp(self):
-    #     self.selenium = WebDriver()
-    #     self.selenium.implicitly_wait(5)
-
-    def tearDown(self):
-        self.selenium.quit()
-
-    def test_submit_project(self):
+    def submit_project(self):
         """
         Test steps to create and submit a project
 
         """
-        # pdb.set_trace()
-        print('start 1')
-        u = User.objects.get(username='rgmark')
         self.selenium_login(username='rgmark', password='Tester11!')
         # Create project
         self.selenium.find_element_by_id('create_project').click()
@@ -238,7 +235,7 @@ class SeleniumTestSubmit(StaticLiveServerTestCase, BaseSeleniumTest):
         with open(os.path.join(project.file_root(), 'subject-info.csv'), 'w') as f:
             f.write('number,age,gender\n10,50,F')
         with open(os.path.join(project.file_root(), 'subject-10', '10.txt'), 'w') as f:
-            f.write('subject 10 from hospital')
+            f.write('subject 10 from hospital\n')
 
         # Proofread/preview
         self.selenium.find_element_by_id('proofread_tab').click()
@@ -265,42 +262,120 @@ class SeleniumTestSubmit(StaticLiveServerTestCase, BaseSeleniumTest):
         self.selenium.find_element_by_id('submission_tab').click()
         self.selenium.find_element_by_id('submit-project-modal-button').click()
         element = WebDriverWait(self.selenium, 10).until(
-            EC.presence_of_element_located((By.ID, 'submit-project-button')))
+            EC.element_to_be_clickable((By.ID, 'submit-project-button')))
         element.click()
 
+        # Test state of project
         project = ActiveProject.objects.get(title='Data Project 1')
         self.assertTrue(project.under_submission())
+        self.assertEqual(project.storage_used(), 50)
+
+        # Cleanup files
+        project.remove()
 
 
-class SeleniumTestPublish(StaticLiveServerTestCase, BaseSeleniumTest):
+class SeleniumTestPublish(BaseSeleniumTest):
 
     fixtures = ['demo-user', 'demo-project']
 
-    @classmethod
-    def setUpClass(cls):
-        print('set 2 begin')
-        # pdb.set_trace()
-        super(SeleniumTestPublish, cls).setUpClass()
-        cls.selenium = WebDriver()
-        cls.selenium.implicitly_wait(5)
-        print('set 2 finish')
+    def test_publish_project(self):
+        """
+        Test steps from submission to publication
 
-    @classmethod
-    def tearDownClass(cls):
-        print('tear 2 begin')
-        cls.selenium.quit()
-        super(SeleniumTestPublish, cls).tearDownClass()
-        print('tear 2 finish')
+        """
+        # Submit
+        self.selenium_login(username='rgmark', password='Tester11!')
+        self.selenium.find_element_by_link_text('MIT-BIH Arrhythmia Database').click()
+        self.selenium.find_element_by_id('submission_tab').click()
+        self.selenium.find_element_by_id('submit-project-modal-button').click()
+        element = WebDriverWait(self.selenium, 10).until(
+            EC.element_to_be_clickable((By.ID, 'submit-project-button')))
+        self.selenium.find_element_by_id('id_author_comments').send_keys('Everything is impeccable.')
+        element.click()
 
-    # def setUp(self):
-    #     self.selenium = WebDriver()
-    #     self.selenium.implicitly_wait(5)
+        # Assign editor and request revisions
+        self.selenium_login(username='admin', password='Tester11!', new=True)
+        self.selenium.find_element_by_id('nav_account_dropdown').click()
+        self.selenium.find_element_by_id('nav_admin').click()
+        self.selenium.find_element_by_id('nav_submitted_projects').click()
+        self.selenium.find_element_by_id('assign-editor-modal-button').click()
+        Select(self.selenium.find_element_by_id(
+            'id_project')).select_by_visible_text('MIT-BIH Arrhythmia Database')
+        Select(self.selenium.find_element_by_id(
+            'id_editor')).select_by_visible_text('admin')
+        self.selenium.find_element_by_name('assign_editor').click()
+        self.selenium.find_element_by_id('nav_editor_home').click()
+        self.selenium.find_element_by_link_text('Edit Project').click()
+        for field in ['soundly_produced', 'well_described', 'open_format',
+            'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable']:
+            Select(self.selenium.find_element_by_id(
+                'id_{}'.format(field))).select_by_visible_text('No')
+        self.selenium.find_element_by_id('id_editor_comments').send_keys('Everything is bad.')
+        Select(self.selenium.find_element_by_id(
+                'id_decision'.format(field))).select_by_visible_text('Resubmit with revisions')
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        self.assertFalse(project.author_editable())
+        self.selenium.find_element_by_name('submit_response').click()
 
-    def tearDown(self):
-        self.selenium.quit()
+        # Author edits content and resubmits
+        self.selenium_login(username='rgmark', password='Tester11!', new=True)
+        self.selenium.find_element_by_link_text('MIT-BIH Arrhythmia Database').click()
+        self.selenium.find_element_by_id('metadata_tab').click()
+        self.selenium.find_element_by_id('id_version').send_keys('1.0.1')
+        self.selenium.find_element_by_name('edit_description').click()
+        self.selenium.find_element_by_id('submission_tab').click()
+        self.selenium.find_element_by_id('resubmit-project-modal-button').click()
+        element = WebDriverWait(self.selenium, 10).until(
+            EC.element_to_be_clickable((By.ID, 'resubmit-project-button')))
+        self.selenium.find_element_by_id('id_author_comments').send_keys('Even more impeccable.')
+        element.click()
 
-    def test_shit(self):
+        # Editor accepts
+        self.selenium_login(username='admin', password='Tester11!', new=True)
+        self.selenium.find_element_by_id('nav_account_dropdown').click()
+        self.selenium.find_element_by_id('nav_admin').click()
+        self.selenium.find_element_by_id('nav_editor_home').click()
+        self.selenium.find_element_by_link_text('Edit Project').click()
+        for field in ['soundly_produced', 'well_described', 'open_format',
+            'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable']:
+            Select(self.selenium.find_element_by_id(
+                'id_{}'.format(field))).select_by_visible_text('Yes')
+        self.selenium.find_element_by_id('id_editor_comments').send_keys('Thanks for fixing.')
+        Select(self.selenium.find_element_by_id(
+                'id_decision'.format(field))).select_by_visible_text('Accept')
+        self.selenium.find_element_by_name('submit_response').click()
 
-        print('start 2')
-        u = User.objects.get(username='rgmark')
-        print(u.email)
+        # Editor copyedits the submission, creating a folder.
+        self.selenium.find_element_by_link_text('copyedit').click()
+        self.selenium.find_element_by_link_text('subject-100').click()
+        self.selenium.find_element_by_id('create-folder-button').click()
+        self.selenium.find_element_by_id('id_folder_name').send_keys('secret-info')
+        self.selenium.find_element_by_id('create-folder-button-submit').click()
+
+        self.selenium.find_element_by_link_text('Parent Directory').click()
+        self.selenium.find_element_by_link_text('Complete Copyedit').click()
+        Select(self.selenium.find_element_by_id(
+                'id_made_changes'.format(field))).select_by_visible_text('Yes')
+        self.selenium.find_element_by_id('id_changelog_summary').send_keys('Created an empty folder.')
+        self.selenium.find_element_by_name('complete_copyedit').click()
+
+        # Editor reopens copyedit, edits some metadata, and completes it again
+        self.selenium.find_element_by_link_text('editor home').click()
+        self.selenium.find_element_by_link_text('View Authors').click()
+        pdb.set_trace()
+        self.selenium.find_element_by_id('reopen-copyedit-modal-button').click()
+        self.selenium.find_element_by_name('reopen_copyedit').click()
+        self.selenium.find_element_by_link_text('copyediting').click()
+
+        self.selenium.find_element_by_link_text('Edit Metadata').click()
+        self.send_ck_content(outer_id='cke_id_release_notes', content='This is a stable release.')
+        self.selenium.find_element_by_link_text('Edit Metadata').click()
+        Select(self.selenium.find_element_by_id(
+            'id_made_changes'.format(field))).select_by_visible_text('Yes')
+        self.selenium.find_element_by_id('id_changelog_summary').send_keys('Added release notes.')
+        self.selenium.find_element_by_name('complete_copyedit').click()
+
+        # Author approves
+        self.selenium_login(username='rgmark', password='Tester11!', new=True)
+        self.selenium.find_element_by_link_text('MIT-BIH Arrhythmia Database').click()
+        self.selenium.find_element_by_id('submission_tab').click()

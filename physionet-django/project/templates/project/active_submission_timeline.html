@@ -83,7 +83,7 @@
           <i class="far fa-clock"></i> Waiting for submitting author to make revisions and resubmit.
           {% if is_submitting %}
             <br><br>
-            <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#resubmit-modal" onclick="checkIntegrity(true)">Resubmit Project</button>
+            <button id="resubmit-project-modal-button" type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#resubmit-modal" onclick="checkIntegrity(true)">Resubmit Project</button>
             <div class="modal fade" id="resubmit-modal" tabindex="-1" role="dialog" aria-labelledby="resubmit-modal" aria-hidden="true">
               <div class="modal-dialog" role="document">
                 <div class="modal-content">
