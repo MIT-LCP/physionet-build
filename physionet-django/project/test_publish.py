@@ -1,5 +1,6 @@
 """
-Test functionality of publishing projects
+Test functionality of publishing projects. Selenium tests are in
+different classes to enable parallelizing.
 """
 import logging
 import os
@@ -44,63 +45,53 @@ PROJECT_VIEWS = [
 ]
 
 
-class TestCreate(TestCase):
+# class TestCreate(TestCase):
+#     """
+#     Test creation
+#     """
+#     fixtures = ['demo-user', 'demo-project']
+
+#     def setUp(self):
+#         self.client.login(username='rgmark@mit.edu', password='Tester11!')
+
+#     @prevent_request_warnings
+#     def test_navigate_project(self):
+#         """
+#         Create a project and visit all views of it
+#         """
+#         response = self.client.post(reverse('create_project'),
+#             data={'title':'Database 1', 'resource_type':0})
+#         project = ActiveProject.objects.get(title='Database 1')
+#         self.assertRedirects(response, reverse('project_overview', args=(project.slug,)))
+
+#         # Visit all the views of the new project
+#         for view in PROJECT_VIEWS:
+#             response = self.client.get(reverse(view, args=(project.slug,)))
+#             self.assertEqual(response.status_code, 200)
+
+#         # Try again with a non-author who cannot access
+#         self.client.login(username='george@mit.edu', password='Tester11!')
+#         for view in PROJECT_VIEWS:
+#             response = self.client.get(reverse(view, args=(project.slug,)))
+#             self.assertEqual(response.status_code, 404)
+
+#     def test_submittable(self):
+#         """
+#         Make sure some projects are and others are not able to be
+#         submitted.
+#         """
+#         self.assertTrue(ActiveProject.objects.get(
+#             title='MIT-BIH Arrhythmia Database').is_submittable())
+#         self.assertFalse(ActiveProject.objects.get(
+#             title='MIMIC-III Clinical Database').is_submittable())
+
+
+
+class BaseSeleniumTest():
     """
-    Test creation
+    Methods to inherit for all selenium test classes
+
     """
-    fixtures = ['demo-user', 'demo-project']
-
-    def setUp(self):
-        self.client.login(username='rgmark@mit.edu', password='Tester11!')
-
-    @prevent_request_warnings
-    def test_navigate_project(self):
-        """
-        Create a project and visit all views of it
-        """
-        response = self.client.post(reverse('create_project'),
-            data={'title':'Database 1', 'resource_type':0})
-        project = ActiveProject.objects.get(title='Database 1')
-        self.assertRedirects(response, reverse('project_overview', args=(project.slug,)))
-
-        # Visit all the views of the new project
-        for view in PROJECT_VIEWS:
-            response = self.client.get(reverse(view, args=(project.slug,)))
-            self.assertEqual(response.status_code, 200)
-
-        # Try again with a non-author who cannot access
-        self.client.login(username='george@mit.edu', password='Tester11!')
-        for view in PROJECT_VIEWS:
-            response = self.client.get(reverse(view, args=(project.slug,)))
-            self.assertEqual(response.status_code, 404)
-
-    def test_submittable(self):
-        """
-        Make sure some projects are and others are not able to be
-        submitted.
-        """
-        self.assertTrue(ActiveProject.objects.get(
-            title='MIT-BIH Arrhythmia Database').is_submittable())
-        self.assertFalse(ActiveProject.objects.get(
-            title='MIMIC-III Clinical Database').is_submittable())
-
-
-class SeleniumTests(StaticLiveServerTestCase):
-
-    fixtures = ['demo-user', 'demo-project']
-    cleanup_projects = []
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.selenium = WebDriver()
-        cls.selenium.implicitly_wait(5)
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.selenium.quit()
-        super().tearDownClass()
-
     def selenium_login(self, username, password, new=False):
         """
         Log in. If new, log out of old account first.
@@ -124,11 +115,45 @@ class SeleniumTests(StaticLiveServerTestCase):
         editor_body.send_keys(content)
         self.selenium.switch_to.default_content()
 
+
+class SeleniumTestSubmit(StaticLiveServerTestCase, BaseSeleniumTest):
+
+    fixtures = ['demo-user', 'demo-project']
+
+    @classmethod
+    def setUpClass(cls):
+        print('set 1 begin')
+        # pdb.set_trace()
+        super(SeleniumTestSubmit, cls).setUpClass()
+        cls.selenium = WebDriver()
+        cls.selenium.implicitly_wait(5)
+        print('set 1 finish')
+
+    @classmethod
+    def tearDownClass(cls):
+        print('tear 1 begin')
+        # project = ActiveProject.objects.filter(title='Data Project 1').first()
+        # if project:
+        #     project.remove()
+        cls.selenium.quit()
+        super(SeleniumTestSubmit, cls).tearDownClass()
+        print('tear 2 finish')
+
+    # def setUp(self):
+    #     self.selenium = WebDriver()
+    #     self.selenium.implicitly_wait(5)
+
+    def tearDown(self):
+        self.selenium.quit()
+
     def test_submit_project(self):
         """
         Test steps to create and submit a project
 
         """
+        # pdb.set_trace()
+        print('start 1')
+        u = User.objects.get(username='rgmark')
         self.selenium_login(username='rgmark', password='Tester11!')
         # Create project
         self.selenium.find_element_by_id('create_project').click()
@@ -246,10 +271,36 @@ class SeleniumTests(StaticLiveServerTestCase):
         project = ActiveProject.objects.get(title='Data Project 1')
         self.assertTrue(project.under_submission())
 
-    def test_publish_project(self):
-        """
-        Test steps to publish a project
 
-        """
-        self.selenium_login(username='rgmark', password='Tester11!')
-        self.selenium.find_element_by_link_text('MIT-BIH Arrhythmia Database').click()
+class SeleniumTestPublish(StaticLiveServerTestCase, BaseSeleniumTest):
+
+    fixtures = ['demo-user', 'demo-project']
+
+    @classmethod
+    def setUpClass(cls):
+        print('set 2 begin')
+        # pdb.set_trace()
+        super(SeleniumTestPublish, cls).setUpClass()
+        cls.selenium = WebDriver()
+        cls.selenium.implicitly_wait(5)
+        print('set 2 finish')
+
+    @classmethod
+    def tearDownClass(cls):
+        print('tear 2 begin')
+        cls.selenium.quit()
+        super(SeleniumTestPublish, cls).tearDownClass()
+        print('tear 2 finish')
+
+    # def setUp(self):
+    #     self.selenium = WebDriver()
+    #     self.selenium.implicitly_wait(5)
+
+    def tearDown(self):
+        self.selenium.quit()
+
+    def test_shit(self):
+
+        print('start 2')
+        u = User.objects.get(username='rgmark')
+        print(u.email)
