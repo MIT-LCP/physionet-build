@@ -15,7 +15,7 @@ from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.webdriver.support.ui import Select, WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-from project.models import ActiveProject
+from project.models import ActiveProject, StorageRequest
 from user.models import User
 
 
@@ -92,26 +92,21 @@ class SeleniumTests(StaticLiveServerTestCase):
 
     @classmethod
     def setUpClass(cls):
-        super(SeleniumTests, cls).setUpClass()
+        super().setUpClass()
         cls.selenium = WebDriver()
-        cls.selenium.implicitly_wait(3)
-
+        cls.selenium.implicitly_wait(5)
 
     @classmethod
     def tearDownClass(cls):
         cls.selenium.quit()
-        super(SeleniumTests, cls).tearDownClass()
-
-        # project = ActiveProject.objects.filter(title='Data Project 1').first()
-        # if project:
-        #     project.remove()
+        super().tearDownClass()
 
     def selenium_login(self, username, password, new=False):
         """
         Log in. If new, log out of old account first.
         """
         if new:
-            self.selenium.find_element_by_id('account_dropdown').click()
+            self.selenium.find_element_by_id('nav_account_dropdown').click()
             self.selenium.find_element_by_id('nav_logout').click()
         self.selenium.get('{}{}'.format(self.live_server_url, reverse('login')))
         self.selenium.find_element_by_name('username').send_keys(username)
@@ -129,7 +124,11 @@ class SeleniumTests(StaticLiveServerTestCase):
         editor_body.send_keys(content)
         self.selenium.switch_to.default_content()
 
-    def test_publish_project(self):
+    def test_submit_project(self):
+        """
+        Test steps to create and submit a project
+
+        """
         self.selenium_login(username='rgmark', password='Tester11!')
         # Create project
         self.selenium.find_element_by_id('create_project').click()
@@ -221,20 +220,36 @@ class SeleniumTests(StaticLiveServerTestCase):
         self.selenium.find_element_by_id('view_preview').click()
         self.selenium.switch_to.window(self.selenium.window_handles[0])
 
-        # Accept author invitation as second user
+        # Accept author invitation as aewj
         self.selenium_login(username='aewj', password='Tester11!', new=True)
         self.selenium.find_element_by_id('respond_button_{}'.format(project.id)).click()
         self.selenium.find_element_by_name('invitation_response').click()
 
         # Approve storage request as admin
         self.selenium_login(username='admin', password='Tester11!', new=True)
-        self.selenium.find_element_by_id('account_dropdown').click()
+        self.selenium.find_element_by_id('nav_account_dropdown').click()
         self.selenium.find_element_by_id('nav_admin').click()
         self.selenium.find_element_by_id('nav_storage_requests').click()
-        self.selenium.find_element_by_id('respond_button_{}'.format(project.id)).click()
-        self.selenium.find_element_by_name('storage_response').click()
+        storage_request = StorageRequest.objects.get(project=project)
+        self.selenium.find_element_by_id('respond-modal-button-{}'.format(storage_request.id)).click()
+        self.selenium.find_element_by_id('storage-response-button-{}'.format(storage_request.id)).click()
 
+        # Finish submitting project as rgmark
         self.selenium_login(username='rgmark', password='Tester11!', new=True)
+        self.selenium.find_element_by_link_text('Data Project 1').click()
+        self.selenium.find_element_by_id('submission_tab').click()
+        self.selenium.find_element_by_id('submit-project-modal-button').click()
+        element = WebDriverWait(self.selenium, 10).until(
+            EC.presence_of_element_located((By.ID, 'submit-project-button')))
+        element.click()
 
-        pdb.set_trace()
+        project = ActiveProject.objects.get(title='Data Project 1')
+        self.assertTrue(project.under_submission())
 
+    def test_publish_project(self):
+        """
+        Test steps to publish a project
+
+        """
+        self.selenium_login(username='rgmark', password='Tester11!')
+        self.selenium.find_element_by_link_text('MIT-BIH Arrhythmia Database').click()
