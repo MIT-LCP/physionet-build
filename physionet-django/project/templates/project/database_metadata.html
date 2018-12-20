@@ -18,6 +18,12 @@
 {{ project.usage_notes|safe }}
 <hr>
 
+{% if project.release_notes %}
+  <h2 id="release-notes">Release Notes</h2>
+    {{ project.release_notes|safe }}
+  <hr>
+{% endif %}
+
 {% if project.acknowledgements %}
   <h2 id="acknowledgments">Acknowledgements</h2>
   {{ project.acknowledgements|safe }}
@@ -35,11 +41,5 @@
     <li>{{ reference.description }}</li>
   {% endfor %}
   </ol>
-  <hr>
-{% endif %}
-
-{% if project.changelog_summary %}
-  <h2 id="changelog-summary">Changelog Summary</h2>
-    {{ project.changelog_summary|safe }}
   <hr>
 {% endif %}

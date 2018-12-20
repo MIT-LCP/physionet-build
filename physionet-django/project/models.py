@@ -136,6 +136,8 @@ class PublishedAuthor(BaseAuthor):
         self.email = self.user.email
         self.text_affiliations = [a.name for a in self.affiliations.all()]
 
+    def initialed_name(self):
+        return '{}, {}'.format(self.last_name, ' '.join('{}.'.format(i[0]) for i in self.first_names.split()))
 
 class Topic(models.Model):
     """
@@ -279,7 +281,7 @@ class Metadata(models.Model):
     acknowledgements = RichTextField(blank=True)
     conflicts_of_interest = RichTextField(blank=True)
     version = models.CharField(max_length=15, default='', blank=True)
-    changelog_summary = RichTextField(blank=True)
+    release_notes = RichTextField(blank=True)
     # Access information
     access_policy = models.SmallIntegerField(choices=ACCESS_POLICIES,
                                              default=0)
@@ -476,9 +478,17 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     REQUIRED_FIELDS = (
         ('title', 'abstract', 'background', 'methods', 'content_description',
          'usage_notes', 'conflicts_of_interest', 'version', 'license'),
-        ('title', 'abstract', 'background', 'methods', 'content_description',
+        ('title', 'abstract', 'background', 'content_description',
          'usage_notes', 'installation', 'conflicts_of_interest', 'version',
          'license')
+    )
+
+    # Custom labels that don't match model field names
+    LABELS = (
+        {'content_description': 'Data Description'},
+        {'content_description': 'Software Description',
+         'methods': 'Technical Implementation',
+         'installation': 'Installation and Requirements'}
     )
 
     def storage_used(self):
@@ -606,7 +616,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         # Metadata
         for attr in ActiveProject.REQUIRED_FIELDS[self.resource_type]:
             if not getattr(self, attr):
-                self.integrity_errors.append('Missing required field: {0}'.format(attr.replace('_', ' ')))
+                l = self.LABELS[self.resource_type][attr] if attr in self.LABELS[self.resource_type] else attr.title().replace('_', ' ')
+                self.integrity_errors.append('Missing required field: {0}'.format(l))
 
         published_projects = self.core_project.publishedprojects.all()
         if published_projects:
@@ -1059,6 +1070,10 @@ class PublishedProject(Metadata, SubmissionInfo):
             used=total, include_remaining=False, main_used=main,
             special_used=special)
 
+    def citation_text(self):
+        return '{} ({}). {}. PhysioNet. doi:{}'.format(
+            ', '.join(a.initialed_name() for a in self.authors.all()),
+            timezone.now().year, self.title, self.doi)
 
 
 def exists_project_slug(slug):
@@ -1090,6 +1105,9 @@ class License(models.Model):
     access_policy = models.SmallIntegerField(choices=Metadata.ACCESS_POLICIES,
         default=0)
     resource_type = models.PositiveSmallIntegerField(choices=Metadata.RESOURCE_TYPES)
+    # A protected license has associated DUA content
+    dua_name = models.CharField(max_length=100)
+    dua_html_content = RichTextField(default='')
 
     def __str__(self):
         return self.name

@@ -36,6 +36,12 @@
   <hr>
 {% endif %}
 
+{% if project.release_notes %}
+  <h2>Release Notes</h2>
+  {{ project.release_notes|safe }}
+  <hr>
+{% endif %}
+
 {% if project.acknowledgements %}
   <h2>Acknowledgements</h2>
   {{ project.acknowledgements|safe }}
@@ -57,11 +63,5 @@
       <li>{{ reference.description }}</li>
     {% endfor %}
   </ol>
-  <hr>
-{% endif %}
-
-{% if project.changelog_summary %}
-  <h2>Changelog Summary</h2>
-  {{ project.changelog_summary|safe }}
   <hr>
 {% endif %}

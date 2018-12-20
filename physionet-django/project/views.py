@@ -484,13 +484,12 @@ def project_metadata(request, project_slug, **kwargs):
         formset=forms.ReferenceFormSet, validate_max=True)
 
     description_form = forms.MetadataForm(resource_type=project.resource_type,
-        include_changelog=bool(project.version_order), instance=project)
+        instance=project)
     reference_formset = ReferenceFormSet(instance=project)
 
     if request.method == 'POST':
         description_form = forms.MetadataForm(
-            resource_type=project.resource_type,
-            include_changelog=bool(project.version_order), data=request.POST,
+            resource_type=project.resource_type, data=request.POST,
             instance=project)
         reference_formset = ReferenceFormSet(request.POST, instance=project)
         if description_form.is_valid() and reference_formset.is_valid():
@@ -1022,14 +1021,14 @@ def published_project(request, published_project_slug):
     for a in authors:
         a.set_display_info()
     references = project.references.all()
-    publications = project.publications.all()
+    publication = project.publications.all().first()
     topics = project.topics.all()
     languages = project.programming_languages.all()
     contact = Contact.objects.get(project=project)
 
     has_access = project.has_access(request.user)
     context = {'project':project, 'authors':authors,
-        'references':references, 'publications':publications, 'topics':topics,
+        'references':references, 'publication':publication, 'topics':topics,
         'languages':languages, 'contact':contact, 'has_access':has_access}
 
     # The file and directory contents
@@ -1064,7 +1063,7 @@ def sign_dua(request, published_project_slug):
     if project.access_policy == 2 and not user.is_credentialed:
         return render(request, 'project/credential_required.html')
 
-    license_name = project.license.name
+    license = project.license
     license_content = project.license_content(fmt='html')
 
     if request.method == 'POST' and 'agree' in request.POST:
@@ -1074,4 +1073,4 @@ def sign_dua(request, published_project_slug):
             'project':project})
 
     return render(request, 'project/sign_dua.html', {'project':project,
-        'license_name':license_name, 'license_content':license_content})
+        'license':license, 'license_content':license_content})

@@ -139,13 +139,15 @@ CKEDITOR_CONFIGS = {
     'default': {
         'toolbar': 'Custom',
         'toolbar_Custom': [
-            ['Bold', 'Italic', 'Underline'],
+            ['Format', 'Bold', 'Italic', 'Underline'],
             ['NumberedList', 'BulletedList', '-'],
             ['Link', 'Unlink'],
             ['RemoveFormat', 'Source']
         ],
-        'width': '100%'
+        'width': '100%',
+        'format_tags': 'p;h3',
     }
+
 }
 
 LOGGING_CONFIG = None

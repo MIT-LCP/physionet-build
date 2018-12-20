@@ -21,9 +21,9 @@ PhysioNet
         <div class="intro-text">
           <div class="intro-heading">PhysioNet</div>
           <div class="intro-lead-in">Find and publish physiologic tools and data</div>
-          <a class="btn btn-pn btn-light badge-pill intro-badge" href="{% url 'data' %}">&nbsp;<i class="fa fa-database"></i> Data&nbsp;</a>
-          <a class="btn btn-pn btn-light badge-pill intro-badge" href="{% url 'software' %}">&nbsp;<i class="fa fa-keyboard"></i> Software&nbsp;</a>
-          <a class="btn btn-pn btn-light badge-pill intro-badge" href="{% url 'create_project' %}">&nbsp;<i class="fa fa-book-open"></i> Publish&nbsp;</a>
+          <a class="btn btn-pn btn-light badge-pill intro-badge" href="{% url 'data' %}">&nbsp; Data&nbsp;</a>
+          <a class="btn btn-pn btn-light badge-pill intro-badge" href="{% url 'software' %}">&nbsp; Software&nbsp;</a>
+          <a class="btn btn-pn btn-light badge-pill intro-badge" href="{% url 'create_project' %}">&nbsp; Publish&nbsp;</a>
         </div>
       </div>
     </header>
@@ -31,7 +31,7 @@ PhysioNet
     <div class="row">
       {# Left column #}
       <div class="col-md-7">
-        <h1>Recent Publications</h1>
+        <h1>New Content</h1>
         <hr>
         {# A publication #}
         {% for published_project, authors , topics in projects_authors_topics %}
@@ -58,18 +58,12 @@ PhysioNet
           <hr>
         {% endfor %}
 
-        <a class="btn btn-outline-primary" href="{% url 'content' %}">More Publications</a>
+        <a class="btn btn-outline-primary" href="{% url 'content' %}">More Content</a>
         <br><br>
       </div>
 
       <!--Right Column -->
       <div class="col-md-5">
-        <div class="card mb-4">
-          <h2 class="card-header"><a href="{% url 'about_physionet' %}">About PhysioNet</a></h2>
-          <div class="card-body">
-            <p>PhysioNet is a distribution and <a href="{% url 'author_guidelines' %}">publishing</a> platform for physiologic <a href="{% url 'data' %}">data</a> and <a href="{% url 'software' %}">software</a>. It hosts large volumes of open-access and protected resources, and facilitates cooperative analysis of data, evaluation of algorithms, and the free open dissemination of information.</p>
-          </div>
-        </div>
         <div class="card my-4">
           <h2 class="card-header"><a href="{% url 'news' %}">News</a></h2>
           <div class="card-body">
@@ -88,7 +82,6 @@ PhysioNet
             <a class="btn btn-outline-primary" href="{% url 'news' %}">More News</a>
           </div>
         </div>
-
       </div>
       <!-- /.column -->
     </div>
