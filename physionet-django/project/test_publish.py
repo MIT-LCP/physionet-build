@@ -362,20 +362,36 @@ class SeleniumTestPublish(BaseSeleniumTest):
         # Editor reopens copyedit, edits some metadata, and completes it again
         self.selenium.find_element_by_link_text('editor home').click()
         self.selenium.find_element_by_link_text('View Authors').click()
-        pdb.set_trace()
         self.selenium.find_element_by_id('reopen-copyedit-modal-button').click()
         self.selenium.find_element_by_name('reopen_copyedit').click()
         self.selenium.find_element_by_link_text('copyediting').click()
 
         self.selenium.find_element_by_link_text('Edit Metadata').click()
         self.send_ck_content(outer_id='cke_id_release_notes', content='This is a stable release.')
-        self.selenium.find_element_by_link_text('Edit Metadata').click()
+        self.selenium.find_element_by_link_text('Complete Copyedit').click()
         Select(self.selenium.find_element_by_id(
             'id_made_changes'.format(field))).select_by_visible_text('Yes')
         self.selenium.find_element_by_id('id_changelog_summary').send_keys('Added release notes.')
         self.selenium.find_element_by_name('complete_copyedit').click()
 
-        # Author approves
+        # Author approves publication
         self.selenium_login(username='rgmark', password='Tester11!', new=True)
         self.selenium.find_element_by_link_text('MIT-BIH Arrhythmia Database').click()
         self.selenium.find_element_by_id('submission_tab').click()
+        self.selenium.find_element_by_id('approve-publication-modal-button').click()
+        self.selenium.find_element_by_id('approve-publication-button').click()
+
+        # Editor publishes
+        self.selenium_login(username='admin', password='Tester11!', new=True)
+        self.selenium.find_element_by_id('nav_account_dropdown').click()
+        self.selenium.find_element_by_id('nav_admin').click()
+        self.selenium.find_element_by_id('nav_editor_home').click()
+        self.selenium.find_element_by_link_text('Publish Project').click()
+        self.selenium.find_element_by_id('id_doi').send_keys('10.13026/MIT505')
+        Select(self.selenium.find_element_by_id(
+            'id_make_zip'.format(field))).select_by_visible_text('Yes')
+        self.selenium.find_element_by_name('publish_submission').click()
+        self.selenium.find_element_by_link_text('here').click()
+
+
+
