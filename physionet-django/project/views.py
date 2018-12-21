@@ -969,8 +969,6 @@ def published_files_panel(request, published_project_slug):
     project = PublishedProject.objects.get(slug=published_project_slug)
     subdir = request.GET['subdir']
 
-    pdb.set_trace()
-
     if project.has_access(request.user):
         display_files, display_dirs = project.get_main_directory_content(
             subdir=subdir)

@@ -1,3 +1,5 @@
+import sys
+
 from .base import *
 
 DEBUG = True
@@ -30,3 +32,6 @@ DATABASES = {
 }
 
 MEDIA_ROOT = os.path.join(os.path.abspath(os.path.join(BASE_DIR, os.pardir)), 'media')
+
+if len(sys.argv) > 1 and sys.argv[1] == 'test':
+    MEDIA_ROOT = os.path.join(MEDIA_ROOT, 'test')

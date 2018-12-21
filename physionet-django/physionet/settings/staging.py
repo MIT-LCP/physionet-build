@@ -1,3 +1,5 @@
+import sys
+
 from decouple import config
 
 from .base import *
@@ -31,3 +33,7 @@ CONTACT_EMAIL = 'PhysioNet Contact <contact@staging.physionet.org>'
 MEDIA_ROOT = '/physionet/media'
 
 STATIC_ROOT = '/physionet/static'
+
+if len(sys.argv) > 1 and sys.argv[1] == 'test':
+    MEDIA_ROOT = os.path.join(MEDIA_ROOT, 'test')
+    STATIC_ROOT = '/physionet/static'

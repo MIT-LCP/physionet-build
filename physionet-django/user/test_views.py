@@ -1,9 +1,11 @@
+import pdb
+import re
+
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core import mail
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
-import re
 
 from .models import AssociatedEmail, User
 from .views import (activate_user, edit_emails, edit_profile,

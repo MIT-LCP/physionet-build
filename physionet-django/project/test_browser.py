@@ -1,7 +1,8 @@
 """
-Test functionality of publishing projects.
+Module with full browser tests.
 
-Selenium tests are in different classes to enable parallelizing.
+Do not try to
+
 """
 import logging
 import os
@@ -17,74 +18,9 @@ from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.webdriver.support.ui import Select, WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-from project.models import ActiveProject, StorageRequest
+from project.test_views import ProjectTestMixin
+from project.models import ActiveProject, PublishedProject, StorageRequest
 from user.models import User
-
-
-def prevent_request_warnings(original_function):
-    """
-    If we need to test for 404s or 405s this decorator can prevent the
-    request class from throwing warnings.
-    """
-    def new_function(*args, **kwargs):
-        # raise logging level to ERROR
-        logger = logging.getLogger('django.request')
-        previous_logging_level = logger.getEffectiveLevel()
-        logger.setLevel(logging.ERROR)
-        # trigger original function that would throw warning
-        original_function(*args, **kwargs)
-        # lower logging level back to previous
-        logger.setLevel(previous_logging_level)
-
-    return new_function
-
-
-PROJECT_VIEWS = [
-    'project_overview', 'project_authors', 'project_metadata',
-    'project_access', 'project_identifiers', 'project_files',
-    'project_proofread', 'project_preview', 'project_submission'
-]
-
-
-class TestCreate(TestCase):
-    """
-    Test creation
-    """
-    fixtures = ['demo-user', 'demo-project']
-
-    def setUp(self):
-        self.client.login(username='rgmark@mit.edu', password='Tester11!')
-
-    @prevent_request_warnings
-    def test_navigate_project(self):
-        """
-        Create a project and visit all views of it
-        """
-        response = self.client.post(reverse('create_project'),
-            data={'title':'Database 1', 'resource_type':0})
-        project = ActiveProject.objects.get(title='Database 1')
-        self.assertRedirects(response, reverse('project_overview', args=(project.slug,)))
-
-        # Visit all the views of the new project
-        for view in PROJECT_VIEWS:
-            response = self.client.get(reverse(view, args=(project.slug,)))
-            self.assertEqual(response.status_code, 200)
-
-        # Try again with a non-author who cannot access
-        self.client.login(username='george@mit.edu', password='Tester11!')
-        for view in PROJECT_VIEWS:
-            response = self.client.get(reverse(view, args=(project.slug,)))
-            self.assertEqual(response.status_code, 404)
-
-    def test_submittable(self):
-        """
-        Make sure some projects are and others are not able to be
-        submitted.
-        """
-        self.assertTrue(ActiveProject.objects.get(
-            title='MIT-BIH Arrhythmia Database').is_submittable())
-        self.assertFalse(ActiveProject.objects.get(
-            title='MIMIC-III Clinical Database').is_submittable())
 
 
 class BaseSeleniumTest(StaticLiveServerTestCase, TestCase):
@@ -142,11 +78,11 @@ class BaseSeleniumTest(StaticLiveServerTestCase, TestCase):
         self.selenium.switch_to.default_content()
 
 
-class Nothing(BaseSeleniumTest):
+class TestSubmit(ProjectTestMixin, BaseSeleniumTest):
 
     fixtures = ['demo-user', 'demo-project']
 
-    def submit_project(self):
+    def taest_submit(self):
         """
         Test steps to create and submit a project
 
@@ -270,15 +206,7 @@ class Nothing(BaseSeleniumTest):
         self.assertTrue(project.under_submission())
         self.assertEqual(project.storage_used(), 50)
 
-        # Cleanup files
-        project.remove()
-
-
-class SeleniumTestPublish(BaseSeleniumTest):
-
-    fixtures = ['demo-user', 'demo-project']
-
-    def test_publish_project(self):
+    def test_publish(self):
         """
         Test steps from submission to publication
 
@@ -321,6 +249,7 @@ class SeleniumTestPublish(BaseSeleniumTest):
         self.selenium_login(username='rgmark', password='Tester11!', new=True)
         self.selenium.find_element_by_link_text('MIT-BIH Arrhythmia Database').click()
         self.selenium.find_element_by_id('metadata_tab').click()
+        self.selenium.find_element_by_id('id_version').clear()
         self.selenium.find_element_by_id('id_version').send_keys('1.0.1')
         self.selenium.find_element_by_name('edit_description').click()
         self.selenium.find_element_by_id('submission_tab').click()
@@ -391,7 +320,14 @@ class SeleniumTestPublish(BaseSeleniumTest):
         Select(self.selenium.find_element_by_id(
             'id_make_zip'.format(field))).select_by_visible_text('Yes')
         self.selenium.find_element_by_name('publish_submission').click()
+
+        # Visit the page and click some links. Assert that the project is
+        # published and the files are present and accessible
         self.selenium.find_element_by_link_text('here').click()
-
-
-
+        self.assertFalse(bool(ActiveProject.objects.filter(title='MIT-BIH Arrhythmia Database')))
+        project = PublishedProject.objects.get(title='MIT-BIH Arrhythmia Database', version='1.0.1')
+        self.selenium.find_element_by_link_text('sha256sums.txt').click()
+        self.selenium.back()
+        self.selenium.find_element_by_link_text('subject-100').click()
+        self.selenium.find_element_by_link_text('Parent Directory').click()
+        pdb.set_trace()

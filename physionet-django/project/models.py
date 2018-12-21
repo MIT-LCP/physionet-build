@@ -1080,6 +1080,18 @@ class PublishedProject(Metadata, SubmissionInfo):
             ', '.join(a.initialed_name() for a in self.authors.all()),
             timezone.now().year, self.title, self.doi)
 
+    def remove(self, force=False):
+        """
+        Remove the project and its files. Probably will never be used
+        in production. `force` argument is for safety.
+
+        """
+        if force:
+            shutil.rmtree(self.file_root())
+            return self.delete()
+        else:
+            raise Exception('Make sure you want to remove this item.')
+
 
 def exists_project_slug(slug):
     if (ActiveProject.objects.filter(slug=slug)
@@ -1226,7 +1238,7 @@ class EditLog(models.Model):
          'data_machine_readable':'The data files are machine readable',
          'no_phi':'No protected health information is contained'},
         {'well_described':'The software is adequately described',
-         'open_format':'The software is provided in source format'}
+         'open_format':'The software is provided in open source format'}
     )
 
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
