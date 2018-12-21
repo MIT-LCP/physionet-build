@@ -413,6 +413,8 @@ class UnpublishedProject(models.Model):
     publications = GenericRelation('project.Publication')
     topics = GenericRelation('project.Topic')
 
+    authors = GenericRelation('project.Author')
+
     class Meta:
         abstract = True
 
@@ -1119,7 +1121,7 @@ class License(models.Model):
     home_page = models.URLField()
     # A project must choose a license with a matching access policy and
     # resource type
-    access_policy = models.SmallIntegerField(choices=Metadata.ACCESS_POLICIES,
+    access_policy = models.PositiveSmallIntegerField(choices=Metadata.ACCESS_POLICIES,
         default=0)
     resource_type = models.PositiveSmallIntegerField(choices=Metadata.RESOURCE_TYPES)
     # A protected license has associated DUA content

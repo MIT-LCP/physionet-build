@@ -597,6 +597,18 @@ class AccessMetadataForm(forms.ModelForm):
             resource_type=self.instance.resource_type,
             access_policy=access_policy)
 
+    def clean(self):
+        """
+        Ensure valid license access policy combinations
+        """
+        data = super().clean()
+
+        if ([data['license'].resource_type, data['license'].access_policy]
+                != [self.instance.resource_type, data['access_policy']]):
+            raise forms.ValidationError(
+                  'Invalid policy license combination.')
+
+        return data
 
 
 class AuthorCommentsForm(forms.Form):

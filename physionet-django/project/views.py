@@ -379,6 +379,8 @@ def project_authors(request, project_slug, **kwargs):
             if corresponding_author_form.is_valid():
                 corresponding_author_form.update_corresponder()
                 messages.success(request, 'The corresponding author has been updated.')
+            else:
+                messages.error(request, 'Submission unsuccessful. See form for errors.')
         elif 'corresponding_email' in request.POST and author.is_corresponding:
             corresponding_email_form = AssociatedEmailChoiceForm(
                 user=user, selection_type='corresponding', author=author,
@@ -387,6 +389,8 @@ def project_authors(request, project_slug, **kwargs):
                 author.corresponding_email = corresponding_email_form.cleaned_data['associated_email']
                 author.save()
                 messages.success(request, 'Your corresponding email has been updated.')
+            else:
+                messages.error(request, 'Submission unsuccessful. See form for errors.')
 
     authors = project.get_author_info()
     invitations = project.authorinvitations.filter(is_active=True)
