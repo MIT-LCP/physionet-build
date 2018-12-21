@@ -4,6 +4,7 @@ import pdb
 import shutil
 
 from django.conf import settings
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
@@ -60,7 +61,7 @@ class ProjectTestMixin():
         """
         shutil.rmtree(settings.MEDIA_ROOT)
 
-    def assert_message(self, response, level):
+    def assertMessage(self, response, level):
         """
         Assert that the max message level in the request equals `level`.
 
@@ -159,11 +160,11 @@ class TestAccessPresubmission(ProjectTestMixin, TestCase):
         response = self.client.post(reverse(
             'project_authors', args=(project.slug,)),
             data={'corresponding_email':'', 'associated_email':'aewj@mit.edu'})
-        self.assert_message(response, 25)
+        self.assertMessage(response, 25)
         response = self.client.post(reverse(
             'project_authors', args=(project.slug,)),
             data={'corresponding_email':'', 'associated_email':'rgmark@mit.edu'})
-        self.assert_message(response, 40)
+        self.assertMessage(response, 40)
 
         # Submitting author
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
@@ -172,17 +173,17 @@ class TestAccessPresubmission(ProjectTestMixin, TestCase):
         response = self.client.post(reverse(
             'project_authors', args=(project.slug,)),
             data={'invite_author':'', 'email':'george@mit.edu'})
-        self.assert_message(response, 40)
+        self.assertMessage(response, 40)
         # Already an author
         response = self.client.post(reverse(
             'project_authors', args=(project.slug,)),
             data={'invite_author':'', 'email':'rgmark@mit.edu'})
-        self.assert_message(response, 40)
+        self.assertMessage(response, 40)
         # Non-author
         response = self.client.post(reverse(
             'project_authors', args=(project.slug,)),
             data={'invite_author':'', 'email':'admin@mit.edu'})
-        self.assert_message(response, 25)
+        self.assertMessage(response, 25)
 
         # Change corresponding email, but user is not corresponding author.
         response = self.client.post(reverse(
@@ -197,12 +198,12 @@ class TestAccessPresubmission(ProjectTestMixin, TestCase):
         response = self.client.post(reverse(
             'project_authors', args=(project.slug,)),
             data={'corresponding_author':'', 'author':999999})
-        self.assert_message(response, 40)
+        self.assertMessage(response, 40)
         # Valid author
         response = self.client.post(reverse(
             'project_authors', args=(project.slug,)),
             data={'corresponding_author':'', 'author':4})
-        self.assert_message(response, 25)
+        self.assertMessage(response, 25)
         self.assertEqual(project.corresponding_author().user.username, 'aewj')
 
     def test_project_access(self):
@@ -222,17 +223,17 @@ class TestAccessPresubmission(ProjectTestMixin, TestCase):
         response = self.client.post(reverse(
             'project_access', args=(project.slug,)),
             data={'access_policy':0, 'license':open_data_license.id})
-        self.assert_message(response, 25)
+        self.assertMessage(response, 25)
 
         response = self.client.post(reverse(
             'project_access', args=(project.slug,)),
             data={'access_policy':0, 'license':restricted_data_license.id})
-        self.assert_message(response, 40)
+        self.assertMessage(response, 40)
 
         response = self.client.post(reverse(
             'project_access', args=(project.slug,)),
             data={'access_policy':0, 'license':software_license.id})
-        self.assert_message(response, 40)
+        self.assertMessage(response, 40)
 
         # Non-submitting author is not allowed
         self.client.login(username='aewj@mit.edu', password='Tester11!')
@@ -256,20 +257,55 @@ class TestAccessPresubmission(ProjectTestMixin, TestCase):
         response = self.client.post(reverse(
             'project_files', args=(project.slug,)),
             data={'create_folder':'', 'folder_name':'D_ITEMS.csv.gz'})
-        self.assert_message(response, 40)
+        self.assertMessage(response, 40)
         # Valid new folder
         response = self.client.post(reverse(
             'project_files', args=(project.slug,)),
             data={'create_folder':'', 'folder_name':'new-patients'})
-        self.assert_message(response, 25)
+        self.assertMessage(response, 25)
 
         # Rename Item
         response = self.client.post(reverse(
             'project_files', args=(project.slug,)),
             data={'rename_item':'', 'subdir':'', 'items':'new-patients',
                   'new_name':'updated-patients'})
-        self.assert_message(response, 25)
+        self.assertMessage(response, 25)
         self.assertTrue(os.path.isdir(os.path.join(project.file_root(), 'updated-patients')))
+
+        # Move Items
+        response = self.client.post(reverse(
+            'project_files', args=(project.slug,)),
+            data={'move_items':'', 'subdir':'', 'items':['ICUSTAYS.csv.gz', 'PATIENTS.csv.gz'],
+                  'destination_folder':'notes'})
+        self.assertMessage(response, 25)
+        self.assertTrue(os.path.isfile(os.path.join(project.file_root(), 'notes', 'ICUSTAYS.csv.gz')))
+        self.assertTrue(os.path.isfile(os.path.join(project.file_root(), 'notes', 'PATIENTS.csv.gz')))
+
+        # Delete Items
+        # Invalid items
+        response = self.client.post(reverse(
+            'project_files', args=(project.slug,)),
+            data={'delete_items':'', 'subdir':'', 'items':['ICUSTAYS.csv.gz', 'PATIENTS.csv.gz']})
+        self.assertMessage(response, 40)
+        self.assertTrue(os.path.isfile(os.path.join(project.file_root(), 'notes', 'ICUSTAYS.csv.gz')))
+        # Existing items
+        response = self.client.post(reverse(
+            'project_files', args=(project.slug,)),
+            data={'delete_items':'', 'subdir':'notes', 'items':['ICUSTAYS.csv.gz', 'PATIENTS.csv.gz']})
+        self.assertMessage(response, 25)
+        self.assertFalse(os.path.isfile(os.path.join(project.file_root(), 'notes', 'ICUSTAYS.csv.gz')))
+        self.assertFalse(os.path.isfile(os.path.join(project.file_root(), 'notes', 'PATIENTS.csv.gz')))
+
+        # Upload file. Use same file content already existing.
+        with open(os.path.join(project.file_root(), 'D_ITEMS.csv.gz'), 'rb') as f:
+            response = self.client.post(reverse(
+                'project_files', args=(project.slug,)),
+                data={'upload_files':'', 'subdir':'notes',
+                      'file_field':SimpleUploadedFile(f.name, f.read())})
+        self.assertMessage(response, 25)
+        self.assertEqual(
+            open(os.path.join(project.file_root(), 'D_ITEMS.csv.gz'), 'rb').read(),
+            open(os.path.join(project.file_root(), 'notes/D_ITEMS.csv.gz'), 'rb').read())
 
 
 class TestAccessUnderSubmission(ProjectTestMixin, TestCase):
