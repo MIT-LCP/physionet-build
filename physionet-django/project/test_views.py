@@ -1,11 +1,13 @@
+import logging
 import os
 import pdb
 import shutil
 
 from django.conf import settings
 from django.test import TestCase, override_settings
+from django.urls import reverse
 
-from project.models import ActiveProject, PublishedProject
+from project.models import ArchivedProject, ActiveProject, PublishedProject, Author
 
 
 def prevent_request_warnings(original_function):
@@ -49,36 +51,32 @@ class ProjectTestMixin():
         """
         Copy the demo files to the testing root
         """
-        print('SETTIN UP')
         shutil.copytree(os.path.abspath(os.path.join(settings.MEDIA_ROOT, '../demo')),
             settings.MEDIA_ROOT)
 
     def tearDown(self):
+        """
+        Remove the testing media root
+        """
         shutil.rmtree(settings.MEDIA_ROOT)
 
 
-class TestAccess(TestCase, ProjectTestMixin):
+class TestAccess(ProjectTestMixin, TestCase):
     """
-    Test that certain views or content can only be accessed by
-    appropriate users
+    Test that certain views or content in their various states can only
+    be accessed by the appropriate users
 
     """
     fixtures = ['demo-user', 'demo-project']
 
-    def setUp(self):
-        self.client.login(username='rgmark@mit.edu', password='Tester11!')
-
     @prevent_request_warnings
-    def test_get_project_views(self):
+    def test_presubmission(self):
         """
-        Basic test of visiting standard project views
+        Test visiting standard project views before submission
 
         """
-        response = self.client.post(reverse('create_project'),
-            data={'title':'Database 1', 'resource_type':0})
-        project = ActiveProject.objects.get(title='Database 1')
-        self.assertRedirects(response, reverse('project_overview', args=(project.slug,)))
-
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
         # Visit all the views of the new project
         for view in PROJECT_VIEWS:
             response = self.client.get(reverse(view, args=(project.slug,)))
@@ -90,8 +88,55 @@ class TestAccess(TestCase, ProjectTestMixin):
             response = self.client.get(reverse(view, args=(project.slug,)))
             self.assertEqual(response.status_code, 404)
 
+    @prevent_request_warnings
+    def test_under_submission(self):
+        """
+        Test project views while under submission
 
-class TestSubmissionState(TestCase, ProjectTestMixin):
+        """
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+
+
+    @prevent_request_warnings
+    def test_published(self):
+        """
+        """
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+
+
+
+class TestSubmissionState(ProjectTestMixin, TestCase):
+    """
+    Test that all objects are in their intended states, during and
+    after review/publication state transitions.
+
+    """
+
+    fixtures = ['demo-user', 'demo-project']
+
+    def test_create_archive(self):
+        """
+        Create and archive a project
+        """
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+        response = self.client.post(reverse('create_project'),
+            data={'title':'Database 1', 'resource_type':0, 'abstract':'abstract'})
+        project = ActiveProject.objects.get(title='Database 1')
+        self.assertRedirects(response, reverse('project_overview',
+            args=(project.slug,)))
+        author_id = project.authors.all().first().id
+        response = self.client.post(reverse('project_overview',
+            args=(project.slug,)), data={'delete_project':''})
+
+        # response = self.client.post(reverse('project_overview',
+        #     args=(project.slug,)), data={'delete_project':''})
+
+        # The ActiveProject model should be replaced, and all its
+        # related objects should point to the new ArchivedProject
+        self.assertFalse(ActiveProject.objects.filter(title='Database 1'))
+        project = ArchivedProject.objects.get(title='Database 1')
+        self.assertTrue(Author.objects.get(id=author_id).project == project)
+        self.assertTrue(project.abstract == 'abstract')
 
     def test_submittable(self):
         """
@@ -104,5 +149,5 @@ class TestSubmissionState(TestCase, ProjectTestMixin):
             title='MIMIC-III Clinical Database').is_submittable())
 
 
-class TestFiles(TestCase, ProjectTestMixin):
+class TestFiles(ProjectTestMixin, TestCase):
     pass

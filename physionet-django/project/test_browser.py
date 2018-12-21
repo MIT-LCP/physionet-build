@@ -10,7 +10,6 @@ import pdb
 
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.core import mail
-from django.test import TestCase
 from django.urls import reverse
 from django.test import TestCase
 from selenium.webdriver.common.by import By
