@@ -712,7 +712,7 @@ def project_files(request, project_slug, **kwargs):
 
     if request.method == 'POST':
         if not is_submitting:
-            return Http404()
+            raise Http404()
 
         if 'request_storage' in request.POST:
             storage_request_form = forms.StorageRequestForm(project=project,
@@ -1001,7 +1001,7 @@ def serve_published_project_file(request, published_project_slug, full_file_name
     if project.has_access(request.user):
         file_path = os.path.join(project.file_root(), full_file_name)
         return utility.serve_file(request, file_path)
-
+    raise Http404()
 
 def published_project_license(request, published_project_slug):
     """

@@ -76,27 +76,6 @@ class ProjectTestMixin():
             level)
 
 
-class TestPrepareSubmission(ProjectTestMixin, TestCase):
-    """
-    Test views/functions that edit project content for submission
-
-    """
-    fixtures = ['demo-user', 'demo-project']
-
-    @prevent_request_warnings
-    def test_author(self):
-        """
-        Test visiting standard project views before submission
-
-        """
-        self.client.login(username='rgmark@mit.edu', password='Tester11!')
-        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
-        # Visit all the views of the new project
-        for view in PROJECT_VIEWS:
-            response = self.client.get(reverse(view, args=(project.slug,)))
-            self.assertEqual(response.status_code, 200)
-
-
 class TestAccessPresubmission(ProjectTestMixin, TestCase):
     """
     Test that certain views or content in their various states can only
@@ -206,6 +185,7 @@ class TestAccessPresubmission(ProjectTestMixin, TestCase):
         self.assertMessage(response, 25)
         self.assertEqual(project.corresponding_author().user.username, 'aewj')
 
+    @prevent_request_warnings
     def test_project_access(self):
         """
         Post requests for project_access.
@@ -242,13 +222,13 @@ class TestAccessPresubmission(ProjectTestMixin, TestCase):
             data={'access_policy':0, 'license':open_data_license.id})
         self.assertEqual(response.status_code, 404)
 
+    @prevent_request_warnings
     def test_project_files(self):
         """
         Post requests for project_files.
 
         """
         project = ActiveProject.objects.get(title='MIMIC-III Clinical Database')
-
         # Submitting author
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
 
@@ -307,6 +287,13 @@ class TestAccessPresubmission(ProjectTestMixin, TestCase):
             open(os.path.join(project.file_root(), 'D_ITEMS.csv.gz'), 'rb').read(),
             open(os.path.join(project.file_root(), 'notes/D_ITEMS.csv.gz'), 'rb').read())
 
+        # Non-submitting author cannot post
+        self.client.login(username='aewj@mit.edu', password='Tester11!')
+        response = self.client.post(reverse(
+            'project_files', args=(project.slug,)),
+            data={'create_folder':'', 'folder_name':'new-folder-valid'})
+        self.assertEqual(response.status_code, 404)
+
 
 class TestAccessUnderSubmission(ProjectTestMixin, TestCase):
     """
@@ -318,7 +305,6 @@ class TestAccessUnderSubmission(ProjectTestMixin, TestCase):
     """
     fixtures = ['demo-user', 'demo-project']
 
-    @prevent_request_warnings
     def test_visit_get(self):
         """
 
@@ -338,12 +324,45 @@ class TestAccessPublished(ProjectTestMixin, TestCase):
     fixtures = ['demo-user', 'demo-project']
 
     @prevent_request_warnings
-    def test_visit_get(self):
+    def test_credentialed(self):
         """
+        Test access to a credentialed project, including dua signing.
+        """
+        project = PublishedProject.objects.get(title='eICU Collaborative Research Database')
 
-        """
+        # Public user. Anyone can access landing page.
+        response = self.client.get(reverse('published_project', args=(project.slug,)))
+        self.assertEqual(response.status_code, 200)
+        # Cannot access files
+        response = self.client.get(reverse(
+            'serve_published_project_file', args=(project.slug, 'special-files/files.txt')))
+        self.assertEqual(response.status_code, 404)
+
+        # Non-credentialed user
+        self.client.login(username='aewj@mit.edu', password='Tester11!')
+        response = self.client.get(reverse(
+            'serve_published_project_file', args=(project.slug, 'special-files/files.txt')))
+        self.assertEqual(response.status_code, 404)
+
+        # Credentialed user that has not signed dua
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+        response = self.client.get(reverse(
+            'serve_published_project_file', args=(project.slug, 'special-files/files.txt')))
+        self.assertEqual(response.status_code, 404)
+
+        # Sign the dua and get file again
+        response = self.client.post(reverse('sign_dua', args=(project.slug,)),
+            data={'agree':''})
+        response = self.client.get(reverse(
+            'serve_published_project_file', args=(project.slug, 'special-files/files.txt')))
+        self.assertEqual(response.status_code, 200)
+        response = self.client.get(reverse(
+            'serve_published_project_file', args=(project.slug, 'main-files/admissions.csv')))
+        self.assertEqual(response.status_code, 200)
+
+
+    def test_public(self):
         pass
-
 
 
 class TestState(ProjectTestMixin, TestCase):
@@ -361,21 +380,29 @@ class TestState(ProjectTestMixin, TestCase):
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
         response = self.client.post(reverse('create_project'),
             data={'title':'Database 1', 'resource_type':0, 'abstract':'abstract'})
+
         project = ActiveProject.objects.get(title='Database 1')
         self.assertRedirects(response, reverse('project_overview',
             args=(project.slug,)))
+        self.assertEqual(project.authors.all().get().user.email, 'rgmark@mit.edu')
+
+    def test_archive(self):
+        """
+        Archive a project
+        """
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
         author_id = project.authors.all().first().id
-        # response = self.client.post(reverse('project_metadata',
-        #     args=(project.slug,)), data={'title':'Database 1'})
+        abstract = project.abstract
         # 'Delete' (archive) the project
         response = self.client.post(reverse('project_overview',
             args=(project.slug,)), data={'delete_project':''})
         # The ActiveProject model should be replaced, and all its
         # related objects should point to the new ArchivedProject
-        self.assertFalse(ActiveProject.objects.filter(title='Database 1'))
-        project = ArchivedProject.objects.get(title='Database 1')
+        self.assertFalse(ActiveProject.objects.filter(title='MIT-BIH Arrhythmia Database'))
+        project = ArchivedProject.objects.get(title='MIT-BIH Arrhythmia Database')
         self.assertTrue(Author.objects.get(id=author_id).project == project)
-        self.assertTrue(project.abstract == 'abstract')
+        self.assertEqual(project.abstract, abstract)
 
     def test_submittable(self):
         """
@@ -388,7 +415,18 @@ class TestState(ProjectTestMixin, TestCase):
             title='MIMIC-III Clinical Database').is_submittable())
 
     def test_submit(self):
-        pass
+        """
+        Submit a ready project
+        """
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        self.assertFalse(project.under_submission())
+        response = self.client.post(reverse(
+            'project_submission', args=(project.slug,)),
+            data={'submit_project':''})
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        self.assertTrue(project.under_submission())
+        self.assertFalse(project.author_editable())
 
     def test_publish(self):
         pass
