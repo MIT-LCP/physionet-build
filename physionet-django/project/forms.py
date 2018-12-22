@@ -351,7 +351,7 @@ class MetadataForm(forms.ModelForm):
          'conflicts_of_interest',
          ),
         ('title', 'abstract', 'background', 'content_description',
-         'methods', 'installation', 'usage_notes', 'version', 'release_notes'
+         'methods', 'installation', 'usage_notes', 'version', 'release_notes',
          'acknowledgements', 'conflicts_of_interest', ),
     )
 
