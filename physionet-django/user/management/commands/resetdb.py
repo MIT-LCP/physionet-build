@@ -58,8 +58,12 @@ class Command(BaseCommand):
                 for file in migration_files:
                     os.remove(file)
 
-        # Remove created media project files
+        # Remove all media files
         clear_media_files()
+        # Remove created static files
+        clear_created_static_files()
+        print('Removed all media files and targeted static files.')
+
         # Remake and apply the migrations
         call_command('makemigrations')
         call_command('migrate')
@@ -81,15 +85,31 @@ def get_migration_files(app):
 
 def clear_media_files():
     """
-    Remove all media files
-    """
-    for root_dir in (User.FILE_ROOT, ActiveProject.FILE_ROOT,
-            PublishedProject.PROTECTED_FILE_ROOT,
-            PublishedProject.PUBLIC_FILE_ROOT, ArchivedProject.FILE_ROOT,
-            CredentialApplication.FILE_ROOT):
-        dir_items = [os.path.join(root_dir, item) for item in os.listdir(root_dir) if item != '.gitkeep']
+    Remove all media files.
 
-        for item in dir_items:
+    Removes all content in the media root, excluding the immediate
+    subfolders themselves and the .gitkeep files.
+    """
+    for subdir in os.listdir(settings.MEDIA_ROOT):
+        media_subdir = os.path.join(settings.MEDIA_ROOT, subdir)
+        subdir_items = [os.path.join(media_subdir, item) for item in os.listdir(media_subdir) if item != '.gitkeep']
+
+        for item in subdir_items:
             shutil.rmtree(item)
 
+def clear_created_static_files():
+    """
+    Clear all the static files created.
 
+    This function relies on targeted input directories, as opposed to
+    `clear_media_files` which can clean all immediate subdirectories.
+
+    """
+    effective_static_root = settings.STATIC_ROOT if settings.STATIC_ROOT else settings.STATICFILES_DIRS[0]
+
+    for subdir in ['published-projects']:
+        static_subdir = os.path.join(effective_static_root, subdir)
+        subdir_items = [os.path.join(static_subdir, item) for item in os.listdir(static_subdir) if item != '.gitkeep']
+
+        for item in subdir_items:
+            shutil.rmtree(item)

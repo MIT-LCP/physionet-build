@@ -37,10 +37,10 @@ class Command(BaseCommand):
 
         call_command('loaddata', *demo_fixtures, verbosity=1)
 
-        # Copy the demo project and user media content
-        for content in ['users', 'active-projects', 'published-projects',
-                        'credential-applications']:
-            copy_demo_media(content)
+        # Copy the demo media and static content
+        copy_demo_media()
+        copy_demo_static()
+        print('Copied demo media and static files.')
 
 
 def find_demo_fixtures(project_apps):
@@ -58,11 +58,39 @@ def find_demo_fixtures(project_apps):
     return demo_fixtures
 
 
-def copy_demo_media(subdir):
-    "Copy the demo content from the specified subdirectory"
-    demo_subdir = os.path.join(settings.MEDIA_ROOT, 'demo', subdir)
-    target_subdir = os.path.join(settings.MEDIA_ROOT, subdir)
+def copy_demo_media():
+    """
+    Copy the demo media files into the media root.
 
-    for item in os.listdir(demo_subdir):
-        shutil.copytree(os.path.join(demo_subdir, item),
-                        os.path.join(target_subdir, item))
+    Copy all items from within the immediate subfolders of the demo
+    media root.
+
+    """
+    demo_media_root = os.path.join(settings.DEMO_FILE_ROOT, 'media')
+    for subdir in os.listdir(demo_media_root):
+        demo_subdir = os.path.join(demo_media_root, subdir)
+        target_subdir = os.path.join(settings.MEDIA_ROOT, subdir)
+
+        for item in [i for i in os.listdir(demo_subdir) if i != '.gitkeep']:
+
+            shutil.copytree(os.path.join(demo_subdir, item),
+                            os.path.join(target_subdir, item))
+
+
+def copy_demo_static():
+    """
+    Copy the demo static files into the effective static root.
+
+    """
+    demo_static_root = os.path.join(settings.DEMO_FILE_ROOT, 'static')
+
+    # Either the actual static root if defined, or the staticfiles_dirs
+    effective_static_root = settings.STATIC_ROOT if settings.STATIC_ROOT else settings.STATICFILES_DIRS[0]
+
+    for subdir in os.listdir(demo_static_root):
+        demo_subdir = os.path.join(demo_static_root, subdir)
+        target_subdir = os.path.join(effective_static_root, subdir)
+
+        for item in [i for i in os.listdir(demo_subdir) if i != '.gitkeep']:
+            shutil.copytree(os.path.join(demo_subdir, item),
+                            os.path.join(target_subdir, item))

@@ -31,6 +31,8 @@ DATABASES = {
     }
 }
 
+DEMO_FILE_ROOT = os.path.join(os.path.abspath(os.path.join(BASE_DIR, os.pardir)), 'demo-files')
+
 MEDIA_ROOT = os.path.join(os.path.abspath(os.path.join(BASE_DIR, os.pardir)), 'media')
 
 if len(sys.argv) > 1 and sys.argv[1] == 'test':
