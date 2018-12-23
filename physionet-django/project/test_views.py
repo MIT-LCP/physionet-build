@@ -381,9 +381,12 @@ class TestState(TestMixin, TestCase):
         pass
 
 
-
 class TestInteraction(TestMixin, TestCase):
+    """
+    Test project views that require multiple user interaction that are
+    not directly related to reviewing/editing the project.
 
+    """
 
     fixtures = ['demo-user', 'demo-project']
 
