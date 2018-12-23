@@ -39,9 +39,16 @@ class Command(BaseCommand):
                     sys.exit('Exiting from reset. No actions applied.')
             print('Continuing reset')
         else:
-            db_file = os.path.join(settings.BASE_DIR, 'db.sqlite3')
-            if os.path.isfile(db_file):
-                os.remove(db_file)
+            db_type = settings.DATABASES['default']['ENGINE'].split('.')[-1]
+
+            if db_type == 'sqlite3':
+                db_file = settings.DATABASES['default']['NAME']
+                if os.path.isfile(db_file):
+                    os.remove(db_file)
+            elif db_type == 'postgresql':
+                os.system('psql -U physionet -d physionet;dropdb physionet;createdb physionet -O physionet')
+            else:
+                sys.exit('Unable to reset database of type: {}'.format(db_type))
 
         project_apps = get_project_apps()
 
