@@ -101,6 +101,11 @@ Push to the remotes when appropriate
 
 `git push <pn-staging OR pn-production> <staging OR production>`
 
+If there are database structure changes, log into the server and make the migrations.
+
+`python manage.py makemigrations;python manage.py migrate`
+
+
 ## Setting up nginx and uwsgi
 
 http://uwsgi-docs.readthedocs.io/en/latest/tutorials/Django_and_nginx.html
