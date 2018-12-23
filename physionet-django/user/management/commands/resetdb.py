@@ -46,7 +46,8 @@ class Command(BaseCommand):
                 if os.path.isfile(db_file):
                     os.remove(db_file)
             elif db_type == 'postgresql':
-                os.system('psql -U physionet -d physionet;dropdb physionet;createdb physionet -O physionet')
+                os.system('sudo -u postgres dropdb physionet')
+                os.system('sudo -u postgres createdb physionet -O physionet')
             else:
                 sys.exit('Unable to reset database of type: {}'.format(db_type))
 
