@@ -1,15 +1,11 @@
 """
 Module with full browser tests.
 
-Do not try to
-
 """
-import logging
 import os
 import pdb
 
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-from django.core import mail
 from django.urls import reverse
 from django.test import TestCase
 from selenium.webdriver.common.by import By
@@ -81,7 +77,7 @@ class TestSubmit(ProjectTestMixin, BaseSeleniumTest):
 
     fixtures = ['demo-user', 'demo-project']
 
-    def taest_submit(self):
+    def test_submit(self):
         """
         Test steps to create and submit a project
 

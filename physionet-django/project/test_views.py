@@ -1,32 +1,12 @@
-import logging
 import os
 import pdb
-import shutil
 
-from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase, override_settings
+from django.test import TestCase
 from django.urls import reverse
 
 from project.models import ArchivedProject, ActiveProject, PublishedProject, Author, AuthorInvitation, License
-
-
-def prevent_request_warnings(original_function):
-    """
-    Decorator to prevent request class from throwing warnings for 404s.
-
-    """
-    def new_function(*args, **kwargs):
-        # raise logging level to ERROR
-        logger = logging.getLogger('django.request')
-        previous_logging_level = logger.getEffectiveLevel()
-        logger.setLevel(logging.ERROR)
-        # trigger original function that would throw warning
-        original_function(*args, **kwargs)
-        # lower logging level back to previous
-        logger.setLevel(previous_logging_level)
-
-    return new_function
+from user.test_views import prevent_request_warnings, TestMixin
 
 
 PROJECT_VIEWS = [
@@ -36,47 +16,7 @@ PROJECT_VIEWS = [
 ]
 
 
-class ProjectTestMixin():
-    """
-    Class with mixin methods to inherit for test classes.
-
-    Because the fixtures are installed and database is rolled back
-    before each setup and teardown respectively, the demo test files
-    will be created and destroyed after each test also. We want the
-    demo files as well as the demo data reset each time, and individual
-    test methods such as publishing projects may change the files.
-
-    Note about inheriting: https://nedbatchelder.com/blog/201210/multiple_inheritance_is_hard.html
-    """
-    def setUp(self):
-        """
-        Copy the demo files to the testing root
-        """
-        shutil.copytree(os.path.abspath(os.path.join(settings.MEDIA_ROOT, '../demo')),
-            settings.MEDIA_ROOT)
-
-    def tearDown(self):
-        """
-        Remove the testing media root
-        """
-        shutil.rmtree(settings.MEDIA_ROOT)
-
-    def assertMessage(self, response, level):
-        """
-        Assert that the max message level in the request equals `level`.
-
-        Can use message success or error to test outcome, since there
-        are different cases where forms are reloaded, not present, etc.
-
-        The response code for invalid form submissions are still 200
-        so cannot use that to test form submissions.
-
-        """
-        self.assertEqual(max(m.level for m in response.context['messages']),
-            level)
-
-
-class TestAccessPresubmission(ProjectTestMixin, TestCase):
+class TestAccessPresubmission(TestMixin, TestCase):
     """
     Test that certain views or content in their various states can only
     be accessed by the appropriate users.
@@ -295,7 +235,7 @@ class TestAccessPresubmission(ProjectTestMixin, TestCase):
         self.assertEqual(response.status_code, 404)
 
 
-class TestAccessUnderSubmission(ProjectTestMixin, TestCase):
+class TestAccessUnderSubmission(TestMixin, TestCase):
     """
     Test that certain views or content in their various states can only
     be accessed by the appropriate users.
@@ -313,7 +253,7 @@ class TestAccessUnderSubmission(ProjectTestMixin, TestCase):
 
 
 
-class TestAccessPublished(ProjectTestMixin, TestCase):
+class TestAccessPublished(TestMixin, TestCase):
     """
     Test that certain views or content in their various states can only
     be accessed by the appropriate users.
@@ -361,11 +301,20 @@ class TestAccessPublished(ProjectTestMixin, TestCase):
         self.assertEqual(response.status_code, 200)
 
 
-    def test_public(self):
-        pass
+    def test_open(self):
+        """
+        Test access to an open project.
+        """
+        project = PublishedProject.objects.get(title='WFDB')
+        # Public user. Anyone can access files and landing page
+        response = self.client.get(reverse('published_project', args=(project.slug,)))
+        self.assertEqual(response.status_code, 200)
+        response = self.client.get(reverse(
+            'serve_published_project_file', args=(project.slug, 'main-files/Makefile')))
+        self.assertEqual(response.status_code, 200)
 
 
-class TestState(ProjectTestMixin, TestCase):
+class TestState(TestMixin, TestCase):
     """
     Test that all objects are in their intended states, during and
     after review/publication state transitions.
@@ -433,7 +382,7 @@ class TestState(ProjectTestMixin, TestCase):
 
 
 
-class TestInteraction(ProjectTestMixin, TestCase):
+class TestInteraction(TestMixin, TestCase):
 
 
     fixtures = ['demo-user', 'demo-project']
