@@ -13,7 +13,7 @@ from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.webdriver.support.ui import Select, WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-from project.test_views import ProjectTestMixin
+from user.test_views import TestMixin
 from project.models import ActiveProject, PublishedProject, StorageRequest
 from user.models import User
 
@@ -73,7 +73,7 @@ class BaseSeleniumTest(StaticLiveServerTestCase, TestCase):
         self.selenium.switch_to.default_content()
 
 
-class TestSubmit(ProjectTestMixin, BaseSeleniumTest):
+class TestSubmit(TestMixin, BaseSeleniumTest):
 
     fixtures = ['demo-user', 'demo-project']
 
@@ -319,8 +319,9 @@ class TestSubmit(ProjectTestMixin, BaseSeleniumTest):
         # Visit the page and click some links. Assert that the project is
         # published and the files are present and accessible
         self.selenium.find_element_by_link_text('here').click()
-        self.assertFalse(bool(ActiveProject.objects.filter(title='MIT-BIH Arrhythmia Database')))
+        self.assertFalse(ActiveProject.objects.filter(title='MIT-BIH Arrhythmia Database'))
         project = PublishedProject.objects.get(title='MIT-BIH Arrhythmia Database', version='1.0.1')
+        pdb.set_trace()
         self.selenium.find_element_by_link_text('sha256sums.txt').click()
         self.selenium.back()
         self.selenium.find_element_by_link_text('subject-100').click()

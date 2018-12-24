@@ -87,6 +87,7 @@ def process_invitation_response(request, invitation_response_formset):
         # Only process the response that was submitted
         if invitation_response_form.instance.id == invitation_id:
             invitation_response_form.user = user
+
             if invitation_response_form.is_valid():
                 # Update this invitation, and any other one made to the
                 # same user, project, and invitation type
@@ -124,7 +125,8 @@ def project_home(request):
         form=forms.InvitationResponseForm, extra=0)
 
     if request.method == 'POST':
-        invitation_response_formset = InvitationResponseFormSet(request.POST)
+        invitation_response_formset = InvitationResponseFormSet(request.POST,
+            queryset=AuthorInvitation.get_user_invitations(user))
         process_invitation_response(request, invitation_response_formset)
 
     active_authors = Author.objects.filter(user=user,

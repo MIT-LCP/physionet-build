@@ -5,7 +5,8 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 
-from project.models import ArchivedProject, ActiveProject, PublishedProject, Author, AuthorInvitation, License
+from project.models import (ArchivedProject, ActiveProject, PublishedProject,
+    Author, AuthorInvitation, License, StorageRequest)
 from user.test_views import prevent_request_warnings, TestMixin
 
 
@@ -392,10 +393,85 @@ class TestInteraction(TestMixin, TestCase):
 
     def test_storage_request(self):
         """
+        Request storage allowance and process the request.
         """
-        pass
+        # Delete existing storage requests to make formset simpler
+        StorageRequest.objects.all().delete()
+
+        for decision in range(2):
+            self.client.login(username='rgmark@mit.edu', password='Tester11!')
+            project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+            response = self.client.post(reverse(
+                'project_files', args=(project.slug,)),
+                data={'request_storage':'', 'request_allowance':5})
+            self.assertMessage(response, 25)
+
+            # Fails with outstanding request
+            response = self.client.post(reverse(
+                'project_files', args=(project.slug,)),
+                data={'request_storage':'', 'request_allowance':5})
+            self.assertMessage(response, 40)
+
+            # Process storage request. First time reject, next time accept
+            self.client.login(username='admin', password='Tester11!')
+            rid = StorageRequest.objects.get(project=project, is_active=True).id
+            data = {
+                'form-TOTAL_FORMS': ['1'], 'form-MAX_NUM_FORMS': ['1000'],
+                'form-0-response': [str(decision)], 'form-MIN_NUM_FORMS': ['0'],
+                'form-INITIAL_FORMS': ['1'],
+                'form-0-id': [str(rid)], 'storage_response': [str(rid)]
+            }
+            response = self.client.post(reverse('storage_requests'), data=data)
+            self.assertEqual(StorageRequest.objects.get(id=rid).response,
+                bool(decision))
+        # Test successful allowance increase
+        self.assertEqual(ActiveProject.objects.get(
+            title='MIT-BIH Arrhythmia Database').storage_allowance(),
+            5 * 1024**3)
+        # Fails if already has the allowance
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+        response = self.client.post(reverse(
+            'project_files', args=(project.slug,)),
+            data={'request_storage':'', 'request_allowance':5})
+        self.assertMessage(response, 40)
 
     def test_invite_author(self):
         """
+        Test the functionality of inviting and rejecting/accepting authorship.
+
         """
-        pass
+        # Test both accept and reject
+        for inv_response in range(2):
+            # Invite aewj to project as rgmark
+            self.client.login(username='rgmark@mit.edu', password='Tester11!')
+            project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+            response = self.client.post(reverse(
+                'project_authors', args=(project.slug,)),
+                data={'invite_author':'', 'email':'aewj@mit.edu'})
+            self.assertMessage(response, 25)
+            # Try again. Fails with outstanding invitation
+            response = self.client.post(reverse(
+                'project_authors', args=(project.slug,)),
+                data={'invite_author':'', 'email':'aewj@mit.edu'})
+            self.assertMessage(response, 40)
+            # Process invitation. First time reject, next time accept
+            self.client.login(username='aewj', password='Tester11!')
+            iid = AuthorInvitation.objects.get(email='aewj@mit.edu',
+                project=project, is_active=True).id
+            data = {
+                'form-TOTAL_FORMS': ['1'], 'form-MAX_NUM_FORMS': ['1000'],
+                'form-0-response': [str(inv_response)], 'form-MIN_NUM_FORMS': ['0'],
+                'form-INITIAL_FORMS': ['1'],
+                'form-0-id': [str(iid)], 'invitation_response': [str(iid)]
+            }
+            response = self.client.post(reverse('project_home'), data=data)
+            self.assertEqual(AuthorInvitation.objects.get(id=iid).response,
+                bool(inv_response))
+        # Test successful new author
+        self.assertTrue(project.authors.filter(user__username='aewj'))
+        # Fails if user is already an author
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+        response = self.client.post(reverse(
+            'project_authors', args=(project.slug,)),
+            data={'invite_author':'', 'email':'aewj@mit.edu'})
+        self.assertMessage(response, 40)

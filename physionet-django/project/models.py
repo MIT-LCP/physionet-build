@@ -502,6 +502,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         "Total storage used in bytes"
         return get_tree_size(self.file_root())
 
+    def storage_allowance(self):
+        "Storage allowed in bytes"
+        return self.core_project.storage_allowance
+
     def get_directory_content(self, subdir=''):
         """
         Return information for displaying file and directories

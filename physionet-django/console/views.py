@@ -398,7 +398,8 @@ def storage_requests(request):
                  'response_message':Textarea()}, extra=0)
 
     if request.method == 'POST':
-        storage_response_formset = StorageResponseFormSet(request.POST)
+        storage_response_formset = StorageResponseFormSet(request.POST,
+            queryset=StorageRequest.objects.filter(is_active=True))
         process_storage_response(request, storage_response_formset)
 
     storage_response_formset = StorageResponseFormSet(
