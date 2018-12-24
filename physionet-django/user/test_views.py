@@ -50,19 +50,25 @@ class TestMixin(object):
     """
     def setUp(self):
         """
-        Copy the demo files to the testing media/static root
+        Copy demo media files to the testing media root.
+        Copy demo static files to the testing effective static root.
+
+        Does not run collectstatic. The StaticLiveServerTestCase should
+        do that automatically for tests that need it.
         """
         shutil.copytree(os.path.abspath(os.path.join(settings.DEMO_FILE_ROOT, 'media')),
             settings.MEDIA_ROOT)
-        # shutil.copytree(os.path.abspath(os.path.join(settings.DEMO_FILE_ROOT, 'media')),
-        #     settings.MEDIA_ROOT)
-        # Collectstatic
+
+        self.test_static_root = settings.STATIC_ROOT if settings.STATIC_ROOT else settings.STATICFILES_DIRS[0]
+        shutil.copytree(os.path.abspath(os.path.join(settings.DEMO_FILE_ROOT, 'static')),
+            self.test_static_root)
 
     def tearDown(self):
         """
         Remove the testing media root
         """
         shutil.rmtree(settings.MEDIA_ROOT)
+        shutil.rmtree(self.test_static_root)
 
     def assertMessage(self, response, level):
         """

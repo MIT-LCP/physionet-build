@@ -300,7 +300,6 @@ class TestAccessPublished(TestMixin, TestCase):
             'serve_published_project_file', args=(project.slug, 'main-files/admissions.csv')))
         self.assertEqual(response.status_code, 200)
 
-
     def test_open(self):
         """
         Test access to an open project.
