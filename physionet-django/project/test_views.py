@@ -236,23 +236,6 @@ class TestAccessPresubmission(TestMixin, TestCase):
         self.assertEqual(response.status_code, 404)
 
 
-class TestAccessUnderSubmission(TestMixin, TestCase):
-    """
-    Test that certain views or content in their various states can only
-    be accessed by the appropriate users.
-
-    Projects under submission.
-
-    """
-    fixtures = ['demo-user', 'demo-project']
-
-    def test_visit_get(self):
-        """
-
-        """
-        pass
-
-
 class TestAccessPublished(TestMixin, TestCase):
     """
     Test that certain views or content in their various states can only

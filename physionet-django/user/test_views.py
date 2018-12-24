@@ -83,6 +83,7 @@ class TestMixin(object):
         """
         self.assertEqual(max(m.level for m in response.context['messages']),
             level)
+
     def make_get_request(self, viewname, reverse_kwargs=None):
         """
         Helper Function.

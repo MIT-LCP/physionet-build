@@ -95,6 +95,7 @@ class TestState(TestMixin, TestCase):
         project = ActiveProject.objects.get(id=project.id)
         self.assertTrue(project.copyeditable())
 
+    @prevent_request_warnings
     def test_copyedit(self):
         """
         Copyedit a project
@@ -192,5 +193,18 @@ class TestState(TestMixin, TestCase):
         response = self.client.post(reverse(
             'publish_submission', args=(project.slug,)),
             data={'doi':'10.13026/MIT505', 'make_zip':1})
-        self.assertFalse(ActiveProject.objects.get(slug=project.slug))
+        self.assertFalse(ActiveProject.objects.filter(slug=project.slug))
         project = PublishedProject.objects.get(slug=project.slug)
+        # Access the published project's page and its (open) files
+        response = self.client.get(reverse('published_project', args=(project.slug,)))
+        self.assertEqual(response.status_code, 200)
+        response = self.client.get(reverse(
+            'serve_published_project_file', args=(project.slug, 'main-files/subject-100/100.atr')))
+        self.assertEqual(response.status_code, 200)
+        response = self.client.get(reverse(
+            'serve_published_project_file', args=(project.slug, 'special-files/mit-bih-arrhythmia-database-1.0.0.zip')))
+        self.assertEqual(response.status_code, 200)
+        # Access the submission log as the author
+        self.client.login(username='rgmark', password='Tester11!')
+        response = self.client.get(reverse('published_submission_history', args=(project.slug,)))
+        self.assertEqual(response.status_code, 200)
