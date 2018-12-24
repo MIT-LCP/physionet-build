@@ -139,8 +139,58 @@ class TestState(TestMixin, TestCase):
         project = ActiveProject.objects.get(id=project.id)
         self.assertFalse(project.copyeditable())
         # Reopen copyedit
-
+        response = self.client.post(reverse(
+            'awaiting_authors', args=(project.slug,)),
+            data={'reopen_copyedit':''})
+        project = ActiveProject.objects.get(id=project.id)
+        self.assertTrue(project.copyeditable())
         # Recomplete copyedit
+        response = self.client.post(reverse(
+            'copyedit_submission', args=(project.slug,)),
+            data={'complete_copyedit':'', 'made_changes':1,
+            'changelog_summary':'Removed your things'})
+        project = ActiveProject.objects.get(id=project.id)
+        self.assertFalse(project.copyeditable())
 
     def test_approve_publish(self):
-        pass
+        """
+        Author approves publication
+        """
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        project.submit(author_comments='')
+        editor = User.objects.get(username='admin')
+        project.assign_editor(editor)
+        self.client.login(username='admin', password='Tester11!')
+        # Accept submission
+        response = self.client.post(reverse(
+            'edit_submission', args=(project.slug,)), data={
+            'soundly_produced':1, 'well_described':1, 'open_format':1,
+            'data_machine_readable':1, 'reusable':1, 'no_phi':1,
+            'pn_suitable':1, 'editor_comments':'Good.', 'decision':2
+            })
+        # Complete copyedit
+        response = self.client.post(reverse(
+            'copyedit_submission', args=(project.slug,)),
+            data={'complete_copyedit':'', 'made_changes':0})
+        # Approve publication
+        self.assertFalse(ActiveProject.objects.get(id=project.id).is_publishable())
+        self.client.login(username='rgmark', password='Tester11!')
+        response = self.client.post(reverse(
+            'project_submission', args=(project.slug,)),
+            data={'approve_publication':''})
+        self.assertTrue(ActiveProject.objects.get(id=project.id).is_publishable())
+
+    def test_publish(self):
+        """
+        Test publishing project
+        """
+        # Get the project ready to publish
+        self.test_approve_publish()
+        # Publish it
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        self.client.login(username='admin', password='Tester11!')
+        response = self.client.post(reverse(
+            'publish_submission', args=(project.slug,)),
+            data={'doi':'10.13026/MIT505', 'make_zip':1})
+        self.assertFalse(ActiveProject.objects.get(slug=project.slug))
+        project = PublishedProject.objects.get(slug=project.slug)

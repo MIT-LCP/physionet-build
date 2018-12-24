@@ -50,10 +50,13 @@ class TestMixin(object):
     """
     def setUp(self):
         """
-        Copy the demo files to the testing root
+        Copy the demo files to the testing media/static root
         """
         shutil.copytree(os.path.abspath(os.path.join(settings.DEMO_FILE_ROOT, 'media')),
             settings.MEDIA_ROOT)
+        # shutil.copytree(os.path.abspath(os.path.join(settings.DEMO_FILE_ROOT, 'media')),
+        #     settings.MEDIA_ROOT)
+        # Collectstatic
 
     def tearDown(self):
         """

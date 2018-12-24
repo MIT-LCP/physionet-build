@@ -39,4 +39,4 @@ STATIC_ROOT = '/physionet/static'
 
 if len(sys.argv) > 1 and sys.argv[1] == 'test':
     MEDIA_ROOT = os.path.join(MEDIA_ROOT, 'test')
-    STATIC_ROOT = '/physionet/static'
+    STATIC_ROOT = os.path.join(STATIC_ROOT, 'test')
