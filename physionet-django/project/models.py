@@ -938,6 +938,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         if os.path.isfile(os.path.join(self.special_file_root(), self.zip_name())):
             os.remove(os.path.join(self.special_file_root(), self.zip_name()))
 
+        owd = os.getcwd()
         os.chdir(self.file_root())
 
         file = shutil.make_archive(
@@ -947,6 +948,8 @@ class PublishedProject(Metadata, SubmissionInfo):
 
         if update_size:
             self.set_storage_info(info_type='special')
+        # Change back to original dir
+        os.chdir(owd)
 
     def make_files_list(self, update_size=False):
         "Make a files list of the main files. Write to project file root"

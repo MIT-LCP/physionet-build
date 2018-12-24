@@ -35,7 +35,7 @@ def prevent_request_warnings(original_function):
     return new_function
 
 
-class TestMixin(object):
+class TestMixin():
     """
     Mixin for test methods
 

@@ -8,7 +8,6 @@ import shutil
 
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.conf import settings
-from django.core import management
 from django.urls import reverse
 from django.test import TestCase
 from selenium.webdriver.common.by import By
