@@ -253,7 +253,6 @@ class TestAccessUnderSubmission(TestMixin, TestCase):
         pass
 
 
-
 class TestAccessPublished(TestMixin, TestCase):
     """
     Test that certain views or content in their various states can only
@@ -377,9 +376,6 @@ class TestState(TestMixin, TestCase):
         project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
         self.assertTrue(project.under_submission())
         self.assertFalse(project.author_editable())
-
-    def test_publish(self):
-        pass
 
 
 class TestInteraction(TestMixin, TestCase):
