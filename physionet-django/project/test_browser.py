@@ -4,8 +4,11 @@ Module with full browser tests.
 """
 import os
 import pdb
+import shutil
 
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from django.conf import settings
+from django.core import management
 from django.urls import reverse
 from django.test import TestCase
 from selenium.webdriver.common.by import By
@@ -49,6 +52,36 @@ class BaseSeleniumTest(StaticLiveServerTestCase, TestCase):
         cls.selenium.quit()
         super().tearDownClass()
 
+    def setUp(self):
+        """
+        Copy the staticfiles dirs items into the testing effective
+        static root. Emulates collectstatic, which cannot be used because
+        the target directory may not actually be the static root,
+        but the staticfiles_dirs[0] for the dev environment.
+
+        This must be called after setUp of TestMixin which already
+        creates the test effective static root.
+
+        """
+        # There is actual static root. Non-dev environment.
+        if settings.STATIC_ROOT:
+            test_static_root = settings.STATIC_ROOT
+            staticfiles_dir = settings.STATICFILES_DIRS[0]
+        # Because STATICFILES_DIRS[0] is modified in settings, point to real
+        # location of static content.
+        else:
+            test_static_root = settings.STATICFILES_DIRS[0]
+            staticfiles_dir = os.path.abspath(os.path.join(test_static_root, os.pardir))
+
+        # Avoid recursive copy, and the created published projects
+        for item in [s for s in os.listdir(staticfiles_dir) if s not in ['published-projects', 'test']]:
+            full_item = os.path.join(staticfiles_dir, item)
+            if os.path.isfile(full_item):
+                shutil.copyfile(full_item, os.path.join(test_static_root, item))
+            else:
+                shutil.copytree(full_item,
+                    os.path.join(test_static_root, item))
+
     def selenium_login(self, username, password, new=False):
         """
         Log in. If new, log out of old account first.
@@ -76,6 +109,14 @@ class BaseSeleniumTest(StaticLiveServerTestCase, TestCase):
 class TestSubmit(TestMixin, BaseSeleniumTest):
 
     fixtures = ['demo-user', 'demo-project']
+
+    def setUp(self):
+        """
+        Call methods in explicit order so that content is not
+        overwritten. Both create testing static content.
+        """
+        TestMixin.setUp(self)
+        BaseSeleniumTest.setUp(self)
 
     def test_submit(self):
         """
@@ -321,9 +362,9 @@ class TestSubmit(TestMixin, BaseSeleniumTest):
         self.selenium.find_element_by_link_text('here').click()
         self.assertFalse(ActiveProject.objects.filter(title='MIT-BIH Arrhythmia Database'))
         project = PublishedProject.objects.get(title='MIT-BIH Arrhythmia Database', version='1.0.1')
-        pdb.set_trace()
+        element = WebDriverWait(self.selenium, 10).until(
+            EC.presence_of_element_located((By.ID, 'files')))
         self.selenium.find_element_by_link_text('sha256sums.txt').click()
         self.selenium.back()
         self.selenium.find_element_by_link_text('subject-100').click()
         self.selenium.find_element_by_link_text('Parent Directory').click()
-        pdb.set_trace()
