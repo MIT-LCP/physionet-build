@@ -19,6 +19,9 @@ env:
     - TESTS_LOC_DIR=$SHIPPABLE_REPO_DIR/tests
     - MOD_LOC=$SHIPPABLE_REPO_DIR/node_modules/.bin/
 
+addons:
+  firefox: "64.0"
+
 services:
   - selenium
 
