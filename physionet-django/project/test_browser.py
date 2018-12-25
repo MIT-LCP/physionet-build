@@ -302,6 +302,9 @@ class TestSubmit(TestMixin, BaseSeleniumTest):
             EC.element_to_be_clickable((By.ID, 'resubmit-project-button')))
         self.selenium.find_element_by_id('id_author_comments').send_keys('Even more impeccable.')
         element.click()
+        # modal fade may take a while
+        element = WebDriverWait(self.selenium, 10).until(
+            EC.element_to_be_clickable((By.ID, 'nav_account_dropdown')))
 
         # Editor accepts
         self.selenium_login(username='admin', password='Tester11!', new=True)
