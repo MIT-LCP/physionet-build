@@ -10,7 +10,7 @@ import shutil
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.conf import settings
 from django.urls import reverse
-from django.test import TestCase
+from django.test import tag, TestCase
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.firefox.webdriver import WebDriver
@@ -109,6 +109,7 @@ class BaseSeleniumTest(StaticLiveServerTestCase, TestCase):
         self.selenium.switch_to.default_content()
 
 
+@tag('browser')
 class TestSubmit(TestMixin, BaseSeleniumTest):
 
     fixtures = ['demo-user', 'demo-project']
