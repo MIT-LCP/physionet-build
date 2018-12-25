@@ -372,7 +372,6 @@ class TestSubmit(TestMixin, BaseSeleniumTest):
         project = PublishedProject.objects.get(title='MIT-BIH Arrhythmia Database', version='1.0.1')
         element = WebDriverWait(self.selenium, 10).until(
             EC.presence_of_element_located((By.ID, 'files')))
-        self.selenium.find_element_by_link_text('sha256sums.txt').click()
-        self.selenium.back()
         self.selenium.find_element_by_link_text('subject-100').click()
         self.selenium.find_element_by_link_text('Parent Directory').click()
+        self.selenium.find_element_by_link_text('sha256sums.txt').click()
