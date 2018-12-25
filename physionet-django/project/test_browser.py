@@ -2,6 +2,7 @@
 Module with full browser tests.
 
 """
+import time
 import os
 import pdb
 import shutil
@@ -239,8 +240,13 @@ class TestSubmit(TestMixin, BaseSeleniumTest):
             EC.element_to_be_clickable((By.ID, 'submit-project-button')))
         element.click()
 
-        # Test state of project
+        # Test state of project. Submission may take time to run submit.
+        timeout = time.time() + 10
         project = ActiveProject.objects.get(title='Data Project 1')
+        while not project.under_submission():
+            project = ActiveProject.objects.get(title='Data Project 1')
+            if time.time() > timeout:
+                break
         self.assertTrue(project.under_submission())
         self.assertEqual(project.storage_used(), 50)
 
