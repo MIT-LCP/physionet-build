@@ -11,6 +11,7 @@ from django.conf import settings
 from django.urls import reverse
 from django.test import TestCase
 from selenium.webdriver.common.by import By
+from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.webdriver.support.ui import Select, WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -43,7 +44,9 @@ class BaseSeleniumTest(StaticLiveServerTestCase, TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.selenium = WebDriver()
+        options = Options()
+        options.set_headless(True)
+        cls.selenium = WebDriver(options=options)
         cls.selenium.implicitly_wait(10)
 
     @classmethod
