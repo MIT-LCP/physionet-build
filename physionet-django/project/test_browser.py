@@ -90,7 +90,10 @@ class BaseSeleniumTest(StaticLiveServerTestCase, TestCase):
         Log in. If new, log out of old account first.
         """
         if new:
-            self.selenium.find_element_by_id('nav_account_dropdown').click()
+            # Wait for the navbar to be clickable
+            element = WebDriverWait(self.selenium, 10).until(
+                EC.element_to_be_clickable((By.ID, 'nav_account_dropdown')))
+            element.click()
             self.selenium.find_element_by_id('nav_logout').click()
         self.selenium.get('{}{}'.format(self.live_server_url, reverse('login')))
         self.selenium.find_element_by_name('username').send_keys(username)
@@ -193,6 +196,8 @@ class TestSubmit(TestMixin, BaseSeleniumTest):
 
         # Files - Create 2 folders, rename one, delete one, navigate to one.
         self.selenium.find_element_by_id('files_tab').click()
+        element = WebDriverWait(self.selenium, 10).until(
+            EC.element_to_be_clickable((By.ID, 'request-storage-button')))
         self.selenium.find_element_by_id('request-storage-button').click()
         self.selenium.find_element_by_id('id_request_allowance').send_keys(10)
         self.selenium.find_element_by_id('request-storage-button-submit').click()
@@ -267,8 +272,6 @@ class TestSubmit(TestMixin, BaseSeleniumTest):
             EC.element_to_be_clickable((By.ID, 'submit-project-button')))
         self.selenium.find_element_by_id('id_author_comments').send_keys('Everything is impeccable.')
         element.click()
-        element = WebDriverWait(self.selenium, 10).until(
-            EC.element_to_be_clickable((By.ID, 'nav_account_dropdown')))
 
         # Assign editor and request revisions
         self.selenium_login(username='admin', password='Tester11!', new=True)
@@ -276,6 +279,8 @@ class TestSubmit(TestMixin, BaseSeleniumTest):
         self.selenium.find_element_by_id('nav_admin').click()
         self.selenium.find_element_by_id('nav_submitted_projects').click()
         self.selenium.find_element_by_id('assign-editor-modal-button').click()
+        element = WebDriverWait(self.selenium, 10).until(
+            EC.element_to_be_clickable((By.ID, 'id_editor')))
         Select(self.selenium.find_element_by_id(
             'id_project')).select_by_visible_text('MIT-BIH Arrhythmia Database')
         Select(self.selenium.find_element_by_id(
@@ -307,9 +312,6 @@ class TestSubmit(TestMixin, BaseSeleniumTest):
             EC.element_to_be_clickable((By.ID, 'resubmit-project-button')))
         self.selenium.find_element_by_id('id_author_comments').send_keys('Even more impeccable.')
         element.click()
-        # modal fade may take a while
-        element = WebDriverWait(self.selenium, 10).until(
-            EC.element_to_be_clickable((By.ID, 'nav_account_dropdown')))
 
         # Editor accepts
         self.selenium_login(username='admin', password='Tester11!', new=True)
@@ -361,8 +363,6 @@ class TestSubmit(TestMixin, BaseSeleniumTest):
         self.selenium.find_element_by_id('submission_tab').click()
         self.selenium.find_element_by_id('approve-publication-modal-button').click()
         self.selenium.find_element_by_id('approve-publication-button').click()
-        element = WebDriverWait(self.selenium, 10).until(
-            EC.element_to_be_clickable((By.ID, 'nav_account_dropdown')))
 
         # Editor publishes
         self.selenium_login(username='admin', password='Tester11!', new=True)
