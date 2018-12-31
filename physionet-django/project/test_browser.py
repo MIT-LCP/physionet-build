@@ -91,8 +91,9 @@ class BaseSeleniumTest(StaticLiveServerTestCase, TestCase):
         """
         if new:
             # Wait for the navbar to be clickable
-            element = WebDriverWait(self.selenium, 10).until(
+            element = WebDriverWait(self.selenium, 30).until(
                 EC.element_to_be_clickable((By.ID, 'nav_account_dropdown')))
+            time.sleep(1)
             element.click()
             self.selenium.find_element_by_id('nav_logout').click()
         self.selenium.get('{}{}'.format(self.live_server_url, reverse('login')))
@@ -143,11 +144,11 @@ class TestSubmit(TestMixin, BaseSeleniumTest):
         self.selenium.find_element_by_id('id_email').send_keys('aewj@mit.edu')
         self.selenium.find_element_by_name('invite_author').click()
         self.selenium.find_element_by_id('add-affiliation-button').click()
-        element = WebDriverWait(self.selenium, 10).until(
+        element = WebDriverWait(self.selenium, 20).until(
             EC.presence_of_element_located((By.ID, 'id_affiliations-1-name')))
         element.send_keys('Harvard University')
         self.selenium.find_element_by_id('add-affiliation-button').click()
-        element = WebDriverWait(self.selenium, 10).until(
+        element = WebDriverWait(self.selenium, 20).until(
             EC.presence_of_element_located((By.ID, 'id_affiliations-2-name')))
         element.send_keys('Beth Israel Deaconess Medical Center')
         self.selenium.find_element_by_name('edit_affiliations').click()
@@ -163,11 +164,11 @@ class TestSubmit(TestMixin, BaseSeleniumTest):
         self.send_ck_content(outer_id='cke_id_acknowledgements', content='Acknowledgements')
         self.send_ck_content(outer_id='cke_id_conflicts_of_interest', content='Conflicts of Interest')
         self.selenium.find_element_by_id('add-reference-button').click()
-        element = WebDriverWait(self.selenium, 10).until(
+        element = WebDriverWait(self.selenium, 20).until(
             EC.presence_of_element_located((By.ID, 'id_project-reference-content_type-object_id-0-description')))
         element.send_keys('Reference 1')
         self.selenium.find_element_by_id('add-reference-button').click()
-        element = WebDriverWait(self.selenium, 10).until(
+        element = WebDriverWait(self.selenium, 20).until(
             EC.presence_of_element_located((By.ID, 'id_project-reference-content_type-object_id-1-description')))
         self.selenium.find_element_by_name('edit_description').click()
 
@@ -180,28 +181,28 @@ class TestSubmit(TestMixin, BaseSeleniumTest):
         self.selenium.find_element_by_id('identifiers_tab').click()
         self.selenium.find_element_by_id('id_project_home_page').send_keys('https://physionet.org')
         self.selenium.find_element_by_id('add-publication-button').click()
-        element = WebDriverWait(self.selenium, 10).until(
+        element = WebDriverWait(self.selenium, 20).until(
             EC.presence_of_element_located((By.ID, 'id_project-publication-content_type-object_id-0-citation')))
         element.send_keys('Citation')
         self.selenium.find_element_by_id('id_project-publication-content_type-object_id-0-url').send_keys('https://google.com')
         self.selenium.find_element_by_id('add-topic-button').click()
-        element = WebDriverWait(self.selenium, 10).until(
+        element = WebDriverWait(self.selenium, 20).until(
             EC.presence_of_element_located((By.ID, 'id_project-topic-content_type-object_id-0-description')))
         element.send_keys('Topic 1')
         self.selenium.find_element_by_id('add-topic-button').click()
-        element = WebDriverWait(self.selenium, 10).until(
+        element = WebDriverWait(self.selenium, 20).until(
             EC.presence_of_element_located((By.ID, 'id_project-topic-content_type-object_id-1-description')))
         element.send_keys('Topic 2')
         self.selenium.find_element_by_name('edit_identifiers').click()
 
         # Files - Create 2 folders, rename one, delete one, navigate to one.
         self.selenium.find_element_by_id('files_tab').click()
-        element = WebDriverWait(self.selenium, 10).until(
+        element = WebDriverWait(self.selenium, 20).until(
             EC.element_to_be_clickable((By.ID, 'request-storage-button')))
         self.selenium.find_element_by_id('request-storage-button').click()
         self.selenium.find_element_by_id('id_request_allowance').send_keys(10)
         self.selenium.find_element_by_id('request-storage-button-submit').click()
-        element = WebDriverWait(self.selenium, 10).until(
+        element = WebDriverWait(self.selenium, 20).until(
             EC.element_to_be_clickable((By.ID, 'create-folder-button')))
         self.selenium.find_element_by_id('create-folder-button').click()
         self.selenium.find_element_by_id('id_folder_name').send_keys('subject-1')
@@ -244,7 +245,7 @@ class TestSubmit(TestMixin, BaseSeleniumTest):
         self.selenium.find_element_by_link_text('Data Project 1').click()
         self.selenium.find_element_by_id('submission_tab').click()
         self.selenium.find_element_by_id('submit-project-modal-button').click()
-        element = WebDriverWait(self.selenium, 10).until(
+        element = WebDriverWait(self.selenium, 20).until(
             EC.element_to_be_clickable((By.ID, 'submit-project-button')))
         element.click()
 
@@ -268,7 +269,7 @@ class TestSubmit(TestMixin, BaseSeleniumTest):
         self.selenium.find_element_by_link_text('MIT-BIH Arrhythmia Database').click()
         self.selenium.find_element_by_id('submission_tab').click()
         self.selenium.find_element_by_id('submit-project-modal-button').click()
-        element = WebDriverWait(self.selenium, 10).until(
+        element = WebDriverWait(self.selenium, 20).until(
             EC.element_to_be_clickable((By.ID, 'submit-project-button')))
         self.selenium.find_element_by_id('id_author_comments').send_keys('Everything is impeccable.')
         element.click()
@@ -279,7 +280,7 @@ class TestSubmit(TestMixin, BaseSeleniumTest):
         self.selenium.find_element_by_id('nav_admin').click()
         self.selenium.find_element_by_id('nav_submitted_projects').click()
         self.selenium.find_element_by_id('assign-editor-modal-button').click()
-        element = WebDriverWait(self.selenium, 10).until(
+        element = WebDriverWait(self.selenium, 20).until(
             EC.element_to_be_clickable((By.ID, 'id_editor')))
         Select(self.selenium.find_element_by_id(
             'id_project')).select_by_visible_text('MIT-BIH Arrhythmia Database')
@@ -308,7 +309,7 @@ class TestSubmit(TestMixin, BaseSeleniumTest):
         self.selenium.find_element_by_name('edit_description').click()
         self.selenium.find_element_by_id('submission_tab').click()
         self.selenium.find_element_by_id('resubmit-project-modal-button').click()
-        element = WebDriverWait(self.selenium, 10).until(
+        element = WebDriverWait(self.selenium, 20).until(
             EC.element_to_be_clickable((By.ID, 'resubmit-project-button')))
         self.selenium.find_element_by_id('id_author_comments').send_keys('Even more impeccable.')
         element.click()
@@ -335,7 +336,7 @@ class TestSubmit(TestMixin, BaseSeleniumTest):
         self.selenium.find_element_by_id('id_folder_name').send_keys('secret-info')
         self.selenium.find_element_by_id('create-folder-button-submit').click()
 
-        element = WebDriverWait(self.selenium, 10).until(
+        element = WebDriverWait(self.selenium, 20).until(
                 EC.element_to_be_clickable((By.LINK_TEXT, 'Parent Directory')))
         self.selenium.find_element_by_link_text('Parent Directory').click()
         self.selenium.find_element_by_link_text('Complete Copyedit').click()
@@ -382,7 +383,7 @@ class TestSubmit(TestMixin, BaseSeleniumTest):
         self.selenium.find_element_by_link_text('here').click()
         self.assertFalse(ActiveProject.objects.filter(title='MIT-BIH Arrhythmia Database'))
         project = PublishedProject.objects.get(title='MIT-BIH Arrhythmia Database', version='1.0.1')
-        element = WebDriverWait(self.selenium, 10).until(
+        element = WebDriverWait(self.selenium, 20).until(
             EC.presence_of_element_located((By.ID, 'files')))
         self.selenium.find_element_by_link_text('subject-100').click()
         self.selenium.find_element_by_link_text('Parent Directory').click()
