@@ -279,6 +279,8 @@ class TestSubmit(TestMixin, BaseSeleniumTest):
         self.selenium.find_element_by_id('nav_account_dropdown').click()
         self.selenium.find_element_by_id('nav_admin').click()
         self.selenium.find_element_by_id('nav_submitted_projects').click()
+        element = WebDriverWait(self.selenium, 20).until(
+            EC.element_to_be_clickable((By.ID, 'assign-editor-modal-button')))
         self.selenium.find_element_by_id('assign-editor-modal-button').click()
         element = WebDriverWait(self.selenium, 20).until(
             EC.element_to_be_clickable((By.ID, 'id_editor')))
