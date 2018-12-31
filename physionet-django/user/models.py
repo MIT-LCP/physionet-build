@@ -396,7 +396,8 @@ class AssociatedEmail(models.Model):
     """
     An email the user associates with their account
     """
-    user = models.ForeignKey('user.User', related_name='associated_emails')
+    user = models.ForeignKey('user.User', related_name='associated_emails',
+        on_delete=models.CASCADE)
     email = models.EmailField(max_length=255, unique=True,
         validators=[validate_unique_email, EmailValidator()])
     is_primary_email = models.BooleanField(default=False)
@@ -463,8 +464,8 @@ class Profile(models.Model):
     https://schema.datacite.org/
     https://schema.datacite.org/meta/kernel-4.0/doc/DataCite-MetadataKernel_v4.0.pdf
     """
-    user = models.OneToOneField('user.User', related_name='profile')
-
+    user = models.OneToOneField('user.User', related_name='profile',
+        on_delete=models.CASCADE)
     first_names = models.CharField(max_length=100, validators=[validate_name])
     last_name = models.CharField(max_length=50, validators=[validate_name])
     affiliation = models.CharField(max_length=60, blank=True, default='',
@@ -574,7 +575,8 @@ class CredentialApplication(models.Model):
 
     slug = models.SlugField(max_length=20, unique=True, db_index=True)
     application_datetime = models.DateTimeField(auto_now_add=True)
-    user = models.ForeignKey('user.User', related_name='credential_applications')
+    user = models.ForeignKey('user.User', related_name='credential_applications',
+        on_delete=models.CASCADE)
     # Personal fields
     first_names = models.CharField(max_length=100, validators=[validate_name])
     last_name = models.CharField(max_length=50, validators=[validate_name])
@@ -619,7 +621,7 @@ class CredentialApplication(models.Model):
         choices=REFERENCE_RESPONSES)
     decision_datetime = models.DateTimeField(null=True)
     responder = models.ForeignKey('user.User', null=True,
-        related_name='responded_applications')
+        related_name='responded_applications', on_delete=models.SET_NULL)
     responder_comments = models.CharField(max_length=500, default='',
         blank=True)
 
