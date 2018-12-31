@@ -510,7 +510,7 @@ class DualAuthModelBackend():
     This is a ModelBacked that allows authentication with either a username or an email address.
 
     """
-    def authenticate(self, username=None, password=None):
+    def authenticate(self, request, username=None, password=None):
         if '@' in username:
             kwargs = {'email': username.lower()}
         else:

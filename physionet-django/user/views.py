@@ -109,7 +109,7 @@ def add_email(request, add_email_form):
         associated_email = AssociatedEmail.objects.create(user=user,
             email=add_email_form.cleaned_data['email'])
         # Send an email to the newly added email with a verification link
-        uidb64 = urlsafe_base64_encode(force_bytes(associated_email.pk))
+        uidb64 = force_text(urlsafe_base64_encode(force_bytes(associated_email.pk)))
         token = default_token_generator.make_token(user)
         subject = "PhysioNet Email Verification"
         context = {'name':user.get_full_name(),
@@ -226,7 +226,7 @@ def register(request):
     User registration page
     """
     user = request.user
-    if user.is_authenticated():
+    if user.is_authenticated:
         return redirect('user_home')
 
     if request.method == 'POST':
@@ -235,7 +235,7 @@ def register(request):
             # Create the new user
             user = form.save()
             # Send an email with the activation link
-            uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+            uidb64 = force_text(urlsafe_base64_encode(force_bytes(user.pk)))
             token = default_token_generator.make_token(user)
             subject = "PhysioNet Account Activation"
             context = {'name':user.get_full_name(),
