@@ -196,6 +196,8 @@ class TestSubmit(TestMixin, BaseSeleniumTest):
         self.selenium.find_element_by_id('request-storage-button').click()
         self.selenium.find_element_by_id('id_request_allowance').send_keys(10)
         self.selenium.find_element_by_id('request-storage-button-submit').click()
+        element = WebDriverWait(self.selenium, 10).until(
+            EC.element_to_be_clickable((By.ID, 'create-folder-button')))
         self.selenium.find_element_by_id('create-folder-button').click()
         self.selenium.find_element_by_id('id_folder_name').send_keys('subject-1')
         self.selenium.find_element_by_id('create-folder-button-submit').click()
@@ -265,6 +267,8 @@ class TestSubmit(TestMixin, BaseSeleniumTest):
             EC.element_to_be_clickable((By.ID, 'submit-project-button')))
         self.selenium.find_element_by_id('id_author_comments').send_keys('Everything is impeccable.')
         element.click()
+        element = WebDriverWait(self.selenium, 10).until(
+            EC.element_to_be_clickable((By.ID, 'nav_account_dropdown')))
 
         # Assign editor and request revisions
         self.selenium_login(username='admin', password='Tester11!', new=True)
@@ -357,6 +361,8 @@ class TestSubmit(TestMixin, BaseSeleniumTest):
         self.selenium.find_element_by_id('submission_tab').click()
         self.selenium.find_element_by_id('approve-publication-modal-button').click()
         self.selenium.find_element_by_id('approve-publication-button').click()
+        element = WebDriverWait(self.selenium, 10).until(
+            EC.element_to_be_clickable((By.ID, 'nav_account_dropdown')))
 
         # Editor publishes
         self.selenium_login(username='admin', password='Tester11!', new=True)
