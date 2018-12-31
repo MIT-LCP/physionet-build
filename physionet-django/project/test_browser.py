@@ -335,6 +335,8 @@ class TestSubmit(TestMixin, BaseSeleniumTest):
         self.selenium.find_element_by_id('id_folder_name').send_keys('secret-info')
         self.selenium.find_element_by_id('create-folder-button-submit').click()
 
+        element = WebDriverWait(self.selenium, 10).until(
+                EC.element_to_be_clickable((By.ID, 'nav_account_dropdown')))
         self.selenium.find_element_by_link_text('Parent Directory').click()
         self.selenium.find_element_by_link_text('Complete Copyedit').click()
         Select(self.selenium.find_element_by_id(
