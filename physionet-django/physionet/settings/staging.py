@@ -1,3 +1,5 @@
+import sys
+
 from decouple import config
 
 from .base import *
@@ -28,6 +30,13 @@ EMAIL_USE_TLS = False
 DEFAULT_FROM_EMAIL = 'PhysioNet Automated System <noreply@staging.physionet.org>'
 CONTACT_EMAIL = 'PhysioNet Contact <contact@staging.physionet.org>'
 
+
+DEMO_FILE_ROOT = os.path.join(os.path.abspath(os.path.join(BASE_DIR, os.pardir)), 'demo-files')
+
 MEDIA_ROOT = '/physionet/media'
 
 STATIC_ROOT = '/physionet/static'
+
+if len(sys.argv) > 1 and sys.argv[1] == 'test':
+    MEDIA_ROOT = os.path.join(MEDIA_ROOT, 'test')
+    STATIC_ROOT = os.path.join(STATIC_ROOT, 'test')

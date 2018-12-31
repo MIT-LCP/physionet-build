@@ -1,3 +1,5 @@
+import sys
+
 from .base import *
 
 DEBUG = True
@@ -29,4 +31,10 @@ DATABASES = {
     }
 }
 
+DEMO_FILE_ROOT = os.path.join(os.path.abspath(os.path.join(BASE_DIR, os.pardir)), 'demo-files')
+
 MEDIA_ROOT = os.path.join(os.path.abspath(os.path.join(BASE_DIR, os.pardir)), 'media')
+
+if len(sys.argv) > 1 and sys.argv[1] == 'test':
+    MEDIA_ROOT = os.path.join(MEDIA_ROOT, 'test')
+    STATICFILES_DIRS[0] = os.path.join(STATICFILES_DIRS[0], 'test')

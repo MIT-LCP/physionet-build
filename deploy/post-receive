@@ -12,8 +12,6 @@ sudo /bin/chmod g+w /physionet/physionet-build/deploy
 pip install -r requirements.txt
 cd physionet-django
 python manage.py collectstatic --noinput
-python manage.py makemigrations
-python manage.py migrate
 touch physionet/wsgi.py
 
-echo "Done"
+echo "Done. If there are any database changes, please make the migrations now."

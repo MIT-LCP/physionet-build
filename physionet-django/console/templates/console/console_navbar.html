@@ -12,85 +12,85 @@
   <div class="collapse navbar-collapse" id="navbarResponsive">
     <ul class="navbar-nav navbar-sidenav" id="sideAccordion">
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
-        <a class="nav-link" href="{% url 'editor_home' %}">
+        <a id="nav_editor_home" class="nav-link" href="{% url 'editor_home' %}">
           <i class="fas fa-glasses"></i>
           <span class="nav-link-text">Editor Home</span>
         </a>
       </li>
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
-        <a class="nav-link" href="{% url 'unsubmitted_projects' %}">
+        <a id="nav_unsubmitted_projects" class="nav-link" href="{% url 'unsubmitted_projects' %}">
           <i class="fas fa-gavel"></i>
           <span class="nav-link-text">Unsubmitted Projects</span>
         </a>
       </li>
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
-        <a class="nav-link" href="{% url 'submitted_projects' %}">
+        <a id="nav_submitted_projects" class="nav-link" href="{% url 'submitted_projects' %}">
           <i class="fas fa-clipboard-list"></i>
           <span class="nav-link-text">Submitted Projects</span>
         </a>
       </li>
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
-        <a class="nav-link" href="{% url 'published_projects' %}">
+        <a id="nav_published_projects" class="nav-link" href="{% url 'published_projects' %}">
           <i class="fas fa-book-open"></i>
           <span class="nav-link-text">Published Projects</span>
         </a>
       </li>
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
-        <a class="nav-link" href="{% url 'rejected_submissions' %}">
+        <a id="nav_rejected_submissions" class="nav-link" href="{% url 'rejected_submissions' %}">
           <i class="far fa-hand-paper"></i>
           <span class="nav-link-text">Rejected Submissions</span>
         </a>
       </li>
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
-        <a class="nav-link" href="{% url 'storage_requests' %}">
+        <a id="nav_storage_requests" class="nav-link" href="{% url 'storage_requests' %}">
           <i class="fa fa-cube"></i>
           <span class="nav-link-text">Storage Requests</span>
         </a>
       </li>
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
-        <a class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#credentialComponents" data-parent="#sideAccordion">
+        <a id="nav_credentialing_dropdown" class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#credentialComponents" data-parent="#sideAccordion">
           <i class="fab fa-wpforms"></i>
           <span class="nav-link-text">Credentialing</span>
         </a>
         <ul class="sidenav-second-level collapse" id="credentialComponents">
           <li>
-            <a href="{% url 'credential_applications' %}">Ongoing Applications</a>
+            <a id="nav_credential_applications" href="{% url 'credential_applications' %}">Ongoing Applications</a>
           </li>
           <li>
-            <a href="{% url 'past_credential_applications' %}">Past Applications</a>
+            <a id="nav_past_credential_applications" href="{% url 'past_credential_applications' %}">Past Applications</a>
           </li>
           <li>
-            <a href="{% url 'credentialed_users' %}">Credentialed Users</a>
+            <a id="nav_credentialed_users" href="{% url 'credentialed_users' %}">Credentialed Users</a>
           </li>
         </ul>
       </li>
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
-        <a class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#userComponents" data-parent="#sideAccordion">
+        <a id="nav_users_dropdown" class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#userComponents" data-parent="#sideAccordion">
           <i class="fas fa-user-check"></i>
           <span class="nav-link-text">Users</span>
         </a>
         <ul class="sidenav-second-level collapse" id="userComponents">
           <li>
-            <a class="nav-link" href="{% url 'user_list' %}">All Users</a>
+            <a id="nav_all_users" class="nav-link" href="{% url 'user_list' %}">All Users</a>
           </li>
         </ul>
       </li>
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
-        <a class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#newsComponents" data-parent="#sideAccordion">
+        <a id="nav_news_dropdown" class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#newsComponents" data-parent="#sideAccordion">
           <i class="far fa-newspaper"></i>
           <span class="nav-link-text">News</span>
         </a>
         <ul class="sidenav-second-level collapse" id="newsComponents">
           <li>
-            <a class="nav-link" href="{% url 'add_news' %}">Add News</a>
+            <a id="nav_add_news" class="nav-link" href="{% url 'add_news' %}">Add News</a>
           </li>
           <li>
-            <a class="nav-link" href="{% url 'console_news' %}">News Items</a>
+            <a id="nav_console_news" class="nav-link" href="{% url 'console_news' %}">News Items</a>
           </li>
         </ul>
       </li>
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
-        <a class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#statsComponents" data-parent="#sideAccordion">
+        <a id="nav_usage_dropdown" class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#statsComponents" data-parent="#sideAccordion">
           <i class="fas fa-chart-area"></i>
           <span class="nav-link-text">Usage Stats</span>
         </a>

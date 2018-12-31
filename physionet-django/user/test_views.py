@@ -1,9 +1,15 @@
+import logging
+import os
+import pdb
+import re
+import shutil
+
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core import mail
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
-import re
 
 from .models import AssociatedEmail, User
 from .views import (activate_user, edit_emails, edit_profile,
@@ -11,10 +17,73 @@ from .views import (activate_user, edit_emails, edit_profile,
     verify_email)
 
 
-class TestMixin(object):
+def prevent_request_warnings(original_function):
+    """
+    Decorator to prevent request class from throwing warnings for 404s.
+
+    """
+    def new_function(*args, **kwargs):
+        # raise logging level to ERROR
+        logger = logging.getLogger('django.request')
+        previous_logging_level = logger.getEffectiveLevel()
+        logger.setLevel(logging.ERROR)
+        # trigger original function that would throw warning
+        original_function(*args, **kwargs)
+        # lower logging level back to previous
+        logger.setLevel(previous_logging_level)
+
+    return new_function
+
+
+class TestMixin():
     """
     Mixin for test methods
+
+    Because the fixtures are installed and database is rolled back
+    before each setup and teardown respectively, the demo test files
+    will be created and destroyed after each test also. We want the
+    demo files as well as the demo data reset each time, and individual
+    test methods such as publishing projects may change the files.
+
+    Note about inheriting: https://nedbatchelder.com/blog/201210/multiple_inheritance_is_hard.html
+
     """
+    def setUp(self):
+        """
+        Copy demo media files to the testing media root.
+        Copy demo static files to the testing effective static root.
+
+        Does not run collectstatic. The StaticLiveServerTestCase should
+        do that automatically for tests that need it.
+        """
+        shutil.copytree(os.path.abspath(os.path.join(settings.DEMO_FILE_ROOT, 'media')),
+            settings.MEDIA_ROOT)
+
+        self.test_static_root = settings.STATIC_ROOT if settings.STATIC_ROOT else settings.STATICFILES_DIRS[0]
+        shutil.copytree(os.path.abspath(os.path.join(settings.DEMO_FILE_ROOT, 'static')),
+            self.test_static_root)
+
+    def tearDown(self):
+        """
+        Remove the testing media root
+        """
+        shutil.rmtree(settings.MEDIA_ROOT)
+        shutil.rmtree(self.test_static_root)
+
+    def assertMessage(self, response, level):
+        """
+        Assert that the max message level in the request equals `level`.
+
+        Can use message success or error to test outcome, since there
+        are different cases where forms are reloaded, not present, etc.
+
+        The response code for invalid form submissions are still 200
+        so cannot use that to test form submissions.
+
+        """
+        self.assertEqual(max(m.level for m in response.context['messages']),
+            level)
+
     def make_get_request(self, viewname, reverse_kwargs=None):
         """
         Helper Function.
@@ -98,6 +167,7 @@ class TestAuth(TestCase, TestMixin):
     fixtures = ['demo-user']
 
     def setUp(self):
+        super().setUp()
         self.factory = RequestFactory()
         self.user = User.objects.get(email='admin@mit.edu')
         self.anonymous_user = AnonymousUser()
@@ -181,6 +251,7 @@ class TestPublic(TestCase, TestMixin):
     fixtures = ['demo-user']
 
     def setUp(self):
+        super().setUp()
         self.factory = RequestFactory()
         self.user = AnonymousUser()
 

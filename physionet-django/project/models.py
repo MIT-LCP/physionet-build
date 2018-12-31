@@ -10,8 +10,6 @@ from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelatio
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models.signals import post_save, pre_delete
-from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.text import slugify
 
@@ -415,6 +413,8 @@ class UnpublishedProject(models.Model):
     publications = GenericRelation('project.Publication')
     topics = GenericRelation('project.Topic')
 
+    authors = GenericRelation('project.Author')
+
     class Meta:
         abstract = True
 
@@ -432,6 +432,13 @@ class UnpublishedProject(models.Model):
         """
         return StorageInfo(allowance=self.core_project.storage_allowance,
             used=self.storage_used(), include_remaining=True)
+
+    def remove(self):
+        """
+        Delete this project's file content and the object
+        """
+        shutil.rmtree(self.file_root())
+        return self.delete()
 
 
 class ArchivedProject(Metadata, UnpublishedProject, SubmissionInfo):
@@ -494,6 +501,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     def storage_used(self):
         "Total storage used in bytes"
         return get_tree_size(self.file_root())
+
+    def storage_allowance(self):
+        "Storage allowed in bytes"
+        return self.core_project.storage_allowance
 
     def get_directory_content(self, subdir=''):
         """
@@ -927,6 +938,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         if os.path.isfile(os.path.join(self.special_file_root(), self.zip_name())):
             os.remove(os.path.join(self.special_file_root(), self.zip_name()))
 
+        owd = os.getcwd()
         os.chdir(self.file_root())
 
         file = shutil.make_archive(
@@ -936,6 +948,8 @@ class PublishedProject(Metadata, SubmissionInfo):
 
         if update_size:
             self.set_storage_info(info_type='special')
+        # Change back to original dir
+        os.chdir(owd)
 
     def make_files_list(self, update_size=False):
         "Make a files list of the main files. Write to project file root"
@@ -1075,6 +1089,18 @@ class PublishedProject(Metadata, SubmissionInfo):
             ', '.join(a.initialed_name() for a in self.authors.all()),
             timezone.now().year, self.title, self.doi)
 
+    def remove(self, force=False):
+        """
+        Remove the project and its files. Probably will never be used
+        in production. `force` argument is for safety.
+
+        """
+        if force:
+            shutil.rmtree(self.file_root())
+            return self.delete()
+        else:
+            raise Exception('Make sure you want to remove this item.')
+
 
 def exists_project_slug(slug):
     if (ActiveProject.objects.filter(slug=slug)
@@ -1102,7 +1128,7 @@ class License(models.Model):
     home_page = models.URLField()
     # A project must choose a license with a matching access policy and
     # resource type
-    access_policy = models.SmallIntegerField(choices=Metadata.ACCESS_POLICIES,
+    access_policy = models.PositiveSmallIntegerField(choices=Metadata.ACCESS_POLICIES,
         default=0)
     resource_type = models.PositiveSmallIntegerField(choices=Metadata.RESOURCE_TYPES)
     # A protected license has associated DUA content
@@ -1221,7 +1247,7 @@ class EditLog(models.Model):
          'data_machine_readable':'The data files are machine readable',
          'no_phi':'No protected health information is contained'},
         {'well_described':'The software is adequately described',
-         'open_format':'The software is provided in source format'}
+         'open_format':'The software is provided in open source format'}
     )
 
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)

@@ -17,7 +17,7 @@ Dev branch: [![Run Status](https://api.shippable.com/projects/59e7d1baaf0a170700
 
 ## Contribution Guidelines
 
-- Familiarise yourself with the PEP8 style guidelines: https://www.python.org/dev/peps/pep-0008/
+- Familiarise yourself with the [PEP8 style guidelines](https://www.python.org/dev/peps/pep-0008/).
 - Create a branch originating from the `dev` branch, titled after the new feature/change to be implemented.
 - Write tests for your code where possible (see "Testing" section below). Confirm that all tests pass before making a pull request.
 - Make a pull request to the `dev` branch with a clear title and description of the changes. Tips for a good pull request: http://blog.ploeh.dk/2015/01/15/10-tips-for-better-pull-requests/
@@ -27,6 +27,7 @@ Dev branch: [![Run Status](https://api.shippable.com/projects/59e7d1baaf0a170700
 - Unit tests for each app are kept in their `test*.py` files.
 - To run the unit tests, change to the `physionet-django` directory and run `python manage.py test`.
 - To check test coverage, change to the `physionet-django` directory and run `coverage run --source='.' manage.py test`. Next run `coverage html` to generate an html output of the coverage results. You may need to `pip install coverage` beforehand.
+- To run the browser tests in the `test_browser.py` files, selenium and the [firefox driver](https://github.com/mozilla/geckodriver/releases) are required. If you want to see the test run in your browser, remove the `options.set_headless(True)` lines in the `setUpClass` of the browser testing modules.
 
 ## Database Content During Development
 

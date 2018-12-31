@@ -87,6 +87,7 @@ def process_invitation_response(request, invitation_response_formset):
         # Only process the response that was submitted
         if invitation_response_form.instance.id == invitation_id:
             invitation_response_form.user = user
+
             if invitation_response_form.is_valid():
                 # Update this invitation, and any other one made to the
                 # same user, project, and invitation type
@@ -124,7 +125,8 @@ def project_home(request):
         form=forms.InvitationResponseForm, extra=0)
 
     if request.method == 'POST':
-        invitation_response_formset = InvitationResponseFormSet(request.POST)
+        invitation_response_formset = InvitationResponseFormSet(request.POST,
+            queryset=AuthorInvitation.get_user_invitations(user))
         process_invitation_response(request, invitation_response_formset)
 
     active_authors = Author.objects.filter(user=user,
@@ -379,6 +381,8 @@ def project_authors(request, project_slug, **kwargs):
             if corresponding_author_form.is_valid():
                 corresponding_author_form.update_corresponder()
                 messages.success(request, 'The corresponding author has been updated.')
+            else:
+                messages.error(request, 'Submission unsuccessful. See form for errors.')
         elif 'corresponding_email' in request.POST and author.is_corresponding:
             corresponding_email_form = AssociatedEmailChoiceForm(
                 user=user, selection_type='corresponding', author=author,
@@ -387,6 +391,8 @@ def project_authors(request, project_slug, **kwargs):
                 author.corresponding_email = corresponding_email_form.cleaned_data['associated_email']
                 author.save()
                 messages.success(request, 'Your corresponding email has been updated.')
+            else:
+                messages.error(request, 'Submission unsuccessful. See form for errors.')
 
     authors = project.get_author_info()
     invitations = project.authorinvitations.filter(is_active=True)
@@ -708,7 +714,7 @@ def project_files(request, project_slug, **kwargs):
 
     if request.method == 'POST':
         if not is_submitting:
-            return Http404()
+            raise Http404()
 
         if 'request_storage' in request.POST:
             storage_request_form = forms.StorageRequestForm(project=project,
@@ -997,7 +1003,7 @@ def serve_published_project_file(request, published_project_slug, full_file_name
     if project.has_access(request.user):
         file_path = os.path.join(project.file_root(), full_file_name)
         return utility.serve_file(request, file_path)
-
+    raise Http404()
 
 def published_project_license(request, published_project_slug):
     """

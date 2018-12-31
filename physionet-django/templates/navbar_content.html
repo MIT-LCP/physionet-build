@@ -2,59 +2,59 @@
 <ul class="navbar-nav mr-auto">
 
   <li class="nav-item dropdown">
-    <a class="nav-link dropdown-toggle" href="#" id="resource_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    <a class="nav-link dropdown-toggle" href="#" id="nav_resource_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
       Find
     </a>
     <div class="dropdown-menu" aria-labelledby="resource_dropdown">
-      <a class="dropdown-item" href="{% url 'data' %}">
+      <a id="nav_data" class="dropdown-item" href="{% url 'data' %}">
         Data
       </a>
-      <a class="dropdown-item" href="{% url 'software' %}">
+      <a id="nav_software" class="dropdown-item" href="{% url 'software' %}">
         Software
       </a>
-      <a class="dropdown-item" href="{% url 'content' %}">
+      <a id="nav_all_content" class="dropdown-item" href="{% url 'content' %}">
         All content
       </a>
       <div class="dropdown-divider"></div>
-      <a class="dropdown-item" href="{% url 'topic_search' %}">
+      <a id="nav_topic_search" class="dropdown-item" href="{% url 'topic_search' %}">
         Topic Search
       </a>
     </div>
   </li>
 
   <li class="nav-item dropdown">
-    <a class="nav-link dropdown-toggle" href="#" id="resource_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    <a class="nav-link dropdown-toggle" href="#" id="nav_publish_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
       Publish
     </a>
     <div class="dropdown-menu" aria-labelledby="resource_dropdown">
-      <a class="dropdown-item" href="{% url 'create_project' %}">
+      <a id="nav_submit" class="dropdown-item" href="{% url 'create_project' %}">
         Submit
       </a>
-      <a class="dropdown-item" href="{% url 'author_guidelines' %}">
+      <a id="nav_author_guidelines" class="dropdown-item" href="{% url 'author_guidelines' %}">
         Author Guidelines
       </a>
-      <a class="dropdown-item" href="{% url 'licenses' %}">
+      <a id="nav_licenses" class="dropdown-item" href="{% url 'licenses' %}">
         Licenses
       </a>
     </div>
   </li>
 
   <li class="nav-item dropdown">
-    <a class="nav-link dropdown-toggle" href="#" id="resource_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    <a class="nav-link dropdown-toggle" href="#" id="nav_about_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
       About
     </a>
     <div class="dropdown-menu" aria-labelledby="resource_dropdown">
-      <a class="dropdown-item" href="{% url 'about_physionet' %}">
+      <a id="nav_about_physionet" class="dropdown-item" href="{% url 'about_physionet' %}">
         About Physionet
       </a>
-      <a class="dropdown-item" href="{% url 'contact' %}">
+      <a id="nav_contact" class="dropdown-item" href="{% url 'contact' %}">
         Contact
       </a>
     </div>
   </li>
 
   <li class="nav-item">
-    <a class="nav-link" href="{% url 'news' %}">
+    <a id="nav_news" class="nav-link" href="{% url 'news' %}">
       News
     </a>
   </li>
@@ -63,14 +63,14 @@
 <ul class="navbar-nav ml-auto">
   {% if user.is_authenticated %}
     <li class="nav-item">
-      <a class="nav-link" href="{% url 'project_home' %}">
+      <a id="nav_projects" class="nav-link" href="{% url 'project_home' %}">
         My Projects
       </a>
     </li>
   {% endif %}
 
   <li class="nav-item dropdown">
-    <a class="nav-link dropdown-toggle" href="#" id="account_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    <a class="nav-link dropdown-toggle" href="#" id="nav_account_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
       {% if user.is_authenticated %}
         {% if user.is_admin %}
           <i class="fa fa-user-secret"></i> {{ user }}
@@ -80,27 +80,27 @@
         </a>
         <div class="dropdown-menu" aria-labelledby="account_dropdown">
           {% if user.is_admin %}
-            <a class="dropdown-item" href="{% url 'console_home' %}">
+            <a id="nav_admin" class="dropdown-item" href="{% url 'console_home' %}">
               Admin Console
             </a>
           {% endif %}
           <a class="dropdown-item" href="{% url 'public_profile' user.username %}">
             Profile
           </a>
-          <a class="dropdown-item" href="{% url 'edit_profile' %}">
+          <a id="nav_settings" class="dropdown-item" href="{% url 'edit_profile' %}">
             Settings
           </a>
-          <a class="dropdown-item" href="{% url 'logout' %}">
+          <a id="nav_logout" class="dropdown-item" href="{% url 'logout' %}">
             Logout
           </a>
       {% else %}
         Account
         </a>
         <div class="dropdown-menu" aria-labelledby="account_dropdown">
-        <a class="dropdown-item" href="{% url 'login' %}">
+        <a id="nav_login" class="dropdown-item" href="{% url 'login' %}">
           Login
         </a>
-        <a class="dropdown-item" href="{% url 'register' %}">
+        <a id="nav_register" class="dropdown-item" href="{% url 'register' %}">
           Register
         </a>
       {% endif %}

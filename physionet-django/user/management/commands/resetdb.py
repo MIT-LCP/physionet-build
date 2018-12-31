@@ -1,10 +1,10 @@
 """
 Command to:
-- delete all data from tables
-- drop all tables
-- delete migrations
-- make migrations
+- delete all content from the database
+- delete migration files
+- make migration files
 - apply migrations
+- delete all non-project media and static content
 
 Does NOT load any data. This should generally only be used in
 development environments.
@@ -30,8 +30,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # If not in development, prompt warning messages twice
         if 'development' not in os.environ['DJANGO_SETTINGS_MODULE']:
-            warning_messages = ['You are NOT in the development environment. Are you sure you want to reset the database? [y/n]',
-                                'All the data will be removed, and existing migration files will be deleted. Are you sure? [y/n]',
+            warning_messages = ['You are NOT in the development environment. Are you sure you want to reset the database and file content? [y/n]',
+                                'All database content, existing migration files, and non-project media/static content will be deleted. Are you sure? [y/n]',
                                 'Final warning. Are you ABSOLUTELY SURE? [y/n]']
             for i in range(3):
                 choice = input(warning_messages[i]).lower()
@@ -39,27 +39,35 @@ class Command(BaseCommand):
                     sys.exit('Exiting from reset. No actions applied.')
             print('Continuing reset')
         else:
-            db_file = os.path.join(settings.BASE_DIR, 'db.sqlite3')
-            if os.path.isfile(db_file):
-                os.remove(db_file)
+            db_type = settings.DATABASES['default']['ENGINE'].split('.')[-1]
+
+            if db_type == 'sqlite3':
+                # For sqlite, just delete the file
+                db_file = settings.DATABASES['default']['NAME']
+                if os.path.isfile(db_file):
+                    os.remove(db_file)
+            elif db_type == 'postgresql':
+                # Drop the database that holds all the tables and recreate it
+                os.system('sudo -u postgres dropdb physionet')
+                os.system('sudo -u postgres createdb physionet -O physionet')
+            else:
+                sys.exit('Unable to reset database of type: {}'.format(db_type))
 
         project_apps = get_project_apps()
 
         for app in project_apps:
             migration_files = get_migration_files(app)
             if migration_files:
-                # Reverse the migrations, which drops the tables. Only
-                # works if migration files exist, regardless of
-                # table/migration status. Equivalent of deleting
-                # sqlite file.
-                if 'development' not in os.environ['DJANGO_SETTINGS_MODULE']:
-                    call_command('migrate', app, 'zero', verbosity=1)
                 # Delete the migration .py files
                 for file in migration_files:
                     os.remove(file)
 
-        # Remove created media project files
+        # Remove all media files
         clear_media_files()
+        # Remove created static files
+        clear_created_static_files()
+        print('Removed all media files and targeted static files.')
+
         # Remake and apply the migrations
         call_command('makemigrations')
         call_command('migrate')
@@ -81,15 +89,31 @@ def get_migration_files(app):
 
 def clear_media_files():
     """
-    Remove all media files
-    """
-    for root_dir in (User.FILE_ROOT, ActiveProject.FILE_ROOT,
-            PublishedProject.PROTECTED_FILE_ROOT,
-            PublishedProject.PUBLIC_FILE_ROOT, ArchivedProject.FILE_ROOT,
-            CredentialApplication.FILE_ROOT):
-        dir_items = [os.path.join(root_dir, item) for item in os.listdir(root_dir) if item != '.gitkeep']
+    Remove all media files.
 
-        for item in dir_items:
+    Removes all content in the media root, excluding the immediate
+    subfolders themselves and the .gitkeep files.
+    """
+    for subdir in os.listdir(settings.MEDIA_ROOT):
+        media_subdir = os.path.join(settings.MEDIA_ROOT, subdir)
+        subdir_items = [os.path.join(media_subdir, item) for item in os.listdir(media_subdir) if item != '.gitkeep']
+
+        for item in subdir_items:
             shutil.rmtree(item)
 
+def clear_created_static_files():
+    """
+    Clear all the static files created.
 
+    This function relies on targeted input directories, as opposed to
+    `clear_media_files` which can clean all immediate subdirectories.
+
+    """
+    effective_static_root = settings.STATIC_ROOT if settings.STATIC_ROOT else settings.STATICFILES_DIRS[0]
+
+    for subdir in ['published-projects']:
+        static_subdir = os.path.join(effective_static_root, subdir)
+        subdir_items = [os.path.join(static_subdir, item) for item in os.listdir(static_subdir) if item != '.gitkeep']
+
+        for item in subdir_items:
+            shutil.rmtree(item)

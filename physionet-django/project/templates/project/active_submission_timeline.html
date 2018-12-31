@@ -83,7 +83,7 @@
           <i class="far fa-clock"></i> Waiting for submitting author to make revisions and resubmit.
           {% if is_submitting %}
             <br><br>
-            <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#resubmit-modal" onclick="checkIntegrity(true)">Resubmit Project</button>
+            <button id="resubmit-project-modal-button" type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#resubmit-modal" onclick="checkIntegrity(true)">Resubmit Project</button>
             <div class="modal fade" id="resubmit-modal" tabindex="-1" role="dialog" aria-labelledby="resubmit-modal" aria-hidden="true">
               <div class="modal-dialog" role="document">
                 <div class="modal-content">
@@ -154,7 +154,7 @@
             <a class="btn btn-primary" href="{% url 'project_preview' project.slug %}" role="button" target="_blank">View Project Preview</a>
             {# The user is an author and has yet to approve #}
             {% if awaiting_user_approval %}
-              <button type="button" class="btn btn-success" data-toggle="modal" data-target="#approve-modal">Approve Publication</button>
+              <button id="approve-publication-modal-button" type="button" class="btn btn-success" data-toggle="modal" data-target="#approve-modal">Approve Publication</button>
               <br><br>
               <p>If you would like to suggest changes, you may contact the editor to reopen the copyedit.</p>
               <div class="modal fade" id="approve-modal" tabindex="-1" role="dialog" aria-labelledby="submit-modal" aria-hidden="true">
@@ -172,7 +172,7 @@
                         <p>If you are satisfied with the final state of the project, you may approve the publication.</p>
                       </div>
                       <div class="modal-footer">
-                        <button id="request-review" class="btn btn-success" type="submit" name="approve_publication">Approve Publication</button>
+                        <button id="approve-publication-button" class="btn btn-success" type="submit" name="approve_publication">Approve Publication</button>
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                       </div>
                     </form>

@@ -62,10 +62,14 @@ createdb physionet -O physionet
 exit
 ```
 
-Set the authentication system for the `physionet` user to md5 in the postgres
-settings file: `/etc/postgresql/<version>/main/pg_hba.conf file`, by adding this line:
+Set the authentication system for the `physionet` user to md5 password in the postgres settings file: `/etc/postgresql/<version>/main/pg_hba.conf file`, by adding this line above the default setting entries:
 
 `local   all             physionet                               md5 `
+
+Restart the postgres server with:
+
+`/etc/init.d/postgresql restart`
+
 
 ## File Directories and Python Environments
 
@@ -97,6 +101,11 @@ Push to the remotes when appropriate
 
 `git push <pn-staging OR pn-production> <staging OR production>`
 
+If there are database structure changes, log into the server and make the migrations.
+
+`python manage.py makemigrations;python manage.py migrate`
+
+
 ## Setting up nginx and uwsgi
 
 http://uwsgi-docs.readthedocs.io/en/latest/tutorials/Django_and_nginx.html
@@ -127,10 +136,10 @@ sudo ln -s /physionet/physionet-build/deploy/physionet_uwsgi.ini /etc/uwsgi/vass
 ## Setting up the system to run uwsgi upon startup
 
 A service file was created to be controlled  by systemctl. This file will say requirements
-for this service to run, it will set the user and group for the emperor mode, and 
+for this service to run, it will set the user and group for the emperor mode, and
 sets the log location to syslog.
 
 ## Setting up the cron for the scheduled tasks
 
-Scheduled tasks have been added, it uses the system cron executing the tasks twice a day. (this can be changed if needed.) 
+Scheduled tasks have been added, it uses the system cron executing the tasks twice a day. (this can be changed if needed.)
 `0 */12 * * * export DJANGO_SETTINGS_MODULE=physionet.settings.staging  && source /physionet/python-env/physionet/bin/activate && python /physionet/physionet-build/physionet-django/manage.py runcrons >> /var/log/cronjob.log`

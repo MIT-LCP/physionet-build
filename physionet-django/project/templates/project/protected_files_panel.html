@@ -54,11 +54,10 @@
   // Navigate to another file directory and reload the file panel
   // subdir is the full subdirectory
   function navigateDir(subdir){
-    var csrftoken = getCookie('csrftoken');
     $.ajax({
             type: "GET",
             url: "{% url 'published_files_panel' project.slug %}",
-            data: {'csrfmiddlewaretoken':csrftoken, 'subdir':subdir
+            data: {'subdir':subdir
             },
             success: function reloadSection(result){
                 $("#files-panel").html(result);
