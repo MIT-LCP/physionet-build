@@ -73,7 +73,7 @@ Restart the postgres server with:
 
 ## File Directories and Python Environments
 
-Run as root
+Run as root:
 
 ```
 # Create the necessary directories
@@ -96,6 +96,12 @@ mkdir deploy
 chown -R pn.pn /physionet
 chown pn.www-data /physionet/deploy
 chmod g+w /physionet/deploy
+# Make the static and media roots
+mkdir /data
+mkdir /data/pn-static
+mkdir /data/pn-media
+chown -R pn.pn /data
+chown www-data.www-data /data/pn-static
 
 ```
 
