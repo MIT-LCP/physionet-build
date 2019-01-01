@@ -12,4 +12,4 @@ cd physionet-django
 python manage.py collectstatic --noinput
 touch physionet/wsgi.py
 
-echo 'Done. If there are any database changes, please make the migrations now.''
+echo "Done. If there are any database changes, please make the migrations now."

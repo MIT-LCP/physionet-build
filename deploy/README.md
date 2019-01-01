@@ -134,7 +134,7 @@ If there are database structure changes, log into the server and make the migrat
 
 http://uwsgi-docs.readthedocs.io/en/latest/tutorials/Django_and_nginx.html
 
-FillCopy the nginx configuration file for the site, symlink it from the available sites directory, and remove the default symlink. Make sure to update this file whenever it is updated in this project.
+Copy the nginx configuration file for the site, symlink it from the available sites directory, and remove the default symlink. Make sure to update this file whenever it is updated in this project.
 
 ```
 sudo cp /physionet/physionet-build/deploy/physionet_nginx.conf /etc/nginx/sites-available/
