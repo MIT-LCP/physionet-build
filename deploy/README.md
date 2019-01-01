@@ -1,6 +1,5 @@
-# Directory File Content
+# Files in Current Directory
 
-- `physionet.sock`: The socket file uWSGI and nginx use to communicate.
 - `physionet_nginx.conf`: The nginx configuration file for the PhysioNet site.
 - `physionet_uwsgi.ini`: Initialization file for uWSGI.
 - `uwsgi_params`: Generic parameters for uWSGI.
@@ -28,6 +27,7 @@
 - Merge the `dev` branch into the `staging` branch via pull request on Github, following a successful merge into `dev`. Push the `staging` branch to the staging server. Run tests on, and inspect the staging server. If errors are found, revert to the previous stable staging state.
 - When the changes appear stable on the staging server, the `staging` branch is manually merged with the `production` branch via pull request on Github. Push the `production` branch to the production server. If errors are found, revert to the previous stable production state.
 
+
 # Initial Server Setup
 
 Run these commands once only, on the staging and production servers.
@@ -45,7 +45,7 @@ pip3 install virtualenv uwsgi
 
 ## Dedicated User
 
-Create a user for the site. They should own all the site's files, and all interactions with the site should be run by them.
+Create a user for the site. ie: `pn`. They should own all the site's files, and all interactions with the site should be run by them.
 
 Append this to their `.bashrc` for when you need to to manually run management commands:
 
@@ -73,23 +73,47 @@ Restart the postgres server with:
 
 ## File Directories and Python Environments
 
+Run as root:
+
 ```
 # Create the necessary directories
 mkdir /physionet
 cd /physionet
-mkdir physionet-build media static python-env
+mkdir physionet-build python-env
 # Create the bare repository
 git init --bare physionet-build.git
+# Add the `post-receive` file to the bare repository's `hooks` directory. Ensure it is executable
+scp <somewhere>/post-receive /physionet/physionet-build.git/hooks/post-receive
+chmod +x /physionet/physionet-build.git/hooks/post-receive
 # Create the virtual environment
 cd python-env
 virtualenv -p/usr/bin/python3 physionet
 # Copy over the .env file into /physionet/physionet-build
 scp <somewhere>/.env /physionet/physionet-build/
+# Make the deploy directory for the socket file
+mkdir deploy
+# The software folder should be owned by the dedicated user. The socket file directory should be accessible by nginx.
+chown -R pn.pn /physionet
+chown pn.www-data /physionet/deploy
+chmod g+w /physionet/deploy
+# Make the static and media roots
+mkdir /data
+mkdir /data/pn-static
+mkdir /data/pn-media
+chown -R pn.pn /data
+chown www-data.www-data /data/pn-static
+
 ```
 
-Add the `post-receive` file to the bare repository's `hooks` directory. Ensure it is executable:
+The directory structure for the site's software and files will be:
+- `/physionet` : custom software for running the site
+- `/physionet/physionet-django/` : the deployed content of this django project
+- `/physionet/physionet-django.git/` : the bare git repository of this project
+- `/physionet/python-env/` : for storing python environments
+- `/physionet/deploy/` : for storing the socket file
+- `/data/pn-static/` : the static root
+- `/data/pn-media/` : the media root
 
-`chmod +x post-receive`
 
 ## Deploying to the Bare Repository
 
@@ -110,10 +134,11 @@ If there are database structure changes, log into the server and make the migrat
 
 http://uwsgi-docs.readthedocs.io/en/latest/tutorials/Django_and_nginx.html
 
-Symlink the nginx configuration file for the site, and remove the default:
+Copy the nginx configuration file for the site, symlink it from the available sites directory, and remove the default symlink. Make sure to update this file whenever it is updated in this project.
 
 ```
-sudo ln -s /physionet/physionet-build/deploy/physionet_nginx.conf /etc/nginx/sites-enabled/
+sudo cp /physionet/physionet-build/deploy/physionet_nginx.conf /etc/nginx/sites-available/
+sudo ln -s /etc/nginx/sites-available/physionet_nginx.conf /etc/nginx/sites-enabled/physionet_nginx.conf
 sudo rm /etc/nginx/sites-enabled/default
 ```
 
@@ -124,11 +149,11 @@ The nginx error log file: `/var/log/nginx/error.log`
 Set the `DJANGO_SETTINGS_MODULE` environment variable as appropriate in the
 `physionet_uwsgi.ini` file to reference the correct settings file.
 
-Setup for uWSGI to run in emperor mode. Link the init file for physionet into the vassals folder.
+Setup for uWSGI to run in emperor mode. Fill in the missing environment variable in the uwsgi init file, and copy it into the vassals folder. Make sure to update this file whenever it is updated in this project.
 ```
 sudo mkdir /etc/uwsgi
 sudo mkdir /etc/uwsgi/vassals
-sudo ln -s /physionet/physionet-build/deploy/physionet_uwsgi.ini /etc/uwsgi/vassals/
+sudo cp /physionet/physionet-build/deploy/physionet_uwsgi.ini /etc/uwsgi/vassals/
 # This runs uwsgi in emperor mode with the pn user and group
 # uwsgi --emperor /etc/uwsgi/vassals --uid pn --gid pn
 ```

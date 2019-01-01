@@ -4,11 +4,9 @@ echo "Deploying into $destination"
 GIT_WORK_TREE=$destination git checkout --force dev
 
 echo "Updating content"
-export DJANGO_SETTINGS_MODULE=physionet.settings.staging
+export DJANGO_SETTINGS_MODULE=physionet.settings.<staging OR production>
 cd $destination
 source /physionet/python-env/physionet/bin/activate
-sudo /bin/chgrp www-data /physionet/physionet-build/deploy
-sudo /bin/chmod g+w /physionet/physionet-build/deploy
 pip install -r requirements.txt
 cd physionet-django
 python manage.py collectstatic --noinput
