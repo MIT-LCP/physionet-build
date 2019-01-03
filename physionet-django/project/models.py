@@ -23,7 +23,8 @@ class Affiliation(models.Model):
 
     """
     name = models.CharField(max_length=202, validators=[validate_alphaplusplus])
-    author = models.ForeignKey('project.Author', related_name='affiliations')
+    author = models.ForeignKey('project.Author', related_name='affiliations',
+        on_delete=models.CASCADE)
 
     class Meta:
         unique_together = (('name', 'author'),)
@@ -33,7 +34,7 @@ class PublishedAffiliation(models.Model):
     "Affiliations belonging to a published author"
     name = models.CharField(max_length=202, validators=[validate_alphaplus])
     author = models.ForeignKey('project.PublishedAuthor',
-        related_name='affiliations')
+        related_name='affiliations', on_delete=models.CASCADE)
 
     class Meta:
         unique_together = (('name', 'author'),)
@@ -47,7 +48,8 @@ class BaseAuthor(models.Model):
     Datacite definition: "The main researchers involved in producing the
     data, or the authors of the publication, in priority order."
     """
-    user = models.ForeignKey('user.User', related_name='%(class)ss')
+    user = models.ForeignKey('user.User', related_name='%(class)ss',
+        on_delete=models.CASCADE)
     display_order = models.PositiveSmallIntegerField()
     is_submitting = models.BooleanField(default=False)
     is_corresponding = models.BooleanField(default=False)
@@ -70,7 +72,8 @@ class Author(BaseAuthor):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     project = GenericForeignKey('content_type', 'object_id')
-    corresponding_email = models.ForeignKey('user.AssociatedEmail', null=True)
+    corresponding_email = models.ForeignKey('user.AssociatedEmail', null=True,
+        on_delete=models.SET_NULL)
 
     class Meta:
         unique_together = (('user', 'content_type', 'object_id',),)
@@ -117,7 +120,7 @@ class PublishedAuthor(BaseAuthor):
     last_name = models.CharField(max_length=50, default='')
     corresponding_email = models.EmailField(null=True)
     project = models.ForeignKey('project.PublishedProject',
-        related_name='authors', db_index=True)
+        related_name='authors', db_index=True, on_delete=models.CASCADE)
 
     class Meta:
         unique_together = (('user', 'project'),)
@@ -187,7 +190,7 @@ class Reference(models.Model):
 class PublishedReference(models.Model):
     description = models.CharField(max_length=250)
     project = models.ForeignKey('project.PublishedProject',
-        related_name='references')
+        related_name='references', on_delete=models.CASCADE)
 
     class Meta:
         unique_together = (('description', 'project'))
@@ -201,7 +204,7 @@ class Contact(models.Model):
     affiliations = models.CharField(max_length=150)
     email = models.EmailField(max_length=255)
     project = models.ForeignKey('project.PublishedProject',
-        related_name='contacts')
+        related_name='contacts', on_delete=models.CASCADE)
 
 
 class BasePublication(models.Model):
@@ -226,9 +229,10 @@ class Publication(BasePublication):
 
 class PublishedPublication(BasePublication):
     """
+    Publication for published project
     """
     project = models.ForeignKey('project.PublishedProject',
-        db_index=True, related_name='publications')
+        db_index=True, related_name='publications', on_delete=models.CASCADE)
 
 
 class CoreProject(models.Model):
@@ -283,14 +287,16 @@ class Metadata(models.Model):
     # Access information
     access_policy = models.SmallIntegerField(choices=ACCESS_POLICIES,
                                              default=0)
-    license = models.ForeignKey('project.License', null=True)
+    license = models.ForeignKey('project.License', null=True,
+        on_delete=models.SET_NULL)
     project_home_page = models.URLField(default='')
     programming_languages = models.ManyToManyField(
         'project.ProgrammingLanguage', related_name='%(class)ss')
     # Public url slug, also used as a submitting project id.
     slug = models.SlugField(max_length=20, unique=True, db_index=True)
     core_project = models.ForeignKey('project.CoreProject',
-                                     related_name='%(class)ss')
+                                     related_name='%(class)ss',
+                                     on_delete=models.CASCADE)
     # When the submitting project was created
     creation_datetime = models.DateTimeField(auto_now_add=True)
 
@@ -384,7 +390,8 @@ class SubmissionInfo(models.Model):
     Submission information, inherited by all projects.
     """
     editor = models.ForeignKey('user.User',
-        related_name='editing_%(class)ss', null=True)
+        related_name='editing_%(class)ss', null=True,
+        on_delete=models.SET_NULL)
     # The very first submission
     submission_datetime = models.DateTimeField(null=True)
     author_comments = models.CharField(max_length=1000, default='')
@@ -851,7 +858,7 @@ class PublishedProject(Metadata, SubmissionInfo):
     publish_datetime = models.DateTimeField(auto_now_add=True)
     is_newest_version = models.BooleanField(default=True)
     newest_version = models.ForeignKey('project.PublishedProject', null=True,
-                                       related_name='older_versions')
+        related_name='older_versions', on_delete=models.SET_NULL)
     doi = models.CharField(max_length=50, unique=True)
     approved_users = models.ManyToManyField('user.User', db_index=True)
 
@@ -1143,8 +1150,9 @@ class DUASignature(models.Model):
     """
     Log of user signing DUA
     """
-    project = models.ForeignKey('project.PublishedProject')
-    user = models.ForeignKey('user.User')
+    project = models.ForeignKey('project.PublishedProject',
+        on_delete=models.CASCADE)
+    user = models.ForeignKey('user.User', on_delete=models.CASCADE)
     sign_datetime = models.DateTimeField(auto_now_add=True)
 
 
@@ -1152,7 +1160,8 @@ class BaseInvitation(models.Model):
     """
     Base class for authorship invitations and storage requests
     """
-    project = models.ForeignKey('project.ActiveProject', related_name='%(class)ss')
+    project = models.ForeignKey('project.ActiveProject',
+        related_name='%(class)ss', on_delete=models.CASCADE)
     request_datetime = models.DateTimeField(auto_now_add=True)
     response_datetime = models.DateTimeField(null=True)
     response = models.NullBooleanField(null=True)
@@ -1170,7 +1179,7 @@ class AuthorInvitation(BaseInvitation):
     # The target email
     email = models.EmailField(max_length=255)
     # User who made the invitation
-    inviter = models.ForeignKey('user.User')
+    inviter = models.ForeignKey('user.User', on_delete=models.CASCADE)
 
     def __str__(self):
         return 'ActiveProject: {0} To: {1} By: {2}'.format(self.project, self.email,
@@ -1212,7 +1221,8 @@ class StorageRequest(BaseInvitation):
     # Requested storage size in GB. Max = 10Tb
     request_allowance = models.SmallIntegerField(
         validators=[MaxValueValidator(10240), MinValueValidator(1)])
-    responder = models.ForeignKey('user.User', null=True)
+    responder = models.ForeignKey('user.User', null=True,
+        on_delete=models.SET_NULL)
     response_message = models.CharField(max_length=50, default='', blank=True)
 
     def __str__(self):

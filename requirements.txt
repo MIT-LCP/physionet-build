@@ -1,5 +1,5 @@
 coverage==4.4.2
-Django==1.11.5
+Django==2.1.4
 django-ckeditor==5.3.0
 django-debug-toolbar==1.9.1
 django-js-asset==0.1.1

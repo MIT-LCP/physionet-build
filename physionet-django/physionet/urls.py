@@ -1,5 +1,6 @@
-from django.conf.urls import url, include
+from django.conf.urls import include
 from django.contrib import admin
+from django.urls import path, re_path
 
 from . import views
 import project.views as project_views
@@ -7,45 +8,45 @@ import project.views as project_views
 
 urlpatterns = [
     # django admin app
-    url(r'^admin/', admin.site.urls),
+    path('admin/', admin.site.urls),
     # management console app
-    url(r'^console/', include('console.urls')),
+    path('console/', include('console.urls')),
     # user app
-    url(r'^', include('user.urls')),
+    path('', include('user.urls')),
     # project app
-    url(r'^projects/', include('project.urls')),
+    path('projects/', include('project.urls')),
     # notification app
-    url(r'^', include('notification.urls')),
+    path('', include('notification.urls')),
     # search app
-    url(r'^', include('search.urls')),
+    path('', include('search.urls')),
 
-    url(r'^$', views.home, name='home'),
+    path('', views.home, name='home'),
     # about pages
-    url(r'^about/author-guidelines/$', views.author_guidelines,
+    path('about/author-guidelines/', views.author_guidelines,
         name='author_guidelines'),
-    url(r'^about/physionet/$', views.about_physionet, name='about_physionet'),
-    url(r'^about/faq/$', views.faq, name='faq'),
-    url(r'^about/licenses/$', views.licenses, name='licenses'),
-    url(r'^about/licenses/(?P<license_slug>[\w-]+)/$', views.license_content,
+    path('about/physionet/', views.about_physionet, name='about_physionet'),
+    path('about/faq/', views.faq, name='faq'),
+    path('about/licenses/', views.licenses, name='licenses'),
+    path('about/licenses/<license_slug>/', views.license_content,
         name='license_content'),
-    url(r'^about/contact/$', views.contact, name='contact'),
-    url(r'^about/citi-instructions/$', views.citi_instructions, name='citi_instructions'),
+    path('about/contact/', views.contact, name='contact'),
+    path('about/citi-instructions/', views.citi_instructions, name='citi_instructions'),
 
     # content pages
-    url(r'^data/$', views.data, name='data'),
-    url(r'^software/$', views.software, name='software'),
-    url(r'^content/$', views.content, name='content'),
+    path('data/', views.data, name='data'),
+    path('software/', views.software, name='software'),
+    path('content/', views.content, name='content'),
 
     # published projects
-    url(r'^content/(?P<published_project_slug>\w+)/$',
+    path('content/<published_project_slug>/',
         project_views.published_project, name='published_project'),
-    url(r'^content/(?P<published_project_slug>\w+)/files-panel/$',
+    path('content/<published_project_slug>/files-panel/',
         project_views.published_files_panel, name='published_files_panel'),
-    url(r'^content/(?P<published_project_slug>\w+)/files/(?P<full_file_name>.+)$',
+    re_path('content/(?P<published_project_slug>\w+)/files/(?P<full_file_name>.+)',
         project_views.serve_published_project_file, name='serve_published_project_file'),
-    url(r'^content/(?P<published_project_slug>\w+)/view-license/$',
+    path('content/<published_project_slug>/view-license/',
         project_views.published_project_license, name='published_project_license'),
 
-    url(r'^sign-dua/(?P<published_project_slug>\w+)/$', project_views.sign_dua,
+    path('sign-dua/<published_project_slug>/', project_views.sign_dua,
         name='sign_dua'),
 ]
