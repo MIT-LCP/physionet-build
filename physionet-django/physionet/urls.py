@@ -1,6 +1,7 @@
-from django.conf.urls import include
+from django.conf.urls import include, url
 from django.contrib import admin
 from django.urls import path, re_path
+from django.http import HttpResponse
 
 from . import views
 import project.views as project_views
@@ -49,4 +50,7 @@ urlpatterns = [
 
     path('sign-dua/<published_project_slug>/', project_views.sign_dua,
         name='sign_dua'),
+
+    url(r'^robots.txt', lambda x: HttpResponse("User-Agent: *\nDisallow: /", content_type="text/plain"), name="robots_file"),
+
 ]
