@@ -79,7 +79,7 @@ Run as root:
 # Create the necessary directories
 mkdir /physionet
 cd /physionet
-mkdir physionet-build python-env
+mkdir physionet-build python-env deploy
 # Create the bare repository
 git init --bare physionet-build.git
 # Add the `post-receive` file to the bare repository's `hooks` directory. Ensure it is executable
@@ -88,10 +88,9 @@ chmod +x /physionet/physionet-build.git/hooks/post-receive
 # Create the virtual environment
 cd python-env
 virtualenv -p/usr/bin/python3 physionet
+cd /physionet
 # Copy over the .env file into /physionet/physionet-build
 scp <somewhere>/.env /physionet/physionet-build/
-# Make the deploy directory for the socket file
-mkdir deploy
 # The software folder should be owned by the dedicated user. The socket file directory should be accessible by nginx.
 chown -R pn.pn /physionet
 chown pn.www-data /physionet/deploy
@@ -99,17 +98,18 @@ chmod g+w /physionet/deploy
 # Make the static and media roots
 mkdir /data
 mkdir /data/pn-static
+mkdir /data/pn-static/published-projects
 mkdir /data/pn-media
 mkdir /data/pn-media/{active-projects,archived-projects,credential-applications,published-projects,users}
 chown -R pn.pn /data
-chown www-data.www-data /data/pn-static
+chown -R www-data.www-data /data/pn-static
 
 ```
 
 The directory structure for the site's software and files will be:
 - `/physionet` : custom software for running the site
-- `/physionet/physionet-django/` : the deployed content of this django project
-- `/physionet/physionet-django.git/` : the bare git repository of this project
+- `/physionet/physionet-build/` : the deployed content of this django project
+- `/physionet/physionet-build.git/` : the bare git repository of this project
 - `/physionet/python-env/` : for storing python environments
 - `/physionet/deploy/` : for storing the socket file
 - `/data/pn-static/` : the static root
@@ -117,6 +117,8 @@ The directory structure for the site's software and files will be:
 
 
 ## Deploying to the Bare Repository
+
+Before deploying for the first time, make sure to set the `DJANGO_SETTINGS_MODULE` variable in the `post-receive` file in the bare repository.
 
 Add the remote bare repositories from your local development machines:
 
@@ -147,8 +149,7 @@ Restarting nginx: `sudo /etc/init.d/nginx restart`
 
 The nginx error log file: `/var/log/nginx/error.log`
 
-Set the `DJANGO_SETTINGS_MODULE` environment variable as appropriate in the
-`physionet_uwsgi.ini` file to reference the correct settings file.
+Set the `DJANGO_SETTINGS_MODULE` environment variable as appropriate in the `physionet_uwsgi.ini` file to reference the correct settings file.
 
 Setup for uWSGI to run in emperor mode. Fill in the missing environment variable in the uwsgi init file, and copy it into the vassals folder. Make sure to update this file whenever it is updated in this project.
 ```
