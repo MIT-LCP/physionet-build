@@ -19,9 +19,24 @@ Licenses
   <p>If you would like to use a license that is not currently listed, please <a href="{% url 'contact' %}"> contact us</a>.</p>
   <hr>
 
-  {% for license in licenses %}
+  <h2>Data Licenses</h2>
+  <br>
+  {% for license in d_licenses %}
     {{ license.resource_type|resource_badge|safe }} {{ license.access_policy|access_badge|safe }}
-    <h2>{{ license.name }}</h2>
+    <h3>{{ license.name }}</h3>
+    <ul>
+      <li><a href="{% url 'license_content' license.slug %}">Content</a></li>
+      <li><a href="{{ license.home_page }}" target="_blank">Home page <i class="fas fa-external-link-alt"></i></a></li>
+    </ul>
+    <br>
+  {% endfor %}
+
+  <hr>
+  <h2>Software Licenses</h2>
+  <br>
+  {% for license in s_licenses %}
+    {{ license.resource_type|resource_badge|safe }} {{ license.access_policy|access_badge|safe }}
+    <h3>{{ license.name }}</h3>
     <ul>
       <li><a href="{% url 'license_content' license.slug %}">Content</a></li>
       <li><a href="{{ license.home_page }}" target="_blank">Home page <i class="fas fa-external-link-alt"></i></a></li>

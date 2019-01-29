@@ -27,8 +27,11 @@ def licenses(request):
     """
     Display all licenses
     """
-    licenses = License.objects.all()
-    return render(request, 'about/licenses.html', {'licenses':licenses})
+    d_licenses = License.objects.filter(resource_type=0)
+    s_licenses = License.objects.filter(resource_type=1)
+
+    return render(request, 'about/licenses.html', {'d_licenses':d_licenses,
+        's_licenses':s_licenses})
 
 def license_content(request, license_slug):
     """
