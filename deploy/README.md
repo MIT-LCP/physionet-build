@@ -118,7 +118,7 @@ The directory structure for the site's software and files will be:
 
 ## Deploying to the Bare Repository
 
-Before deploying for the first time, make sure to set the `DJANGO_SETTINGS_MODULE` variable in the `post-receive` file in the bare repository.
+Before deploying for the first time, make sure to set the variables in the `post-receive` file in the bare repository.
 
 Add the remote bare repositories from your local development machines:
 
