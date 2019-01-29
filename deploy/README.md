@@ -167,6 +167,13 @@ The `emperor.uwsgi.service` file was created to be controlled by systemctl. This
 `sudo cp /physionet/physionet-build/deploy/emperor.uwsgi.service /etc/systemd/system/`
 
 
+## Initial Site Content
+
+There is initial data for the site (licenses, tags, etc) in `site-data.json` fixture files in the fixtures directories of certain apps. Load them before deploying the site for the first time with:
+
+`python manage.py loaddata site-data`.
+
+
 ## Setting up the cron for the scheduled tasks
 
 Scheduled tasks have been added, it uses the system cron executing the tasks twice a day. (this can be changed if needed.)
