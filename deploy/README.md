@@ -100,6 +100,7 @@ chmod g+w /physionet/deploy
 mkdir /data
 mkdir /data/pn-static
 mkdir /data/pn-media
+mkdir /data/pn-media/{active-projects,archived-projects,credential-applications,published-projects,users}
 chown -R pn.pn /data
 chown www-data.www-data /data/pn-static
 

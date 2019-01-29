@@ -6,7 +6,7 @@ from .base import *
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['staging.physionet.org', 'physionet-staging.ecg.mit.edu']
+ALLOWED_HOSTS = ['alpha.physionet.org', 'production-physionet.ecg.mit.edu']
 
 DATABASES = {
     'default': {
@@ -21,14 +21,14 @@ DATABASES = {
 
 # When ready, use the following:
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'mail.ecg.mit.edu'
+EMAIL_HOST = 'localhost'
 EMAIL_PORT = 25
 EMAIL_HOST_USER = ''
 EMAIL_HOST_PASSWORD = ''
 EMAIL_USE_TLS = False
 
-DEFAULT_FROM_EMAIL = 'PhysioNet Automated System <noreply@staging.physionet.org>'
-CONTACT_EMAIL = 'PhysioNet Contact <contact@staging.physionet.org>'
+DEFAULT_FROM_EMAIL = 'PhysioNet Automated System <noreply@alpha.physionet.org>'
+CONTACT_EMAIL = 'PhysioNet Contact <contact@alpha.physionet.org>'
 
 
 DEMO_FILE_ROOT = os.path.join(os.path.abspath(os.path.join(BASE_DIR, os.pardir)), 'demo-files')
