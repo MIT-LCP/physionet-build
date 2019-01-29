@@ -1,10 +1,10 @@
 # Files in Current Directory
 
+- `emperor.uwsgi.service`: The uWSGI emperor mode configuration service file.
 - `physionet_nginx.conf`: The nginx configuration file for the PhysioNet site.
 - `physionet_uwsgi.ini`: Initialization file for uWSGI.
 - `uwsgi_params`: Generic parameters for uWSGI.
 - `post-receive`: The post-receive hook that runs in the bare repository in the staging/production servers.
-- `uwsgi.service`: The uWSGI emperor mode configuration service file.
 
 # Development Workflow
 
@@ -134,7 +134,7 @@ If there are database structure changes, log into the server and make the migrat
 
 http://uwsgi-docs.readthedocs.io/en/latest/tutorials/Django_and_nginx.html
 
-Copy the nginx configuration file for the site, symlink it from the available sites directory, and remove the default symlink. Make sure to update this file whenever it is updated in this project.
+Copy the nginx configuration file for the site to the `sites-available` directory, symlink it to `sites-enabled`, and remove the default symlink. Make sure to update this file whenever it is updated in this project.
 
 ```
 sudo cp /physionet/physionet-build/deploy/physionet_nginx.conf /etc/nginx/sites-available/
@@ -158,11 +158,12 @@ sudo cp /physionet/physionet-build/deploy/physionet_uwsgi.ini /etc/uwsgi/vassals
 # uwsgi --emperor /etc/uwsgi/vassals --uid pn --gid pn
 ```
 
-## Setting up the system to run uwsgi upon startup
+## Setting up the system to run uWSGI
 
-A service file was created to be controlled  by systemctl. This file will say requirements
-for this service to run, it will set the user and group for the emperor mode, and
-sets the log location to syslog.
+The `emperor.uwsgi.service` file was created to be controlled by systemctl. This file will say requirements for this service to run, it will set the user and group for the emperor mode, and sets the log location to syslog.
+
+`sudo cp /physionet/physionet-build/deploy/emperor.uwsgi.service /etc/systemd/system/`
+
 
 ## Setting up the cron for the scheduled tasks
 

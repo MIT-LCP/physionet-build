@@ -1,10 +1,12 @@
 [Unit]
-Description=uWSGI Emperor service
+Description=uWSGI Emperor
 After=syslog.target
 
 [Service]
-ExecStartPre=/bin/bash -c 'mkdir -p /run/uwsgi; chown www-data:www-data /run/uwsgi'
 ExecStart=/usr/local/bin/uwsgi --emperor /etc/uwsgi/vassals --uid www-data --gid www-data
+# Requires systemd version 211 or newer
+User=pn
+Group=www-data
 RuntimeDirectory=uwsgi
 Restart=always
 KillSignal=SIGQUIT
