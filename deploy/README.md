@@ -118,7 +118,7 @@ The directory structure for the site's software and files will be:
 
 ## Deploying to the Bare Repository
 
-Before deploying for the first time, make sure to set the `DJANGO_SETTINGS_MODULE` variable in the `post-receive` file in the bare repository.
+Before deploying for the first time, make sure to set the variables in the `post-receive` file in the bare repository.
 
 Add the remote bare repositories from your local development machines:
 
@@ -165,6 +165,13 @@ sudo cp /physionet/physionet-build/deploy/physionet_uwsgi.ini /etc/uwsgi/vassals
 The `emperor.uwsgi.service` file was created to be controlled by systemctl. This file will say requirements for this service to run, it will set the user and group for the emperor mode, and sets the log location to syslog.
 
 `sudo cp /physionet/physionet-build/deploy/emperor.uwsgi.service /etc/systemd/system/`
+
+
+## Initial Site Content
+
+There is initial data for the site (licenses, tags, etc) in `site-data.json` fixture files in the fixtures directories of certain apps. Load them before deploying the site for the first time with:
+
+`python manage.py loaddata site-data`.
 
 
 ## Setting up the cron for the scheduled tasks

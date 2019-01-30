@@ -1139,8 +1139,8 @@ class License(models.Model):
         default=0)
     resource_type = models.PositiveSmallIntegerField(choices=Metadata.RESOURCE_TYPES)
     # A protected license has associated DUA content
-    dua_name = models.CharField(max_length=100)
-    dua_html_content = RichTextField(default='')
+    dua_name = models.CharField(max_length=100, blank=True, default='')
+    dua_html_content = RichTextField(blank=True, default='')
 
     def __str__(self):
         return self.name
