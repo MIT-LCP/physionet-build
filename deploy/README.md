@@ -3,8 +3,16 @@
 - `emperor.uwsgi.service`: The uWSGI emperor mode configuration service file.
 - `physionet_nginx.conf`: The nginx configuration file for the PhysioNet site.
 - `physionet_uwsgi.ini`: Initialization file for uWSGI.
-- `uwsgi_params`: Generic parameters for uWSGI.
 - `post-receive`: The post-receive hook that runs in the bare repository in the staging/production servers.
+- `uwsgi_params`: Generic parameters for uWSGI.
+
+They will need to be copied respectively to:
+- `/etc/systemd/system/emperor.uwsgi.service`
+- `/etc/nginx/sites-available/physionet_nginx.conf`
+- `/etc/uwsgi/vassals/physionet_uwsgi.ini`
+- `/physionet/physionet-build.git/hooks/post-receive`
+- No need to copy.
+
 
 # Development Workflow
 
@@ -158,11 +166,16 @@ sudo cp /physionet/physionet-build/deploy/physionet_uwsgi.ini /etc/uwsgi/vassals
 # uwsgi --emperor /etc/uwsgi/vassals --uid pn --gid pn
 ```
 
-## Setting up the system to run uWSGI
+## Setting up the system to run uWSGI with systemctl
 
 The `emperor.uwsgi.service` file was created to be controlled by systemctl. This file will say requirements for this service to run, it will set the user and group for the emperor mode, and sets the log location to syslog.
 
 `sudo cp /physionet/physionet-build/deploy/emperor.uwsgi.service /etc/systemd/system/`
+
+Restarting and checking the status of the service:
+
+`sudo systemctl restart emperor.uwsgi.service`
+`sudo systemctl status emperor.uwsgi.service`
 
 
 ## Initial Site Content
