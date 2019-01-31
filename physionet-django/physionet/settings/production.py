@@ -4,7 +4,7 @@ from decouple import config
 
 from .base import *
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['alpha.physionet.org', 'production-physionet.ecg.mit.edu']
 
