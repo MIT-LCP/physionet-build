@@ -1320,3 +1320,21 @@ class CopyeditLog(models.Model):
     made_changes = models.NullBooleanField(null=True)
     changelog_summary = models.CharField(default='', max_length=2500, blank=True)
     complete_datetime = models.DateTimeField(null=True)
+
+
+class LegacyProject(models.Model):
+    """
+    Temporary model for migrating legacy databases
+
+    x = PublishedProject.objects.create(doi='123', resource_type=0, core_project=CoreProject.objects.all().first())
+
+    """
+    title = models.CharField(max_length=255)
+    slug = models.CharField(max_length=100)
+    abstract = RichTextField()
+    full_description = RichTextField()
+    doi = models.CharField(max_length=100)
+    resource_type = models.PositiveSmallIntegerField(default=0)
+
+
+
