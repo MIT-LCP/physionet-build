@@ -236,4 +236,9 @@ def load_legacy_project(slug):
         f = urlopen('https://physionet.org/physiobank/database/{}/index.shtml'.format(slug))
     content = f.read().decode('utf8')
     f.close()
+
+
+    # Some pages end with this: <!--#include virtual="/dir-footer.shtml"-->
+
+
     return content
