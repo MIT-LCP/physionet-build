@@ -101,9 +101,7 @@ mkdir /data/pn-static
 mkdir /data/pn-static/published-projects
 mkdir /data/pn-media
 mkdir /data/pn-media/{active-projects,archived-projects,credential-applications,published-projects,users}
-chown -R pn.pn /data
-chown -R www-data.www-data /data/pn-static
-
+chown -R pn.pn /data/{pn-media,pn-static}
 ```
 
 The directory structure for the site's software and files will be:
