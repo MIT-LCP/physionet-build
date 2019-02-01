@@ -217,7 +217,7 @@ def serve_file(request, file_path):
         return Http404()
 
 
-def load_legacy_project(slug):
+def load_legacy_html(slug):
     """
     Load data from a pbank database and create a LegacyProject object
 
@@ -234,6 +234,8 @@ def load_legacy_project(slug):
         f = urlopen('https://physionet.org/physiobank/database/{}/HEADER.shtml'.format(slug))
     except:
         f = urlopen('https://physionet.org/physiobank/database/{}/index.shtml'.format(slug))
+
+
     content = f.read().decode('utf8')
     f.close()
 

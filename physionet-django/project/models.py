@@ -1331,10 +1331,23 @@ class LegacyProject(models.Model):
     """
     title = models.CharField(max_length=255)
     slug = models.CharField(max_length=100)
-    abstract = RichTextField()
+    abstract = RichTextField(blank=True, default='')
     full_description = RichTextField()
-    doi = models.CharField(max_length=100)
+    doi = models.CharField(max_length=100, blank=True, default='')
     resource_type = models.PositiveSmallIntegerField(default=0)
 
+    # In case we want a citation
+    citation = models.CharField(blank=True, default='', max_length=1000)
+    url = models.URLField(blank=True, default='')
 
+    # Put the references as part of the full description
+
+    def __str__(self):
+        return ' --- '.join([self.slug, self.title])
+
+    def publish():
+        """
+        Turn into a published project
+        """
+        return
 
