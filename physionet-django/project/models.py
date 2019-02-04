@@ -1097,6 +1097,9 @@ class PublishedProject(Metadata, SubmissionInfo):
             special_used=special)
 
     def citation_text(self):
+        if self.is_legacy:
+            return ''
+
         return '{} ({}). {}. PhysioNet. doi:{}'.format(
             ', '.join(a.initialed_name() for a in self.authors.all()),
             self.publish_datetime.year, self.title, self.doi)
@@ -1364,7 +1367,8 @@ class LegacyProject(models.Model):
             resource_type=self.resource_type,
             core_project=CoreProject.objects.create(),
             is_legacy=True, full_description=self.full_description,
-            version=self.version
+            version=self.version,
+            license=License.objects.get(name='Open Data Commons Attribution License v1.0')
         )
 
         # Have to set publish_datetime here due to auto_now_add of object
