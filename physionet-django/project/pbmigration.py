@@ -1,6 +1,7 @@
 import datetime
 import os
 import pdb
+import pytz
 import requests
 from urllib.request import urlopen
 
@@ -27,7 +28,7 @@ dbs = open('project/DBS.tsv')
 dbs = dbs.readlines()
 dbs = [d.split('\t') for d in dbs]
 
-for slug, title, pubdate in dbs[:2]:
+for slug, title, pubdate in dbs:
     r = requests.get('https://physionet.org/physiobank/database/{}/HEADER.shtml'.format(slug))
     if r.status_code != 200:
         r = requests.get('https://physionet.org/physiobank/database/{}/index.shtml'.format(slug))
@@ -49,4 +50,17 @@ with open('project/fixtures/pbank.json', 'w') as f:
     json_serializer.serialize(LegacyProject.objects.all(), f)
 
 
+# Testing publish
+from project.models import LegacyProject, PublishedProject
+lp = LegacyProject.objects.get(slug='wrist')
+lp.publish()
+
+
+# Clearing content
 LegacyProject.objects.all().delete()
+
+from project.models import LegacyProject, PublishedProject
+PublishedProject.objects.get(slug='wrist').remove(force=True)
+
+
+PublishedProject.objects.get(slug='wrist').delete()

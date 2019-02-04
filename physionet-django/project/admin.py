@@ -29,7 +29,6 @@ class LegacyProjectModelAdmin(admin.ModelAdmin):
     formfield_overrides = {
         CharField: {'widget': TextInput(attrs={'size':'200'})},
         TextField: {'widget': Textarea(attrs={'rows':4, 'cols':40})},
-        RichTextField: {'widget': CKEditorWidget(attrs={'rows':10, 'cols':200, 'height':200, 'width':200})},
     }
 
 admin.site.register(models.LegacyProject, LegacyProjectModelAdmin)

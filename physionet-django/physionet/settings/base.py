@@ -144,7 +144,6 @@ CKEDITOR_CONFIGS = {
             ['Link', 'Unlink'],
             ['RemoveFormat', 'Source']
         ],
-        'width': '100%',
         'format_tags': 'p;h3',
     }
 
