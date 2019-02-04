@@ -1335,6 +1335,7 @@ class LegacyProject(models.Model):
     full_description = RichTextField()
     doi = models.CharField(max_length=100, blank=True, default='')
     resource_type = models.PositiveSmallIntegerField(default=0)
+    publish_date = models.DateField()
 
     # In case we want a citation
     citation = models.CharField(blank=True, default='', max_length=1000)

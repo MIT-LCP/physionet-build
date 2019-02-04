@@ -2,7 +2,6 @@ import datetime
 import os
 import shutil
 import pdb
-from urllib.request import urlopen
 import uuid
 
 from django.conf import settings
@@ -215,32 +214,3 @@ def serve_file(request, file_path):
             return response
     else:
         return Http404()
-
-
-def load_legacy_html(slug):
-    """
-    Load data from a pbank database and create a LegacyProject object
-
-    """
-
-    # title = models.CharField(max_length=255)
-    # slug = models.CharField(max_length=100)
-    # abstract = RichTextField()
-    # full_description = RichTextField()
-    # doi = models.CharField(max_length=100)
-    # resource_type = models.PositiveSmallIntegerField(default=0)
-
-    try:
-        f = urlopen('https://physionet.org/physiobank/database/{}/HEADER.shtml'.format(slug))
-    except:
-        f = urlopen('https://physionet.org/physiobank/database/{}/index.shtml'.format(slug))
-
-
-    content = f.read().decode('utf8')
-    f.close()
-
-
-    # Some pages end with this: <!--#include virtual="/dir-footer.shtml"-->
-
-
-    return content
