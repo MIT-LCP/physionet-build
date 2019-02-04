@@ -31,7 +31,7 @@ emgdb	Examples of Electromyograms	5 September 2009
 fantasia	Fantasia Database	2 March 2003
 fecgsyndb	Fetal ECG Synthetic Database	29 April 2016
 fpcgdb	Fetal PCG Database	16 December 2015
-gaitdb	Gait in Aging and Disease Database	
+gaitdb	Gait in Aging and Disease Database	13 October 2000
 gaitndd	Gait in Neurodegenerative Disease Database	21 December 2000
 gait-maturation-db	Gait Maturation Database	28 October 1999
 meditation	Heart Rate Oscillations during Meditation	13 October 2000
@@ -60,34 +60,34 @@ macecgdb	Motion Artifact Contaminated ECG Database	18 December 2015
 motion-artifact	Motion Artifact Contaminated fNIRS and EEG Data	3 March 2014
 noneeg	Non-EEG Dataset for Assessment of Neurological Status	19 July 2017
 nifecgdb	Non-Invasive Fetal ECG Database	6 September 2007
-nsr2db	Normal Sinus Rhythm RR Interval Database	
-ob1db	OB-1 Fetal ECG Database [sample record]	
-afpdb	PAF Prediction Challenge Database	
-osv	Pattern Analysis of Oxygen Saturation Variability	
-prcp	Physiologic Response to Changes in Posture	
-szdb	Post-Ictal Heart Rate Oscillations in Partial Epilepsy	
-picsdb	Preterm Infant Cardio-Respiratory Signals Database	
-ptbdb	PTB Diagnostic ECG Database	
-qtdb	QT Database	
-rvmh1	Response to Valsalva Maneuver in Humans	
-sufhsdb	Shiraz University Fetal Heart Sounds Database	
+nsr2db	Normal Sinus Rhythm RR Interval Database	3 March 2003
+ob1db	OB-1 Fetal ECG Database [sample record]	3 August 2012
+afpdb	PAF Prediction Challenge Database	1 March 2001
+osv	Pattern Analysis of Oxygen Saturation Variability	27 September 2017
+prcp	Physiologic Response to Changes in Posture	18 February 2016
+szdb	Post-Ictal Heart Rate Oscillations in Partial Epilepsy	22 October 1999
+picsdb	Preterm Infant Cardio-Respiratory Signals Database	09 February 2017
+ptbdb	PTB Diagnostic ECG Database	25 September 2004
+qtdb	QT Database	16 November 1999
+rvmh1	Response to Valsalva Maneuver in Humans	14 November 2018
+sufhsdb	Shiraz University Fetal Heart Sounds Database	19 July 2017
 simfpcgdb	Simulated Fetal Phonocardiograms	21 January 2014
-sleepbrl	Sleep Bioradiolocation Database	
-sleep-edfx	Sleep-EDF Database [Expanded]	
-shhpsgdb	Sleep Heart Health Study PSG Database [sample record]	
-shareedb	Smart Health for Assessing the Risk of Events via ECG Database	
-mvtdb	Spontaneous Ventricular Tachyarrhythmia Database	
-sgamp	Squid Giant Axon Membrane Potential	
-incartdb	St Petersburg INCART 12-lead Arrhythmia Database	
-staffiii	STAFF III Database	
-drivedb	Stress Recognition in Automobile Drivers	
-sddb	Sudden Cardiac Death Holter Database	
-twadb	T-Wave Alternans Challenge Database	
-taichidb	Tai Chi, Physiological Complexity, and Healthy Aging - Gait	
-tpehgdb	Term-Preterm EHG Database	
-tpehgt	Term-Preterm EHG DataSet with Tocogram (TPEHGT DS)	
-ucddb	UCD Sleep Apnea Database	
-unicaprop	UniCA ElectroTastegram Database (PROP)	
-videopulse	Video Pulse Signals in Stationary and Motion Conditions	
-voiced	VOice ICar fEDerico II Database	
-wrist	Wrist PPG During Exercise	
+sleepbrl	Sleep Bioradiolocation Database	07 February 2018
+sleep-edfx	Sleep-EDF Database [Expanded]	24 October 2013
+shhpsgdb	Sleep Heart Health Study PSG Database [sample record]	23 October 2003
+shareedb	Smart Health for Assessing the Risk of Events via ECG Database	19 May 2015
+mvtdb	Spontaneous Ventricular Tachyarrhythmia Database	2 May 2007
+sgamp	Squid Giant Axon Membrane Potential	15 April 2016
+incartdb	St Petersburg INCART 12-lead Arrhythmia Database	1 May 2008
+staffiii	STAFF III Database	31 January 2017
+drivedb	Stress Recognition in Automobile Drivers	15 May 2008
+sddb	Sudden Cardiac Death Holter Database	2 July 2004
+twadb	T-Wave Alternans Challenge Database	22 September 2008
+taichidb	Tai Chi, Physiological Complexity, and Healthy Aging - Gait	11 May 2017
+tpehgdb	Term-Preterm EHG Database	21 January 2011
+tpehgt	Term-Preterm EHG DataSet with Tocogram (TPEHGT DS)	29 August 2018
+ucddb	UCD Sleep Apnea Database	9 October 2007
+unicaprop	UniCA ElectroTastegram Database (PROP)	19 July 2017
+videopulse	Video Pulse Signals in Stationary and Motion Conditions	12 July 2017
+voiced	VOice ICar fEDerico II Database	07 June 2018
+wrist	Wrist PPG During Exercise	20 October 2017
