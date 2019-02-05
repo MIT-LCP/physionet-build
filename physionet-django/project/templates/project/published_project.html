@@ -28,6 +28,7 @@
 
   Published: {{ project.publish_datetime|date }}. Version: {{ project.version }}
 
+  {% if not project.is_legacy %}
   <button class="btn btn-secondary dropdown-toggle" style="float:right" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
     Contents
   </button>
@@ -60,6 +61,7 @@
     <div class="dropdown-divider"></div>
     <a class="dropdown-item" href="#files">Files</a>
   </div>
+  {% endif %}
 
   <hr>
   <strong>When using this content, please cite:</strong>

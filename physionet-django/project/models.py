@@ -1366,6 +1366,7 @@ class LegacyProject(models.Model):
             doi=self.doi, slug=self.slug,
             resource_type=self.resource_type,
             core_project=CoreProject.objects.create(),
+            abstract=self.abstract,
             is_legacy=True, full_description=self.full_description,
             version=self.version,
             license=License.objects.get(name='Open Data Commons Attribution License v1.0')

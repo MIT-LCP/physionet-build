@@ -26,14 +26,16 @@ PhysioNet {{ content_name }}
       </strong>
     </p>
     {{ published_project.abstract|safe }}
-    <p class="text-muted">
-      Published: {{ published_project.publish_datetime|date }}.
-      Version: {{ published_project.version }}
-      <br>
-      {% for topic in topics %}
-        <a href="{% url 'topic_search' topic.description %}"><span class="badge badge-info">{{ topic }}</span></a>
-      {% endfor %}
-    </p>
+    {% if not published_project.is_legacy %}
+      <p class="text-muted">
+        Published: {{ published_project.publish_datetime|date }}.
+        Version: {{ published_project.version }}
+        <br>
+        {% for topic in topics %}
+          <a href="{% url 'topic_search' topic.description %}"><span class="badge badge-info">{{ topic }}</span></a>
+        {% endfor %}
+      </p>
+    {% endif %}
     <hr>
   {% endfor %}
   <br>

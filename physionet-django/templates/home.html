@@ -39,13 +39,15 @@ PhysioNet
              {{ published_project.access_policy|access_badge|safe }}
           </p>
           <a href="{% url 'published_project' published_project.slug %}"><h2>{{ published_project.title }}</h2></a>
-          <p class="text-muted">
-            <strong>Authors:
-            {% for author in authors %}
-              {{ author.get_full_name }}
-            {% endfor %}
-            </strong>
-          </p>
+          {% if not published_project.is_legacy %}
+            <p class="text-muted">
+              <strong>Authors:
+              {% for author in authors %}
+                {{ author.get_full_name }}
+              {% endfor %}
+              </strong>
+            </p>
+          {% endif %}
           {{ published_project.abstract|safe }}
           <p class="text-muted">
             Published: {{ published_project.publish_datetime|date }}.
