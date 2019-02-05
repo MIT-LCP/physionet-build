@@ -45,9 +45,7 @@ for slug, title, pubdate in dbs:
 with open('project/fixtures/pbank.json', 'w') as f:
     data = serializers.serialize('json', LegacyProject.objects.all(),
         stream=f)
-    # JsonSerializer = serializers.get_serializer('json')
-    # json_serializer = JsonSerializer()
-    # json_serializer.serialize(LegacyProject.objects.all(), f)
+
 
 
 # Testing publish
