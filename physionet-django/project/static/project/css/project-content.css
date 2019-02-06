@@ -4,3 +4,12 @@
   margin-right: 3rem !important;
   background: rgb(230, 230, 230) !important;
 }
+
+blockquote {
+  display: block;
+  margin-top: 1em;
+  margin-bottom: 1em;
+  padding-left: 40px;
+  padding-right: 40px;
+  background: #F0F0F0;
+}

@@ -141,11 +141,12 @@ CKEDITOR_CONFIGS = {
         'toolbar_Custom': [
             ['Format', 'Bold', 'Italic', 'Underline'],
             ['NumberedList', 'BulletedList'],
-            ['Table'],
+            ['Blockquote', 'CodeSnippet', 'Table'],
             ['Link', 'Unlink'],
-            ['RemoveFormat', 'Source']
+            ['RemoveFormat', 'Source'],
         ],
         'format_tags': 'p;h3',
+        'extraPlugins': 'codesnippet',
     }
 
 }

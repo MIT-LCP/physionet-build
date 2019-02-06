@@ -8,6 +8,11 @@
 
 {% block local_css %}
 <link rel="stylesheet" type="text/css" href="{% static 'project/css/project-content.css' %}"/>
+<link rel="stylesheet" type="text/css" href="{% static 'highlight/css/default.min.css' %}"/>
+{% endblock %}
+
+{% block local_js_top %}
+<script type="text/javascript" src="{% static 'highlight/js/highlight.min.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -205,4 +210,5 @@
 
 {% block local_js_bottom %}
 <script type="text/javascript" src="{% static 'custom/js/enable-popover.js' %}"></script>
+<script>hljs.initHighlightingOnLoad();</script>
 {% endblock %}
