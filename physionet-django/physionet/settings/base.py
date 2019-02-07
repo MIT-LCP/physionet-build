@@ -119,7 +119,6 @@ LOGOUT_REDIRECT_URL = '/'
 
 LANGUAGE_CODE = 'en-us'
 
-# TIME_ZONE = 'UTC'
 TIME_ZONE = 'America/New_York'
 
 USE_I18N = True
@@ -139,9 +138,10 @@ CKEDITOR_CONFIGS = {
     'default': {
         'toolbar': 'Custom',
         'toolbar_Custom': [
-            ['Format', 'Bold', 'Italic', 'Underline'],
+            ['Format'],
+            ['Bold', 'Italic', 'Underline','Blockquote'],
             ['NumberedList', 'BulletedList'],
-            ['Blockquote', 'CodeSnippet', 'Table'],
+            ['CodeSnippet', 'Table'],
             ['Link', 'Unlink'],
             ['RemoveFormat', 'Source'],
         ],
