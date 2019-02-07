@@ -62,3 +62,14 @@ PublishedProject.objects.get(slug='wrist').remove(force=True)
 
 
 PublishedProject.objects.get(slug='wrist').delete()
+
+
+for p in PublishedProject.objects.all():
+    p.remove(force=True)
+
+
+for l in LegacyProject.objects.all().order_by('publish_date'):
+    if l.doi:
+        l.publish()
+
+LegacyProject.objects.filter(doi='')
