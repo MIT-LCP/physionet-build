@@ -7,7 +7,7 @@ from urllib.request import urlopen
 
 from django.core import serializers
 
-from project.models import LegacyProject
+from project.models import LegacyProject, PublishedProject
 
 
 def load_legacy_html(slug):
