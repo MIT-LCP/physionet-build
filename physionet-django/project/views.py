@@ -1078,3 +1078,14 @@ def sign_dua(request, published_project_slug):
 
     return render(request, 'project/sign_dua.html', {'project':project,
         'license':license, 'license_content':license_content})
+
+
+from .serializers import PublishedProjectSerializer
+
+def project_list(request):
+    """
+    List all published projects
+    """
+    projects = PublishedProject.objects.all()
+    serializer = PublishedProjectSerializer(projects, many=True)
+    return JsonResponse(serializer.data, safe=False)
