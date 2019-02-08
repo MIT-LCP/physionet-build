@@ -28,48 +28,50 @@ dbs = open('project/DBS.tsv')
 dbs = dbs.readlines()
 dbs = [d.split('\t') for d in dbs]
 
-for slug, title, pubdate in dbs:
-    r = requests.get('https://physionet.org/physiobank/database/{}/HEADER.shtml'.format(slug))
-    if r.status_code != 200:
-        r = requests.get('https://physionet.org/physiobank/database/{}/index.shtml'.format(slug))
+
+def create_legacy_projects():
+    """
+    Import the pb html content into new LegacyProject objects
+    """
+    for slug, title, pubdate in dbs:
+        r = requests.get('https://physionet.org/physiobank/database/{}/HEADER.shtml'.format(slug))
         if r.status_code != 200:
-            pdb.set_trace()
-            print('{} does not exist'.format(slug))
-            continue
-    content = load_legacy_html(slug=slug)
-    p = LegacyProject.objects.create(title=title, slug=slug,
-        full_description=content, publish_date=datetime.datetime.strptime(pubdate.strip(), '%d %B %Y'))
+            r = requests.get('https://physionet.org/physiobank/database/{}/index.shtml'.format(slug))
+            if r.status_code != 200:
+                pdb.set_trace()
+                print('{} does not exist'.format(slug))
+                continue
+        content = load_legacy_html(slug=slug)
+        p = LegacyProject.objects.create(title=title, slug=slug,
+            full_description=content, publish_date=datetime.datetime.strptime(pubdate.strip(), '%d %B %Y'))
 
 
-# Write all the pbank LegacyProject data to fixtures
-with open('project/fixtures/pbank.json', 'w') as f:
-    data = serializers.serialize('json', LegacyProject.objects.all(),
-        stream=f)
+def write_legacy_fixtures():
+    "Write all the pbank LegacyProject data to fixtures"
+    with open('project/fixtures/pbank.json', 'w') as f:
+        data = serializers.serialize('json', LegacyProject.objects.all(),
+            stream=f)
 
 
-
-# Testing publish
-from project.models import LegacyProject, PublishedProject
-lp = LegacyProject.objects.get(slug='wrist')
-lp.publish()
-
-
-# Clearing content
-LegacyProject.objects.all().delete()
-
-from project.models import LegacyProject, PublishedProject
-PublishedProject.objects.get(slug='wrist').remove(force=True)
+def publish_legacy(slug):
+    "publish a legacy project given by the slug"
+    lp = LegacyProject.objects.get(slug=slug)
+    lp.publish()
 
 
-PublishedProject.objects.get(slug='wrist').delete()
+def publish_all_legacy():
+    "Publish all legacy projects"
+    for l in LegacyProject.objects.all().order_by('publish_date'):
+        if l.doi:
+            l.publish()
 
 
-for p in PublishedProject.objects.all():
-    p.remove(force=True)
+def clear_all_legacy():
+    "clear all legacy objects"
+    LegacyProject.objects.all().delete()
 
 
-for l in LegacyProject.objects.all().order_by('publish_date'):
-    if l.doi:
-        l.publish()
-
-LegacyProject.objects.filter(doi='')
+def clear_all_published():
+    "Remove all published projects"
+    for p in PublishedProject.objects.all():
+        p.remove(force=True)
