@@ -18,3 +18,11 @@ def validate_filename(value):
             'and dots. They may not contain adjacent dots, begin with, ' \
             'or end with a dot.', params={'filename':value})
 
+
+def validate_doi(value):
+    """
+    Validate a doi. Currently pn is assigned the 10.13026 prefix
+    """
+    if not re.fullmatch(r'10\.13026/[\w]{5,10}', value):
+        raise ValidationError('Invalid DOI: %(doi)s',
+            params={'doi':value})

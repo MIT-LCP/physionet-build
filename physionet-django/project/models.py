@@ -16,6 +16,7 @@ from django.utils import timezone
 from django.utils.text import slugify
 
 from .utility import get_tree_size, get_file_info, get_directory_info, list_items, StorageInfo, get_tree_files, list_files
+from .validators import validate_doi
 from user.validators import validate_alphaplus, validate_alphaplusplus
 
 
@@ -861,7 +862,7 @@ class PublishedProject(Metadata, SubmissionInfo):
     is_newest_version = models.BooleanField(default=True)
     newest_version = models.ForeignKey('project.PublishedProject', null=True,
         related_name='older_versions', on_delete=models.SET_NULL)
-    doi = models.CharField(max_length=50, unique=True)
+    doi = models.CharField(max_length=50, unique=True, validators=[validate_doi])
     approved_users = models.ManyToManyField('user.User', db_index=True)
     # Fields for legacy pb databases
     is_legacy = models.BooleanField(default=False)

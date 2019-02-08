@@ -73,6 +73,7 @@ rvmh1	Response to Valsalva Maneuver in Humans	14 November 2018
 sufhsdb	Shiraz University Fetal Heart Sounds Database	19 July 2017
 simfpcgdb	Simulated Fetal Phonocardiograms	21 January 2014
 sleepbrl	Sleep Bioradiolocation Database	07 February 2018
+sleep-edf	Sleep-EDF Database	12 December 2002
 sleep-edfx	Sleep-EDF Database [Expanded]	24 October 2013
 shhpsgdb	Sleep Heart Health Study PSG Database [sample record]	23 October 2003
 shareedb	Smart Health for Assessing the Risk of Events via ECG Database	19 May 2015
@@ -82,6 +83,7 @@ incartdb	St Petersburg INCART 12-lead Arrhythmia Database	1 May 2008
 staffiii	STAFF III Database	31 January 2017
 drivedb	Stress Recognition in Automobile Drivers	15 May 2008
 sddb	Sudden Cardiac Death Holter Database	2 July 2004
+tns	Surrogate Data with Correlations, Trends, and Nonstationarities	7 March 2003
 twadb	T-Wave Alternans Challenge Database	22 September 2008
 taichidb	Tai Chi, Physiological Complexity, and Healthy Aging - Gait	11 May 2017
 tpehgdb	Term-Preterm EHG Database	21 January 2011
