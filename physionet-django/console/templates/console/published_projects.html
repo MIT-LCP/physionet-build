@@ -28,7 +28,7 @@
             <td><a href="{% url 'published_project' project.slug %}">{{ project.title }}</a></td>
             <td><a href="{% url 'published_submission_history' project.slug %}">View History</a></td>
             <td>{{ project.version }}</td>
-            <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</td>
+            <td>{% if project.is_legacy %}Legacy{% else %}<a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}{% endif %}</td>
             <td>{{ project.editor }}</td>
             <td>{{ project.creation_datetime|date }}</td>
             <td>{{ project.publish_datetime|date }}</td>

@@ -1,8 +1,10 @@
+from datetime import datetime
 import hashlib
 import os
 import shutil
 import uuid
 import pdb
+import pytz
 
 from ckeditor.fields import RichTextField
 from django.conf import settings
@@ -178,7 +180,7 @@ class Reference(models.Model):
     object_id = models.PositiveIntegerField()
     project = GenericForeignKey('content_type', 'object_id')
 
-    description = models.CharField(max_length=250)
+    description = models.CharField(max_length=1000)
 
     class Meta:
         unique_together = (('description', 'content_type', 'object_id'),)
@@ -188,7 +190,7 @@ class Reference(models.Model):
 
 
 class PublishedReference(models.Model):
-    description = models.CharField(max_length=250)
+    description = models.CharField(max_length=1000)
     project = models.ForeignKey('project.PublishedProject',
         related_name='references', on_delete=models.CASCADE)
 
@@ -212,7 +214,7 @@ class BasePublication(models.Model):
     Base model for the publication to cite when referencing the
     resource
     """
-    citation = models.CharField(max_length=250)
+    citation = models.CharField(max_length=1000)
     url = models.URLField(blank=True, default='')
 
     class Meta:
@@ -861,6 +863,9 @@ class PublishedProject(Metadata, SubmissionInfo):
         related_name='older_versions', on_delete=models.SET_NULL)
     doi = models.CharField(max_length=50, unique=True)
     approved_users = models.ManyToManyField('user.User', db_index=True)
+    # Fields for legacy pb databases
+    is_legacy = models.BooleanField(default=False)
+    full_description = RichTextField()
 
     # Where all the published project files are kept, depending on access.
     PROTECTED_FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'published-projects')
@@ -1092,9 +1097,12 @@ class PublishedProject(Metadata, SubmissionInfo):
             special_used=special)
 
     def citation_text(self):
+        if self.is_legacy:
+            return ''
+
         return '{} ({}). {}. PhysioNet. doi:{}'.format(
             ', '.join(a.initialed_name() for a in self.authors.all()),
-            timezone.now().year, self.title, self.doi)
+            self.publish_datetime.year, self.title, self.doi)
 
     def remove(self, force=False):
         """
@@ -1320,3 +1328,65 @@ class CopyeditLog(models.Model):
     made_changes = models.NullBooleanField(null=True)
     changelog_summary = models.CharField(default='', max_length=2500, blank=True)
     complete_datetime = models.DateTimeField(null=True)
+
+
+class LegacyProject(models.Model):
+    """
+    Temporary model for migrating legacy databases
+
+    """
+    title = models.CharField(max_length=255)
+    slug = models.CharField(max_length=100)
+    abstract = RichTextField(blank=True, default='')
+    full_description = RichTextField()
+    doi = models.CharField(max_length=100, blank=True, default='')
+    version = models.CharField(max_length=20, default='1.0.0')
+
+    resource_type = models.PositiveSmallIntegerField(default=0)
+    publish_date = models.DateField()
+
+    # In case we want a citation
+    citation = models.CharField(blank=True, default='', max_length=1000)
+    citation_url = models.URLField(blank=True, default='')
+
+    contact_name = models.CharField(max_length=120, default='PhysioNet Support')
+    contact_affiliations = models.CharField(max_length=150, default='MIT')
+    contact_email = models.EmailField(max_length=255, default='webmaster@physionet.org')
+
+    # Put the references as part of the full description
+
+    def __str__(self):
+        return ' --- '.join([self.slug, self.title])
+
+    def publish(self):
+        """
+        Turn into a published project
+        """
+        p = PublishedProject.objects.create(title=self.title,
+            doi=self.doi, slug=self.slug,
+            resource_type=self.resource_type,
+            core_project=CoreProject.objects.create(),
+            abstract=self.abstract,
+            is_legacy=True, full_description=self.full_description,
+            version=self.version,
+            license=License.objects.get(name='Open Data Commons Attribution License v1.0')
+        )
+
+        # Have to set publish_datetime here due to auto_now_add of object
+        dt = datetime.combine(self.publish_date, datetime.min.time())
+        dt = pytz.timezone(timezone.get_default_timezone_name()).localize(dt)
+        p.publish_datetime = dt
+        p.save()
+
+        # Related objects
+        if self.citation:
+            PublishedPublication.objects.create(citation=self.citation,
+                url=self.citation_url, project=p)
+
+        Contact.objects.create(name=self.contact_name,
+            affiliations=self.contact_affiliations, email=self.contact_email,
+            project=p)
+
+        os.mkdir(p.file_root())
+        os.mkdir(p.special_file_root())
+        os.mkdir(p.main_file_root())

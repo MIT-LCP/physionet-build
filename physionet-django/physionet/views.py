@@ -74,10 +74,10 @@ def get_content(resource_type=None):
     """
     if resource_type is None:
         published_projects = PublishedProject.objects.all().order_by(
-            'publish_datetime')
+            '-publish_datetime')
     else:
         published_projects = PublishedProject.objects.filter(
-            resource_type=resource_type).order_by('publish_datetime')
+            resource_type=resource_type).order_by('-publish_datetime')
 
     authors = [p.authors.all() for p in published_projects]
     topics = [p.topics.all() for p in published_projects]

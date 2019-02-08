@@ -8,6 +8,11 @@
 
 {% block local_css %}
 <link rel="stylesheet" type="text/css" href="{% static 'project/css/project-content.css' %}"/>
+<link rel="stylesheet" type="text/css" href="{% static 'highlight/css/default.min.css' %}"/>
+{% endblock %}
+
+{% block local_js_top %}
+<script type="text/javascript" src="{% static 'highlight/js/highlight.min.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -28,6 +33,7 @@
 
   Published: {{ project.publish_datetime|date }}. Version: {{ project.version }}
 
+  {% if not project.is_legacy %}
   <button class="btn btn-secondary dropdown-toggle" style="float:right" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
     Contents
   </button>
@@ -60,20 +66,31 @@
     <div class="dropdown-divider"></div>
     <a class="dropdown-item" href="#files">Files</a>
   </div>
+  {% endif %}
 
   <hr>
   <strong>When using this content, please cite:</strong>
-  <p class="citation">{{ project.citation_text }}</p>
+  {% if project.is_legacy %}
+    <p class="citation">Goldberger AL, Amaral LAN, Glass L, Hausdorff JM, Ivanov PCh, Mark RG, Mietus JE, Moody GB, Peng C-K, Stanley HE. <a href="http://circ.ahajournals.org/cgi/content/full/101/23/e215" target="_blank">PhysioBank, PhysioToolkit, and PhysioNet: Components of a New Research Resource for Complex Physiologic Signals</a>. Circulation 101(23):e215-e220 [Circulation Electronic Pages; 2000 (June 13).</p>
+  {% else %}
+    <p class="citation">{{ project.citation_text }}</p>
+  {% endif %}
+
   {% if publication %}
-  <strong>Please also cite:</strong>
-  <p class="citation">{{ publication.citation }}</p>
+    <strong>Please also cite:</strong>
+    <p class="citation"><a href="{{ publication.url }}" target="_blank">{{ publication.citation }}</a></p>
   {% endif %}
   <hr>
   <div class="row">
     <!-- Main column -->
     <div class="col-md-8">
       {% if project.resource_type == 0 %}
-        {% include "project/database_metadata.html" %}
+        {% if project.is_legacy %}
+          {{ project.full_description|safe }}
+          <hr>
+        {% else %}
+          {% include "project/database_metadata.html" %}
+        {% endif %}
       {% else %}
         {% include "project/software_metadata.html" %}
       {% endif %}
@@ -88,7 +105,7 @@
           <p>
             <strong>Access Policy:</strong>
             <br>
-            {{ project.access_policy|access_badge|safe}} {{ project.access_policy|access_description }}
+            {{ project.access_policy|access_badge|safe }} {{ project.access_policy|access_description }}
           </p>
           <p>
             <strong>License (for files):</strong>
@@ -193,4 +210,5 @@
 
 {% block local_js_bottom %}
 <script type="text/javascript" src="{% static 'custom/js/enable-popover.js' %}"></script>
+<script>hljs.initHighlightingOnLoad();</script>
 {% endblock %}

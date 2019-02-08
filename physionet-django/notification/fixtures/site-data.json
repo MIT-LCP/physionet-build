@@ -1,0 +1,12 @@
+[
+{
+  "model": "notification.news",
+  "pk": 1,
+  "fields": {
+    "title": "New Platform In Alpha Testing",
+    "content": "<p>The PhysioNet team has been working on its new web platform. The site is being alpha tested here at <a href=\"https://alpha.physionet.org/\">https://alpha.physionet.org/</a>. The original site will continue running at <a href=\"https://physionet.org/\">https://physionet.org/</a> until its content and functionality is ported over.</p><p>You can leave feedback and track our progress via the <a href=\"https://github.com/MIT-LCP/physionet-build/\">development repository</a>.</p>",
+    "publish_datetime": "2019-01-01T19:47:15.285Z",
+    "url": "https://alpha.physionet.org/"
+  }
+}
+]
