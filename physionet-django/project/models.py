@@ -865,7 +865,7 @@ class PublishedProject(Metadata, SubmissionInfo):
     approved_users = models.ManyToManyField('user.User', db_index=True)
     # Fields for legacy pb databases
     is_legacy = models.BooleanField(default=False)
-    full_description = RichTextField()
+    full_description = RichTextField(default='')
 
     # Where all the published project files are kept, depending on access.
     PROTECTED_FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'published-projects')
