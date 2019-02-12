@@ -176,15 +176,9 @@
     <!-- /.sidebar -->
   </div>
   <h2 id="files">Files</h2>
-  <br>
   {% if project.access_policy %}
     {% if has_access %}
-      <h3>Special Files</h3>
-      <p>Total file size: {{ special_size }}</p>
-      {% include "project/protected_special_files_panel.html" %}
-      <br>
-      <h3>Main Files</h3>
-      <p>Total file size: {{ main_size }}</p>
+      <p>Total uncompressed size: {{ main_size }}. Zip of all files: {{ compressed_size }}</p>
       <div id="files-panel" class="card">
         {% include "project/protected_files_panel.html" %}
       </div>
@@ -194,12 +188,7 @@
     </div>
     {% endif %}
   {% else %}
-    <h3>Special Files</h3>
-    <p>Total file size: {{ special_size }}</p>
-    {% include "project/open_special_files_panel.html" %}
-    <br>
-    <h3>Main Files</h3>
-    <p>Total file size: {{ main_size }}</p>
+    <p>Total uncompressed size: {{ main_size }}. <a class="btn btn-success btn-sm" href="{% static project.zip_url %}" style="float:right">Download Zip ({{ compressed_size }})</a></p>
     <div id="files-panel" class="card">
       {% include "project/open_files_panel.html" %}
     </div>

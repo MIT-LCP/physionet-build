@@ -938,13 +938,29 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         Make a (new) zip file of the main files.
         """
+        # Where the zip should be
         fname = self.zip_name(full=True)
         if os.path.isfile(fname):
             os.remove(fname)
 
-        file = shutil.make_archive(
-            base_name=fname[:-4],
-            format='zip')
+        # Prevent recursively zipping the zip file
+        zipfile = shutil.make_archive(base_name=os.path.join(
+            PublishedProject.PROTECTED_FILE_ROOT, self.slugged_label()),
+            format='zip', root_dir=self.file_root())
+
+        os.rename(zipfile, fname)
+        self.compressed_storage_size = os.path.getsize(fname)
+        self.save()
+
+    def zip_url(self):
+        """
+        The url to download the zip file from
+        """
+        if self.access_policy:
+            return
+        else:
+            return os.path.join('published-projects', self.slug, self.zip_name())
+
 
     def make_files_list(self, update_size=False):
         "Make a files list of the main files. Write to project file root"
@@ -1016,49 +1032,6 @@ class PublishedProject(Metadata, SubmissionInfo):
             display_dirs.append(dir_info)
 
         return display_files, display_dirs
-
-    def get_special_directory_content(self):
-        """
-        Return information for displaying files from the special file root
-        """
-        inspect_dir = self.special_file_root()
-
-        file_names = list_files(inspect_dir)
-
-        display_files = []
-
-        # Files require desciptive info and download links
-        for file in file_names:
-            file_info = get_file_info(os.path.join(inspect_dir, file))
-            if self.access_policy:
-                file_info.full_file_name = os.path.join('special-files', file)
-            else:
-                file_info.static_url = os.path.join('published-projects', str(self.slug), 'special-files', file)
-            # Add the description for the special files
-            if file.endswith('zip'):
-                file_info.description = 'All files zipped'
-            else:
-                file_info.description = PublishedProject.SPECIAL_FILES[file]
-
-            display_files.append(file_info)
-
-        return display_files
-
-    def move_special_files(self, update_size=False):
-        """
-        Move the generated special files into the main file root.
-        """
-        for file in ['FILES.txt', 'LICENSE.txt', 'SHA256SUMS.txt']:
-
-            if os.path.isfile(os.path.join(self.file_root(), file)):
-
-                if os.path.isfile(os.path.join(self.main_file_root(), file)):
-
-                os.rename(os.path.join(self.main_file_root(), file),
-                    os.path.join(self.special_file_root(), file))
-
-        if update_size:
-            self.set_storage_info(info_type='all')
 
     def has_access(self, user):
         """
