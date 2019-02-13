@@ -839,7 +839,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         os.rename(self.file_root(), published_project.main_file_root())
         # Create special files if there are files. Should always be the case.
         if bool(self.storage_used):
-            published_project.move_special_files()
             published_project.make_special_files(make_zip=make_zip)
         published_project.set_storage_info()
         # Remove the ActiveProject
@@ -963,51 +962,51 @@ class PublishedProject(Metadata, SubmissionInfo):
             return os.path.join('published-projects', self.slug, self.zip_name())
 
 
-    def make_files_list(self, update_size=False):
+    def make_files_list(self):
         "Make a files list of the main files. Write to project file root"
+        fname = os.path.join(self.main_file_root(), 'FILES.txt')
+        if os.path.isfile(fname):
+            os.remove(fname)
+
         files = get_tree_files(self.main_file_root(), full_path=False)
-        with open(os.path.join(self.special_file_root(), 'files.txt'), 'w') as outfile:
+        with open(fname, 'w') as outfile:
             for f in files:
-                outfile.write(f + '\n')
+                outfile.write('{}\n'.format(f))
 
-        if update_size:
-            self.set_storage_info(info_type='special')
+        self.set_storage_info()
 
-    def make_checksum_file(self, update_size=False):
+    def make_checksum_file(self):
         "Make the checksums file for the main files"
+        fname = os.path.join(self.main_file_root(), 'SHA256SUMS.txt')
+        if os.path.isfile(fname):
+            os.remove(fname)
+
         files = get_tree_files(self.main_file_root(), full_path=False)
-        with open(os.path.join(self.special_file_root(), 'sha256sums.txt'), 'w') as outfile:
+        with open(fname, 'w') as outfile:
             for f in files:
                 outfile.write('{} {}\n'.format(
                     hashlib.sha256(open(os.path.join(self.main_file_root(), f), 'rb').read()).hexdigest(), f))
 
-        if update_size:
-            self.set_storage_info(info_type='special')
+        self.set_storage_info()
 
-    def make_license_file(self, update_size=False):
+    def make_license_file(self):
         "Make the license text file"
-        with open(os.path.join(self.special_file_root(), 'license.txt'), 'w') as outfile:
+        with open(os.path.join(self.main_file_root(), 'LICENSE.txt'), 'w') as outfile:
             outfile.write(self.license_content(fmt='text'))
 
-        if update_size:
-            self.set_storage_info(info_type='special')
+        self.set_storage_info()
 
-    def make_special_files(self, make_zip, update_size=False):
+    def make_special_files(self, make_zip):
         """
         Make the special files for the database. zip file, files list,
-        checksum. Make the base directory for the special files if needed
+        checksum.
         """
-        if not os.path.isdir(self.special_file_root()):
-            os.mkdir(self.special_file_root())
+        self.make_license_file()
         self.make_files_list()
         self.make_checksum_file()
-        self.make_license_file()
         # This should come last since it also zips the special files
         if make_zip:
             self.make_zip()
-
-        if update_size:
-            self.set_storage_info(info_type='special')
 
     def get_main_directory_content(self, subdir=''):
         """
@@ -1348,5 +1347,4 @@ class LegacyProject(models.Model):
             project=p)
 
         os.mkdir(p.file_root())
-        os.mkdir(p.special_file_root())
         os.mkdir(p.main_file_root())
