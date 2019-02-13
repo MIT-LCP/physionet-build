@@ -178,7 +178,7 @@
   <h2 id="files">Files</h2>
   {% if project.access_policy %}
     {% if has_access %}
-      <p>Total uncompressed size: {{ main_size }}. Zip of all files: {{ compressed_size }}</p>
+      <p>Total uncompressed size: {{ main_size }}.{% if project.compressed_storage_size %}<a class="btn btn-success btn-sm" href="{% url 'serve_published_project_file' project.slug project.zip_name %}" style="float:right">Download Zip ({{ compressed_size }})</a>{% endif %}</p>
       <div id="files-panel" class="card">
         {% include "project/protected_files_panel.html" %}
       </div>
@@ -188,7 +188,7 @@
     </div>
     {% endif %}
   {% else %}
-    <p>Total uncompressed size: {{ main_size }}. <a class="btn btn-success btn-sm" href="{% static project.zip_url %}" style="float:right">Download Zip ({{ compressed_size }})</a></p>
+    <p>Total uncompressed size: {{ main_size }}.{% if project.compressed_storage_size %}<a class="btn btn-success btn-sm" href="{% static project.zip_url %}" style="float:right">Download Zip ({{ compressed_size }})</a>{% endif %}</p>
     <div id="files-panel" class="card">
       {% include "project/open_files_panel.html" %}
     </div>

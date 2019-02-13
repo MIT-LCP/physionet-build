@@ -954,10 +954,11 @@ class PublishedProject(Metadata, SubmissionInfo):
 
     def zip_url(self):
         """
-        The url to download the zip file from
+        The url to download the zip file from. Only needed for open
+        projects
         """
         if self.access_policy:
-            return
+            raise Exception('This should not be called by protected projects')
         else:
             return os.path.join('published-projects', self.slug, self.zip_name())
 
