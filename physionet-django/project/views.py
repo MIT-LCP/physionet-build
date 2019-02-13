@@ -1041,14 +1041,12 @@ def published_project(request, published_project_slug):
     if has_access:
         display_files, display_dirs = project.get_main_directory_content()
         dir_breadcrumbs = utility.get_dir_breadcrumbs('')
-        main_size, special_size = [utility.readable_size(s) for s in
-            (project.main_storage_size, project.special_storage_size)]
-        # Special files
-        special_display_files = project.get_special_directory_content()
+        main_size, compressed_size = [utility.readable_size(s) for s in
+            (project.main_storage_size, project.compressed_storage_size)]
+
         context = {**context, **{'dir_breadcrumbs':dir_breadcrumbs,
-            'main_size':main_size, 'special_size':special_size,
-            'display_files':display_files, 'display_dirs':display_dirs,
-            'special_display_files':special_display_files}}
+            'main_size':main_size, 'compressed_size':compressed_size,
+            'display_files':display_files, 'display_dirs':display_dirs}}
 
     return render(request, 'project/published_project.html', context)
 

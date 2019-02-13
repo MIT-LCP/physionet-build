@@ -43,7 +43,7 @@ urlpatterns = [
         project_views.published_project, name='published_project'),
     path('content/<published_project_slug>/files-panel/',
         project_views.published_files_panel, name='published_files_panel'),
-    re_path('content/(?P<published_project_slug>\w+)/files/(?P<full_file_name>.+)',
+    re_path('content/(?P<published_project_slug>\w+)/get-file/(?P<full_file_name>.+)',
         project_views.serve_published_project_file, name='serve_published_project_file'),
     path('content/<published_project_slug>/view-license/',
         project_views.published_project_license, name='published_project_license'),
