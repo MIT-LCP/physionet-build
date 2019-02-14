@@ -833,14 +833,12 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             copyedit_log.project = published_project
             copyedit_log.save()
 
-        # Create file roots
+        # Create file root
         os.mkdir(published_project.file_root())
-        os.mkdir(published_project.special_file_root())
         # Move over main files
         os.rename(self.file_root(), published_project.main_file_root())
         # Create special files if there are files. Should always be the case.
         if bool(self.storage_used):
-            published_project.move_special_files()
             published_project.make_special_files(make_zip=make_zip)
         published_project.set_storage_info()
         # Remove the ActiveProject
@@ -856,8 +854,7 @@ class PublishedProject(Metadata, SubmissionInfo):
     """
     # File storage sizes in bytes
     main_storage_size = models.PositiveIntegerField(default=0)
-    special_storage_size = models.PositiveIntegerField(default=0)
-    total_storage_size = models.PositiveIntegerField(default=0)
+    compressed_storage_size = models.PositiveIntegerField(default=0)
     publish_datetime = models.DateTimeField(auto_now_add=True)
     is_newest_version = models.BooleanField(default=True)
     newest_version = models.ForeignKey('project.PublishedProject', null=True,
@@ -877,12 +874,11 @@ class PublishedProject(Metadata, SubmissionInfo):
         PUBLIC_FILE_ROOT = os.path.join(settings.STATIC_ROOT, 'published-projects')
 
     SPECIAL_FILES = {
-        'files.txt':'List of main files',
-        'license.txt':"License for using files",
-        'sha256sums.txt':'Checksums of main files',
-        'subject-info.csv':'Subject information spreadsheet',
-        'wfdb-records.txt':'List of WFDB format records',
-        'wfdb-annotators.csv':'List of WFDB annotation file types'
+        'FILES.txt':'List of all files',
+        'LICENSE.txt':'License for using files',
+        'SHA256SUMS.txt':'Checksums of all files',
+        'RECORDS.txt':'List of WFDB format records',
+        'ANNOTATORS.tsv':'List of WFDB annotation file types'
     }
 
     class Meta:
@@ -905,32 +901,20 @@ class PublishedProject(Metadata, SubmissionInfo):
 
     def main_file_root(self):
         "Root directory where the main user uploaded files are located"
-        return os.path.join(self.file_root(), 'main-files')
-
-    def special_file_root(self):
-        "Root directory where the special files are located"
-        return os.path.join(self.file_root(), 'special-files')
+        return os.path.join(self.file_root(), 'files')
 
     def storage_used(self):
-        "Total storage used in bytes of main, special, and total files"
+        "Bytes of storage used by main files and compressed file if any"
         main = get_tree_size(self.main_file_root())
-        special = get_tree_size(self.special_file_root())
-        return main, special, main+special
+        compressed = os.path.getsize(self.zip_name(full=True)) if os.path.isfile(self.zip_name(full=True)) else 0
+        return main, compressed
 
-    def set_storage_info(self, info_type='all'):
+    def set_storage_info(self):
         """
-        Sum up the file size(s) of the project and set the storage info
-        field(s)
+        Sum up the file sizes of the project and set the storage info
+        fields
         """
-        if info_type == 'all':
-            (self.main_storage_size, self.special_storage_size,
-                self.total_storage_size) = self.storage_used()
-        elif info_type == 'main':
-            self.main_storage_size = get_tree_size(self.main_file_root())
-            self.total_storage_size = self.main_storage_size + self.special_storage_size
-        elif info_type == 'special':
-            self.special_storage_size = get_tree_size(self.special_file_root())
-            self.total_storage_size = self.main_storage_size + self.special_storage_size
+        self.main_storage_size, self.zip_storage_size = self.storage_used()
         self.save()
 
     def slugged_label(self):
@@ -940,75 +924,89 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         return '-'.join((slugify(self.title), self.version.replace(' ', '-')))
 
-    def zip_name(self):
-        return '{}.zip'.format(self.slugged_label())
-
-    def make_zip(self, update_size=False):
+    def zip_name(self, full=False):
         """
-        Make a (new) zip file of the main and special files.
-        Move to the special file root.
+        Name of the zip file. Either base name or full path name.
         """
-        if os.path.isfile(os.path.join(self.special_file_root(), self.zip_name())):
-            os.remove(os.path.join(self.special_file_root(), self.zip_name()))
+        name = '{}.zip'.format(self.slugged_label())
+        if full:
+            name = os.path.join(self.file_root(), name)
+        return name
 
-        owd = os.getcwd()
-        os.chdir(self.file_root())
+    def make_zip(self):
+        """
+        Make a (new) zip file of the main files.
+        """
+        # Where the zip should be
+        fname = self.zip_name(full=True)
+        if os.path.isfile(fname):
+            os.remove(fname)
 
-        file = shutil.make_archive(
-            base_name=os.path.join('..', self.slugged_label()),
-            format='zip')
-        os.rename(file, os.path.join(self.special_file_root(), self.zip_name()))
+        # Prevent recursively zipping the zip file
+        zipfile = shutil.make_archive(base_name=os.path.join(
+            PublishedProject.PROTECTED_FILE_ROOT, self.slugged_label()),
+            format='zip', root_dir=self.file_root())
 
-        if update_size:
-            self.set_storage_info(info_type='special')
-        # Change back to original dir
-        os.chdir(owd)
+        os.rename(zipfile, fname)
+        self.compressed_storage_size = os.path.getsize(fname)
+        self.save()
 
-    def make_files_list(self, update_size=False):
+    def zip_url(self):
+        """
+        The url to download the zip file from. Only needed for open
+        projects
+        """
+        if self.access_policy:
+            raise Exception('This should not be called by protected projects')
+        else:
+            return os.path.join('published-projects', self.slug, self.zip_name())
+
+
+    def make_files_list(self):
         "Make a files list of the main files. Write to project file root"
+        fname = os.path.join(self.main_file_root(), 'FILES.txt')
+        if os.path.isfile(fname):
+            os.remove(fname)
+
         files = get_tree_files(self.main_file_root(), full_path=False)
-        with open(os.path.join(self.special_file_root(), 'files.txt'), 'w') as outfile:
+        with open(fname, 'w') as outfile:
             for f in files:
-                outfile.write(f + '\n')
+                outfile.write('{}\n'.format(f))
 
-        if update_size:
-            self.set_storage_info(info_type='special')
+        self.set_storage_info()
 
-    def make_checksum_file(self, update_size=False):
+    def make_checksum_file(self):
         "Make the checksums file for the main files"
+        fname = os.path.join(self.main_file_root(), 'SHA256SUMS.txt')
+        if os.path.isfile(fname):
+            os.remove(fname)
+
         files = get_tree_files(self.main_file_root(), full_path=False)
-        with open(os.path.join(self.special_file_root(), 'sha256sums.txt'), 'w') as outfile:
+        with open(fname, 'w') as outfile:
             for f in files:
                 outfile.write('{} {}\n'.format(
                     hashlib.sha256(open(os.path.join(self.main_file_root(), f), 'rb').read()).hexdigest(), f))
 
-        if update_size:
-            self.set_storage_info(info_type='special')
+        self.set_storage_info()
 
-    def make_license_file(self, update_size=False):
+    def make_license_file(self):
         "Make the license text file"
-        with open(os.path.join(self.special_file_root(), 'license.txt'), 'w') as outfile:
+        with open(os.path.join(self.main_file_root(), 'LICENSE.txt'), 'w') as outfile:
             outfile.write(self.license_content(fmt='text'))
 
-        if update_size:
-            self.set_storage_info(info_type='special')
+        self.set_storage_info()
 
-    def make_special_files(self, make_zip, update_size=False):
+    def make_special_files(self, make_zip):
         """
         Make the special files for the database. zip file, files list,
-        checksum. Make the base directory for the special files if needed
+        checksum.
         """
-        if not os.path.isdir(self.special_file_root()):
-            os.mkdir(self.special_file_root())
+        self.make_license_file()
         self.make_files_list()
         self.make_checksum_file()
-        self.make_license_file()
         # This should come last since it also zips the special files
         if make_zip:
             self.make_zip()
-
-        if update_size:
-            self.set_storage_info(info_type='special')
 
     def get_main_directory_content(self, subdir=''):
         """
@@ -1023,9 +1021,9 @@ class PublishedProject(Metadata, SubmissionInfo):
         for file in file_names:
             file_info = get_file_info(os.path.join(inspect_dir, file))
             if self.access_policy:
-                file_info.full_file_name = os.path.join('main-files', subdir, file)
+                file_info.full_file_name = os.path.join('files', subdir, file)
             else:
-                file_info.static_url = os.path.join('published-projects', str(self.slug), 'main-files', subdir, file)
+                file_info.static_url = os.path.join('published-projects', str(self.slug), 'files', subdir, file)
             display_files.append(file_info)
         # Directories require
         for dir_name in dir_names:
@@ -1034,46 +1032,6 @@ class PublishedProject(Metadata, SubmissionInfo):
             display_dirs.append(dir_info)
 
         return display_files, display_dirs
-
-    def get_special_directory_content(self):
-        """
-        Return information for displaying files from the special file root
-        """
-        inspect_dir = self.special_file_root()
-
-        file_names = list_files(inspect_dir)
-
-        display_files = []
-
-        # Files require desciptive info and download links
-        for file in file_names:
-            file_info = get_file_info(os.path.join(inspect_dir, file))
-            if self.access_policy:
-                file_info.full_file_name = os.path.join('special-files', file)
-            else:
-                file_info.static_url = os.path.join('published-projects', str(self.slug), 'special-files', file)
-            # Add the description for the special files
-            if file.endswith('zip'):
-                file_info.description = 'All files zipped'
-            else:
-                file_info.description = PublishedProject.SPECIAL_FILES[file]
-
-            display_files.append(file_info)
-
-        return display_files
-
-    def move_special_files(self, update_size=False):
-        """
-        Move any special files uploaded by the user into the special
-        files directory.
-        """
-        for file in ['subject-info.csv', 'wfdb-records.txt', 'wfdb-annotators.csv']:
-            if os.path.isfile(os.path.join(self.main_file_root(), file)):
-                os.rename(os.path.join(self.main_file_root(), file),
-                    os.path.join(self.special_file_root(), file))
-
-        if update_size:
-            self.set_storage_info(info_type='all')
 
     def has_access(self, user):
         """
@@ -1389,5 +1347,4 @@ class LegacyProject(models.Model):
             project=p)
 
         os.mkdir(p.file_root())
-        os.mkdir(p.special_file_root())
         os.mkdir(p.main_file_root())

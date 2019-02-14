@@ -258,29 +258,29 @@ class TestAccessPublished(TestMixin, TestCase):
         self.assertEqual(response.status_code, 200)
         # Cannot access files
         response = self.client.get(reverse(
-            'serve_published_project_file', args=(project.slug, 'special-files/files.txt')))
+            'serve_published_project_file', args=(project.slug, 'files/FILES.txt')))
         self.assertEqual(response.status_code, 404)
 
         # Non-credentialed user
         self.client.login(username='aewj@mit.edu', password='Tester11!')
         response = self.client.get(reverse(
-            'serve_published_project_file', args=(project.slug, 'special-files/files.txt')))
+            'serve_published_project_file', args=(project.slug, 'files/FILES.txt')))
         self.assertEqual(response.status_code, 404)
 
         # Credentialed user that has not signed dua
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
         response = self.client.get(reverse(
-            'serve_published_project_file', args=(project.slug, 'special-files/files.txt')))
+            'serve_published_project_file', args=(project.slug, 'files/FILES.txt')))
         self.assertEqual(response.status_code, 404)
 
         # Sign the dua and get file again
         response = self.client.post(reverse('sign_dua', args=(project.slug,)),
             data={'agree':''})
         response = self.client.get(reverse(
-            'serve_published_project_file', args=(project.slug, 'special-files/files.txt')))
+            'serve_published_project_file', args=(project.slug, 'files/FILES.txt')))
         self.assertEqual(response.status_code, 200)
         response = self.client.get(reverse(
-            'serve_published_project_file', args=(project.slug, 'main-files/admissions.csv')))
+            'serve_published_project_file', args=(project.slug, 'files/admissions.csv')))
         self.assertEqual(response.status_code, 200)
 
     def test_open(self):
@@ -292,7 +292,7 @@ class TestAccessPublished(TestMixin, TestCase):
         response = self.client.get(reverse('published_project', args=(project.slug,)))
         self.assertEqual(response.status_code, 200)
         response = self.client.get(reverse(
-            'serve_published_project_file', args=(project.slug, 'main-files/Makefile')))
+            'serve_published_project_file', args=(project.slug, 'files/Makefile')))
         self.assertEqual(response.status_code, 200)
 
 
