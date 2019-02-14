@@ -8,7 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.contenttypes.models import ContentType
 from django.forms import formset_factory, inlineformset_factory, modelformset_factory
-from django.http import HttpResponse, Http404, JsonResponse
+from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
 from django.template import loader
 from django.urls import reverse
@@ -1078,14 +1078,3 @@ def sign_dua(request, published_project_slug):
 
     return render(request, 'project/sign_dua.html', {'project':project,
         'license':license, 'license_content':license_content})
-
-
-from .serializers import PublishedProjectSerializer
-
-def project_list(request):
-    """
-    List all published projects
-    """
-    projects = PublishedProject.objects.all()
-    serializer = PublishedProjectSerializer(projects, many=True)
-    return JsonResponse(serializer.data, safe=False)

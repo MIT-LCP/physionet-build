@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'user',
     'project',
     'console',
+    'export',
     'notification',
     'search',
 ]

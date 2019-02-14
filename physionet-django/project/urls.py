@@ -9,10 +9,6 @@ urlpatterns = [
     path('delete-project-success/', views.delete_project_success,
         name='delete_project_success'),
 
-
-    # Serializers
-    path('full-list/', views.project_list, name='project_list'),
-
     path('rejected/<project_slug>/submission-history/', views.rejected_submission_history,
         name='rejected_submission_history'),
     path('published/<project_slug>/submission-history/', views.published_submission_history,
@@ -67,5 +63,4 @@ urlpatterns = [
         name='check_integrity'),
     path('<project_slug>/submission/', views.project_submission,
         name='project_submission'),
-
 ]
