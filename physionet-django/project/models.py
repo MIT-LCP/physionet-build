@@ -1052,12 +1052,12 @@ class PublishedProject(Metadata, SubmissionInfo):
     def get_storage_info(self):
         """
         Return an object containing information about the project's
-        storage usage. Main, special, total files, and allowance.
+        storage usage. Main, compressed, total files, and allowance.
         """
-        main, special, total = self.storage_used()
+        main, compressed = self.storage_used()
         return StorageInfo(allowance=self.core_project.storage_allowance,
-            used=total, include_remaining=False, main_used=main,
-            special_used=special)
+            used=main+compressed, include_remaining=False, main_used=main,
+            compressed_used=compressed)
 
     def citation_text(self):
         if self.is_legacy:

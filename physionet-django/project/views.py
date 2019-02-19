@@ -751,6 +751,7 @@ def project_files(request, project_slug, **kwargs):
         project=project, subdir=subdir)
 
     return render(request, 'project/project_files.html', {'project':project,
+        'individual_size_limit':utility.readable_size(ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT),
         'subdir':subdir,
         'display_files':display_files,
         'display_dirs':display_dirs,
