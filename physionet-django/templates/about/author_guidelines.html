@@ -31,16 +31,8 @@ Author Guidelines
   <p>These are the steps for publishing a resource on PhysioNet:</p>
   <ul>
     <li>Create a project.</li>
-    <li>Prepare the project for submission</li>
-    {# This should match preparation_checklist.html #}
-    <ol>
-      <li>Invite authors to be credited for creating the resource.</li>
-      <li>Fill in the descriptive metadata.</li>
-      <li>Set the access policy and license.</li>
-      <li>Add identifiers.</li>
-      <li>Upload the files.</li>
-      <li>Proofread your project and make sure it is ready for submission.</li>
-    </ol>
+    <li>Prepare the project for submission:</li>
+    {% include "about/preparation_checklist.html" %}
     <li>Submit the project for review.</li>
     <ol>
       <li>An editor is assigned and makes a decision:</li>
@@ -91,7 +83,7 @@ Author Guidelines
   <br>
 
   <h3 id="identifiers">4. Identifiers</h3>
-  {% include "about/identifiers.html" %}
+  {% include "about/discovery.html" %}
   <br>
 
   <h3 id="files">5. Files</h3>

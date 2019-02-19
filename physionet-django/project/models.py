@@ -510,7 +510,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
     SUBMISSION_STATUS_LABELS = {
         0: 'Not submitted.',
-        10: 'Submitted; awaiting editor assignment.',
+        10: 'Awaiting editor assignment.',
         20: 'Awaiting editor decision.',
         30: 'Revisions requested.',
         40: 'Submission accepted; awaiting editor copyedits.',
@@ -555,7 +555,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         return bool(self.submission_status)
 
     def submission_deadline(self):
-        return self.creation_datetime + timedelta(weeks=6)
+        return self.creation_datetime + timedelta(days=180)
+
+    def submission_days_remaining(self):
+        return (self.submission_deadline() - timezone.now()).days
 
     def submission_status_label(self):
         print('sup')

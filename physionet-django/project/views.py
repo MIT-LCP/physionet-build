@@ -564,9 +564,9 @@ def load_license(request, project_slug):
 
 
 @project_auth(auth_mode=0, post_auth_mode=2)
-def project_identifiers(request, project_slug, **kwargs):
+def project_discovery(request, project_slug, **kwargs):
     """
-    Page to edit external project identifiers
+    Page to edit external project discovery
 
     """
     project, is_submitting = (kwargs[k] for k in ('project',
@@ -604,7 +604,7 @@ def project_identifiers(request, project_slug, **kwargs):
         else:
             messages.error(request, 'Invalid submission. See errors below.')
     edit_url = reverse('edit_metadata_item', args=[project.slug])
-    return render(request, 'project/project_identifiers.html',
+    return render(request, 'project/project_discovery.html',
         {'project':project, 'identifiers_form':identifiers_form,
          'publication_formset':publication_formset,
          'topic_formset':topic_formset, 'add_item_url':edit_url,
