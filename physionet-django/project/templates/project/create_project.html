@@ -14,8 +14,8 @@
   <form action="{% url 'create_project' %}" method="post">
     <h2 class="form-signin-heading">Create New Project</h2>
     <hr>
-    <p>Initialize your project with its core fields. The resource type
-       <strong>cannot</strong> be changed after the project is created.</p>
+    <p>Complete the fields below to create a new PhysioNet project. Once a project has been created, it must be submitted for publication within 6 months.</p>
+    <p>Before creating your project, please read the <a href="{% url 'author_guidelines' %}" target="_blank">author guidelines</a>. Note that the resource type <strong>cannot</strong> be changed after the project is created.</p>
     <hr>
     {{ form.media }}
     {% include "inline_form_snippet.html" %}

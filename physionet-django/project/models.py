@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import hashlib
 import os
 import shutil
@@ -508,6 +508,16 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
          'installation': 'Installation and Requirements'}
     )
 
+    SUBMISSION_STATUS_LABELS = {
+        0: 'Not submitted.',
+        10: 'Submitted; awaiting editor assignment.',
+        20: 'Awaiting editor decision.',
+        30: 'Revisions requested.',
+        40: 'Submission accepted; awaiting editor copyedits.',
+        50: 'Awaiting authors to approve publication.',
+        60: 'Awaiting editor to publish.',
+    }
+
     def storage_used(self):
         "Total storage used in bytes"
         return get_tree_size(self.file_root())
@@ -543,6 +553,13 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         Whether the project is under submission
         """
         return bool(self.submission_status)
+
+    def submission_deadline(self):
+        return self.creation_datetime + timedelta(weeks=6)
+
+    def submission_status_label(self):
+        print('sup')
+        return ActiveProject.SUBMISSION_STATUS_LABELS[self.submission_status]
 
     def author_editable(self):
         """
