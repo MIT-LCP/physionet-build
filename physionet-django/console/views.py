@@ -427,7 +427,7 @@ def published_projects(request):
     """
     List of published projects
     """
-    projects = PublishedProject.objects.all().order_by('publish_datetime')
+    projects = PublishedProject.objects.all().order_by('-publish_datetime')
     return render(request, 'console/published_projects.html',
         {'projects':projects})
 
