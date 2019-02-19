@@ -580,20 +580,20 @@ def project_discovery(request, project_slug, **kwargs):
         max_num=forms.PublicationFormSet.max_forms, can_delete=False,
         formset=forms.PublicationFormSet, validate_max=True)
 
-    identifiers_form = forms.IdentifiersForm(resource_type=project.resource_type,
+    discovery_form = forms.DiscoveryForm(resource_type=project.resource_type,
         instance=project)
     publication_formset = PublicationFormSet(instance=project)
     topic_formset = TopicFormSet(instance=project)
 
     if request.method == 'POST':
-        identifiers_form = forms.IdentifiersForm(resource_type=project.resource_type,
+        discovery_form = forms.DiscoveryForm(resource_type=project.resource_type,
             data=request.POST, instance=project)
         publication_formset = PublicationFormSet(request.POST,
                                                  instance=project)
         topic_formset = TopicFormSet(request.POST, instance=project)
 
-        if identifiers_form.is_valid() and publication_formset.is_valid() and topic_formset.is_valid():
-            identifiers_form.save()
+        if discovery_form.is_valid() and publication_formset.is_valid() and topic_formset.is_valid():
+            discovery_form.save()
             publication_formset.save()
             topic_formset.save()
             project.modified_datetime = timezone.now()
@@ -605,7 +605,7 @@ def project_discovery(request, project_slug, **kwargs):
             messages.error(request, 'Invalid submission. See errors below.')
     edit_url = reverse('edit_metadata_item', args=[project.slug])
     return render(request, 'project/project_discovery.html',
-        {'project':project, 'identifiers_form':identifiers_form,
+        {'project':project, 'discovery_form':discovery_form,
          'publication_formset':publication_formset,
          'topic_formset':topic_formset, 'add_item_url':edit_url,
          'remove_item_url':edit_url, 'is_submitting':is_submitting})

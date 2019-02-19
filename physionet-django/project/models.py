@@ -561,7 +561,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         return (self.submission_deadline() - timezone.now()).days
 
     def submission_status_label(self):
-        print('sup')
         return ActiveProject.SUBMISSION_STATUS_LABELS[self.submission_status]
 
     def author_editable(self):
@@ -981,20 +980,6 @@ class PublishedProject(Metadata, SubmissionInfo):
         else:
             return os.path.join('published-projects', self.slug, self.zip_name())
 
-
-    def make_files_list(self):
-        "Make a files list of the main files. Write to project file root"
-        fname = os.path.join(self.main_file_root(), 'FILES.txt')
-        if os.path.isfile(fname):
-            os.remove(fname)
-
-        files = get_tree_files(self.main_file_root(), full_path=False)
-        with open(fname, 'w') as outfile:
-            for f in files:
-                outfile.write('{}\n'.format(f))
-
-        self.set_storage_info()
-
     def make_checksum_file(self):
         "Make the checksums file for the main files"
         fname = os.path.join(self.main_file_root(), 'SHA256SUMS.txt')
@@ -1022,7 +1007,6 @@ class PublishedProject(Metadata, SubmissionInfo):
         checksum.
         """
         self.make_license_file()
-        self.make_files_list()
         self.make_checksum_file()
         # This should come last since it also zips the special files
         if make_zip:

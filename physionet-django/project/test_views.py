@@ -12,7 +12,7 @@ from user.test_views import prevent_request_warnings, TestMixin
 
 PROJECT_VIEWS = [
     'project_overview', 'project_authors', 'project_metadata',
-    'project_access', 'project_identifiers', 'project_files',
+    'project_access', 'project_discovery', 'project_files',
     'project_proofread', 'project_preview', 'project_submission'
 ]
 
