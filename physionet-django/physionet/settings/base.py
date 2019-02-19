@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     'ckeditor',
     'django_cron',
 
+    'rest_framework.authtoken',
+
     'user',
     'project',
     'console',
@@ -63,6 +65,12 @@ CRON_CLASSES = [
 ]
 
 ROOT_URLCONF = 'physionet.urls'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+}
 
 TEMPLATES = [
     {

@@ -6,7 +6,6 @@ import notification.utility as notification
 from project.models import License, PublishedProject
 from user.forms import ContactForm
 
-
 def home(request):
     published_projects = PublishedProject.objects.all().order_by('-publish_datetime')[:8]
 

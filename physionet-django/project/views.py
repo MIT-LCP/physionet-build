@@ -13,6 +13,9 @@ from django.shortcuts import render, redirect
 from django.template import loader
 from django.urls import reverse
 from django.utils import timezone
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 
 from . import forms
 from .models import (Affiliation, Author, AuthorInvitation, ActiveProject,
@@ -1078,3 +1081,11 @@ def sign_dua(request, published_project_slug):
 
     return render(request, 'project/sign_dua.html', {'project':project,
         'license':license, 'license_content':license_content})
+
+
+class project_info(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, published_project_slug):
+        content = {'message': request.user.username, 'url': published_project_slug}
+        return Response(content)

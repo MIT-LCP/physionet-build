@@ -63,4 +63,7 @@ urlpatterns = [
         name='check_integrity'),
     path('<project_slug>/submission/', views.project_submission,
         name='project_submission'),
+
+    path('sign-dua/<published_project_slug>/', views.sign_dua,
+        name='sign_dua'),
 ]

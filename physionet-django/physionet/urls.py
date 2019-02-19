@@ -6,7 +6,6 @@ from django.http import HttpResponse
 from . import views
 import project.views as project_views
 
-
 urlpatterns = [
     # django admin app
     path('admin/', admin.site.urls),
@@ -49,9 +48,7 @@ urlpatterns = [
         project_views.serve_published_project_file, name='serve_published_project_file'),
     path('content/<published_project_slug>/view-license/',
         project_views.published_project_license, name='published_project_license'),
-
-    path('sign-dua/<published_project_slug>/', project_views.sign_dua,
-        name='sign_dua'),
+    path('content/<project_slug>/info/', project_views.project_info.as_view(), name='info'),
 
     url(r'^robots.txt', lambda x: HttpResponse("User-Agent: *\nDisallow: /", content_type="text/plain"), name="robots_file"),
 ]

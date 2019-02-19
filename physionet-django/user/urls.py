@@ -1,5 +1,6 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path, re_path, reverse_lazy
+from rest_framework.authtoken.views import obtain_auth_token
 
 from . import views
 from .forms import LoginForm
@@ -72,5 +73,7 @@ urlpatterns = [
         views.credential_reference, name='credential_reference'),
     path('credential-applications/<application_slug>/training-report/',
         views.training_report, name='training_report'),
+    
+    path('api-login/', obtain_auth_token, name='api_token_auth'),
 ]
 
