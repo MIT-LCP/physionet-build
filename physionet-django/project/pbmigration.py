@@ -38,7 +38,6 @@ def create_legacy_projects():
         if r.status_code != 200:
             r = requests.get('https://physionet.org/physiobank/database/{}/index.shtml'.format(slug))
             if r.status_code != 200:
-                pdb.set_trace()
                 print('{} does not exist'.format(slug))
                 continue
         content = load_legacy_html(slug=slug)
@@ -50,7 +49,7 @@ def write_legacy_fixtures():
     "Write all the pbank LegacyProject data to fixtures"
     with open('project/fixtures/pbank.json', 'w') as f:
         data = serializers.serialize('json', LegacyProject.objects.all(),
-            stream=f)
+            stream=f, indent=2)
 
 
 def publish_legacy(slug):

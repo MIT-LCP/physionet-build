@@ -20,6 +20,8 @@ urlpatterns = [
     path('', include('notification.urls')),
     # search app
     path('', include('search.urls')),
+    # export app
+    path('', include('export.urls')),
 
     path('', views.home, name='home'),
     # about pages
@@ -52,5 +54,4 @@ urlpatterns = [
         name='sign_dua'),
 
     url(r'^robots.txt', lambda x: HttpResponse("User-Agent: *\nDisallow: /", content_type="text/plain"), name="robots_file"),
-
 ]

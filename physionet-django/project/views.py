@@ -8,7 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.contenttypes.models import ContentType
 from django.forms import formset_factory, inlineformset_factory, modelformset_factory
-from django.http import HttpResponse, Http404, JsonResponse
+from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
 from django.template import loader
 from django.urls import reverse
