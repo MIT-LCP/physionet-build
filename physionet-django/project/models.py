@@ -933,7 +933,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         Sum up the file sizes of the project and set the storage info
         fields
         """
-        self.main_storage_size, self.zip_storage_size = self.storage_used()
+        self.main_storage_size, self.compressed_storage_size = self.storage_used()
         self.save()
 
     def slugged_label(self):
