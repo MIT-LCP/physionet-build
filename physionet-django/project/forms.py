@@ -395,9 +395,9 @@ class MetadataForm(forms.ModelForm):
 
 
 
-class IdentifiersForm(forms.ModelForm):
+class DiscoveryForm(forms.ModelForm):
     """
-    Add identifiers to the project
+    Add discovery information to the project
     """
     programming_languages = forms.ModelMultipleChoiceField(
         queryset=ProgrammingLanguage.objects.all().order_by('name'),

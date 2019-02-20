@@ -15,9 +15,7 @@
   {% include "message_snippet.html" %}
   <div class="jumbotron">
     <h1>Project Home</h1>
-    <p class="lead">Welcome to your project home. Here you can create new
-      projects, access projects that you are authoring, and respond to
-      author invitations.</p>
+    <p class="lead">Here you can create projects, access projects you are authoring, and respond to author invitations.</p>
     <p>
       <a id="create_project" class="btn btn-lg btn-success" href="{% url 'create_project' %}" role="button">
         <i class="fa fa-cloud-upload-alt"></i> Create New Project
@@ -28,6 +26,7 @@
   <div class="card" >
     <div class="card-header">
       <h2>Active Projects</h2>
+      <p class="card-text">Projects to be published</p>
     </div>
 
     <ul class="list-group list-group-flush">
@@ -38,19 +37,21 @@
               {{ project.resource_type|resource_badge|safe }}
               {% if project.under_submission %}
                 <span class="badge badge-info"><i class="fas fa-glasses"></i> Under Submission</span>
+              {% elif project.submission_days_remaining < 14 %}
+                <span class="badge badge-warning"><i class="far fa-clock"></i> Approaching Submission Deadline</span>
               {% endif %}
             </p>
             <h3><a href="{% url 'project_overview' project.slug %}">{{ project.title }}</a></h3>
             <p class="list-group-item-text text-muted">
             <strong>Submitting Author: {{ project.submitting_author.get_full_name }}</strong><br>
-            <small>Created {{ project.creation_datetime|date }} Modified {{ project.modified_datetime|date }}</small>
+            <small>Created: {{ project.creation_datetime|date }}. Modified: {{ project.modified_datetime|date }}.</small><br>
+            <small>Status: {{ project.submission_status_label }} {% if project.submission_status == 0 %}Deadline: {{ project.submission_deadline|date }}.{% endif %}</small>
             </p>
           </li>
         {% endfor %}
       {% else %}
         <div class="card-body text-center">
-          <h4 class="card-title">No projects to show</h4>
-          <p class="card-text">You are not currently working on any projects.</p>
+          <p class="card-text">No projects to show</p>
         </div>
       {% endif %}
     </ul>
@@ -60,6 +61,7 @@
   <div class="card" >
     <div class="card-header">
       <h2>Published Projects</h2>
+      <p class="card-text">Co-authored publications</p>
     </div>
     <ul class="list-group list-group-flush">
       {% if published_projects %}
@@ -72,14 +74,14 @@
             <h3><a href="{% url 'published_project' project.slug %}">{{ project.title }}</a> <a href="{% url 'published_submission_history' project.slug %}" class="btn btn-primary ml-1" role="button" style="float:right">Submission History</a></h3>
             <p class="list-group-item-text text-muted">
             <strong>Submitting Author: {{ project.submitting_author.get_full_name }}</strong><br>
-            <small>Created {{ project.creation_datetime|date }} Published {{ project.publish_datetime|date }} Version {{ project.version }}</small>
+            <small>Created: {{ project.creation_datetime|date }}. Published: {{ project.publish_datetime|date }}.</small><br>
+            <small>Version: {{ project.version }}.</small>
             </p>
           </li>
         {% endfor %}
       {% else %}
         <div class="card-body text-center">
-          <h4 class="card-title">No projects to show</h4>
-          <p class="card-text">You have not published any projects.</p>
+          <p class="card-text">No projects to show</p>
         </div>
       {% endif %}
     </ul>
@@ -89,6 +91,7 @@
   <div class="card" >
     <div class="card-header">
       <h2>Project Invitations</h2>
+      <p class="card-text">Outstanding invitations for co-authorship</p>
     </div>
       {% if invitation_response_formset|length %}
         <form action="" method="post">
@@ -141,8 +144,7 @@
 
       {% else %}
         <div class="card-body text-center">
-          <h4 class="card-title">No pending invitations</h4>
-          <p class="card-text">You are not currently being invited to author any projects.</p>
+          <p class="card-text">No invitations to show</p>
         </div>
       {% endif %}
   </div>

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import hashlib
 import os
 import shutil
@@ -508,6 +508,16 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
          'installation': 'Installation and Requirements'}
     )
 
+    SUBMISSION_STATUS_LABELS = {
+        0: 'Not submitted.',
+        10: 'Awaiting editor assignment.',
+        20: 'Awaiting editor decision.',
+        30: 'Revisions requested.',
+        40: 'Submission accepted; awaiting editor copyedits.',
+        50: 'Awaiting authors to approve publication.',
+        60: 'Awaiting editor to publish.',
+    }
+
     def storage_used(self):
         "Total storage used in bytes"
         return get_tree_size(self.file_root())
@@ -543,6 +553,15 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         Whether the project is under submission
         """
         return bool(self.submission_status)
+
+    def submission_deadline(self):
+        return self.creation_datetime + timedelta(days=180)
+
+    def submission_days_remaining(self):
+        return (self.submission_deadline() - timezone.now()).days
+
+    def submission_status_label(self):
+        return ActiveProject.SUBMISSION_STATUS_LABELS[self.submission_status]
 
     def author_editable(self):
         """
@@ -961,20 +980,6 @@ class PublishedProject(Metadata, SubmissionInfo):
         else:
             return os.path.join('published-projects', self.slug, self.zip_name())
 
-
-    def make_files_list(self):
-        "Make a files list of the main files. Write to project file root"
-        fname = os.path.join(self.main_file_root(), 'FILES.txt')
-        if os.path.isfile(fname):
-            os.remove(fname)
-
-        files = get_tree_files(self.main_file_root(), full_path=False)
-        with open(fname, 'w') as outfile:
-            for f in files:
-                outfile.write('{}\n'.format(f))
-
-        self.set_storage_info()
-
     def make_checksum_file(self):
         "Make the checksums file for the main files"
         fname = os.path.join(self.main_file_root(), 'SHA256SUMS.txt')
@@ -1002,7 +1007,6 @@ class PublishedProject(Metadata, SubmissionInfo):
         checksum.
         """
         self.make_license_file()
-        self.make_files_list()
         self.make_checksum_file()
         # This should come last since it also zips the special files
         if make_zip:
@@ -1048,12 +1052,12 @@ class PublishedProject(Metadata, SubmissionInfo):
     def get_storage_info(self):
         """
         Return an object containing information about the project's
-        storage usage. Main, special, total files, and allowance.
+        storage usage. Main, compressed, total files, and allowance.
         """
-        main, special, total = self.storage_used()
+        main, compressed = self.storage_used()
         return StorageInfo(allowance=self.core_project.storage_allowance,
-            used=total, include_remaining=False, main_used=main,
-            special_used=special)
+            used=main+compressed, include_remaining=False, main_used=main,
+            compressed_used=compressed)
 
     def citation_text(self):
         if self.is_legacy:

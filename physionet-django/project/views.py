@@ -8,7 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.contenttypes.models import ContentType
 from django.forms import formset_factory, inlineformset_factory, modelformset_factory
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, JsonResponse
 from django.shortcuts import render, redirect
 from django.template import loader
 from django.urls import reverse
@@ -564,9 +564,9 @@ def load_license(request, project_slug):
 
 
 @project_auth(auth_mode=0, post_auth_mode=2)
-def project_identifiers(request, project_slug, **kwargs):
+def project_discovery(request, project_slug, **kwargs):
     """
-    Page to edit external project identifiers
+    Page to edit external project discovery
 
     """
     project, is_submitting = (kwargs[k] for k in ('project',
@@ -580,32 +580,32 @@ def project_identifiers(request, project_slug, **kwargs):
         max_num=forms.PublicationFormSet.max_forms, can_delete=False,
         formset=forms.PublicationFormSet, validate_max=True)
 
-    identifiers_form = forms.IdentifiersForm(resource_type=project.resource_type,
+    discovery_form = forms.DiscoveryForm(resource_type=project.resource_type,
         instance=project)
     publication_formset = PublicationFormSet(instance=project)
     topic_formset = TopicFormSet(instance=project)
 
     if request.method == 'POST':
-        identifiers_form = forms.IdentifiersForm(resource_type=project.resource_type,
+        discovery_form = forms.DiscoveryForm(resource_type=project.resource_type,
             data=request.POST, instance=project)
         publication_formset = PublicationFormSet(request.POST,
                                                  instance=project)
         topic_formset = TopicFormSet(request.POST, instance=project)
 
-        if identifiers_form.is_valid() and publication_formset.is_valid() and topic_formset.is_valid():
-            identifiers_form.save()
+        if discovery_form.is_valid() and publication_formset.is_valid() and topic_formset.is_valid():
+            discovery_form.save()
             publication_formset.save()
             topic_formset.save()
             project.modified_datetime = timezone.now()
             project.save()
-            messages.success(request, 'Your identifier information has been updated.')
+            messages.success(request, 'Your discovery information has been updated.')
             topic_formset = TopicFormSet(instance=project)
             publication_formset = PublicationFormSet(instance=project)
         else:
             messages.error(request, 'Invalid submission. See errors below.')
     edit_url = reverse('edit_metadata_item', args=[project.slug])
-    return render(request, 'project/project_identifiers.html',
-        {'project':project, 'identifiers_form':identifiers_form,
+    return render(request, 'project/project_discovery.html',
+        {'project':project, 'discovery_form':discovery_form,
          'publication_formset':publication_formset,
          'topic_formset':topic_formset, 'add_item_url':edit_url,
          'remove_item_url':edit_url, 'is_submitting':is_submitting})
@@ -751,6 +751,7 @@ def project_files(request, project_slug, **kwargs):
         project=project, subdir=subdir)
 
     return render(request, 'project/project_files.html', {'project':project,
+        'individual_size_limit':utility.readable_size(ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT),
         'subdir':subdir,
         'display_files':display_files,
         'display_dirs':display_dirs,

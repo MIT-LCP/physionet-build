@@ -1,7 +1,0 @@
-admissions.csv
-diagnosis.csv
-medication.csv
-allergy.csv
-patient.csv
-timeseries/labs.csv
-timeseries/bloodpressure.csv
