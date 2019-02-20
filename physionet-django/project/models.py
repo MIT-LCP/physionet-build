@@ -1321,7 +1321,7 @@ class LegacyProject(models.Model):
     def __str__(self):
         return ' --- '.join([self.slug, self.title])
 
-    def publish(self):
+    def publish(self, make_file_roots=False):
         """
         Turn into a published project
         """
@@ -1350,5 +1350,6 @@ class LegacyProject(models.Model):
             affiliations=self.contact_affiliations, email=self.contact_email,
             project=p)
 
-        os.mkdir(p.file_root())
-        os.mkdir(p.main_file_root())
+        if make_file_roots:
+            os.mkdir(p.file_root())
+            os.mkdir(p.main_file_root())
