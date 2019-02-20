@@ -598,7 +598,7 @@ def project_discovery(request, project_slug, **kwargs):
             topic_formset.save()
             project.modified_datetime = timezone.now()
             project.save()
-            messages.success(request, 'Your identifier information has been updated.')
+            messages.success(request, 'Your discovery information has been updated.')
             topic_formset = TopicFormSet(instance=project)
             publication_formset = PublicationFormSet(instance=project)
         else:
