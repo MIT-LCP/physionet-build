@@ -87,28 +87,28 @@ def get_content(resource_type=None):
     return projects_authors_topics
 
 
-def content(request):
+def content_index(request):
     """
     List of all published resources
     """
     projects_authors_topics = get_content()
-    return render(request, 'content_list.html', {'content_name':'Content',
+    return render(request, 'content_index.html', {'content_name':'Content',
         'projects_authors_topics':projects_authors_topics})
 
 
-def data(request):
+def database_index(request):
     """
     List of published databases
     """
     projects_authors_topics = get_content(resource_type=0)
-    return render(request, 'content_list.html', {'content_name':'Databases',
+    return render(request, 'database_index.html', {'content_name':'Database',
         'projects_authors_topics':projects_authors_topics})
 
 
-def software(request):
+def software_index(request):
     """
     List of published software projects
     """
     projects_authors_topics = get_content(resource_type=1)
-    return render(request, 'content_list.html', {'content_name':'Software',
+    return render(request, 'software_index.html', {'content_name':'Software',
         'projects_authors_topics':projects_authors_topics})

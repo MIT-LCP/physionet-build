@@ -21,8 +21,8 @@ PhysioNet
         <div class="intro-text">
           <div class="intro-heading">PhysioNet</div>
           <div class="intro-lead-in">Find and publish physiologic tools and data</div>
-          <a class="btn btn-pn btn-outline-dark intro-badge" href="{% url 'data' %}">&nbsp; Data&nbsp;</a>
-          <a class="btn btn-pn btn-outline-dark intro-badge" href="{% url 'software' %}">&nbsp; Software&nbsp;</a>
+          <a class="btn btn-pn btn-outline-dark intro-badge" href="{% url 'database_index' %}">&nbsp; Data&nbsp;</a>
+          <a class="btn btn-pn btn-outline-dark intro-badge" href="{% url 'software_index' %}">&nbsp; Software&nbsp;</a>
           <a class="btn btn-pn btn-outline-dark intro-badge" href="{% url 'create_project' %}">&nbsp; Publish&nbsp;</a>
         </div>
       </div>
@@ -60,7 +60,7 @@ PhysioNet
           <hr>
         {% endfor %}
 
-        <a class="btn btn-outline-dark" href="{% url 'content' %}">More Content</a>
+        <a class="btn btn-outline-dark" href="{% url 'content_index' %}">More Content</a>
         <br><br>
       </div>
 
@@ -70,7 +70,7 @@ PhysioNet
         <div class="card">
           <h2 class="card-header">Welcome to PhysioNet</h2>
           <div class="card-body">
-            <p class="card-text mt-1">PhysioNet is a massive digital library and publisher of physiologic <a href="{% url 'data' %}">data</a> and <a href="{% url 'software' %}">software</a>, helping to make biomedical research more transparent and reproducible.</p>
+            <p class="card-text mt-1">PhysioNet is a massive digital library and publisher of physiologic <a href="{% url 'database_index' %}">data</a> and <a href="{% url 'software_index' %}">software</a>, helping to make biomedical research more transparent and reproducible.</p>
             <a class="btn btn-outline-dark" href="{% url 'about_physionet' %}">More About</a>
           </div>
         </div>

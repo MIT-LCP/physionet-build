@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+PhysioNet Software Index
+{% endblock %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/content-index.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="jumbotron">
+    <h1 class="display-4">PhysioNet Software Index</h1>
+    <p class="lead my-3">This page contains all of the software published on PhysioNet.</p>
+  </div>
+  {% include "content_list.html" %}
+</div>
+{% endblock %}

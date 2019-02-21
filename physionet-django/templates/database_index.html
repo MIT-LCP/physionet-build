@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+PhysioNet Database Index
+{% endblock %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/content-index.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="jumbotron">
+    <h1 class="display-4">PhysioNet Database Index</h1>
+    <p class="lead my-3">This page contains all of the databases published on PhysioNet.</p>
+  </div>
+  <hr>
+  <p>Order by...</p>
+  <hr>
+  {% include "content_list.html" %}
+</div>
+{% endblock %}
