@@ -8,6 +8,11 @@
   padding-right:5px;
 }
 
+/* make drop-down menus work without javascript */
+.dropdown-toggle:focus + .dropdown-menu,
+.dropdown:focus-within .dropdown-menu {
+    display: block;
+}
 
 /* Adapted from start-bootstrap freelancer*/
 #mainNav {
