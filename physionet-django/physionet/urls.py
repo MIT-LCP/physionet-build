@@ -35,11 +35,6 @@ urlpatterns = [
     path('about/contact/', views.contact, name='contact'),
     path('about/citi-instructions/', views.citi_instructions, name='citi_instructions'),
 
-    # content pages
-    path('data/', views.database_index, name='database_index'),
-    path('software/', views.software_index, name='software_index'),
-    path('content/', views.content_index, name='content_index'),
-
     # published projects
     path('content/<published_project_slug>/',
         project_views.published_project, name='published_project'),

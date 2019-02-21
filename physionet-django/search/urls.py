@@ -1,4 +1,5 @@
 from django.conf.urls import url
+from django.urls import path
 
 from . import views
 
@@ -13,4 +14,9 @@ urlpatterns = [
         name='topic_search'),
     url(r'^search/all-topics/$', views.all_topics,
         name='all_topics'),
+
+    # published project index pages
+    path('data/', views.database_index, name='database_index'),
+    path('software/', views.software_index, name='software_index'),
+    path('content/', views.content_index, name='content_index'),
 ]
