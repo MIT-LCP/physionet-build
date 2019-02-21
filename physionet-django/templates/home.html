@@ -21,9 +21,9 @@ PhysioNet
         <div class="intro-text">
           <div class="intro-heading">PhysioNet</div>
           <div class="intro-lead-in">Find and publish physiologic tools and data</div>
-          <a class="btn btn-pn btn-light badge-pill intro-badge" href="{% url 'data' %}">&nbsp; Data&nbsp;</a>
-          <a class="btn btn-pn btn-light badge-pill intro-badge" href="{% url 'software' %}">&nbsp; Software&nbsp;</a>
-          <a class="btn btn-pn btn-light badge-pill intro-badge" href="{% url 'create_project' %}">&nbsp; Publish&nbsp;</a>
+          <a class="btn btn-pn btn-outline-dark intro-badge" href="{% url 'data' %}">&nbsp; Data&nbsp;</a>
+          <a class="btn btn-pn btn-outline-dark intro-badge" href="{% url 'software' %}">&nbsp; Software&nbsp;</a>
+          <a class="btn btn-pn btn-outline-dark intro-badge" href="{% url 'create_project' %}">&nbsp; Publish&nbsp;</a>
         </div>
       </div>
     </header>
@@ -60,12 +60,21 @@ PhysioNet
           <hr>
         {% endfor %}
 
-        <a class="btn btn-outline-primary" href="{% url 'content' %}">More Content</a>
+        <a class="btn btn-outline-dark" href="{% url 'content' %}">More Content</a>
         <br><br>
       </div>
 
       <!--Right Column -->
       <div class="col-md-5">
+
+        <div class="card">
+          <h2 class="card-header">Welcome to PhysioNet</h2>
+          <div class="card-body">
+            <p class="card-text mt-1">PhysioNet is a massive digital library and publisher of physiologic <a href="{% url 'data' %}">data</a> and <a href="{% url 'software' %}">software</a>, helping to make biomedical research more transparent and reproducible.</p>
+            <a class="btn btn-outline-dark" href="{% url 'about_physionet' %}">More About</a>
+          </div>
+        </div>
+
         <div class="card my-4">
           <h2 class="card-header">News</h2>
           <div class="card-body">
@@ -81,7 +90,7 @@ PhysioNet
               {{ news.content|safe }}
               <hr>
             {% endfor %}
-            <a class="btn btn-outline-primary" href="{% url 'news' %}">More News</a>
+            <a class="btn btn-outline-dark" href="{% url 'news' %}">More News</a>
           </div>
         </div>
       </div>
