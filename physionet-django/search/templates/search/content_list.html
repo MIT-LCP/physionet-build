@@ -20,7 +20,7 @@
     Version: {{ published_project.version }}
     <br>
     {% for topic in topics %}
-      <a href="{% url 'topic_search' topic.description %}"><span class="badge badge-info">{{ topic }}</span></a>
+      <a href="{% url 'topic_search' %}?t={{ topic.description }}"><span class="badge badge-pn">{{ topic }}</span></a>
     {% endfor %}
   </p>
   <hr>

@@ -1,6 +1,6 @@
 /* Pushing items away from top-left brand */
 .navbar-brand {
-    width: 250px;
+  width: 250px;
 }
 
 /* Padding between navbar items */
@@ -34,4 +34,9 @@
 #mainNav .navbar-toggler {
   font-size: 80%;
   padding: 0.8rem;
+}
+
+.badge-pn {
+  color: white;
+  background-color: #694;
 }

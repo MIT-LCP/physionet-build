@@ -22,24 +22,26 @@ def redirect_google_custom_search(request):
     return redirect(reverse('google_custom_search') + '?q={}'.format(request.GET['query']))
 
 
-def topic_search(request, topic=''):
+def topic_search(request):
     """
     Search published projects by topic keyword
 
     Search with form submission or direct url
     """
-    # Redirect to show url if successful search
+    topic, valid_search, projects = '', False, None
+    # If we get a form submission, redirect to generate the querystring
+    # in the url
     if 'search' in request.GET:
+        return redirect('{}?t={}'.format(reverse('topic_search'), request.GET['t']))
+    # A search via direct url entry
+    elif 't' in request.GET:
         form = forms.TopicSearchForm(request.GET)
         if form.is_valid():
-            return redirect('topic_search', topic=form.cleaned_data['description'].lower())
-        else:
-            projects = None
-            valid_search = False
+            topic = form.cleaned_data['t']
+            projects = PublishedProject.objects.filter(topics__description=topic)
+            valid_search = True
     else:
-        projects = PublishedProject.objects.filter(topics__description=topic) if topic else None
-        form = forms.TopicSearchForm(initial={'description':topic})
-        valid_search = True if topic else False
+        form = forms.TopicSearchForm()
 
     return render(request, 'search/topic_search.html', {'topic':topic,
         'projects':projects, 'form':form, 'valid_search':valid_search})
@@ -55,16 +57,20 @@ def all_topics(request):
     return render(request, 'search/all_topics.html', {'topics':topics})
 
 
-def get_content(resource_type=None, order_by=None, direction=None):
+def get_content(resource_type, order_param, direction):
     """
     Helper function to get content shown on a resource listing page
     """
     if resource_type is None:
-        published_projects = PublishedProject.objects.all().order_by(
-            '-publish_datetime')
+        published_projects = PublishedProject.objects.all()
     else:
         published_projects = PublishedProject.objects.filter(
-            resource_type=resource_type).order_by('-publish_datetime')
+            resource_type=resource_type)
+
+    direction = '-' if direction == 'desc' else ''
+
+    order_string = '{}{}'.format(direction, order_param)
+    published_projects = published_projects.order_by()
 
     authors = [p.authors.all() for p in published_projects]
     topics = [p.topics.all() for p in published_projects]
@@ -86,14 +92,27 @@ def database_index(request):
     """
     List of published databases
     """
-    if 'order_by' in request.GET:
+    order_param, direction = 'publish_datetime', 'asc'
+    form = forms.ProjectOrderForm()
+
+    # If we get a form submission, redirect to generate the querystring
+    # in the url
+    if 'search' in request.GET:
+        if 'order' in request.GET:
+            order_param = request.GET['order']
+        if 'direction' in request.GET:
+            direction = request.GET['direction']
+        return redirect('{}?order={}?direction={}'.format(reverse('database_index'), order_param, direction))
+    # A search via direct url entry
+    elif 'order' in request.GET or 'direction' in request.GET:
         form = forms.ProjectOrderForm(request.GET)
         if form.is_valid():
-            projects_authors_topics = get_content(resource_type=0)
-
+            order_param, direction = [form.cleaned_data[item] for item in ['order', 'direction']]
+        projects_authors_topics = get_content(resource_type=0,
+            order_param=order_param, direction=direction)
     else:
-        form = forms.ProjectOrderForm()
-        projects_authors_topics = get_content(resource_type=0)
+        projects_authors_topics = get_content(resource_type=0,
+            order_param=order_param, direction=direction)
 
     return render(request, 'search/database_index.html', {'form':form,
         'projects_authors_topics':projects_authors_topics})

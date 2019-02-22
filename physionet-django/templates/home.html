@@ -21,9 +21,9 @@ PhysioNet
         <div class="intro-text">
           <div class="intro-heading">PhysioNet</div>
           <div class="intro-lead-in">Find and publish physiologic tools and data</div>
-          <a class="btn btn-pn btn-outline-dark intro-badge" href="{% url 'database_index' %}">&nbsp; Data&nbsp;</a>
-          <a class="btn btn-pn btn-outline-dark intro-badge" href="{% url 'software_index' %}">&nbsp; Software&nbsp;</a>
-          <a class="btn btn-pn btn-outline-dark intro-badge" href="{% url 'create_project' %}">&nbsp; Publish&nbsp;</a>
+          <a class="btn btn-pn btn-outline-dark intro-badge badge-pn" href="{% url 'database_index' %}">&nbsp; Data&nbsp;</a>
+          <a class="btn btn-pn btn-outline-dark intro-badge badge-pn" href="{% url 'software_index' %}">&nbsp; Software&nbsp;</a>
+          <a class="btn btn-pn btn-outline-dark intro-badge badge-pn" href="{% url 'create_project' %}">&nbsp; Publish&nbsp;</a>
         </div>
       </div>
     </header>
@@ -54,7 +54,7 @@ PhysioNet
             Version: {{ published_project.version }}
             <br>
             {% for topic in topics %}
-              <a href="{% url 'topic_search' topic.description %}"><span class="badge badge-info">{{ topic }}</span></a>
+              <a href="{% url 'topic_search' %}?t={{ topic.description }}"><span class="badge badge-pn">{{ topic }}</span></a>
             {% endfor %}
           </p>
           <hr>
