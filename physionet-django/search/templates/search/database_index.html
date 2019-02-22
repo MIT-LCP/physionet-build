@@ -7,6 +7,7 @@ PhysioNet Database Index
 
 {% block local_css %}
 <link rel="stylesheet" type="text/css" href="{% static 'custom/css/content-index.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/form-control-input.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -16,7 +17,9 @@ PhysioNet Database Index
     <p class="lead my-3">This page contains all of the databases published on PhysioNet.</p>
   </div>
   <hr>
-  <p>Order by...</p>
+  <form>
+    {% include "inline_form_snippet.html" %}
+  </form>
   <hr>
   {% include "content_list.html" %}
 </div>

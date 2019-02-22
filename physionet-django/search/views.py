@@ -78,7 +78,7 @@ def content_index(request):
     List of all published resources
     """
     projects_authors_topics = get_content()
-    return render(request, 'search/content_index.html', {'content_name':'Content',
+    return render(request, 'search/content_index.html', {
         'projects_authors_topics':projects_authors_topics})
 
 
@@ -92,9 +92,10 @@ def database_index(request):
             projects_authors_topics = get_content(resource_type=0)
 
     else:
+        form = forms.ProjectOrderForm()
         projects_authors_topics = get_content(resource_type=0)
 
-    return render(request, 'search/database_index.html', {'content_name':'Database',
+    return render(request, 'search/database_index.html', {'form':form,
         'projects_authors_topics':projects_authors_topics})
 
 
@@ -103,5 +104,5 @@ def software_index(request):
     List of published software projects
     """
     projects_authors_topics = get_content(resource_type=1)
-    return render(request, 'search/software_index.html', {'content_name':'Software',
+    return render(request, 'search/software_index.html', {
         'projects_authors_topics':projects_authors_topics})
