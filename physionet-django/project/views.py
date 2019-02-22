@@ -827,7 +827,8 @@ def project_preview(request, project_slug, **kwargs):
         for e in project.integrity_errors:
             messages.error(request, e)
 
-    display_files, display_dirs = project.get_directory_content()
+    subdir = request.GET.get('subdir', '')
+    display_files, display_dirs = project.get_directory_content(subdir=subdir)
     dir_breadcrumbs = utility.get_dir_breadcrumbs('')
 
     return render(request, 'project/project_preview.html', {
