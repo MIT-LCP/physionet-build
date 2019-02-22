@@ -28,7 +28,7 @@ def validate_doi(value):
             params={'doi':value})
 
 
-def validate_subdir(value):
+def validate_subdir(file_root, subdir):
     """
     Validate a subdirectory used to explore a project's files.
     Only letters, numbers, dashes, underscores, dots, and / allowed,
