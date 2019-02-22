@@ -1035,6 +1035,7 @@ def published_project(request, published_project_slug):
     Displays a published project
     """
     project = PublishedProject.objects.get(slug=published_project_slug)
+    subdir = request.GET.get('subdir', '')
 
     authors = project.authors.all().order_by('display_order')
     for a in authors:
@@ -1054,7 +1055,8 @@ def published_project(request, published_project_slug):
 
     # The file and directory contents
     if has_access:
-        display_files, display_dirs = project.get_main_directory_content()
+        display_files, display_dirs = project.get_main_directory_content(
+            subdir=subdir)
         dir_breadcrumbs = utility.get_dir_breadcrumbs('')
         main_size, compressed_size = [utility.readable_size(s) for s in
             (project.main_storage_size, project.compressed_storage_size)]
