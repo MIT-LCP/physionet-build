@@ -36,7 +36,7 @@
         <p class="card-text">
           Authors: {% for author in authors %}{{ author|show_all_author_info|safe }} {% endfor %}<br>
           Created: {{ project.creation_datetime|date }}. Submitted: {{ project.submission_datetime|date }}. Published: {{ project.publish_datetime|date }}<br>
-          Storage Used: {{ storage_info.readable_main_used }} main files, {{ storage_info.readable_special_used }} special files, {{ storage_info.readable_used }} total, {{ storage_info.readable_allowance }} allowance.<br>
+          Storage: {{ storage_info.readable_main_used }} uncompressed, {{ storage_info.readable_compressed_used }} compressed, {{ storage_info.readable_used }} total, {{ storage_info.readable_allowance }} allowance.<br>
           Version: {{ project.version }}
         </p>
         <p>
@@ -65,7 +65,6 @@
     <hr>
     <form action="" method="post">
       {% csrf_token %}
-      <button class="btn btn-primary btn-fixed" name="make_files_list" type="submit">Make Files List</button>
       <button class="btn btn-primary btn-fixed" name="make_checksum_file" type="submit">Make Checksum File</button>
       <button class="btn btn-primary btn-fixed" name="make_zip" type="submit">Make Zip</button>
     </form>

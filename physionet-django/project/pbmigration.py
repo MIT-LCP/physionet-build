@@ -52,17 +52,17 @@ def write_legacy_fixtures():
             stream=f, indent=2)
 
 
-def publish_legacy(slug):
+def publish_legacy(slug, make_file_roots=False):
     "publish a legacy project given by the slug"
     lp = LegacyProject.objects.get(slug=slug)
-    lp.publish()
+    lp.publish(make_file_roots)
 
 
-def publish_all_legacy():
+def publish_all_legacy(make_file_roots=False):
     "Publish all legacy projects"
     for l in LegacyProject.objects.all().order_by('publish_date'):
         if l.doi:
-            l.publish()
+            l.publish(make_file_roots)
 
 
 def clear_all_legacy():

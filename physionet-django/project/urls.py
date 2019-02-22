@@ -39,8 +39,8 @@ urlpatterns = [
     path('<project_slug>/access/load-license/', views.load_license,
         name='load_license'),
 
-    path('<project_slug>/identifiers/', views.project_identifiers,
-        name='project_identifiers'),
+    path('<project_slug>/discovery/', views.project_discovery,
+        name='project_discovery'),
 
     path('<project_slug>/files/', views.project_files,
         name='project_files'),

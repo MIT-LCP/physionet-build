@@ -395,9 +395,9 @@ class MetadataForm(forms.ModelForm):
 
 
 
-class IdentifiersForm(forms.ModelForm):
+class DiscoveryForm(forms.ModelForm):
     """
-    Add identifiers to the project
+    Add discovery information to the project
     """
     programming_languages = forms.ModelMultipleChoiceField(
         queryset=ProgrammingLanguage.objects.all().order_by('name'),
@@ -571,7 +571,7 @@ class AccessMetadataForm(forms.ModelForm):
         model = ActiveProject
         fields = ('access_policy', 'license')
         help_texts = {'access_policy': '* Access policy for files.',
-                      'license': '* License for usage'}
+                      'license': "* License for usage. <a href='/about/licenses/' target='_blank'>View available.</a>"}
 
     def __init__(self, include_credentialed, *args, **kwargs):
         """

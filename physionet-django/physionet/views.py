@@ -7,7 +7,7 @@ from project.models import License, PublishedProject
 from user.forms import ContactForm
 
 def home(request):
-    published_projects = PublishedProject.objects.all().order_by('-publish_datetime')[:8]
+    published_projects = PublishedProject.objects.all().order_by('-publish_datetime')[:6]
 
     authors = [p.authors.all() for p in published_projects]
     topics = [p.topics.all() for p in published_projects]

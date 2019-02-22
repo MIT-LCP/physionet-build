@@ -16,6 +16,7 @@ from notification.models import News
 import notification.utility as notification
 import project.forms as project_forms
 from project.models import ActiveProject, ArchivedProject, StorageRequest, EditLog, Reference, Topic, Publication, PublishedProject
+from project.utility import readable_size
 from project.views import get_file_forms, get_project_file_info, process_files_post
 from user.models import User, CredentialApplication
 
@@ -283,6 +284,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
 
     return render(request, 'console/copyedit_submission.html', {
         'project':project, 'description_form':description_form,
+        'individual_size_limit':readable_size(ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT),
         'access_form':access_form, 'reference_formset':reference_formset,
         'publication_formset':publication_formset,
         'topic_formset':topic_formset,
@@ -427,7 +429,7 @@ def published_projects(request):
     """
     List of published projects
     """
-    projects = PublishedProject.objects.all().order_by('publish_datetime')
+    projects = PublishedProject.objects.all().order_by('-publish_datetime')
     return render(request, 'console/published_projects.html',
         {'projects':projects})
 
@@ -438,7 +440,7 @@ def manage_published_project(request, project_slug):
     Manage a published project
 
     - Set the DOI field (after doing it in datacite)
-    -
+    - Create zip of files
 
     """
     project = PublishedProject.objects.get(slug=project_slug)
@@ -453,14 +455,11 @@ def manage_published_project(request, project_slug):
                 messages.success(request, 'The DOI has been set')
             else:
                 messages.error(request, 'Invalid submission. See form below.')
-        elif 'make_files_list' in request.POST:
-            project.make_files_list(update_size=True)
-            messages.success(request, 'The files list has been generated.')
         elif 'make_checksum_file' in request.POST:
-            project.make_checksum_file(update_size=True)
+            project.make_checksum_file()
             messages.success(request, 'The files checksum list has been generated.')
         elif 'make_zip' in request.POST:
-            project.make_zip(update_size=True)
+            project.make_zip()
             messages.success(request, 'The zip of the main files has been generated.')
 
     return render(request, 'console/manage_published_project.html',
