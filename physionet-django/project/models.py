@@ -16,7 +16,7 @@ from django.utils import timezone
 from django.utils.text import slugify
 
 from .utility import get_tree_size, get_file_info, get_directory_info, list_items, StorageInfo, get_tree_files, list_files
-from .validators import validate_doi
+from .validators import validate_doi, validate_subdir
 from user.validators import validate_alphaplus, validate_alphaplusplus
 
 
@@ -142,6 +142,7 @@ class PublishedAuthor(BaseAuthor):
 
     def initialed_name(self):
         return '{}, {}'.format(self.last_name, ' '.join('{}.'.format(i[0]) for i in self.first_names.split()))
+
 
 class Topic(models.Model):
     """
@@ -530,6 +531,9 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         Return information for displaying file and directories
         """
+        # Sanitize input
+        validate_subdir(subdir)
+
         inspect_dir = os.path.join(self.file_root(), subdir)
         file_names , dir_names = list_items(inspect_dir)
         display_files, display_dirs = [], []
@@ -1017,6 +1021,9 @@ class PublishedProject(Metadata, SubmissionInfo):
         Return information for displaying files and directories from
         the main file root
         """
+        # Sanitize input
+        validate_subdir(subdir)
+
         inspect_dir = os.path.join(self.main_file_root(), subdir)
         file_names , dir_names = list_items(inspect_dir)
 

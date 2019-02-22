@@ -26,3 +26,13 @@ def validate_doi(value):
     if not re.fullmatch(r'10\.13026/[\w]{5,10}', value):
         raise ValidationError('Invalid DOI: %(doi)s',
             params={'doi':value})
+
+
+def validate_subdir(value):
+    """
+    Validate a subdirectory used to explore a project's files.
+    Only letters, numbers, dashes, underscores, dots, and / allowed,
+    or empty. No consecutive dots or fwd slashes.
+    """
+    if not re.fullmatch(r'[\w\-\./]*', value) or '..' in value or value.startswith('/') or '//' in value:
+        raise ValidationError('Invalid path')
