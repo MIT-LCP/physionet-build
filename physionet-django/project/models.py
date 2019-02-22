@@ -527,7 +527,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         "Storage allowed in bytes"
         return self.core_project.storage_allowance
 
-    def get_inspect_dir(subdir):
+    def get_inspect_dir(self, subdir):
         """
         Return the folder to inspect if valid. subdir joined onto
         the file root of this project.
@@ -1027,7 +1027,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         if make_zip:
             self.make_zip()
 
-    def get_inspect_dir(subdir):
+    def get_inspect_dir(self, subdir):
         """
         Return the folder to inspect if valid. subdir joined onto the
         main file root of this project.
