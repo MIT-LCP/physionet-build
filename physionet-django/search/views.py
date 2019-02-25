@@ -76,10 +76,14 @@ def get_content(resource_type, orderby, direction):
     return projects_authors_topics
 
 
-def content_index(request):
+def content_index(request, resource_type=None):
     """
     List of all published resources
     """
+    LABELS = {None:['Content', 'projects'], 0:['Database', 'databases'],
+        1:['Software', 'software']}
+    main_label, plural_label = LABELS[resource_type]
+
     orderby, direction = 'publish_datetime', 'desc'
     form = forms.ProjectOrderForm()
 
@@ -87,53 +91,26 @@ def content_index(request):
         form = forms.ProjectOrderForm(request.GET)
         if form.is_valid():
             orderby, direction = [form.cleaned_data[item] for item in ['orderby', 'direction']]
-        projects_authors_topics = get_content(resource_type=None,
+        projects_authors_topics = get_content(resource_type=resource_type,
             orderby=orderby, direction=direction)
     else:
-        projects_authors_topics = get_content(resource_type=None,
+        projects_authors_topics = get_content(resource_type=resource_type,
             orderby=orderby, direction=direction)
 
     return render(request, 'search/content_index.html', {'form':form,
-        'projects_authors_topics':projects_authors_topics})
+        'projects_authors_topics':projects_authors_topics,
+        'main_label':main_label, 'plural_label':plural_label})
 
 
 def database_index(request):
     """
     List of published databases
     """
-    orderby, direction = 'publish_datetime', 'desc'
-    form = forms.ProjectOrderForm()
-
-    if 'orderby' in request.GET or 'direction' in request.GET:
-        form = forms.ProjectOrderForm(request.GET)
-        if form.is_valid():
-            orderby, direction = [form.cleaned_data[item] for item in ['orderby', 'direction']]
-        projects_authors_topics = get_content(resource_type=0,
-            orderby=orderby, direction=direction)
-    else:
-        projects_authors_topics = get_content(resource_type=0,
-            orderby=orderby, direction=direction)
-
-    return render(request, 'search/database_index.html', {'form':form,
-        'projects_authors_topics':projects_authors_topics})
+    return content_index(request, resource_type=0)
 
 
 def software_index(request):
     """
-    List of published software projects
+    List of published software
     """
-    orderby, direction = 'publish_datetime', 'desc'
-    form = forms.ProjectOrderForm()
-
-    if 'orderby' in request.GET or 'direction' in request.GET:
-        form = forms.ProjectOrderForm(request.GET)
-        if form.is_valid():
-            orderby, direction = [form.cleaned_data[item] for item in ['orderby', 'direction']]
-        projects_authors_topics = get_content(resource_type=1,
-            orderby=orderby, direction=direction)
-    else:
-        projects_authors_topics = get_content(resource_type=1,
-            orderby=orderby, direction=direction)
-
-    return render(request, 'search/software_index.html', {'form':form,
-        'projects_authors_topics':projects_authors_topics})
+    return content_index(request, resource_type=1)

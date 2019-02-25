@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}
-PhysioNet Content Index
+PhysioNet {{ main_label }} Index
 {% endblock %}
 
 {% block local_css %}
@@ -13,8 +13,8 @@ PhysioNet Content Index
 {% block content %}
 <div class="container">
   <div class="jumbotron">
-    <h1 class="display-4">PhysioNet Content Index</h1>
-    <p class="lead my-3">This page contains all of the projects published on PhysioNet.</p>
+    <h1 class="display-4">PhysioNet {{ main_label }} Index</h1>
+    <p class="lead my-3">This page contains all of the {{ plural_label }} published on PhysioNet.</p>
   </div>
   <hr>
   <form method="GET" action="">
