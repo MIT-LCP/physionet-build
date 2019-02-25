@@ -1,5 +1,5 @@
 from django import template
-
+from django.shortcuts import reverse
 
 register = template.Library()
 
@@ -11,6 +11,17 @@ def resource_badge(resource_type):
         1: '<span class="badge badge-dark"><i class="fa fa-keyboard"></i> Software</span>',
     }
     return badges[resource_type]
+
+@register.filter(name='topic_badge')
+def topic_badge(topic, show_count=False):
+    url = '{}?topic={}'.format(reverse('topic_search'), topic.description)
+    if show_count:
+        badge = '<a href="{}"><span class="badge badge-pn">{} ({})</span></a>'.format(
+            url, topic.description, topic.project_count)
+    else:
+        badge = '<a href="{}"><span class="badge badge-pn">{}</span></a>'.format(
+            url, topic.description)
+    return badge
 
 @register.filter(name='delimit')
 def delimit(items):

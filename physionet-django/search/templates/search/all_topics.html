@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load project_templatetags %}
 
 {% block title %}
 PhysioNet Topics
@@ -18,10 +19,9 @@ PhysioNet Topics
   </p>
   <p>
     {% for topic in topics %}
-      <a href="{% url 'topic_search' %}?topic={{ topic.description }}"><span class="badge badge-pn">{{ topic.description }} ({{ topic.project_count }})</span></a>
+      {{ topic|topic_badge:"include_count=True"|safe }}
     {% endfor %}
   </p>
   <br>
-
 </div>
 {% endblock %}

@@ -80,7 +80,7 @@ def content_index(request):
     """
     List of all published resources
     """
-    orderby, direction = 'publish_datetime', 'asc'
+    orderby, direction = 'publish_datetime', 'desc'
     form = forms.ProjectOrderForm()
 
     if 'orderby' in request.GET or 'direction' in request.GET:
@@ -101,7 +101,7 @@ def database_index(request):
     """
     List of published databases
     """
-    orderby, direction = 'publish_datetime', 'asc'
+    orderby, direction = 'publish_datetime', 'desc'
     form = forms.ProjectOrderForm()
 
     if 'orderby' in request.GET or 'direction' in request.GET:
@@ -122,7 +122,7 @@ def software_index(request):
     """
     List of published software projects
     """
-    orderby, direction = 'publish_datetime', 'asc'
+    orderby, direction = 'publish_datetime', 'desc'
     form = forms.ProjectOrderForm()
 
     if 'orderby' in request.GET or 'direction' in request.GET:
