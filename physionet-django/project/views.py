@@ -650,7 +650,7 @@ def project_files_panel(request, project_slug, **kwargs):
     is_editor = request.user == project.editor
     subdir = request.GET['subdir']
 
-    if not request.is_ajax:
+    if not request.is_ajax():
         return redirect('project_files', project_slug=project_slug)
 
     display_files, display_dirs, dir_breadcrumbs, parent_dir = get_project_file_info(
@@ -791,7 +791,7 @@ def preview_files_panel(request, project_slug, **kwargs):
     project = kwargs['project']
     subdir = request.GET['subdir']
 
-    if not request.is_ajax:
+    if not request.is_ajax():
         return redirect('project_preview', project_slug=project_slug)
 
     display_files, display_dirs, dir_breadcrumbs, parent_dir = get_project_file_info(
@@ -985,7 +985,7 @@ def published_files_panel(request, published_project_slug):
     project = PublishedProject.objects.get(slug=published_project_slug)
     subdir = request.GET['subdir']
 
-    if not request.is_ajax:
+    if not request.is_ajax():
         return redirect('published_project',
             published_project_slug=published_project_slug)
 
