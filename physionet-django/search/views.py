@@ -114,3 +114,10 @@ def software_index(request):
     List of published software
     """
     return content_index(request, resource_type=1)
+
+
+def database_stats(request):
+    """
+    Database Statistics
+    """
+    return render(request, 'search/database_stats.html')

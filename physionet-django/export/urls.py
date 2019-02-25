@@ -8,4 +8,7 @@ urlpatterns = [
         name='database_list'),
     path('rest/software-list/', views.software_list,
         name='software_list'),
+
+    path('rest/database-stats-list/', views.database_stats_list,
+        name='database_stats_list'),
 ]
