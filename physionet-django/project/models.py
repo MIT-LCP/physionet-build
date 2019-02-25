@@ -527,14 +527,25 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         "Storage allowed in bytes"
         return self.core_project.storage_allowance
 
+    def get_inspect_dir(self, subdir):
+        """
+        Return the folder to inspect if valid. subdir joined onto
+        the file root of this project.
+        """
+        # Sanitize subdir for illegal characters
+        validate_subdir(subdir)
+        # Folder must be a subfolder of the file root and exist
+        inspect_dir = os.path.join(self.file_root(), subdir)
+        if inspect_dir.startswith(self.file_root()) and os.path.isdir(inspect_dir):
+            return inspect_dir
+        else:
+            raise Exception('Invalid directory request')
+
     def get_directory_content(self, subdir=''):
         """
         Return information for displaying file and directories
         """
-        # Sanitize input
-        validate_subdir(subdir)
-
-        inspect_dir = os.path.join(self.file_root(), subdir)
+        inspect_dir = self.get_inspect_dir(subdir)
         file_names , dir_names = list_items(inspect_dir)
         display_files, display_dirs = [], []
 
@@ -544,7 +555,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             file_info.full_file_name = os.path.join(subdir, file)
             display_files.append(file_info)
 
-        # Directories require
+        # Directories require links
         for dir_name in dir_names:
             dir_info = get_directory_info(os.path.join(inspect_dir, dir_name))
             dir_info.full_subdir = os.path.join(subdir, dir_name)
@@ -1016,18 +1027,30 @@ class PublishedProject(Metadata, SubmissionInfo):
         if make_zip:
             self.make_zip()
 
+    def get_inspect_dir(self, subdir):
+        """
+        Return the folder to inspect if valid. subdir joined onto the
+        main file root of this project.
+        """
+        # Sanitize subdir for illegal characters
+        validate_subdir(subdir)
+        # Folder must be a subfolder of the file root and exist
+        inspect_dir = os.path.join(self.main_file_root(), subdir)
+        if inspect_dir.startswith(self.main_file_root()) and os.path.isdir(inspect_dir):
+            return inspect_dir
+        else:
+            raise Exception('Invalid directory request')
+
     def get_main_directory_content(self, subdir=''):
         """
         Return information for displaying files and directories from
         the main file root
         """
-        # Sanitize input
-        validate_subdir(subdir)
-
-        inspect_dir = os.path.join(self.main_file_root(), subdir)
+        # Get folder to inspect if valid
+        inspect_dir = self.get_inspect_dir(subdir)
         file_names , dir_names = list_items(inspect_dir)
-
         display_files, display_dirs = [], []
+
         # Files require desciptive info and download links
         for file in file_names:
             file_info = get_file_info(os.path.join(inspect_dir, file))
@@ -1036,7 +1059,7 @@ class PublishedProject(Metadata, SubmissionInfo):
             else:
                 file_info.static_url = os.path.join('published-projects', str(self.slug), 'files', subdir, file)
             display_files.append(file_info)
-        # Directories require
+        # Directories require links
         for dir_name in dir_names:
             dir_info = get_directory_info(os.path.join(inspect_dir, dir_name))
             dir_info.full_subdir = os.path.join(subdir, dir_name)
