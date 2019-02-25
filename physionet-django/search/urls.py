@@ -1,4 +1,4 @@
-from django.urls import path, re_path
+from django.urls import path
 
 from . import views
 
@@ -10,22 +10,11 @@ urlpatterns = [
         views.redirect_google_custom_search,
         name='redirect_google_custom_search'),
 
-    # re_path(r'^search/topics/(t=(?P<topic>[a-zA-Z0-9][\w\ -]*))?$',
-
-
-
-    re_path(r'^search/topics/$', views.topic_search, name='topic_search'),
-
-
-
+    path(r'^search/topics/', views.topic_search, name='topic_search'),
     path('search/all-topics/', views.all_topics, name='all_topics'),
 
-
-
     # published project index pages
-    re_path(r'^data/', views.database_index, name='database_index'),
-
-
+    path('data/', views.database_index, name='database_index'),
     path('software/', views.software_index, name='software_index'),
     path('content/', views.content_index, name='content_index'),
 ]
