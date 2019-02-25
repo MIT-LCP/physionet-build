@@ -52,12 +52,12 @@ def all_topics(request):
     Show all topics contained in PhysioNet
 
     """
-    topics = PublishedTopic.objects.all().order_by('-project_count')
+    topics = PublishedTopic.objects.all().orderby('-project_count')
 
     return render(request, 'search/all_topics.html', {'topics':topics})
 
 
-def get_content(resource_type, order_param, direction):
+def get_content(resource_type, orderby, direction):
     """
     Helper function to get content shown on a resource listing page
     """
@@ -69,8 +69,9 @@ def get_content(resource_type, order_param, direction):
 
     direction = '-' if direction == 'desc' else ''
 
-    order_string = '{}{}'.format(direction, order_param)
-    published_projects = published_projects.order_by()
+    order_string = '{}{}'.format(direction, orderby)
+    pdb.set_trace()
+    published_projects = published_projects.order_by(order_string)
 
     authors = [p.authors.all() for p in published_projects]
     topics = [p.topics.all() for p in published_projects]
@@ -92,27 +93,29 @@ def database_index(request):
     """
     List of published databases
     """
-    order_param, direction = 'publish_datetime', 'asc'
+    orderby, direction = 'publish_datetime', 'asc'
     form = forms.ProjectOrderForm()
 
     # If we get a form submission, redirect to generate the querystring
     # in the url
-    if 'search' in request.GET:
-        if 'order' in request.GET:
-            order_param = request.GET['order']
-        if 'direction' in request.GET:
-            direction = request.GET['direction']
-        return redirect('{}?order={}?direction={}'.format(reverse('database_index'), order_param, direction))
+    # if 'search' in request.GET:
+    #     if 'orderby' in request.GET:
+    #         orderby = request.GET['orderby']
+    #     if 'direction' in request.GET:
+    #         direction = request.GET['direction']
+    #     return redirect('{}?orderby={}&direction={}'.format(reverse('database_index'), orderby, direction))
     # A search via direct url entry
-    elif 'order' in request.GET or 'direction' in request.GET:
+    if 'order_by' in request.GET or 'direction' in request.GET:
         form = forms.ProjectOrderForm(request.GET)
         if form.is_valid():
-            order_param, direction = [form.cleaned_data[item] for item in ['order', 'direction']]
+            orderby, direction = [form.cleaned_data[item] for item in ['orderby', 'direction']]
+        pdb.set_trace()
         projects_authors_topics = get_content(resource_type=0,
-            order_param=order_param, direction=direction)
+            orderby=orderby, direction=direction)
+        pdb.set_trace()
     else:
         projects_authors_topics = get_content(resource_type=0,
-            order_param=order_param, direction=direction)
+            orderby=orderby, direction=direction)
 
     return render(request, 'search/database_index.html', {'form':form,
         'projects_authors_topics':projects_authors_topics})
