@@ -18,7 +18,7 @@ PhysioNet Topics
   </p>
   <p>
     {% for topic in topics %}
-      <a href="{% url 'topic_search' %}?t={{ topic.description }}"><span class="badge badge-pn">{{ topic.description }} ({{ topic.project_count }})</span></a>
+      <a href="{% url 'topic_search' %}?topic={{ topic.description }}"><span class="badge badge-pn">{{ topic.description }} ({{ topic.project_count }})</span></a>
     {% endfor %}
   </p>
   <br>

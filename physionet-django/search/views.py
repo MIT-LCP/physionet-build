@@ -31,15 +31,12 @@ def topic_search(request):
     topic, valid_search, projects = '', False, None
     # If we get a form submission, redirect to generate the querystring
     # in the url
-    if 'search' in request.GET:
-        return redirect('{}?t={}'.format(reverse('topic_search'), request.GET['t']))
-    # A search via direct url entry
-    elif 't' in request.GET:
+    if 'topic' in request.GET:
         form = forms.TopicSearchForm(request.GET)
         if form.is_valid():
-            topic = form.cleaned_data['t']
-            projects = PublishedProject.objects.filter(topics__description=topic)
+            topic = form.cleaned_data['topic']
             valid_search = True
+        projects = PublishedProject.objects.filter(topics__description=topic)
     else:
         form = forms.TopicSearchForm()
 
@@ -52,7 +49,7 @@ def all_topics(request):
     Show all topics contained in PhysioNet
 
     """
-    topics = PublishedTopic.objects.all().orderby('-project_count')
+    topics = PublishedTopic.objects.all().order_by('-project_count')
 
     return render(request, 'search/all_topics.html', {'topics':topics})
 

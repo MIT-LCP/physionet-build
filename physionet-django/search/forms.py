@@ -4,8 +4,7 @@ from user.validators import validate_alphaplus
 
 
 class TopicSearchForm(forms.Form):
-    t = forms.CharField(max_length=50, label='Topic',
-        validators=[validate_alphaplus])
+    topic = forms.CharField(max_length=50, validators=[validate_alphaplus])
 
 
 class ProjectOrderForm(forms.Form):

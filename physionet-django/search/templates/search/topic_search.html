@@ -19,9 +19,9 @@ Topic Search
   <p>Search published PhysioNet content with <a href="{% url 'all_topics' %}">topic keywords</a>.
   </p>
   <br>
-  <form method="GET" action="{% url 'topic_search' %}">
+  <form method="GET" action="">
     {% include "inline_form_snippet.html" %}
-    <button class="btn btn-primary btn-lg" type="submit" name="search">Search</button>
+    <button class="btn btn-primary btn-lg" type="submit">Search</button>
   </form>
 
   {# A search was made #}
