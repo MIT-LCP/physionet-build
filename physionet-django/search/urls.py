@@ -10,7 +10,7 @@ urlpatterns = [
         views.redirect_google_custom_search,
         name='redirect_google_custom_search'),
 
-    path(r'^search/topics/', views.topic_search, name='topic_search'),
+    path('search/topics/', views.topic_search, name='topic_search'),
     path('search/all-topics/', views.all_topics, name='all_topics'),
 
     # published project index pages
