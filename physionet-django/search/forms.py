@@ -16,8 +16,8 @@ class ProjectOrderForm(forms.Form):
     )
 
     DIRECTION_CHOICES = (
+        ('desc', 'Descending'),
         ('asc', 'Ascending'),
-        ('desc', 'Descending')
     )
 
     orderby = forms.ChoiceField(choices=ORDER_CHOICES, label='Order By')

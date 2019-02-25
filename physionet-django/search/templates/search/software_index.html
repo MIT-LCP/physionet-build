@@ -7,6 +7,7 @@ PhysioNet Software Index
 
 {% block local_css %}
 <link rel="stylesheet" type="text/css" href="{% static 'custom/css/content-index.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/form-control-input.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -15,6 +16,12 @@ PhysioNet Software Index
     <h1 class="display-4">PhysioNet Software Index</h1>
     <p class="lead my-3">This page contains all of the software published on PhysioNet.</p>
   </div>
+  <hr>
+  <form method="GET" action="">
+    {% include "inline_form_snippet.html" %}
+    <button class="btn btn-primary btn-lg" type="submit">Order Results</button>
+  </form>
+  <hr>
   {% include "search/content_list.html" %}
 </div>
 {% endblock %}
