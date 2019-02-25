@@ -70,6 +70,7 @@
            may complete this step. If you made any changes, summarize them
            below.</p>
         <form action="" method="post">
+          {% csrf_token %}
           {% include "form_snippet.html" with form=copyedit_form %}
           <button class="btn btn-lg btn-primary" type="submit" name="complete_copyedit">Complete Copyedit</button>
         </form>

@@ -21,9 +21,9 @@ PhysioNet
         <div class="intro-text">
           <div class="intro-heading">PhysioNet</div>
           <div class="intro-lead-in">Find and publish physiologic tools and data</div>
-          <a class="btn btn-pn btn-light badge-pill intro-badge" href="{% url 'data' %}">&nbsp; Data&nbsp;</a>
-          <a class="btn btn-pn btn-light badge-pill intro-badge" href="{% url 'software' %}">&nbsp; Software&nbsp;</a>
-          <a class="btn btn-pn btn-light badge-pill intro-badge" href="{% url 'create_project' %}">&nbsp; Publish&nbsp;</a>
+          <a class="btn btn-pn btn-outline-dark intro-badge badge-pn" href="{% url 'database_index' %}">&nbsp; Data&nbsp;</a>
+          <a class="btn btn-pn btn-outline-dark intro-badge badge-pn" href="{% url 'software_index' %}">&nbsp; Software&nbsp;</a>
+          <a class="btn btn-pn btn-outline-dark intro-badge badge-pn" href="{% url 'create_project' %}">&nbsp; Publish&nbsp;</a>
         </div>
       </div>
     </header>
@@ -33,39 +33,21 @@ PhysioNet
       <div class="col-md-7">
         <h1>New Content</h1>
         <hr>
-        {# A publication #}
-        {% for published_project, authors , topics in projects_authors_topics %}
-          <p>{{ published_project.resource_type|resource_badge|safe }}
-             {{ published_project.access_policy|access_badge|safe }}
-          </p>
-          <a href="{% url 'published_project' published_project.slug %}"><h2>{{ published_project.title }}</h2></a>
-          {% if not published_project.is_legacy %}
-            <p class="text-muted">
-              <strong>Authors:
-              {% for author in authors %}
-                {{ author.get_full_name }}
-              {% endfor %}
-              </strong>
-            </p>
-          {% endif %}
-          {{ published_project.abstract|safe }}
-          <p class="text-muted">
-            Published: {{ published_project.publish_datetime|date }}.
-            Version: {{ published_project.version }}
-            <br>
-            {% for topic in topics %}
-              <a href="{% url 'topic_search' topic.description %}"><span class="badge badge-info">{{ topic }}</span></a>
-            {% endfor %}
-          </p>
-          <hr>
-        {% endfor %}
-
-        <a class="btn btn-outline-primary" href="{% url 'content' %}">More Content</a>
+        {% include "search/content_list.html" %}
+        <a class="btn btn-outline-dark" href="{% url 'content_index' %}">More Content</a>
         <br><br>
       </div>
 
       <!--Right Column -->
       <div class="col-md-5">
+
+        <div class="card">
+          <h2 class="card-header">Welcome to PhysioNet</h2>
+          <div class="card-body">
+            <p class="card-text mt-1">PhysioNet offers free web access to large collections of recorded physiologic <a href="{% url 'database_index' %}">data</a> and related open-source <a href="{% url 'software_index' %}">software</a>. For more information, see our <a href="{% url 'about_physionet' %}">about page</a>.</p>
+          </div>
+        </div>
+
         <div class="card my-4">
           <h2 class="card-header">News</h2>
           <div class="card-body">
@@ -81,7 +63,7 @@ PhysioNet
               {{ news.content|safe }}
               <hr>
             {% endfor %}
-            <a class="btn btn-outline-primary" href="{% url 'news' %}">More News</a>
+            <a class="btn btn-outline-dark" href="{% url 'news' %}">More News</a>
           </div>
         </div>
       </div>

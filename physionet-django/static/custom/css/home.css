@@ -1,15 +1,7 @@
 /* Adapted from startbootstrap-agency */
-.main-title {
-  font-size: 50px;
-  font-style: italic;
-  line-height: 22px;
-  margin-bottom: 25px;
-  font-family: 'Droid Serif', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-}
-
 .btn-pn {
-  color: white;
-  background-color: #694;
+/*  color: white;
+  background-color: #694;*/
   margin-right: 5px;
   margin-left: 5px;
 }
@@ -22,8 +14,7 @@ header.masthead {
 }
 
 header.masthead .intro-text {
-  padding-top: 50px;
-  padding-bottom: 50px;
+  padding-bottom: 25px;
 }
 
 header.masthead .intro-text .intro-lead-in {
@@ -48,8 +39,7 @@ header.masthead .intro-text .intro-heading {
 
 @media (min-width: 768px) {
   header.masthead .intro-text {
-    padding-top: 50px;
-    padding-bottom: 50px;
+    padding-bottom: 25px;
   }
 
   header.masthead .intro-text .intro-heading {

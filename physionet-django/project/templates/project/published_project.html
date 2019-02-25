@@ -144,7 +144,7 @@
             <p><strong>Topics:</strong>
               <br>
               {% for topic in topics %}
-                <a href="{% url 'topic_search' topic.description %}"><span class="badge badge-info">{{ topic }}</span></a>
+                {{ topic|topic_badge|safe }}
               {% endfor %}
             </p>
           {% endif %}
