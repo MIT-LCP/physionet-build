@@ -1,5 +1,6 @@
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.utils import timezone
 
 from .serializers import PublishedProjectSerializer
 from project.models import PublishedProject
@@ -27,24 +28,31 @@ def database_stats_list(request):
     """
     List cumulative stats about database published
     """
-
+    data = []
     projects = PublishedProject.objects.filter(resource_type=0).order_by('publish_datetime')
 
+    for year in range(projects[0].publish_datetime.year, timezone.now().year):
+        y_projects = projects.filter(publish_datetime__year=year)
+        data.append({"Year":year, "Projects":y_projects.count(), "Size":20})
 
 
-    data = {
-        'published':{
-            '2010':5,
-            '2011':8,
-            '2012':9
-        },
-        'storage':{
-            '2010':10,
-            '2011':11,
-            '2012':12
-        }
-    }
+    # data = [
+    #     {
+    #         "Year":2010,
+    #         "Projects":10,
+    #         "Storage":40
+    #     },
+    #     {
+    #         "Year":2011,
+    #         "Projects":11,
+    #         "Storage":45
+    #     },
+    #     {
+    #         "Year":2012,
+    #         "Projects":12,
+    #         "Storage":50
+    #     }
+    # ]
 
-    data = {'2010':'1', '2011':'2'}
     return JsonResponse(data, safe=False)
 
