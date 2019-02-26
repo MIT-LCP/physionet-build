@@ -33,10 +33,7 @@ def database_stats_list(request):
 
     for year in range(projects[0].publish_datetime.year, timezone.now().year):
         y_projects = projects.filter(publish_datetime__year=year)
-        data.append({"year":year, "projects":y_projects.count(),
-            "storage_size":year - 1980})
-            # Actual code
-            # "storage_size":sum((p.main_storage_size for p in y_projects))})
+        data.append({"year":year, "num_projects":y_projects.count(),
+            "storage_size":sum((p.main_storage_size for p in y_projects))})
 
     return JsonResponse(data, safe=False)
-

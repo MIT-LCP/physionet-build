@@ -9,34 +9,35 @@ PhysioNet Database Statistics
 <link rel="stylesheet" type="text/css" href="{% static 'search/css/stats.css' %}">
 {% endblock %}
 
-
 {% block local_js_top %}
-<script src="http://d3js.org/d3.v3.min.js"></script>
-<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+<script src="{% static 'd3/d3.v3.min.js' %}"></script>
+<script src="{% static 'd3/d3.tip.v0.6.3.js' %}"></script>
 {% endblock %}
 
 {% block content %}
 <div class="container">
   <h1>PhysioNet Database Statistics</h1>
   <hr>
-
-  <div id="mainstat" class="mb-6">
-    {# Number of databases and their volumes #}
+  <br>
+  <div id="newdbs">
+    {# Yearly number and volume of databases #}
   </div>
-  <hr>
-  <div id="cumulstat" class="mt-3">
-    {# Cumulative number and store of databases #}
+  <br><br>
+  <div id="totaldbs">
+    {# Cumulative number and volume of databases #}
   </div>
+  <br>
   <hr>
-
 <script>
-// set the dimensions of the canvas
-var margin = {top: 40, right: 20, bottom: 30, left: 40},
-    width = 960 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
+// Common parameters for both charts
 
+// set the dimensions of the canvas. Leave left and right margins for
+// y axis scale numbers
+var margin = {top: 40, right: 40, bottom: 30, left: 40},
+    width = document.getElementById('newdbs').offsetWidth - margin.left - margin.right,
+    height = width * 0.5 - margin.top - margin.bottom;
 
-// set the ranges
+// set the axis sizes
 var x = d3.scale.ordinal().rangeRoundBands([0, width], .05);
 var y0 = d3.scale.linear().range([height, 0]);
 var y1 = d3.scale.linear().range([height, 0]);
@@ -61,7 +62,7 @@ var tip0 = d3.tip()
   .attr('class', 'd3-tip')
   .offset([-10, 0])
   .html(function(d) {
-    return d.projects + " Databases";
+    return d.num_projects + " Databases";
   })
 
 var tip1 = d3.tip()
@@ -75,7 +76,7 @@ var tip1 = d3.tip()
 // First chart
 
 // add the SVG element
-var svg0 = d3.select("#mainstat").append("svg")
+var svg0 = d3.select("#newdbs").append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
   .append("g")
@@ -90,7 +91,7 @@ svg0.call(tip1);
 d3.json("/rest/database-stats-list/", function(error, data) {
   // scale the range of the data
   x.domain(data.map(function(d) { return d.year; }));
-  y0.domain([0, d3.max(data, function(d) { return d.projects; })]);
+  y0.domain([0, d3.max(data, function(d) { return d.num_projects; })]);
   y1.domain([0, d3.max(data, function(d) { return d.storage_size; })]);
 
   // add x axis
@@ -107,8 +108,7 @@ d3.json("/rest/database-stats-list/", function(error, data) {
   .append("text")
     .attr("y", 6)
     .attr("dy", "-2em")
-    .style("text-anchor", "end")
-    .style("text-anchor", "end")
+    .style("text-anchor", "start")
     .text("No. Databases");
 
   // add right y axis
@@ -119,9 +119,8 @@ d3.json("/rest/database-stats-list/", function(error, data) {
   .append("text")
     .attr("y", 6)
     .attr("dy", "-2em")
-    .attr("dx", "2em")
     .style("text-anchor", "end")
-    .text("Data Volume");
+    .text("Data Volume (GB)");
 
   // add title
   svg0.append("text")
@@ -129,7 +128,7 @@ d3.json("/rest/database-stats-list/", function(error, data) {
     .attr("x", width/2)
     .attr("y", 0 - (margin.top / 2))
     .attr("text-anchor", "middle")
-    .text("New Databases per Year");
+    .text("New Databases Per Year");
 
   var bars = svg0.selectAll(".bar").data(data).enter();
 
@@ -137,10 +136,10 @@ d3.json("/rest/database-stats-list/", function(error, data) {
       .attr("class", "bar1")
       .attr("x", function(d) { return x(d.year); })
       .attr("width", x.rangeBand()/2)
-      .attr("y", function(d) { return y0(d.projects); })
+      .attr("y", function(d) { return y0(d.num_projects); })
       .on('mouseover', tip0.show)
       .on('mouseout', tip0.hide)
-    .attr("height", function(d,i,j) { return height - y0(d.projects); });
+    .attr("height", function(d,i,j) { return height - y0(d.num_projects); });
 
   bars.append("rect")
       .attr("class", "bar2")
@@ -154,11 +153,10 @@ d3.json("/rest/database-stats-list/", function(error, data) {
 });
 
 
-
 // Second chart
 
 // add the SVG element
-var svg1 = d3.select("#cumulstat").append("svg")
+var svg1 = d3.select("#totaldbs").append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
   .append("g")
@@ -173,13 +171,13 @@ svg1.call(tip1);
 d3.json("/rest/database-stats-list/", function(error, data) {
   // calculate cumulative sum of the data
   for (i = 1; i < data.length; i++) {
-    data[i].projects += data[i-1].projects;
+    data[i].num_projects += data[i-1].num_projects;
     data[i].storage_size += data[i-1].storage_size;
   }
 
   // scale the range of the data
   x.domain(data.map(function(d) { return d.year; }));
-  y0.domain([0, d3.max(data, function(d) { return d.projects; })]);
+  y0.domain([0, d3.max(data, function(d) { return d.num_projects; })]);
   y1.domain([0, d3.max(data, function(d) { return d.storage_size; })]);
 
   // add x axis
@@ -196,8 +194,7 @@ d3.json("/rest/database-stats-list/", function(error, data) {
   .append("text")
     .attr("y", 6)
     .attr("dy", "-2em")
-    .style("text-anchor", "end")
-    .style("text-anchor", "end")
+    .style("text-anchor", "start")
     .text("No. Databases");
 
   // add right y axis
@@ -208,9 +205,8 @@ d3.json("/rest/database-stats-list/", function(error, data) {
   .append("text")
     .attr("y", 6)
     .attr("dy", "-2em")
-    .attr("dx", "2em")
     .style("text-anchor", "end")
-    .text("Data Volume");
+    .text("Data Volume (GB)");
 
   // add title
   svg1.append("text")
@@ -218,7 +214,7 @@ d3.json("/rest/database-stats-list/", function(error, data) {
     .attr("x", width/2)
     .attr("y", 0 - (margin.top / 2))
     .attr("text-anchor", "middle")
-    .text("Total Databases per Year");
+    .text("Total Databases Per Year");
 
   var bars = svg1.selectAll(".bar").data(data).enter();
 
@@ -226,10 +222,10 @@ d3.json("/rest/database-stats-list/", function(error, data) {
       .attr("class", "bar1")
       .attr("x", function(d) { return x(d.year); })
       .attr("width", x.rangeBand()/2)
-      .attr("y", function(d) { return y0(d.projects); })
+      .attr("y", function(d) { return y0(d.num_projects); })
       .on('mouseover', tip0.show)
       .on('mouseout', tip0.hide)
-    .attr("height", function(d,i,j) { return height - y0(d.projects); });
+    .attr("height", function(d,i,j) { return height - y0(d.num_projects); });
 
   bars.append("rect")
       .attr("class", "bar2")

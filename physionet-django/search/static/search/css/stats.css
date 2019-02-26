@@ -1,10 +1,4 @@
-
-/*body {
-  font: 10px sans-serif;
-}*/
-
-.axis path,
-.axis line {
+.axis path, .axis line {
   fill: none;
   stroke: #000;
   shape-rendering: crispEdges;
@@ -15,7 +9,7 @@
 }
 
 .bar1:hover {
-  fill: blue ;
+  fill: #c7d9e8;
 }
 
 .bar2 {
@@ -23,7 +17,7 @@
 }
 
 .bar2:hover {
-  fill: orangered;
+  fill: #ffe4b2;
 }
 
 .y.axisRight text {
@@ -31,11 +25,6 @@
 }
 .y.axisLeft text {
     fill: steelblue;
-}
-
-
-.x.axis path {
-  display: none;
 }
 
 .d3-tip {
