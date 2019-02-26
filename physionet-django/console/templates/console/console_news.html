@@ -5,7 +5,7 @@
 {% block content %}
  <div class="card mb-3">
   <div class="card-header">
-    <i class="far fa-newspaper"></i> News Items <span class="badge badge-pill badge-info">{{ news_items|length }}</span>
+    News Items <span class="badge badge-pill badge-info">{{ news_items|length }}</span>
   </div>
   <div class="card-body">
     <p><a href="{% url 'add_news' %}" class="btn btn-lg btn-success">Add News Item</a></p>
