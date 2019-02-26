@@ -20,22 +20,17 @@ PhysioNet Database Statistics
   <h1>PhysioNet Database Statistics</h1>
   <hr>
 
-  <div id="mainstat">
+  <div id="mainstat" class="mb-6">
     {# Number of databases and their volumes #}
   </div>
-
-  <div id="cumulstat">
+  <hr>
+  <div id="cumulstat" class="mt-3">
     {# Cumulative number and store of databases #}
   </div>
+  <hr>
 
 <script>
-
-
 // set the dimensions of the canvas
-var margin = {top: 20, right: 20, bottom: 70, left: 40},
-    width = 600 - margin.left - margin.right,
-    height = 300 - margin.top - margin.bottom;
-
 var margin = {top: 40, right: 20, bottom: 30, left: 40},
     width = 960 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
@@ -66,19 +61,21 @@ var tip0 = d3.tip()
   .attr('class', 'd3-tip')
   .offset([-10, 0])
   .html(function(d) {
-    return "<strong>Projects:</strong> " + d.projects;
+    return d.projects + " Databases";
   })
 
 var tip1 = d3.tip()
   .attr('class', 'd3-tip')
   .offset([-10, 0])
   .html(function(d) {
-    return "<strong>Data Volume:</strong> " + d.storage_size + "Gb";
+    return d.storage_size + " GB";
   })
 
 
+// First chart
+
 // add the SVG element
-var svg = d3.select("#mainstat").append("svg")
+var svg0 = d3.select("#mainstat").append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
   .append("g")
@@ -86,30 +83,24 @@ var svg = d3.select("#mainstat").append("svg")
           "translate(" + margin.left + "," + margin.top + ")");
 
 // Add the tooltips to the svg
-svg.call(tip0);
-svg.call(tip1);
+svg0.call(tip0);
+svg0.call(tip1);
 
 // load the data
 d3.json("/rest/database-stats-list/", function(error, data) {
-
-    data.forEach(function(d) {
-        d.year = d.year;
-        d.projects = +d.projects;
-    });
-
   // scale the range of the data
   x.domain(data.map(function(d) { return d.year; }));
   y0.domain([0, d3.max(data, function(d) { return d.projects; })]);
   y1.domain([0, d3.max(data, function(d) { return d.storage_size; })]);
 
   // add x axis
-  svg.append("g")
+  svg0.append("g")
       .attr("class", "x axis")
       .attr("transform", "translate(0," + height + ")")
       .call(xAxis);
 
   // add left y axis
-  svg.append("g")
+  svg0.append("g")
     .attr("class", "y axis axisLeft")
     .attr("transform", "translate(0,0)")
     .call(yAxisLeft)
@@ -121,7 +112,7 @@ d3.json("/rest/database-stats-list/", function(error, data) {
     .text("No. Databases");
 
   // add right y axis
-  svg.append("g")
+  svg0.append("g")
     .attr("class", "y axis axisRight")
     .attr("transform", "translate(" + (width) + ",0)")
     .call(yAxisRight)
@@ -133,27 +124,14 @@ d3.json("/rest/database-stats-list/", function(error, data) {
     .text("Data Volume");
 
   // add title
-  svg.append("text")
-    .attr("class", "title")
+  svg0.append("text")
+    .attr("class", "graph-title")
     .attr("x", width/2)
     .attr("y", 0 - (margin.top / 2))
     .attr("text-anchor", "middle")
-    .text("New PhysioNet Databases per Year");
+    .text("New Databases per Year");
 
-
-  // Add bar chart
-  // svg.selectAll("bar")
-  //     .data(data)
-  //   .enter().append("rect")
-  //     .attr("class", "bar")
-  //     .attr("x", function(d) { return x(d.year); })
-  //     .attr("width", x.rangeBand())
-  //     .attr("y", function(d) { return y(d.projects); })
-  //     .on('mouseover', tip.show)
-  //     .on('mouseout', tip.hide)
-  //     .attr("height", function(d) { return height - y(d.projects); });
-
-  bars = svg.selectAll(".bar").data(data).enter();
+  var bars = svg0.selectAll(".bar").data(data).enter();
 
   bars.append("rect")
       .attr("class", "bar1")
@@ -173,6 +151,94 @@ d3.json("/rest/database-stats-list/", function(error, data) {
       .on('mouseout', tip1.hide)
     .attr("height", function(d,i,j) { return height - y1(d.storage_size); });
 
+});
+
+
+
+// Second chart
+
+// add the SVG element
+var svg1 = d3.select("#cumulstat").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+// Add the tooltips to the svg
+svg1.call(tip0);
+svg1.call(tip1);
+
+// load the data
+d3.json("/rest/database-stats-list/", function(error, data) {
+  // calculate cumulative sum of the data
+  for (i = 1; i < data.length; i++) {
+    data[i].projects += data[i-1].projects;
+    data[i].storage_size += data[i-1].storage_size;
+  }
+
+  // scale the range of the data
+  x.domain(data.map(function(d) { return d.year; }));
+  y0.domain([0, d3.max(data, function(d) { return d.projects; })]);
+  y1.domain([0, d3.max(data, function(d) { return d.storage_size; })]);
+
+  // add x axis
+  svg1.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis);
+
+  // add left y axis
+  svg1.append("g")
+    .attr("class", "y axis axisLeft")
+    .attr("transform", "translate(0,0)")
+    .call(yAxisLeft)
+  .append("text")
+    .attr("y", 6)
+    .attr("dy", "-2em")
+    .style("text-anchor", "end")
+    .style("text-anchor", "end")
+    .text("No. Databases");
+
+  // add right y axis
+  svg1.append("g")
+    .attr("class", "y axis axisRight")
+    .attr("transform", "translate(" + (width) + ",0)")
+    .call(yAxisRight)
+  .append("text")
+    .attr("y", 6)
+    .attr("dy", "-2em")
+    .attr("dx", "2em")
+    .style("text-anchor", "end")
+    .text("Data Volume");
+
+  // add title
+  svg1.append("text")
+    .attr("class", "graph-title")
+    .attr("x", width/2)
+    .attr("y", 0 - (margin.top / 2))
+    .attr("text-anchor", "middle")
+    .text("Total Databases per Year");
+
+  var bars = svg1.selectAll(".bar").data(data).enter();
+
+  bars.append("rect")
+      .attr("class", "bar1")
+      .attr("x", function(d) { return x(d.year); })
+      .attr("width", x.rangeBand()/2)
+      .attr("y", function(d) { return y0(d.projects); })
+      .on('mouseover', tip0.show)
+      .on('mouseout', tip0.hide)
+    .attr("height", function(d,i,j) { return height - y0(d.projects); });
+
+  bars.append("rect")
+      .attr("class", "bar2")
+      .attr("x", function(d) { return x(d.year) + x.rangeBand()/2; })
+      .attr("width", x.rangeBand() / 2)
+      .attr("y", function(d) { return y1(d.storage_size); })
+      .on('mouseover', tip1.show)
+      .on('mouseout', tip1.hide)
+    .attr("height", function(d,i,j) { return height - y1(d.storage_size); });
 
 });
 
