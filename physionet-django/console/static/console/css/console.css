@@ -501,3 +501,8 @@ footer.sticky-footer {
     width: calc(100% - 55px);
   }
 }
+.fa-fw {
+    text-align: center;
+    width: 1.25em;
+    margin-right: .25rem;
+}

@@ -14,10 +14,9 @@
 {# Awaiting editor decision #}
 <div class="card mb-3">
   <div class="card-header">
-    <i class="fa fa-glasses"></i> Awaiting Your Decision {{ decision_projects|task_count_badge|safe }}
+    Awaiting Editor Decision {{ decision_projects|task_count_badge|safe }}
   </div>
   <div class="card-body">
-    <p>You are assigned to edit the following projects.</p>
     {% if decision_projects %}
       <div class="table-responsive">
         <table class="table table-bordered">
@@ -58,10 +57,9 @@
 {# Awaiting revisions #}
 <div class="card mb-3">
   <div class="card-header">
-    <i class="fa fa-clock"></i> Awaiting Author Revisions {{ revision_projects|task_count_badge|safe }}
+    Awaiting Author Revisions {{ revision_projects|task_count_badge|safe }}
   </div>
   <div class="card-body">
-    <p>You have instructed the following projects to be revised by their authors.</p>
     {% if revision_projects %}
       <div class="table-responsive">
         <table class="table table-bordered">
@@ -94,10 +92,9 @@
 {# Awaiting editor copyedit #}
 <div class="card mb-3">
   <div class="card-header">
-    <i class="fa fa-glasses"></i> Awaiting Your Copyedits {{ copyedit_projects|task_count_badge|safe }}
+    Awaiting Editor Copyedits {{ copyedit_projects|task_count_badge|safe }}
   </div>
   <div class="card-body">
-    <p>You have accepted these projects for publication. Make any copyedits necessary to ensure their quality.</p>
     {% if copyedit_projects %}
       <div class="table-responsive">
         <table class="table table-bordered">
@@ -132,10 +129,9 @@
 {# Awaiting author approval #}
 <div class="card mb-3">
   <div class="card-header">
-    <i class="fa fa-clock"></i> Awaiting Author Approval {{ approval_projects|task_count_badge|safe }}
+    Awaiting Author Approval {{ approval_projects|task_count_badge|safe }}
   </div>
   <div class="card-body">
-    <p>You have copyedited these projects. Awaiting all authors to approve the final project. If the authors have requested additional changes, you may reopen the project for copyediting.</p>
     {% if approval_projects %}
       <div class="table-responsive">
         <table class="table table-bordered">
@@ -172,10 +168,9 @@
 {# Awaiting editor publish #}
 <div class="card mb-3">
   <div class="card-header">
-    <i class="fa fa-glasses"></i> Awaiting Your Publishing {{ publish_projects|task_count_badge|safe }}
+    Awaiting Publication {{ publish_projects|task_count_badge|safe }}
   </div>
   <div class="card-body">
-    <p>All authors have accepted these projects for publication. You may publish them.</p>
     {% if publish_projects %}
       <div class="table-responsive">
         <table class="table table-bordered">
