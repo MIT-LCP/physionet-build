@@ -1246,19 +1246,19 @@ class EditLog(models.Model):
     EDITOR_FIELDS = ('editor_comments', 'decision')
 
     COMMON_LABELS = {
-        'reusable':'All the information needed for reuse is present',
-        'pn_suitable':'The content is suitable for PhysioNet',
+        'reusable':'Does the project include everything needed for reuse by the community?',
+        'pn_suitable':'Is the content suitable for PhysioNet?',
         'editor_comments':'Comments to authors',
     }
 
     LABELS = (
-        {'soundly_produced':'The data is produced in a sound manner',
-         'well_described':'The data is adequately described',
-         'open_format':'The data files are provided in an open format',
-         'data_machine_readable':'The data files are machine readable',
-         'no_phi':'No protected health information is contained'},
-        {'well_described':'The software is adequately described',
-         'open_format':'The software is provided in open source format'}
+        {'soundly_produced':'Has the data been produced in a sound manner?',
+         'well_described':'Is the data adequately described?',
+         'open_format':'Is the data provided in an open format?',
+         'data_machine_readable':'Are the data files machine-readable?',
+         'no_phi':'Is the data free of protected health information?'},
+        {'well_described':'Is the software adequately described?',
+         'open_format':'Is the software provided in an open format?'}
     )
 
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
