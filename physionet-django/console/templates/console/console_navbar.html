@@ -13,94 +13,121 @@
   <div class="collapse navbar-collapse" id="navbarResponsive">
     <ul class="navbar-nav navbar-sidenav" id="sideAccordion">
       <!-- editor home -->
-      <li class="nav-item" data-toggle="tooltip" data-placement="right">
+      {% url 'editor_home' as editor_home %}
+      <li class="nav-item {% ifequal request.path editor_home %}active{% endifequal %}" data-toggle="tooltip" data-placement="right">
         <a id="nav_editor_home" class="nav-link" href="{% url 'editor_home' %}">
+          <i class="fa fa-fw fa-book-open"></i>
           <span class="nav-link-text">Home</span>
-          <i class="fas fa-book-open"></i>
         </a>
       </li>
       <!-- projects -->
+      {% url 'unsubmitted_projects' as unsubmitted_projects %}
+      {% url 'submitted_projects' as submitted_projects %}
+      {% url 'published_projects' as published_projects %}
+      {% url 'rejected_submissions' as rejected_submissions %}
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
-        <a id="nav_projects_dropdown" class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#projectComponents" data-parent="#sideAccordion">
+      {% if request.path == unsubmitted_projects or request.path == submitted_projects or request.path == published_projects or request.path == rejected_submissions %}
+        <a id="nav_projects_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#projectComponents" data-parent="#sideAccordion" aria-expanded="true">
+      {% else %}
+        <a id="nav_projects_dropdown" class="nav-link nav-link-collapse drop collapsed" data-toggle="collapse" href="#projectComponents" data-parent="#sideAccordion" aria-expanded="false">
+      {% endif %}
+          <i class="fa fa-fw fa-clipboard-list"></i>
           <span class="nav-link-text">Projects</span>
-          <i class="fas fa-clipboard-list"></i>
         </a>
         <!-- submenu -->
+      {% if request.path == unsubmitted_projects or request.path == submitted_projects or request.path == published_projects or request.path == rejected_submissions %}
+        <ul class="sidenav-second-level collapse show" id="projectComponents" style="">
+      {% else %}
         <ul class="sidenav-second-level collapse" id="projectComponents">
-          <li>
+      {% endif %}
+          <li class="nav-item {% ifequal request.path unsubmitted_projects %}active{% endifequal %}">
             <a id="nav_unsubmitted_projects" class="nav-link" href="{% url 'unsubmitted_projects' %}">Unsubmitted</a>
           </li>
-          <li>
+          <li class="nav-item {% ifequal request.path submitted_projects %}active{% endifequal %}">
             <a id="nav_submitted_projects" class="nav-link" href="{% url 'submitted_projects' %}">Submitted</a>
           </li>
-          <li>
+          <li class="nav-item {% ifequal request.path published_projects %}active{% endifequal %}">
             <a id="nav_published_projects" class="nav-link" href="{% url 'published_projects' %}">Published</a>
           </li>
-          <li>
+          <li class="nav-item {% ifequal request.path rejected_submissions %}active{% endifequal %}">
             <a id="nav_rejected_submissions" class="nav-link" href="{% url 'rejected_submissions' %}">Rejected</a>
           </li>          
         </ul>
       </li>
       <!-- storage requests -->
-      <li class="nav-item" data-toggle="tooltip" data-placement="right">
+      {% url 'storage_requests' as storage_requests %}
+      <li class="nav-item {% ifequal request.path storage_requests %}active{% endifequal %}" data-toggle="tooltip" data-placement="right">
         <a id="nav_storage_requests" class="nav-link" href="{% url 'storage_requests' %}">
+          <i class="fa fa-fw fa-cube"></i>
           <span class="nav-link-text">Storage</span>
-          <i class="fa fa-cube"></i>
         </a>
       </li>
       <!-- credentialing -->
+      {% url 'credential_applications' as credential_applications %}
+      {% url 'past_credential_applications' as past_credential_applications %}
+      {% url 'credentialed_users' as credentialed_users %}
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
-        <a id="nav_credentialing_dropdown" class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#credentialComponents" data-parent="#sideAccordion">
+      {% if request.path == credential_applications or request.path == past_credential_applications or request.path == credentialed_users  %}
+        <a id="nav_credentialing_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#credentialComponents" data-parent="#sideAccordion" aria-expanded="true">
+      {% else %}
+        <a id="nav_credentialing_dropdown" class="nav-link nav-link-collapse drop collapsed" data-toggle="collapse" href="#credentialComponents" data-parent="#sideAccordion" aria-expanded="false">
+      {% endif %}
+          <i class="fa fa-fw fa-hand-paper"></i>
           <span class="nav-link-text">Credentialing</span>
-          <i class="far fa-hand-paper"></i>
         </a>
         <!-- submenu -->
+      {% if request.path == credential_applications or request.path == past_credential_applications or request.path == credentialed_users  %}
+        <ul class="sidenav-second-level collapse show" id="credentialComponents">
+      {% else %}
         <ul class="sidenav-second-level collapse" id="credentialComponents">
-          <li>
+      {% endif %}
+          <li class="nav-item {% ifequal request.path credential_applications %}active{% endifequal %}">
             <a id="nav_credential_applications" href="{% url 'credential_applications' %}">Ongoing Applications</a>
           </li>
-          <li>
+          <li class="nav-item {% ifequal request.path past_credential_applications %}active{% endifequal %}">
             <a id="nav_past_credential_applications" href="{% url 'past_credential_applications' %}">Past Applications</a>
           </li>
-          <li>
+          <li class="nav-item {% ifequal request.path credentialed_users %}active{% endifequal %}">
             <a id="nav_credentialed_users" href="{% url 'credentialed_users' %}">Credentialed Users</a>
           </li>
         </ul>
       </li>
+
       <!-- users -->
+      {% url 'user_list' as user_list %}
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
-        <a id="nav_users_dropdown" class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#userComponents" data-parent="#sideAccordion">
+      {% if request.path == user_list  %}
+        <a id="nav_users_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#userComponents" data-parent="#sideAccordion" aria-expanded="true">
+      {% else %}
+        <a id="nav_users_dropdown" class="nav-link nav-link-collapse drop collapsed" data-toggle="collapse" href="#userComponents" data-parent="#sideAccordion" aria-expanded="false">
+      {% endif %}
+          <i class="fa fa-fw fa-user-check"></i>
           <span class="nav-link-text">Users</span>
-          <i class="fas fa-user-check"></i>
         </a>
         <!-- submenu -->
+      {% if request.path == user_list  %}
+        <ul class="sidenav-second-level collapse show" id="userComponents">
+      {% else  %}
         <ul class="sidenav-second-level collapse" id="userComponents">
-          <li>
+      {% endif %}
+          <li class="nav-item {% ifequal request.path user_list %}active{% endifequal %}">
             <a id="nav_all_users" class="nav-link" href="{% url 'user_list' %}">All Users</a>
           </li>
         </ul>
       </li>
       <!-- news -->
-      <li class="nav-item" data-toggle="tooltip" data-placement="right">
-        <a id="nav_news_dropdown" class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#newsComponents" data-parent="#sideAccordion">
+      {% url 'console_news' as console_news %}
+      <li class="nav-item {% ifequal request.path console_news %}active{% endifequal %}" data-toggle="tooltip" data-placement="right">
+        <a id="nav_console_news" class="nav-link" href="{% url 'console_news' %}">
+          <i class="fa fa-fw fa-newspaper"></i>
           <span class="nav-link-text">News</span>
-          <i class="far fa-newspaper"></i>
         </a>
-        <!-- submenu -->
-        <ul class="sidenav-second-level collapse" id="newsComponents">
-          <li>
-            <a id="nav_add_news" class="nav-link" href="{% url 'add_news' %}">Add News</a>
-          </li>
-          <li>
-            <a id="nav_console_news" class="nav-link" href="{% url 'console_news' %}">News Items</a>
-          </li>
-        </ul>
       </li>
       <!-- usage stats -->
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
         <a id="nav_usage_dropdown" class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#statsComponents" data-parent="#sideAccordion">
+          <i class="fa fa-fw fa-chart-area"></i>
           <span class="nav-link-text">Usage Stats</span>
-          <i class="fas fa-chart-area"></i>
         </a>
         <!-- submenu -->
         <ul class="sidenav-second-level collapse" id="statsComponents">
@@ -118,11 +145,12 @@
     <ul class="navbar-nav sidenav-toggler">
       <li class="nav-item">
         <a class="nav-link text-center" id="sidenavToggler">
-          <i class="fa fa-fw fa-angle-left"></i>
+          <i class="fa fa-fw fa-fw fa-angle-left"></i>
         </a>
       </li>
     </ul>
-
+<!--         <script>$("#nav_credentialing_dropdown").trigger('click');</script>
+ --> 
     {# The top navbar content #}
     {% include "navbar_content.html" %}
   </div>
