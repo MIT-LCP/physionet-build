@@ -319,10 +319,10 @@ class Metadata(models.Model):
         """
         if only_submitting:
             user = self.authors.get(is_submitting=True).user
-            return user.email, user.get_full_name
+            return user.email, user.get_first_name
         else:
             users = [a.user for a in self.authors.all()]
-            return ((u.email, u.get_full_name()) for u in users)
+            return ((u.email, u.get_first_name()) for u in users)
 
     def corresponding_author(self):
         return self.authors.get(is_corresponding=True)
