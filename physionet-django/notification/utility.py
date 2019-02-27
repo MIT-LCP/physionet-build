@@ -87,8 +87,8 @@ def invitation_response_notify(invitation, affected_emails):
 
     subject = 'Authorship invitation {} for project: {}'.format(response,
                                                                 project.title)
-    email, firstname, fullname = project.author_contact_info(only_submitting=True)
-    email_context = {'name':firstname, 'project':project,
+    email, name = project.author_contact_info(only_submitting=True)
+    email_context = {'name':name, 'project':project,
         'response':response, 'signature':email_signature(),
         'project_info':email_project_info(project),'footer':email_footer()}
 
@@ -109,8 +109,8 @@ def submit_notify(project):
     email_context = {'project':project, 'signature':email_signature(),
         'project_info':email_project_info(project),'footer':email_footer()}
 
-    for email, firstname, fullname in project.author_contact_info():
-        email_context['name'] = firstname
+    for email, name in project.author_contact_info():
+        email_context['name'] = name
         body = loader.render_to_string(
             'notification/email/submit_notify.html', email_context)
 
@@ -126,8 +126,8 @@ def resubmit_notify(project):
     email_context = {'project':project, 'signature':email_signature(),
         'project_info':email_project_info(project),'footer':email_footer()}
 
-    for email, firstname, fullname in project.author_contact_info():
-        email_context['name'] = firstname
+    for email, name in project.author_contact_info():
+        email_context['name'] = name
         body = loader.render_to_string(
             'notification/email/resubmit_notify.html', email_context)
 
@@ -150,10 +150,10 @@ def assign_editor_notify(project):
     subject = 'Editor assigned to submission of project: {0}'.format(
         project.title)
 
-    for email, firstname, fullname in project.author_contact_info():
+    for email, name in project.author_contact_info():
         body = loader.render_to_string(
             'notification/email/assign_editor_notify.html',
-            {'name':firstname, 'project':project,
+            {'name':name, 'project':project,
              'editor':project.editor, 
              'signature':email_signature(),
              'project_info':email_project_info(project),
@@ -179,9 +179,9 @@ def edit_decision_notify(request, project, edit_log):
         subject = 'Submission accepted for project: {}'.format(project.title)
         template = 'notification/email/accept_submission_notify.html'
 
-    for email, firstname, fullname in project.author_contact_info():
+    for email, name in project.author_contact_info():
         body = loader.render_to_string(template,
-            {'name':firstname, 'project':project, 'edit_log':edit_log,
+            {'name':name, 'project':project, 'edit_log':edit_log,
              'domain':get_current_site(request),
              'signature':email_signature(),
              'project_info':email_project_info(project),
@@ -197,10 +197,10 @@ def copyedit_complete_notify(request, project, copyedit_log):
     """
     subject = 'Copyedit complete for project: {0}'.format(project.title)
 
-    for email, firstname, fullname in project.author_contact_info():
+    for email, name in project.author_contact_info():
         body = loader.render_to_string(
             'notification/email/copyedit_complete_notify.html',
-            {'name':firstname, 'project':project, 'copyedit_log':copyedit_log,
+            {'name':name, 'project':project, 'copyedit_log':copyedit_log,
              'domain':get_current_site(request),
              'signature':email_signature(),
              'project_info':email_project_info(project),
@@ -216,10 +216,10 @@ def reopen_copyedit_notify(request, project):
     """
     subject = 'Project reopened for copyediting: {0}'.format(project.title)
 
-    for email, firstname, fullname in project.author_contact_info():
+    for email, name in project.author_contact_info():
         body = loader.render_to_string(
             'notification/email/reopen_copyedit_notify.html',
-            {'name':firstname, 'project':project,
+            {'name':name, 'project':project,
              'domain':get_current_site(request),
              'signature':email_signature(),
              'project_info':email_project_info(project),
@@ -235,10 +235,10 @@ def authors_approved_notify(request, project):
     subject = 'All authors approved publication of project: {0}'.format(
         project.title)
 
-    for email, firstname, fullname in project.author_contact_info():
+    for email, name in project.author_contact_info():
         body = loader.render_to_string(
             'notification/email/authors_approved_notify.html',
-            {'name':firstname, 'project':project,
+            {'name':name, 'project':project,
              'domain':get_current_site(request),
              'signature':email_signature(),
              'project_info':email_project_info(project),
@@ -254,10 +254,10 @@ def publish_notify(request, published_project):
     subject = 'Your project has been published: {0}'.format(
         published_project.title)
 
-    for email, firstname, fullname in published_project.author_contact_info():
+    for email, name in published_project.author_contact_info():
         body = loader.render_to_string(
             'notification/email/publish_notify.html',
-            {'name':firstname, 'published_project':published_project,
+            {'name':name, 'published_project':published_project,
              'domain':get_current_site(request),
              'signature':email_signature(),
              'project_info':email_project_info(published_project),
@@ -274,9 +274,9 @@ def storage_response_notify(storage_request):
     response = RESPONSE_ACTIONS[storage_request.response]
     subject = 'Storage request {0} for project: {1}'.format(response,
         project.title)
-    email, firstname, fullname = project.author_contact_info(only_submitting=True)
+    email, name = project.author_contact_info(only_submitting=True)
     body = loader.render_to_string('notification/email/storage_response_notify.html',
-        {'name':firstname, 'project':project, 'response':response,
+        {'name':name, 'project':project, 'response':response,
          'allowance':storage_request.request_allowance,
          'response_message':storage_request.response_message,
          'signature':email_signature(),

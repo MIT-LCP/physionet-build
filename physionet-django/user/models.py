@@ -351,11 +351,6 @@ class User(AbstractBaseUser):
     def get_short_name(self):
         return self.profile.first_names
 
-    def get_first_name(self):
-        names = self.profile.first_names.split(" ", 1)
-        first = names[0] if len(names[0]) > 1 else self.profile.first_names
-        return first
-
     def __str__(self):
         return self.username
 
