@@ -399,7 +399,7 @@ class UserLogin(models.Model):
     user = models.ForeignKey('user.User', related_name='login_time',
         on_delete=models.CASCADE) 
     login_date = models.DateTimeField(auto_now_add=True, null=True)
-    ip = models.CharField(max_length=10,  blank=True, default='')
+    ip = models.CharField(max_length=50,  blank=True, default='')
 
     def update_user_login(sender, **kwargs):
         user = kwargs.pop('user', None)
