@@ -1,8 +1,11 @@
 {% load i18n %}{% autoescape off %}
-Dear {{ name }}
+{{ project_info }}
 
-Your project: {{ project.title }}, has been submitted for review. You will be notified when an editor is assigned to your project.
+Dear {{ name }},
 
-Regards
-The PhysioNet Team
+Thank you for submitting your project entitled "{{ project.title }}" to PhysioNet. You will be notified when an editor is assigned to your project.
+
+{{ signature }}
+
+{{ footer }}
 {% endautoescape %}

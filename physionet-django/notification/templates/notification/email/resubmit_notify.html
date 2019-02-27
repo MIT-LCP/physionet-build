@@ -1,8 +1,11 @@
 {% load i18n %}{% autoescape off %}
-Dear {{ name }}
+{{ project_info }}
 
-Your project: {{ project.title }}, has been resubmitted for review. You will be notified when the editor makes their decision.
+Dear {{ name }},
 
-Regards
-The PhysioNet Team
+Your project entitled "{{ project.title }}" has been resubmitted to PhysioNet for review. You will be notified when the submission has been reviewed.
+
+{{ signature }}
+
+{{ footer }}
 {% endautoescape %}

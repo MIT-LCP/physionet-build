@@ -1,8 +1,11 @@
 {% load i18n %}{% autoescape off %}
-Dear {{ name }}
+{{ project_info }}
 
-Your invitation to {{ author_email }} to co-author your project: {{ project.title }}, has been {{ response }}.
+Dear {{ name }},
 
-Regards
-The PhysioNet Team
+Your invitation to {{ author_email }} to co-author your project entitled "{{ project.title }}", has been {{ response }}.
+
+{{ signature }}
+
+{{ footer }}
 {% endautoescape %}

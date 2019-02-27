@@ -1,8 +1,13 @@
 {% load i18n %}{% autoescape off %}
-Dear {{ name }}
+{{ project_info }}
 
-The project you have requested revisions for: {{ project.title }} has been resubmitted for review. Please edit the project when you can.
+Dear {{ name }},
 
-Regards
-The PhysioNet Team
+The project you have requested revisions for: {{ project.title }} has been resubmitted for review. 
+
+We would be grateful if you could review the revised submission within 7 days.
+
+{{ signature }}
+
+{{ footer }}
 {% endautoescape %}

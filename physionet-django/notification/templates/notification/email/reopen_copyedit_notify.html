@@ -1,8 +1,11 @@
 {% load i18n %}{% autoescape off %}
-Dear {{ name}}
+{{ project_info }}
 
-The editor of your project: {{ project.title }}, has reopened it for copyediting. You will be notified when they have finished making changes.
+Dear {{ name }},
 
-Regards
-The PhysioNet Team
+The editor of your project entitled "{{ project.title }}" is copyediting the project content. You will be notified when the editor has finished making changes.
+
+{{ signature }}
+
+{{ footer }}
 {% endautoescape %}

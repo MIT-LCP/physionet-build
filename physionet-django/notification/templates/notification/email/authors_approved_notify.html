@@ -1,8 +1,13 @@
 {% load i18n %}{% autoescape off %}
-Dear {{ name}}
+{{ project_info }}
 
-All authors have approved the publication of your project: {{ project.title }}. The editor will publish your project shortly.
+Dear {{ name }},
 
-Regards
-The PhysioNet Team
+We are pleased to say that all authors have approved the publication of your project entitled "{{ project.title }}". 
+
+Thanks for submitting your work to PhysioNet. The editors will publish your project shortly.
+
+{{ signature }}
+
+{{ footer }}
 {% endautoescape %}

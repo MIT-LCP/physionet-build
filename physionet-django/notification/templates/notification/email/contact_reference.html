@@ -1,12 +1,9 @@
 {% load i18n %}{% autoescape off %}
-Dear {{ application.reference_name }}
+Dear {{ application.reference_name }},
 
-{{ applicant_name }} has listed you as their reference for their PhysioNet credentialing application.
+Your colleague {{ applicant_name }} is applying for credentialed access to PhysioNet, the website for sharing biomedical data. Your name is listed as their reference for the application.
 
-If you recognize them, please verify their application before it expires by using the form at: http://{{ domain }}{% url 'credential_reference' application.slug %}
+If you support their application for credentialed access, please indicate your approval using the form at: http://{{ domain }}{% url 'credential_reference' application.slug %}. If you do not support their application, please ignore this email or update us directly via the link.
 
-If you do not want to verify them, you can ignore this email, or reject them from the same link.
-
-Regards
-The PhysioNet team
+{{ signature }}
 {% endautoescape %}

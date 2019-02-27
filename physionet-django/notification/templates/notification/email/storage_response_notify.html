@@ -1,11 +1,15 @@
 {% load i18n %}{% autoescape off %}
-Dear {{ name }}
+{{ project_info }}
 
-Your {{ allowance}}GB storage request for project: {{ project.title }}, has been {{ response }}.
+Dear {{ name }},
+
+Your {{ allowance }}GB storage request for the project entitled "{{ project.title }}" has been {{ response }}.
 {% if response_message %}
 The following message was included:
 "{{ response_message }}"
 {% endif %}
-Regards
-The PhysioNet Team
+
+{{ signature }}
+
+{{ footer }}
 {% endautoescape %}
