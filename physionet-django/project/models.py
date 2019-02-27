@@ -33,7 +33,9 @@ class Affiliation(models.Model):
 
 
 class PublishedAffiliation(models.Model):
-    "Affiliations belonging to a published author"
+    """
+    Affiliations belonging to a published author
+    """
     name = models.CharField(max_length=202, validators=[validate_alphaplus])
     author = models.ForeignKey('project.PublishedAuthor',
         related_name='affiliations', on_delete=models.CASCADE)
@@ -434,7 +436,9 @@ class UnpublishedProject(models.Model):
         return self.title
 
     def file_root(self):
-        "Root directory containing the project's files"
+        """
+        Root directory containing the project's files
+        """
         return os.path.join(self.__class__.FILE_ROOT, self.slug)
 
     def get_storage_info(self):
@@ -521,11 +525,15 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     }
 
     def storage_used(self):
-        "Total storage used in bytes"
+        """
+        Total storage used in bytes
+        """
         return get_tree_size(self.file_root())
 
     def storage_allowance(self):
-        "Storage allowed in bytes"
+        """
+        Storage allowed in bytes
+        """
         return self.core_project.storage_allowance
 
     def get_inspect_dir(self, subdir):
@@ -690,7 +698,9 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             return True
 
     def is_submittable(self):
-        "Whether the project can be submitted"
+        """
+        Whether the project can be submitted
+        """
         return (not self.under_submission() and self.check_integrity())
 
     def submit(self, author_comments):
@@ -723,7 +733,9 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         self.save()
 
     def reject(self):
-        "Reject a project under submission"
+        """
+        Reject a project under submission
+        """
         self.archive(archive_reason=3)
 
     def is_resubmittable(self):
@@ -773,7 +785,9 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             return True
 
     def all_authors_approved(self):
-        "Whether all authors have approved the publication"
+        """
+        Whether all authors have approved the publication
+        """
         authors = self.authors.all()
         return len(authors) == len(authors.filter(
             approval_datetime__isnull=False))
@@ -937,11 +951,15 @@ class PublishedProject(Metadata, SubmissionInfo):
             return os.path.join(PublishedProject.PUBLIC_FILE_ROOT, self.slug)
 
     def main_file_root(self):
-        "Root directory where the main user uploaded files are located"
+        """
+        Root directory where the main user uploaded files are located
+        """
         return os.path.join(self.file_root(), 'files')
 
     def storage_used(self):
-        "Bytes of storage used by main files and compressed file if any"
+        """
+        Bytes of storage used by main files and compressed file if any
+        """
         main = get_tree_size(self.main_file_root())
         compressed = os.path.getsize(self.zip_name(full=True)) if os.path.isfile(self.zip_name(full=True)) else 0
         return main, compressed
@@ -999,7 +1017,9 @@ class PublishedProject(Metadata, SubmissionInfo):
             return os.path.join('published-projects', self.slug, self.zip_name())
 
     def make_checksum_file(self):
-        "Make the checksums file for the main files"
+        """
+        Make the checksums file for the main files
+        """
         fname = os.path.join(self.main_file_root(), 'SHA256SUMS.txt')
         if os.path.isfile(fname):
             os.remove(fname)
@@ -1013,7 +1033,9 @@ class PublishedProject(Metadata, SubmissionInfo):
         self.set_storage_info()
 
     def make_license_file(self):
-        "Make the license text file"
+        """
+        Make the license text file
+        """
         with open(os.path.join(self.main_file_root(), 'LICENSE.txt'), 'w') as outfile:
             outfile.write(self.license_content(fmt='text'))
 
@@ -1178,7 +1200,6 @@ class BaseInvitation(models.Model):
 class AuthorInvitation(BaseInvitation):
     """
     Invitation to join a project as an author
-
     """
     # The target email
     email = models.EmailField(max_length=255)
@@ -1192,7 +1213,6 @@ class AuthorInvitation(BaseInvitation):
     def get_user_invitations(user, exclude_duplicates=True):
         """
         Get all active author invitations to a user
-
         """
         emails = user.get_emails()
         invitations = AuthorInvitation.objects.filter(email__in=emails,
@@ -1237,7 +1257,6 @@ class StorageRequest(BaseInvitation):
 class EditLog(models.Model):
     """
     Log for an editor decision. Also saves submission info.
-
     """
     # Quality assurance fields for data and software
     QUALITY_ASSURANCE_FIELDS = (
@@ -1310,7 +1329,6 @@ class EditLog(models.Model):
 class CopyeditLog(models.Model):
     """
     Log for an editor copyedit
-
     """
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
@@ -1329,7 +1347,6 @@ class CopyeditLog(models.Model):
 class LegacyProject(models.Model):
     """
     Temporary model for migrating legacy databases
-
     """
     title = models.CharField(max_length=255)
     slug = models.CharField(max_length=100)
