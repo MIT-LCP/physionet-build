@@ -4,7 +4,7 @@ import pdb
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-from django.contrib.auth.signals import user_logged_in
+# from django.contrib.auth. import user_logged_in
 from django.contrib.auth import get_user_model, signals
 from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
@@ -399,23 +399,22 @@ class UserLogin(models.Model):
     user = models.ForeignKey('user.User', related_name='login_time',
         on_delete=models.CASCADE) 
     login_date = models.DateTimeField(auto_now_add=True, null=True)
-    ip = models.CharField(max_length=50,  blank=True, default='')
+    ip = models.CharField(max_length=50,  blank=True, default='', null=True)
 
-    def update_user_login(sender, **kwargs):
-        user = kwargs.pop('user', None)
-        request = kwargs.pop('request', None)
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-        ip = ''
-        if x_forwarded_for:
-            ip = x_forwarded_for.split(',')[0]
-        else:
-            ip = request.META.get('REMOTE_ADDR')
-        UserLogin.objects.create(user=user, ip=ip)
+def update_user_login(sender, **kwargs):
+    user = kwargs.pop('user', None)
+    request = kwargs.pop('request', None)
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    ip = ''
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    UserLogin.objects.create(user=user, ip=ip)
 
-user_logged_in.connect(UserLogin.update_user_login, sender=User)
+signals.user_logged_in.connect(update_user_login, sender=User)
 
 
-@receiver(post_save, sender=User)
 class AssociatedEmail(models.Model):
     """
     An email the user associates with their account
