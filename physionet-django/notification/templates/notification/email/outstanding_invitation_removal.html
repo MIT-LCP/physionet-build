@@ -1,8 +1,11 @@
 {% load i18n %}{% autoescape off %}
-Dear {{ name }}
+{{ project_info }}
 
-Your invitation to: {{ email }} to co-author your project: {{ title }}, has not been accepted for 15 days and thus removed.
+Dear {{ name }},
 
-Regards
-The PhysioNet Team
+Your invitation to {{ email }} to co-author your project entitled "{{ title }}" has not been accepted for two weeks. The invitation has therefore been closed. Please check your co-author's contact details and resend the invitation if appropriate.
+
+{{ signature }}
+
+{{ footer }}
 {% endautoescape %}

@@ -1,8 +1,11 @@
 {% load i18n %}{% autoescape off %}
-Dear {{ name }}
+{{ project_info }}
 
-The submission of your project: {{ project.title }} has cancelled by the submitting author.
+Dear {{ name }},
 
-Regards
-The PhysioNet Team
+This is an update on the status of your project entitled "{{ project.title }}". The submitting author has withdrawn the submission from PhysioNet.
+
+{{ signature }}
+
+{{ footer }}
 {% endautoescape %}

@@ -1,18 +1,21 @@
 {% load i18n %}{% autoescape off %}
-Dear {{ name}}
+{{ project_info }}
 
-The editor has requested revisions for your project: {{ project.title }}.
+Dear {{ name }},
 
-The standard quality assurance results are as follows:
+Thank you for submitting your project entitled "{{ project.title }}" to PhysioNet. 
+
+A summary of our standard set of editorial checks is listed below: 
 {% for result in edit_log.quality_assurance_results %}- {{ result }}
 {% endfor %}
-The following comments were made:
+We ask that you address the following comments before we proceed:
 """
 {{ edit_log.editor_comments }}
 """
 
-The submitting author must address the issues and resubmit the project when ready.
+Once these comments have been addressed, please resubmit your project.
 
-Regards
-The PhysioNet Team
+{{ signature }}
+
+{{ footer }}
 {% endautoescape %}

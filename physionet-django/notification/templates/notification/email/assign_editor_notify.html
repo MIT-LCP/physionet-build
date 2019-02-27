@@ -1,8 +1,11 @@
 {% load i18n %}{% autoescape off %}
-Dear {{ name }}
+{{ project_info }}
 
-An editor has been assigned to your project: {{ project.title }}. Your editor is: {{ editor.get_full_name }}, and can be contacted at: {{ editor.email }}. You will be notified when they make a decision.
+Dear {{ name }},
 
-Regards
-The PhysioNet Team
+We are pleased to say that your project entitled "{{ project.title }}" is now under review by the editorial team. We will be in touch again after our initial review is complete.
+
+{{ signature }}
+
+{{ footer }}
 {% endautoescape %}

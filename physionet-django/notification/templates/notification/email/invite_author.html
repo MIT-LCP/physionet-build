@@ -1,12 +1,15 @@
 {% load i18n %}{% autoescape off %}
-Dear Sir or Madam
+{{ project_info }}
 
-You have been invited by {{ inviter_name }} ({{ inviter_email }}) to co-author the project: {{ project.title }}, on {{ domain }}.
+Dear Colleague,
 
-If you already have a {{ domain }} account, you may respond from your project home page: http://{{ domain }}{% url "project_home" %}. If this email is not associated with your account, you may add it from your email settings page, or ask your inviter to send the invitation to your account email.
+You have been invited by {{ inviter_name }} ({{ inviter_email }}) to co-author a project entitled "{{ project.title }}" on {{ domain }}. Please accept or decline this request as appropriate.
 
-If you do not have an account, you may register for one here: http://{{ domain }}{% url "register" %}, and find this invitation on your project home page.
+If you already have a {{ domain }} account, you may respond from your project home page: http://{{ domain }}{% url "project_home" %}. If this email address is not associated with your account, you may add it from your email settings page or ask your co-author to resend their invitation to an alternative address.
 
-Regards
-The PhysioNet Team
+If you do not have an account, please register here: http://{{ domain }}{% url "register" %}. Once you have registered, you will find the pending invitation on your project home page.
+
+{{ signature }}
+
+{{ footer }}
 {% endautoescape %}

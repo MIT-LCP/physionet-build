@@ -23,7 +23,6 @@ from user.validators import validate_alphaplus, validate_alphaplusplus
 class Affiliation(models.Model):
     """
     Affiliations belonging to an author
-
     """
     name = models.CharField(max_length=202, validators=[validate_alphaplusplus])
     author = models.ForeignKey('project.Author', related_name='affiliations',
@@ -89,13 +88,14 @@ class Author(BaseAuthor):
         return self.user.profile.get_full_name()
 
     def disp_name_email(self):
+        """
+        """
         return '{} ({})'.format(self.get_full_name(), self.user.email)
 
     def import_profile_info(self):
         """
         Import profile information (names) into the Author object.
         Also create affiliation object if present in profile.
-
         """
         profile = self.user.profile
         if profile.affiliation:
@@ -192,6 +192,8 @@ class Reference(models.Model):
 
 
 class PublishedReference(models.Model):
+    """
+    """
     description = models.CharField(max_length=1000)
     project = models.ForeignKey('project.PublishedProject',
         related_name='references', on_delete=models.CASCADE)
@@ -262,7 +264,6 @@ class Metadata(models.Model):
     https://schema.datacite.org/
     https://schema.datacite.org/meta/kernel-4.0/doc/DataCite-MetadataKernel_v4.1.pdf
     https://www.nature.com/sdata/publish/for-authors#format
-
     """
     RESOURCE_TYPES = (
         (0, 'Database'),
@@ -319,10 +320,10 @@ class Metadata(models.Model):
         """
         if only_submitting:
             user = self.authors.get(is_submitting=True).user
-            return user.email, user.get_first_name
+            return user.email, user.get_first_name, user.get_full_name
         else:
             users = [a.user for a in self.authors.all()]
-            return ((u.email, u.get_first_name()) for u in users)
+            return ((u.email, u.get_first_name(), u.get_full_name()) for u in users)
 
     def corresponding_author(self):
         return self.authors.get(is_corresponding=True)
@@ -732,6 +733,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         return (self.submission_status == 30 and self.check_integrity())
 
     def resubmit(self, author_comments):
+        """
+        """
         if not self.is_resubmittable():
             raise Exception('ActiveProject is not resubmittable')
 
