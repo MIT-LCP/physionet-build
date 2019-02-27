@@ -3,6 +3,8 @@ from django.db import models
 
 
 class News(models.Model):
+    """
+    """
     title = models.CharField(max_length=40)
     content = RichTextField()
     publish_datetime = models.DateTimeField(auto_now_add=True)
