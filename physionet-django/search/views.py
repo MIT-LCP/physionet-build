@@ -116,8 +116,21 @@ def software_index(request):
     return content_index(request, resource_type=1)
 
 
+def project_stats(request, resource_type):
+    """
+    Statistics about published projects
+    """
+    LABELS = {'all':['Content', 'Projects'], 0:['Database', 'Databases'],
+        1:['Software', 'Software Projects']}
+    main_label, plural_label = LABELS[resource_type]
+    return render(request, 'search/project_stats.html', {
+        'resource_type':resource_type,
+        'main_label':main_label, 'plural_label':plural_label})
+
+
 def database_stats(request):
     """
     Database Statistics
     """
-    return render(request, 'search/database_stats.html')
+
+    return project_stats(request, resource_type=0)
