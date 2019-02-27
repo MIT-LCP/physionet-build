@@ -176,12 +176,6 @@ def readable_size(num, suffix='B'):
     return '{:.1f}{:s}{:s}'.format(num, 'Y', suffix)
 
 
-def published_storage_usage_info(allowance, main, special, total):
-    """
-    Return an object containing information about the
-    """
-
-
 def write_uploaded_file(file, write_file_path):
     """
     file: request.FILE
