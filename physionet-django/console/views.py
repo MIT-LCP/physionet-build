@@ -489,6 +489,28 @@ def users(request):
     users = User.objects.all()
     return render(request, 'console/users.html', {'users':users})
 
+@login_required
+@user_passes_test(is_admin)
+def inacvite_users(request):
+    """
+    List of users
+    """
+    inactive_users = User.objects.filter(is_active=False) | User.objects.filter(
+        last_login__lt=timezone.now() + timezone.timedelta(days=-90))
+
+    return render(request, 'console/users.html', {'users':inactive_users})
+
+
+@login_required
+@user_passes_test(is_admin)
+def admin_users(request):
+    """
+    List of users
+    """
+    admin_users = User.objects.filter(is_admin=True) 
+    users = User.objects.all()
+
+    return render(request, 'console/admin_users.html', {'admin_users':admin_users, 'users':users})
 
 # @login_required
 # @user_passes_test(is_admin)
