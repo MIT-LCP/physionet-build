@@ -3,15 +3,13 @@
 
 Dear {{ name }},
 
-Based on the recommendations of our editors, we are delighted to accept your project entitled {{ project.title }} for publication on PhysioNet. 
+Based on the recommendations of our editors, we are delighted to accept your project entitled "{{ project.title }}" for publication on PhysioNet. 
 
 A summary of our standard set of editorial checks is listed below:
 {% for result in edit_log.quality_assurance_results %}- {{ result }}
 {% endfor %}
 Additional comments from the editorial team are listed below:
-"""
 {{ edit_log.editor_comments }}
-"""
 
 After copyediting of the project and files is complete, we will be in touch again. Then, once all authors approve of the copyedited version at: http://{{ domain }}{% url 'project_submission' project.slug %}, the project will be ready for publication. 
 

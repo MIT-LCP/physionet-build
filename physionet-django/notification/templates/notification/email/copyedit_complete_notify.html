@@ -6,9 +6,8 @@ Dear {{ name }},
 We are pleased to say that copyediting of your project entitled {{ project.title }}" is now complete. {% if copyedit_log.made_changes %}
 
 The changes made during this process are summarized below:
-"""
 {{ copyedit_log.changelog_summary }}
-"""{% else %}We were satisfied with the state of your project and no changes were made.{% endif %}
+{% else %}We were satisfied with the state of your project and no changes were made.{% endif %}
 
 When all authors have approved this version of the project using the online system, it will be ready for publication on PhysioNet.
 
