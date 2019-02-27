@@ -53,6 +53,8 @@ urlpatterns = [
         name='process_credential_application'),
 
     path('users/all/', views.users, name='user_list'),
+    path('users/admin/', views.admin_users, name='user_list_admin'),
+    path('users/inactive/', views.inacvite_users, name='user_list_inactive'),
     # path('users/lcp/', views.lcp_affiliates, name='lcp_affiliates'),
 
     path('news/', views.console_news, name='console_news'),

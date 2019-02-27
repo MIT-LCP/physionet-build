@@ -3,14 +3,9 @@
 {% block title %}PhysioNet Users{% endblock %}
 
 {% block content %}
-{% url 'user_list_inactive' as user_list_inactive %}
 <div class="card mb-3">
   <div class="card-header">
-    {% ifequal request.path user_list_inactive %}Inactive
-      PhysioNet Users <span class="badge badge-pill badge-danger">{{ users|length }}</span>
-    {% else %}
-      PhysioNet Users <span class="badge badge-pill badge-info">{{ users|length }}</span>
-    {% endifequal %}
+      PhysioNet Administrators <span class="badge badge-pill badge-info">{{ users|length }}</span>
   </div>
   <div class="card-body">
     <div class="table-responsive">
@@ -22,20 +17,20 @@
             <th>Email</th>
             <th>Join Date</th>
             <th>Last Login</th>
-            <th>Logins  {% if request.path != user_list_inactive %}(90 days){% endif %}</th>
+            <th>Login (90 days)</th>
             <th>Credentialed</th>
           </tr>
         </thead>
         <tbody>
-        {% for user in users %}
+        {% for user in admin_users %}
           <tr>
             <td><a href="{% url 'public_profile' user.username %}">{{ user.username }}</td>
             <td>{{ user.get_full_name }}</td>
             <td>{{ user.email }}</td>
             <td>{{ user.join_date }}</td>
             <td>{{ user.last_login|date }}</td>
-            <td>{{ user.login_time.values_list | length }} </td>
-            <td>{{ user.credential_datetime|date }}</td>
+            <td>{{ user.login_time.values_list|length }} </td>
+            <td>{{ user.credential_datetime|date}}</td>
           </tr>
         {% endfor %}
         </tbody>
