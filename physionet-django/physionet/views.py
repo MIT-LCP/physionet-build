@@ -74,8 +74,8 @@ def contact(request):
 
     return render(request, 'about/contact.html', {'contact_form':contact_form})
 
-def citi_instructions(request):
+def citi_course(request):
     """
     Instructions for completing the CITI training course
     """
-    return render(request, 'about/citi_instructions.html')
+    return render(request, 'about/citi_course.html')
