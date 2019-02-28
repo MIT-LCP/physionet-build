@@ -491,7 +491,7 @@ def users(request):
 
 @login_required
 @user_passes_test(is_admin)
-def inacvite_users(request):
+def inactive_users(request):
     """
     List of users
     """
