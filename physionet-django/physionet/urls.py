@@ -24,7 +24,9 @@ urlpatterns = [
     path('', include('export.urls')),
 
     path('', views.home, name='home'),
+
     # about pages
+    path('about/', views.author_guidelines, name='author_guidelines'),
     path('about/author-guidelines/', views.author_guidelines,
         name='author_guidelines'),
     path('about/physionet/', views.about_physionet, name='about_physionet'),
@@ -45,8 +47,10 @@ urlpatterns = [
     path('content/<published_project_slug>/view-license/',
         project_views.published_project_license, name='published_project_license'),
 
+    # data use agreements
     path('sign-dua/<published_project_slug>/', project_views.sign_dua,
         name='sign_dua'),
 
+    # robots.txt for crawlers
     url(r'^robots.txt', lambda x: HttpResponse("User-Agent: *\nDisallow: /", content_type="text/plain"), name="robots_file"),
 ]

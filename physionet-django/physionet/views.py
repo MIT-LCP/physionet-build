@@ -8,6 +8,9 @@ from user.forms import ContactForm
 
 
 def home(request):
+    """
+    Homepage
+    """
     published_projects = PublishedProject.objects.all().order_by('-publish_datetime')[:6]
 
     authors = [p.authors.all() for p in published_projects]
@@ -19,9 +22,10 @@ def home(request):
         'published_projects':published_projects, 'news_pieces':news_pieces,
         'projects_authors_topics':projects_authors_topics})
 
-# Publish pages
-
 def author_guidelines(request):
+    """
+    Insrtuctions for authors
+    """
     return render(request, 'about/author_guidelines.html')
 
 def licenses(request):
@@ -41,15 +45,22 @@ def license_content(request, license_slug):
     license = License.objects.get(slug=license_slug)
     return render(request, 'about/license_content.html', {'license':license})
 
-# About pages
-
 def about_physionet(request):
+    """
+    Background to PhysioNet
+    """
     return render(request, 'about/about_physionet.html')
 
 def faq(request):
+    """
+    Frequently asked questions
+    """
     return render(request, 'about/faq.html')
 
 def contact(request):
+    """
+    Contact form
+    """
     if request.method == 'POST':
         contact_form = ContactForm(request.POST)
         if contact_form.is_valid():
@@ -64,4 +75,7 @@ def contact(request):
     return render(request, 'about/contact.html', {'contact_form':contact_form})
 
 def citi_instructions(request):
+    """
+    Instructions for completing the CITI training course
+    """
     return render(request, 'about/citi_instructions.html')
