@@ -57,7 +57,7 @@ def submitted_projects(request):
         assign_editor_form = forms.AssignEditorForm(request.POST)
         if assign_editor_form.is_valid():
             # Move this into project method
-            project = assign_editor_form.cleaned_data['project']
+            project = ActiveProject.objects.get(id=assign_editor_form.cleaned_data['project'])
             project.assign_editor(assign_editor_form.cleaned_data['editor'])
             notification.assign_editor_notify(project)
             messages.success(request, 'The editor has been assigned')

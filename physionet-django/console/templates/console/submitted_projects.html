@@ -35,8 +35,6 @@
     <div class="tab-content">
       <div class="tab-pane fade show active" id="assignment" role="tabpanel" aria-labelledby="assignment-tab">
         {% if assignment_projects %}
-          <p><button id="assign-editor-modal-button" type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#assignModal">
-        Assign Editor</button></p>
           <div class="table-responsive">
             <table class="table table-bordered">
               <thead>
@@ -44,6 +42,7 @@
                   <th>Project</th>
                   <th>Submitted By</th>
                   <th>Submitted</th>
+                  <th>Manage</th>
                 </tr>
               </thead>
               <tbody>
@@ -52,11 +51,18 @@
                   <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
                   <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
                   <td>{{ project.submission_datetime|date }}</td>
+                  <td><a href='#' data-toggle="modal" data-target="#assignModal" onclick="set_project_id('{{ project.id }}','{{ project }}')" class="btn btn-primary btn-sm" role="button">Assign Editor</a></td>
                 </tr>
               {% endfor %}
               </tbody>
             </table>
           </div>
+                <script> 
+                  function set_project_id(pid, pname){
+                    $("#project_name").html(pname);
+                    $("#id_project").val(pid);
+                  }
+                </script>
           {# Assign editor modal #}
           <div class="modal" tabindex="-1" role="dialog" id="assignModal">
             <div class="modal-dialog" role="document">
@@ -68,9 +74,11 @@
                   </button>
                 </div>
                 <div class="modal-body">
+                  <label for="project_name">Project</label> 
+                  <h6 id='project_name'></h6>
                   <form action="" method="post" class="form-signin">
                     {% csrf_token %}
-                    {% include "form_snippet.html" with form=assign_editor_form %}
+                    {% include "form_snippet.html" with form=assign_editor_form %}<!--   -->
                 </div>
                 <div class="modal-footer">
                   <button class="btn btn-primary btn-fixed" name="assign_editor" type="submit">Assign Editor</button>
