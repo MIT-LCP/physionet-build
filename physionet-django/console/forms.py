@@ -31,7 +31,6 @@ class AssignEditorForm(forms.Form):
     """
     Assign an editor to a project under submission
     """
-    # project = forms.ModelChoiceField(queryset=ActiveProject.objects.filter(submission_status=10))
     project = forms.IntegerField(widget = forms.HiddenInput())
     editor = forms.ModelChoiceField(queryset=User.objects.filter(
         is_admin=True))
@@ -50,7 +49,6 @@ class EditSubmissionForm(forms.ModelForm):
 
     The labels are stored in the model because it requires them to
     render results without using this form
-
     """
     class Meta:
         # Populated with fields and labels for both data and software
@@ -282,5 +280,3 @@ class NewsForm(forms.ModelForm):
 #     """
 #     user = forms.ModelChoiceField(queryset=User.objects.filter(
 #         lcp_affiliated=True))
-
-
