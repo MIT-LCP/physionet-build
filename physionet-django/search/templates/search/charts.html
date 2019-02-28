@@ -128,7 +128,7 @@ function generateChart(data, addId, chartTitle) {
     .attr("y", 6)
     .attr("dy", "-2em")
     .style("text-anchor", "start")
-    .text("No. Databases");
+    .text("No. {{ plural_label }}");
 
   // add right y axis
   svg.append("g")
@@ -139,7 +139,7 @@ function generateChart(data, addId, chartTitle) {
     .attr("y", 6)
     .attr("dy", "-2em")
     .style("text-anchor", "end")
-    .text("Data Volume (GB)");
+    .text("File Volume (GB)");
 
   // add title
   svg.append("text")
