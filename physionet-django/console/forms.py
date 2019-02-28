@@ -2,11 +2,11 @@ import pdb
 
 from django import forms
 from django.utils import timezone
+from django.core.validators import validate_integer
 
 from notification.models import News
 from project.models import ActiveProject, EditLog, CopyeditLog, PublishedProject
 from user.models import User, CredentialApplication
-
 
 RESPONSE_CHOICES = (
     (1, 'Accept'),
@@ -31,11 +31,16 @@ class AssignEditorForm(forms.Form):
     """
     Assign an editor to a project under submission
     """
-    project = forms.ModelChoiceField(queryset=ActiveProject.objects.filter(
-        submission_status=10))
+    project = forms.IntegerField(widget = forms.HiddenInput())
     editor = forms.ModelChoiceField(queryset=User.objects.filter(
         is_admin=True))
 
+    def clean_project(self):
+        pid = self.cleaned_data['project']
+        validate_integer(pid)
+        if ActiveProject.objects.get(id=pid) not in ActiveProject.objects.filter(submission_status=10):
+            raise forms.ValidationError('Incorrect project selected.')
+        return pid
 
 class EditSubmissionForm(forms.ModelForm):
     """
@@ -44,7 +49,6 @@ class EditSubmissionForm(forms.ModelForm):
 
     The labels are stored in the model because it requires them to
     render results without using this form
-
     """
     class Meta:
         # Populated with fields and labels for both data and software
@@ -276,5 +280,3 @@ class NewsForm(forms.ModelForm):
 #     """
 #     user = forms.ModelChoiceField(queryset=User.objects.filter(
 #         lcp_affiliated=True))
-
-
