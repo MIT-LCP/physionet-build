@@ -29,6 +29,26 @@ PhysioNet {{ main_label }} Statistics
   <br>
   <hr>
 <script>
+
+// Display human readable size of byte number
+function readableSize(num, suffix='B') {
+  units = ['','K','M','G','T','P','E','Z']
+  for (i = 0; i<units.length; i++) {
+    unit = units[i]
+    if (num < 1024) {
+      readsize = String(num);
+      if (readsize.includes('.')) {
+        return num.toFixed(1) + ' ' + unit + suffix;
+      }
+      else {
+        return readsize + ' ' + unit + suffix;
+      }
+    }
+    num /= 1024.0;
+  }
+  return readable;
+}
+
 // Common parameters for both charts
 
 // set the dimensions of the canvas. Leave left and right margins for
@@ -69,7 +89,7 @@ var tip1 = d3.tip()
   .attr('class', 'd3-tip')
   .offset([-10, 0])
   .html(function(d) {
-    return d.storage_size + " GB";
+    return d.readable_size;
   })
 
 // Generate the two column chart from data
@@ -161,22 +181,38 @@ xhr.onreadystatechange = function () {
   // Process our return data
   if (xhr.status >= 200 && xhr.status < 300) {
     data = JSON.parse(xhr.responseText);
+    // Create the cumulative json
+    dataCulm = [];
+    for (var i = 0; i < data.length; i++) {
+      dataCulm[i] = {"year":data[i].year, "num_projects":data[i].num_projects,
+        "storage_size":data[i].storage_size};
+      if (i > 0){
+        dataCulm[i].num_projects += dataCulm[i-1].num_projects;
+        dataCulm[i].storage_size += dataCulm[i-1].storage_size;
+      }
+      // Get readable size from bytes
+      dataCulm[i].readable_size = readableSize(dataCulm[i].storage_size);
+    }
+    // Convert to GB
+    for (var i = 0; i < data.length; i++) {
+      dataCulm[i].storage_size /= Math.pow(1040, 3);
+    }
+     // Convert the new yearly values to GB and add readable sizes
+    for (i = 0; i < data.length; i++) {
+      data[i].readable_size = readableSize(data[i].storage_size);
+      data[i].storage_size /= Math.pow(1040, 3);
+    }
     // Generate the first chart - new yearly projects
     generateChart(data, "newprojects", "New {{ plural_label }} Added Per Year")
-    // Calculate cumulative sum of the data
-    for (i = 1; i < data.length; i++) {
-      data[i].num_projects += data[i-1].num_projects;
-      data[i].storage_size += data[i-1].storage_size;
-    }
     // Generate the second chart - cumulative yearly projects
-    generateChart(data, "totalprojects", "Total {{ plural_label }} Per Year")
+    generateChart(dataCulm, "totalprojects", "Total {{ plural_label }} Per Year")
   }
 };
 
 // Create and send a GET request
 // The first argument is the post type (GET, POST, PUT, DELETE, etc.)
 // The second argument is the endpoint URL
-xhr.open("GET", "/rest/database-stats-list/?resource_type={{ resource_type }}");
+xhr.open("GET", "/rest/published-stats-list/?resource_type={{ resource_type }}");
 xhr.send();
 
 </script>

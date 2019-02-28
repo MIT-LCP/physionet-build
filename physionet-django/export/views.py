@@ -4,7 +4,6 @@ from django.utils import timezone
 
 from .serializers import PublishedProjectSerializer
 from project.models import PublishedProject
-from project import utility
 
 
 def database_list(request):
@@ -27,24 +26,26 @@ def software_list(request):
     return JsonResponse(serializer.data, safe=False)
 
 
-def database_stats_list(request):
+def published_stats_list(request):
     """
     List cumulative stats about projects published.
     The request may specify the desired resource type
     """
-    # Get the desired resource type
+    resource_type = None
+    # Get the desired resource type if specified
     if 'resource_type' in request.GET and request.GET['resource_type'] in ['0', '1']:
         resource_type = int(request.GET['resource_type'])
-    # Default database
-    else:
-        resource_type = 0
 
-    projects = PublishedProject.objects.filter(resource_type=resource_type).order_by(
-        'publish_datetime')
+    if resource_type is None:
+        projects = PublishedProject.objects.all().order_by('publish_datetime')
+    else:
+        projects = PublishedProject.objects.filter(
+            resource_type=resource_type).order_by('publish_datetime')
+
     data = []
-    for year in range(projects[0].publish_datetime.year, timezone.now().year):
+    for year in range(projects[0].publish_datetime.year, timezone.now().year+1):
         y_projects = projects.filter(publish_datetime__year=year)
         data.append({"year":year, "num_projects":y_projects.count(),
-            "storage_size":sum(p.main_storage_size // 1024**3 for p in y_projects)})
+            "storage_size":sum(p.main_storage_size for p in y_projects)})
 
     return JsonResponse(data, safe=False)

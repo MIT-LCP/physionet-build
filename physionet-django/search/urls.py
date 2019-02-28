@@ -18,5 +18,5 @@ urlpatterns = [
     path('software/', views.software_index, name='software_index'),
     path('content/', views.content_index, name='content_index'),
 
-    path('data/stats/', views.database_stats, name='database_stats'),
+    path('charts/', views.charts, name='charts'),
 ]
