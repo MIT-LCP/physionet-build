@@ -251,7 +251,7 @@ class TestAccessPublished(TestMixin, TestCase):
         """
         Test access to a credentialed project, including dua signing.
         """
-        project = PublishedProject.objects.get(title='eICU Collaborative Research Database')
+        project = PublishedProject.objects.get(title='Demo eICU Collaborative Research Database')
 
         # Public user. Anyone can access landing page.
         response = self.client.get(reverse('published_project', args=(project.slug,)))
@@ -287,7 +287,7 @@ class TestAccessPublished(TestMixin, TestCase):
         """
         Test access to an open project.
         """
-        project = PublishedProject.objects.get(title='WFDB')
+        project = PublishedProject.objects.get(title='Demo WFDB')
         # Public user. Anyone can access files and landing page
         response = self.client.get(reverse('published_project', args=(project.slug,)))
         self.assertEqual(response.status_code, 200)

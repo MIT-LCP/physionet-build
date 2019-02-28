@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+PhysioNet {{ main_label }} Statistics
+{% endblock %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'search/css/stats.css' %}">
+{% endblock %}
+
+{% block local_js_top %}
+<script src="{% static 'd3/d3.v3.min.js' %}"></script>
+<script src="{% static 'd3/d3.tip.v0.6.3.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>PhysioNet {{ main_label }} Statistics</h1>
+  <hr>
+  <br>
+  <div id="newprojects">
+    {# Yearly number and volume of projects #}
+  </div>
+  <br><br>
+  <div id="totalprojects">
+    {# Cumulative number and volume of projects #}
+  </div>
+  <br>
+  <hr>
+<script>
+
+// Display human readable size of byte number
+function readableSize(num, suffix='B') {
+  units = ['','K','M','G','T','P','E','Z']
+  for (i = 0; i<units.length; i++) {
+    unit = units[i]
+    if (num < 1024) {
+      readsize = String(num);
+      if (readsize.includes('.')) {
+        return num.toFixed(1) + ' ' + unit + suffix;
+      }
+      else {
+        return readsize + ' ' + unit + suffix;
+      }
+    }
+    num /= 1024.0;
+  }
+  return readable;
+}
+
+// Common parameters for both charts
+
+// set the dimensions of the canvas. Leave left and right margins for
+// y axis scale numbers
+var margin = {top: 40, right: 40, bottom: 30, left: 40},
+    width = document.getElementById('newprojects').offsetWidth - margin.left - margin.right,
+    height = width * 0.5 - margin.top - margin.bottom;
+
+// set the axis sizes
+var x = d3.scale.ordinal().rangeRoundBands([0, width], .05);
+var y0 = d3.scale.linear().range([height, 0]);
+var y1 = d3.scale.linear().range([height, 0]);
+
+// define the axes
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom")
+
+var yAxisLeft = d3.svg.axis()
+    .scale(y0)
+    .orient("left")
+    .ticks(10);
+
+var yAxisRight = d3.svg.axis()
+  .scale(y1)
+  .orient("right")
+  .ticks(10);
+
+// Create the tooltips
+var tip0 = d3.tip()
+  .attr('class', 'd3-tip')
+  .offset([-10, 0])
+  .html(function(d) {
+    return d.num_projects + " Databases";
+  })
+
+var tip1 = d3.tip()
+  .attr('class', 'd3-tip')
+  .offset([-10, 0])
+  .html(function(d) {
+    return d.readable_size;
+  })
+
+// Generate the two column chart from data
+// data : array of json data to plot
+// addId : id of element to add the chart to
+//
+function generateChart(data, addId, chartTitle) {
+  var svg = d3.select("#" + addId).append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+      .attr("transform",
+            "translate(" + margin.left + "," + margin.top + ")");
+
+  // Add the tooltips to the svg
+  svg.call(tip0);
+  svg.call(tip1);
+
+  // scale the range of the data
+  x.domain(data.map(function(d) { return d.year; }));
+  y0.domain([0, d3.max(data, function(d) { return d.num_projects; })]);
+  y1.domain([0, d3.max(data, function(d) { return d.storage_size; })]);
+
+  // add x axis
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis);
+
+  // add left y axis
+  svg.append("g")
+    .attr("class", "y axis axisLeft")
+    .attr("transform", "translate(0,0)")
+    .call(yAxisLeft)
+  .append("text")
+    .attr("y", 6)
+    .attr("dy", "-2em")
+    .style("text-anchor", "start")
+    .text("No. {{ plural_label }}");
+
+  // add right y axis
+  svg.append("g")
+    .attr("class", "y axis axisRight")
+    .attr("transform", "translate(" + (width) + ",0)")
+    .call(yAxisRight)
+  .append("text")
+    .attr("y", 6)
+    .attr("dy", "-2em")
+    .style("text-anchor", "end")
+    .text("File Volume (GB)");
+
+  // add title
+  svg.append("text")
+    .attr("class", "graph-title")
+    .attr("x", width/2)
+    .attr("y", 0 - (margin.top / 2))
+    .attr("text-anchor", "middle")
+    .text(chartTitle);
+
+  var bars = svg.selectAll(".bar").data(data).enter();
+
+  bars.append("rect")
+      .attr("class", "bar1")
+      .attr("x", function(d) { return x(d.year); })
+      .attr("width", x.rangeBand()/2)
+      .attr("y", function(d) { return y0(d.num_projects); })
+      .on('mouseover', tip0.show)
+      .on('mouseout', tip0.hide)
+    .attr("height", function(d,i,j) { return height - y0(d.num_projects); });
+
+  bars.append("rect")
+      .attr("class", "bar2")
+      .attr("x", function(d) { return x(d.year) + x.rangeBand()/2; })
+      .attr("width", x.rangeBand() / 2)
+      .attr("y", function(d) { return y1(d.storage_size); })
+      .on('mouseover', tip1.show)
+      .on('mouseout', tip1.hide)
+    .attr("height", function(d,i,j) { return height - y1(d.storage_size); });
+}
+
+
+// To hold the json response
+var data = null;
+var xhr = new XMLHttpRequest();
+
+xhr.onreadystatechange = function () {
+  // Only run if the request is complete
+  if (xhr.readyState !== 4) return;
+  // Process our return data
+  if (xhr.status >= 200 && xhr.status < 300) {
+    data = JSON.parse(xhr.responseText);
+    // Create the cumulative json
+    dataCulm = [];
+    for (var i = 0; i < data.length; i++) {
+      dataCulm[i] = {"year":data[i].year, "num_projects":data[i].num_projects,
+        "storage_size":data[i].storage_size};
+      if (i > 0){
+        dataCulm[i].num_projects += dataCulm[i-1].num_projects;
+        dataCulm[i].storage_size += dataCulm[i-1].storage_size;
+      }
+      // Get readable size from bytes
+      dataCulm[i].readable_size = readableSize(dataCulm[i].storage_size);
+    }
+    // Convert to GB
+    for (var i = 0; i < data.length; i++) {
+      dataCulm[i].storage_size /= Math.pow(1040, 3);
+    }
+     // Convert the new yearly values to GB and add readable sizes
+    for (i = 0; i < data.length; i++) {
+      data[i].readable_size = readableSize(data[i].storage_size);
+      data[i].storage_size /= Math.pow(1040, 3);
+    }
+    // Generate the first chart - new yearly projects
+    generateChart(data, "newprojects", "New {{ plural_label }} Added Per Year")
+    // Generate the second chart - cumulative yearly projects
+    generateChart(dataCulm, "totalprojects", "Total {{ plural_label }} Per Year")
+  }
+};
+
+// Create and send a GET request
+// The first argument is the post type (GET, POST, PUT, DELETE, etc.)
+// The second argument is the endpoint URL
+xhr.open("GET", "/rest/published-stats-list/?resource_type={{ resource_type }}");
+xhr.send();
+
+</script>
+
+</div>
+
+{% endblock %}

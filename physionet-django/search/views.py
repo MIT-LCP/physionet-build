@@ -114,3 +114,21 @@ def software_index(request):
     List of published software
     """
     return content_index(request, resource_type=1)
+
+
+def charts(request):
+    """
+    Chart statistics about published projects
+    """
+    resource_type = None
+
+    if 'resource_type' in request.GET and request.GET['resource_type'] in ['0', '1']:
+        resource_type = int(request.GET['resource_type'])
+
+    LABELS = {None:['Content', 'Projects'], 0:['Database', 'Databases'],
+        1:['Software', 'Software Projects']}
+
+    main_label, plural_label = LABELS[resource_type]
+    return render(request, 'search/charts.html', {
+        'resource_type':resource_type,
+        'main_label':main_label, 'plural_label':plural_label})
