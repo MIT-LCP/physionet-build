@@ -45,9 +45,15 @@ def license_content(request, license_slug):
     license = License.objects.get(slug=license_slug)
     return render(request, 'about/license_content.html', {'license':license})
 
+def timeline(request):
+    """
+    About the site content.
+    """
+    return render(request, 'about/timeline.html')
+
 def about_physionet(request):
     """
-    Background to PhysioNet
+    Background to PhysioNet as an organization.
     """
     return render(request, 'about/about_physionet.html')
 
@@ -65,7 +71,7 @@ def contact(request):
         contact_form = ContactForm(request.POST)
         if contact_form.is_valid():
             notification.send_contact_message(contact_form)
-            messages.success(request, 'Your message has been received.')
+            messages.success(request, 'Your message has been sent.')
             contact_form = ContactForm()
         else:
             messages.error(request, 'Invalid submission. See form below.')

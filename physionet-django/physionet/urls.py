@@ -26,10 +26,11 @@ urlpatterns = [
     path('', views.home, name='home'),
 
     # about pages
-    path('about/', views.author_guidelines, name='author_guidelines'),
+    path('about/timeline/', views.timeline,
+        name='timeline'),
     path('about/author-guidelines/', views.author_guidelines,
         name='author_guidelines'),
-    path('about/physionet/', views.about_physionet, name='about_physionet'),
+    path('about/', views.about_physionet, name='about_physionet'),
     path('about/faq/', views.faq, name='faq'),
     path('about/licenses/', views.licenses, name='licenses'),
     path('about/licenses/<license_slug>/', views.license_content,

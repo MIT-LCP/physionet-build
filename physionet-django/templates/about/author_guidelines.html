@@ -12,128 +12,62 @@ Author Guidelines
 
 
 {% block content %}
-<div class="container">
-  <h1 class="text-center">Author Guidelines</h1>
-  <hr>
 
-  <button class="btn btn-secondary dropdown-toggle" style="float:right" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-    Contents
-  </button>
-  <div class="dropdown-menu">
-    <a class="dropdown-item" href="#overview">Publication Process Overview</a>
-    <div class="dropdown-divider"></div>
-    <a class="dropdown-item" href="#creation">Project Creation</a>
-    <a class="dropdown-item" href="#preparation">Preparing for Submission</a>
-    <a class="dropdown-item" href="#submission">Submission and Editing</a>
-  </div>
+<section id="guidelines">
+  <div class="container">
 
-  <h2 id="overview">Publication Process Overview</h2>
-  <p>These are the steps for publishing a resource on PhysioNet:</p>
-  <ul>
-    <li>Create a project.</li>
-    <li>Prepare the project for submission:</li>
-    {% include "about/preparation_checklist.html" %}
-    <li>Submit the project for review.</li>
-    <ol>
-      <li>An editor is assigned and makes a decision:</li>
-      <ol type="a">
-        <li>Reject - The content is not suitable for publication. Submission
-          ends.</li>
-        <li>Resubmit with revisions - The editor requests changes. The submitting author
-          makes these changes and resubmits.</li>
-        <li>Accept - The submission continues into the copyedit stage.</li>
-      </ol>
-      <li>The editor copyedits the metadata and files for any final changes.
-        When all authors approve, this editor can complete this step.</li>
-      <li>The editor publishes the project.</li>
-    </ol>
-  </ul>
-  <hr>
-
-  <h2 id="creation">Project Creation</h2>
-  <p>An account is required for creating projects. The
-     <a href="{% url 'create_project' %}" target="_blank">project
-     creation page</a> can be found in the navbar under the
-     <em>publish</em> panel, or your
-     <a href="{% url 'project_home' %}" target="_blank">project
-     home</a> page, which lists all of your authoring projects.
-     Projects are not accessible by anyone except for their authors.
-  </p>
-
-  <p>When creating a project, choose the correct resource type, as
-     this <strong>cannot be changed</strong> later. If you would like
-     to contribute both data and code from a single related project,
-     submit them in separate projects, and refer them to each other.</p>
-  <br>
-  <hr>
-
-  <h2 id="preparation">Preparing the Project for Submission</h2>
-  <br>
-
-  <h3 id="authors">1. Authors</h3>
-  {% include "about/authors.html" %}
-  <br>
-
-  <h3 id="metadata">2. Metadata</h3>
-  {% include "about/metadata.html" %}
-  <br>
-
-  <h3 id="access">3. Access</h3>
-  {% include "about/access_policies.html" %}
-  <br>
-
-  <h3 id="discovery">4. Discovery</h3>
-  {% include "about/discovery.html" %}
-  <br>
-
-  <h3 id="files">5. Files</h3>
-  {% include "about/files.html" %}
-  <br>
-
-  <h3 id="preview">6. Proofread</h3>
-  {% include "about/proofread.html" %}
-  <p>In addition, ensure that the following quality assurance guidelines, which the editor will explicitly evaluate, are met:</p>
-  <h4 id="quality-guidelines">Quality Guidelines - Data Projects</h4>
-  {% include "about/data_quality_guidelines.html" %}
-  <h4>Quality Guidelines - Software Projects</h4>
-  {% include "about/software_quality_guidelines.html" %}
-  <br>
-
-  <hr>
-  <h2 id="submission">Submission and Editing</h2>
-  <p>If the project passes all of its automatic checks, the submitting
-     author may submit the project for review, where an editor will be
-     assigned. While under review, the project
-     cannot be edited.</p>
-  <br>
-
-  <h3>Editor Decision</h3>
-  <p>The editor will decide whether the project is suitable for publication. The possible decisions are:</p>
-  <ol>
-    <li>Reject - The content is not suitable for publication. Submission ends.</li>
-    <li>Resubmit - The content is suitable for publication, but changes are
-        required from the submitting author to make it more clear or reusable.
-        Changes may include adding required information, restructuring the files,
-        and rewording content. Once the submitting author has made these changes,
-        they may resubmit the project for review.</li>
-    <li>Accept - The editor is mostly satisfied with the content. The submission
-        continues into the copyedit stage.</li>
-  </ol>
-  <p>All of the <a href="#quality-guidelines">quality assurance guidelines</a> must be met by your submission if it is to be accepted.</p>
-  <br>
-
-  <h3>Copyedit</h3>
-  <p>The editor makes small changes to the files and metadata that they deem
-     suitable for facilitating reuse of the project. Such changes may include
-     slight rewording of descriptions, renaming of files, and generating a
-     compressed archive of the whole set of files for easy download. When they
-     have finished making changes, they will email the authors. When all authors
-     approve of the changes, the editor may complete this stage.</p>
-  <br>
-
-  <h3>Publish</h3>
-  <p>The editor publishes the project.</p>
-
-  <hr>
+  <h1>Guidelines for authors</h1>
+    <p>Submitting data and software to PhysioNet is similar to submitting an article to a journal. Briefly, the process for submitting your work for publication in PhysioNet is as follows:</p>
+    <ul>
+      <li>If you are the submitting author, create a new project using the project management system.</li>
+      <li>Add your project details. These will include contact information for co-authors, descriptive text, and data files.</li>
+      <li>Once you are satisfied, submit the project to the editorial team for review.</li>
+      <li>You will be notified of an editorial decision when the review process is complete.</li>
+      <li>Once any issues have been addressed, your data or software will be published on PhysioNet.</li>
+      <li>When a project is published, its content is fixed and cannot be changed.</li>
+    </ul>
 </div>
+</section>
+
+<section id="HEADER">
+  <div class="container">
+        <h2>Preparing for Submission</h2>
+        <p>PhysioNet helps you to ensure that your data and software is sufficiently well organized to enable reuse by the community. Before submitting your project for review, please make sure that you have:</p>
+        <ul>
+          <li>Added all co-authors to the system. Co-authors will receive a notification message upon submission and must approve of the submission prior to publication.</li>
+          <li>Provided detailed information about the resource. This information must include a high-level background, relevant methodology on the resource creation, notes for reuse, acknowledgments, and any conflicts of interest.</li>
+          <li>Selected an appropriate <a href="{% url 'licenses' %}">license</a> for releasing your data files.</li>
+          <li>Converted all files to an open, non-proprietary format.</li>
+        </ul>
+  </div>
+</section>
+
+<section id="HEADER">
+  <div class="container">
+        <h2>Criteria for publication</h2>
+        <p>Our goals are to ensure that the data is safe to share and that it is sufficiently well structured and described for it to be a valuable resource for the research community. Some of the high-level criteria that we will be considering when reviewing your project include:</p>
+        <h5>Data Quality</h5>
+        {% include "about/data_quality_guidelines.html" %}
+        <h5>Software Quality</h5>
+        {% include "about/software_quality_guidelines.html" %}
+  </div>
+</section>
+
+<section id="HEADER">
+  <div class="container">
+        <h2>Editorial Process</h2>
+        <p>Once your project is submitted to PhysioNet, it will be reviewed by one or more content specialists. Based on this review, you will be provided with an initial editorial decision within four weeks from submission. The possible decisions are:</p>
+        <ol>
+          <li>Accept: The editor is mostly satisfied with the content. The submission
+              continues into the copyedit stage.</li>
+          <li>Resubmit: The content is suitable for publication, but changes are
+              required to make it more clear or reusable. Changes may include adding 
+              required information, restructuring files, and rewording content. 
+              Once the submitting author has made these changes,
+              they may resubmit the project for review.</li>
+          <li>Reject: The content is not suitable for publication.</li>
+        </ol>
+  </div>
+</section>
+
 {% endblock %}
