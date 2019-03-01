@@ -476,6 +476,20 @@ def training_report_path(instance, filename):
     """
     return 'credential-applications/{}/{}'.format(instance.slug, 'training-report.pdf')
 
+class LegacyCredential(models.Model):
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=50, blank=True, default='')
+    email = models.CharField(max_length=100, blank=True, default='')
+    country = models.CharField(max_length=100, blank=True, default='')
+    mimic_approval = models.CharField(max_length=100, blank=True, default='')
+    eicu_approval = models.CharField(max_length=100, blank=True, default='')
+    info = models.CharField(max_length=300, blank=True, default='')
+    migrated = models.BooleanField(max_length=100, default=False)
+    migration_date = models.DateTimeField(null=True)
+    
+    def __str__(self):
+        return self.email
+
 class Profile(models.Model):
     """
     Class storing profile information which is
