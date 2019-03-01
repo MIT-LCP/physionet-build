@@ -40,14 +40,7 @@ def activate_user(request, uidb64, token):
     if user is not None and not user.is_active and default_token_generator.check_token(user, token):
         user.is_active = True
         # Check legacy credentials
-        if LegacyCredential.objects.filter(email=user.email):
-            LegacyCredentialUser = LegacyCredential.objects.get(email=user.email)
-            month, day, year = LegacyCredentialUser.mimic_approval.split('/')
-            user.is_credentialed = True
-            user.credential_datetime =  datetime(int(year), int(month), int(day))
-            LegacyCredentialUser.migrated = True
-            LegacyCredentialUser.migration_date = timezone.now()
-            LegacyCredentialUser.save()
+        check_legacy_credentials(user, user.email)
         user.save()
         email = user.associated_emails.first()
         email.verification_date = timezone.now()
@@ -63,6 +56,17 @@ def activate_user(request, uidb64, token):
 
 
 # Helper functions for edit_emails view
+def check_legacy_credentials(user, email):
+    # Check legacy credentials
+    if LegacyCredential.objects.filter(email=email, migrated=False):
+        LegacyCredentialUser = LegacyCredential.objects.get(email=email)
+        user.is_credentialed = True
+        month, day, year = LegacyCredentialUser.mimic_approval.split('/')
+        user.credential_datetime =  datetime(int(year), int(month), int(day))
+        LegacyCredentialUser.migrated = True
+        LegacyCredentialUser.migration_date = timezone.now()
+        LegacyCredentialUser.save()
+        user.save()    
 
 def remove_email(request, email_id):
     "Remove a non-primary email associated with a user"
@@ -296,17 +300,7 @@ def verify_email(request, uidb64, token):
             associated_email.verification_date = timezone.now()
             associated_email.is_verified = True
             associated_email.save()
-
-            # Check legacy credentials
-            if LegacyCredential.objects.filter(email=associated_email.email):
-                LegacyCredentialUser = LegacyCredential.objects.get(email=associated_email.email)
-                user.is_credentialed = True
-                month, day, year = LegacyCredentialUser.mimic_approval.split('/')
-                user.credential_datetime =  datetime(int(year), int(month), int(day))
-                LegacyCredentialUser.migrated = True
-                LegacyCredentialUser.migration_date = timezone.now()
-                LegacyCredentialUser.save()
-                user.save()
+            check_legacy_credentials(user, associated_email.email)
             logger.info('User {0} verified another email {1}'.format(user.id, associated_email))
             return render(request, 'user/verify_email.html',
                 {'title':'Verification Successful', 'isvalid':True})
