@@ -1,7 +1,8 @@
+from datetime import datetime
 import logging
 import os
 import pdb
-from datetime import datetime
+import pytz
 
 from django.conf import settings
 from django.contrib import messages
@@ -66,10 +67,13 @@ def check_legacy_credentials(user, email):
         legacy_credential = legacy_credential.get()
         user.is_credentialed = True
         # All of them are mimic credentialed
-        month, day, year = legacy_credential.mimic_approval.split('/')
-        user.credential_datetime =  datetime(int(year), int(month), int(day))
+        month, day, year = legacy_credential.mimic_approval_date.split('/')
+        dt =  datetime(int(year), int(month), int(day))
+        dt = pytz.timezone(timezone.get_default_timezone_name()).localize(dt)
+        user.credential_datetime = dt
         legacy_credential.migrated = True
         legacy_credential.migration_date = timezone.now()
+        legacy_credential.migrated_user = user
         legacy_credential.save()
         user.save()
 

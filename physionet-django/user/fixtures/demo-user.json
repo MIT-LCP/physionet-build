@@ -14,15 +14,15 @@
     "credential_datetime": null
   }
 },
-   {  
-      "model":"user.userlogin",
-      "pk":1,
-      "fields":{  
-         "user":1,
-         "login_date":"2017-11-11T20:06:00.164Z",
-         "ip":"127.0.0.1"
-      }
-   },
+{
+  "model":"user.userlogin",
+  "pk":1,
+  "fields":{
+     "user":1,
+     "login_date":"2017-11-11T20:06:00.164Z",
+     "ip":"127.0.0.1"
+  }
+},
 {
   "model": "user.user",
   "pk": 2,
@@ -171,6 +171,21 @@
     "verification_date": "2018-03-30T19:37:10.998Z",
     "is_verified": true,
     "is_public": false
+  }
+},
+{
+  "model":"user.legacycredential",
+  "pk":1,
+  "fields":{
+    "first_names":"admin",
+    "last_name":"upr",
+    "email":"admin@upr.edu",
+    "country":"United States of America",
+    "mimic_approval_date":"2/28/2019",
+    "eicu_approval_date":"2/28/2019",
+    "info":"Deep Learning",
+    "migrated":false,
+    "migration_date":null
   }
 },
 {
