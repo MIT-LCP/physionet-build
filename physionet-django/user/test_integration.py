@@ -104,111 +104,98 @@ class TestPublic(TestCase):
             password='Very5trongt0t@11y'))
 
 
-
-
-
-
-#####
-class TestRegistration(TestCase):
+class TestCredentialing(TestCase):
     """
-    Test views that require authentication
+    Test credentialing logic
     """
     fixtures = ['demo-user']
+
     def test_registration_credential(self):
         """
-        Tests for a propper registration, with a legacy credentialed email, then changes the primary email, 
-        deletes the registration email, and another accounts fails to get credentialed with the same email.
+        Tests the automatic migration of the credentialing status from
+        their old pn account upon successful registration/activation.
+
+        Ensures that the same legacy credential cannot be carried over
+        more than once.
+
         """
-        # Does the form to register a user
+        # Register and activate a user with old credentialed account
         response = self.client.post(reverse('register'),
             data={'email':'admin@upr.edu', 'username':'adminupr',
             'first_names': 'admin', 'last_name': 'upr',
             'password1':'Very5trongt0t@11y', 'password2':'Very5trongt0t@11y'})
-
-        # Get the reset info from the email
-        self.assertEqual(len(mail.outbox), 1)
-
         uidb64, token = re.findall('activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
-            mail.outbox[0].body)[0]
-
-        # Remove the email
-        mail.outbox.pop()
-
-        # Activates the user
+            mail.outbox[-1].body)[0]
         response = self.client.get(reverse('activate_user',
             kwargs={'uidb64':uidb64,'token':token}))
 
         # Check if the user is active and credentialed
-        self.assertTrue(bool(User.objects.get(email='admin@upr.edu').is_active))
-        self.assertTrue(bool(User.objects.get(email='admin@upr.edu').is_credentialed))
-        # Logs into the account
+        self.assertTrue(User.objects.get(email='admin@upr.edu').is_active)
+        self.assertTrue(User.objects.get(email='admin@upr.edu').is_credentialed)
+
+        # Add and verify another email.
         self.client.login(username='admin@upr.edu', password='Very5trongt0t@11y')
-        # Adds a secondary email
         response = self.client.post(reverse('edit_emails'), data={'add_email':True, 'email': 'not_credentialed@upr.edu'})
-        # Activates the email
         uidb64, token = re.findall('verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
-            mail.outbox[0].body)[0]
+            mail.outbox[-1].body)[0]
         response = self.client.get(reverse('verify_email',
             kwargs={'uidb64':uidb64,'token':token}))
-        # Changes the primary to the new email
-        response = self.client.post(reverse('edit_emails'), data={'set_primary_email':True, 'associated_email': 'not_credentialed@upr.edu'})
-        # Removes the credentialed email
+        # Set the new email as primary and remove the original
+        response = self.client.post(reverse('edit_emails'), data={
+            'set_primary_email':True,
+            'associated_email': 'not_credentialed@upr.edu'})
         AssociatedEmail.objects.get(email='admin@upr.edu').delete()
-
         self.client.logout()
-        # Logs out and logs in with a different user
-        self.client.login(username='admin@mit.edu', password='Tester11!')
-        # Try to add the credentialed email address
-        response = self.client.post(reverse('edit_emails'), data={'add_email': True, 'email': 'admin@upr.edu'})
-        uidb64, token = re.findall('verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
-            mail.outbox[0].body)[0]
-        response = self.client.get(reverse('verify_email',
-            kwargs={'uidb64':uidb64,'token':token}))
 
-        self.assertEqual(User.objects.get(email='admin@mit.edu'), AssociatedEmail.objects.get(email='admin@upr.edu').user)
-
-        self.assertFalse(bool(User.objects.get(email='admin@mit.edu').is_credentialed))
-        # The user is not automaticly credentialed becaus the email was used.
-
-    def test_new_email_credential(self):
-        """
-        Tests addind a credentialed email, removing it, and failing to credential another person with the same 
-        email.
-        """
-        # Logs into the account
-        self.client.login(username='admin@mit.edu', password='Tester11!')
-        # Adds a credentialed email
-        response = self.client.post(reverse('edit_emails'), data={'add_email': True, 'email': 'admin@upr.edu'})
-        uidb64, token = re.findall('verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
-            mail.outbox[0].body)[0]
-        # Remove the email
-        mail.outbox.pop()
-        # Verifies the new email
-        response = self.client.get(reverse('verify_email',
-            kwargs={'uidb64':uidb64,'token':token}))
-        # Checks that the user is credentialed
-        self.assertTrue(bool(User.objects.get(email='admin@mit.edu').is_credentialed))
-        AssociatedEmail.objects.get(email='admin@upr.edu').delete()
-        # Removes the email
-        self.client.logout()
-        # creates an account with the credentialed email
+        # Another person tries to register again with that same email
+        # hoping to get automatic credentialing
         response = self.client.post(reverse('register'),
-            data={'email':'admin@upr.edu', 'username':'adminupr',
+            data={'email':'admin@upr.edu', 'username':'sneakyfriend',
             'first_names': 'admin', 'last_name': 'upr',
             'password1':'Very5trongt0t@11y', 'password2':'Very5trongt0t@11y'})
-
-        # Get the reset info from the email
-        self.assertEqual(len(mail.outbox), 1)
-
         uidb64, token = re.findall('activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
-            mail.outbox[0].body)[0]
-        mail.outbox.pop()
-        # Activates the user
+            mail.outbox[-1].body)[0]
         response = self.client.get(reverse('activate_user',
             kwargs={'uidb64':uidb64,'token':token}))
 
-        # Checks the user is active but not credentialed
-        self.assertTrue(bool(User.objects.get(email='admin@upr.edu').is_active))
-        self.assertFalse(bool(User.objects.get(email='admin@upr.edu').is_credentialed))
+        # The user is not automatically credentialed because the email's
+        # credentialing status was already migrated to the other account
+        self.assertTrue(User.objects.get(email='admin@upr.edu').is_active)
+        self.assertFalse(User.objects.get(email='admin@upr.edu').is_credentialed)
 
+    def test_new_email_credential(self):
+        """
+        Tests the automatic migration of the credentialing status from
+        their old pn account upon adding an associated email.
 
+        Ensures that the same legacy credential cannot be carried over
+        more than once.
+
+        """
+        # Add and verify a credentialed email
+        self.client.login(username='admin@mit.edu', password='Tester11!')
+        response = self.client.post(reverse('edit_emails'), data={'add_email': True, 'email': 'admin@upr.edu'})
+        uidb64, token = re.findall('verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
+            mail.outbox[-1].body)[0]
+        response = self.client.get(reverse('verify_email',
+            kwargs={'uidb64':uidb64,'token':token}))
+
+        # Check that the user is credentialed
+        self.assertTrue(User.objects.get(email='admin@mit.edu').is_credentialed)
+        # Remove the email
+        AssociatedEmail.objects.get(email='admin@upr.edu').delete()
+        self.client.logout()
+
+        # Another person tries to add that same email hoping to get
+        # automatic credentialing
+        self.client.login(username='aewj@mit.edu', password='Tester11!')
+        response = self.client.post(reverse('edit_emails'), data={'add_email': True, 'email': 'admin@upr.edu'})
+        uidb64, token = re.findall('verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
+            mail.outbox[-1].body)[0]
+        response = self.client.get(reverse('verify_email',
+            kwargs={'uidb64':uidb64,'token':token}))
+
+        # The user is not automatically credentialed because the email's
+        # credentialing status was already migrated to the other account
+        self.assertEqual(User.objects.get(email='aewj@mit.edu'), AssociatedEmail.objects.get(email='admin@upr.edu').user)
+        self.assertFalse(User.objects.get(email='aewj@mit.edu').is_credentialed)
