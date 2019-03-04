@@ -47,13 +47,13 @@ def license_content(request, license_slug):
 
 def timeline(request):
     """
-    About the site content.
+    Background to PhysioNet as an organization.
     """
     return render(request, 'about/timeline.html')
 
 def about_physionet(request):
     """
-    Background to PhysioNet as an organization.
+    About the site content.
     """
     return render(request, 'about/about_physionet.html')
 
