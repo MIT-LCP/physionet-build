@@ -138,6 +138,10 @@ If there are database structure changes, log into the server and make the migrat
 
 `python manage.py makemigrations;python manage.py migrate`
 
+Touch the uwsgi vassal file to force the emperor process to start new workers which reflect the updated changes.
+
+`touch /etc/uwsgi/vassals/physionet_uwsgi.ini`
+
 
 ## Setting up nginx and uwsgi
 
