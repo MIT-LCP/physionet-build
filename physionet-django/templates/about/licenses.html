@@ -11,38 +11,30 @@ Licenses
 
 {% block content %}
 <div class="container">
-  <h1 class="text-center">Licenses</h1>
-  <hr>
-  <p>These are the available licenses for
-     <a href="{% url 'author_guidelines' %}">publishing content</a> on PhysioNet. The license you choose for your project must match the resource and access types of the license.</p>
+  <h1>Licenses</h1>
+  <p>When sharing data and software, it is important to be clear about how you intend the content to be reused. To maximize reuse potential of the content, we encourage permissive, open licenses. Currently, authors submitting content to PhysioNet are able to select the following licenses.</p>
 
-  <p>If you would like to use a license that is not currently listed, please <a href="{% url 'contact' %}"> contact us</a>.</p>
-  <hr>
-
-  <h2>Data Licenses</h2>
-  <br>
+  <h2>Data</h2>
+  <ul>
   {% for license in d_licenses %}
-    {{ license.resource_type|resource_badge|safe }} {{ license.access_policy|access_badge|safe }}
-    <h3>{{ license.name }}</h3>
+    <li>{{ license.name }}</li>
     <ul>
       <li><a href="{% url 'license_content' license.slug %}">Content</a></li>
       <li><a href="{{ license.home_page }}" target="_blank">Home page <i class="fas fa-external-link-alt"></i></a></li>
     </ul>
-    <br>
   {% endfor %}
+</ul>
 
-  <hr>
-  <h2>Software Licenses</h2>
-  <br>
+  <h2>Software</h2>
+  <ul>
   {% for license in s_licenses %}
-    {{ license.resource_type|resource_badge|safe }} {{ license.access_policy|access_badge|safe }}
-    <h3>{{ license.name }}</h3>
+    <li>{{ license.name }}</li>
     <ul>
       <li><a href="{% url 'license_content' license.slug %}">Content</a></li>
       <li><a href="{{ license.home_page }}" target="_blank">Home page <i class="fas fa-external-link-alt"></i></a></li>
     </ul>
-    <br>
   {% endfor %}
+</ul>
 
   <br>
 </div>

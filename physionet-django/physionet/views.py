@@ -8,6 +8,9 @@ from user.forms import ContactForm
 
 
 def home(request):
+    """
+    Homepage
+    """
     published_projects = PublishedProject.objects.all().order_by('-publish_datetime')[:6]
 
     authors = [p.authors.all() for p in published_projects]
@@ -19,9 +22,10 @@ def home(request):
         'published_projects':published_projects, 'news_pieces':news_pieces,
         'projects_authors_topics':projects_authors_topics})
 
-# Publish pages
-
 def author_guidelines(request):
+    """
+    Insrtuctions for authors
+    """
     return render(request, 'about/author_guidelines.html')
 
 def licenses(request):
@@ -41,20 +45,33 @@ def license_content(request, license_slug):
     license = License.objects.get(slug=license_slug)
     return render(request, 'about/license_content.html', {'license':license})
 
-# About pages
+def timeline(request):
+    """
+    Background to PhysioNet as an organization.
+    """
+    return render(request, 'about/timeline.html')
 
 def about_physionet(request):
+    """
+    About the site content.
+    """
     return render(request, 'about/about_physionet.html')
 
 def faq(request):
+    """
+    Frequently asked questions
+    """
     return render(request, 'about/faq.html')
 
 def contact(request):
+    """
+    Contact form
+    """
     if request.method == 'POST':
         contact_form = ContactForm(request.POST)
         if contact_form.is_valid():
             notification.send_contact_message(contact_form)
-            messages.success(request, 'Your message has been received.')
+            messages.success(request, 'Your message has been sent.')
             contact_form = ContactForm()
         else:
             messages.error(request, 'Invalid submission. See form below.')
@@ -63,5 +80,8 @@ def contact(request):
 
     return render(request, 'about/contact.html', {'contact_form':contact_form})
 
-def citi_instructions(request):
-    return render(request, 'about/citi_instructions.html')
+def citi_course(request):
+    """
+    Instructions for completing the CITI training course
+    """
+    return render(request, 'about/citi_course.html')

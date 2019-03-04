@@ -3,60 +3,92 @@
 {% load static %}
 
 {% block title %}
-PhysioNet
+Contact us
 {% endblock %}
 
 
 {% block local_css %}
-<link rel="stylesheet" type="text/css" href="{% static 'custom/css/about.css' %}"/>
+<style>
+.button-wrapper .btn {
+    margin-bottom:20px;
+}
+</style>
 {% endblock %}
 
 
 {% block content %}
 {% include "message_snippet.html" %}
+
 <section id="contact">
   <div class="container">
-    <div class="row">
-      <div class="col-lg-12 ">
-        <h2 class="section-heading text-center">Contact Us</h2>
-        <p>If you have a bug report or suggestion regarding the site or its content, you may raise an issue on the
-        <a href="https://github.com/MIT-LCP/physionet-build" target="_blank">development repository</a>.</p>
-        <p>If you have a question about a particular database or software package, contact the corresponding author of the resource.</p>
-        <p>For general comments and queries, and private security issues, you may use this form.</p>
-      </div>
+        <h1>Contact us</h1>
+        <p>Before getting in touch with us, please read the points below to choose the appropriate method of contact:</p>
+        <ul>
+        <li>If you have a bug report or suggestion regarding the site or its content, please raise an issue on the
+        <a href="https://github.com/MIT-LCP/physionet-build" target="_blank">development repository</a>.</li> 
+        <li>If you have a question about a particular database or software package, please contact the corresponding author of the resource.</li>
+        <li>For general comments, queries, and private security issues, you may use this form. </li>
+      </ul>
+
     </div>
+</section>
+
+<section id="form">
+    <div class="container">
     <div class="row">
-      <div class="col-lg-12">
+      <div class="col-md-12">
+
         <form method="post">
           {% csrf_token %}
+
           <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-12">
               <div class="form-group">
                 {{ contact_form.name }}
                 <p class="help-block text-danger"></p>
               </div>
+            </div>
+          </div>
+
+
+          <div class="row">
+            <div class="col-md-12">    
               <div class="form-group">
                 {{ contact_form.email }}
                 <p class="help-block text-danger"></p>
               </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-12">    
               <div class="form-group">
                 {{ contact_form.subject }}
                 <p class="help-block text-danger"></p>
               </div>
             </div>
-            <div class="col-md-6">
+          </div>
+
+
+          <div class="row">
+            <div class="col-md-12"> 
               <div class="form-group">
                 {{ contact_form.message }}
                 <p class="help-block text-danger"></p>
               </div>
             </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-12"> 
             <div class="clearfix"></div>
-            <div class="col-lg-12 text-center">
+            <div class="col-lg-12 text-center button-wrapper">
               <div id="success"></div>
               <button class="btn btn-primary btn-xl" type="submit">Send Message</button>
             </div>
-          </div>
+            </div>
         </form>
+
       </div>
     </div>
   </div>
