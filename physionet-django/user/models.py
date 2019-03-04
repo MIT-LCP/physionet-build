@@ -318,7 +318,6 @@ class User(AbstractBaseUser):
     """
     The user authentication model
     """
-
     email = models.EmailField(max_length=255, unique=True,
         validators=[validate_unique_email, EmailValidator()])
     username = models.CharField(max_length=50, unique=True,
@@ -397,7 +396,7 @@ class User(AbstractBaseUser):
 class UserLogin(models.Model):
     """Represent users' logins, one per record"""
     user = models.ForeignKey('user.User', related_name='login_time',
-        on_delete=models.CASCADE) 
+        on_delete=models.CASCADE)
     login_date = models.DateTimeField(auto_now_add=True, null=True)
     ip = models.CharField(max_length=50,  blank=True, default='', null=True)
 
@@ -475,6 +474,32 @@ def training_report_path(instance, filename):
     Storage path of CITI training report
     """
     return 'credential-applications/{}/{}'.format(instance.slug, 'training-report.pdf')
+
+
+class LegacyCredential(models.Model):
+    """
+    Stores instances of profiles that were credentialed on the old
+    pn website.
+    """
+    first_names = models.CharField(max_length=100, blank=True, default='')
+    last_name = models.CharField(max_length=100, blank=True, default='')
+    email = models.EmailField(max_length=255, unique=True)
+    country = models.CharField(max_length=100, blank=True, default='')
+    # These dates are stored as strings in the legacy system.
+    # All are credentialed for mimic
+    mimic_approval_date = models.CharField(max_length=100)
+    eicu_approval_date = models.CharField(max_length=100, blank=True,
+        default='')
+    # Their stated reason for using the data
+    info = models.CharField(max_length=300, blank=True, default='')
+    # Whether the credentialing has been migrated to an account on the
+    # new site
+    migrated = models.BooleanField(default=False)
+    migration_date = models.DateTimeField(null=True)
+
+    def __str__(self):
+        return self.email
+
 
 class Profile(models.Model):
     """

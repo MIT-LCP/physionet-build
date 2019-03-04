@@ -1,6 +1,7 @@
 import logging
 import os
 import pdb
+from datetime import datetime
 
 from django.conf import settings
 from django.contrib import messages
@@ -19,7 +20,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
 from .forms import AddEmailForm, AssociatedEmailChoiceForm, ProfileForm, RegistrationForm, UsernameChangeForm, CredentialApplicationForm, CredentialReferenceForm
 from . import forms
-from .models import AssociatedEmail, Profile, User, CredentialApplication
+from .models import AssociatedEmail, Profile, User, CredentialApplication, LegacyCredential
 from physionet import utility
 from project.models import Author
 
@@ -38,6 +39,8 @@ def activate_user(request, uidb64, token):
 
     if user is not None and not user.is_active and default_token_generator.check_token(user, token):
         user.is_active = True
+        # Check legacy credentials
+        check_legacy_credentials(user, user.email)
         user.save()
         email = user.associated_emails.first()
         email.verification_date = timezone.now()
@@ -52,7 +55,23 @@ def activate_user(request, uidb64, token):
     return render(request, 'user/activate_user.html', context)
 
 
-# Helper functions for edit_emails view
+def check_legacy_credentials(user, email):
+    """
+    Check whether a user has already beeen credentialed on the old pn
+    site. If so, credential their account and mark the migration.
+    """
+    legacy_credential = LegacyCredential.objects.filter(email=email,
+        migrated=False)
+    if legacy_credential:
+        legacy_credential = legacy_credential.get()
+        user.is_credentialed = True
+        # All of them are mimic credentialed
+        month, day, year = legacy_credential.mimic_approval.split('/')
+        user.credential_datetime =  datetime(int(year), int(month), int(day))
+        legacy_credential.migrated = True
+        legacy_credential.migration_date = timezone.now()
+        legacy_credential.save()
+        user.save()
 
 def remove_email(request, email_id):
     "Remove a non-primary email associated with a user"
@@ -220,7 +239,6 @@ def profile_photo(request, username):
     user = User.objects.get(username=username)
     return utility.serve_file(request, user.profile.photo.path)
 
-
 def register(request):
     """
     User registration page
@@ -234,6 +252,7 @@ def register(request):
         if form.is_valid():
             # Create the new user
             user = form.save()
+
             # Send an email with the activation link
             uidb64 = force_text(urlsafe_base64_encode(force_bytes(user.pk)))
             token = default_token_generator.make_token(user)
@@ -286,6 +305,8 @@ def verify_email(request, uidb64, token):
             associated_email.verification_date = timezone.now()
             associated_email.is_verified = True
             associated_email.save()
+            if not user.is_credentialed:
+                check_legacy_credentials(user, associated_email.email)
             logger.info('User {0} verified another email {1}'.format(user.id, associated_email))
             return render(request, 'user/verify_email.html',
                 {'title':'Verification Successful', 'isvalid':True})
