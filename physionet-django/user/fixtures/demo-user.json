@@ -1,279 +1,290 @@
 [
-   {
-      "model":"user.user",
-      "pk":1,
-      "fields":{
-         "password":"pbkdf2_sha256$36000$Hrk3jPqDnzEi$gsyjwISmg0hhMKeMEXrEJIcDcSh/0aSS6SB3WKVuyf8=",
-         "email":"admin@mit.edu",
-         "username":"admin",
-         "join_date":"2017-11-11",
-         "last_login":"2018-11-14T21:09:48.499Z",
-         "is_active":true,
-         "is_admin":true,
-         "is_credentialed":false,
-         "credential_datetime":null
-      }
-   },
-   {
-      "model":"user.user",
-      "pk":2,
-      "fields":{
-         "password":"pbkdf2_sha256$36000$L9snfLknDk4R$4wPn0TEtPFg8wj0TMEzj8GBsibYSx0ilg+MI3J+quVE=",
-         "email":"rgmark@mit.edu",
-         "username":"rgmark",
-         "join_date":"2017-11-11",
-         "last_login":"2018-11-14T21:08:43.620Z",
-         "is_active":true,
-         "is_admin":false,
-         "is_credentialed":true,
-         "credential_datetime":"2018-11-14T20:45:53.071Z"
-      }
-   },
-   {
-      "model":"user.user",
-      "pk":3,
-      "fields":{
-         "password":"pbkdf2_sha256$36000$SrZ88tJbYouX$W0Y3AyX3EYukvulqfrKz/aGFG3MM+0/RoYODl0a/e8Y=",
-         "email":"george@mit.edu",
-         "username":"george",
-         "join_date":"2017-11-11",
-         "last_login":"2018-11-01T17:40:35.971Z",
-         "is_active":true,
-         "is_admin":false,
-         "is_credentialed":false,
-         "credential_datetime":null
-      }
-   },
-   {
-      "model":"user.user",
-      "pk":4,
-      "fields":{
-         "password":"pbkdf2_sha256$36000$RY8Xsxp0wl4Q$qkVqEpXM8wMFeq34wtt/uxRxrvrDQVqXOlSjjvmfcDY=",
-         "email":"aewj@mit.edu",
-         "username":"aewj",
-         "join_date":"2018-03-30",
-         "last_login":"2018-09-19T01:01:37.635Z",
-         "is_active":true,
-         "is_admin":false,
-         "is_credentialed":false,
-         "credential_datetime":null
-      }
-   },
-   {
-      "model":"user.userlogin",
-      "pk":1,
-      "fields":{
-         "user":1,
-         "login_date":"2017-11-11T20:06:00.164Z",
-         "ip":"127.0.0.1"
-      }
-   },
-   {
-      "model":"user.associatedemail",
-      "pk":1,
-      "fields":{
-         "user":1,
-         "email":"admin@mit.edu",
-         "is_primary_email":true,
-         "added_date":"2018-03-28T16:06:29.431Z",
-         "verification_date":"2018-03-28T16:06:29.431Z",
-         "is_verified":true,
-         "is_public":false
-      }
-   },
-   {
-      "model":"user.associatedemail",
-      "pk":2,
-      "fields":{
-         "user":2,
-         "email":"rgmark@mit.edu",
-         "is_primary_email":true,
-         "added_date":"2018-03-28T16:06:29.433Z",
-         "verification_date":"2018-03-28T16:06:29.433Z",
-         "is_verified":true,
-         "is_public":false
-      }
-   },
-   {
-      "model":"user.associatedemail",
-      "pk":3,
-      "fields":{
-         "user":3,
-         "email":"george@mit.edu",
-         "is_primary_email":true,
-         "added_date":"2018-03-28T16:06:29.436Z",
-         "verification_date":"2018-03-28T16:06:29.435Z",
-         "is_verified":true,
-         "is_public":false
-      }
-   },
-   {
-      "model":"user.associatedemail",
-      "pk":4,
-      "fields":{
-         "user":1,
-         "email":"admin2@mit.edu",
-         "is_primary_email":false,
-         "added_date":null,
-         "verification_date":"2017-10-30T14:30:30Z",
-         "is_verified":true,
-         "is_public":true
-      }
-   },
-   {
-      "model":"user.associatedemail",
-      "pk":5,
-      "fields":{
-         "user":1,
-         "email":"admin3@mit.edu",
-         "is_primary_email":false,
-         "added_date":null,
-         "verification_date":"2017-10-30T15:15:20Z",
-         "is_verified":true,
-         "is_public":false
-      }
-   },
-   {
-      "model":"user.associatedemail",
-      "pk":6,
-      "fields":{
-         "user":3,
-         "email":"george@gmail.com",
-         "is_primary_email":false,
-         "added_date":"2018-03-28T17:17:14.082Z",
-         "verification_date":"2018-03-28T17:17:22.440Z",
-         "is_verified":true,
-         "is_public":false
-      }
-   },
-   {
-      "model":"user.associatedemail",
-      "pk":7,
-      "fields":{
-         "user":4,
-         "email":"aewj@mit.edu",
-         "is_primary_email":true,
-         "added_date":"2018-03-30T19:36:57.684Z",
-         "verification_date":"2018-03-30T19:37:10.998Z",
-         "is_verified":true,
-         "is_public":false
-      }
-   },
-   {
-      "model":"user.legacycredential",
-      "pk":1,
-      "fields":{
-         "first_names":"admin",
-         "last_name":"upr",
-         "email":"admin@upr.edu",
-         "country":"United States of America",
-         "mimic_approval_date":"2/28/2019",
-         "eicu_approval_date":"2/28/2019",
-         "info":"Deep Learning",
-         "migrated":false,
-         "migration_date":null
-      }
-   },
-   {
-      "model":"user.legacycredential",
-      "pk":2,
-      "fields":{
-         "first_names":"admin",
-         "last_name":"upr",
-         "email":"admin1@upr.edu",
-         "country":"United States of America",
-         "mimic_approval_date":"2/28/2019",
-         "eicu_approval_date":"2/28/2019",
-         "info":"Deep Learning",
-         "migrated":false,
-         "migration_date":null
-      }
-   },
-   {
-      "model":"user.profile",
-      "pk":1,
-      "fields":{
-         "user":1,
-         "first_names":"Admin",
-         "last_name":"Bot",
-         "affiliation":"",
-         "location":"",
-         "website":"https://github.com/MIT-LCP/physionet-build",
-         "photo":""
-      }
-   },
-   {
-      "model":"user.profile",
-      "pk":2,
-      "fields":{
-         "user":2,
-         "first_names":"Roger Greenwood",
-         "last_name":"Mark",
-         "affiliation":"Massachusetts Institute of Technology",
-         "location":"Cambridge MA",
-         "website":"http://imes.mit.edu/people/faculty/mark-roger/",
-         "photo":"users/rgmark/profile-photo.jpg"
-      }
-   },
-   {
-      "model":"user.profile",
-      "pk":3,
-      "fields":{
-         "user":3,
-         "first_names":"George",
-         "last_name":"Moody",
-         "affiliation":"",
-         "location":"",
-         "website":"http://ecg.mit.edu/george/",
-         "photo":""
-      }
-   },
-   {
-      "model":"user.profile",
-      "pk":4,
-      "fields":{
-         "user":4,
-         "first_names":"Alistair Edward William",
-         "last_name":"Johnson",
-         "affiliation":"Massachusetts Institute of Technology",
-         "location":"",
-         "website":null,
-         "photo":""
-      }
-   },
-   {
-      "model":"user.credentialapplication",
-      "pk":1,
-      "fields":{
-         "slug":"YgqTQmcerj0gLx4MAaZV",
-         "application_datetime":"2018-11-14T20:43:04.112Z",
-         "user":2,
-         "first_names":"Roger Greenwood",
-         "last_name":"Mark",
-         "researcher_category":2,
-         "organization_name":"Massachusetts Institute of Technology",
-         "job_title":"Professor",
-         "city":"Cambridge",
-         "state_province":"Massachussetts",
-         "country":"US",
-         "website":"http://imes.mit.edu/people/faculty/mark-roger/",
-         "training_course_name":"CITI Data or Specimens Only Research Course",
-         "training_completion_date":"2015-01-01",
-         "training_completion_report":"credential-applications/YgqTQmcerj0gLx4MAaZV/training-report.pdf",
-         "course_category":0,
-         "course_name":"",
-         "course_number":"",
-         "reference_category":1,
-         "reference_name":"Leo Celi",
-         "reference_email":"lceli@yahoo.com",
-         "reference_title":"Assistant Professor",
-         "status":2,
-         "reference_contact_datetime":"2018-11-14T20:44:28.076Z",
-         "reference_response_datetime":"2018-11-14T20:45:30.682Z",
-         "reference_response":2,
-         "decision_datetime":"2018-11-14T20:45:53.084Z",
-         "responder":1,
-         "responder_comments":""
-      }
-   }
+{
+  "model": "user.user",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$36000$Hrk3jPqDnzEi$gsyjwISmg0hhMKeMEXrEJIcDcSh/0aSS6SB3WKVuyf8=",
+    "email": "admin@mit.edu",
+    "username": "admin",
+    "join_date": "2017-11-11",
+    "last_login": "2018-11-14T21:09:48.499Z",
+    "is_active": true,
+    "is_admin": true,
+    "is_credentialed": false,
+    "credential_datetime": null
+  }
+},
+{
+  "model":"user.userlogin",
+  "pk":1,
+  "fields":{
+     "user":1,
+     "login_date":"2017-11-11T20:06:00.164Z",
+     "ip":"127.0.0.1"
+  }
+},
+{
+  "model": "user.user",
+  "pk": 2,
+  "fields": {
+    "password": "pbkdf2_sha256$36000$L9snfLknDk4R$4wPn0TEtPFg8wj0TMEzj8GBsibYSx0ilg+MI3J+quVE=",
+    "email": "rgmark@mit.edu",
+    "username": "rgmark",
+    "join_date": "2017-11-11",
+    "last_login": "2018-11-14T21:08:43.620Z",
+    "is_active": true,
+    "is_admin": false,
+    "is_credentialed": true,
+    "credential_datetime": "2018-11-14T20:45:53.071Z"
+  }
+},
+{
+  "model": "user.user",
+  "pk": 3,
+  "fields": {
+    "password": "pbkdf2_sha256$36000$SrZ88tJbYouX$W0Y3AyX3EYukvulqfrKz/aGFG3MM+0/RoYODl0a/e8Y=",
+    "email": "george@mit.edu",
+    "username": "george",
+    "join_date": "2017-11-11",
+    "last_login": "2018-11-01T17:40:35.971Z",
+    "is_active": true,
+    "is_admin": false,
+    "is_credentialed": false,
+    "credential_datetime": null
+  }
+},
+{
+  "model": "user.user",
+  "pk": 4,
+  "fields": {
+    "password": "pbkdf2_sha256$36000$RY8Xsxp0wl4Q$qkVqEpXM8wMFeq34wtt/uxRxrvrDQVqXOlSjjvmfcDY=",
+    "email": "aewj@mit.edu",
+    "username": "aewj",
+    "join_date": "2018-03-30",
+    "last_login": "2018-09-19T01:01:37.635Z",
+    "is_active": true,
+    "is_admin": false,
+    "is_credentialed": false,
+    "credential_datetime": null
+  }
+},
+{
+  "model": "user.associatedemail",
+  "pk": 1,
+  "fields": {
+    "user": [
+      "admin"
+    ],
+    "email": "admin@mit.edu",
+    "is_primary_email": true,
+    "added_date": "2018-03-28T16:06:29.431Z",
+    "verification_date": "2018-03-28T16:06:29.431Z",
+    "is_verified": true,
+    "is_public": false
+  }
+},
+{
+  "model": "user.associatedemail",
+  "pk": 2,
+  "fields": {
+    "user": [
+      "rgmark"
+    ],
+    "email": "rgmark@mit.edu",
+    "is_primary_email": true,
+    "added_date": "2018-03-28T16:06:29.433Z",
+    "verification_date": "2018-03-28T16:06:29.433Z",
+    "is_verified": true,
+    "is_public": false
+  }
+},
+{
+  "model": "user.associatedemail",
+  "pk": 3,
+  "fields": {
+    "user": [
+      "george"
+    ],
+    "email": "george@mit.edu",
+    "is_primary_email": true,
+    "added_date": "2018-03-28T16:06:29.436Z",
+    "verification_date": "2018-03-28T16:06:29.435Z",
+    "is_verified": true,
+    "is_public": false
+  }
+},
+{
+  "model": "user.associatedemail",
+  "pk": 4,
+  "fields": {
+    "user": [
+      "admin"
+    ],
+    "email": "admin2@mit.edu",
+    "is_primary_email": false,
+    "added_date": null,
+    "verification_date": "2017-10-30T14:30:30Z",
+    "is_verified": true,
+    "is_public": true
+  }
+},
+{
+  "model": "user.associatedemail",
+  "pk": 5,
+  "fields": {
+    "user": [
+      "admin"
+    ],
+    "email": "admin3@mit.edu",
+    "is_primary_email": false,
+    "added_date": null,
+    "verification_date": "2017-10-30T15:15:20Z",
+    "is_verified": true,
+    "is_public": false
+  }
+},
+{
+  "model": "user.associatedemail",
+  "pk": 6,
+  "fields": {
+    "user": [
+      "george"
+    ],
+    "email": "george@gmail.com",
+    "is_primary_email": false,
+    "added_date": "2018-03-28T17:17:14.082Z",
+    "verification_date": "2018-03-28T17:17:22.440Z",
+    "is_verified": true,
+    "is_public": false
+  }
+},
+{
+  "model": "user.associatedemail",
+  "pk": 7,
+  "fields": {
+    "user": [
+      "aewj"
+    ],
+    "email": "aewj@mit.edu",
+    "is_primary_email": true,
+    "added_date": "2018-03-30T19:36:57.684Z",
+    "verification_date": "2018-03-30T19:37:10.998Z",
+    "is_verified": true,
+    "is_public": false
+  }
+},
+{
+  "model":"user.legacycredential",
+  "pk":1,
+  "fields":{
+    "first_names":"admin",
+    "last_name":"upr",
+    "email":"admin@upr.edu",
+    "country":"United States of America",
+    "mimic_approval_date":"2/28/2019",
+    "eicu_approval_date":"2/28/2019",
+    "info":"Deep Learning",
+    "migrated":false,
+    "migration_date":null
+  }
+},
+{
+  "model": "user.profile",
+  "pk": 1,
+  "fields": {
+    "user": [
+      "admin"
+    ],
+    "first_names": "Admin",
+    "last_name": "Bot",
+    "affiliation": "",
+    "location": "",
+    "website": "https://github.com/MIT-LCP/physionet-build",
+    "photo": ""
+  }
+},
+{
+  "model": "user.profile",
+  "pk": 2,
+  "fields": {
+    "user": [
+      "rgmark"
+    ],
+    "first_names": "Roger Greenwood",
+    "last_name": "Mark",
+    "affiliation": "Massachusetts Institute of Technology",
+    "location": "Cambridge MA",
+    "website": "http://imes.mit.edu/people/faculty/mark-roger/",
+    "photo": "users/rgmark/profile-photo.jpg"
+  }
+},
+{
+  "model": "user.profile",
+  "pk": 3,
+  "fields": {
+    "user": [
+      "george"
+    ],
+    "first_names": "George",
+    "last_name": "Moody",
+    "affiliation": "",
+    "location": "",
+    "website": "http://ecg.mit.edu/george/",
+    "photo": ""
+  }
+},
+{
+  "model": "user.profile",
+  "pk": 4,
+  "fields": {
+    "user": [
+      "aewj"
+    ],
+    "first_names": "Alistair Edward William",
+    "last_name": "Johnson",
+    "affiliation": "Massachusetts Institute of Technology",
+    "location": "",
+    "website": null,
+    "photo": ""
+  }
+},
+{
+  "model": "user.credentialapplication",
+  "pk": 1,
+  "fields": {
+    "slug": "YgqTQmcerj0gLx4MAaZV",
+    "application_datetime": "2018-11-14T20:43:04.112Z",
+    "user": [
+      "rgmark"
+    ],
+    "first_names": "Roger Greenwood",
+    "last_name": "Mark",
+    "researcher_category": 2,
+    "organization_name": "Massachusetts Institute of Technology",
+    "job_title": "Professor",
+    "city": "Cambridge",
+    "state_province": "Massachussetts",
+    "country": "US",
+    "website": "http://imes.mit.edu/people/faculty/mark-roger/",
+    "training_course_name": "CITI Data or Specimens Only Research Course",
+    "training_completion_date": "2015-01-01",
+    "training_completion_report": "credential-applications/YgqTQmcerj0gLx4MAaZV/training-report.pdf",
+    "course_category": 0,
+    "course_name": "",
+    "course_number": "",
+    "reference_category": 1,
+    "reference_name": "Leo Celi",
+    "reference_email": "lceli@yahoo.com",
+    "reference_title": "Assistant Professor",
+    "status": 2,
+    "reference_contact_datetime": "2018-11-14T20:44:28.076Z",
+    "reference_response_datetime": "2018-11-14T20:45:30.682Z",
+    "reference_response": 2,
+    "decision_datetime": "2018-11-14T20:45:53.084Z",
+    "responder": [
+      "admin"
+    ],
+    "responder_comments": ""
+  }
+}
 ]
