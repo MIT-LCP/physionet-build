@@ -55,18 +55,23 @@ def activate_user(request, uidb64, token):
     return render(request, 'user/activate_user.html', context)
 
 
-# Helper functions for edit_emails view
 def check_legacy_credentials(user, email):
-    # Check legacy credentials
-    if LegacyCredential.objects.filter(email=email, migrated=False):
-        LegacyCredentialUser = LegacyCredential.objects.get(email=email)
+    """
+    Check whether a user has already beeen credentialed on the old pn
+    site. If so, credential their account and mark the migration.
+    """
+    legacy_credential = LegacyCredential.objects.filter(email=email,
+        migrated=False)
+    if legacy_credential:
+        legacy_credential = legacy_credential.get()
         user.is_credentialed = True
-        month, day, year = LegacyCredentialUser.mimic_approval.split('/')
+        # All of them are mimic credentialed
+        month, day, year = legacy_credential.mimic_approval.split('/')
         user.credential_datetime =  datetime(int(year), int(month), int(day))
-        LegacyCredentialUser.migrated = True
-        LegacyCredentialUser.migration_date = timezone.now()
-        LegacyCredentialUser.save()
-        user.save()    
+        legacy_credential.migrated = True
+        legacy_credential.migration_date = timezone.now()
+        legacy_credential.save()
+        user.save()
 
 def remove_email(request, email_id):
     "Remove a non-primary email associated with a user"
@@ -300,7 +305,8 @@ def verify_email(request, uidb64, token):
             associated_email.verification_date = timezone.now()
             associated_email.is_verified = True
             associated_email.save()
-            check_legacy_credentials(user, associated_email.email)
+            if not user.is_credentialed:
+                check_legacy_credentials(user, associated_email.email)
             logger.info('User {0} verified another email {1}'.format(user.id, associated_email))
             return render(request, 'user/verify_email.html',
                 {'title':'Verification Successful', 'isvalid':True})
