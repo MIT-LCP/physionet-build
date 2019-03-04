@@ -496,6 +496,7 @@ class LegacyCredential(models.Model):
     # new site
     migrated = models.BooleanField(default=False)
     migration_date = models.DateTimeField(null=True)
+    migrated_user = models.ForeignKey('user.User', null=True, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.email

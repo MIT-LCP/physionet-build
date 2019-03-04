@@ -66,10 +66,11 @@ def check_legacy_credentials(user, email):
         legacy_credential = legacy_credential.get()
         user.is_credentialed = True
         # All of them are mimic credentialed
-        month, day, year = legacy_credential.mimic_approval.split('/')
+        month, day, year = legacy_credential.mimic_approval_date.split('/')
         user.credential_datetime =  datetime(int(year), int(month), int(day))
         legacy_credential.migrated = True
         legacy_credential.migration_date = timezone.now()
+        legacy_credential.migrated_user = user
         legacy_credential.save()
         user.save()
 
