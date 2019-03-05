@@ -17,7 +17,7 @@ from .validators import UsernameValidator, validate_name
 class AssociatedEmailChoiceForm(forms.Form):
     """
     For letting users choose one of their AssociatedEmails.
-    Ie. primary email, public email, corresponding email
+    E.g. primary email, public email, corresponding email
     """
     associated_email = forms.ModelChoiceField(queryset=None, to_field_name='email',
         label='Email')
@@ -241,7 +241,7 @@ class PersonalCAF(forms.ModelForm):
         model = CredentialApplication
         fields = ('first_names', 'last_name', 'researcher_category',
             'organization_name', 'job_title', 'city', 'state_province',
-            'country', 'website',)
+            'country', 'webpage','research_summary')
         help_texts = {
             'first_names':'Your first and middle names.',
             'last_name':'Your last name',
@@ -251,9 +251,12 @@ class PersonalCAF(forms.ModelForm):
             'city':'The city you live in.',
             'state_province':'The state or province that you live in.',
             'country':'The country that you live in.',
-            'website':"Your organization's website. If possible, put a page listing your role. This helps us confirm your identity.",
+            'webpage':"Your organization's webpage. If possible, please include a link to a webpage with your biography or other personal details.",
+            'research_summary':"Brief description on your research.",
         }
-
+        widgets = {
+           'research_summary': forms.Textarea(attrs={'rows': 3}),
+        }
         labels = {
             'state_province':'State/Province'
         }
@@ -266,7 +269,7 @@ class PersonalCAF(forms.ModelForm):
         self.initial = {'first_names':self.profile.first_names,
             'last_name':self.profile.last_name,
             'organization_name':self.profile.affiliation,
-            'website':self.profile.website}
+            'webpage':self.profile.website}
 
 class TrainingCAF(forms.ModelForm):
     """
@@ -277,7 +280,7 @@ class TrainingCAF(forms.ModelForm):
         fields = ('training_course_name', 'training_completion_date',
             'training_completion_report',)
         help_texts = {
-            'training_course_name':"The name of the human subjects training course you took. ie. 'CITI Data or Specimens Only Research Course'",
+            'training_course_name':"The name of the human subjects training course you took. e.g. 'CITI Data or Specimens Only Research Course'",
             'training_completion_date':'The date on which you finished your human subjects training course. Must match the date in your training completion report.',
             'training_completion_report':"A pdf of the training completion report from your training program. The CITI completion report lists all modules completed, with dates and scores. Do NOT upload the completion certificate.",
         }
@@ -298,7 +301,7 @@ class ReferenceCAF(forms.ModelForm):
             'reference_category': "Your reference's relationship to you. If you are a student or postdoc, this must be your supervisor.",
             'reference_name':'The full name of your reference.',
             'reference_email':'The email address of your reference.',
-            'reference_title':'The title of your reference. ie: Professor, Dr.'
+            'reference_title':'The title of your reference. e.g. Professor, Dr.'
         }
 
 
@@ -308,12 +311,10 @@ class CourseCAF(forms.ModelForm):
     """
     class Meta:
         model = CredentialApplication
-        fields = (
-            'course_category', 'course_name', 'course_number')
+        fields = ('course_category', 'course_info')
         help_texts = {
             'course_category':'Specify if you are using this data for a course.',
-            'course_name':'The name of the course you are taking/teaching.',
-            'course_number':'The number or code of the course you are taking/teaching.'
+            'course_info':'The name of the course you are taking/teaching.'
         }
 
         labels = {
@@ -328,8 +329,7 @@ class CourseCAF(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         if not require_courses:
-            self.fields['course_name'].required = False
-            self.fields['course_number'].required = False
+            self.fields['course_info'].required = False
 
 
 class CredentialApplicationForm(forms.ModelForm):
@@ -343,7 +343,7 @@ class CredentialApplicationForm(forms.ModelForm):
             # Personal
             'first_names', 'last_name', 'researcher_category',
             'organization_name', 'job_title', 'city', 'state_province',
-            'country', 'website',
+            'country', 'webpage',
             # Training course
             'training_course_name', 'training_completion_date',
             'training_completion_report',
@@ -351,7 +351,7 @@ class CredentialApplicationForm(forms.ModelForm):
             'reference_category', 'reference_name',
             'reference_email', 'reference_title',
             # Taking a course?
-            'course_category', 'course_name', 'course_number',)
+            'course_category', 'course_info','research_summary')
 
         widgets = {
             'training_completion_date':forms.SelectDateWidget(years=list(range(1990, timezone.now().year+1))),
@@ -366,8 +366,8 @@ class CredentialApplicationForm(forms.ModelForm):
         self.user = user
         self.profile = user.profile
 
-        self.fields['course_name'].required = False
-        self.fields['course_number'].required = False
+        self.fields['course_info'].required = False
+
 
     def clean(self):
         data = self.cleaned_data
@@ -379,10 +379,10 @@ class CredentialApplicationForm(forms.ModelForm):
         if data['researcher_category'] in [0, 1] and data['reference_category'] != 0:
             raise forms.ValidationError('If you are a student or postdoc, you must provide your supervisor as a reference.')
         # If the application is not for a course, they cannot put one.
-        if data['course_category'] == 0 and (data['course_name'] or data['course_number']):
+        if data['course_category'] == 0 and data['course_info']:
             raise forms.ValidationError('If you are not using the data for a course, do not put one in.')
         # If it is for a course, they must put one.
-        elif data['course_category'] > 0 and (not data['course_name'] or not data['course_number']):
+        elif data['course_category'] > 0 and not data['course_info']:
             raise forms.ValidationError('If you are using the data for a course, you must specify the course information.')
 
         if not self.instance and CredentialApplication.objects.filter(user=self.user, status=0):

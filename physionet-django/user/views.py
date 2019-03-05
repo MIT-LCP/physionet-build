@@ -391,7 +391,7 @@ def credential_application(request):
             messages.error(request, 'Invalid submission. See errors below.')
     else:
         personal_form = forms.PersonalCAF(user=user)
-        training_form = forms.TrainingCAF(initial={'training_course_name':'CITI Data or Specimens Only Research Course'})
+        training_form = forms.TrainingCAF()
         reference_form = forms.ReferenceCAF()
         course_form = forms.CourseCAF()
         form = None
