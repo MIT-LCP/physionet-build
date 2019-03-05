@@ -3,7 +3,7 @@
 {% block title %}Unsubmitted Projects{% endblock %}
 
 {% block content %}
- <div class="card mb-3">
+<div class="card mb-3">
   <div class="card-header">
     Unsubmitted Projects <span class="badge badge-pill badge-info">{{ projects|length}}</span>
   </div>
@@ -21,7 +21,7 @@
         {% for project in projects %}
           <tr>
             <td><a href="{% url 'project_preview' project.slug %}">{{ project.title }}</a></td>
-            <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</td>
+            <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
             <td>{{ project.creation_datetime|date }}</td>
           </tr>
         {% endfor %}

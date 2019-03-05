@@ -276,14 +276,6 @@ def register(request):
 
 
 @login_required
-def user_home(request):
-    """
-    Home page/dashboard for individual users
-    """
-    return render(request, 'user/user_home.html', {'user':request.user})
-
-
-@login_required
 def user_settings(request):
     """
     Settings. Redirect to default - settings/profile
