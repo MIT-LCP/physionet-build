@@ -231,7 +231,6 @@ class ProcessCredentialForm(forms.ModelForm):
     """
     Form to respond to a credential application
     """
-
     class Meta:
         model = CredentialApplication
         fields = ('responder_comments', 'status')
@@ -240,7 +239,7 @@ class ProcessCredentialForm(forms.ModelForm):
             'status':'Decision',
         }
         widgets = {
-            'responder_comments':forms.Textarea(),
+            'responder_comments':forms.Textarea(attrs={'rows': 3}),
         }
 
     def __init__(self, responder, *args, **kwargs):

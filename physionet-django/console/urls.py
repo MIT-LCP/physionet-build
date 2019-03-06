@@ -50,9 +50,6 @@ urlpatterns = [
     path('credential-applications/<application_slug>/view/',
         views.view_credential_application,
         name='view_credential_application'),
-    path('credential-applications/<application_slug>/process/',
-        views.process_credential_application,
-        name='process_credential_application'),
 
     path('users/all/', views.users, name='user_list'),
     path('users/admin/', views.admin_users, name='user_list_admin'),

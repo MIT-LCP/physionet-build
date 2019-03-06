@@ -586,16 +586,43 @@ def credential_applications(request):
     # Separated by reference status: not contacted, contacted,
     # responded + verified. Responding and denying leads to automatic
     # rejection.
-    nc_applications = applications.filter(reference_contact_datetime=None)
-    c_applications = applications.filter(
-        reference_contact_datetime__isnull=False, reference_response=0)
-    v_applications = applications.filter(
-        reference_contact_datetime__isnull=False, reference_response=2)
+    if request.method == 'POST':
+        if 'contact_reference' in request.POST and request.POST['contact_reference'].isdigit():
+            application_id = request.POST.get('contact_reference','')
+            application = CredentialApplication.objects.get(id=application_id)
+            application.reference_contact_datetime = timezone.now()
+            application.save()
+            notification.contact_reference(request, application)
+            messages.success(request, 'The reference has been contacted.')
+        elif 'process_application' in request.POST and request.POST['process_application'].isdigit():
+            application_id = request.POST.get('process_application','')
+            application = CredentialApplication.objects.get(id=application_id)
+            process_credential_form = forms.ProcessCredentialForm(
+                responder=request.user, data=request.POST, instance=application)
+            pdb.set_trace()
+            if process_credential_form.is_valid():
+                application = process_credential_form.save()
+                pdb.set_trace()
+                notification.process_credential_complete(request, application)
+                return render(request, 'console/process_credential_complete.html',
+                    {'application':application})
+            else:
+                messages.error(request, 'Invalid submission. See form below.')
 
+    nc_applications = applications.filter(reference_contact_datetime=None).order_by('application_datetime')
+    c_applications = applications.filter(
+        reference_contact_datetime__isnull=False, reference_response=0).order_by('reference_contact_datetime')
+    v_applications = applications.filter(
+        reference_contact_datetime__isnull=False, reference_response=2).order_by('reference_response_datetime')
+
+    application_list = nc_applications | c_applications | v_applications
+    application_list = application_list.order_by('reference_contact_datetime')
+    size = len(nc_applications) + len(c_applications) + len(v_applications)
+    process_credential_form = forms.ProcessCredentialForm(responder=request.user)
     return render(request, 'console/credential_applications.html',
-        {'nc_applications':nc_applications,
-         'c_applications':c_applications,
-         'v_applications':v_applications})
+        {'application_list':application_list,
+         'application_number':size, 
+         'process_credential_form': process_credential_form })
 
 
 @login_required
@@ -607,39 +634,6 @@ def view_credential_application(request, application_slug):
     application = CredentialApplication.objects.get(slug=application_slug)
     return render(request, 'console/view_credential_application.html',
         {'application':application, 'app_user':application.user})
-
-
-@login_required
-@user_passes_test(is_admin)
-def process_credential_application(request, application_slug):
-    """
-    Process a credential application. View details, contact reference,
-    and make final decision.
-    """
-    application = CredentialApplication.objects.get(slug=application_slug,
-        status=0)
-    process_credential_form = forms.ProcessCredentialForm(responder=request.user,
-        instance=application)
-
-    if request.method == 'POST':
-        if 'contact_reference' in request.POST:
-            application.reference_contact_datetime = timezone.now()
-            application.save()
-            notification.contact_reference(request, application)
-            messages.success(request, 'The reference has been contacted.')
-        elif 'process_application' in request.POST:
-            process_credential_form = forms.ProcessCredentialForm(
-                responder=request.user, data=request.POST, instance=application)
-            if process_credential_form.is_valid():
-                application = process_credential_form.save()
-                notification.process_credential_complete(request, application)
-                return render(request, 'console/process_credential_complete.html',
-                    {'application':application})
-            else:
-                messages.error(request, 'Invalid submission. See form below.')
-    return render(request, 'console/process_credential_application.html',
-        {'application':application, 'app_user':application.user,
-         'process_credential_form':process_credential_form})
 
 
 @login_required

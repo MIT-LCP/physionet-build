@@ -1,0 +1,70 @@
+Application Date: {{ application.application_datetime|date }}<br>
+
+User: <a href="{% url 'public_profile' user.username %}">{{ user }}</a><br>
+
+First Names: {{ application.first_names }}<br>
+
+Last Name: {{ application.last_name }}<br>
+
+Researcher Category: {{ application.get_researcher_category_display }}<br>
+
+Organization Name: {{ application.organization_name }}<br>
+
+City: {{ application.city }}<br>
+
+State/Province: {{ application.state_province }}<br>
+
+Country: {{ application.get_country_display }}<br>
+
+Webpage: <a href="{{ application.website }}" target="_blank">{{ application.website }}</a><br>
+
+Training Course Name: {{ application.training_course_name }}<br>
+
+Training Completion Date: {{ application.training_completion_date }}<br>
+
+Training Completion Report: <a href="{% url 'training_report' application.slug %}">File</a><br>
+
+Course Category: {{ application.get_course_category_display }}<br>
+
+{% if application.course_name %}
+  Course Name<br>
+  {{ application.course_name }}<br>
+{% endif %}
+
+{% if application.course_number %}
+  Course Number<br>
+  {{ application.course_number }}<br>
+{% endif %}
+
+Reference Category: {{ application.get_reference_category_display }}<br>
+
+Reference Name: {{ application.reference_name }}<br>
+
+Reference Email: {{ application.reference_email }}<br>
+
+Reference Title: {{ application.reference_title }}<br>
+
+{% if application.reference_contact_datetime %}
+ 
+  Reference Contact Date<br>
+  {{ application.reference_contact_datetime|date }}<br>
+  {% if application.reference_response_datetime %}
+    Reference Response Date<br>
+    {{ application.reference_response_datetime|date }}<br>
+
+    Reference Verified<br>
+    {{ application.get_reference_response_display }}<br>    
+  {% endif %}
+{% endif %}
+
+{% if application.decision_datetime %}  
+  Decision Date<br>
+  {{ application.decision_datetime|date }}<br>
+{% endif %}
+<hr>
+Decision: {% if application.status %}{{ application.get_status_display }}{% else %}<i class="fas fa-clock"></i> Pending{% endif %}<br>
+
+{% if application.responder_comments %}
+  Admin Comments<br>
+  {{ application.responder_comments|linebreaks }}<br>
+{% endif %}

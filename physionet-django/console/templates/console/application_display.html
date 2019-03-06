@@ -1,0 +1,61 @@
+<tr>
+  <td colspan="8" rowspan="1">
+    <div class="card-columns row">
+      <div class="col-sm-6">
+        <div class="card mb-4">
+          <div class="card-header">
+            Application information
+          </div>
+          <div class="card-body">
+            <div class='mb-2'>
+             {% include "console/application_display_table.html" %}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6">
+        <div class="row">
+          <div class="col-sm-12">
+            <div class="card mb-4">
+              <div class="card-header">
+                Contact Reference
+              </div>
+              <div class="card-body">
+                {% if application.reference_contact_datetime %}
+                  <p><i class="fas fa-envelope"></i> The reference was contacted on {{ application.reference_contact_datetime }}</p>
+                  {% if not application.reference_response_datetime %}
+                    <p><i class="fas fa-clock"></i> Awaiting reference response.</p>
+                  {% endif %}
+                {% else %}
+                  <p>The reference has not been contacted.</p>
+                {% endif %}
+                {# Reference already responded #}
+                {% if application.reference_response_datetime %}
+                  <p><i class="fas fa-check" style="color:green"></i> The reference verified the applicant on {{ application.reference_response_datetime }}</p>
+                {% else %}
+                  <p>Use the button below to send an automated email to the reference.</p>
+                  <form action="" method="post" class="form-signin">
+                    {% csrf_token %}
+                    <button class="btn btn-primary btn-fixed" name="contact_reference" value="{{application.id}}" type="submit">Contact Reference</button>
+                  </form>
+                {% endif %}
+              </div>
+            </div>
+            <div class="card mb-4">
+              <div class="card-header">
+                Process Application
+              </div>
+              <div class="card-body">
+                <form action="" method="post" class="form-signin">
+                  {% csrf_token %}
+                  {% include "form_snippet.html" with form=process_credential_form %}
+                  <button class="btn btn-primary btn-lg" name="process_application" value="{{application.id}}" type="submit">Submit Response</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </td>
+</tr>
