@@ -43,11 +43,10 @@ urlpatterns = [
         name='credential_applications'),
     path('past-credential-applications/', views.past_credential_applications,
         name='past_credential_applications'),
-    path('credentialed-users/', views.credentialed_users,
-        name='credentialed_users'),
+
     path('credentialed-users/<username>/',
         views.credentialed_user_info, name='credentialed_user_info'),
-    path('credential-applications/<application_slug>/view/',
+    path('view-credential-applications/<application_slug>/',
         views.view_credential_application,
         name='view_credential_application'),
 

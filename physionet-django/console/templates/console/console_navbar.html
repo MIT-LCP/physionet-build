@@ -65,9 +65,8 @@
       <!-- credentialing -->
       {% url 'credential_applications' as credential_applications %}
       {% url 'past_credential_applications' as past_credential_applications %}
-      {% url 'credentialed_users' as credentialed_users %}
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
-      {% if request.path == credential_applications or request.path == past_credential_applications or request.path == credentialed_users  %}
+      {% if request.path == credential_applications or request.path == past_credential_applications or '/console/view-credential-applications/' in request.path %}
         <a id="nav_credentialing_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#credentialComponents" data-parent="#sideAccordion" aria-expanded="true">
       {% else %}
         <a id="nav_credentialing_dropdown" class="nav-link nav-link-collapse drop collapsed" data-toggle="collapse" href="#credentialComponents" data-parent="#sideAccordion" aria-expanded="false">
@@ -76,7 +75,7 @@
           <span class="nav-link-text">Credentialing</span>
         </a>
         <!-- submenu -->
-      {% if request.path == credential_applications or request.path == past_credential_applications or request.path == credentialed_users  %}
+      {% if request.path == credential_applications or request.path == past_credential_applications or '/console/view-credential-applications/' in request.path %}
         <ul class="sidenav-second-level collapse show" id="credentialComponents">
       {% else %}
         <ul class="sidenav-second-level collapse" id="credentialComponents">
@@ -84,11 +83,8 @@
           <li class="nav-item {% ifequal request.path credential_applications %}active{% endifequal %}">
             <a id="nav_credential_applications" href="{% url 'credential_applications' %}">Ongoing Applications</a>
           </li>
-          <li class="nav-item {% ifequal request.path past_credential_applications %}active{% endifequal %}">
+          <li class="nav-item {% ifequal request.path past_credential_applications %}active{% endifequal %} {% if '/console/view-credential-applications/' in request.path %}active{% endif %}">
             <a id="nav_past_credential_applications" href="{% url 'past_credential_applications' %}">Past Applications</a>
-          </li>
-          <li class="nav-item {% ifequal request.path credentialed_users %}active{% endifequal %}">
-            <a id="nav_credentialed_users" href="{% url 'credentialed_users' %}">Credentialed Users</a>
           </li>
         </ul>
       </li>

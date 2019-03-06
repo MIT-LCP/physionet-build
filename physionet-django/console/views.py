@@ -653,13 +653,6 @@ def past_credential_applications(request):
 
 @login_required
 @user_passes_test(is_admin)
-def credentialed_users(request):
-    users = User.objects.filter(is_credentialed=True)
-    return render(request, 'console/credentialed_users.html', {'users':users})
-
-
-@login_required
-@user_passes_test(is_admin)
 def credentialed_user_info(request, username):
     c_user = User.objects.get(username=username)
     application = CredentialApplication.objects.get(user=c_user, status=2)
