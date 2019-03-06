@@ -289,14 +289,14 @@ class Metadata(models.Model):
     installation = RichTextField(blank=True)
     acknowledgements = RichTextField(blank=True)
     conflicts_of_interest = RichTextField(blank=True)
-    version = models.CharField(max_length=15, default='', blank=True)
+    version = models.CharField(max_length=15, default='')
     release_notes = RichTextField(blank=True)
     # Access information
     access_policy = models.SmallIntegerField(choices=ACCESS_POLICIES,
                                              default=0)
     license = models.ForeignKey('project.License', null=True,
         on_delete=models.SET_NULL)
-    project_home_page = models.URLField(default='')
+    project_home_page = models.URLField(default='', blank=True)
     programming_languages = models.ManyToManyField(
         'project.ProgrammingLanguage', related_name='%(class)ss')
     # Public url slug, also used as a submitting project id.
