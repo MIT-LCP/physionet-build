@@ -1,3 +1,4 @@
+import re
 import pdb
 
 from django import forms
@@ -190,7 +191,7 @@ class PublishForm(forms.Form):
 
     def clean_slug(self):
         """
-        Ensure that the slug is not taken
+        Ensure that the slug is valid and not taken.
         """
         data = self.cleaned_data['slug']
         if data != self.project.slug:
@@ -199,6 +200,8 @@ class PublishForm(forms.Form):
 
         if not re.fullmatch(r'[a-zA-Z\d\-]{1,20}', data):
             raise forms.ValidationError('Must only contain alphanumerics and hyphens with length 1-20.')
+
+        return data
 
     def clean_doi(self):
         data = self.cleaned_data['doi']

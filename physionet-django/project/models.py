@@ -806,10 +806,16 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         shutil.rmtree(self.file_root())
 
-    def publish(self, doi, make_zip=True):
+    def publish(self, doi, slug=None, make_zip=True):
         """
         Create a published version of this project and update the
-        submission status
+        submission status.
+
+        Parameters
+        ----------
+        doi : the desired doi of the published project.
+        slug : the desired custom slug of the published project.
+        make_zip : whether to make a zip of all the files.
         """
         if not self.is_publishable():
             raise Exception('The project is not publishable')
@@ -820,6 +826,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         for attr in [f.name for f in Metadata._meta.fields] + [f.name for f in SubmissionInfo._meta.fields]:
             setattr(published_project, attr, getattr(self, attr))
 
+        # Set the slug if specified
+        published_project.slug = slug or self.slug
         published_project.save()
 
         # Same content, different objects.
