@@ -198,7 +198,7 @@ class PublishForm(forms.Form):
             if exists_project_slug(data):
                 raise forms.ValidationError('The slug is already taken by another project.')
 
-        if not re.fullmatch(r'[a-zA-Z\d\-]{1,20}', data):
+        if not re.fullmatch(r'[a-zA-Z\d]{1,20}', data):
             raise forms.ValidationError('Must only contain alphanumerics and hyphens with length 1-20.')
 
         return data

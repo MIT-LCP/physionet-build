@@ -351,7 +351,7 @@ def publish_slug_available(request, project_slug, *args, **kwargs):
         result = not exists_project_slug(desired_slug)
 
     # check pattern validity
-    result = result and bool(re.fullmatch(r'[a-zA-Z\d\-]{1,20}', desired_slug))
+    result = result and bool(re.fullmatch(r'[a-zA-Z\d]{1,20}', desired_slug))
 
     return JsonResponse({'available':result})
 
