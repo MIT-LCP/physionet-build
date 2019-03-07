@@ -13,7 +13,7 @@ from django.urls import reverse
 
 from .models import AssociatedEmail, User
 from .views import (activate_user, edit_emails, edit_profile,
-    edit_password_complete, public_profile, register, user_home, user_settings,
+    edit_password_complete, public_profile, register, user_settings,
     verify_email)
 
 
@@ -171,10 +171,6 @@ class TestAuth(TestCase, TestMixin):
         self.factory = RequestFactory()
         self.user = User.objects.get(email='admin@mit.edu')
         self.anonymous_user = AnonymousUser()
-
-    def test_user_home(self):
-        self.make_get_request('user_home')
-        self.tst_get_request(user_home)
 
     def test_user_settings(self):
         self.make_get_request('user_settings')
