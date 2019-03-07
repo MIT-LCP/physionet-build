@@ -1,3 +1,4 @@
+import re
 import pdb
 
 from django.contrib import messages
@@ -335,18 +336,22 @@ def awaiting_authors(request, project_slug, *args, **kwargs):
 
 
 @handling_editor
-def publish_slug_available(request, project_slug, desired_slug):
+def publish_slug_available(request, project_slug, *args, **kwargs):
     """
     Return whether a slug is available to use to publish an active
     project.
 
     """
+    desired_slug = request.GET['desired_slug']
     # Slug belongs to this project
     if project_slug == desired_slug:
         result = True
-    # Check if any project has claimed i t
+    # Check if any project has claimed it
     else:
-        result = not exists_project_slug()
+        result = not exists_project_slug(desired_slug)
+
+    # check pattern validity
+    result = result and bool(re.fullmatch(r'[a-zA-Z\d\-]{1,20}', desired_slug))
 
     return JsonResponse({'available':result})
 
