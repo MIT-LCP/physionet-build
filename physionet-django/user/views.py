@@ -249,7 +249,7 @@ def register(request):
     """
     user = request.user
     if user.is_authenticated:
-        return redirect('user_home')
+        return redirect('home')
 
     if request.method == 'POST':
         form = RegistrationForm(request.POST)

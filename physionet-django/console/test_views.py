@@ -187,14 +187,24 @@ class TestState(TestMixin, TestCase):
         """
         # Get the project ready to publish
         self.test_approve_publish()
-        # Publish it
         project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
-        self.client.login(username='admin', password='Tester11!')
+        project_slug = project.slug
+        custom_slug = 'mit-bih'
+        # Try to publish with an already taken slug
+        taken_slug = PublishedProject.objects.all().first().slug
         response = self.client.post(reverse(
             'publish_submission', args=(project.slug,)),
-            data={'doi':'10.13026/MIT505', 'make_zip':1})
-        self.assertFalse(ActiveProject.objects.filter(slug=project.slug))
-        project = PublishedProject.objects.get(slug=project.slug)
+            data={'slug':taken_slug, 'doi':'10.13026/MIT505', 'make_zip':1})
+        self.assertTrue(bool(ActiveProject.objects.filter(slug=project_slug)))
+        # Publish with a valid custom slug
+        response = self.client.post(reverse(
+            'publish_submission', args=(project.slug,)),
+            data={'slug':custom_slug, 'doi':'10.13026/MIT505', 'make_zip':1})
+        self.assertTrue(bool(PublishedProject.objects.filter(slug=custom_slug)))
+        self.assertFalse(bool(PublishedProject.objects.filter(slug=project_slug)))
+        self.assertFalse(bool(ActiveProject.objects.filter(slug=project_slug)))
+
+        project = PublishedProject.objects.get(slug=custom_slug)
         # Access the published project's page and its (open) files
         response = self.client.get(reverse('published_project', args=(project.slug,)))
         self.assertEqual(response.status_code, 200)
