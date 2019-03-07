@@ -5,7 +5,8 @@ from django.utils import timezone
 from django.core.validators import validate_integer
 
 from notification.models import News
-from project.models import ActiveProject, EditLog, CopyeditLog, PublishedProject, exists_project_slug
+from project.models import (ActiveProject, EditLog, CopyeditLog,
+    PublishedProject, exists_project_slug)
 from user.models import User, CredentialApplication
 
 RESPONSE_CHOICES = (
@@ -192,6 +193,12 @@ class PublishForm(forms.Form):
         Ensure that the slug is not taken
         """
         data = self.cleaned_data['slug']
+        if data != self.project.slug:
+            if exists_project_slug(data):
+                raise forms.ValidationError('The slug is already taken by another project.')
+
+        if not re.fullmatch(r'[a-zA-Z\d\-]{1,20}', data):
+            raise forms.ValidationError('Must only contain alphanumerics and hyphens with length 1-20.')
 
     def clean_doi(self):
         data = self.cleaned_data['doi']

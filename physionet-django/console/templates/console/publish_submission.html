@@ -10,6 +10,28 @@
 
 {% block local_js_top %}
 <script type="text/javascript" src="{% static 'custom/js/copy-to-clipboard.js' %}"></script>
+<script>
+  // Check the integrity of the metadata fields and enable/disable the
+  // submission buttons
+  function checkSlug(){
+    $.ajax({
+      url: "{% url 'publish_slug_available' project.slug %}",
+      data: {
+        "desired_slug": this.value
+      },
+      success: function(result){
+        if (result.available){
+          document.getElementById('id_slug').style.borderColor = "green";
+          document.getElementById('publish_submission_button').disabled = false;
+        }
+        else{
+          document.getElementById('id_slug').style.borderColor = "red";
+          document.getElementById('publish_submission_button').disabled = true;
+        }
+      }
+    });
+  }
+</script>
 {% endblock %}
 
 {% block content %}
@@ -24,7 +46,7 @@
   <div class="card-body">
     <p>
       {% if publishable %}
-        The project is ready to publish.
+        The project is ready to publish. You may choose a unique slug of alphanumerics and hyphens, of length 1-20.
       {% else %}
         Something has gone wrong. The project should be publishable at this point but it is not. Please check it.
       {% endif %}
@@ -32,7 +54,7 @@
     <form action="" method="post" class="form-signin">
       {% csrf_token %}
       {% include "form_snippet.html" with form=publish_form %}
-      <button class="btn btn-success btn-lg" name="publish_submission" type="submit">Publish Submission</button>
+      <button class="btn btn-success btn-lg" id="publish_submission_button" name="publish_submission" type="submit">Publish Submission</button>
     </form>
   </div>
 </div>
@@ -40,4 +62,7 @@
 
 {% block local_js_bottom %}
 <script type="text/javascript" src="{% static 'custom/js/enable-popover.js' %}"></script>
+<script>
+  document.getElementById('id_slug').onkeyup = checkSlug;
+</script>
 {% endblock %}

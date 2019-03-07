@@ -33,6 +33,8 @@ urlpatterns = [
         views.awaiting_authors, name='awaiting_authors'),
     path('submitted-projects/<project_slug>/publish/',
         views.publish_submission, name='publish_submission'),
+    path('publish-slug-available/<project_slug>/',
+        views.publish_slug_available, name='publish_slug_available'),
 
     path('storage-requests/', views.storage_requests,
         name='storage_requests'),
