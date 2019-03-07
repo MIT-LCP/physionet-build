@@ -100,6 +100,24 @@
     <!-- Sidebar Column -->
     <div class="col-md-4">
       <div class="card my-4">
+        <h5 class="card-header">Share</h5>
+        <div class="card-body">
+          <p>
+            <strong>URL:</strong>
+            <br>
+            {{ page_url }}
+          </p>
+          <p>
+            <a class="btn btn-sm share-email sharebtn" href="mailto:?subject={{ project.title }}&body={{ page_url }}" target="_blank" role="button" title="Share with email"><i class="far fa-envelope"></i></a>
+            <a class="btn btn-sm facebook sharebtn" href="http://www.facebook.com/sharer.php?u={{ page_url }}" target="_blank" role="button" title="Share on Facebook"><i class="fab fa-facebook"></i></a>
+            <a class="btn btn-sm linkedin sharebtn" href="https://www.linkedin.com/shareArticle?url={{ page_url }}" target="_blank" role="button" title="Share on LinkedIn"><i class="fab fa-linkedin"></i></a>
+            <a class="btn btn-sm reddit sharebtn" href="https://www.reddit.com/submit?url={{ page_url }}&title={{ project.title }}" target="_blank" role="button" title="Share on Reddit"><i class="fab fa-reddit"></i></a>
+            <a class="btn btn-sm twitter sharebtn" href="https://twitter.com/intent/tweet?text={{ project.title }}. {{ page_url }}" target="_blank" role="button" title="Share on Twitter"><i class="fab fa-twitter"></i></a>
+          </p>
+        </div>
+      </div>
+
+      <div class="card my-4">
         <h5 class="card-header">Access</h5>
         <div class="card-body">
           <p>
