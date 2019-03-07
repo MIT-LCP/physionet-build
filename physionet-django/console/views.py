@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.sites.shortcuts import get_current_site
 from django.forms import modelformset_factory, Select, Textarea
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
 from django.template import loader
 from django.urls import reverse
@@ -15,9 +15,12 @@ from . import forms
 from notification.models import News
 import notification.utility as notification
 import project.forms as project_forms
-from project.models import ActiveProject, ArchivedProject, StorageRequest, EditLog, Reference, Topic, Publication, PublishedProject
+from project.models import (ActiveProject, ArchivedProject, StorageRequest,
+    EditLog, Reference, Topic, Publication, PublishedProject,
+    exists_project_slug)
 from project.utility import readable_size
-from project.views import get_file_forms, get_project_file_info, process_files_post
+from project.views import (get_file_forms, get_project_file_info,
+    process_files_post)
 from user.models import User, CredentialApplication
 
 
@@ -332,6 +335,23 @@ def awaiting_authors(request, project_slug, *args, **kwargs):
 
 
 @handling_editor
+def publish_slug_available(request, project_slug, desired_slug):
+    """
+    Return whether a slug is available to use to publish an active
+    project.
+
+    """
+    # Slug belongs to this project
+    if project_slug == desired_slug:
+        result = True
+    # Check if any project has claimed i t
+    else:
+        result = not exists_project_slug()
+
+    return JsonResponse({'available':result})
+
+
+@handling_editor
 def publish_submission(request, project_slug, *args, **kwargs):
     """
     Page to publish the submission
@@ -342,10 +362,10 @@ def publish_submission(request, project_slug, *args, **kwargs):
         return redirect('editor_home')
 
     authors, author_emails, storage_info, edit_logs, copyedit_logs = project.info_card()
-    publish_form = forms.PublishForm()
+    publish_form = forms.PublishForm(project=project)
 
     if request.method == 'POST':
-        publish_form = forms.PublishForm(data=request.POST)
+        publish_form = forms.PublishForm(project=project, data=request.POST)
         if project.is_publishable() and publish_form.is_valid():
             published_project = project.publish(
                 doi=publish_form.cleaned_data['doi'],
@@ -507,7 +527,7 @@ def admin_users(request):
     """
     List of users
     """
-    admin_users = User.objects.filter(is_admin=True) 
+    admin_users = User.objects.filter(is_admin=True)
     users = User.objects.all()
 
     return render(request, 'console/admin_users.html', {'admin_users':admin_users, 'users':users})

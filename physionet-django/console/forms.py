@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.core.validators import validate_integer
 
 from notification.models import News
-from project.models import ActiveProject, EditLog, CopyeditLog, PublishedProject
+from project.models import ActiveProject, EditLog, CopyeditLog, PublishedProject, exists_project_slug
 from user.models import User, CredentialApplication
 
 RESPONSE_CHOICES = (
@@ -173,12 +173,25 @@ class CopyeditForm(forms.ModelForm):
         project.save()
         return copyedit_log
 
+
 class PublishForm(forms.Form):
     """
     Form for publishing a project
     """
+    slug = forms.CharField(max_length=20)
     doi = forms.CharField(max_length=50, label='DOI')
     make_zip = forms.ChoiceField(choices=YES_NO, label='Make zip of all files')
+
+    def __init__(self, project, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.project = project
+        self.fields['slug'].initial = project.slug
+
+    def clean_slug(self):
+        """
+        Ensure that the slug is not taken
+        """
+        data = self.cleaned_data['slug']
 
     def clean_doi(self):
         data = self.cleaned_data['doi']
