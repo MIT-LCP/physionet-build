@@ -187,15 +187,18 @@ class TestState(TestMixin, TestCase):
         """
         # Get the project ready to publish
         self.test_approve_publish()
+        self.client.login(username='admin', password='Tester11!')
         project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
         project_slug = project.slug
-        custom_slug = 'mit-bih'
+        custom_slug = 'mitbih'
+
         # Try to publish with an already taken slug
         taken_slug = PublishedProject.objects.all().first().slug
         response = self.client.post(reverse(
             'publish_submission', args=(project.slug,)),
             data={'slug':taken_slug, 'doi':'10.13026/MIT505', 'make_zip':1})
         self.assertTrue(bool(ActiveProject.objects.filter(slug=project_slug)))
+
         # Publish with a valid custom slug
         response = self.client.post(reverse(
             'publish_submission', args=(project.slug,)),
