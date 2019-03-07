@@ -1136,11 +1136,13 @@ class PublishedProject(Metadata, SubmissionInfo):
 
 
 def exists_project_slug(slug):
-    if (ActiveProject.objects.filter(slug=slug)
+    """
+    Whether the slug has been taken by an existing project of any
+    kind.
+    """
+    return bool(ActiveProject.objects.filter(slug=slug)
             or ArchivedProject.objects.filter(slug=slug)
-            or PublishedProject.objects.filter(slug=slug)):
-        return True
-    return False
+            or PublishedProject.objects.filter(slug=slug))
 
 
 class ProgrammingLanguage(models.Model):
