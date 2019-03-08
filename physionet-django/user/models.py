@@ -676,3 +676,18 @@ class CredentialApplication(models.Model):
     def file_root(self):
         "Where the application's files are stored"
         return os.path.join(CredentialApplication.FILE_ROOT, self.slug)
+
+
+class CredentialCommunication(models.Model):
+    """
+    A record for the communication with the contact person in the 
+    credentialing proccess
+    """
+    credential_app = models.ForeignKey('user.CredentialApplication',
+        related_name='responded_applications', on_delete=models.CASCADE)
+    reference_contact_content = models.CharField(max_length=1000, 
+        validators=[validate_name])
+    reference_contact_datetime = models.DateTimeField(null=True)
+    reference_response_content = models.CharField(max_length=1000, 
+        validators=[validate_name])
+    reference_response_datetime = models.DateTimeField(null=True)

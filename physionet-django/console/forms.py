@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.core.validators import validate_integer
 
 from notification.models import News
+
 from project.models import (ActiveProject, EditLog, CopyeditLog,
     PublishedProject, exists_project_slug)
 from user.models import User, CredentialApplication
@@ -226,6 +227,27 @@ class DOIForm(forms.ModelForm):
             raise forms.ValidationError('Published project with DOI already exists.')
         return data
 
+class ResponseReferenceCredential(forms.ModelForm):
+    """
+    Form to respond to a credential application
+    """
+    class Meta:
+        model = CredentialCommunication
+        fields = ('reference_response_content',)
+        widgets = {
+            'reference_response_content':forms.Textarea(attrs={'rows': 3}),
+        }
+
+class ContactCredentialReference(forms.ModelForm):
+    """
+    Form to respond to a credential application
+    """
+    class Meta:
+        model = CredentialCommunication
+        fields = ('reference_contact_content',)
+        widgets = {
+            'reference_contact_content':forms.Textarea(attrs={'rows': 3}),
+        }
 
 class ProcessCredentialForm(forms.ModelForm):
     """
@@ -276,30 +298,3 @@ class NewsForm(forms.ModelForm):
     class Meta:
         model = News
         fields = ('title', 'content', 'url')
-
-# class AddAffiliateForm(forms.Form):
-#     """
-#     Add a user to the list of LCP affiliates
-
-#     """
-#     username = forms.CharField(max_length=50)
-
-#     def clean_username(self):
-#         data = self.cleaned_data['username']
-#         user = User.objects.filter(username=data)
-#         if user:
-#             user = user.get()
-#             if user.lcp_affiliated:
-#                 raise forms.ValidationError('User is already LCP affiliated')
-#             else:
-#                 self.user = user
-#         else:
-#             raise forms.ValidationError('User does not exist')
-#         return data
-
-# class RemoveAffiliateForm(forms.Form):
-#     """
-#     Remove a user from the list of LCP affiliates
-#     """
-#     user = forms.ModelChoiceField(queryset=User.objects.filter(
-#         lcp_affiliated=True))

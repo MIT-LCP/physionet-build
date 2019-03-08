@@ -25,6 +25,7 @@ from project.views import (get_file_forms, get_project_file_info,
 from user.models import User, CredentialApplication
 
 
+
 def is_admin(user, *args, **kwargs):
     return user.is_admin
 
@@ -587,6 +588,7 @@ def credential_applications(request):
     # responded + verified. Responding and denying leads to automatic
     # rejection.
     if request.method == 'POST':
+        pdb.set_trace()
         if 'contact_reference' in request.POST and request.POST['contact_reference'].isdigit():
             application_id = request.POST.get('contact_reference','')
             application = CredentialApplication.objects.get(id=application_id)
@@ -609,20 +611,47 @@ def credential_applications(request):
             else:
                 messages.error(request, 'Invalid submission. See form below.')
 
-    nc_applications = applications.filter(reference_contact_datetime=None).order_by('application_datetime')
+    nc_applications = applications.filter(reference_contact_datetime=None)
     c_applications = applications.filter(
-        reference_contact_datetime__isnull=False, reference_response=0).order_by('reference_contact_datetime')
+        reference_contact_datetime__isnull=False, reference_response=0)
     v_applications = applications.filter(
-        reference_contact_datetime__isnull=False, reference_response=2).order_by('reference_response_datetime')
+        reference_contact_datetime__isnull=False, reference_response=2)
+
+    contact_reference = forms.ContactCredentialReference()
+    StorageResponseFormSet = modelformset_factory(StorageRequest,
+        fields=('response', 'response_message'),
+        widgets={'response':Select(choices=forms.RESPONSE_CHOICES),
+                 'response_message':Textarea()}, extra=0)
+
+
 
     application_list = nc_applications | c_applications | v_applications
     application_list = application_list.order_by('reference_contact_datetime')
+
     size = len(nc_applications) + len(c_applications) + len(v_applications)
+
     process_credential_form = forms.ProcessCredentialForm(responder=request.user)
+
     return render(request, 'console/credential_applications.html',
-        {'application_list':application_list,
-         'application_number':size, 
-         'process_credential_form': process_credential_form })
+        {'application_list':application_list, 'application_number':size, 
+         'process_credential_form':process_credential_form, 
+         'contact_reference':contact_reference})
+
+
+def contact_reference_content(request, application):
+    """
+    Request verification from a credentialing applicant's reference
+    """
+    applicant_name = ' '.join([application.first_names, application.last_name])
+    subject = 'Please verify {} for PhysioNet credentialing'.format(
+        applicant_name)
+    body = loader.render_to_string('notification/email/contact_reference.html',
+        {'application':application, 'applicant_name':applicant_name,
+         'domain':get_current_site(request),
+         'signature':email_signature(),
+         'footer':email_footer()})
+
+    return body
 
 
 @login_required

@@ -302,6 +302,7 @@ def contact_reference(request, application):
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [application.reference_email], fail_silently=False)
 
+
 def process_credential_complete(request, application):
     """
     Notify user of credentialing decision
