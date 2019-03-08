@@ -918,7 +918,9 @@ class PublishedProject(Metadata, SubmissionInfo):
     is_newest_version = models.BooleanField(default=True)
     newest_version = models.ForeignKey('project.PublishedProject', null=True,
         related_name='older_versions', on_delete=models.SET_NULL)
-    doi = models.CharField(max_length=50, unique=True, validators=[validate_doi])
+    # doi = models.CharField(max_length=50, unique=True, validators=[validate_doi])
+    # Temporary workaround
+    doi = models.CharField(max_length=50, default='')
     approved_users = models.ManyToManyField('user.User', db_index=True)
     # Fields for legacy pb databases
     is_legacy = models.BooleanField(default=False)
@@ -1125,10 +1127,13 @@ class PublishedProject(Metadata, SubmissionInfo):
     def citation_text(self):
         if self.is_legacy:
             return ''
-
-        return '{} ({}). {}. PhysioNet. doi:{}'.format(
+        # Temporary workaround
+        # return '{} ({}). {}. PhysioNet. doi:{}'.format(
+        #     ', '.join(a.initialed_name() for a in self.authors.all()),
+        #     self.publish_datetime.year, self.title, self.doi)
+        return '{} ({}). {}. PhysioNet.'.format(
             ', '.join(a.initialed_name() for a in self.authors.all()),
-            self.publish_datetime.year, self.title, self.doi)
+            self.publish_datetime.year, self.title)
 
     def remove(self, force=False):
         """

@@ -181,7 +181,7 @@ class PublishForm(forms.Form):
     Form for publishing a project
     """
     slug = forms.CharField(max_length=20)
-    doi = forms.CharField(max_length=50, label='DOI')
+    doi = forms.CharField(max_length=50, label='DOI', required=False)
     make_zip = forms.ChoiceField(choices=YES_NO, label='Make zip of all files')
 
     def __init__(self, project, *args, **kwargs):
@@ -205,8 +205,9 @@ class PublishForm(forms.Form):
 
     def clean_doi(self):
         data = self.cleaned_data['doi']
-        if PublishedProject.objects.filter(doi=data):
-            raise forms.ValidationError('Published project with DOI already exists.')
+        # Temporary workaround
+        # if PublishedProject.objects.filter(doi=data):
+        #     raise forms.ValidationError('Published project with DOI already exists.')
         return data
 
 
