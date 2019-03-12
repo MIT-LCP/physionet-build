@@ -24,6 +24,7 @@ def load_legacy_html(slug):
     return content
 
 
+# List of all physiobank databases
 dbs = open('project/DBS.tsv')
 dbs = dbs.readlines()
 dbs = [d.split('\t') for d in dbs]
@@ -31,7 +32,9 @@ dbs = [d.split('\t') for d in dbs]
 
 def create_legacy_projects():
     """
-    Import the pb html content into new LegacyProject objects
+    Import the pbank html content into new LegacyProject objects.
+
+    This does nothing for physiotools which is more irregular.
     """
     for slug, title, pubdate in dbs:
         r = requests.get('https://physionet.org/physiobank/database/{}/HEADER.shtml'.format(slug))
@@ -45,11 +48,27 @@ def create_legacy_projects():
             full_description=content, publish_date=datetime.datetime.strptime(pubdate.strip(), '%d %B %Y'))
 
 
-def write_legacy_fixtures():
-    "Write all the pbank LegacyProject data to fixtures"
-    with open('project/fixtures/pbank.json', 'w') as f:
-        data = serializers.serialize('json', LegacyProject.objects.all(),
-            stream=f, indent=2)
+def write_legacy_fixtures(resource_type=None):
+    """
+    Write all the LegacyProject data to fixtures. Specify resource
+    type if desired.
+
+    """
+
+    if resource_type is None:
+        resource_type = [0, 1]
+    elif resource_type in [0, 1]:
+        resource_type = [resource_type]
+
+    for rt in resource_type:
+        if rt == 0:
+            with open('project/fixtures/pbank.json', 'w') as f:
+                data = serializers.serialize('json', LegacyProject.objects.filter(rt),
+                    stream=f, indent=2)
+        elif rt == 1:
+            with open('project/fixtures/ptools.json', 'w') as f:
+                data = serializers.serialize('json', LegacyProject.objects.filter(rt),
+                    stream=f, indent=2)
 
 
 def publish_legacy(slug, make_file_roots=False):
