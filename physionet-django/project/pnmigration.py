@@ -54,7 +54,6 @@ def write_legacy_fixtures(resource_type=None):
     type if desired.
 
     """
-
     if resource_type is None:
         resource_type = [0, 1]
     elif resource_type in [0, 1]:
@@ -80,8 +79,7 @@ def publish_legacy(slug, make_file_roots=False):
 def publish_all_legacy(make_file_roots=False):
     "Publish all legacy projects"
     for l in LegacyProject.objects.all().order_by('publish_date'):
-        if l.doi:
-            l.publish(make_file_roots)
+        l.publish(make_file_roots)
 
 
 def clear_all_legacy():
