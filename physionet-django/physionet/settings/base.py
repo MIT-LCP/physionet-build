@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'export',
     'notification',
     'search',
+    'lightwave',
 ]
 
 MIDDLEWARE = [
