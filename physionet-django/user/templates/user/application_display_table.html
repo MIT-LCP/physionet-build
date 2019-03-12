@@ -1,18 +1,14 @@
 <table class="table table-bordered table-hover">
-<!--   <thead>
-    <tr>
-      <th>Field</th>
-      <th>Value</th>
-    </tr>
-  </thead> -->
   <tbody>
     <tr>
-      <td>Application Date</td>
-      <td>{{ application.application_datetime|date }}</td></tr>
+      <th>Application Date</th>
+      <th>{{ application.application_datetime|date }}</th>
+    </tr>
     <tr>
     <tr>
       <td>User</td>
-      <td><a href="{% url 'public_profile' user.username %}">{{ user }}</a></td></tr>
+      <td><a href="{% url 'public_profile' user.username %}">{{ user }}</a></td>
+    </tr>
     <tr>
       <td>First Names</td>
       <td>{{ application.first_names }}</td>
@@ -89,7 +85,9 @@
       <td>Reference Title</td>
       <td>{{ application.reference_title }}</td>
     {% if application.reference_contact_datetime %}
-      <tr><td><td></tr>
+      <tr>
+        <td><td>
+      </tr>
       <tr>
         <td>Reference Contact Date</td>
         <td>{{ application.reference_contact_datetime|date }}</td>
@@ -105,7 +103,9 @@
         </tr>
       {% endif %}
     {% endif %}
-    <tr><td><td></tr>
+    <tr>
+      <td><td>
+    </tr>
     {% if application.decision_datetime %}
       <tr>
         <td>Decision Date</td>

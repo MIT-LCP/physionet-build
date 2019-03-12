@@ -6,11 +6,8 @@ from django.utils import timezone
 from django.core.validators import validate_integer
 
 from notification.models import News
-
-
 from project.models import (ActiveProject, EditLog, CopyeditLog,
     PublishedProject, exists_project_slug)
-
 from user.models import User, CredentialApplication
 
 RESPONSE_CHOICES = (
@@ -229,10 +226,12 @@ class DOIForm(forms.ModelForm):
             raise forms.ValidationError('Published project with DOI already exists.')
         return data
 
+
 class ProcessCredentialForm(forms.ModelForm):
     """
     Form to respond to a credential application
     """
+
     class Meta:
         model = CredentialApplication
         fields = ('responder_comments', 'status')
