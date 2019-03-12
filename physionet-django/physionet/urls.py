@@ -23,6 +23,8 @@ urlpatterns = [
     # export app
     path('', include('export.urls')),
 
+    path('lightwave/', include('lightwave.urls')),
+
     path('', views.home, name='home'),
 
     # about pages
