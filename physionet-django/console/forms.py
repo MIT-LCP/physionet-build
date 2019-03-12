@@ -7,8 +7,10 @@ from django.core.validators import validate_integer
 
 from notification.models import News
 
+
 from project.models import (ActiveProject, EditLog, CopyeditLog,
     PublishedProject, exists_project_slug)
+
 from user.models import User, CredentialApplication
 
 RESPONSE_CHOICES = (
@@ -226,28 +228,6 @@ class DOIForm(forms.ModelForm):
         if PublishedProject.objects.filter(doi=data).exclude(id=self.instance.id):
             raise forms.ValidationError('Published project with DOI already exists.')
         return data
-
-class ResponseReferenceCredential(forms.ModelForm):
-    """
-    Form to respond to a credential application
-    """
-    class Meta:
-        model = CredentialCommunication
-        fields = ('reference_response_content',)
-        widgets = {
-            'reference_response_content':forms.Textarea(attrs={'rows': 3}),
-        }
-
-class ContactCredentialReference(forms.ModelForm):
-    """
-    Form to respond to a credential application
-    """
-    class Meta:
-        model = CredentialCommunication
-        fields = ('reference_contact_content',)
-        widgets = {
-            'reference_contact_content':forms.Textarea(attrs={'rows': 3}),
-        }
 
 class ProcessCredentialForm(forms.ModelForm):
     """

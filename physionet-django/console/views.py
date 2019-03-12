@@ -1,5 +1,6 @@
 import re
 import pdb
+import logging
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -23,6 +24,8 @@ from project.utility import readable_size
 from project.views import (get_file_forms, get_project_file_info,
     process_files_post)
 from user.models import User, CredentialApplication
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -584,74 +587,57 @@ def credential_applications(request):
     Ongoing credential applications
     """
     applications = CredentialApplication.objects.filter(status=0)
-    # Separated by reference status: not contacted, contacted,
-    # responded + verified. Responding and denying leads to automatic
-    # rejection.
+    applications.order_by('reference_contact_datetime')
+    return render(request, 'console/credential_applications.html',
+        {'applications':applications})
+
+@login_required
+@user_passes_test(is_admin)
+def process_credential_application(request, application_slug):
+    """
+    Process a credential application. View details, contact reference,
+    and make final decision.
+    """
+    application = CredentialApplication.objects.get(slug=application_slug,
+        status=0)
+    process_credential_form = forms.ProcessCredentialForm(responder=request.user,
+        instance=application)
+
     if request.method == 'POST':
-        pdb.set_trace()
-        if 'contact_reference' in request.POST and request.POST['contact_reference'].isdigit():
-            application_id = request.POST.get('contact_reference','')
-            application = CredentialApplication.objects.get(id=application_id)
+        if 'contact_reference' in request.POST:
             application.reference_contact_datetime = timezone.now()
             application.save()
             notification.contact_reference(request, application)
             messages.success(request, 'The reference has been contacted.')
-        elif 'process_application' in request.POST and request.POST['process_application'].isdigit():
-            application_id = request.POST.get('process_application','')
-            application = CredentialApplication.objects.get(id=application_id)
+        elif 'process_application' in request.POST:
             process_credential_form = forms.ProcessCredentialForm(
                 responder=request.user, data=request.POST, instance=application)
-            pdb.set_trace()
             if process_credential_form.is_valid():
                 application = process_credential_form.save()
-                pdb.set_trace()
                 notification.process_credential_complete(request, application)
                 return render(request, 'console/process_credential_complete.html',
                     {'application':application})
             else:
                 messages.error(request, 'Invalid submission. See form below.')
-
-    nc_applications = applications.filter(reference_contact_datetime=None)
-    c_applications = applications.filter(
-        reference_contact_datetime__isnull=False, reference_response=0)
-    v_applications = applications.filter(
-        reference_contact_datetime__isnull=False, reference_response=2)
-
-    contact_reference = forms.ContactCredentialReference()
-    StorageResponseFormSet = modelformset_factory(StorageRequest,
-        fields=('response', 'response_message'),
-        widgets={'response':Select(choices=forms.RESPONSE_CHOICES),
-                 'response_message':Textarea()}, extra=0)
+    return render(request, 'console/process_credential_application.html',
+        {'application':application, 'app_user':application.user,
+         'process_credential_form':process_credential_form})
 
 
+# def contact_reference_content(request, application):
+#     """
+#     Request verification from a credentialing applicant's reference
+#     """
+#     applicant_name = ' '.join([application.first_names, application.last_name])
+#     subject = 'Please verify {} for PhysioNet credentialing'.format(
+#         applicant_name)
+#     body = loader.render_to_string('notification/email/contact_reference.html',
+#         {'application':application, 'applicant_name':applicant_name,
+#          'domain':get_current_site(request),
+#          'signature':email_signature(),
+#          'footer':email_footer()})
 
-    application_list = nc_applications | c_applications | v_applications
-    application_list = application_list.order_by('reference_contact_datetime')
-
-    size = len(nc_applications) + len(c_applications) + len(v_applications)
-
-    process_credential_form = forms.ProcessCredentialForm(responder=request.user)
-
-    return render(request, 'console/credential_applications.html',
-        {'application_list':application_list, 'application_number':size, 
-         'process_credential_form':process_credential_form, 
-         'contact_reference':contact_reference})
-
-
-def contact_reference_content(request, application):
-    """
-    Request verification from a credentialing applicant's reference
-    """
-    applicant_name = ' '.join([application.first_names, application.last_name])
-    subject = 'Please verify {} for PhysioNet credentialing'.format(
-        applicant_name)
-    body = loader.render_to_string('notification/email/contact_reference.html',
-        {'application':application, 'applicant_name':applicant_name,
-         'domain':get_current_site(request),
-         'signature':email_signature(),
-         'footer':email_footer()})
-
-    return body
+#     return body
 
 
 @login_required
