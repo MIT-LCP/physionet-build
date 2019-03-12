@@ -60,14 +60,10 @@ def write_legacy_fixtures(resource_type=None):
         resource_type = [resource_type]
 
     for rt in resource_type:
-        if rt == 0:
-            with open('project/fixtures/pbank.json', 'w') as f:
-                data = serializers.serialize('json', LegacyProject.objects.filter(rt),
-                    stream=f, indent=2)
-        elif rt == 1:
-            with open('project/fixtures/ptools.json', 'w') as f:
-                data = serializers.serialize('json', LegacyProject.objects.filter(rt),
-                    stream=f, indent=2)
+        file = ['project/fixtures/pbank.json', 'project/fixtures/ptools.json'][rt]
+        with open(file, 'w') as f:
+            data = serializers.serialize('json', LegacyProject.objects.filter(
+                resource_type=rt), stream=f, indent=2)
 
 
 def publish_legacy(slug, make_file_roots=False):
