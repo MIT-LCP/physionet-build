@@ -2050,5 +2050,24 @@
     "contact_affiliations": "National Technical University of Ukraine \"Igor Sikorsky Kyiv Polytechnic Institute\", Department of Electronic Engineering",
     "contact_email": "ivan.seleznov1@gmail.com"
   }
+},
+{
+  "model": "project.legacyproject",
+  "pk": 109,
+  "fields": {
+    "title": "The Non-Invasive Fetal ECG Arrhythmia Database",
+    "slug": "nifeadb",
+    "abstract": "<p>Fetal cardiac arrhythmias are defined as any irregular fetal cardiac rhythm or regular rhythm at a rate outside the reference range of 100 to 200 beat per minute (bpm). Arrhythmias are discovered in about 1% of fetuses with about 10% of these being considered potential sources of morbidity. Although most fetal arrhythmias are benign, some can cause fetal hydrops and lead to fetal death. This means that up to 1 fetus in 100 need their arrhythmias to be closely monitored and if indicated treated in-utero using antiarrhythmic therapy.</p>\r\n\r\n<p>The Non-Invasive Fetal ECG Arrhythmia Database (NIFEA DB) provides a series of fetal arrhythmias recordings (n=12) and a number of control normal rhythm recordings (n=14) performed using the non-invasive fetal electrocardiography (NI-FECG) technique.</p>",
+    "full_description": "<h3>Introduction</h3>\r\n\r\n<p>Fetal cardiac arrhythmias are defined as any irregular fetal cardiac rhythm or regular rhythm at a rate outside the reference range of 100 to 200 beat per minute (bpm). Arrhythmias are discovered in about 1% of fetuses with about 10% of these being considered potential sources of morbidity. Although most fetal arrhythmias are benign, some can cause fetal hydrops and lead to fetal death. This means that up to 1 fetus in 100 need their arrhythmias to be closely monitored and if indicated treated in-utero using antiarrhythmic therapy.</p>\r\n\r\n<p>The Non-Invasive Fetal ECG Arrhythmia Database (NIFEA DB) provides a series of fetal arrhythmias recordings (n=12) and a number of control normal rhythm recordings (n=14) performed using the non-invasive fetal electrocardiography (NI-FECG) technique.</p>\r\n\r\n<h3>Data Description</h3>\r\n\r\n<p>For each recording, a set of four or five abdominal channels and one chest maternal channel were recorded. The sampling frequency was 500 Hz or 1 kHz and is indicated in the header of each file.The detailed diagnosis information as well as gestational age of each fetus can be found in the publication. Recordings are named with the following convention:</p>\r\n\r\n<ul>\r\n\t<li>ARR: arrhythmia fetus.</li>\r\n\t<li>NR: normal rhythm fetus.</li>\r\n</ul>\r\n\r\n<p>The mention &#39;chest&#39; corresponds to the single lead maternal chest ECG that was recorded. The mention &#39;abdominal&#39; corresponds to the 4-5 raw abdominal channels that were recorded.</p>\r\n\r\n<h3>Contributors</h3>\r\n\r\n<p>This data was contributed by Joachim A. Behar, Laurent Bonnemains, Vyacheslav Shulgin, Julien Oster, Oleksii Ostras and Igor Lakhno.</p>\r\n\r\n<h3>Contact</h3>\r\n\r\n<p>For further information, please contact:</p>\r\n\r\n<blockquote>Name - Joachim Behar<br />\r\nTechnion &ndash; Israel Institute of Technology<br />\r\nEmail - joachim.a.behar@gmail.com</blockquote>",
+    "doi": "",
+    "version": "1.0.0",
+    "resource_type": 0,
+    "publish_date": "2019-02-19",
+    "citation": "Behar JA, Bonnemains L, Shulgin V, Oster J, Ostras O, Lakhno I. Noninvasive fetal electrocardiography for the detection of fetal arrhythmias. Prenatal diagnosis. 2019 Jan 2.",
+    "citation_url": "https://obgyn.onlinelibrary.wiley.com/doi/full/10.1002/pd.5412",
+    "contact_name": "Joachim Behar",
+    "contact_affiliations": "Technion \u2013 Israel Institute of Technology",
+    "contact_email": "joachim.a.behar@gmail.com"
+  }
 }
 ]
