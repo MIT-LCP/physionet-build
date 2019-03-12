@@ -1,12 +1,14 @@
 import os
 import pdb
 import re
+from urllib.parse import quote_plus
 
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.sites.shortcuts import get_current_site
 from django.forms import formset_factory, inlineformset_factory, modelformset_factory
 from django.http import HttpResponse, Http404, JsonResponse
 from django.shortcuts import render, redirect
@@ -1044,9 +1046,11 @@ def published_project(request, published_project_slug):
     contact = Contact.objects.get(project=project)
 
     has_access = project.has_access(request.user)
+    page_url = 'https://{}{}'.format(get_current_site(request), request.get_full_path())
     context = {'project':project, 'authors':authors,
         'references':references, 'publication':publication, 'topics':topics,
-        'languages':languages, 'contact':contact, 'has_access':has_access}
+        'languages':languages, 'contact':contact, 'has_access':has_access,
+        'page_url':page_url}
 
     # The file and directory contents
     if has_access:

@@ -44,3 +44,32 @@
   color: white;
   background-color: #694;
 }
+
+.share-email {
+  color: white;
+  background-color: #787878;
+}
+
+.facebook {
+  color: white;
+  background-color: #4267b2;
+}
+
+.linkedin {
+  color: white;
+  background-color: #0077B5;
+}
+
+.reddit {
+  color: white;
+  background-color: #FF4301;
+}
+
+.twitter {
+  color: white;
+  background-color: #38A1F3;
+}
+
+.sharebtn:hover {
+  color: white;
+}
