@@ -665,7 +665,7 @@ class CredentialApplication(models.Model):
     # Whether reference verifies the applicant. 0 1 2 = null, no, yes
     reference_response = models.PositiveSmallIntegerField(default=0,
         choices=REFERENCE_RESPONSES)
-    research_summary = models.CharField(max_length=1000, 
+    research_summary = models.CharField(max_length=1000,
         validators=[validate_alphaplusplus])
     decision_datetime = models.DateTimeField(null=True)
     responder = models.ForeignKey('user.User', null=True,
@@ -677,3 +677,5 @@ class CredentialApplication(models.Model):
         "Where the application's files are stored"
         return os.path.join(CredentialApplication.FILE_ROOT, self.slug)
 
+    def get_full_name(self):
+        return ' '.join([self.first_names, self.last_name])

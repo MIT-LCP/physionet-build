@@ -434,5 +434,3 @@ def credential_reference(request, application_slug):
 
     return render(request, 'user/credential_reference.html',
         {'form':form, 'application':application})
-
-
