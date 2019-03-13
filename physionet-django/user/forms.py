@@ -12,6 +12,7 @@ from django.utils.crypto import get_random_string
 from .models import AssociatedEmail, User, Profile, CredentialApplication
 from .widgets import ProfilePhotoInput
 from .validators import UsernameValidator, validate_name
+from notification.utility import reference_deny_credential
 
 
 class AssociatedEmailChoiceForm(forms.Form):
@@ -419,6 +420,7 @@ class CredentialReferenceForm(forms.ModelForm):
         # Deny
         if self.cleaned_data['reference_response'] == 1:
             application.status = 1
+            reference_deny_credential(request, application)
 
         application.reference_response_datetime = timezone.now()
         application.save()
