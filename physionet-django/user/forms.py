@@ -314,7 +314,7 @@ class CourseCAF(forms.ModelForm):
         fields = ('course_category', 'course_info')
         help_texts = {
             'course_category':'Specify if you are using this data for a course.',
-            'course_info':'The name of the course you are taking/teaching.'
+            'course_info':'The name of the course you are taking.'
         }
 
         labels = {
