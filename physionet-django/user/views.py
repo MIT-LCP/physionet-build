@@ -26,6 +26,7 @@ from physionet import utility
 from project.models import Author, License
 from notification.utility import reference_deny_credential, credential_application_request
 
+
 logger = logging.getLogger(__name__)
 
 def activate_user(request, uidb64, token):
@@ -400,7 +401,7 @@ def credential_application(request):
 
     return render(request, 'user/credential_application.html', {'form':form,
         'personal_form':personal_form, 'training_form':training_form,
-        'reference_form':reference_form, 'course_form':course_form, 
+        'reference_form':reference_form, 'course_form':course_form,
         'license':license})
 
 
@@ -429,9 +430,12 @@ def credential_reference(request, application_slug):
         form = CredentialReferenceForm(data=request.POST, instance=application)
         if form.is_valid():
             application = form.save()
-            reference_deny_credential(request, application)
+            # Automated email notifying that their reference has denied
+            # their application.
+            if application.reference_response == 1:
+                reference_deny_credential(request, application)
 
-            response = 'verifying' if form.cleaned_data['reference_response'] == 2 else 'denying'
+            response = 'verifying' if application.reference_response == 2 else 'denying'
             return render(request, 'user/credential_reference_complete.html',
                 {'response':response, 'application':application})
         else:
