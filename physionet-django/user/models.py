@@ -595,7 +595,7 @@ class CredentialApplication(models.Model):
     )
 
     REFERENCE_CATEGORIES = (
-        (0, 'Supervisor'),
+        (0, 'Supervisor (required for students and Postdocs)'),
         (1, 'Colleague'),
         (2, 'Coauthor'),
         (3, 'Other'),
@@ -604,7 +604,6 @@ class CredentialApplication(models.Model):
     COURSE_CATEGORIES = (
         (0, 'Not for a course'),
         (1, 'I am taking a course using the data'),
-        (2, 'I am teaching a course using the data'),
     )
 
     REFERENCE_RESPONSES = (
@@ -640,7 +639,7 @@ class CredentialApplication(models.Model):
     state_province = models.CharField(max_length=100,
         validators=[validate_alphaplusplus])
     country = models.CharField(max_length=2, choices=COUNTRIES)
-    website = models.URLField(default='', blank=True)
+    webpage = models.URLField(default='', blank=True)
     # Human resources training
     training_course_name = models.CharField(max_length=100,
         validators=[validate_alphaplusplus])
@@ -650,9 +649,7 @@ class CredentialApplication(models.Model):
             ['pdf'], 'File must be a pdf.')])
     # Course info
     course_category = models.PositiveSmallIntegerField(choices=COURSE_CATEGORIES)
-    course_name = models.CharField(max_length=60,
-        validators=[validate_alphaplusplus])
-    course_number = models.CharField(max_length=30,
+    course_info = models.CharField(max_length=100,
         validators=[validate_alphaplusplus])
     # Reference
     reference_category = models.PositiveSmallIntegerField(
@@ -668,6 +665,8 @@ class CredentialApplication(models.Model):
     # Whether reference verifies the applicant. 0 1 2 = null, no, yes
     reference_response = models.PositiveSmallIntegerField(default=0,
         choices=REFERENCE_RESPONSES)
+    research_summary = models.CharField(max_length=1000,
+        validators=[validate_alphaplusplus])
     decision_datetime = models.DateTimeField(null=True)
     responder = models.ForeignKey('user.User', null=True,
         related_name='responded_applications', on_delete=models.SET_NULL)
@@ -677,3 +676,6 @@ class CredentialApplication(models.Model):
     def file_root(self):
         "Where the application's files are stored"
         return os.path.join(CredentialApplication.FILE_ROOT, self.slug)
+
+    def get_full_name(self):
+        return ' '.join([self.first_names, self.last_name])

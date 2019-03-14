@@ -1,5 +1,6 @@
 import re
 import pdb
+import logging
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -23,6 +24,9 @@ from project.utility import readable_size
 from project.views import (get_file_forms, get_project_file_info,
     process_files_post)
 from user.models import User, CredentialApplication
+
+logger = logging.getLogger(__name__)
+
 
 
 def is_admin(user, *args, **kwargs):
@@ -538,43 +542,6 @@ def admin_users(request):
 
     return render(request, 'console/admin_users.html', {'admin_users':admin_users, 'users':users})
 
-# @login_required
-# @user_passes_test(is_admin)
-# def lcp_affiliates(request):
-#     """
-#     LCP affiliated users
-#     """
-#     add_affiliate_form = forms.AddAffiliateForm()
-#     remove_affiliate_form = forms.RemoveAffiliateForm()
-
-#     if request.method == 'POST':
-#         if 'add_affiliate' in request.POST:
-#             add_affiliate_form = forms.AddAffiliateForm(request.POST)
-#             if add_affiliate_form.is_valid():
-#                 add_affiliate_form.user.lcp_affiliated = True
-#                 add_affiliate_form.user.save()
-#                 add_affiliate_form = forms.AddAffiliateForm()
-#                 remove_affiliate_form = forms.RemoveAffiliateForm()
-#                 messages.success(request, 'The user has been added.')
-#             else:
-#                 messages.error(request, 'Invalid submission. See form below.')
-#         elif 'remove_affiliate' in request.POST:
-#             remove_affiliate_form = forms.RemoveAffiliateForm(request.POST)
-#             if remove_affiliate_form.is_valid():
-#                 user = remove_affiliate_form.cleaned_data['user']
-#                 user.lcp_affiliated = False
-#                 user.save()
-#                 remove_affiliate_form = forms.RemoveAffiliateForm()
-#                 messages.success(request, 'The user has been removed.')
-#             else:
-#                 messages.error(request, 'Invalid submission. See form below.')
-
-#     users = User.objects.filter(lcp_affiliated=True)
-
-#     return render(request, 'console/lcp_affiliates.html', {'users':users,
-#         'add_affiliate_form':add_affiliate_form,
-#         'remove_affiliate_form':remove_affiliate_form})
-
 
 @login_required
 @user_passes_test(is_admin)
@@ -583,30 +550,9 @@ def credential_applications(request):
     Ongoing credential applications
     """
     applications = CredentialApplication.objects.filter(status=0)
-    # Separated by reference status: not contacted, contacted,
-    # responded + verified. Responding and denying leads to automatic
-    # rejection.
-    nc_applications = applications.filter(reference_contact_datetime=None)
-    c_applications = applications.filter(
-        reference_contact_datetime__isnull=False, reference_response=0)
-    v_applications = applications.filter(
-        reference_contact_datetime__isnull=False, reference_response=2)
-
+    applications.order_by('reference_contact_datetime')
     return render(request, 'console/credential_applications.html',
-        {'nc_applications':nc_applications,
-         'c_applications':c_applications,
-         'v_applications':v_applications})
-
-
-@login_required
-@user_passes_test(is_admin)
-def view_credential_application(request, application_slug):
-    """
-    View a credential application in any status.
-    """
-    application = CredentialApplication.objects.get(slug=application_slug)
-    return render(request, 'console/view_credential_application.html',
-        {'application':application, 'app_user':application.user})
+        {'applications':applications})
 
 
 @login_required
@@ -644,6 +590,17 @@ def process_credential_application(request, application_slug):
 
 @login_required
 @user_passes_test(is_admin)
+def view_credential_application(request, application_slug):
+    """
+    View a credential application in any status.
+    """
+    application = CredentialApplication.objects.get(slug=application_slug)
+    return render(request, 'console/view_credential_application.html',
+        {'application':application, 'app_user':application.user})
+
+
+@login_required
+@user_passes_test(is_admin)
 def past_credential_applications(request):
     """
     Inactive credential applications. Split into successful and
@@ -655,13 +612,6 @@ def past_credential_applications(request):
     return render(request, 'console/past_credential_applications.html',
         {'s_applications':s_applications,
          'u_applications':u_applications})
-
-
-@login_required
-@user_passes_test(is_admin)
-def credentialed_users(request):
-    users = User.objects.filter(is_credentialed=True)
-    return render(request, 'console/credentialed_users.html', {'users':users})
 
 
 @login_required

@@ -23,7 +23,8 @@ from .forms import AddEmailForm, AssociatedEmailChoiceForm, ProfileForm, Registr
 from . import forms
 from .models import AssociatedEmail, Profile, User, CredentialApplication, LegacyCredential
 from physionet import utility
-from project.models import Author
+from project.models import Author, License
+from notification.utility import reference_deny_credential, credential_application_request
 
 
 logger = logging.getLogger(__name__)
@@ -385,20 +386,23 @@ def credential_application(request):
         if (personal_form.is_valid() and training_form.is_valid()
                 and reference_form.is_valid() and course_form.is_valid()
                 and form.is_valid()):
-            form.save()
+            aplication = form.save()
+            credential_application_request(request, aplication)
+
             return render(request, 'user/credential_application_complete.html')
         else:
             messages.error(request, 'Invalid submission. See errors below.')
     else:
         personal_form = forms.PersonalCAF(user=user)
-        training_form = forms.TrainingCAF(initial={'training_course_name':'CITI Data or Specimens Only Research Course'})
+        training_form = forms.TrainingCAF()
         reference_form = forms.ReferenceCAF()
         course_form = forms.CourseCAF()
         form = None
 
     return render(request, 'user/credential_application.html', {'form':form,
         'personal_form':personal_form, 'training_form':training_form,
-        'reference_form':reference_form, 'course_form':course_form, })
+        'reference_form':reference_form, 'course_form':course_form,
+        'license':license})
 
 
 @login_required
@@ -419,13 +423,19 @@ def credential_reference(request, application_slug):
     application = CredentialApplication.objects.get(
         slug=application_slug, reference_contact_datetime__isnull=False,
         reference_response_datetime=None)
+
     form = CredentialReferenceForm(instance=application)
 
     if request.method == 'POST':
         form = CredentialReferenceForm(data=request.POST, instance=application)
         if form.is_valid():
-            form.save()
-            response = 'verifying' if form.cleaned_data['reference_response'] == 2 else 'denying'
+            application = form.save()
+            # Automated email notifying that their reference has denied
+            # their application.
+            if application.reference_response == 1:
+                reference_deny_credential(request, application)
+
+            response = 'verifying' if application.reference_response == 2 else 'denying'
             return render(request, 'user/credential_reference_complete.html',
                 {'response':response, 'application':application})
         else:
@@ -433,5 +443,3 @@ def credential_reference(request, application_slug):
 
     return render(request, 'user/credential_reference.html',
         {'form':form, 'application':application})
-
-

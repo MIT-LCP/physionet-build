@@ -154,7 +154,7 @@ def assign_editor_notify(project):
         body = loader.render_to_string(
             'notification/email/assign_editor_notify.html',
             {'name':name, 'project':project,
-             'editor':project.editor, 
+             'editor':project.editor,
              'signature':email_signature(),
              'project_info':email_project_info(project),
              'footer':email_footer()})
@@ -302,14 +302,45 @@ def contact_reference(request, application):
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [application.reference_email], fail_silently=False)
 
+def reference_deny_credential(request, application):
+    """
+    Notify an applicant that their reference has denied their
+    credentialing application.
+    """
+    applicant_name = application.get_full_name()
+    subject = 'Your reference for PhysioNet credentialing has denied your application'
+    body = loader.render_to_string('notification/email/reference_deny_credential.html',
+        {'applicant_name':applicant_name,
+         'domain':get_current_site(request),
+         'signature':email_signature(),
+         'footer':email_footer()})
+
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+              [application.user.email], fail_silently=False)
+
 def process_credential_complete(request, application):
     """
     Notify user of credentialing decision
     """
-    applicant_name = ' '.join([application.first_names, application.last_name])
+    applicant_name = application.get_full_name()
     response = 'rejected' if application.status == 1 else 'accepted'
-    subject = 'PhysioNet credentialling {}'.format(response)
+    subject = 'PhysioNet credentialing {}'.format(response)
     body = loader.render_to_string('notification/email/process_credential_complete.html',
+        {'application':application, 'applicant_name':applicant_name,
+         'domain':get_current_site(request),
+         'signature':email_signature(),
+         'footer':email_footer()})
+
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+              [application.user.email], fail_silently=False)
+
+def credential_application_request(request, application):
+    """
+    Notify user of credentialing decision
+    """
+    applicant_name = application.get_full_name()
+    subject = 'PhysioNet credentialing application notification'
+    body = loader.render_to_string('notification/email/notify_credential_request.html',
         {'application':application, 'applicant_name':applicant_name,
          'domain':get_current_site(request),
          'signature':email_signature(),
