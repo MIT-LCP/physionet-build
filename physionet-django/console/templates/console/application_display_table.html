@@ -16,7 +16,7 @@ State/Province: {{ application.state_province }}<br>
 
 Country: {{ application.get_country_display }}<br>
 
-Webpage: <a href="{{ application.website }}" target="_blank">{{ application.website }}</a><br>
+{% if application.webpage %}Webpage: <a href="{{ application.webpage }}" target="_blank">{{ application.webpage }}</a><br>{% endif %}
 
 Training Course Name: {{ application.training_course_name }}<br>
 
@@ -26,14 +26,8 @@ Training Completion Report: <a href="{% url 'training_report' application.slug %
 
 Course Category: {{ application.get_course_category_display }}<br>
 
-{% if application.course_name %}
-  Course Name<br>
-  {{ application.course_name }}<br>
-{% endif %}
-
-{% if application.course_number %}
-  Course Number<br>
-  {{ application.course_number }}<br>
+{% if application.course_info %}
+  Course Info: {{ application.course_info }}<br>
 {% endif %}
 
 Reference Category: {{ application.get_reference_category_display }}<br>
@@ -45,17 +39,17 @@ Reference Email: {{ application.reference_email }}<br>
 Reference Title: {{ application.reference_title }}<br>
 
 {% if application.reference_contact_datetime %}
- 
+
   Reference Contact Date: {{ application.reference_contact_datetime|date }}<br>
-  
+
   {% if application.reference_response_datetime %}
     Reference Response Date: {{ application.reference_response_datetime|date }}<br>
-    Reference Verified: {{ application.get_reference_response_display }}<br>    
+    Reference Verified: {{ application.get_reference_response_display }}<br>
   {% endif %}
 
 {% endif %}
 
-{% if application.decision_datetime %}  
+{% if application.decision_datetime %}
   Decision Date: {{ application.decision_datetime|date }}<br>
 {% endif %}
 <hr>
