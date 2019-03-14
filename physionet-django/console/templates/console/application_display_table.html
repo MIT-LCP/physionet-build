@@ -46,25 +46,22 @@ Reference Title: {{ application.reference_title }}<br>
 
 {% if application.reference_contact_datetime %}
  
-  Reference Contact Date<br>
-  {{ application.reference_contact_datetime|date }}<br>
+  Reference Contact Date: {{ application.reference_contact_datetime|date }}<br>
+  
   {% if application.reference_response_datetime %}
-    Reference Response Date<br>
-    {{ application.reference_response_datetime|date }}<br>
-
-    Reference Verified<br>
-    {{ application.get_reference_response_display }}<br>    
+    Reference Response Date: {{ application.reference_response_datetime|date }}<br>
+    Reference Verified: {{ application.get_reference_response_display }}<br>    
   {% endif %}
+
 {% endif %}
 
 {% if application.decision_datetime %}  
-  Decision Date<br>
-  {{ application.decision_datetime|date }}<br>
+  Decision Date: {{ application.decision_datetime|date }}<br>
 {% endif %}
 <hr>
 Decision: {% if application.status %}{{ application.get_status_display }}{% else %}<i class="fas fa-clock"></i> Pending{% endif %}<br>
 
 {% if application.responder_comments %}
-  Admin Comments<br>
+  Admin Comments:<br>
   {{ application.responder_comments|linebreaks }}<br>
 {% endif %}
