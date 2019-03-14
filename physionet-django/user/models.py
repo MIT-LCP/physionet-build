@@ -649,7 +649,7 @@ class CredentialApplication(models.Model):
             ['pdf'], 'File must be a pdf.')])
     # Course info
     course_category = models.PositiveSmallIntegerField(choices=COURSE_CATEGORIES)
-    course_info = models.CharField(max_length=100,
+    course_info = models.CharField(max_length=100, default='',
         validators=[validate_alphaplusplus])
     # Reference
     reference_category = models.PositiveSmallIntegerField(
