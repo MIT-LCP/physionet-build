@@ -289,7 +289,7 @@ class Metadata(models.Model):
     installation = RichTextField(blank=True)
     acknowledgements = RichTextField(blank=True)
     conflicts_of_interest = RichTextField(blank=True)
-    version = models.CharField(max_length=15, default='')
+    version = models.CharField(max_length=15, default='', blank=True)
     release_notes = RichTextField(blank=True)
     # Access information
     access_policy = models.SmallIntegerField(choices=ACCESS_POLICIES,
