@@ -666,7 +666,7 @@ class CredentialApplication(models.Model):
     reference_response = models.PositiveSmallIntegerField(default=0,
         choices=REFERENCE_RESPONSES)
     reference_response_text = models.CharField(max_length=500, default='',
-        blank=True)
+        blank=True, validators=[validate_alphaplusplus])
     research_summary = models.CharField(max_length=1000,
         validators=[validate_alphaplusplus])
     decision_datetime = models.DateTimeField(null=True)
