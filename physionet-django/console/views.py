@@ -559,9 +559,6 @@ def complete_credential_applications(request):
     """
     Ongoing credential applications
     """
-    applications = CredentialApplication.objects.filter(status=0)
-    applications.order_by('reference_contact_datetime')
-    process_credential_form = forms.ProcessCredentialForm(responder=request.user)
     if request.method == 'POST':
         if 'contact_reference' in request.POST and request.POST['contact_reference'].isdigit():
             application_id = request.POST.get('contact_reference','')
@@ -578,10 +575,14 @@ def complete_credential_applications(request):
             if process_credential_form.is_valid():
                 application = process_credential_form.save()
                 notification.process_credential_complete(request, application)
-                return render(request, 'console/process_credential_complete.html',
-                    {'application':application})
+                # return render(request, 'console/complete_credential_applications.html',
+                #     {'application':application})
             else:
                 messages.error(request, 'Invalid submission. See form below.')
+                
+    applications = CredentialApplication.objects.filter(status=0)
+    applications.order_by('reference_contact_datetime')
+    process_credential_form = forms.ProcessCredentialForm(responder=request.user)
 
     return render(request, 'console/complete_credential_applications.html',
         {'applications':applications, 
