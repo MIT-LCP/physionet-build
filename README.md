@@ -6,10 +6,11 @@ Dev branch: [![Run Status](https://api.shippable.com/projects/59e7d1baaf0a170700
 
 ## Running Local Instance Using Django Server
 
-- Create python environment with python 3.6.
-- Install python packages in `requirements.txt`.
 - Install sqlite3: `sudo apt-get install sqlite3`.
+- Create python environment with python 3.6.
 - Activate virtual python environment.
+- Install python packages in `requirements.txt`.
+- Copy `.env.example` file to `.env`.
 - Within the `physionet-django` directory:
   - Run: `python manage.py resetdb` to reset the database.
   - Run: `python manage.py loaddemo` to load the demo fixtures set up example files.
