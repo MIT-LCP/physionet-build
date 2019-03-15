@@ -405,9 +405,14 @@ class CredentialReferenceForm(forms.ModelForm):
     """
     class Meta:
         model = CredentialApplication
-        fields = ('reference_response',)
+        fields = ('reference_response','reference_response_text')
         labels = {
-            'reference_response':'Do you verify the applicant?'
+            'reference_response':'Do you verify the applicant?',
+            'reference_response_text':'Comments:'
+        }
+
+        widgets = {
+            'reference_response_text':forms.Textarea(attrs={'rows': 3}),
         }
 
     def save(self):
@@ -421,6 +426,7 @@ class CredentialReferenceForm(forms.ModelForm):
             application.status = 1
 
         application.reference_response_datetime = timezone.now()
+        application.reference_response_text = self.cleaned_data['reference_response_text']
         application.save()
         return application
 

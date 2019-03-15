@@ -542,7 +542,6 @@ def admin_users(request):
 
     return render(request, 'console/admin_users.html', {'admin_users':admin_users, 'users':users})
 
-
 @login_required
 @user_passes_test(is_admin)
 def credential_applications(request):
@@ -553,6 +552,40 @@ def credential_applications(request):
     applications.order_by('reference_contact_datetime')
     return render(request, 'console/credential_applications.html',
         {'applications':applications})
+
+@login_required
+@user_passes_test(is_admin)
+def complete_credential_applications(request):
+    """
+    Ongoing credential applications
+    """
+    applications = CredentialApplication.objects.filter(status=0)
+    applications.order_by('reference_contact_datetime')
+    process_credential_form = forms.ProcessCredentialForm(responder=request.user)
+    if request.method == 'POST':
+        if 'contact_reference' in request.POST and request.POST['contact_reference'].isdigit():
+            application_id = request.POST.get('contact_reference','')
+            application = CredentialApplication.objects.get(id=application_id)
+            application.reference_contact_datetime = timezone.now()
+            application.save()
+            notification.contact_reference(request, application)
+            messages.success(request, 'The reference has been contacted.')
+        elif 'process_application' in request.POST and request.POST['process_application'].isdigit():
+            application_id = request.POST.get('process_application','')
+            application = CredentialApplication.objects.get(id=application_id)
+            process_credential_form = forms.ProcessCredentialForm(
+                responder=request.user, data=request.POST, instance=application)
+            if process_credential_form.is_valid():
+                application = process_credential_form.save()
+                notification.process_credential_complete(request, application)
+                return render(request, 'console/process_credential_complete.html',
+                    {'application':application})
+            else:
+                messages.error(request, 'Invalid submission. See form below.')
+
+    return render(request, 'console/complete_credential_applications.html',
+        {'applications':applications, 
+        'process_credential_form':process_credential_form})
 
 
 @login_required
