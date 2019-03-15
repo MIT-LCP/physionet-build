@@ -129,7 +129,12 @@
                     </div>
 
                     <div class="modal-body">
-                      {{ invitation_response_form }}
+                      <p>You have been invited to co-author {{ invitation_response_form.instance.project  }}.</p>
+
+                      {{ invitation_response_form }}<br>
+
+                      <p><font color='red'>After accepting, please add your affiliations to this project.</font></p>
+                      
                     </div>
                     <div class="modal-footer">
                       <button class="btn btn-primary" name="invitation_response" value="{{ invitation_response_form.instance.id }}" type="submit"><i class="fa fa-reply"></i> Submit Response</button>
