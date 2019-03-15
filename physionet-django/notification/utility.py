@@ -69,7 +69,8 @@ def invitation_notify(request, invite_author_form, target_email):
                      'domain':get_current_site(request),
                      'signature':email_signature(),
                      'project_info':email_project_info(project),
-                     'footer':email_footer()}
+                     'footer':email_footer(), 
+                     'target_email':target_email}
 
     body = loader.render_to_string('notification/email/invite_author.html',
                                     email_context)

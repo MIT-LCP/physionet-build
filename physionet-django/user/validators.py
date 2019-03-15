@@ -45,12 +45,12 @@ def validate_name(value):
 
 
 def validate_alphaplus(value):
-    if not re.fullmatch(r'[a-zA-Z0-9][\w\ -]*', value):
+    if not re.fullmatch(r'[\w][\w\ -]*', value):
         raise ValidationError('Letters, numbers, spaces, underscores, and hyphens only. Must begin with a letter or number.')
 
 
 def validate_alphaplusplus(value):
-    if not re.fullmatch(r'[a-zA-Z0-9][\'\,\.\w\ -]*', value):
+    if not re.fullmatch(r'[\w][\'\,\.\w\ -]*', value):
         raise ValidationError('Letters, numbers, spaces, underscores, hyphens, apostrophes, periods, and commas only. Must begin with a letter or number.')
 
 

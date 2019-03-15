@@ -41,6 +41,8 @@ urlpatterns = [
 
     path('credential-applications/', views.credential_applications,
         name='credential_applications'),
+    path('complete-credential-applications/', views.complete_credential_applications,
+        name='complete_credential_applications'),
     path('past-credential-applications/', views.past_credential_applications,
         name='past_credential_applications'),
 

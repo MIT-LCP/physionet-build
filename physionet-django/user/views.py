@@ -415,15 +415,18 @@ def training_report(request, application_slug):
         return utility.serve_file(request, application.training_completion_report.path)
 
 
-@login_required
+# @login_required
 def credential_reference(request, application_slug):
     """
     Page for a reference to verify or reject a credential application
     """
-    application = CredentialApplication.objects.get(
+    application = CredentialApplication.objects.filter(
         slug=application_slug, reference_contact_datetime__isnull=False,
         reference_response_datetime=None)
 
+    if not application:
+        return redirect('/')
+    application = application.get()
     form = CredentialReferenceForm(instance=application)
 
     if request.method == 'POST':
