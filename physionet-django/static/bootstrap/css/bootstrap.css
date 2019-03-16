@@ -3965,13 +3965,14 @@ tbody.collapse.show {
   display: inline-block;
   padding: 0.5em 0.5em;
   font-size: 75%;
-  font-weight: bold;
   line-height: 1;
-  color: #fff;
   text-align: center;
   white-space: nowrap;
   vertical-align: baseline;
   border-radius: 0.25rem;
+  cursor: default;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .badge:empty {
@@ -4013,7 +4014,7 @@ tbody.collapse.show {
 
 .badge-success {
   color: #fff;
-  background-color: #28a745;
+  background-color: rgba(0,128,0,0.75);
 }
 
 .badge-success[href]:focus, .badge-success[href]:hover {
@@ -4046,7 +4047,7 @@ tbody.collapse.show {
 
 .badge-danger {
   color: #fff;
-  background-color: #dc3545;
+  background-color: rgba(163, 31, 52, 0.75);
 }
 
 .badge-danger[href]:focus, .badge-danger[href]:hover {
@@ -4068,7 +4069,7 @@ tbody.collapse.show {
 
 .badge-dark {
   color: #fff;
-  background-color: #343a40;
+  background-color: rgba(51, 51, 51, 0.75);
 }
 
 .badge-dark[href]:focus, .badge-dark[href]:hover {

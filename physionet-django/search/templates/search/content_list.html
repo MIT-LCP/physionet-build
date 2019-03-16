@@ -4,24 +4,22 @@
   <p>{{ published_project.resource_type|resource_badge|safe }}
      {{ published_project.access_policy|access_badge|safe }}
   </p>
-  <a href="{% url 'published_project' published_project.slug %}"><h2>{{ published_project.title }}</h2></a>
+  <h2><a href="{% url 'published_project' published_project.slug %}">{{ published_project.title }}</a></h2>
   {% if not published_project.is_legacy %}
     <p class="text-muted">
-      <strong>Authors:
         {% for author in authors %}
           {{ author.get_full_name }}
         {% endfor %}
-      </strong>
     </p>
   {% endif %}
   {{ published_project.abstract|safe }}
   <p class="text-muted">
-    Published: {{ published_project.publish_datetime|date }}.
-    Version: {{ published_project.version }}
-    <br>
     {% for topic in topics %}
       {{ topic|topic_badge|safe }}
     {% endfor %}
+    <br>
+    <p class="pub-details">Published: {{ published_project.publish_datetime|date }}.
+    Version: {{ published_project.version }}<p>
   </p>
   <hr>
 {% endfor %}
