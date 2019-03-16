@@ -73,3 +73,22 @@
 .sharebtn:hover {
   color: white;
 }
+
+.search-input::-webkit-input-placeholder {
+  color: grey;
+  opacity: unset;
+}
+
+.search-input{
+  border: unset;
+  padding: 5px;
+  border-radius: 0;
+  line-height: unset;
+  width: unset;
+}
+
+.btn-search{
+  border-radius: 0;
+  background: transparent;
+  color: white;
+}
