@@ -40,9 +40,17 @@
   padding: 0.8rem;
 }
 
+a{
+  color: #0366d6;
+}
+
 .badge-pn {
-  color: white;
-  background-color: #694;
+  background-color: #f1f8ff;
+  cursor: pointer;
+}
+
+.badge-pn:hover {
+  background-color: #def;
 }
 
 .share-email {
@@ -91,4 +99,10 @@
   border-radius: 0;
   background: transparent;
   color: white;
+  cursor: pointer;
+}
+
+.pub-details{
+  font-size: 75%;
+  color: grey;
 }
