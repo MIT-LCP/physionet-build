@@ -1,6 +1,8 @@
 """
 Module for generating notifications
 """
+from urllib import parse
+
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
@@ -302,6 +304,57 @@ def contact_reference(request, application):
 
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [application.reference_email], fail_silently=False)
+
+def contact_supervisor(request, application):
+    """
+    Request verification from a credentialing applicant's reference
+    """
+    applicant_name = ' '.join([application.first_names, application.last_name])
+    subject = 'Please verify {} for PhysioNet credentialing'.format(
+        applicant_name)
+    body = loader.render_to_string('notification/email/contact_supervisor.html',
+        {'application':application, 'applicant_name':applicant_name,
+         'domain':get_current_site(request),
+         'signature':email_signature(),
+         'footer':email_footer()})
+
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+              [application.reference_email], fail_silently=False)
+
+def mailto_reference(request, application):
+    """
+    Request verification from a credentialing applicant's reference
+    """
+    applicant_name = ' '.join([application.first_names, application.last_name])
+    subject = 'Please verify {} for PhysioNet credentialing'.format(
+        applicant_name)
+    body = loader.render_to_string('notification/email/contact_reference.html',
+        {'application':application, 'applicant_name':applicant_name,
+         'domain':get_current_site(request),
+         'signature':email_signature(),
+         'footer':email_footer()})
+
+    mailto = "mailto:{0}?subject={1}&body={2}".format(application.reference_email,
+      parse.quote(subject), parse.quote(body))
+    return mailto
+
+def mailto_supervisor(request, application):
+    """
+    Request verification from a credentialing applicant's reference
+    """
+    applicant_name = ' '.join([application.first_names, application.last_name])
+    subject = 'Please verify {} for PhysioNet credentialing'.format(
+        applicant_name)
+    body = loader.render_to_string('notification/email/contact_supervisor.html',
+        {'application':application, 'applicant_name':applicant_name,
+         'domain':get_current_site(request),
+         'signature':email_signature(),
+         'footer':email_footer()})
+    
+    
+    mailto = "mailto:{0}?subject={1}&body={2}".format(application.reference_email,
+      parse.quote(subject), parse.quote(body))
+    return mailto
 
 def reference_deny_credential(request, application):
     """

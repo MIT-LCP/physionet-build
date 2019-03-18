@@ -579,13 +579,22 @@ def complete_credential_applications(request):
                 #     {'application':application})
             else:
                 messages.error(request, 'Invalid submission. See form below.')
-                
+
     applications = CredentialApplication.objects.filter(status=0)
     applications.order_by('reference_contact_datetime')
+    mailto_list = []
+    for application in applications:
+        if application.reference_category == 0:
+            mailto_list.append(notification.mailto_supervisor(request, application))
+        else:
+            mailto_list.append(notification.mailto_reference(request, application))
+
+    mailto_applications = list(zip(applications, mailto_list))
+
     process_credential_form = forms.ProcessCredentialForm(responder=request.user)
 
     return render(request, 'console/complete_credential_applications.html',
-        {'applications':applications, 
+        {'mailto_applications':mailto_applications, 'applications':applications,
         'process_credential_form':process_credential_form})
 
 
