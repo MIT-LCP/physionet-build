@@ -270,6 +270,7 @@ class Metadata(models.Model):
     RESOURCE_TYPES = (
         (0, 'Database'),
         (1, 'Software'),
+        (2, 'Challenge'),
     )
 
     ACCESS_POLICIES = (
@@ -499,19 +500,31 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'active-projects')
 
     REQUIRED_FIELDS = (
+        # 0: Database
         ('title', 'abstract', 'background', 'methods', 'content_description',
          'usage_notes', 'conflicts_of_interest', 'version', 'license'),
+        # 1: Software
         ('title', 'abstract', 'background', 'content_description',
          'usage_notes', 'installation', 'conflicts_of_interest', 'version',
-         'license')
+         'license'),
+        # 2: Challenge
+        ('title', 'abstract', 'background', 'methods', 'content_description',
+         'usage_notes', 'conflicts_of_interest', 'version', 'license'),
     )
 
     # Custom labels that don't match model field names
     LABELS = (
+        # 0: Database
         {'content_description': 'Data Description'},
+        # 1: Software
         {'content_description': 'Software Description',
          'methods': 'Technical Implementation',
-         'installation': 'Installation and Requirements'}
+         'installation': 'Installation and Requirements'},
+        # 2: Challenge
+        {'background': 'Objective',
+         'methods': 'Participation',
+         'content_description': 'Data Description',
+         'usage_notes': 'Evaluation'},
     )
 
     SUBMISSION_STATUS_LABELS = {
@@ -1275,9 +1288,14 @@ class EditLog(models.Model):
     """
     # Quality assurance fields for data and software
     QUALITY_ASSURANCE_FIELDS = (
+        # 0: Database
         ('soundly_produced', 'well_described', 'open_format',
          'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable'),
+        # 1: Software
         ('well_described', 'open_format', 'reusable', 'pn_suitable'),
+        # 2: Challenge
+        ('soundly_produced', 'well_described', 'open_format',
+         'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable'),
     )
     # The editor's free input fields
     EDITOR_FIELDS = ('editor_comments', 'decision')
@@ -1289,13 +1307,21 @@ class EditLog(models.Model):
     }
 
     LABELS = (
+        # 0: Database
         {'soundly_produced':'Has the data been produced in a sound manner?',
          'well_described':'Is the data adequately described?',
          'open_format':'Is the data provided in an open format?',
          'data_machine_readable':'Are the data files machine-readable?',
          'no_phi':'Is the data free of protected health information?'},
+        # 1: Software
         {'well_described':'Is the software adequately described?',
-         'open_format':'Is the software provided in an open format?'}
+         'open_format':'Is the software provided in an open format?'},
+        # 2: Challenge
+        {'soundly_produced':'Has the challenge been produced in a sound manner?',
+         'well_described':'Is the challenge adequately described?',
+         'open_format':'Is all content provided in an open format?',
+         'data_machine_readable':'Are all files machine-readable?',
+         'no_phi':'Is the content free of protected health information?'},
     )
 
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)

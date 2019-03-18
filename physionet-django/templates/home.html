@@ -23,7 +23,7 @@ PhysioNet
           <div class="intro-lead-in">Find and publish physiologic tools and data</div>
           <a class="btn btn-pn btn-outline-dark intro-badge badge-pn" href="{% url 'database_index' %}">&nbsp; Data&nbsp;</a>
           <a class="btn btn-pn btn-outline-dark intro-badge badge-pn" href="{% url 'software_index' %}">&nbsp; Software&nbsp;</a>
-          <a class="btn btn-pn btn-outline-dark intro-badge badge-pn" href="{% url 'create_project' %}">&nbsp; Publish&nbsp;</a>
+          <a class="btn btn-pn btn-outline-dark intro-badge badge-pn" href="{% url 'challenge_index' %}">&nbsp; Challenges&nbsp;</a>
         </div>
       </div>
     </header>
@@ -31,7 +31,7 @@ PhysioNet
     <div class="row">
       {# Left column #}
       <div class="col-md-7">
-        <h1>New Content</h1>
+        <h1>Latest Resources</h1>
         <hr>
         {% include "search/content_list.html" %}
         <a class="btn btn-outline-dark" href="{% url 'content_index' %}">More Content</a>
@@ -42,7 +42,7 @@ PhysioNet
       <div class="col-md-5">
 
         <div class="card">
-          <h2 class="card-header">Welcome to PhysioNet</h2>
+          <h2 class="card-header">Welcome</h2>
           <div class="card-body">
             <p class="card-text mt-1">PhysioNet offers free web access to large collections of recorded physiologic <a href="{% url 'database_index' %}">data</a> and related open-source <a href="{% url 'software_index' %}">software</a>. For more information, see our <a href="{% url 'about_physionet' %}">about page</a>.</p>
           </div>

@@ -76,10 +76,18 @@
   <div class="row">
     <!-- Main column -->
     <div class="col-md-8">
+      {# 0: Database #}
       {% if project.resource_type == 0 %}
         {% include "project/database_metadata_preview.html" %}
-      {% else %}
+      {# 1: Software #}
+      {% elif project.resource_type == 1 %}
         {% include "project/software_metadata_preview.html" %}
+      {# 2: Challenge #}
+      {% elif project.resource_type == 2 %}
+        {% include "project/challenge_metadata_preview.html" %}
+      {# Other #}
+      {% else %}
+        {% include "project/software_metadata_preview.html" %}   
       {% endif %}
     </div>
     <!-- /.main column -->

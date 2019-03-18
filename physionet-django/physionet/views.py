@@ -32,11 +32,12 @@ def licenses(request):
     """
     Display all licenses
     """
-    d_licenses = License.objects.filter(resource_type=0).order_by('access_policy')
-    s_licenses = License.objects.filter(resource_type=1).order_by('access_policy')
+    licenses = {}
+    licenses['Database'] = License.objects.filter(resource_type=0).order_by('access_policy')
+    licenses['Software'] = License.objects.filter(resource_type=1).order_by('access_policy')
+    licenses['Challenge'] = License.objects.filter(resource_type=2).order_by('access_policy')
 
-    return render(request, 'about/licenses.html', {'d_licenses':d_licenses,
-        's_licenses':s_licenses})
+    return render(request, 'about/licenses.html', {'licenses':licenses})
 
 def license_content(request, license_slug):
     """

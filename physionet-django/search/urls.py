@@ -16,6 +16,7 @@ urlpatterns = [
     # published project index pages
     path('data/', views.database_index, name='database_index'),
     path('software/', views.software_index, name='software_index'),
+    path('challenge/', views.challenge_index, name='challenge_index'),
     path('content/', views.content_index, name='content_index'),
 
     path('charts/', views.charts, name='charts'),
