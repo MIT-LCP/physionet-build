@@ -14,7 +14,11 @@
       </strong>
     </p>
   {% endif %}
-  {{ published_project.abstract|safe }}
+  {% if not published_project.short_description %}
+    {{ published_project.abstract|safe|truncatechars:250 }}
+  {% else %}
+    {{ published_project.short_description|safe }}
+  {% endif %}
   <p class="text-muted">
     Published: {{ published_project.publish_datetime|date }}.
     Version: {{ published_project.version }}

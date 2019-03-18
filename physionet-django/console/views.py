@@ -223,6 +223,9 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
         resource_type=project.resource_type, instance=project)
     access_form = project_forms.AccessMetadataForm(include_credentialed=True,
         instance=project)
+    discovery_form = project_forms.DiscoveryForm(resource_type=project.resource_type,
+        instance=project)
+
     access_form.set_license_queryset(access_policy=project.access_policy)
     reference_formset = ReferenceFormSet(instance=project)
     publication_formset = PublicationFormSet(instance=project)
@@ -237,6 +240,8 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
                 instance=project)
             access_form = project_forms.AccessMetadataForm(
                 include_credentialed=True, data=request.POST, instance=project)
+            discovery_form = project_forms.DiscoveryForm(resource_type=project.resource_type,
+                data=request.POST, instance=project)
             reference_formset = ReferenceFormSet(data=request.POST,
                 instance=project)
             publication_formset = PublicationFormSet(request.POST,
@@ -245,9 +250,11 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
             if (description_form.is_valid() and access_form.is_valid()
                                             and reference_formset.is_valid()
                                             and publication_formset.is_valid()
-                                            and topic_formset.is_valid()):
+                                            and topic_formset.is_valid()
+                                            and discovery_form.is_valid()):
                 description_form.save()
                 access_form.save()
+                discovery_form.save()
                 reference_formset.save()
                 publication_formset.save()
                 topic_formset.save()
@@ -306,7 +313,8 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
         'is_editor':True, 'copyedit_form':copyedit_form,
         'authors':authors, 'author_emails':author_emails,
         'storage_info':storage_info, 'edit_logs':edit_logs, 'copyedit_logs':copyedit_logs,
-        'add_item_url':edit_url, 'remove_item_url':edit_url})
+        'add_item_url':edit_url, 'remove_item_url':edit_url,
+        'discovery_form':discovery_form})
 
 
 @handling_editor

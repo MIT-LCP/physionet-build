@@ -410,7 +410,6 @@ class MetadataForm(forms.ModelForm):
             self.fields[h].help_text = self.__class__.HELP_TEXTS[resource_type][h]
 
 
-
 class DiscoveryForm(forms.ModelForm):
     """
     Add discovery information to the project
@@ -422,15 +421,17 @@ class DiscoveryForm(forms.ModelForm):
 
     class Meta:
         model = ActiveProject
-        fields = ('project_home_page', 'programming_languages')
+        fields = ('short_description', 'project_home_page', 'programming_languages')
         help_texts = {
-            'project_home_page': 'External home page for the project.'
+            'project_home_page': 'External home page for the project.',
+            'short_description': 'Short (maximum 250 character) description of the project.'
         }
 
     def __init__(self, resource_type, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if resource_type != 1:
             del(self.fields['programming_languages'])
+
 
 class AffiliationFormSet(forms.BaseInlineFormSet):
     """
@@ -466,6 +467,7 @@ class AffiliationFormSet(forms.BaseInlineFormSet):
                 if name in names:
                     raise forms.ValidationError('Affiliation names must be unique.')
                 names.append(name)
+
 
 class ReferenceFormSet(BaseGenericInlineFormSet):
     """
@@ -515,7 +517,11 @@ class PublicationFormSet(BaseGenericInlineFormSet):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.max_forms = PublicationFormSet.max_forms
-        self.help_text = 'The article publication to be cited, alongside this resource, in <a href=http://www.bibme.org/citation-guide/apa/ target=_blank>APA</a> format. If the article is in press, leave the URL blank and contact us to update it once it is available. Maximum of {}.'.format(self.max_forms)
+        self.help_text = ('The article publication to be cited, alongside this '
+                          'resource, in <a href=http://www.bibme.org/citation-guide/apa/ '
+                          'target=_blank>APA</a> format. If the article is in '
+                          'press, leave the URL blank and contact us to update '
+                          'it once it is available. Maximum of {}.').format(self.max_forms)
 
     def clean(self):
         """
@@ -722,7 +728,7 @@ class InvitationResponseForm(forms.ModelForm):
     class Meta:
         model = AuthorInvitation
         fields = ('response',)
-        widgets= {'response':forms.Select(choices=RESPONSE_CHOICES)}
+        widgets = {'response':forms.Select(choices=RESPONSE_CHOICES)}
 
     def clean(self):
         """
