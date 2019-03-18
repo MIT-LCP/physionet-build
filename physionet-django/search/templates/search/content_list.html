@@ -12,7 +12,11 @@
         {% endfor %}
     </p>
   {% endif %}
-  {{ published_project.abstract|safe }}
+  {% if not published_project.short_description %}
+    {{ published_project.abstract|safe|truncatechars:250 }}
+  {% else %}
+    {{ published_project.short_description|safe }}
+  {% endif %}
   <p class="text-muted">
     {% for topic in topics %}
       {{ topic|topic_badge|safe }}

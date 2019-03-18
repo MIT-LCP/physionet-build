@@ -280,6 +280,7 @@ class Metadata(models.Model):
     )
 
     resource_type = models.PositiveSmallIntegerField(choices=RESOURCE_TYPES)
+
     # Main body descriptive metadata
     title = models.CharField(max_length=200, validators=[validate_alphaplus])
     abstract = RichTextField(max_length=10000, blank=True)
@@ -292,6 +293,11 @@ class Metadata(models.Model):
     conflicts_of_interest = RichTextField(blank=True)
     version = models.CharField(max_length=15, default='', blank=True)
     release_notes = RichTextField(blank=True)
+
+    # Short description used for search results, social media, etc
+    short_description = models.CharField(max_length=250, blank=True, 
+        validators=[validate_alphaplusplus])
+
     # Access information
     access_policy = models.SmallIntegerField(choices=ACCESS_POLICIES,
                                              default=0)
@@ -300,16 +306,19 @@ class Metadata(models.Model):
     project_home_page = models.URLField(default='', blank=True)
     programming_languages = models.ManyToManyField(
         'project.ProgrammingLanguage', related_name='%(class)ss')
+
     # Public url slug, also used as a submitting project id.
     slug = models.SlugField(max_length=20, unique=True, db_index=True)
     core_project = models.ForeignKey('project.CoreProject',
                                      related_name='%(class)ss',
                                      on_delete=models.CASCADE)
+
     # When the submitting project was created
     creation_datetime = models.DateTimeField(auto_now_add=True)
 
     edit_logs = GenericRelation('project.EditLog')
     copyedit_logs = GenericRelation('project.CopyeditLog')
+
     # For ordering projects with multiple versions
     version_order = models.PositiveSmallIntegerField(default=0)
 

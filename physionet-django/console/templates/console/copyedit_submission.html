@@ -53,12 +53,14 @@
       </div>
       <div class="tab-pane fade" id="metadata" role="tabpanel" aria-labelledby="metadata-tab">
         <form action="" method="post">
+          <h3>Description</h3>
           {{ description_form.media }}
           {% include "project/metadata_inline_form_snippet.html" with form=description_form %}
           {% include 'project/item_list.html' with item="reference" item_label=reference_formset.item_label formset=reference_formset form_name=reference_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}
-          <br><br>
+          <h3>Access</h3>
           {% include "project/metadata_inline_form_snippet.html" with form=access_form %}
-          <br><br>
+          <h3>Discovery</h3>
+          {% include "project/metadata_inline_form_snippet.html" with form=discovery_form %}
           {% include 'project/item_list.html' with item="publication" item_label=publication_formset.item_label formset=publication_formset form_name=publication_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}
           {% include 'project/item_list.html' with item="topic" item_label=topic_formset.item_label formset=topic_formset form_name=topic_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}
           <button class="btn btn-lg btn-primary" type="submit" name="edit_metadata">Save Metadata</button>
