@@ -18,8 +18,9 @@ from django.utils import timezone
 
 from . import forms
 from .models import (Affiliation, Author, AuthorInvitation, ActiveProject,
-    PublishedProject, StorageRequest, Reference, ArchivedProject, ProgrammingLanguage,
-    Topic, Contact, Publication, PublishedAuthor, EditLog, CopyeditLog, DUASignature)
+    PublishedProject, StorageRequest, Reference, ArchivedProject,
+    ProgrammingLanguage, Topic, Contact, Publication, PublishedAuthor, EditLog,
+    CopyeditLog, DUASignature, CoreProject)
 from . import utility
 import notification.utility as notification
 from user.forms import ProfileForm, AssociatedEmailChoiceForm
@@ -186,12 +187,13 @@ def new_project_version(request, project_slug):
         return render(request, 'project/project_limit_reached.html',
             {'max_projects':ActiveProject.MAX_SUBMITTING_PROJECTS})
 
+    core_project = CoreProject.objects.get(slug=project_slug)
     previous_projects = PublishedProject.objects.filter(
         slug=project_slug).order_by('-version_order')
     latest_project = previous_projects.first()
 
     # Can only have one new version project out at a time
-    if latest_project.core_project.active_new_version():
+    if core_project.active_new_version():
         return redirect('project_home')
 
     if request.method == 'POST':
