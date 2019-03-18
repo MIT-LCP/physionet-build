@@ -186,13 +186,12 @@ def new_project_version(request, project_slug):
         return render(request, 'project/project_limit_reached.html',
             {'max_projects':ActiveProject.MAX_SUBMITTING_PROJECTS})
 
-
     previous_projects = PublishedProject.objects.filter(
         slug=project_slug).order_by('-version_order')
     latest_project = previous_projects.first()
 
     # Can only have one new version project out at a time
-    if latest_project.core_project.activeprojects.filter():
+    if latest_project.core_project.active_new_version():
         return redirect('project_home')
 
     if request.method == 'POST':

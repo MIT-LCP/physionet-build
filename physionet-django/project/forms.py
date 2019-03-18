@@ -10,8 +10,8 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 
 from .models import (Affiliation, Author, AuthorInvitation, ActiveProject,
-    CoreProject, StorageRequest, ProgrammingLanguage, License,
-    exists_project_slug)
+    CoreProject, StorageRequest, ProgrammingLanguage, License, Metadata,
+    Reference, Publication, Topic, exists_project_slug)
 from . import utility
 from . import validators
 
@@ -361,19 +361,23 @@ class NewProjectVersionForm(forms.ModelForm):
 
     def save(self):
         project = super().save(commit=False)
-        # Set core fields
+        # Direct copy over fields
+        for attr in [f.name for f in Metadata._meta.fields]:
+            if attr not in ['slug', 'version', 'creation_datetime']:
+                setattr(project, attr, getattr(self.previous_project, attr))
+        # Set new fields
         slug = get_random_string(20)
         while exists_project_slug(slug):
             slug = get_random_string(20)
         project.slug = slug
-        project.core_project = self.previous_project.core_project
-        project.is_latest_version = False
+        project.creation_datetime = timezone.now()
         project.version_order = self.previous_project.version_order + 1
+        project.is_new_version = True
         project.save()
 
         # Copy over the author/affiliation objects
         for p_author in self.previous_project.authors.all():
-            author = Author.objects.create(project=self, user=p_author.user,
+            author = Author.objects.create(project=project, user=p_author.user,
                 display_order=p_author.display_order,
                 is_submitting=p_author.is_submitting,
                 is_corresponding=p_author.is_corresponding,
@@ -382,6 +386,21 @@ class NewProjectVersionForm(forms.ModelForm):
             for p_affiliation in p_author.affiliations.all():
                 Affiliation.objects.create(name=p_affiliation.name,
                     author=author)
+
+        # Other related objects
+        for p_reference in self.previous_project.references.all():
+            reference = Reference.objects.create(
+                description=p_reference.description,
+                project=project)
+
+        for p_publication in self.previous_project.publications.all():
+            publication = Publication.objects.create(
+                citation=p_publication.citation, url=p_publication.url,
+                project=project)
+
+        for p_topic in self.previous_project.topics.all():
+            topic = Topic.objects.create(project=project,
+                description=p_topic.description)
 
         # Create file directory
         os.mkdir(project.file_root())
@@ -457,6 +476,12 @@ class MetadataForm(forms.ModelForm):
 
         for h in self.__class__.HELP_TEXTS[resource_type]:
             self.fields[h].help_text = self.__class__.HELP_TEXTS[resource_type][h]
+
+    def clean_version(self):
+        data = self.cleaned_data['version']
+        if data in [p.version for p in self.instance.core_project.publishedprojects.all()]:
+            raise forms.ValidationError('Please specify a previous unused version.')
+        return data
 
 
 class DiscoveryForm(forms.ModelForm):
