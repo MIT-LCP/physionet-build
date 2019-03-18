@@ -312,6 +312,8 @@ class CreateProjectForm(forms.ModelForm):
     def __init__(self, user, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = user
+        if not user.is_admin:
+            self.fields['resource_type'].choices = self.fields['resource_type'].choices[:-1]
 
     class Meta:
         model = ActiveProject
