@@ -339,6 +339,55 @@ class CreateProjectForm(forms.ModelForm):
         return project
 
 
+class NewProjectVersionForm(forms.ModelForm):
+    """
+    For creating new project versions
+    """
+    def __init__(self, user, project, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+        self.previous_project = project
+
+    class Meta:
+        model = ActiveProject
+        fields = ('version',)
+
+    def clean_version(self):
+        data = self.cleaned_data['version']
+        if data in [p.version for p in self.previous_project.core_project.publishedprojects.all()]:
+            raise forms.ValidationError('Please specify a previous unused version.')
+
+        return data
+
+    def save(self):
+        project = super().save(commit=False)
+        # Set core fields
+        slug = get_random_string(20)
+        while exists_project_slug(slug):
+            slug = get_random_string(20)
+        project.slug = slug
+        project.core_project = self.previous_project.core_project
+        project.is_latest_version = False
+        project.version_order = self.previous_project.version_order + 1
+        project.save()
+
+        # Copy over the author/affiliation objects
+        for p_author in self.previous_project.authors.all():
+            author = Author.objects.create(project=self, user=p_author.user,
+                display_order=p_author.display_order,
+                is_submitting=p_author.is_submitting,
+                is_corresponding=p_author.is_corresponding,
+                corresponding_email=self.user.get_primary_email(),)
+
+            for p_affiliation in p_author.affiliations.all():
+                Affiliation.objects.create(name=p_affiliation.name,
+                    author=author)
+
+        # Create file directory
+        os.mkdir(project.file_root())
+        return project
+
+
 class MetadataForm(forms.ModelForm):
     """
     Form for editing the metadata of a project.

@@ -8,6 +8,8 @@ urlpatterns = [
     path('create/', views.create_project, name='create_project'),
     path('delete-project-success/', views.delete_project_success,
         name='delete_project_success'),
+    path('new-version/<project_slug>/', views.new_project_version,
+        name='new_project_version'),
 
     path('rejected/<project_slug>/submission-history/', views.rejected_submission_history,
         name='rejected_submission_history'),
