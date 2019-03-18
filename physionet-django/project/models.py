@@ -258,6 +258,10 @@ class CoreProject(models.Model):
         validators=[MaxValueValidator(109951162777600),
                     MinValueValidator(104857600)])
 
+    def active_new_version(self):
+        "Whether there is a new version being worked on"
+        return bool(self.activeprojects.filter())
+
 
 class Metadata(models.Model):
     """
@@ -432,6 +436,8 @@ class UnpublishedProject(models.Model):
     Abstract model inherited by ArchivedProject/ActiveProject
     """
     modified_datetime = models.DateTimeField(auto_now=True)
+    # Whether this project is being worked on as a new version
+    is_new_version = models.BooleanField(default=False)
 
     authors = GenericRelation('project.Author')
     references = GenericRelation('project.Reference')
@@ -948,6 +954,7 @@ class PublishedProject(Metadata, SubmissionInfo):
     # Fields for legacy pb databases
     is_legacy = models.BooleanField(default=False)
     full_description = RichTextField(default='')
+    # whether a new project is being published
 
     # Where all the published project files are kept, depending on access.
     PROTECTED_FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'published-projects')
