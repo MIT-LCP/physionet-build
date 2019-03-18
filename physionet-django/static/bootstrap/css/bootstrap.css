@@ -602,6 +602,7 @@ pre code {
   padding-right: 15px;
   padding-left: 15px;
   width: 100%;
+  padding-top: 50px;
 }
 
 @media (min-width: 576px) {
@@ -642,8 +643,6 @@ pre code {
   display: flex;
   -ms-flex-wrap: wrap;
       flex-wrap: wrap;
-  margin-right: -15px;
-  margin-left: -15px;
 }
 
 .no-gutters {
@@ -3658,7 +3657,6 @@ tbody.collapse.show {
   word-wrap: break-word;
   background-color: #fff;
   background-clip: border-box;
-  border: 1px solid rgba(0, 0, 0, 0.125);
   border-radius: 0.25rem;
 }
 

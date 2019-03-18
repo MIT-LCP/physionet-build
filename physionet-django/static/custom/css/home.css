@@ -1,4 +1,20 @@
 /* Adapted from startbootstrap-agency */
+
+.main-content, .main-news{
+  box-sizing: border-box;
+}
+
+.main-content{
+  padding: 40px 50px;
+  width: 75%;
+}
+
+.main-news{
+  padding: 30px;
+  width: 25%;
+  background: rgba(0,0,0,0.03);
+}
+
 .btn-pn {
 /*  color: white;
   background-color: #694;*/
