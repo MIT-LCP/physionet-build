@@ -566,7 +566,10 @@ def complete_credential_applications(request):
             application.reference_contact_datetime = timezone.now()
             application.save()
             # notification.contact_reference(request, application)
-            messages.success(request, 'The reference contact email has been created.')
+            mailto = notification.mailto_supervisor(request, application)
+            # messages.success(request, 'The reference contact email has been created.')
+            return render(request, 'console/generate_reference_email.html',
+                {'application':application, 'mailto':mailto})
         if 'process_application' in request.POST and request.POST['process_application'].isdigit():
             application_id = request.POST.get('process_application','')
             application = CredentialApplication.objects.get(id=application_id)
@@ -582,19 +585,11 @@ def complete_credential_applications(request):
 
     applications = CredentialApplication.objects.filter(status=0)
     applications.order_by('reference_contact_datetime')
-    mailto_list = []
-    for application in applications:
-        if application.reference_category == 0:
-            mailto_list.append(notification.mailto_supervisor(request, application))
-        else:
-            mailto_list.append(notification.mailto_reference(request, application))
-
-    mailto_applications = list(zip(applications, mailto_list))
 
     process_credential_form = forms.ProcessCredentialForm(responder=request.user)
 
     return render(request, 'console/complete_credential_applications.html',
-        {'mailto_applications':mailto_applications, 'applications':applications,
+        {'applications':applications,
         'process_credential_form':process_credential_form})
 
 

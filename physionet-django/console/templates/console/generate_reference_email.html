@@ -1,0 +1,16 @@
+{% extends "console/base_console.html" %}
+
+{% block title %}Credentialing Application Email Notification{% endblock %}
+
+{% block content %}
+<div class="card mb-3">
+  <div class="card-header">
+    Reference was marked as contacted. ({{ application.user.get_full_name }})
+  </div>
+  <div class="card-body">
+    <p><a class='btn btn-primary btn-lg' href="{{mailto}}">Generate contact reference email.</a></p>
+    <br>
+    <p>Return to <a href="{% url 'complete_credential_applications' %}">manage the applications.</p>
+  </div>
+</div>
+{% endblock %}
