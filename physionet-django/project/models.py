@@ -252,15 +252,32 @@ class CoreProject(models.Model):
     creation_datetime = models.DateTimeField(auto_now_add=True)
     # doi pointing to the latest version of the published project
     doi = models.CharField(max_length=50, default='')
+    # This slug is set once the first project is published
+    slug = models.SlugField(max_length=20, default='', db_index=True)
     # Maximum allowed storage capacity in bytes.
     # Default = 100Mb. Max = 10Tb
     storage_allowance = models.BigIntegerField(default=104857600,
         validators=[MaxValueValidator(109951162777600),
                     MinValueValidator(104857600)])
 
+    def submitting_user(self):
+        "User who is the submitting author"
+        project = self.publishedprojects.get(is_latest_version=True)
+        return project.authors.get(is_submitting=True).user
+
+
     def active_new_version(self):
         "Whether there is a new version being worked on"
         return bool(self.activeprojects.filter())
+
+    def can_publish_new(self, user):
+        """
+        Whether the user can publish a new version of this project
+        """
+        if user == self.submitting_user() and not self.active_new_version():
+            return True
+
+        return False
 
 
 class Metadata(models.Model):
