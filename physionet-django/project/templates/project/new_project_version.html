@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}New Project Version - {{ project.title }}{% endblock %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/settings.css' %}"/>
+{% endblock %}
+
+
+{% block content %}
+<div class="container">
+  <form action="" method="post">
+    <h2 class="form-signin-heading">New Project Version - {{ project.title }}</h2>
+    <hr>
+    <p>Specify a new version of your project that has <strong>not</strong> already been published:</p>
+    <ul>
+    {% for previous_project in previous_projects %}
+      <li>Version: {{ previous_project.version }} published: {{ previous_project.publish_datetime|date }}</li>
+    {% endfor %}
+    </ul>
+    <p>Once created, the new version must be submitted for publication within 180 days.</p>
+    <hr>
+    {% csrf_token %}
+    {% include "inline_form_snippet.html" %}
+    <button class="btn btn-lg btn-primary" type="submit">Create New Project Version</button>
+  </form>
+</div>
+{% endblock %}
+
+{% block local_js_bottom %}
+  <script type="text/javascript" src="{% static 'custom/js/resize-ck.js' %}"></script>
+{% endblock %}
+

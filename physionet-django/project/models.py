@@ -321,6 +321,7 @@ class Metadata(models.Model):
 
     # For ordering projects with multiple versions
     version_order = models.PositiveSmallIntegerField(default=0)
+    is_latest_version = models.BooleanField(default=True)
 
 
     class Meta:

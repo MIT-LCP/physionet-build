@@ -172,6 +172,42 @@ def create_project(request):
     return render(request, 'project/create_project.html', {'form':form})
 
 
+@login_required
+def new_project_version(request, project_slug):
+    """
+    Publish a new version of a project
+
+    """
+    user = request.user
+
+    n_submitting = Author.objects.filter(user=user, is_submitting=True,
+        content_type=ContentType.objects.get_for_model(ActiveProject)).count()
+    if n_submitting >= ActiveProject.MAX_SUBMITTING_PROJECTS:
+        return render(request, 'project/project_limit_reached.html',
+            {'max_projects':ActiveProject.MAX_SUBMITTING_PROJECTS})
+
+
+    previous_projects = PublishedProject.objects.filter(
+        slug=project_slug).order_by('-version_order')
+    latest_project = previous_projects.first()
+
+    # Can only have one new version project out at a time
+    if latest_project.core_project.activeprojects.filter():
+        return redirect('project_home')
+
+    if request.method == 'POST':
+        form = forms.NewProjectVersionForm(user=user,
+            project=latest_project, data=request.POST)
+        if form.is_valid():
+            project = form.save()
+            return redirect('project_overview', project_slug=project.slug)
+    else:
+        form = forms.NewProjectVersionForm(user=user, project=latest_project)
+
+    return render(request, 'project/new_project_version.html', {'form':form,
+        'project':latest_project, 'previous_projects':previous_projects})
+
+
 def project_overview_redirect(request, project_slug):
     return redirect('project_overview', project_slug=project_slug)
 
@@ -1034,8 +1070,12 @@ def published_project(request, published_project_slug):
     """
     Displays a published project
     """
-    project = PublishedProject.objects.get(slug=published_project_slug)
-    subdir = request.GET.get('subdir', '')
+    if 'version' in request.GET:
+        project = PublishedProject.objects.get(slug=published_project_slug,
+            version=request.GET['version'])
+    else:
+        project = PublishedProject.objects.filter(
+            slug=published_project_slug).order_by('-version_order').first()
 
     authors = project.authors.all().order_by('display_order')
     for a in authors:
