@@ -334,7 +334,7 @@ def mailto_reference(request, application):
          'signature':email_signature(),
          'footer':email_footer()})
 
-    mailto = "mailto:{0}?subject={1}&body={2}".format(application.reference_email,
+    mailto = "mailto:{0}?subject={1}&bcc=noreply@alpha.physionet.org&body={2}".format(application.reference_email,
       parse.quote(subject), parse.quote(body))
     return mailto
 
@@ -352,7 +352,7 @@ def mailto_supervisor(request, application):
          'footer':email_footer()})
     
     
-    mailto = "mailto:{0}?subject={1}&body={2}".format(application.reference_email,
+    mailto = "mailto:{0}?subject={1}&bcc=noreply@alpha.physionet.org&body={2}".format(application.reference_email,
       parse.quote(subject), parse.quote(body))
     return mailto
 
