@@ -14,25 +14,16 @@ PhysioNet
 
 
 {% block content %}
-  <div class="container">
+  <div class="main">
 
     <div class="row">
       {# Left column #}
-      <div class="col-md-7">
-        <h1>Latest content</h1>
-        <hr>
-        {% include "search/content_list.html" %}
-        <a class="btn btn-outline-dark" href="{% url 'content_index' %}">More Content</a>
-        <br><br>
-      </div>
-
-      <!--Right Column -->
-      <div class="col-md-5">
+      <div class="main-news">
 
         <div class="card">
           <h2 class="card-header">Welcome</h2>
           <div class="card-body">
-            <p class="card-text mt-1">PhysioNet offers free web access to large collections of recorded physiologic <a href="{% url 'database_index' %}">data</a> and related open-source <a href="{% url 'software_index' %}">software</a>. For more information, see our <a href="{% url 'about_physionet' %}">about page</a>.</p>
+            <p class="card-text mt-1">PhysioNet offers <strong>free</strong> web access to large collections of recorded physiologic <a href="{% url 'database_index' %}">data</a> and related open-source <a href="{% url 'software_index' %}">software</a>. For more information, see our <a href="{% url 'about_physionet' %}">about page</a>.</p>
           </div>
         </div>
 
@@ -40,20 +31,26 @@ PhysioNet
           <h2 class="card-header">News</h2>
           <div class="card-body">
             {% for news in news_pieces %}
-              <h3>
+              <h5>
                 {% if news.url %}
                   <a href="{{ news.url }}">{{ news.title }}</a>
                 {% else %}
                   {{ news.title }}
                 {% endif %}
-              </h3>
+              </h5>
               <p><a class="text-muted">{{ news.publish_datetime|date }}</a></p>
               {{ news.content|safe }}
               <hr>
             {% endfor %}
-            <a class="btn btn-outline-dark" href="{% url 'news' %}">More News</a>
+            <div class="more"><a class="btn btn-outline-dark" href="{% url 'news' %}">More news</a></div>
           </div>
         </div>
+      </div> <!--Right Column --><div class="main-content">
+        <h1>Latest resources</h1><br>
+        <!-- <hr> -->
+        {% include "search/content_list.html" %}
+        <div class="more"><a class="btn btn-outline-dark" href="{% url 'content_index' %}">More content</a></div>
+        <br><br>
       </div>
       <!-- /.column -->
     </div>
