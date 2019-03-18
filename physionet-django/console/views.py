@@ -560,14 +560,7 @@ def complete_credential_applications(request):
     Ongoing credential applications
     """
     if request.method == 'POST':
-        if 'contact_reference' in request.POST and request.POST['contact_reference'].isdigit():
-            application_id = request.POST.get('contact_reference','')
-            application = CredentialApplication.objects.get(id=application_id)
-            application.reference_contact_datetime = timezone.now()
-            application.save()
-            notification.contact_reference(request, application)
-            messages.success(request, 'The reference has been contacted.')
-        elif 'process_application' in request.POST and request.POST['process_application'].isdigit():
+        if 'process_application' in request.POST and request.POST['process_application'].isdigit():
             application_id = request.POST.get('process_application','')
             application = CredentialApplication.objects.get(id=application_id)
             process_credential_form = forms.ProcessCredentialForm(
