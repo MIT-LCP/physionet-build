@@ -96,6 +96,14 @@
   }
 },
 {
+  "model": "project.publishedaffiliation",
+  "pk": 3,
+  "fields": {
+    "name": "Massachusetts Institute of Technology",
+    "author": 3
+  }
+},
+{
   "model": "project.author",
   "pk": 1,
   "fields": {
@@ -203,6 +211,23 @@
     "last_name": "Moody",
     "corresponding_email": "george@mit.edu",
     "project": 2
+  }
+},
+{
+  "model": "project.publishedauthor",
+  "pk": 3,
+  "fields": {
+    "user": [
+      "rgmark"
+    ],
+    "display_order": 1,
+    "is_submitting": true,
+    "is_corresponding": true,
+    "approval_datetime": "2018-12-22T19:33:31.728Z",
+    "first_names": "Roger",
+    "last_name": "Mark",
+    "corresponding_email": "rgmark@mit.edu",
+    "project": 3
   }
 },
 {
@@ -430,6 +455,16 @@
   }
 },
 {
+  "model": "project.contact",
+  "pk": 3,
+  "fields": {
+    "name": "Roger Mark",
+    "affiliations": "Massachusetts Institute of Technology",
+    "email": "rgmark@mit.edu",
+    "project": 3
+  }
+},
+{
   "model": "project.publication",
   "pk": 1,
   "fields": {
@@ -505,6 +540,15 @@
   "pk": "ff038b01-14a2-4af1-9a7d-9f9845c45219",
   "fields": {
     "creation_datetime": "2017-10-30T14:30:30Z",
+    "doi": "",
+    "storage_allowance": 104857600
+  }
+},
+{
+  "model": "project.coreproject",
+  "pk": "85c5bad7-5f20-4194-8a20-0ff37ccee9a0",
+  "fields": {
+    "creation_datetime": "2019-03-01T14:30:30Z",
     "doi": "",
     "storage_allowance": 104857600
   }
@@ -708,6 +752,50 @@
       1,
       4
     ],
+    "approved_users": []
+  }
+},
+{
+  "model": "project.publishedproject",
+  "pk": 3,
+  "fields": {
+    "resource_type": 2,
+    "title": "Demo 2018 BHI and BSN Data Challenge",
+    "abstract": "<p>In collaboration with the IEEE Conference on Biomedical and Health Informatics (BHI) 2018 and the IEEE Conference on Body Sensor Networks (BSN), we are hosting a challenge to explore real clinical questions in critically ill patients using the MIMIC-III database. Participants in the challenge will be invited the present at the BHI &amp; BSN Annual Conference in Las Vegas, USA (4-7 March 2018):&nbsp;<a href=\"https://bhi-bsn.embs.org/2018/\">https://bhi-bsn.embs.org/2018/</a></p>",
+    "background": "<p>The BHI &amp; BSN Data Challenge asks participants to carry out a retrospective study using the MIMIC-III Database. This year&rsquo;s research question is focused on a controversial and important logistical issue hospitals encounter every week:</p>\r\n\r\n<p><strong>Are patients admitted to the intensive care unit on a weekend more likely to die in the hospital than those admitted on a weekday?</strong></p>\r\n\r\n<p>Teams must register for the challenge using the following form before midnight (PST) on&nbsp;<strong>1 March 2018</strong>:&nbsp;<a href=\"http://goo.gl/yQUazq\">http://goo.gl/yQUazq</a>.</p>\r\n\r\n<p>Challenge entries must be submitted in the form of a 7-minute research presentation, which should be emailed to&nbsp;<code>data-challenge@physionet.org</code>&nbsp;before&nbsp;<strong>7am (PST) Wednesday 7 March 2018</strong>.</p>\r\n\r\n<p>Guidelines for entering the challenge and preparing the presentation are outlined below.</p>",
+    "methods": "<p>The Challenge is now open for registration! Participating teams have one month to carry out a research project using the MIMIC-III database. Final submissions must be sent for consideration by noon (PST) on&nbsp;<strong>6 March 2018</strong>.</p>\r\n\r\n<ul>\r\n\t<li>Challenge announced: 5 February 2018</li>\r\n\t<li>Deadline for registration of teams: 1 March 2018 or as space permits (<strong>updated: 6 March 2018</strong>)</li>\r\n\t<li>Office hours and help with projects: 6 March 2018 (2.15pm-3.45pm) in Treasure Island F.</li>\r\n\t<li>Deadline for final submission: 6 March 2018 (<strong>updated: 7am on Wednesday 7 March!</strong>)</li>\r\n\t<li>Challenge Presentations: 7 March 2018 (8.50am-11:35am) in Treasure Island F.</li>\r\n\t<li>Awards: 7 March 2018: 5.50pm.</li>\r\n</ul>\r\n\r\n<p>Sample code is available at:&nbsp;<a href=\"https://github.com/MIT-LCP/bhi-bsn-challenge\">https://github.com/MIT-LCP/bhi-bsn-challenge</a>. For example, see these Jupyter Notebooks in&nbsp;<a href=\"https://github.com/MIT-LCP/bhi-bsn-challenge/blob/master/challenge-demo.ipynb\">Python</a>&nbsp;and&nbsp;<a href=\"https://github.com/MIT-LCP/bhi-bsn-challenge/blob/master/jupyter_example_notebook_in_R.ipynb\">R</a>.</p>",
+    "content_description": "<p>Participants will use the MIMIC-III database, which comprises routinely collected data for critical care patients for over 50,000 hospital stays. There is a formal process for requesting access to MIMIC-III, which is described at:&nbsp;<a href=\"https://mimic.physionet.org/gettingstarted/access/\">https://mimic.physionet.org/gettingstarted/access/</a></p>\r\n\r\n<p>Gaining access to the full MIMIC-III dataset may take several days, so we suggest using the MIMIC-III demo while waiting to gain full access:&nbsp;<a href=\"https://mimic.physionet.org/gettingstarted/demo/\">https://mimic.physionet.org/gettingstarted/demo/</a></p>\r\n\r\n<p>If you need help getting set up with access to MIMIC-III for the Challenge, please contact us at:&nbsp;<code>data-challenge@physionet.org</code>.</p>",
+    "usage_notes": "<p>At least one member of a team must be able to attend the&nbsp;<a href=\"https://bhi-bsn.embs.org/2018/\">BHI &amp; BSN Annual Conference</a>&nbsp;in Las Vegas, USA 4-7 March 2018 to give a short presentation at the event on&nbsp;<strong>7 March 2018</strong>. Registration at the conference is&nbsp;<em>not</em>&nbsp;a requirement, and not all team members need be present.</p>\r\n\r\n<p>Project entries will be assessed by a judging panel on the following criteria:</p>\r\n\r\n<ul>\r\n\t<li>Reproducibility</li>\r\n\t<li>Scientific methods</li>\r\n\t<li>Presentation</li>\r\n\t<li>Novelty</li>\r\n</ul>",
+    "installation": "",
+    "acknowledgements": "<p>The organizers would like to thanks&nbsp;<a href=\"https://cloud.google.com/\">Google Cloud</a>&nbsp;and&nbsp;<a href=\"http://www.gatech.edu/\">Georgia Tech</a>&nbsp;for supporting the event.</p>",
+    "conflicts_of_interest": "<p>No conflicts of interest.</p>",
+    "version": "1.0",
+    "release_notes": "",
+    "access_policy": 0,
+    "license": 7,
+    "project_home_page": "https://bhi-bsn.embs.org/2018/",
+    "slug": "5i2hQksZtJFNmURYziJ2",
+    "core_project": "85c5bad7-5f20-4194-8a20-0ff37ccee9a0",
+    "creation_datetime": "2019-03-17T07:53:10.022Z",
+    "version_order": 0,
+    "editor": 1,
+    "submission_datetime": "2019-03-17T07:51:22.235Z",
+    "author_comments": "Thanks for reviewing this submission.",
+    "editor_assignment_datetime": "2019-03-17T07:51:41.183Z",
+    "revision_request_datetime": null,
+    "resubmission_datetime": null,
+    "editor_accept_datetime": "2019-03-17T07:52:34.096Z",
+    "copyedit_completion_datetime": "2019-03-17T07:52:51.098Z",
+    "author_approval_datetime": "2019-03-17T07:52:58.716Z",
+    "main_storage_size": 1174,
+    "compressed_storage_size": 0,
+    "publish_datetime": "2019-03-17T07:53:10.022Z",
+    "is_newest_version": true,
+    "newest_version": null,
+    "doi": "",
+    "is_legacy": false,
+    "full_description": "",
+    "programming_languages": [],
     "approved_users": []
   }
 },
@@ -980,6 +1068,21 @@
   }
 },
 {
+  "model": "project.license",
+  "pk": 10,
+  "fields": {
+    "name": "MIT License",
+    "slug": "mit-license-challenge",
+    "text_content": "MIT License\r\n\r\nCopyright (c) <YEAR> <COPYRIGHT HOLDER>\r\n\r\nPermission is hereby granted, free of charge, to any person obtaining a copy\r\nof this software and associated documentation files (the \"Software\"), to deal\r\nin the Software without restriction, including without limitation the rights\r\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\r\ncopies of the Software, and to permit persons to whom the Software is\r\nfurnished to do so, subject to the following conditions:\r\n\r\nThe above copyright notice and this permission notice shall be included in all\r\ncopies or substantial portions of the Software.\r\n\r\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\r\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\r\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\r\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\r\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\r\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\r\nSOFTWARE.",
+    "html_content": "<p><strong>MIT License</strong></p>\r\n\r\n<p>Copyright (c) &lt;YEAR&gt; &lt;COPYRIGHT HOLDER&gt;</p>\r\n\r\n<p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p>\r\n\r\n<p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p>\r\n\r\n<p>THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>",
+    "home_page": "https://opensource.org/licenses/MIT",
+    "access_policy": 0,
+    "resource_type": 2,
+    "dua_name": "",
+    "dua_html_content": ""
+  }
+},
+{
   "model": "project.authorinvitation",
   "pk": 1,
   "fields": {
@@ -1096,6 +1199,30 @@
   }
 },
 {
+  "model": "project.editlog",
+  "pk": 3,
+  "fields": {
+    "content_type": [
+      "project",
+      "publishedproject"
+    ],
+    "object_id": 3,
+    "submission_datetime": "2019-03-17T07:51:22.235Z",
+    "is_resubmission": false,
+    "author_comments": "Thanks for reviewing this submission.",
+    "soundly_produced": true,
+    "well_described": true,
+    "open_format": true,
+    "data_machine_readable": true,
+    "reusable": true,
+    "no_phi": true,
+    "pn_suitable": true,
+    "decision": 2,
+    "decision_datetime": "2019-03-17T07:52:34.096Z",
+    "editor_comments": "Great thanks."
+  }
+},
+{
   "model": "project.copyeditlog",
   "pk": 1,
   "fields": {
@@ -1125,6 +1252,22 @@
     "made_changes": false,
     "changelog_summary": "",
     "complete_datetime": "2018-12-22T19:33:21.097Z"
+  }
+},
+{
+  "model": "project.copyeditlog",
+  "pk": 3,
+  "fields": {
+    "content_type": [
+      "project",
+      "publishedproject"
+    ],
+    "object_id": 3,
+    "start_datetime": "2019-03-17T07:52:34.096Z",
+    "is_reedit": false,
+    "made_changes": false,
+    "changelog_summary": "",
+    "complete_datetime": "2019-03-17T07:52:51.098Z"
   }
 }
 ]

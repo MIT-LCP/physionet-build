@@ -162,7 +162,7 @@
 {% endif %}
 <br>
 
-<h3>Your Author Affiliations</h3>
+<h3>Your Affiliations</h3>
 <p>Set up to three affiliations for your author profile. Note: these fields are not tied to your user profile.</p>
 <form action="{% url 'project_authors' project.slug %}" method="post" class="form-signin" onsubmit="return validateItems('affiliation-list', 'name', 'Affiliations')">
   {% csrf_token %}

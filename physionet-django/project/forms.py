@@ -312,6 +312,8 @@ class CreateProjectForm(forms.ModelForm):
     def __init__(self, user, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = user
+        if not user.is_admin:
+            self.fields['resource_type'].choices = self.fields['resource_type'].choices[:-1]
 
     class Meta:
         model = ActiveProject
@@ -346,22 +348,36 @@ class MetadataForm(forms.ModelForm):
     """
 
     FIELDS = (
+        # 0: Database
         ('title', 'abstract', 'background', 'methods', 'content_description',
          'usage_notes', 'version', 'release_notes', 'acknowledgements',
          'conflicts_of_interest',
          ),
+        # 1: Software
         ('title', 'abstract', 'background', 'content_description',
          'methods', 'installation', 'usage_notes', 'version', 'release_notes',
          'acknowledgements', 'conflicts_of_interest', ),
+        # 2: Challenge
+        ('title', 'abstract', 'background', 'methods', 'content_description',
+         'usage_notes', 'version', 'release_notes', 'acknowledgements',
+         'conflicts_of_interest',
+         ),
     )
 
     HELP_TEXTS = (
+        # 0: Database
         {'methods': '* The methodology employed for the study or research. Describe how the data was collected.',
          'content_description': '* Describe the data, and how the files are named and structured.',
          'usage_notes': '* How the data is to be used. List external documentation pages. List related software developed for the dataset, and any special software required to use the data.'},
+        # 1: Software
         {'content_description': '* Describe the software in this project.',
          'methods': 'Details on the technical implementation. ie. the development process, and the underlying algorithms.',
-         'usage_notes': '* How the software is to be used. List some example function calls or specify the demo file(s).'}
+         'usage_notes': '* How the software is to be used. List some example function calls or specify the demo file(s).'},
+        # 2: Challenge
+        {'background': '* An introduction to the challenge and a description of the objective/s.',
+         'methods': '* A timeline for the challenge and rules for participation.',
+         'content_description': '* A description of the challenge data and access details.',
+         'usage_notes': '* Scoring details, information on submitting an entry, and a link to a sample submission.'},
     )
 
     class Meta:

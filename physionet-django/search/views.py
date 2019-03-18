@@ -81,7 +81,7 @@ def content_index(request, resource_type=None):
     List of all published resources
     """
     LABELS = {None:['Content', 'projects'], 0:['Database', 'databases'],
-        1:['Software', 'software']}
+        1:['Software', 'software'], 2:['Challenge', 'challenge']}
     main_label, plural_label = LABELS[resource_type]
 
     orderby, direction = 'publish_datetime', 'desc'
@@ -115,6 +115,11 @@ def software_index(request):
     """
     return content_index(request, resource_type=1)
 
+def challenge_index(request):
+    """
+    List of published challenges
+    """
+    return content_index(request, resource_type=2)
 
 def charts(request):
     """
@@ -126,7 +131,7 @@ def charts(request):
         resource_type = int(request.GET['resource_type'])
 
     LABELS = {None:['Content', 'Projects'], 0:['Database', 'Databases'],
-        1:['Software', 'Software Projects']}
+        1:['Software', 'Software Projects'], 2:['Challenge', 'Challenges']}
 
     main_label, plural_label = LABELS[resource_type]
     return render(request, 'search/charts.html', {
