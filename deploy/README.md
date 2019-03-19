@@ -203,3 +203,10 @@ git rebase dev
 git push origin staging
 git push pn-staging staging
 ```
+
+After this, enter the server and run any migrations (if needed), then touch the vassal file.
+```
+./manage.py makemigrations
+./manage.py migrate
+touch /etc/uwsgi/vassals/physionet_uwsgi.ini 
+```
