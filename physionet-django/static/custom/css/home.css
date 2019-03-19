@@ -6,7 +6,7 @@
 
 .main-content{
   padding: 40px 50px;
-  width: 75%;
+  max-width: 75%;
 }
 
 .main-news{
@@ -30,6 +30,10 @@
 @media screen and (max-width: 1000px) {
   .main-news{
     min-width: unset;
+    max-width: unset;
+  }
+
+  .main-content{
     max-width: unset;
   }
 }
