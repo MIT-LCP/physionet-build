@@ -196,7 +196,7 @@ Scheduled tasks have been added, it uses the system cron executing the tasks twi
 
 ## Pushing into staging or live
 
-To move the content from dev into staging or live, make sure your local dev is up to date. Then run the following with either staging or production. The name remember word after push is the remote you have configured in your computer. If you only have origin as the remote, this will only update in GitHub.
+To move the content from dev into staging or live, make sure your local dev is up to date. Then run the following with either staging or production. If you have origin as the only remote, this will only update in GitHub.
 ```
 git checkout staging
 git rebase dev
