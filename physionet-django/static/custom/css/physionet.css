@@ -1,6 +1,82 @@
+.navbar{
+  display: block;
+}
+
+.navbar-brand, .navbar-search{
+  display: inline-block;
+}
+
+#navbarCollapse{
+  display: inline-flex !important;
+  width: calc(100% - 440px);
+}
+
+.navbar-icon{
+  display: none;
+  color: white;
+}
+
 /* Pushing items away from top-left brand */
 .navbar-brand {
-  width: 250px;
+  width: 150px;
+}
+
+.navbar-icon, .navbar-icon:hover{
+  text-decoration: none;
+  color: white;
+  padding: 5px;
+}
+
+@media (max-width: 1100px){
+  .navbar-icon{
+    display: inline-block;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .navbar-brand{
+    width: calc(100% - 300px);
+  }
+
+  #navbarCollapse{
+    display: none !important;
+    position: absolute;
+    width: 100%;
+    z-index: 100;
+    left: 0;
+    top: 55px;
+    padding: 10px 25px;
+    background: #343a40 !important;
+  }
+
+  .navbar-nav:first-child{
+    border-bottom: 2px white solid;
+    padding-bottom: 25px;
+    margin-bottom: 25px;
+  }
+
+  .navbar-nav{
+    display: block;
+  }
+
+  .navbar-check{
+    display: none;
+  }
+
+  .navbar-check:checked +.navbar-brand + #navbarCollapse{
+    display: block !important;
+  }
+}
+
+@media (max-width: 500px){
+  .navbar-search input{
+    display: none;
+  }
+
+  .navbar-brand{
+    width: calc(100% - 95px);
+  }
 }
 
 /* Padding between navbar items */
