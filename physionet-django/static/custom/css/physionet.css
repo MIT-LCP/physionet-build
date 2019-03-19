@@ -16,6 +16,10 @@
   color: white;
 }
 
+.navbar-check{
+  display: none;
+}
+
 /* Pushing items away from top-left brand */
 .navbar-brand {
   width: 150px;
@@ -60,8 +64,8 @@
     display: block;
   }
 
-  .navbar-check{
-    display: none;
+  .dropdown-menu{
+    position: unset !important;
   }
 
   .navbar-check:checked +.navbar-brand + #navbarCollapse{
