@@ -1058,7 +1058,7 @@ def published_project(request, published_project_slug):
     if has_access:
         display_files, display_dirs = project.get_main_directory_content(
             subdir=subdir)
-        dir_breadcrumbs = utility.get_dir_breadcrumbs('')
+        dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
         main_size, compressed_size = [utility.readable_size(s) for s in
             (project.main_storage_size, project.compressed_storage_size)]
 
