@@ -193,3 +193,13 @@ There is initial data for the site (licenses, tags, etc) in `site-data.json` fix
 
 Scheduled tasks have been added, it uses the system cron executing the tasks twice a day. (this can be changed if needed.)
 `0 */12 * * * export DJANGO_SETTINGS_MODULE=physionet.settings.staging  && source /physionet/python-env/physionet/bin/activate && python /physionet/physionet-build/physionet-django/manage.py runcrons >> /var/log/cronjob.log`
+
+## Pushing into staging or live
+
+To move the content from dev into staging or live, make sure your local dev is up to date. Then run the following with either staging or production. The name remember word after push is the remote you have configured in your computer. If you only have origin as the remote, this will only update in GitHub.
+```
+git checkout staging
+git rebase dev
+git push origin staging
+git push pn-staging staging
+```
