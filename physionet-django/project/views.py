@@ -740,8 +740,7 @@ def project_files(request, project_slug, **kwargs):
             # process the file manipulation post
             subdir = process_files_post(request, project)
             project.modified_datetime = timezone.now()
-    if 'subdir' not in vars():
-        subdir = ''
+    subdir = request.GET.get('subdir', '')
 
     storage_info = project.get_storage_info()
     storage_request = StorageRequest.objects.filter(project=project,
