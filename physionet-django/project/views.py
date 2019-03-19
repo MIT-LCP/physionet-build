@@ -829,7 +829,7 @@ def project_preview(request, project_slug, **kwargs):
 
     subdir = request.GET.get('subdir', '')
     display_files, display_dirs = project.get_directory_content(subdir=subdir)
-    dir_breadcrumbs = utility.get_dir_breadcrumbs('')
+    dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
 
     return render(request, 'project/project_preview.html', {
         'project':project, 'display_files':display_files, 'display_dirs':display_dirs,
