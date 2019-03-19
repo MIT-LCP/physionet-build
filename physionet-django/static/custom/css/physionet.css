@@ -110,3 +110,37 @@ a{
 .more{
   text-align: right;
 }
+
+.container{
+  padding-top: 50px;
+}
+
+.row{
+  margin-left: unset;
+  margin-right: unset;
+}
+
+.card{
+    border: unset;
+}
+
+.badge{
+  padding: 0.5em 0.5em;
+  font-weight: normal;
+  color: unset;
+}
+
+.badge-success {
+  color: #fff;
+  background-color: rgba(0,128,0,0.75);
+}
+
+.badge-danger {
+  color: #fff;
+  background-color: rgba(163, 31, 52, 0.75);
+}
+
+.badge-dark {
+  color: #fff;
+  background-color: rgba(51, 51, 51, 0.75);
+}
