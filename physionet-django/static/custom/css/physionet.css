@@ -233,17 +233,17 @@ a{
   color: unset;
 }
 
-.badge-success {
+.badge-success:not(.badge-pill) {
   color: #fff;
   background-color: rgba(0,128,0,0.75);
 }
 
-.badge-danger {
+.badge-danger:not(.badge-pill) {
   color: #fff;
   background-color: rgba(163, 31, 52, 0.75);
 }
 
-.badge-dark {
+.badge-dark:not(.badge-pill) {
   color: #fff;
   background-color: rgba(51, 51, 51, 0.75);
 }
