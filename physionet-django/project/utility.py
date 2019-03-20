@@ -176,15 +176,16 @@ def readable_size(num, suffix='B'):
     return '{:.1f}{:s}{:s}'.format(num, 'Y', suffix)
 
 
-def write_uploaded_file(file, write_file_path):
+def write_uploaded_file(file, write_file_path, overwrite=True):
     """
     file: request.FILE
     write_file_path: full file path to be written
     """
-    try:
-        os.unlink(write_file_path)
-    except FileNotFoundError:
-        pass
+    if overwrite:
+        try:
+            os.unlink(write_file_path)
+        except FileNotFoundError:
+            pass
     with open(write_file_path, 'xb') as destination:
         for chunk in file.chunks():
             destination.write(chunk)
