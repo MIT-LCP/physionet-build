@@ -9,14 +9,9 @@
   margin: auto;
 }
 
-#navbarCollapse{
+#navbarCollapse, #navbarResponsive{
   display: inline-flex !important;
-  width: calc(100% - 415px);
-}
-
-#navbarResponsive{
-  display: inline-flex !important;
-  width: calc(100% - 520px);
+  width: calc(100% - 406px);
 }
 
 .navbar-icon{
@@ -203,6 +198,8 @@ a{
   background: transparent;
   color: white;
   cursor: pointer;
+  padding: unset;
+  padding-left: 20px;
 }
 
 .pub-details{
