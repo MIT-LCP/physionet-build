@@ -181,7 +181,11 @@ def write_uploaded_file(file, write_file_path):
     file: request.FILE
     write_file_path: full file path to be written
     """
-    with open(write_file_path, 'wb+') as destination:
+    try:
+        os.unlink(write_file_path)
+    except FileNotFoundError:
+        pass
+    with open(write_file_path, 'xb') as destination:
         for chunk in file.chunks():
             destination.write(chunk)
 
