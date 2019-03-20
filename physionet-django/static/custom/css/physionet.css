@@ -8,7 +8,7 @@
 
 #navbarCollapse{
   display: inline-flex !important;
-  width: calc(100% - 420px);
+  width: calc(100% - 415px);
 }
 
 #navbarResponsive{
@@ -181,7 +181,7 @@ a{
   padding: 5px;
   border-radius: 0;
   line-height: unset;
-  width: unset;
+  width: 200px;
 }
 
 .btn-search{
