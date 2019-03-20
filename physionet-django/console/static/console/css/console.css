@@ -86,11 +86,6 @@ body.fixed-nav {
   z-index: 1;
 }
 
-#mainNav .navbar-collapse {
-  overflow: auto;
-  max-height: 75vh;
-}
-
 #mainNav .navbar-collapse .navbar-nav .nav-item .nav-link {
   cursor: pointer;
 }
@@ -168,7 +163,7 @@ body.fixed-nav {
   text-overflow: ellipsis;
 }
 
-@media (min-width: 992px) {
+@media (min-width: 1100px) {
   #mainNav .navbar-brand {
     width: 250px;
   }
@@ -227,7 +222,7 @@ body.fixed-nav {
   display: none;
 }
 
-@media (min-width: 992px) {
+@media (min-width: 1100px) {
   #mainNav.fixed-top .navbar-sidenav {
     height: calc(100vh - 112px);
   }
@@ -289,7 +284,7 @@ body.sidenav-toggled #mainNav.fixed-top #sidenavToggler i {
   display: none;
 }
 
-@media (min-width: 992px) {
+@media (min-width: 1100px) {
   #mainNav.static-top .sidenav-toggler {
     display: flex;
   }
@@ -309,7 +304,7 @@ body.sidenav-toggled #mainNav.static-top #sidenavToggler i {
   background: white;
 }
 
-@media (min-width: 992px) {
+@media (min-width: 1100px) {
   .content-wrapper {
     margin-left: 250px;
   }
@@ -323,7 +318,7 @@ body.sidenav-toggled #mainNav.static-top #sidenavToggler i {
   display: none;
 }
 
-@media (min-width: 992px) {
+@media (min-width: 1100px) {
   body.sidenav-toggled .content-wrapper {
     margin-left: 55px;
   }
@@ -382,7 +377,7 @@ body.sidenav-toggled .navbar-sidenav-tooltip.show {
   color: #adb5bd;
 }*/
 
-@media (min-width: 992px) {
+@media (min-width: 1100px) {
   #mainNav.navbar-dark .navbar-collapse .navbar-sidenav {
     background: #343a40;
   }
@@ -426,7 +421,7 @@ body.sidenav-toggled .navbar-sidenav-tooltip.show {
   color: rgba(0, 0, 0, 0.5);
 }
 
-@media (min-width: 992px) {
+@media (min-width: 1100px) {
   #mainNav.navbar-light .navbar-collapse .navbar-sidenav {
     background: #f8f9fa;
   }
@@ -490,13 +485,13 @@ footer.sticky-footer {
   line-height: 55px;
 }
 
-@media (min-width: 992px) {
+@media (min-width: 1100px) {
   footer.sticky-footer {
     width: calc(100% - 250px);
   }
 }
 
-@media (min-width: 992px) {
+@media (min-width: 1100px) {
   body.sidenav-toggled footer.sticky-footer {
     width: calc(100% - 55px);
   }

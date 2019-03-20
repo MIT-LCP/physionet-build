@@ -8,7 +8,12 @@
 
 #navbarCollapse{
   display: inline-flex !important;
-  width: calc(100% - 440px);
+  width: calc(100% - 420px);
+}
+
+#navbarResponsive{
+  display: inline-flex !important;
+  width: calc(100% - 270px);
 }
 
 .navbar-icon{
@@ -43,7 +48,7 @@
     width: calc(100% - 300px);
   }
 
-  #navbarCollapse{
+  #navbarCollapse, #navbarResponsive{
     display: none !important;
     position: absolute;
     width: 100%;
@@ -54,7 +59,7 @@
     background: #343a40 !important;
   }
 
-  .navbar-nav:first-child{
+  .navbar-nav{
     border-bottom: 2px white solid;
     padding-bottom: 25px;
     margin-bottom: 25px;
@@ -69,6 +74,10 @@
   }
 
   .navbar-check:checked +.navbar-brand + #navbarCollapse{
+    display: block !important;
+  }
+
+  .navbar-check:checked +.navbar-brand + #navbarResponsive{
     display: block !important;
   }
 }
