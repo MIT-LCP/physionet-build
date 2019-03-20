@@ -1,9 +1,16 @@
+.bg-dark{
+  background: #2F4F4F !important;
+}
+
 .navbar{
   display: block;
+  height: 55px;
+  padding: 6px 20px;
 }
 
 .navbar-brand, .navbar-search{
   display: inline-block;
+  margin: auto;
 }
 
 #navbarCollapse{
@@ -54,9 +61,9 @@
     width: 100%;
     z-index: 100;
     left: 0;
-    top: 55px;
+    top: 65px;
     padding: 10px 25px;
-    background: #343a40 !important;
+    background: #2F4F4F !important;
   }
 
   .navbar-nav{
@@ -97,6 +104,15 @@
   padding-right:5px;
 }
 
+.dropdown-toggle::after{
+  border: 0;
+  padding-left: 18px;
+  content: "\232A";
+  transform: rotate(90deg) scaleY(0.75);
+  margin-left: 7px;
+  vertical-align: unset;
+}
+
 /* make drop-down menus work without javascript */
 .dropdown-toggle:focus + .dropdown-menu,
 .dropdown:focus-within .dropdown-menu {
@@ -113,7 +129,9 @@
 }
 
 #mainNav .navbar-nav li.nav-item a.nav-link {
-  color: rgba(255, 255, 255, 0.75);
+  color: white;
+  font-weight: 600;
+  font-size: 0.9em;
 }
 
 #mainNav .navbar-nav li.nav-item a.nav-link:hover {
@@ -232,4 +250,8 @@ a{
 .badge-dark {
   color: #fff;
   background-color: rgba(51, 51, 51, 0.75);
+}
+
+.fa{
+  margin-right: 5px;
 }
