@@ -12,6 +12,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelatio
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
 
@@ -581,9 +582,13 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         display_files, display_dirs = [], []
 
         # Files require desciptive info and download links
+        prefix = reverse('serve_project_file', args=[self.slug, subdir + '/'])
+        if prefix.endswith('//'):
+            prefix = prefix[:-1]
         for file in file_names:
             file_info = get_file_info(os.path.join(inspect_dir, file))
             file_info.full_file_name = os.path.join(subdir, file)
+            file_info.url = prefix + file
             display_files.append(file_info)
 
         # Directories require links
@@ -1109,12 +1114,21 @@ class PublishedProject(Metadata, SubmissionInfo):
         display_files, display_dirs = [], []
 
         # Files require desciptive info and download links
+        if self.access_policy:
+            prefix = reverse('serve_published_project_file',
+                             args=[self.slug, subdir + '/'])
+            if prefix.endswith('//'):
+                prefix = prefix[:-1]
+        else:
+            prefix = os.path.join('/static/published-projects/',
+                                  self.slug, 'files', subdir, '')
         for file in file_names:
             file_info = get_file_info(os.path.join(inspect_dir, file))
             if self.access_policy:
                 file_info.full_file_name = os.path.join('files', subdir, file)
             else:
                 file_info.static_url = os.path.join('published-projects', str(self.slug), 'files', subdir, file)
+            file_info.url = prefix + file
             display_files.append(file_info)
         # Directories require links
         for dir_name in dir_names:
