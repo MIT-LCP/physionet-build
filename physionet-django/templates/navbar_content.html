@@ -70,7 +70,7 @@
   {% if user.is_authenticated %}
     <li class="nav-item">
       <a id="nav_projects" class="nav-link" href="{% url 'project_home' %}">
-        My Projects
+        Projects
       </a>
     </li>
   {% endif %}
@@ -85,17 +85,15 @@
         {% endif %}
         </a>
         <div class="dropdown-menu" aria-labelledby="account_dropdown">
+          <a class="dropdown-item" href="{% url 'public_profile' user.username %}">
+            Profile
+          </a>
           {% if user.is_admin %}
             <a id="nav_admin" class="dropdown-item" href="{% url 'console_home' %}">
               Admin Console
             </a>
           {% endif %}
-          <a class="dropdown-item" href="{% url 'public_profile' user.username %}">
-            Profile
-          </a>
-          <a id="nav_settings" class="dropdown-item" href="{% url 'edit_profile' %}">
-            Settings
-          </a>
+          <hr>
           <a id="nav_logout" class="dropdown-item" href="{% url 'logout' %}">
             Logout
           </a>
