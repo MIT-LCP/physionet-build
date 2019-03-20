@@ -222,7 +222,7 @@
     {% if has_access %}
       <p>Total uncompressed size: {{ main_size }}.{% if project.compressed_storage_size %}<a class="btn btn-success btn-sm" href="{% url 'serve_published_project_file' project.slug project.zip_name %}" style="float:right">Download Zip ({{ compressed_size }})</a>{% endif %}</p>
       <div id="files-panel" class="card">
-        {% include "project/protected_files_panel.html" %}
+        {% include "project/files_panel.html" %}
       </div>
     {% else %}
     <div class="alert alert-danger" role="alert">
@@ -232,7 +232,7 @@
   {% else %}
     <p>Total uncompressed size: {{ main_size }}.{% if project.compressed_storage_size %}<a class="btn btn-success btn-sm" href="{% static project.zip_url %}" style="float:right">Download Zip ({{ compressed_size }})</a>{% endif %}</p>
     <div id="files-panel" class="card">
-      {% include "project/open_files_panel.html" %}
+      {% include "project/files_panel.html" %}
     </div>
   {% endif %}
   <br>

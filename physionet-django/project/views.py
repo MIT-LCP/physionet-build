@@ -995,12 +995,7 @@ def published_files_panel(request, published_project_slug):
         dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
         parent_dir = os.path.split(subdir)[0]
 
-        if project.access_policy:
-            template = 'project/protected_files_panel.html'
-        else:
-            template = 'project/open_files_panel.html'
-
-        return render(request, template,
+        return render(request, 'project/files_panel.html',
             {'project':project, 'subdir':subdir,
              'dir_breadcrumbs':dir_breadcrumbs,
              'parent_dir':parent_dir,
