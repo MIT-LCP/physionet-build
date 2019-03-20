@@ -57,9 +57,9 @@
     width: 100%;
     z-index: 100;
     left: 0;
-    top: 65px;
+    top: 55px;
     padding: 10px 25px;
-    background: #2F4F4F !important;
+    background: #343a40 !important;
   }
 
   .navbar-nav{
