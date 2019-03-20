@@ -587,7 +587,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             prefix = prefix[:-1]
         for file in file_names:
             file_info = get_file_info(os.path.join(inspect_dir, file))
-            file_info.full_file_name = os.path.join(subdir, file)
             file_info.url = prefix + file
             display_files.append(file_info)
 
@@ -1124,10 +1123,6 @@ class PublishedProject(Metadata, SubmissionInfo):
                                   self.slug, 'files', subdir, '')
         for file in file_names:
             file_info = get_file_info(os.path.join(inspect_dir, file))
-            if self.access_policy:
-                file_info.full_file_name = os.path.join('files', subdir, file)
-            else:
-                file_info.static_url = os.path.join('published-projects', str(self.slug), 'files', subdir, file)
             file_info.url = prefix + file
             display_files.append(file_info)
         # Directories require links
