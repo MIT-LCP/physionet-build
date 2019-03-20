@@ -227,7 +227,7 @@ a{
     border: unset;
 }
 
-.badge{
+.badge:not(.badge-pill){
   padding: 0.5em 0.5em;
   font-weight: normal;
   color: unset;
