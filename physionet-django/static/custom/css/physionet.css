@@ -13,7 +13,7 @@
 
 #navbarResponsive{
   display: inline-flex !important;
-  width: calc(100% - 270px);
+  width: calc(100% - 520px);
 }
 
 .navbar-icon{
