@@ -107,13 +107,13 @@
         {% else %}
           {% include "project/database_metadata.html" %}
         {% endif %}
-      {# 1: Software #} 
+      {# 1: Software #}
       {% elif project.resource_type == 1 %}
         {% include "project/software_metadata.html" %}
-      {# 2: Challenge #} 
+      {# 2: Challenge #}
       {% elif project.resource_type == 2 %}
         {% include "project/challenge_metadata.html" %}
-      {# Other #} 
+      {# Other #}
       {% else %}
         {% include "project/software_metadata.html" %}
       {% endif %}
