@@ -36,3 +36,12 @@ def validate_subdir(value):
     """
     if not re.fullmatch(r'[\w\-\./]*', value) or '..' in value or value.startswith('/') or '//' in value:
         raise ValidationError('Invalid path')
+
+
+def validate_version(value):
+    """
+    Validate version string. Allow empty value for initial state.
+    """
+    if value:
+        if not re.fullmatch(r'[0-9]+(\.[0-9]+)*', value) or '..' in value:
+            raise ValidationError('Version may only contain numbers and dots, and must begin and end with a number.')
