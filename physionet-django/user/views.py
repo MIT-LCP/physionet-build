@@ -366,7 +366,7 @@ def credential_application(request):
     Page to apply for credentially
     """
     user = request.user
-
+    license = License.objects.get(id='6')
     if user.is_credentialed or CredentialApplication.objects.filter(
             user=user, status=0):
         return redirect('edit_credentialing')
