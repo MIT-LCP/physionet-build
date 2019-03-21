@@ -22,7 +22,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from .forms import AddEmailForm, AssociatedEmailChoiceForm, ProfileForm, RegistrationForm, UsernameChangeForm, CredentialApplicationForm, CredentialReferenceForm
 from . import forms
 from .models import AssociatedEmail, Profile, User, CredentialApplication, LegacyCredential
-from physionet import utility
+from project import utility
 from project.models import Author, License
 from notification.utility import reference_deny_credential, credential_application_request
 
@@ -242,7 +242,7 @@ def profile_photo(request, username):
     Serve a user's profile photo
     """
     user = User.objects.get(username=username)
-    return utility.serve_file(request, user.profile.photo.path)
+    return utility.serve_abs_file(user.profile.photo.path)
 
 def register(request):
     """
@@ -412,7 +412,8 @@ def training_report(request, application_slug):
     """
     application = CredentialApplication.objects.get(slug=application_slug)
     if request.user == application.user or request.user.is_admin:
-        return utility.serve_file(request, application.training_completion_report.path)
+        path = application.training_completion_report.path
+        return utility.serve_abs_file(path)
 
 
 # @login_required
