@@ -201,18 +201,6 @@ def get_form_errors(form):
     return all_errors
 
 
-def serve_file(file_name, file_path):
-    """
-    Serve a file to download. file_path is the full file path of the
-    file on the server
-    """
-    response = HttpResponse()
-    response['Content-Type'] = ''
-    response['Content-Disposition'] = 'attachment; filename=' + os.path.basename(file_name)
-    response['X-Accel-Redirect'] = '/protected/' + file_path
-    return response
-
-
 def serve_abs_file(path):
     """
     Serve a file to download.  path is the real path of the file on
