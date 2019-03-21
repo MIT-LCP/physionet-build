@@ -777,8 +777,8 @@ def serve_project_file(request, project_slug, file_name, **kwargs):
     Serve a file in a project. file_name is file path relative to
     project file root.
     """
-    file_path = os.path.join('active-projects',kwargs['project'].slug, file_name)
-    return utility.serve_file(file_name, file_path)
+    path = os.path.join(kwargs['project'].file_root(), file_name)
+    return utility.serve_abs_file(path)
 
 @project_auth(auth_mode=2)
 def preview_files_panel(request, project_slug, **kwargs):
@@ -1014,8 +1014,8 @@ def serve_published_project_file(request, published_project_slug, full_file_name
     """
     project = PublishedProject.objects.get(slug=published_project_slug)
     if project.has_access(request.user):
-        file_path = os.path.join('published-projects', published_project_slug, full_file_name)
-        return utility.serve_file(full_file_name, file_path)
+        path = os.path.join(project.file_root(), full_file_name)
+        return utility.serve_abs_file(path)
     raise Http404()
 
 def published_project_license(request, published_project_slug):
