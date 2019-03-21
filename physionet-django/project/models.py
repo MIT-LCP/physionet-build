@@ -295,7 +295,8 @@ class Metadata(models.Model):
     installation = RichTextField(blank=True)
     acknowledgements = RichTextField(blank=True)
     conflicts_of_interest = RichTextField(blank=True)
-    version = models.CharField(max_length=15, default='', blank=True)
+    version = models.CharField(max_length=15, default='', blank=True,
+        validators=validate_version)
     release_notes = RichTextField(blank=True)
 
     # Short description used for search results, social media, etc
@@ -994,7 +995,7 @@ class PublishedProject(Metadata, SubmissionInfo):
     def __str__(self):
         return ('{0} v{1}'.format(self.title, self.version))
 
-    def file_root(self):
+    def project_file_root(self):
         """
         Root directory containing the published project's files.
 
@@ -1010,7 +1011,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         Root directory where the main user uploaded files are located
         """
-        return os.path.join(self.file_root(), 'files')
+        return os.path.join(self.project_file_root(), 'files')
 
     def storage_used(self):
         """
@@ -1041,7 +1042,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         name = '{}.zip'.format(self.slugged_label())
         if full:
-            name = os.path.join(self.file_root(), name)
+            name = os.path.join(self.project_file_root(), name)
         return name
 
     def make_zip(self):
@@ -1056,7 +1057,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         # Prevent recursively zipping the zip file
         zipfile = shutil.make_archive(base_name=os.path.join(
             PublishedProject.PROTECTED_FILE_ROOT, self.slugged_label()),
-            format='zip', root_dir=self.file_root())
+            format='zip', root_dir=self.project_file_root())
 
         os.rename(zipfile, fname)
         self.compressed_storage_size = os.path.getsize(fname)

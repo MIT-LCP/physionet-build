@@ -817,8 +817,8 @@ def project_files(request, project_slug, **kwargs):
 @project_auth(auth_mode=2)
 def serve_project_file(request, project_slug, file_name, **kwargs):
     """
-    Serve a file in a project. file_name is file path relative to
-    project file root.
+    Serve a file in an active project. file_name is file path relative
+    to the project's file root.
     """
     file_path = os.path.join('active-projects',kwargs['project'].slug, file_name)
     return utility.serve_file(file_name, file_path)
