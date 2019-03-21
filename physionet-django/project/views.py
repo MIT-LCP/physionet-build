@@ -815,7 +815,7 @@ def project_files(request, project_slug, **kwargs):
 
 
 @project_auth(auth_mode=2)
-def serve_project_file(request, project_slug, file_name, **kwargs):
+def serve_active_project_file(request, project_slug, file_name, **kwargs):
     """
     Serve a file in an active project. file_name is file path relative
     to the project's file root.
@@ -1001,12 +1001,12 @@ def rejected_submission_history(request, project_slug):
              'copyedit_logs':copyedit_logs})
 
 
-def published_submission_history(request, project_slug):
+def published_submission_history(request, project_slug, version):
     """
     Submission history for a published project
     """
     user = request.user
-    project = PublishedProject.objects.get(slug=project_slug)
+    project = PublishedProject.objects.get(slug=project_slug, version=version)
 
     if user.is_admin or project.authors.filter(user=user):
         edit_logs = project.edit_logs.all()
@@ -1019,20 +1019,21 @@ def published_submission_history(request, project_slug):
              'copyedit_logs':copyedit_logs, 'published':True})
 
 
-def published_files_panel(request, published_project_slug):
+def published_files_panel(request, project_slug, version):
     """
     Return the main file panel for the published project, for all access
     policies. Called via ajax.
     """
-    project = PublishedProject.objects.get(slug=published_project_slug)
+    project = PublishedProject.objects.get(slug=project_slug,
+        version=version)
     subdir = request.GET['subdir']
 
     if not request.is_ajax():
         return redirect('published_project',
-            published_project_slug=published_project_slug)
+            project_slug=project_slug, version=version)
 
     if project.has_access(request.user):
-        display_files, display_dirs = project.get_main_directory_content(
+        display_files, display_dirs = project.get_directory_content(
             subdir=subdir)
         # Breadcrumbs
         dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
@@ -1050,22 +1051,25 @@ def published_files_panel(request, published_project_slug):
              'display_files':display_files, 'display_dirs':display_dirs})
 
 
-def serve_published_project_file(request, published_project_slug, full_file_name):
+def serve_published_project_file(request, project_slug, version,
+        full_file_name):
     """
     Serve a protected file of a published project
 
     """
-    project = PublishedProject.objects.get(slug=published_project_slug)
+    project = PublishedProject.objects.get(slug=project_slug,
+        version=version)
     if project.has_access(request.user):
         file_path = os.path.join('published-projects', published_project_slug, full_file_name)
         return utility.serve_file(full_file_name, file_path)
     raise Http404()
 
-def published_project_license(request, published_project_slug):
+def published_project_license(request, project_slug, version):
     """
     Displays a published project's license
     """
-    project = PublishedProject.objects.get(slug=published_project_slug)
+    project = PublishedProject.objects.get(slug=project_slug,
+        version=version)
     license = project.license
     license_content = project.license_content(fmt='html')
 
@@ -1073,16 +1077,22 @@ def published_project_license(request, published_project_slug):
         {'project':project, 'license':license,
         'license_content':license_content})
 
-def published_project(request, published_project_slug):
+
+def published_project_latest(request, project_slug):
+    """
+    Redirect to latest project version
+    """
+    version = PublishedProject.objects.get(slug=project_slug,
+        is_latest_version=True).version
+    return redirect('published_project', project_slug=project_slug,
+        version=version)
+
+
+def published_project(request, project_slug, version):
     """
     Displays a published project
     """
-    if 'version' in request.GET:
-        project = PublishedProject.objects.get(slug=published_project_slug,
-            version=request.GET['version'])
-    else:
-        project = PublishedProject.objects.filter(
-            slug=published_project_slug).order_by('-version_order').first()
+    project = PublishedProject.objects.get(slug=slug, version=version)
 
     authors = project.authors.all().order_by('display_order')
     for a in authors:
@@ -1102,9 +1112,8 @@ def published_project(request, published_project_slug):
 
     # The file and directory contents
     if has_access:
-        display_files, display_dirs = project.get_main_directory_content(
-            subdir=subdir)
-        dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
+        display_files, display_dirs = project.get_directory_content()
+        dir_breadcrumbs = utility.get_dir_breadcrumbs('')
         main_size, compressed_size = [utility.readable_size(s) for s in
             (project.main_storage_size, project.compressed_storage_size)]
 
@@ -1116,17 +1125,17 @@ def published_project(request, published_project_slug):
 
 
 @login_required
-def sign_dua(request, published_project_slug):
+def sign_dua(request, project_slug, version):
     """
     Page to sign the dua for a protected project.
     Both restricted and credentialed policies.
     """
     user = request.user
-    project = PublishedProject.objects.get(slug=published_project_slug)
+    project = PublishedProject.objects.get(slug=project_slug, version=version)
 
     if not project.access_policy or project.has_access(user):
         return redirect('published_project',
-            published_project_slug=published_project_slug)
+            project_slug=project_slug)
 
     if project.access_policy == 2 and not user.is_credentialed:
         return render(request, 'project/credential_required.html')

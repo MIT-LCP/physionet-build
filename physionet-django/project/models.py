@@ -16,7 +16,7 @@ from django.utils import timezone
 from django.utils.text import slugify
 
 from .utility import get_tree_size, get_file_info, get_directory_info, list_items, StorageInfo, get_tree_files, list_files
-from .validators import validate_doi, validate_subdir
+from .validators import validate_doi, validate_subdir, validate_version
 from user.validators import validate_alphaplus, validate_alphaplusplus
 
 
@@ -296,7 +296,7 @@ class Metadata(models.Model):
     acknowledgements = RichTextField(blank=True)
     conflicts_of_interest = RichTextField(blank=True)
     version = models.CharField(max_length=15, default='', blank=True,
-        validators=validate_version)
+        validators=[validate_version])
     release_notes = RichTextField(blank=True)
 
     # Short description used for search results, social media, etc
@@ -940,7 +940,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         # Create file root
         os.mkdir(published_project.file_root())
         # Move over main files
-        os.rename(self.file_root(), published_project.main_file_root())
+        os.rename(self.file_root(), published_project.file_root())
         # Create special files if there are files. Should always be the case.
         if bool(self.storage_used):
             published_project.make_special_files(make_zip=make_zip)
@@ -1007,17 +1007,17 @@ class PublishedProject(Metadata, SubmissionInfo):
         else:
             return os.path.join(PublishedProject.PUBLIC_FILE_ROOT, self.slug)
 
-    def main_file_root(self):
+    def file_root(self):
         """
         Root directory where the main user uploaded files are located
         """
-        return os.path.join(self.project_file_root(), 'files')
+        return os.path.join(self.project_file_root(), self.version)
 
     def storage_used(self):
         """
         Bytes of storage used by main files and compressed file if any
         """
-        main = get_tree_size(self.main_file_root())
+        main = get_tree_size(self.file_root())
         compressed = os.path.getsize(self.zip_name(full=True)) if os.path.isfile(self.zip_name(full=True)) else 0
         return main, compressed
 
@@ -1077,15 +1077,15 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         Make the checksums file for the main files
         """
-        fname = os.path.join(self.main_file_root(), 'SHA256SUMS.txt')
+        fname = os.path.join(self.file_root(), 'SHA256SUMS.txt')
         if os.path.isfile(fname):
             os.remove(fname)
 
-        files = get_tree_files(self.main_file_root(), full_path=False)
+        files = get_tree_files(self.file_root(), full_path=False)
         with open(fname, 'w') as outfile:
             for f in files:
                 outfile.write('{} {}\n'.format(
-                    hashlib.sha256(open(os.path.join(self.main_file_root(), f), 'rb').read()).hexdigest(), f))
+                    hashlib.sha256(open(os.path.join(self.file_root(), f), 'rb').read()).hexdigest(), f))
 
         self.set_storage_info()
 
@@ -1093,7 +1093,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         Make the license text file
         """
-        with open(os.path.join(self.main_file_root(), 'LICENSE.txt'), 'w') as outfile:
+        with open(os.path.join(self.file_root(), 'LICENSE.txt'), 'w') as outfile:
             outfile.write(self.license_content(fmt='text'))
 
         self.set_storage_info()
@@ -1117,16 +1117,17 @@ class PublishedProject(Metadata, SubmissionInfo):
         # Sanitize subdir for illegal characters
         validate_subdir(subdir)
         # Folder must be a subfolder of the file root and exist
-        inspect_dir = os.path.join(self.main_file_root(), subdir)
-        if inspect_dir.startswith(self.main_file_root()) and os.path.isdir(inspect_dir):
+        inspect_dir = os.path.join(self.file_root(), subdir)
+        if inspect_dir.startswith(self.file_root()) and os.path.isdir(inspect_dir):
             return inspect_dir
         else:
+            # pdb.set_trace()
             raise Exception('Invalid directory request')
 
-    def get_main_directory_content(self, subdir=''):
+    def get_directory_content(self, subdir=''):
         """
         Return information for displaying files and directories from
-        the main file root
+        the file root.
         """
         # Get folder to inspect if valid
         inspect_dir = self.get_inspect_dir(subdir)
@@ -1137,9 +1138,11 @@ class PublishedProject(Metadata, SubmissionInfo):
         for file in file_names:
             file_info = get_file_info(os.path.join(inspect_dir, file))
             if self.access_policy:
-                file_info.full_file_name = os.path.join('files', subdir, file)
+                # File name relative to file root
+                file_info.full_file_name = os.path.join(subdir, file)
             else:
-                file_info.static_url = os.path.join('published-projects', str(self.slug), 'files', subdir, file)
+                # Url relative to static root
+                file_info.static_url = os.path.join('published-projects', self.slug, self.version, subdir, file)
             display_files.append(file_info)
         # Directories require links
         for dir_name in dir_names:
@@ -1490,4 +1493,4 @@ class LegacyProject(models.Model):
 
         if make_file_roots:
             os.mkdir(p.file_root())
-            os.mkdir(p.main_file_root())
+            os.mkdir(p.file_root())

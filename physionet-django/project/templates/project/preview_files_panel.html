@@ -42,7 +42,7 @@
   {% for file in display_files %}
     <li class="list-group-item">
       <div class="row">
-        <div class="col-md-8">&nbsp;<i class="far fa-file"></i>&nbsp;&nbsp;&nbsp;<a href="{% url 'serve_project_file' project.slug file.full_file_name %}">{{ file.name }}</a></div>
+        <div class="col-md-8">&nbsp;<i class="far fa-file"></i>&nbsp;&nbsp;&nbsp;<a href="{% url 'serve_active_project_file' project.slug file.full_file_name %}">{{ file.name }}</a></div>
         <div class="col-md-2">{{ file.size }}</div>
         <div class="col-md-2">{{ file.last_modified }}</div>
       </div>

@@ -1,6 +1,6 @@
-from django.conf.urls import include, url
+from django.conf.urls import include
 from django.contrib import admin
-from django.urls import path, re_path
+from django.urls import path
 from django.http import HttpResponse
 
 from . import views
@@ -40,20 +40,6 @@ urlpatterns = [
     path('about/contact/', views.contact, name='contact'),
     path('about/citi-course/', views.citi_course, name='citi_course'),
 
-    # published projects
-    path('content/<published_project_slug>/',
-        project_views.published_project, name='published_project'),
-    path('content/<published_project_slug>/files-panel/',
-        project_views.published_files_panel, name='published_files_panel'),
-    re_path('content/(?P<published_project_slug>\w+)/get-file/(?P<full_file_name>.+)',
-        project_views.serve_published_project_file, name='serve_published_project_file'),
-    path('content/<published_project_slug>/view-license/',
-        project_views.published_project_license, name='published_project_license'),
-
-    # data use agreements
-    path('sign-dua/<published_project_slug>/', project_views.sign_dua,
-        name='sign_dua'),
-
     # robots.txt for crawlers
-    url(r'^robots.txt', lambda x: HttpResponse("User-Agent: *\nDisallow: /", content_type="text/plain"), name="robots_file"),
+    path('robots.txt', lambda x: HttpResponse("User-Agent: *\nDisallow: /", content_type="text/plain"), name="robots_file"),
 ]
