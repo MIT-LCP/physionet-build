@@ -213,3 +213,20 @@ def serve_file(file_name, file_path):
     return response
 
 
+def serve_abs_file(path):
+    """
+    Serve a file to download.  path is the real path of the file on
+    the server.
+    """
+    root = settings.MEDIA_ROOT
+    alias = settings.MEDIA_X_ACCEL_ALIAS
+    if alias and path.startswith(root + '/'):
+        response = HttpResponse()
+        response['X-Accel-Redirect'] = alias + path[len(root):]
+    else:
+        with open(path, 'rb') as f:
+            response = HttpResponse(f.read())
+    base = os.path.basename(path)
+    response['Content-Type'] = ''
+    response['Content-Disposition'] = 'attachment; filename=' + base
+    return response
