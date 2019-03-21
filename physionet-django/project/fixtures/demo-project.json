@@ -702,7 +702,6 @@
     "compressed_storage_size": 3090,
     "publish_datetime": "2018-11-14T21:11:17.040Z",
     "is_newest_version": true,
-    "newest_version": null,
     "doi": "10.13026/G2F309",
     "programming_languages": [],
     "approved_users": []
@@ -746,7 +745,6 @@
     "compressed_storage_size": 1600385,
     "publish_datetime": "2018-12-22T19:34:36.678Z",
     "is_newest_version": true,
-    "newest_version": null,
     "doi": "10.13026/X2K01X",
     "programming_languages": [
       1,
@@ -791,7 +789,6 @@
     "compressed_storage_size": 0,
     "publish_datetime": "2019-03-17T07:53:10.022Z",
     "is_newest_version": true,
-    "newest_version": null,
     "doi": "",
     "is_legacy": false,
     "full_description": "",

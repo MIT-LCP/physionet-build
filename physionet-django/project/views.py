@@ -136,11 +136,15 @@ def project_home(request):
         content_type=ContentType.objects.get_for_model(ActiveProject))
     archived_authors = Author.objects.filter(user=user,
         content_type=ContentType.objects.get_for_model(ArchivedProject))
-    published_authors = PublishedAuthor.objects.filter(user=user)
+    published_authors = PublishedAuthor.objects.filter(user=user,
+        project__is_latest_version=True)
 
-    # Get the projects and published projects
+    # Get the various projects.
     projects = [a.project for a in active_authors]
     published_projects = [a.project for a in published_authors]
+    for p in published_projects:
+        p.new_button = p.can_publish_new(user)
+
     rejected_projects = [a.project for a in archived_authors if a.project.archive_reason == 3]
 
     invitation_response_formset = InvitationResponseFormSet(
@@ -187,23 +191,25 @@ def new_project_version(request, project_slug):
         return render(request, 'project/project_limit_reached.html',
             {'max_projects':ActiveProject.MAX_SUBMITTING_PROJECTS})
 
-    core_project = CoreProject.objects.get(slug=project_slug)
     previous_projects = PublishedProject.objects.filter(
         slug=project_slug).order_by('-version_order')
     latest_project = previous_projects.first()
 
-    # Can only have one new version project out at a time
-    if core_project.active_new_version():
+    # Only submitting author can make new. Also can only have one new version
+    # of this project out at a time.
+    if not latest_project.can_publish_new(user):
         return redirect('project_home')
 
     if request.method == 'POST':
         form = forms.NewProjectVersionForm(user=user,
-            project=latest_project, data=request.POST)
+            latest_project=latest_project, previous_projects=previous_projects,
+            data=request.POST)
         if form.is_valid():
             project = form.save()
             return redirect('project_overview', project_slug=project.slug)
     else:
-        form = forms.NewProjectVersionForm(user=user, project=latest_project)
+        form = forms.NewProjectVersionForm(user=user,
+            latest_project=latest_project, previous_projects=previous_projects)
 
     return render(request, 'project/new_project_version.html', {'form':form,
         'project':latest_project, 'previous_projects':previous_projects})

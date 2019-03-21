@@ -343,10 +343,14 @@ class NewProjectVersionForm(forms.ModelForm):
     """
     For creating new project versions
     """
-    def __init__(self, user, project, *args, **kwargs):
+    # Enforce non-blank version
+    version = forms.CharField(max_length=15)
+
+    def __init__(self, user, latest_project, previous_projects, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = user
-        self.previous_project = project
+        self.latest_project = latest_project
+        self.previous_projects = previous_projects
 
     class Meta:
         model = ActiveProject
@@ -354,8 +358,8 @@ class NewProjectVersionForm(forms.ModelForm):
 
     def clean_version(self):
         data = self.cleaned_data['version']
-        if data in [p.version for p in self.previous_project.core_project.publishedprojects.all()]:
-            raise forms.ValidationError('Please specify a previous unused version.')
+        if data in [p.version for p in self.previous_projects]:
+            raise forms.ValidationError('Please specify a new unused version.')
 
         return data
 
@@ -364,19 +368,19 @@ class NewProjectVersionForm(forms.ModelForm):
         # Direct copy over fields
         for attr in [f.name for f in Metadata._meta.fields]:
             if attr not in ['slug', 'version', 'creation_datetime']:
-                setattr(project, attr, getattr(self.previous_project, attr))
+                setattr(project, attr, getattr(self.latest_project, attr))
         # Set new fields
         slug = get_random_string(20)
         while exists_project_slug(slug):
             slug = get_random_string(20)
         project.slug = slug
         project.creation_datetime = timezone.now()
-        project.version_order = self.previous_project.version_order + 1
+        project.version_order = self.latest_project.version_order + 1
         project.is_new_version = True
         project.save()
 
         # Copy over the author/affiliation objects
-        for p_author in self.previous_project.authors.all():
+        for p_author in self.latest_project.authors.all():
             author = Author.objects.create(project=project, user=p_author.user,
                 display_order=p_author.display_order,
                 is_submitting=p_author.is_submitting,
@@ -388,17 +392,17 @@ class NewProjectVersionForm(forms.ModelForm):
                     author=author)
 
         # Other related objects
-        for p_reference in self.previous_project.references.all():
+        for p_reference in self.latest_project.references.all():
             reference = Reference.objects.create(
                 description=p_reference.description,
                 project=project)
 
-        for p_publication in self.previous_project.publications.all():
+        for p_publication in self.latest_project.publications.all():
             publication = Publication.objects.create(
                 citation=p_publication.citation, url=p_publication.url,
                 project=project)
 
-        for p_topic in self.previous_project.topics.all():
+        for p_topic in self.latest_project.topics.all():
             topic = Topic.objects.create(project=project,
                 description=p_topic.description)
 
@@ -480,7 +484,7 @@ class MetadataForm(forms.ModelForm):
     def clean_version(self):
         data = self.cleaned_data['version']
         if data in [p.version for p in self.instance.core_project.publishedprojects.all()]:
-            raise forms.ValidationError('Please specify a previous unused version.')
+            raise forms.ValidationError('Please specify a new unused version.')
         return data
 
 
