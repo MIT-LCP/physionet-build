@@ -17,7 +17,7 @@
     <p>Specify a new version of your project that has <strong>not</strong> already been published:</p>
     <ul>
     {% for previous_project in previous_projects %}
-      <li>Version: {{ previous_project.version }} published: {{ previous_project.publish_datetime|date }}</li>
+      <li>Version: {{ previous_project.version }}. Published: {{ previous_project.publish_datetime|date }}</li>
     {% endfor %}
     </ul>
     <p>Once created, the new version must be submitted for publication within 180 days.</p>

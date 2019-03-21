@@ -252,32 +252,15 @@ class CoreProject(models.Model):
     creation_datetime = models.DateTimeField(auto_now_add=True)
     # doi pointing to the latest version of the published project
     doi = models.CharField(max_length=50, default='')
-    # This slug is set once the first project is published
-    slug = models.SlugField(max_length=20, default='', db_index=True)
     # Maximum allowed storage capacity in bytes.
     # Default = 100Mb. Max = 10Tb
     storage_allowance = models.BigIntegerField(default=104857600,
         validators=[MaxValueValidator(109951162777600),
                     MinValueValidator(104857600)])
 
-    def submitting_user(self):
-        "User who is the submitting author"
-        project = self.publishedprojects.get(is_latest_version=True)
-        return project.authors.get(is_submitting=True).user
-
-
     def active_new_version(self):
         "Whether there is a new version being worked on"
         return bool(self.activeprojects.filter())
-
-    def can_publish_new(self, user):
-        """
-        Whether the user can publish a new version of this project
-        """
-        if user == self.submitting_user() and not self.active_new_version():
-            return True
-
-        return False
 
 
 class Metadata(models.Model):
@@ -329,7 +312,7 @@ class Metadata(models.Model):
         'project.ProgrammingLanguage', related_name='%(class)ss')
 
     # Public url slug, also used as a submitting project id.
-    slug = models.SlugField(max_length=20, unique=True, db_index=True)
+    slug = models.SlugField(max_length=20, db_index=True)
     core_project = models.ForeignKey('project.CoreProject',
                                      related_name='%(class)ss',
                                      on_delete=models.CASCADE)
@@ -482,6 +465,18 @@ class UnpublishedProject(models.Model):
         """
         return StorageInfo(allowance=self.core_project.storage_allowance,
             used=self.storage_used(), include_remaining=True)
+
+    def get_previous_slug(self):
+        """
+        If this is a new version of a project, get the slug of the
+        published versions.
+        """
+        if self.version_order:
+            return self.core_project.publishedprojects.all().get(
+                version_order=0).slug
+        else:
+            raise Exception('Not a new version')
+
 
     def remove(self):
         """
@@ -866,6 +861,9 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         if not self.is_publishable():
             raise Exception('The project is not publishable')
 
+        # If this is a new version, previous fields need to be updated
+        previous_published_projects = self.core_project.publishedprojects.all()
+
         published_project = PublishedProject(doi=doi)
 
         # Direct copy over fields
@@ -949,6 +947,9 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         # Remove the ActiveProject
         self.delete()
 
+        if previous_published_projects:
+            previous_published_projects.update(is_latest_version=False)
+
         return published_project
 
 
@@ -962,8 +963,6 @@ class PublishedProject(Metadata, SubmissionInfo):
     compressed_storage_size = models.BigIntegerField(default=0)
     publish_datetime = models.DateTimeField(auto_now_add=True)
     is_newest_version = models.BooleanField(default=True)
-    newest_version = models.ForeignKey('project.PublishedProject', null=True,
-        related_name='older_versions', on_delete=models.SET_NULL)
     # doi = models.CharField(max_length=50, unique=True, validators=[validate_doi])
     # Temporary workaround
     doi = models.CharField(max_length=50, default='')
@@ -1193,6 +1192,19 @@ class PublishedProject(Metadata, SubmissionInfo):
             return self.delete()
         else:
             raise Exception('Make sure you want to remove this item.')
+
+    def submitting_user(self):
+        "User who is the submitting author"
+        return self.authors.get(is_submitting=True).user
+
+    def can_publish_new(self, user):
+        """
+        Whether the user can publish a new version of this project
+        """
+        if user == self.submitting_user() and not self.core_project.active_new_version():
+            return True
+
+        return False
 
 
 def exists_project_slug(slug):
