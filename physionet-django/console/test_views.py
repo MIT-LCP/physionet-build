@@ -209,15 +209,19 @@ class TestState(TestMixin, TestCase):
 
         project = PublishedProject.objects.get(slug=custom_slug)
         # Access the published project's page and its (open) files
-        response = self.client.get(reverse('published_project', args=(project.slug,)))
+        response = self.client.get(reverse('published_project',
+            args=(project.slug, project.version)))
         self.assertEqual(response.status_code, 200)
         response = self.client.get(reverse(
-            'serve_published_project_file', args=(project.slug, 'files/subject-100/100.atr')))
+            'serve_published_project_file',
+            args=(project.slug, project.version, 'files/subject-100/100.atr')))
         self.assertEqual(response.status_code, 200)
         response = self.client.get(reverse(
-            'serve_published_project_file', args=(project.slug, 'mit-bih-arrhythmia-database-1.0.0.zip')))
+            'serve_published_project_file',
+            args=(project.slug, project.version, 'mit-bih-arrhythmia-database-1.0.0.zip')))
         self.assertEqual(response.status_code, 200)
         # Access the submission log as the author
         self.client.login(username='rgmark', password='Tester11!')
-        response = self.client.get(reverse('published_submission_history', args=(project.slug,)))
+        response = self.client.get(reverse('published_submission_history',
+            args=(project.slug, project.version,)))
         self.assertEqual(response.status_code, 200)

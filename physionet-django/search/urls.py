@@ -37,7 +37,7 @@ urlpatterns = [
     path('content/<project_slug>/<version>/view-license/',
         project_views.published_project_license,
         name='published_project_license'),
-    path('sign-dua/<project_slug>/', project_views.sign_dua,
+    path('sign-dua/<project_slug>/<version>/', project_views.sign_dua,
         name='sign_dua'),
 
     path('charts/', views.charts, name='charts'),

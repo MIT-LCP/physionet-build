@@ -13,7 +13,8 @@ urlpatterns = [
 
     path('rejected/<project_slug>/submission-history/', views.rejected_submission_history,
         name='rejected_submission_history'),
-    path('published/<project_slug>/submission-history/', views.published_submission_history,
+    path('published/<project_slug>/<version>/submission-history/',
+        views.published_submission_history,
         name='published_submission_history'),
 
     # Individual project pages
