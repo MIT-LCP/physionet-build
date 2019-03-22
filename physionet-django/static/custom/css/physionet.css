@@ -220,10 +220,6 @@ a{
   margin-right: unset;
 }
 
-.card{
-    border: unset;
-}
-
 .badge:not(.badge-pill){
   padding: 0.5em 0.5em;
   font-weight: normal;
