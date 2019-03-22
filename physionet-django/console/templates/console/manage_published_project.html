@@ -32,7 +32,7 @@
     <div class="tab-content">
       <div class="tab-pane fade show active" id="info" role="tabpanel" aria-labelledby="info-tab">
         <p>{{ project.resource_type|resource_badge|safe }} {{ project.access_policy|access_badge|safe }}</p>
-        <h4 class="card-title"><a href="{% url 'published_project' project.slug %}" target="_blank">{{ project.title }}</a></h4>
+        <h4 class="card-title"><a href="{% url 'published_project' project.slug project.version %}" target="_blank">{{ project.title }}</a></h4>
         <p class="card-text">
           Authors: {% for author in authors %}{{ author|show_all_author_info|safe }} {% endfor %}<br>
           Created: {{ project.creation_datetime|date }}. Submitted: {{ project.submission_datetime|date }}. Published: {{ project.publish_datetime|date }}<br>

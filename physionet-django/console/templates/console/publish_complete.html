@@ -8,7 +8,7 @@
     Publish Complete
   </div>
   <div class="card-body">
-    <p>The project has been successfully published <a href="{% url 'published_project' published_project.slug %}" >here</a>.</p>
+    <p>The project has been successfully published <a href="{% url 'published_project' published_project.slug published_project.version %}" >here</a>.</p>
     <p>You may return to your <a href="{% url 'editor_home' %}">editor home</a>.</p>
   </div>
 </div>

@@ -3,7 +3,7 @@
 
 Dear {{ name }},
 
-We are delighted to inform you that your project entitled "{{ published_project.title }}" (version {{ published_project.version }}) has been published on PhysioNet. The project is available at: http://{{ domain }}{% url 'published_project' published_project.slug %}
+We are delighted to inform you that your project entitled "{{ published_project.title }}" (version {{ published_project.version }}) has been published on PhysioNet. The project is available at: http://{{ domain }}{% url 'published_project' published_project.slug published_project.version%}
 
 We encourage you to share this link to increase your work's visibility within the research community. Thanks again for choosing to publish with PhysioNet, and we look forward to working with you again in the future.
 

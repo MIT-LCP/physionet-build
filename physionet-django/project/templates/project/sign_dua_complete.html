@@ -10,7 +10,7 @@ Access Granted for {{ project }}
 <div class="container">
   <h1>Access Granted - {{ project }}</h1>
   <hr>
-  <p>Thank you for signing the data use agreement for <a href="{% url 'published_project' project.slug %}">{{ project }}</a>. You are now approved to access its files.</p>
+  <p>Thank you for signing the data use agreement for <a href="{% url 'published_project' project.slug project.version %}">{{ project }}</a>. You are now approved to access its files.</p>
   <br>
 </div>
 {% endblock %}
