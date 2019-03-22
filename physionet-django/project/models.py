@@ -327,8 +327,6 @@ class Metadata(models.Model):
 
     # For ordering projects with multiple versions
     version_order = models.PositiveSmallIntegerField(default=0)
-    is_latest_version = models.BooleanField(default=True)
-
 
     class Meta:
         abstract = True
@@ -869,6 +867,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         # and slug needs to be carried over
         if self.version_order:
             previous_published_projects = self.core_project.publishedprojects.all()
+            previous_published_projects.update(is_latest_version=False)
             slug = previous_published_projects.first().slug
 
         published_project = PublishedProject(doi=doi)
@@ -956,9 +955,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         # Remove the ActiveProject
         self.delete()
 
-        if self.version_order and previous_published_projects:
-            previous_published_projects.update(is_latest_version=False)
-
         return published_project
 
 
@@ -979,7 +975,7 @@ class PublishedProject(Metadata, SubmissionInfo):
     # Fields for legacy pb databases
     is_legacy = models.BooleanField(default=False)
     full_description = RichTextField(default='')
-    # whether a new project is being published
+    is_latest_version = models.BooleanField(default=True)
 
     # Where all the published project files are kept, depending on access.
     PROTECTED_FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'published-projects')

@@ -13,6 +13,8 @@ urlpatterns = [
 
     path('rejected/<project_slug>/submission-history/', views.rejected_submission_history,
         name='rejected_submission_history'),
+    path('published/<project_slug>/', views.published_versions,
+        name='published_versions'),
     path('published/<project_slug>/<version>/submission-history/',
         views.published_submission_history,
         name='published_submission_history'),
@@ -52,7 +54,7 @@ urlpatterns = [
     path('<project_slug>/project-files-panel/', views.project_files_panel,
         name='project_files_panel'),
 
-     path('<project_slug>/proofread/', views.project_proofread,
+    path('<project_slug>/proofread/', views.project_proofread,
         name='project_proofread'),
 
     path('<project_slug>/preview/', views.project_preview,

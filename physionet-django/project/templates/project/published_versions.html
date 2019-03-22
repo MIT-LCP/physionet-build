@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Published Versions - {{ project_title }}{% endblock %}
+
+{% load static %}
+
+{% block content %}
+<div class="container">
+  <h1>Published Versions - {{ project_title }}</h1>
+  <br>
+  <div class="table-responsive">
+    <table class="table table-bordered" width="100%" cellspacing="0">
+      <thead>
+        <tr>
+          <th>Version</th>
+          <th>Url</th>
+          <th>Publish Date</th>
+          <th>DOI</th>
+          <th>Submission History</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for project in projects %}
+        <tr>
+          <td>{{ project.version }}</td>
+          <td><a href="{% url 'published_project' project.slug project.version %}">https://{{ current_site }}{% url 'published_project' project.slug project.version %}</a></td>
+          <td>{{ project.publish_datetime|date }}</td>
+          <td>{{ project.doi }}</td>
+          <td><a href="{% url 'published_submission_history' project.slug project.version %}">View</a></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <p><a href="{% url 'project_home' %}">Return to Project Home</a></p>
+</div>
+{% endblock %}
