@@ -3,13 +3,16 @@
 
 Dear {{ name }},
 
-We are pleased to say that copyediting of your project entitled {{ project.title }}" is now complete. {% if copyedit_log.made_changes %}
+We are pleased to say that copyediting of your project entitled {{ project.title }}" is now complete. To proceed with publication, you must now approve the project using the following link:
 
-The changes made during this process are summarized below:
+http://{{ domain }}{% url 'project_submission' project.slug %}
+
+{% if copyedit_log.made_changes %}
+The changes made during the copyediting process are summarized below:
 {{ copyedit_log.changelog_summary }}
-{% else %}We were satisfied with the state of your project and no changes were made.{% endif %}
+{% else %}We were satisfied with the state of your project, so no changes were made during the copyediting process.{% endif %}
 
-When all authors have approved this version of the project using the online system, it will be ready for publication on PhysioNet.
+Please check this version carefully because it will not be possible to edit the project after publication. When all authors have approved the project using the online system, it will be ready for publication on PhysioNet.
 
 {{ signature }}
 
