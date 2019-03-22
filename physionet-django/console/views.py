@@ -140,12 +140,12 @@ def submission_info(request, project_slug):
     View information about a project under submission
     """
     project = ActiveProject.objects.get(slug=project_slug)
-    authors, author_emails, storage_info, edit_logs, copyedit_logs = project.info_card()
+    authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
 
     return render(request, 'console/submission_info.html',
         {'project':project, 'authors':authors, 'author_emails':author_emails,
          'storage_info':storage_info, 'edit_logs':edit_logs,
-         'copyedit_logs':copyedit_logs})
+         'copyedit_logs':copyedit_logs, 'latest_version':latest_version})
 
 
 @handling_editor
@@ -183,14 +183,13 @@ def edit_submission(request, project_slug, *args, **kwargs):
         edit_submission_form = forms.EditSubmissionForm(
             resource_type=project.resource_type, instance=edit_log)
 
-    authors, author_emails, storage_info, edit_logs, _ = project.info_card()
+    authors, author_emails, storage_info, edit_logs, _, latest_version = project.info_card()
 
     return render(request, 'console/edit_submission.html',
-        {'project':project,
-         'edit_submission_form':edit_submission_form,
-         'authors':authors,
-         'author_emails':author_emails, 'storage_info':storage_info,
-         'edit_logs':edit_logs})
+        {'project':project, 'edit_submission_form':edit_submission_form,
+         'authors':authors, 'author_emails':author_emails,
+         'storage_info':storage_info, 'edit_logs':edit_logs,
+         'latest_version':latest_version})
 
 
 @handling_editor
@@ -286,7 +285,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
     if 'subdir' not in vars():
         subdir = ''
 
-    authors, author_emails, storage_info, edit_logs, copyedit_logs = project.info_card()
+    authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
 
     (upload_files_form, create_folder_form, rename_item_form,
         move_items_form, delete_items_form) = get_file_forms(project=project,
@@ -312,7 +311,8 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
         'display_dirs':display_dirs, 'dir_breadcrumbs':dir_breadcrumbs,
         'is_editor':True, 'copyedit_form':copyedit_form,
         'authors':authors, 'author_emails':author_emails,
-        'storage_info':storage_info, 'edit_logs':edit_logs, 'copyedit_logs':copyedit_logs,
+        'storage_info':storage_info, 'edit_logs':edit_logs,
+        'copyedit_logs':copyedit_logs, 'latest_version':latest_version,
         'add_item_url':edit_url, 'remove_item_url':edit_url,
         'discovery_form':discovery_form})
 
@@ -330,7 +330,7 @@ def awaiting_authors(request, project_slug, *args, **kwargs):
     if project.submission_status != 50:
         return redirect('editor_home')
 
-    authors, author_emails, storage_info, edit_logs, copyedit_logs = project.info_card()
+    authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
     outstanding_emails = ';'.join([a.user.email for a in authors.filter(
         approval_datetime=None)])
 
@@ -341,9 +341,9 @@ def awaiting_authors(request, project_slug, *args, **kwargs):
             {'project':project})
 
     return render(request, 'console/awaiting_authors.html',
-        {'project':project, 'authors':authors,
-         'author_emails':author_emails, 'storage_info':storage_info,
-         'edit_logs':edit_logs, 'copyedit_logs':copyedit_logs,
+        {'project':project, 'authors':authors, 'author_emails':author_emails,
+         'storage_info':storage_info, 'edit_logs':edit_logs,
+         'copyedit_logs':copyedit_logs, 'latest_version':latest_version,
          'outstanding_emails':outstanding_emails})
 
 
@@ -378,7 +378,7 @@ def publish_submission(request, project_slug, *args, **kwargs):
     if project.submission_status != 60:
         return redirect('editor_home')
 
-    authors, author_emails, storage_info, edit_logs, copyedit_logs = project.info_card()
+    authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
     publish_form = forms.PublishForm(project=project)
 
     if request.method == 'POST':
@@ -401,7 +401,7 @@ def publish_submission(request, project_slug, *args, **kwargs):
         {'project':project, 'publishable':publishable, 'authors':authors,
          'author_emails':author_emails, 'storage_info':storage_info,
          'edit_logs':edit_logs, 'copyedit_logs':copyedit_logs,
-         'publish_form':publish_form})
+         'latest_version':latest_version, 'publish_form':publish_form})
 
 
 def process_storage_response(request, storage_response_formset):
@@ -486,7 +486,7 @@ def manage_published_project(request, project_slug):
 
     """
     project = PublishedProject.objects.get(slug=project_slug)
-    authors, author_emails, storage_info, edit_logs, copyedit_logs = project.info_card()
+    authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
     doi_form = forms.DOIForm(instance=project)
 
     if request.method == 'POST':
@@ -507,7 +507,8 @@ def manage_published_project(request, project_slug):
     return render(request, 'console/manage_published_project.html',
         {'project':project, 'authors':authors, 'author_emails':author_emails,
          'storage_info':storage_info, 'edit_logs':edit_logs,
-         'copyedit_logs':copyedit_logs, 'published':True, 'doi_form':doi_form,})
+         'copyedit_logs':copyedit_logs, 'latest_version':latest_version,
+         'published':True, 'doi_form':doi_form,})
 
 @login_required
 @user_passes_test(is_admin)

@@ -361,7 +361,7 @@ class Metadata(models.Model):
         if separate_submitting:
             submitting_author = authors.get(is_submitting=True)
             coauthors = authors.filter(is_submitting=False)
-            submitting_author.set_display_info()
+            submitting_author.set_display_infprevious_versiono()
             for a in coauthors:
                 a.set_display_info()
             if include_emails:
@@ -387,7 +387,9 @@ class Metadata(models.Model):
         for e in edit_logs:
             e.set_quality_assurance_results()
         copyedit_logs = self.copyedit_logs.all()
-        return authors, author_emails, storage_info, edit_logs, copyedit_logs
+        # The last published version. May be None.
+        latest_version = self.core_project.publishedprojects.all().last()
+        return authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version
 
     def license_content(self, fmt):
         """
@@ -864,8 +866,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             raise Exception('The project is not publishable')
 
         # If this is a new version, previous fields need to be updated
+        # and slug needs to be carried over
         if self.version_order:
             previous_published_projects = self.core_project.publishedprojects.all()
+            slug = previous_published_projects.first().slug
 
         published_project = PublishedProject(doi=doi)
 
