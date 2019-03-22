@@ -31,7 +31,7 @@
     </strong>
   </p>
 
-  Published: {{ project.publish_datetime|date }}. Version: {{ project.version }}
+  Published: {{ project.publish_datetime|date }}. Version: {{ project.version }}{% if not project.is_latest_version %} <a href="{% url 'published_project_latest' project.slug %}">&lt;View latest version&gt;</a>{% endif %}
 
   {% if not project.is_legacy %}
   <button class="btn btn-secondary dropdown-toggle" style="float:right" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -207,6 +207,16 @@
           {% endif %}
         </div>
       </div>
+      {% if not project.is_latest_version or project.version_order %}
+      <div class="card my-4">
+        <h5 class="card-header">Versions</h5>
+        <ul class="list-group">
+          {% for project in all_project_versions %}
+          <li class="list-group-item"><a href="{% url 'published_project' project.slug project.version %}">{{ project.version }}</a> - {{ project.publish_datetime|date }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
     </div>
     <!-- /.sidebar -->
   </div>
