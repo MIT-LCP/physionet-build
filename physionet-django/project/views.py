@@ -1029,8 +1029,8 @@ def published_files_panel(request, project_slug, version):
     subdir = request.GET['subdir']
 
     if not request.is_ajax():
-        return redirect('published_project',
-            project_slug=project_slug, version=version)
+        return redirect('published_project', project_slug=project_slug,
+            version=version)
 
     if project.has_access(request.user):
         display_files, display_dirs = project.get_directory_content(
@@ -1051,7 +1051,7 @@ def published_files_panel(request, project_slug, version):
              'display_files':display_files, 'display_dirs':display_dirs})
 
 
-def serve_published_project_file(request, project_slug, version,
+def serve_protected_project_file(request, project_slug, version,
         full_file_name):
     """
     Serve a protected file of a published project
@@ -1063,6 +1063,19 @@ def serve_published_project_file(request, project_slug, version,
         file_path = os.path.join('published-projects', published_project_slug, full_file_name)
         return utility.serve_file(full_file_name, file_path)
     raise Http404()
+
+
+def serve_protected_project_zip(request, project_slug, version):
+    """
+    Serve the zip file of a protected published project
+
+    """
+    project = PublishedProject.objects.get(slug=project_slug,
+        version=version)
+    if project.has_access(request.user):
+        return utility.serve_file(request, project.zip_name(full=True))
+    raise Http404()
+
 
 def published_project_license(request, project_slug, version):
     """
@@ -1092,7 +1105,7 @@ def published_project(request, project_slug, version):
     """
     Displays a published project
     """
-    project = PublishedProject.objects.get(slug=slug, version=version)
+    project = PublishedProject.objects.get(slug=project_slug, version=version)
 
     authors = project.authors.all().order_by('display_order')
     for a in authors:

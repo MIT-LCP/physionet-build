@@ -57,7 +57,7 @@
   function navigateDir(subdir){
     $.ajax({
             type: "GET",
-            url: "{% url 'published_files_panel' project.slug %}",
+            url: "{% url 'published_files_panel' project.slug project.version %}",
             data: {'subdir':subdir
             },
             success: function reloadSection(result){

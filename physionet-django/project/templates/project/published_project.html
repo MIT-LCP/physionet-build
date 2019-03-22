@@ -144,7 +144,7 @@
           <p>
             <strong>License (for files):</strong>
             <br>
-            <a href="{% url 'published_project_license' project.slug %}" target="_blank">{{ project.license }}</a>
+            <a href="{% url 'published_project_license' project.slug project.version %}" target="_blank">{{ project.license }}</a>
           </p>
         </div>
       </div>
@@ -213,7 +213,7 @@
   <h2 id="files">Files</h2>
   {% if project.access_policy %}
     {% if has_access %}
-      <p>Total uncompressed size: {{ main_size }}.{% if project.compressed_storage_size %}<a class="btn btn-success btn-sm" href="{% url 'serve_published_project_file' project.slug project.zip_name %}" style="float:right">Download Zip ({{ compressed_size }})</a>{% endif %}</p>
+      <p>Total uncompressed size: {{ main_size }}.{% if project.compressed_storage_size %}<a class="btn btn-success btn-sm" href="{% url 'serve_protected_project_zip' project.slug project.version %}" style="float:right">Download Zip ({{ compressed_size }})</a>{% endif %}</p>
       <div id="files-panel" class="card">
         {% include "project/protected_files_panel.html" %}
       </div>

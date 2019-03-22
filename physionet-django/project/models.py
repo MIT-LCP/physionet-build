@@ -15,7 +15,8 @@ from django.db import models
 from django.utils import timezone
 from django.utils.text import slugify
 
-from .utility import get_tree_size, get_file_info, get_directory_info, list_items, StorageInfo, get_tree_files, list_files
+from .utility import (get_tree_size, get_file_info, get_directory_info,
+    list_items, StorageInfo, get_tree_files, list_files, zip_dir)
 from .validators import validate_doi, validate_subdir, validate_version
 from user.validators import validate_alphaplus, validate_alphaplusplus
 
@@ -863,7 +864,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             raise Exception('The project is not publishable')
 
         # If this is a new version, previous fields need to be updated
-        previous_published_projects = self.core_project.publishedprojects.all()
+        if self.version_order:
+            previous_published_projects = self.core_project.publishedprojects.all()
 
         published_project = PublishedProject(doi=doi)
 
@@ -937,8 +939,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             copyedit_log.project = published_project
             copyedit_log.save()
 
-        # Create file root
-        os.mkdir(published_project.file_root())
+        # Create project file root if this is first version or the first
+        # version with a different access policy
+        if not os.path.isdir(published_project.project_file_root()):
+            os.mkdir(published_project.project_file_root())
         # Move over main files
         os.rename(self.file_root(), published_project.file_root())
         # Create special files if there are files. Should always be the case.
@@ -948,7 +952,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         # Remove the ActiveProject
         self.delete()
 
-        if previous_published_projects:
+        if self.version_order and previous_published_projects:
             previous_published_projects.update(is_latest_version=False)
 
         return published_project
@@ -1049,19 +1053,22 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         Make a (new) zip file of the main files.
         """
-        # Where the zip should be
         fname = self.zip_name(full=True)
         if os.path.isfile(fname):
             os.remove(fname)
 
-        # Prevent recursively zipping the zip file
-        zipfile = shutil.make_archive(base_name=os.path.join(
-            PublishedProject.PROTECTED_FILE_ROOT, self.slugged_label()),
-            format='zip', root_dir=self.project_file_root())
+        zip_dir(zip_name=fname, target_dir=self.file_root(),
+            enclosing_folder=self.slugged_label())
 
-        os.rename(zipfile, fname)
         self.compressed_storage_size = os.path.getsize(fname)
         self.save()
+
+    def remove_zip(self):
+        fname = self.zip_name(full=True)
+        if os.path.isfile(fname):
+            os.remove(fname)
+            self.compressed_storage_size = 0
+            self.save()
 
     def zip_url(self):
         """

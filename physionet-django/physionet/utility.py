@@ -1,4 +1,5 @@
 import os
+import zipfile
 
 from django.conf import settings
 from django.http import HttpResponse, Http404
@@ -22,3 +23,25 @@ def serve_file(request, file_path):
             return response
     else:
         return Http404()
+
+def zip_dir(zip_name, target_dir, enclosing_folder=''):
+    """
+    Recursively zip contents in a directory.
+
+    Parameters
+    ----------
+    zip_name : file name of the output zip file.
+    target_dir : full path of directory to zip.
+    enclosed_folder : enclosing folder name to write within zip file.
+    """
+    if target_dir.endswith('/'):
+        target_dir = target_dir.rstrip('/')
+
+    with zipfile.ZipFile(zip_name, 'w') as zipf:
+        for root, dirs, files in os.walk(target_dir):
+            for file in files:
+                # Do not include the path to the target directory when
+                # writing files in the zip
+                zipf.write(os.path.join(root, file),
+                    arcname=os.path.join(enclosing_folder,
+                    root[len(target_dir)+1:], file))

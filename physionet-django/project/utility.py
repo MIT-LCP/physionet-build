@@ -8,6 +8,8 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse, Http404
 
+from physionet.utility import serve_file, zip_dir
+
 
 class FileInfo():
     """
@@ -24,6 +26,7 @@ class DirectoryInfo():
      def __init__(self, name):
         self.name = name
 
+
 class DirectoryBreadcrumb():
     """
     For navigating through project file directories
@@ -32,6 +35,7 @@ class DirectoryBreadcrumb():
         self.name = name
         self.full_subdir = full_subdir
         self.active = active
+
 
 def get_dir_breadcrumbs(subdir):
     """
@@ -200,17 +204,3 @@ def get_form_errors(form):
     for field in form.errors:
         all_errors += form.errors[field]
     return all_errors
-
-
-def serve_file(file_name, file_path):
-    """
-    Serve a file to download. file_path is the full file path of the
-    file on the server
-    """
-    response = HttpResponse()
-    response['Content-Type'] = ''
-    response['Content-Disposition'] = 'attachment; filename=' + os.path.basename(file_name)
-    response['X-Accel-Redirect'] = '/protected/' + file_path
-    return response
-
-
