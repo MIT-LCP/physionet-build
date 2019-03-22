@@ -86,14 +86,14 @@
   <hr>
   <strong>When using this content, please cite:</strong>
   {% if project.is_legacy %}
-    <p class="citation">Goldberger AL, Amaral LAN, Glass L, Hausdorff JM, Ivanov PCh, Mark RG, Mietus JE, Moody GB, Peng C-K, Stanley HE. <a href="http://circ.ahajournals.org/cgi/content/full/101/23/e215" target="_blank">PhysioBank, PhysioToolkit, and PhysioNet: Components of a New Research Resource for Complex Physiologic Signals</a>. Circulation 101(23):e215-e220 [Circulation Electronic Pages; 2000 (June 13).</p>
+    <p>Goldberger AL, Amaral LAN, Glass L, Hausdorff JM, Ivanov PCh, Mark RG, Mietus JE, Moody GB, Peng C-K, Stanley HE. PhysioBank, PhysioToolkit, and PhysioNet: Components of a New Research Resource for Complex Physiologic Signals. Circulation 101(23):e215-e220 <a href="http://circ.ahajournals.org/cgi/content/full/101/23/e215" target="_blank">Circulation Electronic Pages; 2000</a> (June 13).</p>
   {% else %}
-    <p class="citation">{{ project.citation_text }}</p>
+    <p>{{ project.citation_text }}</p>
   {% endif %}
 
   {% if publication %}
     <strong>Please also cite:</strong>
-    <p class="citation"><a href="{{ publication.url }}" target="_blank">{{ publication.citation }}</a></p>
+    <p>{{ publication.citation }}</p>
   {% endif %}
   <hr>
   <div class="row">
@@ -125,19 +125,11 @@
       <div class="card my-4">
         <h5 class="card-header">Share</h5>
         <div class="card-body">
-          <!--
-          <p>
-            <strong>URL:</strong>
-            <br>
-            {{ page_url }}
-          </p> -->
-          <p>
             <a class="btn btn-sm share-email sharebtn" href="mailto:?subject={{ project.title }}&body={{ page_url }}" target="_blank" role="button" title="Share with email"><i class="far fa-envelope"></i></a>
             <a class="btn btn-sm facebook sharebtn" href="http://www.facebook.com/sharer.php?u={{ page_url }}" target="_blank" role="button" title="Share on Facebook"><i class="fab fa-facebook"></i></a>
             <a class="btn btn-sm linkedin sharebtn" href="https://www.linkedin.com/shareArticle?url={{ page_url }}" target="_blank" role="button" title="Share on LinkedIn"><i class="fab fa-linkedin"></i></a>
             <a class="btn btn-sm reddit sharebtn" href="https://www.reddit.com/submit?url={{ page_url }}&title={{ project.title }}" target="_blank" role="button" title="Share on Reddit"><i class="fab fa-reddit"></i></a>
             <a class="btn btn-sm twitter sharebtn" href="https://twitter.com/intent/tweet?text={{ project.title }}. {{ page_url }}" target="_blank" role="button" title="Share on Twitter"><i class="fab fa-twitter"></i></a>
-          </p>
         </div>
       </div>
 
@@ -147,7 +139,7 @@
           <p>
             <strong>Access Policy:</strong>
             <br>
-            {{ project.access_policy|access_badge|safe }} {{ project.access_policy|access_description }}
+            {{ project.access_policy|access_description }}
           </p>
           <p>
             <strong>License (for files):</strong>
@@ -158,14 +150,15 @@
       </div>
 
       <div class="card my-4">
-        <h5 class="card-header">Identifiers</h5>
+        <h5 class="card-header">Discovery</h5>
         <div class="card-body">
           {% if project.doi %}
           <p><strong>DOI:</strong>
             <br>
-            <span class="badge badge-info">{{ project.doi }}</span>
+            <a href="http://dx.doi.org/{{ project.doi }}" target="_blank">{{ project.doi }}</a>
           </p>
           {% endif %}
+
           {% if publication %}
             <p><strong>Related Publication:</strong>
               <br>
@@ -177,7 +170,7 @@
             <p><strong>Programming Languages:</strong>
             <br>
             {% for language in languages %}
-              <a href="#" class="badge badge-info">{{ language.name }}</a>
+              <style class="badge badge-info">{{ language.name }}</style>
             {% endfor %}
             </p>
           {% endif %}
@@ -192,7 +185,7 @@
           {% endif %}
 
           {% if project.project_home_page %}
-            <p><strong>Project Home Page:</strong>
+            <p><strong>Project Website:</strong>
               <br>
               <a href="{{ project.project_home_page }}" target="_blank"><i class="fas fa-external-link-alt"></i> {{ project.project_home_page }}</a>
             </p>
@@ -205,9 +198,9 @@
         <div class="card-body">
           {% if user.is_authenticated %}
             <p>
-              <strong>Name:</strong> {{ contact.name }}<br>
-              <strong>Affiliations:</strong> {{ contact.affiliations }}<br>
-              <strong>Email:</strong> {{ contact.email }}
+              {{ contact.name }}, 
+              {{ contact.affiliations }}, 
+              {{ contact.email }}
             </p>
           {% else %}
             <em>You must be logged in to view the contact information.</em>

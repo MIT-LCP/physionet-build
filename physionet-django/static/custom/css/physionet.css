@@ -143,12 +143,12 @@ a{
 }
 
 .badge-pn {
-  background-color: #f1f8ff;
+  background-color: #17a2b8;
   cursor: pointer;
 }
 
 .badge-pn:hover {
-  background-color: #def;
+  background-color: #1cbed8;
 }
 
 .share-email {
@@ -227,7 +227,7 @@ a{
 .badge:not(.badge-pill){
   padding: 0.5em 0.5em;
   font-weight: normal;
-  color: unset;
+  color: #fff;
 }
 
 .badge-success:not(.badge-pill) {
