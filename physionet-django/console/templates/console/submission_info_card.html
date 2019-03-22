@@ -21,6 +21,7 @@
           Created: {{ project.creation_datetime|date }}. Submitted: {{ project.submission_datetime|date }}.<br>
           Storage Used: {{ storage_info.readable_used }} / {{ storage_info.readable_allowance }}<br>
           Version: {{ project.version }}
+          {% if project.version_order %}<br>Latest Published Version: <a href="{% url 'published_project' latest_version.slug latest_version.version %}" target="_blank">{{ latest_version.version }}</a>{% endif %}
         </p>
         <p><a class="btn btn-lg btn-primary" href="{% url 'project_preview' project.slug %}" role="button" target="_blank">
           View Project Preview</a>
