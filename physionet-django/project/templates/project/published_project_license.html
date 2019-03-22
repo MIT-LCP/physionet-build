@@ -12,6 +12,6 @@ License for {{ project }}
   <hr>
   {{ license_content|safe }}
   <hr>
-  <p><a href="{% url 'published_project' project.slug %}">Back to {{ project }}</a></p>
+  <p><a href="{% url 'published_project' project.slug project.version %}">Back to {{ project }}</a></p>
 </div>
 {% endblock %}
