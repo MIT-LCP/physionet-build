@@ -4,6 +4,10 @@
   box-sizing: border-box;
 }
 
+.card{
+    border: unset;
+}
+
 .main-content{
   padding: 40px 50px;
   max-width: 75%;
