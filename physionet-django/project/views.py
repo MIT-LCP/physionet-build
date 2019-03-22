@@ -1001,6 +1001,27 @@ def rejected_submission_history(request, project_slug):
              'copyedit_logs':copyedit_logs})
 
 
+def published_versions(request, project_slug):
+    """
+    List of published versions of a project. Viewable by admins and
+    authors.
+    """
+    user = request.user
+    # Account for different authors between versions
+    if user.is_admin:
+        projects = PublishedProject.objects.filter(slug=project_slug).order_by('version_order')
+    else:
+        authors = PublishedAuthor.objects.filter(user=user, project__slug=project_slug).order_by('project__version_order')
+        projects = [a.project for a in authors]
+        # Not an author of this project set
+        if not projects:
+            return redirect('project_home')
+
+    return render(request, 'project/published_versions.html',
+        {'projects':projects, 'project_title':projects[0].title,
+         'current_site':get_current_site(request)})
+
+
 def published_submission_history(request, project_slug, version):
     """
     Submission history for a published project
