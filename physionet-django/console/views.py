@@ -549,9 +549,8 @@ def admin_users(request):
     """
     admin_users = User.objects.filter(is_admin=True)
     users = User.objects.all()
-
-    return render(request, 'console/admin_users.html', 
-        {'admin_users':admin_users, 'users':users})
+    return render(request, 'console/admin_users.html', {
+        'admin_users':admin_users})
 
 @login_required
 @user_passes_test(is_admin)
