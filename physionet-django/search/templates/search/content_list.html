@@ -4,7 +4,7 @@
   <p>{{ published_project.resource_type|resource_badge|safe }}
      {{ published_project.access_policy|access_badge|safe }}
   </p>
-  <h2><a href="{% url 'published_project' published_project.slug %}">{{ published_project.title }}</a></h2>
+  <h2><a href="{% url 'published_project' published_project.slug published_project.version %}">{{ published_project.title }}</a></h2>
   {% if not published_project.is_legacy %}
     <p class="text-muted">
         {% for author in authors %}
