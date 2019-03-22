@@ -1018,7 +1018,7 @@ def published_versions(request, project_slug):
             return redirect('project_home')
 
     return render(request, 'project/published_versions.html',
-        {'projects':projects, 'project_title':projects[0].title,
+        {'projects':projects, 'first_project':projects[0],
          'current_site':get_current_site(request)})
 
 
@@ -1138,11 +1138,13 @@ def published_project(request, project_slug, version):
     contact = Contact.objects.get(project=project)
 
     has_access = project.has_access(request.user)
-    page_url = 'https://{}{}'.format(get_current_site(request), request.get_full_path())
+    current_site = get_current_site(request)
+    all_project_versions = PublishedProject.objects.filter(
+        slug=project_slug).order_by('version_order')
     context = {'project':project, 'authors':authors,
         'references':references, 'publication':publication, 'topics':topics,
         'languages':languages, 'contact':contact, 'has_access':has_access,
-        'page_url':page_url}
+        'current_site':current_site, 'all_project_versions':all_project_versions}
 
     # The file and directory contents
     if has_access:
