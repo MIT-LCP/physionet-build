@@ -43,7 +43,7 @@ Topic Search
         <tbody>
         {% for project in projects %}
           <tr>
-            <td><a href="{% url 'published_project' project.slug %}">{{ project.title }}</a></td>
+            <td><a href="{% url 'published_project' project.slug project.version %}">{{ project.title }}</a></td>
             <td>{{ project.version }}</td>
             <td>{{ project.resource_type|resource_badge|safe }}</td>
             <td>{{ project.access_policy|access_badge|safe }}</td>

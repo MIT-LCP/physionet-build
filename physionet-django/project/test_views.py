@@ -51,7 +51,8 @@ class TestAccessPresubmission(TestMixin, TestCase):
             response = self.client.get(reverse(view, args=(project.slug,)))
             self.assertEqual(response.status_code, 200)
         response = self.client.get(reverse('serve_project_file', args=(project.slug, 'notes/notes.txt')))
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)  File "/home/cx1111/Projects/physionet-build/physionet-django/project/test_views.py", line 306, in test_open
+
 
         # Visit as non-author
         self.client.login(username='george@mit.edu', password='Tester11!')
