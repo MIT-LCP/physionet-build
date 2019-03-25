@@ -712,3 +712,11 @@ def add_news(request):
 
     return render(request, 'console/add_news.html', {'form':form})
 
+
+@login_required
+@user_passes_test(is_admin)
+def guidelines_review(request):
+    """
+    Guidelines for reviewers.
+    """
+    return render(request, 'console/guidelines_review.html')
