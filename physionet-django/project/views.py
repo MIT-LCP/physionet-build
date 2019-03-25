@@ -820,8 +820,9 @@ def serve_active_project_file(request, project_slug, file_name, **kwargs):
     Serve a file in an active project. file_name is file path relative
     to the project's file root.
     """
-    file_path = os.path.join('active-projects',kwargs['project'].slug, file_name)
-    return utility.serve_file(file_name, file_path)
+    file_path = os.path.join(kwargs['project'].file_root(), file_name)
+    return utility.serve_file(file_path)
+
 
 @project_auth(auth_mode=2)
 def preview_files_panel(request, project_slug, **kwargs):
@@ -842,6 +843,7 @@ def preview_files_panel(request, project_slug, **kwargs):
         {'project':project, 'subdir':subdir,
          'dir_breadcrumbs':dir_breadcrumbs, 'parent_dir':parent_dir,
          'display_files':display_files, 'display_dirs':display_dirs})
+
 
 @project_auth(auth_mode=2)
 def project_preview(request, project_slug, **kwargs):
@@ -1081,8 +1083,13 @@ def serve_protected_project_file(request, project_slug, version,
     project = PublishedProject.objects.get(slug=project_slug,
         version=version)
     if project.has_access(request.user):
+<<<<<<< 971268bc3580966c96e646d7c40daaa2414cc34c
         file_path = os.path.join('published-projects', published_project_slug, full_file_name)
         return utility.serve_file(full_file_name, file_path)
+=======
+        file_path = os.path.join(project.file_root(), full_file_name)
+        return utility.serve_file(file_path)
+>>>>>>> add benjamin's changes consolidating the serve file and nginx redirection functionalities
     raise Http404()
 
 
@@ -1094,7 +1101,7 @@ def serve_protected_project_zip(request, project_slug, version):
     project = PublishedProject.objects.get(slug=project_slug,
         version=version)
     if project.has_access(request.user):
-        return utility.serve_file(request, project.zip_name(full=True))
+        return utility.serve_file(project.zip_name(full=True))
     raise Http404()
 
 

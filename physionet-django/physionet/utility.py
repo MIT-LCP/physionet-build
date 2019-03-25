@@ -11,18 +11,23 @@ def get_project_apps():
     """
     return [app for app in settings.INSTALLED_APPS if not app.startswith('django') and not app.startswith('ck') and not app.startswith('debug')]
 
-def serve_file(request, file_path):
+def serve_file(file_path):
     """
-    Serve a file to download. file_path is the full file path of the
-    file on the server
+    Serve a file to download. file_path is the real path of the file on
+    the server.
     """
-    if os.path.exists(file_path):
+    root = settings.MEDIA_ROOT
+    alias = settings.MEDIA_X_ACCEL_ALIAS
+    if alias and file_path.startswith(root + '/'):
+        response = HttpResponse()
+        response['X-Accel-Redirect'] = alias + file_path[len(root):]
+    else:
         with open(file_path, 'rb') as f:
             response = HttpResponse(f.read())
-            response['Content-Disposition'] = 'attachment; filename=' + os.path.basename(file_path)
-            return response
-    else:
-        return Http404()
+    base = os.path.basename(file_path)
+    response['Content-Type'] = ''
+    response['Content-Disposition'] = 'attachment; filename=' + base
+    return response
 
 def zip_dir(zip_name, target_dir, enclosing_folder=''):
     """

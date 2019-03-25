@@ -51,8 +51,7 @@ class TestAccessPresubmission(TestMixin, TestCase):
             response = self.client.get(reverse(view, args=(project.slug,)))
             self.assertEqual(response.status_code, 200)
         response = self.client.get(reverse('serve_project_file', args=(project.slug, 'notes/notes.txt')))
-        self.assertEqual(response.status_code, 200)  File "/home/cx1111/Projects/physionet-build/physionet-django/project/test_views.py", line 306, in test_open
-
+        self.assertEqual(response.status_code, 200)
 
         # Visit as non-author
         self.client.login(username='george@mit.edu', password='Tester11!')
@@ -262,21 +261,21 @@ class TestAccessPublished(TestMixin, TestCase):
         # Cannot access files
         response = self.client.get(reverse(
             'serve_protected_project_file',
-            args=(project.slug, project.version, 'files/SHA256SUMS.txt')))
+            args=(project.slug, project.version, 'SHA256SUMS.txt')))
         self.assertEqual(response.status_code, 404)
 
         # Non-credentialed user
         self.client.login(username='aewj@mit.edu', password='Tester11!')
         response = self.client.get(reverse(
             'serve_protected_project_file',
-            args=(project.slug, project.version, 'files/SHA256SUMS.txt')))
+            args=(project.slug, project.version, 'SHA256SUMS.txt')))
         self.assertEqual(response.status_code, 404)
 
         # Credentialed user that has not signed dua
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
         response = self.client.get(reverse(
             'serve_protected_project_file',
-            args=(project.slug, project.version, 'files/SHA256SUMS.txt')))
+            args=(project.slug, project.version, 'SHA256SUMS.txt')))
         self.assertEqual(response.status_code, 404)
 
         # Sign the dua and get file again
@@ -285,11 +284,11 @@ class TestAccessPublished(TestMixin, TestCase):
             data={'agree':''})
         response = self.client.get(reverse(
             'serve_protected_project_file',
-            args=(project.slug, project.version, 'files/SHA256SUMS.txt')))
+            args=(project.slug, project.version, 'SHA256SUMS.txt')))
         self.assertEqual(response.status_code, 200)
         response = self.client.get(reverse(
             'serve_protected_project_file',
-            args=(project.slug, project.version, 'files/admissions.csv')))
+            args=(project.slug, project.version, 'admissions.csv')))
         self.assertEqual(response.status_code, 200)
 
     def test_open(self):
@@ -301,9 +300,7 @@ class TestAccessPublished(TestMixin, TestCase):
         response = self.client.get(reverse('published_project',
             args=(project.slug, project.version,)))
         self.assertEqual(response.status_code, 200)
-        response = self.client.get(static(
-            'published-projects/{}/{}/Makefile'.format(
-                project.slug, project.version)))
+        response = self.client.get(static('published-projects/{}/{}/Makefile'.format(project.slug, project.version)))
         self.assertEqual(response.status_code, 200)
 
 
