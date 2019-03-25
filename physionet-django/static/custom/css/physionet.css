@@ -101,17 +101,11 @@ a[target='_blank']::after {
   padding-right:5px;
 }
 
-.dropdown-toggle{
-  position: relative;
-}
-
 .dropdown-toggle::after{
-  width: unset;
-  height: unset;
-  border: 0;
-  content: "\232A";
-  transform: rotate(90deg) scaleY(0.75) translate(calc(50% - 0.3em), 0.5em);
-  vertical-align: middle;
+  border: solid white;
+  border-width: 0 1px 1px 0;
+  padding: 3px;
+  transform: rotate(45deg) translateY(1px);
 }
 
 /* make drop-down menus work without javascript */
