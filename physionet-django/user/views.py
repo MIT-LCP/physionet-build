@@ -242,7 +242,7 @@ def profile_photo(request, username):
     Serve a user's profile photo
     """
     user = User.objects.get(username=username)
-    return utility.serve_file(request, user.profile.photo.path)
+    return utility.serve_file(user.profile.photo.path)
 
 def register(request):
     """

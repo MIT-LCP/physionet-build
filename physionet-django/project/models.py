@@ -1184,10 +1184,11 @@ class PublishedProject(Metadata, SubmissionInfo):
     def citation_text(self):
         if self.is_legacy:
             return ''
-        # Temporary workaround
-        # return '{} ({}). {}. PhysioNet. doi:{}'.format(
-        #     ', '.join(a.initialed_name() for a in self.authors.all()),
-        #     self.publish_datetime.year, self.title, self.doi)
+
+        if self.doi:
+            return '{} ({}). {}. PhysioNet. doi:{}'.format(
+                ', '.join(a.initialed_name() for a in self.authors.all()),
+                self.publish_datetime.year, self.title, self.doi)
         return '{} ({}). {}. PhysioNet.'.format(
             ', '.join(a.initialed_name() for a in self.authors.all()),
             self.publish_datetime.year, self.title)
