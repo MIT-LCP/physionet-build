@@ -1058,6 +1058,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         # Remove the ActiveProject
         self.delete()
 
+        published_project.cgp = GCP.objects.create()
         return published_project
 
 
@@ -1607,3 +1608,13 @@ class LegacyProject(models.Model):
         if make_file_roots:
             os.mkdir(p.project_file_root())
             os.mkdir(p.file_root())
+
+class GCP(models.Model):
+    """
+    Store all of the Google Cloud information with a relation to a project.
+    """
+    project = models.OneToOneField('project.PublishedProject', related_name='gcp',
+        on_delete=models.CASCADE)
+    gcp_bucket = models.CharField(max_length=70, null=True)
+    gcp_group = models.CharField(max_length=100, null=True)
+    sent_files = models.BooleanField(default=False)

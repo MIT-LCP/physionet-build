@@ -30,6 +30,7 @@ EMAIL_USE_TLS = False
 DEFAULT_FROM_EMAIL = 'PhysioNet Automated System <noreply@alpha.physionet.org>'
 CONTACT_EMAIL = 'PhysioNet Contact <contact@alpha.physionet.org>'
 
+GOOGLE_APPLICATION_CREDENTIALS="/physionet/deploy/PhysioNet-Data-Access.json"
 
 DEMO_FILE_ROOT = os.path.join(os.path.abspath(os.path.join(BASE_DIR, os.pardir)), 'demo-files')
 

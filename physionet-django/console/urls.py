@@ -67,5 +67,8 @@ urlpatterns = [
 
     # guidelines
     path('guidelines/review/', views.guidelines_review, name='guidelines_review'),
+    # Gcloud
+    path('gcloud/', views.gcloud, name='gcloud'),
+    path('manage-gcp/<project_slug>/', views.manage_gcp, name='manage_gcp'),
 
 ]

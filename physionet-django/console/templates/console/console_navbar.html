@@ -157,6 +157,15 @@
         </ul>
       </li>
 
+      <!-- news -->
+      {% url 'gcloud' as gcloud %}
+      <li class="nav-item {% ifequal request.path gcloud %}active{% endifequal %}" data-toggle="tooltip" data-placement="right">
+        <a id="nav_console_news" class="nav-link" href="{% url 'gcloud' %}">
+          <i class="fab fa-fw fa-google"></i>
+          <span class="nav-link-text">gcloud</span>
+        </a>
+      </li>
+
       <!-- usage stats -->
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
         <a id="nav_usage_dropdown" class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#statsComponents" data-parent="#sideAccordion">
