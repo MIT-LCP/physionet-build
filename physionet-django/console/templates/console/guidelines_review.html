@@ -1,0 +1,52 @@
+{% extends "console/base_console.html" %}
+
+{% block title %}Guidelines for reviewers{% endblock %}
+
+{% block content %}
+<div class="card mb-3">
+  <div class="card-header">
+      Guidelines for reviewers
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+    <p>When reviewing content, check that the requirements below are met. If not, you can copy the relevant points below into your message to the authors, preceded by "Please ensure that:".</p>
+
+    <h4>All projects</h4>
+    <ul>
+        <li>A README file is included alongside the files. At minimum, this file should include a title and a brief description of the package content.</li>
+        <li>Sensitive data and protected health information have been removed.</li>
+        <li>Filenames are clear and do not include spaces or special characters (e.g. "/","\,".").</li>
+    </ul>
+
+    <h4>Data (general)</h4>
+    <ul>
+        <li>All files are in non-proprietary formats (for example, CSV).</li>
+        <li>Tabulated data is arranged such that each variable is a column and each observation (or case) is a row ("tidy data").</li>
+    </ul>
+
+    <h4>Data (waveforms)</h4>
+    <ul>
+        <li>The shape of waveforms is as expected when plotted as a timeseries.</li>
+    </ul>
+
+    <h4>Software</h4>
+    <ul>
+        <li>Instructions for installation and usage are clearly documented.</li>
+        <li>Dependencies are clearly indicated, preferably in a requirements file.</li>
+        <li>The software is provided in a non-proprietary language, except where there is a clear reason not to do so (for example, when sharing a Matlab package). </li>
+        <li>Tests are provided to demonstrate correct functioning of major features of the software.</li>
+        <li>The software follows standard style guidelines (for example, PEP8 for Python).</li>
+        <li>The software is logically structured and packaged according to standard practice.</li> 
+    </ul>
+
+    <h4>Challenges</h4>
+    <ul>
+        <li>The objective of the Challenge is clearly stated.</li> 
+        <li>A timeline is provided, including a start date, final submission date, and scoring data.</li> 
+        <li>The criteria for assessment are clear and unambiguous.</li> 
+    </ul>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

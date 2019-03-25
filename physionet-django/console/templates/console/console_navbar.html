@@ -10,6 +10,7 @@
   <!-- start of menu items -->
   <div class="collapse navbar-collapse" id="navbarResponsive">
     <ul class="navbar-nav navbar-sidenav" id="sideAccordion">
+
       <!-- editor home -->
       {% url 'editor_home' as editor_home %}
       <li class="nav-item {% ifequal request.path editor_home %}active{% endifequal %}" data-toggle="tooltip" data-placement="right">
@@ -18,6 +19,7 @@
           <span class="nav-link-text">Home</span>
         </a>
       </li>
+
       <!-- projects -->
       {% url 'unsubmitted_projects' as unsubmitted_projects %}
       {% url 'submitted_projects' as submitted_projects %}
@@ -122,6 +124,7 @@
           </li>
         </ul>
       </li>
+
       <!-- news -->
       {% url 'console_news' as console_news %}
       <li class="nav-item {% ifequal request.path console_news %}active{% endifequal %}" data-toggle="tooltip" data-placement="right">
@@ -130,6 +133,30 @@
           <span class="nav-link-text">News</span>
         </a>
       </li>
+
+      <!-- guidelines and documentation -->
+      {% url 'guidelines_review' as guidelines_review %}
+      <li class="nav-item" data-toggle="tooltip" data-placement="right">
+      {% if request.path == guidelines_review %}
+        <a id="nav_guidelines_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#guidelinesComponents" data-parent="#sideAccordion" aria-expanded="true">
+      {% else %}
+        <a id="nav_guidelines_dropdown" class="nav-link nav-link-collapse drop collapsed" data-toggle="collapse" href="#guidelinesComponents" data-parent="#sideAccordion" aria-expanded="false">
+      {% endif %}
+          <i class="fa fa-fw fa-book"></i>
+          <span class="nav-link-text">Guidelines</span>
+        </a>
+        <!-- submenu -->
+      {% if request.path == guidelines_review %}
+        <ul class="sidenav-second-level collapse show" id="guidelinesComponents">
+      {% else  %}
+        <ul class="sidenav-second-level collapse" id="guidelinesComponents">
+      {% endif %}
+          <li class="nav-item {% ifequal request.path guidelines_review %}active{% endifequal %}">
+            <a href="{% url 'guidelines_review' %}">Project review</a>
+          </li>
+        </ul>
+      </li>
+
       <!-- usage stats -->
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
         <a id="nav_usage_dropdown" class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#statsComponents" data-parent="#sideAccordion">
@@ -146,8 +173,9 @@
           </li>
         </ul>
       </li>
-    </ul>
+
     <!-- end of menu items -->
+    </ul>
 
     <ul class="navbar-nav sidenav-toggler">
       <li class="nav-item">
