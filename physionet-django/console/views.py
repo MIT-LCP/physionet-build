@@ -516,8 +516,6 @@ def rejected_submissions(request):
         {'projects':projects})
 
 
-
-
 @login_required
 @user_passes_test(is_admin)
 def users(request):
@@ -548,7 +546,8 @@ def admin_users(request):
     admin_users = User.objects.filter(is_admin=True)
     users = User.objects.all()
 
-    return render(request, 'console/admin_users.html', {'admin_users':admin_users, 'users':users})
+    return render(request, 'console/admin_users.html', 
+        {'admin_users':admin_users, 'users':users})
 
 @login_required
 @user_passes_test(is_admin)
@@ -700,6 +699,8 @@ def edit_news(request, news_id):
         'form':form})
 
 
+@login_required
+@user_passes_test(is_admin)
 def add_news(request):
     if request.method == 'POST':
         form = forms.NewsForm(data=request.POST)
@@ -710,3 +711,4 @@ def add_news(request):
         form = forms.NewsForm()
 
     return render(request, 'console/add_news.html', {'form':form})
+
