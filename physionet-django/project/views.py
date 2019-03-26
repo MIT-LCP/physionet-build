@@ -1071,10 +1071,11 @@ def published_files_panel(request, project_slug, version):
              'files_panel_url':files_panel_url})
 
 
-def serve_protected_project_file(request, project_slug, version,
+def serve_published_project_file(request, project_slug, version,
         full_file_name):
     """
-    Serve a file of a protected published project
+    Serve a file of a published project.
+    Works for open and protected. Not needed for open.
 
     """
     project = PublishedProject.objects.get(slug=project_slug,
@@ -1085,9 +1086,10 @@ def serve_protected_project_file(request, project_slug, version,
     raise Http404()
 
 
-def serve_protected_project_zip(request, project_slug, version):
+def serve_published_project_zip(request, project_slug, version):
     """
-    Serve the zip file of a protected published project
+    Serve the zip file of a published project.
+    Works for open and protected. Not needed for open.
 
     """
     project = PublishedProject.objects.get(slug=project_slug,

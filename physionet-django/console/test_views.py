@@ -213,9 +213,11 @@ class TestState(TestMixin, TestCase):
         response = self.client.get(reverse('published_project',
             args=(project.slug, project.version)))
         self.assertEqual(response.status_code, 200)
-        response = self.client.get('/static/published-projects/{}/{}/subject-100/100.atr'.format(project.slug, project.version))
+        response = self.client.get(reverse('serve_published_project_file', args=(
+            project.slug, project.version, 'subject-100/100.atr')))
         self.assertEqual(response.status_code, 200)
-        response = self.client.get('/static/published-projects/{}/mit-bih-arrhythmia-database-1.0.0.zip'.format(project.slug, project.version))
+        response = self.client.get(reverse('serve_published_project_zip', args=(
+            project.slug, project.version)))
         self.assertEqual(response.status_code, 200)
         # Access the submission log as the author
         self.client.login(username='rgmark', password='Tester11!')
