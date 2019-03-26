@@ -1,7 +1,6 @@
 import os
 import pdb
 
-from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
@@ -263,21 +262,21 @@ class TestAccessPublished(TestMixin, TestCase):
         self.assertEqual(response.status_code, 200)
         # Cannot access files
         response = self.client.get(reverse(
-            'serve_protected_project_file',
+            'serve_published_project_file',
             args=(project.slug, project.version, 'SHA256SUMS.txt')))
         self.assertEqual(response.status_code, 404)
 
         # Non-credentialed user
         self.client.login(username='aewj@mit.edu', password='Tester11!')
         response = self.client.get(reverse(
-            'serve_protected_project_file',
+            'serve_published_project_file',
             args=(project.slug, project.version, 'SHA256SUMS.txt')))
         self.assertEqual(response.status_code, 404)
 
         # Credentialed user that has not signed dua
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
         response = self.client.get(reverse(
-            'serve_protected_project_file',
+            'serve_published_project_file',
             args=(project.slug, project.version, 'SHA256SUMS.txt')))
         self.assertEqual(response.status_code, 404)
 
@@ -286,11 +285,11 @@ class TestAccessPublished(TestMixin, TestCase):
             args=(project.slug, project.version,)),
             data={'agree':''})
         response = self.client.get(reverse(
-            'serve_protected_project_file',
+            'serve_published_project_file',
             args=(project.slug, project.version, 'SHA256SUMS.txt')))
         self.assertEqual(response.status_code, 200)
         response = self.client.get(reverse(
-            'serve_protected_project_file',
+            'serve_published_project_file',
             args=(project.slug, project.version, 'admissions.csv')))
         self.assertEqual(response.status_code, 200)
 
@@ -303,7 +302,8 @@ class TestAccessPublished(TestMixin, TestCase):
         response = self.client.get(reverse('published_project',
             args=(project.slug, project.version,)))
         self.assertEqual(response.status_code, 200)
-        response = self.client.get(static('published-projects/{}/{}/Makefile'.format(project.slug, project.version)))
+        response = self.client.get(reverse('serve_published_project_file',
+            args=(project.slug, project.version, 'Makefile')))
         self.assertEqual(response.status_code, 200)
 
 
