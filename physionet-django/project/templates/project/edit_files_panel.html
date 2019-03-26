@@ -52,7 +52,7 @@
         {% for file in display_files %}
           <li class="list-group-item">
             <div class="row">
-              <div class="col-md-7">&nbsp;<i class="far fa-file"></i>&nbsp;&nbsp;&nbsp;<a href="{% url 'serve_active_project_file' project.slug file.full_file_name %}">{{ file.name }}</a></div>
+              <div class="col-md-7">&nbsp;<i class="far fa-file"></i>&nbsp;&nbsp;&nbsp;<a href="{{ file.url }}">{{ file.name }}</a></div>
               <div class="col-md-2">{{ file.size }}</div>
               <div class="col-md-2">{{ file.last_modified }}</div>
               <div class="col-md-1"><input type="checkbox" name="items" value="{{ file.name }}" onchange="countSelected(this)"></div>
