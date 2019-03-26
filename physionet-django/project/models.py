@@ -1147,7 +1147,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         full_file_name = os.path.join(subdir, file)
         if self.access_policy:
-            return reverse('serve_protected_project_file',
+            return reverse('serve_published_project_file',
                 args=(self.slug, self.version, full_file_name))
         else:
             if subdir and not subdir.endswith('/'):
