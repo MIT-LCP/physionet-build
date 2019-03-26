@@ -1,5 +1,3 @@
-{% load static %}
-
 <div class="card-header">
   <div class="row">
     <div class="col-md-12">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Folder Navigation:
@@ -39,10 +37,10 @@
       </div>
     </li>
   {% endfor %}
-  {% for file in display_files %}
+  {% for file in display_files %}g
     <li class="list-group-item">
       <div class="row">
-        <div class="col-md-8">&nbsp;<i class="far fa-file"></i>&nbsp;&nbsp;&nbsp;<a href="{% static file.static_url %}">{{ file.name }}</a></div>
+        <div class="col-md-8">&nbsp;<i class="far fa-file"></i>&nbsp;&nbsp;&nbsp;<a href="{{ file.url }}">{{ file.name }}</a></div>
         <div class="col-md-2">{{ file.size }}</div>
         <div class="col-md-2">{{ file.last_modified }}</div>
       </div>

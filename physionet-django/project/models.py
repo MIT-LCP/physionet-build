@@ -10,8 +10,10 @@ from ckeditor.fields import RichTextField
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
 
@@ -301,7 +303,7 @@ class Metadata(models.Model):
     release_notes = RichTextField(blank=True)
 
     # Short description used for search results, social media, etc
-    short_description = models.CharField(max_length=250, blank=True, 
+    short_description = models.CharField(max_length=250, blank=True,
         validators=[validate_alphaplusplus])
 
     # Access information
@@ -407,6 +409,30 @@ class Metadata(models.Model):
             content = content.replace('&lt;YEAR&gt;', str(timezone.now().year), 1)
 
         return content
+
+    def get_directory_content(self, subdir=''):
+        """
+        Return information for displaying files and directories from
+        the project's file root.
+        """
+        # Get folder to inspect if valid
+        inspect_dir = self.get_inspect_dir(subdir)
+        file_names , dir_names = list_items(inspect_dir)
+        display_files, display_dirs = [], []
+
+        # Files require desciptive info and download links
+        for file in file_names:
+            file_info = get_file_info(os.path.join(inspect_dir, file))
+            file_info.url = self.file_url(subdir=subdir, file=file)
+            display_files.append(file_info)
+
+        # Directories require links
+        for dir_name in dir_names:
+            dir_info = get_directory_info(os.path.join(inspect_dir, dir_name))
+            dir_info.full_subdir = os.path.join(subdir, dir_name)
+            display_dirs.append(dir_info)
+
+        return display_files, display_dirs
 
 
 class SubmissionInfo(models.Model):
@@ -593,27 +619,34 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         else:
             raise Exception('Invalid directory request')
 
-    def get_directory_content(self, subdir=''):
+    def file_url(self, subdir, file):
         """
-        Return information for displaying file and directories
+        Url of a file to download in this project
         """
-        inspect_dir = self.get_inspect_dir(subdir)
-        file_names , dir_names = list_items(inspect_dir)
-        display_files, display_dirs = [], []
+        return reverse('serve_active_project_file',
+            args=(self.slug, os.path.join(subdir, file)))
 
-        # Files require desciptive info and download links
-        for file in file_names:
-            file_info = get_file_info(os.path.join(inspect_dir, file))
-            file_info.full_file_name = os.path.join(subdir, file)
-            display_files.append(file_info)
+    # def get_directory_content(self, subdir=''):
+    #     """
+    #     Return information for displaying file and directories
+    #     """
+    #     inspect_dir = self.get_inspect_dir(subdir)
+    #     file_names , dir_names = list_items(inspect_dir)
+    #     display_files, display_dirs = [], []
 
-        # Directories require links
-        for dir_name in dir_names:
-            dir_info = get_directory_info(os.path.join(inspect_dir, dir_name))
-            dir_info.full_subdir = os.path.join(subdir, dir_name)
-            display_dirs.append(dir_info)
+    #     # Files require desciptive info and download links
+    #     for file in file_names:
+    #         file_info = get_file_info(os.path.join(inspect_dir, file))
+    #         file_info.full_file_name = os.path.join(subdir, file)
+    #         display_files.append(file_info)
 
-        return display_files, display_dirs
+    #     # Directories require links
+    #     for dir_name in dir_names:
+    #         dir_info = get_directory_info(os.path.join(inspect_dir, dir_name))
+    #         dir_info.full_subdir = os.path.join(subdir, dir_name)
+    #         display_dirs.append(dir_info)
+
+    #     return display_files, display_dirs
 
     def under_submission(self):
         """
@@ -1128,36 +1161,21 @@ class PublishedProject(Metadata, SubmissionInfo):
         if inspect_dir.startswith(self.file_root()) and os.path.isdir(inspect_dir):
             return inspect_dir
         else:
-            # pdb.set_trace()
             raise Exception('Invalid directory request')
 
-    def get_directory_content(self, subdir=''):
+    def file_url(self, subdir, file):
         """
-        Return information for displaying files and directories from
-        the file root.
+        Url of a file to download in this project
         """
-        # Get folder to inspect if valid
-        inspect_dir = self.get_inspect_dir(subdir)
-        file_names , dir_names = list_items(inspect_dir)
-        display_files, display_dirs = [], []
-
-        # Files require desciptive info and download links
-        for file in file_names:
-            file_info = get_file_info(os.path.join(inspect_dir, file))
-            if self.access_policy:
-                # File name relative to file root
-                file_info.full_file_name = os.path.join(subdir, file)
-            else:
-                # Url relative to static root
-                file_info.static_url = os.path.join('published-projects', self.slug, self.version, subdir, file)
-            display_files.append(file_info)
-        # Directories require links
-        for dir_name in dir_names:
-            dir_info = get_directory_info(os.path.join(inspect_dir, dir_name))
-            dir_info.full_subdir = os.path.join(subdir, dir_name)
-            display_dirs.append(dir_info)
-
-        return display_files, display_dirs
+        full_file_name = os.path.join(subdir, file)
+        if self.access_policy:
+            return reverse('serve_protected_project_file',
+                args=(self.slug, self.version, full_file_name))
+        else:
+            if subdir and not subdir.endswith('/'):
+                subdir = subdir + '/'
+            return static('published-projects/{}/{}/{}'.format(
+                self.slug, self.version, full_file_name))
 
     def has_access(self, user):
         """
