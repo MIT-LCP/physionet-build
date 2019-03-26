@@ -126,3 +126,6 @@ git-deployment/
 
 # etags
 TAGS
+
+# Credential file
+physionet-django/*credentials*

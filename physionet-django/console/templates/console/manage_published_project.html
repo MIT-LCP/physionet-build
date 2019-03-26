@@ -32,15 +32,15 @@
       return gapi.client.directory.groups.insert(JSON.parse(resource))
         .then(function(response) { console.log("Response", response);
           if (response.status == 200){
-            alert("The group "+response.result['email']+" was create successfully.")
             $.ajax({
               url: "{% url 'manage_gcp' project.slug %}",
               data: {
                 "group": response.result['email']
               },
               success: function(result){
-                if (result.status){
-                  console.log(result.status);
+                if (result.status == 'done'){
+                  alert("The group "+response.result['email']+" was create successfully.")
+                  location.reload();
                 }
                 else{
                   console.log(result);
@@ -65,23 +65,6 @@
     gapi.auth2.init({client_id: "569883598760-m64u8mgjebvmprq1finirnp25mrdn4sp.apps.googleusercontent.com"});
 
   });
-
-  function checkGCP(slug){
-    $.ajax({
-      url: "{% url 'manage_gcp' project.slug %}",
-      data: {
-        "bucket": 'True'
-      },
-      success: function(result){
-        if (result.status){
-          console.log(result.status);
-        }
-        else{
-          console.log(result);
-        }
-      }
-    });
-  }
 </script>
 {% endblock %}
 
@@ -151,7 +134,10 @@
       {% endif %}
       {% if not project.gcp.gcp_bucket %}
         <p>Create the GCP bucket to store all of the information of this project.</p>
-        <button onclick="checkGCP('{{project.slug}}')" class="btn btn-primary">Create GCP bucket </button><br><br>
+        <form action="" method="post">
+          {% csrf_token %}
+          <button class="btn btn-primary" name="bucket" value='{{project.slug}}' type="submit">Create GCP bucket </button><br><br>
+        </form>
       {% endif %}
       {% if not project.gcp.sent_files %}
         <button onclick="" class="btn btn-primary">Send files to bucket </button><br>

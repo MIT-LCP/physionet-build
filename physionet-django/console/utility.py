@@ -10,6 +10,7 @@ import logging
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from google.oauth2 import service_account
+from googleapiclient.discovery import build
 
 # New_Project = 'ecgiddb'
 # bucket_name='physionet-data-{0}'.format(New_Project)
@@ -24,7 +25,7 @@ def check_bucket(project):
         return True
     return False
 
-def create_bucket(project, protected=False): #, public):
+def create_bucket(project, protected=False, group=''):
     """Creates a new bucket."""
     storage_client = storage.Client()
     bucket_name = 'physionet-data-' + project
@@ -33,7 +34,23 @@ def create_bucket(project, protected=False): #, public):
     if not protected:
         bucket.acl.all().grant_read()
         bucket.acl.save()
+    else:
+        set_bucket_permissions(bucket_name, group)
     return bucket_name
+
+def list_bucket_permissions(bucket_name):
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+    policy = bucket.get_iam_policy()
+    for role in policy:
+        members = policy[role]
+        print('Role: {}, Members: {}'.format(role, members))
+
+def set_bucket_permissions(bucket_name, group):
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+    bucket.acl.group(group).grant_read()
+    bucket.acl.save()
 
 def upload_files(bucket_name, New_Project):
     root_dir = '/data/pn-static/published-projects/'
@@ -53,63 +70,3 @@ def upload_files(bucket_name, New_Project):
             else:
                 blob = bucket.blob(file)
                 blob.upload_from_filename(file)
-
-def list_bucket_permissions(bucket_name):
-    storage_client = storage.Client()
-    bucket = storage_client.bucket(bucket_name)
-    policy = bucket.get_iam_policy()
-    for role in policy:
-        members = policy[role]
-        print('Role: {}, Members: {}'.format(role, members))
-
-def set_bucket_permissions(bucket_name, group):
-    storage_client = storage.Client()
-    bucket = storage_client.bucket(bucket_name)
-    bucket.acl.group(group).grant_read()
-    bucket.acl.save()
-
-def create_group(group):
-    SCOPES = ['https://www.googleapis.com/auth/admin.directory.user',
-        'https://www.googleapis.com/auth/admin.directory.group']
-    creds = None
-    # if os.path.exists('token.pickle'):
-    #     with open('token.pickle', 'rb') as token:
-    #         creds = pickle.load(token)
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', SCOPES)
-            creds = flow.run_local_server()
-        # Save the credentials for the next run
-        with open('token.pickle', 'wb') as token:
-            pickle.dump(creds, token)
-
-    url = 'https://www.googleapis.com/admin/directory/v1/groups'
-    payload = {"email" : group}
-    headers = {'Authorization': 'Bearer {0}'.format(creds.token), 
-    'Accept': 'application/json', 'Content-Type': 'application/json'}
-
-    r = requests.post(url, headers=headers, data=json.dumps(payload))
-    if r.status_code == 200:
-        print('Group Created')
-    else:
-        print('There was an error creating the group.\n{0}\n'.format(r.text))
-
-# from physionet.settings.development import GOOGLE_APPLICATION_CREDENTIALS
-
-# service_account_file = os.path.join(
-#    "path/to/folder", "credentials.json")
-
-# credentials = service_account.Credentials.from_service_account_file(
-#     GOOGLE_APPLICATION_CREDENTIALS)
-
-# analytics_reporting = apiclient.discovery.build(
-#     "analytics", "v3", credentials=credentials, cache_discovery=False)
-
-def add_group_participant(group, participant):
-    pass
-
-
-

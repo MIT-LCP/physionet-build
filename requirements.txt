@@ -17,3 +17,4 @@ django-cron==0.5.1
 google==2.0.2
 google-auth-oauthlib==0.2.0
 google-cloud-storage==1.14.0
+google-api-python-client==1.7.8
