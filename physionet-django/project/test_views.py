@@ -42,7 +42,8 @@ class TestAccessPresubmission(TestMixin, TestCase):
         for view in PROJECT_VIEWS:
             response = self.client.get(reverse(view, args=(project.slug,)))
             self.assertEqual(response.status_code, 200)
-        response = self.client.get(reverse('serve_project_file', args=(project.slug, 'notes/notes.txt')))
+        response = self.client.get(reverse('serve_active_project_file',
+            args=(project.slug, 'notes/notes.txt')))
         self.assertEqual(response.status_code, 200)
 
         # Visit as project coauthor
@@ -50,7 +51,8 @@ class TestAccessPresubmission(TestMixin, TestCase):
         for view in PROJECT_VIEWS:
             response = self.client.get(reverse(view, args=(project.slug,)))
             self.assertEqual(response.status_code, 200)
-        response = self.client.get(reverse('serve_project_file', args=(project.slug, 'notes/notes.txt')))
+        response = self.client.get(reverse('serve_active_project_file',
+            args=(project.slug, 'notes/notes.txt')))
         self.assertEqual(response.status_code, 200)
 
         # Visit as non-author
@@ -58,7 +60,8 @@ class TestAccessPresubmission(TestMixin, TestCase):
         for view in PROJECT_VIEWS:
             response = self.client.get(reverse(view, args=(project.slug,)))
             self.assertEqual(response.status_code, 404)
-        response = self.client.get(reverse('serve_project_file', args=(project.slug, 'notes/notes.txt')))
+        response = self.client.get(reverse('serve_active_project_file',
+            args=(project.slug, 'notes/notes.txt')))
         self.assertEqual(response.status_code, 404)
 
     @prevent_request_warnings

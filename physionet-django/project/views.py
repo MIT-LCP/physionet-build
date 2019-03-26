@@ -837,7 +837,7 @@ def preview_files_panel(request, project_slug, **kwargs):
         return redirect('project_preview', project_slug=project_slug)
 
     display_files, display_dirs, dir_breadcrumbs, parent_dir = get_project_file_info(
-        project=project,subdir=subdir)
+        project=project, subdir=subdir)
 
     return render(request, 'project/preview_files_panel.html',
         {'project':project, 'subdir':subdir,
@@ -1062,12 +1062,7 @@ def published_files_panel(request, project_slug, version):
         dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
         parent_dir = os.path.split(subdir)[0]
 
-        if project.access_policy:
-            template = 'project/protected_files_panel.html'
-        else:
-            template = 'project/open_files_panel.html'
-
-        return render(request, template,
+        return render(request, 'project/published_files_panel.html',
             {'project':project, 'subdir':subdir,
              'dir_breadcrumbs':dir_breadcrumbs,
              'parent_dir':parent_dir,
@@ -1077,19 +1072,14 @@ def published_files_panel(request, project_slug, version):
 def serve_protected_project_file(request, project_slug, version,
         full_file_name):
     """
-    Serve a protected file of a published project
+    Serve a file of a protected published project
 
     """
     project = PublishedProject.objects.get(slug=project_slug,
         version=version)
     if project.has_access(request.user):
-<<<<<<< 971268bc3580966c96e646d7c40daaa2414cc34c
-        file_path = os.path.join('published-projects', published_project_slug, full_file_name)
-        return utility.serve_file(full_file_name, file_path)
-=======
         file_path = os.path.join(project.file_root(), full_file_name)
         return utility.serve_file(file_path)
->>>>>>> add benjamin's changes consolidating the serve file and nginx redirection functionalities
     raise Http404()
 
 

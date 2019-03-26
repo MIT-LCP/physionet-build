@@ -14,7 +14,7 @@
             {% if forloop.counter == dir_breadcrumbs|length %}
               {{ breadcrumb.name }}
             {% else %}
-              <a href="?subdir={{ breadcrumb.full_subdir }}#files-panel" onclick="return navigateDir('{{ breadcrumb.full_subdir }}')">{{ breadcrumb.name }}</a>&nbsp;/&nbsp;
+              <a href="?subdir={{ breadcrumb.full_subdir }}" onclick="return navigateDir('{{ breadcrumb.full_subdir }}')">{{ breadcrumb.name }}</a>&nbsp;/&nbsp;
             {% endif %}
           {% endfor %}
           </div>
@@ -32,7 +32,7 @@
         {% if subdir %}
           <li class="list-group-item">
             <div class="row">
-              <div class="col-md-7">&nbsp;<i class="fas fa-angle-up"></i>&nbsp;&nbsp;<a href="?subdir={{ parent_dir }}#files-panel" onclick="return navigateDir('{{ parent_dir }}')">Parent Directory</a></div>
+              <div class="col-md-7">&nbsp;<i class="fas fa-angle-up"></i>&nbsp;&nbsp;<a href="?subdir={{ parent_dir }}" onclick="return navigateDir('{{ parent_dir }}')">Parent Directory</a></div>
               <div class="col-md-2"></div>
               <div class="col-md-2"></div>
               <div class="col-md-1"></div>
@@ -42,7 +42,7 @@
         {% for dir in display_dirs %}
           <li class="list-group-item">
             <div class="row">
-              <div class="col-md-7"><i class="fas fa-folder-open"></i>&nbsp;&nbsp;<a href="?subdir={{ dir.full_subdir }}#files-panel" onclick="return navigateDir('{{ dir.full_subdir }}')">{{ dir.name }}</a></div>
+              <div class="col-md-7"><i class="fas fa-folder-open"></i>&nbsp;&nbsp;<a href="?subdir={{ dir.full_subdir }}" onclick="return navigateDir('{{ dir.full_subdir }}')">{{ dir.name }}</a></div>
               <div class="col-md-2"></div>
               <div class="col-md-2"></div>
               <div class="col-md-1"><input type="checkbox" name="items" value="{{ dir.name }}" onchange="countSelected(this)"></div>
@@ -68,11 +68,10 @@
   // Navigate to another file directory and reload the file panel
   // subdir is the full subdirectory
   function navigateDir(subdir){
-    var csrftoken = getCookie('csrftoken');
     $.ajax({
             type: "GET",
             url: "{% url 'project_files_panel' project.slug %}",
-            data: {'csrfmiddlewaretoken':csrftoken, 'subdir':subdir
+            data: {'subdir':subdir
             },
             success: function reloadSection(result){
                 $("#forms-and-panel").html(result);
