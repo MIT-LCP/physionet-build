@@ -131,7 +131,8 @@ class TestState(TestMixin, TestCase):
             data={'delete_items':'', 'subdir':'', 'items':['subject-100',
             'subject-101']})
         self.assertMessage(response, 25)
-        self.assertFalse(os.path.isfile(os.path.join(project.file_root(), '', 'subject-100')))
+        self.assertFalse(os.path.isfile(os.path.join(project.file_root(),
+            'subject-100')))
         # Complete copyedit
         response = self.client.post(reverse(
             'copyedit_submission', args=(project.slug,)),

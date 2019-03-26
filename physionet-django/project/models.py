@@ -626,28 +626,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         return reverse('serve_active_project_file',
             args=(self.slug, os.path.join(subdir, file)))
 
-    # def get_directory_content(self, subdir=''):
-    #     """
-    #     Return information for displaying file and directories
-    #     """
-    #     inspect_dir = self.get_inspect_dir(subdir)
-    #     file_names , dir_names = list_items(inspect_dir)
-    #     display_files, display_dirs = [], []
-
-    #     # Files require desciptive info and download links
-    #     for file in file_names:
-    #         file_info = get_file_info(os.path.join(inspect_dir, file))
-    #         file_info.full_file_name = os.path.join(subdir, file)
-    #         display_files.append(file_info)
-
-    #     # Directories require links
-    #     for dir_name in dir_names:
-    #         dir_info = get_directory_info(os.path.join(inspect_dir, dir_name))
-    #         dir_info.full_subdir = os.path.join(subdir, dir_name)
-    #         display_dirs.append(dir_info)
-
-    #     return display_files, display_dirs
-
     def under_submission(self):
         """
         Whether the project is under submission

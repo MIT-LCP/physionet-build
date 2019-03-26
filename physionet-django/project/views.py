@@ -700,7 +700,7 @@ def project_files_panel(request, project_slug, **kwargs):
     (upload_files_form, create_folder_form, rename_item_form,
         move_items_form, delete_items_form) = get_file_forms(project, subdir)
 
-    return render(request, 'project/project_files_panel.html',
+    return render(request, 'project/edit_files_panel.html',
         {'project':project, 'subdir':subdir,
          'dir_breadcrumbs':dir_breadcrumbs, 'parent_dir':parent_dir,
          'display_files':display_files, 'display_dirs':display_dirs,
@@ -798,19 +798,16 @@ def project_files(request, project_slug, **kwargs):
         project=project, subdir=subdir)
 
     return render(request, 'project/project_files.html', {'project':project,
-        'individual_size_limit':utility.readable_size(ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT),
-        'subdir':subdir,
-        'display_files':display_files,
-        'display_dirs':display_dirs,
-        'storage_info':storage_info,
+        'individual_size_limit':utility.readable_size(
+            ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT),
+        'subdir':subdir, 'display_files':display_files,
+        'display_dirs':display_dirs, 'storage_info':storage_info,
         'storage_request':storage_request,
         'storage_request_form':storage_request_form,
         'upload_files_form':upload_files_form,
         'create_folder_form':create_folder_form,
-        'rename_item_form':rename_item_form,
-        'move_items_form':move_items_form,
-        'delete_items_form':delete_items_form,
-        'is_submitting':is_submitting,
+        'rename_item_form':rename_item_form, 'move_items_form':move_items_form,
+        'delete_items_form':delete_items_form, 'is_submitting':is_submitting,
         'dir_breadcrumbs':dir_breadcrumbs})
 
 
