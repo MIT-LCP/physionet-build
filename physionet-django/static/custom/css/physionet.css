@@ -146,15 +146,6 @@ a{
   color: #0366d6;
 }
 
-.badge-pn {
-  background-color: #17a2b8;
-  cursor: pointer;
-}
-
-.badge-pn:hover {
-  background-color: #1cbed8;
-}
-
 .share-email {
   color: white;
   background-color: #787878;
@@ -243,6 +234,16 @@ a{
 .badge-dark:not(.badge-pill) {
   color: #fff;
   background-color: rgba(51, 51, 51, 0.75);
+}
+
+.badge-pn:not(.badge-pill) {
+  color: #0366d6;
+  background-color: #f1f8ff;
+  cursor: pointer;
+}
+
+.badge-pn:not(.badge-pill):hover {
+  background-color: #def;
 }
 
 .fa{
