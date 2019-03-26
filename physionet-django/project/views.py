@@ -838,11 +838,13 @@ def preview_files_panel(request, project_slug, **kwargs):
 
     display_files, display_dirs, dir_breadcrumbs, parent_dir = get_project_file_info(
         project=project, subdir=subdir)
+    files_panel_url = reverse('preview_files_panel', args=(project.slug,))
 
-    return render(request, 'project/preview_files_panel.html',
+    return render(request, 'project/files_panel.html',
         {'project':project, 'subdir':subdir,
          'dir_breadcrumbs':dir_breadcrumbs, 'parent_dir':parent_dir,
-         'display_files':display_files, 'display_dirs':display_dirs})
+         'display_files':display_files, 'display_dirs':display_dirs,
+         'files_panel_url':files_panel_url})
 
 
 @project_auth(auth_mode=2)
@@ -874,14 +876,15 @@ def project_preview(request, project_slug, **kwargs):
     subdir = request.GET.get('subdir', '')
     display_files, display_dirs = project.get_directory_content(subdir=subdir)
     dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
+    files_panel_url = reverse('preview_files_panel', args=(project.slug,))
 
-    return render(request, 'project/project_preview.html', {
-        'project':project, 'display_files':display_files, 'display_dirs':display_dirs,
+    return render(request, 'project/project_preview.html', {'project':project,
+        'display_files':display_files, 'display_dirs':display_dirs,
         'authors':authors, 'corresponding_author':corresponding_author,
         'invitations':invitations, 'references':references,
         'publications':publications, 'topics':topics, 'languages':languages,
-        'passes_checks':passes_checks,
-        'dir_breadcrumbs':dir_breadcrumbs})
+        'passes_checks':passes_checks, 'dir_breadcrumbs':dir_breadcrumbs,
+        'files_panel_url':files_panel_url})
 
 
 @project_auth(auth_mode=2)
@@ -1061,12 +1064,14 @@ def published_files_panel(request, project_slug, version):
         # Breadcrumbs
         dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
         parent_dir = os.path.split(subdir)[0]
+        files_panel_url = reverse('published_files_panel',
+            args=(project.slug, project.version))
 
-        return render(request, 'project/published_files_panel.html',
+        return render(request, 'project/files_panel.html',
             {'project':project, 'subdir':subdir,
-             'dir_breadcrumbs':dir_breadcrumbs,
-             'parent_dir':parent_dir,
-             'display_files':display_files, 'display_dirs':display_dirs})
+             'dir_breadcrumbs':dir_breadcrumbs, 'parent_dir':parent_dir,
+             'display_files':display_files, 'display_dirs':display_dirs,
+             'files_panel_url':files_panel_url})
 
 
 def serve_protected_project_file(request, project_slug, version,
@@ -1149,10 +1154,13 @@ def published_project(request, project_slug, version):
         dir_breadcrumbs = utility.get_dir_breadcrumbs('')
         main_size, compressed_size = [utility.readable_size(s) for s in
             (project.main_storage_size, project.compressed_storage_size)]
+        files_panel_url = reverse('published_files_panel',
+            args=(project.slug, project.version))
 
         context = {**context, **{'dir_breadcrumbs':dir_breadcrumbs,
             'main_size':main_size, 'compressed_size':compressed_size,
-            'display_files':display_files, 'display_dirs':display_dirs}}
+            'display_files':display_files, 'display_dirs':display_dirs,
+            'files_panel_url':files_panel_url}}
 
     return render(request, 'project/published_project.html', context)
 
