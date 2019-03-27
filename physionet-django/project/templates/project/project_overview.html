@@ -40,7 +40,9 @@ guidelines</a>.</p>
 {% endif %}
 <hr>
 {% if is_submitting %}
-  <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#delete-project-modal" {% if under_submission %}disabled title="Cannot delete while under submission"{% endif %}>Delete Project</button>
+  <div class="btn-container-rsp btn-right">
+    <button type="button" class="btn btn-danger btn-rsp" data-toggle="modal" data-target="#delete-project-modal" {% if under_submission %}disabled title="Cannot delete while under submission"{% endif %}>Delete Project</button>
+  </div>
   <div class="modal fade" id="delete-project-modal" tabindex="-1" role="dialog" aria-labelledby="delete-project-modal" aria-hidden="true">
     <div class="modal-dialog" role="document">
       <div class="modal-content">

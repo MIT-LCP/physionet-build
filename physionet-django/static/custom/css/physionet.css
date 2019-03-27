@@ -274,6 +274,16 @@ form > button:last-child{
     margin-left: 15px; 
   }
 
+  .btn-right{
+    display: flex;
+    margin-left: auto;
+  }
+
+  .btn-rsp{
+    width: 200px;
+    justify-content: center;
+  }
+
   .btn-container-rsp .btn-rsp{
     width: 100%;
   }
@@ -299,9 +309,11 @@ form > button:last-child{
   div[class^='col'] {
     max-width: unset;
     margin-bottom: 25px;
+    flex: unset;
   }
 }
 
-.no-pd div, .no-pd label{
+.no-pd div:first-of-type, .no-pd div:last-of-type
+, .no-pd label{
   padding: 0;
 }

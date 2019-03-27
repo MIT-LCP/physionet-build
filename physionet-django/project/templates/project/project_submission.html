@@ -56,9 +56,12 @@
     preview</a> appears satisfactory to all authors, the submitting author may
     submit the project for review.</p>
   {% if is_submitting %}
-    <button id="submit-project-modal-button" type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#submit-modal" onclick="checkIntegrity(false)">
-      Submit Project
-    </button>
+    <hr>
+    <div class="btn-container-rsp btn-right">
+      <button id="submit-project-modal-button" type="button" class="btn btn-primary btn-rsp" data-toggle="modal" data-target="#submit-modal" onclick="checkIntegrity(false)">
+        Submit Project
+      </button>
+    </div>
 
     <div class="modal fade" id="submit-modal" tabindex="-1" role="dialog" aria-labelledby="submit-modal" aria-hidden="true">
       <div class="modal-dialog" role="document">
@@ -91,6 +94,5 @@
     {% include "project/active_submission_timeline.html" %}
   </div>
 {% endif %}
-<hr>
 
 {% endblock %}
