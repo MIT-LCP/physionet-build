@@ -220,6 +220,20 @@
     </div>
     <!-- /.sidebar -->
   </div>
+
+    {% if project.access_policy %}
+      {% if has_access and project.gcp.sent_files %}
+        <h2 id="files">Files on Google Cloud</h2>
+        <p><a href="https://storage.googleapis.com/{{project.gcp.gcp_bucket}}/" class="btn btn-primary btn-sm" >Go to the GCP file directory</a></p>
+        <p><a href="https://storage.googleapis.com/{{ project.gcp.gcp_bucket }}/{{ project.zip_name }}" class="btn btn-primary btn-sm">Download Zip from google</a> </p>
+      {% endif %}
+    {% else %}
+       <h2 id="files">Files on Google Cloud</h2>
+        <p><a href="https://storage.googleapis.com/{{project.gcp.gcp_bucket}}/" class="btn btn-primary btn-sm" >Go to the GCP file directory</a></p>
+        <p><a href="https://storage.googleapis.com/{{ project.gcp.gcp_bucket }}/{{ project.zip_name }}" class="btn btn-primary btn-sm">Download Zip from google</a> </p>
+    {% endif %}
+
+
   <h2 id="files">Files</h2>
   {% if project.access_policy %}
     {% if has_access %}
@@ -233,10 +247,6 @@
     </div>
     {% endif %}
   {% else %}
-    {% if project.gcp.gcp_bucket %}
-      <p><a href="https://storage.googleapis.com/{{project.gcp.gcp_bucket}}/" class="btn btn-success btn-sm" >Files hosted in Google Cloud Platform</a>
-      <a href="https://storage.googleapis.com/{{ project.gcp.gcp_bucket }}/{{ project.zip_name }}" style="float:right" class="btn btn-success btn-sm">Download Zip from google</a> </p>
-    {% endif %}
     <p>Total uncompressed size: {{ main_size }}.{% if project.compressed_storage_size %}<a class="btn btn-success btn-sm" href="{% static project.zip_url %}" style="float:right">Download Zip ({{ compressed_size }})</a>{% endif %}</p>
     <div id="files-panel" class="card">
       {% include "project/files_panel.html" %}

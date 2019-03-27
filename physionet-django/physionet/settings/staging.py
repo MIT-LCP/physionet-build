@@ -1,4 +1,5 @@
 import sys
+import os 
 
 from decouple import config
 
@@ -30,7 +31,7 @@ EMAIL_USE_TLS = False
 DEFAULT_FROM_EMAIL = 'PhysioNet Automated System <noreply@staging.physionet.org>'
 CONTACT_EMAIL = 'PhysioNet Contact <contact@staging.physionet.org>'
 
-GOOGLE_APPLICATION_CREDENTIALS="/physionet/deploy/PhysioNet-Data-Access.json"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(BASE_DIR, 'PhysioNet-Data-credentials.json')
 
 DEMO_FILE_ROOT = os.path.join(os.path.abspath(os.path.join(BASE_DIR, os.pardir)), 'demo-files')
 

@@ -132,6 +132,7 @@
         <p>This is a project that contains some kind of security, credential or DUA. Because of this it needs a group to control the access.</p>
         <button onclick="execute('{{project.slug}}-noreply@physionet.org')" class="btn btn-primary">Create access group</button><br><br>
       {% endif %}
+      {{project.gcp.gcp_bucket}}
       {% if not project.gcp.gcp_bucket %}
         <p>Create the GCP bucket to store all of the information of this project.</p>
         <form action="" method="post">
@@ -140,7 +141,16 @@
         </form>
       {% endif %}
       {% if not project.gcp.sent_files %}
-        <button onclick="" class="btn btn-primary">Send files to bucket </button><br>
+      <p>To send the files of this project to GCP, please log into the server and run the following command. After the files are sent, click the button.</p>
+      <code>gsutil -m cp -r -L /data/transfers/gcloud/{{project.slug}}.log {{project.file_root}}/{{project.version}}/ gs://physionet-data-{{project.slug|lower}}/{{project.version}}/</code>
+
+        <form action="" method="post">
+          {% csrf_token %}
+          <button class="btn btn-primary" name="send_files" value='{{project.slug}}' style='margin-top: 1em' type="submit">Send files to bucket </button><br>
+        </form>
+      {% endif %}
+      {% if project.gcp.sent_files and project.gcp.gcp_bucket %}
+        <p>The files have been sent to GCP. The bucket name is: {{project.gcp.sent_files}}</p>
       {% endif %}
     {% endif %}
   </div>

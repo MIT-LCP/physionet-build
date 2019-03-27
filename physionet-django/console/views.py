@@ -1,6 +1,7 @@
 import re
 import pdb
 import logging
+import subprocess
 
 from django.core.validators  import validate_email
 from django.contrib import messages
@@ -512,7 +513,6 @@ def manage_published_project(request, project_slug):
             messages.success(request, 'The zip of the main files has been generated.')
 
         elif 'bucket' in request.POST:
-            pdb.set_trace()
             slug = request.POST['bucket'].lower()
             gcp_manager = GCP.objects.filter(project=project)
             if not gcp_manager:
@@ -522,21 +522,32 @@ def manage_published_project(request, project_slug):
                     if project.gcp.gcp_group:
                         project.gcp.gcp_bucket = create_bucket(project=slug, protected=True, 
                         group=project.gcp.gcp_group)
+                        project.gcp.save()
+                        logger.info("Created GCP bucket for project {0}".format(project_slug))
+                        messages.success(request, "The GCP bucket for project {0} was successfuly created".format(project_slug))
                     else:
                         messages.error(request, "There is no group created for this bucket ({0}), \
                         please create the group before creating the bucket.".format(project_slug))
                 else:
                     project.gcp.gcp_bucket = create_bucket(project=slug)
-                project.gcp.save()
-                logger.info("Created GCP bucket for project {0}".format(project_slug))
-                messages.success(request, "Created GCP bucket for project {0}".format(project_slug))
+                    project.gcp.save()
+                    logger.info("Created GCP bucket for project {0}".format(project_slug))
+                    messages.success(request, "The GCP bucket for project {0} was successfuly created".format(project_slug))
             else:
                 messages.success(request, "The GCP bucket for project {0} already exists".format(project_slug))
+        elif 'send_files' in request.POST:
+            slug = request.POST['send_files']
+            project = PublishedProject.objects.get(slug=slug)
+            project.gcp.sent_files = True
+            project.gcp.save()
+            logger.info("Sent all the files to the bucket {0}".format(project.gcp.gcp_bucket))
+
     return render(request, 'console/manage_published_project.html',
         {'project':project, 'authors':authors, 'author_emails':author_emails,
          'storage_info':storage_info, 'edit_logs':edit_logs,
          'copyedit_logs':copyedit_logs, 'latest_version':latest_version,
          'published':True, 'doi_form':doi_form,})
+
 
 @login_required
 @user_passes_test(is_admin)
@@ -764,13 +775,11 @@ def gcloud(request):
 @login_required
 @user_passes_test(is_admin)
 def manage_gcp(request, project_slug, *args, **kwargs):
-    # pdb.set_trace()
     slug = project_slug.lower()
     project = PublishedProject.objects.get(slug=project_slug)
     gcp_manager = GCP.objects.filter(project=project)
     if not gcp_manager:
         GCP.objects.create(project=project)
-
 
     if 'group' in request.GET and project:
         email = request.GET['group']

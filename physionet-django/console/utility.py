@@ -18,6 +18,9 @@ from googleapiclient.discovery import build
 logger = logging.getLogger(__name__)
 
 def check_bucket(project):
+    """
+    Function to check if a bucket already exists 
+    """
     storage_client = storage.Client()
     bucket_name = 'physionet-data-' + project
     exists = storage_client.lookup_bucket(bucket_name)
@@ -26,7 +29,9 @@ def check_bucket(project):
     return False
 
 def create_bucket(project, protected=False, group=''):
-    """Creates a new bucket."""
+    """
+    Function to create a bucket and set its permissions
+    """
     storage_client = storage.Client()
     bucket_name = 'physionet-data-' + project
     bucket = storage_client.create_bucket(bucket_name)
@@ -39,6 +44,9 @@ def create_bucket(project, protected=False, group=''):
     return bucket_name
 
 def list_bucket_permissions(bucket_name):
+    """
+    Function to list the permissions of a bucket
+    """
     storage_client = storage.Client()
     bucket = storage_client.bucket(bucket_name)
     policy = bucket.get_iam_policy()
@@ -47,14 +55,20 @@ def list_bucket_permissions(bucket_name):
         print('Role: {}, Members: {}'.format(role, members))
 
 def set_bucket_permissions(bucket_name, group):
+    """
+    Function to set the permissions of a bucket to a specific group
+    """
     storage_client = storage.Client()
     bucket = storage_client.bucket(bucket_name)
     bucket.acl.group(group).grant_read()
     bucket.acl.save()
 
 def upload_files(bucket_name, New_Project):
-    root_dir = '/data/pn-static/published-projects/'
-    file_dir = '/files/'
+    """
+    Function to send files to a bucket. 
+    """
+    root_dir = project.file_root()
+    file_dir = project.version
     working_dir = root_dir + New_Project + file_dir
     subfolders_fullpath = [x[0] for x in walk(working_dir)]
     storage_client = storage.Client()

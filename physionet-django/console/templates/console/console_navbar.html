@@ -24,9 +24,9 @@
       {% url 'unsubmitted_projects' as unsubmitted_projects %}
       {% url 'submitted_projects' as submitted_projects %}
       {% url 'published_projects' as published_projects %}
-      {% url 'rejected_submissions' as rejected_submissions %}
+      {% url 'rejected_submissions' as rejected_submissions %}      
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
-      {% if request.path == unsubmitted_projects or request.path == submitted_projects or request.path == published_projects or request.path == rejected_submissions %}
+      {% if request.path == unsubmitted_projects or request.path == submitted_projects or request.path == published_projects or request.path == rejected_submissions or '/console/published-projects/' in request.path %}
         <a id="nav_projects_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#projectComponents" data-parent="#sideAccordion" aria-expanded="true">
       {% else %}
         <a id="nav_projects_dropdown" class="nav-link nav-link-collapse drop collapsed" data-toggle="collapse" href="#projectComponents" data-parent="#sideAccordion" aria-expanded="false">
@@ -35,7 +35,7 @@
           <span class="nav-link-text">Projects</span>
         </a>
         <!-- submenu -->
-      {% if request.path == unsubmitted_projects or request.path == submitted_projects or request.path == published_projects or request.path == rejected_submissions %}
+      {% if request.path == unsubmitted_projects or request.path == submitted_projects or request.path == published_projects or request.path == rejected_submissions or '/console/published-projects/' in request.path %}
         <ul class="sidenav-second-level collapse show" id="projectComponents" style="">
       {% else %}
         <ul class="sidenav-second-level collapse" id="projectComponents">
@@ -46,7 +46,7 @@
           <li class="nav-item {% ifequal request.path submitted_projects %}active{% endifequal %}">
             <a id="nav_submitted_projects" class="nav-link" href="{% url 'submitted_projects' %}">Submitted</a>
           </li>
-          <li class="nav-item {% ifequal request.path published_projects %}active{% endifequal %}">
+          <li class="nav-item {% ifequal request.path published_projects %}active{% endifequal %}{% if '/console/published-projects/' in request.path%}active{% endif %}">
             <a id="nav_published_projects" class="nav-link" href="{% url 'published_projects' %}">Published</a>
           </li>
           <li class="nav-item {% ifequal request.path rejected_submissions %}active{% endifequal %}">
