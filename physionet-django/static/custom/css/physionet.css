@@ -1,4 +1,6 @@
-html,body{height:100%;}
+html,body{height:100%; width: 100%;}
+html{overflow: hidden;}
+body{overflow: scroll;}
 
 /* Open in new window icon */
 a[target='_blank']::after {
@@ -209,7 +211,7 @@ a{
 }
 
 .container{
-  padding-top: 50px;
+  padding: 40px 30px;
 }
 
 body > .container{
@@ -263,5 +265,43 @@ body > .container{
 form > button:last-child{
   display: flex;
   margin-left: auto;
-  margin-right: 15px;
+}
+
+@media (min-width: 768px){
+  .btn-container-rsp{
+    display: inline-block;
+    width: calc(25% - 15px);
+    margin-left: 15px; 
+  }
+
+  .btn-container-rsp .btn-rsp{
+    width: 100%;
+  }
+
+  .progress{
+    width: 40%; 
+    margin-left: 58%; 
+    margin-top: -50px;
+  }
+}
+
+@media (max-width: 767px){
+  .btn-rsp{
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .progress{
+    width: 100%;
+  }
+
+  div[class^='col'] {
+    max-width: unset;
+    margin-bottom: 25px;
+  }
+}
+
+.no-pd div, .no-pd label{
+  padding: 0;
 }

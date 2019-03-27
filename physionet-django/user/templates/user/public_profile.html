@@ -15,15 +15,15 @@ Profile for {{ public_user.username }}
 <div class="container">
   <div class="row">
 
-    <div class="col-md-4">
+    <div class="col-md-4" style="text-align: center;">
       {% if profile.photo %}
         <img border="1px" src="{% url 'profile_photo' public_user.username %}" width="250px" height="250px">
       {% else %}
         <img border="1px" src="{% static '/images/unknown-user.svg' %}"width="250px" height="250px">
       {% endif %}
     </div>
-    <div class="col-md-8">
-      <h2>User: {{ public_user.username }}
+    <div class="col-md-8 no-pd">
+      <h2>{{ public_user.username }}
       {% if user == public_user %}
         <a class="btn btn-primary" href="{% url 'edit_profile' %}" role="button" style="float:right">Edit Profile</a>
       {% endif %}
