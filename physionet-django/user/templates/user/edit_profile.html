@@ -3,16 +3,13 @@
 {% block title %}Edit Profile{% endblock %}
 
 {% block main_content %}
-<form action="{% url 'edit_profile' %}" method="post" enctype="multipart/form-data" class="form-signin">
-	<table style="width: 100%;">
-		<tr>
-			<td><h1 class="form-signin-heading">Edit Profile</h1></td>
-			<td style="text-align: right;"><a class="btn btn-primary" href="{% url 'public_profile' user.username %}" role="button">View Public Profile</a></td>
-		</tr>
-	</table>
+<form action="{% url 'edit_profile' %}" method="post" enctype="multipart/form-data" class="form-signin no-pd">
+	<h1 class="form-signin-heading" style="display: inline-block; width: 74%;">Edit Profile</h1>
+	<div class="btn-container-rsp">
+		<a class="btn btn-primary btn-rsp" href="{% url 'public_profile' user.username %}" role="button">View Public Profile</a></div>
 	<hr>
 	{% csrf_token %}
 	{% include "inline_form_snippet.html" %}
-	<button class="btn btn-primary" type="submit" name="edit_profile">Save Changes</button>
+	<button class="btn btn-primary btn-rsp" type="submit" name="edit_profile">Save Changes</button>
 </form>
 {% endblock %}

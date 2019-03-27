@@ -19,7 +19,7 @@ Topic Search
   <p>Search published PhysioNet content with <a href="{% url 'all_topics' %}">topic keywords</a>.
   </p>
   <br>
-  <form method="GET" action="">
+  <form method="GET" action="" class="no-pd">
     {% include "inline_form_snippet.html" %}
     <button class="btn btn-primary btn-lg" type="submit">Search</button>
   </form>
@@ -54,5 +54,6 @@ Topic Search
       </table>
     {% endif %}
   {% endif %}
+  <hr>
 </div>
 {% endblock %}

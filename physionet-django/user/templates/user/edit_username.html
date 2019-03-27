@@ -6,11 +6,11 @@ Edit Username
 
 {% block main_content %}
 
-<form action="{% url 'edit_username' %}" method="post" class="form-signin">
+<form action="{% url 'edit_username' %}" method="post" class="form-signin no-pd">
   <h1 class="form-signin-heading">Edit Username</h1>
   <hr>
   {% csrf_token %}
   {% include "inline_form_snippet.html" %}
-  <button class="btn btn-primary btn-custom" type="submit">Update Username</button>
+  <button class="btn btn-primary btn-custom btn-rsp" type="submit">Update Username</button>
 </form>
 {% endblock %}
