@@ -63,13 +63,13 @@
 <br>
 <h4>Primary Email</h4>
 <p>The email address used for authentication, and email notifications.</p>
-<form action="{% url 'edit_emails' %}" method="post" class="form-signin row">
+<form action="{% url 'edit_emails' %}" method="post" class="form-signin row" style="text-align: right;">
   {% csrf_token %}
   <div class='col-md-9'>
     {% include "form_snippet_no_labels.html" with form=primary_email_form %}
   </div>
-  <div>
-    <button class="btn btn-primary btn-fixed" name="set_primary_email" type="submit">Select</button>
+  <div style="width: 25%; min-width: 100px">
+    <button class="btn btn-primary full-width" name="set_primary_email" type="submit">Select</button>
   </div>
 </form>
 
@@ -82,8 +82,8 @@
   <div class='col-md-9'>
     {% include "form_snippet_no_labels.html" with form=public_email_form %}
   </div>
-  <div>
-    <button class="btn btn-primary btn-fixed" name="set_public_email" type="submit">Select</button>
+  <div style="width: 25%; min-width: 100px">
+    <button class="btn btn-primary full-width" name="set_public_email" type="submit">Select</button>
   </div>
 </form>
 
@@ -96,8 +96,8 @@
   <div class='col-md-9'>
     {% include "form_snippet_no_labels.html" with form=add_email_form %}
   </div>
-  <div>
-    <button class="btn btn-primary btn-fixed" name="add_email" type="submit">Add Email</button>
+  <div style="width: 25%; min-width: 100px">
+    <button class="btn btn-primary full-width" name="add_email" type="submit">Add Email</button>
   </div>
 </form>
 

@@ -249,3 +249,13 @@ a{
 .fa{
   margin-right: 5px;
 }
+
+.full-width{
+  width: 100%;
+}
+
+form > button:last-child{
+  display: flex;
+  margin-left: auto;
+  margin-right: 15px;
+}
