@@ -254,6 +254,10 @@ body > .container{
   min-height: calc(100% - 56px - 10.5rem);
 }
 
+body > .container{
+  min-height: calc(100% - 56px - 10.5rem);
+}
+
 .row{
   margin-left: unset;
   margin-right: unset;
