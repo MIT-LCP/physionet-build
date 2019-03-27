@@ -7,6 +7,8 @@ from django.utils.translation import ugettext as _
 from zxcvbn import zxcvbn
 
 
+_subword = re.compile(r'\d+|[^\W\d_]+')
+
 class ComplexityValidator():
     """
     Require at least one symbol
@@ -15,7 +17,27 @@ class ComplexityValidator():
         self.minimum_complexity = 2
 
     def validate(self, password, user=None):
-        if zxcvbn(password,[])['score'] < self.minimum_complexity:
+        # NOTE: Keep list of forbidden words in sync with
+        # zxcvbn_ProgressBar_Register.js and
+        # zxcvbn_ProgressBar_Change.js
+
+        bad_words = ['physio', 'physionet']
+
+        try:
+            fname = user.profile.first_names
+            lname = user.profile.last_name
+        except AttributeError:
+            # new user, profile does not yet exist
+            fname = user.first_names
+            lname = user.last_name
+
+        bad_words += re.findall(_subword, fname)
+        bad_words += re.findall(_subword, lname)
+        bad_words += re.findall(_subword, user.email)
+        bad_words += re.findall(_subword, user.username)
+
+        info = zxcvbn(password, bad_words)
+        if info['score'] < self.minimum_complexity:
             raise ValidationError(
                 _("This password is too weak."),
                 code='password_weak_password',

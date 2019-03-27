@@ -208,7 +208,14 @@ class RegistrationForm(forms.ModelForm):
         password2 = self.cleaned_data.get('password2')
         if password1 and password2 and password1 != password2:
             raise forms.ValidationError("The passwords don't match")
-        self.instance.username = self.cleaned_data.get('username')
+
+        # Note: if any of the following fields are missing, the form
+        # should ultimately be rejected, but we want to go ahead and
+        # check the password anyway
+        self.instance.username = self.cleaned_data.get('username', '')
+        self.instance.first_names = self.cleaned_data.get('first_names', '')
+        self.instance.last_name = self.cleaned_data.get('last_name', '')
+        self.instance.email = self.cleaned_data.get('email', '')
         password_validation.validate_password(self.cleaned_data.get('password2'),
             self.instance)
         return password2
