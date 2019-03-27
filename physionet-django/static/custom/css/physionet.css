@@ -1,3 +1,5 @@
+html,body{height:100%;}
+
 /* Open in new window icon */
 a[target='_blank']::after {
   content: '\29C9';
@@ -208,6 +210,10 @@ a{
 
 .container{
   padding-top: 50px;
+}
+
+body > .container{
+  min-height: calc(100% - 56px - 10.5rem);
 }
 
 .row{

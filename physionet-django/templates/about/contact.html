@@ -18,12 +18,12 @@ Contact us
 
 {% block content %}
 {% include "message_snippet.html" %}
-
-<section id="contact">
-  <div class="container">
-        <h1>Contact us</h1>
-        <p>Before getting in touch with us, please read the points below to choose the appropriate method of contact:</p>
-        <ul>
+<div class="container">
+  <section id="contact">
+    <div>
+      <h1>Contact us</h1>
+      <p>Before getting in touch with us, please read the points below to choose the appropriate method of contact:</p>
+      <ul>
         <li>If you have a bug report or suggestion regarding the site or its content, please raise an issue on the
         <a href="https://github.com/MIT-LCP/physionet-build" target="_blank">development repository</a>.</li> 
         <li>If you have a question about a particular database or software package, please contact the corresponding author of the resource.</li>
@@ -31,66 +31,68 @@ Contact us
       </ul>
 
     </div>
-</section>
+  </section>
 
-<section id="form">
+  <section id="form">
     <div class="container">
-    <div class="row">
-      <div class="col-md-12">
+      <div class="row">
+        <div class="col-md-12">
 
-        <form method="post">
-          {% csrf_token %}
+          <form method="post">
+            {% csrf_token %}
 
-          <div class="row">
-            <div class="col-md-12">
-              <div class="form-group">
-                {{ contact_form.name }}
-                <p class="help-block text-danger"></p>
+            <div class="row">
+              <div class="col-md-12">
+                <div class="form-group">
+                  {{ contact_form.name }}
+                  <p class="help-block text-danger"></p>
+                </div>
               </div>
             </div>
-          </div>
 
 
-          <div class="row">
-            <div class="col-md-12">    
-              <div class="form-group">
-                {{ contact_form.email }}
-                <p class="help-block text-danger"></p>
+            <div class="row">
+              <div class="col-md-12">    
+                <div class="form-group">
+                  {{ contact_form.email }}
+                  <p class="help-block text-danger"></p>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div class="row">
-            <div class="col-md-12">    
-              <div class="form-group">
-                {{ contact_form.subject }}
-                <p class="help-block text-danger"></p>
+            <div class="row">
+              <div class="col-md-12">    
+                <div class="form-group">
+                  {{ contact_form.subject }}
+                  <p class="help-block text-danger"></p>
+                </div>
               </div>
             </div>
-          </div>
 
 
-          <div class="row">
-            <div class="col-md-12"> 
-              <div class="form-group">
-                {{ contact_form.message }}
-                <p class="help-block text-danger"></p>
+            <div class="row">
+              <div class="col-md-12"> 
+                <div class="form-group">
+                  {{ contact_form.message }}
+                  <p class="help-block text-danger"></p>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div class="row">
-            <div class="col-md-12"> 
-            <div class="clearfix"></div>
-            <div class="col-lg-12 text-center button-wrapper">
-              <div id="success"></div>
-              <button class="btn btn-primary btn-xl" type="submit">Send Message</button>
+            <div class="row">
+              <div class="col-md-12">
+                <div class="clearfix"></div>
+                <div class="col-lg-12 text-center button-wrapper">
+                  <div id="success"></div>
+                  <button class="btn btn-primary btn-xl" type="submit">Send Message</button>
+                </div>
+              </div>
             </div>
-            </div>
-        </form>
+          </form>
 
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
+</div>
 {% endblock %}
