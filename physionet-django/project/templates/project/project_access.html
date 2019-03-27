@@ -20,12 +20,11 @@
   </div>
 {% endif %}
 
-<form action="{% url 'project_access' project.slug %}" method="post">
+<form action="{% url 'project_access' project.slug %}" method="post" class="no-pd">
   {% include "project/metadata_inline_form_snippet.html" with form=access_form %}
-  <button class="btn btn-lg btn-primary" type="submit" name="edit_access">Save Access Information</button>
+  <hr>
+  <button class="btn btn-primary btn-rsp" type="submit" name="edit_access">Save Access Information</button>
 </form>
-<br>
-<hr>
 {% endblock %}
 
 {% block local_js_bottom %}
