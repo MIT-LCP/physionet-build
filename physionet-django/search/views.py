@@ -5,6 +5,10 @@ from django.shortcuts import render, redirect, reverse
 from . import forms
 from project.models import PublishedProject, PublishedTopic
 
+import operator
+from functools import reduce
+from django.db.models import Q
+
 
 def google_custom_search(request):
     """
@@ -69,8 +73,11 @@ def get_content(resource_type, orderby, direction, topic):
     else:
         import re
         topic = re.split(r"\W",topic);
-        published_projects = PublishedProject.objects.filter(
-            resource_type__in=resource_type, topics__description__in=topic)
+        query = reduce(operator.or_, (Q(topics__description__contains = item) for item in topic))
+        query = query | reduce(operator.or_, (Q(abstract__contains = item) for item in topic))
+        query = query | reduce(operator.or_, (Q(title__contains = item) for item in topic))
+        query = query & Q(resource_type__in=resource_type)
+        published_projects = PublishedProject.objects.filter(query).distinct()
 
     direction = '-' if direction == 'desc' else ''
 
