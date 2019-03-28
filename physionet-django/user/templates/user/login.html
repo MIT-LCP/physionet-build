@@ -14,6 +14,7 @@
     <h2 class="form-signin-heading">Account Login</h2>
     {% csrf_token %}
     {{ form.username }}
+    <br>
     {{ form.password }}
     {% for error in form.non_field_errors %}
       <div class="alert alert-danger">
