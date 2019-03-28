@@ -84,7 +84,7 @@ def content_index(request, resource_type=None):
     List of all published resources
     """
     LABELS = {0:['Database', 'databases'],
-        1:['Software', 'software'], 2:['Challenge', 'challenge']}
+        1:['Software', 'softwares'], 2:['Challenge', 'challenges']}
 
     form_type = forms.ProjectTypeForm()
     if 'types' in request.GET:
@@ -98,9 +98,9 @@ def content_index(request, resource_type=None):
         resource_type = [resource_type]
         form_type = forms.ProjectTypeForm({'types':resource_type})
 
-    for r in resource_type:
-        main_label = LABELS[r][0].join(',')
-        plural_label = LABELS[r][1].join(',')
+
+    main_label = ', '.join([LABELS[r][0] for r in resource_type])
+    plural_label = ', '.join([LABELS[r][1] for r in resource_type])
 
     orderby, direction = 'publish_datetime', 'desc'
     form_order = forms.ProjectOrderForm()
