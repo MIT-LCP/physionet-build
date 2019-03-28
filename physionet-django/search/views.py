@@ -87,8 +87,9 @@ def get_content(resource_type, orderby, direction, topic):
     authors = [p.authors.all() for p in published_projects]
     topics = [p.topics.all() for p in published_projects]
     projects_authors_topics = zip(published_projects, authors, topics)
+    nprojects = len(published_projects)
 
-    return projects_authors_topics
+    return projects_authors_topics, nprojects
 
 
 def content_index(request, resource_type=None):
@@ -132,14 +133,14 @@ def content_index(request, resource_type=None):
         form_topic = forms.TopicSearchForm()
 
     # BUILD
-    projects_authors_topics = get_content(resource_type=resource_type,
+    projects_authors_topics, nprojects = get_content(resource_type=resource_type,
             orderby=orderby, direction=direction, topic=topic)
     
 
     return render(request, 'search/content_index.html', {'form_order':form_order,
         'projects_authors_topics':projects_authors_topics,
         'main_label':main_label, 'plural_label':plural_label,
-        'form_type':form_type, 'form_topic':form_topic})
+        'form_type':form_type, 'form_topic':form_topic,'nprojects':nprojects})
 
 
 def database_index(request):

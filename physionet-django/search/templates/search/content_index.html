@@ -45,6 +45,7 @@ PhysioNet Index
     </div><div class="main-content">
       <h1>Resources</h1>
       <br>
+      {% if nprojects < 1 %} No results {% endif %}
       {% include "search/content_list.html" %}
     </div>
 </div>
