@@ -15,19 +15,18 @@ Profile for {{ public_user.username }}
 <div class="container">
   <div class="row no-pd">
 
-    <div class="col-md-4" style="text-align: center;">
+    <div class="col-md-3 prof-pic">
       {% if profile.photo %}
-        <img border="1px" src="{% url 'profile_photo' public_user.username %}" width="250px" height="250px">
+        <img border="1px" src="{% url 'profile_photo' public_user.username %}">
       {% else %}
-        <img border="1px" src="{% static '/images/unknown-user.svg' %}"width="250px" height="250px">
+        <img border="1px" src="{% static '/images/unknown-user.svg' %}">
       {% endif %}
     </div>
-    <div class="col-md-8 no-pd">
-      <h2>{{ public_user.username }}
+    <div class="col-md-9 no-pd">
+      <h1 style="display: inline-block; width: calc(100% - 205px);">{{ public_user.username }}</h1>
       {% if user == public_user %}
-        <a class="btn btn-primary" href="{% url 'edit_profile' %}" role="button" style="float:right">Edit Profile</a>
+      <a class="btn btn-primary btn-rsp" style="vertical-align: top" href="{% url 'edit_profile' %}" role="button">Settings</a>
       {% endif %}
-      </h2>
       <hr>
       <div class="row mb-1">
         <div class="col-md-2">

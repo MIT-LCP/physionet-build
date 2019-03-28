@@ -11,7 +11,7 @@
 {% block content %}
 <div class="container">
   <div class="row row-offcanvas row-offcanvas-right">
-    <div class="col-6 col-md-3 sidebar-offcanvas" id="sidebar">
+    <div class="col-6 col-md-3 sidebar-offcanvas sett-side" id="sidebar">
       <div class="list-group">
         {% with 'profile password emails username credentialing' as setting_options %}
             {% for setting in setting_options.split %}
@@ -22,7 +22,7 @@
       </div>
     </div><!--/span-->
 
-    <div class="col-10 col-md-9">
+    <div class="col-10 col-md-9 sett-side">
       {% include "message_snippet.html" %}
       {% block main_content %}
       {% endblock %}
