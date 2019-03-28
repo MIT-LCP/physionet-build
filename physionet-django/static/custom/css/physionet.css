@@ -337,6 +337,18 @@ body > .container{
   .prof-pic img{
     width: calc(100% - 30px);
   }
+
+  .edit-prof{
+    display: inline-block; width: calc(75% - 5px);
+  }
+
+  .sett-side:first-child{
+    padding-right: 30px;
+  }
+
+  .prof-pic img{
+    width: calc(100% - 30px);
+  }
 }
 
 @media (max-width: 767px){
