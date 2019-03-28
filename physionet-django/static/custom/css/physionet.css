@@ -265,6 +265,7 @@ body > .container{
 form > button:last-child{
   display: flex;
   margin-left: auto;
+  justify-content: center;
 }
 
 @media (min-width: 768px){
@@ -288,10 +289,10 @@ form > button:last-child{
     width: 100%;
   }
 
-  .progress{
+  .pg-edit{
     width: 40%; 
-    margin-left: 58%; 
-    margin-top: -50px;
+    margin-left: 60%; 
+    margin-top: -25px;
   }
 }
 
@@ -302,7 +303,7 @@ form > button:last-child{
     justify-content: center;
   }
 
-  .progress{
+  .pg-edit{
     width: 100%;
   }
 
