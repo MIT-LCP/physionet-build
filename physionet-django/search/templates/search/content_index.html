@@ -19,32 +19,29 @@ PhysioNet {{ main_label }} Index
         <p class="card-text mt-1">This page contains all of the {{ plural_label }} published on PhysioNet.</p>
       </div>
     </div>
-    <div class="card my-4">
-      <h2 class="card-header">Resource type</h2>
-      <div class="card-body">
-        <form method="GET" action="" class="no-pd">
-          {% include "inline_form_snippet.html" with form=form_type %}
-          <div style="display: none;">
-            {% include "inline_form_snippet.html" with form=form_order %}
-          </div>
-          <hr>
-          <button class="btn btn-primary btn-rsp" type="submit">Apply</button>
-        </form>
-      </div>
-    </div>
-    <div class="card my-4">
-      <h2 class="card-header">Sort</h2>
-      <div class="card-body">
-        <form method="GET" action="" class="no-pd">
-          {% include "inline_form_snippet.html" with form=form_order %}
-          <div style="display: none;">
+    <form method="GET" action="" class="no-pd">
+      <div class="card my-4">
+        <h2 class="card-header">Resource type</h2>
+        <div class="card-body">
+          
             {% include "inline_form_snippet.html" with form=form_type %}
-          </div>
-          <hr>
-          <button class="btn btn-primary btn-rsp" type="submit">Apply</button>
-        </form>
+            <div style="display: none;">
+              {% include "inline_form_snippet.html" with form=form_order %}
+            </div>
+        </div>
       </div>
-    </div>
+      <div class="card my-4">
+        <h2 class="card-header">Sort</h2>
+        <div class="card-body">
+            {% include "inline_form_snippet.html" with form=form_order %}
+            <div style="display: none;">
+              {% include "inline_form_snippet.html" with form=form_type %}
+            </div>
+        </div>
+      </div>
+      <hr>
+      <button class="btn btn-primary btn-rsp" type="submit">Apply</button>
+    </form>
     </div><div class="main-content">
       <h1>Resources</h1>
       <br>
