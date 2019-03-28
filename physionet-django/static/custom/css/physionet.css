@@ -302,7 +302,6 @@ body > .container{
   width: 100%;
 }
 
-<<<<<<< HEAD
 @media (min-width: 768px){
   .btn-container-rsp{
     display: inline-block;
@@ -314,18 +313,6 @@ body > .container{
     width: 200px;
     max-width: 100%;
     justify-content: center;
-=======
-form > button:last-child{
-  display: flex;
-  margin-left: auto;
-}
-
-@media (min-width: 768px){
-  .btn-container-rsp{
-    display: inline-block;
-    width: calc(25% - 15px);
-    margin-left: 15px; 
->>>>>>> initial responsive
   }
 
   .btn-right{
@@ -342,7 +329,6 @@ form > button:last-child{
     width: 100%;
   }
 
-<<<<<<< HEAD
   .edit-prof{
     display: inline-block;
     width: calc(75% - 5px);
@@ -350,12 +336,6 @@ form > button:last-child{
 
   .prof-pic img{
     width: calc(100% - 30px);
-=======
-  .progress{
-    width: 40%; 
-    margin-left: 58%; 
-    margin-top: -50px;
->>>>>>> initial responsive
   }
 }
 
@@ -366,19 +346,14 @@ form > button:last-child{
     justify-content: center;
   }
 
-<<<<<<< HEAD
+
   .pg-edit{
-=======
-  .progress{
->>>>>>> initial responsive
     width: 100%;
   }
 
   div[class^='col'] {
     max-width: unset;
     margin-bottom: 25px;
-<<<<<<< HEAD
-<<<<<<< HEAD
     flex: unset;
   }
 }
@@ -389,19 +364,5 @@ form > button:last-child{
 
 .no-pd div:first-of-type, .no-pd div:last-of-type
 , .no-pd label{
-=======
-  }
-}
-
-.no-pd div, .no-pd label{
->>>>>>> initial responsive
-=======
-    flex: unset;
-  }
-}
-
-.no-pd div:first-of-type, .no-pd div:last-of-type
-, .no-pd label{
->>>>>>> project resposive
   padding: 0;
 }
