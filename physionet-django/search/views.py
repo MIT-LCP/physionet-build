@@ -7,7 +7,7 @@ from project.models import PublishedProject, PublishedTopic
 
 import operator
 from functools import reduce
-from django.db.models import Q
+from django.db.models import Q, Count
 
 
 def google_custom_search(request):
@@ -63,13 +63,13 @@ def get_content(resource_type, orderby, direction, topic):
     Helper function to get content shown on a resource listing page
     """
     if resource_type is None:
-        published_projects = PublishedProject.objects.all()
+        published_projects = PublishedProject.objects.all().annotate(relevance=Count('core_project_id'))
     elif type(resource_type) != list:       
         resource_type = [resource_type]
 
     if topic == '' or len(topic) == 0:
         published_projects = PublishedProject.objects.filter(
-            resource_type__in=resource_type)
+            resource_type__in=resource_type).annotate(relevance=Count('core_project_id'))
     else:
         import re
         topic = re.split(r"\W",topic);
@@ -77,12 +77,12 @@ def get_content(resource_type, orderby, direction, topic):
         query = query | reduce(operator.or_, (Q(abstract__contains = item) for item in topic))
         query = query | reduce(operator.or_, (Q(title__contains = item) for item in topic))
         query = query & Q(resource_type__in=resource_type)
-        published_projects = PublishedProject.objects.filter(query).distinct()
+        published_projects = PublishedProject.objects.filter(query).annotate(relevance=Count('core_project_id'))
 
     direction = '-' if direction == 'desc' else ''
 
     order_string = '{}{}'.format(direction, orderby)
-    published_projects = published_projects.order_by(order_string)
+    published_projects = published_projects.order_by(orderby)
 
     authors = [p.authors.all() for p in published_projects]
     topics = [p.topics.all() for p in published_projects]

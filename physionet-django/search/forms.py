@@ -8,6 +8,7 @@ class TopicSearchForm(forms.Form):
 
 class ProjectOrderForm(forms.Form):
     ORDER_CHOICES = (
+        ('relevance', 'Relevance'),
         ('publish_datetime', 'Publish Date'),
         ('title', 'Title'),
         ('main_storage_size', 'Size'),
