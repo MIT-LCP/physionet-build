@@ -73,9 +73,9 @@ def get_content(resource_type, orderby, direction, topic):
     else:
         import re
         topic = re.split(r"\W",topic);
-        query = reduce(operator.or_, (Q(topics__description__contains = item) for item in topic))
-        query = query | reduce(operator.or_, (Q(abstract__contains = item) for item in topic))
-        query = query | reduce(operator.or_, (Q(title__contains = item) for item in topic))
+        query = reduce(operator.and_, (Q(topics__description__contains = item) for item in topic))
+        query = query | reduce(operator.and_, (Q(abstract__contains = item) for item in topic))
+        query = query | reduce(operator.and_, (Q(title__contains = item) for item in topic))
         query = query & Q(resource_type__in=resource_type)
         published_projects = PublishedProject.objects.filter(query).distinct()
 
