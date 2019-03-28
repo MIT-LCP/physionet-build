@@ -3,7 +3,7 @@ from django import forms
 from user.validators import validate_alphaplus
 
 class TopicSearchForm(forms.Form):
-    topic = forms.CharField(max_length=50, required=False)
+    topic = forms.CharField(max_length=50, required=False, label='')
 
 
 class ProjectOrderForm(forms.Form):
