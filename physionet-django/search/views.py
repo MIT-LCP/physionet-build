@@ -54,18 +54,23 @@ def all_topics(request):
     return render(request, 'search/all_topics.html', {'topics':topics})
 
 
-def get_content(resource_type, orderby, direction):
+def get_content(resource_type, orderby, direction, topic):
     """
     Helper function to get content shown on a resource listing page
     """
     if resource_type is None:
         published_projects = PublishedProject.objects.all()
-    elif type(resource_type) == list:
+    elif type(resource_type) != list:       
+        resource_type = [resource_type]
+
+    if topic == '' or len(topic) == 0:
         published_projects = PublishedProject.objects.filter(
             resource_type__in=resource_type)
     else:
+        import re
+        topic = re.split(r"\W",topic);
         published_projects = PublishedProject.objects.filter(
-            resource_type=resource_type)
+            resource_type__in=resource_type, topics__description__in=topic)
 
     direction = '-' if direction == 'desc' else ''
 
@@ -86,6 +91,8 @@ def content_index(request, resource_type=None):
     LABELS = {0:['Database', 'databases'],
         1:['Software', 'softwares'], 2:['Challenge', 'challenges']}
 
+
+    # PROJECT TYPE FILTER
     form_type = forms.ProjectTypeForm()
     if 'types' in request.GET:
         form_type = forms.ProjectTypeForm(request.GET)
@@ -97,29 +104,35 @@ def content_index(request, resource_type=None):
     else:
         resource_type = [resource_type]
         form_type = forms.ProjectTypeForm({'types':resource_type})
-
-
     main_label = ', '.join([LABELS[r][0] for r in resource_type])
     plural_label = ', '.join([LABELS[r][1] for r in resource_type])
 
+    # SORT PROJECTS
     orderby, direction = 'publish_datetime', 'desc'
     form_order = forms.ProjectOrderForm()
-
     if 'orderby' in request.GET or 'direction' in request.GET:
         form_order = forms.ProjectOrderForm(request.GET)
         if form_order.is_valid():
             orderby, direction = [form_order.cleaned_data[item] for item in ['orderby', 'direction']]
-        projects_authors_topics = get_content(resource_type=resource_type,
-            orderby=orderby, direction=direction)
+        
+    # TOPIC SEARCH
+    topic = ''
+    if 'topic' in request.GET:
+        form_topic = forms.TopicSearchForm(request.GET)
+        if form_topic.is_valid():
+            topic = form_topic.cleaned_data['topic']
     else:
-        projects_authors_topics = get_content(resource_type=resource_type,
-            orderby=orderby, direction=direction)
+        form_topic = forms.TopicSearchForm()
+
+    # BUILD
+    projects_authors_topics = get_content(resource_type=resource_type,
+            orderby=orderby, direction=direction, topic=topic)
     
 
     return render(request, 'search/content_index.html', {'form_order':form_order,
         'projects_authors_topics':projects_authors_topics,
         'main_label':main_label, 'plural_label':plural_label,
-        'form_type':form_type})
+        'form_type':form_type, 'form_topic':form_topic})
 
 
 def database_index(request):

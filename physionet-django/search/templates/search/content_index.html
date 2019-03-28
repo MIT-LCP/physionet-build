@@ -21,6 +21,12 @@ PhysioNet {{ main_label }} Index
     </div>
     <form method="GET" action="" class="">
       <div class="card my-4">
+        <h2 class="card-header">Search</h2>
+        <div class="card-body no-pd">
+            {% include "inline_form_snippet.html" with form=form_topic %}
+        </div>
+      </div>
+      <div class="card my-4">
         <h2 class="card-header">Resource type</h2>
         <div class="card-body no-pd">
             {% include "inline_form_snippet.html" with form=form_type %}
