@@ -60,6 +60,9 @@ def get_content(resource_type, orderby, direction):
     """
     if resource_type is None:
         published_projects = PublishedProject.objects.all()
+    elif type(resource_type) == list:
+        published_projects = PublishedProject.objects.filter(
+            resource_type__in=resource_type)
     else:
         published_projects = PublishedProject.objects.filter(
             resource_type=resource_type)
@@ -80,26 +83,43 @@ def content_index(request, resource_type=None):
     """
     List of all published resources
     """
-    LABELS = {None:['Content', 'projects'], 0:['Database', 'databases'],
+    LABELS = {0:['Database', 'databases'],
         1:['Software', 'software'], 2:['Challenge', 'challenge']}
-    main_label, plural_label = LABELS[resource_type]
+
+    form_type = forms.ProjectTypeForm()
+    if 'types' in request.GET:
+        form_type = forms.ProjectTypeForm(request.GET)
+        if form_type.is_valid():
+            resource_type = [int(t) for t in form_type.cleaned_data['types']]
+    elif resource_type is None:
+        resource_type = list(LABELS.keys())
+        form_type = forms.ProjectTypeForm({'types':resource_type})
+    else:
+        resource_type = [resource_type]
+        form_type = forms.ProjectTypeForm({'types':resource_type})
+
+    for r in resource_type:
+        main_label = LABELS[r][0].join(',')
+        plural_label = LABELS[r][1].join(',')
 
     orderby, direction = 'publish_datetime', 'desc'
-    form = forms.ProjectOrderForm()
+    form_order = forms.ProjectOrderForm()
 
     if 'orderby' in request.GET or 'direction' in request.GET:
-        form = forms.ProjectOrderForm(request.GET)
-        if form.is_valid():
-            orderby, direction = [form.cleaned_data[item] for item in ['orderby', 'direction']]
+        form_order = forms.ProjectOrderForm(request.GET)
+        if form_order.is_valid():
+            orderby, direction = [form_order.cleaned_data[item] for item in ['orderby', 'direction']]
         projects_authors_topics = get_content(resource_type=resource_type,
             orderby=orderby, direction=direction)
     else:
         projects_authors_topics = get_content(resource_type=resource_type,
             orderby=orderby, direction=direction)
+    
 
-    return render(request, 'search/content_index.html', {'form':form,
+    return render(request, 'search/content_index.html', {'form_order':form_order,
         'projects_authors_topics':projects_authors_topics,
-        'main_label':main_label, 'plural_label':plural_label})
+        'main_label':main_label, 'plural_label':plural_label,
+        'form_type':form_type})
 
 
 def database_index(request):

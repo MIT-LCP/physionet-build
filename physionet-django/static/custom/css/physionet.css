@@ -210,6 +210,44 @@ a{
   text-align: right;
 }
 
+.main{
+  min-height: calc(100% - 56px - 10.5rem);
+  display: flex;
+}
+
+.main-content{
+  padding: 40px 50px;
+  max-width: 75%;
+  vertical-align: top;
+}
+
+.main-side{
+  padding: 30px;
+  min-width: 250px;
+  max-width: 25%;
+  background: rgba(0,0,0,0.03);
+  border-right: 0.05rem #e5e5e5 solid;
+}
+
+@media screen and (max-width: 1000px) {
+  .main{
+    display: block;
+  }
+  
+  .main-side{
+    min-width: unset;
+    max-width: unset;
+  }
+
+  .main-content{
+    max-width: unset;
+  }
+}
+
+.main-side .card{
+    border: unset;
+}
+
 .container{
   padding: 40px 30px;
 }
@@ -271,6 +309,7 @@ body > .container{
 
   .btn-rsp{
     width: 200px;
+    max-width: 100%;
     justify-content: center;
   }
 

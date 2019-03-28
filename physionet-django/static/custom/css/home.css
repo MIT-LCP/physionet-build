@@ -4,23 +4,6 @@
   box-sizing: border-box;
 }
 
-.card{
-    border: unset;
-}
-
-.main-content{
-  padding: 40px 50px;
-  max-width: 75%;
-}
-
-.main-news{
-  padding: 30px;
-  min-width: 250px;
-  max-width: 25%;
-  background: rgba(0,0,0,0.03);
-  border-right: 0.05rem #e5e5e5 solid;
-}
-
 .btn-pn {
 /*  color: white;
   background-color: #694;*/
@@ -30,15 +13,4 @@
 
 .intro-badge {
   font-weight: 700;
-}
-
-@media screen and (max-width: 1000px) {
-  .main-news{
-    min-width: unset;
-    max-width: unset;
-  }
-
-  .main-content{
-    max-width: unset;
-  }
 }
