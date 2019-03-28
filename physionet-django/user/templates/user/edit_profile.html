@@ -4,7 +4,7 @@
 
 {% block main_content %}
 <form action="{% url 'edit_profile' %}" method="post" enctype="multipart/form-data" class="form-signin no-pd">
-	<h1 class="form-signin-heading" style="display: inline-block; width: 74%;">Edit Profile</h1>
+	<h1 class="form-signin-heading edit-prof">Edit Profile</h1>
 	<div class="btn-container-rsp">
 		<a class="btn btn-primary btn-rsp" href="{% url 'public_profile' user.username %}" role="button">View Public Profile</a></div>
 	<hr>

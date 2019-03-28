@@ -273,6 +273,7 @@ form > button:last-child{
     display: inline-block;
     width: calc(25% - 15px);
     margin-left: 15px; 
+    vertical-align: top;
   }
 
   .btn-right{
@@ -294,6 +295,18 @@ form > button:last-child{
     margin-left: 60%; 
     margin-top: -25px;
   }
+
+  .edit-prof{
+    display: inline-block; width: calc(75% - 5px);
+  }
+
+  .sett-side:first-child{
+    padding-right: 30px;
+  }
+
+  .prof-pic img{
+    width: calc(100% - 30px);
+  }
 }
 
 @media (max-width: 767px){
@@ -312,6 +325,10 @@ form > button:last-child{
     margin-bottom: 25px;
     flex: unset;
   }
+}
+
+.sett-side{
+    padding: 0;
 }
 
 .no-pd div:first-of-type, .no-pd div:last-of-type
