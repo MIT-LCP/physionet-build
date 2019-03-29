@@ -1,4 +1,5 @@
 import pdb
+import re
 
 from django.shortcuts import render, redirect, reverse
 
@@ -71,7 +72,6 @@ def get_content(resource_type, orderby, direction, topic):
         published_projects = PublishedProject.objects.filter(
             resource_type__in=resource_type).annotate(relevance=Count('core_project_id'))
     else:
-        import re
         topic = re.split(r"\W",topic);
         query = reduce(operator.or_, (Q(topics__description__contains = item) for item in topic))
         query = query | reduce(operator.or_, (Q(abstract__contains = item) for item in topic))
