@@ -71,16 +71,16 @@ def get_content(resource_type, orderby, direction, topic):
 
     if topic == '' or len(topic) == 0:
         published_projects = PublishedProject.objects.filter(
-            resource_type__in=resource_type, is_latest_version=True
-            ).annotate(relevance=Count('core_project_id'))
+            resource_type__in=resource_type, is_latest_version=True).annotate(
+            relevance=Count('core_project_id'))
     else:
         topic = re.split(r"\W",topic);
         query = reduce(operator.or_, (Q(topics__description__iregex = r'{0}'.format(item)) for item in topic))
         query = query | reduce(operator.or_, (Q(abstract__iregex = r'\b{0}\b'.format(item)) for item in topic))
         query = query | reduce(operator.or_, (Q(title__iregex = r'\b{0}\b'.format(item)) for item in topic))
         query = query & Q(resource_type__in=resource_type)
-        published_projects = PublishedProject.objects.filter(query, is_latest_version=True
-            ).annotate(relevance=Count('core_project_id'))
+        published_projects = PublishedProject.objects.filter(query, 
+            is_latest_version=True).annotate(relevance=Count('core_project_id'))
 
     direction = '-' if direction == 'desc' else ''
 

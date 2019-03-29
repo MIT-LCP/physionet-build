@@ -139,7 +139,7 @@
           <p class="list-group-item-text text-muted">
           <strong>Submitting Author: {{ project.submitting_author.get_full_name }}</strong><br>
           <small>Created: {{ project.creation_datetime|date }}. Published: {{ project.publish_datetime|date }}.</small><br>
-          <small>Version: {{ project.version }}.{% if project.version_order %} <a href="{% url 'published_versions' project.slug %}">See all versions</a>{% endif %}</small>
+          <small>Version: {{ project.version }}.{% if project.version_order or project.has_other_versions %} <a href="{% url 'published_versions' project.slug %}">See all versions</a>{% endif %}</small>
           </p>
         </li>
       {% empty %}
