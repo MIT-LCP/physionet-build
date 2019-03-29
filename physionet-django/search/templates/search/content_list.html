@@ -13,7 +13,7 @@
     </p>
   {% endif %}
   {% if not published_project.short_description %}
-    {{ published_project.abstract|safe|truncatechars:250 }}
+    {{ published_project.abstract|safe|truncatechars_html:250 }}
   {% else %}
     {{ published_project.short_description|safe }}
   {% endif %}
