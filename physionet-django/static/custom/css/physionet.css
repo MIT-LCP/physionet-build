@@ -319,7 +319,6 @@ body > .container{
     display: flex;
     margin-left: auto;
   }
-
   .btn-rsp{
     width: 200px;
     justify-content: center;
@@ -337,13 +336,9 @@ body > .container{
   .prof-pic img{
     width: calc(100% - 30px);
   }
-
   .edit-prof{
-    display: inline-block; width: calc(75% - 5px);
-  }
-
-  .sett-side:first-child{
-    padding-right: 30px;
+    display: inline-block;
+    width: calc(75% - 5px);
   }
 
   .prof-pic img{

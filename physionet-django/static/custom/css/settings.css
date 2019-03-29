@@ -65,17 +65,12 @@ input::placeholder {
  * Off Canvas
  * --------------------------------------------------
  */
-<<<<<<< HEAD
 @media screen and (max-width: 1210px) {
-=======
-@media screen and (max-width: 767px) {
->>>>>>> initial responsive
   .row{
     display: block;
   }
 
   .sidebar-offcanvas{
-<<<<<<< HEAD
     display: block;
     margin-bottom: 50px;
     max-width: unset;
@@ -108,9 +103,3 @@ input::placeholder {
     margin-top: -25px;
   }
 }
-=======
-    margin-bottom: 50px;
-    max-width: unset;
-  }
-}
->>>>>>> initial responsive
