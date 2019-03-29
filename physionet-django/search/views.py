@@ -73,9 +73,9 @@ def get_content(resource_type, orderby, direction, topic):
             resource_type__in=resource_type).annotate(relevance=Count('core_project_id'))
     else:
         topic = re.split(r"\W",topic);
-        query = reduce(operator.or_, (Q(topics__description__contains = item) for item in topic))
-        query = query | reduce(operator.or_, (Q(abstract__contains = item) for item in topic))
-        query = query | reduce(operator.or_, (Q(title__contains = item) for item in topic))
+        query = reduce(operator.or_, (Q(topics__description__icontains = item) for item in topic))
+        query = query | reduce(operator.or_, (Q(abstract__icontains = item) for item in topic))
+        query = query | reduce(operator.or_, (Q(title__icontains = item) for item in topic))
         query = query & Q(resource_type__in=resource_type)
         published_projects = PublishedProject.objects.filter(query).annotate(relevance=Count('core_project_id'))
 
