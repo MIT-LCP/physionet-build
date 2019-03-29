@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}
-PhysioNet {{ main_label }} Index
+PhysioNet Index
 {% endblock %}
 
 {% block local_css %}
@@ -11,17 +11,42 @@ PhysioNet {{ main_label }} Index
 {% endblock %}
 
 {% block content %}
-<div class="container">
-  <div class="jumbotron">
-    <h1 class="display-4">PhysioNet {{ main_label }} Index</h1>
-    <p class="lead my-3">This page contains all of the {{ plural_label }} published on PhysioNet.</p>
-  </div>
-  <hr>
-  <form method="GET" action="" class="no-pd">
-    {% include "inline_form_snippet.html" %}
-    <button class="btn btn-primary btn-lg" type="submit">Order Results</button>
-  </form>
-  <hr>
-  {% include "search/content_list.html" %}
+<div class="main">
+  <div class="main-side">
+    <div class="card">
+      <h2 class="card-header">PhysioNet Index</h2>
+      <div class="card-body">
+        <p class="card-text mt-1">This page contains all of the databases, software and challenges published on PhysioNet.</p>
+      </div>
+    </div>
+    <form method="GET" action="" class="">
+      <div class="card my-4">
+        <h2 class="card-header">Search</h2>
+        <div class="card-body no-pd">
+            {% include "inline_form_snippet.html" with form=form_topic %}
+        </div>
+      </div>
+      <div class="card my-4">
+        <h2 class="card-header">Resource type</h2>
+        <div class="card-body no-pd" id="type-check">
+            {% include "inline_form_snippet.html" with form=form_type %}
+            <a href="javascript:$('#type-check').find('input').prop('checked', true);">Select all</a>
+        </div>
+      </div>
+      <div class="card my-4">
+        <h2 class="card-header">Sort</h2>
+        <div class="card-body no-pd">
+            {% include "inline_form_snippet.html" with form=form_order %}
+        </div>
+      </div>
+      <hr>
+      <button class="btn btn-primary btn-rsp" type="submit">Apply</button>
+    </form>
+    </div><div class="main-content">
+      <h1>Resources</h1>
+      <br>
+      {% if nprojects < 1 %} No results {% endif %}
+      {% include "search/content_list.html" %}
+    </div>
 </div>
 {% endblock %}

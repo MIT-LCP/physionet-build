@@ -1,8 +1,9 @@
-.jumbotron {
-  text-align: center;
-  background-color: transparent;
-  padding: 5px 0;
+.main-side label{
+	max-width: unset;
+	flex: unset;
 }
-.jumbotron .btn {
-  padding: 10px 20px;
+
+.main-side .col-md-10{
+	max-width: unset;
+	flex: unset;
 }

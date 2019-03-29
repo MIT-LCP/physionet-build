@@ -15,7 +15,7 @@ def resource_badge(resource_type):
 
 @register.filter(name='topic_badge')
 def topic_badge(topic, show_count=False):
-    url = '{}?topic={}'.format(reverse('topic_search'), topic.description)
+    url = '{}?topic={}'.format(reverse('content_index'), topic.description)
     if show_count:
         badge = '<a href="{}"><span class="badge badge-pn">{} ({})</span></a>'.format(
             url, topic.description, topic.project_count)
