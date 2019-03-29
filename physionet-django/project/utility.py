@@ -8,8 +8,6 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse, Http404
 
-from physionet.utility import serve_file, zip_dir
-
 
 class FileInfo():
     """

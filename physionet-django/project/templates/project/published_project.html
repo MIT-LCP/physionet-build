@@ -207,7 +207,7 @@
           {% endif %}
         </div>
       </div>
-      {% if not project.is_latest_version or project.version_order %}
+      {% if not project.is_latest_version or project.version_order or project.has_other_versions %}
       <div class="card my-4">
         <h5 class="card-header">Versions</h5>
         <ul class="list-group">

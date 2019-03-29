@@ -23,6 +23,7 @@ from .models import (Affiliation, Author, AuthorInvitation, ActiveProject,
     CopyeditLog, DUASignature, CoreProject)
 from . import utility
 import notification.utility as notification
+import physionet.utility as physionet
 from user.forms import ProfileForm, AssociatedEmailChoiceForm
 from user.models import User
 
@@ -818,7 +819,7 @@ def serve_active_project_file(request, project_slug, file_name, **kwargs):
     to the project's file root.
     """
     file_path = os.path.join(kwargs['project'].file_root(), file_name)
-    return utility.serve_file(file_path)
+    return physionet.serve_file(file_path)
 
 
 @project_auth(auth_mode=2)
@@ -1082,7 +1083,7 @@ def serve_published_project_file(request, project_slug, version,
         version=version)
     if project.has_access(request.user):
         file_path = os.path.join(project.file_root(), full_file_name)
-        return utility.serve_file(file_path)
+        return physionet.serve_file(file_path)
     raise Http404()
 
 
@@ -1095,7 +1096,7 @@ def serve_published_project_zip(request, project_slug, version):
     project = PublishedProject.objects.get(slug=project_slug,
         version=version)
     if project.has_access(request.user):
-        return utility.serve_file(project.zip_name(full=True))
+        return physionet.serve_file(project.zip_name(full=True))
     raise Http404()
 
 

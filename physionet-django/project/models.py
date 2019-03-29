@@ -18,9 +18,10 @@ from django.utils import timezone
 from django.utils.text import slugify
 
 from .utility import (get_tree_size, get_file_info, get_directory_info,
-    list_items, StorageInfo, get_tree_files, list_files, zip_dir)
+    list_items, StorageInfo, get_tree_files, list_files)
 from .validators import validate_doi, validate_subdir, validate_version
 from user.validators import validate_alphaplus, validate_alphaplusplus
+from physionet.utility import zip_dir
 
 
 class Affiliation(models.Model):
@@ -879,6 +880,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         if self.version_order:
             previous_published_projects = self.core_project.publishedprojects.all()
             previous_published_projects.update(is_latest_version=False)
+
             slug = previous_published_projects.first().slug
 
         published_project = PublishedProject(doi=doi)
@@ -889,6 +891,15 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
         # Set the slug if specified
         published_project.slug = slug or self.slug
+
+        if self.core_project.publishedprojects.all() and len(previous_published_projects) > 0:
+            for project in previous_published_projects:
+                if project.version > published_project.version:
+                    project.is_latest_version = True
+                    published_project.is_latest_version = False
+                    project.save()
+            previous_published_projects.update(has_other_versions=True)
+
         published_project.save()
 
         # Same content, different objects.
@@ -978,7 +989,7 @@ class PublishedProject(Metadata, SubmissionInfo):
     main_storage_size = models.BigIntegerField(default=0)
     compressed_storage_size = models.BigIntegerField(default=0)
     publish_datetime = models.DateTimeField(auto_now_add=True)
-    is_newest_version = models.BooleanField(default=True)
+    has_other_versions = models.BooleanField(default=False)
     # doi = models.CharField(max_length=50, unique=True, validators=[validate_doi])
     # Temporary workaround
     doi = models.CharField(max_length=50, default='')
