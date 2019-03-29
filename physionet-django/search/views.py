@@ -82,7 +82,7 @@ def get_content(resource_type, orderby, direction, topic):
     direction = '-' if direction == 'desc' else ''
 
     order_string = '{}{}'.format(direction, orderby)
-    published_projects = published_projects.order_by(orderby)
+    published_projects = published_projects.order_by(order_string)
 
     authors = [p.authors.all() for p in published_projects]
     topics = [p.topics.all() for p in published_projects]
