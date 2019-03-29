@@ -8,7 +8,7 @@ from project.models import PublishedProject, PublishedTopic
 
 import operator
 from functools import reduce
-from django.db.models import Q, Count, Case, When, Value, IntegerField
+from django.db.models import Q, Count, Case, When, Value, IntegerField, F, Sum
 
 
 def google_custom_search(request):
@@ -63,32 +63,42 @@ def get_content(resource_type, orderby, direction, topic):
     """
     Helper function to get content shown on a resource listing page
     """
-    if resource_type is None:
-        published_projects = PublishedProject.objects.filter(
-            is_latest_version=True).annotate(relevance=Count('core_project_id'))
-    elif type(resource_type) != list:       
-        resource_type = [resource_type]
 
-    if topic == '' or len(topic) == 0:
-        published_projects = PublishedProject.objects.filter(
-            resource_type__in=resource_type, is_latest_version=True).annotate(
-            relevance=Count('core_project_id'))
+    # Build query for resource type and keyword filtering
+    if len(topic) == 0:
+        query = Q(resource_type__in=resource_type)
     else:
         topic = re.split(r"\W",topic);
         query = reduce(operator.or_, (Q(topics__description__iregex = r'{0}'.format(item)) for item in topic))
         query = query | reduce(operator.or_, (Q(abstract__iregex = r'\b{0}\b'.format(item)) for item in topic))
         query = query | reduce(operator.or_, (Q(title__iregex = r'\b{0}\b'.format(item)) for item in topic))
         query = query & Q(resource_type__in=resource_type)
-        published_projects = (PublishedProject.objects
-            .filter(resource_type__in=resource_type, is_latest_version=True)
-            .annotate(discount=Case(When(topics__description__contains='a', then=Value(1)), default=Value(0), output_field=IntegerField()))
-            .annotate(relevance=Count('core_project_id'))
+    published_projects = (PublishedProject.objects
+        .filter(query, is_latest_version=True)
+        .annotate(relevance=Count('core_project_id'))
+        .annotate(has_keys=Value(0, IntegerField()))
+    )
+
+    # Relevance
+    for t in topic:
+        published_projects = (published_projects
+            .annotate(has_keys=Case(
+                When(topics__description__iregex = r'\b{0}\b'.format(t), then=Value(3)),
+                When(title__iregex = r'\b{0}\b'.format(t), then=Value(2)),
+                When(abstract__iregex = r'\b{0}\b'.format(t), then=Value(1)),
+                default=Value(0),
+                output_field=IntegerField()
+            ))
+            .annotate(has_keys=Sum('has_keys'))
         )
 
+    # Sorting
     direction = '-' if direction == 'desc' else ''
-
     order_string = '{}{}'.format(direction, orderby)
-    published_projects = published_projects.order_by(order_string)
+    if orderby == 'relevance':
+        published_projects = published_projects.order_by(direction+'has_keys',order_string)
+    else:
+        published_projects = published_projects.order_by(order_string)
 
     authors = [p.authors.all() for p in published_projects]
     topics = [p.topics.all() for p in published_projects]
