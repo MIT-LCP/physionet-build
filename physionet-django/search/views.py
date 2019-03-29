@@ -8,7 +8,7 @@ from project.models import PublishedProject, PublishedTopic
 
 import operator
 from functools import reduce
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Case, When, Value, IntegerField
 
 
 def google_custom_search(request):
@@ -79,8 +79,11 @@ def get_content(resource_type, orderby, direction, topic):
         query = query | reduce(operator.or_, (Q(abstract__iregex = r'\b{0}\b'.format(item)) for item in topic))
         query = query | reduce(operator.or_, (Q(title__iregex = r'\b{0}\b'.format(item)) for item in topic))
         query = query & Q(resource_type__in=resource_type)
-        published_projects = PublishedProject.objects.filter(query, 
-            is_latest_version=True).annotate(relevance=Count('core_project_id'))
+        published_projects = (PublishedProject.objects
+            .filter(resource_type__in=resource_type, is_latest_version=True)
+            .annotate(discount=Case(When(topics__description__contains='a', then=Value(1)), default=Value(0), output_field=IntegerField()))
+            .annotate(relevance=Count('core_project_id'))
+        )
 
     direction = '-' if direction == 'desc' else ''
 
