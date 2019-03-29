@@ -7,6 +7,7 @@
 {% block local_css %}
 <link rel="stylesheet" type="text/css" href="{% static 'project/css/submission-timeline.css' %}">
 <link rel="stylesheet" type="text/css" href="{% static 'custom/css/form-control-input.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/settings.css' %}">
 {% endblock %}
 
 {% load project_templatetags %}
@@ -57,7 +58,7 @@
     submit the project for review.</p>
   {% if is_submitting %}
     <hr>
-    <div class="btn-container-rsp btn-right">
+    <div class="btn-container-rsp">
       <button id="submit-project-modal-button" type="button" class="btn btn-primary btn-rsp" data-toggle="modal" data-target="#submit-modal" onclick="checkIntegrity(false)">
         Submit Project
       </button>

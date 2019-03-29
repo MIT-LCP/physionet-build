@@ -70,13 +70,41 @@ input::placeholder {
  * Off Canvas
  * --------------------------------------------------
  */
-@media screen and (max-width: 767px) {
+@media screen and (max-width: 1210px) {
   .row{
     display: block;
   }
 
   .sidebar-offcanvas{
+    display: block;
     margin-bottom: 50px;
     max-width: unset;
+    padding: 0;
+  }
+
+  .row-offcanvas, .row-offcanvas div{
+    max-width: unset;
+    flex: unset;
+  }
+}
+
+@media screen and (min-width: 1211px) {
+  .sett-side:first-child{
+    padding-right: 30px;
+  }
+
+  .form-control.email{
+    padding-right: 10px;
+  }
+
+  .mg-left{
+    margin-left: 15px;
+    width: calc(25% - 15px);
+  }
+
+  .pg-edit{
+    width: 40%; 
+    margin-left: 60%; 
+    margin-top: -25px;
   }
 }
