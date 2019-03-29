@@ -262,23 +262,11 @@ body > .container{
   width: 100%;
 }
 
-form > button:last-child{
-  display: flex;
-  margin-left: auto;
-  justify-content: center;
-}
-
 @media (min-width: 768px){
   .btn-container-rsp{
     display: inline-block;
-    width: calc(25% - 15px);
-    margin-left: 15px; 
+    width: 25%;
     vertical-align: top;
-  }
-
-  .btn-right{
-    display: flex;
-    margin-left: auto;
   }
 
   .btn-rsp{
@@ -290,18 +278,9 @@ form > button:last-child{
     width: 100%;
   }
 
-  .pg-edit{
-    width: 40%; 
-    margin-left: 60%; 
-    margin-top: -25px;
-  }
-
   .edit-prof{
-    display: inline-block; width: calc(75% - 5px);
-  }
-
-  .sett-side:first-child{
-    padding-right: 30px;
+    display: inline-block;
+    width: calc(75% - 5px);
   }
 
   .prof-pic img{
