@@ -254,10 +254,6 @@ body > .container{
   min-height: calc(100% - 56px - 10.5rem);
 }
 
-body > .container{
-  min-height: calc(100% - 56px - 10.5rem);
-}
-
 .row{
   margin-left: unset;
   margin-right: unset;
@@ -315,27 +311,10 @@ body > .container{
     justify-content: center;
   }
 
-  .btn-right{
-    display: flex;
-    margin-left: auto;
-  }
-  .btn-rsp{
-    width: 200px;
-    justify-content: center;
-  }
-
   .btn-container-rsp .btn-rsp{
     width: 100%;
   }
 
-  .edit-prof{
-    display: inline-block;
-    width: calc(75% - 5px);
-  }
-
-  .prof-pic img{
-    width: calc(100% - 30px);
-  }
   .edit-prof{
     display: inline-block;
     width: calc(75% - 5px);
@@ -352,7 +331,6 @@ body > .container{
     align-items: center;
     justify-content: center;
   }
-
 
   .pg-edit{
     width: 100%;
