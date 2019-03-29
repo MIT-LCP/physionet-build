@@ -2,11 +2,6 @@
  * Style tweaks
  * --------------------------------------------------
  */
-html,
-body {
-  overflow-x: hidden; /* Prevent scroll on narrow devices */
-}
-
 .btn-custom {
   margin-top: 10px;
 }
