@@ -1,4 +1,4 @@
-$(document).ready(function()
+$("#id_new_password1").keyup(function()
 {
 	// NOTE: Keep list of forbidden words in sync with
 	// zxcvbn_ProgressBar_Register.js and ComplexityValidator in
