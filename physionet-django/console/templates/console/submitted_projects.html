@@ -102,6 +102,7 @@
                   <th>Editor</th>
                   <th>Submitted</th>
                   <th>Resubmitted</th>
+                  <th>Manage</th>
                 </tr>
               </thead>
               <tbody>
@@ -117,6 +118,12 @@
                     {% else %}
                       Not a resubmission
                     {% endif %}
+                  </td>
+                  {% if project.editor == user %}
+                    <td><a class="btn btn-primary btn-sm" href="{% url 'edit_submission' project.slug %}" role="button">Edit Project</a></td>
+                  {% else %}
+                    <td><p>Ongoing</p></td>
+                  {% endif %}
                   </td>
                 </tr>
               {% endfor %}
@@ -170,6 +177,7 @@
                   <th>Submitted</th>
                   <th>Editor Accepted</th>
                   <th>Editor</th>
+                  <th>Manage</th>
                 </tr>
               </thead>
               <tbody>
@@ -180,6 +188,11 @@
                   <td>{{ project.submission_datetime|date }}</td>
                   <td>{{ project.editor_accept_datetime|date }}</td>
                   <td>{{ project.editor }}</td>
+                  {% if project.editor == user %}
+                    <td><a class="btn btn-primary btn-sm" href="{% url 'copyedit_submission' project.slug %}" role="button">Copyedit Project</a></td>
+                  {% else %}
+                    <td><p>Ongoing</p></td>
+                  {% endif %}
                 </tr>
               {% endfor %}
               </tbody>
@@ -236,6 +249,7 @@
                   <th>Copyedit Completed</th>
                   <th>Author Approved</th>
                   <th>Editor</th>
+                  <th>Manage</th>
                 </tr>
               </thead>
               <tbody>
@@ -248,6 +262,11 @@
                   <td>{{ project.copyedit_completion_datetime|date }}</td>
                   <td>{{ project.author_approval_datetime|date }}</td>
                   <td>{{ project.editor }}</td>
+                  {% if project.editor == user %}
+                    <td><a class="btn btn-primary btn-sm" href="{% url 'publish_submission' project.slug %}" role="button">Publish Project</a></td>
+                  {% else %}
+                    <td><p>Ongoing</p></td>
+                  {% endif %}
                 </tr>
               {% endfor %}
               </tbody>

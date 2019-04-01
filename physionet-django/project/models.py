@@ -107,6 +107,8 @@ class Author(BaseAuthor):
         if profile.affiliation:
             Affiliation.objects.create(name=profile.affiliation,
                 author=self)
+            return True
+        return False
 
     def set_display_info(self, set_affiliations=True):
         """
@@ -1340,7 +1342,7 @@ class StorageRequest(BaseInvitation):
         validators=[MaxValueValidator(10240), MinValueValidator(1)])
     responder = models.ForeignKey('user.User', null=True,
         on_delete=models.SET_NULL)
-    response_message = models.CharField(max_length=50, default='', blank=True)
+    response_message = models.CharField(max_length=300, default='', blank=True)
 
     def __str__(self):
         return '{0}GB for project: {1}'.format(self.request_allowance,
