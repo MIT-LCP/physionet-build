@@ -165,6 +165,25 @@ def assign_editor_notify(project):
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)
 
+def editor_notify_new_project(project, assignee):
+    """
+    Notify authors when an editor is assigned
+    """
+    subject = 'Assigned new project to review as editor ({0})'.format(
+        project.title)
+
+    for email, name in project.author_contact_info():
+        body = loader.render_to_string(
+            'notification/email/assign_editor_notify.html',
+            {'project':project, 'editor':project.editor,
+             'signature':email_signature(), 
+             'user':assignee.get_full_name(),
+             'project_info':email_project_info(project),
+             'footer':email_footer()})
+
+        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                  [email], fail_silently=False)
+
 def edit_decision_notify(request, project, edit_log):
     """
     Notify authors when an editor makes a decision

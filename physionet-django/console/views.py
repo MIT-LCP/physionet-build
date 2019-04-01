@@ -61,6 +61,7 @@ def submitted_projects(request):
     """
     List of active submissions. Editors are assigned here.
     """
+    user = request.user
     if request.method == 'POST':
         assign_editor_form = forms.AssignEditorForm(request.POST)
         if assign_editor_form.is_valid():
@@ -68,6 +69,7 @@ def submitted_projects(request):
             project = ActiveProject.objects.get(id=assign_editor_form.cleaned_data['project'])
             project.assign_editor(assign_editor_form.cleaned_data['editor'])
             notification.assign_editor_notify(project)
+            notification.editor_notify_new_project(project, user)
             messages.success(request, 'The editor has been assigned')
 
     # Submitted projects

@@ -1,0 +1,11 @@
+{% load i18n %}{% autoescape off %}
+{{ project_info }}
+
+Dear {{ editor }},
+
+You have been asked to review a project entitled "{{ project.title }}" by "{{ user }}". 
+
+{{ signature }}
+
+{{ footer }}
+{% endautoescape %}
