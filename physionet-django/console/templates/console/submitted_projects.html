@@ -122,7 +122,7 @@
                   {% if project.editor == user %}
                     <td><a class="btn btn-primary btn-sm" href="{% url 'edit_submission' project.slug %}" role="button">Edit Project</a></td>
                   {% else %}
-                    <td><p>Ongoing</p></td>
+                    <td><p>Assigned</p></td>
                   {% endif %}
                   </td>
                 </tr>
@@ -191,7 +191,7 @@
                   {% if project.editor == user %}
                     <td><a class="btn btn-primary btn-sm" href="{% url 'copyedit_submission' project.slug %}" role="button">Copyedit Project</a></td>
                   {% else %}
-                    <td><p>Ongoing</p></td>
+                    <td><p>Assigned</p></td>
                   {% endif %}
                 </tr>
               {% endfor %}
@@ -265,7 +265,7 @@
                   {% if project.editor == user %}
                     <td><a class="btn btn-primary btn-sm" href="{% url 'publish_submission' project.slug %}" role="button">Publish Project</a></td>
                   {% else %}
-                    <td><p>Ongoing</p></td>
+                    <td><p>Assigned</p></td>
                   {% endif %}
                 </tr>
               {% endfor %}
