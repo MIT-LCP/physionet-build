@@ -8,7 +8,9 @@ from project.models import PublishedProject, PublishedTopic
 
 import operator
 from functools import reduce
-from django.db.models import Q, Count, Case, When, Value, IntegerField, F, Sum
+from django.db.models import Q, Count, Case, When, Value, IntegerField, Sum
+
+from django.core.paginator import Paginator
 
 
 def topic_search(request):
@@ -84,12 +86,7 @@ def get_content(resource_type, orderby, direction, topic):
     else:
         published_projects = published_projects.order_by(order_string)
 
-    authors = [p.authors.all() for p in published_projects]
-    topics = [p.topics.all() for p in published_projects]
-    projects_authors_topics = zip(published_projects, authors, topics)
-    nprojects = len(published_projects)
-
-    return projects_authors_topics, nprojects
+    return published_projects
 
 
 def content_index(request, resource_type=None):
@@ -112,8 +109,6 @@ def content_index(request, resource_type=None):
     else:
         resource_type = [resource_type]
         form_type = forms.ProjectTypeForm({'types':resource_type})
-    main_label = ', '.join([LABELS[r][0] for r in resource_type])
-    plural_label = ', '.join([LABELS[r][1] for r in resource_type])
 
     # SORT PROJECTS
     orderby, direction = 'publish_datetime', 'desc'
@@ -133,14 +128,23 @@ def content_index(request, resource_type=None):
         form_topic = forms.TopicSearchForm()
 
     # BUILD
-    projects_authors_topics, nprojects = get_content(resource_type=resource_type,
+    published_projects = get_content(resource_type=resource_type,
             orderby=orderby, direction=direction, topic=topic)
-    
+
+    # PAGINATION
+    page = request.GET.get('page', 1)
+    paginator = Paginator(published_projects, 10)
+    try:
+        projects = paginator.page(page)
+    except:
+        projects = paginator.page(1)
+
+    querystring = re.sub(r'\&*page=\d*', '', request.GET.urlencode())
+    if querystring != '': querystring += '&'
 
     return render(request, 'search/content_index.html', {'form_order':form_order,
-        'projects_authors_topics':projects_authors_topics,
-        'main_label':main_label, 'plural_label':plural_label,
-        'form_type':form_type, 'form_topic':form_topic,'nprojects':nprojects})
+        'projects':projects,'form_type':form_type, 
+        'form_topic':form_topic, 'querystring':querystring})
 
 
 def database_index(request):
