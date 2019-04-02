@@ -114,7 +114,7 @@ class BaseSeleniumTest(StaticLiveServerTestCase, TestCase):
 
 
 @tag('browser')
-class estSubmit(TestMixin, BaseSeleniumTest):
+class TestSubmit(TestMixin, BaseSeleniumTest):
 
     fixtures = ['demo-user', 'demo-project']
 
@@ -126,7 +126,7 @@ class estSubmit(TestMixin, BaseSeleniumTest):
         TestMixin.setUp(self)
         BaseSeleniumTest.setUp(self)
 
-    def est_submit(self):
+    def Test_Submit(self):
         """
         Test steps to create and submit a project
 
@@ -208,7 +208,7 @@ class estSubmit(TestMixin, BaseSeleniumTest):
         # self.selenium.find_element_by_id('create-folder-button').click()
         # self.selenium.find_element_by_id('id_folder_name').send_keys('subject-1')
         # self.selenium.find_element_by_id('create-folder-button-submit').click()
-        # self.selenium.find_element_by_name('items').click()BaseSeleniumTest
+        # self.selenium.find_element_by_name('items').click()
         # self.selenium.find_element_by_id('rename-item-button').click()
         # self.selenium.find_element_by_id('id_new_name').send_keys('subject-10')
         # self.selenium.find_element_by_id('rename-item-button-submit').click()
@@ -260,7 +260,7 @@ class estSubmit(TestMixin, BaseSeleniumTest):
         # self.assertTrue(project.under_submission())
         # self.assertEqual(project.storage_used(), 50)
 
-    def est_publish(self):
+    def Test_publish(self):
         """
         Test steps from submission to publication
 
