@@ -172,17 +172,16 @@ def editor_notify_new_project(project, assignee):
     subject = 'Assigned new project to review as editor ({0})'.format(
         project.title)
 
-    for email, name in project.author_contact_info():
-        body = loader.render_to_string(
-            'notification/email/assign_editor_notify.html',
-            {'project':project, 'editor':project.editor,
-             'signature':email_signature(), 
-             'user':assignee.get_full_name(),
-             'project_info':email_project_info(project),
-             'footer':email_footer()})
+    body = loader.render_to_string(
+        'notification/email/editor_notify_new_project.html',
+        {'project':project, 'editor':project.editor,
+         'signature':email_signature(), 
+         'user':assignee.get_full_name(),
+         'project_info':email_project_info(project),
+         'footer':email_footer()})
 
-        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                  [email], fail_silently=False)
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+              [project.editor.email], fail_silently=False)
 
 def edit_decision_notify(request, project, edit_log):
     """
