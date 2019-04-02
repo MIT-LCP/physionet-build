@@ -884,6 +884,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             previous_published_projects.update(is_latest_version=False)
 
             slug = previous_published_projects.first().slug
+            title = previous_published_projects.first().title
 
         published_project = PublishedProject(doi=doi)
 
@@ -893,6 +894,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
         # Set the slug if specified
         published_project.slug = slug or self.slug
+        published_project.title = title or self.title
 
         if self.core_project.publishedprojects.all() and len(previous_published_projects) > 0:
             for project in previous_published_projects:
