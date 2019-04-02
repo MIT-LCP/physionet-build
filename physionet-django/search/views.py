@@ -55,9 +55,9 @@ def get_content(resource_type, orderby, direction, topic):
         query = Q(resource_type__in=resource_type)
     else:
         topic = re.split(r"\W",topic);
-        query = reduce(operator.or_, (Q(topics__description__iregex = r'{0}'.format(item)) for item in topic))
-        query = query | reduce(operator.or_, (Q(abstract__iregex = r'\b{0}\b'.format(item)) for item in topic))
-        query = query | reduce(operator.or_, (Q(title__iregex = r'\b{0}\b'.format(item)) for item in topic))
+        query = reduce(operator.or_, (Q(topics__description__icontains = r'{0}'.format(item)) for item in topic))
+        query = query | reduce(operator.or_, (Q(abstract__icontains = r'{0}'.format(item)) for item in topic))
+        query = query | reduce(operator.or_, (Q(title__icontains = r'{0}'.format(item)) for item in topic))
         query = query & Q(resource_type__in=resource_type)
     published_projects = (PublishedProject.objects
         .filter(query, is_latest_version=True)
