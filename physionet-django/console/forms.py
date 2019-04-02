@@ -90,8 +90,11 @@ class EditSubmissionForm(forms.ModelForm):
         for f in rm_fields:
             del(self.fields[f])
 
-        for l in EditLog.LABELS[resource_type]:
-            self.fields[l].label = EditLog.LABELS[resource_type][l]
+        for (f, lbl) in EditLog.LABELS[resource_type].items():
+            hints = EditLog.HINTS.get(f)
+            if hints:
+                lbl += '<ul><li>' + '</li><li>'.join(hints) + '</li></ul>'
+            self.fields[f].label = lbl
 
         # Enforce the requirement of quality assurance fields
         for f in self.quality_assurance_fields:
