@@ -94,4 +94,7 @@
   access_policy_input.onchange = loadLicense;
 </script>
 <script>disableAddButtons();</script>
+{% if project.has_other_versions or project.version_order %}
+  <script type="text/javascript" src="{% static 'custom/js/disable-title.js' %}"></script>
+{% endif %}
 {% endblock %}
