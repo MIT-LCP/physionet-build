@@ -36,5 +36,12 @@ a{
   .list-group, .list-group .row{
     display: block;
   }
+
+  .dropdown-menu.show{
+    transform: unset !important;
+    width: 100%;
+    margin-bottom: 20px;
+  }
 }
+
 
