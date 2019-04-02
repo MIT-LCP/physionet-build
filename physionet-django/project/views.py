@@ -103,6 +103,7 @@ def process_invitation_response(request, invitation_response_formset):
                 invitations.update(response=invitation.response,
                     response_datetime=timezone.now(), is_active=False)
                 # Create a new Author object
+                author_imported = False
                 if invitation.response:
                     author = Author.objects.create(project=project, user=user,
                         display_order=project.authors.count() + 1,
@@ -113,10 +114,12 @@ def process_invitation_response(request, invitation_response_formset):
                                                         affected_emails)
                 messages.success(request,'The invitation has been {0}.'.format(
                     notification.RESPONSE_ACTIONS[invitation.response]))
-                if not author_imported:
+                if not author_imported and invitation.response:
                     return True, project
-                return False, project
- 
+                elif invitation.response:
+                    return False, project
+                return False, False
+
 
 
 @login_required
@@ -136,9 +139,10 @@ def project_home(request):
         invitation_response_formset = InvitationResponseFormSet(request.POST,
             queryset=AuthorInvitation.get_user_invitations(user))
         imported, project = process_invitation_response(request, invitation_response_formset)
-        if imported:
-            messages.error(request,'Please fill in the affiliation at the end of the page.')
-        return redirect('project_authors', project_slug=project.slug)
+        if project:
+            if imported:
+                messages.info(request,'Please fill in the affiliation at the end of the page.')
+            return redirect('project_authors', project_slug=project.slug)
 
     active_authors = Author.objects.filter(user=user,
         content_type=ContentType.objects.get_for_model(ActiveProject))
