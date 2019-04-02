@@ -13,3 +13,28 @@ blockquote {
   padding-right: 40px;
   background: #F0F0F0;
 }
+
+a{
+  word-break: break-all;
+}
+
+@media (min-width: 768px){
+  .btn-right{
+    float: right;
+  }
+
+  .name{
+    padding-left: 2.5em;
+  }
+}
+
+@media (max-width: 767px){
+  .col-md-4{
+    padding-left: 0;
+  }
+
+  .list-group, .list-group .row{
+    display: block;
+  }
+}
+
