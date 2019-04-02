@@ -9,7 +9,6 @@ from project.models import (ArchivedProject, ActiveProject, PublishedProject,
     Author, AuthorInvitation, License, StorageRequest)
 from user.test_views import prevent_request_warnings, TestMixin
 
-
 PROJECT_VIEWS = [
     'project_overview', 'project_authors', 'project_metadata',
     'project_access', 'project_discovery', 'project_files',
@@ -456,6 +455,7 @@ class TestInteraction(TestMixin, TestCase):
             response = self.client.post(reverse('project_home'), data=data)
             self.assertEqual(AuthorInvitation.objects.get(id=iid).response,
                 bool(inv_response))
+
         # Test successful new author
         self.assertTrue(project.authors.filter(user__username='aewj'))
         # Fails if user is already an author
