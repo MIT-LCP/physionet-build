@@ -44,4 +44,8 @@
 {% if not is_submitting or not project.author_editable %}
   <script type="text/javascript" src="{% static 'custom/js/disable-input.js' %}"></script>
 {% endif %}
+{% if project.has_other_versions or project.version_order %}
+  <script type="text/javascript" src="{% static 'custom/js/disable-title.js' %}"></script>
+{% endif %}
+
 {% endblock %}
