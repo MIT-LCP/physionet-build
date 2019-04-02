@@ -5,12 +5,6 @@ import project.views as project_views
 
 
 urlpatterns = [
-    path('search/google-custom-search/', views.google_custom_search,
-        name='google_custom_search'),
-    path('search/redirect-google-custom-search/',
-        views.redirect_google_custom_search,
-        name='redirect_google_custom_search'),
-
     path('search/topics/', views.topic_search, name='topic_search'),
     path('search/all-topics/', views.all_topics, name='all_topics'),
 

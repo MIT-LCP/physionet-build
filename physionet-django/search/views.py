@@ -11,22 +11,6 @@ from functools import reduce
 from django.db.models import Q, Count, Case, When, Value, IntegerField, F, Sum
 
 
-def google_custom_search(request):
-    """
-    Page for performing google custom search on the site
-    """
-    return render(request, 'search/google_custom_search.html')
-
-
-def redirect_google_custom_search(request):
-    """
-    Used to redirect queries from the navbar search to the main google
-    search page
-
-    """
-    return redirect(reverse('google_custom_search') + '?q={}'.format(request.GET['query']))
-
-
 def topic_search(request):
     """
     Search published projects by topic keyword
