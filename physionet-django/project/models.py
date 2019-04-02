@@ -1393,6 +1393,21 @@ class EditLog(models.Model):
          'no_phi':'Is the content free of protected health information?'},
     )
 
+    HINTS = {
+        'no_phi': [
+            'No dates in WFDB header files (or anonymized dates only)?',
+            'No identifying information of any individual'
+            ' (caregivers as well as patients)?',
+            'No ages of individuals 90 years or older?',
+            'No hidden metadata (e.g. EDF headers)?',
+            'No internal timestamps, date-based UUIDs or other identifiers?',
+        ],
+        'open_format': [
+            'No compiled binaries or bytecode?',
+            'No minified or obfuscated source code?',
+        ],
+    }
+
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     project = GenericForeignKey('content_type', 'object_id')
