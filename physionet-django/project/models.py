@@ -1398,7 +1398,7 @@ class EditLog(models.Model):
             'No dates in WFDB header files (or anonymized dates only)?',
             'No identifying information of any individual'
             ' (caregivers as well as patients)?',
-            'No ages of individuals 90 years or older?',
+            'No ages of individuals above 89 years?',
             'No hidden metadata (e.g. EDF headers)?',
             'No internal timestamps, date-based UUIDs or other identifiers?',
         ],

@@ -790,7 +790,7 @@ def project_files(request, project_slug, **kwargs):
                 is_active=True)
             if storage_request:
                 storage_request.get().delete()
-                messages.success(request, 'Your storage request has ben cancelled.')
+                messages.success(request, 'Your storage request has been cancelled.')
         else:
             # process the file manipulation post
             subdir = process_files_post(request, project)
