@@ -122,6 +122,71 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR,'static')]
 
+# List of permitted HTML tags and attributes for rich text fields.
+# The 'default' configuration permits all of the tags below.  Other
+# configurations may be added that permit different sets of tags.
+
+# Attributes that can be added to any HTML tag
+_generic_attributes = ['lang', 'title']
+
+# Inline/phrasing content
+_inline_tags = {
+    'a':      {'attributes': ['href']},
+    'abbr':   True,
+    'b':      True,
+    'bdi':    True,
+    'cite':   True,
+    'code':   True,
+    'dfn':    True,
+    'em':     True,
+    'i':      True,
+    'kbd':    True,
+    'q':      True,
+    'rb':     True,
+    'rp':     True,
+    'rt':     True,
+    'rtc':    True,
+    'ruby':   True,
+    's':      True,
+    'samp':   True,
+    'span':   True,
+    'strong': True,
+    'sub':    True,
+    'sup':    True,
+    'time':   True,
+    'var':    True,
+    'wbr':    True,
+}
+# Block/flow content
+_block_tags = {
+    # Paragraphs, lists, quotes, line breaks
+    'blockquote': True,
+    'br':         True,
+    'dd':         True,
+    'div':        True,
+    'dl':         True,
+    'dt':         True,
+    'li':         {'attributes': ['value']},
+    'ol':         {'attributes': ['start', 'type']},
+    'p':          True,
+    'pre':        True,
+    'ul':         True,
+
+    # Tables
+    'caption':    True,
+    'col':        {'attributes': ['span']},
+    'colgroup':   {'attributes': ['span']},
+    'table':      {'attributes': ['width']},
+    'tbody':      True,
+    'td':         {'attributes': ['colspan', 'headers', 'rowspan', 'style'],
+                   'styles': ['text-align']},
+    'tfoot':      True,
+    'th':         {'attributes': ['abbr', 'colspan', 'headers', 'rowspan',
+                                  'scope', 'sorted', 'style'],
+                   'styles': ['text-align']},
+    'thead':      True,
+    'tr':         True,
+}
 
 CKEDITOR_CONFIGS = {
     'default': {
@@ -137,6 +202,15 @@ CKEDITOR_CONFIGS = {
         'width': '100%',
         'format_tags': 'p;h3',
         'extraPlugins': 'codesnippet',
+        'allowedContent': {
+            **_inline_tags,
+            **_block_tags,
+            'h3': True,
+            'h4': True,
+            'h5': True,
+            'h6': True,
+            '*': {'attributes': _generic_attributes},
+        },
     }
 
 }
