@@ -320,12 +320,14 @@ class TestState(TestMixin, TestCase):
         """
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
         response = self.client.post(reverse('create_project'),
-            data={'title':'Database 1', 'resource_type':0, 'abstract':'abstract'})
+            data={'title': 'Database 1', 'resource_type': 0,
+                  'abstract': '<p class=xyz lang=en>x & y'})
 
         project = ActiveProject.objects.get(title='Database 1')
         self.assertRedirects(response, reverse('project_overview',
             args=(project.slug,)))
         self.assertEqual(project.authors.all().get().user.email, 'rgmark@mit.edu')
+        self.assertEqual(project.abstract, '<p lang="en">x &amp; y</p>')
 
     def test_archive(self):
         """
