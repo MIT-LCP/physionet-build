@@ -13,21 +13,10 @@
     </a>
   </li>
 
-  <li class="nav-item dropdown">
-    <a class="nav-link dropdown-toggle" href="#" id="nav_about_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-      About
+  <li class="nav-item">
+    <a id="nav_find" class="nav-link" href="{% url 'about' %}">
+        About
     </a>
-    <div class="dropdown-menu" aria-labelledby="resource_dropdown">
-      <a id="nav_physionet" class="dropdown-item" href="{% url 'about_physionet' %}">
-        PhysioNet
-      </a>
-      <a id="nav_contact" class="dropdown-item" href="{% url 'timeline' %}">
-        Timeline
-      </a>
-      <a id="nav_contact" class="dropdown-item" href="{% url 'contact' %}">
-        Contact
-      </a>
-    </div>
   </li>
 
   <li class="nav-item">

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+Author Guidelines
+{% endblock %}
+
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/publish.css' %}">
+{% endblock %}
+
+
+{% block content %}
+<div class="main">
+  <div class="row">
+    <div class="main-side">
+
+      <div class="card">
+        <h2 class="card-header">Physionet</h2>
+        <div class="card-body">
+          <ul>
+            <li><a href="#submittal">What is it?</a></li>
+            <li><a href="#sharing">Reasons to share</a></li>
+            <li><a href="#databases">Database highlights</a></li>
+            <li><a href="#funding">Funding</a></li>
+          </ul>
+        </div>
+      </div>
+    </div><div class="main-content">
+      <h1>Physionet</h1>
+      <br>
+      {% include "about/about_physionet.html" %}
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+  if(document.referrer.includes('/login/')) location.href = "#create";
+</script>
+
+{% endblock %}

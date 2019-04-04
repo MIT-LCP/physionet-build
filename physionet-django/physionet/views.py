@@ -56,17 +56,17 @@ def license_content(request, license_slug):
     license = License.objects.get(slug=license_slug)
     return render(request, 'about/license_content.html', {'license':license})
 
+def about(request):
+    """
+    About the site content.
+    """
+    return render(request, 'about/about.html')
+
 def timeline(request):
     """
     Background to PhysioNet as an organization.
     """
     return render(request, 'about/timeline.html')
-
-def about_physionet(request):
-    """
-    About the site content.
-    """
-    return render(request, 'about/about_physionet.html')
 
 def faq(request):
     """
