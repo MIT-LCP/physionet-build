@@ -16,6 +16,12 @@ input, select, django-ckeditor-widget, textarea {
   outline: none;
 }
 
+.resource-search ul{
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
 form li label input{
   display: inline-block;
   width: unset;
