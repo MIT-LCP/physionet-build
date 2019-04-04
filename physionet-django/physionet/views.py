@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.contenttypes.models import ContentType
 
 from notification.models import News
@@ -48,23 +48,6 @@ def about_publish(request):
         form = ''
 
     return render(request, 'about/publish.html', {'licenses':licenses, 'form':form})
-
-def author_guidelines(request):
-    """
-    Insrtuctions for authors
-    """
-    return render(request, 'about/author_guidelines.html')
-
-def licenses(request):
-    """
-    Display all licenses
-    """
-    licenses = {}
-    licenses['Database'] = License.objects.filter(resource_type=0).order_by('access_policy')
-    licenses['Software'] = License.objects.filter(resource_type=1).order_by('access_policy')
-    licenses['Challenge'] = License.objects.filter(resource_type=2).order_by('access_policy')
-
-    return render(request, 'about/licenses.html', {'licenses':licenses})
 
 def license_content(request, license_slug):
     """
