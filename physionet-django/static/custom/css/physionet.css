@@ -22,6 +22,30 @@ pre {
   }
 }
 
+/* Main content: tables */
+table {
+  border-collapse: collapse;
+  border-top: 1px solid #dfdfdf;
+  border-bottom: 1px solid #dfdfdf;
+  margin: 1em auto;
+}
+thead, tbody, tfoot {
+  border-top: 1px solid #dfdfdf;
+}
+th, td {
+  padding: 0.25em 0.5em;
+  text-align: left;
+}
+@media print {
+  table {
+    border-top: 0.25pt solid black;
+    border-bottom: 0.25pt solid black;
+  }
+  thead, tbody, tfoot {
+    border-top: 0.25pt solid black;
+  }
+}
+
 .navbar{
   display: block;
   height: 55px;
