@@ -7,7 +7,7 @@ import pdb
 import pytz
 
 import bleach
-from ckeditor.fields import RichTextField
+import ckeditor.fields
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -25,7 +25,7 @@ from user.validators import validate_alphaplus, validate_alphaplusplus
 from physionet.utility import zip_dir
 
 
-class SafeHTMLField(RichTextField):
+class SafeHTMLField(ckeditor.fields.RichTextField):
     """
     An HTML text field that permits only "safe" content.
 
