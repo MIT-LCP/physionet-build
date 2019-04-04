@@ -36,8 +36,13 @@ PhysioNet News - {{ year }}
 
     </div>{# Left column #}<div class="main-content">
       <h1>{{ year }} PhysioNet News</h1>
-      <hr>
+      <br>
       {% for news in news_pieces %}
+        <p>
+          <span class="badge badge-dark">
+            <i class="fa fa-newspaper"></i>{{ news.publish_datetime|date:"Y" }}
+          </span>
+        </p>
         <h2>
           {% if news.url %}
             <a href="{{ news.url }}">{{ news.title }}</a>
@@ -45,8 +50,8 @@ PhysioNet News - {{ year }}
             {{ news.title }}
           {% endif %}
         </h2>
-        <p><a class="text-muted">{{ news.publish_datetime|date }}</a></p>
-        {{ news.content|safe }}
+        <p>{{ news.content|safe }}</p>
+        <p class="pub-details">Published: {{ news.publish_datetime|date }}.<p>
         <hr>
       {% endfor %}
       <br>
