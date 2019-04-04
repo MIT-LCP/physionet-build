@@ -319,7 +319,7 @@ class TestState(TestMixin, TestCase):
         Create and archive a project
         """
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
-        response = self.client.post(reverse('create_project'),
+        response = self.client.post(reverse('about_publish'),
             data={'title': 'Database 1', 'resource_type': 0,
                   'abstract': '<p class=xyz lang=en>x & y'})
 
