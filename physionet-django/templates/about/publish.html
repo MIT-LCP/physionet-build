@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+Author Guidelines
+{% endblock %}
+
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/publish.css' %}">
+{% endblock %}
+
+
+{% block content %}
+<div class="main">
+  <div class="row">
+    <div class="main-side">
+
+      <div class="card">
+        <h2 class="card-header">Author Guidelines</h2>
+        <div class="card-body">
+          <ul>
+            <li><a href="#submittal">Submittal process</a></li>
+            <li><a href="#preparing">Preparing for submission</a></li>
+            <li><a href="#criteria">Criteria for publication</a></li>
+            <li><a href="#editorial">Editorial process</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card my-4">
+        <h2 class="card-header">Licenses</h2>
+        <div class="card-body">
+          <ul>
+            <li><a href="#database">Database</a></li>
+            <li><a href="#software">Software</a></li>
+            <li><a href="#challenge">Challenge</a></li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="card my-4">
+        <h2 class="card-header">Submit</h2>
+        <div class="card-body">
+          <ul>
+            <li><a href="#create">Create your project</a></li>
+          </ul>
+        </div>
+      </div>
+    </div><div class="main-content">
+      <h1>Author Guidelines</h1>
+      <br>
+      <div>{% include "about/author_guidelines.html" %}</div>
+      <hr>
+      <br>
+      <h1>Licenses</h1>
+      <br>
+      <div>{% include "about/licenses.html" %}</div>
+      <hr>
+      <br>
+      <h1>Submit</h1>
+      <br>
+      <div id="create">
+        {% if user.is_authenticated %}
+          {% include "project/create_project.html" %}
+        {% else %}
+          <p><a href="{% url 'login' %}?next=/about/publish/">Login</a> to create your project.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+  if(document.referrer.includes('/login/')) location.href = "#create";
+</script>
+
+{% endblock %}
