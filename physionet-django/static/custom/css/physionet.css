@@ -6,6 +6,22 @@ a[target='_blank']::after {
   padding: 0em 0.15em;
 }
 
+/* Main content: code examples */
+pre {
+  background-color: #f7f7f7;
+  border: 1px solid #dfdfdf;
+  padding: 0.25em;
+  margin: 0.75em;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+@media print {
+  pre {
+    background-color: transparent;
+    border: 0.25pt dotted black;
+  }
+}
+
 .navbar{
   display: block;
   height: 55px;
