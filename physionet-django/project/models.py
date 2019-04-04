@@ -369,17 +369,17 @@ class Metadata(models.Model):
 
     # Main body descriptive metadata
     title = models.CharField(max_length=200, validators=[validate_alphaplus])
-    abstract = RichTextField(max_length=10000, blank=True)
-    background = RichTextField(blank=True)
-    methods = RichTextField(blank=True)
-    content_description = RichTextField(blank=True)
-    usage_notes = RichTextField(blank=True)
-    installation = RichTextField(blank=True)
-    acknowledgements = RichTextField(blank=True)
-    conflicts_of_interest = RichTextField(blank=True)
+    abstract = SafeHTMLField(max_length=10000, blank=True)
+    background = SafeHTMLField(blank=True)
+    methods = SafeHTMLField(blank=True)
+    content_description = SafeHTMLField(blank=True)
+    usage_notes = SafeHTMLField(blank=True)
+    installation = SafeHTMLField(blank=True)
+    acknowledgements = SafeHTMLField(blank=True)
+    conflicts_of_interest = SafeHTMLField(blank=True)
     version = models.CharField(max_length=15, default='', blank=True,
         validators=[validate_version])
-    release_notes = RichTextField(blank=True)
+    release_notes = SafeHTMLField(blank=True)
 
     # Short description used for search results, social media, etc
     short_description = models.CharField(max_length=250, blank=True,
@@ -1076,7 +1076,7 @@ class PublishedProject(Metadata, SubmissionInfo):
     approved_users = models.ManyToManyField('user.User', db_index=True)
     # Fields for legacy pb databases
     is_legacy = models.BooleanField(default=False)
-    full_description = RichTextField(default='')
+    full_description = SafeHTMLField(default='')
     is_latest_version = models.BooleanField(default=True)
 
     # Where all the published project files are kept, depending on access.
@@ -1330,7 +1330,7 @@ class License(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=120)
     text_content = models.TextField(default='')
-    html_content = RichTextField(default='')
+    html_content = SafeHTMLField(default='')
     home_page = models.URLField()
     # A project must choose a license with a matching access policy and
     # resource type
@@ -1339,7 +1339,7 @@ class License(models.Model):
     resource_type = models.PositiveSmallIntegerField(choices=Metadata.RESOURCE_TYPES)
     # A protected license has associated DUA content
     dua_name = models.CharField(max_length=100, blank=True, default='')
-    dua_html_content = RichTextField(blank=True, default='')
+    dua_html_content = SafeHTMLField(blank=True, default='')
 
     def __str__(self):
         return self.name
@@ -1551,8 +1551,8 @@ class LegacyProject(models.Model):
     """
     title = models.CharField(max_length=255)
     slug = models.CharField(max_length=100)
-    abstract = RichTextField(blank=True, default='')
-    full_description = RichTextField()
+    abstract = SafeHTMLField(blank=True, default='')
+    full_description = SafeHTMLField()
     doi = models.CharField(max_length=100, blank=True, default='')
     version = models.CharField(max_length=20, default='1.0.0')
 
