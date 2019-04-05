@@ -36,7 +36,6 @@ urlpatterns = [
     path('about/faq/', views.faq, name='faq'),
     path('about/licenses/<license_slug>/', views.license_content,
         name='license_content'),
-    path('about/contact/', views.contact, name='contact'),
     path('about/citi-course/', views.citi_course, name='citi_course'),
 
     # robots.txt for crawlers
