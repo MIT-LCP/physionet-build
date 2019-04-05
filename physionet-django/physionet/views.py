@@ -74,12 +74,6 @@ def about(request):
 
     return render(request, 'about/about.html', {'contact_form':contact_form})
 
-def timeline(request):
-    """
-    Background to PhysioNet as an organization.
-    """
-    return render(request, 'about/timeline.html')
-
 def faq(request):
     """
     Frequently asked questions
