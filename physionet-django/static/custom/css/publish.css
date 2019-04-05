@@ -6,3 +6,7 @@
 .card ul li{
 	padding: 10px;
 }
+
+.django-ckeditor-widget{
+	width: 100%;
+}
