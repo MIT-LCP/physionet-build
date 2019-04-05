@@ -74,6 +74,12 @@ def about(request):
 
     return render(request, 'about/about.html', {'contact_form':contact_form})
 
+def timeline(request):
+    """
+    Frequently asked questions
+    """
+    return render(request, 'about/timeline.html')
+
 def faq(request):
     """
     Frequently asked questions

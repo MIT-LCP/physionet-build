@@ -31,6 +31,7 @@ urlpatterns = [
     path('about/publish/', views.about_publish,
         name='about_publish'),
     path('about/', views.about, name='about'),
+    path('about/timeline', views.timeline, name='timeline'),
     path('about/faq/', views.faq, name='faq'),
     path('about/licenses/<license_slug>/', views.license_content,
         name='license_content'),
