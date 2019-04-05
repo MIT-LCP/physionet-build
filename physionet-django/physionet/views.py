@@ -80,12 +80,6 @@ def timeline(request):
     """
     return render(request, 'about/timeline.html')
 
-def faq(request):
-    """
-    Frequently asked questions
-    """
-    return render(request, 'about/faq.html')
-
 def citi_course(request):
     """
     Instructions for completing the CITI training course
