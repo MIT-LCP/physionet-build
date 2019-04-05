@@ -490,6 +490,7 @@ def send_files_to_gcp(pid, bucket):
     if check_bucket(project.slug): 
         upload_files(project)
         project.gcp.sent_files = True
+        project.gcp.finished_datetime = timezone.now()
         project.gcp.save()
 
 @login_required

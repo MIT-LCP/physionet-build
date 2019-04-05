@@ -1619,3 +1619,4 @@ class GCP(models.Model):
     managed_by = models.OneToOneField('user.User', related_name='gcp_manager',
         on_delete=models.CASCADE)
     creation_datetime = models.DateTimeField(auto_now_add=True)
+    finished_datetime = models.DateTimeField(null=True)
