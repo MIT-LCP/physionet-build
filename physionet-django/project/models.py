@@ -1058,7 +1058,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         # Remove the ActiveProject
         self.delete()
 
-        published_project.cgp = GCP.objects.create()
         return published_project
 
 
@@ -1615,6 +1614,8 @@ class GCP(models.Model):
     """
     project = models.OneToOneField('project.PublishedProject', related_name='gcp',
         on_delete=models.CASCADE)
-    gcp_bucket = models.CharField(max_length=70, null=True)
-    gcp_group = models.CharField(max_length=100, null=True)
+    bucket_name = models.CharField(max_length=100, null=True)
     sent_files = models.BooleanField(default=False)
+    managed_by = models.OneToOneField('user.User', related_name='gcp_manager',
+        on_delete=models.CASCADE)
+    creation_datetime = models.DateTimeField(auto_now_add=True)

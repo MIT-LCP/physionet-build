@@ -14,9 +14,10 @@ from django.shortcuts import redirect, render
 from django.template import loader
 from django.urls import reverse
 from django.utils import timezone
+from background_task import background
 
 from . import forms
-from .utility import create_bucket, check_bucket
+from .utility import create_bucket, check_bucket, upload_files
 from notification.models import News
 import notification.utility as notification
 import project.forms as project_forms
@@ -483,9 +484,17 @@ def published_projects(request):
     return render(request, 'console/published_projects.html',
         {'projects':projects})
 
+@background()
+def send_files_to_gcp(pid, bucket):
+    project = PublishedProject.objects.get(id=pid)
+    if check_bucket(project.slug): 
+        upload_files(project)
+        project.gcp.sent_files = True
+        project.gcp.save()
+
 @login_required
 @user_passes_test(is_admin)
-def manage_published_project(request, project_slug):
+def manage_published_project(request, project_slug, version):
     """
     Manage a published project
 
@@ -493,7 +502,8 @@ def manage_published_project(request, project_slug):
     - Create zip of files
 
     """
-    project = PublishedProject.objects.get(slug=project_slug)
+    user = request.user
+    project = PublishedProject.objects.get(slug=project_slug, version=version)
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
     doi_form = forms.DOIForm(instance=project)
 
@@ -514,27 +524,24 @@ def manage_published_project(request, project_slug):
 
         elif 'bucket' in request.POST:
             slug = request.POST['bucket'].lower()
-            gcp_manager = GCP.objects.filter(project=project)
-            if not gcp_manager:
-                GCP.objects.create(project=project)
-            if not check_bucket(slug):
+            if not check_bucket(slug) and project.has_other_versions:
+                bucket_name = ''
                 if project.access_policy > 0:
-                    if project.gcp.gcp_group:
-                        project.gcp.gcp_bucket = create_bucket(project=slug, protected=True, 
-                        group=project.gcp.gcp_group)
-                        project.gcp.save()
-                        logger.info("Created GCP bucket for project {0}".format(project_slug))
-                        messages.success(request, "The GCP bucket for project {0} was successfuly created".format(project_slug))
-                    else:
-                        messages.error(request, "There is no group created for this bucket ({0}), \
-                        please create the group before creating the bucket.".format(project_slug))
+                    bucket_name = create_bucket(project=slug, protected=True)
                 else:
-                    project.gcp.gcp_bucket = create_bucket(project=slug)
-                    project.gcp.save()
-                    logger.info("Created GCP bucket for project {0}".format(project_slug))
-                    messages.success(request, "The GCP bucket for project {0} was successfuly created".format(project_slug))
+                    bucket_name = create_bucket(project=slug)
+                GCP.objects.create(project=project, bucket_name=bucket_name, managed_by=user)
+                send_files_to_gcp(project.id, schedule=10)
+                logger.info("Created GCP bucket for project {0}".format(project_slug))
+                messages.success(request, "The GCP bucket for project {0} was successfuly created.".format(project_slug))
+            elif project.has_other_versions:
+                GCP.objects.create(project=project, 
+                    bucket_name=project.core_project.publishedprojects.first().gcp.bucket_name, managed_by=user)
+                send_files_to_gcp(project.id, schedule=10)
+                logger.info("Created GCP bucket for project {0}".format(project_slug))
+                messages.success(request, "The GCP bucket for project {0} already exists from a previews version.".format(project_slug))
             else:
-                messages.success(request, "The GCP bucket for project {0} already exists".format(project_slug))
+                messages.success(request, "The GCP bucket for project {0} already exists.".format(project_slug))
         elif 'send_files' in request.POST:
             slug = request.POST['send_files']
             project = PublishedProject.objects.get(slug=slug)
@@ -763,31 +770,30 @@ def guidelines_review(request):
     """
     return render(request, 'console/guidelines_review.html')
 
-@login_required
-@user_passes_test(is_admin)
-def gcloud(request):
-    """
-    Empty page for gcloud management
-    """
-    return render(request, 'console/gcloud.html')
+# @login_required
+# @user_passes_test(is_admin)
+# def gcloud(request):
+#     """
+#     Empty page for gcloud management
+#     """
+#     return render(request, 'console/gcloud.html')
 
 
-@login_required
-@user_passes_test(is_admin)
-def manage_gcp(request, project_slug, *args, **kwargs):
-    slug = project_slug.lower()
-    project = PublishedProject.objects.get(slug=project_slug)
-    gcp_manager = GCP.objects.filter(project=project)
-    if not gcp_manager:
-        GCP.objects.create(project=project)
-
-    if 'group' in request.GET and project:
-        email = request.GET['group']
-        if validate_email(email) == None:
-            project.gcp.gcp_group = email
-            project.gcp.save()
-            logger.info("Adding GCP email group {0} for project {1}.".format(email, project_slug))
-            return JsonResponse({'status':'done'})
-        else:
-            logger.info("There was an error validating the email {0} for project {1}.".format(email, project_slug))
-            return JsonResponse({'status':"There was an error validating the email {0} for project {1}.".format(email, project_slug)})
+# @login_required
+# @user_passes_test(is_admin)
+# def manage_gcp(request, project_slug, *args, **kwargs):
+#     slug = project_slug.lower()
+#     project = PublishedProject.objects.get(slug=project_slug)
+#     gcp_manager = GCP.objects.filter(project=project)
+#     if not gcp_manager:
+#         GCP.objects.create(project=project)
+#     if 'group' in request.GET and project:
+#         email = request.GET['group']
+#         if validate_email(email) == None:
+#             project.gcp.gcp_group = email
+#             project.gcp.save()
+#             logger.info("Adding GCP email group {0} for project {1}.".format(email, project_slug))
+#             return JsonResponse({'status':'done'})
+#         else:
+#             logger.info("There was an error validating the email {0} for project {1}.".format(email, project_slug))
+#             return JsonResponse({'status':"There was an error validating the email {0} for project {1}.".format(email, project_slug)})

@@ -32,7 +32,7 @@
             <td>{{ project.editor }}</td>
             <td>{{ project.creation_datetime|date }}</td>
             <td>{{ project.publish_datetime|date }}</td>
-            <td><a href="{% url 'manage_published_project' project.slug %}" class="btn btn-sm btn-primary" role="button">Manage</a></td>
+            <td><a href="{% url 'manage_published_project' project.slug project.version %}" class="btn btn-sm btn-primary" role="button">Manage</a></td>
           </tr>
         {% endfor %}
         </tbody>

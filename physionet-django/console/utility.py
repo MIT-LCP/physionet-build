@@ -7,14 +7,6 @@ import os
 import pickle
 import logging
 
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
-
-# New_Project = 'ecgiddb'
-# bucket_name='physionet-data-{0}'.format(New_Project)
-
 logger = logging.getLogger(__name__)
 
 def check_bucket(project):
@@ -63,24 +55,26 @@ def set_bucket_permissions(bucket_name, group):
     bucket.acl.group(group).grant_read()
     bucket.acl.save()
 
-def upload_files(bucket_name, New_Project):
+def upload_files(project):
     """
     Function to send files to a bucket. 
     """
-    root_dir = project.file_root()
-    file_dir = project.version
-    working_dir = root_dir + New_Project + file_dir
-    subfolders_fullpath = [x[0] for x in walk(working_dir)]
+    root_dir = project.project_file_root()
+    version = project.version
+    working_path = os.path.join(root_dir, version)
+    subfolders_fullpath = [x[0] for x in walk(root_dir)]
     storage_client = storage.Client()
-    bucket = storage_client.get_bucket(bucket_name)
+    bucket = storage_client.get_bucket(project.gcp.bucket_name)
     for indx, location in enumerate(subfolders_fullpath):
         chdir(location)
         files = [f for f in listdir('.') if path.isfile(f)]
         for file in files:
-            temp_dir = location.replace(working_dir,'')
+            temp_dir = location.replace(root_dir,'')
             if temp_dir != '':
-                blob = bucket.blob(temp_dir + '/' + file)
+                os.path.join(temp_dir, file)
+                blob = bucket.blob(os.path.join(temp_dir, file)[1:])
                 blob.upload_from_filename(file)
             else:
                 blob = bucket.blob(file)
                 blob.upload_from_filename(file)
+

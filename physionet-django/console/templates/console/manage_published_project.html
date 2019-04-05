@@ -12,60 +12,6 @@
 
 {% block local_js_top %}
 <script src="{% static 'custom/js/copy-to-clipboard.js' %}"></script>
-<script src="https://apis.google.com/js/api.js"></script>
-<script>
-    function authenticate() {
-    return gapi.auth2.getAuthInstance()
-        .signIn({scope: "https://www.googleapis.com/auth/admin.directory.group"})
-        .then(function() { console.log("Sign-in successful"); },
-              function(err) { console.error("Error signing in", err); });
-  }
-  function loadClient() {
-    return gapi.client.load("https://content.googleapis.com/discovery/v1/apis/admin/directory_v1/rest")
-        .then(function() { console.log("GAPI client loaded for API"); },
-              function(err) { console.error("Error loading GAPI client for API", err); });
-  }
-  // Make sure the client is loaded and sign-in is complete before calling this method.
-  function execute(email) {
-    resource = '{"resource": {"email": "'+email+'"} }'
-    try {
-      return gapi.client.directory.groups.insert(JSON.parse(resource))
-        .then(function(response) { console.log("Response", response);
-          if (response.status == 200){
-            $.ajax({
-              url: "{% url 'manage_gcp' project.slug %}",
-              data: {
-                "group": response.result['email']
-              },
-              success: function(result){
-                if (result.status == 'done'){
-                  alert("The group "+response.result['email']+" was create successfully.")
-                  location.reload();
-                }
-                else{
-                  console.log(result);
-                }
-              }
-            });
-          }
-          else{
-            alert("There was an error creating the group.")
-          }
-      },
-        function(err) { console.log(err); 
-        alert("There was an error, '"+JSON.stringify(err.result.error.message)+"'")
-      });
-    }
-    catch (err){
-        alert("There was an error, please authenticate with a physionet.org account");
-        console.error("Execute error", err)
-    }
-  }
-  gapi.load("client:auth2", function() {
-    gapi.auth2.init({client_id: "569883598760-m64u8mgjebvmprq1finirnp25mrdn4sp.apps.googleusercontent.com"});
-
-  });
-</script>
 {% endblock %}
 
 {% block content %}
@@ -126,13 +72,6 @@
     <br>
     <h3>Google Cloud</h3>
     <hr>
-      {% if project.access_policy > 0 and not project.gcp.gcp_group %}
-        <p>In order to do any task google cloud related, you need to authenticate with a "GCP Organization Account".</p>
-        <button onclick="authenticate().then(loadClient)" class="btn btn-primary">Authenticate </button><br><br>
-        <p>This is a project that contains some kind of security, credential or DUA. Because of this it needs a group to control the access.</p>
-        <button onclick="execute('{{project.slug}}-noreply@physionet.org')" class="btn btn-primary">Create access group</button><br><br>
-      {% endif %}
-      {{project.gcp.gcp_bucket}}
       {% if not project.gcp.gcp_bucket %}
         <p>Create the GCP bucket to store all of the information of this project.</p>
         <form action="" method="post">
@@ -150,7 +89,7 @@
         </form>
       {% endif %}
       {% if project.gcp.sent_files and project.gcp.gcp_bucket %}
-        <p>The files have been sent to GCP. The bucket name is: {{project.gcp.sent_files}}</p>
+        <p>The files have been sent to GCP. The bucket name is: {{b.gcp.gcp_bucket}}</p>
       {% endif %}
     {% endif %}
   </div>

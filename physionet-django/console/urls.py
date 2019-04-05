@@ -17,7 +17,7 @@ urlpatterns = [
     path('rejected-submissions/', views.rejected_submissions,
         name='rejected_submissions'),
 
-    path('published-projects/<project_slug>/',
+    path('published-projects/<project_slug>/<version>/',
         views.manage_published_project, name='manage_published_project'),
 
     # Individual edit pages
@@ -67,8 +67,4 @@ urlpatterns = [
 
     # guidelines
     path('guidelines/review/', views.guidelines_review, name='guidelines_review'),
-    # Gcloud
-    path('gcloud/', views.gcloud, name='gcloud'),
-    path('manage-gcp/<project_slug>/', views.manage_gcp, name='manage_gcp'),
-
 ]
