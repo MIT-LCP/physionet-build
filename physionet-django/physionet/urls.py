@@ -32,7 +32,6 @@ urlpatterns = [
         name='about_publish'),
     path('about/', views.about, name='about'),
     path('about/timeline', views.timeline, name='timeline'),
-    path('about/faq/', views.faq, name='faq'),
     path('about/licenses/<license_slug>/', views.license_content,
         name='license_content'),
     path('about/citi-course/', views.citi_course, name='citi_course'),
