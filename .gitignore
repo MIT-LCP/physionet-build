@@ -115,3 +115,14 @@ git-deployment/
 # OSX .DS_Store
 .DS_Store
 
+# Patches and related stuff
+*.patch
+*.orig
+*.rej
+
+# Emacs backup and autosave
+*~
+*#*
+
+# etags
+TAGS
