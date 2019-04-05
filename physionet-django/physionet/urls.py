@@ -28,8 +28,6 @@ urlpatterns = [
     path('', views.home, name='home'),
 
     # about pages
-    path('about/timeline/', views.timeline,
-        name='timeline'),
     path('about/publish/', views.about_publish,
         name='about_publish'),
     path('about/', views.about, name='about'),
