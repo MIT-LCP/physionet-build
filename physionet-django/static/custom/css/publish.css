@@ -1,0 +1,12 @@
+.card ul{
+	list-style: none;
+	padding: 0;
+}
+
+.card ul li{
+	padding: 10px;
+}
+
+.django-ckeditor-widget{
+	width: 100%;
+}

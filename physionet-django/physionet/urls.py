@@ -30,11 +30,10 @@ urlpatterns = [
     # about pages
     path('about/timeline/', views.timeline,
         name='timeline'),
-    path('about/author-guidelines/', views.author_guidelines,
-        name='author_guidelines'),
+    path('about/publish/', views.about_publish,
+        name='about_publish'),
     path('about/', views.about_physionet, name='about_physionet'),
     path('about/faq/', views.faq, name='faq'),
-    path('about/licenses/', views.licenses, name='licenses'),
     path('about/licenses/<license_slug>/', views.license_content,
         name='license_content'),
     path('about/contact/', views.contact, name='contact'),

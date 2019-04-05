@@ -1,10 +1,12 @@
 from django.contrib import messages
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib.contenttypes.models import ContentType
 
 from notification.models import News
 import notification.utility as notification
-from project.models import License, PublishedProject
+from project.models import License, PublishedProject, Author, ActiveProject
 from user.forms import ContactForm
+from project import forms
 
 
 def home(request):
@@ -17,22 +19,35 @@ def home(request):
     return render(request, 'home.html', {
         'projects':published_projects, 'news_pieces':news_pieces})
 
-def author_guidelines(request):
+def about_publish(request):
     """
     Insrtuctions for authors
-    """
-    return render(request, 'about/author_guidelines.html')
-
-def licenses(request):
-    """
-    Display all licenses
     """
     licenses = {}
     licenses['Database'] = License.objects.filter(resource_type=0).order_by('access_policy')
     licenses['Software'] = License.objects.filter(resource_type=1).order_by('access_policy')
     licenses['Challenge'] = License.objects.filter(resource_type=2).order_by('access_policy')
 
-    return render(request, 'about/licenses.html', {'licenses':licenses})
+    user = request.user
+
+    if user.is_authenticated:
+        n_submitting = Author.objects.filter(user=user, is_submitting=True,
+            content_type=ContentType.objects.get_for_model(ActiveProject)).count()
+        if n_submitting >= ActiveProject.MAX_SUBMITTING_PROJECTS:
+            return render(request, 'project/project_limit_reached.html',
+                {'max_projects':ActiveProject.MAX_SUBMITTING_PROJECTS})
+
+        if request.method == 'POST':
+            form = forms.CreateProjectForm(user=user, data=request.POST)
+            if form.is_valid():
+                project = form.save()
+                return redirect('project_overview', project_slug=project.slug)
+        else:
+            form = forms.CreateProjectForm(user=user)
+    else:
+        form = ''
+
+    return render(request, 'about/publish.html', {'licenses':licenses, 'form':form})
 
 def license_content(request, license_slug):
     """

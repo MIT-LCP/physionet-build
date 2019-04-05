@@ -169,27 +169,6 @@ def project_home(request):
 
 
 @login_required
-def create_project(request):
-    user = request.user
-
-    n_submitting = Author.objects.filter(user=user, is_submitting=True,
-        content_type=ContentType.objects.get_for_model(ActiveProject)).count()
-    if n_submitting >= ActiveProject.MAX_SUBMITTING_PROJECTS:
-        return render(request, 'project/project_limit_reached.html',
-            {'max_projects':ActiveProject.MAX_SUBMITTING_PROJECTS})
-
-    if request.method == 'POST':
-        form = forms.CreateProjectForm(user=user, data=request.POST)
-        if form.is_valid():
-            project = form.save()
-            return redirect('project_overview', project_slug=project.slug)
-    else:
-        form = forms.CreateProjectForm(user=user)
-
-    return render(request, 'project/create_project.html', {'form':form})
-
-
-@login_required
 def new_project_version(request, project_slug):
     """
     Publish a new version of a project
