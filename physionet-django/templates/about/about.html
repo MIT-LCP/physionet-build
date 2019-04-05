@@ -8,7 +8,7 @@ Author Guidelines
 
 
 {% block local_css %}
-<link rel="stylesheet" type="text/css" href="{% static 'custom/css/publish.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/about.css' %}">
 {% endblock %}
 
 
@@ -28,10 +28,26 @@ Author Guidelines
           </ul>
         </div>
       </div>
+
+       <div class="card my-4">
+        <h2 class="card-header">Contact</h2>
+        <div class="card-body">
+          <ul>
+            <li><a href="#form">Submit your message</a></li>
+          </ul>
+        </div>
+      </div>
     </div><div class="main-content">
       <h1>Physionet</h1>
       <br>
-      {% include "about/about_physionet.html" %}
+      <div>{% include "about/about_physionet.html" %}</div>
+      <br>
+      <hr>
+      <br>
+      {% include "message_snippet.html" %}
+      <h1>Contact</h1>
+      <br>
+      <div>{% include "about/contact.html" %}</div>
     </div>
   </div>
 </div>

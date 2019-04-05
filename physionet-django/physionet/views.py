@@ -60,7 +60,19 @@ def about(request):
     """
     About the site content.
     """
-    return render(request, 'about/about.html')
+
+    if request.method == 'POST':
+        contact_form = ContactForm(request.POST)
+        if contact_form.is_valid():
+            notification.send_contact_message(contact_form)
+            messages.success(request, 'Your message has been sent.')
+            contact_form = ContactForm()
+        else:
+            messages.error(request, 'Invalid submission. See form below.')
+    else:
+        contact_form = ContactForm()
+
+    return render(request, 'about/about.html', {'contact_form':contact_form})
 
 def timeline(request):
     """
@@ -73,23 +85,6 @@ def faq(request):
     Frequently asked questions
     """
     return render(request, 'about/faq.html')
-
-def contact(request):
-    """
-    Contact form
-    """
-    if request.method == 'POST':
-        contact_form = ContactForm(request.POST)
-        if contact_form.is_valid():
-            notification.send_contact_message(contact_form)
-            messages.success(request, 'Your message has been sent.')
-            contact_form = ContactForm()
-        else:
-            messages.error(request, 'Invalid submission. See form below.')
-    else:
-        contact_form = ContactForm()
-
-    return render(request, 'about/contact.html', {'contact_form':contact_form})
 
 def citi_course(request):
     """
