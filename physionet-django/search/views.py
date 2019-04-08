@@ -52,8 +52,9 @@ def get_content(resource_type, orderby, direction, topic):
     """
 
     # Word boundary for different database engines
-    if 'postgresql' in settings.DATABASES['default']['ENGINE']: wb = r'\y'
-    else: wb = r'\b'
+    wb = r'\b'
+    if 'postgresql' in settings.DATABASES['default']['ENGINE']: 
+        wb = r'\y'
 
     # Build query for resource type and keyword filtering
     if len(topic) == 0:
