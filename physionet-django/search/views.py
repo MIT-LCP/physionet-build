@@ -11,6 +11,7 @@ from functools import reduce
 from django.db.models import Q, Count, Case, When, Value, IntegerField, Sum
 
 from django.core.paginator import Paginator
+from django.conf import settings
 
 
 def topic_search(request):
@@ -50,14 +51,19 @@ def get_content(resource_type, orderby, direction, topic):
     Helper function to get content shown on a resource listing page
     """
 
+    # Word boundary for different database engines
+    wb = r'\b'
+    if 'postgresql' in settings.DATABASES['default']['ENGINE']: 
+        wb = r'\y'
+
     # Build query for resource type and keyword filtering
     if len(topic) == 0:
         query = Q(resource_type__in=resource_type)
     else:
         topic = re.split(r"\W",topic);
-        query = reduce(operator.or_, (Q(topics__description__icontains = r'{0}'.format(item)) for item in topic))
-        query = query | reduce(operator.or_, (Q(abstract__icontains = r'{0}'.format(item)) for item in topic))
-        query = query | reduce(operator.or_, (Q(title__icontains = r'{0}'.format(item)) for item in topic))
+        query = reduce(operator.or_, (Q(topics__description__iregex = r'{0}{1}{0}'.format(wb, item)) for item in topic))
+        query = query | reduce(operator.or_, (Q(abstract__iregex = r'{0}{1}{0}'.format(wb, item)) for item in topic))
+        query = query | reduce(operator.or_, (Q(title__iregex = r'{0}{1}{0}'.format(wb, item)) for item in topic))
         query = query & Q(resource_type__in=resource_type)
     published_projects = (PublishedProject.objects
         .filter(query, is_latest_version=True)
@@ -69,9 +75,9 @@ def get_content(resource_type, orderby, direction, topic):
     for t in topic:
         published_projects = (published_projects
             .annotate(has_keys=Case(
-                When(topics__description__iregex = r'\b{0}\b'.format(t), then=Value(3)),
-                When(title__iregex = r'\b{0}\b'.format(t), then=Value(2)),
-                When(abstract__iregex = r'\b{0}\b'.format(t), then=Value(1)),
+                When(topics__description__iregex = r'{0}{1}{0}'.format(wb, t), then=Value(3)),
+                When(title__iregex = r'{0}{1}{0}'.format(wb, t), then=Value(2)),
+                When(abstract__iregex = r'{0}{1}{0}'.format(wb, t), then=Value(1)),
                 default=Value(0),
                 output_field=IntegerField()
             ))
@@ -82,7 +88,7 @@ def get_content(resource_type, orderby, direction, topic):
     direction = '-' if direction == 'desc' else ''
     order_string = '{}{}'.format(direction, orderby)
     if orderby == 'relevance':
-        published_projects = published_projects.order_by(direction+'has_keys',order_string)
+        published_projects = published_projects.order_by(direction+'has_keys',order_string, '-publish_datetime')
     else:
         published_projects = published_projects.order_by(order_string)
 
