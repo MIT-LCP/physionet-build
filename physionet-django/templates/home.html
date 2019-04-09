@@ -20,10 +20,19 @@ PhysioNet
       {# Left column #}
       <div class="main-side">
 
-        <div class="card">
+        <img src="{% static 'images/physionet-old-logo-large.png' %}" style="width: 100%;">
+
+        <div class="card my-4">
           <h2 class="card-header">Welcome</h2>
           <div class="card-body">
             <p class="card-text mt-1">PhysioNet offers free web access to large collections of recorded physiologic <a href="{% url 'database_index' %}">data</a> and related open-source <a href="{% url 'software_index' %}">software</a>. For more information, see our <a href="{% url 'about' %}">about page</a>.</p>
+          </div>
+        </div>
+
+        <div class="card my-4">
+          <h2 class="card-header">Funding</h2>
+          <div class="card-body">
+            <p class="card-text mt-1">PhysioNet is supported by the <a href="http://www.nigms.nih.gov/"  target="_blank">National Institute of General Medical Sciences (NIGMS)</a> and the <a href="https://www.nibib.nih.gov/" target="_blank">National Institute of Biomedical Imaging and Bioengineering (NIBIB)</a> under NIH grant number 2R01GM104987-09.</p>
           </div>
         </div>
 
