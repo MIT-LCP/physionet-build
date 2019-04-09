@@ -117,7 +117,7 @@ def content_index(request, resource_type=None):
         form_order = forms.ProjectOrderForm(request.GET)
         if form_order.is_valid():
             orderby, direction = [form_order.cleaned_data[item] for item in ['orderby', 'direction']]
-        
+
     # TOPIC SEARCH
     topic = ''
     if 'topic' in request.GET:
@@ -143,7 +143,7 @@ def content_index(request, resource_type=None):
     if querystring != '': querystring += '&'
 
     return render(request, 'search/content_index.html', {'form_order':form_order,
-        'projects':projects,'form_type':form_type, 
+        'projects':projects,'form_type':form_type,
         'form_topic':form_topic, 'querystring':querystring})
 
 
@@ -182,3 +182,15 @@ def charts(request):
     return render(request, 'search/charts.html', {
         'resource_type':resource_type,
         'main_label':main_label, 'plural_label':plural_label})
+
+
+# Redirect pages
+
+def physiobank(request):
+    return redirect('database_index')
+
+def physiotools(request):
+    return redirect('software_index')
+
+def redirect_project(request, project_slug):
+    return redirect('published_project_latest', project_slug=project_slug)
