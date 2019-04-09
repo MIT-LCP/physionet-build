@@ -68,20 +68,21 @@
       <button class="btn btn-primary btn-fixed" name="make_checksum_file" type="submit">Make Checksum File</button>
       <button class="btn btn-primary btn-fixed" name="make_zip" type="submit">Make Zip</button>
     </form>
-    {% if project.access_policy > 0 and not project.gcp.gcp_group or not project.gcp.gcp_bucket or not project.gcp.sent_files %}
     <br>
     <h3>Google Cloud</h3>
     <hr>
-      {% if not project.gcp.gcp_bucket %}
+      {% if not project.gcp.bucket_name %}
         <p>Create the GCP bucket to store all of the information of this project.</p>
         <form action="" method="post">
           {% csrf_token %}
           <button class="btn btn-primary" name="bucket" value='{{project.slug}}' type="submit">Create GCP bucket and send files </button><br><br>
         </form>
-      {% elif project.gcp.sent_files and project.gcp.gcp_bucket %}
-        <p>The files have been sent to GCP. The bucket name is: {{b.gcp.gcp_bucket}}</p>
+      {% elif project.gcp.sent_files and project.gcp.bucket_name %}
+        <p>The files have been sent to GCP. The bucket name is: {{project.gcp.bucket_name}}.</p>
+      {% else %}
+        <p>The files are being sent to GCP. The bucket name is: {{project.gcp.bucket_name}}.</p>
+        <p>If this message is here for a long time check the Django "process_tasks"</p>
       {% endif %}
-    {% endif %}
   </div>
 </div>
 {% endblock %}

@@ -221,18 +221,18 @@
     <!-- /.sidebar -->
   </div>
 
+  {% if project.gcp.sent_files %}
+    <h2 id="files">Files on Google Cloud</h2>
     {% if project.access_policy %}
-      {% if has_access and project.gcp.sent_files %}
-        <h2 id="files">Files on Google Cloud</h2>
-        <p><a href="https://storage.googleapis.com/{{project.gcp.gcp_bucket}}/" class="btn btn-primary btn-sm" >Go to the GCP file directory</a></p>
-        <p><a href="https://storage.googleapis.com/{{ project.gcp.gcp_bucket }}/{{ project.zip_name }}" class="btn btn-primary btn-sm">Download Zip from google</a> </p>
+      {% if has_access %}
+        <p>You can find the files uploaded at Google Cloud <a href="https://console.cloud.google.com/storage/browser/{{ project.gcp.bucket_name }}/">here</a>. Login with a google account is required.</p>
+        <p><a href="https://storage.googleapis.com/{{ project.gcp.bucket_name }}/{{ project.zip_name }}" class="btn btn-primary btn-sm">Download Zip from google</a> </p>
       {% endif %}
     {% else %}
-       <h2 id="files">Files on Google Cloud</h2>
-        <p><a href="https://storage.googleapis.com/{{project.gcp.gcp_bucket}}/" class="btn btn-primary btn-sm" >Go to the GCP file directory</a></p>
-        <p><a href="https://storage.googleapis.com/{{ project.gcp.gcp_bucket }}/{{ project.zip_name }}" class="btn btn-primary btn-sm">Download Zip from google</a> </p>
+        <p>You can find the files uploaded at Google Cloud <a href="https://console.cloud.google.com/storage/browser/{{ project.gcp.bucket_name }}/">here</a>. Login with a google account is required.</p>
+        <p><a href="https://storage.googleapis.com/{{ project.gcp.bucket_name }}/{{ project.zip_name }}" class="btn btn-primary btn-sm">Download Zip from google</a> </p>
     {% endif %}
-
+  {% endif %}
 
   <h2 id="files">Files</h2>
   {% if project.access_policy %}

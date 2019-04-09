@@ -980,6 +980,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                     published_project.is_latest_version = False
                     project.save()
             previous_published_projects.update(has_other_versions=True)
+            print("previous_published_projects")
 
         published_project.save()
 
@@ -1615,8 +1616,9 @@ class GCP(models.Model):
     project = models.OneToOneField('project.PublishedProject', related_name='gcp',
         on_delete=models.CASCADE)
     bucket_name = models.CharField(max_length=100, null=True)
+    is_private = models.BooleanField(default=False)
     sent_files = models.BooleanField(default=False)
-    managed_by = models.OneToOneField('user.User', related_name='gcp_manager',
+    managed_by = models.ForeignKey('user.User', related_name='gcp_manager',
         on_delete=models.CASCADE)
     creation_datetime = models.DateTimeField(auto_now_add=True)
     finished_datetime = models.DateTimeField(null=True)
