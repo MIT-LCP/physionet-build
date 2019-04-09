@@ -71,7 +71,7 @@ def invitation_notify(request, invite_author_form, target_email):
                      'domain':get_current_site(request),
                      'signature':email_signature(),
                      'project_info':email_project_info(project),
-                     'footer':email_footer(), 
+                     'footer':email_footer(),
                      'target_email':target_email}
 
     body = loader.render_to_string('notification/email/invite_author.html',
@@ -175,7 +175,7 @@ def editor_notify_new_project(project, assignee):
     body = loader.render_to_string(
         'notification/email/editor_notify_new_project.html',
         {'project':project, 'editor':project.editor,
-         'signature':email_signature(), 
+         'signature':email_signature(),
          'user':assignee.get_full_name(),
          'project_info':email_project_info(project),
          'footer':email_footer()})
@@ -216,7 +216,7 @@ def copyedit_complete_notify(request, project, copyedit_log):
     """
     Notify authors when the editor has finished copyediting
     """
-    subject = 'Copyedit complete for project: {0}'.format(project.title)
+    subject = 'Your approval needed to publish: {0}'.format(project.title)
 
     for email, name in project.author_contact_info():
         body = loader.render_to_string(
@@ -368,8 +368,8 @@ def mailto_supervisor(request, application):
          'domain':get_current_site(request),
          'signature':email_signature(),
          'footer':email_footer()})
-    
-    
+
+
     mailto = "mailto:{0}?subject={1}&bcc=noreply@alpha.physionet.org&body={2}".format(application.reference_email,
       parse.quote(subject), parse.quote(body))
     return mailto
