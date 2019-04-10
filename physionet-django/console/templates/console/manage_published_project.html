@@ -77,6 +77,7 @@
           {% csrf_token %}
           <button class="btn btn-primary" name="bucket" value='{{project.slug}}' type="submit">Create GCP bucket and send files </button><br><br>
         </form>
+        <p>Please make the special files before sending the files to GCP</p>
       {% elif project.gcp.sent_files and project.gcp.bucket_name %}
         <p>The files have been sent to GCP. The bucket name is: {{project.gcp.bucket_name}}.</p>
       {% else %}

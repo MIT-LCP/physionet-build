@@ -486,6 +486,11 @@ def published_projects(request):
 
 @background()
 def send_files_to_gcp(pid):
+    """
+    Schedule a background task to send the files to GCP.
+    This function can be runned manually to force a re-send of all the files
+    to GCP. It only requires the Project ID.
+    """
     project = PublishedProject.objects.get(id=pid)
     exists = check_bucket(project.slug, project.version)
     if exists:
@@ -499,9 +504,9 @@ def send_files_to_gcp(pid):
 def manage_published_project(request, project_slug, version):
     """
     Manage a published project
-
     - Set the DOI field (after doing it in datacite)
     - Create zip of files
+    - Create GCP bucket and send files
     """
     user = request.user
     project = PublishedProject.objects.get(slug=project_slug, version=version)
@@ -525,15 +530,15 @@ def manage_published_project(request, project_slug, version):
 
         elif 'bucket' in request.POST:
             slug = request.POST['bucket'].lower()
-            if not check_bucket(slug, project.version):
+            if not check_bucket(slug, project.version): # Check if the bucket exists
                 bucket_name = is_private = False
                 if project.access_policy > 0:
-                    is_private = True
+                    is_private = True # Create the bucket with the pertinent permissions
                 bucket_name = create_bucket(project=slug, protected=is_private, 
-                    version=project.version)
+                    version=project.version) # Create the GCP object for the project
                 GCP.objects.create(project=project, bucket_name=bucket_name, 
                     managed_by=user, is_private=is_private)
-                send_files_to_gcp(project.id)
+                send_files_to_gcp(project.id) # Do the background task to send the files
                 logger.info("Created GCP bucket for project {0}".format(
                     project_slug))
                 messages.success(request, "The GCP bucket for project {0} was \
@@ -541,13 +546,6 @@ def manage_published_project(request, project_slug, version):
             else:
                 messages.success(request, "The GCP bucket for project {0} \
                     already exists.".format(project_slug))
-        elif 'send_files' in request.POST:
-            slug = request.POST['send_files']
-            project = PublishedProject.objects.get(slug=slug)
-            project.gcp.sent_files = True
-            project.gcp.save()
-            logger.info("Sent all the files to the bucket {0}".format(
-                project.gcp.gcp_bucket))
 
     return render(request, 'console/manage_published_project.html',
         {'project':project, 'authors':authors, 'author_emails':author_emails,
