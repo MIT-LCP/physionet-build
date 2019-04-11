@@ -71,7 +71,9 @@
     <br>
     <h3>Google Cloud</h3>
     <hr>
-      {% if not project.gcp.bucket_name %}
+      {% if not has_credentials %}
+        <p>You are missing the Google Cloud credentials.</p>
+      {% elif not project.gcp.bucket_name %}
         <p>Create the GCP bucket to store all of the information of this project.</p>
         <form action="" method="post">
           {% csrf_token %}

@@ -2,6 +2,7 @@ from os import walk, chdir, listdir, path
 
 from google.api_core.exceptions import BadRequest
 from google.cloud import storage
+from django.conf import settings
 
 import logging
 
@@ -14,7 +15,10 @@ def check_bucket(project, version):
     Function to check if a bucket already exists 
     """
     storage_client = storage.Client()
-    bucket_name = '{0}-{1}.physionet.org'.format(project.lower(), version)
+    domain = 'physionet.org'
+    if 'production' not in settings.SETTINGS_MODULE:
+        domain = 'testing-delete.' + domain
+    bucket_name = '{0}-{1}.{2}'.format(project, version, domain)
     exists = storage_client.lookup_bucket(bucket_name)
     if exists:
         return True
@@ -25,7 +29,10 @@ def create_bucket(project, version, protected=False):
     Function to create a bucket and set its permissions
     """
     storage_client = storage.Client()
-    bucket_name = '{0}-{1}.physionet.org'.format(project, version)
+    domain = 'physionet.org'
+    if 'production' not in settings.SETTINGS_MODULE:
+        domain = 'testing-delete.' + domain
+    bucket_name = '{0}-{1}.{2}'.format(project, version, domain)
     bucket = storage_client.create_bucket(bucket_name)
     logger.info("Created bucket {0} for project {1}".format(bucket_name.lower(), project))
     if not protected:
@@ -51,14 +58,14 @@ def remove_bucket_permissions(bucket):
     Function to remove all permissions from bucket but owner 
     """
     policy = bucket.get_iam_policy()
-    To_remove = []
+    to_remove = []
     for role in policy:
         if role != 'roles/storage.legacyBucketOwner':
             for member in policy[role]:
-                To_remove.append([role, member])
-    for item in To_remove:
+                to_remove.append([role, member])
+    for item in to_remove:
         policy[item[0]].discard(item[1])
-    if To_remove:
+    if to_remove:
         bucket.set_iam_policy(policy)
         logger.info("Removed all read permissions from bucket {}".format(bucket.name))
 
@@ -109,7 +116,8 @@ def upload_files(project):
         blob = bucket.blob(zip_name)
         blob.upload_from_filename(zip_name)
 
-## Unused functions but usefull information.
+############################################################
+## Unused functions below this line, but usefull to have.
 def set_bucket_permissions(bucket_name, email):
     """
     Function to set the permissions of a bucket to a specific group

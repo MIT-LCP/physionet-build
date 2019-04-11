@@ -2,6 +2,7 @@ import re
 import pdb
 import logging
 import subprocess
+import os
 
 from django.core.validators  import validate_email
 from django.contrib import messages
@@ -16,8 +17,7 @@ from django.urls import reverse
 from django.utils import timezone
 from background_task import background
 
-from . import forms
-from .utility import create_bucket, check_bucket, upload_files
+from . import forms, utility
 from notification.models import News
 import notification.utility as notification
 import project.forms as project_forms
@@ -492,9 +492,9 @@ def send_files_to_gcp(pid):
     to GCP. It only requires the Project ID.
     """
     project = PublishedProject.objects.get(id=pid)
-    exists = check_bucket(project.slug, project.version)
+    exists = utility.check_bucket(project.slug, project.version)
     if exists:
-        upload_files(project)
+        utility.upload_files(project)
         project.gcp.sent_files = True
         project.gcp.finished_datetime = timezone.now()
         project.gcp.save()
@@ -512,7 +512,7 @@ def manage_published_project(request, project_slug, version):
     project = PublishedProject.objects.get(slug=project_slug, version=version)
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
     doi_form = forms.DOIForm(instance=project)
-
+    has_credentials = os.path.exists(os.environ["GOOGLE_APPLICATION_CREDENTIALS"])
     if request.method == 'POST':
         if 'set_doi' in request.POST:
             doi_form = forms.DOIForm(data=request.POST, instance=project)
@@ -527,18 +527,17 @@ def manage_published_project(request, project_slug, version):
         elif 'make_zip' in request.POST:
             project.make_zip()
             messages.success(request, 'The zip of the main files has been generated.')
-
-        elif 'bucket' in request.POST:
+        elif 'bucket' in request.POST and has_credentials:
             slug = request.POST['bucket'].lower()
-            if not check_bucket(slug, project.version): # Check if the bucket exists
+            if not utility.check_bucket(slug, project.version):
                 bucket_name = is_private = False
                 if project.access_policy > 0:
-                    is_private = True # Create the bucket with the pertinent permissions
-                bucket_name = create_bucket(project=slug, protected=is_private, 
-                    version=project.version) # Create the GCP object for the project
+                    is_private = True
+                bucket_name = utility.create_bucket(project=slug, protected=is_private, 
+                    version=project.version)
                 GCP.objects.create(project=project, bucket_name=bucket_name, 
                     managed_by=user, is_private=is_private)
-                send_files_to_gcp(project.id) # Do the background task to send the files
+                send_files_to_gcp(project.id)
                 logger.info("Created GCP bucket for project {0}".format(
                     project_slug))
                 messages.success(request, "The GCP bucket for project {0} was \
@@ -551,7 +550,7 @@ def manage_published_project(request, project_slug, version):
         {'project':project, 'authors':authors, 'author_emails':author_emails,
          'storage_info':storage_info, 'edit_logs':edit_logs,
          'copyedit_logs':copyedit_logs, 'latest_version':latest_version,
-         'published':True, 'doi_form':doi_form,})
+         'published':True, 'doi_form':doi_form, 'has_credentials':has_credentials})
 
 
 @login_required

@@ -980,7 +980,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                     published_project.is_latest_version = False
                     project.save()
             previous_published_projects.update(has_other_versions=True)
-            print("previous_published_projects")
 
         published_project.save()
 
