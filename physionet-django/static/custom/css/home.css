@@ -1,5 +1,9 @@
 /* Adapted from startbootstrap-agency */
 
+html{
+	scroll-behavior: smooth;
+}
+
 .main-content, .main-news{
   box-sizing: border-box;
 }
@@ -13,4 +17,76 @@
 
 .intro-badge {
   font-weight: 700;
+}
+
+.main-header{
+	display: flex;
+	background: rgb(21,21,21) no-repeat center -200px fixed;
+	height: calc(100% - 65px);
+}
+
+.main-header .center{
+	color: white;
+	margin: auto;
+	text-align: center;
+}
+
+.main-header .center h1{
+	font-size: 8em;
+}
+
+.main-header .center a{
+	text-align: center;
+	padding: 10px 25px;
+	border-radius: 10px;
+	background-color: white;
+	margin: 10px;
+	font-size: 1.5em;
+	color: white;
+	background-color: #343a40;
+	border: 1px white solid;
+	transition: all 0.5s;
+}
+
+.main-header .center a:hover{
+	text-decoration: none;
+	background-color: white;
+	color: black;
+}
+
+.main-header .center p{
+	font-size: 1.25em;
+}
+
+.main-header .citation{
+	display: inline-block;
+	width: 50%;
+	padding: 20px;
+	border-radius: 10px;
+	border: 1px white solid;
+}
+
+.main-header .down{
+	position: absolute;
+	bottom: 50px;
+	left: calc(50% - 0.5em);
+	width: 1em;
+	height: 1em;
+	border: solid white;
+	border-width: 0 1px 1px 0;
+	padding: 3px;
+	transform: rotate(45deg) translateY(1px);
+	animation: move 2s infinite;
+}
+
+@keyframes move{
+	0% {bottom: 100px;}
+	50% {bottom: 50px;}
+	1000% {bottom: 50px;}
+}
+
+.main-side{
+	margin: 50px;
+	border-radius: 10px;
+	border: 1px silver solid;
 }
