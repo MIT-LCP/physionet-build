@@ -21,7 +21,11 @@ html{
 
 .main-header{
 	display: flex;
-	background: rgb(21,21,21) no-repeat center -200px fixed;
+	background-color: rgb(21,21,21);
+	background-image: url('../../images/ecg.svg');
+	background-repeat: no-repeat;
+	background-position: right -220px top 10vh;
+	background-size: 1500px;
 	height: calc(100% - 65px);
 }
 
