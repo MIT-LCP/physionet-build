@@ -253,7 +253,7 @@ a{
 }
 
 .main{
-  min-height: calc(100% - 56px - 10.5rem);
+  min-height: calc(80% - 64px);
   display: flex;
 }
 
@@ -299,7 +299,7 @@ a{
 }
 
 body > .container{
-  min-height: calc(100% - 56px - 10.5rem);
+  min-height: calc(80% - 64px);
 }
 
 .row{
