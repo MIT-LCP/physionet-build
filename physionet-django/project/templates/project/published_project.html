@@ -99,23 +99,20 @@
   <div class="row">
     <!-- Main column -->
     <div class="col-md-8" style="padding-left: 0;">
-      {# 0: Database #} 
-      {% if project.resource_type == 0 %}
-        {% if project.is_legacy %}
-          {{ project.full_description|safe }}
-          <hr>
-        {% else %}
-          {% include "project/database_metadata.html" %}
-        {% endif %}
-      {# 1: Software #}
-      {% elif project.resource_type == 1 %}
-        {% include "project/software_metadata.html" %}
-      {# 2: Challenge #}
-      {% elif project.resource_type == 2 %}
-        {% include "project/challenge_metadata.html" %}
-      {# Other #}
+      {% if project.is_legacy %}
+        {{ project.full_description|safe }}
+        <hr>
       {% else %}
-        {% include "project/software_metadata.html" %}
+        {# 0: Database #}
+        {% if project.resource_type == 0 %}
+          {% include "project/database_metadata.html" %}
+        {# 1: Software #}
+        {% elif project.resource_type == 1 %}
+          {% include "project/software_metadata.html" %}
+        {# 2: Challenge #}
+        {% elif project.resource_type == 2 %}
+          {% include "project/challenge_metadata.html" %}
+        {% endif %}
       {% endif %}
     </div>
     <!-- /.main column -->
@@ -198,8 +195,8 @@
         <div class="card-body">
           {% if user.is_authenticated %}
             <p>
-              {{ contact.name }}, 
-              {{ contact.affiliations }}, 
+              {{ contact.name }},
+              {{ contact.affiliations }},
               {{ contact.email }}
             </p>
           {% else %}
