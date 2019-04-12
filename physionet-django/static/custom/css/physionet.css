@@ -74,6 +74,9 @@ th, td {
 
 /* Pushing items away from top-left brand */
 .navbar-brand {
+  position: relative;
+  top: 1px;
+  padding-left: 15px;
   width: 150px;
 }
 
