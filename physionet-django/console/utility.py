@@ -34,6 +34,8 @@ def create_bucket(project, version, protected=False):
         domain = 'testing-delete.' + domain
     bucket_name = '{0}-{1}.{2}'.format(project, version, domain)
     bucket = storage_client.create_bucket(bucket_name)
+    bucket.iam_configuration.bucket_policy_only_enabled = True
+    bucket.patch()
     logger.info("Created bucket {0} for project {1}".format(bucket_name.lower(), project))
     if not protected:
         make_bucket_public(bucket)
@@ -45,8 +47,6 @@ def make_bucket_public(bucket):
     """
     Function to make a bucket public to all users 
     """
-    bucket.iam_configuration.bucket_policy_only_enabled = True
-    bucket.patch()
     policy = bucket.get_iam_policy()
     for role in Public_Roles:
         policy[role].add('allUsers')

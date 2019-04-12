@@ -541,10 +541,13 @@ def manage_published_project(request, project_slug, version):
                 logger.info("Created GCP bucket for project {0}".format(
                     project_slug))
                 messages.success(request, "The GCP bucket for project {0} was \
-                    successfuly created.".format(project_slug))
+                    successfully created.".format(project_slug))                
             else:
-                messages.success(request, "The GCP bucket for project {0} \
-                    already exists.".format(project_slug))
+                send_files_to_gcp(project.id)
+                logger.info("Created GCP bucket for project {0}".format(
+                    project_slug))
+                messages.success(request, "The bucket already exists. Resending the files \
+                    for the project {0}.".format(project_slug))
 
     return render(request, 'console/manage_published_project.html',
         {'project':project, 'authors':authors, 'author_emails':author_emails,

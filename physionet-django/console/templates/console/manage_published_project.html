@@ -82,6 +82,11 @@
         <p>Please make the special files before sending the files to GCP</p>
       {% elif project.gcp.sent_files and project.gcp.bucket_name %}
         <p>The files have been sent to GCP. The bucket name is: {{project.gcp.bucket_name}}.</p>
+        <form action="" method="post">
+          {% csrf_token %}
+          <button class="btn btn-primary" name="bucket" value='{{project.slug}}' type="submit">Resend files </button><br><br>
+        </form>
+
       {% else %}
         <p>The files are being sent to GCP. The bucket name is: {{project.gcp.bucket_name}}.</p>
         <p>If this message is here for a long time check the Django "process_tasks"</p>
