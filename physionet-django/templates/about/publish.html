@@ -64,11 +64,7 @@ Publish
       <h1>Submit</h1>
       <br>
       <div id="create">
-        {% if user.is_authenticated %}
-          {% include "project/create_project.html" %}
-        {% else %}
-          <p><a href="{% url 'login' %}?next=/about/publish/">Login</a> to create your project.</p>
-        {% endif %}
+          <p><a href="{% url 'create_project' %}">Click here</a> to create your project.</p>
       </div>
     </div>
   </div>
