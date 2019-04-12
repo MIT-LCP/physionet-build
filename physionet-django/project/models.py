@@ -20,7 +20,8 @@ from django.utils.text import slugify
 
 from .utility import (get_tree_size, get_file_info, get_directory_info,
     list_items, StorageInfo, get_tree_files, list_files)
-from .validators import validate_doi, validate_subdir, validate_version
+from .validators import (validate_doi, validate_subdir, validate_version,
+    validate_slug)
 from user.validators import validate_alphaplus, validate_alphaplusplus
 from physionet.utility import zip_dir
 
@@ -394,8 +395,6 @@ class Metadata(models.Model):
     programming_languages = models.ManyToManyField(
         'project.ProgrammingLanguage', related_name='%(class)ss')
 
-    # Public url slug, also used as a submitting project id.
-    slug = models.SlugField(max_length=20, db_index=True)
     core_project = models.ForeignKey('project.CoreProject',
                                      related_name='%(class)ss',
                                      on_delete=models.CASCADE)
@@ -545,6 +544,8 @@ class UnpublishedProject(models.Model):
     modified_datetime = models.DateTimeField(auto_now=True)
     # Whether this project is being worked on as a new version
     is_new_version = models.BooleanField(default=False)
+    # Access url slug, also used as a submitting project id.
+    slug = models.SlugField(max_length=20, db_index=True)
 
     authors = GenericRelation('project.Author')
     references = GenericRelation('project.Reference')
@@ -1073,6 +1074,8 @@ class PublishedProject(Metadata, SubmissionInfo):
     # doi = models.CharField(max_length=50, unique=True, validators=[validate_doi])
     # Temporary workaround
     doi = models.CharField(max_length=50, default='')
+    slug = models.SlugField(max_length=20, db_index=True,
+        validators=[validate_slug])
     approved_users = models.ManyToManyField('user.User', db_index=True)
     # Fields for legacy pb databases
     is_legacy = models.BooleanField(default=False)

@@ -365,7 +365,10 @@ def publish_slug_available(request, project_slug, *args, **kwargs):
         result = not exists_project_slug(desired_slug)
 
     # check pattern validity
-    result = result and bool(re.fullmatch(r'[a-zA-Z\d]{1,20}', desired_slug))
+    result = (result
+        and bool(re.fullmatch(r'[a-z0-9](?:[a-z0-9\-]{0,18}[a-z0-9])?', desired_slug))
+        and '--' not in desired_slug
+        and not re.fullmatch(r'.+\-[0-9]+', desired_slug))
 
     return JsonResponse({'available':result})
 

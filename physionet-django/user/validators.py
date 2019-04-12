@@ -68,6 +68,3 @@ def validate_alphaplus(value):
 def validate_alphaplusplus(value):
     if not re.fullmatch(r'[\w][\'\,\.\w\ -]*', value):
         raise ValidationError('Letters, numbers, spaces, underscores, hyphens, apostrophes, periods, and commas only. Must begin with a letter or number.')
-
-
-

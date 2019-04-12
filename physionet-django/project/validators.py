@@ -45,3 +45,16 @@ def validate_version(value):
     if value:
         if not re.fullmatch(r'[0-9]+(\.[0-9]+)*', value) or '..' in value:
             raise ValidationError('Version may only contain numbers and dots, and must begin and end with a number.')
+
+
+def validate_slug(value):
+    """
+    Validate a published slug. Not ending with dash number for google
+    cloud.
+    """
+    if (not re.fullmatch(r'[a-z0-9](?:[a-z0-9\-]{0,18}[a-z0-9])?', value)
+            or '--' in value or re.fullmatch(r'.+\-[0-9]+', value)):
+        raise ValidationError((
+            'Slug must only contain lowercase alphanumerics and hyphens, of '
+            'length 1-20. Must begin and end with an alphanumeric. Must not '
+            'contain consecutive hyphens or end with hypen number.'))
