@@ -1605,5 +1605,5 @@ class LegacyProject(models.Model):
             project=p)
 
         if make_file_roots:
-            os.mkdir(p.file_root())
+            os.mkdir(p.project_file_root())
             os.mkdir(p.file_root())
