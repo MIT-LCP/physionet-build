@@ -889,7 +889,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
         'invitations':invitations, 'references':references,
         'publications':publications, 'topics':topics, 'languages':languages,
         'passes_checks':passes_checks, 'dir_breadcrumbs':dir_breadcrumbs,
-        'files_panel_url':files_panel_url})
+        'files_panel_url':files_panel_url, 'subdir':subdir})
 
 
 @project_auth(auth_mode=2)
@@ -1168,7 +1168,7 @@ def published_project(request, project_slug, version, subdir=''):
         context = {**context, **{'dir_breadcrumbs':dir_breadcrumbs,
             'main_size':main_size, 'compressed_size':compressed_size,
             'display_files':display_files, 'display_dirs':display_dirs,
-            'files_panel_url':files_panel_url}}
+            'files_panel_url':files_panel_url, 'subdir':subdir}}
 
     return render(request, 'project/published_project.html', context)
 
