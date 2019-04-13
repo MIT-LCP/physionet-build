@@ -765,7 +765,7 @@ def process_files_post(request, project):
 
 
 @project_auth(auth_mode=0, post_auth_mode=2)
-def project_files(request, project_slug, **kwargs):
+def project_files(request, project_slug, subdir='', **kwargs):
     "View and manipulate files in a project"
     project, is_submitting = (kwargs[k] for k in
         ('project', 'is_submitting'))
@@ -793,7 +793,6 @@ def project_files(request, project_slug, **kwargs):
             # process the file manipulation post
             subdir = process_files_post(request, project)
             project.modified_datetime = timezone.now()
-    subdir = request.GET.get('subdir', '')
 
     storage_info = project.get_storage_info()
     storage_request = StorageRequest.objects.filter(project=project,
@@ -855,7 +854,7 @@ def preview_files_panel(request, project_slug, **kwargs):
 
 
 @project_auth(auth_mode=2)
-def project_preview(request, project_slug, **kwargs):
+def project_preview(request, project_slug, subdir='', **kwargs):
     """
     Preview what the published project would look like. Includes
     serving files.
@@ -880,7 +879,6 @@ def project_preview(request, project_slug, **kwargs):
         for e in project.integrity_errors:
             messages.error(request, e)
 
-    subdir = request.GET.get('subdir', '')
     display_files, display_dirs = project.get_directory_content(subdir=subdir)
     dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
     files_panel_url = reverse('preview_files_panel', args=(project.slug,))
@@ -1133,7 +1131,7 @@ def published_project_latest(request, project_slug):
         version=version)
 
 
-def published_project(request, project_slug, version):
+def published_project(request, project_slug, version, subdir=''):
     """
     Displays a published project
     """
@@ -1159,8 +1157,9 @@ def published_project(request, project_slug, version):
 
     # The file and directory contents
     if has_access:
-        display_files, display_dirs = project.get_directory_content()
-        dir_breadcrumbs = utility.get_dir_breadcrumbs('')
+        display_files, display_dirs = project.get_directory_content(
+            subdir=subdir)
+        dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
         main_size, compressed_size = [utility.readable_size(s) for s in
             (project.main_storage_size, project.compressed_storage_size)]
         files_panel_url = reverse('published_files_panel',
