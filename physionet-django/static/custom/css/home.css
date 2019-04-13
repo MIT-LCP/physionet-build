@@ -32,7 +32,7 @@ html{
 .main-header .float{
 	display: inline-block;
 	position: absolute;
-	right: 0px;
+	right: -15px;
 	bottom: 1em;
 	height: calc(100px + 20vh);
 }
