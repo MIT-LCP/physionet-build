@@ -827,7 +827,10 @@ def serve_active_project_file(request, project_slug, file_name, **kwargs):
     to the project's file root.
     """
     file_path = os.path.join(kwargs['project'].file_root(), file_name)
-    return physionet.serve_file(file_path)
+    try:
+        return physionet.serve_file(file_path)
+    except IsADirectoryError:
+        return redirect(request.path + '/')
 
 
 @project_auth(auth_mode=2)
@@ -1090,7 +1093,10 @@ def serve_published_project_file(request, project_slug, version,
         version=version)
     if project.has_access(request.user):
         file_path = os.path.join(project.file_root(), full_file_name)
-        return physionet.serve_file(file_path)
+        try:
+            return physionet.serve_file(file_path)
+        except IsADirectoryError:
+            return redirect(request.path + '/')
     raise Http404()
 
 
