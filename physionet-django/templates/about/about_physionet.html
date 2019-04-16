@@ -1,20 +1,77 @@
 <section id="physionet">
-  <h1>What is PhysioNet</h1>
+  <h1>PhysioNet</h1>
   <br>
-  <p>PhysioNet is a unique resource for research and education, offering free access to large collections of physiological data and related open-source software. In cooperation with the annual <a href="http://www.cinc.org/" target="_blank">Computing in Cardiology</a> conference, PhysioNet also hosts an annual series of challenges, focusing research on unsolved problems in clinical and basic science. PhysioNet is managed by members of the <a href="https://lcp.mit.edu/">MIT Laboratory for Computational Physiology</a>. For a brief history, see our <a href="{% url 'timeline' %}">timeline</a>. </p>
+  <p>PhysioNet is a unique resource for research and education, offering free access to large collections of physiological data and related open-source software. In cooperation with the annual <a href="http://www.cinc.org/" target="_blank">Computing in Cardiology</a> conference, PhysioNet also hosts an annual series of challenges, focusing research on unsolved problems in clinical and basic science. PhysioNet is managed by members of the <a href="https://lcp.mit.edu/">MIT Laboratory for Computational Physiology</a>. For an overview of PhysioNet resources, see our <a href="{% url 'timeline' %}">content overview</a> or search our content.</p>
 </section>
 
-<!-- <section id="software">
-  <div class="container">
-        <h2>Content</h2>
-        <p>Some brief highlights of software includes:</p>
-        <h5>XXX</h5>
-        <ul>
-          <li><a href="#"></li>
-          <li><a href="#"></li>
-        </ul>
-  </div>
-</section> -->
+<br>
+<hr>
+<br>
+
+<section id="history">
+  <h1>Brief History</h1>
+  <br>
+<p>
+Beginning in the mid-1970s, members of the PhysioNet team who were then
+working on some of the first microcomputer-based instruments for cardiac
+arrhythmia monitoring foresaw the usefulness of establishing shared
+databases of well-characterized ECG recordings, as a basis for evaluation,
+iterative improvement, and objective comparison of algorithms for automated
+arrhythmia analysis.  A five-year effort culminated in the publication of
+the MIT-BIH Arrhythmia Database in 1980, which soon became the standard
+reference collection of its type, used by over 500 academic, hospital, and
+industry researchers and developers worldwide during the 1980s and 1990s.
+Other databases of ECGs and eventually other physiologic signals followed.
+By 1999, the MIT group distributed CD-ROMs containing 11 such collections,
+and had participated in the development of several others.</p>
+
+<p>
+PhysioNet was established in 1999 as the outreach component of
+the <em>Research Resource for Complex Physiologic Signals</em>, a
+cooperative project initiated by a diverse group of computer
+scientists, physicists, mathematicians, biomedical researchers,
+clinicians, and educators at
+Boston's <a href="http://reylab.bidmc.harvard.edu/"
+target="_blank">Beth Israel Deaconess Medical
+Center</a>/<a href="http://www.med.harvard.edu" target="_blank">Harvard
+Medical School</a>, <a href="http://polymer.bu.edu/"
+target="_blank">Boston
+University</a>, and <a href="http://www.medicine.mcgill.ca/physio/glasslab/"
+target="_blank" title="Prof. Leon Glass, of the Center for Nonlinear Dynamics at McGill University">McGill University</a>, all working together with the
+<a href="http://lcp.mit.edu/" target="_blank">MIT</a> group. Many of us
+have worked together for 20 years or even longer on problems relating
+to characterizing and understanding the dynamics of human physiology,
+the implications of dynamical change in diagnosis and treatment of
+pathophysiology, novel and robust techniques for physiologic
+monitoring in ambulatory subjects and critical care patients, and
+applications of model-based reasoning to medical decision support in
+intensive care.  The MIT group contributed its 11 databases, and the
+software it had developed for exploring and analyzing them, to
+establish PhysioBank and PhysioToolkit.  Free availability of these
+resources via the Internet catalyzed an even greater explosion of
+interest in them, as researchers and students worldwide who had no
+previous access to such data or software began new programs of
+research, and specialists began comparing their methods. These initial
+contributions were quickly supplemented by additional collections of
+data and software from their collaborators, and soon after, from many
+researchers worldwide.  PhysioBank and PhysioToolkit have grown to
+many times their original sizes, and most of the growth has been
+thanks to the hard work and generosity of an international community of researchers.</p>
+
+<p>
+At the time PhysioNet was established, members of the PhysioNet team
+at MIT were preparing to host Computers in Cardiology 2000.  We hoped
+to introduce PhysioNet to our international colleagues who would be
+attending CinC, by encouraging participation in an activity that made
+effective use of the facilities provided by PhysioNet to stimulate
+rapid progress on an unsolved problem of practical clinical
+significance.  A timely contribution of data made it possible to
+create the first <a href="/challenge/">PhysioNet/CinC Challenge</a>,
+which attracted the attention of more than a dozen teams to the
+subject of detecting sleep apnea from the ECG.  Their efforts were
+broadly successful, they discussed their findings at CinC 2000, and an
+annual tradition was born. For a summary, see our <a href="{% url 'timeline' %}">timeline</a>. </p>
+</section>
 
 <br>
 <hr>
@@ -23,8 +80,49 @@
 <section id="funding">
   <h1>Funding</h1>
   <br>
-  <p>PhysioNet was originally established under the auspices of the NIH's National Center for Research Resources in 1999. We gratefully acknowledge support from the following organizations:</p>
+  <p>PhysioNet was originally established under the auspices of the NIH's National Center for Research Resources in 1999 (which was <a href="http://grants.nih.gov/grants/guide/notice-files/NOT-OD-12-026.html">abolished in 2011</a>). We gratefully acknowledge support from the following organizations:</p>
   <ul>
     <li>NIH National Institute of Biomedical Imaging and Bioengineering and the National Institute of General Medical Sciences, under grant <em>2R01GM104987-09</em>.</li>
   </ul>
+</section>
+
+<br>
+<hr>
+<br>
+
+<section id="research">
+  <h1>Current Research within this Resource</h1>
+  <br>
+<p>
+Methods for assessment of signal quality and detection of events
+in weakly correlated multiparameter data; false alarm reduction in the ICU;
+methods for multivariate trend analysis and forecasting, with
+applications in intensive care; cardiovascular system modeling (including
+adaptation to microgravity and orthostatic intolerance);
+novel signal processing techniques for automated or semi-automated patient
+diagnosis; web-enabled signal processing, with applications in research and
+telemedicine; data mining algorithms for efficient searching in very long time
+series; networked instrumentation for acquisition and remote viewing of
+real-time physiologic data 
+(<a href="http://lcp.mit.edu/people.shtml#roger_mark"
+target="_blank">Roger Mark</a>,
+<a href="http://ecg.mit.edu/george/"
+target="_blank">George Moody</a>,
+<a href = "http://web.mit.edu/lilehman/www/">Li-wei Lehman</a>,
+Benjamin Moody, Chen Xie, Felipe Torres Fabregas, Tom Pollard).</p>
+
+<p>
+Algorithms that quantify the transient and local properties
+of nonstationary physiologic signals and the cross-interactions among
+multiparameter signals; application of these techniques to detect changes that
+may precede the onset of catastrophic physiologic events, including epileptic
+seizures and sudden cardiac death;
+techniques for quantifying the dynamics of physiologic control;
+mathematical/physiological modeling of these control mechanisms; identification
+of new measures related to nonlinear dynamics and fractal scaling that have
+diagnostic/prognostic use in life-threatening cardiopulmonary pathologies
+(<a href="http://reylab.bidmc.harvard.edu/people/madalena/index.html"
+target="_blank">Madalena Costa</a>,
+<a href="http://reylab.bidmc.harvard.edu/people/Ary.shtml"
+target="_blank">Ary Goldberger</a>).
 </section>
