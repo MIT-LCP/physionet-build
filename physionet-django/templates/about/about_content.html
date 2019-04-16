@@ -4,7 +4,8 @@
   <p>If you use resources from PhysioNet in a publication, please credit
   the author(s) using the citation displayed at the top of the published content. Please also include the standard citation for PhysioNet:</p>
 
-  <p>Goldberger AL, Amaral LAN, Glass L, Hausdorff JM, Ivanov PCh, Mark RG,
+  <p class="alert alert-primary" role="alert">Goldberger AL, Amaral LAN, Glass L, 
+    Hausdorff JM, Ivanov PCh, Mark RG,
   Mietus JE, Moody GB, Peng C-K, Stanley HE.  PhysioBank, PhysioToolkit, and
   PhysioNet: Components of a New Research Resource for Complex Physiologic
   Signals.
@@ -15,52 +16,51 @@
 
 </section>
 
-<br>
 <hr>
 <br>
 
 <section id="database">
   <h1>Databases</h1>
-  <p>To search content on PhysioNet, visit our <a href="{% url 'content_index' %}">search index</a>. Some highlights of databases follow below:</p>
-  <h5>Electronic Health Record (EHR)</h5>
+  <p>To search content on PhysioNet, visit our <a href="{% url 'content_index' %}">search index</a>. Databases hosted on PhysioNet include:</p>
+  <h5 id="ehr">Electronic Health Record (EHR)</h5>
   <ul>
-    <li><a href="https://physionet.org/content/mimiciii/">MIMIC-III</a>, a large, single-center database comprising information relating to patients admitted to critical care units at a large tertiary care hospital.</li>
-    <li><a href="https://physionet.org/content/eicu-crd/">The eICU Collaborative Research Database</a>, populated with data from >200 critical care units throughout the continental United States. The data covers >160,000 patients who were admitted to critical care units in 2014 and 2015.</li>
+    <li><a href="{% url 'published_project_latest' 'mimiciii' %}">MIMIC-III</a>, a large, single-center database comprising information relating to patients admitted to critical care units at a large tertiary care hospital.</li>
+    <li><a href="{% url 'published_project_latest' 'eicu-crd' %}">The eICU Collaborative Research Database</a>, populated with data from >200 critical care units throughout the continental United States. The data covers >160,000 patients who were admitted to critical care units in 2014 and 2015.</li>
   </ul>
-  <h5>Electrocardiogram (ECG)</h5>
+  <h5 id="ecg">Electrocardiogram (ECG)</h5>
   <ul>
-    <li><a href="https://physionet.org/content/mitdb/">MIT-BIH Arrhythmia Database</a>, a collection of 48 fully annotated half-hour two-lead ECGs available in its entirety.</li>
-    <li><a href="https://physionet.org/content/ltstdb/">Long-Term ST Database</a>, a database of 86 records of ~20 hours, contains 2 or 3 ECG signals, annotated beat-by-beat and with respect to ST episodes, rhythm changes, and signal quality changes. Each record also includes ST level time series based on 16-second averages centered on each beat.</li>
+    <li><a href="{% url 'published_project_latest' 'mitdb' %}">MIT-BIH Arrhythmia Database</a>, a collection of 48 fully annotated half-hour two-lead ECGs available in its entirety.</li>
+    <li><a href="{% url 'published_project_latest' 'ltstdb' %}">Long-Term ST Database</a>, a database of 86 records of ~20 hours, contains 2 or 3 ECG signals, annotated beat-by-beat and with respect to ST episodes, rhythm changes, and signal quality changes. Each record also includes ST level time series based on 16-second averages centered on each beat.</li>
   </ul>
-  <h5>Multiparameter Waveform</h5>
+  <h5 id="waveform">Multiparameter Waveform</h5>
   <ul>
-<!--     <li><a href="https://physionet.org/physiobank/database/mimic3wdb/">The MIMIC-III Waveform Database</a>, which contains >60k record sets for approximately 30k critical care patients. Record sets typically include ECG, ABP, respiration, and SpO2, and frequently other signals).</li> -->
-<!--     <li><a href="https://physionet.org/physiobank/database/mimic3wdb/matched/">MIMIC-III Waveform Database Matched Subset</a>, which contains >20k waveform records and numerics records from the MIMIC-III Waveform Database, matched to >10k patients in the MIMIC-III Clinical Database.</li> -->
-    <li><a href="https://physionet.org/content/sleep-edfx/">Sleep-EDF Database</a>. This is a collection of 61 polysomnograms (PSGs) with accompanying hypnograms (expert annotations of sleep stages) from 42 subjects in two studies.</li>
+<!--     <li><a href="/content/mimic3wdb/">The MIMIC-III Waveform Database</a>, which contains >60k record sets for approximately 30k critical care patients. Record sets typically include ECG, ABP, respiration, and SpO2, and frequently other signals).</li> -->
+<!--     <li><a href="/content/mimic3wdb/matched/">MIMIC-III Waveform Database Matched Subset</a>, which contains >20k waveform records and numerics records from the MIMIC-III Waveform Database, matched to >10k patients in the MIMIC-III Clinical Database.</li> -->
+    <li><a href="{% url 'published_project_latest' 'sleep-edfx' %}">Sleep-EDF Database</a>. This is a collection of 61 polysomnograms (PSGs) with accompanying hypnograms (expert annotations of sleep stages) from 42 subjects in two studies.</li>
   </ul>
-  <h5>Interbeat (RR) Interval</h5>
+  <h5 id="interbeat">Interbeat (RR) Interval</h5>
   <ul>
-    <li><a href="https://physionet.org/content/crisdb/">CAST RR Interval Sub-Study Database</a>, comprising beat annotation files (about 24 hours each) from 809 subjects enrolled in the Cardiac Arrhythmia Suppression Trial (CAST), a landmark NHLBI-sponsored study.</li>
-    <li><a href="https://physionet.org/content/mvtdb/">The Spontaneous Ventricular Tachyarrhythmia Database</a>, comprising 135 pairs of RR interval time series, recorded by implanted cardioverter defibrillators in 78 subjects.</li>
+    <li><a href="{% url 'published_project_latest' 'crisdb' %}">CAST RR Interval Sub-Study Database</a>, comprising beat annotation files (about 24 hours each) from 809 subjects enrolled in the Cardiac Arrhythmia Suppression Trial (CAST), a landmark NHLBI-sponsored study.</li>
+    <li><a href="{% url 'published_project_latest' 'mvtdb' %}">The Spontaneous Ventricular Tachyarrhythmia Database</a>, comprising 135 pairs of RR interval time series, recorded by implanted cardioverter defibrillators in 78 subjects.</li>
   </ul>
-  <h5>Gait and Balance</h5>
+  <h5 id="gait">Gait and Balance</h5>
   <ul>
-    <li><a href="https://physionet.org/content/hbedb/">Human Balance Evaluation Database</a>, which includes force platform recordings from 193 subjects undergoing stabilography tests. </li>
-    <li><a href="https://physionet.org/content/gaitpdb/">The Gait in Parkinson's Disease Dataset</a>, a collection of multichannel recordings from force sensors beneath the feet of 93 patients with Parkinson's Disease and 73 healthy controls, collected over three studies.</li>
+    <li><a href="{% url 'published_project_latest' 'hbedb' %}">Human Balance Evaluation Database</a>, which includes force platform recordings from 193 subjects undergoing stabilography tests. </li>
+    <li><a href="{% url 'published_project_latest' 'gaitpdb' %}">The Gait in Parkinson's Disease Dataset</a>, a collection of multichannel recordings from force sensors beneath the feet of 93 patients with Parkinson's Disease and 73 healthy controls, collected over three studies.</li>
   </ul>
-  <h5>Neuroelectric and Myoelectric</h5>
+  <h5 id="neuroelectric">Neuroelectric and Myoelectric</h5>
   <ul>
-    <li><a href="https://physionet.org/content/sgamp/">Squid Giant Axon Membrane Potential Database</a>, which contains single-unit neuronal recordings of squid giant axons in response to stimulus currents. The membrane potential and stimulus current are given for a total of 170 trials across 8 different axons.</li>
-    <li><a href="https://physionet.org/content/ehgdb/">Icelandic 16-electrode EHG Database</a>, comprising 122 electrohysterogram recorded with 16-electrodes from 45 pregnant women.</li>
+    <li><a href="{% url 'published_project_latest' 'sgamp' %}">Squid Giant Axon Membrane Potential Database</a>, which contains single-unit neuronal recordings of squid giant axons in response to stimulus currents. The membrane potential and stimulus current are given for a total of 170 trials across 8 different axons.</li>
+    <li><a href="{% url 'published_project_latest' 'ehgdb' %}">Icelandic 16-electrode EHG Database</a>, comprising 122 electrohysterogram recorded with 16-electrodes from 45 pregnant women.</li>
   </ul>
-  <h5>Text</h5>
+  <h5 id="text">Text</h5>
   <ul>
-    <li><a href="https://physionet.org/content/cuiless16/">The Concept Unique Identifier (CUI)-less database (CUILESS2016)</a>, which contains a corpus of "CUI-less" concepts taken from the SemEval2015 Task 14 that have been assigned CUIs. </li>
-    <li><a href="https://www.physionet.org/content/deid/">Deidentified Medical Text Database</a>, a gold standard corpus of 2,434 nursing notes that have been thoroughly deidentified, along with a set of associated annotations. Identifiers are replaced with realistic surrogate data.</li>
+    <li><a href="{% url 'published_project_latest' 'cuiless16' %}">The Concept Unique Identifier (CUI)-less database (CUILESS2016)</a>, which contains a corpus of "CUI-less" concepts taken from the SemEval2015 Task 14 that have been assigned CUIs. </li>
+    <li><a href="{% url 'published_project_latest' 'deid' %}">Deidentified Medical Text Database</a>, a gold standard corpus of 2,434 nursing notes that have been thoroughly deidentified, along with a set of associated annotations. Identifiers are replaced with realistic surrogate data.</li>
   </ul>
 <!--   <h5>Image Databases</h5>
   <ul>
-    <li><a href="https://physionet.org/content/mimiccxr/">MIMIC-CXR</a>, a large set of de-identified chest radiographs from patients admitted to a Boston Hospital between 2011 and 2016. The dataset contains 371,920 chest x-rays associated with 227,943 imaging studies.</li>
+    <li><a href="/content/mimiccxr/">MIMIC-CXR</a>, a large set of de-identified chest radiographs from patients admitted to a Boston Hospital between 2011 and 2016. The dataset contains 371,920 chest x-rays associated with 227,943 imaging studies.</li>
   </ul> -->
 </section>
 
@@ -70,12 +70,63 @@
 
 <section id="software">
   <h1>Software</h1>
-  <p>To search content on PhysioNet, visit our <a href="{% url 'content_index' %}">search index</a>. Some highlights of databases follow below:</p>
-    <h5>XXX</h5>
+  <p>To search content on PhysioNet, visit our <a href="{% url 'content_index' %}">search index</a>. Software hosted on PhysioNet includes:</p>
+    <h5 id="visualization">Data visualization</h5>
     <ul>
-    <li><a href="#"></a></li>
-    <li><a href="#"></a></li>
+      <li><a href="/cgi-bin/atm/ATM">PhysioBank ATM</a>. PhysioBank’s Automated Teller Machine is a self-service facility for exploring PhysioNet databases using your web browser.</li>
+      <li><a href="{% url 'published_project_latest' 'semia' %}">SEMIA</a>. SEMIA is a tool for viewing time series of diagnostic and morphology parameters of long-term ambulatory recordings.</li>
+      <li><a href="{% url 'published_project_latest' 'mpp' %}">Multiscale Poincare Plots</a>. Matlab software for visualizing the complexity of time series on multiple time scales.</li>
     </ul>
+    <h5 id="signalanalysis">Signal and time series (general)</h5>
+    <ul>
+      <li><a href="https://github.com/bemoody/wfdb">WFDB Library (C)</a>. Effective use of PhysioBank data requires specialized software. We have developed a large collection of such software over the past twenty years, and much of it is contained within the WFDB (WaveForm DataBase) Software Package.</li>
+      <li><a href="https://github.com/MIT-LCP/wfdb-python">WFDB Library (Python)</a>. The Python WFDB Toolbox is an implementation of the WFDB in the Python programming language, enabling simple installation and reuse.</li>
+    </ul>
+    <h5>Signal and time series (complexity)</h5>
+    <ul>
+      <li><a href="{% url 'published_project_latest' 'gmse' %}">Generalized Multiscale Entropy Analysis</a>. The method of generalized multiscale entropy (GMSE) analysis is useful for investigating complexity in physiologic signals and other series that have correlations at multiple (time) scales.</li>
+      <li><a href="{% url 'published_project_latest' 'tewp' %}">Transfer Entropy With Partitioning</a>. This is a repository of MATLAB functions that can estimate transfer entropy (information flow) from one time series to another using a non-parametric partitioning algorithm.</li>
+      <li><a href="{% url 'published_project_latest' 'sampen' %}">Sample Entropy Estimation</a>. Sample Entropy is a useful tool for investigating the dynamics of heart rate and other time series. </li>
+      <li><a href="{% url 'published_project_latest' 'mse' %}">Multiscale Entropy Analysis</a>. The method of multiscale entropy (MSE) analysis is useful for investigating complexity in physiologic signals and other series that have correlations at multiple (time) scales.</li>
+    </ul>
+<!--     <h5 id="signal">Signal and time series (frequency domain)</h5>
+    <ul>
+      <li><a href="{% url 'published_project_latest' 'xxxx' %}">XXX</a></li>
+    </ul>
+    <h5>Signal and time series (nonlinear analysis)</h5>
+    <ul>
+      <li><a href="{% url 'published_project_latest' 'xxxx' %}">XXX</a></li>
+    </ul> -->
+<!--     <h5 id="importexport">Importing and exporting data</h5>
+    <ul>
+      <li><a href="{% url 'published_project_latest' 'PROJECT' %}"></a></li>
+      <li><a href="{% url 'published_project_latest' 'PROJECT' %}"></a></li>
+    </ul> -->
+    <h5 id="deidentification">Deidentification (Anonymization)</h5>
+    <ul>
+      <li><a href="{% url 'published_project_latest' 'deid' %}">Perl deid</a>. The Perl deid software package includes code and dictionaries for automated location and removal of protected health information (PHI) in free text from medical records.</li>
+      <li><a href="{% url 'published_project_latest' 'edf-anonymize' %}">EDF-anonymize</a>. EDF-anonymize reads an EDF or EDF+ file (input), writing an anonymized copy of it as output.</li>
+    </ul>
+<h5 id="models">Physiologic models</h5>
+    <ul>
+      <li><a href="{% url 'published_project_latest' 'cvsim' %}">CVSim</a>. Cardiovascular simulator for education and research; an elaboration of the model used in RCVSIM, with a comprehensive graphical user interface.</li>
+      <li><a href="{% url 'published_project_latest' 'rcvsim' %}">RCVSIM</a>. Lumped parameter model of the heart and circulation, incorporating a short-term regulatory system model and a model of resting physiologic perturbations.</li>
+      <li><a href="{% url 'published_project_latest' 'afvp' %}">AFVP</a>. Realistic generator for AA and RR intervals during atrial fibrillation.</li>
+      <li><a href="{% url 'published_project_latest' 'ecgsyn' %}">ECGSYN</a>. A realistic ECG waveform generator; includes C, Java applet, and Matlab implementations.</li>
+      <li><a href="{% url 'published_project_latest' 'fecgsyn' %}">FECGSyn</a>. Foetal ECG Waveform Generator.</li>
+      <li><a href="{% url 'published_project_latest' 'gradient-algorithm' %}">Gradient Algorithm</a>. Applications of a stochastically-seeded gradient algorithm.</li>
+    </ul>
+<!--     
+    <h5 id="softwaredev">Software development</h5>
+    <ul>
+      <li><a href="{% url 'published_project_latest' 'PROJECT' %}"></a></li>
+      <li><a href="{% url 'published_project_latest' 'PROJECT' %}"></a></li>
+    </ul>
+    <h5 id="other">Other</h5>
+    <ul>
+      <li><a href="{% url 'published_project_latest' 'random-search' %}">Random Search Toolbox.</a>A toolbox for selecting model hyper-parameters via random search.</li>
+      <li><a href="{% url 'published_project_latest' 'PROJECT' %}"></a></li>
+    </ul> -->
 </section>
 
 <br>
@@ -83,11 +134,16 @@
 <br>
 
 <section id="challenge">
-  <h1>Challenges</h1>
-  <p>To search content on PhysioNet, visit our <a href="{% url 'content_index' %}">search index</a>. Some highlights of databases follow below:</p>
-    <h5>XXX</h5>
-    <ul>
-    <li><a href="#"></a></li>
-    <li><a href="#"></a></li>
-    </ul>
+  <h1>PhysioNet Challenges</h1>
+  <p>To search content on PhysioNet, visit our <a href="{% url 'content_index' %}">search index</a>. Challenges hosted on PhysioNet include:</p>
+  <ul>
+    <li><a href="{% url 'published_project_latest' 'challenge-2009' %}">2009</a>: Predicting acute hypotensive episodes.</li>
+    <li><a href="{% url 'published_project_latest' 'challenge-2010' %}">2010</a>: Mind the gap.</li>
+    <li><a href="{% url 'published_project_latest' 'challenge-201§' %}">2011</a>: Improving the quality of ECGs collected using mobile phones.</li>
+    <li><a href="{% url 'published_project_latest' 'challenge-2012' %}">2012</a>: Predicting mortality of ICU patients.</li>
+    <li><a href="{% url 'published_project_latest' 'challenge-2013' %}">2013</a>: Non-invaside fetal ECG.</li>
+    <li><a href="{% url 'published_project_latest' 'challenge-2014' %}">2014</a>: Robust detection of heart beats in multimodal data.</li>
+    <li><a href="{% url 'published_project_latest' 'challenge-2015' %}">2015</a>: Reducing false arrhythmia alarms in the icu.</li>
+    <li><a href="{% url 'published_project_latest' 'challenge-2016' %}">2016</a>: Classification of normal/abnormal heart sound recordings.</li>
+  </ul>
 </section>
