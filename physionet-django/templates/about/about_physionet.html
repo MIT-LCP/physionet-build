@@ -4,67 +4,6 @@
   <p>PhysioNet is a unique resource for research and education, offering free access to large collections of physiological data and related open-source software. In cooperation with the annual <a href="http://www.cinc.org/" target="_blank">Computing in Cardiology</a> conference, PhysioNet also hosts an annual series of challenges, focusing research on unsolved problems in clinical and basic science. PhysioNet is managed by members of the <a href="https://lcp.mit.edu/">MIT Laboratory for Computational Physiology</a>. For a brief history, see our <a href="{% url 'timeline' %}">timeline</a>. </p>
 </section>
 
-<br>
-<hr>
-<br>
-
-<section id="databases">
-  <h1>Database highlights</h1>
-  <br>
-  <p>PhysioBank is a large and growing archive of physiological data and software. To view a list of all data and software on PhysioNet, visit our <a href="{% url 'content_index' %}">content index</a>. Some brief highlights of this content follows below:</p>
-  <h5>Electronic Health Record Databases</h5>
-  <ul>
-    <li><a href="https://physionet.org/physiobank/database/mimic3cdb/">MIMIC-III</a>, a large, single-center database comprising information relating to patients admitted to critical care units at a large tertiary care hospital.</li>
-    <li><a href="https://physionet.org/physiobank/database/eicucrdb/">The eICU Collaborative Research Database</a>, populated with data from >200 critical care units throughout the continental United States. The data covers >160,000 patients who were admitted to critical care units in 2014 and 2015.</li>
-  </ul>
-  <h5>ECG Databases</h5>
-  <ul>
-    <li><a href="https://physionet.org/physiobank/database/mitdb/">MIT-BIH Arrhythmia Database</a>, a collection of 48 fully annotated half-hour two-lead ECGs available in its entirety.</li>
-    <li><a href="https://physionet.org/physiobank/database/ltstdb/">Long-Term ST Database</a>, a database cof 86 records of ~20 hours, contains 2 or 3 ECG signals, annotated beat-by-beat and with respect to ST episodes, rhythm changes, and signal quality changes. Each record also includes ST level time series based on 16-second averages centered on each beat.</li>
-  </ul>
-  <h5>Multiparameter Waveform Databases</h5>
-  <ul>
-    <li><a href="https://physionet.org/physiobank/database/mimic3wdb/">The MIMIC-III Waveform Database</a>, which contains >60k record sets for approximately 30k critical care patients. Record sets typically include ECG, ABP, respiration, and SpO2, and frequently other signals).</li>
-    <li><a href="https://physionet.org/physiobank/database/mimic3wdb/matched/">MIMIC-III Waveform Database Matched Subset</a>, which contains >20k waveform records and numerics records from the MIMIC-III Waveform Database, matched to >10k patients in the MIMIC-III Clinical Database.</li>
-    <li><a href="https://physionet.org/physiobank/database/sleep-edfx/">Sleep-EDF Database</a>. This is a collection of 61 polysomnograms (PSGs) with accompanying hypnograms (expert annotations of sleep stages) from 42 subjects in two studies.</li>
-  </ul>
-  <h5>Interbeat (RR) Interval Databases</h5>
-  <ul>
-    <li><a href="https://physionet.org/physiobank/database/crisdb/">CAST RR Interval Sub-Study Database</a>, comprising beat annotation files (about 24 hours each) from 809 subjects enrolled in the Cardiac Arrhythmia Suppression Trial (CAST), a landmark NHLBI-sponsored study.</li>
-    <li><a href="https://physionet.org/physiobank/database/mvtdb/">The Spontaneous Ventricular Tachyarrhythmia Database</a>, comprising 135 pairs of RR interval time series, recorded by implanted cardioverter defibrillators in 78 subjects.</li>
-  </ul>
-  <h5>Gait and Balance Databases</h5>
-  <ul>
-    <li><a href="https://physionet.org/physiobank/database/hbedb/">Human Balance Evaluation Database</a>, which includes force platform recordings from 193 subjects undergoing stabilography tests. </li>
-    <li><a href="https://physionet.org/physiobank/database/gaitpdb/">The Gait in Parkinson's Disease Dataset</a>, a collection of multichannel recordings from force sensors beneath the feet of 93 patients with Parkinson's Disease and 73 healthy controls, collected over three studies.</li>
-  </ul>
-  <h5>Neuroelectric and Myoelectric Databases</h5>
-  <ul>
-    <li><a href="https://physionet.org/physiobank/database/sgamp/">Squid Giant Axon Membrane Potential Database</a>, which contains single-unit neuronal recordings of squid giant axons in response to stimulus currents. The membrane potential and stimulus current are given for a total of 170 trials across 8 different axons.</li>
-    <li><a href="https://physionet.org/physiobank/database/ehgdb/">Icelandic 16-electrode EHG Database</a>, comprising 122 electrohysterogram recorded with 16-electrodes from 45 pregnant women.</li>
-  </ul>
-  <h5>Text Databases</h5>
-  <ul>
-    <li><a href="https://physionet.org/physiobank/database/cuiless16/">The Concept Unique Identifier (CUI)-less database (CUILESS2016)</a>, which contains a corpus of "CUI-less" concepts taken from the SemEval2015 Task 14 that have been assigned CUIs. </li>
-    <li><a href="https://www.physionet.org/physiotools/deid/">Deidentified Medical Text Database</a>, a gold standard corpus of 2,434 nursing notes that have been thoroughly deidentified, along with a set of associated annotations. Identifiers are replaced with realistic surrogate data.</li>
-  </ul>
-  <h5>Challenge Databases</h5>
-  <ul>
-    <li><a href="https://physionet.org/physiobank/database/challenge/2009/">2009 Database</a>. Predicting acute hypotensive episodes.</li>
-    <li><a href="https://physionet.org/physiobank/database/challenge/2010/">2010 Database</a>. Mind the gap.</li>
-    <li><a href="https://physionet.org/physiobank/database/challenge/2011/">2011 Database</a>. Improving the quality of ECGs collected using mobile phones.</li>
-    <li><a href="https://physionet.org/physiobank/database/challenge/2012/">2012 Database</a>. Predicting mortality of ICU patients.</li>
-    <li><a href="https://physionet.org/physiobank/database/challenge/2013/">2013 Database</a>. Non-invaside fetal ECG.</li>
-    <li><a href="https://physionet.org/physiobank/database/challenge/2014/">2014 Database</a>. Robust detection of heart beats in multimodal data.</li>
-    <li><a href="https://physionet.org/physiobank/database/challenge/2015/">2015 Database</a>. Reducing false arrhythmia alarms in the icu.</li>
-    <li><a href="https://physionet.org/physiobank/database/challenge/2016/">2016 Database</a>. Classification of normal/abnormal heart sound recordings.</li>
-  </ul>
-  <h5>Image Databases</h5>
-  <ul>
-    <li><a href="https://physionet.org/physiobank/database/mimiccxr/">MIMIC-CXR</a>, a large set of de-identified chest radiographs from patients admitted to a Boston Hospital between 2011 and 2016. The dataset contains 371,920 chest x-rays associated with 227,943 imaging studies.</li>
-  </ul>
-</section>
-
 <!-- <section id="software">
   <div class="container">
         <h2>Content</h2>

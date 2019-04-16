@@ -85,3 +85,10 @@ def citi_course(request):
     Instructions for completing the CITI training course
     """
     return render(request, 'about/citi_course.html')
+
+
+def content_overview(request):
+    """
+    Temporary content overview
+    """
+    return render(request, 'about/content_overview.html')
