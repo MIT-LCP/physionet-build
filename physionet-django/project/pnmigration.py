@@ -55,12 +55,13 @@ def write_legacy_fixtures(resource_type=None):
 
     """
     if resource_type is None:
-        resource_type = [0, 1]
-    elif resource_type in [0, 1]:
+        resource_type = [0, 1, 2]
+    elif resource_type in [0, 1, 2]:
         resource_type = [resource_type]
 
     for rt in resource_type:
-        file = ['project/fixtures/pbank.json', 'project/fixtures/ptools.json'][rt]
+        file = ['project/fixtures/pbank.json', 'project/fixtures/ptools.json',
+                'project/fixtures/challenge.json'][rt]
         with open(file, 'w') as f:
             data = serializers.serialize('json', LegacyProject.objects.filter(
                 resource_type=rt), stream=f, indent=2)
