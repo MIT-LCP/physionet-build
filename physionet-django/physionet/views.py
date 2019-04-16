@@ -21,7 +21,7 @@ def home(request):
 
 def about_publish(request):
     """
-    Insrtuctions for authors
+    Instructions for authors
     """
     licenses = {}
     licenses['Database'] = License.objects.filter(resource_type=0).order_by('access_policy')
