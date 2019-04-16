@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+404 - Not Found
+{% endblock %}
+
+{% block content %}
+<div class="container" align='center'>
+  <h1>Page Not Found</h1>
+  <p>The page you are looking was not found. It might be located at: <a href="https://archive.physionet.org{{ request.path }}">https://archive.physionet.org{{ request.path }}</a>.
+
+  <p>If you think this is an error, please email us at: <a href="mailto:contact@physionet.org?subject=Missing%20URL%20in%20physionet.org&body=Dear%20Physionet%20Team%2C%0A%0AThe%20following%20URL%20is%20missing%20from%20the%20website.%0A%0A{{request.path}}">contact@physionet.org</a>  </p>
+
+
+</div>
+{% endblock %}

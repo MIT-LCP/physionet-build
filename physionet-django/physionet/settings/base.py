@@ -122,6 +122,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR,'static')]
 
+
 # List of permitted HTML tags and attributes for rich text fields.
 # The 'default' configuration permits all of the tags below.  Other
 # configurations may be added that permit different sets of tags.
@@ -240,6 +241,10 @@ logging.config.dictConfig({
             'filename': '/tmp/physionet.log',
             'formatter': 'simple',
         },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+        }, 
     },
     'loggers': {
         '': {
@@ -251,5 +256,14 @@ logging.config.dictConfig({
             'handlers': ['Custom_Logging'],
             'propagate': False,
         },
+       'django.request': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'physionet.error': {
+            'handlers': ['console', 'mail_admins'],
+            'level': 'ERROR',
+        }
     },
 })

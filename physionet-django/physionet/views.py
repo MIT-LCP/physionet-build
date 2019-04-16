@@ -85,3 +85,17 @@ def citi_course(request):
     Instructions for completing the CITI training course
     """
     return render(request, 'about/citi_course.html')
+
+
+def error_404(request, exception=None):
+    """
+    Function to see how the error 404 page looks like.
+    """
+    return render(request,'404.html', status=404)
+ 
+def error_500(request, exception=None):
+    """
+    Function to see how the error 500 page looks like.
+    """
+    return render(request, "500.html", status=500)
+

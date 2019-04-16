@@ -2,9 +2,14 @@ from django.conf.urls import include
 from django.contrib import admin
 from django.urls import path
 from django.http import HttpResponse
+from django.conf.urls import handler404, handler500
 
 from . import views
 import project.views as project_views
+
+
+handler404 = 'physionet.views.error_404'
+handler500 = 'physionet.views.error_500'
 
 
 urlpatterns = [
@@ -35,6 +40,10 @@ urlpatterns = [
     path('about/licenses/<license_slug>/', views.license_content,
         name='license_content'),
     path('about/citi-course/', views.citi_course, name='citi_course'),
+
+    # # Custom Error pages for testing
+    # path('404.html', views.error_404, name='error_404'),
+    # path('500.html', views.error_500, name='error_500'),
 
     # robots.txt for crawlers
     path('robots.txt', lambda x: HttpResponse("User-Agent: *\nDisallow: /", content_type="text/plain"), name="robots_file"),
