@@ -31,7 +31,7 @@
     </strong>
   </p>
 
-  Published: {{ project.publish_datetime|date }}. Version: {{ project.version }}{% if not project.is_latest_version %} <a href="{% url 'published_project_latest' project.slug %}">&lt;View latest version&gt;</a>{% endif %}
+  <p>Published: {{ project.publish_datetime|date }}. Version: {{ project.version }}{% if not project.is_latest_version %} <a href="{% url 'published_project_latest' project.slug %}">&lt;View latest version&gt;</a>{% endif %}</p>
 
   {% if not project.is_legacy %}
   <button class="btn btn-secondary dropdown-toggle btn-rsp btn-right" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -84,17 +84,17 @@
     </div>
     {% endif %}
   <hr>
-  <strong>When using this content, please cite:</strong>
-  {% if project.is_legacy %}
-    <p>Goldberger AL, Amaral LAN, Glass L, Hausdorff JM, Ivanov PCh, Mark RG, Mietus JE, Moody GB, Peng C-K, Stanley HE. PhysioBank, PhysioToolkit, and PhysioNet: Components of a New Research Resource for Complex Physiologic Signals. Circulation 101(23):e215-e220 <a href="http://circ.ahajournals.org/cgi/content/full/101/23/e215" target="_blank">Circulation Electronic Pages; 2000</a> (June 13).</p>
-  {% else %}
+
+  {% if not project.is_legacy %}
+  <strong>When using this resource, please cite:</strong>
     <p>{{ project.citation_text }}</p>
   {% endif %}
 
-  {% if publication %}
-    <strong>Please also cite:</strong>
-    <p>{{ publication.citation }}</p>
-  {% endif %}
+  <strong>Please also include the standard citation for PhysioNet:</strong>
+    <p>Goldberger AL, Amaral LAN, Glass L, Hausdorff JM, Ivanov PCh, Mark RG, 
+    Mietus JE, Moody GB, Peng C-K, Stanley HE. PhysioBank, PhysioToolkit, and 
+    PhysioNet: Components of a New Research Resource for Complex Physiologic 
+    Signals (2003). Circulation. 101(23):e215-e220.</p>
   <hr>
   <div class="row">
     <!-- Main column -->
@@ -145,7 +145,6 @@
           </p>
         </div>
       </div>
-
       <div class="card my-4">
         <h5 class="card-header">Discovery</h5>
         <div class="card-body">
@@ -154,13 +153,6 @@
             <br>
             <a href="http://dx.doi.org/{{ project.doi }}" target="_blank">{{ project.doi }}</a>
           </p>
-          {% endif %}
-
-          {% if publication %}
-            <p><strong>Related Publication:</strong>
-              <br>
-              <a href="{{ publication.url }}" target="_blank">{{ publication.citation }}</a>
-            </p>
           {% endif %}
 
           {% if languages %}
@@ -189,6 +181,15 @@
           {% endif %}
         </div>
       </div>
+
+      {% if publication %}
+      <div class="card my-4">
+        <h5 class="card-header">Related Publication</h5>
+        <div class="card-body">
+          <p><a href="{{ publication.url }}" target="_blank">{{ publication.citation }}</a></p>
+        </div>
+      </div>
+      {% endif %}
 
       <div class="card my-4">
         <h5 class="card-header">Corresponding Author</h5>

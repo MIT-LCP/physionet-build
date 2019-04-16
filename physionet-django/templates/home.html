@@ -15,7 +15,6 @@ PhysioNet
 
 {% block content %}
   <div class="main-header">
-    <img src="{% static 'images/ecg.svg' %}" class="float">
     <div class="center">
       <h1>PhysioNet</h1>
       <p>
@@ -24,9 +23,9 @@ PhysioNet
       </p>
       <br>
       <div>
-        <a href="{% url 'content_index' %}?types=0">Data</a>
-        <a href="{% url 'content_index' %}?types=1">Software</a>
-        <a href="{% url 'content_index' %}?types=2">Challenges</a>
+        <a href="{% url 'content_overview' %}#database">Data</a>
+        <a href="{% url 'content_overview' %}#software">Software</a>
+        <a href="{% url 'content_overview' %}#challenge">Challenges</a>
         <!-- <a href="">News</a> -->
       </div>
     </div>

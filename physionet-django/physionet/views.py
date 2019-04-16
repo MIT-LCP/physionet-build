@@ -22,7 +22,7 @@ def home(request):
 
 def about_publish(request):
     """
-    Insrtuctions for authors
+    Instructions for authors
     """
     licenses = {}
     licenses['Database'] = License.objects.filter(resource_type=0).order_by('access_policy')
@@ -106,3 +106,10 @@ def error_500(request, exception=None):
         in urls.py.
     """
     return render(request, "500.html", status=500)
+
+
+def content_overview(request):
+    """
+    Temporary content overview
+    """
+    return render(request, 'about/content_overview.html')

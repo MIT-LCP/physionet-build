@@ -45,6 +45,11 @@ urlpatterns = [
     # path('404.html', views.error_404, name='error_404'),
     # path('500.html', views.error_500, name='error_500'),
 
+    # temporary content overview pages
+    path('about/content/', views.content_overview,
+        name='content_overview'),
+
     # robots.txt for crawlers
-    path('robots.txt', lambda x: HttpResponse("User-Agent: *\nDisallow: /", content_type="text/plain"), name="robots_file"),
+    path('robots.txt', lambda x: HttpResponse("User-Agent: *\nDisallow: /", 
+        content_type="text/plain"), name="robots_file"),
 ]
