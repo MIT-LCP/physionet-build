@@ -41,7 +41,7 @@ urlpatterns = [
         name='license_content'),
     path('about/citi-course/', views.citi_course, name='citi_course'),
 
-    # # Custom Error pages for testing
+    # # Custom error pages for testing
     # path('404.html', views.error_404, name='error_404'),
     # path('500.html', views.error_500, name='error_500'),
 
