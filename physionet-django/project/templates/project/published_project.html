@@ -84,17 +84,20 @@
     </div>
     {% endif %}
   <hr>
+
+  {% if not project.is_legacy %}
   <strong>When using this content, please cite:</strong>
-  {% if project.is_legacy %}
-    <p>Goldberger AL, Amaral LAN, Glass L, Hausdorff JM, Ivanov PCh, Mark RG, Mietus JE, Moody GB, Peng C-K, Stanley HE. PhysioBank, PhysioToolkit, and PhysioNet: Components of a New Research Resource for Complex Physiologic Signals. Circulation 101(23):e215-e220 <a href="http://circ.ahajournals.org/cgi/content/full/101/23/e215" target="_blank">Circulation Electronic Pages; 2000</a> (June 13).</p>
-  {% else %}
     <p>{{ project.citation_text }}</p>
   {% endif %}
 
   {% if publication %}
-    <strong>Please also cite:</strong>
+    <strong>Please {% if not project.is_legacy %}also{% endif %} cite:</strong>
     <p>{{ publication.citation }}</p>
   {% endif %}
+
+  <strong>Please also include the standard citation for PhysioNet:</strong>
+    <p>Goldberger AL, Amaral LAN, Glass L, Hausdorff JM, Ivanov PCh, Mark RG, Mietus JE, Moody GB, Peng C-K, Stanley HE. PhysioBank, PhysioToolkit, and PhysioNet: Components of a New Research Resource for Complex Physiologic Signals (2003). Circulation. 101(23):e215-e220.</p>
+
   <hr>
   <div class="row">
     <!-- Main column -->
