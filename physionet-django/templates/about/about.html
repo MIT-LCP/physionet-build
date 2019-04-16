@@ -9,7 +9,6 @@ About
 
 {% block local_css %}
 <link rel="stylesheet" type="text/css" href="{% static 'custom/css/about.css' %}">
-<link rel="stylesheet" type="text/css" href="{% static 'custom/css/timeline.css' %}">
 {% endblock %}
 
 
@@ -22,10 +21,11 @@ About
         <h2 class="card-header">About</h2>
         <div class="card-body">
           <ul>
-            <li><a href="#physionet">What is PhysioNet</a></li>
-            <li><a href="#databases">Database highlights</a></li>
+            <li><a href="#physionet">PhysioNet</a></li>
+            <li><a href="#history">Brief history</a></li>
             <li><a href="#funding">Funding</a></li>
-            <li><a href="#contact">Get in touch</a></li>
+            <li><a href="#research">Research</a></li>
+            <li><a href="#research">Contact</a></li>
           </ul>
         </div>
       </div>
@@ -35,7 +35,7 @@ About
       <hr>
       <br>
       {% include "message_snippet.html" %}
-      <h1 id="contact">Get in touch</h1>
+      <h1 id="contact">Contact us</h1>
       <br>
       <div>{% include "about/contact.html" %}</div>
       <br>

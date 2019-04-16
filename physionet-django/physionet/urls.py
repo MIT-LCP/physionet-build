@@ -36,6 +36,11 @@ urlpatterns = [
         name='license_content'),
     path('about/citi-course/', views.citi_course, name='citi_course'),
 
+    # temporary content overview pages
+    path('about/content/', views.content_overview,
+        name='content_overview'),
+
     # robots.txt for crawlers
-    path('robots.txt', lambda x: HttpResponse("User-Agent: *\nDisallow: /", content_type="text/plain"), name="robots_file"),
+    path('robots.txt', lambda x: HttpResponse("User-Agent: *\nDisallow: /", 
+        content_type="text/plain"), name="robots_file"),
 ]

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+PhysioNet Resources
+{% endblock %}
+
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/about.css' %}">
+{% endblock %}
+
+
+{% block content %}
+<div class="main">
+  <div class="row">
+    <div class="main-side">
+
+      <div class="card">
+        <h2 class="card-header">Content Overview</h2>
+        <div class="card-body">
+          <ul>
+            <li><a href="#citation">Suggested citation</a></li>
+            <li><a href="#database">Databases</a></li>
+              <ul>
+                <li><a href="#ehr">EHR</a></li>
+                <li><a href="#ecg">ECG</a></li>
+                <li><a href="#waveform">Waveform</a></li>
+                <li><a href="#interbeat">Interbeat RR interval</a></li>
+                <li><a href="#gait">Gait and balance</a></li>
+                <li><a href="#neuroelectric">Neuroelectric</a></li>
+                <li><a href="#text">Text</a></li>
+              </ul>
+            <li><a href="#software">Software</a></li>
+              <ul>
+                <li><a href="#visualization">Visualization</a></li>
+                <li><a href="#signalanalysis">Signal analysis</a></li>
+                <li><a href="#deidentification">Deidentification</a></li>
+                <li><a href="#models">Models</a></li>
+              </ul>
+            <li><a href="#challenge">PhysioNet Challenges</a></li>
+          </ul>
+        </div>
+      </div>
+    </div><div class="main-content">
+      <div>{% include "about/about_content.html" %}</div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
