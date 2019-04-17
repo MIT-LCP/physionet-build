@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.shortcuts import get_current_site
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.forms import formset_factory, inlineformset_factory, modelformset_factory
 from django.http import HttpResponse, Http404, JsonResponse
 from django.shortcuts import render, redirect
@@ -49,7 +50,11 @@ def project_auth(auth_mode=0, post_auth_mode=0):
         @login_required
         def view_wrapper(request, *args, **kwargs):
             user = request.user
-            project = ActiveProject.objects.get(slug=kwargs['project_slug'])
+            try:
+                project = ActiveProject.objects.get(
+                    slug=kwargs['project_slug'])
+            except ObjectDoesNotExist:
+                raise PermissionDenied()
             authors = project.authors.all().order_by('display_order')
 
             is_author = bool(authors.filter(user=user))
@@ -75,7 +80,7 @@ def project_auth(auth_mode=0, post_auth_mode=0):
                 kwargs['is_author'] = is_author
                 kwargs['is_submitting'] = is_submitting
                 return base_view(request, *args, **kwargs)
-            raise Http404('Unable to access page')
+            raise PermissionDenied()
         return view_wrapper
     return real_decorator
 

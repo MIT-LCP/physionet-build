@@ -57,10 +57,18 @@ class TestAccessPresubmission(TestMixin, TestCase):
         self.client.login(username='george@mit.edu', password='Tester11!')
         for view in PROJECT_VIEWS:
             response = self.client.get(reverse(view, args=(project.slug,)))
-            self.assertEqual(response.status_code, 404)
+            self.assertEqual(response.status_code, 403)
         response = self.client.get(reverse('serve_active_project_file',
             args=(project.slug, 'notes/notes.txt')))
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 403)
+
+        # Visit non-existent project
+        for view in PROJECT_VIEWS:
+            response = self.client.get(reverse(view, args=('fnord',)))
+            self.assertEqual(response.status_code, 403)
+        response = self.client.get(reverse('serve_active_project_file',
+            args=('fnord', 'notes/notes.txt')))
+        self.assertEqual(response.status_code, 403)
 
     @prevent_request_warnings
     def test_project_authors(self):
@@ -163,7 +171,7 @@ class TestAccessPresubmission(TestMixin, TestCase):
         response = self.client.post(reverse(
             'project_access', args=(project.slug,)),
             data={'access_policy':0, 'license':open_data_license.id})
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 403)
 
     @prevent_request_warnings
     def test_project_files(self):
@@ -235,7 +243,7 @@ class TestAccessPresubmission(TestMixin, TestCase):
         response = self.client.post(reverse(
             'project_files', args=(project.slug,)),
             data={'create_folder':'', 'folder_name':'new-folder-valid'})
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 403)
 
 
 class TestAccessPublished(TestMixin, TestCase):
