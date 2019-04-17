@@ -30,6 +30,7 @@ EMAIL_USE_TLS = False
 
 DEFAULT_FROM_EMAIL = 'PhysioNet Automated System <noreply@staging.physionet.org>'
 CONTACT_EMAIL = 'PhysioNet Contact <contact@staging.physionet.org>'
+SERVER_EMAIL = 'PhysioNet System <root@staging.physionet.org>'
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(BASE_DIR, 'PhysioNet-Data-credentials.json')
 
