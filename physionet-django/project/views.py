@@ -1203,6 +1203,8 @@ def published_project(request, project_slug, version, subdir=''):
             'display_files':display_files, 'display_dirs':display_dirs,
             'files_panel_url':files_panel_url, 'subdir':subdir,
             'file_error':file_error}}
+    elif subdir:
+        status = 403
     else:
         status = 200
 
