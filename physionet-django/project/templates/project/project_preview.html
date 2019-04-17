@@ -72,15 +72,23 @@
   </p>
   <hr>
 
-  <strong>Please also include the standard citation for PhysioNet:</strong>
-    <p>Goldberger AL, Amaral LAN, Glass L, Hausdorff JM, Ivanov PCh, Mark RG, 
-    Mietus JE, Moody GB, Peng C-K, Stanley HE. PhysioBank, PhysioToolkit, and 
-    PhysioNet: Components of a New Research Resource for Complex Physiologic 
-    Signals (2003). Circulation. 101(23):e215-e220.</p>
-  <hr>
   <div class="row">
     <!-- Main column -->
-    <div class="col-md-8">
+    <div class="col-md-8" style="padding-left: 0;">
+
+    <div class="alert alert-secondary">
+    {% if not project.is_legacy %}
+    <strong>When using this resource, please cite:</strong>
+      <p>[Your citation will appear here]</p>
+    {% endif %}
+
+    <strong>Please also include the standard citation for PhysioNet:</strong>
+      <p>Goldberger AL, Amaral LAN, Glass L, Hausdorff JM, Ivanov PCh, Mark RG, 
+      Mietus JE, Moody GB, Peng C-K, Stanley HE. PhysioBank, PhysioToolkit, and 
+      PhysioNet: Components of a New Research Resource for Complex Physiologic 
+      Signals (2003). Circulation. 101(23):e215-e220.</p>
+    </div>
+
       {# 0: Database #}
       {% if project.resource_type == 0 %}
         {% include "project/database_metadata_preview.html" %}
@@ -98,9 +106,9 @@
     <!-- /.main column -->
 
     <!-- Sidebar Column -->
-    <div class="col-md-4">
+    <div class="col-md-4" style="padding-right: 0;">
 
-      <div class="card my-4">
+      <div class="card">
         <h5 class="card-header">Access</h5>
         <div class="card-body">
           <p>
