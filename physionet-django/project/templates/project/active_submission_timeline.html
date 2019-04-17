@@ -1,148 +1,7 @@
-{# Submission timeline for an project under submission #}
+{# Submission timeline for a project under submission #}
 <ul class="list-group list-group-flush">
-  <li class="list-group-item">
-    <div class="row">
-      <div class="col-md-2">{{ project.submission_datetime|date }}</div>
-      <div class="col-md-10">
-        <p>The project was submitted for review.</p>
-        {% if project.author_comments %}
-          <p>The submitting author included the following comments:</p>
-          <a class="editor-comments">{{ project.author_comments|linebreaks }}</a>
-        {% endif %}
-      </div>
-    </div>
-  </li>
-  {# Waiting for editor #}
-  {% if project.submission_status == 10 %}
-    <li class="list-group-item">
-      <div class="row">
-        <div class="col-md-2">Currently</div>
-        <div class="col-md-10"><i class="far fa-clock"></i> Waiting for editor to be assigned.</div>
-      </div>
-    </li>
-  {# Editor assigned #}
-  {% else %}
-    <li class="list-group-item">
-      <div class="row">
-        <div class="col-md-2">{{ project.editor_assignment_datetime|date }}</div>
-        <div class="col-md-10">The project was assigned the editor: {{ project.editor.disp_name_email }}
-      </div>
-    </li>
-    {# At this point, there may have been any number of submissions #}
-    {% for e in edit_logs %}
-      {% if e.is_resubmission %}
-        <li class="list-group-item">
-          <div class="row">
-            <div class="col-md-2">{{ e.submission_datetime|date }}</div>
-            <div class="col-md-10">
-              <p>The project was resubmitted for review.</p>
-              {% if e.author_comments %}
-                <p>The submitting author included the following comments:</p>
-                <a class="editor-comments">{{ e.author_comments|linebreaks }}</a>
-              {% endif %}
-            </div>
-          </div>
-        </li>
-      {% endif %}
-      <li class="list-group-item">
-        <div class="row">
-        {% if e.decision_datetime %}
-          <div class="col-md-2">{{ e.decision_datetime|date }}</div>
-          <div class="col-md-10">
-            {% if e.decision == 0 %}
-              <p>: The editor rejected the submission.</p>
-            {% elif e.decision == 1 %}
-              <p>The editor requested a resubmission with revisions.</p>
-            {% elif e.decision == 2 %}
-              <p>The editor accepted the submission.</p>
-            {% endif %}
-            <p>The standard quality assurance results are as follows:</p>
-            <ul>
-              {% for result in e.quality_assurance_results %}
-                <li>{{ result }}</li>
-              {% endfor %}
-            </ul>
-            <br>
-            <p>The editor comments regarding the submission are as follows:</p>
-            <a class="editor-comments">{{ e.editor_comments|linebreaks }}</a>
-          </div>
-        {# No decision yet #}
-        {% else %}
-          <div class="col-md-2">Currently</div>
-          <div class="col-md-10"><i class="far fa-clock"></i> Waiting for editor decision</div>
-        {% endif %}
-        </div>
-      </li>
-    {% endfor %}
-    {# Waiting for revisions #}
-    {% if project.submission_status == 30 %}
-      <li class="list-group-item">
-        <div class="row">
-        <div class="col-md-2">Currently</div>
-        <div class="col-md-10">
-          <i class="far fa-clock"></i> Waiting for submitting author to make revisions and resubmit.
-          {% if is_submitting %}
-            <br><br>
-            <button id="resubmit-project-modal-button" type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#resubmit-modal" onclick="checkIntegrity(true)">Resubmit Project</button>
-            <div class="modal fade" id="resubmit-modal" tabindex="-1" role="dialog" aria-labelledby="resubmit-modal" aria-hidden="true">
-              <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <h5 class="modal-title">Resubmit Project</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                      <span aria-hidden="true">&times;</span>
-                    </button>
-                  </div>
-                  <form action="" method="post">
-                    <div class="modal-body">
-                      {% csrf_token %}
-                      <p id="passes-checks-resubmission"><i class="fas fa-spinner"></i> Running checks on project...</p>
-                      {{ author_comments_form }}
-                    </div>
-                    <div class="modal-footer">
-                      <button id="resubmit-project-button" class="btn btn-primary" type="submit" name="resubmit_project" disabled>Reubmit Project</button>
-                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </div>
-          {% endif %}
-        </div>
-      </li>
-    {% elif project.submission_status >= 40 %}
-      {# At this point, there may have been any number of copyedits #}
-      {% for c in copyedit_logs %}
-        {% if c.is_reedit %}
-          <li class="list-group-item">
-            <div class="row">
-              <div class="col-md-2">{{ c.start_datetime|date }}</div>
-              <div class="col-md-10">The editor reopened the submission for copyediting.</div>
-            </div>
-          </li>
-        {% endif %}
-        <li class="list-group-item">
-          <div class="row">
-            {# The copyedit is complete #}
-            {% if c.complete_datetime %}
-              <div class="col-md-2">{{ c.complete_datetime|date }}</div>
-              <div class="col-md-10">
-                <p>The editor finished copyediting the submission.</p>
-                {% if c.made_changes %}
-                  <p>The editor comments regarding the changes made are as follows:</p>
-                  <a class="editor-comments">{{ c.changelog_summary|linebreaks }}</a>
-                {% else %}
-                  <p>No changes were made during the copyedit.</p>
-                {% endif %}
-              </div>
-            {% else %}
-              <div class="col-md-2">Currently</div>
-              <div class="col-md-10"><i class="far fa-clock"></i> Waiting for editor to copyedit submission.</div>
-            {% endif %}
-          </div>
-        </li>
-      {% endfor %}
-    {% endif %}
+
+    <!-- break -->
     {# Awaiting authors to approve final project #}
     {% if project.submission_status == 50 %}
       <li class="list-group-item">
@@ -197,5 +56,158 @@
         </div>
       </li>
     {% endif %}
+
+  <!-- break -->
+  {# Waiting for revisions #}
+  {% if project.submission_status == 30 %}
+    <li class="list-group-item">
+      <div class="row">
+      <div class="col-md-2">Currently</div>
+      <div class="col-md-10">
+        <i class="far fa-clock"></i> Waiting for the submitting author to make revisions and resubmit.
+        {% if is_submitting %}
+          <br><br>
+          <button id="resubmit-project-modal-button" type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#resubmit-modal" onclick="checkIntegrity(true)">Resubmit Project</button>
+          <div class="modal fade" id="resubmit-modal" tabindex="-1" role="dialog" aria-labelledby="resubmit-modal" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">Resubmit Project</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <form action="" method="post">
+                  <div class="modal-body">
+                    {% csrf_token %}
+                    <p id="passes-checks-resubmission"><i class="fas fa-spinner"></i> Running checks on project...</p>
+                    {{ author_comments_form }}
+                  </div>
+                  <div class="modal-footer">
+                    <button id="resubmit-project-button" class="btn btn-primary" type="submit" name="resubmit_project" disabled>Reubmit Project</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+        </div>
+      </li>
+    {% elif project.submission_status >= 40 %}
+      {# At this point, there may have been any number of copyedits #}
+      {% for c in copyedit_logs reversed %}
+        {% if c.is_reedit %}
+          <li class="list-group-item">
+            <div class="row">
+              <div class="col-md-2">{{ c.start_datetime|date }}</div>
+              <div class="col-md-10">The editor reopened the submission for copyediting.</div>
+            </div>
+          </li>
+        {% endif %}
+        <li class="list-group-item">
+          <div class="row">
+            {# The copyedit is complete #}
+            {% if c.complete_datetime %}
+              <div class="col-md-2">{{ c.complete_datetime|date }}</div>
+              <div class="col-md-10">
+                <p>The editor finished copyediting the submission.</p>
+                {% if c.made_changes %}
+                  <p>The editor comments regarding the changes made are as follows:</p>
+                  <a class="editor-comments">{{ c.changelog_summary|linebreaks }}</a>
+                {% else %}
+                  <p>No changes were made during the copyedit.</p>
+                {% endif %}
+              </div>
+            {% else %}
+              <div class="col-md-2">Currently</div>
+              <div class="col-md-10"><i class="far fa-clock"></i> Waiting for editor to copyedit submission.</div>
+            {% endif %}
+          </div>
+        </li>
+      {% endfor %}
+    {% endif %}
+
+  <!-- break -->
+  {# At this point, there may have been any number of submissions #}
+  {% for e in edit_logs reversed %}
+    <li class="list-group-item">
+      <div class="row">
+      {% if e.decision_datetime %}
+        <div class="col-md-2">{{ e.decision_datetime|date }}</div>
+        <div class="col-md-10">
+          {% if e.decision == 0 %}
+            <p>: The editor rejected the submission.</p>
+          {% elif e.decision == 1 %}
+            <p>The editor requested a resubmission with revisions.</p>
+          {% elif e.decision == 2 %}
+            <p>The editor accepted the submission.</p>
+          {% endif %}
+          <p>The standard quality assurance results are as follows:</p>
+          <ul>
+            {% for result in e.quality_assurance_results %}
+              <li>{{ result }}</li>
+            {% endfor %}
+          </ul>
+        <br>
+        <p>The editor comments regarding the submission are as follows:</p>
+        <a class="editor-comments">{{ e.editor_comments|linebreaks }}</a>
+      </div>
+    {# No decision yet #}
+    {% else %}
+      <div class="col-md-2">Currently</div>
+      <div class="col-md-10"><i class="far fa-clock"></i> Waiting for editor decision</div>
+    {% endif %}
+    </div>
+  </li>
+    {% if e.is_resubmission %}
+      <li class="list-group-item">
+        <div class="row">
+          <div class="col-md-2">{{ e.submission_datetime|date }}</div>
+            <div class="col-md-10">
+              <p>The project was resubmitted for review.</p>
+              {% if e.author_comments %}
+                <p>The submitting author included the following comments:</p>
+                <a class="editor-comments">{{ e.author_comments|linebreaks }}</a>
+              {% endif %}
+          </div>
+        </div>
+      </li>
+    {% endif %}
+  {% endfor %}
+
+  <!-- break -->
+  {# Waiting for editor #}
+  {% if project.submission_status == 10 %}
+  <li class="list-group-item">
+    <div class="row">
+      <div class="col-md-2">Currently</div>
+      <div class="col-md-10"><i class="far fa-clock"></i> Waiting for editor to be assigned.</div>
+    </div>
+  </li>
+  {# Editor assigned #}
+  {% else %}
+  <li class="list-group-item">
+    <div class="row">
+      <div class="col-md-2">{{ project.editor_assignment_datetime|date }}</div>
+      <div class="col-md-10">The project was assigned to an editor: {{ project.editor.disp_name_email }}
+    </div>
+  </li>
   {% endif %}
+
+  <!-- break -->
+  {# Submitted #}
+  <li class="list-group-item">
+    <div class="row">
+      <div class="col-md-2">{{ project.submission_datetime|date }}</div>
+      <div class="col-md-10">
+        <p>The project was submitted for review.</p>
+        {% if project.author_comments %}
+          <p>The submitting author included the following comments:</p>
+          <a class="editor-comments">{{ project.author_comments|linebreaks }}</a>
+        {% endif %}
+      </div>
+    </div>
+  </li>
+
 </ul>
