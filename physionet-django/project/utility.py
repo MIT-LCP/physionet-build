@@ -29,8 +29,9 @@ class DirectoryBreadcrumb():
     """
     For navigating through project file directories
     """
-    def __init__(self, name, full_subdir, active=True):
+    def __init__(self, name, rel_path, full_subdir, active=True):
         self.name = name
+        self.rel_path = rel_path
         self.full_subdir = full_subdir
         self.active = active
 
@@ -48,13 +49,19 @@ def get_dir_breadcrumbs(subdir):
     """
 
     if subdir == '':
-        return [DirectoryBreadcrumb(name='<base>', full_subdir='', active=False)]
+        return [DirectoryBreadcrumb(name='<base>', rel_path='',
+                                    full_subdir='', active=False)]
     if subdir.endswith('/'):
         subdir = subdir[:-1]
     dirs = subdir.split('/')
-    dir_breadcrumbs = [DirectoryBreadcrumb(name='<base>', full_subdir='')]
+    rel_path = '../' * len(dirs)
+    dir_breadcrumbs = [DirectoryBreadcrumb(name='<base>', full_subdir='',
+                                           rel_path=rel_path)]
     for i in range(len(dirs)):
-        dir_breadcrumbs.append(DirectoryBreadcrumb(name=dirs[i], full_subdir='/'.join([d.name for d in dir_breadcrumbs[1:]]+ [dirs[i]])))
+        rel_path = rel_path[3:]
+        dir_breadcrumbs.append(DirectoryBreadcrumb(
+            name=dirs[i], rel_path=rel_path,
+            full_subdir='/'.join([d.name for d in dir_breadcrumbs[1:]]+ [dirs[i]])))
     dir_breadcrumbs[-1].active = False
     return dir_breadcrumbs
 

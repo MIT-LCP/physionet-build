@@ -684,7 +684,7 @@ class AccessMetadataForm(forms.ModelForm):
         model = ActiveProject
         fields = ('access_policy', 'license')
         help_texts = {'access_policy': '* Access policy for files.',
-                      'license': "* License for usage. <a href='/about/licenses/' target='_blank'>View available.</a>"}
+                      'license': "* License for usage. <a href='/about/publish/#licenses' target='_blank'>View available.</a>"}
 
     def __init__(self, include_credentialed, *args, **kwargs):
         """

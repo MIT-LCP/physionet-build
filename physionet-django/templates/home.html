@@ -14,46 +14,45 @@ PhysioNet
 
 
 {% block content %}
-  <div class="main">
-
-    <div class="row">
-      {# Left column #}
-      <div class="main-side">
-
-        <div class="card">
-          <h2 class="card-header">Welcome</h2>
-          <div class="card-body">
-            <p class="card-text mt-1">PhysioNet offers free web access to large collections of recorded physiologic <a href="{% url 'database_index' %}">data</a> and related open-source <a href="{% url 'software_index' %}">software</a>. For more information, see our <a href="{% url 'about' %}">about page</a>.</p>
-          </div>
-        </div>
-
-        <div class="card my-4">
-          <h2 class="card-header">News</h2>
-          <div class="card-body">
-            {% for news in news_pieces %}
-              <h5>
-                {% if news.url %}
-                  <a href="{{ news.url }}">{{ news.title }}</a>
-                {% else %}
-                  {{ news.title }}
-                {% endif %}
-              </h5>
-              <p><a class="text-muted">{{ news.publish_datetime|date }}</a></p>
-              {{ news.content|safe }}
-              <hr>
-            {% endfor %}
-            <div class="more"><a class="btn btn-outline-dark" href="{% url 'news' %}">More news</a></div>
-          </div>
-        </div>
-      </div> <!--Right Column --><div class="main-content">
-        <h1>Latest Resources</h1><br>
-        {% include "search/content_list.html" %}
-        <div class="more"><a class="btn btn-outline-dark" href="{% url 'content_index' %}">More content</a></div>
-        <br><br>
+  <div class="main-header">
+    <div class="center">
+      <h1>PhysioNet</h1>
+      <p>
+        The Research Resource for Complex Physiologic Signals.
+        <!-- PhysioNet offers free web access to large collections of recorded physiologic data and related open-source software. -->
+      </p>
+      <br>
+      <div>
+        <a href="{% url 'content_overview' %}#database">Data</a>
+        <a href="{% url 'content_overview' %}#software">Software</a>
+        <a href="{% url 'content_overview' %}#challenge">Challenges</a>
+        <!-- <a href="">News</a> -->
       </div>
-      <!-- /.column -->
     </div>
-    <!-- /.row -->
+    <a href="#latest"><div class="down"></div></a>
+  </div>
+  <div class="main">
+    <div class="main-content" id="latest">
+      <h1>Latest Resources</h1><br>
+      {% include "search/content_list.html" %}
+      <div class="more"><a class="btn btn-outline-dark" href="{% url 'content_index' %}">More content</a></div>
+    </div><div class="main-side">
+      <h2>News</h2>
+      <br>
+      {% for news in news_pieces %}
+        <h5>
+          {% if news.url %}
+            <a href="{{ news.url }}">{{ news.title }}</a>
+          {% else %}
+            {{ news.title }}
+          {% endif %}
+        </h5>
+        <p><a class="text-muted">{{ news.publish_datetime|date }}</a></p>
+        {{ news.content|safe }}
+        <hr>
+      {% endfor %}
+      <div class="more"><a class="btn btn-outline-dark" href="{% url 'news' %}">More news</a></div>
+    </div>
   </div>
   <!-- /.container -->
 {% endblock %}

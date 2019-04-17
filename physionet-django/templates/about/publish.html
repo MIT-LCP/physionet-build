@@ -19,56 +19,45 @@ Publish
     <div class="main-side">
 
       <div class="card">
-        <h2 class="card-header">Author Guidelines</h2>
+        <h2 class="card-header">Share</h2>
         <div class="card-body">
           <ul>
-            <li><a href="#submission">Submission process</a></li>
-            <li><a href="#preparing">Preparing for submission</a></li>
-            <li><a href="#criteria">Criteria for publication</a></li>
-            <li><a href="#editorial">Editorial process</a></li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="card my-4">
-        <h2 class="card-header">Licenses</h2>
-        <div class="card-body">
-          <ul>
-            <li><a href="#database">Database</a></li>
-            <li><a href="#software">Software</a></li>
-            <li><a href="#challenge">Challenge</a></li>
-          </ul>
-        </div>
-      </div>
-      
-      <div class="card my-4">
-        <h2 class="card-header">Submit</h2>
-        <div class="card-body">
-          <ul>
-            <li><a href="#create">Create your project</a></li>
+            <li><a href="#sharing">Sharing on Physionet</a></li>
+            <li><a href="#guidelines">Author Guidelines</a></li>
+            <!-- <li><a href="#guidelines">Protecting Privacy</a></li> -->
+            <li><a href="#licenses">Licenses</a></li>
+            <li><a href="#submit">Submit your Project</a></li>
           </ul>
         </div>
       </div>
     </div><div class="main-content">
+      <h1 id="sharing">Sharing on PhysioNet</h1>
+      <br>
+      <div>{% include "about/share.html" %}</div>
+      <br>
+      <hr>
+      <br>
       <h1 id="guidelines">Author Guidelines</h1>
       <br>
       <div>{% include "about/author_guidelines.html" %}</div>
       <br>
       <hr>
       <br>
+      <!-- <h1 id="guidelines">HIPAA Compliance</h1>
+      <br>
+      <div>{% include "about/author_guidelines.html" %}</div>
+      <br>
+      <hr>
+      <br> -->
       <h1 id="licenses">Licenses</h1>
       <br>
       <div>{% include "about/licenses.html" %}</div>
       <hr>
       <br>
-      <h1>Submit</h1>
+      <h1 id="submit">Submit your Project</h1>
       <br>
-      <div id="create">
-        {% if user.is_authenticated %}
-          {% include "project/create_project.html" %}
-        {% else %}
-          <p><a href="{% url 'login' %}?next=/about/publish/">Login</a> to create your project.</p>
-        {% endif %}
+      <div>
+          <p><a href="{% url 'create_project' %}">Click here</a> to create your project.</p>
       </div>
     </div>
   </div>

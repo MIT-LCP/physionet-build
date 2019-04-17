@@ -5,6 +5,7 @@ from . import views
 
 urlpatterns = [
     path('', views.project_home, name='project_home'),
+    path('create/', views.create_project, name='create_project'),
     path('delete-project-success/', views.delete_project_success,
         name='delete_project_success'),
     path('new-version/<project_slug>/', views.new_project_version,
@@ -48,6 +49,8 @@ urlpatterns = [
 
     path('<project_slug>/files/', views.project_files,
         name='project_files'),
+    path('<project_slug>/files/<path:subdir>/', views.project_files,
+        name='project_files'),
     re_path('(?P<project_slug>\w+)/files/(?P<file_name>.+)',
         views.serve_active_project_file, name='serve_active_project_file'),
     path('<project_slug>/project-files-panel/', views.project_files_panel,
@@ -58,6 +61,8 @@ urlpatterns = [
 
     path('<project_slug>/preview/', views.project_preview,
         name='project_preview'),
+    path('<project_slug>/preview/<path:subdir>/', views.project_preview,
+        name='project_preview_subdir'),
     path('<project_slug>/preview-files-panel/', views.preview_files_panel,
         name='preview_files_panel'),
     path('<project_slug>/view-license/', views.project_license_preview,

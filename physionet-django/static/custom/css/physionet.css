@@ -74,6 +74,9 @@ th, td {
 
 /* Pushing items away from top-left brand */
 .navbar-brand {
+  position: relative;
+  top: 1px;
+  padding-left: 15px;
   width: 150px;
 }
 
@@ -250,7 +253,7 @@ a{
 }
 
 .main{
-  min-height: calc(100% - 56px - 10.5rem);
+  min-height: calc(80% - 64px);
   display: flex;
 }
 
@@ -296,7 +299,7 @@ a{
 }
 
 body > .container{
-  min-height: calc(100% - 56px - 10.5rem);
+  min-height: calc(80% - 64px);
 }
 
 .row{

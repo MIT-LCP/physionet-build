@@ -33,6 +33,8 @@ CONTACT_EMAIL = 'PhysioNet Contact <contact@staging.physionet.org>'
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(BASE_DIR, 'PhysioNet-Data-credentials.json')
 
+ADMINS = [('PhysioNet Contact', 'contact@staging.physionet.org')]
+
 DEMO_FILE_ROOT = os.path.join(os.path.abspath(os.path.join(BASE_DIR, os.pardir)), 'demo-files')
 
 MEDIA_ROOT = '/data/pn-media'

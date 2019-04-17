@@ -167,6 +167,25 @@ def project_home(request):
         'rejected_projects':rejected_projects,
         'invitation_response_formset':invitation_response_formset})
 
+@login_required
+def create_project(request):
+    user = request.user
+
+    n_submitting = Author.objects.filter(user=user, is_submitting=True,
+        content_type=ContentType.objects.get_for_model(ActiveProject)).count()
+    if n_submitting >= ActiveProject.MAX_SUBMITTING_PROJECTS:
+        return render(request, 'project/project_limit_reached.html',
+            {'max_projects':ActiveProject.MAX_SUBMITTING_PROJECTS})
+
+    if request.method == 'POST':
+        form = forms.CreateProjectForm(user=user, data=request.POST)
+        if form.is_valid():
+            project = form.save()
+            return redirect('project_overview', project_slug=project.slug)
+    else:
+        form = forms.CreateProjectForm(user=user)
+
+    return render(request, 'project/create_project.html', {'form':form})
 
 @login_required
 def new_project_version(request, project_slug):
@@ -746,7 +765,7 @@ def process_files_post(request, project):
 
 
 @project_auth(auth_mode=0, post_auth_mode=2)
-def project_files(request, project_slug, **kwargs):
+def project_files(request, project_slug, subdir='', **kwargs):
     "View and manipulate files in a project"
     project, is_submitting = (kwargs[k] for k in
         ('project', 'is_submitting'))
@@ -774,7 +793,6 @@ def project_files(request, project_slug, **kwargs):
             # process the file manipulation post
             subdir = process_files_post(request, project)
             project.modified_datetime = timezone.now()
-    subdir = request.GET.get('subdir', '')
 
     storage_info = project.get_storage_info()
     storage_request = StorageRequest.objects.filter(project=project,
@@ -809,7 +827,10 @@ def serve_active_project_file(request, project_slug, file_name, **kwargs):
     to the project's file root.
     """
     file_path = os.path.join(kwargs['project'].file_root(), file_name)
-    return physionet.serve_file(file_path)
+    try:
+        return physionet.serve_file(file_path)
+    except IsADirectoryError:
+        return redirect(request.path + '/')
 
 
 @project_auth(auth_mode=2)
@@ -836,7 +857,7 @@ def preview_files_panel(request, project_slug, **kwargs):
 
 
 @project_auth(auth_mode=2)
-def project_preview(request, project_slug, **kwargs):
+def project_preview(request, project_slug, subdir='', **kwargs):
     """
     Preview what the published project would look like. Includes
     serving files.
@@ -861,7 +882,6 @@ def project_preview(request, project_slug, **kwargs):
         for e in project.integrity_errors:
             messages.error(request, e)
 
-    subdir = request.GET.get('subdir', '')
     display_files, display_dirs = project.get_directory_content(subdir=subdir)
     dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
     files_panel_url = reverse('preview_files_panel', args=(project.slug,))
@@ -872,7 +892,7 @@ def project_preview(request, project_slug, **kwargs):
         'invitations':invitations, 'references':references,
         'publications':publications, 'topics':topics, 'languages':languages,
         'passes_checks':passes_checks, 'dir_breadcrumbs':dir_breadcrumbs,
-        'files_panel_url':files_panel_url})
+        'files_panel_url':files_panel_url, 'subdir':subdir})
 
 
 @project_auth(auth_mode=2)
@@ -1073,7 +1093,10 @@ def serve_published_project_file(request, project_slug, version,
         version=version)
     if project.has_access(request.user):
         file_path = os.path.join(project.file_root(), full_file_name)
-        return physionet.serve_file(file_path)
+        try:
+            return physionet.serve_file(file_path)
+        except IsADirectoryError:
+            return redirect(request.path + '/')
     raise Http404()
 
 
@@ -1114,7 +1137,7 @@ def published_project_latest(request, project_slug):
         version=version)
 
 
-def published_project(request, project_slug, version):
+def published_project(request, project_slug, version, subdir=''):
     """
     Displays a published project
     """
@@ -1140,8 +1163,9 @@ def published_project(request, project_slug, version):
 
     # The file and directory contents
     if has_access:
-        display_files, display_dirs = project.get_directory_content()
-        dir_breadcrumbs = utility.get_dir_breadcrumbs('')
+        display_files, display_dirs = project.get_directory_content(
+            subdir=subdir)
+        dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
         main_size, compressed_size = [utility.readable_size(s) for s in
             (project.main_storage_size, project.compressed_storage_size)]
         files_panel_url = reverse('published_files_panel',
@@ -1150,7 +1174,7 @@ def published_project(request, project_slug, version):
         context = {**context, **{'dir_breadcrumbs':dir_breadcrumbs,
             'main_size':main_size, 'compressed_size':compressed_size,
             'display_files':display_files, 'display_dirs':display_dirs,
-            'files_panel_url':files_panel_url}}
+            'files_panel_url':files_panel_url, 'subdir':subdir}}
 
     return render(request, 'project/published_project.html', context)
 

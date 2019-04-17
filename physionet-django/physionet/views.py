@@ -19,9 +19,10 @@ def home(request):
     return render(request, 'home.html', {
         'projects':published_projects, 'news_pieces':news_pieces})
 
+
 def about_publish(request):
     """
-    Insrtuctions for authors
+    Instructions for authors
     """
     licenses = {}
     licenses['Database'] = License.objects.filter(resource_type=0).order_by('access_policy')
@@ -49,12 +50,14 @@ def about_publish(request):
 
     return render(request, 'about/publish.html', {'licenses':licenses, 'form':form})
 
+
 def license_content(request, license_slug):
     """
     Content for an individual license
     """
     license = License.objects.get(slug=license_slug)
     return render(request, 'about/license_content.html', {'license':license})
+
 
 def about(request):
     """
@@ -74,14 +77,39 @@ def about(request):
 
     return render(request, 'about/about.html', {'contact_form':contact_form})
 
+
 def timeline(request):
     """
     Frequently asked questions
     """
     return render(request, 'about/timeline.html')
 
+
 def citi_course(request):
     """
     Instructions for completing the CITI training course
     """
     return render(request, 'about/citi_course.html')
+
+
+def error_404(request, exception=None):
+    """
+    View for testing the 404 page. To test, uncomment the URL pattern
+        in urls.py.
+    """
+    return render(request,'404.html', status=404)
+
+
+def error_500(request, exception=None):
+    """
+    View for testing the 404 page. To test, uncomment the URL pattern
+        in urls.py.
+    """
+    return render(request, "500.html", status=500)
+
+
+def content_overview(request):
+    """
+    Temporary content overview
+    """
+    return render(request, 'about/content_overview.html')

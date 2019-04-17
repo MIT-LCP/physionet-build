@@ -53,7 +53,7 @@ def get_content(resource_type, orderby, direction, topic):
 
     # Word boundary for different database engines
     wb = r'\b'
-    if 'postgresql' in settings.DATABASES['default']['ENGINE']: 
+    if 'postgresql' in settings.DATABASES['default']['ENGINE']:
         wb = r'\y'
 
     # Build query for resource type and keyword filtering
@@ -200,3 +200,6 @@ def physiotools(request):
 
 def redirect_project(request, project_slug):
     return redirect('published_project_latest', project_slug=project_slug)
+
+def redirect_challenge_project(request, year):
+    return redirect('published_project_latest', project_slug='challenge-{}'.format(year))

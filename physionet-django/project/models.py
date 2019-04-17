@@ -740,7 +740,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         Archive the project. Create an ArchivedProject object, copy over
         the fields, and delete this object
         """
-        archived_project = ArchivedProject(archive_reason=archive_reason)
+        archived_project = ArchivedProject(archive_reason=archive_reason,
+            slug=self.slug)
 
         # Direct copy over fields
         for attr in [f.name for f in Metadata._meta.fields] + [f.name for f in SubmissionInfo._meta.fields] + ['modified_datetime']:
