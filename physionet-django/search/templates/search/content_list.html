@@ -9,7 +9,7 @@
     {% if not published_project.is_legacy %}
       <p class="text-muted">
           {% for author in published_project.authors.all %}
-            {{ author.get_full_name }}
+          {{ author.get_full_name }}{% if not forloop.last %}, {% endif %}
           {% endfor %}
       </p>
     {% endif %}
