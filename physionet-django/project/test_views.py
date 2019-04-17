@@ -264,6 +264,14 @@ class TestAccessPublished(TestMixin, TestCase):
             'serve_published_project_file',
             args=(project.slug, project.version, 'SHA256SUMS.txt')))
         self.assertEqual(response.status_code, 404)
+        response = self.client.get(reverse(
+            'published_project_subdir',
+            args=(project.slug, project.version, 'timeseries')))
+        self.assertEqual(response.status_code, 403)
+        response = self.client.get(reverse(
+            'published_project_subdir',
+            args=(project.slug, project.version, 'fnord')))
+        self.assertEqual(response.status_code, 403)
 
         # Non-credentialed user
         self.client.login(username='aewj@mit.edu', password='Tester11!')
@@ -271,6 +279,10 @@ class TestAccessPublished(TestMixin, TestCase):
             'serve_published_project_file',
             args=(project.slug, project.version, 'SHA256SUMS.txt')))
         self.assertEqual(response.status_code, 404)
+        response = self.client.get(reverse(
+            'published_project_subdir',
+            args=(project.slug, project.version, 'timeseries')))
+        self.assertEqual(response.status_code, 403)
 
         # Credentialed user that has not signed dua
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
@@ -278,6 +290,10 @@ class TestAccessPublished(TestMixin, TestCase):
             'serve_published_project_file',
             args=(project.slug, project.version, 'SHA256SUMS.txt')))
         self.assertEqual(response.status_code, 404)
+        response = self.client.get(reverse(
+            'published_project_subdir',
+            args=(project.slug, project.version, 'timeseries')))
+        self.assertEqual(response.status_code, 403)
 
         # Sign the dua and get file again
         response = self.client.post(reverse('sign_dua',
@@ -291,6 +307,14 @@ class TestAccessPublished(TestMixin, TestCase):
             'serve_published_project_file',
             args=(project.slug, project.version, 'admissions.csv')))
         self.assertEqual(response.status_code, 200)
+        response = self.client.get(reverse(
+            'published_project_subdir',
+            args=(project.slug, project.version, 'timeseries')))
+        self.assertEqual(response.status_code, 200)
+        response = self.client.get(reverse(
+            'published_project_subdir',
+            args=(project.slug, project.version, 'fnord')))
+        self.assertEqual(response.status_code, 404)
 
     def test_open(self):
         """
