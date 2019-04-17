@@ -7,7 +7,7 @@ from .base import *
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['staging.physionet.org', 'physionet-staging.ecg.mit.edu']
+ALLOWED_HOSTS = ['staging.physionet.org', 'physionet-staging.ecg.mit.edu', 'physionet.org', 'www.physionet.org']
 
 DATABASES = {
     'default': {
