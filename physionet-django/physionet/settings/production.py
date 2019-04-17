@@ -7,8 +7,7 @@ from .base import *
 
 DEBUG = False
 
-ALLOWED_HOSTS = ['alpha.physionet.org', 'production-physionet.ecg.mit.edu']
-
+ALLOWED_HOSTS = ['alpha.physionet.org', 'physionet-production.ecg.mit.edu']
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
