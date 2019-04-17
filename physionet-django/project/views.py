@@ -882,7 +882,19 @@ def project_preview(request, project_slug, subdir='', **kwargs):
         for e in project.integrity_errors:
             messages.error(request, e)
 
-    display_files, display_dirs = project.get_directory_content(subdir=subdir)
+    display_files = display_dirs = ()
+    try:
+        display_files, display_dirs = project.get_directory_content(
+            subdir=subdir)
+        status = 200
+        file_error = None
+    except FileNotFoundError:
+        status = 404
+        file_error = 'Directory not found'
+    except OSError:
+        status = 404
+        file_error = 'Unable to read directory'
+
     dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
     files_panel_url = reverse('preview_files_panel', args=(project.slug,))
 
@@ -892,7 +904,8 @@ def project_preview(request, project_slug, subdir='', **kwargs):
         'invitations':invitations, 'references':references,
         'publications':publications, 'topics':topics, 'languages':languages,
         'passes_checks':passes_checks, 'dir_breadcrumbs':dir_breadcrumbs,
-        'files_panel_url':files_panel_url, 'subdir':subdir})
+        'files_panel_url':files_panel_url, 'subdir':subdir,
+        'file_error':file_error})
 
 
 @project_auth(auth_mode=2)
@@ -1166,8 +1179,19 @@ def published_project(request, project_slug, version, subdir=''):
 
     # The file and directory contents
     if has_access:
-        display_files, display_dirs = project.get_directory_content(
-            subdir=subdir)
+        display_files = display_dirs = ()
+        try:
+            display_files, display_dirs = project.get_directory_content(
+                subdir=subdir)
+            status = 200
+            file_error = None
+        except FileNotFoundError:
+            status = 404
+            file_error = 'Directory not found'
+        except OSError:
+            status = 404
+            file_error = 'Unable to read directory'
+
         dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
         main_size, compressed_size = [utility.readable_size(s) for s in
             (project.main_storage_size, project.compressed_storage_size)]
@@ -1177,9 +1201,13 @@ def published_project(request, project_slug, version, subdir=''):
         context = {**context, **{'dir_breadcrumbs':dir_breadcrumbs,
             'main_size':main_size, 'compressed_size':compressed_size,
             'display_files':display_files, 'display_dirs':display_dirs,
-            'files_panel_url':files_panel_url, 'subdir':subdir}}
+            'files_panel_url':files_panel_url, 'subdir':subdir,
+            'file_error':file_error}}
+    else:
+        status = 200
 
-    return render(request, 'project/published_project.html', context)
+    return render(request, 'project/published_project.html', context,
+                  status=status)
 
 
 @login_required
