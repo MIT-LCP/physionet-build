@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'ckeditor',
-    'django_cron',
+    # 'django_cron',
     'background_task',
 
     'user',
