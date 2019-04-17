@@ -692,9 +692,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         # Sanitize subdir for illegal characters
         validate_subdir(subdir)
-        # Folder must be a subfolder of the file root and exist
+        # Folder must be a subfolder of the file root
+        # (but not necessarily exist or be a directory)
         inspect_dir = os.path.join(self.file_root(), subdir)
-        if inspect_dir.startswith(self.file_root()) and os.path.isdir(inspect_dir):
+        if inspect_dir.startswith(self.file_root()):
             return inspect_dir
         else:
             raise Exception('Invalid directory request')
@@ -1229,9 +1230,10 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         # Sanitize subdir for illegal characters
         validate_subdir(subdir)
-        # Folder must be a subfolder of the file root and exist
+        # Folder must be a subfolder of the file root
+        # (but not necessarily exist or be a directory)
         inspect_dir = os.path.join(self.file_root(), subdir)
-        if inspect_dir.startswith(self.file_root()) and os.path.isdir(inspect_dir):
+        if inspect_dir.startswith(self.file_root()):
             return inspect_dir
         else:
             raise Exception('Invalid directory request')
