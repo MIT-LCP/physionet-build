@@ -35,11 +35,26 @@
 
   <hr>
 
+  <!-- Latest news and announcements -->
+  {% if news %}
+  
+    {% for new in news %}
+    <div class="alert alert-primary" role="alert">
+      <strong>{{ new.title|safe }}</strong>
+      <em>({{ new.publish_datetime }})</em>
+      <p>{{ new.content|safe }}</p>
+      </div>
+    {% endfor %}
+  
+  {% endif %}
+
   <div class="row">
     <!-- Main column -->
     <div class="col-md-8" style="padding-left: 0;">
 
   <div class="alert alert-secondary">
+
+
   {% if not project.is_legacy %}
   <strong>When using this resource, please cite:</strong>
     <p>{{ project.citation_text }}</p>
