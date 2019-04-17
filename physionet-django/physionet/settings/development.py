@@ -21,7 +21,7 @@ SERVER_EMAIL = 'PhysioNet System <root@dev.physionet.org>'
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(BASE_DIR, 'PhysioNet-Data-credentials.json')
 
-ADMINS = [('PhysioNet Contact', 'contact@dev.physionet.org')]
+ADMINS = [('PhysioNet Technical', 'technical@dev.physionet.org')]
 
 DEBUG_TOOLBAR_CONFIG = {
     'JQUERY_URL': '',

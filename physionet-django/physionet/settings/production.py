@@ -33,7 +33,7 @@ SERVER_EMAIL = 'PhysioNet System <root@alpha.physionet.org>'
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(BASE_DIR, 'PhysioNet-Data-credentials.json')
 
-ADMINS = [('PhysioNet Contact', 'contact@alpha.physionet.org')]
+ADMINS = [('PhysioNet Technical', 'technical@alpha.physionet.org')]
 
 DEMO_FILE_ROOT = os.path.join(os.path.abspath(os.path.join(BASE_DIR, os.pardir)), 'demo-files')
 
