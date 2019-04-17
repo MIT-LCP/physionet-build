@@ -1151,15 +1151,18 @@ def published_project(request, project_slug, version, subdir=''):
     topics = project.topics.all()
     languages = project.programming_languages.all()
     contact = Contact.objects.get(project=project)
+    news = project.news.all().order_by('-publish_datetime')
+
 
     has_access = project.has_access(request.user)
     current_site = get_current_site(request)
     all_project_versions = PublishedProject.objects.filter(
         slug=project_slug).order_by('version_order')
-    context = {'project':project, 'authors':authors,
-        'references':references, 'publication':publication, 'topics':topics,
-        'languages':languages, 'contact':contact, 'has_access':has_access,
-        'current_site':current_site, 'all_project_versions':all_project_versions}
+    context = {'project': project, 'authors': authors,
+               'references': references, 'publication': publication,
+               'topics': topics, 'languages': languages, 'contact': contact,
+               'has_access': has_access, 'current_site': current_site,
+               'news': news, 'all_project_versions': all_project_versions}
 
     # The file and directory contents
     if has_access:

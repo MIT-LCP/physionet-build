@@ -35,22 +35,33 @@
 
   <hr>
 
+  <!-- Latest news and announcements -->
+  {% if news %}
+  <div class="alert alert-primary" role="alert">
+    {% for new in news %}
+      <strong>{{ new.title|safe }}</strong>
+      <em>({{ new.publish_datetime }})</em>
+      {{ new.content|safe }}
+    {% endfor %}
+  </div>
+  {% endif %}
+
   <div class="row">
     <!-- Main column -->
     <div class="col-md-8" style="padding-left: 0;">
 
-  <div class="alert alert-secondary">
-  {% if not project.is_legacy %}
-  <strong>When using this resource, please cite:</strong>
-    <p>{{ project.citation_text }}</p>
-  {% endif %}
+    <div class="alert alert-secondary">
+      {% if not project.is_legacy %}
+        <strong>When using this resource, please cite:</strong>
+        <p>{{ project.citation_text }}</p>
+      {% endif %}
 
-  <strong>Please also include the standard citation for PhysioNet:</strong>
-    <p>Goldberger AL, Amaral LAN, Glass L, Hausdorff JM, Ivanov PCh, Mark RG, 
-    Mietus JE, Moody GB, Peng C-K, Stanley HE. PhysioBank, PhysioToolkit, and 
-    PhysioNet: Components of a New Research Resource for Complex Physiologic 
-    Signals (2003). Circulation. 101(23):e215-e220.</p>
-  </div>
+      <strong>Please also include the standard citation for PhysioNet:</strong>
+      <p>Goldberger AL, Amaral LAN, Glass L, Hausdorff JM, Ivanov PCh, Mark RG,
+      Mietus JE, Moody GB, Peng C-K, Stanley HE. PhysioBank, PhysioToolkit, and
+      PhysioNet: Components of a New Research Resource for Complex Physiologic
+      Signals (2003). Circulation. 101(23):e215-e220.</p>
+    </div>
 
       {% if project.is_legacy %}
         {{ project.full_description|safe }}
@@ -72,59 +83,59 @@
 
     <!-- Sidebar Column -->
     <div class="col-md-4" style="padding-right: 0;">
-
-  {% if not project.is_legacy %}
-  <div class="card" style="border: 0">
-  <button class="btn btn-secondary dropdown-toggle btn-rsp btn-right" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-    Contents
-  </button>
-  <div class="dropdown-menu">
-    {% if project.resource_type == 0 %}
-        <a class="dropdown-item" href="#abstract">Abstract</a>
-        <a class="dropdown-item" href="#background">Background</a>
-        <a class="dropdown-item" href="#methods">Methods</a>
-        <a class="dropdown-item" href="#description">Data Description</a>
-        <a class="dropdown-item" href="#usage-notes">Usage Notes</a>
-        <a class="dropdown-item" href="#acknowledgements">Acknowledgements</a>
-        <a class="dropdown-item" href="#conflicts-of-interest">Conflicts of Interest</a>
-        <a class="dropdown-item" href="#references">References</a>
-        <a class="dropdown-item" href="#files">Files</a>
-    {% elif project.resource_type == 1 %}
-        <a class="dropdown-item" href="#abstract">Abstract</a>
-        <a class="dropdown-item" href="#background">Background</a>
-        <a class="dropdown-item" href="#description">Software Description</a>
-        {% if project.methods %}
-          <a class="dropdown-item" href="#implementation">Technical Implementation</a>
-        {% endif %}
-        {% if project.installation %}
-          <a class="dropdown-item" href="#installation">Installation and Requirements</a>
-        {% endif %}
-        <a class="dropdown-item" href="#usage-notes">Usage Notes</a>
-        {% if project.release_notes %}
-          <a class="dropdown-item" href="#release-notes">Release Notes</a>
-        {% endif %}
-        {% if project.acknowledgements %}
-          <a class="dropdown-item" href="#acknowledgements">Acknowledgements</a>
-        {% endif %}
-        <a class="dropdown-item" href="#conflicts-of-interest">Conflicts of Interest</a>
-        <a class="dropdown-item" href="#references">References</a>
-        <a class="dropdown-item" href="#files">Files</a>
-    {% elif project.resource_type == 2 %}
-        <a class="dropdown-item" href="#abstract">Abstract</a>
-        <a class="dropdown-item" href="#background">Objective</a>
-        <a class="dropdown-item" href="#methods">Participation</a>
-        <a class="dropdown-item" href="#description">Data Description</a>
-        <a class="dropdown-item" href="#usage-notes">Evaluation</a>
-        <a class="dropdown-item" href="#acknowledgements">Acknowledgements</a>
-        <a class="dropdown-item" href="#conflicts-of-interest">Conflicts of Interest</a>
-        <a class="dropdown-item" href="#references">References</a>
-        <a class="dropdown-item" href="#files">Files</a>
-    {% else %}
-        <a class="dropdown-item" href="#files">Files</a>
-    {% endif %}
-    </div>
-    </div>
-    {% endif %}
+      {# Contents Button #}
+      {% if not project.is_legacy %}
+      <div class="card" style="border: 0">
+        <button class="btn btn-secondary dropdown-toggle btn-rsp btn-right" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Contents
+        </button>
+        <div class="dropdown-menu">
+          {% if project.resource_type == 0 %}
+            <a class="dropdown-item" href="#abstract">Abstract</a>
+            <a class="dropdown-item" href="#background">Background</a>
+            <a class="dropdown-item" href="#methods">Methods</a>
+            <a class="dropdown-item" href="#description">Data Description</a>
+            <a class="dropdown-item" href="#usage-notes">Usage Notes</a>
+            <a class="dropdown-item" href="#acknowledgements">Acknowledgements</a>
+            <a class="dropdown-item" href="#conflicts-of-interest">Conflicts of Interest</a>
+            <a class="dropdown-item" href="#references">References</a>
+            <a class="dropdown-item" href="#files">Files</a>
+          {% elif project.resource_type == 1 %}
+            <a class="dropdown-item" href="#abstract">Abstract</a>
+            <a class="dropdown-item" href="#background">Background</a>
+            <a class="dropdown-item" href="#description">Software Description</a>
+            {% if project.methods %}
+              <a class="dropdown-item" href="#implementation">Technical Implementation</a>
+            {% endif %}
+            {% if project.installation %}
+              <a class="dropdown-item" href="#installation">Installation and Requirements</a>
+            {% endif %}
+            <a class="dropdown-item" href="#usage-notes">Usage Notes</a>
+            {% if project.release_notes %}
+              <a class="dropdown-item" href="#release-notes">Release Notes</a>
+            {% endif %}
+            {% if project.acknowledgements %}
+              <a class="dropdown-item" href="#acknowledgements">Acknowledgements</a>
+            {% endif %}
+            <a class="dropdown-item" href="#conflicts-of-interest">Conflicts of Interest</a>
+            <a class="dropdown-item" href="#references">References</a>
+            <a class="dropdown-item" href="#files">Files</a>
+          {% elif project.resource_type == 2 %}
+            <a class="dropdown-item" href="#abstract">Abstract</a>
+            <a class="dropdown-item" href="#background">Objective</a>
+            <a class="dropdown-item" href="#methods">Participation</a>
+            <a class="dropdown-item" href="#description">Data Description</a>
+            <a class="dropdown-item" href="#usage-notes">Evaluation</a>
+            <a class="dropdown-item" href="#acknowledgements">Acknowledgements</a>
+            <a class="dropdown-item" href="#conflicts-of-interest">Conflicts of Interest</a>
+            <a class="dropdown-item" href="#references">References</a>
+            <a class="dropdown-item" href="#files">Files</a>
+          {% else %}
+            <a class="dropdown-item" href="#files">Files</a>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
 
       <div class="card my-4">
         <h5 class="card-header">Share</h5>
