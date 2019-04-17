@@ -725,7 +725,7 @@ class AccessMetadataForm(forms.ModelForm):
 
 
 class AuthorCommentsForm(forms.Form):
-    author_comments = forms.CharField(max_length=500, required=False,
+    author_comments = forms.CharField(max_length=12000, required=False,
         label='Comments for editor (optional)', widget=forms.Textarea())
 
 
