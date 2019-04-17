@@ -20,13 +20,13 @@ from . import forms
 from .models import (Affiliation, Author, AuthorInvitation, ActiveProject,
     PublishedProject, StorageRequest, Reference, ArchivedProject,
     ProgrammingLanguage, Topic, Contact, Publication, PublishedAuthor, EditLog,
-    CopyeditLog, DUASignature, CoreProject)
+    CopyeditLog, DUASignature, CoreProject, GCP)
 from . import utility
 import notification.utility as notification
 import physionet.utility as physionet
 from user.forms import ProfileForm, AssociatedEmailChoiceForm
 from user.models import User
-
+from console.utility import add_email_bucket_access
 
 def project_auth(auth_mode=0, post_auth_mode=0):
     """
@@ -1201,6 +1201,11 @@ def sign_dua(request, project_slug, version):
     if request.method == 'POST' and 'agree' in request.POST:
         project.approved_users.add(user)
         DUASignature.objects.create(user=user, project=project)
+        # Add all the emails affiliated with the user to the bucket
+        if GCP.objects.filter(project=project.id) and project.gcp.bucket_name:
+            email_list = user.get_emails()
+            for email in email_list:
+                add_email_bucket_access(project, email)
         return render(request, 'project/sign_dua_complete.html', {
             'project':project})
 

@@ -11,7 +11,7 @@
 {% endblock %}
 
 {% block local_js_top %}
-<script type="text/javascript" src="{% static 'custom/js/copy-to-clipboard.js' %}"></script>
+<script src="{% static 'custom/js/copy-to-clipboard.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -68,6 +68,29 @@
       <button class="btn btn-primary btn-fixed" name="make_checksum_file" type="submit">Make Checksum File</button>
       <button class="btn btn-primary btn-fixed" name="make_zip" type="submit">Make Zip</button>
     </form>
+    <br>
+    <h3>Google Cloud</h3>
+    <hr>
+      {% if not has_credentials %}
+        <p>You are missing the Google Cloud credentials.</p>
+      {% elif not project.gcp.bucket_name %}
+        <p>Create the GCP bucket to store all of the information of this project.</p>
+        <form action="" method="post">
+          {% csrf_token %}
+          <button class="btn btn-primary" name="bucket" value='{{project.slug}}' type="submit">Create GCP bucket and send files </button><br><br>
+        </form>
+        <p>Please make the special files before sending the files to GCP</p>
+      {% elif project.gcp.sent_files and project.gcp.bucket_name %}
+        <p>The files have been sent to GCP. The bucket name is: {{project.gcp.bucket_name}}.</p>
+        <form action="" method="post">
+          {% csrf_token %}
+          <button class="btn btn-primary" name="bucket" value='{{project.slug}}' type="submit">Resend files </button><br><br>
+        </form>
+
+      {% else %}
+        <p>The files are being sent to GCP. The bucket name is: {{project.gcp.bucket_name}}.</p>
+        <p>If this message is here for a long time check the Django "process_tasks"</p>
+      {% endif %}
   </div>
 </div>
 {% endblock %}

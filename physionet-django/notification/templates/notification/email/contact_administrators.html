@@ -1,0 +1,12 @@
+{% load i18n %}{% autoescape off %}
+
+Dear Physionet Team,
+
+There was an error sending the files from "{{project}}" to the GCP bucket {{project.gcp.gcp_bucket}}. Here is the error:
+
+{{error}}
+
+{{ signature }}
+
+{{ footer }}
+{% endautoescape %}

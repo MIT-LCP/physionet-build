@@ -374,6 +374,19 @@ def mailto_supervisor(request, application):
       parse.quote(subject), parse.quote(body))
     return mailto
 
+def mailto_administrators(project, error):
+    """
+    Request verification from a credentialing applicant's reference
+    """
+    subject = 'Error sending files to GCP for {}'.format(project.slug)
+    body = loader.render_to_string('notification/email/contact_administrators.html',
+        {'project':project, 'error':error,
+         'signature':email_signature(),
+         'footer':email_footer()})
+    
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+              [settings.CONTACT_EMAIL], fail_silently=False)
+
 def reference_deny_credential(request, application):
     """
     Notify an applicant that their reference has denied their

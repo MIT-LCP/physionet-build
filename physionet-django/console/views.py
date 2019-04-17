@@ -1,7 +1,10 @@
 import re
 import pdb
 import logging
+import subprocess
+import os
 
+from django.core.validators  import validate_email
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
@@ -12,14 +15,15 @@ from django.shortcuts import redirect, render
 from django.template import loader
 from django.urls import reverse
 from django.utils import timezone
+from background_task import background
 
-from . import forms
+from . import forms, utility
 from notification.models import News
 import notification.utility as notification
 import project.forms as project_forms
 from project.models import (ActiveProject, ArchivedProject, StorageRequest,
     EditLog, Reference, Topic, Publication, PublishedProject,
-    exists_project_slug)
+    exists_project_slug, GCP)
 from project.utility import readable_size
 from project.views import (get_file_forms, get_project_file_info,
     process_files_post)
@@ -480,20 +484,35 @@ def published_projects(request):
     return render(request, 'console/published_projects.html',
         {'projects':projects})
 
+@background()
+def send_files_to_gcp(pid):
+    """
+    Schedule a background task to send the files to GCP.
+    This function can be runned manually to force a re-send of all the files
+    to GCP. It only requires the Project ID.
+    """
+    project = PublishedProject.objects.get(id=pid)
+    exists = utility.check_bucket(project.slug, project.version)
+    if exists:
+        utility.upload_files(project)
+        project.gcp.sent_files = True
+        project.gcp.finished_datetime = timezone.now()
+        project.gcp.save()
+
 @login_required
 @user_passes_test(is_admin)
-def manage_published_project(request, project_slug):
+def manage_published_project(request, project_slug, version):
     """
     Manage a published project
-
     - Set the DOI field (after doing it in datacite)
     - Create zip of files
-
+    - Create GCP bucket and send files
     """
-    project = PublishedProject.objects.get(slug=project_slug)
+    user = request.user
+    project = PublishedProject.objects.get(slug=project_slug, version=version)
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
     doi_form = forms.DOIForm(instance=project)
-
+    has_credentials = os.path.exists(os.environ["GOOGLE_APPLICATION_CREDENTIALS"])
     if request.method == 'POST':
         if 'set_doi' in request.POST:
             doi_form = forms.DOIForm(data=request.POST, instance=project)
@@ -508,12 +527,34 @@ def manage_published_project(request, project_slug):
         elif 'make_zip' in request.POST:
             project.make_zip()
             messages.success(request, 'The zip of the main files has been generated.')
+        elif 'bucket' in request.POST and has_credentials:
+            slug = request.POST['bucket'].lower()
+            if not utility.check_bucket(slug, project.version):
+                bucket_name = is_private = False
+                if project.access_policy > 0:
+                    is_private = True
+                bucket_name = utility.create_bucket(project=slug, protected=is_private, 
+                    version=project.version)
+                GCP.objects.create(project=project, bucket_name=bucket_name, 
+                    managed_by=user, is_private=is_private)
+                send_files_to_gcp(project.id)
+                logger.info("Created GCP bucket for project {0}".format(
+                    project_slug))
+                messages.success(request, "The GCP bucket for project {0} was \
+                    successfully created.".format(project_slug))                
+            else:
+                send_files_to_gcp(project.id)
+                logger.info("Created GCP bucket for project {0}".format(
+                    project_slug))
+                messages.success(request, "The bucket already exists. Resending the files \
+                    for the project {0}.".format(project_slug))
 
     return render(request, 'console/manage_published_project.html',
         {'project':project, 'authors':authors, 'author_emails':author_emails,
          'storage_info':storage_info, 'edit_logs':edit_logs,
          'copyedit_logs':copyedit_logs, 'latest_version':latest_version,
-         'published':True, 'doi_form':doi_form,})
+         'published':True, 'doi_form':doi_form, 'has_credentials':has_credentials})
+
 
 @login_required
 @user_passes_test(is_admin)
@@ -720,7 +761,6 @@ def add_news(request):
         form = forms.NewsForm()
 
     return render(request, 'console/add_news.html', {'form':form})
-
 
 @login_required
 @user_passes_test(is_admin)

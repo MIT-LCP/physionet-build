@@ -218,6 +218,20 @@
     </div>
     <!-- /.sidebar -->
   </div>
+
+  {% if project.gcp.sent_files %}
+    <h2 id="files">Files on Google Cloud</h2>
+    {% if project.access_policy %}
+      {% if has_access %}
+        <p>Click <a href="https://console.cloud.google.com/storage/browser/{{ project.gcp.bucket_name }}/">here</a> to view the files in the Google Cloud Console. Login with a Google account is required.</p>
+        <p><a href="https://storage.googleapis.com/{{ project.gcp.bucket_name }}/{{ project.zip_name }}" class="btn btn-primary btn-sm">Download Zip from Google</a> </p>
+      {% endif %}
+    {% else %}
+        <p>Click <a href="https://console.cloud.google.com/storage/browser/{{ project.gcp.bucket_name }}/">here</a> to view the files in the Google Cloud Console. Login with a Google account is required.</p>
+        <p><a href="https://storage.googleapis.com/{{ project.gcp.bucket_name }}/{{ project.zip_name }}" class="btn btn-primary btn-sm">Download Zip from Google</a> </p>
+    {% endif %}
+  {% endif %}
+
   <h2 id="files">Files</h2>
   {% if project.access_policy %}
     {% if has_access %}
@@ -231,7 +245,7 @@
     </div>
     {% endif %}
   {% else %}
-    <p>Total uncompressed size: {{ main_size }}.{% if project.compressed_storage_size %}<a class="btn btn-success btn-sm btn-rsp" href="{% static project.zip_url %}" style="float:right; margin-bottom: 5px;">Download Zip ({{ compressed_size }})</a>{% endif %}</p>
+    <p>Total uncompressed size: {{ main_size }}.{% if project.compressed_storage_size %}<a class="btn btn-success btn-sm btn-rsp" href="{% static project.zip_url %}" style="float:right">Download Zip ({{ compressed_size }})</a>{% endif %}</p>
     <div id="files-panel" class="card">
       {% include "project/files_panel.html" %}
     </div>
