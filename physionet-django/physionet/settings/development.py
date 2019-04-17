@@ -17,6 +17,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 DEFAULT_FROM_EMAIL = 'PhysioNet Automated System <noreply@dev.physionet.org>'
 CONTACT_EMAIL = 'PhysioNet Contact <contact@dev.physionet.org>'
+SERVER_EMAIL = 'PhysioNet System <root@dev.physionet.org>'
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(BASE_DIR, 'PhysioNet-Data-credentials.json')
 
