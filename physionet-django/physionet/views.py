@@ -26,30 +26,14 @@ def about_publish(request):
     Instructions for authors
     """
     licenses = {}
-    licenses['Database'] = License.objects.filter(resource_type=0).order_by('access_policy')
-    licenses['Software'] = License.objects.filter(resource_type=1).order_by('access_policy')
-    licenses['Challenge'] = License.objects.filter(resource_type=2).order_by('access_policy')
+    licenses['Database'] = License.objects.filter(
+        resource_types__contains='0').order_by('access_policy')
+    licenses['Software'] = License.objects.filter(
+        resource_types__contains='1').order_by('access_policy')
+    licenses['Challenge'] = License.objects.filter(
+        resource_types__contains='2').order_by('access_policy')
 
-    user = request.user
-
-    if user.is_authenticated:
-        n_submitting = Author.objects.filter(user=user, is_submitting=True,
-            content_type=ContentType.objects.get_for_model(ActiveProject)).count()
-        if n_submitting >= ActiveProject.MAX_SUBMITTING_PROJECTS:
-            return render(request, 'project/project_limit_reached.html',
-                {'max_projects':ActiveProject.MAX_SUBMITTING_PROJECTS})
-
-        if request.method == 'POST':
-            form = forms.CreateProjectForm(user=user, data=request.POST)
-            if form.is_valid():
-                project = form.save()
-                return redirect('project_overview', project_slug=project.slug)
-        else:
-            form = forms.CreateProjectForm(user=user)
-    else:
-        form = ''
-
-    return render(request, 'about/publish.html', {'licenses':licenses, 'form':form})
+    return render(request, 'about/publish.html', {'licenses':licenses})
 
 
 def license_content(request, license_slug):
@@ -64,7 +48,6 @@ def about(request):
     """
     About the site content.
     """
-
     if request.method == 'POST':
         contact_form = ContactForm(request.POST)
         if contact_form.is_valid():

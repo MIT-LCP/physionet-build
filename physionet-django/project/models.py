@@ -1341,10 +1341,13 @@ class License(models.Model):
     html_content = SafeHTMLField(default='')
     home_page = models.URLField()
     # A project must choose a license with a matching access policy and
-    # resource type
+    # compatible resource type
     access_policy = models.PositiveSmallIntegerField(choices=Metadata.ACCESS_POLICIES,
         default=0)
-    resource_type = models.PositiveSmallIntegerField(choices=Metadata.RESOURCE_TYPES)
+    # A license can be used for one or more resource types.
+    # This is a comma delimited char field containing allowed types.
+    # ie. '0' or '0,2' or '1,3,4'
+    resource_types = models.CharField(max_length=100)
     # A protected license has associated DUA content
     dua_name = models.CharField(max_length=100, blank=True, default='')
     dua_html_content = SafeHTMLField(blank=True, default='')
