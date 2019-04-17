@@ -1115,7 +1115,7 @@ def serve_published_project_file(request, project_slug, version,
             return physionet.serve_file(file_path)
         except IsADirectoryError:
             return redirect(request.path + '/')
-    raise Http404()
+    raise PermissionDenied()
 
 
 def serve_published_project_zip(request, project_slug, version):
@@ -1128,7 +1128,7 @@ def serve_published_project_zip(request, project_slug, version):
         version=version)
     if project.has_access(request.user):
         return physionet.serve_file(project.zip_name(full=True))
-    raise Http404()
+    raise PermissionDenied()
 
 
 def published_project_license(request, project_slug, version):
