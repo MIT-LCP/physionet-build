@@ -726,7 +726,7 @@ def project_files_panel(request, project_slug, **kwargs):
         move_items_form, delete_items_form) = get_file_forms(project, subdir)
 
     return render(request, 'project/edit_files_panel.html',
-        {'project':project, 'subdir':subdir,
+        {'project':project, 'subdir':subdir, 'file_error':file_error,
          'dir_breadcrumbs':dir_breadcrumbs, 'parent_dir':parent_dir,
          'display_files':display_files, 'display_dirs':display_dirs,
          'upload_files_form':upload_files_form,
@@ -832,7 +832,7 @@ def project_files(request, project_slug, subdir='', **kwargs):
         'create_folder_form':create_folder_form,
         'rename_item_form':rename_item_form, 'move_items_form':move_items_form,
         'delete_items_form':delete_items_form, 'is_submitting':is_submitting,
-        'dir_breadcrumbs':dir_breadcrumbs})
+        'dir_breadcrumbs':dir_breadcrumbs, 'file_error':file_error})
 
 
 @project_auth(auth_mode=2)
@@ -865,7 +865,7 @@ def preview_files_panel(request, project_slug, **kwargs):
     files_panel_url = reverse('preview_files_panel', args=(project.slug,))
 
     return render(request, 'project/files_panel.html',
-        {'project':project, 'subdir':subdir,
+        {'project':project, 'subdir':subdir, 'file_error':file_error,
          'dir_breadcrumbs':dir_breadcrumbs, 'parent_dir':parent_dir,
          'display_files':display_files, 'display_dirs':display_dirs,
          'files_panel_url':files_panel_url})
@@ -1107,7 +1107,7 @@ def published_files_panel(request, project_slug, version):
             {'project':project, 'subdir':subdir,
              'dir_breadcrumbs':dir_breadcrumbs, 'parent_dir':parent_dir,
              'display_files':display_files, 'display_dirs':display_dirs,
-             'files_panel_url':files_panel_url})
+             'files_panel_url':files_panel_url, 'file_error':file_error})
 
 
 def serve_published_project_file(request, project_slug, version,
