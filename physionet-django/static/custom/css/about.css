@@ -16,3 +16,12 @@
 .card ul ul a {
     padding-left: 20px;
 }
+
+table, th, td {
+  border: 1px solid lightgrey;
+  width: 100%;
+}
+
+tr:nth-child(even) {
+    background-color: #f8f8f8;
+}
