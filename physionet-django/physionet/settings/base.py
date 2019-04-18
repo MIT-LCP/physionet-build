@@ -263,7 +263,7 @@ logging.config.dictConfig({
             'propagate': False,
         },
         'physionet.error': {
-            'handlers': ['console', 'mail_admins'],
+            'handlers': ['console', 'mail_admins', 'Custom_Logging'],
             'level': 'ERROR',
         }
     },
