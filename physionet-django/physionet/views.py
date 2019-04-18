@@ -119,25 +119,25 @@ def database_overview(request):
     """
     Temporary content overview
     """
-    return render(request, 'about/database_overview.html')
+    return render(request, 'about/database_index.html')
 
 
 def software_overview(request):
     """
     Temporary content overview
     """
-    return render(request, 'about/software_overview.html')
+    return render(request, 'about/software_index.html')
 
 
 def challenge_overview(request):
     """
     Temporary content overview
     """
-    return render(request, 'about/challenge_overview.html')
+    return render(request, 'about/challenge_index.html')
 
 
 def tutorial_overview(request):
     """
     Temporary content overview
     """
-    return render(request, 'about/tutorial_overview.html')
+    return render(request, 'about/tutorial_index.html')

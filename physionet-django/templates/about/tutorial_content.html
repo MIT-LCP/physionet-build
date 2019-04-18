@@ -1,42 +1,348 @@
-{% extends "base.html" %}
+<!-- <section id="citation">
+  <h1>Suggested Citation</h1>
+  <br>
+  <p>If you use resources from PhysioNet in a publication, please credit
+  the author(s) using the citation displayed at the top of the published content. Please also include the standard citation for PhysioNet:</p>
 
-{% load static %}
+  <p class="alert alert-primary" role="alert">Goldberger AL, Amaral LAN, Glass L,
+    Hausdorff JM, Ivanov PCh, Mark RG,
+  Mietus JE, Moody GB, Peng C-K, Stanley HE.  PhysioBank, PhysioToolkit, and
+  PhysioNet: Components of a New Research Resource for Complex Physiologic
+  Signals.
+  Circulation <b>101</b>(23):e215-e220 [Circulation Electronic Pages;
+  <a href="http://circ.ahajournals.org/content/101/23/e215.full"
+  target="other">http://circ.ahajournals.org/content/101/23/e215.full</a>];
+  2000 (June 13).</p>
 
-{% block title %}
-PhysioNet Tutorials
-{% endblock %}
+</section>
+
+<br>
+<hr>
+
+ -->
+<h1>Tutorials</h1>
+<p>
+PhysioNet tutorials are intended to provide hands-on introductions to
+the data and software available from this resource.  This index lists
+currently available PhysioNet tutorials by category, as well as reference
+manuals, workshop materials, and links to other tutorials likely to be
+of interest to PhysioNet visitors.</p>
+
+<br>
+<hr>
 
 
-{% block local_css %}
-<link rel="stylesheet" type="text/css" href="{% static 'custom/css/about.css' %}">
-{% endblock %}
+<h1>About PhysioNet</h1>
+<ul>
+<li><a href="http://archive.physionet.org/physiobank/about.shtml">About the
+    PhysioBank Archives</a>.  PhysioBank contains well over 36,000 recordings
+    of annotated, digitized physiologic signals and time series;  this
+    brief tutorial begins with an exploration of these archives using
+    your web browser, followed by pointers on downloading data, information
+    about the archives themselves, and recommendations of software available
+    freely from this site for further study of PhysioBank data.</li>
+
+<li><a href="http://archive.physionet.org/physiotools/getting-started.shtml">An Introduction to
+    PhysioToolkit</a>.  PhysioNet's collection of software for
+    viewing, analyzing, and modelling physiologic signals and time
+    series consists of open-source software that can be studied,
+    verified, and modified to suit the specific needs of your work.</li>
+</ul>
+
+<br>
+<hr>
 
 
-{% block content %}
+<h1 id="howto">How to ...</h1>
+<ul>
+<li><a href="http://archive.physionet.org/physiobank/database/pbi/">Finding records in PhysioBank</a>.
+    This tutorial describes the PhysioBank Index of over 36,000 records that
+    can be viewed by the PhysioBank ATM, and how to find records with desired
+    characteristics using the web-based PhysioBank Record Search or via
+    command-line tools.</li>
 
-<div class="main">
-  <div class="row">
-    <div class="main-side">
+<li><a href="http://archive.physionet.org/physiobank-text.shtml">How to obtain PhysioBank data in text
+    form</a>.  Many readers wish to convert binary data from PhysioBank
+    (PhysioNet's data archive) into text form for further processing.  There
+    are <a href="http://archive.physionet.org/physiobank/physiobank-intro.shtml">many good reasons</a>
+    not to do so.  If you are determined to do it anyway, here's how.</li>
 
-      <div class="card">
-        <h2 class="card-header">Tutorials</h2>
-        <div class="card-body">
+<li><a href="http://archive.physionet.org/tutorials/creating-records.shtml">Creating PhysioBank (WFDB-compatible)
+    Records and Data Collections</a>.  If you have digital recordings of signals
+    or time series, perhaps with annotations, that you would like to study using
+    PhysioToolkit software such as that in the WFDB software package, or that
+    you would like to contribute to PhysioBank, this tutorial should get you
+    started on creating PhysioBank-compatible records from your data.</li>
 
-            <!-- Tutorials -->
-            <ul>
-              <li><a href="#howto">How to...</a></li>
-              <li><a href="#exploreanalyse">Exploration and analysis</a></li>
-              <li><a href="#workshops">Workshops</a></li>
-              <li><a href="#referenceguide">Reference guides</a></li>
-              <li><a href="#othertutorial">Other resources</a></li>
-            </ul>
+<li><a href="http://archive.physionet.org/mirrors/mirror-howto.shtml">How to set up a mirror of
+    PhysioNet</a>.  A PhysioNet mirror can run on almost any computer made
+    in the last ten years, and it can provide local users with fast
+    access to PhysioBank data and PhysioToolkit software, even in areas
+    with slow or unreliable Internet connections.  PhysioNet mirrors are
+    easy to set up and essentially self-maintaining.  Put an old computer
+    to good use and help PhysioNet users in your area.</li>
 
-        </div>
-      </div>
-    </div><div class="main-content">
-      <div>{% include "about/about_tutorial.html" %}</div>
-    </div>
-  </div>
-</div>
+<li><a href="http://archive.physionet.org/physiobank/tutorials/using-mimic2/">Using the MIMIC II
+    Database</a>.  The <a href=/pn5/mimic2db/>MIMIC II Database</a>
+    has many types of data that are not available in other PhysioBank
+    data collections.  This tutorial is intended to help you get
+    started on a project that makes use of this rich data collection.</li>
 
-{% endblock %}
+<li><a href="http://archive.physionet.org/physiotools/cygwin/">An Introduction to Cygwin</a>.
+    PhysioToolkit includes a large collection of open-source, POSIX-compliant
+    software that can be useful to most PhysioNet visitors.  Since almost all
+    of the popular platforms are also POSIX-compliant, it's easy to get
+    PhysioToolkit software running on those platforms, including GNU/Linux,
+    Mac OS X, and all versions of Unix.  Microsoft Windows is not
+    POSIX-compliant, but a free software package called Cygwin provides a
+    stable and very complete POSIX layer on top of Windows.  By installing
+    Cygwin on your Windows PC, you will be able to run PhysioToolkit software
+    on it.  This tutorial explains how to do so, without interfering with
+    any Windows software you may be using.</li>
+
+<li><a href="http://archive.physionet.org/tutorials/apt/">Applying PhysioNet tools to manage neurophysiological
+    signals</a>.  How to import and handle data from commercial devices using
+    PhysioToolkit and other open source software.  This tutorial was
+    contributed by Jesus Olivan Palacios, a neurophysiologist who has written
+    an excellent introduction to much of the software available from PhysioNet
+    in the form of a series of hands-on exercises using data provided with the
+    tutorial.  Very readable, and highly recommended for neurophysiologists and
+    others alike.  (Also see Sciteam, below, by the same author).</li>
+
+<li><a href="http://archive.physionet.org/tutorials/hrv/">RR Intervals, Heart Rate, and HRV Howto</a>.  A
+    brief overview of how to obtain inter-beat (RR) interval and heart rate
+    time series, and of some basic methods for characterizing heart rate
+    variability, using freely available PhysioToolkit software.</li>
+
+<li><a href="http://archive.physionet.org/tutorials/hrv-toolkit/">Heart Rate Variability Analysis with the
+    HRV Toolkit: Basic Time and Frequency Domain Measures</a>.  This
+    tutorial describes how to use the HRV toolkit (available here) to
+    select and prepare time series of inter-beat intervals and to calculate
+    measurements of the basic time- and frequency-domain HRV
+    statistics that are widely used in the literature.  Particular
+    attention is given to techniques for identifying and dealing with
+    outliers, in order to permit reliable determination of
+    measurements.</li>
+
+<li><a href="http://archive.physionet.org/tutorials/pr-comp/">Morphology Representation Using Principal
+    Components</a>.  Using the QRS complex of the ECG as an example,
+    this tutorial presents practical methods for principal
+    component analysis of waveforms, including software that can be used as
+    is or customized as desired.</li>
+
+<li><a href="http://archive.physionet.org/physiotools/wag/eval.htm">Evaluating ECG Analyzers</a>.  How
+    to use PhysioToolkit software and data available from PhysioBank and
+    other sources to measure the performance of a QRS detector or classifier,
+    in accordance with protocols prescribed by current ANSI standards and the
+    US FDA (ANSI/AAMI EC38 and EC57).</li>
+
+<li><a href="http://archive.physionet.org/physiotools/digitizing/">Digitizing Paper ECGs and Other
+    Plots</a>.  A brief survey of resources that may be helpful.</li>
+
+<!-- <li><a href="http://archive.physionet.org/users/help/pnw-howto.shtml">How to create and manage a
+    PhysioNetWorks project</a>.  The essential information needed to create,
+    build, and complete a PhysioNetWorks project. -->
+
+<li><a href="writing-pages-howto.shtml">How to Write HTML pages for
+    PhysioNet</a>.  If you are preparing a contribution of data, software,
+    or tutorial material for PhysioNet, this guide illustrates how to create
+    pages with the templates and style sheets used on this web site.</li>
+
+<li><a href="http://archive.physionet.org/tutorials/cloud/">Distributed Computing with PhysioNet data</a>. A brief tutorial on 
+    how to cloud processing PhysioNet data with WFDB, StarCluster, Amazon EC2, Octave, and Hadoop.</li>
+ 
+</ul>
+
+<p>
+Also see <a href="#reference">Reference Guides</a> below, on-line books
+containing a wealth of additional "how-to" information.</p>
+
+<br>
+<hr>
+
+
+<h1 id="exploreanalyse">Exploring Data and Novel Analyses</h1>
+
+<ul>
+
+<li><a href="http://archive.physionet.org/tutorials/cv/">Variability vs. Complexity</a>.  Introduces students
+    and trainees to the study of complex variability, especially in
+    physiology and medicine.</li>
+
+<li><a href="http://archive.physionet.org/tutorials/epn/">Exploring Patterns in Nature</a>.  A set of interactive
+    tutorials drawn from current research, focussing on emergent phenomena
+    (random behavior at the smallest scales leading to patterns at larger
+    scales).  Subjects include fractal coastline and dimension, measuring
+    randomness, physical and chemical branching structures, biological
+    branching patterns, diffusion, percolation, and motion on a fractal.
+    These tutorials do not assume extensive knowledge of mathematics.</li>
+
+<li><a href="http://archive.physionet.org/tutorials/ndc/">Nonlinear Dynamics, Fractals, and Chaos Theory:
+    Implications for Neuroautonomic Heart Rate Control in Health and
+    Disease</a>.  An introduction to some key concepts of nonlinear
+    dynamics.</li>
+
+<li><a href="http://archive.physionet.org/tutorials/dynamics/">Exploring Human Gait and Heart Rate Dynamics</a>.
+    Use two sets of time series derived from human subjects to
+    study changes in dynamics with age and disease, with a variety of
+    methods including approximate entropy (ApEn) and detrended fluctuation
+    analysis (DFA).</li>
+
+<li><a href="http://archive.physionet.org/tutorials/fmnc/">Fractal Mechanisms in Neural Control:  Human Heartbeat
+    and Gait Dynamics in Health and Disease</a>.  Beginning with a
+    definition of fractal dynamics, this tutorial explores how fractal
+    analysis may reveal information of diagnostic or prognostic value
+    when applied to two model systems.</li>
+
+<li><a href="http://archive.physionet.org/tutorials/multifractal/">A Brief Overview of Multifractal Time Series</a>.
+    A concise review of how fractal and multifractal patterns in time can
+    be quantified, including a short discussion of multifractality in heart
+    rate.</li>
+
+<li><a href="http://archive.physionet.org/physiotools/ApEn/">Approximate Entropy (ApEn)</a>.  A brief
+    description of how to calculate ApEn, a ``regularity statistic'' that
+    quantifies the unpredictability of fluctuations in a time series,
+    including a worked-out example.</li>
+
+<li><a href="http://archive.physionet.org/physiotools/mse/tutorial/">Multiscale Entropy (MSE) Analysis</a>.
+    Introduces the concept of MSE, describes an algorithm for calculating MSE
+    using sample entropy (SampEn), presents a portable implementation of this
+    algorithm, and illustrates its application to analysis of interbeat (RR)
+    interval time series from PhysioBank.</li>
+
+<li><a href="http://archive.physionet.org/physiotools/gmse/tutorial/">Generalized Multiscale
+    Entropy (GMSE) Analysis</a>.  Discusses ways to generalize the
+    concept of MSE by using different coarse-graining functions, and
+    illustrates the differences between these methods using both
+    interbeat interval data and simulated data.</li>
+
+<li><a href="http://archive.physionet.org/physiotools/ibs/doc/">Information Based Similarity Index</a>.
+    An introduction to a novel linguistic analysis method that has been
+    successfully applied to studies of inter-beat interval time series, the
+    origin of the SARS coronavirus, and the authorship of Shakespeare's plays.</li>
+</ul>
+
+<br>
+<hr>
+
+
+<h1 id="workshops">Workshops</h1>
+Materials from these workshops include tutorial presentations and related
+materials:
+
+<ul>
+<li><a href="http://archive.physionet.org/tutorials/standards/npsg/">Electronic Interchange of Polysomnography
+     Data</a>. Presentations from a workshop to develop guidelines for PSG
+     transmission and archiving, including presentations on needs of
+     researchers, standards efforts, and existing formats for PSGs and
+     other physiologic signals.</li>
+
+<li><a href="http://archive.physionet.org/tutorials/events/hrv-2006/">HRV 2006</a>.  Materials from our mini-course
+    about heart rate variability, including presentations on physiologic
+    mechanisms of HRV, time and frequency domain measures, complexity measures,
+    clinical applications, and more.</li>
+</ul>
+
+<br>
+<hr>
+
+
+<h1 id="reference">Reference Guides</h1>
+
+<p>
+Books describing the major components of
+<a href="http://archive.physionet.org/physiotools/">PhysioToolkit</a> are also available here.
+Printed copies of some of these books may be purchased from
+the <a href="http://www.lulu.com/spotlight/physionet/" target="_blank">PhysioNet
+Bookstore</a>.  These books incorporate both tutorial and reference
+material:</p>
+<ul>
+<li><a href="http://archive.physionet.org/physiotools/wpg/">WFDB Programmer's Guide</a>.
+    Essential material for those wishing to read (or create) PhysioBank
+    data files from their own software.  This book includes detailed
+    descriptions of the application programming interfaces for digitized
+    signal and annotation files, and sample applications including digital
+    filters, signal averaging, and a QRS detector.</li>
+
+<li><a href="http://archive.physionet.org/physiotools/wag/">WFDB Applications Guide</a>.
+    How to use several dozen small tools individually and in combination to
+    view, manipulate, and analyze PhysioBank and similar data.  This guide
+    includes the tutorial on <a href="http://archive.physionet.org/physiotools/wag/eval.htm">evaluating ECG
+    analyzers</a> mentioned above.</li>
+
+<li><a href="http://archive.physionet.org/physiotools/wug/">WAVE User's Guide</a>.  A
+    comprehensive introduction to WAVE, an interactive graphical interface
+    to PhysioBank.</li>
+
+<!--
+<li><a
+    href="http://archive.physionet.org/physiotools/matlab/wfdb_tools/unsupported/WFDB_tools/doc/wfdb_tools/">WFDB_tools:
+    A Matlab interface to the WFDB library</a>.  Documents a toolkit
+    that enables the Matlab user to take full advantage of the WFDB
+    library.  The toolkit provides an interface between Matlab and the
+    WFDB library, so that new features added to the library become
+    immediately available to Matlab users.
+-->
+
+<li><a href="http://archive.physionet.org/physiotools/rcvsim/doc/manual/">RCVSIM User's
+    Manual and Software Guide</a>.
+    This guide introduces the Research Cardiovascular Simulator (RCVSIM),
+    software for synthesizing realistic human pulsatile hemodynamic waveforms,
+    cardiac function and venous return curves, and beat-to-beat hemodynamic
+    variability.  The manual includes a description of the cardiovascular
+    models used by RCVSIM, guides to reading and compiling the RCVSIM source
+    code, and a tutorial with examples illustrating its use.</li>
+
+<li><a href="http://archive.physionet.org/physiotools/plt/plt/html/"><tt>plt</tt> Tutorial and
+    Cookbook</a>.
+    This book introduces <tt>plt</tt>, a highly capable and flexible utility
+    for making publication-quality 2D plots from text or binary data files.
+    <tt>plt</tt> has a very broad range of applications, and is well-suited for
+    visualizing the output of many of the PhysioToolkit applications.</li>
+</ul>
+
+<br>
+<hr>
+
+<h1 id="othertutorial">Other resources of interest</h1>
+
+<p>
+Tutorials listed in this section are not hosted by PhysioNet.  Links
+will open in a new browser window.</p>
+
+<ul>
+<li><a
+href="http://ecg.bidmc.harvard.edu/"
+target="_blank">ECG Wave-Maven</a>.  This is a self-assessment program on
+interpretation of 12-lead diagnostic ECGs, with over 400 case studies.  Use the
+program to test your diagnostic abilities, or browse through the cases in
+reference mode.  ECG Wave-Maven was developed at Harvard Medical School
+and Boston's Beth Israel Deaconess Medical Center.  Its creators have written a
+<a href="http://www.med-ed-online.org/t0000030.htm" target="_blank">paper</a>
+describing the goals and technology behind the program, and a survey of its use
+during its first 17 months of operation.</li>
+
+<li><a href="http://ecg.utah.edu/" target="_blank">The Alan
+E. Lindsay ECG Learning Center in Cyberspace</a>.  A comprehensive
+introduction to clinical electrocardiography, developed at LDS Hospital, Salt
+Lake City.</li>
+
+<li><a
+href="http://www.mpipks-dresden.mpg.de/~tisean/TISEAN_2.1/docs/tutorial/exercises.html"
+target="_blank">A guided tour through TISEAN: Exercises with data sets</a>.
+This tutorial introduces a large package of software for nonlinear time series
+analysis developed by Rainer Hegger, Holger Kantz, and Thomas Schreiber
+(Institut f&uuml;r Physikalische und Theoretische Chemie, Universit&auml;t
+Frankfurt (Main) and Max-Planck-Institut f&uuml;r Physik komplexer Systeme,
+Dresden).</li>
+
+<li><a href="http://www.openeering.com/scilab_tutorials"
+target="_blank">Openeering</a>.  This site offers tutorials on <a
+href="http://www.scilab.org/" target="_blank">Scilab</a> (an
+open-source programming environment developed at INRIA for "numerical
+computations in a user-friendly environment") and how to use it with
+PhysioBank data and PhysioToolkit software.  Scilab is similar to Matlab, but
+offers many additional features.  The tutorials are written by and for clinical
+neurophysiologists, and do not assume extensive knowledge of mathematics or
+programming.</li>
+</ul>
