@@ -297,8 +297,8 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
         move_items_form, delete_items_form) = get_file_forms(project=project,
         subdir=subdir)
 
-    display_files, display_dirs, dir_breadcrumbs, _ = get_project_file_info(
-        project=project, subdir=subdir)
+    (display_files, display_dirs, dir_breadcrumbs, _,
+     file_error) = get_project_file_info(project=project, subdir=subdir)
 
     edit_url = reverse('edit_metadata_item', args=[project.slug])
 
