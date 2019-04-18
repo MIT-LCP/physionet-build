@@ -1,0 +1,49 @@
+{% extends "console/base_console.html" %}
+
+{% load project_templatetags %}
+
+{% block title %}Featured Content{% endblock %}
+
+{% block content %}
+ <div class="card mb-3">
+  <div class="card-header">
+    Featured Content <span class="badge badge-pill badge-info">{{ featured_content|length }}</span>
+  </div>
+  <div class="card-body">
+    <p><a href="{% url 'add_featured' %}" class="btn btn-lg btn-success">Add Featured Content</a></p>
+    <div class="table-responsive">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Project</th>
+            <th>Version</th>
+            <th>Resource Type</th>
+            <th>Access Policy</th>
+            <th>Publish Date</th>
+            <th>Remove</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for item in featured_content %}
+          <tr>
+            <td><a href="{% url 'published_project' item.slug item.version %}" target="_blank">{{ item.title }}</a></td>
+            <td>{{ item.version }}</td>
+            <td>{{ item.resource_type|resource_badge|safe }}</td>
+            <td>{{ item.access_policy|access_badge|safe }}</td>
+            <td>{{ item.publish_datetime|date }}</td>
+            <td>
+              <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="remove">
+                <input type="hidden" name="id" value="{{ item.id }}">
+                <button type="submit" class="btn btn-sm btn-primary" role="button">Remove</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

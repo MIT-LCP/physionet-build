@@ -1,0 +1,63 @@
+{% extends "console/base_console.html" %}
+
+{% load project_templatetags %}
+
+{% block title %}Featured Content{% endblock %}
+
+{% load static %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/form-control-input.css' %}"/>
+{% endblock %}
+
+{% block content %}
+<h1>Featured Content</h1>
+<hr>
+</p>
+<br>
+<form method="GET" action="" class="no-pd">
+  {% include "inline_form_snippet.html" %}
+  <button class="btn btn-primary btn-lg" type="submit">Search</button>
+</form>
+
+{# A search was made #}
+{% if valid_search %}
+  <hr>
+  <h2>Results</h2>
+  <p>{{ projects|length }} non-featured project{% if projects|length != 1 %}s{% endif %} found containing "<em>{{ title }}</em>"</p>
+  {% if projects %}
+    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+      <thead>
+        <tr>
+          <th>Project</th>
+          <th>Version</th>
+          <th>Resource Type</th>
+          <th>Access Policy</th>
+          <th>Publish Date</th>
+          <th>Add</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for project in projects %}
+        <tr>
+          <td><a href="{% url 'published_project' project.slug project.version %}">{{ project.title }}</a></td>
+          <td>{{ project.version }}</td>
+          <td>{{ project.resource_type|resource_badge|safe }}</td>
+          <td>{{ project.access_policy|access_badge|safe }}</td>
+          <td>{{ project.publish_datetime|date }}</td>
+          <td>
+            <form action="{% url 'featured_content' %}" method="POST">
+              {% csrf_token %}
+              <input type="hidden" name="add">
+              <input type="hidden" name="id" value="{{ project.id }}">
+              <button type="submit" class="btn btn-sm btn-primary">Add</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+{% endif %}
+<hr>
+{% endblock %}

@@ -4,7 +4,7 @@
   <input type="checkbox" id="navicon" class="navbar-check">
 
   <a class="navbar-brand" href="{% url 'home' %}">
-    <img src="{% static 'favicon.ico' %}" height="30px">&nbsp;PhysioNet
+    PhysioNet
   </a>
 
   <!-- start of menu items -->
@@ -123,6 +123,15 @@
             <a id="nav_all_users" class="nav-link" href="{% url 'user_list_admin' %}">Administrators</a>
           </li>
         </ul>
+      </li>
+
+      <!-- featured content -->
+      {% url 'featured_content' as featured_content %}
+      <li class="nav-item {% ifequal request.path featured_content %}active{% endifequal %}" data-toggle="tooltip" data-placement="right">
+        <a id="nav_console_featured" class="nav-link" href="{% url 'featured_content' %}">
+          <i class="fa fa-fw fa-star"></i>
+          <span class="nav-link-text">Featured Content</span>
+        </a>
       </li>
 
       <!-- news -->

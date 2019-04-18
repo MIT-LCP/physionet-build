@@ -30,15 +30,31 @@ PhysioNet
         <!-- <a href="">News</a> -->
       </div>
     </div>
-    <a href="#latest"><div class="down"></div></a>
+    <a href="#latest">
+      <div class="down-container"><div class="down"></div></div>
+    </a>
   </div>
   <div class="main">
     <div class="main-content" id="latest">
-      <h1>Latest Resources</h1><br>
-      {% include "search/content_list.html" %}
-      <div class="more"><a class="btn btn-outline-dark" href="{% url 'content_index' %}">More content</a></div>
+      <div class="content-box">
+        <h1>
+          Featured Resources
+        </h1>
+        <br>
+        {% include "search/content_list.html" with projects=featured %}
+      </div><div class="content-box">
+        <h1>
+          Latest Resources
+        </h1>
+        <br>
+        {% include "search/content_list.html" with projects=latest %}
+      </div>
+      <br><br>
+      <div class="more"><a class="btn btn-outline-dark" href="{% url 'content_index' %}">More resources</a></div>
     </div><div class="main-side">
-      <h2>News</h2>
+      <h1>
+        News
+      </h1>
       <br>
       {% for news in news_pieces %}
         <h5>

@@ -1082,6 +1082,8 @@ class PublishedProject(Metadata, SubmissionInfo):
     is_legacy = models.BooleanField(default=False)
     full_description = SafeHTMLField(default='')
     is_latest_version = models.BooleanField(default=True)
+    # Featured content
+    featured = models.BooleanField(default=False)
 
     # Where all the published project files are kept, depending on access.
     PROTECTED_FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'published-projects')

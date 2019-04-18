@@ -29,6 +29,8 @@ from project.views import (get_file_forms, get_project_file_info,
     process_files_post)
 from user.models import User, CredentialApplication
 
+from django.conf import settings
+
 logger = logging.getLogger(__name__)
 
 
@@ -761,6 +763,54 @@ def add_news(request):
         form = forms.NewsForm()
 
     return render(request, 'console/add_news.html', {'form':form})
+
+
+@login_required
+@user_passes_test(is_admin)
+def featured_content(request):
+    """
+    List of news items
+    """
+
+    if 'add' in request.POST:
+        project = PublishedProject.objects.filter(id=request.POST['id']).update(featured=True)
+    elif 'remove' in request.POST:
+        project = PublishedProject.objects.filter(id=request.POST['id']).update(featured=False)
+
+    featured_content = PublishedProject.objects.filter(featured=True)
+
+    return render(request, 'console/featured_content.html', {'featured_content':featured_content})
+
+
+@login_required
+@user_passes_test(is_admin)
+def add_featured(request):
+    """
+    List of news items
+    """
+    title, valid_search, projects = '', False, None
+    # If we get a form submission, redirect to generate the querystring
+    # in the url
+    if 'title' in request.GET:
+        form = forms.FeaturedForm(request.GET)
+        if form.is_valid():
+            title = form.cleaned_data['title']
+            valid_search = True
+
+        # Word boundary for different database engines
+        wb = r'\b'
+        if 'postgresql' in settings.DATABASES['default']['ENGINE']:
+            wb = r'\y'
+
+        projects = PublishedProject.objects.filter(
+            title__iregex=r'{0}{1}{0}'.format(wb,title),
+            featured=False
+        )
+    else:
+        form = forms.FeaturedForm()
+
+    return render(request, 'console/add_featured.html', {'title':title,
+        'projects':projects, 'form':form, 'valid_search':valid_search})
 
 @login_required
 @user_passes_test(is_admin)

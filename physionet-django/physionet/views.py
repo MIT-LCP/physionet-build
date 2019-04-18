@@ -13,11 +13,12 @@ def home(request):
     """
     Homepage
     """
-    published_projects = PublishedProject.objects.all().order_by('-publish_datetime')[:6]
+    featured = PublishedProject.objects.filter(featured=True).order_by('-publish_datetime')[:6]
+    latest = PublishedProject.objects.all().order_by('-publish_datetime')[:6]
     news_pieces = News.objects.all().order_by('-publish_datetime')[:5]
 
     return render(request, 'home.html', {
-        'projects':published_projects, 'news_pieces':news_pieces})
+        'featured':featured, 'latest':latest, 'news_pieces':news_pieces})
 
 
 def about_publish(request):
