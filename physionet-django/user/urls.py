@@ -14,7 +14,7 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
 
     path('register/', views.register, name='register'),
-    re_path('activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
+    re_path('^activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
         views.activate_user, name='activate_user'),
 
     # Request password reset
@@ -28,7 +28,7 @@ urlpatterns = [
         template_name='user/reset_password_sent.html'),
         name='reset_password_sent'),
     # Prompt user to enter new password and carry out password reset (if url is valid)
-    re_path('reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
+    re_path('^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
         auth_views.PasswordResetConfirmView.as_view(
         template_name='user/reset_password_confirm.html',
         success_url=reverse_lazy('reset_password_complete')),
@@ -53,7 +53,7 @@ urlpatterns = [
     path('settings/credentialing/', views.edit_credentialing, name='edit_credentialing'),
     path('settings/credentialing/applications/',
         views.user_credential_applications, name='user_credential_applications'),
-    re_path('verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
+    re_path('^verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
         views.verify_email, name='verify_email'),
 
     # Public user profile
