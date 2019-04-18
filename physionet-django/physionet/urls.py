@@ -8,6 +8,7 @@ from . import views
 import project.views as project_views
 
 
+handler403 = 'physionet.views.error_403'
 handler404 = 'physionet.views.error_404'
 handler500 = 'physionet.views.error_500'
 
@@ -42,6 +43,7 @@ urlpatterns = [
     path('about/citi-course/', views.citi_course, name='citi_course'),
 
     # # Custom error pages for testing
+    # path('403.html', views.error_403, name='error_403'),
     # path('404.html', views.error_404, name='error_404'),
     # path('500.html', views.error_500, name='error_500'),
 

@@ -275,7 +275,11 @@ def remove_author(request, author_id, project, authors):
     Remove an author from a project
     Helper function for `project_authors`.
     """
-    rm_author = Author.objects.get(id=author_id)
+    rm_author = Author.objects.filter(id=author_id)
+    if rm_author:
+        rm_author = rm_author.get() 
+    else:
+        raise Http404()
 
     if rm_author in authors:
         # Reset the corresponding author if necessary
@@ -299,7 +303,11 @@ def cancel_invitation(request, invitation_id, project):
     Cancel an author invitation for a project.
     Helper function for `project_authors`.
     """
-    invitation = AuthorInvitation.objects.get(id=invitation_id)
+    invitation = AuthorInvitation.objects.filter(id=invitation_id)
+    if invitation:
+        invitation = invitation.get()
+    else:
+        raise Http404()
     if invitation.project == project:
         invitation.delete()
         messages.success(request, 'The invitation has been cancelled')
@@ -480,7 +488,12 @@ def edit_metadata_item(request, project_slug):
 
     """
     user = request.user
-    project = ActiveProject.objects.get(slug=project_slug)
+    project = ActiveProject.objects.filter(slug=project_slug)
+    if project:
+        project = project.get()
+    else:
+        raise Http404()
+
     is_submitting = bool(project.authors.filter(user=user, is_submitting=True))
 
     if not (is_submitting and project.author_editable()) and not (project.copyeditable() and user == project.editor):
@@ -614,7 +627,11 @@ def load_license(request, project_slug):
     access form's current access policy choice. Called via ajax.
     """
     user = request.user
-    project = ActiveProject.objects.get(slug=project_slug)
+    project = ActiveProject.objects.filter(slug=project_slug)
+    if project:
+        project = project.get()
+    else:
+        raise Http404()
     form = forms.AccessMetadataForm(include_credentialed=request.user.is_admin,
         instance=project)
     form.set_license_queryset(access_policy=int(request.GET['access_policy']))
@@ -1017,8 +1034,11 @@ def rejected_submission_history(request, project_slug):
     Submission history for a rejected project
     """
     user = request.user
-    project = ArchivedProject.objects.get(slug=project_slug, archive_reason=3)
-
+    project = ArchivedProject.objects.filter(slug=project_slug, archive_reason=3)
+    if project:
+        project = project.get() 
+    else:
+        raise Http404()
     if user.is_admin or project.authors.filter(user=user):
         edit_logs = project.edit_logs.all()
         for e in edit_logs:
@@ -1056,8 +1076,11 @@ def published_submission_history(request, project_slug, version):
     Submission history for a published project
     """
     user = request.user
-    project = PublishedProject.objects.get(slug=project_slug, version=version)
-
+    project = PublishedProject.objects.filter(slug=project_slug, version=version)
+    if project:
+        project = project.get() 
+    else:
+        raise Http404()
     if user.is_admin or project.authors.filter(user=user):
         edit_logs = project.edit_logs.all()
         for e in edit_logs:
@@ -1074,8 +1097,13 @@ def published_files_panel(request, project_slug, version):
     Return the main file panel for the published project, for all access
     policies. Called via ajax.
     """
-    project = PublishedProject.objects.get(slug=project_slug,
+    project = PublishedProject.objects.filter(slug=project_slug,
         version=version)
+    if project:
+        project = project.get() 
+    else:
+        raise Http404()
+
     subdir = request.GET['subdir']
 
     if not request.is_ajax():
@@ -1234,7 +1262,11 @@ def sign_dua(request, project_slug, version):
     Both restricted and credentialed policies.
     """
     user = request.user
-    project = PublishedProject.objects.get(slug=project_slug, version=version)
+    project = PublishedProject.objects.filter(slug=project_slug, version=version)
+    if project:
+        project = project.get() 
+    else:
+        raise Http404()
 
     if not project.access_policy or project.has_access(user):
         return redirect('published_project',
