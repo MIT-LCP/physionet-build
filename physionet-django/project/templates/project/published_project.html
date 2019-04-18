@@ -251,11 +251,7 @@
   {% endif %}
 
   <h2 id="files">Files</h2>
-  {% if file_error %}
-  <div class="alert alert-danger col-md-8" role="alert">
-    {{ file_error|safe }}
-  </div>
-  {% elif project.access_policy %}
+  {% if project.access_policy %}
     {% if has_access %}
       <p>Total uncompressed size: {{ main_size }}.{% if project.compressed_storage_size %}<a class="btn btn-success btn-sm btn-rsp" href="{% url 'serve_published_project_zip' project.slug project.version %}" style="float:right">Download Zip ({{ compressed_size }})</a>{% endif %}</p>
       <div id="files-panel" class="card">
