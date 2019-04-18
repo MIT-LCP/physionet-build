@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.shortcuts import get_current_site
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.forms import formset_factory, inlineformset_factory, modelformset_factory
 from django.http import HttpResponse, Http404, JsonResponse
 from django.shortcuts import render, redirect
@@ -49,7 +50,11 @@ def project_auth(auth_mode=0, post_auth_mode=0):
         @login_required
         def view_wrapper(request, *args, **kwargs):
             user = request.user
-            project = ActiveProject.objects.get(slug=kwargs['project_slug'])
+            try:
+                project = ActiveProject.objects.get(
+                    slug=kwargs['project_slug'])
+            except ObjectDoesNotExist:
+                raise PermissionDenied()
             authors = project.authors.all().order_by('display_order')
 
             is_author = bool(authors.filter(user=user))
@@ -75,7 +80,7 @@ def project_auth(auth_mode=0, post_auth_mode=0):
                 kwargs['is_author'] = is_author
                 kwargs['is_submitting'] = is_submitting
                 return base_view(request, *args, **kwargs)
-            raise Http404('Unable to access page')
+            raise PermissionDenied()
         return view_wrapper
     return real_decorator
 
@@ -685,12 +690,21 @@ def get_project_file_info(project, subdir):
     subdirectory.
     Helper function for generating the files panel
     """
-    display_files, display_dirs = project.get_directory_content(
-        subdir=subdir)
+    display_files = display_dirs = ()
+    try:
+        display_files, display_dirs = project.get_directory_content(
+            subdir=subdir)
+        file_error = None
+    except FileNotFoundError:
+        file_error = 'Directory not found'
+    except OSError:
+        file_error = 'Unable to read directory'
+
     # Breadcrumbs
     dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
     parent_dir = os.path.split(subdir)[0]
-    return display_files, display_dirs, dir_breadcrumbs, parent_dir
+
+    return display_files, display_dirs, dir_breadcrumbs, parent_dir, file_error
 
 @project_auth(auth_mode=2)
 def project_files_panel(request, project_slug, **kwargs):
@@ -705,13 +719,14 @@ def project_files_panel(request, project_slug, **kwargs):
     if not request.is_ajax():
         return redirect('project_files', project_slug=project_slug)
 
-    display_files, display_dirs, dir_breadcrumbs, parent_dir = get_project_file_info(
-        project=project, subdir=subdir)
+    (display_files, display_dirs, dir_breadcrumbs, parent_dir,
+     file_error) = get_project_file_info(project=project, subdir=subdir)
+
     (upload_files_form, create_folder_form, rename_item_form,
         move_items_form, delete_items_form) = get_file_forms(project, subdir)
 
     return render(request, 'project/edit_files_panel.html',
-        {'project':project, 'subdir':subdir,
+        {'project':project, 'subdir':subdir, 'file_error':file_error,
          'dir_breadcrumbs':dir_breadcrumbs, 'parent_dir':parent_dir,
          'display_files':display_files, 'display_dirs':display_dirs,
          'upload_files_form':upload_files_form,
@@ -803,8 +818,8 @@ def project_files(request, project_slug, subdir='', **kwargs):
         move_items_form, delete_items_form) = get_file_forms(project=project,
         subdir=subdir)
 
-    display_files, display_dirs, dir_breadcrumbs, _ = get_project_file_info(
-        project=project, subdir=subdir)
+    (display_files, display_dirs, dir_breadcrumbs, _,
+     file_error) = get_project_file_info(project=project, subdir=subdir)
 
     return render(request, 'project/project_files.html', {'project':project,
         'individual_size_limit':utility.readable_size(
@@ -817,7 +832,7 @@ def project_files(request, project_slug, subdir='', **kwargs):
         'create_folder_form':create_folder_form,
         'rename_item_form':rename_item_form, 'move_items_form':move_items_form,
         'delete_items_form':delete_items_form, 'is_submitting':is_submitting,
-        'dir_breadcrumbs':dir_breadcrumbs})
+        'dir_breadcrumbs':dir_breadcrumbs, 'file_error':file_error})
 
 
 @project_auth(auth_mode=2)
@@ -845,12 +860,12 @@ def preview_files_panel(request, project_slug, **kwargs):
     if not request.is_ajax():
         return redirect('project_preview', project_slug=project_slug)
 
-    display_files, display_dirs, dir_breadcrumbs, parent_dir = get_project_file_info(
-        project=project, subdir=subdir)
+    (display_files, display_dirs, dir_breadcrumbs, parent_dir,
+     file_error) = get_project_file_info(project=project, subdir=subdir)
     files_panel_url = reverse('preview_files_panel', args=(project.slug,))
 
     return render(request, 'project/files_panel.html',
-        {'project':project, 'subdir':subdir,
+        {'project':project, 'subdir':subdir, 'file_error':file_error,
          'dir_breadcrumbs':dir_breadcrumbs, 'parent_dir':parent_dir,
          'display_files':display_files, 'display_dirs':display_dirs,
          'files_panel_url':files_panel_url})
@@ -882,8 +897,8 @@ def project_preview(request, project_slug, subdir='', **kwargs):
         for e in project.integrity_errors:
             messages.error(request, e)
 
-    display_files, display_dirs = project.get_directory_content(subdir=subdir)
-    dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
+    (display_files, display_dirs, dir_breadcrumbs, _,
+     file_error) = get_project_file_info(project=project, subdir=subdir)
     files_panel_url = reverse('preview_files_panel', args=(project.slug,))
 
     return render(request, 'project/project_preview.html', {'project':project,
@@ -892,7 +907,8 @@ def project_preview(request, project_slug, subdir='', **kwargs):
         'invitations':invitations, 'references':references,
         'publications':publications, 'topics':topics, 'languages':languages,
         'passes_checks':passes_checks, 'dir_breadcrumbs':dir_breadcrumbs,
-        'files_panel_url':files_panel_url, 'subdir':subdir})
+        'files_panel_url':files_panel_url, 'subdir':subdir,
+        'file_error':file_error})
 
 
 @project_auth(auth_mode=2)
@@ -1067,11 +1083,9 @@ def published_files_panel(request, project_slug, version):
             version=version)
 
     if project.has_access(request.user):
-        display_files, display_dirs = project.get_directory_content(
-            subdir=subdir)
-        # Breadcrumbs
-        dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
-        parent_dir = os.path.split(subdir)[0]
+        (display_files, display_dirs, dir_breadcrumbs, parent_dir,
+         file_error) = get_project_file_info(project=project, subdir=subdir)
+
         files_panel_url = reverse('published_files_panel',
             args=(project.slug, project.version))
 
@@ -1079,7 +1093,7 @@ def published_files_panel(request, project_slug, version):
             {'project':project, 'subdir':subdir,
              'dir_breadcrumbs':dir_breadcrumbs, 'parent_dir':parent_dir,
              'display_files':display_files, 'display_dirs':display_dirs,
-             'files_panel_url':files_panel_url})
+             'files_panel_url':files_panel_url, 'file_error':file_error})
 
 
 def serve_published_project_file(request, project_slug, version,
@@ -1089,15 +1103,20 @@ def serve_published_project_file(request, project_slug, version,
     Works for open and protected. Not needed for open.
 
     """
-    project = PublishedProject.objects.get(slug=project_slug,
-        version=version)
+    try:
+        project = PublishedProject.objects.get(slug=project_slug,
+            version=version)
+    except ObjectDoesNotExist:
+        raise Http404()
     if project.has_access(request.user):
         file_path = os.path.join(project.file_root(), full_file_name)
         try:
             return physionet.serve_file(file_path)
         except IsADirectoryError:
             return redirect(request.path + '/')
-    raise Http404()
+        except FileNotFoundError:
+            raise Http404()
+    raise PermissionDenied()
 
 
 def serve_published_project_zip(request, project_slug, version):
@@ -1106,19 +1125,28 @@ def serve_published_project_zip(request, project_slug, version):
     Works for open and protected. Not needed for open.
 
     """
-    project = PublishedProject.objects.get(slug=project_slug,
-        version=version)
+    try:
+        project = PublishedProject.objects.get(slug=project_slug,
+            version=version)
+    except ObjectDoesNotExist:
+        raise Http404()
     if project.has_access(request.user):
-        return physionet.serve_file(project.zip_name(full=True))
-    raise Http404()
+        try:
+            return physionet.serve_file(project.zip_name(full=True))
+        except FileNotFoundError:
+            raise Http404()
+    raise PermissionDenied()
 
 
 def published_project_license(request, project_slug, version):
     """
     Displays a published project's license
     """
-    project = PublishedProject.objects.get(slug=project_slug,
-        version=version)
+    try:
+        project = PublishedProject.objects.get(slug=project_slug,
+            version=version)
+    except ObjectDoesNotExist:
+        raise Http404()
     license = project.license
     license_content = project.license_content(fmt='html')
 
@@ -1131,8 +1159,11 @@ def published_project_latest(request, project_slug):
     """
     Redirect to latest project version
     """
-    version = PublishedProject.objects.get(slug=project_slug,
-        is_latest_version=True).version
+    try:
+        version = PublishedProject.objects.get(slug=project_slug,
+            is_latest_version=True).version
+    except ObjectDoesNotExist:
+        raise Http404()
     return redirect('published_project', project_slug=project_slug,
         version=version)
 
@@ -1141,7 +1172,11 @@ def published_project(request, project_slug, version, subdir=''):
     """
     Displays a published project
     """
-    project = PublishedProject.objects.get(slug=project_slug, version=version)
+    try:
+        project = PublishedProject.objects.get(slug=project_slug,
+                                               version=version)
+    except ObjectDoesNotExist:
+        raise Http404()
 
     authors = project.authors.all().order_by('display_order')
     for a in authors:
@@ -1166,9 +1201,13 @@ def published_project(request, project_slug, version, subdir=''):
 
     # The file and directory contents
     if has_access:
-        display_files, display_dirs = project.get_directory_content(
-            subdir=subdir)
-        dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
+        (display_files, display_dirs, dir_breadcrumbs, parent_dir,
+         file_error) = get_project_file_info(project=project, subdir=subdir)
+        if file_error:
+            status = 404
+        else:
+            status = 200
+
         main_size, compressed_size = [utility.readable_size(s) for s in
             (project.main_storage_size, project.compressed_storage_size)]
         files_panel_url = reverse('published_files_panel',
@@ -1177,9 +1216,15 @@ def published_project(request, project_slug, version, subdir=''):
         context = {**context, **{'dir_breadcrumbs':dir_breadcrumbs,
             'main_size':main_size, 'compressed_size':compressed_size,
             'display_files':display_files, 'display_dirs':display_dirs,
-            'files_panel_url':files_panel_url, 'subdir':subdir}}
+            'files_panel_url':files_panel_url, 'subdir':subdir,
+            'file_error':file_error}}
+    elif subdir:
+        status = 403
+    else:
+        status = 200
 
-    return render(request, 'project/published_project.html', context)
+    return render(request, 'project/published_project.html', context,
+                  status=status)
 
 
 @login_required

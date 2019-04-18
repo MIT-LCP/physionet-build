@@ -57,10 +57,18 @@ class TestAccessPresubmission(TestMixin, TestCase):
         self.client.login(username='george@mit.edu', password='Tester11!')
         for view in PROJECT_VIEWS:
             response = self.client.get(reverse(view, args=(project.slug,)))
-            self.assertEqual(response.status_code, 404)
+            self.assertEqual(response.status_code, 403)
         response = self.client.get(reverse('serve_active_project_file',
             args=(project.slug, 'notes/notes.txt')))
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 403)
+
+        # Visit non-existent project
+        for view in PROJECT_VIEWS:
+            response = self.client.get(reverse(view, args=('fnord',)))
+            self.assertEqual(response.status_code, 403)
+        response = self.client.get(reverse('serve_active_project_file',
+            args=('fnord', 'notes/notes.txt')))
+        self.assertEqual(response.status_code, 403)
 
     @prevent_request_warnings
     def test_project_authors(self):
@@ -163,7 +171,7 @@ class TestAccessPresubmission(TestMixin, TestCase):
         response = self.client.post(reverse(
             'project_access', args=(project.slug,)),
             data={'access_policy':0, 'license':open_data_license.id})
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 403)
 
     @prevent_request_warnings
     def test_project_files(self):
@@ -235,7 +243,7 @@ class TestAccessPresubmission(TestMixin, TestCase):
         response = self.client.post(reverse(
             'project_files', args=(project.slug,)),
             data={'create_folder':'', 'folder_name':'new-folder-valid'})
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 403)
 
 
 class TestAccessPublished(TestMixin, TestCase):
@@ -263,21 +271,37 @@ class TestAccessPublished(TestMixin, TestCase):
         response = self.client.get(reverse(
             'serve_published_project_file',
             args=(project.slug, project.version, 'SHA256SUMS.txt')))
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 403)
+        response = self.client.get(reverse(
+            'published_project_subdir',
+            args=(project.slug, project.version, 'timeseries')))
+        self.assertEqual(response.status_code, 403)
+        response = self.client.get(reverse(
+            'published_project_subdir',
+            args=(project.slug, project.version, 'fnord')))
+        self.assertEqual(response.status_code, 403)
 
         # Non-credentialed user
         self.client.login(username='aewj@mit.edu', password='Tester11!')
         response = self.client.get(reverse(
             'serve_published_project_file',
             args=(project.slug, project.version, 'SHA256SUMS.txt')))
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 403)
+        response = self.client.get(reverse(
+            'published_project_subdir',
+            args=(project.slug, project.version, 'timeseries')))
+        self.assertEqual(response.status_code, 403)
 
         # Credentialed user that has not signed dua
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
         response = self.client.get(reverse(
             'serve_published_project_file',
             args=(project.slug, project.version, 'SHA256SUMS.txt')))
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 403)
+        response = self.client.get(reverse(
+            'published_project_subdir',
+            args=(project.slug, project.version, 'timeseries')))
+        self.assertEqual(response.status_code, 403)
 
         # Sign the dua and get file again
         response = self.client.post(reverse('sign_dua',
@@ -291,6 +315,18 @@ class TestAccessPublished(TestMixin, TestCase):
             'serve_published_project_file',
             args=(project.slug, project.version, 'admissions.csv')))
         self.assertEqual(response.status_code, 200)
+        response = self.client.get(reverse(
+            'serve_published_project_file',
+            args=(project.slug, project.version, 'fnord.txt')))
+        self.assertEqual(response.status_code, 404)
+        response = self.client.get(reverse(
+            'published_project_subdir',
+            args=(project.slug, project.version, 'timeseries')))
+        self.assertEqual(response.status_code, 200)
+        response = self.client.get(reverse(
+            'published_project_subdir',
+            args=(project.slug, project.version, 'fnord')))
+        self.assertEqual(response.status_code, 404)
 
     def test_open(self):
         """
@@ -304,6 +340,24 @@ class TestAccessPublished(TestMixin, TestCase):
         response = self.client.get(reverse('serve_published_project_file',
             args=(project.slug, project.version, 'Makefile')))
         self.assertEqual(response.status_code, 200)
+
+    @prevent_request_warnings
+    def test_nonexistent(self):
+        """
+        Test access to a non-existent project.
+        """
+        response = self.client.get(reverse(
+            'published_project_latest', args=('fnord',)))
+        self.assertEqual(response.status_code, 404)
+        response = self.client.get(reverse(
+            'published_project', args=('fnord', '1.0')))
+        self.assertEqual(response.status_code, 404)
+        response = self.client.get(reverse(
+            'published_project_subdir', args=('fnord', '1.0', 'data')))
+        self.assertEqual(response.status_code, 404)
+        response = self.client.get(reverse(
+            'serve_published_project_file', args=('fnord', '1.0', 'Makefile')))
+        self.assertEqual(response.status_code, 404)
 
 
 class TestState(TestMixin, TestCase):
