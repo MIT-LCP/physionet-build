@@ -1095,11 +1095,9 @@ def published_files_panel(request, project_slug, version):
             version=version)
 
     if project.has_access(request.user):
-        display_files, display_dirs = project.get_directory_content(
-            subdir=subdir)
-        # Breadcrumbs
-        dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
-        parent_dir = os.path.split(subdir)[0]
+        (display_files, display_dirs, dir_breadcrumbs, parent_dir,
+         file_error) = get_project_file_info(project=project, subdir=subdir)
+
         files_panel_url = reverse('published_files_panel',
             args=(project.slug, project.version))
 
