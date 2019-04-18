@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+PhysioNet Software
+{% endblock %}
+
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/about.css' %}">
+{% endblock %}
+
+
+{% block content %}
+
+<div class="main">
+  <div class="row">
+    <div class="main-side">
+
+      <div class="card">
+        <h2 class="card-header">Software</h2>
+        <div class="card-body">
+
+            <!-- Software -->
+            <ul>
+              <li><a href="#visualization">Visualization</a></li>
+              <li><a href="#signalanalysis">Signal analysis</a></li>
+              <li><a href="#deidentification">Deidentification</a></li>
+              <li><a href="#models">Models</a></li>
+            </ul>
+
+        </div>
+      </div>
+    </div><div class="main-content">
+      <div>{% include "about/about_software.html" %}</div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+PhysioNet Databases
+{% endblock %}
+
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/about.css' %}">
+{% endblock %}
+
+
+{% block content %}
+
+<div class="main">
+  <div class="row">
+    <div class="main-side">
+
+      <div class="card">
+        <h2 class="card-header">Databases</h2>
+        <div class="card-body">
+
+            <!-- Databases -->
+            <ul>
+              <li><a href="#clinical">Clinical</a></li>
+              <li><a href="#waveform">Waveform</a></li>
+              <ul>
+                <li><a href="#multi">Multiparameter</a></li>
+                <li><a href="#ecg">ECG</a></li>
+                <li><a href="#rr">RR Interval</a></li>
+                <li><a href="#cv">Other Cardio</a></li>
+                <li><a href="#gait">Gait and Balance</a></li>
+                <li><a href="#neuro">Neuroelectric</a></li>
+                <li><a href="#image">Image</a></li>
+                <li><a href="#synthetic">Synthetic</a></li>
+                <li><a href="#other">Other</a></li>
+                <li><a href="#challenge">CinC</a></li>
+              </ul>
+            </ul>
+
+        </div>
+      </div>
+    </div><div class="main-content">
+      <div>{% include "about/about_database.html" %}</div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
