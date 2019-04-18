@@ -50,6 +50,14 @@ urlpatterns = [
     # temporary content overview pages
     path('about/content/', views.content_overview,
         name='content_overview'),
+    path('about/database/', views.database_overview,
+        name='database_overview'),
+    path('about/software/', views.software_overview,
+        name='software_overview'),
+    path('about/challenge/', views.challenge_overview,
+        name='challenge_overview'),
+    path('about/tutorial/', views.tutorial_overview,
+        name='tutorial_overview'),
 
     # robots.txt for crawlers
     path('robots.txt', lambda x: HttpResponse("User-Agent: *\nDisallow: /", 

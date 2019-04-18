@@ -121,3 +121,31 @@ def content_overview(request):
     Temporary content overview
     """
     return render(request, 'about/content_overview.html')
+
+
+def database_overview(request):
+    """
+    Temporary content overview
+    """
+    return render(request, 'about/database_overview.html')
+
+
+def software_overview(request):
+    """
+    Temporary content overview
+    """
+    return render(request, 'about/software_overview.html')
+
+
+def challenge_overview(request):
+    """
+    Temporary content overview
+    """
+    return render(request, 'about/challenge_overview.html')
+
+
+def tutorial_overview(request):
+    """
+    Temporary content overview
+    """
+    return render(request, 'about/tutorial_overview.html')
