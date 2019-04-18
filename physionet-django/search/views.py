@@ -12,6 +12,7 @@ from django.db.models import Q, Count, Case, When, Value, IntegerField, Sum
 
 from django.core.paginator import Paginator
 from django.conf import settings
+from django.http import Http404
 
 
 def topic_search(request):
@@ -198,8 +199,15 @@ def physiobank(request):
 def physiotools(request):
     return redirect('software_index')
 
+def redirect_latest_if_project_exists(project_slug):
+    project = PublishedProject.objects.filter(slug=project_slug)
+    if project:
+        return redirect('published_project_latest', project_slug=project_slug)
+    else:
+        raise Http404()
+
 def redirect_project(request, project_slug):
-    return redirect('published_project_latest', project_slug=project_slug)
+    return redirect_latest_if_project_exists(project_slug)
 
 def redirect_challenge_project(request, year):
-    return redirect('published_project_latest', project_slug='challenge-{}'.format(year))
+    return redirect_latest_if_project_exists('challenge-{}'.format(year))
