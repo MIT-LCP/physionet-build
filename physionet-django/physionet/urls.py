@@ -60,6 +60,6 @@ urlpatterns = [
         name='tutorial_overview'),
 
     # robots.txt for crawlers
-    path('robots.txt', lambda x: HttpResponse("User-Agent: *\nDisallow: /", 
+    path('robots.txt', lambda x: HttpResponse("User-Agent: *\Allow: /", 
         content_type="text/plain"), name="robots_file"),
 ]
