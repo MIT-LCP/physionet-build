@@ -71,7 +71,7 @@ alphabetically by the name of the database.  Those designated below as
 <h1 id="clinical">Clinical Databases</h1>
 
 <ul>
-  <li>[Class 3] <a href="{% url 'published_project_latest' 'eicucrdb' %}">eICU Collaborative Research Database</a>. The eICU Collaborative Research Database is populated with data from a
+  <li>[Class 3] <a href="{% url 'published_project_latest' 'eicu-crd' %}">eICU Collaborative Research Database</a>. The eICU Collaborative Research Database is populated with data from a
     combination of many critical care units throughout the continental United States. The data covers over 160,000 patients who were admitted to critical care units in 2014 and 2015.</li>
 
   <li>[Class 3] <a href="{% url 'published_project_latest' 'mimicdb' %}">MIMIC Database</a>. The original Multiparameter Intelligent Monitoring in Intensive Care database.</li>
@@ -79,7 +79,7 @@ alphabetically by the name of the database.  Those designated below as
   <li>[Class 3] <a href="https://mimic.physionet.org/">MIMIC-III Database</a>. Consists of:
     <ul>
       <li>
-    The *<a href="{% url 'published_project_latest' 'mimic3cdb' %}">MIMIC-III Clinical Database</a>
+    The *<a href="{% url 'published_project_latest' 'mimiciii' %}">MIMIC-III Clinical Database</a>
     (Medical Information Mart for Intensive Care) is a large,
     single-center database comprising information relating to
     patients admitted to critical care units at a large tertiary
@@ -109,13 +109,13 @@ alphabetically by the name of the database.  Those designated below as
     </ul>
   </li>
 
-  <li>[Class 3] MIMIC II Database.  <em>This
+  <li>[Class 3] MIMIC-II Database.  <em>This
     database is provided to support ongoing studies; for new
     studies, we recommend using the MIMIC-III Database
     instead.</em>  Consists of:
     <ul>
       <li>
-    The *<a href="{% url 'published_project_latest' 'mimic2cdb' %}">MIMIC II Clinical Database</a>
+    The *<a href="http://archive.physionet.org/physiobank/database/mimic2cdb">MIMIC II Clinical Database</a>
     contains clinical records for 32,536 subjects. This database
     contains results of laboratory tests, medications, ICD-9
     diagnoses, admitting notes, discharge summaries, and
@@ -130,7 +130,7 @@ alphabetically by the name of the database.  Those designated below as
         made freely available to support the
         <a href="{% url 'published_project_latest' 'challenge-2009' %}">PhysioNet/CinC Challenge 2009: Predicting
           Acute Hypotensive Episodes</a>.</li>
-      <li>The <a href="{% url 'published_project_latest' 'mimic2-iaccd' %}">Indwelling Arterial Catheter Clinical Database</a>
+      <li>The <a href="https://archive.physionet.org/physiobank/database/mimic2-iaccd/">Indwelling Arterial Catheter Clinical Database</a>
         contains clinical data for 1766 patients from the MIMIC II database. The data is
         used to investigate the effectiveness of indwelling arterial catheters in
         hemodynamically stable patients with respiratory failure for mortality outcomes.</li>
@@ -179,7 +179,7 @@ recording.  Please visit the links below for details.</p>
     collection of 250 recordings of 3-lead ECGs, ABP, PAP, CVP, respiration,
     and airway CO2 signals from patients in critical care units; some
     recordings include intra-cranial, left atrial, ventricular and intra-aortic
-    pressure waveforms. A <a href="https://physionet.org/physiobank/database/mghdb/patient-guide.shtml">Patient
+    pressure waveforms. A <a href="https://archive.physionet.org/physiobank/database/mghdb/patient-guide.shtml">Patient
     Guide</a> provides additional information for each recording.</li>
 <li>[Class 2] <a href="{% url 'published_project_latest' 'bidmc' %}">BIDMC PPG and Respiration Dataset</a> This dataset contains signals and numerics extracted from the much larger MIMIC II matched waveform Database, along with manual breath annotations made from two annotators, using the impedance respiratory signal.</li>
 
@@ -257,12 +257,10 @@ recording.  Please visit the links below for details.</p>
     state (two hours each).  Half of the recordings also include
     (uncalibrated) continuous noninvasive blood pressure signals.</li>
 
-<li>[Class 3; core] <a href="slpdb/">MIT-BIH Polysomnographic
-    Database</a>.  Includes new annotation files with sleep stage and
+<li>[Class 3; core] <a href="{% url 'published_project_latest' 'slpdb' %}">MIT-BIH Polysomnographic Database</a>.  Includes new annotation files with sleep stage and
     apnea annotations.
     <ul>
-      <li>[Class 2; core] <a href="{% url 'published_project_latest' 'santa-fe' %}">Santa Fe Time Series
-        Competition Data Set B</a> (data extracted from the MIT-BIH
+      <li>[Class 2; core] <a href="{% url 'published_project_latest' 'santa-fe' %}">Santa Fe Time Series Competition Data Set B</a> (data extracted from the MIT-BIH
         Polysomnographic Database).</li>
       </li>
     </ul>
@@ -295,8 +293,8 @@ recording.  Please visit the links below for details.</p>
     for 19 subjects);  the second was a study of temazepam effects on sleep
     in 22 subjects who had mild difficulty falling asleep but were otherwise
     healthy (9-hour PSGs of each subject on placebo).  A small
-    <a href="sleep-edf/">subset</a> of this dataset was previously contributed
-    in 2002 and remains available <a href="sleep-edf/">here</a> for reference
+    <a href="{% url 'published_project_latest' 'sleep-edf' %}">subset</a> of this dataset was previously contributed
+    in 2002 and remains available <a href="{% url 'published_project_latest' 'sleep-edf' %}">here</a> for reference
     and to support ongoing studies.</li>
 
 <li>[Class 3] <a href="{% url 'published_project_latest' 'shhpsgdb' %}">Sleep Heart Health Study
@@ -336,13 +334,11 @@ or more digitized ECG signals and a set of beat annotations.</p>
     to ST episodes, rhythm changes, and signal quality changes; each record
     also includes ST level time series based on 16-second averages centered
     on each beat.  Two papers describing the database (from <a
-    href="ltstdb/lt96/">1996</a> and <a href="ltstdb/lt00/">2000</a>)
+    href="https://archive.physionet.org/physiobank/database/ltstdb/lt96/">1996</a> and <a href="https://archive.physionet.org/physiobank/database/ltstdb/lt00/">2000</a>)
     are available here.</li>
 
 <li>[Class 1; core] <a href="{% url 'published_project_latest' 'mitdb' %}">MIT-BIH Arrhythmia Database</a>.  This collection of 48 fully annotated half-hour two-lead ECGs is
-    available here in its entirety. The
-    <a href="html/mitdbdir/mitdbdir.htm">MIT-BIH Arrhythmia Database
-    Directory</a> is also available on-line.</li>
+    available here in its entirety.</li>
 
 <li>[Class 1; core] <a href="{% url 'published_project_latest' 'nstdb' %}">MIT-BIH Noise Stress Test Database</a>. Twelve half-hour ECG recordings and 3 half-hour recordings of noise
     typical in ambulatory ECG recordings.  The ECG recordings were
@@ -379,14 +375,13 @@ or more digitized ECG signals and a set of beat annotations.</p>
 
 <li>[Class 2; core] <a href="{% url 'published_project_latest' 'szdb' %}">Post-Ictal Heart Rate Oscillations in Partial
     Epilepsy</a>.  Seven annotated single-lead ECG recordings, with times
-    of seizures indicated.  A <a href="szdb/szdb.shtml">study of these
-    recordings</a> is available here.</li>
+    of seizures indicated.  A <a href="https://archive.physionet.org/physiobank/database/szdb/szdb.shtml">study of these recordings</a> is available here.</li>
 
 <li>[Class 2; core] <a href="{% url 'published_project_latest' 'qtdb' %}">QT Database</a>.  Over 100 fifteen-minute
     two-lead ECG recordings (many excerpted from other databases), with
     onset, peak, and end markers for P, QRS, T, and (where present) U waves
     of from 30 to 50 selected beats in each recording.  A <a
-    href="qtdb/doc/">paper describing this database</a> is available
+    href="https://archive.physionet.org/physiobank/database/qtdb/doc/">paper describing this database</a> is available
     here.</li>
 
 <li>[Class 2] <a href="{% url 'published_project_latest' 'shareedb' %}">Smart Health for Assessing the Risk of
@@ -461,7 +456,7 @@ or more digitized ECG signals and a set of beat annotations.</p>
 
 <li>[Class 3; core] <a href="{% url 'published_project_latest' 'nsrdb' %}">MIT-BIH Normal Sinus Rhythm Database</a>
     (including signal files not previously released).  Also available: <a
-    href="excluded/">recordings excluded</a> from the MIT-BIH Normal Sinus Rhythm
+    href="https://archive.physionet.org/physiobank/database/excluded/">recordings excluded</a> from the MIT-BIH Normal Sinus Rhythm
     Database (because of the presence of occasional ectopic beats).</li>
 
 <li>[Class 3; core] <a href="{% url 'published_project_latest' 'stdb' %}">MIT-BIH ST Change Database</a>.  This database
@@ -504,7 +499,7 @@ or more digitized ECG signals and a set of beat annotations.</p>
 <li>[Class 3] <a href="{% url 'published_project_latest' 'sddb' %}">Sudden Cardiac Death Holter Database</a>. This is a collection of long-term ECG recordings of patients who
     experienced sudden cardiac death during the recordings.  Half-hour
     excerpts of these recordings are available as the <a
-    href="vfdb/">MIT-BIH Malignant Ventricular Arrhythmia Database</a>.</li>
+    href="{% url 'published_project_latest' 'vfdb' %}">MIT-BIH Malignant Ventricular Arrhythmia Database</a>.</li>
 
 <li>[Class 3] <a href="{% url 'published_project_latest' 'twadb' %}">T-Wave Alternans Challenge Database</a>.
     This database has been compiled for the <a
@@ -560,8 +555,7 @@ are unavailable.</p>
 <h2 id="cv">Other Cardiovascular Databases</h2>
 
 <ul>
-<li>[Class 2; core] <a href="{% url 'published_project_latest' 'bpssrat' %}">Time Course Data for Blood Pressure in Dahl SS and SSBN13 Rats</a>.  Two-minute continuous non-invasive blood pressure
-recordings from 9 SS (salt-sensitive) and 6 SSBN13 Dahl rats.  Each rat was
+<li>[Class 2; core] <a href="{% url 'published_project_latest' 'bpssrat' %}">Time Course Data for Blood Pressure in Dahl SS and SSBN13 Rats</a>.  Two-minute continuous non-invasive blood pressure recordings from 9 SS (salt-sensitive) and 6 SSBN13 Dahl rats.  Each rat was
 recorded twice, initially while on a low-salt diet and subsequently while on a
 high-salt diet, in support of a study of the physiologic origins of baroreflex
 dysfunction in salt-sensitive hypertension.</li>
@@ -711,8 +705,7 @@ one with myopathy, one with neuropathy).</li>
 
 
 <ul>
-<li>[Class 3; core] <a href="images/">Samples of MR Images</a>
-(magnetic resonance angiography images)</li>
+<li>[Class 3; core] <a href="{% url 'published_project_latest' 'images' %}">Samples of MR Images</a> (magnetic resonance angiography images)</li>
 </ul>
 
 <br>
@@ -749,7 +742,7 @@ states and recording conditions.</li>
 
 <li>[Class 2] <a href="{% url 'published_project_latest' 'voiced' %}">VOICED (VOice ICar fEDerico II) database</a> This database includes 208 voice samples, from 150 pathological, and 58 healthy voices.</li>
 
-<li>[Class 2] <a href="{% url 'published_project_latest' 'nqmitcsxp' %}/">neuroQWERTY MIT-CSXPD</a>. Keystroke logs collected from 85 subjects with and without parkinsons disease (PD). This dataset has been collected and analyzed in order to indicate that the routine interaction with computer keyboards can be used to detect motor signs in the early stages of PD.</li> 
+<li>[Class 2] <a href="{% url 'published_project_latest' 'nqmitcsxpd' %}/">neuroQWERTY MIT-CSXPD</a>. Keystroke logs collected from 85 subjects with and without parkinsons disease (PD). This dataset has been collected and analyzed in order to indicate that the routine interaction with computer keyboards can be used to detect motor signs in the early stages of PD.</li> 
 
 <li>[Class 2] <a href="{% url 'published_project_latest' 'pmd' %}">A Pressure Map Dataset for In-bed Posture Classification</a>. Contains in-bed posture pressure data from multiple adult participants using two different types of pressure sensing mats.</li> 
 
