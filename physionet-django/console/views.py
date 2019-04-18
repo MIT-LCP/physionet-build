@@ -228,8 +228,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
 
     description_form = project_forms.MetadataForm(
         resource_type=project.resource_type, instance=project)
-    access_form = project_forms.AccessMetadataForm(include_credentialed=True,
-        instance=project)
+    access_form = project_forms.AccessMetadataForm(instance=project)
     discovery_form = project_forms.DiscoveryForm(resource_type=project.resource_type,
         instance=project)
 
@@ -245,10 +244,11 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
             description_form = project_forms.MetadataForm(
                 resource_type=project.resource_type, data=request.POST,
                 instance=project)
-            access_form = project_forms.AccessMetadataForm(
-                include_credentialed=True, data=request.POST, instance=project)
-            discovery_form = project_forms.DiscoveryForm(resource_type=project.resource_type,
-                data=request.POST, instance=project)
+            access_form = project_forms.AccessMetadataForm(data=request.POST,
+                instance=project)
+            discovery_form = project_forms.DiscoveryForm(
+                resource_type=project.resource_type, data=request.POST,
+                instance=project)
             reference_formset = ReferenceFormSet(data=request.POST,
                 instance=project)
             publication_formset = PublicationFormSet(request.POST,
@@ -536,15 +536,15 @@ def manage_published_project(request, project_slug, version):
                 bucket_name = is_private = False
                 if project.access_policy > 0:
                     is_private = True
-                bucket_name = utility.create_bucket(project=slug, protected=is_private, 
+                bucket_name = utility.create_bucket(project=slug, protected=is_private,
                     version=project.version)
-                GCP.objects.create(project=project, bucket_name=bucket_name, 
+                GCP.objects.create(project=project, bucket_name=bucket_name,
                     managed_by=user, is_private=is_private)
                 send_files_to_gcp(project.id)
                 logger.info("Created GCP bucket for project {0}".format(
                     project_slug))
                 messages.success(request, "The GCP bucket for project {0} was \
-                    successfully created.".format(project_slug))                
+                    successfully created.".format(project_slug))
             else:
                 send_files_to_gcp(project.id)
                 logger.info("Created GCP bucket for project {0}".format(
