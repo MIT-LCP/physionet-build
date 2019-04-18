@@ -690,12 +690,21 @@ def get_project_file_info(project, subdir):
     subdirectory.
     Helper function for generating the files panel
     """
-    display_files, display_dirs = project.get_directory_content(
-        subdir=subdir)
+    display_files = display_dirs = ()
+    try:
+        display_files, display_dirs = project.get_directory_content(
+            subdir=subdir)
+        file_error = None
+    except FileNotFoundError:
+        file_error = 'Directory not found'
+    except OSError:
+        file_error = 'Unable to read directory'
+
     # Breadcrumbs
     dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
     parent_dir = os.path.split(subdir)[0]
-    return display_files, display_dirs, dir_breadcrumbs, parent_dir
+
+    return display_files, display_dirs, dir_breadcrumbs, parent_dir, file_error
 
 @project_auth(auth_mode=2)
 def project_files_panel(request, project_slug, **kwargs):
@@ -710,8 +719,9 @@ def project_files_panel(request, project_slug, **kwargs):
     if not request.is_ajax():
         return redirect('project_files', project_slug=project_slug)
 
-    display_files, display_dirs, dir_breadcrumbs, parent_dir = get_project_file_info(
-        project=project, subdir=subdir)
+    (display_files, display_dirs, dir_breadcrumbs, parent_dir,
+     file_error) = get_project_file_info(project=project, subdir=subdir)
+
     (upload_files_form, create_folder_form, rename_item_form,
         move_items_form, delete_items_form) = get_file_forms(project, subdir)
 
@@ -808,8 +818,8 @@ def project_files(request, project_slug, subdir='', **kwargs):
         move_items_form, delete_items_form) = get_file_forms(project=project,
         subdir=subdir)
 
-    display_files, display_dirs, dir_breadcrumbs, _ = get_project_file_info(
-        project=project, subdir=subdir)
+    (display_files, display_dirs, dir_breadcrumbs, _,
+     file_error) = get_project_file_info(project=project, subdir=subdir)
 
     return render(request, 'project/project_files.html', {'project':project,
         'individual_size_limit':utility.readable_size(
@@ -850,8 +860,8 @@ def preview_files_panel(request, project_slug, **kwargs):
     if not request.is_ajax():
         return redirect('project_preview', project_slug=project_slug)
 
-    display_files, display_dirs, dir_breadcrumbs, parent_dir = get_project_file_info(
-        project=project, subdir=subdir)
+    (display_files, display_dirs, dir_breadcrumbs, parent_dir,
+     file_error) = get_project_file_info(project=project, subdir=subdir)
     files_panel_url = reverse('preview_files_panel', args=(project.slug,))
 
     return render(request, 'project/files_panel.html',
