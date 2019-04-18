@@ -341,6 +341,24 @@ class TestAccessPublished(TestMixin, TestCase):
             args=(project.slug, project.version, 'Makefile')))
         self.assertEqual(response.status_code, 200)
 
+    @prevent_request_warnings
+    def test_nonexistent(self):
+        """
+        Test access to a non-existent project.
+        """
+        response = self.client.get(reverse(
+            'published_project_latest', args=('fnord',)))
+        self.assertEqual(response.status_code, 404)
+        response = self.client.get(reverse(
+            'published_project', args=('fnord', '1.0')))
+        self.assertEqual(response.status_code, 404)
+        response = self.client.get(reverse(
+            'published_project_subdir', args=('fnord', '1.0', 'data')))
+        self.assertEqual(response.status_code, 404)
+        response = self.client.get(reverse(
+            'serve_published_project_file', args=('fnord', '1.0', 'Makefile')))
+        self.assertEqual(response.status_code, 404)
+
 
 class TestState(TestMixin, TestCase):
     """
