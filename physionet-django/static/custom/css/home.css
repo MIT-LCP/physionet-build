@@ -90,23 +90,28 @@ html{
 	border: 1px white solid;
 }
 
-.main-header .down{
+.main-header .down-container{
 	position: absolute;
 	bottom: 50px;
 	left: calc(50% - 0.5em);
+	height: calc(1em + 60px);
+	width: 2em;
+}
+
+.main-header .down{
 	width: 1em;
 	height: 1em;
+	margin-left: 8px;
 	border: solid white;
 	border-width: 0 1px 1px 0;
-	padding: 3px;
 	transform: rotate(45deg) translateY(1px);
 	animation: move 2s infinite;
 }
 
 @keyframes move{
-	0% {bottom: 100px;}
-	50% {bottom: 50px;}
-	1000% {bottom: 50px;}
+	0% {margin-top: 0px;}
+	50% {margin-top: 50px;}
+	100% {margin-top: 50px;}
 }
 
 
@@ -115,5 +120,19 @@ html{
 		margin: 50px;
 		border-radius: 10px;
 		border: 1px silver solid;
+	}
+
+	.main-content{
+		padding: 50px 0;
+	}
+
+	.content-box{
+		display: inline-block;
+		vertical-align: top;
+		margin-left: 50px;
+		width: calc(50% - 50px);
+		padding: 30px;
+		border: 1px silver solid;
+		border-radius: 10px;
 	}
 }

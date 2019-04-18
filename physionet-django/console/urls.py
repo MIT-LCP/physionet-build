@@ -65,6 +65,9 @@ urlpatterns = [
     path('news/edit/<news_id>/', views.edit_news, name='edit_news'),
     path('news/add/', views.add_news, name='add_news'),
 
+    path('featured/', views.featured_content, name='featured_content'),
+    path('featured/add', views.add_featured, name='add_featured'),
+
     # guidelines
     path('guidelines/review/', views.guidelines_review, name='guidelines_review'),
 ]

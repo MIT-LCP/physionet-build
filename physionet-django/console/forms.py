@@ -282,3 +282,10 @@ class NewsForm(forms.ModelForm):
     class Meta:
         model = News
         fields = ('title', 'content', 'url', 'project')
+
+
+class FeaturedForm(forms.Form):
+    """
+    To add featured projects
+    """
+    title = forms.CharField(max_length=50, required=False, label='Title')
