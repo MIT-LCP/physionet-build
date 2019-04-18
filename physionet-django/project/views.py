@@ -897,20 +897,8 @@ def project_preview(request, project_slug, subdir='', **kwargs):
         for e in project.integrity_errors:
             messages.error(request, e)
 
-    display_files = display_dirs = ()
-    try:
-        display_files, display_dirs = project.get_directory_content(
-            subdir=subdir)
-        status = 200
-        file_error = None
-    except FileNotFoundError:
-        status = 404
-        file_error = 'Directory not found'
-    except OSError:
-        status = 404
-        file_error = 'Unable to read directory'
-
-    dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
+    (display_files, display_dirs, dir_breadcrumbs, _,
+     file_error) = get_project_file_info(project=project, subdir=subdir)
     files_panel_url = reverse('preview_files_panel', args=(project.slug,))
 
     return render(request, 'project/project_preview.html', {'project':project,
@@ -1213,20 +1201,13 @@ def published_project(request, project_slug, version, subdir=''):
 
     # The file and directory contents
     if has_access:
-        display_files = display_dirs = ()
-        try:
-            display_files, display_dirs = project.get_directory_content(
-                subdir=subdir)
+        (display_files, display_dirs, dir_breadcrumbs, parent_dir,
+         file_error) = get_project_file_info(project=project, subdir=subdir)
+        if file_error:
+            status = 404
+        else:
             status = 200
-            file_error = None
-        except FileNotFoundError:
-            status = 404
-            file_error = 'Directory not found'
-        except OSError:
-            status = 404
-            file_error = 'Unable to read directory'
 
-        dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
         main_size, compressed_size = [utility.readable_size(s) for s in
             (project.main_storage_size, project.compressed_storage_size)]
         files_panel_url = reverse('published_files_panel',
