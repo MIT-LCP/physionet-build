@@ -1107,8 +1107,11 @@ def serve_published_project_file(request, project_slug, version,
     Works for open and protected. Not needed for open.
 
     """
-    project = PublishedProject.objects.get(slug=project_slug,
-        version=version)
+    try:
+        project = PublishedProject.objects.get(slug=project_slug,
+            version=version)
+    except ObjectDoesNotExist:
+        raise Http404()
     if project.has_access(request.user):
         file_path = os.path.join(project.file_root(), full_file_name)
         try:
@@ -1126,8 +1129,11 @@ def serve_published_project_zip(request, project_slug, version):
     Works for open and protected. Not needed for open.
 
     """
-    project = PublishedProject.objects.get(slug=project_slug,
-        version=version)
+    try:
+        project = PublishedProject.objects.get(slug=project_slug,
+            version=version)
+    except ObjectDoesNotExist:
+        raise Http404()
     if project.has_access(request.user):
         try:
             return physionet.serve_file(project.zip_name(full=True))
@@ -1140,8 +1146,11 @@ def published_project_license(request, project_slug, version):
     """
     Displays a published project's license
     """
-    project = PublishedProject.objects.get(slug=project_slug,
-        version=version)
+    try:
+        project = PublishedProject.objects.get(slug=project_slug,
+            version=version)
+    except ObjectDoesNotExist:
+        raise Http404()
     license = project.license
     license_content = project.license_content(fmt='html')
 
@@ -1154,8 +1163,11 @@ def published_project_latest(request, project_slug):
     """
     Redirect to latest project version
     """
-    version = PublishedProject.objects.get(slug=project_slug,
-        is_latest_version=True).version
+    try:
+        version = PublishedProject.objects.get(slug=project_slug,
+            is_latest_version=True).version
+    except ObjectDoesNotExist:
+        raise Http404()
     return redirect('published_project', project_slug=project_slug,
         version=version)
 
@@ -1164,7 +1176,11 @@ def published_project(request, project_slug, version, subdir=''):
     """
     Displays a published project
     """
-    project = PublishedProject.objects.get(slug=project_slug, version=version)
+    try:
+        project = PublishedProject.objects.get(slug=project_slug,
+                                               version=version)
+    except ObjectDoesNotExist:
+        raise Http404()
 
     authors = project.authors.all().order_by('display_order')
     for a in authors:
