@@ -312,8 +312,6 @@ class CreateProjectForm(forms.ModelForm):
     def __init__(self, user, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = user
-        if not user.is_admin:
-            self.fields['resource_type'].choices = self.fields['resource_type'].choices[:-1]
 
     class Meta:
         model = ActiveProject
@@ -508,7 +506,7 @@ class DiscoveryForm(forms.ModelForm):
     programming_languages = forms.ModelMultipleChoiceField(
         queryset=ProgrammingLanguage.objects.all().order_by('name'),
         widget=forms.SelectMultiple(attrs={'size':'10'}),
-        help_text='The programming languages used. Hold ctrl to select multiple. If your language is not listed here, <a href=/about/contact>contact us</a>.')
+        help_text='The programming languages used. Hold ctrl to select multiple. If your language is not listed here, <a href=/about>contact us</a>.')
 
     class Meta:
         model = ActiveProject
@@ -686,28 +684,31 @@ class AccessMetadataForm(forms.ModelForm):
         help_texts = {'access_policy': '* Access policy for files.',
                       'license': "* License for usage. <a href='/about/publish/#licenses' target='_blank'>View available.</a>"}
 
-    def __init__(self, include_credentialed, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         """
-        Control the allowed access policies, and resultant license
-        choices.
+        Control the available access policies based on the existing
+        licenses. The license queryset is set in the following
+        `set_license_queryset` function.
 
+        Each license has one access policy, and potentially multiple
+        resource types.
         """
         super().__init__(*args, **kwargs)
 
-        if self.instance.resource_type == 0:
-            if not include_credentialed:
-                self.fields['access_policy'].choices = ((0, 'Open'),(1, 'Restricted'))
-        # Software projects are all open
-        else:
-            self.fields['access_policy'].choices = ((0, 'Open'),)
+        # Get licenses for this resource type
+        licenses = License.objects.filter(
+            resource_types__icontains=str(self.instance.resource_type))
+        # Set allowed access policies based on license policies
+        available_policies = [a for a in range(len(Metadata.ACCESS_POLICIES)) if licenses.filter(access_policy=a)]
+        self.fields['access_policy'].choices = tuple(Metadata.ACCESS_POLICIES[p] for p in available_policies)
 
     def set_license_queryset(self, access_policy):
         """
         Set the license queryset according to the set or selected
-        access policy
+        access policy.
         """
         self.fields['license'].queryset = License.objects.filter(
-            resource_type=self.instance.resource_type,
+            resource_types__icontains=str(self.instance.resource_type),
             access_policy=access_policy)
 
     def clean(self):
@@ -715,13 +716,11 @@ class AccessMetadataForm(forms.ModelForm):
         Ensure valid license access policy combinations
         """
         data = super().clean()
+        if (str(self.instance.resource_type) in data['license'].resource_types
+                and data['access_policy'] == data['license'].access_policy):
+            return data
 
-        if ([data['license'].resource_type, data['license'].access_policy]
-                != [self.instance.resource_type, data['access_policy']]):
-            raise forms.ValidationError(
-                  'Invalid policy license combination.')
-
-        return data
+        raise forms.ValidationError('Invalid policy license combination.')
 
 
 class AuthorCommentsForm(forms.Form):

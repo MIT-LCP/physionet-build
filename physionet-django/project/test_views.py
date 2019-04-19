@@ -147,9 +147,12 @@ class TestAccessPresubmission(TestMixin, TestCase):
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
 
         # Ensure valid license policy combination
-        open_data_license = License.objects.filter(access_policy=0, resource_type=0).first()
-        restricted_data_license = License.objects.filter(access_policy=1, resource_type=0).first()
-        software_license = License.objects.filter(resource_type=1).first()
+        open_data_license = License.objects.filter(access_policy=0,
+            resource_types__contains='0').first()
+        restricted_data_license = License.objects.filter(access_policy=1,
+            resource_types__contains='0').first()
+        software_license = License.objects.filter(
+            resource_types__contains='1').first()
 
         response = self.client.post(reverse(
             'project_access', args=(project.slug,)),
@@ -373,7 +376,7 @@ class TestState(TestMixin, TestCase):
         Create and archive a project
         """
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
-        response = self.client.post(reverse('about_publish'),
+        response = self.client.post(reverse('create_project'),
             data={'title': 'Database 1', 'resource_type': 0,
                   'abstract': '<p class=xyz lang=en>x & y'})
 

@@ -277,7 +277,7 @@ def remove_author(request, author_id, project, authors):
     """
     rm_author = Author.objects.filter(id=author_id)
     if rm_author:
-        rm_author = rm_author.get() 
+        rm_author = rm_author.get()
     else:
         raise Http404()
 
@@ -596,15 +596,14 @@ def project_access(request, project_slug, **kwargs):
     """
     user, project = kwargs['user'], kwargs['project']
 
-
     if request.method == 'POST':
-        access_form = forms.AccessMetadataForm(
-            include_credentialed=user.is_admin, data=request.POST,
+        access_form = forms.AccessMetadataForm(data=request.POST,
             instance=project)
         # The first validation is to check for valid access policy choice
         if access_form.is_valid():
             # The second validation is to check for valid license choice
-            access_form.set_license_queryset(access_policy=access_form.cleaned_data['access_policy'])
+            access_form.set_license_queryset(
+                access_policy=access_form.cleaned_data['access_policy'])
             if access_form.is_valid():
                 access_form.save()
                 messages.success(request, 'Your access metadata has been updated.')
@@ -612,10 +611,8 @@ def project_access(request, project_slug, **kwargs):
             messages.error(request,
                 'Invalid submission. See errors below.')
     else:
-        access_form = forms.AccessMetadataForm(
-            include_credentialed=user.is_admin, instance=project)
+        access_form = forms.AccessMetadataForm(instance=project)
         access_form.set_license_queryset(access_policy=project.access_policy)
-
 
     return render(request, 'project/project_access.html', {'project':project,
         'access_form':access_form, 'is_submitting':kwargs['is_submitting']})
@@ -632,8 +629,7 @@ def load_license(request, project_slug):
         project = project.get()
     else:
         raise Http404()
-    form = forms.AccessMetadataForm(include_credentialed=request.user.is_admin,
-        instance=project)
+    form = forms.AccessMetadataForm(instance=project)
     form.set_license_queryset(access_policy=int(request.GET['access_policy']))
 
     return render(request, 'project/license_input.html', {'form':form})
@@ -1036,7 +1032,7 @@ def rejected_submission_history(request, project_slug):
     user = request.user
     project = ArchivedProject.objects.filter(slug=project_slug, archive_reason=3)
     if project:
-        project = project.get() 
+        project = project.get()
     else:
         raise Http404()
     if user.is_admin or project.authors.filter(user=user):
@@ -1078,7 +1074,7 @@ def published_submission_history(request, project_slug, version):
     user = request.user
     project = PublishedProject.objects.filter(slug=project_slug, version=version)
     if project:
-        project = project.get() 
+        project = project.get()
     else:
         raise Http404()
     if user.is_admin or project.authors.filter(user=user):
@@ -1100,7 +1096,7 @@ def published_files_panel(request, project_slug, version):
     project = PublishedProject.objects.filter(slug=project_slug,
         version=version)
     if project:
-        project = project.get() 
+        project = project.get()
     else:
         raise Http404()
 
@@ -1266,7 +1262,7 @@ def sign_dua(request, project_slug, version):
     user = request.user
     project = PublishedProject.objects.filter(slug=project_slug, version=version)
     if project:
-        project = project.get() 
+        project = project.get()
     else:
         raise Http404()
 
