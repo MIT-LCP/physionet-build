@@ -1104,7 +1104,9 @@ def published_files_panel(request, project_slug, version):
     else:
         raise Http404()
 
-    subdir = request.GET['subdir']
+    subdir = request.GET.get('subdir')
+    if subdir is None:
+        raise Http404()
 
     if not request.is_ajax():
         return redirect('published_project', project_slug=project_slug,
