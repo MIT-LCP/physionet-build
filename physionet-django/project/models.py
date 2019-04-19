@@ -392,6 +392,8 @@ class Metadata(models.Model):
     license = models.ForeignKey('project.License', null=True,
         on_delete=models.SET_NULL)
     project_home_page = models.URLField(default='', blank=True)
+    parent_project = models.ForeignKey('project.PublishedProject', blank=True,
+        null=True, related_name='derived_%(class)ss', on_delete=models.SET_NULL)
     programming_languages = models.ManyToManyField(
         'project.ProgrammingLanguage', related_name='%(class)ss')
 

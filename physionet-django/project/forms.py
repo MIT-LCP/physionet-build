@@ -506,7 +506,7 @@ class DiscoveryForm(forms.ModelForm):
     programming_languages = forms.ModelMultipleChoiceField(
         queryset=ProgrammingLanguage.objects.all().order_by('name'),
         widget=forms.SelectMultiple(attrs={'size':'10'}),
-        help_text='The programming languages used. Hold ctrl to select multiple. If your language is not listed here, <a href=/about/contact>contact us</a>.')
+        help_text='The programming languages used. Hold ctrl to select multiple. If your language is not listed here, <a href=/about>contact us</a>.')
 
     class Meta:
         model = ActiveProject
@@ -699,7 +699,7 @@ class AccessMetadataForm(forms.ModelForm):
         licenses = License.objects.filter(
             resource_types__icontains=str(self.instance.resource_type))
         # Set allowed access policies based on license policies
-        available_policies = [a for a in range(3) if licenses.filter(access_policy=a)]
+        available_policies = [a for a in range(len(Metadata.ACCESS_POLICIES)) if licenses.filter(access_policy=a)]
         self.fields['access_policy'].choices = tuple(Metadata.ACCESS_POLICIES[p] for p in available_policies)
 
     def set_license_queryset(self, access_policy):

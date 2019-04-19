@@ -1,10 +1,13 @@
+from collections import OrderedDict
+
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.contrib.contenttypes.models import ContentType
 
 from notification.models import News
 import notification.utility as notification
-from project.models import License, PublishedProject, Author, ActiveProject
+from project.models import (License, PublishedProject, Author, ActiveProject,
+    Metadata)
 from user.forms import ContactForm
 from project import forms
 
@@ -25,13 +28,10 @@ def about_publish(request):
     """
     Instructions for authors
     """
-    licenses = {}
-    licenses['Database'] = License.objects.filter(
-        resource_types__contains='0').order_by('access_policy')
-    licenses['Software'] = License.objects.filter(
-        resource_types__contains='1').order_by('access_policy')
-    licenses['Challenge'] = License.objects.filter(
-        resource_types__contains='2').order_by('access_policy')
+    licenses = OrderedDict()
+    for resource_type, resource_label in Metadata.RESOURCE_TYPES:
+        licenses[resource_label] = License.objects.filter(
+            resource_types__contains=str(resource_type)).order_by('access_policy')
 
     return render(request, 'about/publish.html', {'licenses':licenses})
 
