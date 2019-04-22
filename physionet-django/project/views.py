@@ -1213,7 +1213,8 @@ def published_project(request, project_slug, version, subdir=''):
     languages = project.programming_languages.all()
     contact = Contact.objects.get(project=project)
     news = project.news.all().order_by('-publish_datetime')
-
+    parent_projects = project.parent_projects.all()
+    derived_projects = project.derived_publishedprojects.all()
 
     has_access = project.has_access(request.user)
     current_site = get_current_site(request)
@@ -1223,7 +1224,9 @@ def published_project(request, project_slug, version, subdir=''):
                'references': references, 'publication': publication,
                'topics': topics, 'languages': languages, 'contact': contact,
                'has_access': has_access, 'current_site': current_site,
-               'news': news, 'all_project_versions': all_project_versions}
+               'news': news, 'all_project_versions': all_project_versions,
+               'parent_projects':parent_projects,
+               'derived_projects':derived_projects}
 
     # The file and directory contents
     if has_access:

@@ -5,13 +5,14 @@ import re
 
 from django import forms
 from django.contrib.contenttypes.forms import BaseGenericInlineFormSet
+from django.db.models.functions import Lower
 from django.template.defaultfilters import slugify
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 
 from .models import (Affiliation, Author, AuthorInvitation, ActiveProject,
     CoreProject, StorageRequest, ProgrammingLanguage, License, Metadata,
-    Reference, Publication, Topic, exists_project_slug)
+    Reference, Publication, PublishedProject, Topic, exists_project_slug)
 from . import utility
 from . import validators
 
@@ -400,6 +401,9 @@ class NewProjectVersionForm(forms.ModelForm):
                 citation=p_publication.citation, url=p_publication.url,
                 project=project)
 
+        for parent_project in self.latest_project.parent_projects.all():
+            project.parent_projects.add(parent_project)
+
         for p_topic in self.latest_project.topics.all():
             topic = Topic.objects.create(project=project,
                 description=p_topic.description)
@@ -506,15 +510,23 @@ class DiscoveryForm(forms.ModelForm):
     programming_languages = forms.ModelMultipleChoiceField(
         queryset=ProgrammingLanguage.objects.all().order_by('name'),
         widget=forms.SelectMultiple(attrs={'size':'10'}),
-        help_text='The programming languages used. Hold ctrl to select multiple. If your language is not listed here, <a href=/about>contact us</a>.')
+        help_text='The programming languages used. Hold ctrl to select multiple. If your language is not listed here, <a href=/about>contact us</a>.',
+        required=False)
+    parent_projects = forms.ModelMultipleChoiceField(
+        queryset=PublishedProject.objects.all().order_by(Lower('title'),
+        'version_order'), widget=forms.SelectMultiple(attrs={'size':'10'}),
+        help_text='The existing PhysioNet project(s) this resource was derived from. Hold ctrl to select multiple.',
+        required=False)
 
     class Meta:
         model = ActiveProject
-        fields = ('short_description', 'project_home_page', 'programming_languages')
+        fields = ('short_description', 'project_home_page', 'parent_projects',
+            'programming_languages')
         help_texts = {
-            'project_home_page': 'External home page for the project.',
-            'short_description': 'Short (maximum 250 character) description of the project.'
+            'short_description': 'Short (maximum 250 character) description of the project.',
+            'project_home_page': 'External home page for the project.'
         }
+        widgets = {'short_description':forms.Textarea(attrs={'rows':'4'})}
 
     def __init__(self, resource_type, *args, **kwargs):
         super().__init__(*args, **kwargs)

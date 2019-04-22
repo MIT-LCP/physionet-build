@@ -56,6 +56,11 @@
         <p>{{ project.citation_text }}</p>
       {% endif %}
 
+      {% if publication %}
+        <strong>{% if project.is_legacy %}When using this resource{% else %}Additionally{% endif %}, please cite the original publication:</strong>
+        <p><a href="{{ publication.url }}" target="_blank">{{ publication.citation }}</a></p>
+      {% endif %}
+
       <strong>Please include the standard citation for PhysioNet:</strong>
       <p>Goldberger AL, Amaral LAN, Glass L, Hausdorff JM, Ivanov PCh, Mark RG,
       Mietus JE, Moody GB, Peng C-K, Stanley HE. PhysioBank, PhysioToolkit, and
@@ -200,22 +205,13 @@
         </div>
       </div>
 
-      {% if publication %}
-      <div class="card my-4">
-        <h5 class="card-header">Related Publication</h5>
-        <div class="card-body">
-          <p><a href="{{ publication.url }}" target="_blank">{{ publication.citation }}</a></p>
-        </div>
-      </div>
-      {% endif %}
-
       <div class="card my-4">
         <h5 class="card-header">Corresponding Author</h5>
         <div class="card-body">
           {% if user.is_authenticated %}
             <p>
-              {{ contact.name }},
-              {{ contact.affiliations }},
+              {{ contact.name }}<br>
+              {{ contact.affiliations }}.<br>
               {{ contact.email }}
             </p>
           {% else %}
@@ -231,6 +227,30 @@
           <li class="list-group-item"><a href="{% url 'published_project' project.slug project.version %}">{{ project.version }}</a> - {{ project.publish_datetime|date }}</li>
           {% endfor %}
         </ul>
+      </div>
+      {% endif %}
+
+      {% if parent_projects or derived_projects %}
+      <div class="card my-4">
+        <h5 class="card-header">Related Projects</h5>
+        <div class="card-body">
+          {% if parent_projects %}
+            {{ project.title }} was derived from:
+            <ul>
+              {% for pp in parent_projects %}
+                <li><a href="{% url 'published_project' pp.slug pp.version %}">{{ pp }}</a></li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+          {% if derived_projects %}
+            The following projects are derivations:
+            <ul>
+              {% for dp in derived_projects %}
+                <li><a href="{% url 'published_project' dp.slug dp.version %}">{{ dp }}</a></li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
       </div>
       {% endif %}
     </div>
