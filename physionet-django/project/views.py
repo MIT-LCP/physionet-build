@@ -1268,7 +1268,7 @@ def sign_dua(request, project_slug, version):
 
     if not project.access_policy or project.has_access(user):
         return redirect('published_project',
-            project_slug=project_slug)
+                        project_slug=project_slug, version=version)
 
     if project.access_policy == 2 and not user.is_credentialed:
         return render(request, 'project/credential_required.html')
