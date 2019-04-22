@@ -232,6 +232,13 @@ class DOIForm(forms.ModelForm):
         return data
 
 
+class DeprecateFilesForm(forms.Form):
+    """
+    For deprecating a project's files
+    """
+    delete_files = forms.ChoiceField(choices=YES_NO)
+
+
 class ProcessCredentialForm(forms.ModelForm):
     """
     Form to respond to a credential application

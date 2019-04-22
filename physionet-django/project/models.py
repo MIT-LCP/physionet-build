@@ -20,11 +20,9 @@ from django.utils.text import slugify
 
 from project.utility import (get_tree_size, get_file_info, get_directory_info,
                              list_items, StorageInfo, get_tree_files,
-                             list_files)
-
+                             list_files, clear_directory)
 from project.validators import (validate_doi, validate_subdir,
                                 validate_version, validate_slug)
-
 from user.validators import validate_alphaplus, validate_alphaplusplus
 from physionet.utility import zip_dir
 
@@ -1256,6 +1254,24 @@ class PublishedProject(Metadata, SubmissionInfo):
         # This should come last since it also zips the special files
         if make_zip:
             self.make_zip()
+
+    def remove_files(self):
+        """
+        Remove files of this project
+        """
+        clear_directory(self.file_root())
+        self.remove_zip()
+        self.set_storage_info()
+
+    def deprecate_files(self, delete_files):
+        """
+        Label the project's files as deprecated. Option of deleting
+        files.
+        """
+        self.deprecated_files = True
+        self.save()
+        if delete_files:
+            self.remove_files()
 
     def get_inspect_dir(self, subdir):
         """

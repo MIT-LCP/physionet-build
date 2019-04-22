@@ -509,13 +509,15 @@ def manage_published_project(request, project_slug, version):
     Manage a published project
     - Set the DOI field (after doing it in datacite)
     - Create zip of files
+    - Deprecate files
     - Create GCP bucket and send files
     """
     user = request.user
     project = PublishedProject.objects.get(slug=project_slug, version=version)
-    authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
     doi_form = forms.DOIForm(instance=project)
+    deprecate_form = None if project.deprecated_files else forms.DeprecateFilesForm()
     has_credentials = os.path.exists(os.environ["GOOGLE_APPLICATION_CREDENTIALS"])
+
     if request.method == 'POST':
         if 'set_doi' in request.POST:
             doi_form = forms.DOIForm(data=request.POST, instance=project)
@@ -530,6 +532,12 @@ def manage_published_project(request, project_slug, version):
         elif 'make_zip' in request.POST:
             project.make_zip()
             messages.success(request, 'The zip of the main files has been generated.')
+        elif 'deprecate_files' in request.POST and not project.deprecated_files:
+            deprecate_form = forms.DeprecateFilesForm(data=request.POST)
+            if deprecate_form.is_valid():
+                project.deprecate_files(
+                    delete_files=deprecate_form.cleaned_data['delete_files'])
+                messages.success(request, 'The project files have been deprecated.')
         elif 'bucket' in request.POST and has_credentials:
             slug = request.POST['bucket'].lower()
             if not utility.check_bucket(slug, project.version):
@@ -552,11 +560,14 @@ def manage_published_project(request, project_slug, version):
                 messages.success(request, "The bucket already exists. Resending the files \
                     for the project {0}.".format(project_slug))
 
+    authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
+
     return render(request, 'console/manage_published_project.html',
         {'project':project, 'authors':authors, 'author_emails':author_emails,
          'storage_info':storage_info, 'edit_logs':edit_logs,
          'copyedit_logs':copyedit_logs, 'latest_version':latest_version,
-         'published':True, 'doi_form':doi_form, 'has_credentials':has_credentials})
+         'published':True, 'doi_form':doi_form,
+         'deprecate_form':deprecate_form, 'has_credentials':has_credentials})
 
 
 @login_required
