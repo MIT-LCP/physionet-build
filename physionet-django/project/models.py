@@ -1004,7 +1004,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
         if self.core_project.publishedprojects.all() and len(previous_published_projects) > 0:
             for project in previous_published_projects:
-                if project.version > published_project.version:
+                if project.version > publiversionshed_project.version:
                     project.is_latest_version = True
                     published_project.is_latest_version = False
                     project.save()
@@ -1103,6 +1103,7 @@ class PublishedProject(Metadata, SubmissionInfo):
     compressed_storage_size = models.BigIntegerField(default=0)
     publish_datetime = models.DateTimeField(auto_now_add=True)
     has_other_versions = models.BooleanField(default=False)
+    deprecated_files = models.BooleanField(default=False)
     # doi = models.CharField(max_length=50, unique=True, validators=[validate_doi])
     # Temporary workaround
     doi = models.CharField(max_length=50, default='')
@@ -1112,6 +1113,7 @@ class PublishedProject(Metadata, SubmissionInfo):
     # Fields for legacy pb databases
     is_legacy = models.BooleanField(default=False)
     full_description = SafeHTMLField(default='')
+
     is_latest_version = models.BooleanField(default=True)
     # Featured content
     featured = models.BooleanField(default=False)
@@ -1286,8 +1288,11 @@ class PublishedProject(Metadata, SubmissionInfo):
 
     def has_access(self, user):
         """
-        Whether the user has access to this project
+        Whether the user has access to this project's files
         """
+        if self.deprecated_files:
+            return False
+
         if self.access_policy:
             if self.approved_users.filter(id=user.id):
                 return True

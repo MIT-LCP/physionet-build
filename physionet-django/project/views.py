@@ -1116,6 +1116,8 @@ def published_files_panel(request, project_slug, version):
         return redirect('published_project', project_slug=project_slug,
             version=version)
 
+    subdir = request.GET['subdir']
+
     if project.has_access(request.user):
         (display_files, display_dirs, dir_breadcrumbs, parent_dir,
          file_error) = get_project_file_info(project=project, subdir=subdir)
@@ -1128,6 +1130,8 @@ def published_files_panel(request, project_slug, version):
              'dir_breadcrumbs':dir_breadcrumbs, 'parent_dir':parent_dir,
              'display_files':display_files, 'display_dirs':display_dirs,
              'files_panel_url':files_panel_url, 'file_error':file_error})
+    else:
+        raise Http404()
 
 
 def serve_published_project_file(request, project_slug, version,
