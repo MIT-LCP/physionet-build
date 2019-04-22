@@ -536,7 +536,7 @@ def manage_published_project(request, project_slug, version):
             deprecate_form = forms.DeprecateFilesForm(data=request.POST)
             if deprecate_form.is_valid():
                 project.deprecate_files(
-                    delete_files=deprecate_form.cleaned_data['delete_files'])
+                    delete_files=int(deprecate_form.cleaned_data['delete_files']))
                 messages.success(request, 'The project files have been deprecated.')
         elif 'bucket' in request.POST and has_credentials:
             slug = request.POST['bucket'].lower()
