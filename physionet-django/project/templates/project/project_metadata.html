@@ -5,8 +5,8 @@
 {% block title %}Project Metadata - {{ project }}{% endblock %}
 
 {% block local_js_top %}
-<script type="text/javascript" src="{% static 'custom/js/cookie.js' %}"></script>
-<script type="text/javascript" src="{% static 'project/js/dynamic-formset.js' %}"></script>
+<script src="{% static 'custom/js/cookie.js' %}"></script>
+<script src="{% static 'project/js/dynamic-formset.js' %}"></script>
 {% endblock %}
 
 {% block main_content %}
@@ -37,15 +37,15 @@
 {% endblock %}
 
 {% block local_js_bottom %}
-<script type="text/javascript" src="{% static 'custom/js/resize-ck.js' %}"></script>
-<script type="text/javascript" src="{% static 'custom/js/enable-popover.js' %}"></script>
+<script src="{% static 'custom/js/resize-ck.js' %}"></script>
+<script src="{% static 'custom/js/enable-popover.js' %}"></script>
 <script>disableAddButtons();</script>
 {# Disable submission if not currently editable or not submitting author #}
 {% if not is_submitting or not project.author_editable %}
-  <script type="text/javascript" src="{% static 'custom/js/disable-input.js' %}"></script>
+  <script src="{% static 'custom/js/disable-input.js' %}"></script>
 {% endif %}
 {% if project.has_other_versions or project.version_order %}
-  <script type="text/javascript" src="{% static 'custom/js/disable-title.js' %}"></script>
+  <script src="{% static 'custom/js/disable-title.js' %}"></script>
 {% endif %}
 
 {% endblock %}
