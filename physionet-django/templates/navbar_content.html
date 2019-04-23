@@ -44,7 +44,7 @@
           <i class="fa fa-user"></i> {{ user }}
         {% endif %}
         </a>
-        <div class="dropdown-menu" aria-labelledby="account_dropdown">
+        <div class="dropdown-menu" aria-labelledby="nav_account_dropdown">
           <a class="dropdown-item" href="{% url 'public_profile' user.username %}">
             Profile
           </a>
@@ -63,7 +63,7 @@
       {% else %}
         Account
         </a>
-        <div class="dropdown-menu" aria-labelledby="account_dropdown">
+        <div class="dropdown-menu" aria-labelledby="nav_account_dropdown">
         <a id="nav_login" class="dropdown-item" href="{% url 'login' %}">
           Login
         </a>
