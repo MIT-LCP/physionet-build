@@ -587,7 +587,7 @@ def users(request):
     """
     List of users
     """
-    users = User.objects.all()
+    users = User.objects.all().order_by('username')
     return render(request, 'console/users.html', {'users':users})
 
 @login_required
@@ -597,7 +597,8 @@ def inactive_users(request):
     List of users
     """
     inactive_users = User.objects.filter(is_active=False) | User.objects.filter(
-        last_login__lt=timezone.now() + timezone.timedelta(days=-90))
+        last_login__lt=timezone.now() + timezone.timedelta(days=-90)).order_by(
+        'username')
 
     return render(request, 'console/users.html', {'users':inactive_users})
 
@@ -608,8 +609,7 @@ def admin_users(request):
     """
     List of users
     """
-    admin_users = User.objects.filter(is_admin=True)
-    users = User.objects.all()
+    admin_users = User.objects.filter(is_admin=True).order_by('username')
     return render(request, 'console/admin_users.html', {
         'admin_users':admin_users})
 

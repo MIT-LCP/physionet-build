@@ -297,8 +297,8 @@ class Contact(models.Model):
     name = models.CharField(max_length=120)
     affiliations = models.CharField(max_length=150)
     email = models.EmailField(max_length=255)
-    project = models.ForeignKey('project.PublishedProject',
-        related_name='contacts', on_delete=models.CASCADE)
+    project = models.OneToOneField('project.PublishedProject',
+        related_name='contact', on_delete=models.CASCADE)
 
 
 class BasePublication(models.Model):

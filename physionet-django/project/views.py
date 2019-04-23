@@ -1223,7 +1223,7 @@ def published_project(request, project_slug, version, subdir=''):
     publication = project.publications.all().first()
     topics = project.topics.all()
     languages = project.programming_languages.all()
-    contact = Contact.objects.get(project=project)
+    contact = project.contact
     news = project.news.all().order_by('-publish_datetime')
     parent_projects = project.parent_projects.all()
     # derived_projects = project.derived_publishedprojects.all()
