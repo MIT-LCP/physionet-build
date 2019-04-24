@@ -1,0 +1,41 @@
+/* file: lightwave.css	G. Moody	18 November 2012
+			Last revised:	  23 April 2019    version 0.68
+*/
+
+#top { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+       color: #444; font-size: 100%; background: #fff; margin: 0 10px; }
+table, tbody, thead, tfoot {
+	border: none;
+	padding: 0px;
+	margin: 0px;
+}
+th, td {
+	padding: 0.25em;
+}
+.container { border:2px solid #ccc; width:90%; height: 100px;
+             overflow-y: scroll; }
+.dtable { table-layout: fixed; }
+div.notice { width: 90%; margin: auto; padding: 2em; background: #cdf; }
+#tabs {
+	padding: 0px;
+	background: none;
+	border-width: 0px;
+}
+#tabs .ui-tabs-nav {
+	padding-left: 0px;
+	background: url('../images/animation.svg'),
+	  url('../images/lightwave.svg');
+	background-position: top right;
+	background-repeat: no-repeat;
+	border-width: 0px 0px 1px 0px;
+	-moz-border-radius: 0px;
+	-webkit-border-radius: 0px;
+	border-radius: 0px;
+}
+#tabs .ui-tabs-panel {
+	background: #fff;
+	border-width: 0px 1px 1px 1px;
+}
+.ui-slider { width: 10em; height: .2em; margin-top: .3em; }
+.ui-slider-handle { width: .7em !important; height: .55em !important;
+		  margin-top: .1em; }

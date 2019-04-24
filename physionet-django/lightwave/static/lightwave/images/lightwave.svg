@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   inkscape:version="0.48.1 r9760"
+   version="1.1"
+   id="svg3032"
+   height="48"
+   width="250"
+   sodipodi:docname="file.svg">
+  <defs
+     id="defs3034">
+    <filter
+       id="filter3236"
+       inkscape:label="Drop shadow"
+       width="1.5"
+       height="1.5"
+       x="-0.25"
+       y="-0.25"
+       color-interpolation-filters="sRGB">
+      <feGaussianBlur
+         id="feGaussianBlur3238"
+         in="SourceAlpha"
+         stdDeviation="2"
+         result="blur" />
+      <feColorMatrix
+         id="feColorMatrix3240"
+         result="bluralpha"
+         type="matrix"
+         values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.5 0 " />
+      <feOffset
+         id="feOffset3242"
+         in="bluralpha"
+         dx="6.5"
+         dy="4"
+         result="offsetBlur" />
+      <feMerge
+         id="feMerge3244">
+        <feMergeNode
+           id="feMergeNode3246"
+           in="offsetBlur" />
+        <feMergeNode
+           id="feMergeNode3248"
+           in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <filter
+       id="filter3250"
+       inkscape:label="Drop shadow"
+       width="1.5"
+       height="1.5"
+       x="-0.25"
+       y="-0.25"
+       color-interpolation-filters="sRGB">
+      <feGaussianBlur
+         id="feGaussianBlur3252"
+         in="SourceAlpha"
+         stdDeviation="2"
+         result="blur" />
+      <feColorMatrix
+         id="feColorMatrix3254"
+         result="bluralpha"
+         type="matrix"
+         values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.5 0 " />
+      <feOffset
+         id="feOffset3256"
+         in="bluralpha"
+         dx="6.5"
+         dy="4"
+         result="offsetBlur" />
+      <feMerge
+         id="feMerge3258">
+        <feMergeNode
+           id="feMergeNode3260"
+           in="offsetBlur" />
+        <feMergeNode
+           id="feMergeNode3262"
+           in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="1"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1"
+     inkscape:cx="130.88352"
+     inkscape:cy="46.335564"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:showpageshadow="false"
+     fit-margin-right="2.7755576e-17"
+     units="px"
+     inkscape:window-width="1061"
+     inkscape:window-height="1204"
+     inkscape:window-x="287"
+     inkscape:window-y="237"
+     inkscape:window-maximized="0"
+     fit-margin-bottom="2.7755576e-17" />
+  <metadata
+     id="metadata3037">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-1004.3621)">
+    <g
+       transform="matrix(1,0,0,0.79968701,-94,207.92183)"
+       style="font-size:40px;font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#800000;fill-opacity:0;stroke:none;filter:url(#filter3250);font-family:DejaVu Sans Light;-inkscape-font-specification:'DejaVu Sans Light, Italic'"
+       id="text3046">
+
+    <animate attributeName="fill-opacity" begin="5s" dur="2s" from="0" to=".9" fill="freeze" />
+ 
+      <path
+         d="m 116.03162,1008.8246 1.95312,0 -5.52734,27.5586 14.19922,0 -0.3125,1.6015 -16.15235,0 5.83985,-29.1601"
+         style=""
+         id="path3001" />
+      <path
+         d="m 136.44177,1016.1097 1.79688,0 -4.375,21.875 -1.79688,0 4.375,-21.875 m 1.69922,-8.5156 1.79688,0 -0.48828,2.461 -1.79688,0 0.48828,-2.461"
+         style=""
+         id="path3003" />
+      <path
+         d="m 159.97693,1026.7933 c 0.59894,-3.0338 0.4492,-5.3841 -0.44922,-7.0507 -0.88543,-1.6797 -2.44142,-2.5196 -4.66797,-2.5196 -2.20053,0 -4.08855,0.8399 -5.66406,2.5196 -1.56251,1.6666 -2.64324,4.0169 -3.24219,7.0507 -0.61198,3.0209 -0.46875,5.3711 0.42969,7.0508 0.89843,1.6667 2.44791,2.5 4.64844,2.5 2.22655,0 4.12108,-0.8333 5.68359,-2.5 1.56248,-1.6797 2.64972,-4.0299 3.26172,-7.0508 m 0.0977,8.4766 c -0.91148,4.5443 -2.37632,7.5195 -4.39453,8.9258 -2.00523,1.4062 -4.33595,2.1093 -6.99219,2.1094 -1.26303,-10e-5 -2.43491,-0.091 -3.51563,-0.2735 -1.08073,-0.1953 -2.10938,-0.4883 -3.08593,-0.8789 l 0.41015,-2.0508 c 0.9375,0.5729 1.88802,0.9961 2.85156,1.2696 0.97656,0.2734 1.99869,0.4101 3.06641,0.4101 2.17447,0 4.1341,-0.4622 5.87891,-1.3867 1.75779,-0.9245 3.04034,-3.418 3.84765,-7.4805 l 0.6836,-3.4179 c -0.83336,1.4974 -1.80341,2.6757 -2.91016,3.5351 -1.69272,1.3151 -3.431,1.9662 -5.21484,1.9531 -2.77345,0 -4.73959,-0.9765 -5.89844,-2.9296 -1.15886,-1.9662 -1.38021,-4.7266 -0.66406,-8.2813 0.70312,-3.5416 2.02473,-6.289 3.96484,-8.2422 1.94009,-1.9661 4.29686,-2.9492 7.07031,-2.9492 1.77082,0 3.18358,0.5599 4.23828,1.6797 0.8203,0.8724 1.40623,2.0378 1.75782,3.4961 l 0.9375,-4.6485 1.79687,0 -3.82812,19.1602"
+         style=""
+         id="path3005" />
+      <path
+         d="m 186.34412,1024.7816 -2.63672,13.2031 -1.79688,0 2.61719,-13.0859 c 0.55988,-2.8125 0.48175,-4.8047 -0.23437,-5.9766 -0.71617,-1.1718 -2.03778,-1.7578 -3.96485,-1.7578 -2.21355,0 -4.09506,0.6511 -5.64453,1.9532 -1.54949,1.3021 -2.62371,3.47 -3.22265,6.5039 l -2.48047,12.3632 -1.79688,0 6.07422,-30.3906 1.79688,0 -2.5,12.5586 c 0.63801,-1.1198 1.5755,-2.1159 2.8125,-2.9883 1.48436,-1.0546 3.3854,-1.582 5.70312,-1.582 2.16144,0 3.73696,0.7748 4.72656,2.3242 0.97654,1.5625 1.15883,3.8542 0.54688,6.875"
+         style=""
+         id="path3007" />
+      <path
+         d="m 200.09412,1009.8988 -1.25,6.2109 7.40234,0 -0.3125,1.5235 -7.40234,0 -2.61719,13.1445 c -0.33855,1.6667 -0.35808,2.832 -0.0586,3.4961 0.59895,1.4583 1.74478,2.1875 3.4375,2.1875 l 2.89062,0 -0.3125,1.5234 -2.79297,0 c -1.78386,0 -3.19662,-0.5208 -4.23828,-1.5625 -1.04167,-1.0416 -1.28907,-2.9231 -0.74219,-5.6445 l 2.61719,-13.1445 -2.61719,0 0.3125,-1.5235 2.61719,0 1.25,-6.2109 1.81641,0"
+         style=""
+         id="path3009" />
+    </g>
+    <g
+       transform="matrix(1.0157425,0,0,0.78729305,-99,205.52277)"
+       style="font-size:44.57308578px;font-style:oblique;font-variant:normal;font-weight:normal;font-stretch:semi-condensed;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#800000;fill-opacity:0;stroke:none;filter:url(#filter3236);font-family:DejaVu Sans;-inkscape-font-specification:DejaVu Sans Oblique Semi-Condensed"
+       id="text3052">
+
+      <animate attributeName="fill-opacity" begin="6s" dur="2s" from="0" to=".5" fill="freeze" />
+
+      <path
+         d="m 215.61002,1027.8107 3.85227,0 1.39291,27.6406 11.03445,-27.6406 4.41813,0 1.43644,27.6406 10.92563,-27.6406 4.00461,0 -13.01499,32.494 -4.96224,0 -1.34938,-27.0964 -10.9474,27.0964 -4.984,0 -1.80643,-32.494"
+         style=""
+         id="path3012" />
+      <path
+         d="m 264.07889,1027.8107 4.48343,0 5.41929,32.494 -4.1352,0 -1.2188,-8.3357 -13.14558,0 -4.13519,8.3357 -4.17873,0 16.91078,-32.494 m 1.41468,4.3311 -8.20511,16.1708 10.72975,0 -2.52464,-16.1708"
+         style=""
+         id="path3014" />
+      <path
+         d="m 282.79612,1060.3047 -5.13635,-32.494 3.87403,0 4.26578,27.9453 14.19026,-27.9453 4.30931,0 -16.91078,32.494 -4.59225,0"
+         style=""
+         id="path3016" />
+      <path
+         d="m 308.71728,1027.8107 18.49957,0 -0.65293,3.6999 -14.53849,0 -1.6976,9.6198 13.97261,0 -0.65292,3.6999 -13.95086,0 -2.04583,11.7745 14.88671,0 -0.65292,3.6999 -18.8478,0 5.68046,-32.494"
+         style=""
+         id="path3018" />
+    </g>
+  </g>
+</svg>

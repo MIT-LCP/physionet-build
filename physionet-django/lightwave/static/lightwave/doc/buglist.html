@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv='content-type' content='text/html; charset=utf-8'>
+<meta http-equiv="X-UA-Compatible" content="chrome=1">
+<title>LightWAVE bug list</title>
+<link rel="stylesheet" href="../css/lightwave.css">
+</head>
+
+<h2>LightWAVE bug list</h2>
+
+<li><b>Autoplay freezes after >10 minutes.</b><br>
+It may have been possible to fill the trace pool with redundant copies of
+the same, or nearly the same, data segment, thereby locking out any attempt
+to fetch the next data segment.  Changes in the prefetch strategy in version
+0.46 make this very unlikely.  Exit the browser and reopen the record if this
+problem recurs.
+
+<li><b>LightWAVE doesn't work in Internet Explorer.</b><br>
+Yes, it does.  But unless you have IE 9 or 10, you <em>must</em> install
+the free <a href="http://www.google.com/chromeframe">Google Chrome
+Frame</a> plugin.  The plugin is recommended but not required for IE 9.
+</ul>
+</html>
