@@ -1,5 +1,6 @@
 from django import template
 from django.shortcuts import reverse
+from django.utils.http import urlencode
 
 register = template.Library()
 
@@ -15,7 +16,8 @@ def resource_badge(resource_type):
 
 @register.filter(name='topic_badge')
 def topic_badge(topic, show_count=False):
-    url = '{}?topic={}'.format(reverse('content_index'), topic.description)
+    url = (reverse('content_index')
+           + '?' + urlencode({'topic': topic.description}))
     if show_count:
         badge = '<a href="{}"><span class="badge badge-pn">{} ({})</span></a>'.format(
             url, topic.description, topic.project_count)

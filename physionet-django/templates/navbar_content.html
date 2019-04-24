@@ -2,19 +2,19 @@
 <ul class="navbar-nav mr-auto">
 
   <li class="nav-item">
-    <a id="nav_find" class="nav-link" href="{% url 'content_index' %}">
+    <a id="nav_index" class="nav-link" href="{% url 'content_index' %}">
         Find
     </a>
   </li>
 
   <li class="nav-item">
-    <a id="nav_find" class="nav-link" href="{% url 'about_publish' %}">
+    <a id="nav_publish" class="nav-link" href="{% url 'about_publish' %}">
         Share
     </a>
   </li>
 
   <li class="nav-item">
-    <a id="nav_find" class="nav-link" href="{% url 'about' %}">
+    <a id="nav_about" class="nav-link" href="{% url 'about' %}">
         About
     </a>
   </li>
@@ -44,7 +44,7 @@
           <i class="fa fa-user"></i> {{ user }}
         {% endif %}
         </a>
-        <div class="dropdown-menu" aria-labelledby="account_dropdown">
+        <div class="dropdown-menu" aria-labelledby="nav_account_dropdown">
           <a class="dropdown-item" href="{% url 'public_profile' user.username %}">
             Profile
           </a>
@@ -63,7 +63,7 @@
       {% else %}
         Account
         </a>
-        <div class="dropdown-menu" aria-labelledby="account_dropdown">
+        <div class="dropdown-menu" aria-labelledby="nav_account_dropdown">
         <a id="nav_login" class="dropdown-item" href="{% url 'login' %}">
           Login
         </a>

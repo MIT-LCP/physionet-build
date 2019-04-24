@@ -7,8 +7,8 @@
 {% block title %}Project Authors - {{ project }}{% endblock %}
 
 {% block local_js_top %}
-<script type="text/javascript" src="{% static 'custom/js/cookie.js' %}"></script>
-<script type="text/javascript" src="{% static 'project/js/dynamic-formset.js' %}"></script>
+<script src="{% static 'custom/js/cookie.js' %}"></script>
+<script src="{% static 'project/js/dynamic-formset.js' %}"></script>
 {% if is_submitting %}
   <script>
     // Ajax call to update authors list
@@ -173,12 +173,12 @@
 {% endblock %}
 
 {% block local_js_bottom %}
-<script type="text/javascript" src="{% static 'custom/js/enable-popover.js' %}"></script>
+<script src="{% static 'custom/js/enable-popover.js' %}"></script>
 <script>
   disableAddButtons();
 </script>
 {# Disable submission if not currently editable #}
 {% if not project.author_editable %}
-  <script type="text/javascript" src="{% static 'custom/js/disable-input.js' %}"></script>
+  <script src="{% static 'custom/js/disable-input.js' %}"></script>
 {% endif %}
 {% endblock %}

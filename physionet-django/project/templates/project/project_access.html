@@ -28,8 +28,8 @@
 {% endblock %}
 
 {% block local_js_bottom %}
-<script type="text/javascript" src="{% static 'custom/js/enable-popover.js' %}"></script>
-<script type="text/javascript" src="{% static 'project/js/control-access-form.js' %}"></script>
+<script src="{% static 'custom/js/enable-popover.js' %}"></script>
+<script src="{% static 'project/js/control-access-form.js' %}"></script>
 <script>
   load_url = "{% url 'load_license' project.slug %}"
   access_policy_input = document.getElementById("id_access_policy");
@@ -37,6 +37,6 @@
 </script>
 {# Disable submission if not currently editable or not submitting author #}
 {% if not is_submitting or not project.author_editable %}
-  <script type="text/javascript" src="{% static 'custom/js/disable-input.js' %}"></script>
+  <script src="{% static 'custom/js/disable-input.js' %}"></script>
 {% endif %}
 {% endblock %}

@@ -12,7 +12,7 @@
 {% endblock %}
 
 {% block local_js_top %}
-<script type="text/javascript" src="{% static 'highlight/js/highlight.min.js' %}"></script>
+<script src="{% static 'highlight/js/highlight.min.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -273,6 +273,6 @@
 {% endblock %}
 
 {% block local_js_bottom %}
-<script type="text/javascript" src="{% static 'custom/js/enable-popover.js' %}"></script>
+<script src="{% static 'custom/js/enable-popover.js' %}"></script>
 <script>hljs.initHighlightingOnLoad();</script>
 {% endblock %}

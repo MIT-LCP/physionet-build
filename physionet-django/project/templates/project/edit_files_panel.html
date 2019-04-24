@@ -190,6 +190,6 @@
 {# For authors, disable submission if not currently editable or not submitting author. This template is also used for admin copyedit. #}
 {% if not user.is_admin %}
   {% if not is_submitting or not project.author_editable %}
-    <script type="text/javascript" src="{% static 'custom/js/disable-input.js' %}"></script>
+    <script src="{% static 'custom/js/disable-input.js' %}"></script>
   {% endif %}
 {% endif %}
