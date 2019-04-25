@@ -83,9 +83,9 @@
     {% endif %}
 
     <strong>Please also include the standard citation for PhysioNet:</strong>
-      <p>Goldberger AL, Amaral LAN, Glass L, Hausdorff JM, Ivanov PCh, Mark RG, 
-      Mietus JE, Moody GB, Peng C-K, Stanley HE. PhysioBank, PhysioToolkit, and 
-      PhysioNet: Components of a New Research Resource for Complex Physiologic 
+      <p>Goldberger AL, Amaral LAN, Glass L, Hausdorff JM, Ivanov PCh, Mark RG,
+      Mietus JE, Moody GB, Peng C-K, Stanley HE. PhysioBank, PhysioToolkit, and
+      PhysioNet: Components of a New Research Resource for Complex Physiologic
       Signals (2003). Circulation. 101(23):e215-e220.</p>
     </div>
 
@@ -173,8 +173,8 @@
         <h5 class="card-header">Corresponding Author</h5>
         <div class="card-body">
             <p>
-            {{ corresponding_author.get_full_name }}, 
-            {{ corresponding_author.text_affiliations }}, 
+            {{ corresponding_author.get_full_name }},
+            {{ corresponding_author.text_affiliations }},
             {{ corresponding_author.corresponding_email }}
             </p>
         </div>
@@ -183,6 +183,9 @@
     <!-- /.sidebar -->
   </div>
   <h2>Files</h2>
+  {% if project.has_wfdb %}
+    <p>View WFDB waveforms in <a href="{% url 'lightwave_project_home' project.slug %}" target="_blank">LightWAVE</a></p>
+  {% endif %}
   <div id="files-panel" class="card">
     {% include "project/files_panel.html" %}
   </div>

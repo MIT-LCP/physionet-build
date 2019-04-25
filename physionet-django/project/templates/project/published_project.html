@@ -264,6 +264,9 @@
     {% endif %}
   {% else %}
     <p>Total uncompressed size: {{ main_size }}.{% if project.compressed_storage_size %}<a class="btn btn-success btn-sm btn-rsp" href="{% static project.zip_url %}" style="float:right">Download Zip ({{ compressed_size }})</a>{% endif %}</p>
+    {% if project.has_wfdb %}
+      <p>View WFDB waveforms in <a href="{% url 'lightwave_home' %}" target="_blank">LightWAVE</a></p>
+    {% endif %}
     <div id="files-panel" class="card">
       {% include "project/files_panel.html" %}
     </div>

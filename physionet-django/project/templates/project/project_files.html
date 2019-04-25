@@ -99,6 +99,9 @@
 </div>
 <br>
 
+{% if project.has_wfdb %}
+  <p>View WFDB waveforms in <a href="{% url 'lightwave_project_home' project.slug %}" target="_blank">LightWAVE</a></p>
+{% endif %}
 {% include "project/edit_files_panel.html" %}
 
 {% endblock %}
