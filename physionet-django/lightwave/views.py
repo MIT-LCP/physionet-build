@@ -2,6 +2,7 @@ import os
 import re
 import shutil
 import subprocess
+import pdb
 
 from django.conf import settings
 from django.contrib.staticfiles.templatetags.staticfiles import static
@@ -9,6 +10,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
 
+from project.models import PublishedProject
 from project.views import project_auth
 
 
@@ -16,19 +18,13 @@ from project.views import project_auth
 if settings.STATIC_ROOT:
     PUBLIC_ROOT = settings.STATIC_ROOT
 else:
-    PUBLIC_ROOT = os.path.join(settings.BASE_DIR, 'static')
+    PUBLIC_ROOT = os.path.join(settings.STATICFILES_DIRS[0], 'published-projects')
 
 # PUBLIC_DBPATH: path to main database directory within PUBLIC_ROOT
-PUBLIC_DBPATH = '/physiobank/database'
+PUBLIC_DBPATH = '/'
 
 # DBCAL_FILE: absolute path to the wfdbcal file
-DBCAL_FILE = PUBLIC_ROOT + PUBLIC_DBPATH + '/wfdbcal'
-
-# Kludge for testing
-if not os.path.exists(PUBLIC_ROOT + PUBLIC_DBPATH + '/DBS'):
-    _default_dblist = 'udb\tExample WFDB record'
-else:
-    _default_dblist = None
+DBCAL_FILE = os.path.join(PUBLIC_ROOT, 'wfdbcal')
 
 
 def lightwave_home(request):
@@ -112,7 +108,7 @@ def serve_lightwave(query_string, root, dbpath='/', dblist=None, dbcal=None,
         resp['Access-Control-Allow-Headers'] = 'x-requested-with'
     else:
         env['LIGHTWAVE_DISABLE_JSONP'] = '1'
-
+    # pdb.set_trace()
     with subprocess.Popen(_lightwave_command, close_fds=True, env=env,
                           stdin=subprocess.DEVNULL,
                           stdout=subprocess.PIPE) as proc:
@@ -133,10 +129,12 @@ def lightwave_server(request):
     """
     Request LightWAVE data for a published database.
     """
+    projects = PublishedProject.objects.filter(has_wfdb=True, access_policy=0)
+    dblist = '\n'.join('{}/{}\t{}'.format(p.slug, p.version, p) for p in projects)
     return serve_lightwave(query_string=request.GET.urlencode(),
                            root=PUBLIC_ROOT,
                            dbpath=PUBLIC_DBPATH,
-                           dblist=_default_dblist,
+                           dblist=dblist,
                            public=True)
 
 
