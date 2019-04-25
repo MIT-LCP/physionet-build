@@ -998,7 +998,7 @@ def project_submission(request, project_slug, **kwargs):
                     notification.authors_approved_notify(request, project)
                 else:
                     messages.success(request, 'You have approved the publication of your project.')
-                authors = project.authors.all()
+                authors = project.authors.all().order_by('display_order')
             else:
                 messages.error(request, 'Invalid')
 

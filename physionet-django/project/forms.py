@@ -31,7 +31,7 @@ class CorrespondingAuthorForm(forms.Form):
     def __init__(self, project, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.project = project
-        project_authors = project.authors.all()
+        project_authors = project.authors.all().order_by('display_order')
         self.fields['author'].queryset = project_authors
         self.fields['author'].initial = project_authors.get(is_corresponding=True)
         self.fields['author'].empty_label = None
