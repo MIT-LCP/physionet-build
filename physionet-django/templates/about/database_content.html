@@ -68,6 +68,11 @@ alphabetically by the name of the database.  Those designated below as
 <br>
 <hr>
 
+<h1 id="lightwave">LightWAVE</h1>
+<p><a href="{% url 'lightwave_home' %}">LightWave</a> is the PhysioNet online viewer of WFDB waveforms and annotations.</p>
+<br>
+<hr>
+
 <h1 id="clinical">Clinical Databases</h1>
 
 <ul>
@@ -156,12 +161,6 @@ alphabetically by the name of the database.  Those designated below as
     </ul></li>
 </ul>
 
-<p><em>* The MIMIC II and MIMIC-III Clinical Databases are not public.
-These databases are available to qualified investigators under the
-terms of a data use agreement.
-See <a href="http://archive.physionet.org/mimic2/mimic2_access.shtml">Getting Access</a> for
-details.</em></p>
-
 <br>
 <hr>
 
@@ -183,9 +182,9 @@ recording.  Please visit the links below for details.</p>
     Guide</a> provides additional information for each recording.</li>
 <li>[Class 2] <a href="{% url 'published_project_latest' 'bidmc' %}">BIDMC PPG and Respiration Dataset</a> This dataset contains signals and numerics extracted from the much larger MIMIC II matched waveform Database, along with manual breath annotations made from two annotators, using the impedance respiratory signal.</li>
 
-  <li>[Class 2] <a href="{% url 'published_project_latest' 'cebsdb' %}">CEBS Database</a>.  Combined measurement of ECG, 
-    Breathing, and Seismocardiograms Database (CEBSDB). A dataset of 60 records 
-    from 20 volunteers. Each record contains two ECGs, a respiration, and a 
+  <li>[Class 2] <a href="{% url 'published_project_latest' 'cebsdb' %}">CEBS Database</a>.  Combined measurement of ECG,
+    Breathing, and Seismocardiograms Database (CEBSDB). A dataset of 60 records
+    from 20 volunteers. Each record contains two ECGs, a respiration, and a
     seismocardiogram signals.</li>
 
   <li>[Class 2] <a href="{% url 'published_project_latest' 'charisdb' %}">Cerebral Haemodynamic Autoregulatory Information System</a>. Multi-channel recordings of ECG, arterial blood
@@ -205,9 +204,9 @@ recording.  Please visit the links below for details.</p>
     the neurological status of 20 healthy subjects. The data collected consists
     of electrodermal activity, temperature, acceleration, heart rate, and arterial
     oxygen level.
-    
-  <li>[Class 2] <a href="{% url 'published_project_latest' 'picsdb' %}">Preterm Infant Cardio-Respiratory Signals Database</a>. Simultaneous ECG and respiration recordings of ten preterm infants collected from the Neonatal Intensive Care Unit (NICU) of the University of Massachusetts Memorial Healthcare. 
-  
+
+  <li>[Class 2] <a href="{% url 'published_project_latest' 'picsdb' %}">Preterm Infant Cardio-Respiratory Signals Database</a>. Simultaneous ECG and respiration recordings of ten preterm infants collected from the Neonatal Intensive Care Unit (NICU) of the University of Massachusetts Memorial Healthcare.
+
   <li>[Class 2; core] <a href="{% url 'published_project_latest' 'prcp' %}">Physiologic Response to Changes in
     Posture</a>.  A collection of physiological signals (ECG and ABP)
     in ten healthy subjects in response to a slow tilt, a fast tilt,
@@ -605,7 +604,7 @@ in text form (follow the links below for details).</p>
     Greater Boston area. Subjects were from a hybrid study design that included
     a two-arm randomized clinical trial (RCT) along with an additional
     observational comparison group.</li>
-  
+
 <li>[Class 2; core] <a href="{% url 'published_project_latest' 'umwdb' %}">Unconstrained and Metronomic
     Walking Database</a> (a collection of long-term recordings of gait
     dynamics from 10 healthy young volunteers).</li>
@@ -665,19 +664,19 @@ their third trimester who were not currently in labor.  Each record
 also includes a scanned copy of the printed tocograph.</li>
 
 <li>[Class 2] <a href="{% url 'published_project_latest' 'mssvepdb' %}">MAMEM Steady State Visually Evoked Potential Database</a>
-The MSSVEP database contains 256 channel EEG 
-recordings of 11 subjects under the stimulation of flickering lights, used to 
+The MSSVEP database contains 256 channel EEG
+recordings of 11 subjects under the stimulation of flickering lights, used to
 study the steady state visually evoked potentials.</li>
 
 <li>[Class 2] <a href="{% url 'published_project_latest' 'mmgdb' %}">MMG Database</a>.
-Uterine magnetomyographic (MMG) signals from 25 pregnant women, recorded using 
-the 151 channel SARA (SQUID Array for Reproductive Assessment) system installed at 
-UAMS, Little Rock, USA.</li> 
+Uterine magnetomyographic (MMG) signals from 25 pregnant women, recorded using
+the 151 channel SARA (SQUID Array for Reproductive Assessment) system installed at
+UAMS, Little Rock, USA.</li>
 
 <li>[Class 2] <a href="{% url 'published_project_latest' 'sgamp' %}">Squid Giant Axon Membrane Potential</a>.
-The SGAMP database contains single-unit neuronal recordings of squid giant 
-axons in response to stimulus currents. The membrane potential and stimulus 
-current are given for a total of 170 trials across 8 different axons.</li> 
+The SGAMP database contains single-unit neuronal recordings of squid giant
+axons in response to stimulus currents. The membrane potential and stimulus
+current are given for a total of 170 trials across 8 different axons.</li>
 
 <li>[Class 2] <a href="{% url 'published_project_latest' 'tpehgdb' %}">Term-Preterm EHG Database</a>.
 Electrohysterogram (EHG: uterine EMG) recordings obtained at the University
@@ -714,7 +713,7 @@ one with myopathy, one with neuropathy).</li>
 
 <ul>
 
-<li>[Class 2] <a href="{% url 'published_project_latest' 'fecgsyndb' %}">Fetal ECG Synthetic Database</a>. A large database of simulated adult and non-invasive fetal ECG (NI-FECG) signals, which provides a robust resource that enables reproducible research in the field. The data is generated using the FECGSYN simulator (<a href="http://fernandoandreotti.github.io/fecgsyn/">visit website</a>).</li> 
+<li>[Class 2] <a href="{% url 'published_project_latest' 'fecgsyndb' %}">Fetal ECG Synthetic Database</a>. A large database of simulated adult and non-invasive fetal ECG (NI-FECG) signals, which provides a robust resource that enables reproducible research in the field. The data is generated using the FECGSYN simulator (<a href="http://fernandoandreotti.github.io/fecgsyn/">visit website</a>).</li>
 
 <li>[Class 2] <a href="{% url 'published_project_latest' 'simfpcgdb' %}">Simulated Fetal PCGs</a>.  A set of 37
 synthetic fetal phonocardiographic signals (PCGs) relative to different fetal
@@ -742,10 +741,10 @@ states and recording conditions.</li>
 
 <li>[Class 2] <a href="{% url 'published_project_latest' 'voiced' %}">VOICED (VOice ICar fEDerico II) database</a> This database includes 208 voice samples, from 150 pathological, and 58 healthy voices.</li>
 
-<li>[Class 2] <a href="{% url 'published_project_latest' 'nqmitcsxpd' %}/">neuroQWERTY MIT-CSXPD</a>. Keystroke logs collected from 85 subjects with and without parkinsons disease (PD). This dataset has been collected and analyzed in order to indicate that the routine interaction with computer keyboards can be used to detect motor signs in the early stages of PD.</li> 
+<li>[Class 2] <a href="{% url 'published_project_latest' 'nqmitcsxpd' %}/">neuroQWERTY MIT-CSXPD</a>. Keystroke logs collected from 85 subjects with and without parkinsons disease (PD). This dataset has been collected and analyzed in order to indicate that the routine interaction with computer keyboards can be used to detect motor signs in the early stages of PD.</li>
 
-<li>[Class 2] <a href="{% url 'published_project_latest' 'pmd' %}">A Pressure Map Dataset for In-bed Posture Classification</a>. Contains in-bed posture pressure data from multiple adult participants using two different types of pressure sensing mats.</li> 
+<li>[Class 2] <a href="{% url 'published_project_latest' 'pmd' %}">A Pressure Map Dataset for In-bed Posture Classification</a>. Contains in-bed posture pressure data from multiple adult participants using two different types of pressure sensing mats.</li>
 
-<li>[Class 2] <a href="{% url 'published_project_latest' 'qde' %}">Quantitative Dehydration Estimation</a>. Quantitative estimation of dehydration (total body water loss) using bioimpedance measurements, temperature measurements, salivary samples, and sweat samples.</li> 
+<li>[Class 2] <a href="{% url 'published_project_latest' 'qde' %}">Quantitative Dehydration Estimation</a>. Quantitative estimation of dehydration (total body water loss) using bioimpedance measurements, temperature measurements, salivary samples, and sweat samples.</li>
 
 </ul>
