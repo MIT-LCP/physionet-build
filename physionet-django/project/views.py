@@ -898,8 +898,9 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     corresponding_author.text_affiliations = ', '.join(a.name for a in corresponding_author.affiliations.all())
 
     references = project.references.all()
-    publications = project.publications.all()
+    publication = project.publications.all().first()
     topics = project.topics.all()
+    parent_projects = project.parent_projects.all()
     languages = project.programming_languages.all()
 
     passes_checks = project.check_integrity()
@@ -918,10 +919,10 @@ def project_preview(request, project_slug, subdir='', **kwargs):
         'display_files':display_files, 'display_dirs':display_dirs,
         'authors':authors, 'corresponding_author':corresponding_author,
         'invitations':invitations, 'references':references,
-        'publications':publications, 'topics':topics, 'languages':languages,
+        'publication':publication, 'topics':topics, 'languages':languages,
         'passes_checks':passes_checks, 'dir_breadcrumbs':dir_breadcrumbs,
         'files_panel_url':files_panel_url, 'subdir':subdir,
-        'file_error':file_error})
+        'file_error':file_error, 'parent_projects':parent_projects})
 
 
 @project_auth(auth_mode=2)

@@ -77,15 +77,19 @@
     <div class="col-md-8" style="padding-left: 0;">
 
     <div class="alert alert-secondary">
-    {% if not project.is_legacy %}
+
     <strong>When using this resource, please cite:</strong>
       <p>[Your citation will appear here]</p>
+
+    {% if publication %}
+      <strong>In addition, please cite the original publication:</strong>
+      <p><a href="{{ publication.url }}" target="_blank">{{ publication.citation }}</a></p>
     {% endif %}
 
     <strong>Please also include the standard citation for PhysioNet:</strong>
-      <p>Goldberger AL, Amaral LAN, Glass L, Hausdorff JM, Ivanov PCh, Mark RG, 
-      Mietus JE, Moody GB, Peng C-K, Stanley HE. PhysioBank, PhysioToolkit, and 
-      PhysioNet: Components of a New Research Resource for Complex Physiologic 
+      <p>Goldberger AL, Amaral LAN, Glass L, Hausdorff JM, Ivanov PCh, Mark RG,
+      Mietus JE, Moody GB, Peng C-K, Stanley HE. PhysioBank, PhysioToolkit, and
+      PhysioNet: Components of a New Research Resource for Complex Physiologic
       Signals (2003). Circulation. 101(23):e215-e220.</p>
     </div>
 
@@ -160,25 +164,32 @@
           {% endif %}
         </div>
       </div>
-      {% if publications %}
-      <div class="card my-4">
-        <h5 class="card-header">Related Publication</h5>
-        <div class="card-body">
-          <p><a href="{{ publications.0.url }}" target="_blank">{{ publications.0.citation }}</a></p>
-        </div>
-      </div>
-      {% endif %}
 
       <div class="card my-4">
         <h5 class="card-header">Corresponding Author</h5>
         <div class="card-body">
             <p>
-            {{ corresponding_author.get_full_name }}, 
-            {{ corresponding_author.text_affiliations }}, 
+            {{ corresponding_author.get_full_name }},
+            {{ corresponding_author.text_affiliations }},
             {{ corresponding_author.corresponding_email }}
             </p>
         </div>
       </div>
+
+      {% if parent_projects %}
+      <div class="card my-4">
+        <h5 class="card-header">Related Projects</h5>
+        <div class="card-body">
+            {{ project.title }} was derived from:
+            <ul>
+              {% for pp in parent_projects %}
+                <li><a href="{% url 'published_project' pp.slug pp.version %}">{{ pp }}</a></li>
+              {% endfor %}
+            </ul>
+        </div>
+      </div>
+      {% endif %}
+
     </div>
     <!-- /.sidebar -->
   </div>
