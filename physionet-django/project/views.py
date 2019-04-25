@@ -10,6 +10,7 @@ from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
+from django.db import transaction
 from django.forms import formset_factory, inlineformset_factory, modelformset_factory
 from django.http import HttpResponse, Http404, JsonResponse
 from django.shortcuts import render, redirect
@@ -333,9 +334,15 @@ def move_author(request, project_slug, **kwargs):
                 swap_author = authors.get(display_order=author.display_order + 1)
             else:
                 raise Http404()
-            author.display_order, swap_author.display_order = swap_author.display_order, author.display_order
-            author.save()
-            swap_author.save()
+            with transaction.atomic():
+                orig_order = author.display_order
+                swap_order = swap_author.display_order
+                author.display_order = 0
+                author.save(update_fields=('display_order',))
+                swap_author.display_order = orig_order
+                swap_author.save(update_fields=('display_order',))
+                author.display_order = swap_order
+                author.save(update_fields=('display_order',))
             authors = project.get_author_info()
             return render(request, 'project/author_list.html',
                 {'project':project, 'authors':authors,

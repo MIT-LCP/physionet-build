@@ -161,7 +161,8 @@ class Author(BaseAuthor):
         on_delete=models.SET_NULL)
 
     class Meta:
-        unique_together = (('user', 'content_type', 'object_id',),)
+        unique_together = (('user', 'content_type', 'object_id',),
+                           ('display_order', 'content_type', 'object_id'))
 
     def get_full_name(self):
         """
@@ -211,7 +212,8 @@ class PublishedAuthor(BaseAuthor):
         related_name='authors', db_index=True, on_delete=models.CASCADE)
 
     class Meta:
-        unique_together = (('user', 'project'),)
+        unique_together = (('user', 'project'),
+                           ('display_order', 'project'))
 
     def get_full_name(self):
         return ' '.join([self.first_names, self.last_name])
