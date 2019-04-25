@@ -15,16 +15,11 @@ from project.views import project_auth
 
 
 # PUBLIC_ROOT: chroot directory for public databases
-if settings.STATIC_ROOT:
-    PUBLIC_ROOT = settings.STATIC_ROOT
-else:
-    PUBLIC_ROOT = os.path.join(settings.STATICFILES_DIRS[0], 'published-projects')
-
+PUBLIC_ROOT = PublishedProject.PUBLIC_FILE_ROOT
+# DBCAL_FILE: absolute path to the wfdbcal file
+DBCAL_FILE = os.path.join(settings.STATIC_ROOT if settings.STATIC_ROOT else settings.STATICFILES_DIRS[0], 'wfdbcal')
 # PUBLIC_DBPATH: path to main database directory within PUBLIC_ROOT
 PUBLIC_DBPATH = '/'
-
-# DBCAL_FILE: absolute path to the wfdbcal file
-DBCAL_FILE = os.path.join(PUBLIC_ROOT, 'wfdbcal')
 
 
 def lightwave_home(request):
