@@ -142,6 +142,21 @@
       </div>
       {% endif %}
 
+      {% if parent_projects %}
+      <div class="card my-4">
+        <h5 class="card-header">Parent Projects</h5>
+        <div class="card-body">
+            {{ project.title }} was derived from:
+            <ul>
+              {% for pp in parent_projects %}
+                <li><a href="{% url 'published_project' pp.slug pp.version %}">{{ pp }}</a></li>
+              {% endfor %}
+            </ul>
+            Please cite them when using this project.
+        </div>
+      </div>
+      {% endif %}
+
       <div class="card my-4">
         <h5 class="card-header">Share</h5>
         <div class="card-body">
@@ -230,29 +245,6 @@
       </div>
       {% endif %}
 
-      {% if parent_projects or derived_projects %}
-      <div class="card my-4">
-        <h5 class="card-header">Related Projects</h5>
-        <div class="card-body">
-          {% if parent_projects %}
-            {{ project.title }} was derived from:
-            <ul>
-              {% for pp in parent_projects %}
-                <li><a href="{% url 'published_project' pp.slug pp.version %}">{{ pp }}</a></li>
-              {% endfor %}
-            </ul>
-          {% endif %}
-          {% if derived_projects %}
-            The following projects are derivations:
-            <ul>
-              {% for dp in derived_projects %}
-                <li><a href="{% url 'published_project' dp.slug dp.version %}">{{ dp }}</a></li>
-              {% endfor %}
-            </ul>
-          {% endif %}
-        </div>
-      </div>
-      {% endif %}
     </div>
     <!-- /.sidebar -->
   </div>
