@@ -384,7 +384,7 @@ class Metadata(models.Model):
 
     # Short description used for search results, social media, etc
     short_description = models.CharField(max_length=250, blank=True,
-        validators=[validate_alphaplusplus])
+        default='', validators=[validate_alphaplusplus])
 
     # Access information
     access_policy = models.SmallIntegerField(choices=ACCESS_POLICIES,
@@ -392,8 +392,10 @@ class Metadata(models.Model):
     license = models.ForeignKey('project.License', null=True,
         on_delete=models.SET_NULL)
     project_home_page = models.URLField(default='', blank=True)
+    parent_projects = models.ManyToManyField('project.PublishedProject',
+        blank=True, related_name='derived_%(class)ss')
     programming_languages = models.ManyToManyField(
-        'project.ProgrammingLanguage', related_name='%(class)ss')
+        'project.ProgrammingLanguage', related_name='%(class)ss', blank=True)
 
     core_project = models.ForeignKey('project.CoreProject',
                                      related_name='%(class)ss',
@@ -769,6 +771,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         for copyedit_log in self.copyedit_logs.all():
             copyedit_log.project = archived_project
             copyedit_log.save()
+        for parent_project in self.parent_projects.all():
+            archived_project.parent_projects.add(parent_project)
         if self.resource_type == 1:
             languages = self.programming_languages.all()
             if languages:
@@ -1009,6 +1013,9 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             published_topic.projects.add(published_project)
             published_topic.project_count += 1
             published_topic.save()
+
+        for parent_project in self.parent_projects.all():
+            published_project.parent_projects.add(parent_project)
 
         if self.resource_type == 1:
             languages = self.programming_languages.all()

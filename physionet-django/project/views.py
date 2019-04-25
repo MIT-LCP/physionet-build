@@ -898,8 +898,9 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     corresponding_author.text_affiliations = ', '.join(a.name for a in corresponding_author.affiliations.all())
 
     references = project.references.all()
-    publications = project.publications.all()
+    publication = project.publications.all().first()
     topics = project.topics.all()
+    parent_projects = project.parent_projects.all()
     languages = project.programming_languages.all()
 
     passes_checks = project.check_integrity()
@@ -918,10 +919,10 @@ def project_preview(request, project_slug, subdir='', **kwargs):
         'display_files':display_files, 'display_dirs':display_dirs,
         'authors':authors, 'corresponding_author':corresponding_author,
         'invitations':invitations, 'references':references,
-        'publications':publications, 'topics':topics, 'languages':languages,
+        'publication':publication, 'topics':topics, 'languages':languages,
         'passes_checks':passes_checks, 'dir_breadcrumbs':dir_breadcrumbs,
         'files_panel_url':files_panel_url, 'subdir':subdir,
-        'file_error':file_error})
+        'file_error':file_error, 'parent_projects':parent_projects})
 
 
 @project_auth(auth_mode=2)
@@ -1213,7 +1214,8 @@ def published_project(request, project_slug, version, subdir=''):
     languages = project.programming_languages.all()
     contact = Contact.objects.get(project=project)
     news = project.news.all().order_by('-publish_datetime')
-
+    parent_projects = project.parent_projects.all()
+    # derived_projects = project.derived_publishedprojects.all()
 
     has_access = project.has_access(request.user)
     current_site = get_current_site(request)
@@ -1223,7 +1225,8 @@ def published_project(request, project_slug, version, subdir=''):
                'references': references, 'publication': publication,
                'topics': topics, 'languages': languages, 'contact': contact,
                'has_access': has_access, 'current_site': current_site,
-               'news': news, 'all_project_versions': all_project_versions}
+               'news': news, 'all_project_versions': all_project_versions,
+               'parent_projects':parent_projects}
 
     # The file and directory contents
     if has_access:

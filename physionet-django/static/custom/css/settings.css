@@ -15,7 +15,7 @@ footer {
     max-width: 200px;
 }
 
-input, select, django-ckeditor-widget textarea {
+input, select, django-ckeditor-widget, textarea {
   display: block;
   width: 100%;
   padding: 0.5rem 0.75rem;
@@ -97,8 +97,8 @@ input::placeholder {
   }
 
   .pg-edit{
-    width: 40%; 
-    margin-left: 60%; 
+    width: 40%;
+    margin-left: 60%;
     margin-top: -25px;
   }
 }
