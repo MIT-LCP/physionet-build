@@ -685,12 +685,10 @@ function dblist() {
 		'<td colspan=2><select name=\"db\" id=\"db\">\n' +
 		'<option value=\"\" selected>--Choose one--</option>\n';
 	    for (i = 0; i < data.database.length; i++) {
-		dbi = data.database[i].name;
-		dbparts = dbi.split('/');
-		if (dbparts.length > 1) { sdbi = '.../' + dbparts.pop(); }
-		else { sdbi = dbi; }
+    		dbi = data.database[i].name;
+    		dbparts = dbi.split('/');
 	        dblist_text += '<option value=\"' + dbi +
-		'\">' + data.database[i].desc + ' (' + sdbi + ')</option>\n';
+		        '\">' + data.database[i].desc + ' (' + dbi + ')</option>\n';
 	    }
 	    dblist_text += '</select></td>\n';
 	    $('#dblist').html(dblist_text);
@@ -1001,8 +999,7 @@ function newdb() {
     nann = 0;
     db = $('#db').val();
     dbparts = db.split('/');
-    if (dbparts.length > 1) { sdb = '.../' + dbparts.pop(); }
-    else { sdb = db; }
+    sdb = db;
     record = '';
     title = 'LightWAVE: ' + sdb;
     document.title = title;
