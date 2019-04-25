@@ -50,8 +50,8 @@
             {{ news.title }}
           {% endif %}
         </h2>
-        <p>{{ news.content|safe }}</p>
-        <p class="pub-details">Published: {{ news.publish_datetime|date }}.<p>
+        {{ news.content|safe }}
+        <p class="pub-details">Published: {{ news.publish_datetime|date }}.</p>
         <hr>
       {% endfor %}
       <br>
