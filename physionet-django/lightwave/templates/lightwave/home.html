@@ -1,3 +1,5 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -5,12 +7,12 @@
 <meta http-equiv="X-UA-Compatible" content="chrome=1">
 <title>LightWAVE 0.68</title>
 <!-- -{##}->{% include "lightwave/lw-head.html" %}<!-{##}- -->
-<link rel="stylesheet" href="css/jquery-ui.min.css">
-<link rel="stylesheet" href="css/lightwave.css">
-<script src="js/jquery.min.js"></script>
-<script src="js/jquery.cookie.js"></script>
-<script src="js/jquery-ui.min.js"></script>
-<script src="js/lightwave.js"></script>
+<link rel="stylesheet" href="{% static 'lightwave/css/jquery-ui.min.css' %}">
+<link rel="stylesheet" href="{% static 'lightwave/css/lightwave.css' %}">
+<script src="{% static 'lightwave/js/jquery.min.js' %}"></script>
+<script src="{% static 'lightwave/js/jquery.cookie.js' %}"></script>
+<script src="{% static 'lightwave/js/jquery-ui.min.js' %}"></script>
+<script src="{% static 'lightwave/js/lightwave.js' %}"></script>
 <noscript><style>.js { display: none; }</style></noscript>
 </head>
 <!--
@@ -172,7 +174,7 @@ enter the type as an Aux string.'>
     </td>
  </tr>
  <tr title='New rhythm, comment, etc.
-Use annotation type "+" to mark a rhythm change. 
+Use annotation type "+" to mark a rhythm change.
 Standard aux strings for rhythms begin with "(":
 
  (AB     atrial bigeminy
