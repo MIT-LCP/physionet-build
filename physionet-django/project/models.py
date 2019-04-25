@@ -419,7 +419,8 @@ class Metadata(models.Model):
             user = self.authors.get(is_submitting=True).user
             return user.email, user.get_full_name
         else:
-            users = [a.user for a in self.authors.all()]
+            authors = self.authors.all().order_by('display_order')
+            users = [a.user for a in authors]
             return ((u.email, u.get_full_name()) for u in users)
 
     def corresponding_author(self):
@@ -475,7 +476,8 @@ class Metadata(models.Model):
         content. Takes the selected license and fills in the year and
         copyright holder.
         """
-        author_names = ', '.join(a.get_full_name() for a in self.authors.all()) + '.'
+        authors = self.authors.all().order_by('display_order')
+        author_names = ', '.join(a.get_full_name() for a in authors) + '.'
 
         if fmt == 'text':
             content = self.license.text_content
@@ -807,7 +809,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             self.integrity_errors.append('Outstanding storage request')
 
         # Authors
-        for author in self.authors.all():
+        for author in self.authors.all().order_by('display_order'):
             if not author.get_full_name():
                 self.integrity_errors.append('Author {0} has not fill in name'.format(author.user.username))
             if not author.affiliations.all():
@@ -1280,12 +1282,13 @@ class PublishedProject(Metadata, SubmissionInfo):
         if self.is_legacy:
             return ''
 
+        authors = self.authors.all().order_by('display_order')
         if self.doi:
             return '{} ({}). {}. PhysioNet. doi:{}'.format(
-                ', '.join(a.initialed_name() for a in self.authors.all()),
+                ', '.join(a.initialed_name() for a in authors),
                 self.publish_datetime.year, self.title, self.doi)
         return '{} ({}). {}. PhysioNet.'.format(
-            ', '.join(a.initialed_name() for a in self.authors.all()),
+            ', '.join(a.initialed_name() for a in authors),
             self.publish_datetime.year, self.title)
 
     def remove(self, force=False):
