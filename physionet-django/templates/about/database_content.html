@@ -18,8 +18,8 @@
 <hr>
 
 
-<h1>Overview</h1>
 <section id="summary">
+  <h1>Overview</h1>
 <p>
 This page displays a curated list of databases in the PhysioNet archives. To find more databases on PhysioNet, <a href="{% url 'content_index' %}">search our resources</a>.</p>
 <ul>
@@ -29,6 +29,7 @@ This page displays a curated list of databases in the PhysioNet archives. To fin
        procedures, medications, caregiver notes, images and imaging
        reports, and mortality (both in and out of hospital).</li>
 <li><a href="#waveform">Waveform Databases</a> - High resolution continuous recordings of physiological signals. Waveform databases are organized according to their signal and annotation types:</li>
+<li>
 <ul>
   <li> <a href="#multi">Multi-Parameter Databases</a>.
      Available signals vary, but may include ECG, continuous invasive blood
@@ -49,6 +50,7 @@ This page displays a curated list of databases in the PhysioNet archives. To fin
   <li> <a href="#other">Other Data</a></li>
   <li> <a href="#challenge">Computing in Cardiology Challenge Datasets</a></li>
 </ul>
+</li>
 </ul>
 
 <p>
@@ -261,7 +263,7 @@ recording.  Please visit the links below for details.</p>
     apnea annotations.
     <ul>
       <li>[Class 2; core] <a href="{% url 'published_project_latest' 'santa-fe' %}">Santa Fe Time Series Competition Data Set B</a> (data extracted from the MIT-BIH
-        Polysomnographic Database).</li>
+        Polysomnographic Database).
       </li>
     </ul>
 
@@ -505,7 +507,7 @@ or more digitized ECG signals and a set of beat annotations.</p>
     This database has been compiled for the <a
     href="{% url 'published_project_latest' 'challenge-2008' %}">PhysioNet/Computers in Cardiology Challenge
     2008</a>.  It contains 100 2-, 3-, and 12-lead ECG records sampled
-    at 500 Hz with 16-bit resolution over a &plusmn 32 mV range, including
+    at 500 Hz with 16-bit resolution over a &plusmn; 32 mV range, including
     subjects with risk factors for sudden cardiac death as well as healthy
     controls and synthetic cases with calibrated amounts of T-wave alternans.</li>
 </ul>
