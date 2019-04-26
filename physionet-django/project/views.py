@@ -1116,8 +1116,6 @@ def published_files_panel(request, project_slug, version):
         return redirect('published_project', project_slug=project_slug,
             version=version)
 
-    subdir = request.GET['subdir']
-
     if project.has_access(request.user):
         (display_files, display_dirs, dir_breadcrumbs, parent_dir,
          file_error) = get_project_file_info(project=project, subdir=subdir)
