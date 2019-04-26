@@ -17,9 +17,9 @@ from . import utility
 from . import validators
 
 
-RESPONSE_CHOICES = (
+INVITATION_CHOICES = (
     (1, 'Accept'),
-    (0, 'Reject')
+    (0, 'Decline')
 )
 
 class CorrespondingAuthorForm(forms.Form):
@@ -830,7 +830,7 @@ class InvitationResponseForm(forms.ModelForm):
     class Meta:
         model = AuthorInvitation
         fields = ('response',)
-        widgets = {'response':forms.Select(choices=RESPONSE_CHOICES)}
+        widgets = {'response': forms.Select(choices=INVITATION_CHOICES)}
 
     def clean(self):
         """
