@@ -13,14 +13,9 @@ PhysioNet Index
 {% block content %}
 <div class="main">
   <div class="main-side">
-    <div class="card">
-      <h2 class="card-header">PhysioNet Index</h2>
-      <div class="card-body">
-        <p class="card-text mt-1">This page contains all of the databases, software and challenges published on PhysioNet.</p>
-      </div>
-    </div>
+
     <form method="GET" action="" class="">
-      <div class="card my-4">
+      <div class="card">
         <h2 class="card-header">Search</h2>
         <div class="card-body no-pd">
             {% include "inline_form_snippet.html" with form=form_topic %}
