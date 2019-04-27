@@ -7,7 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 from notification.models import News
 import notification.utility as notification
 from project.models import (License, PublishedProject, Author, ActiveProject,
-    Metadata)
+                            Metadata)
 from user.forms import ContactForm
 from project import forms
 
@@ -20,8 +20,9 @@ def home(request):
     latest = PublishedProject.objects.all().order_by('-publish_datetime')[:6]
     news_pieces = News.objects.all().order_by('-publish_datetime')[:5]
 
-    return render(request, 'home.html', {
-        'featured':featured, 'latest':latest, 'news_pieces':news_pieces})
+    return render(request, 'home.html', {'featured': featured,
+                                         'latest': latest,
+                                         'news_pieces': news_pieces})
 
 
 def about_publish(request):
@@ -33,7 +34,7 @@ def about_publish(request):
         licenses[resource_label] = License.objects.filter(
             resource_types__contains=str(resource_type)).order_by('access_policy')
 
-    return render(request, 'about/publish.html', {'licenses':licenses})
+    return render(request, 'about/publish.html', {'licenses': licenses})
 
 
 def license_content(request, license_slug):
@@ -41,7 +42,7 @@ def license_content(request, license_slug):
     Content for an individual license
     """
     license = License.objects.get(slug=license_slug)
-    return render(request, 'about/license_content.html', {'license':license})
+    return render(request, 'about/license_content.html', {'license': license})
 
 
 def about(request):
@@ -59,7 +60,7 @@ def about(request):
     else:
         contact_form = ContactForm()
 
-    return render(request, 'about/about.html', {'contact_form':contact_form})
+    return render(request, 'about/about.html', {'contact_form': contact_form})
 
 
 def timeline(request):

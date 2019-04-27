@@ -33,8 +33,11 @@ def topic_search(request):
     else:
         form = forms.TopicSearchForm()
 
-    return render(request, 'search/topic_search.html', {'topic':topic,
-        'projects':projects, 'form':form, 'valid_search':valid_search})
+    return render(request, 'search/topic_search.html',
+                  {'topic': topic,
+                   'projects': projects,
+                   'form': form,
+                   'valid_search': valid_search})
 
 
 def all_topics(request):
@@ -44,7 +47,8 @@ def all_topics(request):
     """
     topics = PublishedTopic.objects.all().order_by('-project_count')
 
-    return render(request, 'search/all_topics.html', {'topics':topics})
+    return render(request, 'search/all_topics.html',
+                  {'topics': topics})
 
 
 def get_content(resource_type, orderby, direction, topic):
@@ -61,10 +65,13 @@ def get_content(resource_type, orderby, direction, topic):
     if len(topic) == 0:
         query = Q(resource_type__in=resource_type)
     else:
-        topic = re.split(r"\W",topic);
-        query = reduce(operator.or_, (Q(topics__description__iregex = r'{0}{1}{0}'.format(wb, item)) for item in topic))
-        query = query | reduce(operator.or_, (Q(abstract__iregex = r'{0}{1}{0}'.format(wb, item)) for item in topic))
-        query = query | reduce(operator.or_, (Q(title__iregex = r'{0}{1}{0}'.format(wb, item)) for item in topic))
+        topic = re.split(r"\W", topic)
+        query = reduce(operator.or_, (Q(topics__description__iregex=r'{0}{1}{0}'.format(wb,
+            item)) for item in topic))
+        query = query | reduce(operator.or_, (Q(abstract__iregex=r'{0}{1}{0}'.format(wb,
+            item)) for item in topic))
+        query = query | reduce(operator.or_, (Q(title__iregex=r'{0}{1}{0}'.format(wb,
+            item)) for item in topic))
         query = query & Q(resource_type__in=resource_type)
     published_projects = (PublishedProject.objects
         .filter(query, is_latest_version=True)
@@ -74,22 +81,24 @@ def get_content(resource_type, orderby, direction, topic):
 
     # Relevance
     for t in topic:
-        published_projects = (published_projects
-            .annotate(has_keys=Case(
-                When(topics__description__iregex = r'{0}{1}{0}'.format(wb, t), then=Value(3)),
-                When(title__iregex = r'{0}{1}{0}'.format(wb, t), then=Value(2)),
-                When(abstract__iregex = r'{0}{1}{0}'.format(wb, t), then=Value(1)),
+        published_projects = (published_projects.annotate(has_keys=Case(
+                When(topics__description__iregex=r'{0}{1}{0}'.format(wb, t),
+                     then=Value(3)),
+                When(title__iregex=r'{0}{1}{0}'.format(wb, t),
+                     then=Value(2)),
+                When(abstract__iregex=r'{0}{1}{0}'.format(wb, t),
+                     then=Value(1)),
                 default=Value(0),
                 output_field=IntegerField()
-            ))
-            .annotate(has_keys=Sum('has_keys'))
+            )).annotate(has_keys=Sum('has_keys'))
         )
 
     # Sorting
     direction = '-' if direction == 'desc' else ''
     order_string = '{}{}'.format(direction, orderby)
     if orderby == 'relevance':
-        published_projects = published_projects.order_by(direction+'has_keys',order_string, '-publish_datetime')
+        published_projects = published_projects.order_by(direction+'has_keys',
+            order_string, '-publish_datetime')
     else:
         published_projects = published_projects.order_by(order_string)
 
@@ -100,9 +109,11 @@ def content_index(request, resource_type=None):
     """
     List of all published resources
     """
-    LABELS = {0:['Database', 'databases'],
-        1:['Software', 'softwares'], 2:['Challenge', 'challenges']}
-
+    LABELS = {0: ['Database', 'databases'],
+              1: ['Software', 'softwares'],
+              2: ['Challenge', 'challenges'],
+              3: ['Model', 'models'],
+              }
 
     # PROJECT TYPE FILTER
     form_type = forms.ProjectTypeForm()
@@ -112,10 +123,10 @@ def content_index(request, resource_type=None):
             resource_type = [int(t) for t in form_type.cleaned_data['types']]
     elif resource_type is None:
         resource_type = list(LABELS.keys())
-        form_type = forms.ProjectTypeForm({'types':resource_type})
+        form_type = forms.ProjectTypeForm({'types': resource_type})
     else:
         resource_type = [resource_type]
-        form_type = forms.ProjectTypeForm({'types':resource_type})
+        form_type = forms.ProjectTypeForm({'types': resource_type})
 
     # SORT PROJECTS
     orderby, direction = 'publish_datetime', 'desc'
@@ -136,7 +147,9 @@ def content_index(request, resource_type=None):
 
     # BUILD
     published_projects = get_content(resource_type=resource_type,
-            orderby=orderby, direction=direction, topic=topic)
+                                     orderby=orderby,
+                                     direction=direction,
+                                     topic=topic)
 
     # PAGINATION
     page = request.GET.get('page', 1)
@@ -147,11 +160,15 @@ def content_index(request, resource_type=None):
         projects = paginator.page(1)
 
     querystring = re.sub(r'\&*page=\d*', '', request.GET.urlencode())
-    if querystring != '': querystring += '&'
+    if querystring != '':
+        querystring += '&'
 
-    return render(request, 'search/content_index.html', {'form_order':form_order,
-        'projects':projects,'form_type':form_type,
-        'form_topic':form_topic, 'querystring':querystring})
+    return render(request, 'search/content_index.html',
+                  {'form_order': form_order,
+                   'projects': projects,
+                   'form_type': form_type,
+                   'form_topic': form_topic,
+                   'querystring': querystring})
 
 
 def database_index(request):
@@ -167,11 +184,20 @@ def software_index(request):
     """
     return content_index(request, resource_type=1)
 
+
 def challenge_index(request):
     """
     List of published challenges
     """
     return content_index(request, resource_type=2)
+
+
+def model_index(request):
+    """
+    List of published models
+    """
+    return content_index(request, resource_type=3)
+
 
 def charts(request):
     """
@@ -179,25 +205,32 @@ def charts(request):
     """
     resource_type = None
 
-    if 'resource_type' in request.GET and request.GET['resource_type'] in ['0', '1']:
+    if ('resource_type' in request.GET and
+            request.GET['resource_type'] in ['0', '1', '2', '3']):
         resource_type = int(request.GET['resource_type'])
 
-    LABELS = {None:['Content', 'Projects'], 0:['Database', 'Databases'],
-        1:['Software', 'Software Projects'], 2:['Challenge', 'Challenges']}
+    LABELS = {None: ['Content', 'Projects'],
+              0: ['Database', 'Databases'],
+              1: ['Software', 'Software Projects'],
+              2: ['Challenge', 'Challenges'],
+              3: ['Model', 'Models']}
 
     main_label, plural_label = LABELS[resource_type]
     return render(request, 'search/charts.html', {
-        'resource_type':resource_type,
-        'main_label':main_label, 'plural_label':plural_label})
+                           'resource_type': resource_type,
+                           'main_label': main_label,
+                           'plural_label': plural_label})
 
-
-# Redirect pages
 
 def physiobank(request):
+    """Redirect"""
     return redirect('database_index')
 
+
 def physiotools(request):
+    """Redirect"""
     return redirect('software_index')
+
 
 def redirect_latest_if_project_exists(project_slug):
     project = PublishedProject.objects.filter(slug=project_slug)
@@ -206,8 +239,10 @@ def redirect_latest_if_project_exists(project_slug):
     else:
         raise Http404()
 
+
 def redirect_project(request, project_slug):
     return redirect_latest_if_project_exists(project_slug)
+
 
 def redirect_challenge_project(request, year):
     return redirect_latest_if_project_exists('challenge-{}'.format(year))

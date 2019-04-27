@@ -22,15 +22,17 @@ class ProjectOrderForm(forms.Form):
     orderby = forms.ChoiceField(choices=ORDER_CHOICES, label='By')
     direction = forms.ChoiceField(choices=DIRECTION_CHOICES, label='Order')
 
-
     def clean_order_by(self):
         pass
+
 
 class ProjectTypeForm(forms.Form):
     PROJECT_TYPES = (
         (0, 'Data'),
         (1, 'Software'),
         (2, 'Challenge'),
+        (3, 'Model'),
     )
 
-    types = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple, choices=PROJECT_TYPES, label='')
+    types = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,
+                                      choices=PROJECT_TYPES, label='')

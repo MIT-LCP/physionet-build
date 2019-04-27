@@ -81,6 +81,9 @@
         {# 2: Challenge #}
         {% elif project.resource_type == 2 %}
           {% include "project/challenge_metadata.html" %}
+        {# 3: Model #}
+        {% elif project.resource_type == 3 %}
+          {% include "project/model_metadata.html" %}
         {% endif %}
       {% endif %}
     </div>

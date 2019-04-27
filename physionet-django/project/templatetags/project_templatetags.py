@@ -9,8 +9,9 @@ register = template.Library()
 def resource_badge(resource_type):
     badges = {
         0: '<span class="badge badge-dark"><i class="fa fa-database"></i> Database</span>',
-        1: '<span class="badge badge-dark"><i class="fa fa-keyboard"></i> Software</span>',
+        1: '<span class="badge badge-dark"><i class="fa fa-code"></i> Software</span>',
         2: '<span class="badge badge-dark"><i class="fa fa-bullseye"></i> Challenge</span>',
+        3: '<span class="badge badge-dark"><i class="fa fa-project-diagram"></i> Model</span>',
     }
     return badges[resource_type]
 

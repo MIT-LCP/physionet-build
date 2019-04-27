@@ -10,17 +10,19 @@ from django.template.defaultfilters import slugify
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 
-from .models import (Affiliation, Author, AuthorInvitation, ActiveProject,
-    CoreProject, StorageRequest, ProgrammingLanguage, License, Metadata,
-    Reference, Publication, PublishedProject, Topic, exists_project_slug)
-from . import utility
-from . import validators
+from project.models import (Affiliation, Author, AuthorInvitation, ActiveProject,
+                            CoreProject, StorageRequest, ProgrammingLanguage,
+                            License, Metadata, Reference, Publication,
+                            PublishedProject, Topic, exists_project_slug)
+from project import utility
+from project import validators
 
 
 INVITATION_CHOICES = (
     (1, 'Accept'),
     (0, 'Decline')
 )
+
 
 class CorrespondingAuthorForm(forms.Form):
     """
@@ -92,15 +94,15 @@ class UploadFilesForm(ActiveProjectFilesForm):
             # Special error
             if not file:
                 raise forms.ValidationError('Could not read file: %(file_name)s',
-                    params={'file_name':file.name})
+                    params={'file_name': file.name})
 
         for file in files:
             if file.size > ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT:
                 raise forms.ValidationError(
                     'File %(file_name)s is larger than the individual size limit: %(individual_size_limit)s',
                     code='exceed_individual_limit',
-                    params={'file_name':file.name,
-                            'individual_size_limit':utility.readable_size(ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT)}
+                    params={'file_name': file.name,
+                            'individual_size_limit': utility.readable_size(ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT)}
                 )
 
         if sum(f.size for f in files) > self.project.core_project.storage_allowance - self.project.storage_used():
@@ -114,7 +116,8 @@ class UploadFilesForm(ActiveProjectFilesForm):
         """
         Check for name clash with existing files/folders in the directory
         """
-        if self.errors: return
+        if self.errors:
+            return
 
         files = self.files.getlist('file_field')
 
@@ -123,7 +126,7 @@ class UploadFilesForm(ActiveProjectFilesForm):
         for file in files:
             if file.name in self.taken_names:
                 raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
-                    code='clashing_name', params={'taken_name':file.name})
+                    code='clashing_name', params={'taken_name': file.name})
 
     def perform_action(self):
         """
@@ -146,7 +149,8 @@ class CreateFolderForm(ActiveProjectFilesForm):
         """
         Check for name clash with existing files/folders in the directory
         """
-        if self.errors: return
+        if self.errors:
+            return
 
         folder_name = self.cleaned_data['folder_name']
         self.taken_names = utility.list_items(self.file_dir, return_separate=False)
@@ -225,7 +229,6 @@ class RenameItemForm(EditItemsForm):
         os.rename(os.path.join(self.file_dir, self.cleaned_data['items']),
             os.path.join(self.file_dir, self.cleaned_data['new_name']))
         return 'Your item has been renamed'
-
 
 
 class MoveItemsForm(EditItemsForm):
@@ -449,6 +452,11 @@ class MetadataForm(forms.ModelForm):
          'usage_notes', 'version', 'release_notes', 'acknowledgements',
          'conflicts_of_interest',
          ),
+        # 3: Model
+        ('title', 'abstract', 'background', 'methods', 'content_description',
+         'installation', 'usage_notes', 'version', 'release_notes',
+         'acknowledgements', 'conflicts_of_interest',
+         ),
     )
 
     HELP_TEXTS = (
@@ -465,6 +473,13 @@ class MetadataForm(forms.ModelForm):
          'methods': '* A timeline for the challenge and rules for participation.',
          'content_description': '* A description of the challenge data and access details.',
          'usage_notes': '* Scoring details, information on submitting an entry, and a link to a sample submission.'},
+        # 3: Model
+        {'background': '* Introduce the model, providing context.',
+         'content_description': '* Describe the model and any supporting data and software.',
+         'installation': '* Instructions on how to set up a software environment for using the model.',
+         'usage_notes': '* Describe how you intend others to (re)use the model.',
+         'methods': 'Details on the technical implementation. ie. the development process, and the underlying algorithms.',
+         'usage_notes': '* How the software is to be used. List some example function calls or specify the demo file(s).'},
     )
 
     class Meta:
@@ -737,7 +752,8 @@ class AccessMetadataForm(forms.ModelForm):
 
 class AuthorCommentsForm(forms.Form):
     author_comments = forms.CharField(max_length=12000, required=False,
-        label='Comments for editor (optional)', widget=forms.Textarea())
+                                      label='Comments for editor (optional)',
+                                      widget=forms.Textarea())
 
 
 class InviteAuthorForm(forms.ModelForm):
@@ -778,7 +794,7 @@ class InviteAuthorForm(forms.ModelForm):
         invitation.project = self.project
         invitation.inviter = self.inviter
         invitation.expiration_date = (timezone.now().date()
-            + timezone.timedelta(days=21))
+                                      + timezone.timedelta(days=21))
         invitation.save()
         return invitation
 
@@ -792,8 +808,8 @@ class StorageRequestForm(forms.ModelForm):
         model = StorageRequest
         # Storage request allowance in GB
         fields = ('request_allowance',)
-        widgets = {'request_allowance':forms.NumberInput()}
-        labels = {'request_allowance':'Request allowance (GB)'}
+        widgets = {'request_allowance': forms.NumberInput()}
+        labels = {'request_allowance': 'Request allowance (GB)'}
 
     def __init__(self, project, *args, **kwargs):
         super(StorageRequestForm, self).__init__(*args, **kwargs)
