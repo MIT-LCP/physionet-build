@@ -29,10 +29,6 @@ class TestPublished(TestMixin, TestCase):
         response = self.client.get(reverse('lightwave_home'))
         self.assertEqual(response.status_code, 200)
 
-        response = self.client.get(reverse('lightwave_js',
-                                           args=('lightwave.js',)))
-        self.assertEqual(response.status_code, 302)
-
     @skipIf(server is None, "sandboxed-lightwave is not installed")
     def test_server(self):
         server = reverse('lightwave_server')
@@ -67,11 +63,6 @@ class TestUnpublished(TestMixin, TestCase):
         response = self.client.get(reverse('lightwave_project_home',
                                            args=(project.slug,)))
         self.assertEqual(response.status_code, 200)
-
-        response = self.client.get(reverse('lightwave_project_js',
-                                           args=(project.slug,
-                                                 'lightwave.js',)))
-        self.assertEqual(response.status_code, 302)
 
         self.client.login(username='aewj@mit.edu', password='Tester11!')
         response = self.client.get(reverse('lightwave_project_home',
