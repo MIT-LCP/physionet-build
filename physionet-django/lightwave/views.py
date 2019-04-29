@@ -2,7 +2,6 @@ import os
 import re
 import shutil
 import subprocess
-import pdb
 
 from django.conf import settings
 from django.contrib.staticfiles.templatetags.staticfiles import static
@@ -108,7 +107,7 @@ def serve_lightwave(query_string, root, dbpath='/', dblist=None, dbcal=None,
         resp['Access-Control-Allow-Headers'] = 'x-requested-with'
     else:
         env['LIGHTWAVE_DISABLE_JSONP'] = '1'
-    # pdb.set_trace()
+
     with subprocess.Popen(_lightwave_command, close_fds=True, env=env,
                           stdin=subprocess.DEVNULL,
                           stdout=subprocess.PIPE) as proc:
