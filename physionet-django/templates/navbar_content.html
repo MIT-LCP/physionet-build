@@ -45,9 +45,6 @@
         {% endif %}
         </a>
         <div class="dropdown-menu" aria-labelledby="nav_account_dropdown">
-          <a class="dropdown-item" href="{% url 'public_profile' user.username %}">
-            Profile
-          </a>
           <a class="dropdown-item" href="{% url 'user_settings' %}">
             Settings
           </a>
@@ -56,7 +53,6 @@
               Admin Console
             </a>
           {% endif %}
-          <hr>
           <a id="nav_logout" class="dropdown-item" href="{% url 'logout' %}">
             Logout
           </a>
