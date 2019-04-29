@@ -20,6 +20,7 @@ from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
+from lightwave.views import DBCAL_FILE
 from physionet.utility import get_project_apps
 from project.models import ActiveProject, PublishedProject, ArchivedProject
 from user.models import User, CredentialApplication
@@ -67,6 +68,9 @@ class Command(BaseCommand):
         # Remove created static files
         clear_created_static_files()
         print('Removed all media files and targeted static files.')
+        # Remove dbcal symlnk
+        if os.path.islink(DBCAL_FILE):
+            os.unlink(DBCAL_FILE)
 
         # Remake and apply the migrations
         call_command('makemigrations')

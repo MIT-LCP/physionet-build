@@ -21,7 +21,9 @@ else:
 # PUBLIC_DBPATH: path to main database directory within PUBLIC_ROOT
 PUBLIC_DBPATH = 'published-projects'
 
-# DBCAL_FILE: absolute path to the wfdbcal file
+# ORIGINAL_DBCAL_FILE: absolute path to the wfdbcal file from WFDB
+ORIGINAL_DBCAL_FILE = '/usr/local/database/wfdbcal'
+# DBCAL_FILE: absolute path to the public wfdbcal symlink file
 DBCAL_FILE = os.path.join(PUBLIC_ROOT, 'wfdbcal')
 
 
