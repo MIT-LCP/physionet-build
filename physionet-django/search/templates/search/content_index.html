@@ -13,20 +13,8 @@ PhysioNet Index
 {% block content %}
 <div class="main">
   <div class="main-side">
-    <div class="card">
-      <h2 class="card-header">PhysioNet Index</h2>
-      <div class="card-body">
-        <p class="card-text mt-1">This page contains all of the resources published on PhysioNet.</p>
-      </div>
-    </div>
-    <div class="card my-4">
-      <h2 class="card-header">LightWAVE</h2>
-      <div class="card-body">
-        <p class="card-text mt-1">View PhysioNet waveforms online using <a href="{% url 'lightwave_home' %}">LightWave</a></p>
-      </div>
-    </div>
     <form method="GET" action="" class="">
-      <div class="card my-4">
+      <div class="card">
         <h2 class="card-header">Search</h2>
         <div class="card-body no-pd">
             {% include "inline_form_snippet.html" with form=form_topic %}
