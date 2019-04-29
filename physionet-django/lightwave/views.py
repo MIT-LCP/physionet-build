@@ -128,8 +128,13 @@ def lightwave_server(request):
     """
     Request LightWAVE data for a published database.
     """
-    projects = PublishedProject.objects.filter(has_wfdb=True, access_policy=0)
-    dblist = '\n'.join('{}/{}\t{}'.format(p.slug, p.version, p) for p in projects)
+    if request.GET['action'] == 'dblist':
+        projects = PublishedProject.objects.filter(
+            has_wfdb=True, access_policy=0).order_by('title', '-version_order')
+        dblist = '\n'.join(
+            '{}/{}\t{}'.format(p.slug, p.version, p) for p in projects)
+    else:
+        dblist = None
     return serve_lightwave(query_string=request.GET.urlencode(),
                            root=PUBLIC_ROOT,
                            dbpath=PUBLIC_DBPATH,
