@@ -12,8 +12,11 @@ PhysioNet
 <link rel="stylesheet" type="text/css" href="{% static 'custom/css/home.css' %}"/>
 {% endblock %}
 
+{# avoid using flexbody style #}
+{% block body %}
+<body>
+  {% include "navbar.html" %}
 
-{% block content %}
   <div class="main-header">
     <div class="center">
       <h1>PhysioNet</h1>
@@ -71,5 +74,8 @@ PhysioNet
       <div class="more"><a class="btn btn-outline-dark" href="{% url 'news' %}">More news</a></div>
     </div>
   </div>
-  <!-- /.container -->
+
+  {% include "footer.html" %}
+  {% include "base_js_bottom.html" %}
+</body>
 {% endblock %}
