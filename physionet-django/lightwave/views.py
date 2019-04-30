@@ -131,7 +131,8 @@ def lightwave_server(request):
     """
     if request.GET['action'] == 'dblist':
         projects = PublishedProject.objects.filter(
-            has_wfdb=True, access_policy=0).order_by('title', '-version_order')
+            has_wfdb=True, access_policy=0, deprecated_files=False).order_by(
+            'title', '-version_order')
         dblist = '\n'.join(
             '{}/{}\t{}'.format(p.slug, p.version, p) for p in projects)
     else:
