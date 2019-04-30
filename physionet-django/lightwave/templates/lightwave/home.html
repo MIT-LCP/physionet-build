@@ -1,24 +1,434 @@
-{% extends "base.html" %}
-
 {% load static %}
 
-{% block title %}Lightwave{% endblock %}
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv='content-type' content='text/html; charset=utf-8'>
+<meta http-equiv="X-UA-Compatible" content="chrome=1">
+<title>LightWAVE 0.68</title>
+<!-- -{##}->{% include "lightwave/lw-head.html" %}<!-{##}- -->
+<link rel="stylesheet" href="{% static 'lightwave/css/jquery-ui.min.css' %}">
+<link rel="stylesheet" href="{% static 'lightwave/css/lightwave.css' %}">
+<script src="{% static 'lightwave/js/jquery.min.js' %}"></script>
+<script src="{% static 'lightwave/js/jquery.cookie.js' %}"></script>
+<script src="{% static 'lightwave/js/jquery-ui.min.js' %}"></script>
+<script src="{% static 'lightwave/js/lightwave.js' %}"></script>
+<noscript><style>.js { display: none; }</style></noscript>
+</head>
+<!--
+LightWAVE main page	G. Moody	18 November 2012
+			Last revised:	  23 April 2019    version 0.68
 
-{% block local_css %}
+LightWAVE is a lightweight waveform and annotation viewer and editor.  Use it
+to view any of the recordings of physiologic signals and time series in
+PhysioBank, together with their annotations (event markers).
 
-{% endblock %}
+LightWAVE runs within any modern web browser and does not require installation
+on the user's computer, tablet, or phone.  LightWAVE is free software licensed
+under the GPL.
 
+This file contains the main HTML5 page, which is the starting point for using
+LightWAVE.  When a JavaScript-enabled web browser loads this page, it also loads
+the .css and .js files mentioned above, including lightwave.css
+(LightWAVE-specific styles) and lightwave.js (LightWAVE-specific JavaScript
+code, which runs within the browser to provide low-latency interaction with the
+user).  The other .css and .js files are recent unmodified versions of standard
+jQuery and jQuery UI components.
+-->
+<body>
+<!-- -{##}->{% include "lightwave/lw-top.html" %}<!-{##}- -->
+<noscript>
+<p>LightWAVE requires a Javascript-enabled browser.
+The <a href="http://physionet.org/cgi-bin/ATM">PhysioBank ATM</a>
+provides some of the functions of LightWAVE without Javascript.
+</noscript>
 
-{% block content %}
+<div id="top" style='display: none'>
+<div class="js">
+<div id="tabs">
+<ul>
+<li><a href="#choose">Choose input</a></li>
+<li><a href="#view">View/edit</a></li>
+<li><a href="#tables">Tables</a></li>
+<li><a href="#settings">Settings</a></li>
+<li><a href="#help">Help</a></li>
+</ul>
 
-Some content here...
+<form id="lwform">
 
-{% endblock %}
+<!-- *** 'Choose input' panel *** -->
 
-{% block local_js_bottom %}
+<div id="choose">
+ <table>
+  <tr id="dblist"><td colspan=3>Loading LightWAVE ...</td></tr>
 
-{% endblock %}
+  <tr><td id="rlname" align="right">&nbsp;</td>
+      <td><span id="rlist">&nbsp;</span><span id="rslist">&nbsp;</span></td>
+  </tr>
 
+  <tr><td colspan=2 align="center" id="prompt">
+     First visit? Click on the <b>Help</b> tab above.</td></tr>
+ </table>
+</div>
 
+<!-- *** 'View/edit' panel *** -->
 
+<div id="view">
+ <table width="100%">
+  <tr>
+    <td width="25%"><div style="font-size: 14px; text-align: center">Go to:
+      <input type="text" name="t0" class="t0_str" value="" tabindex="1"
+	     title="Enter the elapsed time from the start of the
+record to the start of the window, then click '&#x21b4;'"
+	     placeholder="HH:MM:SS" size="10">
+      <button class="go_to" tabindex="2"
+		    title="refresh signal window">&#x21b4;</button></div>
+    </td>
 
+    <td width="50%"><div style="font-size: 14px; text-align: center">
+      <button class="sor" tabindex="8"
+		    title="start of record">|&#9665;</button>
+      <button class="rev" tabindex="4"
+		    title="previous window">&#9665;</button>
+      <button class="scrollrev" tabindex="4"
+		    title="start/stop scrolling (reverse)">&#9664;</button>
+      <button class="scrollfwd" tabindex="4"
+		    title="start/stop scrolling (forward)">&#9654;</button>
+      <button class="fwd" tabindex="3"
+		    title="next window">&#9655;</button>
+      <button class="eor" tabindex="7"
+		    title="end of record">&#9655;|</button>
+      <br>
+      <button class="srev" tabindex="5"
+	   title="search for previous 'Find' target">&#9665; Search</button>
+      <button class="find" tabindex="9"
+		    title="define search target">Find...</button>
+      <button class="sfwd" tabindex="6"
+		   title="search for next 'Find' target">Search &#9655;</button>
+      </div>
+    </td>
+    </span>
+    <td align=right width="25%">
+      <span class="recann"></span><br><span class="pointer">&nbsp;</span></td>
+  </tr>
+ </table>
+
+ <div id="findbox" title="Find...">
+ <table width="100%">
+ <tr><td align="center" title="Enter an annotation mnemonic (N, V, S, ...)
+or an 'aux' string, or one of:
+  *v	to match any ventricular ectopic beat
+  *s	to match any supraventricular ectopic beat
+  *n	to match any other beat type
+  *	to match any annotation or marker">Search&nbsp;for:&nbsp;<input
+  type="text" name="target" id="target" value="" size="4"></td></tr>
+ <tr><td id="annsets" align="center">&nbsp;</td></tr>
+ <tr><td align="center">
+ <button class="srev" title="search for previous target">&#9665; Search</button>
+ <button class="sfwd" title="search for next target">Search &#9655;</button><br>
+ </td></tr></table>
+ </div>
+
+ <div id="add_typebox" title="Add a new type to the palette">
+ <table width="100%">
+ <tr title='Choose the primary annotation type.  If the desired
+choice is not in the list, choose " (comment) and
+enter the type as an Aux string.'>
+   <td align="right">Annotation&nbsp;type:&nbsp;</td>
+   <td align="left">
+     <select name="edita" id="edita">
+     <option value="N"
+         selected>N (normal beat [displayed as &bull;])</option>
+     <option value="L">L (left bundle branch block beat)</option>
+     <option value="R">R (right bundle branch block beat)</option>
+     <option value="B">B (bundle branch block beat [L or R])
+     <option value="A">A (atrial premature beat)</option>
+     <option value="a">a (aberrated atrial premature beat)</option>
+     <option value="J">J (junctional premature beat)</option>
+     <option value="S">S (supraventricular premature beat [A or J])</option>
+     <option value="V">V (premature ventricular contraction)</option>
+     <option value="r">r (R-on-T premature ventricular contraction)</option>
+     <option value="F">F (fusion of V and N)</option>
+     <option value="e">e (atrial escape beat)</option>
+     <option value="j">j (junctional escape beat</option>
+     <option value="n">n (supraventricular escape beat [e or j])</option>
+     <option value="E">E (ventricular escape beat)</option>
+     <option value="/">/ (paced beat)</option>
+     <option value="f">f (fusion of / and N)</option>
+     <option value="Q">Q (unclassifiable beat)</option>
+     <option disabled>&nbsp;&nbsp;[waveform peaks and limits]</option>
+     <option value="(">( (waveform onset)</option>
+     <option value=")">) (waveform end)</option>
+     <option value="p">p (peak of P-wave)</option>
+     <option value="t">t (peak of T-wave)</option>
+     <option value="u">u (peak of U-wave)</option>
+     <option value="`">` (PQ junction)</option>
+     <option value="'">' (J-point)</option>
+     <option disabled>&nbsp;&nbsp;[other non-beat types]</option>
+     <option value="|">| (isolated QRS-like artifact)</option>
+     <option value="+">+ (rhythm change [enter new rhythm in aux])</option>
+     <option value="s">s (ST segment change [describe in aux])</option>
+     <option value="~">~ (signal quality change [describe in aux])</option>
+     <option value='"'>" (comment [enter comment in aux])</option>
+     </select>
+    </td>
+ </tr>
+ <tr title='New rhythm, comment, etc.
+Use annotation type "+" to mark a rhythm change.
+Standard aux strings for rhythms begin with "(":
+
+ (AB     atrial bigeminy
+ (AFIB   atrial fibrillation
+ (AFL    atrial flutter
+ (B        ventricular bigeminy
+ (BII      second-degree heart block
+ (IVR     idioventricular rhythm
+ (N       normal sinus rhythm
+ (NOD   nodal (A-V junctional) rhythm
+ (P        paced rhythm
+ (PREX  pre-excitation (WPW)
+ (SBR   sinus bradycardia
+ (SVTA  supraventricular tachyarrhythmia
+ (T        ventricular trigeminy
+ (VFIB   ventricular fibrillation
+ (VFL    ventricular flutter
+ (VT     ventricular tachycardia'>
+   <td align="right">Aux&nbsp;string:&nbsp;</td>
+   <td align="left"><input type="text" name="editx" id="editx" value=""></td>
+ </tr>
+ <tr>
+   <td align="right">S/C/N:&nbsp;</td>
+   <td align="left">
+     <input type="text" name="edits" id="edits" size="4" value=""
+	    title="Subtype (an integer between -128 and 127)">/
+     <input type="text" name="editc" id="editc" size="3" value=""
+	    title="Chan (an integer between 0 and 255)">/
+     <input type="text" name="editn" id="editn" size="4" value=""
+	    title="Num (an integer between -128 and 127)">
+     (current annotation only)
+   </td>
+ </tr>
+</table>
+
+<p>See <em>Help topics</em> -> <em>Standard annotation types</em> for more.
+
+</div>
+
+ <div style="position: relative; margin-top: -1.2em"></div>
+ <div id="plotdata"></div>
+  <!--[if lt IE 9]>
+  <p> MSIE versions 8 and earlier do not support LightWAVE's SVG graphics.
+  MSIE 6, 7, and 8 can be used to run modern web apps such as LightWAVE if you
+  install <a href="http://www.google.com/chromeframe">Google Chrome Frame</a>
+  (a free plugin).  Browsers such as Chrome, Firefox, Opera, Safari,
+  and MSIE 9+ have built-in support for SVG and work well with LightWAVE.
+ <![endif]-->
+
+ <table width="100%">
+  <tr>
+    <td align=left width="25%"><div style="font-size: 14px">
+	<button class="stretch"
+		title="enlarge the highlighted signal">&#9650;</button>
+	<button class="reset"
+		title="reset the highlighted signal">=</button>
+	<button class="shrink"
+		title="reduce the highlighted signal">&#9660;</button>
+    </td>
+
+   <td align=right width="25%" class="editgroup" style="font-size: 14px">
+      <table title="Annotation palette"
+	   style="text-align: center; vertical-align: middle;
+		  border: 1px dotted gray; padding: 2px">
+	<tr>
+	  <td width="30%" style="text-align: center; vertical-align: middle">
+	    <span>
+	      <button style="background: #8d8" id="add_type"
+		      title="add a new type to the palette"><b>+</b></button>
+	      <button title="copy the selection to the palette" id="copyann"
+		      style="background: #8d8">&#x21b3;</button>
+	    </span>
+	    <button style="color: red; background-color: white"
+		    id="insert_mode" title="set delete mode (click any other
+button in this group for insert mode)">&#9003;</button>
+	  </td>
+	  <td style="text-align: right; vertical-align: middle" id="palette">
+	    Loading annotation palette...
+	</td></tr>
+      </table>
+    </td>
+
+    <td align=left width="25%" class="editgroup" style="font-size: 14px">
+      <div style="text-align: center; vertical-align: middle">
+	<button title="select the annotation to the left of the edit point"
+		id="jumpleft">&#8676;</button>
+	<button title="move the edit point to the left"
+		id="nudgeleft">&#8612;</button>
+	<button title="move the edit point to the right"
+		id="nudgeright">&#8614;</button>
+	<button title="select the annotation to the right of the edit point"
+		id="jumpright">&#8677;</button><br>
+	<button title="restore state before most recent edit"
+		id="undo">Undo</button>
+	<button id="mark" title="complete pending edit">Mark</button>
+	<button id="redo" title="reapply last edit">Redo</button>
+      </div>
+    </td>
+
+    <td align=right width="25%">
+      <div style="font-size: 10px;">
+	<label for="dtslider">Window duration:</label>
+	<input type="text" id="swidth" value="10"
+	       style="border: 0; width: 2em; font-weight: bold"/><span id="dtsliderunits">seconds</span>
+      </div>
+      <div id="dtslider"></div>
+    </td>
+  </tr>
+ </table>
+</div>
+
+<!-- *** 'Tables' panel *** -->
+
+<div id="tables">
+ <table width="100%">
+  <tr><td align=left>
+      <div style="font-size: 14px; text-align: center">Go to:
+      <input type="text" name="t0" class="t0_str" value="" tabindex="1"
+	     title="Enter the elapsed time from the start of the
+record to the start of the window, then click '&#x21b4;'"
+	     placeholder="HH:MM:SS" size="10">
+      <button class="go_to" tabindex="2"
+	  title="show annotations/signals from the
+signal window if selected below">&#x21b4;</button>
+      <br>
+      <input type="checkbox" id="viewann" />View annotations as text&nbsp;&nbsp;
+      <input type="checkbox" id="viewsig" />View signals as text
+    </div></td>
+
+    <td><div style="font-size: 14px; text-align: center">
+      <button class="sor" tabindex="8"
+		    title="start of record">|&#9665;</button>
+      <button class="rev" tabindex="4"
+		    title="previous window">&#9665;</button>
+      <button class="fwd" tabindex="3"
+		    title="next window">&#9655;</button>
+      <button class="eor" tabindex="7"
+		    title="end of record">&#9655;|</button>
+      <br>
+      <button class="srev" tabindex="5"
+	   title="search for previous 'Find' target">&#9665; Search</button>
+      <button class="find" tabindex="9"
+		    title="define search target">Find...</button>
+      <button class="sfwd" tabindex="6"
+		   title="search for next 'Find' target">Search &#9655;</button>
+      </div>
+    </td>
+    </span>
+    <td align=right>
+      <span class="recann"></span><br><span class="pointer">&nbsp;</span></td>
+  </tr>
+ </table>
+<hr>
+ <div id="info"></div>
+<hr>
+ <div id="anndata"></div>
+ <div id="sigdata"></div>
+</div>
+
+<!-- *** 'Settings' panel *** -->
+
+<div id="settings">
+
+ <table width="100%">
+  <tr>
+    <td align="left">Server:
+      <span id="server"><input type="text" name="server" size="50"
+	title="URL of LightWAVE server (reload to restore default)"></span>
+      </td>
+      <td><span id="sversion">&nbsp;</span></td>
+    <td align="right" width="40%"><div class="recann"></div></td>
+  </tr>
+  <tr>
+    <td align="left">Client: <span id="client">lightwave</span></td>
+    <td><span id="cversion">version 0.68</span></td>
+  </tr>
+  <tr>
+    <td align="left">Scribe:
+      <span id="scribe"><input type="text" name="scribe" size="50"
+      title="URL of LightWAVE's edit backup server (reload to restore default)">
+      </span></td>
+  </tr>
+ </table>
+
+ <h3>Editing</h3>
+ <table>
+  <tr><td>
+      <div id="edit_mode">
+	<input type="radio" id="no_edit" name="edit_mode" checked="checked">
+	  <label for="no_edit">View (no editing)</label>
+	<input type="radio" id="mouse_edit" name="edit_mode">
+	  <label for="mouse_edit">Edit using mouse</label>
+	<input type="radio" id="touch_edit" name="edit_mode">
+	  <label for="touch_edit">Edit using touch</label>
+      </div>
+  </td></tr>
+</table>
+
+<p>
+<table width="100%">
+  <tr>
+    <td width="50%">
+	<button id="new_annset">Set up new annotation set</button>
+	<br>
+	<button title="Display the current edit log, most recent first"
+		id="show_edits">Show pending edit log</button>
+	<br><br>
+	<button title="Back up the current edit log"
+		id="sync_edits">Save pending edits</button>
+    </td>
+    <td align="right" width="45%">
+      <button title="Display counters of total and pending requests"
+	      id="show_status">Show status</button>
+      <br>
+      <button title="Display the request log, most recent first"
+	      id="show_requests">Show request log</button>
+      <br><br>
+      <button title="Clear the request log and counters"
+	      id="clear_requests">Reset request log</button>
+    </td>
+  </tr>
+  <tr><td><div id="syncnote"></div></td>
+      <td><div id="status" style="display: none"></div></td></tr>
+ </table>
+</div>
+
+<!-- *** 'Help' panel *** -->
+
+<div id="help">
+
+ <table width="100%">
+  <tr><td align="left">
+   <button id="help_about" title="About LightWAVE: what it is, getting started,
+and links to more information">Main help</button>
+   <button id="help_topics" title="Topic index">Help topics</button>
+   <button id="help_contacts"
+   title="Contacts for feature requests and bug reports">Contacts</button></td>
+   <td align="right"><div class="recann"></div></td>
+  </tr>
+ </table>
+
+ <iframe id="helpframe" src="" width="100%" style="border: none"></iframe>
+</div>
+
+</form>
+</div>  <!-- end of "tabs" div -->
+
+<table width="99%"><tr><td width="50%" valign="top">
+<div id="editlog" style="display: none"></div>
+&nbsp;</td><td width="45%" valign="top">&nbsp;
+<div id="requests" style="display: none"></div>
+</td></tr></table>
+</div>  <!-- end of "js" div -->
+</div>  <!-- end of "top" div -->
+<!-- -{##}->{% include "lightwave/lw-bottom.html" %}<!-{##}- -->
+</body>
+</html>

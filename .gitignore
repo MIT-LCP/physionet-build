@@ -12,6 +12,7 @@ media/published-projects/*
 media/users/*
 media/credential-applications/*
 physionet-django/static/published-projects/*
+physionet-django/static/wfdbcal
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

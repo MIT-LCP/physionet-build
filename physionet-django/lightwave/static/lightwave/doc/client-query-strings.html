@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv='content-type' content='text/html; charset=utf-8'>
+<meta http-equiv="X-UA-Compatible" content="chrome=1">
+<title>Using query strings with the LightWAVE client</title>
+<link rel="stylesheet" href="../css/lightwave.css">
+</head>
+
+<h2>Using query strings with the LightWAVE client</h2>
+
+<p>
+By default, LightWAVE opens with the <b>Choose input</b> tab open.
+By adding an appropriately chosen query string to the LightWAVE URL,
+you can preload a database or a specific record into LightWAVE.
+
+<p>
+Here are several examples.  Click on any of the URLs below to see how
+it works.
+
+<dl>
+<dt>
+<a href="http://physionet.org/lightwave?db=mitdb">http://physionet.org/lightwave?db=mitdb</a></dt>
+<dd>
+This example preloads the MIT-BIH Arrhythmia Database (mitdb) into the
+<b>Choose input</b>.  After opening it, you can choose any record from
+the mitdb, but not from other databases.  This feature might be used
+in documentation of a specific database.</dd>
+
+<dt>
+<a href="http://physionet.org/lightwave?db=mitdb&record=200">http://physionet.org/lightwave?db=mitdb&record=200</a></dt>
+<dd>
+In this example, the input is further restricted to record 200 of the
+mitdb.  It is possible to examine any location in the record, but not
+to visit any other record, since the <b>Choose input</b> tab is not
+available.  When the URL is first opened, LightWAVE displays a plot of
+the first 10 seconds of the record.</dd>
+
+<dt>
+<a href="http://physionet.org/lightwave?db=mitdb&record=200&t0=15:30">http://physionet.org/lightwave?db=mitdb&record=200&t0=15:30</a></dt>
+<dd>
+This example also demonstrates how to open a record, but with an
+initial view of an arbitrary location (in this case, 15 minutes and 30
+seconds after the beginning of the record).  As in the previous
+example, it is possible to navigate to any other location in the record.
+</dl>
+
+<p>
+LightWAVE URLs with query strings may be useful for communicating with
+colleagues, since it's easy to send an email with a URL that opens a
+specific record at a point of interest.  On PhysioNet, we are planning
+to incorporate such URLs in PhysioBank database home pages and in
+tutorials and reference materials.   For example, this code can be inserted
+in a page based on the <a href="http://physionet.org/pn/template.shtml">PhysioNet
+template</a> to embed an instance of LightWAVE in it:
+
+<pre>
+&lt;iframe id="lightwave" width="100%"
+  src="http://physionet.org/lightwave?db=mitdb&amp;record=200&amp;t0=12:34"&gt;
+&lt;/iframe&gt;
+&lt;script&gt;
+  $('#lightwave').attr('height', $(window).width() * 0.6 + 'px');
+  $(window).on('resize', function() {
+    $('#lightwave').attr('height', $(window).width() * 0.6 + 'px');
+  });
+&lt;/script&gt;
+</pre>
+
+<p>
+The snippet of JavaScript code ensures that the browser allocates sufficient
+room for LightWAVE on the page at load time, and resizes LightWAVE if the
+browser window is resized by the user.  If you are not starting with the
+PhysioNet template, include this code in the HTML &lt;head&gt; section of
+the web page:
+
+<pre>
+&lt;meta http-equiv="X-UA-Compatible" content="chrome=1"&gt;
+&lt;script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"&gt;
+</pre>
+
+<p>
+The first of these lines ensures that the page will load properly in MSIE if
+Google Chrome Frame is installed, and the second line line loads jQuery (needed
+by the code that follows the &lt:iframe&gt; above).
+</html>
+

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv='content-type' content='text/html; charset=utf-8'>
+<meta http-equiv="X-UA-Compatible" content="chrome=1">
+<title>Frequently asked questions about LightWAVE</title>
+<link rel="stylesheet" href="../css/lightwave.css">
+</head>
+
+<h2>Frequently asked questions about LightWAVE</h2>
+
+<h3>What is LightWAVE?</h3>
+
+<p> <b>LightWAVE</b> is a lightweight waveform and annotation viewer and editor.
+Use it to view any of the recordings of physiologic signals and time series
+in <a href="http://physionet.org/physiobank/database/">PhysioBank</a>, together
+with their annotations (event markers).
+
+<p> LightWAVE runs within <a href="browser-compatibility.html">any modern web
+browser</a> and does not require installation on the user's computer, tablet, or
+phone.  LightWAVE is free software licensed under the <a
+href="COPYING.html">GPL</a>.
+
+<p> For more, see the <a href="what-is-lightwave.html">long version of this
+answer</a>.
+
+<h3>Why is it called LightWAVE?</h3>
+
+<p> LightWAVE is modelled on WAVE, an X11/XView application I wrote and
+maintained between 1989 and 2012.  (WAVE: <em>W</em>aveform and <em>A</em>nnotation <em>V</em>iewer and <em>E</em>ditor.)
+
+<p> It's "light" because you can use it without needing to install it, unlike
+<b>WAVE</b>.
+
+<h3>Why was LightWAVE written?</h3>
+
+<p> At one time, WAVE was not difficult to install and run anywhere, because
+it's written in portable C, and the libraries that it uses (including X11 and
+XView) have been ported to all of the popular platforms (GNU/Linux, Mac OS X,
+other Unix-like platforms, and Windows).  XView was abandoned by its authors
+years ago, however, and changes in the popular X11 server have resulted in
+chronic problems for all applications that rely on XView, including WAVE.
+Finding workarounds and patching XView to avoid newly introduced
+incompatibilities with updated X11 servers on different platforms has become
+increasingly difficult.  WAVE has had a long run and was well liked by those who
+used it, but a replacement built on modern standards was clearly needed.
+
+<h3>Why didn't you write LightWAVE in the first place, then?</h3>
+
+<p> WAVE was designed before there were web browsers with fast JavaScript and
+SVG engines, mice with scrollwheels, smart phones, touch-input tablets, SVG,
+fast and inexpensive high-resolution graphics, JavaScript, Unicode, Wifi,
+TCP/IP, 64-bit CPUs in every toaster, the World Wide Web(!), and many of the
+user interface elements that are familiar today.  OK, I'm kidding about TCP/IP.
+
+<p> Developing a replacement for WAVE offers the opportunity to revisit
+design decisions that would be made differently given current technology.  We
+are confident that even WAVE enthusiasts will like LightWAVE.
+
+<h3>How is LightWAVE different from WAVE?</h3>
+
+<p> In terms of function, they are very similar, although LightWAVE is still in
+development and lacks some important features of WAVE, notably related to
+control of external analysis programs.  These features will appear in LightWAVE
+over the next several months.
+
+<p>Architecturally, LightWAVE and WAVE are quite different.  WAVE is a compiled
+application that communicates with the user via an X11 server running on the
+user's computer.  Usually, WAVE runs on the same computer as the X11 server.
+WAVE accesses data, which may be stored locally or on a remote web server such
+as PhysioNet, via the WFDB and curl libraries.  Customizing WAVE requires a
+good working knowledge of C, X11, XView, and the WFDB library, and a substantial
+(though free) software development toolkit.
+
+<p>In contrast, LightWAVE consists of a front end (client) that runs in the
+user's web browser, communicating with a pair of back end (server) applications
+that run as components of a web server.  Usually, the front end and back end run
+on different computers.  The back end accesses data via the WFDB and curl
+libraries, in the same way as WAVE does.  Customizing LightWAVE requires only a
+text editor.
+
+<h3>What's the magic word?</h3>
+
+<p>See the <a href="http://physionet.org/faq.shtml">PhysioNet FAQ</a>.
+
+<p>George Moody<br>
+17 January 2013<br>
+(revised 21 April 2013)
+</html>

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv='content-type' content='text/html; charset=utf-8'>
+<meta http-equiv="X-UA-Compatible" content="chrome=1">
+<title>Installing a local copy of the LightWAVE server</title>
+<link rel="stylesheet" href="../css/lightwave.css">
+</head>
+
+<h2>Installing a local copy of the LightWAVE server</h2>
+
+<p>
+The LightWAVE server, <tt>lightwave</tt>, runs as a CGI application within a web
+(http) server.  The web server collects user requests (typically made using the
+LightWAVE client running in a web browser on another computer) and forwards them
+to the LightWAVE server.  The LightWAVE server parses the requests, obtains the
+requested data from local storage or from a data repository such as PhysioNet,
+constructs appropriate responses, and passes them back to the web server.
+The web server then relays the responses (typically after compression) to the
+users.
+
+<p style="color: red"> It is not necessary to install LightWAVE in
+order to use it!  Point your browser to <a
+href="http://physionet.org/lightwave/">http://physionet.org/lightwave/</a>
+to do so.
+
+<p> In normal use, the client, the server, and the data repository are
+all hosted on the same machine, and the user visits the URL of the
+client in order to use LightWAVE.  For example, PhysioNet hosts a
+public server
+(<a href="http://physionet.org/cgi-bin/lightwave">http://physionet.org/cgi-bin/lightwave</a>),
+a public client
+(<a href="http://physionet.org/lightwave/">http://physionet.org/lightwave/</a>),
+and a public data repository
+(<a href="http://physionet.org/physiobank/database/">http://physionet.org/physiobank/database</a>).
+
+<p>
+It is also possible for the client, the server, and the data
+repository to be hosted on different machines.  For example, a locally
+hosted LightWAVE client can make use of the public server and data
+repository on PhysioNet, or a locally hosted client and server can use
+a remote data repository (or even multiple data repositories hosted on
+multiple remote machines).
+
+<p>
+This technical note describes how to install the LightWAVE server so
+that it can be hosted on your own computer while interacting with the
+public data repository on PhysioNet.  The final section describes how
+to set up your own data repository, using PhysioNet and its
+<a href="http://physionet.org/mirrors/">mirrors</a> as a model.
+
+<h3>Who would want a locally hosted LightWAVE server?</h3>
+
+<p>
+A locally hosted server and a local data repository are needed if you wish to
+use LightWAVE on a machine that has no Internet connection.  (For example, some
+of the early development of LightWAVE was done on a notebook PC while flying
+across the Pacific!)
+
+<p>
+If you use a PhysioNet <a href="http://physionet.org/mirrors/">mirror</a>
+that doesn't host its own LightWAVE server, a locally hosted server
+can be configured to use the mirror as its primary data repository,
+with the PhysioNet master server used only as a source of data that
+are not available on the mirror.
+
+<p>
+You might also find a locally hosted server convenient for working on
+your own data.  (There are alternatives for this, including uploading
+your data to secure storage on
+<a href="https://physionet.org/users/">PhysioNetWorks</a>;  this also
+makes it easy to share your data with colleagues anywhere.)
+
+<p>
+Finally, if you are interested in extending the capabilities of the
+server itself, you will need a local copy of it.  Note that LightWAVE is
+free software licensed under the <a href="COPYING.html">GPL</a>, which
+means that you are free to copy, use, and modify it, but you may not
+distribute modified compiled versions of it unless you also make the
+source code for your modified versions available.
+
+<h3>Requirements for a LightWAVE server</h3>
+
+<p>
+The LightWAVE server runs as a CGI application controlled by a web
+server.  To date, the LightWAVE server has been compiled and installed
+successfully on several versions of Fedora and Ubuntu GNU/Linux,
+including both 32- and 64-bit versions, using the Apache web server.
+
+<p>
+The LightWAVE server code is contained in a single C source file with
+no explicit platform dependencies.  All of the external libraries it
+uses are also platform-independent.  You should be able to compile it
+successfully with any ANSI/ISO C compiler on any platform.  (If you
+attempt to compile and run the LightWAVE server on Mac OS X or on
+Windows, please let me know if you were successful, and if so, please
+send me a brief description of what steps were needed.)
+
+<p>
+To receive edits made using LightWAVE clients hosted on the same web
+server, a second CGI application (lw-scribe, written in Perl) is needed.
+This application uses a command-line application (patchann, written in
+C) to merge edit logs with original annotation files and write new
+annotation files.  lw-scribe and patchann are not needed unless you
+need to handle annotation edits.
+
+<h3>Download the LightWAVE sources</h3>
+
+<p>
+The LightWAVE sources are available within the LightWAVE project on
+PhysioNetWorks.  To obtain them:
+
+<ol>
+<li>If you have not already done so, go to
+<a href="https://physionet.org/users/">https://physionet.org/users/</a> and
+create a personal PhysioNetWorks account.  It's free and the process takes
+only a minute or two.
+
+<li>Log in to your PhysioNetWorks account and look for the link to
+LightWAVE in the <b>Projects</b> section on your home page.  Follow the
+link and look for the signup message ("Interested PhysioNetWorks members
+may obtain access to this project now by clicking here.").  Click on
+the word "here" in the message to join the project.
+
+<li>From the project's archives (<a
+href="https://physionet.org/works/LightWAVE/files">
+https://physionet.org/works/LightWAVE/files</a>), find and download the most
+recent set of sources.  Each version is available as a tarball (e.g.,
+<tt>lightwave-0.43.tar.gz</tt>) that can be downloaded as a single file and
+unpacked, or you can download individual files from the most recent version
+from the <tt>lightwave</tt> subdirectory.  For downloading hints, see <a
+href="http://physionet.org/faq.shtml#downloading-binaries">How can I download
+binary files?</a>; for instructions on unpacking tarballs, see <a
+href="http://physionet.org/faq.shtml#tar-gz">How can I unpack a .tar.gz archive
+(a "tarball")?</a>.  If you choose to download individual files, note that you
+will need to create a complete copy of the <tt>lightwave</tt>
+directory tree in order to test your installation with the LightWAVE client.
+</ol>
+
+<h3>Edit the <tt>Makefile</tt></h3>
+
+<p>
+In the <tt>lightwave</tt> directory, open <tt>Makefile</tt> in a text editor
+(not a word processor) and read it.  The comments near the top of the
+file describe other free software components you may need to install
+before compiling and installing the LightWAVE server.
+
+<p>
+Currently, these components include:
+
+<ul>
+<li> a properly configured web server, such as
+     <a href="http://httpd.apache.org/">Apache</a>
+<li> <a href="http://libcgi.sourceforge.net/">libcgi</a>
+<li> <a href="http://physionet.org/physiotools/wfdb.shtml">libwfdb</a>
+<li> <a href="http://curl.haxx.se/libcurl/">libcurl</a>
+<li> an ANSI/ISO C compiler, such as <a href="http://gcc.gnu.org/">gcc</a>
+     and a few other standard POSIX tools including 'make', 'cp',
+     'mkdir', 'mv', 'rm', 'sed', and 'tar' (all standard on Linux and Mac OS X,
+     components of <a href="http://www.cygwin.com/">Cygwin</a> on Windows)
+<li> <a href="https://www.perl.org/">perl</a>
+     and <a href="http://search.cpan.org/dist/CGI/">CGI.pm</a> (for lw-scribe
+     only)
+</ul>
+
+<p>
+(This list may be incomplete; consult the <tt>Makefile</tt> for any
+additions.)
+
+<p> As the comments near the top of the file note, you may need to change the
+values of some parameters that are defined in <tt>Makefile</tt> to
+match your installation.
+
+<h3>Build and install the LightWAVE server</h3>
+
+<p>
+Once you have checked the <tt>Makefile</tt> and made any necessary
+changes to it, open a terminal window, go to the directory that
+contains <tt>Makefile</tt>, and run the command
+
+<pre>
+    make
+</pre>
+
+<p>
+The output of this command should look something like this:
+
+<pre>
+    gcc -g -DLWDIR=\"/home/physionet/html/lightwave\" -DLWVER=\"0.43\" -DLW_WFDB=\""/usr/local/database http://physionet.org/physiobank/database"\" server/lightwave.c -o lightwave -lcgi -lwfdb
+    mkdir -p /home/physionet/cgi-bin
+    cp -p lightwave /home/physionet/cgi-bin
+    rm -f lightwave *~ */*~ */*/*~
+    mkdir -p /home/physionet/html/lightwave
+    mv client/lightwave.html .
+    cp -pr client/* /home/physionet/html/lightwave
+    sed s+http://physionet.org/cgi-bin/+/cgi-bin/+ \
+     &lt;client/js/lightwave.js &gt;/home/physionet/html/lightwave/js/lightwave.js
+    sed "s/\[local\]/0.43/" &lt;lightwave.html &gt;/home/physionet/html/lightwave/index.html
+    mv lightwave.html client
+
+    LightWAVE has been installed.  If an HTTP server is running,
+    use LightWAVE by opening your web browser and visiting
+        http://HOST/lightwave/
+    (replacing HOST by the hostname of this server, or by localhost
+    or 127.0.0.1 to run without a network connection).
+</pre>
+
+<h3>Test the installed server</h3>
+
+<p>
+From the <tt>lightwave</tt> directory, run this command:
+
+<pre>
+    make test
+</pre>
+
+The output of this command should look something like this:
+
+<pre>
+    The LightWAVE server appears to be running properly in command-line mode.
+    Test it with the LightWAVE client by pointing your web browser to:
+        http://localhost/lightwave/
+</pre>
+
+<p>
+If the test with the LightWAVE client doesn't work at all, check that
+Apache (or whatever web server you installed) is running.
+
+<p>
+If the LightWAVE client loads, but (after about 10 seconds) displays the
+message:
+
+<pre>
+    The LightWAVE server at
+    http://physionet.org/cgi-bin/lightwave
+    is not responding properly.  Please check
+    the network connection.  Select another server
+    on the Settings tab if necessary.
+</pre>
+
+and the suggestions in the message are not sufficient to solve the problem,
+check that:
+
+<ul>
+<li> <tt>lightwave</tt> (the compiled LightWAVE server) is installed in a
+     directory that is named as a directory containing CGI
+     applications in the appropriate Apache configuration file
+<li> <tt>lightwave</tt> has appropriate ownership and permissions so
+     it can be run by Apache
+<li> any shared libraries (DLLs) needed by <tt>lightwave</tt>, including
+     libcgi, libwfdb, and libcurl, are in locations where Apache can find
+     them, and they have appropriate ownership and permissions to
+     be read by Apache
+</ul>
+
+<h3>Using your locally hosted server</h3>
+
+<p>
+If you have a network connection, you may use your server by connecting to
+it with a browser and LightWAVE client running on the same host.  The
+server will use PhysioBank as its data repository by default.  (This is the
+configuration that you tested in the previous section.)
+
+<p>
+If you have set up your own data repository (see below) on the same host
+as the server, you may use LightWAVE without a network connection, by
+connecting to the server with a browser and LightWAVE client also running
+on the same host.
+
+<p>
+In order to use your server from a different host, the LightWAVE client
+must be configured to use it rather than PhysioNet's public server.  To
+do this, go to the client's <b>Settings</b> tab and set the server URL to the
+location of your server.  This setting will persist only until you reload
+the LightWAVE client.  You can change the default server URL by changing
+the value of <tt>server</tt> just below the initial comment block in
+<tt>client/js/lightwave.js</tt>;  this change will affect all future sessions.
+
+<h3>Custom data repositories</h3>
+
+<p>
+The LightWAVE server, in common with all applications that use the
+WFDB library (<tt>libwfdb</tt>), finds data by searching a list of
+locations (data repositories) known as the <em>WFDB path</em>.  The
+standard list of locations is determined at the time the LightWAVE
+server is compiled, by the value of the constant <tt>LW_WFDB</tt>.
+This constant is defined in <tt>Makefile</tt> as
+
+<pre>
+    /usr/local/database http:/physionet.org/physiobank/database
+</pre>
+
+<p>
+If you wish to use a repository other than PhysioBank:
+
+<ol>
+<li> Choose a location for your repository.
+  <ul>
+  <li> If the repository will be in local storage, the simplest choice is to put
+       it in <tt>/usr/local/database</tt> (or the first component of your WFDB
+       path, whatever that is).
+  <li> Otherwise, add the location of the repository (which can be either a
+       location in your local file system, or a URL) to the definition
+       of <tt>LW_WFDB</tt> in <tt>Makefile</tt>, and recompile and install the
+       server (run "<tt>make</tt>" as above).  Be sure that your repository
+       precedes PhysioBank in the WFDB path, or it will not be searched.
+  </ul>
+
+<li> Make a copy
+     of <a href="http://physionet.org/physiobank/database/DBS">
+     http://physionet.org/physiobank/database/DBS</a>.  Use a text
+     editor (not a word processor) to edit it so that it includes the
+     names of the database(s) in your repository, and put the
+     modified <tt>DBS</tt> in the top-level directory of your
+     repository.  Important:  database names may not include spaces!
+
+<li> Make a copy
+     of <a href="http://physionet.org/physiobank/database/wfdbcal">
+     http://physionet.org/physiobank/database/wfdbcal</a>.  If your
+     records include signal types that are not listed in it, use a
+     text editor to add them.  Put the modified <tt>wfdbcal</tt> in
+     the top-level directory of your repository.
+
+<li> For each database in your repository, make a subdirectory of your
+     repository's top-level directory, with the name that you entered
+     in <tt>DBS</tt>.  Within the subdirectory:
+  <ul>
+  <li> Store the <a href="http://physionet.org/faq.shtml#physiobank-formats">
+       PhysioBank-compatible records</a> for your database.
+  <li> Create plain text files named <tt>RECORDS</tt> (containing a list of
+       record names) and <tt>ANNOTATORS</tt> (containing a list of annotator
+       names), using those in the PhysioBank databases as models.
+  </ul>
+</ol>
+
+<p> Note that, on specific request, the LightWAVE server will read sets of
+annotations that are not listed in the <tt>ANNOTATORS</tt> file.  The current
+LightWAVE client does not provide a user interface for specifying an unlisted
+annnotation set, however;  as a result, annotation sets are not readily
+accessible unless their annotator names are listed in <tt>ANNOTATORS</tt>.
+It is harmless (though slightly inefficient) to list annotator names for
+non-existent annotation sets in <tt>ANNOTATORS</tt>.  Make an empty
+<tt>ANNOTATORS</tt> file if your database is unannotated.
+
+<p>
+Notice that although your LightWAVE client lets you choose which LightWAVE
+<em>server</em> it uses, it does not let you choose which <em>data
+repositories</em> the server uses (since, by design, this is determined when the
+server is compiled, not at run-time).  If you wish to use non-standard
+repositories, this can be done only by configuring your own LightWAVE server to
+do so.
+</html>

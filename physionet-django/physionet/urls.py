@@ -5,6 +5,7 @@ from django.http import HttpResponse
 from django.conf.urls import handler404, handler500
 
 from . import views
+import lightwave.views as lightwave_views
 import project.views as project_views
 
 
@@ -30,6 +31,8 @@ urlpatterns = [
     path('', include('export.urls')),
 
     path('lightwave/', include('lightwave.urls')),
+    # backward compatibility for LightWAVE
+    path('cgi-bin/lightwave', lightwave_views.lightwave_server),
 
     path('', views.home, name='home'),
 
