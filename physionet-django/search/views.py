@@ -1,6 +1,7 @@
 import pdb
 import re
 
+from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.shortcuts import render, redirect, reverse
 
 from . import forms
@@ -230,6 +231,10 @@ def physiobank(request):
 def physiotools(request):
     """Redirect"""
     return redirect('software_index')
+
+  
+def wfdbcal(request):
+    return redirect(static('wfdbcal'))
 
 
 def redirect_latest_if_project_exists(project_slug):

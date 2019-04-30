@@ -25,6 +25,9 @@
     </p>
     <p class="pub-details">Published: {{ published_project.publish_datetime|date }}.
       Version: {{ published_project.version }}</p>
+    {% if published_project.has_wfdb %}
+    <a href="{% url 'lightwave_home' %}?db={{ published_project.slug }}/{{ published_project.version }}"><i class="fas fa-chart-line"></i> Visualize waveforms</a>
+    {% endif %}
     <hr>
   </div>
 {% endfor %}

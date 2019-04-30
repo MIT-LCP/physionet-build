@@ -43,6 +43,7 @@ urlpatterns = [
     path('physiobank/', views.physiobank),
     path('physiobank/database/', views.physiobank),
     path('physiotools/', views.physiotools),
+    path('physiobank/database/wfdbcal', views.wfdbcal),
     re_path('^physiobank/database/(?P<project_slug>[\w\-]+)/$', views.redirect_project),
     re_path('^physiotools/(?P<project_slug>[\w\-]+)/$', views.redirect_project),
     re_path('^challenge/(?P<year>\w+)/$', views.redirect_challenge_project),

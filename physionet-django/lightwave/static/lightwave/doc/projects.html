@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv='content-type' content='text/html; charset=utf-8'>
+<meta http-equiv="X-UA-Compatible" content="chrome=1">
+<title>LightWAVE projects</title>
+<link rel="stylesheet" href="../css/lightwave.css">
+</head>
+<body>
+
+<h2>Help us build LightWAVE</h2>
+
+<p>
+We're looking for volunteers interested in working on the LightWAVE-related
+projects listed below.  If you'd like to get started on one of them (or if
+you have your own idea about what LightWAVE needs), do this:
+
+<ol>
+
+<li> Create a <a href="https://physionet.org/users/"
+     target="other">PhysioNetWorks</a> account if you don't have one already,
+     and log into it.
+
+<li> Log into PhysioNetWorks and join the
+     <a href="https://physionet.org/works/LightWAVE/" target="other">LightWAVE
+     project</a>.
+
+<li> If the project you want to do is marked <b>[server development]</b>,
+     read and follow the instructions for
+     <a href="server-install.html">installing a local copy of the LightWAVE
+     server</a>.
+
+<li> Otherwise, read and follow the instructions for
+     <a href="client-install.html">installing a local copy of the LightWAVE
+     client</a>.
+
+<li> Have a look at the code and make a plan for implementing your ideas.
+     Consider carefully what existing code will need to be modified in order
+     to link your code with it.  
+
+<li> Let us know what you plan to do by sending an email with the subject
+     line <b>Project plan</b> to
+     <a href="mailto:lightwave@physionet.org?subject=Project plan">
+     lightwave@physionet.org</a>, and include this information:
+     <ul>
+     <li> your name and contact information
+     <li> what project you've chosen
+     <li> which existing functions will be affected
+     <li> an estimated timeline (be realistic!)
+     </ul>
+     If someone else is already working on the project, we'll put you in
+     touch with each other.
+</ol>
+
+<p>Unless marked <b>[server development]</b>, the goals of these projects should
+be possible to accomplish entirely within the LightWAVE client.  Client
+development requires programming in JavaScript, and can be done with only
+a text editor (although you can use whatever tools you like).  Server
+development requires at least some programming in C and a set of development
+tools that you probably have already if you do any C programming on Linux.
+
+<p>
+<b>LightWAVE is free software licensed under the <a href="COPYING.html">GPL</a>.
+Please do not contribute code that cannot be freely redistributed in source
+form.</b>
+
+<h2>LightWAVE projects</h2>
+
+<h3>LightWAVE as an off-line web application</h3>
+
+<p> Many users who might wish to use LightWAVE while off-line will find the
+currently necessary installation of a locally hosted web server to be
+challenging, particularly if they are unaccustomed to system administration.  We
+seek a simplified alternative for such users.
+
+<p> This project aims to provide a way to configure LightWAVE as
+an <a href="http://www.whatwg.org/specs/web-apps/current-work/multipage/offline.html">
+off-line web application</a>, with the ability to preload and cache data while
+on-line, for later use off-line.  For example, we might download a few sets of
+compressed JSON files (as in the server-side caching project below) to study on
+a long flight.
+
+<p> It is also important to provide a way to save annotations created during
+off-line use for subsequent uploading and sharing when a network connection
+becomes available.
+
+<h3>A LightWAVE client optimized for smart phones</h3>
+
+<p> The LightWAVE client has been designed to be usable on both desktop and
+mobile devices.  It is not possible, however, for a user to obtain the same
+pointing precision with a finger on a smart phone's touch screen as with a mouse
+or trackball on a large desktop display.  Since annotation editing requires
+high-precision placement of markers, a user interface that is most efficient on
+a small touch display may be substantially different from one developed for the
+desktop.
+
+<p> This project's goal is to develop a client that is optimized for smart
+phones and small tablets, with high-resolution displays and low-resolution touch
+input, either by modifying the existing LightWAVE client or starting from
+scratch.  It is important to maintain compatibility with the standard LightWAVE
+server and with plugins for the existing client.
+
+<h3>Server-side caching for LightWAVE [server development]</h3>
+
+<p>We would like to investigate the possible benefits of storing server
+responses to common requests.  The server reads data in response to each
+incoming request, reformatting them as JSON, which (on PhysioNet) Apache then
+compresses using gzip before transmission to the client.  The server would
+require less computation if it were able to read gzip-compressed JSON data
+directly from local storage.
+
+<p>One might begin by generating a set of compressed JSON files that cover an
+entire record at the time that record is first requested.  Being able to do
+this efficiently might be useful in the <b>Data import</b> and <b>Off-line
+editing</b> projects as well.
+
+<h3>Repackaging the LightWAVE server as an Apache module or a FastCGI app
+  [server development]</h3>
+
+<p> Unlike conventional CGI apps, Apache modules and FastCGI apps are
+persistent processes, saving disk I/O and computation time on the server
+since they do not need to be loaded and initialized each time their service
+is requested.  The goal of this project is to investigate the efficiency
+gains that may be possible using these technologies for the LightWAVE server.
+
+<h3>Data import and export plugins for the LightWAVE client</h3>
+
+<p> Currently, users of LightWAVE who are able to collect their own data must
+upload them to PhysioNetWorks in order to view them with LightWAVE.
+(Alternatively, they can read data in PhysioBank-compatible format from local
+storage if they have a local web server and have installed a local copy of the
+LightWAVE server.)
+
+<p> This project aims to simplify the process of viewing new data using
+LightWAVE, for example by providing plugins to convert data in common
+formats to compressed JSON files that can be read directly by the LightWAVE
+client, or uploaded to PhysioNetWorks and shared if desired.
+
+<p> A longer-term goal is development of an interactive data import tool
+able to recognize common formats automatically, and to make plausible
+hypotheses about unrecognized formats, displaying the hypothesized signals
+and allowing the user to explore alternate assumptions about the format.
+
+<p> We also aim to provide a similar tool for exporting data files in other
+useful formats (e.g., CSV, EDF/EDF+, .mat, and PhysioBank/WFDB) for use by
+other software.
+
+<p> Ideally, this project should produce sets of import and export plugins
+for the most important formats, as well as templates for plugins and
+documentation for use by others needing to import or export files in other
+formats.
+
+<h3>Interactive filter design plugin for the LightWAVE client</h3>
+
+<p> The goal of this project is to develop a client-side plugin for LightWAVE
+that provides a graphical user interface to allow the user to experiment with
+FIR and IIR filters, applying them to a selected signal or group of signals, and
+observing their effects with little or no perceived delay.  It should be
+possible to load predefined filters or create new ones, and apply them
+sequentially.  Applications include user-adjustable filtering for visual noise
+reduction, and signal enhancement for event detection.
+
+<p> Since the client receives the digitized signals as unscaled first
+differences, the filters might be applied within <tt>set_trace</tt> (which
+reconstructs the series of raw amplitudes) or within
+<tt>show_plot</tt> (which transforms the raw amplitudes into calibrated
+values).
+
+<h3>Data analysis plugins for the LightWAVE client: Beat detection in
+JavaScript</h3>
+
+<p> One of the design goals for LightWAVE is to provide a comfortable and
+efficient method of annotating PhysioBank-compatible data.  Most often, we
+are interested in marking the times of occurrence of heart beats, usually
+by locating the QRS complexes in ECG signals.  Automated QRS detectors
+can do this task quite well in clean signals, but require supervision since
+they can be misled by noise and artifact.  It is also of interest to distinguish
+normal beats from abnormal (ectopic) beats, a task that is much more difficult
+than QRS detection.  Beat annotations made by human experts and validated by
+comparison among experts are the gold standard and highly valued for research.
+
+<p> Several QRS detectors written in C are included in the WFDB Software
+Package, and any of them might serve as a model for a JavaScript QRS detector
+function that could be run within the LightWAVE client as a first step in the
+process of developing a reference annotation file for a previously unannotated
+record.
+
+<p> A plugin for QRS detection should be a protypical example of a class of
+plugins to perform other types of analysis in the LightWAVE client.  Such
+plugins may be required to record their output as annotations, or to display
+their results using special-purpose graphical or tabular outputs.
+
+<h3>A multichannel programmable analog signal generator built on LightWAVE</h3>
+
+<p> The LightWAVE server offers a very simple API for retrieval of signals from
+PhysioBank and compatible data repositories.  This project aims to develop an
+alternative LightWAVE client that can function as an analog signal generator for
+simulating realistic inputs to medical instruments, using either a multichannel
+DAC or an audio output.
+
+<p> Typical audio output devices are not capable of producing output below the
+limits of human hearing (about 20 Hz), which makes direct real-time output of
+signals such as ECG, continuous blood pressure, and respiration impossible.  A
+workaround is to produce amplitude- or pulse-width-modulated signals in
+software, convert them to analog form, and then to demodulate the AM or PWM
+signals with low-cost analog hardware.
+
+</html>

@@ -792,6 +792,7 @@
     "is_latest_version": true,
     "doi": "",
     "is_legacy": false,
+    "has_wfdb": true,
     "full_description": "",
     "programming_languages": [],
     "approved_users": []

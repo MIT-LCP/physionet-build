@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv='content-type' content='text/html; charset=utf-8'>
+<meta http-equiv="X-UA-Compatible" content="chrome=1">
+<title>Editing annotations with LightWAVE</title>
+<link rel="stylesheet" href="../css/lightwave.css">
+</head>
+
+<h2>Editing annotations with LightWAVE</h2>
+
+<p>
+LightWAVE allows you to create new sets of annotations, either from scratch or
+by copying and modifying an existing set of annotations.
+
+<p>
+Simplifying the process of contributing annotations to PhysioBank and to
+PhysioNetWorks projects is a major motivation for the development of LightWAVE.
+We welcome contributions of corrected and supplementary annotations for
+PhysioBank's data collections (databases).  We review all such contributions
+before posting them, with acknowledgement to their contributors.  Similarly,
+many owners of PhysioNetWorks projects encourage such contributions to their
+projects.
+
+<div style="background-color: #ffb; border: 1px dotted gray; padding: 5px;">
+<p align="center"><b>Cookies, local storage, and backups</b></p>
+<p>
+Unless you enable editing, LightWAVE does not save any information on your
+computer.
+
+<p>
+If you edit annotations, LightWAVE saves information on your computer in order
+to retain your annotation edits across sessions.  For each annotation file that
+you have edited, your edits are saved (until you delete them manually) in an
+HTML5 local storage string with a key of the form
+<b>LightWAVE-editlog|</b><em>record</em><b>|</b><em>annotator</em>.  HTML5
+local storage is not intended to be readable by any software other than the
+web browser that created it;  the difficulty of doing so depends on the
+browser's implementation of HTML5 local storage.
+
+<p>
+If you use the <button>Save pending edits</button> button, the LightWAVE scribe
+copies the edits for the currently open annotation file from local storage to
+the LightWAVE host, and it sets a cookie (<b>LWURL</b>) that specifies the URL
+on the LightWAVE host where your edits have been backed up.  If you use the
+public PhysioNet-hosted LightWAVE scribe, your edits are backed up to an
+unpublished private URL; although the URL is difficult to guess, this storage is
+not secure.  If you use the PhysioNetWorks-hosted LightWAVE scribe, your edits
+are backed up to your personal workspace on PhysioNetWorks.
+</div>
+
+<p>
+<b>Before starting to edit, launch LightWAVE from the server on which you will
+save your edits.</b>  
+
+<p>
+Edit annotations using the
+<a href="https://physionet.org/users/shared/lightwave/">PhysioNetWorks-hosted
+LightWAVE client</a> if you wish to back up your edits securely in your
+PhysioNetWorks workspace (and share them if you wish).  Use this version of
+LightWAVE to edit your own previously uploaded PhysioBank-compatible records.
+(If you don't have an account, you can
+<a href="https://physionet.org/users/">create one</a> in a minute or two -- it's
+free.)
+
+<p>
+If you need to use a custom LightWAVE client, upload it to your PhysioNetWorks
+workspace and launch it from there.  PhysioNetWorks projects can also host
+custom LightWAVE clients for the use of project members.
+
+<p>
+Alternatively, you can edit existing PhysioBank records anonymously by
+launching <a href="http://physionet.org/lightwave/">PhysioNet's public LightWAVE
+client</a>.  Using this service, you can save your edits temporarily on
+PhysioNet for up to 10 days, and download them to your computer for
+permanent storage at your convenience.
+
+<p>
+Note that there is currently no support for saving annotations created using
+local copies of LightWAVE (copies launched from file:// URLs).  If you install
+your own LightWAVE server and scribe, you will be able to save edits made using
+LightWAVE clients launched from your web server.
+
+<h3>Enabling editing</h3>
+
+<p>
+To avoid unintended edits, annotation editing is disabled by default.  To enable
+editing:
+
+<ol>
+<li> From the <b>Choose input</b> tab, select a database and a record.
+<li> Open the <b>Settings</b> tab.
+<li> [Optional] If you wish to create a new set of annotations from scratch rather than
+editing an existing set, click <button>Set up new annotation set</button>.
+(This is unnecessary if the open record is unannotated.)
+<li> Choose <button>Edit using mouse</button> if you use a mouse or trackball,
+or <button>Edit using touch</button> if you use a touch device (iPad or other
+tablet, or smart phone). The <b>View/Edit</b> tab opens automatically.
+</ol>
+
+<h3>Choosing a set of annotations to edit</h3>
+
+<p>
+The names of the available annotation sets appear in blue to the left of the
+signal window, and the set that is currently open for editing is highlighted.
+If there are two or more sets, the set nearest the top is open initially; this
+will be the new set if there is one.  To choose a different set, click on or
+next to its name at the left of the signal window, until it is highlighted.
+(Clicking on the name repeatedly cycles between normal, highlighted, and hidden
+modes.)
+
+<p>
+If you reopen a record that you edited in a previous session using the same
+computer and browser, your previous edits will be loaded.  The current version
+of LightWAVE does not include a method for disabling this feature.  You can view
+the original annotations (without your edits) by using a different browser.
+You can delete your edits by using your browser's controls for clearing local
+storage, but be certain that you wish to clear <b>all</b> local storage
+associated with the LightWAVE host before using such a feature.  Another way
+to do this is to use <button>Undo</button> (see below) to delete your changes
+one at a time.
+
+<p>
+During your editing session, you may switch between annotation sets as often as
+you wish.  Whenever you do so, the edits for the previously open annotation set
+are saved in the browser's local storage automatically.
+
+<h3>Editing controls</h3>
+
+<p>
+When editing is enabled, two clusters of editing controls appear on the
+<b>View/edit</b> tab, centered below the signal window:
+
+ <table align=center width="50%">
+  <tr>
+    <td align=right width="50%" class="editgroup" style="font-size: 14px">
+      <table title="Annotation palette"
+	   style="text-align: center; vertical-align: middle;
+		  border: 1px dotted gray; padding: 2px">
+	<tr><td width="30%" style="text-align: center; vertical-align: middle">
+	  <span><button style="background: #8d8" id="template"
+		  title="add a new type to the palette"><b>+</b>
+	  </button>
+	  <button style="background: #8d8"
+		  title="copy the selection to the palette">&#x21b3;</button>
+	  <span>
+	  <button style="color: red" id="edit_mode"
+		  title="set delete mode (click any other
+button in this group for insert mode)">&#9003;</button>
+	</td><td style="text-align: right; vertical-align: middle"
+			 id="palette">
+	  <button title="normal beat">N</button>
+	  <button style="background: blue; color: white"
+		  title="premature ventricular contraction">V</button>
+	  <button title="fusion of V and N">F</button>
+	  <button title="normal sinus rhythm">(N</button>
+	  <button title="ventricular bigeminy">(B</button>
+	  <button title="atrial premature beat">A</button>
+	  <button title="ventricular tachycardia">(VT</button>
+	</td></tr>
+      </table>
+    </td>
+    <td align=left width="50%" class="editgroup" style="font-size: 14px">
+      <div style="text-align: center; vertical-align: middle">
+	<button title="select the annotation to the left of the edit point"
+		id="jumpleft">&#8676;</button>
+	<button title="move the edit point to the left"
+		id="nudgeleft">&#8612;</button>
+	<button title="move the edit point to the right"
+		id="nudgeright">&#8614;</button>
+	<button title="select the annotation to the right of the edit point"
+		id="jumpright">&#8677;</button><br>
+	<button title="restore state before most recent edit"
+		id="undo">Undo</button>
+	<button id="mark" title="complete pending edit">Mark</button>
+	<button id="redo" title="reapply last edit">Redo</button>
+      </div>
+    </td>
+  </tr>
+ </table>
+
+<p> The group of buttons at the left is the <b>annotation palette</b>, used to
+choose which type of annotation to insert.  Its contents will vary depending on
+the types of annotations in the currently open annotation set.  In the example
+above, the V annotation has been highlighted (selected).
+
+<p> The cluster at the right includes buttons for selecting annotations
+(<button>&#8676;</button> and <button>&#8677;</button>), for fine control of the
+edit marker position (<button>&#8612;</button> and <button>&#8614;</button>),
+for marking a location or a selected annotation (<button>Mark</button>), and for
+reversing the effect of the last mark (<button>Undo</button>) or restoring it
+(<button>Redo</button>).
+
+<h3>The edit marker bar</h3>
+
+<p> When editing is enabled, the <em>edit marker bar</em> is usually visible
+in the signal window.  The green bar runs vertically across the window, and open
+triangles appear at its ends.  Above the signal window at the right, below the
+name of the currently open record, the time interval from the beginning of the
+record to the position of the bar appears in HH:MM:SS format.
+
+<p> The edit marker bar generally indicates the location where an edit will be
+made.
+
+<h3>Types of edits</h3>
+
+<p>
+There are four basic types of edits, each of which requires actions described
+below:
+
+<dl>
+<dt><b>Inserting a new annotation</b></dt>
+<dd>
+<ol>
+<li> Select an annotation type from the palette.
+<li> Move the edit marker bar to the desired location.
+<li> Mark the location.
+</ol>
+Repeat steps 2 and 3 to insert additional annotations of the same type.
+<p>
+</dd>
+
+<dt><b>Modifying an existing annotation without repositioning it</b></dt>
+<dd>
+<ol>
+<li> Select an annotation type from the palette.
+<li> Select the annotation to be modified.
+<li> Mark the annotation.
+</ol>
+Repeat steps 2 and 3 to modify additional annotations in the same way.
+<p>
+</dd>
+
+<dt><b>Deleting an existing annotation</b></dt>
+<dd>
+<ol>
+<li> Select <button style="color: red">&#9003;</button> from the palette.
+(It changes to <button style="color: white; background: red">&#9003;</button>
+when selected.)
+<li> Select the annotation to be deleted.
+<li> Mark the annotation.
+</ol>
+Repeat steps 2 and 3 to delete additional annotations.
+<p>
+</dd>
+
+<dt><b>Repositioning an existing annotation</b></dt>
+<dd>
+<ol>
+<li> Select the annotation to be moved.
+<li> Move the edit marker bar to the desired location.
+<li> Mark the location.
+</ol>
+</dd>
+</dl>
+
+<h3>Selecting an annotation type</h3>
+
+<p>
+In the annotation palette, click or touch the annotation type you want to
+highlight it.
+
+<div style="background-color: #bfb; border: 1px dotted gray; padding: 5px;">
+<p align="center"><b>Expanding the annotation palette</b></p>
+
+If the annotation type you want is not already in the palette, there
+are two ways to add it:
+
+<ul>
+<li> Click or touch <button style="background: #8d8"><b>+</b></button> to
+open an annotation template.  Fill in the template to add a new type to the
+palette.
+
+<li> Select an existing annotation in the signal window, then click or touch
+<button style="background: #8d8">&#x21b3;</button> to copy it to the palette.
+</ul>
+
+When you add a new annotation type to the palette, it is selected immediately.
+If you try to add an annotation type that is already in the palette, it is
+selected, but no new button is added to the palette.  Unused additions may be
+replaced by newer additions.
+</div>
+
+<div style="background-color: #bff; border: 1px dotted gray; padding: 5px;">
+<p align="center"><b>Annotation attributes</b></p>
+
+<p>Annotations have five attributes that can be set in an annotation template:
+
+<dl>
+<dt><b>Annotation type</b></dt>
+<dd>
+For existing annotations, the <em>type</em> is almost always a single character
+displayed in the signal window at the location of the annotation.  (Exception:
+type <b>N</b> annotations are displayed as <b>&bull;</b>;  this reduces visual
+clutter in the common case of annotating cardiac activity, when <b>N</b> marks
+a normal beat.)
+</dd>
+
+<dt><b>Aux string</b></dt>
+<dd>
+This field is usually empty, but it can be a character string providing
+details related to the <em>type</em>.  For example, if <em>type</em> is
+<b>+</b> (indicating a change in cardiac rhythm), the <em>aux</em> string
+describes the new rhythm;  if <em>type</em> is <b>&quot;</b> (double quote
+character, indicating a note annotation), then <em>aux</em> is the content
+of the note.  Avoid long <em>aux</em> strings;  long comments can be
+continued across several annotations, incrementing <em>num</em> (below)
+to define the order.
+</dd>
+
+<dt><b>Subtype</b></dt>
+<dd>
+An integer between -128 and 127 inclusive, usually empty or 0.
+</dd>
+
+<dt><b>Chan</b></dt>
+<dd>
+An integer between 0 and 255 inclusive, usually empty or 0.
+</dd>
+
+<dt><b>Num</b></dt>
+<dd>
+An integer between -128 and 127 inclusive, usually empty or 0.
+</dd>
+</dl>
+
+<p>
+Although a <a href="http://physionet.org/physiobank/annotations.shtml">standard
+set of annotation <em>type</em>s and <em>aux</em> strings</a> is shared among
+many projects, the <em>subtype</em>, <em>chan</em>, and <em>num</em> attributes
+have no standard meanings.  Moreover, database creators may assign non-standard
+<em>type</em>s and <em>aux</em> strings, particularly if the signals are
+not electrocardiograms.  If you wish to contribute annotations to an existing
+database, please take care to familiarize yourself with its annotation
+conventions (which are usually outlined on the database's home page).
+</div>
+
+<h3>Moving the edit marker bar</h3>
+
+<p>
+Using the mouse interface, move the pointer anywhere in the signal window; the
+edit marker will follow the pointer.
+
+<p>
+Using the touch interface, touch near the desired location in the signal window;
+the edit marker appears at the last position touched.  Repeat if necessary, then
+use <button>&#8612;</button> and <button>&#8614;</button> to make fine
+adjustments to the position of the bar.  The position increment increases
+gradually if you use either of these buttons repeatedly; switching to the other
+one reverses direction and resets the position increment to its minimum value.
+
+<p>
+If the marker does not move smoothly, you may have a more satisfactory
+experience using a different web browser.  Note your network connection does
+not affect the speed of display updates, since all editing operations are
+performed by the browser, without communicating with the server.
+
+<p>
+Using either interface, use <button>&#8676;</button> and
+<button>&#8677;</button> to move rapidly from one annotation to the next.  (If
+the next annotation is off-screen, the signal window is redrawn, centered on the
+next annotation.)  If there are no more annotations in the chosen direction, the
+edit marker appears at the expected position of the next annotation (determined
+by extrapolation).
+
+<h3>Marking a location (inserting an annotation)</h3>
+
+<p>
+Using the mouse interface, simply click once the marker bar is in the desired
+location to insert an annotation of the type chosen from the annotation palette.
+Keep the pointer well above or below any existing annotation label to avoid
+selecting and replacing the existing annotation rather than inserting a new one.
+
+<p>
+Using the touch interface, touch <button>Mark</button> once the marker bar is in
+the desired location.
+
+<h3>Selecting an annotation</h3>
+
+<p>
+Use <button>&#8676;</button> and <button>&#8677;</button> to select an
+annotation.  A <em>selection rectangle</em> appears surrounding the label
+of the selected annotation.
+
+<h3>Marking an annotation</h3>
+
+<p>
+Use <button>Mark</button> to change the selected annotation to the palette
+choice (or to delete it, if the palette choice was <button style="color:
+white; background: red">&#9003;</button>).
+ 
+
+<h4>Mouse shortcut: Selecting and marking an annotation</h4>
+
+<p>
+If you have enabled mouse shortcuts on the <b>Settings</b> tab, press and hold
+the mouse button while the pointer is over an annotation label.  The selection
+rectangle will appear around the annotation.  Release the mouse button with the
+pointer <em>inside</em> the selection rectangle to change or delete the
+annotation.
+
+<h3>Moving an annotation</h3>
+
+<p>
+After selecting the annotation to be moved, use <button>&#8612;</button>
+and <button>&#8614;</button> to move the edit marker bar to the desired
+location, then touch or click <button>Mark</button> to move the annotation.
+
+<h4>Mouse shortcut: Selecting and moving an annotation</h4>
+
+<p>
+If you have enabled mouse shortcuts on the <b>Settings</b> tab, press and hold
+the mouse button while the pointer is over an annotation label.  The selection
+rectangle will appear around the annotation.  Release the mouse button with the
+pointer <em>outside</em> the selection rectangle ("click and drag").
+
+<p>
+To move the annotation by less than the distance to the edge of the selection
+rectangle, simply move the pointer above or below the rectangle.
+
+<h3>Correcting editing errors</h3>
+
+<p>
+Editing errors are probably inevitable, but they are easy to correct.
+Use <button>Undo</button> to restore the state before the most recent
+edit.  You may use <button>Undo</button> repeatedly to undo as many
+edits as you wish.  If the edit log is visible, you will see that each
+edit is recorded as one line of the log;  undone edits appear in red.
+
+<p>
+If you undo an edit that you intended to keep, use <button>Redo</button>
+to restore it.  You may use <button>Redo</button> repeatedly until there
+are no more undone edits.
+
+<h3>Saving your edits</h3>
+
+<p>
+If it is not already open, load the record you edited, and select the annotation
+set you wish to save (click on its name in the <b>View</b> tab to highlight
+it).  On the <b>Settings</b> tab, click on <button>Save pending edits</button>.
+
+<p>
+When you do this, your edits are transmitted to the LightWAVE scribe (a process
+that runs side-by-side with the LightWAVE server).  The scribe merges your edits
+with the original version of the annotation set you have edited (if any) and
+writes the results to a PhysioBank-compatible (binary) annotation file on the
+LightWAVE server's host file system.
+
+<p>
+<em>If you have used PhysioNet's public LightWAVE client</em>, a status message
+appears within a few seconds below the <button>Save pending edits</button>, like
+this:
+
+<blockquote>
+Edits for record <b>ahadb/0201</b>, annotator <b>atr</b> backed up successfully.
+<br>
+<u style="color: blue">Download (opens in another browser tab or window)</u>
+</blockquote>
+
+<p>
+Once your edits have been saved on the LightWAVE server, you may download the
+updated annotation file and save a copy of it on your computer.  Click on the
+download link to access the edit logs and PhysioBank-compatible annotation files
+that you have backed up.  
+
+<p>
+<em>If you have used the PhysioNetWorks-hosted LightWAVE client</em>, your saved
+annotations are written to your workspace, where they are accessible only to
+you.  For example, if your PhysioNetWorks user name is
+<tt>harry@gryffindor.hogwarts.ac.uk</tt>, and you have saved an edited set
+of <tt>fqrs</tt> annotations for record <tt>challenge/2013/set-a/a03</tt>, they
+will be accessible to you (only) at
+<tt>https://physionet.org/users/harry@gryffindor.hogwarts.ac.uk/works/database/challenge/2013/set-a/a03.fqrs</tt>.
+The LightWAVE scribe creates any missing directories as needed so that you will
+be able to access your uploaded annotations using LightWAVE for PhysioNetWorks,
+or using any other WFDB applications if you have authenticated yourself
+using <tt>pnwlogin</tt> (included in WFDB 10.5.14, August 2012, and later
+versions).
+
+<p>
+To share a saved annotation file with others, copy it into a location
+accessible to those with whom you wish to share it.
+</ol>
+</html>

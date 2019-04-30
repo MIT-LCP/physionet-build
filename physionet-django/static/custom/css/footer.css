@@ -5,13 +5,25 @@
  */
 
 .blog-footer {
-	padding: 2.5rem;
+	padding: 0.5rem;
 	color: #999;
 	text-align: center;
 	background-color: #f9f9f9;
 	border-top: .05rem solid #e5e5e5;
 	min-height: 20%;
 }
+
 .blog-footer p:last-child {
 	margin-bottom: 0;
+}
+
+.row-centered {
+    display:inline-block;
+}
+
+.col-centered {
+    display:inline-block;
+    float:none;
+    /* inline-block space fix */
+    margin-right:-4px;
 }

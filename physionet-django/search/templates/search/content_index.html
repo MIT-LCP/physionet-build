@@ -13,14 +13,8 @@ PhysioNet Index
 {% block content %}
 <div class="main">
   <div class="main-side">
-    <div class="card">
-      <h2 class="card-header">PhysioNet Index</h2>
-      <div class="card-body">
-        <p class="card-text mt-1">This page contains all of the databases, software and challenges published on PhysioNet.</p>
-      </div>
-    </div>
     <form method="GET" action="" class="">
-      <div class="card my-4">
+      <div class="card">
         <h2 class="card-header">Search</h2>
         <div class="card-body no-pd">
             {% include "inline_form_snippet.html" with form=form_topic %}
@@ -30,7 +24,7 @@ PhysioNet Index
         <h2 class="card-header">Resource type</h2>
         <div class="card-body no-pd resource-search" id="type-check">
             {% include "inline_form_snippet.html" with form=form_type %}
-            <a href="javascript:$('#type-check').find('input').prop('checked', true);">Select all</a>
+            <a id="selectall" href="#">Select all</a>
         </div>
       </div>
       <div class="card my-4">
@@ -80,4 +74,10 @@ PhysioNet Index
       {% endif %}
     </div>
 </div>
+{% endblock %}
+
+{% block local_js_bottom %}
+<script>
+  $('#selectall').click(function(){ $('#type-check').find('input').prop('checked', true); return false; });
+</script>
 {% endblock %}

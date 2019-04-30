@@ -16,6 +16,7 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
 from physionet.utility import get_project_apps
+from lightwave.views import DBCAL_FILE, ORIGINAL_DBCAL_FILE
 
 
 class Command(BaseCommand):
@@ -46,6 +47,9 @@ class Command(BaseCommand):
         copy_demo_media()
         copy_demo_static()
         print('Copied demo media and static files.')
+        # Make symlink of wfdbcal for lightwave
+        if os.path.exists(ORIGINAL_DBCAL_FILE):
+            os.symlink(ORIGINAL_DBCAL_FILE, DBCAL_FILE)
 
 
 def find_demo_fixtures(project_apps):

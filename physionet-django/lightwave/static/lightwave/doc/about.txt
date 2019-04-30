@@ -1,0 +1,13 @@
+About LightWAVE
+
+A live version of LightWAVE is available for experimentation on PhysioNet at
+     http://physionet.org/lightwave/
+At that URL you can interact with the LightWAVE server via the LightWAVE client.
+
+You may also interact with the LightWAVE server directly by adding appropriate
+query strings to its URL (http://physionet.org/cgi-bin/lightwave), as
+described in "The LightWAVE Server Protocol", at
+    http://physionet.org/lightwave/doc/lw-api.html
+
+More information about LightWAVE is available at
+    http://physionet.org/lightwave/doc/about.html

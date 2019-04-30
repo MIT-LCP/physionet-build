@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv='content-type' content='text/html; charset=utf-8'>
+<meta http-equiv="X-UA-Compatible" content="chrome=1">
+<title>LightWAVE edit logs</title>
+<link rel="stylesheet" href="../css/lightwave.css">
+</head>
+
+<h2>LightWAVE edit logs</h2>
+
+<h3>Background:  How LightWAVE edit logs are created and processed</h3>
+
+<p>
+<b>The LightWAVE client</b> maintains an edit log (a list of changes) for each
+annotation set that you edit.  You can view the 10 most recent entries of the
+edit log for the currently open annotation set, in (reversed) order from newest
+to oldest, using <button>Show edit log</button> on the <b>Settings</b> tab.
+Edit logs are kept in persistent HTML5 <em>localstorage</em> until you
+successfully back them up using <button>Save pending edits</button> on
+the <b>Settings</b> tab.
+
+<p>
+An edit log contains changes that may have been made over multiple sessions, to
+a single annotation file, from a single computer, browser, and LightWAVE
+client.  Each line (after the first two, which are the header) contains
+information about a single edit.  The lines appear in the log in order of the
+edit operations, from first to last (which will not match the order of the
+annotations unless the editing was done without any backtracking).
+
+<p>
+<em>It is important to understand that (because of the "sandbox" security model
+enforced by all web browsers that support HTML5 localstorage) it is not possible
+to copy edit logs directly to the file system of the computer on which they were
+created, or between LightWAVE clients (not even across different browsers on the
+same computer).</em>  It is necessary to back up an edit log in order to share
+it with another browser, application, or computer.
+
+<h3>LightWAVE edit log format specification</h3>
+
+<p>
+Since edit logs must be created and transmitted using JavaScript code in the
+LightWAVE client, they are written in text format.  Each line ends with a
+DOS-style newline (CRLF: <tt>\r\n</tt>).  The format has been designed to be
+compact and easily parsed.
+
+<p>
+<b>Header</b>
+
+<p>
+The first two lines form the header of the edit log.  The first line contains a
+tag that identifies the file as an edit log, and it specifies the source record,
+the name of the annotation set, and the units of time; the second line is empty.
+The first line is in this format:
+
+<pre>
+[LWEditLog-1.0] Record ahadb/0201, annotator atr (250 samples/second)
+</pre>
+
+<p>
+The header in this example indicates that the edit log contains changes to
+<tt>ahadb/0201.atr</tt>, and that the interval between two timestamps that
+differ by 1 (a <em>sample interval</em>) is 1/250 second (4 milliseconds).
+
+<p>
+<b>Body</b>
+
+<p>
+Each remaining line in the edit log contains information about a single
+annotation, with a sequence of attributes of which only <b>Ti</b> is
+required:
+
+<dl>
+<dt><b>EditType</b> [optional]</dt>
+<dd>Edits are either insertions or deletions.  (A modification is
+recorded as a deletion followed by an insertion at the same location.)
+If no <b>EditType</b> is present, the edit is an insertion;  a deletion is
+indicated by a hyphen ('<b>-</b>') as the first character in the line.</dd>
+
+<dt><b>Ti</b> [required]</dt>
+<dd>The time of occurrence of an annotation, <b>Ti</b>, is expressed as the
+number of <em>sample intervals</em> from the beginning of the record until the
+instant to which the annotation applies.  Thus an annotation placed
+precisely at the beginning of the record has a <b>Ti</b> of 0 (not 1).
+<ul>
+<li>If <b>Ti</b> marks the beginning of a persistent condition, it may be
+followed by a hyphen (<b>-</b>) and <b>Tf</b>, a sub-attribute that indicates
+the time of the end of the condition.
+</ul>
+</dd>
+
+<dt><b>Anntype</b> [optional]</dt>
+<dd>This attribute, if present, follows a comma (<b>,</b>) that separates it
+from <b>Ti</b> or <b>Tf</b>.  The annotation's <b>Anntype</b> is usually one of
+the single-character mnemonics
+defined <a href="http://physionet.org/physiobank/annotations.shtml">here</a>,
+but database creators may assign non-standard <b>Anntype</b>s.  If
+the <b>Anntype</b> is not present, it is <b>N</b> (indicating a normal beat,
+displayed in the signal window of LightWAVE by <b>&bull;</b>).
+If <b>Anntype</b> is present, it may be followed by a triplet of
+sub-attributes, <b>{Subtype/Chan/Num}</b>, which can include up to three small
+integers:
+   <ul>
+   <li><b>Subtype</b> [an integer between -128 and 127 inclusive; if missing, 0]
+   <li><b>Chan</b> [an integer between 0 and 255 inclusive; if missing, 0]
+   <li><b>Num</b> [an integer between -128 and 127 inclusive; if missing, 0]
+   </ul>
+For example, <b>V{1/2/3}</b> indicates <b>Anntype</b>&nbsp;= &nbsp;V,
+<b>Subtype</b>&nbsp;=&nbsp;1, <b>Chan</b>&nbsp;=&nbsp;2, and
+<b>Num</b>&nbsp;=&nbsp;3;  <b>S{//-2}</b> indicates
+<b>Anntype</b>&nbsp;= &nbsp;S, <b>Subtype</b>&nbsp;=&nbsp;0,
+<b>Chan</b>&nbsp;=&nbsp;0, and <b>Num</b>&nbsp;=&nbsp;-2.
+</dd>
+
+<dt><b>Aux</b> [optional]</dt>
+<dd>This attribute consists of a string of up to 255 characters, which may not
+include non-printing characters, tabs, carriage returns, or linefeeds (except
+that space characters are allowed).  If present, <b>Anntype</b> must also be
+present, and a comma (<b>,</b>) separates <b>Anntype</b> (or
+<b>{Subtype/Chan/Num}</b>) from <b>Aux</b>.  Standard <b>Aux</b> definitions for
+cardiac rhythms are defined
+<a href="http://physionet.org/physiobank/annotations.shtml">here</a>;  note
+that these definitions include unbalanced parentheses.
+</dd>
+</dl>
+
+<p>
+<b>Interpreted examples of lines in the body of an edit log</b>
+
+<dl>
+<dt><tt>12345,+,(B</tt></dt>
+<dd>
+Inserted annotation at sample number 12345, anntype = + (a rhythm change),
+subtype = 0, chan = 0, num = 0, aux = '(B'.  Note that subtype, chan, and
+num have defined values (of zero) although they are not explicitly specified.
+</dd>
+
+<dt><tt>-6789</tt></dt>
+<dd>
+Deleted annotation at sample number 6789, anntype = N (a normal beat),
+subtype = 0, chan = 0, num = 0, aux empty.  If the beat as described by
+these attributes (including those that are implicit) does not exist exactly
+as described, no deletion is made.
+</dd>
+
+<dt><tt>-875,V{1//2}</tt></dt>
+<dd>
+Deleted annotation at sample number 875, anntype = V (a premature ventricular
+contraction), subtype = 1, chan = 0, num = 2, aux empty.
+</dd>
+
+<dt><tt>875,V{1//}</tt></dt>
+<dd>
+Reinsertion of the previous deleted annotation;  only the num attribute has
+changed (from 2 to 0).
+</dd>
+
+<dt><tt>99,",A long comment with ((,"&* random characters in  it.</tt></dt>
+<dd>
+Inserted annotation at sample number 99, anntype = " (a note), subtype = 0,
+chan = 0, num = 0, aux = 'A long comment with ((,"&* random characters in  it.'.
+</dd>
+
+<dt><tt>31415-43210,",ECG disconnected</tt></dt>
+<dd>
+Inserted annotation of a persistent condition beginning at sample number
+31415 and ending at sample number 43210, anntype = " (a note), subtype = 0,
+chan = 0, num = 0, aux = 'ECG disconnected'.</dd>
+</dl>
+
+
+<h3>lw-scribe and patchann</h3>
+
+<p>
+<b>The LightWAVE scribe</b> (lw-scribe) is a program that normally resides on
+the same host as the LightWAVE server, although it can run anywhere.  When
+you use <button>Save pending edits</button>, the LightWAVE client transmits
+your edit logs to the LightWAVE scribe, which stores them in their native
+format in a queue for processing by <b>patchann</b>.
+<p>
+The <b>patchann</b> application reads a LightWAVE edit log from its standard
+input, and creates a PhysioBank annotation file containing the original
+annotations (if any), with additions, deletions, and modifications specified by
+the edit log.  The annotation files created by <b>patchann</b> are typically
+saved in locations where they can be read using the LightWAVE server that
+supplied the data from which they were created, thus permitting you to view them
+(and, if necessary, edit them further) in another session, perhaps using a
+different browser or computer.  Since they are in standard PhysioBank-compatible
+format, they can also be read by any WFDB application.
+
+<p>
+Since the first line of the edit log specifies the record and annotator names,
+<b>patchann</b> can find the original annotations automatically, if they
+exist, and load them into an in-memory annotation array.  The program then
+applies the entries of the edit log one at a time, inserting additional
+annotations into the array and deleting annotations as needed from the array.
+An edit log deletion entry results in a deletion only if the array contains an
+exact match for the log entry. (If there is no match, this program issues a
+warning and continues to process the remaining log entries.)  When all edit log
+entries have been processed, the program writes the contents of the array to a
+new annotation file, which can be distinguished from the original by the '_'
+appended to its annotator name.
+
+<p> Like all of the LightWAVE software, <b>lw-scribe</b> and <b>patchann</b> are
+free open-source software; their sources are in the <b>server</b> directory of
+the LightWAVE package.  <b>lw-scribe</b> is written in Perl, and it
+uses <b>cgi.pm</b> to handle HTTP uploading.  The <b>patchann</b> application is
+written in C, and it uses the WFDB library to read the original annotations and
+to write the edited annotations.
+</html>

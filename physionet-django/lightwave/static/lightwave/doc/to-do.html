@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv='content-type' content='text/html; charset=utf-8'>
+<meta http-equiv="X-UA-Compatible" content="chrome=1">
+<title>LightWAVE to-do list</title>
+<link rel="stylesheet" href="../css/lightwave.css">
+</head>
+
+<h2>LightWAVE to-do list</h2>
+
+<p>George Moody<br>
+<em>Last revised: 29 May 2013 (0.63)</em>
+
+<p>
+This is a list of currently planned features and enhancements for future
+releases of LightWAVE.
+
+<hr>
+
+<h3>Client:</h3>
+
+<p>
+Most of these items are features that can be implemented in
+<tt>lightwave.js</tt>.  <s>Please note that <tt>lightwave.js</tt> will be
+significantly reorganized during the next several alpha releases.</s>
+
+<ul>
+<li> <s>tabbed interface</s>
+<li> <s>record sub-menus as on ATM (e.g., to provide access to MIMIC II numerics records)</s>
+<li> <s>checkboxes for annotators</s>, <s>allow selection/display of multiple annotators</s>
+<li> <s>toggle signal and annotator visibility</s>
+<li> <s>improve default vertical spacing of signals and annotators</s>
+<li> <s>highlight signals, annotators</s>
+<li> <s>resize individual signals</s>
+<li> <s>short-form database names</s>
+<li> <s>log server requests/responses</s>
+<li> <s>handle invalid samples properly in View/edit and Tables</s>
+<li> "levels" popup as in WAVE
+<li> detect small screen (e.g. smart phone) and switch to alternate UI
+<li> alternate UI for smart phones, etc.
+<li> <s>read and cache entire annotation file(s)</s>
+<li> <s>search for annotations</s> (sequences of annotations?)
+<li> <s>caching</s>
+<li> <s>switch to View/edit after selecting record</s>
+<li> <s>reorganize controls on View/edit panel</s>
+<li> <s>selective display on Tables panel</s>
+<li> <s>scrolling Google maps style</s>
+<li> <s>pan and zoom</s>
+<li> user-adjustable filtering for visual noise reduction
+<li> <s>display metadata ('info' request)</s>
+<li> include segments in info and generate clickable record maps as in ATM
+<li> persistent annotations (rhythms, signal quality, ...)
+ <ul>
+ <li> use tracks (color bars or patterned lines) to indicate major types
+   of persistent annotations
+ <li> if a persistent annotated characteristic begins before/ends after the
+   display window, indicate it with a marker in the left/right margin
+ </ul>
+<li> annotation editing
+ <ul>
+ <li> <s>should be usable on touchscreens (iPad) as well as with mouse
+   or trackball and normal screen</s>
+ <li> <s>pull-out or pop-up annotation palette</s>
+   <ul>
+   <li> <s>most recently-used/favorite annotations near top</s>
+   <li> <s>selecting type from palette modifies cursor</s>
+   <li> <s>palette should include deletion tool</s>
+   </ul>
+ <li> <s>unlimited undo/redo</s>
+ <li> <s>create new annotation set</s>
+   <ul>
+   <li> <s>properly handle multiple new annotation sets</s>
+   </ul>
+ <li> <s>select a different annotation set to edit</s>
+ <li> <s>edit logs</s>
+   <ul>
+   <li> <s>separate edit logs for each annotation set</s>
+   <li> <s>save edit log(s) to localstorage</s>
+   <li> <s>restore edit log(s) from localstorage</s>
+   <li> clear edit logs after save/reload/validate
+   <li> <s>warn user before reload/exit if there are unsaved edits</s>
+   <li> <s>send edit log(s) to server</s>
+     <ul>
+     <li> <s>on PhysioNetWorks: authenticated archival storage, accessible
+	 in future sessions by LightWAVE and downloadable for other uses</s>
+     <li> <s>on PhysioNet: short-term storage identified by cookie</s>
+     </ul>
+   </ul>
+ <li> "snap" mode to move new annotations to local extremum automatically
+   <ul>
+   <li> use gestures to move to nearest following/preceding local max/min
+     or inflection point
+   <li> adjustable filtering to make this feature usable even in presence
+     of mains or HT noise
+   </ul>
+ <li> enter custom annotations as NOTE + text
+   <ul>
+   <li> creates entry in NOTE sub-palette
+   <li> provide a method for promoting selected NOTE texts to first-class
+     annotation types
+   <li> users should be able to save their NOTE sub-palettes (by default)
+     for use with future records (even with other projects)
+   </ul>
+ <li> entry of persistent annotations marks onset, subtype (with predefined
+     but extensible choices)
+   <ul>
+   <li> next annot of same type, different subtype marks end in display
+   <li> continuation markers at right edge should be draggable into the
+     display, but the user should be prompted to enter new subtype
+   <li> need "unknown"/"unclassified" subtype
+   </ul>
+ </ul>
+<li> <s>bookmarking to save state</s>
+<li> <s>switch servers at run-time</s>
+<li> <s>display server and client versions</s>
+<li> <s>timeout and alert on nonresponsive server</s>
+<li> <s>look for success flag in server response</s>
+<li> data importer (interface to uploader/reformatter)
+<li> data exporter (text, CSV, EDF, MATLAB, WFDB, others?)
+<li> calipers/dividers (set of draggable markers that are kept equidistant,
+  for measuring time intervals and observing periodicity/prematurity)
+<li> make custom jquery-ui.min.js and jquery-ui.min.css omitting unused
+  components
+</ul>
+
+<hr>
+
+<h3>Server:</h3>
+
+<p>
+These tasks will be implemented in <tt>lightwave.c</tt>.  Tasks noted
+with (*) will require coordinated client-side changes.
+
+<ul>
+<li> <s>collate DBS from all WFDB path components</s>
+<li> * <s>lw-scribe: receiver for (bulk) edit logs from clients</s>
+<li> <s>patchann: rebuild annotation files from edit logs (+ original files)</s>
+  <ul>
+    <li> <s>authenticated uploads: archive in user's personal PNW workspace</s>
+    <li> <s>anonymous uploads: short-term storage identified by cookie</s>
+    <li> * <s>pages with links for user retrieval of edited annotation files</s>
+    <li> <s>create/update ANNOTATIONS files</s>
+  </ul>
+<li> <s>disambiguate identically-named signals</s>
+<li> <s>short-form signal names</s>
+<li> <s>report info strings</s>
+<li> <s>return success flag in response</s>
+<li> <s>return version number with dblist</s>
+<li> <s>authenticated access to PhysioNetWorks data</s>
+<li> * task dispatcher (e.g., accept requests to reformat uploaded
+ data, run a QRS detector, etc.)
+</ul>
+
+<hr>
+
+<h3>Documentation:</h3>
+
+<p>
+These topics need tutorials:
+
+<ul>
+<li><s><a href="about.html">Viewing</a> and
+ <a href="annotation-editing.html">editing</a> with LightWAVE</s>
+<li><s>Simple installation for off-line use</s>
+<li>Client customization guide
+</ul>
+
+<hr>
+
+<h3>Compatibility testing:</h3>
+
+<p>
+See <a href="browser-compatibility.html">Browsers compatible with LightWAVE</a>
+for current information on compatible browsers.  I'd appreciate success/failure
+reports to fill in and expand the table on that page and/or to confirm the
+entries that are already in it.
+
+<p>
+I've compiled 32- and 64-bit versions of the LightWAVE server
+(<tt>lightwave.c</tt>) with gcc 4.5.1, linking them with 32- and 64-bit libwfdb
+10.5.16, libcurl 7.21.0, and libcgi 1.0.  I've tested them successfully with
+Apache 2.2.17 on 64-bit Fedora 14 and 32-bit Ubuntu 10.04.  (I've also had
+success with several other versions of each of these components, and I have not
+discovered any combinations of them that did not work.) I'd be grateful to have
+reports on (in)compatibility of other HTTP servers and platforms with the
+LightWAVE server;  in particular, if anyone attempts to compile and run the
+LightWAVE server on Mac OS X or on Windows, please let me know if you were
+successful, and if so, please send me a brief description of what steps were
+needed.
+
+<hr>
+
+<h3>Other:</h3>
+
+<ul>
+<li> Consider producing highly compressed (turning-point compressed, or
+  simply undersampled?) versions of all records for viewing as quick
+  overviews of entire records or lengthy excerpts of them
+<li> <s>Test Apache mod_filter/mod_deflate on PhysioNet servers</s>
+<li> Integrate LightWAVE with PhysioBank ATM, PhysioBank Record Search,
+  and PhysioNetWorks
+</ul>
+
+<p>
+Also see <a href="projects.html">LightWAVE projects</a>.
+
+</html>
