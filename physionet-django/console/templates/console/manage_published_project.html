@@ -61,15 +61,44 @@
       <button class="btn btn-primary btn-fixed" name="set_doi" type="submit">Set DOI</button>
     </form>
     <br>
-    <h2>Special Files</h2>
+    <h2>Manage Files</h2>
     <hr>
-    <form action="" method="post">
-      {% csrf_token %}
-      <button class="btn btn-primary btn-fixed" name="make_checksum_file" type="submit">Make Checksum File</button>
-      <button class="btn btn-primary btn-fixed" name="make_zip" type="submit">Make Zip</button>
-    </form>
+    {% if project.deprecated_files %}
+      <p>This project's files are deprecated.</p>
+    {% else %}
+      <form action="" method="post">
+        {% csrf_token %}
+        <button class="btn btn-primary btn-fixed" name="make_checksum_file" type="submit">Make Checksum File</button>
+        <button class="btn btn-primary btn-fixed" name="make_zip" type="submit">Make Zip</button>
+        <button id="delete-items-button" type="button" class="btn btn-primary btn-fixed" data-toggle="modal" data-target="#deprecate-files-modal">Deprecate Files</button>
+      </form>
+      {# Modal for deprecating files #}
+      <div class="modal fade" id="deprecate-files-modal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel">Deprecate Project Files</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <form action="" method="post">
+              <div class="modal-body">
+                {% csrf_token %}
+                {{ deprecate_form }}
+              </div>
+              <div class="modal-footer">
+                <button class="btn btn-danger" name="deprecate_files" type="submit">Deprecate Files</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
     <br>
-    <h3>Google Cloud</h3>
+    <h2>Google Cloud</h2>
     <hr>
       {% if not has_credentials %}
         <p>You are missing the Google Cloud credentials.</p>

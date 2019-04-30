@@ -20,11 +20,9 @@ from django.utils.text import slugify
 
 from project.utility import (get_tree_size, get_file_info, get_directory_info,
                              list_items, StorageInfo, get_tree_files,
-                             list_files)
-
+                             list_files, clear_directory)
 from project.validators import (validate_doi, validate_subdir,
                                 validate_version, validate_slug)
-
 from user.validators import validate_alphaplus, validate_alphaplusplus
 from physionet.utility import zip_dir
 
@@ -1103,6 +1101,7 @@ class PublishedProject(Metadata, SubmissionInfo):
     compressed_storage_size = models.BigIntegerField(default=0)
     publish_datetime = models.DateTimeField(auto_now_add=True)
     has_other_versions = models.BooleanField(default=False)
+    deprecated_files = models.BooleanField(default=False)
     # doi = models.CharField(max_length=50, unique=True, validators=[validate_doi])
     # Temporary workaround
     doi = models.CharField(max_length=50, default='')
@@ -1112,6 +1111,7 @@ class PublishedProject(Metadata, SubmissionInfo):
     # Fields for legacy pb databases
     is_legacy = models.BooleanField(default=False)
     full_description = SafeHTMLField(default='')
+
     is_latest_version = models.BooleanField(default=True)
     # Featured content
     featured = models.BooleanField(default=False)
@@ -1255,6 +1255,24 @@ class PublishedProject(Metadata, SubmissionInfo):
         if make_zip:
             self.make_zip()
 
+    def remove_files(self):
+        """
+        Remove files of this project
+        """
+        clear_directory(self.file_root())
+        self.remove_zip()
+        self.set_storage_info()
+
+    def deprecate_files(self, delete_files):
+        """
+        Label the project's files as deprecated. Option of deleting
+        files.
+        """
+        self.deprecated_files = True
+        self.save()
+        if delete_files:
+            self.remove_files()
+
     def get_inspect_dir(self, subdir):
         """
         Return the folder to inspect if valid. subdir joined onto the
@@ -1286,8 +1304,11 @@ class PublishedProject(Metadata, SubmissionInfo):
 
     def has_access(self, user):
         """
-        Whether the user has access to this project
+        Whether the user has access to this project's files
         """
+        if self.deprecated_files:
+            return False
+
         if self.access_policy:
             if self.approved_users.filter(id=user.id):
                 return True

@@ -124,7 +124,12 @@ def remove_items(items):
             os.remove(item)
         elif os.path.isdir(item):
             shutil.rmtree(item)
-    return
+
+def clear_directory(directory):
+    """
+    Delete all files and folders in a directory.
+    """
+    remove_items(os.path.join(directory, i) for i in os.listdir(directory))
 
 def move_items(items, target_folder):
     """
