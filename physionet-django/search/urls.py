@@ -12,6 +12,7 @@ urlpatterns = [
     path('data/', views.database_index, name='database_index'),
     path('software/', views.software_index, name='software_index'),
     path('challenge/', views.challenge_index, name='challenge_index'),
+    path('model/', views.model_index, name='model_index'),
     path('content/', views.content_index, name='content_index'),
 
     # published project content

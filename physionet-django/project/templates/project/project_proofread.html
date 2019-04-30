@@ -15,8 +15,14 @@
 {% elif project.resource_type == 1 %}
   {% include "about/software_quality_guidelines.html" %}
 {# challenge guidelines #}
-{% else %}
+{% elif project.resource_type == 2 %}
   {% include "about/challenge_quality_guidelines.html" %}
+{# model guidelines #}
+{% elif project.resource_type == 3 %}
+  {% include "about/model_quality_guidelines.html" %}
+{# other guidelines #}
+{% else %}
+  {% include "about/software_quality_guidelines.html" %}
 {% endif %}
 <hr>
 <div class="btn-container-rsp">

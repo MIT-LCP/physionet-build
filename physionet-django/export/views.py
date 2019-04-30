@@ -15,6 +15,7 @@ def database_list(request):
     serializer = PublishedProjectSerializer(projects, many=True)
     return JsonResponse(serializer.data, safe=False)
 
+
 def software_list(request):
     """
     List all published software projects
@@ -24,6 +25,7 @@ def software_list(request):
     serializer = PublishedProjectSerializer(projects, many=True)
     return JsonResponse(serializer.data, safe=False)
 
+
 def challenge_list(request):
     """
     List all published software projects
@@ -32,6 +34,17 @@ def challenge_list(request):
         'publish_datetime')
     serializer = PublishedProjectSerializer(projects, many=True)
     return JsonResponse(serializer.data, safe=False)
+
+
+def model_list(request):
+    """
+    List all published model projects
+    """
+    projects = PublishedProject.objects.filter(resource_type=2).order_by(
+        'publish_datetime')
+    serializer = PublishedProjectSerializer(projects, many=True)
+    return JsonResponse(serializer.data, safe=False)
+
 
 def published_stats_list(request):
     """

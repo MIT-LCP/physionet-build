@@ -10,6 +10,8 @@ urlpatterns = [
         name='software_list'),
     path('rest/challenge-list/', views.challenge_list,
         name='challenge'),
+    path('rest/model-list/', views.model_list,
+        name='model'),
     path('rest/published-stats-list/', views.published_stats_list,
         name='published_stats_list'),
 ]

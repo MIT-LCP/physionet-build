@@ -18,10 +18,13 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
 
-from .utility import (get_tree_size, get_file_info, get_directory_info,
-    list_items, StorageInfo, get_tree_files, list_files)
-from .validators import (validate_doi, validate_subdir, validate_version,
-    validate_slug)
+from project.utility import (get_tree_size, get_file_info, get_directory_info,
+                             list_items, StorageInfo, get_tree_files,
+                             list_files)
+
+from project.validators import (validate_doi, validate_subdir,
+                                validate_version, validate_slug)
+
 from user.validators import validate_alphaplus, validate_alphaplusplus
 from physionet.utility import zip_dir
 
@@ -184,7 +187,7 @@ class Author(BaseAuthor):
         profile = self.user.profile
         if profile.affiliation:
             Affiliation.objects.create(name=profile.affiliation,
-                author=self)
+                                       author=self)
             return True
         return False
 
@@ -360,6 +363,7 @@ class Metadata(models.Model):
         (0, 'Database'),
         (1, 'Software'),
         (2, 'Challenge'),
+        (3, 'Model'),
     )
 
     ACCESS_POLICIES = (
@@ -381,7 +385,7 @@ class Metadata(models.Model):
     acknowledgements = SafeHTMLField(blank=True)
     conflicts_of_interest = SafeHTMLField(blank=True)
     version = models.CharField(max_length=15, default='', blank=True,
-        validators=[validate_version])
+                               validators=[validate_version])
     release_notes = SafeHTMLField(blank=True)
 
     # Short description used for search results, social media, etc
@@ -658,6 +662,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         # 2: Challenge
         ('title', 'abstract', 'background', 'methods', 'content_description',
          'usage_notes', 'conflicts_of_interest', 'version', 'license'),
+        # 3: Model
+        ('title', 'abstract', 'background', 'methods', 'content_description',
+         'usage_notes', 'installation', 'conflicts_of_interest', 'version',
+         'license'),
     )
 
     # Custom labels that don't match model field names
@@ -673,6 +681,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
          'methods': 'Participation',
          'content_description': 'Data Description',
          'usage_notes': 'Evaluation'},
+        # 3: Model
+        {'content_description': 'Model Description',
+         'methods': 'Technical Implementation',
+         'installation': 'Installation and Requirements'},
     )
 
     SUBMISSION_STATUS_LABELS = {
@@ -1467,8 +1479,12 @@ class EditLog(models.Model):
         ('soundly_produced', 'well_described', 'open_format',
          'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable'),
         # 1: Software
-        ('well_described', 'open_format', 'reusable', 'pn_suitable'),
+        ('soundly_produced', 'well_described', 'open_format', 'no_phi',
+            'reusable', 'pn_suitable'),
         # 2: Challenge
+        ('soundly_produced', 'well_described', 'open_format',
+         'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable'),
+        # 3: Model
         ('soundly_produced', 'well_described', 'open_format',
          'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable'),
     )
@@ -1476,27 +1492,31 @@ class EditLog(models.Model):
     EDITOR_FIELDS = ('editor_comments', 'decision')
 
     COMMON_LABELS = {
-        'reusable':'Does the project include everything needed for reuse by the community?',
-        'pn_suitable':'Is the content suitable for PhysioNet?',
-        'editor_comments':'Comments to authors',
+        'reusable': 'Does the project include everything needed for reuse by the community?',
+        'pn_suitable': 'Is the content suitable for PhysioNet?',
+        'editor_comments': 'Comments to authors',
+        'no_phi': 'Is the project free of protected health information?',
+        'data_machine_readable': 'Are all files machine-readable?'
     }
 
     LABELS = (
         # 0: Database
-        {'soundly_produced':'Has the data been produced in a sound manner?',
-         'well_described':'Is the data adequately described?',
-         'open_format':'Is the data provided in an open format?',
-         'data_machine_readable':'Are the data files machine-readable?',
-         'no_phi':'Is the data free of protected health information?'},
+        {'soundly_produced': 'Has the data been produced in a sound manner?',
+         'well_described': 'Is the data adequately described?',
+         'open_format': 'Is the data provided in an open format?',
+         'data_machine_readable': 'Are the data files machine-readable?'},
         # 1: Software
-        {'well_described':'Is the software adequately described?',
-         'open_format':'Is the software provided in an open format?'},
+        {'soundly_produced': 'Does the software follow best practice in development?',
+         'well_described': 'Is the software adequately described?',
+         'open_format': 'Is the software provided in an open format?'},
         # 2: Challenge
-        {'soundly_produced':'Has the challenge been produced in a sound manner?',
-         'well_described':'Is the challenge adequately described?',
-         'open_format':'Is all content provided in an open format?',
-         'data_machine_readable':'Are all files machine-readable?',
-         'no_phi':'Is the content free of protected health information?'},
+        {'soundly_produced': 'Has the challenge been produced in a sound manner?',
+         'well_described': 'Is the challenge adequately described?',
+         'open_format': 'Is all content provided in an open format?'},
+        # 3: Model
+        {'soundly_produced': 'Does the software follow best practice in development?',
+         'well_described': 'Is the software adequately described?',
+         'open_format': 'Is the software provided in an open format?'},
     )
 
     HINTS = {

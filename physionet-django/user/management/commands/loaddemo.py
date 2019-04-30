@@ -33,9 +33,14 @@ class Command(BaseCommand):
                     sys.exit('Exiting from load. No actions applied.')
             print('Continuing loading demo data')
 
+        # Load licences and software languages
+        site_data_fixtures = os.path.join(settings.BASE_DIR, 'project',
+                                          'fixtures', 'site-data.json')
+        call_command('loaddata', site_data_fixtures, verbosity=1)
+
+        # Load other app fixtures
         project_apps = get_project_apps()
         demo_fixtures = find_demo_fixtures(project_apps)
-
         call_command('loaddata', *demo_fixtures, verbosity=1)
 
         # Copy the demo media and static content
