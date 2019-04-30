@@ -294,12 +294,22 @@ a{
     border: unset;
 }
 
-.container{
-  padding: 40px 30px;
+.flexbody {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
 }
 
-body > .container{
-  min-height: calc(80% - 64px);
+.flexbody > * {
+  flex-shrink: 0;
+}
+
+.flexbody > main {
+  flex: 1 0 auto;
+}
+
+main {
+  margin: 1rem 0rem;
 }
 
 .row{
