@@ -1002,7 +1002,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
         if self.core_project.publishedprojects.all() and len(previous_published_projects) > 0:
             for project in previous_published_projects:
-                if project.version > publiversionshed_project.version:
+                if project.version > published_project.version:
                     project.is_latest_version = True
                     published_project.is_latest_version = False
                     project.save()

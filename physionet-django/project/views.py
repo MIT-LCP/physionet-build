@@ -11,24 +11,26 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.db import transaction
-from django.forms import formset_factory, inlineformset_factory, modelformset_factory
+from django.forms import (formset_factory, inlineformset_factory,
+    modelformset_factory)
 from django.http import HttpResponse, Http404, JsonResponse
 from django.shortcuts import render, redirect
 from django.template import loader
 from django.urls import reverse
 from django.utils import timezone
 
-from . import forms
-from .models import (Affiliation, Author, AuthorInvitation, ActiveProject,
-    PublishedProject, StorageRequest, Reference, ArchivedProject,
-    ProgrammingLanguage, Topic, Contact, Publication, PublishedAuthor, EditLog,
-    CopyeditLog, DUASignature, CoreProject, GCP)
-from . import utility
+from project import forms
+from project.models import (Affiliation, Author, AuthorInvitation,
+    ActiveProject, PublishedProject, StorageRequest, Reference,
+    ArchivedProject, ProgrammingLanguage, Topic, Contact, Publication,
+    PublishedAuthor, EditLog, CopyeditLog, DUASignature, CoreProject, GCP)
+from project import utility
 import notification.utility as notification
-import physionet.utility as physionet
+from physionet.utility import serve_file
 from user.forms import ProfileForm, AssociatedEmailChoiceForm
 from user.models import User
 from console.utility import add_email_bucket_access
+
 
 def project_auth(auth_mode=0, post_auth_mode=0):
     """
@@ -863,7 +865,7 @@ def serve_active_project_file(request, project_slug, file_name, **kwargs):
     """
     file_path = os.path.join(kwargs['project'].file_root(), file_name)
     try:
-        return physionet.serve_file(file_path)
+        return serve_file(file_path)
     except IsADirectoryError:
         return redirect(request.path + '/')
 
@@ -1147,7 +1149,7 @@ def serve_published_project_file(request, project_slug, version,
     if project.has_access(request.user):
         file_path = os.path.join(project.file_root(), full_file_name)
         try:
-            return physionet.serve_file(file_path)
+            return serve_file(file_path)
         except IsADirectoryError:
             return redirect(request.path + '/')
         except FileNotFoundError:
@@ -1168,7 +1170,7 @@ def serve_published_project_zip(request, project_slug, version):
         raise Http404()
     if project.has_access(request.user):
         try:
-            return physionet.serve_file(project.zip_name(full=True))
+            return serve_file(project.zip_name(full=True))
         except FileNotFoundError:
             raise Http404()
     raise PermissionDenied()
