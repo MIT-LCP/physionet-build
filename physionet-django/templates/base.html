@@ -1,4 +1,3 @@
-<!-- The base template used for the site -->
 <!DOCTYPE html>
 {% load static %}
 <html lang="en">
@@ -13,15 +12,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
   </head>
 
-  <body>
+  {% block body %}
+  <body class="flexbody">
     {% include "navbar.html" %}
 
-    {% block content %}{% endblock %}
+    <main>{% block content %}{% endblock %}</main>
 
     {% include 'footer.html' %}
 
     {% include "base_js_bottom.html" %}
     {% block local_js_bottom %}{% endblock %}
   </body>
-
+  {% endblock %}
 </html>
