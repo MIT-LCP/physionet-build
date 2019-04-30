@@ -12,8 +12,6 @@ table, tbody, thead, tfoot {
 th, td {
 	padding: 0.25em;
 }
-.container { border:2px solid #ccc; width:90%; height: 100px;
-             overflow-y: scroll; }
 .dtable { table-layout: fixed; }
 div.notice { width: 90%; margin: auto; padding: 2em; background: #cdf; }
 #tabs {
