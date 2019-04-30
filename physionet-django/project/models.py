@@ -593,6 +593,12 @@ class UnpublishedProject(models.Model):
         shutil.rmtree(self.file_root())
         return self.delete()
 
+    def has_wfdb(self):
+        """
+        Whether the project has wfdb files.
+        """
+        return os.path.isfile(os.path.join(self.file_root(), 'RECORDS'))
+
 
 class ArchivedProject(Metadata, UnpublishedProject, SubmissionInfo):
     """
@@ -965,7 +971,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             slug = previous_published_projects.first().slug
             title = previous_published_projects.first().title
 
-        published_project = PublishedProject(doi=doi)
+        published_project = PublishedProject(doi=doi,
+            has_wfdb=self.has_wfdb())
 
         # Direct copy over fields
         for attr in [f.name for f in Metadata._meta.fields] + [f.name for f in SubmissionInfo._meta.fields]:
@@ -1085,7 +1092,7 @@ class PublishedProject(Metadata, SubmissionInfo):
     is_latest_version = models.BooleanField(default=True)
     # Featured content
     featured = models.BooleanField(default=False)
-
+    has_wfdb = models.BooleanField(default=False)
     # Where all the published project files are kept, depending on access.
     PROTECTED_FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'published-projects')
     # Workaround for development

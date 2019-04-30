@@ -172,7 +172,7 @@ var server,
     }
 
     $.extend($.support, { touch: "ontouchend" in document });
-    
+
     $.fn.addTouch = function() {
 	if ($.support.touch) {
             this.each(function(i,el){
@@ -395,7 +395,7 @@ function show_summary() {
 //  If all of a[] precedes t, return the next index (a.length).
 function ann_after(a, t) {
     var i, imin = 0, imax = 0;
-    
+
     if (a) {
 	imax = a.length - 1;
 	if (imax >= 0) {
@@ -412,7 +412,7 @@ function ann_after(a, t) {
 	}
     }
     return imax;
-}	    
+}
 
 // Return index in annotation array a[] of the last annotation at or before t.
 //  If all of a[] precedes t, return a.length - 1.
@@ -422,7 +422,7 @@ function ann_before(a, t) {
 
     i = ann_after(a, t) - 1;
     return i;
-}	    
+}
 
 // Update annotations-as-text and signals-as-text if selected on Tables tab
 function show_tables() {
@@ -469,7 +469,7 @@ function show_tables() {
 		    sig[is++] = find_trace(db, record, sname, t0_ticks);
 		}
 	    }
-	    
+
 	    stext = '<h3>Signals</h3>\n<p><table class="dtable">\n'
 		+ '<tr><th>Time (elapsed)&nbsp;</th>';
 	    for (i = 0; i < is; i++) {
@@ -681,16 +681,14 @@ function dblist() {
     get_jsonp(url, function(data) {
 	clearTimeout(timer);
 	if (data && data.database && data.database.length > 0) {
-	    dblist_text = '<td align=right>Database:</td>' + 
+	    dblist_text = '<td align=right>Database:</td>' +
 		'<td colspan=2><select name=\"db\" id=\"db\">\n' +
 		'<option value=\"\" selected>--Choose one--</option>\n';
 	    for (i = 0; i < data.database.length; i++) {
-		dbi = data.database[i].name;
-		dbparts = dbi.split('/');
-		if (dbparts.length > 1) { sdbi = '.../' + dbparts.pop(); }
-		else { sdbi = dbi; }
+    		dbi = data.database[i].name;
+    		dbparts = dbi.split('/');
 	        dblist_text += '<option value=\"' + dbi +
-		'\">' + data.database[i].desc + ' (' + sdbi + ')</option>\n';
+		        '\">' + data.database[i].desc + ' (' + dbi + ')</option>\n';
 	    }
 	    dblist_text += '</select></td>\n';
 	    $('#dblist').html(dblist_text);
@@ -786,7 +784,7 @@ function read_signals(t0, update) {
 			trace.id = tid++;	// found, mark as recently used
 			t = trace.tf;
 		    }
-		    else {		
+		    else {
 			if (t < tr) { tr = t; } // must read from t to tf
 			sigreq += '&signal='
 			    + encodeURIComponent(signals[i].name);
@@ -927,7 +925,7 @@ function sync_edits() {
 		    + '/" target="other">Download'
 		    + ' (opens in another browser tab or window)</a>';
 	    }
-	    $('#syncnote').html(etext);			
+	    $('#syncnote').html(etext);
 	},
 	statusCode: {
 	    404: function() {
@@ -944,7 +942,7 @@ function sync_edits() {
 // When a new record is selected, reload data and show the first dt_sec seconds.
 function newrec() {
     var i, prompt;
- 
+
     // save any pending edits
     for (i = 0; i < nann; i++) {
 	save_editlog(db, record, ann[i].name);
@@ -964,14 +962,14 @@ function newrec() {
     read_annotations("0");
     prompt = 'Click on the <b>View/edit</b> tab to view ' + sdb + '/' + record;
     $('#prompt').html(prompt);
-    set_sw_width(dt_sec);    
+    set_sw_width(dt_sec);
 }
 
 // When a new subrecord is selected, reload data and show the first dt_sec
 // seconds.
 function newsubrec() {
     var i, prompt;
- 
+
     // save any pending edits
     for (i = 0; i < nann; i++) {
 	save_editlog(db, record, ann[i].name);
@@ -985,7 +983,7 @@ function newsubrec() {
     read_annotations("0");
     prompt = 'Click on the <b>View/edit</b> tab to view ' + sdb + '/' + record;
     $('#prompt').html(prompt);
-    set_sw_width(dt_sec);    
+    set_sw_width(dt_sec);
 }
 
 // When a new database is selected, reload the annotation and record lists.
@@ -1001,8 +999,7 @@ function newdb() {
     nann = 0;
     db = $('#db').val();
     dbparts = db.split('/');
-    if (dbparts.length > 1) { sdb = '.../' + dbparts.pop(); }
-    else { sdb = db; }
+    sdb = db;
     record = '';
     title = 'LightWAVE: ' + sdb;
     document.title = title;
@@ -1030,7 +1027,7 @@ function show_plot() {
       sva, svgts, svs, t, tf, title, tnext, tps, trace, tst, tt, ttick, txt,
       uparrow, v, x, xstep, xtick, x0q, x0r, x0s, y, ytop, y0, y0s = [], y1,
       y0a = [], z;
-    
+
     width = $('#plotdata').width();  // total available width in View/edit panel
     swl = Math.round(width*svgl/svgtw);    // left column width
     sww = Math.round(width*svgw/svgtw);   // signal window width
@@ -1052,7 +1049,7 @@ function show_plot() {
 	+ '" preserveAspectRatio="xMidYMid meet">\n';
     svg += '<g id="viewport" transform="scale(' + width/svgtw
 	+ '),translate(' + svgl + ',' + svgf + ')">\n';
-    
+
     // background grid
     grd = '<g id="grid">\n'
 	+ '<circle cx="-' + svgf + '" cy="' + svgh
@@ -1182,7 +1179,7 @@ function show_plot() {
 		    + '" style="text-anchor: middle;"';
 		if (ann[ia].state === 2) { sva += ' font-weight="bold"'; }
 		sva += ' font-size="' + svgf + '" fill="rgb(0,0,200)">'
-		    + txt + '</text>\n'; 
+		    + txt + '</text>\n';
 		if (title) { sva += '</g>'; }
 	    }
 	}
@@ -1206,7 +1203,7 @@ function show_plot() {
 	ytop = y0 - svgf;
 	sname = signals[is].name;
 	trace = find_trace(db, record, sname, t0_ticks);
-	
+
 	svs += '<g id="sig;;' + html_escape(sname) + '">\n';
 	if (trace && s_visible[sname] === 1) {
 	    svs += '<title>' + html_escape(sname);
@@ -1314,16 +1311,16 @@ function show_plot() {
 function reset_svg_handlers() {
     if ($grid) { $grid.off('click'); }
     $grid = $('#grid');
-    $grid.on('click', grid_mode); 
+    $grid.on('click', grid_mode);
     if ($mrkr) { $mrkr.off('click'); }
     $mrkr = $('#mrkr');
     $mrkr.on('click', mrkr_mode);
     if ($anames) { $anames.off('click'); }
     $anames = $("[id^='ann;;']");
-    $anames.on('click', anames_mode); 
+    $anames.on('click', anames_mode);
     if ($snames) { $snames.off('click'); }
     $snames = $("[id^='sig;;']");
-    $snames.on('click', snames_mode); 
+    $snames.on('click', snames_mode);
     if ($svg) {
 	switch (emode) {
 	case 1: $svg.off('mousemove'); break;
@@ -1334,7 +1331,7 @@ function reset_svg_handlers() {
     $svg = $('svg');
     switch (emode) {
     case 1: $svg.on('mousemove', track_pointer); break;
-    case 2: 
+    case 2:
 	$svg.on('mousedown', select_ann)
 	    .on('mousemove', track_pointer)
 	    .on('mouseup', mark);
@@ -1641,7 +1638,7 @@ function askey(annot)
     else { key = annot.a; }
 
     return key;
-}    
+}
 
 // Compile a summary of the annotation types in ann[i]
 function summarize(annotator) {
@@ -1955,7 +1952,7 @@ function find() {
 		}
 	    }
 	});
-	
+
 	$('#findbox').dialog("open");
 	$('#findbox').dialog({
             height: 'auto',
@@ -2223,7 +2220,7 @@ function insert_ann(annot) {
 	else { selarr.splice(i, 0, a); }
 	selann = i;
 	highlight_selection();
-	
+
 	if (palette) {
 	    key = askey(annot);
 	    for (i = 0; i < palette.length; i++) {
@@ -2826,17 +2823,17 @@ function clear_requests() {
 
 // "Main help" button handler (also called by $(document).ready())
 function help() {
-    $('#helpframe').attr('src', 'doc/' + help_main);
+    $('#helpframe').attr('src', '/static/lightwave/doc/' + help_main);
 }
 
 // "Help topics" button handler
 function help_topics() {
-    $('#helpframe').attr('src', 'doc/topics.html');
+    $('#helpframe').attr('src', '/static/lightwave/doc/topics.html');
 }
 
 // "Contacts" button handler
 function help_contacts() {
-    $('#helpframe').attr('src', 'doc/contacts.html');
+    $('#helpframe').attr('src', '/static/lightwave/doc/contacts.html');
 }
 
 //-----------------------------------------------------------------------------

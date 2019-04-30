@@ -4,31 +4,27 @@ import shutil
 import subprocess
 
 from django.conf import settings
-from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
 
+from project.models import PublishedProject
 from project.views import project_auth
 
 
-# public_root: chroot directory for public databases
+# PUBLIC_ROOT: chroot directory for public databases
 if settings.STATIC_ROOT:
-    public_root = settings.STATIC_ROOT
+    PUBLIC_ROOT = settings.STATIC_ROOT
 else:
-    public_root = os.path.join(settings.BASE_DIR, 'static')
+    PUBLIC_ROOT = os.path.join(settings.BASE_DIR, 'static')
 
-# public_dbpath: path to main database directory within public_root
-public_dbpath = '/physiobank/database'
+# PUBLIC_DBPATH: path to main database directory within PUBLIC_ROOT
+PUBLIC_DBPATH = 'published-projects'
 
-# dbcal_file: absolute path to the wfdbcal file
-dbcal_file = public_root + public_dbpath + '/wfdbcal'
-
-# Kludge for testing
-if not os.path.exists(public_root + public_dbpath + '/DBS'):
-    _default_dblist = 'udb\tExample WFDB record'
-else:
-    _default_dblist = None
+# ORIGINAL_DBCAL_FILE: absolute path to the wfdbcal file from WFDB
+ORIGINAL_DBCAL_FILE = '/usr/local/database/wfdbcal'
+# DBCAL_FILE: absolute path to the public wfdbcal symlink file
+DBCAL_FILE = os.path.join(PUBLIC_ROOT, 'wfdbcal')
 
 
 def lightwave_home(request):
@@ -101,7 +97,7 @@ def serve_lightwave(query_string, root, dbpath='/', dblist=None, dbcal=None,
         'WFDB': dbpath,
         'LIGHTWAVE_ROOT': root,
         'QUERY_STRING': query_string,
-        'LIGHTWAVE_WFDBCAL': (dbcal or dbcal_file),
+        'LIGHTWAVE_WFDBCAL': (dbcal or DBCAL_FILE),
     }
     if dblist:
         env['LIGHTWAVE_DBLIST'] = dblist
@@ -133,10 +129,17 @@ def lightwave_server(request):
     """
     Request LightWAVE data for a published database.
     """
+    if request.GET['action'] == 'dblist':
+        projects = PublishedProject.objects.filter(
+            has_wfdb=True, access_policy=0).order_by('title', '-version_order')
+        dblist = '\n'.join(
+            '{}/{}\t{}'.format(p.slug, p.version, p) for p in projects)
+    else:
+        dblist = None
     return serve_lightwave(query_string=request.GET.urlencode(),
-                           root=public_root,
-                           dbpath=public_dbpath,
-                           dblist=_default_dblist,
+                           root=PUBLIC_ROOT,
+                           dbpath=PUBLIC_DBPATH,
+                           dblist=dblist,
                            public=True)
 
 
@@ -152,24 +155,3 @@ def lightwave_project_server(request, project_slug, project, **kwargs):
                            root=project.file_root(),
                            dblist=(project_slug + '\t' + project.title),
                            public=False)
-
-
-def lightwave_js(request, file_name, **kwargs):
-    """
-    Request LightWAVE static JavaScript files.
-    """
-    return redirect(static(os.path.join('lightwave/js', file_name)))
-
-
-def lightwave_css(request, file_name, **kwargs):
-    """
-    Request LightWAVE static CSS files.
-    """
-    return redirect(static(os.path.join('lightwave/css', file_name)))
-
-
-def lightwave_doc(request, file_name, **kwargs):
-    """
-    Request LightWAVE static documentation files.
-    """
-    return redirect(static(os.path.join('lightwave/doc', file_name)))
