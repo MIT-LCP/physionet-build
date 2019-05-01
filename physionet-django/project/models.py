@@ -1021,19 +1021,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 citation=publication.citation, url=publication.url,
                 project=published_project)
 
-        for topic in self.topics.all():
-            published_topic = PublishedTopic.objects.filter(
-                description=topic.description.lower())
-            # Tag the published project with the topic. Create the published
-            # topic first if it doesn't exist
-            if published_topic.count():
-                published_topic = published_topic.get()
-            else:
-                published_topic = PublishedTopic.objects.create(
-                    description=topic.description.lower())
-            published_topic.projects.add(published_project)
-            published_topic.project_count += 1
-            published_topic.save()
+        published_project.set_topics([t.description for t in self.topics.all()])
 
         for parent_project in self.parent_projects.all():
             published_project.parent_projects.add(parent_project)
@@ -1365,6 +1353,56 @@ class PublishedProject(Metadata, SubmissionInfo):
 
         return False
 
+    def add_topic(self, topic_description):
+        """
+        Tag this project with a topic
+        """
+
+        published_topic = PublishedTopic.objects.filter(
+            description=topic_description.lower())
+        # Create the published topic object first if it doesn't exist
+        if published_topic.count():
+            published_topic = published_topic.get()
+        else:
+            published_topic = PublishedTopic.objects.create(
+                description=topic_description.lower())
+
+        published_topic.projects.add(self)
+        published_topic.project_count += 1
+        published_topic.save()
+
+    def remove_topic(self, topic_description):
+        """
+        Remove the topic tag from this project
+        """
+        published_topic = PublishedTopic.objects.filter(
+            description=topic_description.lower())
+
+        if published_topic.count():
+            published_topic = published_topic.get()
+            published_topic.projects.remove(self)
+            published_topic.project_count -= 1
+            published_topic.save()
+
+            if published_topic.project_count == 0:
+                published_topic.delete()
+
+    def set_topics(self, topic_descriptions):
+        """
+        Set the topic tags for this project.
+
+        topic_descriptions : list of description strings
+        """
+        existing_descriptions = [t.description for t in self.topics.all()]
+
+        # Add these topics
+        for td in set(topic_descriptions) - set(existing_descriptions)
+            self.add_topic(td)
+
+        # Remove these topics
+        for td in set(existing_descriptions) - set(topic_descriptions)
+            self.remove_topic(td)
+
 
 def exists_project_slug(slug):
     """
@@ -1675,6 +1713,7 @@ class LegacyProject(models.Model):
         if make_file_roots:
             os.mkdir(p.project_file_root())
             os.mkdir(p.file_root())
+
 
 class GCP(models.Model):
     """
