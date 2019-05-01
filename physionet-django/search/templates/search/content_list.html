@@ -8,7 +8,7 @@
     <h2><a href="{% url 'published_project' published_project.slug published_project.version %}" style="word-wrap: break-word;">{{ published_project.title }}</a></h2>
     {% if not published_project.is_legacy %}
       <p class="text-muted">
-          {% for author in published_project.authors.all %}
+          {% for author in published_project.authors.all|dictsort:"display_order" %}
           {{ author.get_full_name }}{% if not forloop.last %}, {% endif %}
           {% endfor %}
       </p>
