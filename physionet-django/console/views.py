@@ -531,6 +531,7 @@ def manage_published_project(request, project_slug, version):
         elif 'set_topics' in request.POST:
             topic_form = forms.TopicForm(project=project, data=request.POST)
             if topic_form.is_valid():
+                project.set_topics(topic_form.topic_descriptions)
                 # Set the topics
                 messages.success(request, 'The topics have been set')
             else:
