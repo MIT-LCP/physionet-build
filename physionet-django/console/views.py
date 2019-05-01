@@ -515,6 +515,8 @@ def manage_published_project(request, project_slug, version):
     user = request.user
     project = PublishedProject.objects.get(slug=project_slug, version=version)
     doi_form = forms.DOIForm(instance=project)
+    topic_form = forms.TopicForm(project=project)
+    topic_form.set_initial()
     deprecate_form = None if project.deprecated_files else forms.DeprecateFilesForm()
     has_credentials = os.path.exists(os.environ["GOOGLE_APPLICATION_CREDENTIALS"])
 
@@ -524,6 +526,13 @@ def manage_published_project(request, project_slug, version):
             if doi_form.is_valid():
                 doi_form.save()
                 messages.success(request, 'The DOI has been set')
+            else:
+                messages.error(request, 'Invalid submission. See form below.')
+        elif 'set_topics' in request.POST:
+            topic_form = forms.TopicForm(project=project, data=request.POST)
+            if topic_form.is_valid():
+                # Set the topics
+                messages.success(request, 'The topics have been set')
             else:
                 messages.error(request, 'Invalid submission. See form below.')
         elif 'make_checksum_file' in request.POST:
@@ -566,7 +575,7 @@ def manage_published_project(request, project_slug, version):
         {'project':project, 'authors':authors, 'author_emails':author_emails,
          'storage_info':storage_info, 'edit_logs':edit_logs,
          'copyedit_logs':copyedit_logs, 'latest_version':latest_version,
-         'published':True, 'doi_form':doi_form,
+         'published':True, 'doi_form':doi_form, 'topic_form':topic_form,
          'deprecate_form':deprecate_form, 'has_credentials':has_credentials})
 
 
