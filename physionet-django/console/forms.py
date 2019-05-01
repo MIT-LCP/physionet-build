@@ -258,7 +258,8 @@ class TopicForm(forms.Form):
         if data == '':
             return data
 
-        topics = data.split(',')
+        topics = [x.strip() for x in data.split(',')]
+
         if len(topics) != len(set(topics)):
             raise forms.ValidationError('Topics must be unique')
 
