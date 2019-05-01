@@ -1396,11 +1396,11 @@ class PublishedProject(Metadata, SubmissionInfo):
         existing_descriptions = [t.description for t in self.topics.all()]
 
         # Add these topics
-        for td in set(topic_descriptions) - set(existing_descriptions)
+        for td in set(topic_descriptions) - set(existing_descriptions):
             self.add_topic(td)
 
         # Remove these topics
-        for td in set(existing_descriptions) - set(topic_descriptions)
+        for td in set(existing_descriptions) - set(topic_descriptions):
             self.remove_topic(td)
 
 
