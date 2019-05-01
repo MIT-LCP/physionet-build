@@ -339,16 +339,51 @@ def move_author(request, project_slug, **kwargs):
             with transaction.atomic():
                 orig_order = author.display_order
                 swap_order = swap_author.display_order
+
                 author.display_order = 0
                 author.save(update_fields=('display_order',))
+
                 swap_author.display_order = orig_order
-                swap_author.save(update_fields=('display_order',))
+                if swap_author.display_order == 1 or swap_author.is_first:
+                    swap_author.is_first = True
+                else:
+                    swap_author.is_first = False
+                swap_author.save(update_fields=('display_order','is_first',))
+
                 author.display_order = swap_order
-                author.save(update_fields=('display_order',))
+                if author.display_order == 1 or author.is_first:
+                    author.is_first = True
+                else:
+                    author.is_first = False
+                author.save(update_fields=('display_order','is_first',))
+
             authors = project.get_author_info()
             return render(request, 'project/author_list.html',
                 {'project':project, 'authors':authors,
                 'is_submitting':is_submitting})
+    raise Http404()
+
+
+@project_auth(auth_mode=1, post_auth_mode=2)
+def first_author(request, project_slug, **kwargs):
+    """
+    Change first autor status. Return the updated authors list html
+    if successful. Called via ajax.
+    """
+    project, authors, is_submitting = (kwargs[k] for k in
+        ('project', 'authors', 'is_submitting'))
+
+    if request.method == 'POST':
+        author = authors.get(id=int(request.POST['author_id']))
+        if author.display_order != 1:
+            with transaction.atomic():
+                author.is_first = not author.is_first
+                author.save(update_fields=('is_first',))
+
+        authors = project.get_author_info()
+        return render(request, 'project/author_list.html',
+            {'project':project, 'authors':authors,
+            'is_submitting':is_submitting})
     raise Http404()
 
 
@@ -924,6 +959,8 @@ def project_preview(request, project_slug, subdir='', **kwargs):
      file_error) = get_project_file_info(project=project, subdir=subdir)
     files_panel_url = reverse('preview_files_panel', args=(project.slug,))
 
+    shared = len(authors.filter(is_first=True)) > 1
+
     return render(request, 'project/project_preview.html', {'project':project,
         'display_files':display_files, 'display_dirs':display_dirs,
         'authors':authors, 'corresponding_author':corresponding_author,
@@ -931,7 +968,8 @@ def project_preview(request, project_slug, subdir='', **kwargs):
         'publication':publication, 'topics':topics, 'languages':languages,
         'passes_checks':passes_checks, 'dir_breadcrumbs':dir_breadcrumbs,
         'files_panel_url':files_panel_url, 'subdir':subdir,
-        'file_error':file_error, 'parent_projects':parent_projects})
+        'file_error':file_error, 'parent_projects':parent_projects,
+        'shared':shared})
 
 
 @project_auth(auth_mode=2)
@@ -1232,12 +1270,13 @@ def published_project(request, project_slug, version, subdir=''):
     current_site = get_current_site(request)
     all_project_versions = PublishedProject.objects.filter(
         slug=project_slug).order_by('version_order')
+    shared = len(authors.filter(is_first=True)) > 1
     context = {'project': project, 'authors': authors,
                'references': references, 'publication': publication,
                'topics': topics, 'languages': languages, 'contact': contact,
                'has_access': has_access, 'current_site': current_site,
                'news': news, 'all_project_versions': all_project_versions,
-               'parent_projects':parent_projects}
+               'parent_projects':parent_projects, 'shared':shared}
 
     # The file and directory contents
     if has_access:
