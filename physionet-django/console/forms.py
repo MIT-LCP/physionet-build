@@ -268,7 +268,7 @@ class TopicForm(forms.Form):
                     'numbers, spaces, underscores, and hyphens only, and '
                     'begin with a letter or number.')
 
-        self.topic_list = [t.lower() for t in topics]
+        self.topic_descriptions = [t.lower() for t in topics]
         return data
 
 
