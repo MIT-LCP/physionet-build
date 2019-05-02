@@ -1,0 +1,646 @@
+[
+{
+  "model": "notification.news",
+  "fields": {"content":"PhysioNet is running on new (faster, larger) servers.","guid":"1422bd3b-a785-4ce2-a7f4-c5f131383f36","publish_datetime":"2011-01-01T05:00:00Z","title":"New servers","url":""}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The <a href=\"https://physionet.org/pn6/chbmit/\">CHB-MIT Scalp EEG Database</a>, a collection of EEG recordings of 22 pediatric subjects with intractable seizures, is now available. Subjects were monitored for up to several days following withdrawal of anti-seizure medication to characterize their seizures and assess their candidacy for surgical intervention. In all, the onsets and ends of 182 seizures are annotated.","guid":"140a2c33-8b03-4a84-b7f5-5170a73c2923","publish_datetime":"2010-06-09T04:00:00Z","title":"CHB-MIT Scalp EEG Database","url":"https://physionet.org/physiobank/database/chbmit/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"An application for anonymizing (de-identifying) EDF and EDF+ files is now available; see <a href=\"https://physionet.org/physiotools/edf-anonymize/\">edf-anonymize</a>.","guid":"f9b789f0-37c6-45a8-af48-58c2a99af509","publish_datetime":"2010-05-17T04:00:00Z","title":"edf-anonymize","url":"https://physionet.org/physiotools/edf-anonymize/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The 11th annual PhysioNet/CinC Challenge is underway, with the goal of developing robust methods for filling gaps in multiparameter physiologic data. Learn about the challenge <a href=\"https://physionet.org/challenge/2010/\">here</a>.","guid":"fb7ee741-ef3e-46b0-9934-569eee9c02d1","publish_datetime":"2010-03-20T04:00:00Z","title":"PhysioNet/CinC Challenge 2010 open","url":"https://physionet.org/challenge/2010/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Prepare for the PhysioNet/Computers in Cardiology Challenge 2010, <a href=\"https://physionet.org/challenge/2010/\">Mind the Gap</a>! A set of <a href=\"https://physionet.org/physiobank/database/challenge/2010/set-a/\"> training data</a> is now available. The Challenge begins on 1 January.","guid":"287b5c99-23fb-4e83-b619-a8e02851ed92","publish_datetime":"2009-12-01T05:00:00Z","title":"PhysioNet/CinC Challenge 2010 training data","url":"https://physionet.org/challenge/2010/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The entire <a href=\"https://physionet.org/physiobank/database/edb/\">European ST-T Database</a>, a landmark set of expert-annotated recordings for study of the ECG manifestation of myocardial ischemia and for development and evaluation of methods for quantifying ST and T changes in the ECG, is now available on PhysioNet. Roughly half of the database was previously contributed to PhysioNet in September, 2000; this new contribution makes the entire database available for free use by researchers for the first time.","guid":"31989d7d-4971-4fd0-8840-dd5c97ac5bf4","publish_datetime":"2009-11-27T05:00:00Z","title":"European ST-T Database expanded","url":"https://physionet.org/physiobank/database/edb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"PhysioNet is seeking contributions of <a href=\"https://physionet.org/physiobank/call-for-data/emg.shtml\">data from EMG and nerve conduction studies</a>. The <a href=\"http://reylab.bidmc.harvard.edu/\">Margret and H.A. Rey Institute for Nonlinear Dynamics in Medicine</a> has offered an annual award for the best such contribution.","guid":"13ffa707-34af-40d1-a135-5e00e184cd10","publish_datetime":"2009-09-29T04:00:00Z","title":"Seeking EMG and nerve conduction data","url":"https://physionet.org/physiobank/call-for-data/emg.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"<a href=\"https://physionet.org/pn4/eegmmidb/\">A set of 64-channel EEGs</a> from subjects who performed a series of motor/imagery tasks has been contributed to PhysioBank by the developers of the <a href=\"http://www.bci2000.org/\">BCI2000</a> instrumentation system for brain-computer interface research.","guid":"07568939-4ca1-4de6-84a1-eab22575872d","publish_datetime":"2009-09-09T04:00:00Z","title":"EEG Motor Movement/Imagery Dataset","url":"https://physionet.org/physiobank/database/eegmmidb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"In its issue of June 2009, <a href=\"http://chaos.aip.org/\"><i>Chaos</i></a> has published a special section containing nine papers that address the question <a href=\"http://blogs.aip.org/ControversiesInChaos/\">\"Is the normal heart rate chaotic?\"</a>. The discussion was initiated last year as a joint effort of <i>Chaos</i> and PhysioNet, which provided a <a href=\"https://physionet.org/challenge/chaos/\">collection of fifteen 20-24 hour RR interval time series</a> derived from three PhysioBank ECG databases as a common focus for investigation of this question.","guid":"e7171fe8-7663-4337-b8bc-a023fde8dcff","publish_datetime":"2009-07-07T04:00:00Z","title":"Is the Normal Heart Rate Chaotic?","url":"https://web.archive.org/web/20091002203442/http://blogs.aip.org/ControversiesInChaos/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"We are pleased to announce that a limited distribution of the entire <a href=\"https://physionet.org/physiobank/database/mimic2cdb-ps/\">MIMIC II Clinical Database</a>, containing data for over 26,000 subjects, has been contributed to PhysioBank and is now available to qualified researchers. Details are available <a href=\"https://physionet.org/physiobank/database/mimic2cdb-ps/restricted /\">here</a>.","guid":"f531ec63-8372-4619-aeac-8433c2aede56","publish_datetime":"2009-05-05T04:00:00Z","title":"The MIMIC II Clinical Database (Public Subset)","url":"https://physionet.org/physiobank/database/mimic2cdb-ps/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Over 1300 records have been added to the <a href=\"https://physionet.org/pn5/mimic2db/\">MIMIC II Waveform Database</a>, bringing the total to over 4000 multi-parameter records from ICU patients, each typically several days in length, with many that are much longer. The new records include data from 249 neonatal ICU patients, a population not previously represented in PhysioBank. [Numbers of records have been corrected as of 30 July 2009.]","guid":"61479c8b-f102-4930-9495-bed536b966fe","publish_datetime":"2009-04-27T04:00:00Z","title":"MIMIC II Waveform Database expanded","url":"https://physionet.org/physiobank/database/mimic2db/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"PhysioBank's <a href=\"https://physionet.org/cgi-bin/ATM\">Automated Teller Machine</a>, a self-service facility for exploring PhysioBank using a web browser, is now on-line. Replacing the original PhysioBank web services introduced in 2000, the ATM offers a variety of tools for visualizing PhysioBank data and converting them to text, EDF, or .mat files, and more.","guid":"d5f4a8f6-4e2a-4b5e-b4fc-299806df0de1","publish_datetime":"2009-03-16T04:00:00Z","title":"PhysioBank ATM","url":"https://physionet.org/cgi-bin/ATM"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The <a href=\"https://physionet.org/physiotools/wfdb.shtml\">WFDB Software Package</a>, versions 10.4.17 and later, includes <a href=\"https://physionet.org/physiotools/wag/wfdb2m-1.htm\">wfdb2mat</a>, a program that converts all or any desired portion of the signals in any PhysioBank or compatible record to a <code>.mat</code> file that can be read by Matlab or Octave. If the original signal files have not been downloaded from PhysioNet, &lt;tt&gt;wfdb2mat&lt;/tt&gt; can read them directly from the PhysioNet server. The &lt;tt&gt;.mat&lt;/tt&gt; files generated by &lt;tt&gt;wfdb2mat&lt;/tt&gt; are also directly readable by dozens of other applications in the WFDB Software Package, including <a href=\"https://physionet.org/physiotools/wug/\">WAVE</a>.","guid":"70848a70-97f5-44b3-b316-2578bc59f863","publish_datetime":"2009-03-05T05:00:00Z","title":"wfdb2mat: convert PhysioBank records to .mat format","url":"https://physionet.org/physiotools/wag/wfdb2m-1.htm"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"A few days ago, the first 60 patient records from the <a href=\"https://physionet.org/physiobank/database/mimic2cdb-ps/\">MIMIC II Clinical Database</a> were posted, as part of the training set for our annual challenge (see the news item immediately below). A new tutorial, <a href=\"https://physionet.org/physiobank/tutorials/using-mimic2/\">Using the MIMIC II Database</a>, is now available to help challenge participants and others interested in this collection and in linking it with the recorded physiologic signals and time series of vital signs from the same patients in the <a href=\"https://physionet.org/pn5/mimic2db/\">MIMIC II Waveform Database</a>.","guid":"2e21ec70-3481-4dc7-b8de-10c224cc4998","publish_datetime":"2009-02-04T05:00:00Z","title":"Using the MIMIC II Database","url":"https://physionet.org/physiobank/tutorials/using-mimic2/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The <a href=\"https://physionet.org/challenge/2009/\">10th annual PhysioNet/Computers in Cardiology Challenge</a> is underway. Participants are invited to identify which ICU patients are likely to experience sudden and severe drops in blood pressure. Successful prediction of these acute hypotensive events may lead to improved care and survival of patients at risk. The Challenge culminates in September with presentations by participants at a dedicated scientific session of <a href=\"http://www.cinc.org/\">Computers in Cardiology</a> in Park City, Utah.","guid":"09869ffc-ae35-48b2-9435-00423c4e8ce6","publish_datetime":"2009-01-27T05:00:00Z","title":"PhysioNet/CinC Challenge 2009","url":"https://physionet.org/challenge/2009/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"<a href=\"https://physionet.org/tutorials/hrv-toolkit/\">Heart Rate Variability Analysis with the HRV Toolkit: Basic Time and Frequency Domain Measures</a> is a new tutorial that describes how to use the HRV toolkit (an accompanying software package created for PhysioNet by Joe Mietus) to select and prepare time series of inter-beat intervals and to calculate measurements of the basic time- and frequency-domain HRV statistics that are widely used in the literature. Particular attention is given to techniques for identifying and dealing with outliers, in order to permit reliable determination of measurements.","guid":"6cc61050-9fb5-4dbf-8b91-330ee6e34a40","publish_datetime":"2009-01-26T05:00:00Z","title":"Heart Rate Variability Analysis with the HRV Toolkit","url":"https://physionet.org/tutorials/hrv-toolkit/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"<a href=\"https://physionet.org/physiotools/TWAnalyser\">TWAnalyser</a> is open-source software for detecting and measuring T-wave alternans in the ECG, originally developed for the recently-concluded <a href=\"https://physionet.org/challenge/2008\">PhysioNet/CinC Challenge 2008</a>. Detailed notes on installing and using TWAnalyser are now available.","guid":"d4cd0c5d-1c8b-4452-bd65-6ee12b3ca95e","publish_datetime":"2008-11-18T05:00:00Z","title":"TWAnalyser","url":"https://physionet.org/physiotools/TWAnalyser"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The journal Chaos will publish a special issue containing discussion of the question \"Is the normal heart rate chaotic?\" in 2009. To provide a common focus for investigation of this question, a <a href=\"https://physionet.org/challenge/chaos/\">collection of fifteen 20-24 hour RR interval time series</a> derived from three PhysioBank ECG databases is now available for study.","guid":"6c3a4634-8b7a-4409-aa8d-6f605e2ad634","publish_datetime":"2008-10-30T05:00:00Z","title":"Chaos challenge database","url":"https://physionet.org/challenge/chaos/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The <a href=\"https://physionet.org/physiobank/database/ltafdb/\">Long Term AF Database</a>, a collection of 84 two-lead 24-hour ECG recording of subjects with paroxysmal and sustained atrial fibrillation, is now available.","guid":"9f742071-870b-4e07-a335-b2b167a3d797","publish_datetime":"2008-10-30T04:00:00Z","title":"Long Term AF Database","url":"https://physionet.org/physiobank/database/ltafdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Congratulations to the winners of the PhysioNet/CinC Challenge 2008 on the subject of T-wave alternans. Final results are now available: <a href=\"https://physionet.org/challenge/2008/final-scores\">scores</a>, <a href=\"https://physionet.org/challenge/2008/reference-ranks\">reference rankings</a> of the <a href=\"https://physionet.org/pn3/twadb\">Challenge 2008 data set</a>, and the <a href=\"https://physionet.org/challenge/2008/sources/\">open source software</a> contributed by participants in the open source division of the Challenge.","guid":"e892366a-2842-404f-a5a6-d8c87c00165f","publish_datetime":"2008-09-22T04:00:00Z","title":"Results from the PhysioNet/CinC Challenge 2008","url":"https://physionet.org/challenge/2008/final-scores"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"A collection of multiparameter recordings created to study <a href=\"https://physionet.org/physiobank/database/drivedb/\">stress recognition in automobile drivers</a> has been contributed to PhysioNet. The database contains recordings from healthy volunteers taken while they were driving on a prescribed route including city streets and highways in and around Boston. Signals recorded include ECG, EMG, GSR, and respiration.","guid":"eb3ca61a-2a64-4c3f-8326-c3ec46676720","publish_datetime":"2008-05-15T04:00:00Z","title":"Stress Recognition in Automobile Drivers","url":"https://physionet.org/physiobank/database/drivedb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The <a href=\"https://physionet.org/physiobank/database/incartdb/\">St. Petersburg Institute of Cardiological Technics 12-lead Arrhythmia Database</a> has been contributed to PhysioNet by its creators. It consists of 75 half-hour recordings extracted from 32 Holter records from patients undergoing tests for coronary artery disease, with reference annotation files containing over 175,000 beat annotations in all.","guid":"fff6f3e1-eea0-490f-a0fd-4d13482d3c7a","publish_datetime":"2008-05-01T04:00:00Z","title":"St. Petersburg Institute of Cardiological Technics 12-lead Arrhythmia Database","url":"https://physionet.org/physiobank/database/incartdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The <a href=\"https://physionet.org/challenge/2008/\">PhysioNet/Computers in Cardiology Challenge 2008</a> is underway. The topic of this, the ninth open challenge in our annual series, is detection and quantification of T-wave alternans.","guid":"828c9be2-1a5f-436b-9dee-881f36df17aa","publish_datetime":"2008-03-17T04:00:00Z","title":"PhysioNet/CinC Challenge 2008","url":"https://physionet.org/challenge/2008/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"A newly posted tutorial describes <a href=\"https://physionet.org/tutorials/physiobank-text.shtml\">How to obtain PhysioBank data in text form</a>.","guid":"e40b31f5-34e7-46cd-87c7-f18565fa3f6c","publish_datetime":"2008-02-26T05:00:00Z","title":"How to obtain PhysioBank data in text form","url":"https://physionet.org/tutorials/physiobank-text.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"PhysioBank now includes a large database of <a href=\"https://physionet.org/physiobank/database/gaitpdb/\">Gait in Parkinson's Disease</a>, a collection of multichannel recordings from force sensors beneath the feet of 93 patients with Parkinson's Disease, and 73 healthy controls, collected from three studies.","guid":"df2e60f5-e4ca-412b-9dbe-8b227b96ba8e","publish_datetime":"2008-02-25T05:00:00Z","title":"Gait in Parkinson's Disease","url":"https://physionet.org/physiobank/database/gaitpdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The MIMIC II project has contributed software for <a href=\"https://physionet.org/physiotools/deid/\">deidentification of free text in medical records</a>, and a corpus of deidentified text that can be used for development and evaluation of deidentifcation software.","guid":"da39765f-cc60-40de-8545-2c9d9bef4ef4","publish_datetime":"2007-12-18T05:00:00Z","title":"De-identification: software and test data","url":"https://physionet.org/physiotools/deid/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"<a href=\"https://physionet.org/challenge/2007/papers/\">Papers</a> by the participants in the PhysioNet/Computers in Cardiology <a href=\"https://physionet.org/challenge/2007/\">Challenge 2007</a> are now available, and the <a href=\"https://physionet.org/challenge/2007/gold-standard.txt\">reference interpretations</a> used to score the Challenge entries have also been posted.","guid":"c6c068d4-ccac-4938-80a3-44308f71471b","publish_datetime":"2007-12-04T05:00:00Z","title":"Papers from the PhysioNet/CinC Challenge 2007","url":"https://physionet.org/challenge/2007/papers/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"A new version of the <a href=\"https://physionet.org/physiotools/xview/\">XView toolkit</a> is compatible with the most recent version of X.org's X11 libraries, allowing applications that use XView, such as <a href=\"https://physionet.org/physiotools/wug/\">WAVE</a> and <a href=\"https://physionet.org/physiobank/database/ltstdb/semia/\">Semia</a>, to be run on Fedora 8.","guid":"6b723664-1a6e-429f-ba45-46c7db6606c6","publish_datetime":"2007-11-19T06:00:00Z","title":"XView toolkit updated","url":"https://physionet.org/physiotools/xview/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The <a href=\"https://physionet.org/mirrors/mirror-howto.shtml\">PhysioNet mirror kit</a> provides an easy way to set up a self-maintaining mirror of PhysioNet. The original mirror kit has been rewritten to provide simpler setup, faster mirror updates, and enhanced functionality for the mirrors.","guid":"4feea351-1ea8-4efc-907b-88edf5fea64e","publish_datetime":"2007-11-19T05:00:00Z","title":"PhysioNet mirror kit","url":"https://physionet.org/mirrors/mirror-howto.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The <a href=\"https://physionet.org/physiobank/database/ucddb/\">St. Vincent's University Hospital / University College Dublin Sleep Apnea Database</a> has been contributed to PhysioBank. This database contains 25 full overnight polysomnograms with simultaneous three-channel Holter ECG, from adult subjects with suspected sleep-disordered breathing.","guid":"1cae7af2-a7fa-4702-ba80-4d0529d31e2f","publish_datetime":"2007-10-09T04:00:00Z","title":"St. Vincent's University Hospital / University College Dublin Sleep Apnea Database","url":"https://physionet.org/physiobank/database/ucddb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"We congratulate the winners of the <a href=\"https://physionet.org/challenge/2007/\">PhysioNet / Computers in Cardiology Challenge 2007</a>: Mohamed Mneimneh, Hamid SadAbadi, and Masood Ghasemi. Thanks to all who participated, and who contributed data and expertise to make this event possible.","guid":"740dbe0c-78fd-4610-ba37-39ce83396439","publish_datetime":"2007-10-03T04:00:00Z","title":"Winners of the PhysioNet/CinC Challenge 2007","url":"https://physionet.org/challenge/2007/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The <a href=\"https://physionet.org/physiobank/database/nifecgdb/\">Non-Invasive Fetal Electrocardiogram Database</a>, a series of 55 multichannel abdominal fetal ECG recordings taken from a single subject over a period of 20 weeks, has been contributed to PhysioBank. The recordings are in EDF+ format, and include two thoracic (maternal ECG) signals and three or four abdominal (maternal+fetal ECG) signals.","guid":"7eaa04d6-22a0-4301-ac11-c25797e76f83","publish_datetime":"2007-09-06T04:00:00Z","title":"Non-Invasive Fetal Electrocardiogram Database","url":"https://physionet.org/physiobank/database/nifecgdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"PhysioNet begins its ninth year with new funding from two institutes of the <a href=\"http://www.nih.gov/\">National Institutes of Health</a> (NIH): the <a href=\"https://www.nibib.nih.gov/\">National Institute of Biomedical Imaging and Bioengineering</a> (NIBIB), and the <a href=\"http://www.nigms.nih.gov/\">National Institute of General Medical Sciences</a> (NIGMS). We are deeply grateful for the support of NIBIB and NIGMS, which makes PhysioNet's continued growth possible.","guid":"bd064ab4-3369-47ed-ab84-b1dfbe793251","publish_datetime":"2007-09-01T04:00:00Z","title":"Funding from National Institutes of Health","url":"http://www.nih.gov/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"<a href=\"https://physionet.org/physiotools/afvp/\">AF-VP</a>, a model for generating RR intervals in atrial fibrillation, has been contributed to PhysioNet by its authors.","guid":"8982df60-7694-45fa-8b9a-a1630fdd7f29","publish_datetime":"2007-08-09T04:00:00Z","title":"AFVP - A Realistic Ventricular Rhythm Model During AF","url":"https://physionet.org/physiotools/afvp/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"An extensive comparison of eleven previously described algorithms for <a href=\"https://physionet.org/physiotools/cardiac-output/\">cardiac output estimation from arterial blood pressure waveforms</a> has been contributed to PhysioNet. The package includes implementations of each algorithm in Matlab, a selection of records from the <a href=\"https://physionet.org/physiobank/database/mimic2db\">MIMIC II database</a> that contain ABP waveforms and \"gold standard\" thermodilution cardiac output measurements, and a comprehensive discussion of calibration techniques, evaluation methods, and rankings of the algorithms.","guid":"445bfe6d-ea62-402d-a0b2-4c731a278025","publish_datetime":"2007-08-02T04:00:00Z","title":"Cardiac output estimation from arterial blood pressure waveforms","url":"https://physionet.org/physiotools/cardiac-output/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"If a standard PhysioNet search doesn't yield what you are looking for, try a PhysioNet GSearch (a customized version of Google's search). See the <a href=\"https://physionet.org/search-help.shtml\">search help page</a> for PhysioNet GSearch and other options. [Update (13 November 2007): PhysioNet GSearch is now the standard search. The original ht://Dig-based search is still available on the Advanced Search and search help pages.]","guid":"25cd4d05-0397-4a3b-b168-d33f4bbe6f7e","publish_datetime":"2007-08-01T04:00:00Z","title":"PhysioNet GSearch","url":"https://physionet.org/search-help.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The storage and computational capacities of the master PhysioNet server have been upgraded following a comprehensive set of tests. The digitized signals, trends, and alarms of 2769 long-term records of the <a href=\"https://physionet.org/physiobank/database/mimic2db/\">MIMIC II Database</a> are now available thanks to the greatly expanded capacity of the new server.","guid":"b2ae4e87-8ad8-453c-9602-b9d07bccff5f","publish_datetime":"2007-07-31T04:00:00Z","title":"MIMIC II Database expanded","url":"https://physionet.org/physiobank/database/mimic2db/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The creators of the <a href=\"https://physionet.org/physiobank/database/ltstdb/\">Long-Term ST Database</a> have now contributed all of it (86 complete records) to PhysioNet. Each record is 21 to 24 hours long, and contains 2 or 3 ECG signals, annotated beat-by-beat and with respect to ST episodes, rhythm changes, and signal quality changes.","guid":"686a10ac-a1f2-4c50-8226-d724a934f053","publish_datetime":"2007-06-18T04:00:00Z","title":"Long-Term ST Database expanded","url":"https://physionet.org/physiobank/database/ltstdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The <a href=\"https://physionet.org/physiobank/database/mvtdb/\">Spontaneous Ventricular Tachyarrhythmia Database</a> (Version 1.0 from Medtronic, Inc.) contains 135 pairs of RR interval time series, recorded by implanted cardioverter defibrillators in 78 subjects. One series of each pair includes a spontaneous episode of ventricular tachycardia or ventricular fibrillation, and the other is a sample of the intrinsic (usually sinus) rhythm.","guid":"5ca90b04-b7f5-4a18-b632-a0ec4ee5a317","publish_datetime":"2007-05-02T04:00:00Z","title":"Spontaneous Ventricular Tachyarrhythmia Database","url":"https://physionet.org/physiobank/database/mvtdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"A new implementation of <a href=\"https://physionet.org/physiotools/cvsim/\">CVSim</a>, a cardiovascular simulator that has been used for education and research at MIT and Harvard Medical School for over 20 years, has been contributed to PhysioNet by its authors. CVSim can be launched directly from a web browser with no installation required in most cases.","guid":"fe24ed5a-b7a9-4f93-9f3f-75a9e09aa0d5","publish_datetime":"2007-03-16T04:00:00Z","title":"CVSim","url":"https://physionet.org/physiotools/cvsim/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The eighth annual <a href=\"https://physionet.org/challenge/2007/\">PhysioNet/Computers in Cardiology Challenge</a> has begun. This year's Challenge embraces the disciplines of both electrocardiography and (for the first time) imaging. Participants will estimate the location and extent of infarcts using ECG maps, and their estimates will be evaluated using \"gold standard\" measurements of gadolinium-enhanced MRI data.","guid":"3f9e7173-fad8-4eb7-bdf4-f1af19be8da9","publish_datetime":"2007-01-20T05:00:00Z","title":"PhysioNet/CinC Challenge 2007","url":"https://physionet.org/challenge/2007/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"<a href=\"https://physionet.org/challenge/2006/papers/\">Papers</a> describing the entries in the PhysioNet/Computers in Cardiology <a href=\"https://physionet.org/challenge/2006/\">Challenge 2006</a> are now available, as are the final <a href=\"https://physionet.org/challenge/2006/reference-QT.txt\">gold-stand ard QT measurements</a> for the Challenge database.","guid":"6bd408e4-b0d4-47a6-8fa2-14ed401d9c81","publish_datetime":"2006-10-16T04:00:00Z","title":"Papers from the PhysioNet/CinC Challenge 2006","url":"https://physionet.org/challenge/2006/papers/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The PhysioNet/Computers in Cardiology <a href=\"https://physionet.org/challenge/2006/\">Challenge 2006</a> attracted 41 participants, 19 of whom presented papers describing their methods for QT interval measurement at CinC in Valencia. The best score achieved by a manually reviewed entry was 6.67 ms (raw score: 6.65 ms, yield: 0.998), submitted by Mariano Llamedo Soria of the Universidad Tecnologica Nacional FRBA, Buenos Aires, Argentina. In all, seven entries in division 1 received scores below 20 ms. The best score achieved by an automated method was 16.34 ms (raw score: 15.53 ms, yield: 0.951), submitted by Dieter Hayn of ARC Seibersdorf Research GmbH, Graz, Austria. This entry achieved seventh place overall. The best score achieved by an open source automated method was 17.33 ms (raw score: 17.30 ms, yield: 0.998), by Yuriy Chesnokov of the Unilever Centre for Molecular Science Informatics, Cambridge University. This entry achieved ninth place overall, and second among all automated methods. In all, three entrants in divisions 2 and 3 earned scores below 20 ms, and six more received scores below 30 ms. An unofficial entry formed by combining the results of the three top entries in each of divisions 2 and 3 achieved a score of 10.93 ms (raw score: 10.39 ms, yield 0.951).","guid":"35971206-bda3-434e-badd-2ea47d65ef6b","publish_datetime":"2006-09-20T04:00:00Z","title":"Results from the PhysioNet/CinC Challenge 2006","url":"https://physionet.org/challenge/2006/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Digitized signals from over 1000 long-term records of the <a href=\"https://physionet.org/physiobank/database/mimic2db/\">MIMIC II Database</a> are now available in PhysioBank. These recordings from patients in intensive care units typically include ECG, ABP, and respiration signals, and are up to several weeks in duration.","guid":"3f2b8238-74a7-424e-9310-d82f083c16ca","publish_datetime":"2006-06-01T04:00:00Z","title":"MIMIC II Database","url":"https://physionet.org/physiobank/database/mimic2db/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The new <a href=\"https://physionet.org/physiotools/wfdb-swig.shtml\">wfdb-swig</a> software package makes it easy to read and write PhysioBank files with your own software written in Java, Perl, or Python. The package provides access to the <a href=\"https://physionet.org/physiotools/wpg/\">WFDB subroutine library</a>, which also supports software written in C, C++, and Fortran, as well as Matlab (via the <a href=\"https://physionet.org/physiotools/matlab/wfdb_tools/unsupported/W FDB_tools/doc/wfdb_tools/\">WFDB_tools package</a>).","guid":"736121b4-0607-4276-ae42-5818bc13e840","publish_datetime":"2006-03-12T05:00:00Z","title":"WFDB SWIG Wrappers","url":"https://physionet.org/physiotools/wfdb-swig.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The seventh annual <a href=\"https://physionet.org/challenge/2006/\">PhysioNet/Computers in Cardiology Challenge</a> has begun. Challenge 2006 offers participants an opportunity to establish the accuracy and reliability of fully automated methods for measuring QT intervals, a topic of interest since regulatory agencies around the world currently endorse only manual and semi-automated methods in clinical trials for new drugs. Visit the <a href=\"https://physionet.org/challenge/2006/\">Challenge 2006</a> home page to learn more.","guid":"8f8919e5-cd84-4cd2-9173-b9a245dbbd8e","publish_datetime":"2005-11-01T05:00:00Z","title":"PhysioNet/CinC Challenge 2006","url":"https://physionet.org/challenge/2006/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The winners of the <a href=\"https://physionet.org/challenge/2005/\">PhysioNet/Computers in Cardiology Challenge 2005</a> are R Povinelli of Marquette University, and the team of C Raab, N Wessel, A Schirdewan, and J Kurths of the University of Potsdam. Learn more at the <a href=\"https://physionet.org/challenge/2005/\">Challenge 2005</a> home page.","guid":"3e4f0b52-53ef-4802-a149-700cb510aa49","publish_datetime":"2005-10-04T04:00:00Z","title":"Winners of the PhysioNet/CinC Challenge 2005","url":"https://physionet.org/challenge/2005/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The entire <a href=\"https://physionet.org/physiobank/database/mitdb/\">MIT-BIH Arrhythmia Database</a> is now freely available in PhysioBank. Somewhat more than half of the database has been available here since PhysioNet's inception; the remainder has now been posted.","guid":"b561c375-6421-401b-b7ac-fa039796f30f","publish_datetime":"2005-02-24T05:00:00Z","title":"MIT-BIH Arrhythmia Database expanded","url":"https://physionet.org/physiobank/database/mitdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"PhysioToolkit's most capable tool for viewing, analyzing, and annotating physiologic signals, <a href=\"https://physionet.org/physiotools/wug/\">WAVE</a>, is now available for MS-Windows. WAVE was developed under SunOS and GNU/Linux, and it also runs under Solaris, FreeBSD, and Mac OS X. A single set of WAVE sources supports all of these platforms, so that WAVE behaves identically on any of them.","guid":"6fc25917-6b79-413a-90ac-d1bac977c961","publish_datetime":"2005-02-01T05:00:00Z","title":"WAVE for MS-Windows","url":"https://physionet.org/physiotools/wug/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"New in PhysioToolkit is <a href=\"https://physionet.org/physiotools/puka/\"><code>puka</code></a>, software that detects respiratory phase in strain gauge belt recordings, and that works together with other PhysioToolkit and open-source software to analyze respiratory and cardiac rhythms and their relationships. &lt;tt&gt;puka&lt;/tt&gt; was contributed by its author, Joset Etzel of Iowa State University.","guid":"edf5a20e-2014-4bc2-b03b-372ba336da7f","publish_datetime":"2004-12-15T05:00:00Z","title":"puka: Software for detection of breaths in strain gauge recordings","url":"https://physionet.org/physiotools/puka/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Users of some recent Linux kernels (including those supplied with Fedora Core 2 and 3) have been unable to use certain features of <a href=\"https://physionet.org/physiotools/wug/\">WAVE</a>, because these kernels are not completely compatible with the XView libraries needed by WAVE. <a href=\"https://physionet.org/physiotools/xview/\">New XView packages</a> are now available for use with these recent kernels; they restore access to all of the features of WAVE; see <a href=\"https://physionet.org/physiotools/xview/#linux-2.6\">this note</a> for details.","guid":"3c972b08-c2d3-4dcf-9284-88d7650eb8c4","publish_datetime":"2004-12-13T05:00:00Z","title":"XView toolkit updated","url":"https://physionet.org/physiotools/xview/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Read about the winners of the PhysioNet/Computers in Cardiology Challenge 2004 <a href=\"https://physionet.org/challenge/2004/top-scores.shtml\">here</a>! This year's challenge invited participants to develop methods for predicting if (or when) an episode of atrial fibrillation will self-terminate. The final results have been posted, together with abstracts of the participants' papers, the winning software entries, and additional information about the challenge.","guid":"e4a516e2-d6b8-48d5-b66c-b3da94ccf4da","publish_datetime":"2004-10-31T04:00:00Z","title":"Results from the PhysioNet/CinC Challenge 2004","url":"https://physionet.org/challenge/2004/top-scores.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Measurements of postural sway in healthy elderly and young volunteers, with and without subsensory stimulation of the soles of the feet to improve balance control, are available in a new database, <a href=\"https://physionet.org/physiobank/database/nesfdb/\">Noise Enhancement of Sensorimotor Function</a>.","guid":"c3f2dcf2-960c-4f4f-ad1d-0ce4c17aba99","publish_datetime":"2004-10-29T04:00:00Z","title":"Noise Enhancement of Sensorimotor Function","url":"https://physionet.org/physiobank/database/nesfdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Software for multifractal analysis of time series has been contributed to PhysioToolkit by its author, Yossi Ashkenazy, and is now available <a href=\"https://physionet.org/physiotools/multifractal/\">here</a>.","guid":"ddad74ef-96f9-4d69-b1c6-7715796348ba","publish_datetime":"2004-10-27T04:00:00Z","title":"Software for analysis of multifractal time series","url":"https://physionet.org/physiotools/multifractal/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"<a href=\"https://physionet.org/physiotools/ibs/\">IBS</a> is a novel linguistic analysis method that has been successfully applied to studies of inter-beat interval time series, the origin of the SARS coronavirus, and the authorship of Shakespeare's plays. Software and an IBS tutorial are available <a href=\"https://physionet.org/physiotools/ibs/\">here</a>.","guid":"3748be0f-0401-47ad-bce0-76acda5596ff","publish_datetime":"2004-10-26T04:00:00Z","title":"IBS: Information-Based Similarity","url":"https://physionet.org/physiotools/ibs/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"New in PhysioBank is the <a href=\"https://physionet.org/physiobank/database/ptbdb/\">PTB Diagnostic ECG Database</a>, a collection of 549 high-resolution 15-lead ECGs (12 standard leads together with Frank XYZ leads), including clinical summaries for each record. From one to five ECG records are available for each of the 294 subjects, who include healthy subjects as well as patients with a variety of heart diseases.","guid":"0ee649c5-0c58-4647-a6e7-efc1730c0add","publish_datetime":"2004-09-25T04:00:00Z","title":"PTB Diagnostic ECG Database","url":"https://physionet.org/physiobank/database/ptbdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Software for <a href=\"https://physionet.org/physiotools/eval_st/\">evaluating ST analyzers</a> has been contributed to PhysioToolkit by its authors, Franc Jager and Aleš Smrdel of the Laboratory of Biomedical Computer Systems and Imaging at the University of Ljubljana (Slovenia).","guid":"82f1f5d8-800c-4036-9f43-7923edfdb2ba","publish_datetime":"2004-09-17T04:00:00Z","title":"Software for evaluating ST analyzers","url":"https://physionet.org/physiotools/eval_st/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"New in PhysioToolkit is software for <a href=\"https://physionet.org/physiotools/mse/\">multiscale entropy (MSE) analysis</a>. This approach is useful for study of time series that have correlations at multiple scales. A new <a href=\"https://physionet.org/physiotools/mse/tutorial/\">tutorial</a> illustrating the application of the MSE method to analysis of interbeat (RR) interval time series accompanies the software.","guid":"8c4a105f-301c-42e3-b1e3-fc71e09038ac","publish_datetime":"2004-08-04T04:00:00Z","title":"Multiscale entropy (MSE) analysis","url":"https://physionet.org/physiotools/mse/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The <a href=\"https://physionet.org/physiobank/database/crisdb/\">CAST RR Interval Sub-Study Database</a> has been contributed to PhysioBank. The database contains a set of beat annotation files (about 24 hours each) from 809 subjects enrolled in the Cardiac ArrhythmiaSuppression Trial (CAST), a landmark NHLBI-sponsored study. For 734 subjects, separate baseline (pre-treatment) and on-therapy records are available; the database consists of 1543 records in all, including roughly 150 million RR interval measurements.","guid":"cda8b724-4f2e-49fe-8643-5617694e3135","publish_datetime":"2004-07-02T05:00:00Z","title":"CAST RR Interval Sub-Study Database","url":"https://physionet.org/physiobank/database/crisdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"PhysioNet has inaugurated the <a href=\"https://physionet.org/physiobank/database/sddb/\">Sudden Cardiac Death Holter Database</a>. This is a collection of long-term ECG recordings of patients who experienced sudden cardiac death during the recordings. Half-hour excerpts of these recordings have been (and remain) available as the <a href=\"https://physionet.org/physiobank/database/vfdb/\">MIT-BIH Malignant Ventricular Ectopy Database</a>. The new database includes a set of unaudited beat annotation files and an incomplete set of audited annotation files. Interested researchers are invited to contribute additional recordings and to join in the effort to complete a thorough and rigorously reviewed set of reference-quality annotation files for these unique recordings.","guid":"7d6aaf96-e929-492c-bf5b-46f04d5dceaa","publish_datetime":"2004-07-02T04:00:00Z","title":"Sudden Cardiac Death Holter Database","url":"https://physionet.org/physiobank/database/sddb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Sorry for the interruption! The main PhysioNet server was off-line for about 45 minutes on 3 May during a power outage that affected a large portion of the city of Cambridge, including the MIT campus. Our backup power kept the server available for the first 25 minutes of the outage, which was the first to cause an interruption since PhysioNet was inaugurated almost 5 years ago. If you ever find that you can't reach PhysioNet, use Google to search for \"physionet mirrors\".","guid":"62fca71a-e959-41bc-a57f-0020e4a7a145","publish_datetime":"2004-05-04T04:00:00Z","title":"Power outage","url":""}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"<b>PhysioNet/Computers in Cardiology Challenge 2004 update:</b> Twenty particpants submitted initial results for scoring before the first deadline passed. If your initial results were received before the first deadline, any results you submit before the final deadline of 14 September can be used to improve your standing. If you missed the first deadline, you may still submit results for unofficial scores.","guid":"4f8976fd-98fa-4a50-8dc5-2a98ec2b58a4","publish_datetime":"2004-05-01T04:00:00Z","title":"PhysioNet/Computers in Cardiology Challenge 2004 update","url":"https://physionet.org/challenge/2004/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The latest in our <a href=\"https://physionet.org/challenge/\">annual series of challenges</a> has been underway for several months. This year's challenge asks if it is possible to predict if (or when) an episode of atrial fibrillation will end spontaneously. Visit the <a href=\"https://physionet.org/challenge/2004/\">Challenge 2004</a> home page to learn more. <br><br> The <a href=\"http://www.physionet.org/cgi-bin/cinc-2004-score\">autoscorer</a> is now available to challenge participants. Submit your entry using the autoscorer and receive your score by return email within a few minutes. <a href=\"http://www.physionet.org/challenge/2004/top-scores.shtml\">Top scores</a> are also available and are continously updated by the autoscorer.","guid":"5b61c96a-0ab4-4df3-89de-f3b3bc4b9600","publish_datetime":"2004-04-11T04:00:00Z","title":"PhysioNet/CinC Challenge 2004 autoscorer","url":"https://physionet.org/challenge/2004/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The <a href=\"https://physionet.org/physiobank/database/ltstdb/\">Long-Term ST Database</a> has been updated with the addition of detailed clinical notes and ST deviation trend plots for all 86 records of the database.","guid":"964bda90-7bd3-4310-985e-4f6347ae3a9d","publish_datetime":"2003-12-09T05:00:00Z","title":"Long-Term ST Database updated","url":"https://physionet.org/physiobank/database/ltstdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"A beta release of the <a href=\"https://physionet.org/physiotools/matlab/wfdb_tools\">WFDB_tools</a> package is now available for testing. This package allows Matlab R13 users to use the <a href=\"https://physionet.org/physiotools/wfdb.shtml\">WFDB library</a> to read and write digitized signals and annotations such as those available from <a href=\"https://physionet.org/physiobank/\">PhysioBank</a>. The WFDB_tools functions are wrappers for the WFDB library, so that Matlab users can access the full range of capabilities offered by current and future versions of the WFDB library, including transparent access to data in a large and growing number of formats, whether stored locally or on remote web servers. The package was written and contributed by Jonas Carlson. It has been tested successfully under GNU/Linux and MS-Windows, and it should be portable to MacOS X and other platforms supported by Matlab R13.","guid":"482e55cf-a1b5-41e9-bff1-d86b31abdf99","publish_datetime":"2003-12-06T05:00:00Z","title":"WFDB_tools package for Matlab","url":"https://physionet.org/physiotools/matlab/wfdb_tools"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Patrick McSharry and Gari Clifford have contributed <a href=\"https://physionet.org/physiotools/ecgsyn\">ECGSYN</a>, software for generating a realistic ECG signal with a wide variety of user-settable parameters. The package includes C, Java, and Matlab/Octave implementations, together with a <a href=\"https://physionet.org/physiotools/ecgsyn/paper/\">paper</a> describing the model.","guid":"7fb69209-7536-4587-a1f7-c5fa4d35e843","publish_datetime":"2003-12-03T05:00:00Z","title":"ECGSYN: A realistic ECG waveform generator","url":"https://physionet.org/physiotools/ecgsyn"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The NHLBI-sponsored multi-center <a href=\"http://www.jhucct.com/shhs/\">Sleep Heart Health Study</a> has contributed the first of a planned set of 1000 overnight <a href=\"https://physionet.org/physiobank/database/shhpsgdb/\">polysomnograms</a> to PhysioBank. The study has investigated the relationship between sleep disordered breathing and cardiovascular disease since 1995. The data include EEG, EOG, EMG, ECG, nasal airflow and respiratory effort signals, SaO2 and heart rate measurements, and annotated sleep stages, respiratory events, EEG arousals, and more.","guid":"7df8b2c5-814b-4474-add9-56a089f46f17","publish_datetime":"2003-10-23T04:00:00Z","title":"SHHS Polysomnography Database","url":"https://physionet.org/physiobank/database/shhpsgdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Version 10.3.11 of the <a href=\"https://physionet.org/physiotools/wfdb.shtml\">WFDB software package</a> incorporates many improvements over previous versions; a summary of recent changes is available <a href=\"https://physionet.org/physiotools/wfdb/NEWS\">here</a>. Sources, GNU/Linux and MS-Windows binaries, and revised manuals are now available.","guid":"d3d2355f-a698-4a01-aa0f-f43a54a4142f","publish_datetime":"2003-10-17T04:00:00Z","title":"WFDB Software Package updated","url":"https://physionet.org/physiotools/wfdb.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The <a href=\"https://physionet.org/challenge/2004/\">PhysioNet/Computers in Cardiology Challenge 2004</a> is underway! The topic is spontaneous termination of atrial fibrillation. The challenge <a href=\"https://physionet.org/physiobank/database/aftdb/\">data set</a> is available now; further details about the challenge will be posted shortly.","guid":"e1940ae7-3b37-4e74-8d5c-73a1ccea0fb3","publish_datetime":"2003-10-08T04:00:00Z","title":"PhysioNet/CinC Challenge 2004","url":"https://physionet.org/challenge/2004/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The master PhysioNet server has been replaced by a new server with greater capacity and speed. Please report any problems you encounter by clicking on the comments link at the bottom of most pages (or to <a href=\"mailto:webmaster@physionet.org\">webmaster@physionet.org</a>). <br><br> Among the new features of this server are significantly improved <a href=\"https://physionet.org/search.shtml\">Advanced Search</a> and <a href=\"https://physionet.org/cgi-bin/chart/\">Chart-O-Matic</a> facilities, and the complete <a href=\"https://physionet.org/physiobank/database/mghdb/\">MGH/MF Waveform Database</a>.","guid":"1a52a70d-6c31-49e4-9e5c-f8b1662d2f4c","publish_datetime":"2003-07-14T04:00:00Z","title":"New server","url":""}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"A two-lead ECG recording that was selected for inclusion in the AHA Database for Evaluation of Ventricular Arrhythmia Detectors, but eventually excluded, is now available <a href=\"https://physionet.org/physiobank/database/ahadb/\">here</a>.","guid":"177cdc36-072b-4695-80b4-52a059821db6","publish_datetime":"2003-06-06T04:00:00Z","title":"AHA Database Sample Excluded Record","url":"https://physionet.org/physiobank/database/ahadb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Participants in the <a href=\"https://physionet.org/challenge/2003/\">PhysioNet/Computers in Cardiology Challenge 2003</a> have an extra week to submit abstracts describing their work, since the conference has extended the abstract deadline to Thursday, 8 May.","guid":"cb410cda-8ce8-4a98-a8f5-407c93f79c3c","publish_datetime":"2003-05-03T04:00:00Z","title":"Computers in Cardiology abstract deadline extended","url":"https://physionet.org/challenge/2003/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Robert Tratnig and Klaus Rheinberger have contributed a Matlab <a href=\"https://physionet.org/physiotools/matlab/rddata.m\">viewer</a> that reads and displays many PhysioBank records, the latest in a collection of <a href=\"https://physionet.org/physiotools/matlab/\">software for Matlab and Octave</a> contributed by PhysioNet users. <br><br> An effort is now underway to create a set of Matlab wrappers for the <a href=\"https://physionet.org/physiotools/wpg/\">WFDB library</a>. Such wrappers would allow Matlab applications to make use of the full range of capabilities offered by the WFDB library, including direct access to records stored on PhysioNet and other web servers in addition to local disk files, support for a wide and growing variety of data formats using a uniform API, resampling on-the-fly, and much more. If you are interested in contributing to this project, whether as a developer, a tester, or a documentation writer, please <a href=\"mailto:george@mit.edu?subject=Matlab%20WFDB%20wrapper%20project\"> write</a> and let us know how you would like to participate.","guid":"286fbbd3-c3ec-41b0-a0b2-b837ed804d83","publish_datetime":"2003-04-16T04:00:00Z","title":"Matlab viewer for PhysioBank data","url":"https://physionet.org/physiotools/matlab/rddata.m"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The creators of the <a href=\"https://physionet.org/physiobank/database/ltstdb/\">Long-Term ST Database</a> have contributed a paper describing the database (available as <a href=\"https://physionet.org/physiobank/database/ltstdb/lt03/\">HTML</a> or <a href=\"https://physionet.org/physiobank/database/ltstdb/lt03/lt03.pdf\">P DF</a>).","guid":"998cd3b4-0401-4ba5-b430-9bada46bc3f2","publish_datetime":"2003-04-14T04:00:00Z","title":"Long-Term ST Database paper","url":"https://physionet.org/physiobank/database/ltstdb/lt03/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Several of the participants in the first <a href=\"https://physionet.org/challenge/2000/\">PhysioNet/Computers in Cardiology Challenge</a>, together with the organizers, have published a joint paper that compares the methods used in the challenge and investigates how to combine several of the most successful strategies for detecting and quantifying sleep apnea based on the ECG. This paper appeared last year in <a href=\"http://www.iee.org/Publish/Journals/ProfJourn/MBEC/Mbec2002.cfm\"><i>Medical &amp; Biological Engineering &amp; Computing</i></a>, and it can now be read on-line <a href=\"http://www.iee.org/Publish/Journals/ProfJourn/MBEC/20023682.pdf\">[external link, PDF]</a>.","guid":"dbed6409-d9b4-4605-acfe-b458976f234a","publish_datetime":"2003-03-14T05:00:00Z","title":"Revisiting the PhysioNet/CinC Challenge 2000","url":"https://physionet.org/challenge/2000/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"PhysioNet is made possible by the generous contributions of a worldwide community of researchers. We are pleased to inaugurate the <a href=\"https://physionet.org/contributors/\">PhysioNet Contributors Page</a>, a who's who of those who have made this resource what it is.","guid":"65acd28e-1f77-4214-ae6d-4e95eea28eab","publish_datetime":"2003-03-09T05:00:00Z","title":"PhysioNet Contributors Page","url":"https://physionet.org/contributors/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"A <a href=\"https://physionet.org/physiotools/heartprints/\">heartprint</a> is a novel way of visualizing the dynamics of ventricular ectopy. Software for creating heartprints from beat annotation files or RR interval lists has been contributed to PhysioToolkit.","guid":"e52d6586-2f3b-4868-bbb3-6d360c0d5dea","publish_datetime":"2003-03-08T05:00:00Z","title":"Heartprints: A Dynamical Portrait of Cardiac Arrhythmia","url":"https://physionet.org/physiotools/heartprints/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"A pair of papers discussing the effects of <a href=\"https://physionet.org/physiobank/database/synthetic/tns/paper1/\"> trends</a> and <a href=\"https://physionet.org/physiobank/database/synthetic/tns/paper2/\"> nonstationarities</a> on <a href=\"https://physionet.org/physiotools/dfa/\">detrended fluctuation analysis (DFA)</a>, together with the <a href=\"https://physionet.org/physiobank/database/synthetic/tns/\">surroga te data</a> on which these studies were based, have been contributed to PhysioBank.","guid":"6c70ad6e-80ab-4255-807d-c8aeb64d9d37","publish_datetime":"2003-03-07T05:00:00Z","title":"Trends, Nonstationarities, and Detrended Fluctuation Analysis","url":"https://physionet.org/physiobank/database/synthetic/tns/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The fourth annual <a href=\"https://physionet.org/challenge/2003/\">PhysioNet/Computers in Cardiology Challenge</a> has begun. Is it possible to tell the difference between transient ST changes in the ECG that are due to myocardial ischemia, and those that are not? We invite you to participate in this challenge, making use of the recently completed <a href=\"https://physionet.org/physiobank/database/ltstdb/\">Long-Term ST Database</a> to study this provocative question.","guid":"502b2033-1222-47d1-ad51-8229d364de90","publish_datetime":"2003-03-06T05:00:00Z","title":"PhysioNet/CinC Challenge 2003","url":"https://physionet.org/challenge/2003/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"A new tutorial, <a href=\"https://physionet.org/tutorials/hrv/\">RR Intervals, Heart Rate, and HRV</a>, provides a brief overview of how to obtain inter-beat (RR) interval and heart rate time series, and of some basic methods for characterizing heart rate variability, using freely available PhysioToolkit software.","guid":"dfeb86ee-4286-4314-b98d-28583bee222a","publish_datetime":"2003-03-05T05:00:00Z","title":"RR Intervals, Heart Rate, and HRV","url":"https://physionet.org/tutorials/hrv/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The <a href=\"https://physionet.org/physiobank/database/iafdb/\">Intracardiac Atrial Fibrillation Database</a> is a new collection of high-resolution recordings from eight subjects in atrial fibrillation or flutter. Each recording includes three surface ECG signals and five intracardiac signals, all simultaneously recorded. These are the first freely available recordings of their type.","guid":"2d19e870-dcfb-4060-a1ee-cbaa6f6d7a83","publish_datetime":"2003-03-04T05:00:00Z","title":"Intracardiac Atrial Fibrillation Database","url":"https://physionet.org/physiobank/database/iafdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Software for measuring <a href=\"https://physionet.org/physiotools/pNNx/\">pNNx</a>, a family of time-domain heart rate variability statistics of which the widely-used pNN50 is a member, has been contributed to PhysioToolkit. The study that introduced pNNx made use of several PhysioBank databases as well as additional data that have also been contributed to PhysioBank, including the <a href=\"https://physionet.org/physiobank/database/chf2db/\">Congestive Heart Failure RR Interval Database</a>, the <a href=\"https://physionet.org/physiobank/database/nsr2db/\">Normal Sinus Rhythm RR Interval Database</a>, and the remainder of the <a href=\"https://physionet.org/physiobank/database/fantasia/\">Fantasia Database</a> (see the news item for 2 March below).","guid":"9f53d03e-3ff4-420d-a92c-4d3e085e0ffb","publish_datetime":"2003-03-03T07:00:00Z","title":"pNNx: Time Domain Heart Rate Variability Analysis","url":"https://physionet.org/physiotools/pNNx/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The <a href=\"https://physionet.org/physiobank/database/chf2db/\">Congestive Heart Failure RR Interval Database</a> includes beat annotations (about 24 hours each, no ECGs) for 29 subjects with congestive heart failure (NYHA classes 1, 2, and 3).","guid":"7d69a6a4-acf4-457c-a432-0d6a68a1647c","publish_datetime":"2003-03-03T06:00:00Z","title":"Congestive Heart Failure RR Interval Database","url":"https://physionet.org/physiobank/database/chf2db/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The <a href=\"https://physionet.org/physiobank/database/nsr2db/\">Normal Sinus Rhythm RR Interval Database</a> also includes 24-hour beat annotation files for 54 subjects in normal sinus rhythm.","guid":"f641eb34-222a-4b57-a1a9-e56ebbe67254","publish_datetime":"2003-03-03T05:00:00Z","title":"Normal Sinus Rhythm RR Interval Database","url":"https://physionet.org/physiobank/database/nsr2db/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"A subset of data from the <a href=\"https://physionet.org/physiobank/database/fantasia/\">Fantasia Database</a> has been available here for several years; the remainder of the database is now available. It consists of ECG and respiration recordings, with beat annotations, from 20 young and 20 elderly subjects, all rigorously screened as healthy, in sinus rhythm during a resting state (two hours each). Half of the recordings also include (uncalibrated) continuous noninvasive blood pressure signals.","guid":"22f1c34c-7322-41bc-8c85-1b64d4b915d0","publish_datetime":"2003-03-02T05:00:00Z","title":"Fantasia Database expanded","url":"https://physionet.org/physiobank/database/fantasia/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The creators of the <a href=\"https://physionet.org/physiobank/database/ltstdb/\">Long-Term ST Database</a> have contributed half of it (43 of 86 complete records) to PhysioNet. Each record is 21 to 24 hours long, and contains 2 or 3 ECG signals, annotated beat-by-beat and with respect to ST episodes, rhythm changes, and signal quality changes; each record also includes ST level time series based on 16-second averages centered on each beat.","guid":"238a1b93-4f12-425a-8a39-dcb18ff55b55","publish_datetime":"2003-02-28T05:00:00Z","title":"Long-Term ST Database expanded","url":"https://physionet.org/physiobank/database/ltstdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Version 10.3.2 of the <a href=\"https://physionet.org/physiotools/wfdb.shtml\">WFDB Software Package</a> has just been released, with new several new applications and numerous updates; see the <a href=\"https://physionet.org/physiotools/wfdb/NEWS\">release notes</a> for details.","guid":"6c4c5871-9b0f-4572-95e9-dd15164ecbb5","publish_datetime":"2003-02-25T05:00:00Z","title":"WFDB Software Package updated","url":"https://physionet.org/physiotools/wfdb.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"A standard set of <a href=\"https://physionet.org/physiobank/database/aami-ec13/\">test waveforms</a>, as specified by ANSI/AAMI EC13 (the American National Standard for cardiac monitors, heart rate meters, and alarms), is now available in PhysioBank.","guid":"35a02316-1993-4bee-9182-8754eb727efa","publish_datetime":"2003-01-03T05:00:00Z","title":"ANSI/AAMI EC13 Test Waveforms","url":"https://physionet.org/physiobank/database/aami-ec13/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The <a href=\"https://physionet.org/physiobank/database/sleep-edf/\">Sleep-EDF Database</a> is a collection of sleep recordings from healthy subjects contributed to PhysioBank by Bob Kemp. These recordings are presented in European Data Format (EDF), a standard for archiving and exchanging polysomnographic recordings. It's easy to read and write EDF files using the <a href=\"https://physionet.org/physiotools/wag/edf2mi-1.htm\">format converters</a> available in PhysioToolkit.","guid":"ecaf6772-82fb-4ed8-9906-a443d325ff99","publish_datetime":"2002-12-12T06:00:00Z","title":"Sleep-EDF Database","url":"https://physionet.org/physiobank/database/sleep-edf/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"A gentle introduction to much of the software available on this site is offered by <a href=\"https://physionet.org/tutorials/apt/\">Applying PhysioNet tools to manage neurophysiological signals</a>, a tutorial with data and hands-on exercises contributed by Jesus Olivan Palacios.","guid":"abe3576c-4727-475a-b0db-6099375749f2","publish_datetime":"2002-12-12T05:00:00Z","title":"Applying PhysioNet tools to manage neurophysiological signals","url":"https://physionet.org/tutorials/apt/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"An arterial blood pressure (ABP) pulse detector for continous ABP signals has been added to version 10.3.1 of the <a href=\"https://physionet.org/physiotools/wfdb.shtml\"> WFDB Software Package</a>, which has just been posted. Read about other new features <a href=\"https://physionet.org/physiotools/wfdb/NEWS\">here</a>.","guid":"6f210168-e521-4ea6-8161-5a95c352959e","publish_datetime":"2002-12-05T05:00:00Z","title":"WFDB Software Package updated","url":"https://physionet.org/physiotools/wfdb.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Version 10.3.0 of the <a href=\"https://physionet.org/physiotools/wfdb.shtml\">WFDB Software Package</a> has just been released, with many new features. Highlights include a <a href=\"https://physionet.org/physiotools/wfdb-darwin-quick-start.shtml\"> port to MacOS/X</a>; a new WFDB library interface permitting <a href=\"https://physionet.org/physiotools/wpg/wpg_59.htm\">random access to digitized signals</a>; a new <a href=\"https://physionet.org/physiotools/wag/wqrs-1.htm\">QRS detector</a>; a new application for <a href=\"https://physionet.org/physiotools/wag/sigavg-1.htm\">signal averaging</a>; up-to-date binaries for <a href=\"https://physionet.org/physiotools/binaries/intel-linux/\">GNU/Linu x</a>, <a href=\"https://physionet.org/physiotools/binaries/windows/\">MS-Windows</a> (including, for the first time, a WFDB DLL), and <a href=\"https://physionet.org/physiotools/binaries/sparc-solaris/\">Solari s</a>; updated <a href=\"https://physionet.org/physiotools/manuals.shtml\">manuals</a>; and <a href=\"https://physionet.org/physiotools/wfdb/NEWS\">more</a>.","guid":"2942d073-9816-4643-99b0-08d925809872","publish_datetime":"2002-11-26T05:00:00Z","title":"WFDB Software Package updated","url":"https://physionet.org/physiotools/wfdb.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Version 2.2 of <a href=\"https://physionet.org/physiotools/plt/\"><code>plt</code></a> adds support for MacOS/X and an updated manual.","guid":"9efd32b9-451f-4b30-8e7c-1cc5f97d72fe","publish_datetime":"2002-11-17T05:00:00Z","title":"plt updated","url":"https://physionet.org/physiotools/plt/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"A new and improved version of Floyd Harriott's <a href=\"https://physionet.org/physiotools/matlab/ECGwaveGen/\">ECG waveform generator</a> has been posted.","guid":"8dc509e8-890c-4178-904b-4ceccb1f1fce","publish_datetime":"2002-11-13T05:00:00Z","title":"ECG waveform generator for Matlab/Octave","url":"https://physionet.org/physiotools/matlab/ECGwaveGen/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"An application for exporting PhysioBank records in EDF (European Data Format) is now available; find it <a href=\"https://physionet.org/physiotools/wfdb/convert/mit2edf.c\">here</a> [link updated 25 November 2002]. The complementary <a href=\"https://physionet.org/physiotools/wag/edf2mi-1.htm\">application</a> for converting EDF recordings into PhysioBank format has been available as part of the <a href=\"https://physionet.org/physiotools/wfdb.shtml\">WFDB Software Package</a> for several years.","guid":"9881ae7c-c8c4-477b-a20c-5215c8448002","publish_datetime":"2002-11-08T05:00:00Z","title":"mit2edf: convert PhysioBank records to EDF format","url":"https://physionet.org/physiotools/wfdb/convert/mit2edf.c"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Version 2.1 of <a href=\"https://physionet.org/physiotools/plt/\"><code>plt</code></a>, PhysioToolkit's scriptable plotting utility, is now available for GNU/Linux, MS-Windows, and in source form for other platforms.","guid":"9a731d11-c8b8-4160-beec-854ae6bef0e0","publish_datetime":"2002-11-07T05:00:00Z","title":"plt updated","url":"https://physionet.org/physiotools/plt/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"New <a href=\"https://physionet.org/physiotools/xview/\">XView</a> packages have been posted for Red Hat GNU/Linux 7.x and 8.x. XView provides the GUI elements of <a href=\"https://physionet.org/physiotools/wug/\">WAVE</a> and <a href=\"https://physionet.org/physiobank/database/ltstdb/semia/\">SEMIA</a>; the new packages incorporate many bug fixes and provide a more stable GUI for WAVE and SEMIA under GNU/Linux.","guid":"33d000e5-b610-4fc9-a360-cd732529b84b","publish_datetime":"2002-10-31T05:00:00Z","title":"XView toolkit updated","url":"https://physionet.org/physiotools/xview/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Final versions of five complete (24-hour) records from the <a href=\"https://physionet.org/physiobank/database/ltstdb/\">Long-Term ST Database</a> are now available, together with <a href=\"https://physionet.org/physiobank/database/ltstdb/semia/\">SEMIA</a>, a tool for viewing the detailed trend data, annotations, and ECG signals from these records. More records from this database will be available shortly.","guid":"b1e158ec-b5d0-43ce-b2dd-0c6c6f2e914f","publish_datetime":"2002-10-30T05:00:00Z","title":"Long-Term ST Database updated","url":"https://physionet.org/physiobank/database/ltstdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"New editions of the WFDB Software Package's <a href=\"https://physionet.org/physiotools/manuals.shtml\">manuals</a> have been posted, with many revisions, additions, corrections, and cross-references. All are available in HTML for on-line reference as well as in PDF and PostScript versions for download and printing.","guid":"070270b3-492c-4cfa-acf4-e00454353a05","publish_datetime":"2002-10-26T04:00:00Z","title":"WFDB Software Package manuals updated","url":"https://physionet.org/physiotools/manuals.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The <a href=\"https://physionet.org/challenge/2002/generators/\">RR interval time series models</a> that were entered into event 1 of the <a href=\"https://physionet.org/challenge/2002/\">PhysioNet/Computers in Cardiology Challenge 2002</a> are now available for study. Each of the ten models is implemented as a self-contained C program that can generate a synthetic RR interval time series of at least 24 hours' duration.","guid":"8336250e-4c8f-44f5-9325-15838ebdc480","publish_datetime":"2002-09-26T04:00:00Z","title":"Algorithms from the PhysioNet/CinC Challenge 2002","url":"https://physionet.org/challenge/2002/generators/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Using the AHA Database with PhysioToolkit is easier than ever with the new <a href=\"https://physionet.org/physiotools/wag/a2m-1.htm\"><code>ahaconvert</code></a> script (batch file) for importing data from AHA CD-ROMs.","guid":"833f23b0-c81b-4221-beb1-cfc14df0b8a6","publish_datetime":"2002-08-08T04:00:00Z","title":"Importing data from AHA Database CD-ROMs","url":"https://physionet.org/physiotools/wag/a2m-1.htm"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Most PhysioToolkit software uses the <a href=\"https://physionet.org/physiotools/wfdb.shtml\">WFDB library</a> to read and write PhysioBank-format files; the library is also available for use in your own programs. Beginning with version 10.2.6, applications that use the WFDB library can choose any convenient sampling frequency, and the library will transparently resample input signals at that frequency.","guid":"9562e7a9-5e8f-456c-9e9c-e18ad4097b32","publish_datetime":"2002-06-24T04:00:00Z","title":"Resampling using the WFDB library","url":"https://physionet.org/physiotools/wfdb.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The Massachusetts General Hospital/Marquette Foundation (MGH/MF) Waveform Database is a collection of 250 recordings of hemodynamic and electrocardiographic waveforms of patients in critical care units. Typical recordings include three ECG signals, ABP, PAP, CVP, respiratory impedance, and airway CO2 waveforms. The first 25 recordings of the MGH/MF Waveform database are now available <a href=\"https://physionet.org/physiobank/database/mghdb/\">here</a>. <b>Update: the entire database is now available.</b>","guid":"911f57cb-054f-4310-bda7-009320cf2203","publish_datetime":"2002-06-10T04:00:00Z","title":"The MGH/MF Waveform Database","url":"https://physionet.org/physiobank/database/mghdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"<a href=\"https://physionet.org/tutorials/multifractal/\">A brief overview of multifractal time series</a> has been posted in the <a href=\"https://physionet.org/tutorials/\">Tutorials</a> section of PhysioNet.","guid":"77cf7d41-99ce-4751-938a-6e690b9146fe","publish_datetime":"2002-05-29T04:00:00Z","title":"A brief overview of multifractal time series","url":"https://physionet.org/tutorials/multifractal/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The <a href=\"https://physionet.org/challenge/2002/top-scores.shtml\">top scores</a> for the PhysioNet/Computers in Cardiology Challenge 2002 have now been posted. Congratulations to the winners, and thanks to all who participated!","guid":"2ad60acd-8648-4e6c-a1f3-9e5d02831565","publish_datetime":"2002-05-09T04:00:00Z","title":"Results from the PhysioNet/CinC Challenge 2002","url":"https://physionet.org/challenge/2002/top-scores.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Event 2 of the <a href=\"https://physionet.org/challenge/2002/\">PhysioNet/Computers in Cardiology Challenge 2002</a> has now begun. You are invited to match wits with participants in event 1, who have created a variety of realistic models of interbeat (RR) interval time series. Can you spot the simulations hidden among the real data in the <a href=\"https://physionet.org/challenge/2002/event-2.shtml\">challenge dataset</a>?","guid":"b2ce5fb0-6b19-4d81-9a8a-cdbce2e5faea","publish_datetime":"2002-04-24T04:00:00Z","title":"Event 2 of the PhysioNet/CinC Challenge 2002","url":"https://physionet.org/challenge/2002/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"An algorithm for <a href=\"https://physionet.org/physiotools/activity/\">assessing physical activity from a heart rate time series</a>, and a paper describing its development and evaluation, are now available in PhysioToolkit.","guid":"b795d1ed-79d1-4cca-a21e-205dda564e57","publish_datetime":"2002-04-18T04:00:00Z","title":"Assessing physical activity from a heart rate time series","url":"https://physionet.org/physiotools/activity/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The <a href=\"https://physionet.org/physiotools/wfdb.shtml\">WFDB Software Package</a> is one of the centerpieces of PhysioToolkit, and is revised frequently. Version 10.2.5 has just been posted, together with an updated set of tutorials and reference manuals. The 10.2 series, which has been tested extensively since mid-October, represents a significant advance over previous versions (see this <a href=\"https://physionet.org/physiotools/wfdb/NEWS\">list</a> of changes and new features); please try it out!","guid":"3b0af742-6f8f-4335-b334-c88c1eca9dea","publish_datetime":"2002-03-10T05:00:00Z","title":"WFDB Software Package updated","url":"https://physionet.org/physiotools/wfdb.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"We are pleased to announce the latest in our annual series of <a href=\"https://physionet.org/challenge/\">PhysioNet/Computers in Cardiology Challenges</a>. The topic for this challenge is <a href=\"https://physionet.org/challenge/2002/\">RR interval time series modeling</a>. Can you create a model that produces realistic short-term and long-term variations in interbeat intervals? Can you distinguish between synthetic and real RR interval time series? Take the challenge!","guid":"eeef1240-ff9c-43eb-9c41-5a59bf20d255","publish_datetime":"2002-02-14T05:00:00Z","title":"PhysioNet/CinC Challenge 2002","url":"https://physionet.org/challenge/2002/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Software for <a href=\"https://physionet.org/physiotools/ecgpuwave/\">locating waveform boundaries in the ECG</a> (i.e., the beginnings, peaks, and ends of P, QRS, and T waves) has been contributed to PhysioNet. The software can be used to analyze either annotated or unannotated recordings (it includes an implementation of the Pan-Tompkins QRS detection algorithm).","guid":"d532cf83-c1d1-48b5-832a-d2afdbfd6b90","publish_datetime":"2002-02-07T05:00:00Z","title":"QRS detection and waveform boundary recognition using ecgpuwave","url":"https://physionet.org/physiotools/ecgpuwave/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"A new tutorial, <a href=\"https://physionet.org/tutorials/pr-comp\">Morphology Representation Using Principal Components</a>, presents practical methods and sample code for deriving noise-tolerant measurements of waveform shape, using the QRS complex of the ECG as an example.","guid":"3f3dc525-b3d3-497f-b42b-85ed537f0bb4","publish_datetime":"2002-02-05T05:00:00Z","title":"Morphology Representation Using Principal Components","url":"https://physionet.org/tutorials/pr-comp"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Software for <a href=\"https://physionet.org/physiotools/apdet/\">automated detection of obstructive sleep apnea from the ECG</a> has been contributed to PhysioToolkit. The <code>apdet</code> software package was written as an entry in the <a href=\"https://physionet.org/challenge/2000/\">Computers in Cardiology Challenge 2000</a>.","guid":"234e52ed-3875-4ba5-bb93-b4c5d872f428","publish_datetime":"2002-02-04T05:00:00Z","title":"Automated detection of obstructive sleep apnea from the ECG","url":"https://physionet.org/physiotools/apdet/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"PhysioNet's <a href=\"https://physionet.org/challenge/\">Challenges</a> are the subject of a feature article in <a href=\"http://www.newscientist.com/\"> <em>New Scientist</em></a> (\"Off-Beat\", 15 December 2001, pp. 33-35). The article may be read <a href=\"http://archive.newscientist.com/archive.jsp?id=23214700\"> here</a> (registration required).","guid":"ac8c241a-83ac-4361-bca3-e4ebb2edeec2","publish_datetime":"2001-12-15T05:00:00Z","title":"Challenge featured in New Scientist","url":"https://physionet.org/challenge/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The latest addition to PhysioNet's growing collection of <a href=\"https://physionet.org/tutorials/\">tutorials</a> is <a href=\"https://physionet.org/tutorials/epn/\">Exploring Patterns in Nature</a>, a set of interactive tutorials focussing on emergent phenomena (random behavior at the smallest scales leading to patterns at larger scales). Subjects include fractal dimension, measuring randomness, physical and chemical branching structures, biological branching patterns, diffusion, percolation, and motion on a fractal.","guid":"d49246de-c9cd-4d9d-b146-7ab25e053a3f","publish_datetime":"2001-11-26T05:00:00Z","title":"Exploring Patterns in Nature","url":"https://physionet.org/tutorials/epn/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"New software for <a href=\"https://physionet.org/physiotools/dfa/\">detrended fluctuation analysis (DFA)</a> has been posted, together with notes on its use.","guid":"9b65071b-14b6-4bcf-8ff8-e6337befe9e8","publish_datetime":"2001-11-11T05:00:00Z","title":"Detrended fluctuation analysis (DFA)","url":"https://physionet.org/physiotools/dfa/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"<a href=\"https://physionet.org/challenge/2001/top-scores.shtml\">Final scores</a> have been posted for the <a href=\"https://physionet.org/challenge/2001/\">Computers in Cardiology Challenge 2001</a>. Thanks to all who participated!","guid":"2639e435-2708-4a38-aa8c-632cd42339ae","publish_datetime":"2001-09-26T04:00:00Z","title":"Results from the Computers in Cardiology Challenge 2001","url":"https://physionet.org/challenge/2001/top-scores.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"<a href=\"https://physionet.org/physiotools/rcvsim/\">RCVSIM</a> is an open-source cardiovascular simulator for research, designed for compatibility with PhysioBank data formats and PhysioToolkit analysis software. The sources are extensively commented to facilitate modifications and extensions to suit the needs of specific research projects, and a comprehensive <a href=\"https://physionet.org/physiotools/rcvsim/doc/manual/\">user's guide</a> is available.","guid":"365dbd66-44bc-43e8-a98e-e6757f01134a","publish_datetime":"2001-09-19T04:00:00Z","title":"RCVSIM: a cardiovascular simulator for research","url":"https://physionet.org/physiotools/rcvsim/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"A new collection of <a href=\"https://physionet.org/physiobank/database/umwdb/\">Long-term Recordings of Gait Dynamics: Unconstrained and Metronomic Walking</a> has been added to PhysioBank. Sixty hours of stride interval time series from ten healthy volunteers exhibit long-range correlations in unconstrained walking and anti-correlations during metronomic walking.","guid":"ca69ab62-8e4b-44ad-ae76-8f9eb58aa40f","publish_datetime":"2001-08-16T04:00:00Z","title":"Long-term Recordings of Gait Dynamics","url":"https://physionet.org/physiobank/database/umwdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"<a href=\"https://physionet.org/physiotools/beta/gtkwave/\">GTKWave</a> is a reimplementation of the original WAVE application for viewing, analyzing, and annotating PhysioBank recordings, with a modern GUI that is portable between Unix and MS-Windows. A beta version of GTKWave is now available, including sources, Linux binaries, and MS-Windows binaries. Please try it out!","guid":"0fba908d-e070-4d4d-84db-8f920ae0f51c","publish_datetime":"2001-07-28T04:00:00Z","title":"GTKWave","url":"https://physionet.org/physiotools/beta/gtkwave/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Can paroxysmal atrial fibrillation be predicted? PhysioNet and <a href=\"http://www.cinc.org/\">Computers in Cardiology 2001</a> challenge you to develop and evaluate a method for doing so, in <a href=\"https://physionet.org/challenge/2001/\">CinC Challenge 2001</a>, the second in an annual series of open contests aimed at catalyzing research, friendly competition, and wide-ranging collaboration around this clinically important problem. Prizes will be awarded to the most successful participants. <strong>Update (21 September): The challenge has ended, and no additional entries will be accepted.</strong>. You may still obtain unofficial scores if you wish to try the challenge; look <a href=\"https://physionet.org/physiobank/database/afpdb/challenge/\">here</a> for further information.","guid":"3225495b-d82d-4234-be89-a0ade67fdb04","publish_datetime":"2001-03-01T05:00:00Z","title":"Computers in Cardiology Challenge 2001","url":"https://physionet.org/challenge/2001/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"ISI (Institute of Scientific Information, publishers of the <em>Current Contents</em> index of peer-reviewed scholarly journals, books, and proceedings) has selected PhysioNet for inclusion in <a href=\"http://www.isinet.com/cwcdl/redir.html\"> Current Web Contents</a>, a newly established index of evaluated scholarly web sites.","guid":"92496538-61a7-4ced-99ba-d687f9328c12","publish_datetime":"2001-01-11T05:00:00Z","title":"PhysioNet featured in ISI Current Web Contents","url":"https://web.archive.org/web/20010401034017/http://www.isinet.com/isi/products/cc/cwc/webselect.html"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"A database of <a href=\"https://physionet.org/physiobank/database/gaitndd/\">Gait Dynamics in Neuro-Degenerative Disease</a> has been added to PhysioBank. This database includes recordings of gait from subjects with Parkinson's disease, Huntington's disease, amyotrophic lateral sclerosis (ALS), and healthy controls.","guid":"b7adfcda-2446-46a5-aa6e-18e9a5bd5b20","publish_datetime":"2000-12-21T05:00:00Z","title":"Gait Dynamics in Neuro-Degenerative Disease","url":"https://physionet.org/physiobank/database/gaitndd/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Five complete (21 to 24 hour) records from the <a href=\"https://physionet.org/physiobank/database/ltstdb/\">Long-Term ST Database</a> have been contributed to PhysioBank, together with a pair of papers describing the database [<a href=\"https://physionet.org/physiobank/database/ltstdb/lt96/\">1</a>, <a href=\"https://physionet.org/physiobank/database/ltstdb/lt00/\">2</a>]. This six-year multinational project is nearing completion. These are the first recordings to be made available from this database.","guid":"c3f636f1-0d44-4cf0-abb6-a6284f3d084e","publish_datetime":"2000-11-29T05:00:00Z","title":"Long-Term ST Database","url":"https://physionet.org/physiobank/database/ltstdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Previously unreleased signal files for the <a href=\"https://physionet.org/physiobank/database/afdb/\">MIT-BIH Atrial Fibrillation Database</a> have been added to PhysioBank.","guid":"1b8b9f5c-1844-49f5-b11f-3a3c07ca04dd","publish_datetime":"2000-11-04T05:00:00Z","title":"MIT-BIH Atrial Fibrillation Database expanded","url":"https://physionet.org/physiobank/database/afdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The <a href=\"https://physionet.org/physiobank/database/chfdb/\">BIDMC Congestive Heart Failure Database</a> has been added to PhysioBank. This database includes fifteen 20-hour recordings of patients with severe heart failure (NYHA class 3-4).","guid":"f92499b3-4f86-45d0-8724-cd8ac40bb497","publish_datetime":"2000-10-14T04:00:00Z","title":"BIDMC Congestive Heart Failure Database","url":"https://physionet.org/physiobank/database/chfdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The <a href=\"http://www.physionet.org/cgi-bin/chart\">Chart-o-matic</a> is now available for viewing PhysioBank data within any web browser capable of rendering PNG images (such as those on this page). Please try it out!","guid":"e29dd083-113e-4ee9-8fb1-88079ac3e2b2","publish_datetime":"2000-10-07T04:00:00Z","title":"Physiobank Chart-o-matic","url":""}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Over half of the <a href=\"https://physionet.org/physiobank/database/edb/\">European ST-T Database</a> is now freely accessible in PhysioBank, thanks to the support of the European Society of Cardiology and the creators of the database.","guid":"da7c020b-1485-40c1-b9f9-62ddabb16567","publish_datetime":"2000-09-30T04:00:00Z","title":"European ST-T Database","url":"https://physionet.org/physiobank/database/edb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"<a href=\"https://physionet.org/challenge/2000/top-scores.shtml\">Final scores</a> for <a href=\"https://physionet.org/challenge/2000/\">Computers in Cardiology Challenge 2000</a> are now posted. Thanks to all who participated in this outstandingly successful event!","guid":"d93d1fa6-65f3-47e4-95d9-b00a480b28bf","publish_datetime":"2000-09-22T04:00:00Z","title":"Results from the Computers in Cardiology Challenge 2000","url":"https://physionet.org/challenge/2000/top-scores.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"PhysioNet is the subject of <a href=\"http://unisci.com/stories/20003/0804004.htm\">a feature article</a> published by the daily science news service UniSci today. The article highlights the highly successful <a href=\"https://physionet.org/challenge/2000/\">Computers in Cardiology Challenge 2000</a>, which has stimulated efforts by researchers worldwide to develop methods for detecting and quantifying sleep apnea using the ECG only, and to evaluate these methods using a large database available from PhysioBank.","guid":"7a953918-4afe-418f-80de-7937a3c486fe","publish_datetime":"2000-08-04T04:00:00Z","title":"PhysioNet featured in UniSci","url":"https://web.archive.org/web/20001210050700/http://unisci.com/stories/20003/0804004.htm"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"PhysioNet has been selected as one of 23 \"Key Resources\" on the web in biophysics.","guid":"4ee85915-0bf4-4124-a7e3-de4aca444f5d","publish_datetime":"2000-07-11T04:00:00Z","title":"PhysioNet featured in Links2Go Biophysics","url":"https://web.archive.org/web/20000820090622/http://www.links2go.net/topic/Biophysics"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Our article titled <a href=\"http://circ.ahajournals.org/content/101/23/e215.full\">PhysioBank, PhysioToolkit, and PhysioNet: Components of a New Research Resource for Complex Physiologic Signals</a> has just been published in <em>Circulation</em>. By special arrangement this article can be read on <em>Circulation</em>'s <a href=\"http://circ.ahajournals.org/\">web site</a> without restrictions. If you make use of data or software from PhysioNet, please cite this article.","guid":"70eda7fa-fbb1-47b1-9d6f-d70867364875","publish_datetime":"2000-06-28T04:00:00Z","title":"New article about PhysioNet","url":"http://circ.ahajournals.org/content/101/23/e215.full"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The master PhysioNet web server at MIT in Cambridge, Massachusetts has been visited from over 10,000 different locations in about 70 countries around the world during its first 10 months of operation. During that period it has delivered more than 100 gigabytes of data (not including data transmitted to or by the PhysioNet mirrors).","guid":"0611dd2b-13d4-47ee-9ea9-5b4dd4f48de3","publish_datetime":"2000-06-23T04:00:00Z","title":"Over 100 gigabytes served","url":""}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Precompiled binaries (ready-to-run versions) of the <a href=\"https://physionet.org/physiotools/wfdb.shtml\">WFDB Software Package</a> for <a href=\"https://physionet.org/physiotools/binaries/windows/\">32-bit MS-Windows (95/98/NT/2000)</a> and <a href=\"https://physionet.org/physiotools/binaries/sparc-solaris2.5/\">Sol aris</a> now include NETFILES support (built-in HTTP and FTP client support, making it possible to view and analyze PhysioBank recordings without downloading them to local storage, and without a web browser). This feature has been available under <a href=\"https://physionet.org/physiotools/binaries/intel-linux/\">Linux</a> since last September. <br><br> Precompiled binaries without NETFILES support are now available for <a href=\"https://physionet.org/physiotools/binaries/hpux/\">HP-UX</a> as well.","guid":"b2c8dd44-7d37-45ad-a988-1ce5e1028130","publish_datetime":"2000-06-11T04:00:00Z","title":"Precompiled binaries with NETFILES support","url":"https://physionet.org/physiotools/binaries/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The deadline for entries in the <a href=\"https://physionet.org/challenge/2000/\">Computers in Cardiology Challenge 2000</a> has been extended. (The deadline for submitting abstracts for the conference has <strong>not</strong> changed, however.)","guid":"2342c462-d548-4dc8-937e-c5963256f562","publish_datetime":"2000-04-26T05:00:00Z","title":"Challenge entry deadline extended","url":"https://physionet.org/challenge/2000/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The <a href=\"https://physionet.org/physiotools/wfdb.shtml\">WFDB Software Package</a> is now available in RPM form for easy installation under <a href=\"https://physionet.org/physiotools/binaries/linux/\">Linux</a>.","guid":"b682e4cc-d43a-45cd-a979-54aaab6a4a62","publish_datetime":"2000-04-26T04:00:00Z","title":"Precompiled binaries for Linux","url":"https://physionet.org/physiotools/binaries/linux/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Precompiled binaries (executables) of the <a href=\"https://physionet.org/physiotools/wfdb.shtml\">WFDB Software Package</a> for <a href=\"https://physionet.org/physiotools/binaries/windows/\">32-bit MS-Windows (95/98/NT/2000)</a> have been added to those previously available for <a href=\"https://physionet.org/physiotools/binaries/linux/\">Linux</a>, <a href=\"https://physionet.org/physiotools/binaries/msdos/\">MS-DOS and 16-bit MS-Windows</a>, <a href=\"https://physionet.org/physiotools/binaries/solaris/\">Solaris</a>, and <a href=\"https://physionet.org/physiotools/binaries/sunos/\">SunOS</a>.","guid":"353d0258-e6d5-48d1-abb9-f10826ae95c2","publish_datetime":"2000-04-12T05:00:00Z","title":"WFDB Software Package precompiled binaries","url":"https://physionet.org/physiotools/binaries/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Entrants in the <a href=\"https://physionet.org/challenge/2000/\">Computers in Cardiology Challenge 2000</a> can now submit their results for <a href=\"https://physionet.org/physiobank/database/apnea-ecg/challenge/\">s coring</a>.","guid":"a2eadf66-54b6-4308-9537-87d4f7900cff","publish_datetime":"2000-04-12T04:00:00Z","title":"Computers in Cardiology Challenge 2000 open for scoring","url":"https://physionet.org/physiobank/database/apnea-ecg/challenge/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Binary <a href=\"http://www.physionet.org/cgi-bin/rdann\">annotation</a> and <a href=\"http://www.physionet.org/cgi-bin/rdsamp\">signal</a> files from PhysioBank can now be converted to text format from your web browser. The conversions are performed using <a href=\"https://physionet.org/physiotools/wag/rdann-1.htm\"> <code>rdann</code></a> and <a href=\"https://physionet.org/physiotools/wag/rdsamp-1.htm\">&lt;tt&gt;rdsamp &lt;/tt&gt;</a>&lt;tt&gt;, two utilities from the <a href=\"https://physionet.org/physiotools/wfdb.shtml\">WFDB software package</a> that can also be downloaded and run on your own computer for greater flexibility.&lt;/tt&gt;","guid":"f1f1b0b2-d0c8-49de-9a4c-6c90094a815c","publish_datetime":"2000-04-09T05:00:00Z","title":"Convert signals and annotations to text","url":""}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"A list of <a href=\"https://physionet.org/faq.shtml\">frequently asked questions</a> (with answers) is now available.","guid":"f9b52e11-cd61-4133-a071-b157f2a9db1c","publish_datetime":"2000-04-09T04:00:00Z","title":"Frequently asked questions and answers","url":"https://physionet.org/faq.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"<a href=\"http://www.sciencemag.org/\">Science</a>'s <a href=\"http://www.sciencemag.org/content/vol287/issue5462/netwatch.shtml \">NetWatch</a> features PhysioNet in its issue of 31 March 2000. (A subscription or free registration is required to visit this site.)","guid":"42eb29a7-313f-4f28-95ec-5013b38235b1","publish_datetime":"2000-04-05T04:00:00Z","title":"PhysioNet featured in Science's NetWatch","url":"https://science.sciencemag.org/content/287/5462/netwatch"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"<a href=\"https://physionet.org/physiotools/edr/edr.c\">Software for deriving a respiration signal</a> from one or two ECG signals using the <a href=\"https://physionet.org/physiotools/edr/\">EDR technique</a>, the <a href=\"https://physionet.org/physiotools/edr/cic85/edr85.html\">original paper</a> that describes this technique, and a <a href=\"https://physionet.org/physiotools/edr/cic86/edr86.html\">second paper</a> describing applications of the EDR, are now available in <a href=\"https://physionet.org/physiotools/\">PhysioToolkit</a>.","guid":"efed3d19-bc6a-49a6-82f6-37fd7318ca24","publish_datetime":"2000-03-19T05:00:00Z","title":"ECG-derived respiration","url":"https://physionet.org/physiotools/edr/edr.c"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"PhysioNet has been chosen as <a href=\"http://hmsbeagle.com/\">HMS Beagle</a>'s \"Web Pick of the Day\".","guid":"b04bb593-750e-48e6-86c1-3703611d53e9","publish_datetime":"2000-03-17T05:00:00Z","title":"PhysioNet featured by HMS Beagle","url":"https://web.archive.org/web/20000407180147/http://www.biomednet.com/hmsbeagle"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Periodic measurements of physiologic variables (such as heart rate, blood pressure, respiration rate, and oxygen saturation) are now available for all 121 records of the <a href=\"https://physionet.org/physiobank/database/mimicdb/\">MIMIC Database</a>. These data amount to nearly 200 patient-days of continuous recordings from over 90 ICU patients.","guid":"29d8dfd0-9ebb-47c4-b5c8-abd663dd7d57","publish_datetime":"2000-03-15T05:00:00Z","title":"MIMIC Database","url":"https://physionet.org/physiobank/database/mimicdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"<a href=\"https://physionet.org/physiotools/\">PhysioToolkit</a> is the new name for our library of open-source software, formerly known as PhysioTools.","guid":"38978d73-c370-4c05-9601-c98819c9896f","publish_datetime":"2000-02-29T05:00:00Z","title":"PhysioTools is now PhysioToolkit","url":"https://physionet.org/physiotools/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Can sleep apnea be detected using the ECG only? PhysioNet and <a href=\"http://cinc.mit.edu/\">Computers in Cardiology 2000</a> challenge you to develop and evaluate a method for doing so, in <a href=\"https://physionet.org/challenge/2000/\">CinC Challenge 2000</a>, an open contest aimed at catalyzing research, friendly competition, and wide-ranging collaboration around this clinically important problem. Prizes will be awarded to the most successful participants.","guid":"12bacad5-3e9a-4448-b461-8910056bb6a4","publish_datetime":"2000-02-10T05:00:00Z","title":"Computers in Cardiology Challenge 2000","url":"https://physionet.org/challenge/2000/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"See the additions to the <a href=\"https://physionet.org/tutorials\">Tutorials</a> and <a href=\"https://physionet.org/publications\">Publications</a> sections of PhysioNet.","guid":"5d257d23-f267-4d07-8823-0b2fc19146b3","publish_datetime":"2000-01-20T05:00:00Z","title":"Tutorials and Publications pages expanded","url":"https://physionet.org/tutorials/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The <a href=\"https://physionet.org/physiobank/database/qtdb/doc/\">QT Database</a> is now on-line, with over 100 fifteen-minute two-lead ECG recordings (many excerpted from other databases), with onset, peak, and end markers for P, QRS, T, and (where present) U waves of from 30 to 50 selected beats in each recording.","guid":"e0619142-10c4-4810-9945-b37fc0ab3baa","publish_datetime":"1999-11-16T05:00:00Z","title":"QT Database","url":"https://physionet.org/physiobank/database/qtdb/doc/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The PhysioNet <a href=\"https://physionet.org/publications/\">Publications</a> pages have been started, with the contribution of a paper on human gait maturation together with the raw data on which the study was based (now a <a href=\"https://physionet.org/physiobank/class2.shtml\">Class 2</a> database available from the PhysioBank on-line archives). Look for more papers and data in the coming weeks and months. If you have data or software that may be of interest to other users of PhysioNet, and a related publication, please consider <a href=\"https://physionet.org/guidelines.shtml\">contributing</a> a copy of your publication and its supporting data or software to the Publications pages. We also encourage contributions of publications that make use of existing PhysioBank data or PhysioTools software.","guid":"651987fa-7516-47dc-aff9-e4c0a3509da6","publish_datetime":"1999-10-28T05:00:00Z","title":"New Publications page","url":"https://physionet.org/publications/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The first of a planned series of <a href=\"https://physionet.org/tutorials/\">tutorials</a> is now available. These tutorials emphasize hands-on exploration of the data and software available via PhysioNet. The first tutorial introduces detrended fluctuation analysis and approximate entropy in the context of studying changes in gait and heart rate dynamics with age and disease. Your <a href=\"mailto:webmaster@physionet.org\">feedback</a> is welcome!","guid":"f9fa65cb-1757-4a3c-b147-dd3f7c3d57fa","publish_datetime":"1999-10-28T04:00:00Z","title":"New Tutorials page","url":"https://physionet.org/tutorials/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Now available: a <a href=\"https://physionet.org/physiotools/beta/\">beta version</a> of the <a href=\"https://physionet.org/physiotools/wfdb.shtml\">WFDB software package</a>, with built-in HTTP and FTP client support for WFDB applications. It is possible to view and analyze PhysioBank recordings using any of these applications without downloading them to local storage first, and without the use of a web browser.","guid":"fa27364a-8e57-4193-9fc4-ae334ee3b316","publish_datetime":"1999-09-17T04:00:00Z","title":"Reading PhysioBank recordings without downloading","url":"https://physionet.org/physiotools/beta/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The software component of the resource, formerly known as PhysioLab, has been renamed PhysioTools.","guid":"7bb01eb2-8e96-49b4-8c8b-9a9e94ed86a5","publish_datetime":"1999-09-10T04:00:00Z","title":"PhysioLab is now PhysioTools","url":"https://physionet.org/physiotools/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The text of the PhysioNet web site is now indexed and <a href=\"https://physionet.org/search.shtml\">searchable</a>.","guid":"2036c5f7-d960-4f06-a423-5c0d3a0016a3","publish_datetime":"1999-09-09T04:00:00Z","title":"Searching PhysioNet","url":"https://physionet.org/search.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"<code>www.physionet.org</code> is up and running, in preparation for a full-scale launch of PhysioNet in September. <a href=\"mailto:webmaster@physionet.org\">Your comments are welcome!</a>","guid":"4f8dac5d-22fa-4219-a151-9160c9d2ca4c","publish_datetime":"1999-08-05T04:00:00Z","title":"Web server online","url":"https://physionet.org/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The PhysioBank Archives have been established, with over two gigabytes of data now available for downloading. An <a href=\"https://physionet.org/physiobank/physiobank-intro.shtml\">Introduc tion to the PhysioBank Archives</a> is available, with links to excerpts from many databases.","guid":"9500d245-581f-423f-89e3-041ebbb4b960","publish_datetime":"1999-08-03T04:00:00Z","title":"PhysioBank Archives","url":"https://physionet.org/physiobank/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"<a href=\"https://physionet.org/guidelines.shtml\">Guidelines for contributors</a> added.","guid":"91184fa9-7e28-4b7a-b1ce-c903b7c2d060","publish_datetime":"1999-06-26T04:00:00Z","title":"Guidelines for contributors","url":"https://physionet.org/guidelines.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"<a href=\"https://physionet.org/y2k.shtml\">Year 2000 Readiness Disclosure</a> added.","guid":"27748803-fa23-4c21-97d0-1ac79bea5eb3","publish_datetime":"1999-06-22T04:00:00Z","title":"Year 2000 Readiness Disclosure","url":"https://physionet.org/y2k.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The WFDB Software Package <a href=\"https://physionet.org/physiotools/wfdb/\">source tree</a> is now fully browsable.","guid":"338810dc-cddd-4704-9c29-5b21c73fe8b3","publish_datetime":"1999-06-18T04:00:00Z","title":"WFDB Software Package source tree online","url":"https://physionet.org/physiotools/wfdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Our prototype web server is now on-line!","guid":"032adcc9-0c1f-47dd-bba5-2138ca49aa12","publish_datetime":"1999-06-12T06:00:00Z","title":"Prototype web server online","url":"https://physionet.org/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"A preview of the <a href=\"https://physionet.org/physiotools/wfdb.shtml\">WFDB Software Package</a> may now be downloaded in source form. This is a GPLed successor to the <a href=\"http://ecg.mit.edu/dbinfo.html#DB%20SoftwarePackage\">DB Software Package</a> from MIT, now incorporating the <a href=\"http://ecg.mit.edu/dbinfo.html#WAVE\">WAVE</a> and <a href=\"http://ecg.mit.edu/dbinfo.html#WVIEW\">WVIEW</a> interactive visualization tools.","guid":"9519bf5e-20ce-452d-a78f-f9048b7adfc0","publish_datetime":"1999-06-12T05:00:00Z","title":"WFDB Software Package","url":"https://physionet.org/physiotools/wfdb.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"<a href=\"https://physionet.org/physiobank/physiobank-intro.shtml\">Samples of PhysioBank data</a> may be downloaded.","guid":"8835e595-8777-47c0-9db5-4507bbc11ff7","publish_datetime":"1999-06-12T04:00:00Z","title":"Samples of PhysioBank data","url":"https://physionet.org/physiobank/physiobank-intro.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Our domain name, <code>physionet.org</code>, has been registered.","guid":"e00e6944-8f04-4b6c-aa11-e282c50bc5f2","publish_datetime":"1999-06-07T04:00:00Z","title":"physionet.org registered","url":""}
+}
+]

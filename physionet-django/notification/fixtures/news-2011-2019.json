@@ -1,0 +1,494 @@
+[
+{
+  "model": "notification.news",
+  "fields": {"content":"The Non-Invasive Fetal ECG Arrhythmia Database (NIFEA DB) provides a series of fetal arrhythmias recordings (n=12) and a number of control normal rhythm recordings (n=14) performed using the non-invasive fetal electrocardiography (NI-FECG) technique.","guid":"PhysioNet 20190219.1","publish_datetime":"2019-02-19T05:00:00Z","title":"New Database Added: NIFEADB","url":"https://physionet.org/physiobank/database/nifeadb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The PhysioNet/Computing in Cardiology Challenge 2019 has now begun! This year's topic is prediction of sepsis from clinical data. We are delighted to announce that this year's Challenge is being sponsored by the Gordon and Betty Moore Foundation, Google and Mathworks.","guid":"PhysioNet 20190208.1","publish_datetime":"2019-02-08T05:00:00Z","title":"PhysioNet/CinC Challenge 2019","url":"https://physionet.org/challenge/2019/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"GMSE is a new computational tool for quantifying the volatility of time series. This work extends the multiscale entropy (MSE) algorithm currently available on PhysioNet. The GMSE method was first described in Costa M., Goldberger A.L. <a href=\"https://www.mdpi.com/1099-4300/17/3/1197\">Generalized Multiscale Entropy Analysis: Application to Quantifying the Complex Volatility of Human Heartbeat Time Series</a>. Entropy 2015;17:1197-1203.","guid":"PhysioNet 20190202.1","publish_datetime":"2019-02-02T05:00:00Z","title":"New Software and Tutorial: Generalized Multiscale Entropy (GMSE)","url":"https://physionet.org/physiotools/gmse/tutorial/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"MIMIC-CXR is a large, publicly-available database comprising of de-identified chest radiographs. The dataset contains 371,920 chest x-rays associated with 227,943 imaging studies. This database is described in Johnson AEW, Pollard TJ, Berkowitz S, Greenbaum NR, Lungren MP, Deng C-Y, Mark RG, Horng S. <a href=\"https://arxiv.org/abs/1901.07042\"> MIMIC-CXR: A large publicly available database of labeled chest radiographs</a>. arXiv (2019).","guid":"PhysioNet 20190129.1","publish_datetime":"2019-01-29T05:00:00Z","title":"New Database Added: MIMIC-CXR","url":"https://physionet.org/physiobank/database/mimiccxr/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The database contains EEG recordings of subjects before and during the performance of mental arithmetic tasks.","guid":"PhysioNet 20181217.1","publish_datetime":"2018-12-17T05:00:00Z","title":"New Database Added: EEGMAT","url":"https://physionet.org/physiobank/database/eegmat/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"ECG effects of ranolazine, verapamil, lopinavir+ritonavir, chloroquine, dofetilide, diltiazem, and dofetilide+diltiazem in a small sample size clinical study. The ECGCIPA database contains multi-channel ECG recordings of 60 subjects participating in the CiPA ECG validation study.","guid":"PhysioNet 20181213.1","publish_datetime":"2018-12-13T05:00:00Z","title":"New Database Added: ECGCIPA","url":"https://physionet.org/physiobank/database/ecgcipa/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The Journal of Physiological Measurement is now accepting submissions in the focus issue: Automated Analysis of Arousals, Sleep and Sleep-Related Disorders Using Physiological Time Series. Please included updated results from the test dataset if you develop a new algorithm. Note that the scope does not confine you to the data and topic of this year's Challenge. The deadline is set for the end of February 2019.","guid":"PhysioNet 20181128.1","publish_datetime":"2018-11-28T05:00:00Z","title":"Physiological Measurement Focus Issue","url":"http://iopscience.iop.org/journal/0967-3334/page/Automated_Analysis_Arousals_Sleep_Sleep-Related_Disorders"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The advent of telehealth applications and remote patient monitoring has led to an increasing need for continuous signal quality monitoring to ensure high diagnostic accuracy of the recordings. Cardiovascular diseases often manifest electrophysiological anomalies, therefore the electrocardiogram (ECG) is one of the most used signals for diagnostic applications. Various types of noise and artifacts are not uncommon in ECG recordings and assessing the quality of the signal is essential prior to any clinical interpretation. In this study, a dynamic signal quality index (dSQI) is introduced using a new time-frequency template-based approach.","guid":"PhysioNet 20181116.1","publish_datetime":"2018-11-16T05:00:00Z","title":"New Toolkit Added: dSQI","url":"https://physionet.org/physiotools/dsqi/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Functional metrics of autonomic control of heart rate, including baroreflex sensitivity, have been shown to be strongly associated with cardiovascular risk. A decrease in baroreflex sensitivity with aging is hypothesized to represent a contributing causal factor in the etiology of primary hypertension. To assess baroreflex function in human subjects, two complementary methods to simulate the response in heart rate elicited by the Valsalva maneuver were developed and applied to data obtained from a cohort of healthy normal volunteers.","guid":"PhysioNet 20181114.1","publish_datetime":"2018-11-14T05:00:00Z","title":"New Database Added: RVMH1","url":"https://physionet.org/physiobank/database/rvmh1/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"This database contains multimodal data from a large study investigating the effects of ischemic stroke on cerebral vasoregulation. The cross sectional study compared 60 subjects who suffered strokes, to 60 control subjects, collecting the following data for each patient across multiple days: transcranial doppler of cerebral arteries, 24-h blood pressure numerics, high resolution waveforms (ECG, blood pressure, CO2 and respiration) during various movement tasks, 24-h ECG, EMG, and accelerometer recordings, and gait pressure recordings during a walking test.","guid":"PhysioNet 20181004.1","publish_datetime":"2018-10-04T04:00:00Z","title":"New Database Added: CVES","url":"https://physionet.org/physiobank/database/cves/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The Complex Upper-Limb Movements database contains hand trajectory data from ten subjects undergoing writing tasks, used to model motor primitives.","guid":"PhysioNet 20180830.1","publish_datetime":"2018-08-30T04:00:00Z","title":"New Database Added: CULM","url":"https://physionet.org/physiobank/database/culm/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The Term-Preterm ElectroHysteroGram DataSet with Tocogram (TPEHGT DS) contains 26 four-signal 30-min uterine EHG records, i.e., three EHG signals accompanied by a simultaneously recorded external tocogram measuring mechanical uterine activity (TOCO signal) of pregnant women, and another five 30-min uterine records (EHG signals and TOCO signal) of non-pregnant women.","guid":"PhysioNet 20180829.1","publish_datetime":"2018-08-29T04:00:00Z","title":"New Database Added: TPEHGT","url":"https://physionet.org/physiobank/database/tpehgt/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The sleep-edf database has been expanded to contain 197 whole-night PolySomnoGraphic sleep recordings, containing EEG, EOG, chin EMG, and event markers. Some records also contain respiration and body temperature.","guid":"PhysioNet 20180717.1","publish_datetime":"2018-07-17T04:00:00Z","title":"Database Expanded: sleep-edfx","url":"https://physionet.org/physiobank/database/sleep-edfx/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"This dataset contains signals and numerics extracted from the much larger MIMIC II matched waveform Database, along with manual breath annotations made from two annotators, using the impedance respiratory signal.","guid":"PhysioNet 20180620.1","publish_datetime":"2018-06-20T04:00:00Z","title":"New Database Added: BIDMC","url":"https://physionet.org/physiobank/database/bidmc/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"This database includes 208 voice samples, from 150 pathological, and 58 healthy voices.","guid":"PhysioNet 20180607.1","publish_datetime":"2018-06-07T04:00:00Z","title":"New Database Added: VOICED","url":"https://physionet.org/physiobank/database/voiced/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The PhysioNet Cardiovascular Signal Toolbox is an open-source modular program for calculating heart rate variability (HRV) implemented in Matlab with evidence-based algorithms and output formats. The Toolbox is compatible with 64-bit MATLAB on GNU/Linux, Mac OS X, and MS-Windows.","guid":"PhysioNet 20180515.1","publish_datetime":"2018-05-15T04:00:00Z","title":"New Software: PCST","url":"https://physionet.org/physiotools/physionet-cardiovascular-signal-toolbox/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"These software scripts calculate Global Electrical Heterogeneity scores of ecg signals, which characterize the degree of heterogeneity of the total recovery time across the ventricles.","guid":"PhysioNet 20180502.1","publish_datetime":"2018-05-02T04:00:00Z","title":"New Software: GEH","url":"https://physionet.org/physiotools/geh/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The 2018 PhysioNet/Computing in Cardiology Challenge is now open. This year's Challenge, \"You Snooze, You Win\", is focused on the problem of automatically detecting disturbances in a patient's sleep. Given a collection of physiological signals recorded during sleep, including EEG, ECG, and EMG, participants are invited to develop an algorithm to automatically identify arousal events, and will be scored based on how well their algorithm's results agree with those of expert human annotators.","guid":"PhysioNet 20180221.1","publish_datetime":"2018-02-21T05:00:00Z","title":"PhysioNet/CinC Challenge 2018","url":"https://physionet.org/challenge/2018/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The database contains 32 records of non-contact sleep monitoring by a bioradar. The records are accompanied by results of sleep scoring, based on polysomnography according to the rules of the American Academy of Sleep Medicine.","guid":"PhysioNet 20180207.1","publish_datetime":"2018-02-07T05:00:00Z","title":"New Database Added: SLEEPBRL","url":"https://physionet.org/physiobank/database/sleepbrl/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"All the papers from the Challenge along with their corresponding PDFs are now available. The links to the final source code representing their score will be posted soon.","guid":"PhysioNet 20180202.1","publish_datetime":"2018-02-02T05:00:00Z","title":"Challenge Papers Available","url":"https://physionet.org/challenge/2017/papers/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The Concept Unique Identifier (CUI)-less database contains a corpus of \"CUI-less\" concepts taken from the SemEval2015 Task 14 that have been assigned CUIs. The annotation process allows assignment of CUIS from any Unified Medical Language System (UMLS) semantic group and compositional normalization using more than one CUI per disease entity. Concepts are mapped to SNOMED CT as represented in the September 2016 version found in Unified Medical Language System (UMLS) 2016AB.","guid":"PhysioNet 20180124.1","publish_datetime":"2018-01-24T05:00:00Z","title":"New Database Added: CUILESS16","url":"https://physionet.org/physiobank/database/cuiless16/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"This database contains reference p-wave annotations for twelve signals from the MIT-BIH arrhythmia database.","guid":"PhysioNet 20180109.1","publish_datetime":"2018-01-09T05:00:00Z","title":"New Database Added: PWAVE","url":"https://physionet.org/physiobank/database/pwave/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Drs. Madalena Costa and Ary Goldberger, members of the PhysioNet team, have recently published an article in Science Trends about heart rate fragmentation. Heart rate fragmentation is a new approach to conceptualizing and measuring heart rate dynamics. The article provides links to two studies recently published in the journal Frontiers in Physiology.","guid":"PhysioNet 20171213.1","publish_datetime":"2017-12-13T05:00:00Z","title":"New Research Approach","url":"https://sciencetrends.com/fragmentation-heartbeat-probing-breakdown-biologic-time-aging-disease/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The dataset contains keystroke logs collected from over 200 subjects, with and without Parkinson's Disease (PD), as they typed normally on their own computer (without any supervision) over a period of weeks or months (having initially installed a custom keystroke recording app, Tappy). This dataset has been collected and analyzed in order to indicate that the routine interaction with computer keyboards can be used to detect changes in the characteristics of finger movement in the early stages of PD.","guid":"PhysioNet 20171020.2","publish_datetime":"2017-10-20T05:00:00Z","title":"New Database Added: TAPPY","url":"https://physionet.org/physiobank/database/tappy/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"This database contains wrist PPGs recorded during walking, running and bike riding. Simultaneous motion estimates are collected using both accelerometers and gyroscopes to give multiple options for the removal of motion interference from the PPG traces. A reference chest ECG is included to allow a gold-standard comparison of heart rate during exercise.","guid":"PhysioNet 20171020.1","publish_datetime":"2017-10-20T04:00:00Z","title":"New Database Added: WRIST","url":"https://physionet.org/physiobank/database/wrist/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The Pressure Map Dataset for In-bed Posture Classification database contains in-bed posture pressure data from multiple adult participants using two different types of pressure sensing mats.","guid":"PhysioNet 20170928.1","publish_datetime":"2017-09-28T04:00:00Z","title":"New Database Added: PMD","url":"https://physionet.org/physiobank/database/pmd/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The Pattern Analysis of Oxygen Saturation Variability database contains one hour oxygen saturation measurements of 36 patients, used for the analysis of oxygen saturation variability.","guid":"PhysioNet 20170927.1","publish_datetime":"2017-09-27T04:00:00Z","title":"New Database Added: OSV","url":"https://physionet.org/physiobank/database/osv/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The Evoked Auditory Responses in Hearing Impaired database contains evoked Auditory Brainstem Response (ABR) and Otoacoustic Emission (OAE) recordings in eight hearing impaired listeners, in response to tone-burst stimuli across a wide range of levels.","guid":"PhysioNet 20170926.1","publish_datetime":"2017-09-26T04:00:00Z","title":"New Database Added: EARH","url":"https://physionet.org/physiobank/database/earh/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The database contains bioimpedance measurements, temperature measurements, salivary samples, and sweat samples, used in quantitative estimation of dehydration (total body water loss).","guid":"PhysioNet 20170810.3","publish_datetime":"2017-08-10T04:00:00Z","title":"New Database Added: Quantitative Dehydration Estimation","url":"https://physionet.org/physiobank/database/qde/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The MIMIC-III Waveform Database has been released, containing our largest collection to date of physiologic signals collected by bedside patient monitors in adult and neonatal intensive care units. Over 44,000 recordings have been added to the existing MIMIC-II Waveform Database, for a total of over 67,000 recordings and over three million hours of waveform data. For about one third of the database (about 22,000 recordings from 10,000 patients), extensive clinical information is also available to qualified researchers via the MIMIC-III Clinical Database.","guid":"PhysioNet 20170809.1","publish_datetime":"2017-08-09T04:00:00Z","title":"New Database Added: MIMIC-III Waveform Database","url":"https://physionet.org/physiobank/database/mimic3wdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The database contains non-EEG physiological signals collected at Quality of Life Laboratory at University of Texas at Dallas, used to infer the neurological status of 20 healthy subjects. The data collected consists of electrodermal activity, temperature, acceleration, heart rate, and arterial oxygen level.","guid":"PhysioNet 20170719.3","publish_datetime":"2017-07-19T06:00:00Z","title":"New Database Added: A Non-EEG Dataset for Assessment of Neurological Status","url":"https://physionet.org/physiobank/database/noneeg/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The University of Cagliari electroTastegram database contains 39 differential biopotential measurements recorded from the tongues of as many healthy voluntary human subjects (16 males, 23 females, equally divided into the three PROP taster status classes), during a stimulation with 30uL, 3.2 mmol/L solution of 6-n-propylthiouracil (PROP).","guid":"PhysioNet 20170719.2","publish_datetime":"2017-07-19T05:00:00Z","title":"New Database Added: University of Cagliari ElectroTastegram Database (PROP)","url":"https://physionet.org/physiobank/database/unicaprop/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The Shiraz University fetal heart sounds database contains fetal and maternal PCG recordings from 109 pregnant women.","guid":"PhysioNet 20170719.1","publish_datetime":"2017-07-19T04:00:00Z","title":"New Database Added: Shiraz University Fetal Heart Sounds Database","url":"https://physionet.org/physiobank/database/sufhsdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Members of the PhysioNet team have recently described fragmentation analysis, a new conceptual and methodologic approach to short-term heart rate variability. See Frontiers in Physiology for full text.","guid":"PhysioNet 20170523.1","publish_datetime":"2017-05-23T04:00:00Z","title":"New Research Article","url":"http://journal.frontiersin.org/article/10.3389/fphys.2017.00255/full"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The EEG Signals from an RSVP Task database contains EEG data from 11 healthy participants upon rapid presentation of images through the Rapid Serial Visual Presentation (RSVP) protocol at speeds of 5, 6, and 10 Hz.","guid":"PhysioNet 20170519.1","publish_datetime":"2017-05-19T04:00:00Z","title":"New Database Added: EEG Signals from an RSVP Task","url":"https://physionet.org/physiobank/database/ltrsvp/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The Tai Chi, Physiological Complexity, and Healthy Aging-Gait database contains two-channel gait recordings of 87 older adults from the Greater Boston area. Subjects were from a hybrid study design that included a two-arm randomized clinical trial (RCT) along with an additional observational comparison group.","guid":"PhysioNet 20170511.1","publish_datetime":"2017-05-11T04:00:00Z","title":"New Database Added: Tai Chi, Physiological Complexity, and Healthy Aging-Gait","url":"https://physionet.org/physiobank/database/taichidb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The National Sleep Research Resource (NSRR) has expanded its research databases and tools, as well as launching a series of tutorials on their use. The NSRR is supported by the National Heart, Lung, and Blood Institute (NHLBI) of the NIH.","guid":"PhysioNet 20170214.1","publish_datetime":"2017-02-14T05:00:00Z","title":"National Sleep Research Resource","url":"https://sleepdata.org/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The Preterm Infant Cardio-respiratory Signals (PICS) database contains simultaneous ECG and respiration recordings of ten preterm infants collected from the Neonatal Intensive Care Unit (NICU) of the University of Massachusetts Memorial Healthcare.","guid":"PhysioNet 20170209.1","publish_datetime":"2017-02-09T05:00:00Z","title":"New Database Added: Preterm Infant Cardio-Respiratory Signals Database","url":"https://physionet.org/physiobank/database/picsdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"We are excited to announce the opening of the annual PhysioNet/Computing in Cardiology Challenge for 2017: AF Classification from a short single lead ECG recording. A database of over 10,000 ECG recordings is being made freely available exclusively for this competition by AliveCor, and represent a serendipitous sample of patient-initiated recordings of one minute or less. They have all been labeled for rhythm by hand into one of four categories: Normal, Atrial Fibrillation, Other Rhythm or Too Noisy to Process. We challenge the public to develop the most accurate classifier of these data into these four categories. As usual, a portion of these data have been hidden from the public to allow us to objectively assess your algorithms. More information on the Challenge, including data and example code can be found at http://physionet.org/challenge/2017/.","guid":"PhysioNet 20170201.1","publish_datetime":"2017-02-01T22:00:00Z","title":"PhysioNet/CinC Challenge 2017","url":"https://physionet.org/challenge/2017/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The STAFF-III database was acquired during 1995-96 at Charleston Area Medical Center (WV, USA) where single prolonged balloon inflation had been introduced to achieve optimal results of percutaneous transluminal coronary angiography (PTCA) procedures, replacing the typical series of brief inflations. The database consists of standard 12-lead ECG recordings from 104 patients.","guid":"PhysioNet 20170131.1","publish_datetime":"2017-01-31T05:00:00Z","title":"New Database Added: STAFF-III Database","url":"https://physionet.org/physiobank/database/staffiii/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The CHARIS database contains multi-channel recordings of ECG, arterial blood pressure (ABP), and intracranial pressure (ICP) of patients diagnosed with traumatic brain injury (TBI). The data is contributed by members of the CHARIS project which aims to systematize the analysis of relevant physiological signals, and create data-driven algorithms to search for potential predictors of acute clinical events for patients with acute brain injury.","guid":"PhysioNet 20170119.1","publish_datetime":"2017-01-19T05:00:00Z","title":"New Database Added: CHARIS Database","url":"https://physionet.org/physiobank/database/charisdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The neuroQWERTY MIT-CSXPD database contains keystroke logs collected from 85 subjects with and without parkinsons disease (PD). This dataset has been collected and analyzed in order to indicate that the routine interaction with computer keyboards can be used to detect motor signs in the early stages of PD.","guid":"PhysioNet 20161220.1","publish_datetime":"2016-12-20T05:00:00Z","title":"New Database Added: neuroQWERTY MIT-CSXPD","url":"https://physionet.org/physiobank/database/nqmitcsxpd/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The Cerebral Haemodynamic Autoregulatory Information System (CHARIS) GUI toolkit contains a Matlab GUI used to display and process intracranial pressure features and relationships with other physiological signals.","guid":"PhysioNet 20161216.1","publish_datetime":"2016-12-16T05:00:00Z","title":"New Toolkit Added: CHARIS GUI","url":"https://physionet.org/physiotools/charis_gui/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The ECG effects of Dofetilide, Moxifloxacin, Dofetilide+Mexiletine, Dofetilide+Lidocaine and Moxifloxacin+Diltiazem in Healthy Subjects database contains data from a randomized, double-blind, 5-period crossover clinical trial in healthy male and female subjects, 18 to 35 years of age, to compare the electrophysiological response of hERG potassium channel blocking drugs with and without the addition of late sodium or calcium channel blocking drugs.","guid":"PhysioNet 20160915.1","publish_datetime":"2016-09-15T04:00:00Z","title":"New Database Added: ECGDMMLD","url":"https://physionet.org/physiobank/database/ecgdmmld/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The MAMEM steady state visually evoked potentials database has been updated with a third experimental dataset.","guid":"PhysioNet 20160903.1","publish_datetime":"2016-09-03T04:00:00Z","title":"Database Updated: MSSVEPDB","url":"https://physionet.org/physiobank/database/mssvepdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The ECG Effects of Ranolazine, Dofetilide, Verapamil, and Quinidine in Healthy Subjects database contains multi-channel ECG recordings of subjects partaking in a randomized, double-blind, 5-period crossover clinical trial aimed at comparing the effects of four known QT prolonging drugs versus placebo on electrophysiological and other clinical parameters.","guid":"PhysioNet 20160726.1","publish_datetime":"2016-07-26T04:00:00Z","title":"New Database Added: ECGRDVQ","url":"https://physionet.org/physiobank/database/ecgrdvq/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The Long Term Movement Monitoring database contains 3-day 3D accelerometer recordings of 71 elder community residents, used to study gait, stability, and fall risk.","guid":"PhysioNet 20160620.1","publish_datetime":"2016-06-20T04:00:00Z","title":"New Database Added: LTMM","url":"https://physionet.org/physiobank/database/ltmm/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The Indwelling Arterial Catheter Clinical dataset contains clinical data for 1776 patients from the MIMIC-II clinical database. It was the basis for the article: Hsu DJ, et al. The association between indwelling arterial catheters and mortality in hemodynamically stable patients with respiratory failure: A propensity score analysis. Chest, 148(6):1470–1476, Aug. 2015. This dataset was also used by Raffa et al. in Chapter 5 \"Data Analysis\" of the forthcoming book: Secondary Analysis of Electronic Health Records, published by Springer in 2016.","guid":"PhysioNet 20160609.1","publish_datetime":"2016-06-09T04:00:00Z","title":"New Database Added: IACCD","url":"https://physionet.org/physiobank/database/mimic2-iaccd/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The MAMEM steady state visually evoked potentials database containing 256 channel EEG recordings of 11 subjects under the stimulation of flickering lights has been expanded with a second experimental dataset.","guid":"PhysioNet 20160608.1","publish_datetime":"2016-06-08T04:00:00Z","title":"Database Updated: MSSVEPDB","url":"https://physionet.org/physiobank/database/mssvepdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The Human Balance Evaluation database contains force platform recordings from 193 subjects undergoing stabilography tests.","guid":"PhysioNet 20160519.1","publish_datetime":"2016-05-19T04:00:00Z","title":"New Database Added: HBEDB","url":"https://physionet.org/physiobank/database/hbedb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The fetal ECG synthetic database is a large database of simulated adult and non-invasive fetal ECG (NI-FECG) signals, which provides a robust resource that enables reproducible research in the field. The data is generated using the FECGSYN simulator (visit website).","guid":"PhysioNet 20160429.1","publish_datetime":"2016-04-29T04:00:00Z","title":"New Database Added: FECGSYNDB","url":"https://physionet.org/physiobank/database/fecgsyndb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The Association for the Advancement of Medical Instrumentation (AAMI) announced that the Foundation’s highest honor, the Laufman-Greatbatch Award for 2016, was being awarded for the creation and development of the PhysioNet Resource.","guid":"PhysioNet 20160419.1","publish_datetime":"2016-04-19T04:00:00Z","title":"PhysioNet Receives Major Award","url":"http://www.aami.org/professionaldevelopment/content.aspx?ItemNumber=1069&navItemNumber=644"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The Squid Giant Axon Membrane Potential database contains single-unit neuronal recordings of squid giant axons in response to stimulus currents. The membrane potential and stimulus current are given for a total of 170 trials across 8 different axons.","guid":"PhysioNet 20160415.2","publish_datetime":"2016-04-15T05:00:00Z","title":"New Database Added: SGAMP","url":"https://physionet.org/physiobank/database/sgamp/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The MAMEM steady state visually evoked potentials database contains 256 channel EEG recordings of 11 subjects under the stimulation of flickering lights.","guid":"PhysioNet 20160415.1","publish_datetime":"2016-04-15T04:00:00Z","title":"New Database Added: MSSVEPDB","url":"https://physionet.org/physiobank/database/mssvepdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The Multiscale Poincare Plots package contains MATLAB scripts used to visualize time series by plotting Poincare plots of the original signal course grained at multiple time scales.","guid":"PhysioNet 20160412.1","publish_datetime":"2016-04-12T04:00:00Z","title":"New Software Package Added: MPP","url":"https://physionet.org/physiotools/mpp/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The Logistic Regression HSMM based Heart Sound Segmentation package contains MATLAB code used to segment phonocardiogram (PCG) recordings, and detect the four states of the heart cycle. This state of the art segmentation code by Springer is used in the sample entry of the 2016 PhysioNet/CinC Challenge.","guid":"PhysioNet 20160410.1","publish_datetime":"2016-04-10T04:00:00Z","title":"New Software Package Added: HSS","url":"https://physionet.org/physiotools/hss/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The newly contributed software for Modeling of Heart Rate Variability Including the Effect of Sleep Stages implements a model for simulating healthy nighttime heart rate variability based on the properties of sleep observed in real data. Also included are 20 RR time series generated by the model. The model was first proposed in “Modeling heart rate variability including the effect of sleep stages,” by Soliński et al in CHAOS 26, 023101 (2016).","guid":"PhysioNet 20160309.1","publish_datetime":"2016-03-09T05:00:00Z","title":"New software package added to PhysioToolkit: MHRV","url":"https://physionet.org/physiotools/mhrv/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"We are pleased to announce the 2016 PhysioNet/Computing in Cardiology Challenge: Classification of Normal/Abnormal Heart Sound Recordings. For this year's Challenge, we have released a collection of 3,125 phonocardiograms from a variety of clinical and non-clinical sources. We invite participants to develop algorithms to determine, based on a short heart sound recording, whether the patient should be referred on for an expert diagnosis.","guid":"PhysioNet 20160304.2","publish_datetime":"2016-03-04T07:00:00Z","title":"PhysioNet/CinC Challenge 2016","url":"https://physionet.org/challenge/2016/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The Transfer Entropy With Partitioning package is a repository of MATLAB functions that can estimate transfer entropy (information flow) from one time series to another using a non-parametric partitioning algorithm. Also included is an example data set that the implemented algorithms can be applied to.","guid":"PhysioNet 20160304.3","publish_datetime":"2016-03-04T06:00:00Z","title":"New software package added to PhysioToolkit: TEWP","url":"https://physionet.org/physiotools/tewp/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The MMG Database contains uterine magnetomyographic (MMG) signals recorded using the 151 channel SARA (SQUID Array for Reproductive Assessment) system installed at UAMS, Little Rock, USA.","guid":"PhysioNet 20160304.1","publish_datetime":"2016-03-04T05:00:00Z","title":"New Database Added: MMGDB","url":"https://physionet.org/physiobank/database/mmgdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The Physiologic Response to Changes in Posture Database contains a collection of physiological recordings (ECG and ABP) from tenhealthy subjects in response to a slow tilt, a fast tilt, and a standing-up maneuver.","guid":"PhysioNet 20160218.1","publish_datetime":"2016-02-18T05:00:00Z","title":"New Database Added: PRCP","url":"https://physionet.org/physiobank/database/prcp/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The Motion Artifact Contaminated ECG Database contains short duration ECG signals recorded from a single healthy 25-year-old male performing different physical activities to study the effect of motion artifacts on ECG signals and their sparsity.","guid":"PhysioNet 20151218.1","publish_datetime":"2015-12-18T05:00:00Z","title":"New Database Added: MACECGDB","url":"https://physionet.org/physiobank/database/macecgdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The kl-single-uncentralized subdirectory contains another new set of single lead KL basis functions for the ST segments, and their subsequent normalized and non-normalized KL coefficients. The set of clean heart beats from which the ST segments are extracted slightly differ from those of the previously derived 2011 KL dataset. More importantly, this time the KL coefficients are NOT centralized by their mean values.","guid":"PhysioNet 20151125.1","publish_datetime":"2015-11-25T05:00:00Z","title":"Database updated: Long-Term ST Database","url":"https://physionet.org/physiobank/database/ltstdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Data Chromatix is a technique for visualizing trends in biomedical signals by bringing memory of the system's past behavior into the current display window. This package was developed at the Wyss Institute at Harvard by A. Burykin, S. Mariani, T. Silva and T. Henriques, and is described in \"Remembrance of time series past: simple chromatic method for visualizing trends in biomedical signals,\" Burykin A, Mariani S, Henriques T, Silva TF, Schnettler WT, Costa MD, Goldberger AL. Physiol Meas 2015;36(7):N95.","guid":"PhysioNet 20151109.1","publish_datetime":"2015-11-09T06:00:00Z","title":"New software package added to PhysioToolkit: Data Chromatix","url":"https://physionet.org/physiotools/dchromatix/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"ECG-kit. This toolbox is a collection of MATLAB tools that Mariano Llamedo Soria used, adapted or developed during his PhD and post-doc work with the Besicos group at University of Zaragoza, Spain and at the National Technological University of Buenos Aires, Argentina. The main feature of this toolbox is that it allows the use of several popular algorithms for ECG processing, including: Algorithms from Physionet's WFDB software package; QRS detectors, such as gqrs, wqrs, wavedet, ecgpuwave, Pan and Tompkins, EP limited; Wavelet-based ECG delineator; Pulse wave detectors as wabp and wavePPG; and a2hbc and EP limited heartbeat classifiers.","guid":"PhysioNet 20151109.2","publish_datetime":"2015-11-09T05:00:00Z","title":"New software package added to PhysioToolkit: ECG-kit","url":"https://physionet.org/physiotools/ecg-kit/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Smart Health for Assessing the Risk of Events via ECG (SHAREE database). The SHAREE database was developed in order to investigate the possibility of identifying hypertensive subjects at higher risk to develop vascular events based on Heart Rate Variability analysis. The database was created by Paolo Melillo, Raffaele Izzo, Ada Orrico, Paolo Scala, Marcella Attanasio, Marco Mirra, Nicola De Luca, and Leandro Pecchia as part of the \"Smart Health and Artificial intelligence for Risk Estimation\" (SHARE) project, which seeks ways to prevent cardiovascular events and falls in people over 65.","guid":"PhysioNet 20150519.1","publish_datetime":"2015-05-19T22:00:00Z","title":"New Database Added: SHAREEDB","url":"https://physionet.org/physiobank/database/shareedb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Icelandic 16-electrode Electrohysterogram DataBase (EHGDB). A new dataset of 122 16-electrode EHG recordings performed on 45 pregnant Icelandic women has been published in PhysioBank. The data was contributed by Ásgeir Alexandersson, who performed the recordings at Akureyri Primary Health Care Centre, Akureyri Hospital and Landspitali University Hospital. A detailed description of the database has been published in Nature's new journal Scientific Data 2, Article number: 150017 (2015).","guid":"PhysioNet 20150509.1","publish_datetime":"2015-05-09T04:00:00Z","title":"New Database Added: EHGDB","url":"https://physionet.org/physiobank/database/ehgdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The PhysioNet/Computing in Cardiology Challenge 2015 is now open. This year's challenge is 'Reducing False Arrhythmia Alarms in the ICU'. False alarms in the ICU can lead to a disruption of care, impacting both the patient and the clinical staff through noise disturbances, desensitization to warnings and slowing of response times, leading to decreased quality of care. To address this issue, competitors are challenged to devise a method of processing all the available data to reduce false alarms with minimal or no effect on true (vital) alarms.","guid":"PhysioNet 20150215.1","publish_datetime":"2015-02-15T05:00:00Z","title":"PhysioNet/CinC Challenge 2015","url":"https://physionet.org/challenge/2015/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Two new software packages have been added to PhysioToolkit! The first package, D3Maps, is a tool for visualizing the behavior of complex systems by means of the dynamical density delay mapping technique. This package was developed at the Wyss Institute by A. Burykin, L. Citi, M.D. Costa and A.L. Goldberger. The second software package, Multiscale Multifractal Analysis, is a time series analysis method designed to describe scaling properties of fluctuations within a signal. The software package was contributed by Jan Gierałtowski from Warsaw University of Technology.","guid":"PhysioNet 20150131.1","publish_datetime":"2015-01-31T05:00:00Z","title":"New software packages added to PhysioToolkit!","url":"https://physionet.org/news.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"PhysioNet is pleased to announce that we are now an officially recommended reposito ry for the journal Scientific Data (SciData). SciData is an open-access, peer-reviewed publication from the Nature Publishing Group focusing on scientifically valuable research datasets. SciData's primary article-type, the Data Descriptor, is designed to make your data more discoverable, interpretable and reusable. Users who have contributed data to PhysioNet are now invited to submit their unpublished data as a Data Descriptor to Scientific Data! Pre-submission enquires are welcome at: scientificdata@nature.com.","guid":"PhysioNet 20150123.1","publish_datetime":"2015-01-23T14:00:00Z","title":"PhysioNet approved as repository for Nature's Scientific Data!","url":"https://physionet.org/news.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Combined measurement of ECG, Breathing, and Seismocardiograms DataBase, CEBSDB. A dataset of 60 records from 20 volunteers has been contributed to PhysioBank by Miguel Angel Garcia Gonzalez and Ariadna Argelagos Palou from the Universitat Politecnica de Catalunya. Each record contains two ECGs, a respiration, and a seismocardiogram signals. The database was designed to check if errors in RR series are influenced by breathing, and if there is a significant variability in RR series estimated from ECGs versus seismocardiograms.","guid":"PhysioNet 20141212.1","publish_datetime":"2014-12-12T14:00:00Z","title":"New Database added: CEBSDB","url":"https://physionet.org/news.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Two new software packages have been added to the PhysioTookit library. FECGSyn is a new Foetal ECG Waveform Generator contributed by Joachim Behar and colleagues in Gari Clifford's group at the University of Oxford. The second package, the Random Search Toolbox, is a MATLAB toolbox for selecting model hyper-parameters via random search, also contributed by Joachim Behar and colleagues in Gari Clifford's group.","guid":"PhysioNet 20141104.1","publish_datetime":"2014-11-04T14:00:00Z","title":"New Software added to PhysioToolkit","url":"https://physionet.org/news.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Two upcoming events this September at MIT will be of interest to PhysioNet users. The first is the International Critical Care Data Mining Marathon, a weekend event ( 5-7 September 2014). The International Critical Care Data Mining Marathon will bring together teams of engineers and clinicians to develop tools and crowd-source knowledge in clinical data, with a hands-on data mining workshop using the MIMIC II Database. The second event is the 2014 Computing in Cardiology conference held from September 7-10 2014 at Cambridge, Massachusetts. Computing in Cardiology is an international scientific conference that has been held annually since 1974 and hosting PhysioNet Challenges since 2000. This conference provides a forum for scientists and professionals from the fields of medicine, physics, engineering and computer science to discuss their current research in topics pertaining to computing in clinical cardiology and cardiovascular physiology.","guid":"PhysioNet 20140730.1","publish_datetime":"2014-07-30T14:00:00Z","title":"Computing Cardiology 2014/Critical Data Marathon","url":"http://cinc2014.org/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"PhysioNet users with an interest in sleep physiology now have access to the web site of the National Sleep Research Resource (NSRR), which hosts large annotated collections of EDF polysomnograms and related clinical data elements from well-characterized research cohorts and clinical trials. The first data set available includes over 8,000 studies from exams 1 and 2 of the Sleep Heart Health Study, with scheduled new data releases every quarter from additional data sets. NSRR also provides open-source software for viewing and analyzing these data.","guid":"PhysioNet 20140404.2","publish_datetime":"2014-04-04T14:00:00Z","title":"National Sleep Research Resource","url":"http://sleepdata.org/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The ECG-ID Database is a set of 310 ECGs from 90 volunteers, created and contributed to PhysioBank by Tatiana Lugovaya, who used the ECGs in her master's thesis. An excellent summary of this thesis, with a discussion of the challenges in using ECGs as biometrics, and a comparison of the author's methods and results with those of three previous studies, is also available.","guid":"PhysioNet 20140306.1","publish_datetime":"2014-03-06T18:00:00Z","title":"Biometric Human Identification based on ECG","url":"https://physionet.org/physiobank/database/ecgiddb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"This dataset, created and contributed by Luca Citi, Riccardo Poli, and Caterina Cinel, was generated as part of a study aimed at identifying the factors limiting the performance of brain-computer interfaces (BCIs) based on event-related potentials (ERPs), in order to improve the transfer rate and the usability of these interfaces. Twenty recordings of each of 10 participants include annotated 64-channel EEGs and 4-channel EOGs, generated while the participants focused on specified target characters displayed by a traditional matrix speller.","guid":"PhysioNet 20140304.1","publish_datetime":"2014-03-04T23:30:00Z","title":"ERP-based Brain-Computer Interface recordings","url":"https://physionet.org/physiobank/database/erpbci/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"This data collection, contributed to PhysioBank by Kevin Sweeney and colleagues at the National University of Ireland in Maynooth, contains examples of functional near-infrared spectroscopy (fNIRS) and electroencephalogram (EEG) recordings that have been created for evaluating artifact removal methods. In each such recording, one or two pairs of similar physiological signals have been acquired from transducers in close proximity. One signal of each pair is contaminated by motion artifact, documented in each case by simultaneously recorded outputs of 3-axis accelerometers affixed to each transducer.","guid":"PhysioNet 20140303.1","publish_datetime":"2014-03-03T23:30:00Z","title":"Motion Artifact Contaminated fNIRS and EEG Data","url":"https://physionet.org/physiobank/database/motion-artifact/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"This collection of 552 CTGs from the Czech Technical University (CTU) in Prague and the University Hospital in Brno (UHB) was carefully selected from 9164 recordings recently collected at UHB. Each recording is up to 90 minutes long, and includes a fetal heart rate time series, a uterine contraction signal, and maternal, delivery, and fetal clinical details.","guid":"PhysioNet 20140218.1","publish_datetime":"2014-02-18T16:30:00Z","title":"CTU-UHB Intrapartum Cardiotocography Database","url":"https://physionet.org/physiobank/database/ctu-uhb-ctgdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"A contribution of simulated fetal PCGs is now available in PhysioBank. The synthetic PCGs exhibit a realistic range of signal-to-noise ratios, with simulated maternal heart and organ sounds, fetal movements, and environmental sounds.","guid":"PhysioNet 20140130.1","publish_datetime":"2014-01-30T22:00:00Z","title":"Simulated Fetal Phonocardiograms","url":"https://physionet.org/physiobank/database/simfpcgdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The 15th annual PhysioNet/CinC Challenge is now underway. Read the announcement, and study the training data set and a sample entry.","guid":"PhysioNet 20140107.1","publish_datetime":"2014-01-07T23:30:00Z","title":"Robust Detection of Heart Beats in Multimodal Data","url":"https://physionet.org/challenge/2014/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Two upcoming events at MIT will be of interest to users of the MIMIC II Databases. The first is the Critical Data Marathon, a weekend event (3-5 January 2014) run in partnership with Sana Mobile and H@cking Medicine. The Critical Data Marathon will bring together teams of engineers and clinicians to develop tools and crowd-source knowledge and insight in clinical data, with a hands-on data mining workshop using the MIMIC II Clinical Database. The second event is a conference, Critical Data, on 7 January 2014, which aims to bring together clinicians, clinical researchers, and data scientists to discusss the opportunities and challenges surrounding meaningful reuse of clinical data. Remote participation is possible for those unable to attend these events at MIT.","guid":"PhysioNet 20131028.1","publish_datetime":"2013-10-28T18:00:00Z","title":"Learning from Routinely Collected Critical Care Data","url":"http://criticaldata.mit.edu/events/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"A greatly expanded version of the Sleep-EDF Database, of which a small subset was previously contributed in 2002, is now available in PhysioBank. The database now includes 61 full-night polysomnograms of healthy subjects and of subjects with mild difficulty falling asleep, with accompanying expert annotations of sleep stages.","guid":"PhysioNet 20131024.2","publish_datetime":"2013-10-24T20:00:00Z","title":"Collection of Annotated Polysomnograms Grows","url":"https://physionet.org/physiobank/database/sleep-edfx/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Over 60 teams of participants from around the world participated in the PhysioNet/CinC Challenge 2013 on the subject of noninvasive fetal ECG. The final scores of the top-ranking teams have been posted. Also available are the slides presented by the 28 participants who discussed their work during sessions dedicated to the Challenge at Computing in Cardiology 2013 in Zaragoza, Spain.","guid":"PhysioNet 20131024.1","publish_datetime":"2013-10-24T19:00:00Z","title":"Noninvasive Fetal ECG: Results of the Challenge","url":"https://physionet.org/physiobank/challenge/2013/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The WFDB Toolbox for MATLAB is a collection of MATLAB functions for reading, writing, and manipulating (processing) PhysioBank data, implemented as system calls to WFDB Software Package applications through Java and MATLAB wrappers. A new implementation of the toolbox provides faster operation and a significantly expanded set of functions.","guid":"PhysioNet 20130822.1","publish_datetime":"2013-08-22T20:50:00Z","title":"WFDB Toolbox for MATLAB","url":"https://physionet.org/physiotools/matlab/wfdb-app-matlab/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Participants in the PhysioNet/CinC Challenge 2013 may submit Phase 2 entries from now until noon GMT on 25 August. An autoscorer returns instant results for events 4 and 5. Following the deadline, final scores for all entries will be available, and participants will have a week to submit a single Phase 3 entry.","guid":"PhysioNet 20130802.1","publish_datetime":"2013-08-02T18:30:00Z","title":"PhysioNet/CinC Challenge 2013: Phase 2 underway","url":"https://physionet.org/challenge/2013/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"PhysioNet is one of four NIH-supported initiatives highlighted in a recent White House blog entry about accelerating the pace of discovery through the use of Big Data. (The others are the Human Connectome Project, the BRAIN Initiative, and the Cancer Genome Atlas.)","guid":"PhysioNet 20130429.1","publish_datetime":"2013-04-29T15:40:00Z","title":"Big Data is a Big Deal for Biomedical Research","url":"http://www.whitehouse.gov/blog/2013/04/23/big-data-big-deal-biomedical-research"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The open test set B (100 one-minute noninvasive fetal ECG recordings) for Challenge 2013 is now available, together with a supplement of 50 additional recordings in training set A.","guid":"PhysioNet 20130402.2","publish_datetime":"2013-04-02T23:00:00Z","title":"Test Data for Challenge 2013 Posted","url":"https://physionet.org/challenge/2013/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"This year's challenge invites participants to develop software capable of detecting fetal QRS complexes in multichannel noninvasive ECG recordings, making accurate estimates of fetal heart rate, RR intervals, and QT intervals. An annotated training set of 25 one-minute recordings is available now; a sample entry, software for scoring, and test recordings will be available shortly.","guid":"PhysioNet 20130221.1","publish_datetime":"2013-02-21T19:00:00Z","title":"PhysioNet/Computing in Cardiology Challenge 2013 Opens","url":"https://physionet.org/challenge/2013/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"For the first time, open access is available to a set of 4000 patient records included in the MIMIC II Clinical Database Demo, a downloadable disk image that can be run within a virtual machine or from a bootable USB flash drive or DVD. Since all of the required software, including the operating system, is pre-installed and configured, the demo is an ideal way to begin exploring the MIMIC II Clinical Database (currently including more than 32,000 patient records) on a spare PC or Intel Mac with an absolute minimum of setup time.","guid":"PhysioNet 20121004.1","publish_datetime":"2012-10-05T01:00:00Z","title":"First Open Access to a Large Subset of the MIMIC II Clinical Database","url":"https://physionet.org/mimic2/demo/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Final scores in the PhysioNet/CinC Challenge 2012 have now been posted. Participants will present their work on the challenge, which focuses on predicting mortality of ICU patients, at CinC 2012 in Krakow, 9-12 September.","guid":"PhysioNet 20120831.1","publish_datetime":"2012-08-31T04:45:00Z","title":"Final scores in the PhysioNet/CinC Challenge 2012","url":"https://physionet.org/challenge/2012/top-scores.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Inspired by the PhysioNet/CinC Challenge 2011 (Improving the quality of ECGs collected using mobile phones), the journal /Physiological Measurement/ has devoted its September 2012 focus issue to the subject of signal quality in cardiorespiratory monitoring, with eleven articles on this topic, including nine written by Challenge participants.","guid":"PhysioNet 20120817.1","publish_datetime":"2012-08-17T20:30:00Z","title":"/Physiological Measurement/ focuses on work of Challenge 2011 participants","url":"http://iopscience.iop.org/0967-3334/33/9"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Over 70 open-source applications for signal processing, analysis, and more, all built on a stable and easy-to-use library that can be incorporated into your own software. This release includes direct and secure access from WFDB applications to PhysioNetWorks projects without the use of a web browser.","guid":"PhysioNet 20120813.1","publish_datetime":"2012-08-14T00:00:00Z","title":"WFDB 10.5.14","url":"https://physionet.org/physiotools/wfdb.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"PhysioBank has received a contribution of five-minute multichannel fetal ECG recordings, with cardiologist-verified annotations of all fetal heart beats, from five women in labor, from the Medical University of Silesia, Poland. Each record includes four signals from the maternal abdomen and a simultaneously recorded reference direct fetal ECG from the fetal scalp; all signals are sampled at 1 KHz with 16-bit resolution.","guid":"PhysioNet 20120809.1","publish_datetime":"2012-08-09T22:30:00Z","title":"Abdominal and Direct Fetal ECG Database","url":"https://physionet.org/physiobank/database/adfecgdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The creators of the OB-1 Database of fetal ECGs seek collaborators in their PhysioNetWorks project to complete the database and to use it to investigate improved diagnoses of fetal distress. A sample recording from the database is now available in PhysioBank, while construction of the remainder (including more than 100 additional recordings, with detailed accompanying clinical information) is in progress on PhysioNetWorks.","guid":"PhysioNet 20120803.1","publish_datetime":"2012-08-03T17:00:00Z","title":"Fetal Distress and the OB-1 Database","url":"https://physionet.org/physiobank/database/ob1db/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The Cyclic Alternating Pattern (CAP) is a periodic EEG activity occurring during NREM sleep, and abnormal amounts of CAP are associated with a variety of sleep-related disorders. The CAP Sleep Database is a collection of 108 polysomnographic recordings contributed by the Sleep Disorders Center of the Ospedale Maggiore of Parma, Italy. Each record includes 3 or more EEG signals together with EOG, chin and tibial EMG, airflow, respiratory effort, SaO2, and ECG signals, and reference sleep stage and CAP annotations, This database is intended to provide a useful number of carefully annotated examples of CAP in a representative variety of pathophysiologic contexts, for development and evaluation of automated CAP analyzers, as well as to support basic studies of the dynamics of CAP.","guid":"PhysioNet 20120726.1","publish_datetime":"2012-07-26T21:20:00Z","title":"CAP Sleep Database","url":"https://physionet.org/physiobank/database/capslpdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"A complete set of over 9 million reference beat and rhythm annotations for the Long-Term AF Database has been contributed by MEDICALgorithmics (Warsaw, Poland). The Long-Term AF Database, a collection of 84 long-term ECG recordings (typically 24 to 25 hours each) of subjects with paroxysmal or sustained atrial fibrillation, was contributed to PhysioBank in 2008 by Steven Swiryn and his colleagues at Northwestern University. Michael Tadeusiak of MEDICALgorithmics coordinated the annotation development as a PhysioNetWorks project.","guid":"PhysioNet 20120723.1","publish_datetime":"2012-07-23T22:45:00Z","title":"New annotations for the Long-Term AF Database","url":"https://physionet.org/physiobank/database/ltafdb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"PhysioBank has received a contribution of continuous blood pressure recordings collected for a study of baroreflex dysfunction in salt-sensitive hypertension in Dahl SS and SSBN13 rats.","guid":"PhysioNet 20120626.1","publish_datetime":"2012-06-26T19:30:00Z","title":"Blood Pressure in Salt-Sensitive Dahl Rats","url":"https://physionet.org/physiobank/database/bpssrat/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Phase 2 of the PhysioNet/Computing in Cardiology Challenge 2012 (Predicting mortality of ICU patients) is now open, and participants may submit entries until 25 August. If you missed Phase 1, you are still welcome to participate unofficially in Phase 2.","guid":"PhysioNet 20120604.1","publish_datetime":"2012-06-04T22:40:00Z","title":"Submit a Phase 2 Challenge Entry Now","url":"https://physionet.org/challenge/2012"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Over 70 open-source applications for signal processing, analysis, and more, all built on a stable and easy-to-use library that can be incorporated into your own software. This release includes 'gqrs', a new, flexible, high sensitivity QRS detector for research, based on previously unpublished algorithms.","guid":"PhysioNet 20120513.1","publish_datetime":"2012-05-13T20:15:00Z","title":"WFDB 10.5.13","url":"https://physionet.org/physiotools/wfdb.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Registration for the PhysioNet/Computing in Cardiology Challenge 2012 is now open, and registered participants may submit entries. This year's challenge focuses on predicting mortality of ICU patients. Submit a preliminary entry by 25 April.","guid":"PhysioNet 20120327.1","publish_datetime":"2012-03-27T06:00:00Z","title":"Submit a prelminary Challenge Entry (closed 25 April)","url":"https://physionet.org/challenge/2012"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"If you have digital recordings of signals or time series, perhaps with annotations, that you would like to study using PhysioToolkit software such as that in the WFDB software package, or that you would like to contribute to PhysioBank, this tutorial should get you started on creating PhysioBank-compatible records from your data.","guid":"PhysioNet 20120316.1","publish_datetime":"2012-03-16T19:00:00Z","title":"Creating PhysioBank (WFDB-compatible) Records","url":"https://physionet.org/tutorials/creating-records.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Use PhysioBank Record Search in your web browser to find records in PhysioBank that share a desired set of characteristics. The search engine is integrated with the PhysioBank ATM, so that records within search results can be examined individually and marked for further study if desired. The pbsearch software package includes sources for the PhysioBank Record Search web client, the server, a command-line client, and a set of plugins.","guid":"PhysioNet 20120314.1","publish_datetime":"2012-03-14T22:00:00Z","title":"PhysioBank Record Search","url":"https://physionet.org/cgi-bin/pbsearch?help_on=on"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The first release of the PhysioBank Index contains essential information about all of the more than 36,000 records that can be viewed using the PhysioBank ATM. A web-based tool for searching the index is under development. Users who are comfortable using standard command-line tools can use them now, to search the index for records with desired characteristics. Our new tutorial provides guidance and examples.","guid":"PhysioNet 20120206.1","publish_datetime":"2012-02-06T21:15:00Z","title":"PhysioBank Index","url":"https://physionet.org/physiobank/database/pbi/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Two new tutorials, \"How to create and manage a PhysioNetWorks project\" and \"How to Write HTML pages for PhysioNet,\" aim to help members of the research community to create, collaborate on, and publish sharable data and software. Several other tutorials have been updated recently, including \"A Brief Tour of PhysioNet,\" which now includes a demonstration of the PhysioBank ATM and an introduction to PhysioNetWorks.","guid":"PhysioNet 20120129.3","publish_datetime":"2012-01-30T04:45:00Z","title":"New and Updated Tutorials","url":"https://physionet.org/tutorials/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The most recent in our series of PhysioNet tutorials introduces the study of complex variability, especially in the context of physiology and medicine.","guid":"PhysioNet 20120124.1","publish_datetime":"2012-01-25T00:00:00Z","title":"New Variability vs. Complexity Tutorial","url":"https://physionet.org/tutorials/cv/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"This year's challenge focuses on methods for predicting ICU mortality, using a rich set of physiologic and clinical variables collected from 12,000 patients.","guid":"PhysioNet 20120120.3","publish_datetime":"2012-01-21T02:00:00Z","title":"PhysioNet/Computing in Cardiology Challenge 2012 Opens","url":"https://physionet.org/challenge/2012/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"This collection includes 4,897 waveform records and 5,266 numerics records from the MIMIC II Waveform Database, which have been matched and time-aligned with 2,809 MIMIC II Clinical Database records.","guid":"PhysioNet 20120113.1","publish_datetime":"2012-01-14T04:10:00Z","title":"MIMIC II Waveform Database Matched Subset","url":"https://physionet.org/physiobank/database/mimic2wdb/matched/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The guide provides additional information for each recording in the database, including (as available) age, sex, diagnoses, pertinent medical history, ECG interpretation, ventilation, a timeline of events that occurred during the recording, and additional clinical observations.","guid":"PhysioNet 20120106.1","publish_datetime":"2012-01-06T16:30:00Z","title":"MGH/MF Waveform Database Patient Guide","url":"https://physionet.org/physiobank/database/mghdb/patient-guide.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Over 70 open-source applications for signal processing, analysis, and more, all built on a stable and easy-to-use library that can be incorporated into your own software.","guid":"PhysioNet 20111116.1","publish_datetime":"2011-11-16T20:00:00Z","title":"WFDB 10.5.10","url":"https://physionet.org/physiotools/wfdb.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Version 3 of the MIMIC II Waveform Database has been publicly released. Version 3 contains 21,422 patient records and is more than 4 times the size of version 2. Using enhanced data recovery techniques, the original raw data dumps have been reprocessed to extract many records that were previously unreadable, and additional raw data dumps collected since the previous release were also processed to obtain many more records. Also available to qualified investigators via PhysioNetWorks is version 2.6 of the companion MIMIC II Clinical Database, containing data for 32,536 subjects (5880 new since version 2.5) and additional data types (including demographics, procedure (CPT) codes, diagnosis-related groups (DRG codes), Elixhauser comorbidity scores, microbiology test results, and LOINC coding for lab tests).","guid":"PhysioNet 20110826.1","publish_datetime":"2011-08-26T18:00:00Z","title":"MIMIC II Waveform and Clinical Databases Updated","url":"https://physionet.org/mimic2/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The final deadline for submitting entries to the PhysioNet/CinC Challenge 2011 has passed. Congratulations and thanks to all who participated. Final scores and ranks are available for event 1 now.","guid":"PhysioNet 20110805.1","publish_datetime":"2011-08-05T13:00:00Z","title":"Challenge 2011 Entries Closed","url":"https://physionet.org/challenge/2011/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Participants in event 1 of the PhysioNet/CinC Challenge 2011 may submit preliminary entries now. If you plan to participate in any of this year's Challenge events, please submit a preliminary event 1 entry no later than noon GMT on Saturday, 30 April 2011. You will be able to revise your entry, and to submit an entry for events 2 and 3, until the final deadline of noon GMT on Monday, 1 August 2011.","guid":"PhysioNet 20110422.1","publish_datetime":"2011-04-23T03:45:00Z","title":"Challenge 2011 Event 1 is open","url":"https://physionet.org/challenge/2011/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"ECGs to be classified in events 1 and 2 of the PhysioNet/CinC Challenge 2011 are now available as individual files or as a tarball.","guid":"PhysioNet 20110419.1","publish_datetime":"2011-04-20T00:45:00Z","title":"Challenge 2011 Test Set B available","url":"https://physionet.org/physiobank/database/challenge/2011/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Over 70 open-source applications for signal processing, analysis, and more, all built on a stable and easy-to-use library that can be incorporated into your own software.","guid":"PhysioNet 20110312.1","publish_datetime":"2011-03-12T22:30:00Z","title":"WFDB 10.5.8","url":"https://physionet.org/physiotools/wfdb.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Participants with all levels of experience are invited to help develop the data set for the 12th annual PhysioNet/CinC Challenge by grading ECGs. Login to PhysioNetWorks and follow the link from your PhysioNetWorks home page to \"Diagnostic ECG Annotations\" to get started. An award fund of US$2000 will be divided among participants who have contributed in this way.","guid":"PhysioNet 20110307.1","publish_datetime":"2011-03-07T07:30:00Z","title":"Help us grade ECGs for the PhysioNet/CinC Challenge","url":"https://physionet.org/challenge/2011/#annotation-project"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The 2011 PhysioNet/Computing in Cardiology Challenge, now underway, aims to develop an efficient algorithm able to run in near real-time within a mobile phone, that can provide useful feedback in the process of acquiring a diagnostically useful ECG recording.","guid":"PhysioNet 20110225.1","publish_datetime":"2011-02-25T20:30:00Z","title":"Improving ECGs collected using mobile phones","url":"https://physionet.org/challenge/2011/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"PhysioNet welcomes a new mirror, http://physionet.nlm.nih.gov/, hosted at the National Library of Medicine in Bethesda, MD. PhysioNet mirrors around the world provide reliable alternate access to PhysioNet for visitors whose connections to the main servers may be slow.","guid":"PhysioNet 20110220.1","publish_datetime":"2011-02-20T20:30:00Z","title":"New PhysioNet mirror at NLM","url":"http://physionet.nlm.nih.gov/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The MIMIC Importer is software for automating the creation of a PostgreSQL relational database from the MIMIC II Clinical Database flat files that can be downloaded from PhysioNetWorks. The MIMIC Importer, and detailed instructions for using it, are available from the MIMIC II Clinical Database pages on PhysioNetWorks.","guid":"PhysioNet 20110213.1","publish_datetime":"2011-02-13T17:00:00Z","title":"First release: MIMIC Importer","url":"https://physionet.org/mimic2/mimic2_access.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Machine-generated beat and alarm annotations for over 1500 ICU patient records from the MIMIC II Waveform Database are available to qualified PhysioNetWorks members who agree to review and provide corrections for a subset of them. [The link for this article requires a PhysioNetWorks login to view.]","guid":"PhysioNet 20110209.1","publish_datetime":"2011-02-09T18:00:00Z","title":"MIMIC II Waveform Database Annotations","url":"https://physionet.org/works/MIMICIIWaveformDatabaseAnnotations/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Version 1.2 of the HRV Toolkit is now available, with expanded options for graphical output.","guid":"PhysioNet 20110209","publish_datetime":"2011-02-09T11:20:00Z","title":"Heart Rate Variability Analysis Toolkit updated","url":"https://physionet.org/tutorials/hrv-toolkit/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"A database of evoked auditory response in healthy subjects across a wide range of stimulus levels has been contributed to PhysioBank. The data include 24-bit recordings of auditory brain stem response (ABR) and otoacoustic emissions (OAE) signals, and 32-bit computed average responses.","guid":"PhysioNet 20110203","publish_datetime":"2011-02-03T17:00:00Z","title":"Evoked Auditory Response","url":"https://physionet.org/physiobank/database/earndb/"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"Version 2.5 of the MIMIC II Clinical Database contains comprehensive clinical data from tens of thousands of ICU patients. The MIMIC II Clinical Database can be downloaded from PhysioNetWorks or explored online on the web site of the MIMIC Project.","guid":"PhysioNet 20110122","publish_datetime":"2011-01-22T17:00:00Z","title":"MIMIC II Clinical Database v2.5","url":"https://physionet.org/mimic2/mimic2_clinical_overview.shtml"}
+},
+{
+  "model": "notification.news",
+  "fields": {"content":"The Term-Preterm EHG Database, a collection of electrohysterogram (EHG: uterine EMG) recordings obtained at the University Medical Centre Ljubljana from 300 pregnant women, has been contributed to PhysioBank and is now available. The collection includes recordings from 262 women who had full-term pregnancies and 38 whose pregnancies ended prematurely; 162 of the recordings were made before the 26th week of gestation, and 138 later.","guid":"PhysioNet 20110121","publish_datetime":"2011-01-21T17:00:00Z","title":"Term-Preterm EHG Database","url":"https://physionet.org/physiobank/database/tpehgdb/"}
+}
+]

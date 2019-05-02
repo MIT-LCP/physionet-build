@@ -5,23 +5,35 @@ from django.db.models import Min, Max
 from .models import News
 
 
-def news(request):
+def news(request, max_items=20):
     """
     Redirect to news for current year
     """
-    news_pieces = News.objects.order_by('-publish_datetime')
+    news_pieces = News.objects.order_by('-publish_datetime')[:max_items]
 
     # The year range of all the PN news in existence.
-    minmax = News.objects.all().aggregate(min=Min('publish_datetime'), max=Max('publish_datetime'))
-    news_years = list(range(minmax['min'].year, minmax['max'].year+1))
+    minmax = News.objects.all().aggregate(min=Min('publish_datetime'),
+                                          max=Max('publish_datetime'))
+    news_years = list(range(minmax['max'].year, minmax['min'].year-1, -1))
     return render(request, 'notification/news.html',
-        {'year':'Latest', 'news_pieces':news_pieces, 'news_years':news_years})
+                  {'year': 'Latest', 'news_pieces': news_pieces,
+                   'news_years': news_years})
+
 
 def news_year(request, year):
-    news_pieces = News.objects.filter(publish_datetime__year=int(year)).order_by('-publish_datetime')
-    # The year range of all the PN news in existence.
-    # Yes, the start is hardcoded.
-    minmax = News.objects.all().aggregate(min=Min('publish_datetime'), max=Max('publish_datetime'))
-    news_years = list(range(minmax['min'].year, minmax['max'].year+1))
+    news_pieces = News.objects.filter(publish_datetime__year=int(year)) \
+                              .order_by('-publish_datetime')
+
+    minmax = News.objects.all().aggregate(min=Min('publish_datetime'),
+                                          max=Max('publish_datetime'))
+    news_years = list(range(minmax['max'].year, minmax['min'].year-1, -1))
     return render(request, 'notification/news.html',
-        {'year':year, 'news_pieces':news_pieces, 'news_years':news_years})
+                  {'year': year, 'news_pieces': news_pieces,
+                   'news_years': news_years})
+
+
+def news_rss(request, max_items=100):
+    news_pieces = News.objects.order_by('-publish_datetime')[:max_items]
+    feed_date = news_pieces[0].publish_datetime
+    return render(request, 'notification/news_rss.xml',
+                  {'feed_date': feed_date, 'news_pieces': news_pieces})
