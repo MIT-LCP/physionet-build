@@ -232,6 +232,47 @@ class DOIForm(forms.ModelForm):
         return data
 
 
+class TopicForm(forms.Form):
+    """
+    Form to set tags for a published project
+    """
+    topics = forms.CharField(required=False, max_length=800,
+        label='Comma delimited topics')
+
+    def __init__(self, project, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.project = project
+
+    def set_initial(self):
+        """
+        Set the initial topics char field from the project's existing
+        topics.
+        """
+        self.fields['topics'].initial = ','.join(
+            t.description for t in self.project.topics.all())
+
+    def clean_topics(self):
+        data = self.cleaned_data['topics']
+        # It is allowed to be blank, but not have multiple items
+        # that include a blank
+        if data == '':
+            return data
+
+        topics = [x.strip() for x in data.split(',')]
+
+        if len(topics) != len(set(topics)):
+            raise forms.ValidationError('Topics must be unique')
+
+        for t in topics:
+            if not re.fullmatch(r'[\w][\w\ -]*', t):
+                raise forms.ValidationError('Each topic must contain letters, '
+                    'numbers, spaces, underscores, and hyphens only, and '
+                    'begin with a letter or number.')
+
+        self.topic_descriptions = [t.lower() for t in topics]
+        return data
+
+
 class DeprecateFilesForm(forms.Form):
     """
     For deprecating a project's files
