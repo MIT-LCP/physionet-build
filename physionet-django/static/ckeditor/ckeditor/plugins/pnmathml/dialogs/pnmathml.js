@@ -41,7 +41,10 @@ CKEDITOR.dialog.add( 'pnmathml', function( editor ) {
 
 						commit: function( widget ) {
 							// Add \( and \) to make TeX be parsed by MathJax by default.
-							widget.setData( 'math', '\\(' + this.getValue() + '\\)' );
+							widget.setData( {
+								math: '\\(' + this.getValue() + '\\)',
+								mathml: null
+							} );
 						}
 					},
 					{
