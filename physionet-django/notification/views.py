@@ -14,7 +14,7 @@ def news(request):
     # The year range of all the PN news in existence.
     minmax = News.objects.all().aggregate(min=Min('publish_datetime'),
                                           max=Max('publish_datetime'))
-    news_years = list(range(minmax['min'].year, minmax['max'].year+1))
+    news_years = list(range(minmax['max'].year, minmax['min'].year-1, -1))
     return render(request, 'notification/news.html',
                   {'year': 'Latest', 'news_pieces': news_pieces,
                    'news_years': news_years})
@@ -27,7 +27,7 @@ def news_year(request, year):
     # Yes, the start is hardcoded.
     minmax = News.objects.all().aggregate(min=Min('publish_datetime'),
                                           max=Max('publish_datetime'))
-    news_years = list(range(minmax['min'].year, minmax['max'].year+1))
+    news_years = list(range(minmax['max'].year, minmax['min'].year-1, -1))
     return render(request, 'notification/news.html',
                   {'year': year, 'news_pieces': news_pieces,
                    'news_years': news_years})
