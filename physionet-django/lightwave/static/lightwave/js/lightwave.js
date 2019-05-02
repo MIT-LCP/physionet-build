@@ -1656,7 +1656,8 @@ function summarize(annotator) {
 
 // Handle browser window resize events
 function resize_lightwave() {
-    m = document.getElementById("viewport").getScreenCTM();
+    var vp = document.getElementById("viewport");
+    m = (vp ? vp.getScreenCTM() : null);
     set_sw_width(dt_sec);
     $('#helpframe').attr('height', $(window).height() - 180 + 'px');
     show_plot(); // redraw signal window if resized
