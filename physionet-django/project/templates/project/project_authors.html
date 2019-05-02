@@ -25,13 +25,14 @@
                 },
         });
     };
-    function firstAuthor(author_id){
+    function shared(author_id, shared){
         var csrftoken = getCookie('csrftoken');
         $.ajax({
                 type: "POST",
-                url: "{% url 'first_author' project.slug %}",
+                url: "{% url 'shared' project.slug %}",
                 data: {'csrfmiddlewaretoken':csrftoken,
-                       'author_id':author_id
+                       'author_id':author_id,
+                       'shared':shared
                 },
                 success: function reloadSection(result){
                     $("#author-list").html(result);

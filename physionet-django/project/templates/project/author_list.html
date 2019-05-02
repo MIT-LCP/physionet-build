@@ -30,11 +30,15 @@
             {% else %}
               <button class="btn btn-sm" type="button" style="background:none; color:white"><i class="fa-arrow-down"></i></button>
             {% endif %}
-            {% if author.is_first %}
-              <button class="btn btn-sm" onclick="firstAuthor({{ author.id }})" type="button" title="Add First Author" style="background:none"><i class="fas fa-star"></i></button>
-            {% else %}
-              <button class="btn btn-sm" onclick="firstAuthor({{ author.id }})" type="button" title="Remove First Author" style="background:none; color:black"><i class="far fa-star"></i></button>
-            {% endif %}
+            <select style="display: inline-block; width: 4em;" onchange="shared({{ author.id }}, value);">
+              {% for i in authors %}
+                {% with i=forloop.counter %}
+                  {% if i <= mx_group %}
+                    <option value="{{ i }}" {% if author.shared == i %} selected {% endif %}>{{ i }}</option>
+                  {% endif %}
+                {% endwith %}
+              {% endfor%}
+            </select>
             {# Remove button. Leads to modal. #}
             {% if not author.is_submitting %}
               <button class="btn btn-sm" type="button" title="Remove Author" style="background:none; color:#cb2431" data-toggle="modal" data-target="#remove-{{ author.id }}-modal"><i class="fas fa-user-times"></i></button>
