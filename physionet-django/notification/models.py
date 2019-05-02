@@ -8,7 +8,7 @@ from project.models import SafeHTMLField
 class News(models.Model):
     """
     """
-    title = models.CharField(max_length=40)
+    title = models.CharField(max_length=100)
     content = SafeHTMLField()
     publish_datetime = models.DateTimeField(auto_now_add=True)
     url = models.URLField(default='', blank=True)
