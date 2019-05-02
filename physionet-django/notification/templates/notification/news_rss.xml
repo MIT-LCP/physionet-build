@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+<title>PhysioNet News</title>
+<link>{{ request.build_absolute_uri }}</link>
+<description>
+News from the research resource for complex physiologic signals
+</description>
+<atom:link href="{{ request.build_absolute_uri }}"
+           rel="self" type="application/rss+xml" />
+<language>en-us</language>
+<pubDate>{{ feed_date|date:"j M Y H:i O" }}</pubDate>
+<lastBuildDate>{{ feed_date|date:"j M Y H:i O" }}</lastBuildDate>
+<docs>http://www.rssboard.org/rss-specification</docs>
+
+{% for item in news_pieces %}
+<item>
+  <title>{{ item.title }}</title>
+  {% if item.url %}<link>{{ item.url }}</link>{% endif %}
+  <pubDate>{{ item.publish_datetime|date:"j M Y H:i O" }}</pubDate>
+  <description>{{ item.content|escape }}</description>
+  <guid isPermaLink="false">{{ item.guid }}</guid>
+</item>
+{% endfor %}
+
+</channel>
+</rss>

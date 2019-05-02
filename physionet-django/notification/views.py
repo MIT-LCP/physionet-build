@@ -31,3 +31,10 @@ def news_year(request, year):
     return render(request, 'notification/news.html',
                   {'year': year, 'news_pieces': news_pieces,
                    'news_years': news_years})
+
+
+def news_rss(request, max_items=100):
+    news_pieces = News.objects.order_by('-publish_datetime')[:max_items]
+    feed_date = news_pieces[0].publish_datetime
+    return render(request, 'notification/news_rss.xml',
+                  {'feed_date': feed_date, 'news_pieces': news_pieces})
