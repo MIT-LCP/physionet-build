@@ -308,10 +308,6 @@ a{
   flex: 1 0 auto;
 }
 
-main {
-  margin: 1rem 0rem;
-}
-
 .row{
   margin-left: unset;
   margin-right: unset;
