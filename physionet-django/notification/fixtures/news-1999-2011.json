@@ -69,7 +69,7 @@
 },
 {
   "model": "notification.news",
-  "fields": {"content":"The journal Chaos will publish a special issue containing discussion of the question \"Is the normal heart rate chaotic?\" in 2009. To provide a common focus for investigation of this question, a <a href=\"https://physionet.org/challenge/chaos/\">collection of fifteen 20-24 hour RR interval time series</a> derived from three PhysioBank ECG databases is now available for study.","guid":"6c3a4634-8b7a-4409-aa8d-6f605e2ad634","publish_datetime":"2008-10-30T04:00:00Z","title":"Chaos challenge database","url":"https://physionet.org/challenge/chaos/"}
+  "fields": {"content":"The journal Chaos will publish a special issue containing discussion of the question \"Is the normal heart rate chaotic?\" in 2009. To provide a common focus for investigation of this question, a <a href=\"https://physionet.org/challenge/chaos/\">collection of fifteen 20-24 hour RR interval time series</a> derived from three PhysioBank ECG databases is now available for study.","guid":"6c3a4634-8b7a-4409-aa8d-6f605e2ad634","publish_datetime":"2008-10-30T05:00:00Z","title":"Chaos challenge database","url":"https://physionet.org/challenge/chaos/"}
 },
 {
   "model": "notification.news",
@@ -109,7 +109,7 @@
 },
 {
   "model": "notification.news",
-  "fields": {"content":"A new version of the <a href=\"https://physionet.org/physiotools/xview/\">XView toolkit</a> is compatible with the most recent version of X.org's X11 libraries, allowing applications that use XView, such as <a href=\"https://physionet.org/physiotools/wug/\">WAVE</a> and <a href=\"https://physionet.org/physiobank/database/ltstdb/semia/\">Semia</a>, to be run on Fedora 8.","guid":"6b723664-1a6e-429f-ba45-46c7db6606c6","publish_datetime":"2007-11-19T05:00:00Z","title":"XView toolkit updated","url":"https://physionet.org/physiotools/xview/"}
+  "fields": {"content":"A new version of the <a href=\"https://physionet.org/physiotools/xview/\">XView toolkit</a> is compatible with the most recent version of X.org's X11 libraries, allowing applications that use XView, such as <a href=\"https://physionet.org/physiotools/wug/\">WAVE</a> and <a href=\"https://physionet.org/physiobank/database/ltstdb/semia/\">Semia</a>, to be run on Fedora 8.","guid":"6b723664-1a6e-429f-ba45-46c7db6606c6","publish_datetime":"2007-11-19T06:00:00Z","title":"XView toolkit updated","url":"https://physionet.org/physiotools/xview/"}
 },
 {
   "model": "notification.news",
@@ -233,7 +233,7 @@
 },
 {
   "model": "notification.news",
-  "fields": {"content":"The <a href=\"https://physionet.org/physiobank/database/crisdb/\">CAST RR Interval Sub-Study Database</a> has been contributed to PhysioBank. The database contains a set of beat annotation files (about 24 hours each) from 809 subjects enrolled in the Cardiac ArrhythmiaSuppression Trial (CAST), a landmark NHLBI-sponsored study. For 734 subjects, separate baseline (pre-treatment) and on-therapy records are available; the database consists of 1543 records in all, including roughly 150 million RR interval measurements.","guid":"cda8b724-4f2e-49fe-8643-5617694e3135","publish_datetime":"2004-07-02T04:00:00Z","title":"CAST RR Interval Sub-Study Database","url":"https://physionet.org/physiobank/database/crisdb/"}
+  "fields": {"content":"The <a href=\"https://physionet.org/physiobank/database/crisdb/\">CAST RR Interval Sub-Study Database</a> has been contributed to PhysioBank. The database contains a set of beat annotation files (about 24 hours each) from 809 subjects enrolled in the Cardiac ArrhythmiaSuppression Trial (CAST), a landmark NHLBI-sponsored study. For 734 subjects, separate baseline (pre-treatment) and on-therapy records are available; the database consists of 1543 records in all, including roughly 150 million RR interval measurements.","guid":"cda8b724-4f2e-49fe-8643-5617694e3135","publish_datetime":"2004-07-02T05:00:00Z","title":"CAST RR Interval Sub-Study Database","url":"https://physionet.org/physiobank/database/crisdb/"}
 },
 {
   "model": "notification.news",
@@ -325,11 +325,11 @@
 },
 {
   "model": "notification.news",
-  "fields": {"content":"Software for measuring <a href=\"https://physionet.org/physiotools/pNNx/\">pNNx</a>, a family of time-domain heart rate variability statistics of which the widely-used pNN50 is a member, has been contributed to PhysioToolkit. The study that introduced pNNx made use of several PhysioBank databases as well as additional data that have also been contributed to PhysioBank, including the <a href=\"https://physionet.org/physiobank/database/chf2db/\">Congestive Heart Failure RR Interval Database</a>, the <a href=\"https://physionet.org/physiobank/database/nsr2db/\">Normal Sinus Rhythm RR Interval Database</a>, and the remainder of the <a href=\"https://physionet.org/physiobank/database/fantasia/\">Fantasia Database</a> (see the news item for 2 March below).","guid":"9f53d03e-3ff4-420d-a92c-4d3e085e0ffb","publish_datetime":"2003-03-03T05:00:00Z","title":"pNNx: Time Domain Heart Rate Variability Analysis","url":"https://physionet.org/physiotools/pNNx/"}
+  "fields": {"content":"Software for measuring <a href=\"https://physionet.org/physiotools/pNNx/\">pNNx</a>, a family of time-domain heart rate variability statistics of which the widely-used pNN50 is a member, has been contributed to PhysioToolkit. The study that introduced pNNx made use of several PhysioBank databases as well as additional data that have also been contributed to PhysioBank, including the <a href=\"https://physionet.org/physiobank/database/chf2db/\">Congestive Heart Failure RR Interval Database</a>, the <a href=\"https://physionet.org/physiobank/database/nsr2db/\">Normal Sinus Rhythm RR Interval Database</a>, and the remainder of the <a href=\"https://physionet.org/physiobank/database/fantasia/\">Fantasia Database</a> (see the news item for 2 March below).","guid":"9f53d03e-3ff4-420d-a92c-4d3e085e0ffb","publish_datetime":"2003-03-03T07:00:00Z","title":"pNNx: Time Domain Heart Rate Variability Analysis","url":"https://physionet.org/physiotools/pNNx/"}
 },
 {
   "model": "notification.news",
-  "fields": {"content":"The <a href=\"https://physionet.org/physiobank/database/chf2db/\">Congestive Heart Failure RR Interval Database</a> includes beat annotations (about 24 hours each, no ECGs) for 29 subjects with congestive heart failure (NYHA classes 1, 2, and 3).","guid":"7d69a6a4-acf4-457c-a432-0d6a68a1647c","publish_datetime":"2003-03-03T05:00:00Z","title":"Congestive Heart Failure RR Interval Database","url":"https://physionet.org/physiobank/database/chf2db/"}
+  "fields": {"content":"The <a href=\"https://physionet.org/physiobank/database/chf2db/\">Congestive Heart Failure RR Interval Database</a> includes beat annotations (about 24 hours each, no ECGs) for 29 subjects with congestive heart failure (NYHA classes 1, 2, and 3).","guid":"7d69a6a4-acf4-457c-a432-0d6a68a1647c","publish_datetime":"2003-03-03T06:00:00Z","title":"Congestive Heart Failure RR Interval Database","url":"https://physionet.org/physiobank/database/chf2db/"}
 },
 {
   "model": "notification.news",
@@ -353,7 +353,7 @@
 },
 {
   "model": "notification.news",
-  "fields": {"content":"The <a href=\"https://physionet.org/physiobank/database/sleep-edf/\">Sleep-EDF Database</a> is a collection of sleep recordings from healthy subjects contributed to PhysioBank by Bob Kemp. These recordings are presented in European Data Format (EDF), a standard for archiving and exchanging polysomnographic recordings. It's easy to read and write EDF files using the <a href=\"https://physionet.org/physiotools/wag/edf2mi-1.htm\">format converters</a> available in PhysioToolkit.","guid":"ecaf6772-82fb-4ed8-9906-a443d325ff99","publish_datetime":"2002-12-12T05:00:00Z","title":"Sleep-EDF Database","url":"https://physionet.org/physiobank/database/sleep-edf/"}
+  "fields": {"content":"The <a href=\"https://physionet.org/physiobank/database/sleep-edf/\">Sleep-EDF Database</a> is a collection of sleep recordings from healthy subjects contributed to PhysioBank by Bob Kemp. These recordings are presented in European Data Format (EDF), a standard for archiving and exchanging polysomnographic recordings. It's easy to read and write EDF files using the <a href=\"https://physionet.org/physiotools/wag/edf2mi-1.htm\">format converters</a> available in PhysioToolkit.","guid":"ecaf6772-82fb-4ed8-9906-a443d325ff99","publish_datetime":"2002-12-12T06:00:00Z","title":"Sleep-EDF Database","url":"https://physionet.org/physiobank/database/sleep-edf/"}
 },
 {
   "model": "notification.news",
@@ -533,7 +533,7 @@
 },
 {
   "model": "notification.news",
-  "fields": {"content":"The deadline for entries in the <a href=\"https://physionet.org/challenge/2000/\">Computers in Cardiology Challenge 2000</a> has been extended. (The deadline for submitting abstracts for the conference has <strong>not</strong> changed, however.)","guid":"2342c462-d548-4dc8-937e-c5963256f562","publish_datetime":"2000-04-26T04:00:00Z","title":"Challenge entry deadline extended","url":"https://physionet.org/challenge/2000/"}
+  "fields": {"content":"The deadline for entries in the <a href=\"https://physionet.org/challenge/2000/\">Computers in Cardiology Challenge 2000</a> has been extended. (The deadline for submitting abstracts for the conference has <strong>not</strong> changed, however.)","guid":"2342c462-d548-4dc8-937e-c5963256f562","publish_datetime":"2000-04-26T05:00:00Z","title":"Challenge entry deadline extended","url":"https://physionet.org/challenge/2000/"}
 },
 {
   "model": "notification.news",
@@ -541,7 +541,7 @@
 },
 {
   "model": "notification.news",
-  "fields": {"content":"Precompiled binaries (executables) of the <a href=\"https://physionet.org/physiotools/wfdb.shtml\">WFDB Software Package</a> for <a href=\"https://physionet.org/physiotools/binaries/windows/\">32-bit MS-Windows (95/98/NT/2000)</a> have been added to those previously available for <a href=\"https://physionet.org/physiotools/binaries/linux/\">Linux</a>, <a href=\"https://physionet.org/physiotools/binaries/msdos/\">MS-DOS and 16-bit MS-Windows</a>, <a href=\"https://physionet.org/physiotools/binaries/solaris/\">Solaris</a>, and <a href=\"https://physionet.org/physiotools/binaries/sunos/\">SunOS</a>.","guid":"353d0258-e6d5-48d1-abb9-f10826ae95c2","publish_datetime":"2000-04-12T04:00:00Z","title":"WFDB Software Package precompiled binaries","url":"https://physionet.org/physiotools/binaries/"}
+  "fields": {"content":"Precompiled binaries (executables) of the <a href=\"https://physionet.org/physiotools/wfdb.shtml\">WFDB Software Package</a> for <a href=\"https://physionet.org/physiotools/binaries/windows/\">32-bit MS-Windows (95/98/NT/2000)</a> have been added to those previously available for <a href=\"https://physionet.org/physiotools/binaries/linux/\">Linux</a>, <a href=\"https://physionet.org/physiotools/binaries/msdos/\">MS-DOS and 16-bit MS-Windows</a>, <a href=\"https://physionet.org/physiotools/binaries/solaris/\">Solaris</a>, and <a href=\"https://physionet.org/physiotools/binaries/sunos/\">SunOS</a>.","guid":"353d0258-e6d5-48d1-abb9-f10826ae95c2","publish_datetime":"2000-04-12T05:00:00Z","title":"WFDB Software Package precompiled binaries","url":"https://physionet.org/physiotools/binaries/"}
 },
 {
   "model": "notification.news",
@@ -549,7 +549,7 @@
 },
 {
   "model": "notification.news",
-  "fields": {"content":"Binary <a href=\"http://www.physionet.org/cgi-bin/rdann\">annotation</a> and <a href=\"http://www.physionet.org/cgi-bin/rdsamp\">signal</a> files from PhysioBank can now be converted to text format from your web browser. The conversions are performed using <a href=\"https://physionet.org/physiotools/wag/rdann-1.htm\"> <code>rdann</code></a> and <a href=\"https://physionet.org/physiotools/wag/rdsamp-1.htm\">&lt;tt&gt;rdsamp &lt;/tt&gt;</a>&lt;tt&gt;, two utilities from the <a href=\"https://physionet.org/physiotools/wfdb.shtml\">WFDB software package</a> that can also be downloaded and run on your own computer for greater flexibility.&lt;/tt&gt;","guid":"f1f1b0b2-d0c8-49de-9a4c-6c90094a815c","publish_datetime":"2000-04-09T04:00:00Z","title":"Convert signals and annotations to text","url":""}
+  "fields": {"content":"Binary <a href=\"http://www.physionet.org/cgi-bin/rdann\">annotation</a> and <a href=\"http://www.physionet.org/cgi-bin/rdsamp\">signal</a> files from PhysioBank can now be converted to text format from your web browser. The conversions are performed using <a href=\"https://physionet.org/physiotools/wag/rdann-1.htm\"> <code>rdann</code></a> and <a href=\"https://physionet.org/physiotools/wag/rdsamp-1.htm\">&lt;tt&gt;rdsamp &lt;/tt&gt;</a>&lt;tt&gt;, two utilities from the <a href=\"https://physionet.org/physiotools/wfdb.shtml\">WFDB software package</a> that can also be downloaded and run on your own computer for greater flexibility.&lt;/tt&gt;","guid":"f1f1b0b2-d0c8-49de-9a4c-6c90094a815c","publish_datetime":"2000-04-09T05:00:00Z","title":"Convert signals and annotations to text","url":""}
 },
 {
   "model": "notification.news",
@@ -589,7 +589,7 @@
 },
 {
   "model": "notification.news",
-  "fields": {"content":"The PhysioNet <a href=\"https://physionet.org/publications/\">Publications</a> pages have been started, with the contribution of a paper on human gait maturation together with the raw data on which the study was based (now a <a href=\"https://physionet.org/physiobank/class2.shtml\">Class 2</a> database available from the PhysioBank on-line archives). Look for more papers and data in the coming weeks and months. If you have data or software that may be of interest to other users of PhysioNet, and a related publication, please consider <a href=\"https://physionet.org/guidelines.shtml\">contributing</a> a copy of your publication and its supporting data or software to the Publications pages. We also encourage contributions of publications that make use of existing PhysioBank data or PhysioTools software.","guid":"651987fa-7516-47dc-aff9-e4c0a3509da6","publish_datetime":"1999-10-28T04:00:00Z","title":"New Publications page","url":"https://physionet.org/publications/"}
+  "fields": {"content":"The PhysioNet <a href=\"https://physionet.org/publications/\">Publications</a> pages have been started, with the contribution of a paper on human gait maturation together with the raw data on which the study was based (now a <a href=\"https://physionet.org/physiobank/class2.shtml\">Class 2</a> database available from the PhysioBank on-line archives). Look for more papers and data in the coming weeks and months. If you have data or software that may be of interest to other users of PhysioNet, and a related publication, please consider <a href=\"https://physionet.org/guidelines.shtml\">contributing</a> a copy of your publication and its supporting data or software to the Publications pages. We also encourage contributions of publications that make use of existing PhysioBank data or PhysioTools software.","guid":"651987fa-7516-47dc-aff9-e4c0a3509da6","publish_datetime":"1999-10-28T05:00:00Z","title":"New Publications page","url":"https://physionet.org/publications/"}
 },
 {
   "model": "notification.news",
@@ -629,11 +629,11 @@
 },
 {
   "model": "notification.news",
-  "fields": {"content":"Our prototype web server is now on-line!","guid":"032adcc9-0c1f-47dd-bba5-2138ca49aa12","publish_datetime":"1999-06-12T04:00:00Z","title":"Prototype web server online","url":"https://physionet.org/"}
+  "fields": {"content":"Our prototype web server is now on-line!","guid":"032adcc9-0c1f-47dd-bba5-2138ca49aa12","publish_datetime":"1999-06-12T06:00:00Z","title":"Prototype web server online","url":"https://physionet.org/"}
 },
 {
   "model": "notification.news",
-  "fields": {"content":"A preview of the <a href=\"https://physionet.org/physiotools/wfdb.shtml\">WFDB Software Package</a> may now be downloaded in source form. This is a GPLed successor to the <a href=\"http://ecg.mit.edu/dbinfo.html#DB%20SoftwarePackage\">DB Software Package</a> from MIT, now incorporating the <a href=\"http://ecg.mit.edu/dbinfo.html#WAVE\">WAVE</a> and <a href=\"http://ecg.mit.edu/dbinfo.html#WVIEW\">WVIEW</a> interactive visualization tools.","guid":"9519bf5e-20ce-452d-a78f-f9048b7adfc0","publish_datetime":"1999-06-12T04:00:00Z","title":"WFDB Software Package","url":"https://physionet.org/physiotools/wfdb.shtml"}
+  "fields": {"content":"A preview of the <a href=\"https://physionet.org/physiotools/wfdb.shtml\">WFDB Software Package</a> may now be downloaded in source form. This is a GPLed successor to the <a href=\"http://ecg.mit.edu/dbinfo.html#DB%20SoftwarePackage\">DB Software Package</a> from MIT, now incorporating the <a href=\"http://ecg.mit.edu/dbinfo.html#WAVE\">WAVE</a> and <a href=\"http://ecg.mit.edu/dbinfo.html#WVIEW\">WVIEW</a> interactive visualization tools.","guid":"9519bf5e-20ce-452d-a78f-f9048b7adfc0","publish_datetime":"1999-06-12T05:00:00Z","title":"WFDB Software Package","url":"https://physionet.org/physiotools/wfdb.shtml"}
 },
 {
   "model": "notification.news",

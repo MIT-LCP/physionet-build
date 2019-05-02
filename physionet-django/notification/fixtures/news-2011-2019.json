@@ -93,7 +93,7 @@
 },
 {
   "model": "notification.news",
-  "fields": {"content":"The dataset contains keystroke logs collected from over 200 subjects, with and without Parkinson's Disease (PD), as they typed normally on their own computer (without any supervision) over a period of weeks or months (having initially installed a custom keystroke recording app, Tappy). This dataset has been collected and analyzed in order to indicate that the routine interaction with computer keyboards can be used to detect changes in the characteristics of finger movement in the early stages of PD.","guid":"PhysioNet 20171020.2","publish_datetime":"2017-10-20T04:00:00Z","title":"New Database Added: TAPPY","url":"https://physionet.org/physiobank/database/tappy/"}
+  "fields": {"content":"The dataset contains keystroke logs collected from over 200 subjects, with and without Parkinson's Disease (PD), as they typed normally on their own computer (without any supervision) over a period of weeks or months (having initially installed a custom keystroke recording app, Tappy). This dataset has been collected and analyzed in order to indicate that the routine interaction with computer keyboards can be used to detect changes in the characteristics of finger movement in the early stages of PD.","guid":"PhysioNet 20171020.2","publish_datetime":"2017-10-20T05:00:00Z","title":"New Database Added: TAPPY","url":"https://physionet.org/physiobank/database/tappy/"}
 },
 {
   "model": "notification.news",
@@ -121,11 +121,11 @@
 },
 {
   "model": "notification.news",
-  "fields": {"content":"The database contains non-EEG physiological signals collected at Quality of Life Laboratory at University of Texas at Dallas, used to infer the neurological status of 20 healthy subjects. The data collected consists of electrodermal activity, temperature, acceleration, heart rate, and arterial oxygen level.","guid":"PhysioNet 20170719.3","publish_datetime":"2017-07-19T04:00:00Z","title":"New Database Added: A Non-EEG Dataset for Assessment of Neurological Status","url":"https://physionet.org/physiobank/database/noneeg/"}
+  "fields": {"content":"The database contains non-EEG physiological signals collected at Quality of Life Laboratory at University of Texas at Dallas, used to infer the neurological status of 20 healthy subjects. The data collected consists of electrodermal activity, temperature, acceleration, heart rate, and arterial oxygen level.","guid":"PhysioNet 20170719.3","publish_datetime":"2017-07-19T06:00:00Z","title":"New Database Added: A Non-EEG Dataset for Assessment of Neurological Status","url":"https://physionet.org/physiobank/database/noneeg/"}
 },
 {
   "model": "notification.news",
-  "fields": {"content":"The University of Cagliari electroTastegram database contains 39 differential biopotential measurements recorded from the tongues of as many healthy voluntary human subjects (16 males, 23 females, equally divided into the three PROP taster status classes), during a stimulation with 30uL, 3.2 mmol/L solution of 6-n-propylthiouracil (PROP).","guid":"PhysioNet 20170719.2","publish_datetime":"2017-07-19T04:00:00Z","title":"New Database Added: University of Cagliari ElectroTastegram Database (PROP)","url":"https://physionet.org/physiobank/database/unicaprop/"}
+  "fields": {"content":"The University of Cagliari electroTastegram database contains 39 differential biopotential measurements recorded from the tongues of as many healthy voluntary human subjects (16 males, 23 females, equally divided into the three PROP taster status classes), during a stimulation with 30uL, 3.2 mmol/L solution of 6-n-propylthiouracil (PROP).","guid":"PhysioNet 20170719.2","publish_datetime":"2017-07-19T05:00:00Z","title":"New Database Added: University of Cagliari ElectroTastegram Database (PROP)","url":"https://physionet.org/physiobank/database/unicaprop/"}
 },
 {
   "model": "notification.news",
@@ -209,7 +209,7 @@
 },
 {
   "model": "notification.news",
-  "fields": {"content":"The Squid Giant Axon Membrane Potential database contains single-unit neuronal recordings of squid giant axons in response to stimulus currents. The membrane potential and stimulus current are given for a total of 170 trials across 8 different axons.","guid":"PhysioNet 20160415.2","publish_datetime":"2016-04-15T04:00:00Z","title":"New Database Added: SGAMP","url":"https://physionet.org/physiobank/database/sgamp/"}
+  "fields": {"content":"The Squid Giant Axon Membrane Potential database contains single-unit neuronal recordings of squid giant axons in response to stimulus currents. The membrane potential and stimulus current are given for a total of 170 trials across 8 different axons.","guid":"PhysioNet 20160415.2","publish_datetime":"2016-04-15T05:00:00Z","title":"New Database Added: SGAMP","url":"https://physionet.org/physiobank/database/sgamp/"}
 },
 {
   "model": "notification.news",
@@ -229,11 +229,11 @@
 },
 {
   "model": "notification.news",
-  "fields": {"content":"We are pleased to announce the 2016 PhysioNet/Computing in Cardiology Challenge: Classification of Normal/Abnormal Heart Sound Recordings. For this year's Challenge, we have released a collection of 3,125 phonocardiograms from a variety of clinical and non-clinical sources. We invite participants to develop algorithms to determine, based on a short heart sound recording, whether the patient should be referred on for an expert diagnosis.","guid":"PhysioNet 20160304.2","publish_datetime":"2016-03-04T05:00:00Z","title":"PhysioNet/CinC Challenge 2016","url":"https://physionet.org/challenge/2016/"}
+  "fields": {"content":"We are pleased to announce the 2016 PhysioNet/Computing in Cardiology Challenge: Classification of Normal/Abnormal Heart Sound Recordings. For this year's Challenge, we have released a collection of 3,125 phonocardiograms from a variety of clinical and non-clinical sources. We invite participants to develop algorithms to determine, based on a short heart sound recording, whether the patient should be referred on for an expert diagnosis.","guid":"PhysioNet 20160304.2","publish_datetime":"2016-03-04T07:00:00Z","title":"PhysioNet/CinC Challenge 2016","url":"https://physionet.org/challenge/2016/"}
 },
 {
   "model": "notification.news",
-  "fields": {"content":"The Transfer Entropy With Partitioning package is a repository of MATLAB functions that can estimate transfer entropy (information flow) from one time series to another using a non-parametric partitioning algorithm. Also included is an example data set that the implemented algorithms can be applied to.","guid":"PhysioNet 20160304.3","publish_datetime":"2016-03-04T05:00:00Z","title":"New software package added to PhysioToolkit: TEWP","url":"https://physionet.org/physiotools/tewp/"}
+  "fields": {"content":"The Transfer Entropy With Partitioning package is a repository of MATLAB functions that can estimate transfer entropy (information flow) from one time series to another using a non-parametric partitioning algorithm. Also included is an example data set that the implemented algorithms can be applied to.","guid":"PhysioNet 20160304.3","publish_datetime":"2016-03-04T06:00:00Z","title":"New software package added to PhysioToolkit: TEWP","url":"https://physionet.org/physiotools/tewp/"}
 },
 {
   "model": "notification.news",
@@ -253,7 +253,7 @@
 },
 {
   "model": "notification.news",
-  "fields": {"content":"Data Chromatix is a technique for visualizing trends in biomedical signals by bringing memory of the system's past behavior into the current display window. This package was developed at the Wyss Institute at Harvard by A. Burykin, S. Mariani, T. Silva and T. Henriques, and is described in \"Remembrance of time series past: simple chromatic method for visualizing trends in biomedical signals,\" Burykin A, Mariani S, Henriques T, Silva TF, Schnettler WT, Costa MD, Goldberger AL. Physiol Meas 2015;36(7):N95.","guid":"PhysioNet 20151109.1","publish_datetime":"2015-11-09T05:00:00Z","title":"New software package added to PhysioToolkit: Data Chromatix","url":"https://physionet.org/physiotools/dchromatix/"}
+  "fields": {"content":"Data Chromatix is a technique for visualizing trends in biomedical signals by bringing memory of the system's past behavior into the current display window. This package was developed at the Wyss Institute at Harvard by A. Burykin, S. Mariani, T. Silva and T. Henriques, and is described in \"Remembrance of time series past: simple chromatic method for visualizing trends in biomedical signals,\" Burykin A, Mariani S, Henriques T, Silva TF, Schnettler WT, Costa MD, Goldberger AL. Physiol Meas 2015;36(7):N95.","guid":"PhysioNet 20151109.1","publish_datetime":"2015-11-09T06:00:00Z","title":"New software package added to PhysioToolkit: Data Chromatix","url":"https://physionet.org/physiotools/dchromatix/"}
 },
 {
   "model": "notification.news",
