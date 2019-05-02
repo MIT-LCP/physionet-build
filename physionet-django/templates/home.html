@@ -10,6 +10,7 @@ PhysioNet
 
 {% block local_css %}
 <link rel="stylesheet" type="text/css" href="{% static 'custom/css/home.css' %}"/>
+<link rel="alternate" type="application/rss+xml" title="PhysioNet News" href="{% url 'news_rss' %}"/>
 {% endblock %}
 
 {# avoid using flexbody style #}
