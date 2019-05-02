@@ -1,0 +1,18 @@
+<table class="table table-bordered" id="newsitems">
+  <thead>
+    <tr>
+      <th>Title</th>
+      <th>Publish Datetime</th>
+      <th>Edit</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for news in news_items %}
+    <tr>
+      <td>{% if news.url %}<a href="{{ news.url }}" target="_blank">{% endif %}{{ news.title }}{% if news.url %}{% endif %}</a></td>
+      <td>{{ news.publish_datetime }}</td>
+      <td><a href="{% url 'edit_news' news.id %}" class="btn btn-sm btn-primary" role="button">Edit</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>

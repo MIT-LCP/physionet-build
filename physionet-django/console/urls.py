@@ -62,6 +62,7 @@ urlpatterns = [
     # path('users/lcp/', views.lcp_affiliates, name='lcp_affiliates'),
 
     path('news/', views.console_news, name='console_news'),
+    path('news/search', views.search_news, name='search_news'),
     path('news/edit/<news_id>/', views.edit_news, name='edit_news'),
     path('news/add/', views.add_news, name='add_news'),
 

@@ -1,8 +1,27 @@
 {% extends "console/base_console.html" %}
 
+{% load static %}
+
 {% block title %}News Items{% endblock %}
 
 {% block content %}
+ <script src="{% static 'custom/js/cookie.js' %}"></script>
+ <script src="{% static 'project/js/dynamic-formset.js' %}"></script>
+ <script type="text/javascript">
+   function search(value){
+    var csrftoken = getCookie('csrftoken');
+    $.ajax({
+            type: "POST",
+            url: "{% url 'search_news' %}",
+            data: {'csrfmiddlewaretoken':csrftoken,
+                   'search':value
+            },
+            success: function reloadSection(result){
+                $("#newsitems").html(result);
+            },
+    });
+   }
+ </script>
  <div class="card mb-3">
   <div class="card-header">
     News Items <span class="badge badge-pill badge-info">{{ news_items|length }}</span>
@@ -10,24 +29,8 @@
   <div class="card-body">
     <p><a href="{% url 'add_news' %}" class="btn btn-lg btn-success">Add News Item</a></p>
     <div class="table-responsive">
-      <table class="table table-bordered">
-        <thead>
-          <tr>
-            <th>Title</th>
-            <th>Publish Datetime</th>
-            <th>Edit</th>
-          </tr>
-        </thead>
-        <tbody>
-        {% for news in news_items %}
-          <tr>
-            <td>{% if news.url %}<a href="{{ news.url }}" target="_blank">{% endif %}{{ news.title }}{% if news.url %}{% endif %}</a></td>
-            <td>{{ news.publish_datetime }}</td>
-            <td><a href="{% url 'edit_news' news.id %}" class="btn btn-sm btn-primary" role="button">Edit</a></td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
+      <input type="search" oninput="search(value);" placeholder="Search...">
+      {% include "console/news_list.html" %}
     </div>
   </div>
 </div>

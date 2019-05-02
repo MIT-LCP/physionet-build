@@ -744,6 +744,22 @@ def console_news(request):
 
 @login_required
 @user_passes_test(is_admin)
+def search_news(request):
+    """
+    Filtered list of news items
+    """
+
+    if request.method == 'POST':
+        search = request.POST['search']
+        news_items = News.objects.filter(title__icontains=search).order_by('-publish_datetime')
+
+        return render(request, 'console/news_list.html', {'news_items':news_items})
+
+    raise Http404()
+
+
+@login_required
+@user_passes_test(is_admin)
 def edit_news(request, news_id):
     news = News.objects.get(id=news_id)
 
