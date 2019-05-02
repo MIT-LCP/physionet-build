@@ -5,11 +5,11 @@ from django.db.models import Min, Max
 from .models import News
 
 
-def news(request):
+def news(request, max_items=20):
     """
     Redirect to news for current year
     """
-    news_pieces = News.objects.order_by('-publish_datetime')
+    news_pieces = News.objects.order_by('-publish_datetime')[:max_items]
 
     # The year range of all the PN news in existence.
     minmax = News.objects.all().aggregate(min=Min('publish_datetime'),
