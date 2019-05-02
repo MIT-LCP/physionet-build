@@ -19,8 +19,6 @@
 		hidpi: true, // %REMOVE_LINE_CORE%
 
 		init: function( editor ) {
-			var cls = editor.config.mathJaxClass || 'math-tex';
-
 			if ( !editor.config.mathJaxLib ) {
 				CKEDITOR.error( 'mathjax-no-config' );
 			}
@@ -30,29 +28,25 @@
 				dialog: 'pnmathml',
 				button: editor.lang.pnmathml.button,
 				mask: true,
-				allowedContent: 'span(!' + cls + ')',
-				// Allow style classes only on spans having mathjax class.
-				styleToAllowedContentRules: function( style ) {
-					var classes = style.getClassesArray();
-					if ( !classes )
-						return null;
-					classes.push( '!' + cls );
 
-					return 'span(' + classes.join( ',' ) + ')';
-				},
+				// FIXME: this is incomplete
+				allowedContent: 'span,math,semantics,annotation[encoding]',
+
 				pathName: editor.lang.pnmathml.pathName,
 
-				template: '<span class="' + cls + '" style="display:inline-block" data-cke-survive=1></span>',
+				template: '<span style="display:inline-block" data-cke-survive=1></span>',
 
 				parts: {
 					span: 'span'
 				},
 
 				defaults: {
-					math: '\\(x = {-b \\pm \\sqrt{b^2-4ac} \\over 2a}\\)'
+					math: '\\(x^2\\)',
+					mathml: null
 				},
 
 				init: function() {
+					var widget = this;
 					var iframe = this.parts.span.getChild( 0 );
 
 					// Check if span contains iframe and create it otherwise.
@@ -77,7 +71,10 @@
 						if ( CKEDITOR.env.ie )
 							iframe.setAttribute( 'src', CKEDITOR.plugins.pnmathml.fixSrc );
 
-						this.frameWrapper = new CKEDITOR.plugins.pnmathml.frameWrapper( iframe, editor );
+						this.frameWrapper = new CKEDITOR.plugins.pnmathml.frameWrapper( iframe, editor, function( mml ) {
+							if ( !widget.data.mathml )
+								widget.newMathML = mml;
+						} );
 						this.frameWrapper.setValue( this.data.math );
 					} );
 				},
@@ -88,40 +85,58 @@
 				},
 
 				upcast: function( el, data ) {
-					if ( !( el.name == 'span' && el.hasClass( cls ) ) )
+					var math = null, semantics = null;
+
+					if ( el.name !== 'math' || el.attributes[ 'display' ] === 'block' )
+						return;
+					math = el;
+
+					for ( var i = 0; i < math.children.length; i++ ) {
+						var c = math.children[ i ];
+						if ( c.type === CKEDITOR.NODE_ELEMENT && c.name === 'semantics' && semantics === null )
+							semantics = c;
+						else if ( !CKEDITOR.plugins.pnmathml.isWhitespace( c ) )
+							return;
+					}
+					if ( semantics === null )
 						return;
 
-					if ( el.children.length > 1 || el.children[ 0 ].type != CKEDITOR.NODE_TEXT )
-						return;
+					for ( var i = 0; i < semantics.children.length; i++ ) {
+						var c = semantics.children[ i ];
+						if ( c.type === CKEDITOR.NODE_ELEMENT && c.name === 'annotation' && c.attributes[ 'encoding' ] === 'application/x-tex' ) {
+							if ( c.children.length !== 1 || c.children[ 0 ].type !== CKEDITOR.NODE_TEXT )
+								return;
 
-					data.math = CKEDITOR.tools.htmlDecode( el.children[ 0 ].value );
+							data.math = '\\(' + CKEDITOR.tools.htmlDecode( c.children[ 0 ].value ) + '\\)';
+							data.mathml = math.getOuterHtml();
 
-					// Add style display:inline-block to have proper height of widget wrapper and mask.
-					var attrs = el.attributes;
-
-					if ( attrs.style )
-						attrs.style += ';display:inline-block';
-					else
-						attrs.style = 'display:inline-block';
-
-					// Add attribute to prevent deleting empty span in data processing.
-					attrs[ 'data-cke-survive' ] = 1;
-
-					el.children[ 0 ].remove();
-
-					return el;
+							el.name = 'span';
+							el.setHtml( '' );
+							el.attributes = {
+								'style': 'display:inline-block',
+								'data-cke-survive': 1
+							};
+							return el;
+						}
+					}
 				},
 
 				downcast: function( el ) {
-					el.children[ 0 ].replaceWith( new CKEDITOR.htmlParser.text( CKEDITOR.tools.htmlEncode( this.data.math ) ) );
-
-					// Remove style display:inline-block.
-					var attrs = el.attributes;
-					attrs.style = attrs.style.replace( /display:\s?inline-block;?\s?/, '' );
-					if ( attrs.style === '' )
-						delete attrs.style;
-
-					return el;
+					var mathml = ( this.data.mathml || this.newMathML );
+					if ( !mathml ) {
+						var src = CKEDITOR.plugins.pnmathml.trim( CKEDITOR.tools.htmlEncode( this.data.math ) );
+						mathml =
+							'<math xmlns="http://www.w3.org/1998/Math/MathML">' +
+								'<semantics>' +
+									'<merror>ERROR</merror>' +
+									'<annotation encoding="application/x-tex">' + src + '</annotation>' +
+								'</semantics>' +
+							'</math>';
+					}
+					var math = CKEDITOR.htmlParser.fragment.fromHtml( mathml );
+					editor.filter.applyTo( math );
+					el.replaceWith( math );
+					return math;
 				}
 			} );
 
@@ -139,10 +154,8 @@
 			editor.on( 'paste', function( evt ) {
 				// Firefox does remove iFrame elements from pasted content so this event do the same on other browsers.
 				// Also iFrame in paste content is reason of "Unspecified error" in IE9 (https://dev.ckeditor.com/ticket/10857).
-				var regex = new RegExp( '<span[^>]*?' + cls + '.*?<\/span>', 'ig' );
-				evt.data.dataValue = evt.data.dataValue.replace( regex, function( match ) {
-					return match.replace( /(<iframe.*?\/iframe>)/i, '' );
-				} );
+				var regex = new RegExp( '<iframe[^>]*?' + '.*?<\/iframe>', 'ig' );
+				evt.data.dataValue = evt.data.dataValue.replace( regex, '' );
 			} );
 		}
 	} );
@@ -198,6 +211,21 @@
 			if ( val )
 				to.setStyle( key, val );
 		}
+	};
+
+	/**
+	 * Checks if a node is either an HTML comment, or a text node
+	 * containing only whitespace characters.
+	 *
+	 * @private
+	 * @param {CKEDITOR.htmlParser.node} el An HTML parser node.
+	 * @returns {Boolean} True if node contains only whitespace.
+	 */
+	CKEDITOR.plugins.pnmathml.isWhitespace = function( el ) {
+		if ( el.type === CKEDITOR.NODE_TEXT )
+			return !( /\S/.test( el.value ) );
+		else
+			return ( el.type === CKEDITOR.NODE_COMMENT );
 	};
 
 	/**
@@ -479,25 +507,5 @@
  *
  * @since 4.3
  * @cfg {String} mathJaxLib
- * @member CKEDITOR.config
- */
-
-/**
- * Sets the default class for `span` elements that will be
- * converted into [Mathematical Formulas](https://ckeditor.com/cke4/addon/mathjax)
- * widgets.
- *
- * If you set it to the following:
- *
- *		config.mathJaxClass = 'my-math';
- *
- * The code below will be recognized as a Mathematical Formulas widget.
- *
- *		<span class="my-math">\( \sqrt{4} = 2 \)</span>
- *
- * Read more in the {@glink guide/dev_mathjax documentation}
- * and see the {@glink examples/mathjax example}.
- *
- * @cfg {String} [mathJaxClass='math-tex']
  * @member CKEDITOR.config
  */
