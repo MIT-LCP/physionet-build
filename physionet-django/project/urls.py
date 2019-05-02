@@ -29,8 +29,8 @@ urlpatterns = [
         name='project_authors'),
     path('<project_slug>/authors/move/', views.move_author,
         name='move_author'),
-    path('<project_slug>/authors/first/', views.first_author,
-        name='first_author'),
+    path('<project_slug>/authors/shared/', views.shared,
+        name='shared'),
     path('<project_slug>/authors/edit-affiliation/', views.edit_affiliation,
         name='edit_affiliation'),
 
