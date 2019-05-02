@@ -226,9 +226,10 @@
 	 * @constructor Creates a class instance.
 	 * @param {CKEDITOR.dom.element} iFrame The `iframe` element to be wrapped.
 	 * @param {CKEDITOR.editor} editor The editor instance.
+	 * @param {Function} callback Function to call with converted MathML syntax.
 	 */
 	if ( !( CKEDITOR.env.ie && CKEDITOR.env.version == 8 ) ) {
-		CKEDITOR.plugins.pnmathml.frameWrapper = function( iFrame, editor ) {
+		CKEDITOR.plugins.pnmathml.frameWrapper = function( iFrame, editor, callback ) {
 
 			var buffer, preview, value, newValue,
 				doc = iFrame.getFrameDocument(),
@@ -253,7 +254,7 @@
 				} ),
 
 				// Function called when MathJax finish his job.
-				updateDoneHandler = CKEDITOR.tools.addFunction( function() {
+				updateDoneHandler = CKEDITOR.tools.addFunction( function( mml ) {
 					CKEDITOR.plugins.pnmathml.copyStyles( iFrame, preview );
 
 					preview.setHtml( buffer.getHtml() );
@@ -282,8 +283,11 @@
 					// If value changed in the meantime update it again.
 					if ( value != newValue )
 						update();
-					else
+					else {
+						if ( mml && callback )
+							callback( mml );
 						isRunning = false;
+					}
 				} );
 
 			iFrame.on( 'load', load );
@@ -310,6 +314,7 @@
 
 									// MathJax configuration, disable messages.
 									'MathJax.Hub.Config( {' +
+										'menuSettings: { semantics: true },' +
 										'showMathMenu: false,' +
 										'messageStyle: "none"' +
 									'} );' +
@@ -323,13 +328,37 @@
 										'}' +
 									'}' +
 
+									// Asynchronously convert equation to MathML.  This code is adapted from the
+									// MathJax docs, but note that jax must be passed as the second argument to
+									// jax.root.toMathML, in order to generate semantics/annotation tags.
+									'function getMathML( jax, callback ) {' +
+										'var mml;' +
+										'try {' +
+											'mml = jax.root.toMathML( "", jax );' +
+										'} catch( err ) {' +
+											'if ( !err.restart ) {' +
+												'throw err;' +
+											'}' +
+											'return MathJax.Callback.After( [ getMathML, jax, callback ], err.restart );' +
+										'}' +
+										'MathJax.Callback( callback )( mml );' +
+									'}' +
+
 									// Run MathJax.Hub with its actual parser and call callback function after that.
 									// Because MathJax.Hub is asynchronous create MathJax.Hub.Queue to wait with callback.
 									'function update() {' +
 										'MathJax.Hub.Queue(' +
 											'[ \'Typeset\', MathJax.Hub, this.buffer ],' +
 											'function() {' +
-												'getCKE().tools.callFunction( ' + updateDoneHandler + ' );' +
+												'var jax = MathJax.Hub.getAllJax()[ 0 ];' +
+												'if ( jax ) {' +
+													'getMathML( jax, function( mml ) {' +
+														'getCKE().tools.callFunction( ' + updateDoneHandler + ', mml );' +
+													'} );' +
+												'}' +
+												'else {' +
+													'getCKE().tools.callFunction( ' + updateDoneHandler + ', null );' +
+												'}' +
 											'}' +
 										');' +
 									'}' +
@@ -399,7 +428,7 @@
 	} else {
 		// In IE8 MathJax does not work stable so instead of using standard
 		// frame wrapper it is replaced by placeholder to show pure TeX in iframe.
-		CKEDITOR.plugins.pnmathml.frameWrapper = function( iFrame, editor ) {
+		CKEDITOR.plugins.pnmathml.frameWrapper = function( iFrame, editor, callback ) {
 			iFrame.getFrameDocument().write( '<!DOCTYPE html>' +
 				'<html>' +
 				'<head>' +
