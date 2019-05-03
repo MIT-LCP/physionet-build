@@ -46,7 +46,7 @@
           <li class="nav-item {% if request.path == submitted_projects %}active{% endif %}">
             <a id="nav_submitted_projects" class="nav-link" href="{% url 'submitted_projects' %}">Submitted</a>
           </li>
-          <li class="nav-item {% if request.path == published_projects %}active{% endif %}{% if '/console/published-projects/' in request.path%}active{% endif %}">
+          <li class="nav-item {% if request.path == published_projects %}active{% endif %}">
             <a id="nav_published_projects" class="nav-link" href="{% url 'published_projects' %}">Published</a>
           </li>
           <li class="nav-item {% if request.path == rejected_submissions %}active{% endif %}">
