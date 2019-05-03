@@ -40,9 +40,8 @@
 					span: 'span'
 				},
 
-				defaults: {
-					math: '\\(x^2\\)',
-					mathml: null
+				defaults: function() {
+					return CKEDITOR.plugins.pnmathml.widgetDefaults( editor, false );
 				},
 
 				init: function() {
@@ -80,9 +79,8 @@
 					span: 'div'
 				},
 
-				defaults: {
-					math: '\\[x^2\\]',
-					mathml: null
+				defaults: function() {
+					return CKEDITOR.plugins.pnmathml.widgetDefaults( editor, true );
 				},
 
 				init: function() {
@@ -129,6 +127,32 @@
 	 * @class CKEDITOR.plugins.pnmathml
 	 */
 	CKEDITOR.plugins.pnmathml = {};
+
+	/**
+	 * Determine default values for widget.
+	 *
+	 * @private
+	 * @param {CKEDITOR.editor} editor The current editor.
+	 * @param {Boolean} blockStyle True if widget is "block" style.
+	 * @returns {Object} Default values for widget data.
+	 */
+	CKEDITOR.plugins.pnmathml.widgetDefaults = function( editor, blockStyle ) {
+		// If any text is currently selected, use that as the default TeX expression.
+		var sel = editor.getSelection(), text = null;
+		if ( sel )
+			text = sel.getSelectedText();
+
+		text = ( text || 'x^2' );
+		if ( blockStyle )
+			text = '\\[' + text + '\\]';
+		else
+			text = '\\(' + text + '\\)';
+
+		return {
+			math: text,
+			mathml: null
+		};
+	};
 
 	/**
 	 * Widget initialization.
