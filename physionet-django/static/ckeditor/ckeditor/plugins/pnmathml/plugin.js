@@ -143,6 +143,8 @@
 
 		// Check if span contains iframe and create it otherwise.
 		if ( !iframe || iframe.type != CKEDITOR.NODE_ELEMENT || !iframe.is( 'iframe' ) ) {
+			if ( iframe )
+				widget.parts.span.setHtml( '' );
 			iframe = new CKEDITOR.dom.element( 'iframe' );
 			iframe.setAttributes( {
 				style: 'border:0;width:0;height:0',
