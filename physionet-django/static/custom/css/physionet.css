@@ -252,6 +252,11 @@ a{
   text-align: right;
 }
 
+.container{
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+
 .main{
   min-height: calc(80% - 64px);
   display: flex;
