@@ -384,6 +384,7 @@ a{
     width: 100%;
     align-items: center;
     justify-content: center;
+    margin-bottom: 1em;
   }
 
   .pg-edit{

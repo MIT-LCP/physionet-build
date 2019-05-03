@@ -26,6 +26,14 @@ a{
   .name{
     padding-left: 2.5em;
   }
+
+  .col-md-8{
+    padding-left: 0;
+  }
+
+  .col-md-4{
+    padding-right: 0;
+  }
 }
 
 @media (max-width: 767px){
@@ -41,6 +49,10 @@ a{
     transform: unset !important;
     width: 100%;
     margin-bottom: 20px;
+  }
+
+  .col-md-8, .col-md-4{
+    padding: 0;
   }
 }
 

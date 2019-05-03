@@ -16,7 +16,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container my-4">
   <p>
     {{ project.resource_type|resource_badge|safe }}
     {{ project.access_policy|access_badge|safe }}
@@ -48,7 +48,7 @@
 
   <div class="row">
     <!-- Main column -->
-    <div class="col-md-8" style="padding-left: 0;">
+    <div class="col-md-8">
 
     <div class="alert alert-secondary">
       {% if not project.is_legacy %}
@@ -90,7 +90,7 @@
     <!-- /.main column -->
 
     <!-- Sidebar Column -->
-    <div class="col-md-4" style="padding-right: 0;">
+    <div class="col-md-4">
       {# Contents Button #}
       {% if not project.is_legacy %}
       <div class="card" style="border: 0">
