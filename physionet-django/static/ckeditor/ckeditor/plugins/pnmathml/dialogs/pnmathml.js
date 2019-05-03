@@ -29,20 +29,23 @@ CKEDITOR.dialog.add( 'pnmathml', function( editor ) {
 							if ( !( CKEDITOR.env.ie && CKEDITOR.env.version == 8 ) ) {
 								this.getInputElement().on( 'keyup', function() {
 									// Add \( and \) for preview.
-									preview.setValue( '\\(' + that.getInputElement().getValue() + '\\)' );
+									preview.setValue( that.mathPrefix + that.getInputElement().getValue() + that.mathSuffix );
 								} );
 							}
 						},
 
 						setup: function( widget ) {
 							// Remove \( and \).
-							this.setValue( CKEDITOR.plugins.pnmathml.trim( widget.data.math ) );
+							var parts = CKEDITOR.plugins.pnmathml.splitInput( widget.data.math );
+							this.mathPrefix = parts[ 0 ];
+							this.mathSuffix = parts[ 2 ];
+							this.setValue( parts[ 1 ] );
 						},
 
 						commit: function( widget ) {
 							// Add \( and \) to make TeX be parsed by MathJax by default.
 							widget.setData( {
-								math: '\\(' + this.getValue() + '\\)',
+								math: this.mathPrefix + this.getValue() + this.mathSuffix,
 								mathml: null
 							} );
 						}
