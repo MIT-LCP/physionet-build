@@ -183,17 +183,21 @@
 		var math = null, semantics = null;
 
 		if ( blockStyle ) {
-			if ( el.name !== 'div' )
-				return;
-			for ( var i = 0; i < el.children.length; i++ ) {
-				var c = el.children[ i ];
-				if ( c.type === CKEDITOR.NODE_ELEMENT && c.name === 'math' && math === null )
-					math = c;
-				else if ( !CKEDITOR.plugins.pnmathml.isWhitespace( c ) )
+			if ( el.name === 'math' && el.attributes[ 'display' ] === 'block' )
+				math = el;
+			else {
+				if ( el.name !== 'div' )
+					return;
+				for ( var i = 0; i < el.children.length; i++ ) {
+					var c = el.children[ i ];
+					if ( c.type === CKEDITOR.NODE_ELEMENT && c.name === 'math' && math === null )
+						math = c;
+					else if ( !CKEDITOR.plugins.pnmathml.isWhitespace( c ) )
+						return;
+				}
+				if ( math === null || math.attributes[ 'display' ] !== 'block' )
 					return;
 			}
-			if ( math === null || math.attributes[ 'display' ] !== 'block' )
-				return;
 		}
 		else {
 			if ( el.name !== 'math' || el.attributes[ 'display' ] === 'block' )
