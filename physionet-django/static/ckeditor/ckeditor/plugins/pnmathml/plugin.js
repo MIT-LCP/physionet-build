@@ -262,6 +262,24 @@
 	};
 
 	/**
+	 * Splits a MathJax input string, such as '\(1+1=2\)', into the
+	 * prefix '\(', expression '1+1=2', and suffix '\)'.
+	 *
+	 * @private
+	 * @param {String} value Input string.
+	 * @returns {Array} Array of three strings: prefix, expression, and suffix.
+	 */
+	CKEDITOR.plugins.pnmathml.splitInput = function( value ) {
+		var start = value.substring( 0, 2 );
+		var end = value.substring( value.length - 2 );
+
+		if ( ( start === '\\(' && end === '\\)' ) || ( start === '\\[' && end === '\\]' ) )
+			return [ start, value.substring( 2, value.length - 2 ), end ];
+		else
+			throw "unexpected value: " + value;
+	}
+
+	/**
 	 * Trims MathJax value from '\(1+1=2\)' to '1+1=2'.
 	 *
 	 * @private
@@ -269,10 +287,8 @@
 	 * @returns {String} Trimed string.
 	 */
 	CKEDITOR.plugins.pnmathml.trim = function( value ) {
-		var begin = value.indexOf( '\\(' ) + 2,
-			end = value.lastIndexOf( '\\)' );
-
-		return value.substring( begin, end );
+		var parts = CKEDITOR.plugins.pnmathml.splitInput( value );
+		return parts[ 1 ];
 	};
 
 	/**
