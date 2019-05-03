@@ -7,6 +7,23 @@
 
   <ul class="list-group list-group-flush">
     {% for author in authors %}
+      {% ifchanged author.shared %}
+        {% if forloop.counter > 1 %}
+          <li class="list-group-item text-center" style="font-size: 0.8em;" onclick="share({{ author.display_order }});">
+            <i class="fas fa-arrows-alt-v"></i>&nbsp;Share authorship
+          </li>
+        {% endif %}
+        {% else %}
+          {% if author.shared %}
+            <li class="list-group-item text-center" style="font-size: 0.8em; background: rgba(0, 0, 0, 0.03);" onclick="unshare({{ author.display_order }});">
+              <i class="fas fa-arrows-alt-v"></i>&nbsp;Remove shared authorship
+            </li>
+          {% else %}
+            <li class="list-group-item text-center" style="font-size: 0.8em;" onclick="share({{ author.display_order }});">
+              <i class="fas fa-arrows-alt-v"></i>&nbsp;Share authorship
+            </li>
+          {% endif %}
+      {% endifchanged %}
       <li class="list-group-item">
         <strong>User</strong>: {{ author.user }}
         {% if author.is_submitting %}
@@ -30,15 +47,6 @@
             {% else %}
               <button class="btn btn-sm" type="button" style="background:none; color:white"><i class="fa-arrow-down"></i></button>
             {% endif %}
-            <select style="display: inline-block; width: 4em;" onchange="shared({{ author.id }}, value);">
-              {% for i in authors %}
-                {% with i=forloop.counter %}
-                  {% if i <= mx_group %}
-                    <option value="{{ i }}" {% if author.shared == i %} selected {% endif %}>{{ i }}</option>
-                  {% endif %}
-                {% endwith %}
-              {% endfor%}
-            </select>
             {# Remove button. Leads to modal. #}
             {% if not author.is_submitting %}
               <button class="btn btn-sm" type="button" title="Remove Author" style="background:none; color:#cb2431" data-toggle="modal" data-target="#remove-{{ author.id }}-modal"><i class="fas fa-user-times"></i></button>
