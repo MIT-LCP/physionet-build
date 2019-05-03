@@ -23,7 +23,7 @@
 				CKEDITOR.error( 'mathjax-no-config' );
 			}
 
-			editor.widgets.add( 'pnmathml', {
+			editor.widgets.add( 'inlineEquation', {
 				inline: true,
 				dialog: 'pnmathml',
 				button: editor.lang.pnmathml.button,
@@ -46,7 +46,7 @@
 				},
 
 				init: function() {
-					CKEDITOR.plugins.pnmathml.widgetInit( this, editor );
+					CKEDITOR.plugins.pnmathml.widgetInit( this, editor, false );
 				},
 
 				data: function() {
@@ -55,11 +55,51 @@
 				},
 
 				upcast: function( el, data ) {
-					return CKEDITOR.plugins.pnmathml.widgetUpcast( el, data );
+					return CKEDITOR.plugins.pnmathml.widgetUpcast( el, data, false );
 				},
 
 				downcast: function( el ) {
-					return CKEDITOR.plugins.pnmathml.widgetDowncast( this, editor, el );
+					return CKEDITOR.plugins.pnmathml.widgetDowncast( this, editor, el, false );
+				}
+			} );
+
+			editor.widgets.add( 'blockEquation', {
+				inline: false,
+				dialog: 'pnmathml',
+				button: editor.lang.pnmathml.button,
+				mask: true,
+
+				// FIXME: this is incomplete
+				allowedContent: 'div,math[display],semantics,annotation[encoding]',
+
+				pathName: editor.lang.pnmathml.pathName,
+
+				template: '<div style="text-align:center" data-cke-survive=1></div>',
+
+				parts: {
+					span: 'div'
+				},
+
+				defaults: {
+					math: '\\[x^2\\]',
+					mathml: null
+				},
+
+				init: function() {
+					CKEDITOR.plugins.pnmathml.widgetInit( this, editor, true );
+				},
+
+				data: function() {
+					if ( this.frameWrapper )
+						this.frameWrapper.setValue( this.data.math );
+				},
+
+				upcast: function( el, data ) {
+					return CKEDITOR.plugins.pnmathml.widgetUpcast( el, data, true );
+				},
+
+				downcast: function( el ) {
+					return CKEDITOR.plugins.pnmathml.widgetDowncast( this, editor, el, true );
 				}
 			} );
 
@@ -96,8 +136,9 @@
 	 * @private
 	 * @param {CKEDITOR.plugins.widget} widget New widget to initialize.
 	 * @param {CKEDITOR.editor} editor The current editor.
+	 * @param {Boolean} blockStyle True if widget is "block" style.
 	 */
-	CKEDITOR.plugins.pnmathml.widgetInit = function( widget, editor ) {
+	CKEDITOR.plugins.pnmathml.widgetInit = function( widget, editor, blockStyle ) {
 		var iframe = widget.parts.span.getChild( 0 );
 
 		// Check if span contains iframe and create it otherwise.
@@ -136,13 +177,29 @@
 	 * @private
 	 * @param {CKEDITOR.htmlParser.node} el Element to check for castability.
 	 * @param {Object} data Object in which to store widget data values.
+	 * @param {Boolean} blockStyle True if upcasting to a "block" widget.
 	 */
-	CKEDITOR.plugins.pnmathml.widgetUpcast = function( el, data ) {
+	CKEDITOR.plugins.pnmathml.widgetUpcast = function( el, data, blockStyle ) {
 		var math = null, semantics = null;
 
-		if ( el.name !== 'math' || el.attributes[ 'display' ] === 'block' )
-			return;
-		math = el;
+		if ( blockStyle ) {
+			if ( el.name !== 'div' )
+				return;
+			for ( var i = 0; i < el.children.length; i++ ) {
+				var c = el.children[ i ];
+				if ( c.type === CKEDITOR.NODE_ELEMENT && c.name === 'math' && math === null )
+					math = c;
+				else if ( !CKEDITOR.plugins.pnmathml.isWhitespace( c ) )
+					return;
+			}
+			if ( math === null || math.attributes[ 'display' ] !== 'block' )
+				return;
+		}
+		else {
+			if ( el.name !== 'math' || el.attributes[ 'display' ] === 'block' )
+				return;
+			math = el;
+		}
 
 		for ( var i = 0; i < math.children.length; i++ ) {
 			var c = math.children[ i ];
@@ -160,15 +217,28 @@
 				if ( c.children.length !== 1 || c.children[ 0 ].type !== CKEDITOR.NODE_TEXT )
 					return;
 
-				data.math = '\\(' + CKEDITOR.tools.htmlDecode( c.children[ 0 ].value ) + '\\)';
-				data.mathml = math.getOuterHtml();
+				if ( blockStyle ) {
+					data.math = '\\[' + CKEDITOR.tools.htmlDecode( c.children[ 0 ].value ) + '\\]';
+					data.mathml = math.getOuterHtml();
 
-				el.name = 'span';
-				el.setHtml( '' );
-				el.attributes = {
-					'style': 'display:inline-block',
-					'data-cke-survive': 1
-				};
+					el.name = 'div';
+					el.setHtml( '' );
+					el.attributes = {
+						'style': 'text-align:center',
+						'data-cke-survive': 1
+					};
+				}
+				else {
+					data.math = '\\(' + CKEDITOR.tools.htmlDecode( c.children[ 0 ].value ) + '\\)';
+					data.mathml = math.getOuterHtml();
+
+					el.name = 'span';
+					el.setHtml( '' );
+					el.attributes = {
+						'style': 'display:inline-block',
+						'data-cke-survive': 1
+					};
+				}
 				return el;
 			}
 		}
@@ -181,19 +251,23 @@
 	 * @param {CKEDITOR.plugins.widget} widget Widget to downcast.
 	 * @param {CKEDITOR.editor} editor The current editor.
 	 * @param {CKEDITOR.htmlParser.node} el Widget's main element.
+	 * @param {Boolean} blockStyle True if widget is "block" style.
 	 */
-	CKEDITOR.plugins.pnmathml.widgetDowncast = function( widget, editor, el ) {
+	CKEDITOR.plugins.pnmathml.widgetDowncast = function( widget, editor, el, blockStyle ) {
 		var mathml = ( widget.data.mathml || widget.newMathML );
 		if ( !mathml ) {
 			var src = CKEDITOR.plugins.pnmathml.trim( CKEDITOR.tools.htmlEncode( widget.data.math ) );
+			var attr = ( blockStyle ? ' display="block"' : '' );
 			mathml =
-				'<math xmlns="http://www.w3.org/1998/Math/MathML">' +
+				'<math xmlns="http://www.w3.org/1998/Math/MathML"' + attr + '>' +
 					'<semantics>' +
 						'<merror>ERROR</merror>' +
 						'<annotation encoding="application/x-tex">' + src + '</annotation>' +
 					'</semantics>' +
 				'</math>';
 		}
+		if ( blockStyle )
+			mathml = '<div>' + mathml + '</div>';
 		var math = CKEDITOR.htmlParser.fragment.fromHtml( mathml );
 		editor.filter.applyTo( math );
 		el.replaceWith( math );
