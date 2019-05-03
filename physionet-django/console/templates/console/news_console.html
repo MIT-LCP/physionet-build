@@ -12,7 +12,7 @@
     var csrftoken = getCookie('csrftoken');
     $.ajax({
             type: "POST",
-            url: "{% url 'search_news' %}",
+            url: "{% url 'news_search' %}",
             data: {'csrfmiddlewaretoken':csrftoken,
                    'search':value
             },
@@ -27,10 +27,21 @@
     News Items <span class="badge badge-pill badge-info">{{ news_items|length }}</span>
   </div>
   <div class="card-body">
-    <p><a href="{% url 'add_news' %}" class="btn btn-lg btn-success">Add News Item</a></p>
+    <p><a href="{% url 'news_add' %}" class="btn btn-lg btn-success">Add News Item</a></p>
     <div class="table-responsive">
       <input type="search" oninput="search(value);" placeholder="Search...">
-      {% include "console/news_list.html" %}
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Publish Datetime</th>
+            <th>Edit</th>
+          </tr>
+        </thead>
+        <tbody id="newsitems">
+          {% include "console/news_list.html" %}
+        </tbody>
+      </table>
     </div>
   </div>
 </div>

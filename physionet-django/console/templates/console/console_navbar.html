@@ -135,9 +135,9 @@
       </li>
 
       <!-- news -->
-      {% url 'console_news' as console_news %}
-      <li class="nav-item {% ifequal request.path console_news %}active{% endifequal %}" data-toggle="tooltip" data-placement="right">
-        <a id="nav_console_news" class="nav-link" href="{% url 'console_news' %}">
+      {% url 'news_console' as news_console %}
+      <li class="nav-item {% ifequal request.path news_console %}active{% endifequal %}" data-toggle="tooltip" data-placement="right">
+        <a id="nav_console_news" class="nav-link" href="{% url 'news_console' %}">
           <i class="fa fa-fw fa-newspaper"></i>
           <span class="nav-link-text">News</span>
         </a>

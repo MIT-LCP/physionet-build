@@ -744,17 +744,31 @@ def credentialed_user_info(request, username):
 
 @login_required
 @user_passes_test(is_admin)
-def console_news(request):
+def news_console(request):
     """
     List of news items
     """
     news_items = News.objects.all().order_by('-publish_datetime')
-    return render(request, 'console/console_news.html', {'news_items':news_items})
+    return render(request, 'console/news_console.html', {'news_items':news_items})
 
 
 @login_required
 @user_passes_test(is_admin)
-def search_news(request):
+def news_add(request):
+    if request.method == 'POST':
+        form = forms.NewsForm(data=request.POST)
+        if form.is_valid():
+            form.save()
+            return render(request, 'console/news_done.html', {'action':'Added'})
+    else:
+        form = forms.NewsForm()
+
+    return render(request, 'console/news_add.html', {'form':form})
+
+
+@login_required
+@user_passes_test(is_admin)
+def news_search(request):
     """
     Filtered list of news items
     """
@@ -770,7 +784,7 @@ def search_news(request):
 
 @login_required
 @user_passes_test(is_admin)
-def edit_news(request, news_id):
+def news_edit(request, news_id):
     news = News.objects.get(id=news_id)
 
     if request.method == 'POST':
@@ -785,22 +799,8 @@ def edit_news(request, news_id):
     else:
         form = forms.NewsForm(instance=news)
 
-    return render(request, 'console/edit_news.html', {'news':news,
+    return render(request, 'console/news_edit.html', {'news':news,
         'form':form})
-
-
-@login_required
-@user_passes_test(is_admin)
-def add_news(request):
-    if request.method == 'POST':
-        form = forms.NewsForm(data=request.POST)
-        if form.is_valid():
-            form.save()
-            return render(request, 'console/news_done.html', {'action':'Added'})
-    else:
-        form = forms.NewsForm()
-
-    return render(request, 'console/add_news.html', {'form':form})
 
 
 @login_required
