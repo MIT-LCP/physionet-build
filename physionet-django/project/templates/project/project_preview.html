@@ -83,7 +83,7 @@
 
     {% if publication %}
       <strong>In addition, please cite the original publication:</strong>
-      <p><a href="{{ publication.url }}" target="_blank">{{ publication.citation }}</a></p>
+      <p><a href="{{ publication.url }}">{{ publication.citation }}</a></p>
     {% endif %}
 
     <strong>Please also include the standard citation for PhysioNet:</strong>
@@ -141,7 +141,7 @@
             <strong>License (for files):</strong>
             <br>
             {% if project.license %}
-              <a href="{% url 'project_license_preview' project.slug %}" target="_blank">{{ project.license }}</a>
+              <a href="{% url 'project_license_preview' project.slug %}">{{ project.license }}</a>
             {% else %}
               <a style="color:red"><strong>* Required field missing</strong></a>
             {% endif %}
@@ -176,7 +176,7 @@
 
           {% if project.project_home_page %}
             <p><strong>Project Website:</strong><br>
-            <a href="{{ project.project_home_page }}" target="_blank"><i class="fas fa-external-link-alt"></i> {{ project.project_home_page }}</a>
+            <a href="{{ project.project_home_page }}"><i class="fas fa-external-link-alt"></i> {{ project.project_home_page }}</a>
             </p>
           {% endif %}
         </div>
@@ -198,7 +198,7 @@
   </div>
   <h2>Files</h2>
   {% if project.has_wfdb %}
-    <p><a href="{% url 'lightwave_project_home' project.slug %}?db={{ project.slug }}" target="_blank"><i class="fas fa-chart-line"></i> Visualize waveforms</a></p>
+    <p><a href="{% url 'lightwave_project_home' project.slug %}?db={{ project.slug }}"><i class="fas fa-chart-line"></i> Visualize waveforms</a></p>
   {% endif %}
   <div id="files-panel" class="card">
     {% include "project/files_panel.html" %}

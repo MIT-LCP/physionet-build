@@ -58,7 +58,7 @@
 
       {% if publication %}
         <strong>{% if project.is_legacy %}When using this resource{% else %}Additionally{% endif %}, please cite the original publication:</strong>
-        <p><a href="{{ publication.url }}" target="_blank">{{ publication.citation }}</a></p>
+        <p><a href="{{ publication.url }}">{{ publication.citation }}</a></p>
       {% endif %}
 
       <strong>Please include the standard citation for PhysioNet:</strong>
@@ -163,11 +163,11 @@
       <div class="card my-4">
         <h5 class="card-header">Share</h5>
         <div class="card-body">
-            <a class="btn btn-sm share-email sharebtn" href="mailto:?subject={{ project.title|urlencode }}&body={{ request.build_absolute_uri }}" target="_blank" role="button" title="Share with email"><i class="far fa-envelope"></i></a>
-            <a class="btn btn-sm facebook sharebtn" href="http://www.facebook.com/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" role="button" title="Share on Facebook"><i class="fab fa-facebook"></i></a>
-            <a class="btn btn-sm linkedin sharebtn" href="https://www.linkedin.com/shareArticle?url={{ request.build_absolute_uri }}" target="_blank" role="button" title="Share on LinkedIn"><i class="fab fa-linkedin"></i></a>
-            <a class="btn btn-sm reddit sharebtn" href="https://www.reddit.com/submit?url={{ request.build_absolute_uri }}&title={{ project.title|urlencode }}" target="_blank" role="button" title="Share on Reddit"><i class="fab fa-reddit"></i></a>
-            <a class="btn btn-sm twitter sharebtn" href="https://twitter.com/intent/tweet?text={{ project.title|urlencode }}. {{ request.build_absolute_uri }}" target="_blank" role="button" title="Share on Twitter"><i class="fab fa-twitter"></i></a>
+            <a class="btn btn-sm share-email sharebtn" href="mailto:?subject={{ project.title|urlencode }}&body={{ request.build_absolute_uri }}" role="button" title="Share with email"><i class="far fa-envelope"></i></a>
+            <a class="btn btn-sm facebook sharebtn" href="http://www.facebook.com/sharer.php?u={{ request.build_absolute_uri }}" role="button" title="Share on Facebook"><i class="fab fa-facebook"></i></a>
+            <a class="btn btn-sm linkedin sharebtn" href="https://www.linkedin.com/shareArticle?url={{ request.build_absolute_uri }}" role="button" title="Share on LinkedIn"><i class="fab fa-linkedin"></i></a>
+            <a class="btn btn-sm reddit sharebtn" href="https://www.reddit.com/submit?url={{ request.build_absolute_uri }}&title={{ project.title|urlencode }}" role="button" title="Share on Reddit"><i class="fab fa-reddit"></i></a>
+            <a class="btn btn-sm twitter sharebtn" href="https://twitter.com/intent/tweet?text={{ project.title|urlencode }}. {{ request.build_absolute_uri }}" role="button" title="Share on Twitter"><i class="fab fa-twitter"></i></a>
         </div>
       </div>
 
@@ -182,7 +182,7 @@
           <p>
             <strong>License (for files):</strong>
             <br>
-            <a href="{% url 'published_project_license' project.slug project.version %}" target="_blank">{{ project.license }}</a>
+            <a href="{% url 'published_project_license' project.slug project.version %}">{{ project.license }}</a>
           </p>
         </div>
       </div>
@@ -192,7 +192,7 @@
           {% if project.doi %}
           <p><strong>DOI:</strong>
             <br>
-            <a href="http://dx.doi.org/{{ project.doi }}" target="_blank">{{ project.doi }}</a>
+            <a href="http://dx.doi.org/{{ project.doi }}">{{ project.doi }}</a>
           </p>
           {% endif %}
 
@@ -217,7 +217,7 @@
           {% if project.project_home_page %}
             <p><strong>Project Website:</strong>
               <br>
-              <a href="{{ project.project_home_page }}" target="_blank"><i class="fas fa-external-link-alt"></i> {{ project.project_home_page }}</a>
+              <a href="{{ project.project_home_page }}"><i class="fas fa-external-link-alt"></i> {{ project.project_home_page }}</a>
             </p>
           {% endif %}
         </div>
@@ -285,7 +285,7 @@
     {% else %}
       <p>Total uncompressed size: {{ main_size }}.{% if project.compressed_storage_size %}<a class="btn btn-success btn-sm btn-rsp" href="{% static project.zip_url %}" style="float:right">Download Zip ({{ compressed_size }})</a>{% endif %}</p>
       {% if project.has_wfdb %}
-        <p><a href="{% url 'lightwave_home' %}?db={{ project.slug }}/{{ project.version }}" target="_blank"><i class="fas fa-chart-line"></i> Visualize waveforms</a></p>
+        <p><a href="{% url 'lightwave_home' %}?db={{ project.slug }}/{{ project.version }}"><i class="fas fa-chart-line"></i> Visualize waveforms</a></p>
       {% endif %}
       <div id="files-panel" class="card">
         {% include "project/files_panel.html" %}
