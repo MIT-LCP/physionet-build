@@ -46,37 +46,7 @@
 				},
 
 				init: function() {
-					var widget = this;
-					var iframe = this.parts.span.getChild( 0 );
-
-					// Check if span contains iframe and create it otherwise.
-					if ( !iframe || iframe.type != CKEDITOR.NODE_ELEMENT || !iframe.is( 'iframe' ) ) {
-						iframe = new CKEDITOR.dom.element( 'iframe' );
-						iframe.setAttributes( {
-							style: 'border:0;width:0;height:0',
-							scrolling: 'no',
-							frameborder: 0,
-							allowTransparency: true,
-							src: CKEDITOR.plugins.pnmathml.fixSrc
-						} );
-						this.parts.span.append( iframe );
-					}
-
-					// Wait for ready because on some browsers iFrame will not
-					// have document element until it is put into document.
-					// This is a problem when you crate widget using dialog.
-					this.once( 'ready', function() {
-						// Src attribute must be recreated to fix custom domain error after undo
-						// (see iFrame.removeAttribute( 'src' ) in frameWrapper.load).
-						if ( CKEDITOR.env.ie )
-							iframe.setAttribute( 'src', CKEDITOR.plugins.pnmathml.fixSrc );
-
-						this.frameWrapper = new CKEDITOR.plugins.pnmathml.frameWrapper( iframe, editor, function( mml ) {
-							if ( !widget.data.mathml )
-								widget.newMathML = mml;
-						} );
-						this.frameWrapper.setValue( this.data.math );
-					} );
+					CKEDITOR.plugins.pnmathml.widgetInit( this, editor );
 				},
 
 				data: function() {
@@ -85,58 +55,11 @@
 				},
 
 				upcast: function( el, data ) {
-					var math = null, semantics = null;
-
-					if ( el.name !== 'math' || el.attributes[ 'display' ] === 'block' )
-						return;
-					math = el;
-
-					for ( var i = 0; i < math.children.length; i++ ) {
-						var c = math.children[ i ];
-						if ( c.type === CKEDITOR.NODE_ELEMENT && c.name === 'semantics' && semantics === null )
-							semantics = c;
-						else if ( !CKEDITOR.plugins.pnmathml.isWhitespace( c ) )
-							return;
-					}
-					if ( semantics === null )
-						return;
-
-					for ( var i = 0; i < semantics.children.length; i++ ) {
-						var c = semantics.children[ i ];
-						if ( c.type === CKEDITOR.NODE_ELEMENT && c.name === 'annotation' && c.attributes[ 'encoding' ] === 'application/x-tex' ) {
-							if ( c.children.length !== 1 || c.children[ 0 ].type !== CKEDITOR.NODE_TEXT )
-								return;
-
-							data.math = '\\(' + CKEDITOR.tools.htmlDecode( c.children[ 0 ].value ) + '\\)';
-							data.mathml = math.getOuterHtml();
-
-							el.name = 'span';
-							el.setHtml( '' );
-							el.attributes = {
-								'style': 'display:inline-block',
-								'data-cke-survive': 1
-							};
-							return el;
-						}
-					}
+					return CKEDITOR.plugins.pnmathml.widgetUpcast( el, data );
 				},
 
 				downcast: function( el ) {
-					var mathml = ( this.data.mathml || this.newMathML );
-					if ( !mathml ) {
-						var src = CKEDITOR.plugins.pnmathml.trim( CKEDITOR.tools.htmlEncode( this.data.math ) );
-						mathml =
-							'<math xmlns="http://www.w3.org/1998/Math/MathML">' +
-								'<semantics>' +
-									'<merror>ERROR</merror>' +
-									'<annotation encoding="application/x-tex">' + src + '</annotation>' +
-								'</semantics>' +
-							'</math>';
-					}
-					var math = CKEDITOR.htmlParser.fragment.fromHtml( mathml );
-					editor.filter.applyTo( math );
-					el.replaceWith( math );
-					return math;
+					return CKEDITOR.plugins.pnmathml.widgetDowncast( this, editor, el );
 				}
 			} );
 
@@ -166,6 +89,116 @@
 	 * @class CKEDITOR.plugins.pnmathml
 	 */
 	CKEDITOR.plugins.pnmathml = {};
+
+	/**
+	 * Widget initialization.
+	 *
+	 * @private
+	 * @param {CKEDITOR.plugins.widget} widget New widget to initialize.
+	 * @param {CKEDITOR.editor} editor The current editor.
+	 */
+	CKEDITOR.plugins.pnmathml.widgetInit = function( widget, editor ) {
+		var iframe = widget.parts.span.getChild( 0 );
+
+		// Check if span contains iframe and create it otherwise.
+		if ( !iframe || iframe.type != CKEDITOR.NODE_ELEMENT || !iframe.is( 'iframe' ) ) {
+			iframe = new CKEDITOR.dom.element( 'iframe' );
+			iframe.setAttributes( {
+				style: 'border:0;width:0;height:0',
+				scrolling: 'no',
+				frameborder: 0,
+				allowTransparency: true,
+				src: CKEDITOR.plugins.pnmathml.fixSrc
+			} );
+			widget.parts.span.append( iframe );
+		}
+
+		// Wait for ready because on some browsers iFrame will not
+		// have document element until it is put into document.
+		// This is a problem when you crate widget using dialog.
+		widget.once( 'ready', function() {
+			// Src attribute must be recreated to fix custom domain error after undo
+			// (see iFrame.removeAttribute( 'src' ) in frameWrapper.load).
+			if ( CKEDITOR.env.ie )
+				iframe.setAttribute( 'src', CKEDITOR.plugins.pnmathml.fixSrc );
+
+			this.frameWrapper = new CKEDITOR.plugins.pnmathml.frameWrapper( iframe, editor, function( mml ) {
+				if ( !widget.data.mathml )
+					widget.newMathML = mml;
+			} );
+			this.frameWrapper.setValue( this.data.math );
+		} );
+	};
+
+	/**
+	 * Widget upcasting.
+	 *
+	 * @private
+	 * @param {CKEDITOR.htmlParser.node} el Element to check for castability.
+	 * @param {Object} data Object in which to store widget data values.
+	 */
+	CKEDITOR.plugins.pnmathml.widgetUpcast = function( el, data ) {
+		var math = null, semantics = null;
+
+		if ( el.name !== 'math' || el.attributes[ 'display' ] === 'block' )
+			return;
+		math = el;
+
+		for ( var i = 0; i < math.children.length; i++ ) {
+			var c = math.children[ i ];
+			if ( c.type === CKEDITOR.NODE_ELEMENT && c.name === 'semantics' && semantics === null )
+				semantics = c;
+			else if ( !CKEDITOR.plugins.pnmathml.isWhitespace( c ) )
+				return;
+		}
+		if ( semantics === null )
+			return;
+
+		for ( var i = 0; i < semantics.children.length; i++ ) {
+			var c = semantics.children[ i ];
+			if ( c.type === CKEDITOR.NODE_ELEMENT && c.name === 'annotation' && c.attributes[ 'encoding' ] === 'application/x-tex' ) {
+				if ( c.children.length !== 1 || c.children[ 0 ].type !== CKEDITOR.NODE_TEXT )
+					return;
+
+				data.math = '\\(' + CKEDITOR.tools.htmlDecode( c.children[ 0 ].value ) + '\\)';
+				data.mathml = math.getOuterHtml();
+
+				el.name = 'span';
+				el.setHtml( '' );
+				el.attributes = {
+					'style': 'display:inline-block',
+					'data-cke-survive': 1
+				};
+				return el;
+			}
+		}
+	};
+
+	/**
+	 * Widget downcasting.
+	 *
+	 * @private
+	 * @param {CKEDITOR.plugins.widget} widget Widget to downcast.
+	 * @param {CKEDITOR.editor} editor The current editor.
+	 * @param {CKEDITOR.htmlParser.node} el Widget's main element.
+	 */
+	CKEDITOR.plugins.pnmathml.widgetDowncast = function( widget, editor, el ) {
+		var mathml = ( widget.data.mathml || widget.newMathML );
+		if ( !mathml ) {
+			var src = CKEDITOR.plugins.pnmathml.trim( CKEDITOR.tools.htmlEncode( widget.data.math ) );
+			mathml =
+				'<math xmlns="http://www.w3.org/1998/Math/MathML">' +
+					'<semantics>' +
+						'<merror>ERROR</merror>' +
+						'<annotation encoding="application/x-tex">' + src + '</annotation>' +
+					'</semantics>' +
+				'</math>';
+		}
+		var math = CKEDITOR.htmlParser.fragment.fromHtml( mathml );
+		editor.filter.applyTo( math );
+		el.replaceWith( math );
+		return math;
+	};
 
 	/**
 	 * A variable to fix problems with `iframe`. This variable is global
