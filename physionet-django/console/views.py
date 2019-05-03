@@ -15,6 +15,7 @@ from django.shortcuts import redirect, render
 from django.template import loader
 from django.urls import reverse
 from django.utils import timezone
+from django.db.models import Q
 from background_task import background
 
 from . import forms, utility
@@ -602,25 +603,47 @@ def users(request):
 
 @login_required
 @user_passes_test(is_admin)
-def inactive_users(request):
+def users_search(request):
     """
     List of users
     """
-    inactive_users = User.objects.filter(is_active=False) | User.objects.filter(
-        last_login__lt=timezone.now() + timezone.timedelta(days=-90)).order_by(
-        'username')
+
+    if request.method == 'POST':
+        username = request.POST['username']
+
+        users = User.objects.filter(username__icontains=username)
+        if 'inactive' in request.POST:
+            users = users.filter(Q(is_active=False) |
+                    Q(last_login__lt=timezone.now() 
+                        + timezone.timedelta(days=-90))
+            )
+        users = users.order_by('username')
+
+        return render(request, 'console/users_list.html', {'users':users})
+
+    raise Http404()    
+
+
+@login_required
+@user_passes_test(is_admin)
+def users_inactive(request):
+    """
+    List of users
+    """
+    inactive_users = User.objects.filter(Q(is_active=False) | Q(last_login__lt=timezone.now() 
+                + timezone.timedelta(days=-90))).order_by('username')
 
     return render(request, 'console/users.html', {'users':inactive_users})
 
 
 @login_required
 @user_passes_test(is_admin)
-def admin_users(request):
+def users_admin(request):
     """
     List of users
     """
     admin_users = User.objects.filter(is_admin=True).order_by('username')
-    return render(request, 'console/admin_users.html', {
+    return render(request, 'console/users_admin.html', {
         'admin_users':admin_users})
 
 @login_required
