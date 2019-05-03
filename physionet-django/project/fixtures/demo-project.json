@@ -113,7 +113,6 @@
     "display_order": 1,
     "is_submitting": true,
     "is_corresponding": true,
-    "shared": 1,
     "approval_datetime": null,
     "content_type": [
       "project",
@@ -133,7 +132,6 @@
     "display_order": 1,
     "is_submitting": true,
     "is_corresponding": false,
-    "shared": 1,
     "approval_datetime": null,
     "content_type": [
       "project",
@@ -153,7 +151,6 @@
     "display_order": 2,
     "is_submitting": false,
     "is_corresponding": true,
-    "shared": 2,
     "approval_datetime": null,
     "content_type": [
       "project",
@@ -173,7 +170,6 @@
     "display_order": 1,
     "is_submitting": true,
     "is_corresponding": true,
-    "shared": 1,
     "approval_datetime": null,
     "content_type": [
       "project",
@@ -193,7 +189,6 @@
     "display_order": 1,
     "is_submitting": true,
     "is_corresponding": true,
-    "shared": 1,
     "approval_datetime": "2018-11-14T21:11:11.781Z",
     "first_names": "Roger Greenwood",
     "last_name": "Mark",
@@ -211,7 +206,6 @@
     "display_order": 1,
     "is_submitting": true,
     "is_corresponding": true,
-    "shared": 1,
     "approval_datetime": "2018-12-22T19:33:31.728Z",
     "first_names": "George",
     "last_name": "Moody",
@@ -229,7 +223,6 @@
     "display_order": 1,
     "is_submitting": true,
     "is_corresponding": true,
-    "shared": 1,
     "approval_datetime": "2018-12-22T19:33:31.728Z",
     "first_names": "Roger",
     "last_name": "Mark",

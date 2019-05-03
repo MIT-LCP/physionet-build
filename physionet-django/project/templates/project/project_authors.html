@@ -25,14 +25,26 @@
                 },
         });
     };
-    function shared(author_id, shared){
+    function share(display_order){
         var csrftoken = getCookie('csrftoken');
         $.ajax({
                 type: "POST",
-                url: "{% url 'shared' project.slug %}",
+                url: "{% url 'share' project.slug %}",
                 data: {'csrfmiddlewaretoken':csrftoken,
-                       'author_id':author_id,
-                       'shared':shared
+                       'display_order':display_order
+                },
+                success: function reloadSection(result){
+                    $("#author-list").html(result);
+                },
+        });
+    };
+    function unshare(display_order){
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+                type: "POST",
+                url: "{% url 'unshare' project.slug %}",
+                data: {'csrfmiddlewaretoken':csrftoken,
+                       'display_order':display_order
                 },
                 success: function reloadSection(result){
                     $("#author-list").html(result);
