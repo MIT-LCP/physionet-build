@@ -291,7 +291,7 @@
 			mathml =
 				'<math xmlns="http://www.w3.org/1998/Math/MathML"' + attr + '>' +
 					'<semantics>' +
-						'<merror>ERROR</merror>' +
+						'<merror><mtext>ERROR</mtext></merror>' +
 						'<annotation encoding="application/x-tex">' + src + '</annotation>' +
 					'</semantics>' +
 				'</math>';
