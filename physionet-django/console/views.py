@@ -15,6 +15,7 @@ from django.shortcuts import redirect, render
 from django.template import loader
 from django.urls import reverse
 from django.utils import timezone
+from django.db.models import Q
 from background_task import background
 
 from . import forms, utility
@@ -602,25 +603,47 @@ def users(request):
 
 @login_required
 @user_passes_test(is_admin)
-def inactive_users(request):
+def users_search(request):
     """
     List of users
     """
-    inactive_users = User.objects.filter(is_active=False) | User.objects.filter(
-        last_login__lt=timezone.now() + timezone.timedelta(days=-90)).order_by(
-        'username')
+
+    if request.method == 'POST':
+        username = request.POST['username']
+
+        users = User.objects.filter(username__icontains=username)
+        if 'inactive' in request.POST:
+            users = users.filter(Q(is_active=False) |
+                    Q(last_login__lt=timezone.now() 
+                        + timezone.timedelta(days=-90))
+            )
+        users = users.order_by('username')
+
+        return render(request, 'console/users_list.html', {'users':users})
+
+    raise Http404()    
+
+
+@login_required
+@user_passes_test(is_admin)
+def users_inactive(request):
+    """
+    List of users
+    """
+    inactive_users = User.objects.filter(Q(is_active=False) | Q(last_login__lt=timezone.now() 
+                + timezone.timedelta(days=-90))).order_by('username')
 
     return render(request, 'console/users.html', {'users':inactive_users})
 
 
 @login_required
 @user_passes_test(is_admin)
-def admin_users(request):
+def users_admin(request):
     """
     List of users
     """
     admin_users = User.objects.filter(is_admin=True).order_by('username')
-    return render(request, 'console/admin_users.html', {
+    return render(request, 'console/users_admin.html', {
         'admin_users':admin_users})
 
 @login_required
@@ -744,17 +767,31 @@ def credentialed_user_info(request, username):
 
 @login_required
 @user_passes_test(is_admin)
-def console_news(request):
+def news_console(request):
     """
     List of news items
     """
     news_items = News.objects.all().order_by('-publish_datetime')
-    return render(request, 'console/console_news.html', {'news_items':news_items})
+    return render(request, 'console/news_console.html', {'news_items':news_items})
 
 
 @login_required
 @user_passes_test(is_admin)
-def search_news(request):
+def news_add(request):
+    if request.method == 'POST':
+        form = forms.NewsForm(data=request.POST)
+        if form.is_valid():
+            form.save()
+            return render(request, 'console/news_done.html', {'action':'Added'})
+    else:
+        form = forms.NewsForm()
+
+    return render(request, 'console/news_add.html', {'form':form})
+
+
+@login_required
+@user_passes_test(is_admin)
+def news_search(request):
     """
     Filtered list of news items
     """
@@ -770,7 +807,7 @@ def search_news(request):
 
 @login_required
 @user_passes_test(is_admin)
-def edit_news(request, news_id):
+def news_edit(request, news_id):
     news = News.objects.get(id=news_id)
 
     if request.method == 'POST':
@@ -785,22 +822,8 @@ def edit_news(request, news_id):
     else:
         form = forms.NewsForm(instance=news)
 
-    return render(request, 'console/edit_news.html', {'news':news,
+    return render(request, 'console/news_edit.html', {'news':news,
         'form':form})
-
-
-@login_required
-@user_passes_test(is_admin)
-def add_news(request):
-    if request.method == 'POST':
-        form = forms.NewsForm(data=request.POST)
-        if form.is_valid():
-            form.save()
-            return render(request, 'console/news_done.html', {'action':'Added'})
-    else:
-        form = forms.NewsForm()
-
-    return render(request, 'console/add_news.html', {'form':form})
 
 
 @login_required

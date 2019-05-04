@@ -57,14 +57,15 @@ urlpatterns = [
 
 
     path('users/all/', views.users, name='user_list'),
-    path('users/admin/', views.admin_users, name='user_list_admin'),
-    path('users/inactive/', views.inactive_users, name='user_list_inactive'),
+    path('users/search/', views.users_search, name='users_list_search'),
+    path('users/admin/', views.users_admin, name='user_list_admin'),
+    path('users/inactive/', views.users_inactive, name='user_list_inactive'),
     # path('users/lcp/', views.lcp_affiliates, name='lcp_affiliates'),
 
-    path('news/', views.console_news, name='console_news'),
-    path('news/search', views.search_news, name='search_news'),
-    path('news/edit/<news_id>/', views.edit_news, name='edit_news'),
-    path('news/add/', views.add_news, name='add_news'),
+    path('news/', views.news_console, name='news_console'),
+    path('news/add/', views.news_add, name='news_add'),
+    path('news/search', views.news_search, name='news_search'),
+    path('news/edit/<news_id>/', views.news_edit, name='news_edit'),
 
     path('featured/', views.featured_content, name='featured_content'),
     path('featured/add', views.add_featured, name='add_featured'),
