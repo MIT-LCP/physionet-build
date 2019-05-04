@@ -189,7 +189,7 @@
 			if ( CKEDITOR.env.ie )
 				iframe.setAttribute( 'src', CKEDITOR.plugins.pnmathml.fixSrc );
 
-			this.frameWrapper = new CKEDITOR.plugins.pnmathml.frameWrapper( iframe, editor, function( mml ) {
+			this.frameWrapper = new CKEDITOR.plugins.pnmathml.frameWrapper( iframe, editor, !blockStyle, function( mml ) {
 				if ( !widget.data.mathml )
 					widget.newMathML = mml;
 			} );
@@ -407,12 +407,13 @@
 	 * @constructor Creates a class instance.
 	 * @param {CKEDITOR.dom.element} iFrame The `iframe` element to be wrapped.
 	 * @param {CKEDITOR.editor} editor The editor instance.
+	 * @param {Boolean} inline True to align the frame with the text baseline.
 	 * @param {Function} callback Function to call with converted MathML syntax.
 	 */
 	if ( !( CKEDITOR.env.ie && CKEDITOR.env.version == 8 ) ) {
-		CKEDITOR.plugins.pnmathml.frameWrapper = function( iFrame, editor, callback ) {
+		CKEDITOR.plugins.pnmathml.frameWrapper = function( iFrame, editor, inline, callback ) {
 
-			var buffer, preview, value, newValue,
+			var buffer, preview, base, value, newValue,
 				doc = iFrame.getFrameDocument(),
 
 				// Is MathJax loaded and ready to work.
@@ -424,6 +425,7 @@
 				// Function called when MathJax is loaded.
 				loadedHandler = CKEDITOR.tools.addFunction( function() {
 					preview = doc.getById( 'preview' );
+					base = doc.getById( 'base' );
 					buffer = doc.getById( 'buffer' );
 					isInit = true;
 
@@ -449,9 +451,16 @@
 
 					// Set iFrame dimensions.
 					var height = Math.max( doc.$.body.offsetHeight, doc.$.documentElement.offsetHeight ),
-						width = Math.max( preview.$.offsetWidth, doc.$.body.scrollWidth );
+						width = Math.max( preview.$.offsetWidth, doc.$.body.scrollWidth ),
+						align = 'middle';
+
+					if ( inline ) {
+						var ascent = base.$.offsetTop + base.$.offsetHeight;
+						align = ( ascent - height ) + 'px';
+					}
 
 					iFrame.setStyles( {
+						'vertical-align': align,
 						height: height + 'px',
 						width: width + 'px'
 					} );
@@ -554,7 +563,8 @@
 								// Load MathJax lib.
 								'<script src="' + ( editor.config.mathJaxLib ) + '"></script>' +
 							'</head>' +
-							'<body style="padding:0;margin:0;background:transparent;overflow:hidden">' +
+							'<body style="padding:0;margin:0;background:transparent;overflow:hidden;white-space:nowrap">' +
+								( inline ? '<span id="base" style="display:inline-block;height:1px"></span>' : '' ) +
 								'<span id="preview"></span>' +
 
 								// Render everything here and after that copy it to the preview.
@@ -609,7 +619,7 @@
 	} else {
 		// In IE8 MathJax does not work stable so instead of using standard
 		// frame wrapper it is replaced by placeholder to show pure TeX in iframe.
-		CKEDITOR.plugins.pnmathml.frameWrapper = function( iFrame, editor, callback ) {
+		CKEDITOR.plugins.pnmathml.frameWrapper = function( iFrame, editor, inline, callback ) {
 			iFrame.getFrameDocument().write( '<!DOCTYPE html>' +
 				'<html>' +
 				'<head>' +
