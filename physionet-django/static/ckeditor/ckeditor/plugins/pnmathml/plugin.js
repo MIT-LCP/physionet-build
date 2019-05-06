@@ -32,6 +32,8 @@
 				// FIXME: this is incomplete
 				allowedContent: 'span,math,semantics,annotation[encoding]',
 
+				requiredContent: 'math',
+
 				pathName: editor.lang.pnmathml.pathName,
 
 				template: '<span style="display:inline-block" data-cke-survive=1></span>',
@@ -70,6 +72,8 @@
 
 				// FIXME: this is incomplete
 				allowedContent: 'div,math[display],semantics,annotation[encoding]',
+
+				requiredContent: 'math[display]',
 
 				pathName: editor.lang.pnmathml.pathName,
 
