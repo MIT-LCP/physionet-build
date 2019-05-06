@@ -410,9 +410,18 @@ def training_report(request, application_slug):
     """
     Serve a training report file
     """
-    application = CredentialApplication.objects.get(slug=application_slug)
+    try:
+        application = CredentialApplication.objects.get(slug=application_slug)
+    except ObjectDoesNotExist:
+        raise Http404()
+
     if request.user == application.user or request.user.is_admin:
-        return utility.serve_file(request, application.training_completion_report.path)
+        try:
+            return utility.serve_file(application.training_completion_report.path)
+        except FileNotFoundError:
+            raise Http404()
+
+    raise PermissionDenied()
 
 
 # @login_required

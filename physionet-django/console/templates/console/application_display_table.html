@@ -1,6 +1,30 @@
+{# Status section #}
+
+<p><strong>Status:</strong><br>
 Application Date: {{ application.application_datetime|date }}<br>
 
-User: <a href="{% url 'public_profile' user.username %}">{{ user }}</a><br>
+{% if application.reference_contact_datetime %}
+  Reference Contact Date: {{ application.reference_contact_datetime|date }}<br>
+  {% if application.reference_response_datetime %}
+    Reference Response Date: {{ application.reference_response_datetime|date }}<br>
+    Reference Verified: {{ application.get_reference_response_display }}<br>
+  {% endif %}
+{% endif %}
+
+{% if application.decision_datetime %}
+  Decision Date: {{ application.decision_datetime|date }}<br>
+{% endif %}
+
+Decision: {% if application.status %}{{ application.get_status_display }}{% else %}<i class="fas fa-clock"></i> Pending{% endif %}<br>
+
+{% if application.responder_comments %}
+  Admin Comments:<br> {{ application.responder_comments|linebreaks }}<br>
+{% endif %}</p>
+
+{# Personal details #}
+
+<p><strong>Personal details:</strong><br>
+User: <a href="{% url 'public_profile' application.user.username %}">{{ application.user.username }}</a><br>
 
 First Names: {{ application.first_names }}<br>
 
@@ -18,6 +42,10 @@ Country: {{ application.get_country_display }}<br>
 
 {% if application.webpage %}Webpage: <a href="{{ application.webpage }}" target="_blank">{{ application.webpage }}</a><br>{% endif %}
 
+{# Training #}
+
+<p><strong>Training:</strong><br>
+
 Training Course Name: {{ application.training_course_name }}<br>
 
 Training Completion Date: {{ application.training_completion_date }}<br>
@@ -28,7 +56,11 @@ Course Category: {{ application.get_course_category_display }}<br>
 
 {% if application.course_info %}
   Course Info: {{ application.course_info }}<br>
-{% endif %}
+{% endif %}</p>
+
+{# Reference #}
+
+<p><strong>Reference:</strong><br>
 
 Reference Category: {{ application.get_reference_category_display }}<br>
 
@@ -36,26 +68,4 @@ Reference Name: {{ application.reference_name }}<br>
 
 Reference Email: {{ application.reference_email }}<br>
 
-Reference Title: {{ application.reference_title }}<br>
-
-{% if application.reference_contact_datetime %}
-
-  Reference Contact Date: {{ application.reference_contact_datetime|date }}<br>
-
-  {% if application.reference_response_datetime %}
-    Reference Response Date: {{ application.reference_response_datetime|date }}<br>
-    Reference Verified: {{ application.get_reference_response_display }}<br>
-  {% endif %}
-
-{% endif %}
-
-{% if application.decision_datetime %}
-  Decision Date: {{ application.decision_datetime|date }}<br>
-{% endif %}
-<hr>
-Decision: {% if application.status %}{{ application.get_status_display }}{% else %}<i class="fas fa-clock"></i> Pending{% endif %}<br>
-
-{% if application.responder_comments %}
-  Admin Comments:<br>
-  {{ application.responder_comments|linebreaks }}<br>
-{% endif %}
+Reference Title: {{ application.reference_title }}</p>
