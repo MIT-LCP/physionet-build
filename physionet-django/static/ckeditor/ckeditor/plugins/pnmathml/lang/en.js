@@ -3,12 +3,12 @@ Copyright (c) 2003-2019, CKSource - Frederico Knabben. All rights reserved.
 For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
 */
 CKEDITOR.plugins.setLang( 'pnmathml', 'en', {
-	title: 'Mathematics in TeX',
+	title: 'Mathematics',
 	inlineButton: 'Inline Math',
 	blockButton: 'Equation',
-	dialogInput: 'Write your TeX here',
-	docUrl: 'http://en.wikibooks.org/wiki/LaTeX/Mathematics',
-	docLabel: 'TeX documentation',
+	dialogInput: 'Enter LaTeX code below',
+	docUrl: 'https://en.wikibooks.org/wiki/LaTeX/Mathematics',
+	docLabel: 'LaTeX documentation',
 	loading: 'loading...',
 	pathName: 'math'
 } );
