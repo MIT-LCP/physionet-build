@@ -50,7 +50,7 @@
 
 				data: function() {
 					if ( this.frameWrapper )
-						this.frameWrapper.setValue( this.data.math );
+						this.frameWrapper.setValue( this.data.math, this.data.mathml );
 				},
 
 				upcast: function( el, data ) {
@@ -89,7 +89,7 @@
 
 				data: function() {
 					if ( this.frameWrapper )
-						this.frameWrapper.setValue( this.data.math );
+						this.frameWrapper.setValue( this.data.math, this.data.mathml );
 				},
 
 				upcast: function( el, data ) {
@@ -193,7 +193,7 @@
 				if ( !widget.data.mathml )
 					widget.newMathML = mml;
 			} );
-			this.frameWrapper.setValue( this.data.math );
+			this.frameWrapper.setValue( this.data.math, this.data.mathml );
 		} );
 	};
 
@@ -608,8 +608,8 @@
 				 *
 				 * @param {String} value TeX string.
 				 */
-				setValue: function( value ) {
-					newValue = CKEDITOR.tools.htmlEncode( value );
+				setValue: function( texValue, mathmlValue ) {
+					newValue = ( mathmlValue || CKEDITOR.tools.htmlEncode( texValue ) );
 
 					if ( isInit && !isRunning )
 						update();
@@ -631,11 +631,11 @@
 				'</html>' );
 
 			return {
-				setValue: function( value ) {
+				setValue: function( texValue, mathmlValue ) {
 					var doc = iFrame.getFrameDocument(),
 						tex = doc.getById( 'tex' );
 
-					tex.setHtml( CKEDITOR.plugins.pnmathml.trim( CKEDITOR.tools.htmlEncode( value ) ) );
+					tex.setHtml( CKEDITOR.plugins.pnmathml.trim( CKEDITOR.tools.htmlEncode( texValue ) ) );
 
 					CKEDITOR.plugins.pnmathml.copyStyles( iFrame, tex );
 
@@ -656,14 +656,16 @@
 } )();
 
 /**
- * Sets the path to the MathJax library. It can be both a local resource and a location different than the default CDN.
+ * Sets the path to the MathJax library. It can be both a local resource and
+ * a location different than the default CDN. For correct operation, the
+ * specified configuration must support both TeX and MathML input.
  *
  * Please note that this must be a full or absolute path.
  *
  * Read more in the {@glink guide/dev_mathjax documentation}
  * and see the {@glink examples/mathjax example}.
  *
- *		config.mathJaxLib = '//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML';
+ *		config.mathJaxLib = '//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML';
  *
  * **Note:** Since CKEditor 4.5 this option does not have a default value, so it must
  * be set in order to enable the MathJax plugin.
