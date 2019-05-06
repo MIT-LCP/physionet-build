@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.forms import inlineformset_factory, HiddenInput, CheckboxInput
 from django.http import HttpResponse, Http404
 from django.shortcuts import redirect, render
