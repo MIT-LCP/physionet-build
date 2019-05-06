@@ -15,7 +15,7 @@
 		lang: 'en', // %REMOVE_LINE_CORE%
 		// jscs:enable maximumLineLength
 		requires: 'widget,dialog',
-		icons: 'pnmathml',
+		icons: 'inlineEquation,blockEquation',
 		hidpi: true, // %REMOVE_LINE_CORE%
 
 		init: function( editor ) {
@@ -26,7 +26,7 @@
 			editor.widgets.add( 'inlineEquation', {
 				inline: true,
 				dialog: 'pnmathml',
-				button: editor.lang.pnmathml.button,
+				button: editor.lang.pnmathml.inlineButton,
 				mask: true,
 
 				// FIXME: this is incomplete
@@ -65,7 +65,7 @@
 			editor.widgets.add( 'blockEquation', {
 				inline: false,
 				dialog: 'pnmathml',
-				button: editor.lang.pnmathml.button,
+				button: editor.lang.pnmathml.blockButton,
 				mask: true,
 
 				// FIXME: this is incomplete
