@@ -618,7 +618,7 @@ class CredentialApplication(models.Model):
         (2, 'Accept')
     )
 
-    # Where the applications' files are kept
+    # Location for storing files associated with the application
     FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'credential-applications')
 
     slug = models.SlugField(max_length=20, unique=True, db_index=True)
@@ -676,7 +676,7 @@ class CredentialApplication(models.Model):
         blank=True)
 
     def file_root(self):
-        "Where the application's files are stored"
+        """Location for storing files associated with the application"""
         return os.path.join(CredentialApplication.FILE_ROOT, self.slug)
 
     def get_full_name(self):
