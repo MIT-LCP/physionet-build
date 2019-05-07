@@ -201,6 +201,7 @@ CKEDITOR_CONFIGS = {
             ['Link', 'Unlink'],
             ['RemoveFormat', 'Source'],
         ],
+        'removeDialogTabs': 'link:advanced',
         'width': '100%',
         'format_tags': 'p;h3',
         'extraPlugins': 'codesnippet',
