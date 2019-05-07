@@ -11,7 +11,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.db import transaction
-from django.db.models import F, Max
+from django.db.models import Q, F, Max, Min
 from django.forms import (formset_factory, inlineformset_factory,
     modelformset_factory)
 from django.http import HttpResponse, Http404, JsonResponse
@@ -331,29 +331,78 @@ def move_author(request, project_slug, **kwargs):
         direction = request.POST['direction']
         n_authors = authors.count()
         if n_authors > 1:
+            # Get attributes of selected author
+            display_order = author.display_order
+            shared = author.shared
+            first = authors.filter(shared=shared).aggregate(min=Min('display_order'))['min']
+            last = authors.filter(shared=shared).aggregate(max=Max('display_order'))['max']
+
+            # Direction of action
             if direction == 'up' and 1 < author.display_order <= n_authors:
-                swap_author = authors.get(display_order=author.display_order - 1)
+                # Shared groups
+                up_shared = authors.get(display_order=display_order-1).shared
+                dw_shared = shared
+
+                # Get selected and previous author
+                up_query = Q(display_order=display_order)
+                dw_query = Q(display_order=display_order-1)
+
+                # In case there are shared authorships
+                if up_shared != dw_shared:
+                    up_query = up_query | Q(shared=shared, shared__isnull=False)
+                    dw_query = dw_query | Q(shared=up_shared, shared__isnull=False)
+
+                # Authors queryset
+                up_authors = authors.filter(up_query)
+                dw_authors = authors.filter(dw_query)
+                
             elif direction == 'down' and 1 <= author.display_order < n_authors:
-                swap_author = authors.get(display_order=author.display_order + 1)
+                # Shared groups
+                up_shared = shared
+                dw_shared = authors.get(display_order=display_order+1).shared
+
+                # Get selected and next author
+                up_query = Q(display_order=display_order+1)
+                dw_query = Q(display_order=display_order)
+
+                # In case there are shared authorships
+                if up_shared != dw_shared:
+                    up_query = up_query | Q(shared=dw_shared, shared__isnull=False)
+                    dw_query = dw_query | Q(shared=shared, shared__isnull=False)
+
+                # Authors queryset
+                up_authors = authors.filter(up_query)
+                dw_authors = authors.filter(dw_query)
+
             else:
                 raise Http404()
+
+            # Swap positions
             with transaction.atomic():
-                orig_order = author.display_order
-                orig_shared = author.shared
-                swap_order = swap_author.display_order
-                swap_shared = swap_author.shared
+                # Get the offsets
+                up = dw_authors.count()
+                dw = up_authors.count()
+                mx = authors.count()
 
-                author.display_order = 0
-                author.shared = 0
-                author.save(update_fields=('display_order','shared'))
+                # Get author ids
+                up_ids = list(up_authors.values_list('id', flat=True))
+                dw_ids = list(dw_authors.values_list('id', flat=True))
 
-                swap_author.display_order = orig_order
-                swap_author.shared = orig_shared
-                swap_author.save(update_fields=('display_order','shared'))
+                import sys
+                print(up_ids, file=sys.stderr)
+                print(dw_ids, file=sys.stderr)
 
-                author.display_order = swap_order
-                author.shared = swap_shared
-                author.save(update_fields=('display_order','shared'))
+                # Avoid constraint violation
+                authors.filter(id__in=dw_ids).update(display_order=F('display_order')+mx)
+
+                # Move authors
+                authors.filter(id__in=up_ids).update(display_order=F('display_order')-up)
+                authors.filter(id__in=dw_ids).update(display_order=F('display_order')+dw-mx)
+
+                # Swap shared groups
+                if up_shared and dw_shared:
+                    authors.filter(id__in=up_ids).update(shared=up_shared)
+                    authors.filter(id__in=dw_ids).update(shared=dw_shared)
 
             authors = project.get_author_info()
             return render(request, 'project/author_list.html',
@@ -381,8 +430,10 @@ def share(request, project_slug, **kwargs):
 
             # Get shared number
             shared = authors.aggregate(max=Max('shared'))['max']
-            if shared == None: shared = 1
-            shared = shared + 1
+            if shared == None:
+                shared = 1
+            else:
+                shared = shared + 1
 
             # Assign shared authorship
             if author.shared and share.shared:
