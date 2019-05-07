@@ -1,0 +1,14 @@
+/var/log/uwsgi/*.log 
+{
+        rotate 7
+        daily
+        missingok
+        notifempty
+        delaycompress
+        compress
+        create 0640 pn pn
+        sharedscripts
+        postrotate
+                systemctl restart uwsgi
+        endscript
+}
