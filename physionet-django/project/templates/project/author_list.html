@@ -79,7 +79,7 @@
         </a>
       {% endif %}
       <br>
-      <strong>Name</strong>: {{ author.name }}{{ author.display_order }}<br>
+      <strong>Name</strong>: {{ author.name }}<br>
       <strong>Affiliations</strong>: {{ author.text_affiliations|delimit }}
 
       {% if is_submitting and not author.is_submitting %}
