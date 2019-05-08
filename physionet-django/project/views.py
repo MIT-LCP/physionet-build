@@ -380,24 +380,21 @@ def move_author(request, project_slug, **kwargs):
             # Swap positions
             with transaction.atomic():
                 # Get the offsets
-                up = dw_authors.count()
-                dw = up_authors.count()
                 mx = authors.count()
+                up = dw_authors.count()+mx
+                dw = up_authors.count()-mx
 
                 # Get author ids
                 up_ids = list(up_authors.values_list('id', flat=True))
                 dw_ids = list(dw_authors.values_list('id', flat=True))
 
-                import sys
-                print(up_ids, file=sys.stderr)
-                print(dw_ids, file=sys.stderr)
-
                 # Avoid constraint violation
+                authors.filter(id__in=up_ids).update(display_order=F('display_order')+mx)
                 authors.filter(id__in=dw_ids).update(display_order=F('display_order')+mx)
 
                 # Move authors
                 authors.filter(id__in=up_ids).update(display_order=F('display_order')-up)
-                authors.filter(id__in=dw_ids).update(display_order=F('display_order')+dw-mx)
+                authors.filter(id__in=dw_ids).update(display_order=F('display_order')+dw)
 
                 # Swap shared groups
                 if up_shared and dw_shared:
