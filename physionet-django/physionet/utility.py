@@ -11,7 +11,7 @@ def get_project_apps():
     """
     return [app for app in settings.INSTALLED_APPS if not app.startswith('django') and not app.startswith('ck') and not app.startswith('debug')]
 
-def serve_file(file_path):
+def serve_file(file_path, attach=True):
     """
     Serve a file to download. file_path is the real path of the file on
     the server.
@@ -26,7 +26,10 @@ def serve_file(file_path):
             response = HttpResponse(f.read())
     base = os.path.basename(file_path)
     response['Content-Type'] = ''
-    response['Content-Disposition'] = 'attachment; filename=' + base
+    if attach:
+        response['Content-Disposition'] = 'attachment; filename=' + base
+    else:
+        response['Content-Disposition'] = 'inline; filename=' + base
     return response
 
 def zip_dir(zip_name, target_dir, enclosing_folder=''):
