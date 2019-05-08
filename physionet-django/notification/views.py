@@ -4,6 +4,7 @@ from django.db.models import Min, Max
 
 from .models import News
 
+from datetime import date
 
 def news(request, max_items=20):
     """
@@ -14,13 +15,23 @@ def news(request, max_items=20):
     # The year range of all the PN news in existence.
     minmax = News.objects.all().aggregate(min=Min('publish_datetime'),
                                           max=Max('publish_datetime'))
-    news_years = list(range(minmax['max'].year, minmax['min'].year-1, -1))
+    if news_pieces:
+        news_years = list(range(minmax['max'].year, minmax['min'].year-1, -1))
+    else:
+        news_years = news_pieces
+
     return render(request, 'notification/news.html',
                   {'year': 'Latest', 'news_pieces': news_pieces,
                    'news_years': news_years})
 
 
 def news_year(request, year):
+    """
+    Get all the news of a specific year
+    """
+    if int(year) < 1999 or int(year) > date.today().year:
+        return redirect('news')
+
     news_pieces = News.objects.filter(publish_datetime__year=int(year)) \
                               .order_by('-publish_datetime')
 
