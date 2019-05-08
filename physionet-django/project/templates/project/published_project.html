@@ -24,14 +24,14 @@
   <h1 class="form-signin-heading">{{ project.title }}</h1>
   <p>
     <strong>
-    {% for author in authors %}
+    {% for author, shared in authors %}
       {{ author|show_author_info|safe }}
       {% if author.shared %}<sup>{{ author.shared }}</sup>{% endif %}
       {% if forloop.counter < authors|length %},&nbsp;{% endif %}
     {% endfor %}
     </strong>
   </p>
-
+  
   {% for s in shared %}
     {% if s %}<p><sup>{{ s }}</sup> These authors contributed equally.</p>{% endif %}
   {% endfor %}
