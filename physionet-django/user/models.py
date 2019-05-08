@@ -526,6 +526,7 @@ class Profile(models.Model):
         validators=[FileExtensionValidator(['png', 'jpg', 'jpeg'],
         'Allowed filetypes are png and jpg only.')])
     phone_number = models.CharField(max_length=20, blank=True)
+    pgp_key_id = models.CharField(max_length=64, blank=True)
 
     MAX_PHOTO_SIZE = 2 * 1024 ** 2
 
