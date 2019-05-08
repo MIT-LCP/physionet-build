@@ -139,7 +139,7 @@ class BaseAuthor(models.Model):
     display_order = models.PositiveSmallIntegerField()
     is_submitting = models.BooleanField(default=False)
     is_corresponding = models.BooleanField(default=False)
-    shared = models.PositiveSmallIntegerField()
+    is_first = models.BooleanField(default=False)
     # When they approved the project for publication
     approval_datetime = models.DateTimeField(null=True)
 
@@ -1038,7 +1038,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 project=published_project, user=author.user,
                 is_submitting=author.is_submitting,
                 is_corresponding=author.is_corresponding,
-                shared=author.shared,
+                is_first=author.is_first,
                 approval_datetime=author.approval_datetime,
                 display_order=author.display_order,
                 first_names=author_profile.first_names,
