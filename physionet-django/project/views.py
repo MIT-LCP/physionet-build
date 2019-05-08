@@ -11,7 +11,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.db import transaction
-from django.db.models import F
+from django.db.models import F, Max
 from django.forms import (formset_factory, inlineformset_factory,
     modelformset_factory)
 from django.http import HttpResponse, Http404, JsonResponse
@@ -380,20 +380,18 @@ def share(request, project_slug, **kwargs):
             share = authors.get(display_order=display_order)
 
             # Assign shared authorship
-            if author.shared and share.shared:
-                authors.filter(shared=share.shared).update(shared=author.shared)
-            elif share.shared:
+            if share.shared:
                 author.shared = display_order-1
-                author.save(update_fields=('shared',))
                 authors.filter(shared=share.shared).update(shared=display_order-1)
-            elif author.shared == None:
+            if author.shared == None:
                 author.shared = author.display_order
                 share.shared = author.shared
-                author.save(update_fields=('shared',))
-                share.save(update_fields=('shared',))
             else: 
                 share.shared = author.shared
-                share.save(update_fields=('shared',))
+
+            # Persist
+            author.save(update_fields=('shared',))
+            share.save(update_fields=('shared',))
 
         # Update page
         authors = project.get_author_info()
@@ -418,21 +416,21 @@ def unshare(request, project_slug, **kwargs):
         with transaction.atomic():
             # Get author to unshare authorship
             author = authors.get(display_order=display_order)
-            shared = author.shared
 
             # Remove shared authorship
+            shared = author.shared
             if display_order-1 == shared:
                 authors.filter(display_order=display_order-1).update(shared=None)
                 authors.filter(shared=shared).update(shared=shared+1)
                 shared = shared+1
             else:
-                authors.filter(display_order__gte=display_order).exclude(shared=None).update(shared=F('shared')+1)
+                author.shared = None
+                author.save(update_fields=('shared',))
 
             # Remove shared authorship if left alone
-            for s in range(shared, shared+2):
-                share = authors.filter(shared=s)
-                if(len(share) == 1):
-                    share.update(shared=None)
+            share = authors.filter(shared=shared)
+            if(len(share) == 1):
+                share.update(shared=None)
 
         # Update page
         authors = project.get_author_info()
