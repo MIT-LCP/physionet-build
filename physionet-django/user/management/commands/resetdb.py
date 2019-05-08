@@ -1,9 +1,6 @@
 """
 Command to:
 - delete all content from the database
-- delete migration files
-- make migration files
-- apply migrations
 - delete all non-project media and static content
 
 Does NOT load any data. This should generally only be used in
@@ -32,7 +29,7 @@ class Command(BaseCommand):
         # If not in development, prompt warning messages twice
         if 'development' not in os.environ['DJANGO_SETTINGS_MODULE']:
             warning_messages = ['You are NOT in the development environment. Are you sure you want to reset the database and file content? [y/n]',
-                                'All database content, existing migration files, and non-project media/static content will be deleted. Are you sure? [y/n]',
+                                'All database content and non-project media/static content will be deleted. Are you sure? [y/n]',
                                 'Final warning. Are you ABSOLUTELY SURE? [y/n]']
             for i in range(3):
                 choice = input(warning_messages[i]).lower()
@@ -56,13 +53,6 @@ class Command(BaseCommand):
 
         project_apps = get_project_apps()
 
-        for app in project_apps:
-            migration_files = get_migration_files(app)
-            if migration_files:
-                # Delete the migration .py files
-                for file in migration_files:
-                    os.remove(file)
-
         # Remove all media files
         clear_media_files()
         # Remove created static files
@@ -72,24 +62,9 @@ class Command(BaseCommand):
         if os.path.islink(DBCAL_FILE):
             os.unlink(DBCAL_FILE)
 
-        # Remake and apply the migrations
-        call_command('makemigrations')
+        # Re-apply migrations
         call_command('migrate')
 
-
-def get_migration_files(app):
-    """
-    Get all migration files for an app. Full path. Gets all .py files
-    from the app's `migrations` directory.
-
-    """
-    app_migrations_dir = os.path.join(settings.BASE_DIR, app, 'migrations')
-    if os.path.isdir(app_migrations_dir):
-        migration_files = [os.path.join(app_migrations_dir, file) for file in os.listdir(app_migrations_dir) if file != '__init__.py' and file.endswith('.py')]
-    else:
-        migration_files = []
-
-    return migration_files
 
 def clear_media_files():
     """
