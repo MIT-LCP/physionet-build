@@ -450,18 +450,6 @@ def share(request, project_slug, **kwargs):
                 share.shared = author.shared
                 share.save(update_fields=('shared',))
 
-            # Swap if new is group is displayed first
-            if share.display_order <= share.shared:
-                # All authors that come after
-                after = authors.filter(display_order__gt=share.display_order)
-
-                # Shift new group to earlier order
-                new_shared = after.aggregate(min=Min('shared'))['min']
-                authors.filter(shared=share.shared).update(shared=new_shared)
-
-                # Shift the others by one
-                after.update(shared=F('shared')+1)
-
         # Update page
         authors = project.get_author_info()
         return render(request, 'project/author_list.html',
@@ -487,18 +475,15 @@ def unshare(request, project_slug, **kwargs):
             author = authors.get(display_order=display_order)
             shared = author.shared
 
-            # Removed from this group
+            # Remove shared authorship
             remove = authors.filter(display_order__gte=display_order)
             remove.exclude(shared=None).update(shared=F('shared')+1)
 
-            # Delete group if is left with single author
-            for s in [shared+1, shared]:
+            # Remove shared authorship if left alone
+            for s in range(shared, shared+2):
                 share = authors.filter(shared=s)
                 if(len(share) < 2):
                     share.update(shared=None)
-
-                    # Shifts up other groups
-                    authors.filter(shared__gt=s).update(shared=F('shared')-1)
 
         # Update page
         authors = project.get_author_info()
