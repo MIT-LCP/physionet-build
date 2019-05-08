@@ -25,32 +25,6 @@
                 },
         });
     };
-    function share(display_order){
-        var csrftoken = getCookie('csrftoken');
-        $.ajax({
-                type: "POST",
-                url: "{% url 'share' project.slug %}",
-                data: {'csrfmiddlewaretoken':csrftoken,
-                       'display_order':display_order
-                },
-                success: function reloadSection(result){
-                    $("#author-list").html(result);
-                },
-        });
-    };
-    function unshare(display_order){
-        var csrftoken = getCookie('csrftoken');
-        $.ajax({
-                type: "POST",
-                url: "{% url 'unshare' project.slug %}",
-                data: {'csrfmiddlewaretoken':csrftoken,
-                       'display_order':display_order
-                },
-                success: function reloadSection(result){
-                    $("#author-list").html(result);
-                },
-        });
-    };
   </script>
 {% endif %}
 {% endblock %}
@@ -69,7 +43,7 @@
   </div>
 {% endif %}
 
-<div id="author-list" class="card">{% include "project/author_list.html" %}</div>
+{% include "project/author_list.html" %}
 <br>
 
 <div class="card">
