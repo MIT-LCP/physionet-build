@@ -23,7 +23,7 @@
           Version: {{ project.version }}
           {% if project.version_order %}<br>Latest Published Version: <a href="{% url 'published_project' latest_version.slug latest_version.version %}" target="_blank">{{ latest_version.version }}</a>{% endif %}
         </p>
-        <p><a class="btn btn-lg btn-primary" href="{% url 'project_preview' project.slug %}" role="button" target="_blank">
+        <p><a class="btn btn-lg btn-primary" href="{% url 'project_preview' project.slug %}?Admin=True" role="button">
           View Project Preview</a>
           <button class="btn btn-lg btn-primary" onclick="copyToClipboard('{{ author_emails }}')">Copy Author Emails</button>
         </p>
