@@ -34,6 +34,8 @@ Researcher Category: {{ application.get_researcher_category_display }}<br>
 
 Organization Name: {{ application.organization_name }}<br>
 
+Job Title: {{ application.job_title }}<br>
+
 City: {{ application.city }}<br>
 
 State/Province: {{ application.state_province }}<br>
@@ -41,6 +43,8 @@ State/Province: {{ application.state_province }}<br>
 Country: {{ application.get_country_display }}<br>
 
 {% if application.webpage %}Webpage: <a href="{{ application.webpage }}" target="_blank">{{ application.webpage }}</a><br>{% endif %}
+
+Research Summary: {{ application.research_summary }}<br>
 
 {# Training #}
 
