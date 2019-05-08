@@ -4,6 +4,8 @@ from django.db.models import Min, Max
 
 from .models import News
 
+from datetime import date
+
 def news(request, max_items=20):
     """
     Redirect to news for current year
@@ -24,10 +26,14 @@ def news(request, max_items=20):
 
 
 def news_year(request, year):
+    """
+    Get all the news of a specific year
+    """
+    if int(year) < 1999 or int(year) > date.today().year:
+        return redirect('news')
+
     news_pieces = News.objects.filter(publish_datetime__year=int(year)) \
                               .order_by('-publish_datetime')
-    if not news_pieces:
-        return redirect('news')
 
     minmax = News.objects.all().aggregate(min=Min('publish_datetime'),
                                           max=Max('publish_datetime'))
