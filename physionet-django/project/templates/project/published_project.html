@@ -26,13 +26,10 @@
     <strong>
     {% for author in authors %}
       {{ author|show_author_info|safe }}
-      {% if shared and author.is_first %}<i class="fas fa-star"></i>{% endif %}
       {% if forloop.counter < authors|length %},&nbsp;{% endif %}
     {% endfor %}
     </strong>
   </p>
-
-  {% if shared %}<p><i class="fas fa-star"></i> These authors contributed equally.</p>{% endif %}
 
   <p>Published: {{ project.publish_datetime|date }}. Version: {{ project.version }}{% if not project.is_latest_version %} <a href="{% url 'published_project_latest' project.slug %}">&lt;View latest version&gt;</a>{% endif %}</p>
 
