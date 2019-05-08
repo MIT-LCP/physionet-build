@@ -29,22 +29,20 @@
 <ul class="list-group list-group-flush">
   {% for author in authors %}
     {% ifchanged author.shared %}
-      {% if forloop.counter > 1 and is_submitting %}
+      {% if forloop.counter > 1 %}
         <li class="list-group-item text-center contrib pointer" onclick="share({{ author.display_order }});">
           <i class="fas fa-arrows-alt-v"></i>&nbsp;Add equal contribution
         </li>
       {% endif %}
     {% else %}
-      {% if is_submitting %}
-        {% if author.shared %}
-          <li class="list-group-item text-center contrib equal pointer" onclick="unshare({{ author.display_order }});">
-            <i class="fas fa-arrows-alt-v"></i>&nbsp;Remove equal contribution
-          </li>
-        {% else %}
-          <li class="list-group-item text-center contrib pointer" onclick="share({{ author.display_order }});">
-            <i class="fas fa-arrows-alt-v"></i>&nbsp;Add equal contribution
-          </li>
-        {% endif %}
+      {% if author.shared %}
+        <li class="list-group-item text-center contrib equal pointer" onclick="unshare({{ author.display_order }});">
+          <i class="fas fa-arrows-alt-v"></i>&nbsp;Remove equal contribution
+        </li>
+      {% else %}
+        <li class="list-group-item text-center contrib pointer" onclick="share({{ author.display_order }});">
+          <i class="fas fa-arrows-alt-v"></i>&nbsp;Add equal contribution
+        </li>
       {% endif %}
     {% endifchanged %}
     <li class="list-group-item {% if author.shared %} equal {% endif %}">
