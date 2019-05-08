@@ -16,10 +16,16 @@
 
 {% block content %}
 <div class="container">
-  <p><a class="btn btn-secondary"
+  {% if 'Admin' in request.GET %}
+    <p><a class="btn btn-secondary"
+        href="{{ request.META.HTTP_REFERER }}" role="button">
+        <i class="fas fa-angle-left"></i> Return to the admin console</a></p>
+  {% else %}
+    <p><a class="btn btn-secondary"
         href="{% url 'project_overview' project.slug %}" role="button">
-      <i class="fas fa-angle-left"></i> Return to project overview</a></p>
-
+        <i class="fas fa-angle-left"></i> Return to project overview</a></p>
+  {% endif %}
+      
   {% if messages %}
     {% if passes_checks %}
       <div class="alert alert-success alert-dismissible">
