@@ -49,9 +49,9 @@
   </h1>
   <p>
     <strong>
-    {% for author in authors %}
+    {% for author, shared in authors %}
       {{ author|show_author_info|safe }}
-      {% if author.shared %}<sup>{{ author.shared }}</sup>{% endif %}
+      {% if shared > 1 %}<sup>{{ author.shared }}</sup>{% endif %}
       {% if forloop.counter < authors|length %},&nbsp;{% endif %}
     {% endfor %}
     {% for invitation in invitations %}
@@ -60,8 +60,8 @@
     </strong>
   </p>
 
-  {% for s in shared %}
-    {% if s %}<p><sup>{{ s }}</sup> These authors contributed equally.</p>{% endif %}
+  {% for v, c in shared.items %}
+    {% if c > 1 %}<p><sup>{{ v }}</sup> These authors contributed equally.</p>{% endif %}
   {% endfor %}
 
   <p>Published: [dd/mm/yyyy] - Version:

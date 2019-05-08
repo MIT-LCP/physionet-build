@@ -116,6 +116,7 @@ def process_invitation_response(request, invitation_response_formset):
                 if invitation.response:
                     author = Author.objects.create(project=project, user=user,
                         display_order=project.authors.count() + 1,
+                        shared=project.authors.all().aggregate(Max('shared'))['shared__max'] + 1,
                         corresponding_email=user.get_primary_email())
                     author_imported = author.import_profile_info()
 
@@ -356,14 +357,15 @@ def move_author(request, project_slug, **kwargs):
                 author.save(update_fields=('display_order','shared'))
 
             authors = project.get_author_info()
+            mx_group = authors.aggregate(Max('shared'))['shared__max'] + 1
             return render(request, 'project/author_list.html',
                 {'project':project, 'authors':authors,
-                'is_submitting':is_submitting})
+                'is_submitting':is_submitting,'mx_group':mx_group})
     raise Http404()
 
 
 @project_auth(auth_mode=1, post_auth_mode=2)
-def share(request, project_slug, **kwargs):
+def shared(request, project_slug, **kwargs):
     """
     Change shared authorship order. Return the updated authors list html
     if successful. Called via ajax.
@@ -372,71 +374,59 @@ def share(request, project_slug, **kwargs):
         ('project', 'authors', 'is_submitting'))
 
     if request.method == 'POST':
-        display_order = int(request.POST['display_order'])
+        author = authors.get(id=int(request.POST['author_id']))
+        shared = int(request.POST['shared'])
 
         with transaction.atomic():
-            # Get authors to share authorship
-            author = authors.get(display_order=display_order-1)
-            share = authors.get(display_order=display_order)
+            # Get maximum display order
+            mx = authors.aggregate(Max('display_order'))['display_order__max']
 
-            # Assign shared authorship
-            if share.shared:
-                author.shared = display_order-1
-                authors.filter(shared=share.shared).update(shared=display_order-1)
-            if author.shared == None:
-                author.shared = author.display_order
-                share.shared = author.shared
+            # Get last display order for the desired shared group
+            new_order = authors.filter(shared=shared).aggregate(Max('display_order'))['display_order__max']
+
+            # Displays as last of new group
+            if new_order and mx != new_order: 
+                new_order = new_order + 1
+            # Deals with last displayed author
             else: 
-                share.shared = author.shared
+                new_order = mx
 
-            # Persist
-            author.save(update_fields=('shared',))
-            share.save(update_fields=('shared',))
+            # Saves old orders
+            old_order = author.display_order
+            old_shared = author.shared
 
-        # Update page
+            # Shifts all of by maximum so we don't violate constraints
+            if new_order - old_order < 0:
+                shift = authors.filter(display_order__gte=new_order, display_order__lt=old_order)
+                shift.update(display_order=F('display_order')+mx)
+            elif new_order - old_order > 0:
+                shift = authors.filter(display_order__lte=new_order, display_order__gt=old_order)
+                shift.update(display_order=F('display_order')+mx)
+
+            # Moves author to new position
+            author.shared = shared
+            author.display_order = new_order
+            author.save(update_fields=('display_order','shared'))
+
+            # Shifts authours to fill gap left by the one that was moved
+            if new_order - old_order < 0:
+                shift = authors.filter(display_order__gte=new_order+mx, display_order__lt=old_order+mx)
+                shift.update(display_order=F('display_order')-mx+1)
+            elif new_order - old_order > 0:
+                shift = authors.filter(display_order__lte=new_order+mx, display_order__gt=old_order+mx)
+                shift.update(display_order=F('display_order')-mx-1)
+
+            # Shifts authorship groups up if there is a gap left
+            if len(authors.filter(shared=old_shared)) == 0:
+                gt = authors.filter(shared__gt=old_shared)
+                gt.update(shared=F('shared')-1)
+
+        # Updates page
         authors = project.get_author_info()
+        mx_group = authors.aggregate(Max('shared'))['shared__max'] + 1
         return render(request, 'project/author_list.html',
             {'project':project, 'authors':authors,
-            'is_submitting':is_submitting})
-    raise Http404()
-
-
-@project_auth(auth_mode=1, post_auth_mode=2)
-def unshare(request, project_slug, **kwargs):
-    """
-    Change shared authorship order. Return the updated authors list html
-    if successful. Called via ajax.
-    """
-    project, authors, is_submitting = (kwargs[k] for k in
-        ('project', 'authors', 'is_submitting'))
-
-    if request.method == 'POST':
-        display_order = int(request.POST['display_order'])
-
-        with transaction.atomic():
-            # Get author to unshare authorship
-            author = authors.get(display_order=display_order)
-
-            # Remove shared authorship
-            shared = author.shared
-            if display_order-1 == shared:
-                authors.filter(display_order=display_order-1).update(shared=None)
-                authors.filter(shared=shared).update(shared=shared+1)
-                shared = shared+1
-            else:
-                author.shared = None
-                author.save(update_fields=('shared',))
-
-            # Remove shared authorship if left alone
-            share = authors.filter(shared=shared)
-            if(len(share) == 1):
-                share.update(shared=None)
-
-        # Update page
-        authors = project.get_author_info()
-        return render(request, 'project/author_list.html',
-            {'project':project, 'authors':authors,
-            'is_submitting':is_submitting})
+            'is_submitting':is_submitting, 'mx_group': mx_group})
     raise Http404()
 
 
@@ -562,6 +552,7 @@ def project_authors(request, project_slug, **kwargs):
     authors = project.get_author_info()
     invitations = project.authorinvitations.filter(is_active=True)
     edit_affiliations_url = reverse('edit_affiliation', args=[project.slug])
+    mx_group = authors.aggregate(Max('shared'))['shared__max'] + 1
     return render(request, 'project/project_authors.html', {'project':project,
         'authors':authors, 'invitations':invitations,
         'affiliation_formset':affiliation_formset,
@@ -569,7 +560,7 @@ def project_authors(request, project_slug, **kwargs):
         'corresponding_author_form':corresponding_author_form,
         'corresponding_email_form':corresponding_email_form,
         'add_item_url':edit_affiliations_url, 'remove_item_url':edit_affiliations_url,
-        'is_submitting':is_submitting})
+        'is_submitting':is_submitting,'mx_group':mx_group})
 
 
 def edit_metadata_item(request, project_slug):
@@ -1012,7 +1003,12 @@ def project_preview(request, project_slug, subdir='', **kwargs):
      file_error) = get_project_file_info(project=project, subdir=subdir)
     files_panel_url = reverse('preview_files_panel', args=(project.slug,))
 
-    shared = set(authors.values_list('shared', flat=True))
+    values = list(authors.values_list('shared', flat=True))
+    shared = {}
+    for v in range(max(values)):
+        shared[v+1] = values.count(v+1)
+    values = [values.count(v) for v in values]
+    authors = zip(authors, values)
 
     return render(request, 'project/project_preview.html', {'project':project,
         'display_files':display_files, 'display_dirs':display_dirs,
@@ -1324,7 +1320,12 @@ def published_project(request, project_slug, version, subdir=''):
     all_project_versions = PublishedProject.objects.filter(
         slug=project_slug).order_by('version_order')
 
-    shared = set(authors.values_list('shared', flat=True))
+    values = list(authors.values_list('shared', flat=True))
+    shared = {}
+    for v in range(max(values)):
+        shared[v+1] = values.count(v+1)
+    values = [values.count(v) for v in values]
+    authors = zip(authors, values)
 
     context = {'project': project, 'authors': authors,
                'references': references, 'publication': publication,
