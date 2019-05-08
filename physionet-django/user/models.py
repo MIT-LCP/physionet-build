@@ -525,6 +525,7 @@ class Profile(models.Model):
     photo = models.ImageField(upload_to=photo_path, blank=True, null=True,
         validators=[FileExtensionValidator(['png', 'jpg', 'jpeg'],
         'Allowed filetypes are png and jpg only.')])
+    pgp_key_id = models.CharField(max_length=64, blank=True)
 
     MAX_PHOTO_SIZE = 2 * 1024 ** 2
 
