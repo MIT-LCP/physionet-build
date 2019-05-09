@@ -36,6 +36,7 @@ build:
     - "tar -xf geckodriver-v0.23.0-linux64.tar.gz -C geckodriver"
     - "export PATH=$PATH:$PWD/geckodriver"
     - "cd physionet-django"
+    - "./manage.py makemigrations --dry-run --no-input --check"
     - "./manage.py resetdb"
     - "./manage.py loaddemo"
     - "./manage.py test --verbosity=3"
