@@ -54,7 +54,7 @@ Training Course Name: {{ application.training_course_name }}<br>
 
 Training Completion Date: {{ application.training_completion_date }}<br>
 
-Training Completion Report: <a href="{% url 'training_report' application.slug %}">File</a><br>
+Training Completion Report: <a href="{% url 'training_report' application.slug %}" target="_blank">File</a><br>
 
 Course Category: {{ application.get_course_category_display }}<br>
 
