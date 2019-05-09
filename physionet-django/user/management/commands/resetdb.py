@@ -19,7 +19,6 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
 from lightwave.views import DBCAL_FILE
-from physionet.utility import get_project_apps
 from project.models import ActiveProject, PublishedProject, ArchivedProject
 from user.models import User, CredentialApplication
 
@@ -51,8 +50,6 @@ class Command(BaseCommand):
                 os.system('sudo -u postgres createdb physionet -O physionet')
             else:
                 sys.exit('Unable to reset database of type: {}'.format(db_type))
-
-        project_apps = get_project_apps()
 
         # Remove all media files
         clear_media_files()
