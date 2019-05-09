@@ -15,7 +15,7 @@ blockquote {
 }
 
 a{
-  word-break: break-all;
+  word-break: break-word;
 }
 
 @media (min-width: 768px){
@@ -27,20 +27,16 @@ a{
     padding-left: 2.5em;
   }
 
-  .col-md-8{
+  .row > .col-md-8{
     padding-left: 0;
   }
 
-  .col-md-4{
+  .row > .col-md-4{
     padding-right: 0;
   }
 }
 
 @media (max-width: 767px){
-  .col-md-4{
-    padding-left: 0;
-  }
-
   .list-group, .list-group .row{
     display: block;
   }
@@ -51,7 +47,7 @@ a{
     margin-bottom: 20px;
   }
 
-  .col-md-8, .col-md-4{
+  .row > .col-md-8, .row > .col-md-4{
     padding: 0;
   }
 }
