@@ -15,6 +15,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import (ObjectDoesNotExist, PermissionDenied,
     ValidationError)
 from django.db import transaction
+from django.db.models import Q, F, Max, Min
 from django.forms import (formset_factory, inlineformset_factory,
     modelformset_factory)
 from django.http import HttpResponse, Http404, JsonResponse, HttpResponseRedirect
@@ -376,25 +377,177 @@ def move_author(request, project_slug, **kwargs):
         direction = request.POST['direction']
         n_authors = authors.count()
         if n_authors > 1:
+            # Get attributes of selected author
+            display_order = author.display_order
+            shared = author.shared
+            first = authors.filter(shared=shared).aggregate(min=Min('display_order'))['min']
+            last = authors.filter(shared=shared).aggregate(max=Max('display_order'))['max']
+
+            # Direction of action
             if direction == 'up' and 1 < author.display_order <= n_authors:
-                swap_author = authors.get(display_order=author.display_order - 1)
+                # Shared groups
+                up_shared = authors.get(display_order=display_order-1).shared
+                dw_shared = shared
+
+                # Get selected and previous author
+                up_query = Q(display_order=display_order)
+                dw_query = Q(display_order=display_order-1)
+
+                # In case there are shared authorships
+                if up_shared != dw_shared:
+                    up_query = up_query | Q(shared=shared, shared__isnull=False)
+                    dw_query = dw_query | Q(shared=up_shared, shared__isnull=False)
+
+                # Authors queryset
+                up_authors = authors.filter(up_query)
+                dw_authors = authors.filter(dw_query)
+                
             elif direction == 'down' and 1 <= author.display_order < n_authors:
-                swap_author = authors.get(display_order=author.display_order + 1)
+                # Shared groups
+                up_shared = shared
+                dw_shared = authors.get(display_order=display_order+1).shared
+
+                # Get selected and next author
+                up_query = Q(display_order=display_order+1)
+                dw_query = Q(display_order=display_order)
+
+                # In case there are shared authorships
+                if up_shared != dw_shared:
+                    up_query = up_query | Q(shared=dw_shared, shared__isnull=False)
+                    dw_query = dw_query | Q(shared=shared, shared__isnull=False)
+
+                # Authors queryset
+                up_authors = authors.filter(up_query)
+                dw_authors = authors.filter(dw_query)
+
             else:
                 raise Http404()
+
+            # Swap positions
             with transaction.atomic():
-                orig_order = author.display_order
-                swap_order = swap_author.display_order
-                author.display_order = 0
-                author.save(update_fields=('display_order',))
-                swap_author.display_order = orig_order
-                swap_author.save(update_fields=('display_order',))
-                author.display_order = swap_order
-                author.save(update_fields=('display_order',))
+                # Get the offsets
+                mx = authors.count()
+                up = dw_authors.count()+mx
+                dw = up_authors.count()-mx
+
+                # Get author ids
+                up_ids = list(up_authors.values_list('id', flat=True))
+                dw_ids = list(dw_authors.values_list('id', flat=True))
+
+                # Avoid constraint violation
+                authors.filter(id__in=up_ids).update(display_order=F('display_order')+mx)
+                authors.filter(id__in=dw_ids).update(display_order=F('display_order')+mx)
+
+                # Move authors
+                authors.filter(id__in=up_ids).update(display_order=F('display_order')-up)
+                authors.filter(id__in=dw_ids).update(display_order=F('display_order')+dw)
+
+                # Swap shared groups
+                if up_shared and dw_shared:
+                    authors.filter(id__in=up_ids).update(shared=up_shared)
+                    authors.filter(id__in=dw_ids).update(shared=dw_shared)
+
             authors = project.get_author_info()
             return render(request, 'project/author_list.html',
                 {'project':project, 'authors':authors,
                 'is_submitting':is_submitting})
+    raise Http404()
+
+
+@project_auth(auth_mode=1, post_auth_mode=2)
+def share(request, project_slug, **kwargs):
+    """
+    Change shared authorship order. Return the updated authors list html
+    if successful. Called via ajax.
+    """
+    project, authors, is_submitting = (kwargs[k] for k in
+        ('project', 'authors', 'is_submitting'))
+
+    if request.method == 'POST':
+        display_order = int(request.POST['display_order'])
+
+        with transaction.atomic():
+            # Get authors to share authorship
+            author = authors.get(display_order=display_order-1)
+            share = authors.get(display_order=display_order)
+
+            # Get shared number
+            shared = authors.aggregate(max=Max('shared'))['max']
+            if shared == None:
+                shared = 1
+            else:
+                shared = shared + 1
+
+            # Assign shared authorship
+            if author.shared and share.shared:
+                authors.filter(shared=share.shared).update(shared=author.shared)
+            elif share.shared:
+                author.shared = share.shared
+                author.save(update_fields=('shared',))
+            elif author.shared == None:
+                author.shared = shared
+                share.shared = author.shared
+                author.save(update_fields=('shared',))
+                share.save(update_fields=('shared',))
+            else:
+                share.shared = author.shared
+                share.save(update_fields=('shared',))
+
+            # Swap if new is group is displayed first
+            if share.display_order <= share.shared:
+                # All authors that come after
+                after = authors.filter(display_order__gt=share.display_order)
+
+                # Shift new group to earlier order
+                new_shared = after.aggregate(min=Min('shared'))['min']
+                authors.filter(shared=share.shared).update(shared=new_shared)
+
+                # Shift the others by one
+                after.update(shared=F('shared')+1)
+
+        # Update page
+        authors = project.get_author_info()
+        return render(request, 'project/author_list.html',
+            {'project':project, 'authors':authors,
+            'is_submitting':is_submitting})
+    raise Http404()
+
+
+@project_auth(auth_mode=1, post_auth_mode=2)
+def unshare(request, project_slug, **kwargs):
+    """
+    Change shared authorship order. Return the updated authors list html
+    if successful. Called via ajax.
+    """
+    project, authors, is_submitting = (kwargs[k] for k in
+        ('project', 'authors', 'is_submitting'))
+
+    if request.method == 'POST':
+        display_order = int(request.POST['display_order'])
+
+        with transaction.atomic():
+            # Get author to unshare authorship
+            author = authors.get(display_order=display_order)
+            shared = author.shared
+
+            # Removed from this group
+            remove = authors.filter(display_order__gte=display_order)
+            remove.exclude(shared=None).update(shared=F('shared')+1)
+
+            # Delete group if is left with single author
+            for s in [shared+1, shared]:
+                share = authors.filter(shared=s)
+                if(len(share) < 2):
+                    share.update(shared=None)
+
+                    # Shifts up other groups
+                    authors.filter(shared__gt=s).update(shared=F('shared')-1)
+
+        # Update page
+        authors = project.get_author_info()
+        return render(request, 'project/author_list.html',
+            {'project':project, 'authors':authors,
+            'is_submitting':is_submitting})
     raise Http404()
 
 
@@ -1057,6 +1210,8 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     # Flag for anonymous access
     has_passphrase = kwargs['has_passphrase']
 
+    shared = set(authors.values_list('shared', flat=True))
+
     return render(request, 'project/project_preview.html', {'project':project,
         'display_files':display_files, 'display_dirs':display_dirs,
         'authors':authors, 'corresponding_author':corresponding_author,
@@ -1066,7 +1221,8 @@ def project_preview(request, project_slug, subdir='', **kwargs):
         'files_panel_url':files_panel_url,
         'subdir':subdir, 'parent_dir':parent_dir,
         'file_error':file_error, 'file_warning':file_warning,
-        'parent_projects':parent_projects, 'has_passphrase':has_passphrase})
+        'parent_projects':parent_projects, 'has_passphrase':has_passphrase,
+        'shared':shared})
 
 
 @project_auth(auth_mode=3)
@@ -1436,13 +1592,16 @@ def published_project(request, project_slug, version, subdir=''):
     current_site = get_current_site(request)
     all_project_versions = PublishedProject.objects.filter(
         slug=project_slug).order_by('version_order')
+
+    shared = set(authors.values_list('shared', flat=True))
+
     context = {'project': project, 'authors': authors,
                'references': references, 'publication': publication,
                'topics': topics, 'languages': languages, 'contact': contact,
                'has_access': has_access, 'current_site': current_site,
                'news': news, 'all_project_versions': all_project_versions,
                'parent_projects':parent_projects, 'data_access':data_access,
-               'messages':messages.get_messages(request)}
+               'messages':messages.get_messages(request), 'shared':shared}
     # The file and directory contents
     if has_access:
         (display_files, display_dirs, dir_breadcrumbs, parent_dir,
