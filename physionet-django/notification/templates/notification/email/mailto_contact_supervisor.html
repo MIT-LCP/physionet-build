@@ -1,0 +1,11 @@
+{% load i18n %}{% autoescape off %}
+Dear Prof. {{ application.reference_name }},
+
+{{ applicant_name }} is applying for credentialed access to PhysioNet, the website for sharing biomedical data. He/She have listed you as their supervisor and he/she have summarized the research project as follows:
+
+{{application.research_summary}}
+
+Are you {{ applicant_name }}'s supervisor for this project, and is the summary accurate?
+
+{{ signature }}
+{% endautoescape %}

@@ -51,7 +51,7 @@ class AddEmailForm(forms.ModelForm):
         model = AssociatedEmail
         fields = ('email',)
         widgets = {
-            'email':forms.EmailInput(attrs={'class':'form-control dropemail',
+            'email':forms.EmailInput(attrs={'class': 'form-control dropemail',
                 'validators':[EmailValidator]}),
         }
 
@@ -76,14 +76,14 @@ class LoginForm(auth_forms.AuthenticationForm):
     username = auth_forms.UsernameField(
         label='Email or Username',
         max_length=254,
-        widget=forms.TextInput(attrs={'autofocus': True, 'class':'form-control',
-            'placeholder':'Email or Username'}),
+        widget=forms.TextInput(attrs={'autofocus': True, 'class': 'form-control',
+            'placeholder': 'Email or Username'}),
     )
     password = forms.CharField(
         label='Password',
         strip=False,
-        widget=forms.PasswordInput(attrs={'class':'form-control',
-            'placeholder':'Password'}),
+        widget=forms.PasswordInput(attrs={'class': 'form-control',
+            'placeholder': 'Password'}),
     )
 
     remember = forms.BooleanField(label='Remember Me', required=False)
@@ -115,7 +115,7 @@ class UsernameChangeForm(forms.ModelForm):
         model = User
         fields = ('username',)
         widgets = {
-            'username':forms.TextInput(attrs={'class':'form-control', 'validators':[UsernameValidator]}),
+            'username':forms.TextInput(attrs={'class': 'form-control', 'validators':[UsernameValidator]}),
         }
 
     def clean_username(self):
@@ -149,7 +149,7 @@ class ProfileForm(forms.ModelForm):
     For editing the profile
     """
     photo = forms.ImageField(required=False, widget=ProfilePhotoInput(
-        attrs={'template_name':'user/profile_photo_input.html'}))
+        attrs={'template_name': 'user/profile_photo_input.html'}))
 
     class Meta:
         model = Profile
@@ -183,23 +183,23 @@ class RegistrationForm(forms.ModelForm):
     """
 
     first_names = forms.CharField(max_length=100, label='First Names',
-                    widget=forms.TextInput(attrs={'class':'form-control'}),
+                    widget=forms.TextInput(attrs={'class': 'form-control'}),
                     validators=[validate_name])
     last_name = forms.CharField(max_length=50, label='Last Name',
-                    widget=forms.TextInput(attrs={'class':'form-control'}),
+                    widget=forms.TextInput(attrs={'class': 'form-control'}),
                     validators=[validate_name])
     password1 = forms.CharField(label='Password',
-                    widget=forms.PasswordInput(attrs={'class':'form-control'}))
+                    widget=forms.PasswordInput(attrs={'class': 'form-control'}))
     password2 = forms.CharField(label='Password Confirmation',
-                    widget=forms.PasswordInput(attrs={'class':'form-control'}))
+                    widget=forms.PasswordInput(attrs={'class': 'form-control'}))
 
     class Meta:
         model = User
         fields = ('email','username',)
         widgets = {
-            'email':forms.EmailInput(attrs={'class':'form-control dropemail',
+            'email':forms.EmailInput(attrs={'class': 'form-control dropemail',
                 'validators':[EmailValidator]}),
-            'username':forms.TextInput(attrs={'class':'form-control'}),
+            'username':forms.TextInput(attrs={'class': 'form-control'}),
         }
 
     def clean_password2(self):
@@ -246,26 +246,33 @@ class PersonalCAF(forms.ModelForm):
     """
     class Meta:
         model = CredentialApplication
-        fields = ('first_names', 'last_name', 'researcher_category',
+        fields = ('first_names', 'last_name', 'suffix', 'researcher_category',
             'organization_name', 'job_title', 'city', 'state_province',
-            'country', 'webpage','research_summary')
+            'zip_code', 'country', 'webpage','research_summary')
         help_texts = {
-            'first_names':'Your first and middle names.',
-            'last_name':'Your last name',
-            'researcher_category':'The type of researcher you are.',
+            'first_names': 'Your first and middle names.',
+            'last_name': 'Your last name',
+            'suffix': "Additional information about your name, for example 'Jr' or 'Sr'. Not a number", 
+            'researcher_category': 'The type of researcher you are.',
             'organization_name':"The name of your organization. Put 'None' if you are an independent researcher.",
-            'job_title':'The title of your job/role.',
-            'city':'The city you live in.',
-            'state_province':'The state or province that you live in.',
-            'country':'The country that you live in.',
-            'webpage':"Your organization's webpage. If possible, please include a link to a webpage with your biography or other personal details.",
-            'research_summary':"Brief description on your research.",
+            'job_title': 'The title of your job/role.',
+            'city': 'The city where you live.',
+            'state_province': 'The state or province where you live.',
+            'zip_code': 'The zip code of the city where you live.',
+            'country': 'The country where you live.',
+            'webpage': "Your organization's webpage. If possible, please include a link to a webpage with your biography or other personal details.",
+            'research_summary': "Brief description on your research.",
         }
         widgets = {
            'research_summary': forms.Textarea(attrs={'rows': 3}),
         }
         labels = {
-            'state_province':'State/Province'
+            'state_province': 'State/Province',
+            'first_names': 'My first (given) name(s)',
+            'last_name': 'My last (family) name(s)',
+            'suffix': 'Suffix, if applicable:',
+            'job_title': 'Job title or position',
+            'zip_code': 'ZIP/postal code'
         }
 
     def __init__(self, user, *args, **kwargs):
@@ -288,13 +295,16 @@ class TrainingCAF(forms.ModelForm):
             'training_completion_report',)
         help_texts = {
             'training_course_name':"The name of the human subjects training course you took. e.g. 'CITI Data or Specimens Only Research Course'",
-            'training_completion_date':'The date on which you finished your human subjects training course. Must match the date in your training completion report.',
+            'training_completion_date': 'The date on which you finished your human subjects training course. Must match the date in your training completion report.',
             'training_completion_report':"A pdf of the training completion report from your training program. The CITI completion report lists all modules completed, with dates and scores. Do NOT upload the completion certificate.",
         }
         widgets = {
             'training_completion_date':forms.SelectDateWidget(years=list(range(1990, timezone.now().year+1))),
         }
-
+        labels = {
+        'training_course_name': 'Human studies training course (name of course)',
+        'training_completion_date': 'Date completed'
+        }
 
 class ReferenceCAF(forms.ModelForm):
     """
@@ -306,11 +316,13 @@ class ReferenceCAF(forms.ModelForm):
             'reference_email', 'reference_title')
         help_texts = {
             'reference_category': "Your reference's relationship to you. If you are a student or postdoc, this must be your supervisor.",
-            'reference_name':'The full name of your reference.',
-            'reference_email':'The email address of your reference.',
-            'reference_title':'The title of your reference. e.g. Professor, Dr.'
+            'reference_name': 'The full name of your reference.',
+            'reference_email': 'The email address of your reference.',
+            'reference_title': 'The title of your reference. e.g. Professor, Dr.'
         }
-
+        labels = {
+            'reference_title': 'Reference job title or position'
+        }
 
 class CourseCAF(forms.ModelForm):
     """
@@ -320,12 +332,12 @@ class CourseCAF(forms.ModelForm):
         model = CredentialApplication
         fields = ('course_category', 'course_info')
         help_texts = {
-            'course_category':'Specify if you are using this data for a course.',
-            'course_info':'The name of the course you are taking.'
+            'course_category': 'Specify if you are using this data for a course.',
+            'course_info': 'The name of the course you are taking.'
         }
 
         labels = {
-            'course_category':'Is this for a course?'
+            'course_category': 'Is this for a course?'
         }
 
     def __init__(self, require_courses=True, *args, **kwargs):
@@ -414,8 +426,8 @@ class CredentialReferenceForm(forms.ModelForm):
         model = CredentialApplication
         fields = ('reference_response','reference_response_text')
         labels = {
-            'reference_response':'Do you verify the applicant?',
-            'reference_response_text':'Comments:'
+            'reference_response': 'Do you verify the applicant?',
+            'reference_response_text': 'Comments:'
         }
 
         widgets = {
@@ -443,10 +455,10 @@ class ContactForm(forms.Form):
     For contacting PhysioNet support
     """
     name = forms.CharField(max_length=100, widget=forms.TextInput(
-        attrs={'class':'form-control', 'placeholder':'Name *'}))
+        attrs={'class': 'form-control', 'placeholder': 'Name *'}))
     email = forms.EmailField(max_length=100, widget=forms.TextInput(
-        attrs={'class':'form-control', 'placeholder':'Email *'}))
+        attrs={'class': 'form-control', 'placeholder': 'Email *'}))
     subject = forms.CharField(max_length=100, widget=forms.TextInput(
-        attrs={'class':'form-control', 'placeholder':'Subject *'}))
+        attrs={'class': 'form-control', 'placeholder': 'Subject *'}))
     message = forms.CharField(max_length=2000, widget=forms.Textarea(
-        attrs={'class':'form-control', 'placeholder':'Message *'}))
+        attrs={'class': 'form-control', 'placeholder': 'Message *'}))
