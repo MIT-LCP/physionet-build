@@ -1,10 +1,13 @@
 ﻿/**
  * @license Copyright (c) 2003-2019, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (c) 2019 Laboratory for Computational Physiology
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
 /**
- * @fileOverview The [Mathematical Formulas](https://ckeditor.com/cke4/addon/mathjax) plugin that allows you to create and modify mathematical equations written in TeX directly in CKEditor..
+ * @fileOverview This plugin allows inserting equations, which are created and
+ * edited using LaTeX syntax, and saved as MathML.  It is based on the official
+ * [Mathematical Formulas](https://ckeditor.com/cke4/addon/mathjax) plugin.
  */
 
 'use strict';
