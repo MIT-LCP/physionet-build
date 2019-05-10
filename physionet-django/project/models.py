@@ -178,6 +178,7 @@ class BaseAuthor(models.Model):
     display_order = models.PositiveSmallIntegerField()
     is_submitting = models.BooleanField(default=False)
     is_corresponding = models.BooleanField(default=False)
+    shared = models.PositiveSmallIntegerField(null=True)
     # When they approved the project for publication
     approval_datetime = models.DateTimeField(null=True)
 
