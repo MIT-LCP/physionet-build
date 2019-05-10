@@ -15,7 +15,7 @@ from django.shortcuts import redirect, render
 from django.template import loader
 from django.urls import reverse
 from django.utils import timezone
-from django.db.models import Q
+from django.db.models import Q, CharField, Value
 from background_task import background
 
 from . import forms, utility
@@ -663,6 +663,7 @@ def complete_credential_applications(request):
     """
     Ongoing credential applications
     """
+
     if request.method == 'POST':
         if 'contact_reference' in request.POST and request.POST['contact_reference'].isdigit():
             application_id = request.POST.get('contact_reference','')
@@ -682,6 +683,7 @@ def complete_credential_applications(request):
             application = CredentialApplication.objects.get(id=application_id)
             process_credential_form = forms.ProcessCredentialForm(
                 responder=request.user, data=request.POST, instance=application)
+
             if process_credential_form.is_valid():
                 application = process_credential_form.save()
                 # notification.process_credential_complete(request, application)
@@ -691,8 +693,12 @@ def complete_credential_applications(request):
             else:
                 messages.error(request, 'Invalid submission. See form below.')
 
-    applications = CredentialApplication.objects.filter(status=0)
+    applications = CredentialApplication.objects.filter(status=0).order_by('application_datetime')
     applications.order_by('reference_contact_datetime')
+
+    applications.annotate(mailto=Value(0, CharField()))
+    for a in applications:
+        a.mailto = notification.mailto_process_credential_complete(request, a, include=False)
 
     process_credential_form = forms.ProcessCredentialForm(responder=request.user)
 

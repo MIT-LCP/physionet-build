@@ -5,12 +5,12 @@
 {% block content %}
 <div class="card mb-3">
   <div class="card-header">
-    Application was marked as {{ application.get_status_display }} -- ({{ application.user.get_full_name }})
+    Application was marked as {{ application.get_status_display }} -- ({{ application.get_full_name }})
   </div>
   <div class="card-body">
-    <p><a class='btn btn-primary btn-lg' href="{{mailto}}">Generate applicant email.</a></p>
+    <p><a class='btn btn-primary' href="{% url 'complete_credential_applications' %}">Back to manage applications</a></p>
     <br>
-    <p>Return to <a href="{% url 'complete_credential_applications' %}">manage the applications.</p>
+    <p><a href="{{mailto}}">Generate applicant email.</a></p>
   </div>
 </div>
 {% endblock %}

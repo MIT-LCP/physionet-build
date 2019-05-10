@@ -292,9 +292,9 @@ class ProcessCredentialForm(forms.ModelForm):
             'responder_comments':'Comments (for rejections)',
             'status':'Decision',
         }
-        widgets = {
-            'responder_comments':forms.Textarea(attrs={'rows': 3}),
-        }
+        # widgets = {
+        #     'responder_comments':forms.Textarea(attrs={'rows': 3}),
+        # }
 
     def __init__(self, responder, *args, **kwargs):
         super().__init__(*args, **kwargs)

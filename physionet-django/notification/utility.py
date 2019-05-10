@@ -374,17 +374,21 @@ def mailto_supervisor(request, application):
     return mailto
 
 
-def mailto_process_credential_complete(request, application):
+def mailto_process_credential_complete(request, application, include=True):
     """
     Notify user of credentialing decision
     """
     applicant_name = application.get_full_name()
     subject = 'PhysioNet clinical database access request for {}'.format(applicant_name)
-    body = loader.render_to_string('notification/email/notify_credential_request.html',
+    body = loader.render_to_string('notification/email/mailto_contact_applicant.html',
         {'application':application, 'applicant_name':applicant_name,
          'domain':get_current_site(request),
          'signature':email_signature()}).replace('\n','\n> ')
 
+    if include:
+        body = application.responder_comments + body
+    else:
+        body = 'Dear {0},\n\n{1}'.format(application.first_names, body)
     mailto = "mailto:{3}%3C{0}%3E?subject={1}&bcc=noreply@alpha.physionet.org&body={2}".format(application.user.email,
       parse.quote(subject), parse.quote(body), parse.quote('"'+application.get_full_name()+'"'))
     return mailto
