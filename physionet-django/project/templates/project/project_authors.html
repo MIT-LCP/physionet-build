@@ -25,6 +25,32 @@
                 },
         });
     };
+    function share(display_order){
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+                type: "POST",
+                url: "{% url 'share' project.slug %}",
+                data: {'csrfmiddlewaretoken':csrftoken,
+                       'display_order':display_order
+                },
+                success: function reloadSection(result){
+                    $("#author-list").html(result);
+                },
+        });
+    };
+    function unshare(display_order){
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+                type: "POST",
+                url: "{% url 'unshare' project.slug %}",
+                data: {'csrfmiddlewaretoken':csrftoken,
+                       'display_order':display_order
+                },
+                success: function reloadSection(result){
+                    $("#author-list").html(result);
+                },
+        });
+    };
   </script>
 {% endif %}
 {% endblock %}
@@ -43,7 +69,7 @@
   </div>
 {% endif %}
 
-{% include "project/author_list.html" %}
+<div id="author-list" class="card">{% include "project/author_list.html" %}</div>
 <br>
 
 <div class="card">
