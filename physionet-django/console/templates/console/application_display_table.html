@@ -26,41 +26,45 @@ Decision: {% if application.status %}{{ application.get_status_display }}{% else
 <p><strong>Personal details:</strong><br>
 User: <a href="{% url 'public_profile' application.user.username %}">{{ application.user.username }}</a><br>
 
-First Names: {{ application.first_names }}<br>
+My first (given) name(s): {{ application.first_names }}<br>
 
-Last Name: {{ application.last_name }}<br>
+My last (family) name(s): {{ application.last_name }}<br>
 
-Researcher Category: {{ application.get_researcher_category_display }}<br>
+Suffix (e.g., Jr.), if applicable: {{ application.suffix }}<br>
+
+My PhysioNet email: {{ application.user.email }}<br>
 
 Organization Name: {{ application.organization_name }}<br>
 
-Job Title: {{ application.job_title }}<br>
+Job title or position: {{ application.job_title }}<br>
 
 City: {{ application.city }}<br>
 
 State/Province: {{ application.state_province }}<br>
 
+ZIP/postal code: {{ application.zip_code }}<br>
+
 Country: {{ application.get_country_display }}<br>
 
-{% if application.webpage %}Webpage: <a href="{{ application.webpage }}" target="_blank">{{ application.webpage }}</a><br>{% endif %}
-
-Research Summary: {{ application.research_summary }}<br>
+Webpage: {% if application.webpage %}<a href="{{ application.webpage }}" target="_blank">{{ application.webpage }}</a>{% endif %}<br></p>
 
 {# Training #}
 
 <p><strong>Training:</strong><br>
 
-Training Course Name: {{ application.training_course_name }}<br>
+Human studies training course (name of course): {{ application.training_course_name }}<br>
 
-Training Completion Date: {{ application.training_completion_date }}<br>
+Date completed: {{ application.training_completion_date }}<br>
 
-Training Completion Report: <a href="{% url 'training_report' application.slug %}" target="_blank">File</a><br>
+Training Completion Report: <a href="{% url 'training_report' application.slug %}" target="_blank">File</a><br></p>
 
-Course Category: {{ application.get_course_category_display }}<br>
+{% if application.course_category %}
+  <p><strong>Course:</strong><br>
+  
+  Course Category: {{ application.get_course_category_display }}<br>
 
-{% if application.course_info %}
-  Course Info: {{ application.course_info }}<br>
-{% endif %}</p>
+  Course Info: {{ application.course_info }}<br></p>
+{% endif %}
 
 {# Reference #}
 
@@ -68,8 +72,13 @@ Course Category: {{ application.get_course_category_display }}<br>
 
 Reference Category: {{ application.get_reference_category_display }}<br>
 
-Reference Name: {{ application.reference_name }}<br>
+Reference's Name: {{ application.reference_name }}<br>
 
-Reference Email: {{ application.reference_email }}<br>
+Reference's Email: {{ application.reference_email }}<br>
 
-Reference Title: {{ application.reference_title }}</p>
+Reference's job title or position: {{ application.reference_title }}</p>
+
+
+Researcher's Category: {{ application.get_researcher_category_display }}<br>
+
+Research Summary: {{ application.research_summary }}<br></p>

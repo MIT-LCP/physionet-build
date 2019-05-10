@@ -670,7 +670,10 @@ def complete_credential_applications(request):
             application.reference_contact_datetime = timezone.now()
             application.save()
             # notification.contact_reference(request, application)
-            mailto = notification.mailto_supervisor(request, application)
+            if application.reference_category == 0:
+                mailto = notification.mailto_supervisor(request, application)
+            else:
+                mailto = notification.mailto_reference(request, application)
             # messages.success(request, 'The reference contact email has been created.')
             return render(request, 'console/generate_reference_email.html',
                 {'application':application, 'mailto':mailto})
@@ -681,9 +684,10 @@ def complete_credential_applications(request):
                 responder=request.user, data=request.POST, instance=application)
             if process_credential_form.is_valid():
                 application = process_credential_form.save()
-                notification.process_credential_complete(request, application)
-                # return render(request, 'console/complete_credential_applications.html',
-                #     {'application':application})
+                # notification.process_credential_complete(request, application)
+                mailto = notification.mailto_process_credential_complete(request, application)
+                return render(request, 'console/generate_response_email.html',
+                    {'application':application, 'mailto':mailto})
             else:
                 messages.error(request, 'Invalid submission. See form below.')
 
