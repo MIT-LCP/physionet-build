@@ -17,6 +17,8 @@ from project.models import (Affiliation, Author, AuthorInvitation, ActiveProject
 from project import utility
 from project import validators
 
+from dal import autocomplete
+
 
 INVITATION_CHOICES = (
     (1, 'Accept'),
@@ -529,7 +531,7 @@ class DiscoveryForm(forms.ModelForm):
         required=False)
     parent_projects = forms.ModelMultipleChoiceField(
         queryset=PublishedProject.objects.all().order_by(Lower('title'),
-        'version_order'), widget=forms.SelectMultiple(attrs={'size':'10'}),
+        'version_order'), widget=autocomplete.ModelSelect2Multiple(url='project-autocomplete'),
         help_text='The existing PhysioNet project(s) this resource was derived from. Hold ctrl to select multiple.',
         required=False)
 
