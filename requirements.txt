@@ -16,3 +16,4 @@ sqlparse==0.2.4
 zxcvbn-python==4.4.18
 google-cloud-storage==1.14.0
 uWSGI==2.0.18
+django-autocomplete-light==3.3.4
