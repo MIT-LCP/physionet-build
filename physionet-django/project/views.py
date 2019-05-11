@@ -31,6 +31,8 @@ from user.forms import ProfileForm, AssociatedEmailChoiceForm
 from user.models import User
 from console.utility import add_email_bucket_access
 
+from dal import autocomplete
+
 
 def project_auth(auth_mode=0, post_auth_mode=0):
     """
@@ -691,6 +693,16 @@ def project_discovery(request, project_slug, **kwargs):
          'publication_formset':publication_formset,
          'topic_formset':topic_formset, 'add_item_url':edit_url,
          'remove_item_url':edit_url, 'is_submitting':is_submitting})
+
+
+class ProjectAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        qs = PublishedProject.objects.all()
+
+        if self.q:
+            qs = qs.filter(title__icontains=self.q)
+
+        return qs
 
 
 def get_file_forms(project, subdir):

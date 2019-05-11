@@ -19,6 +19,9 @@ urlpatterns = [
         views.published_submission_history,
         name='published_submission_history'),
 
+    path('project-autocomplete/', views.ProjectAutocomplete.as_view(),
+        name='project-autocomplete'),
+
     # Individual project pages
     path('<project_slug>/', views.project_overview_redirect,
         name='project_overview_redirect'),
