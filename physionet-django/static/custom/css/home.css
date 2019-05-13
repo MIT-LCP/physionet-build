@@ -116,6 +116,10 @@ html{
 
 
 @media screen and (min-width: 1000px) {
+	.main{
+		align-items: flex-start;
+	}
+
 	.main-side{
 		margin: 50px;
 		border-radius: 10px;
