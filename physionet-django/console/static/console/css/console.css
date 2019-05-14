@@ -189,7 +189,7 @@ body.fixed-nav {
     -ms-flex-direction: column;
     flex-direction: column;
     margin-top: 56px;
-    overflow-y: scroll;
+    overflow-y: auto;
   }
   #mainNav .navbar-collapse .navbar-sidenav > .nav-item {
     width: 250px;
