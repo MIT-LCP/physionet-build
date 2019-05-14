@@ -686,7 +686,7 @@ def complete_credential_applications(request):
 
             if process_credential_form.is_valid():
                 application = process_credential_form.save()
-                # notification.process_credential_complete(request, application)
+                notification.process_credential_complete(request, application, comments=False)
                 mailto = notification.mailto_process_credential_complete(request, application)
                 return render(request, 'console/generate_response_email.html',
                     {'application':application, 'mailto':mailto})
@@ -698,7 +698,7 @@ def complete_credential_applications(request):
 
     applications.annotate(mailto=Value(0, CharField()))
     for a in applications:
-        a.mailto = notification.mailto_process_credential_complete(request, a, include=False)
+        a.mailto = notification.mailto_process_credential_complete(request, a, comments=False)
 
     process_credential_form = forms.ProcessCredentialForm(responder=request.user)
 

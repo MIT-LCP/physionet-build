@@ -374,7 +374,7 @@ def mailto_supervisor(request, application):
     return mailto
 
 
-def mailto_process_credential_complete(request, application, include=True):
+def mailto_process_credential_complete(request, application, comments=True):
     """
     Notify user of credentialing decision
     """
@@ -385,8 +385,9 @@ def mailto_process_credential_complete(request, application, include=True):
          'domain':get_current_site(request),
          'signature':email_signature()}).replace('\n','\n> ')
 
-    if include:
-        body = application.responder_comments + body
+    if comments:
+        body = 'Dear {0},\n\n{1}\n\n{2}'.format(application.first_names, 
+          application.responder_comments, body)
     else:
         body = 'Dear {0},\n\n{1}'.format(application.first_names, body)
     mailto = "mailto:{3}%3C{0}%3E?subject={1}&bcc=noreply@alpha.physionet.org&body={2}".format(application.user.email,
@@ -422,7 +423,7 @@ def reference_deny_credential(request, application):
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [application.user.email], fail_silently=False)
 
-def process_credential_complete(request, application):
+def process_credential_complete(request, application, comments=True):
     """
     Notify user of credentialing decision
     """
@@ -431,7 +432,7 @@ def process_credential_complete(request, application):
     subject = 'PhysioNet credentialing {}'.format(response)
     body = loader.render_to_string('notification/email/process_credential_complete.html',
         {'application':application, 'applicant_name':applicant_name,
-         'domain':get_current_site(request),
+         'domain':get_current_site(request), 'comments':comments,
          'signature':email_signature(),
          'footer':email_footer()})
 
