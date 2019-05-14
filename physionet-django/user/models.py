@@ -637,7 +637,7 @@ class CredentialApplication(models.Model):
     city = models.CharField(max_length=100,
         validators=[validate_alphaplusplus])
     state_province = models.CharField(max_length=100,
-        validators=[validate_alphaplusplus])
+        validators=[validate_alphaplusplus], default='', blank=True)
     country = models.CharField(max_length=2, choices=COUNTRIES)
     webpage = models.URLField(default='', blank=True)
     zip_code = models.CharField(max_length=60,
