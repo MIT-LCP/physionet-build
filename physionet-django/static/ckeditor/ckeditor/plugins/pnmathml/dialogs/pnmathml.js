@@ -28,7 +28,7 @@ CKEDITOR.dialog.add( 'pnmathml', function( editor ) {
 							var that = this;
 
 							if ( !( CKEDITOR.env.ie && CKEDITOR.env.version == 8 ) ) {
-								this.getInputElement().on( 'keyup', function() {
+								this.getInputElement().on( 'input', function() {
 									// Add \( and \) for preview.
 									preview.setValue( that.mathPrefix + that.getInputElement().getValue() + that.mathSuffix );
 								} );
@@ -83,3 +83,15 @@ CKEDITOR.dialog.add( 'pnmathml', function( editor ) {
 		]
 	};
 } );
+
+/* borrowed from https://github.com/buzinas/ie9-oninput-polyfill */
+if ( CKEDITOR.env.ie && CKEDITOR.env.version === 9 ) {
+	document.addEventListener( 'selectionchange', function() {
+		var el = document.activeElement;
+		if ( el.tagName === 'TEXTAREA' || ( el.tagName === 'INPUT' && el.type === 'text' ) ) {
+			var ev = document.createEvent( 'CustomEvent' );
+			ev.initCustomEvent( 'input', true, true, {} );
+			el.dispatchEvent( ev );
+		}
+	} );
+}
