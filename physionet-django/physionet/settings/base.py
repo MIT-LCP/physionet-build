@@ -259,7 +259,7 @@ CKEDITOR_CONFIGS = {
             ['Format'],
             ['Bold', 'Italic', 'Underline','Blockquote'],
             ['NumberedList', 'BulletedList'],
-            ['CodeSnippet', 'Table'],
+            ['InlineEquation', 'BlockEquation', 'CodeSnippet', 'Table'],
             ['Link', 'Unlink'],
             ['RemoveFormat', 'Source'],
         ],
@@ -267,7 +267,7 @@ CKEDITOR_CONFIGS = {
         'disableNativeSpellChecker': False,
         'width': '100%',
         'format_tags': 'p;h3',
-        'extraPlugins': 'codesnippet',
+        'extraPlugins': 'codesnippet,pnmathml',
         'allowedContent': {
             **_inline_tags,
             **_block_tags,
@@ -279,6 +279,8 @@ CKEDITOR_CONFIGS = {
             '*': {'attributes': _generic_attributes,
                   'classes': _math_classes},
         },
+        'mathJaxLib': ('/static/mathjax/MathJax.js'
+                       '?config=TeX-AMS-MML_HTMLorMML-full'),
     }
 
 }
