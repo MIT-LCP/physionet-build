@@ -435,6 +435,12 @@ class Metadata(models.Model):
     def submitting_author(self):
         return self.authors.get(is_submitting=True)
 
+    def author_list(self):
+        """
+        Get the project's authors in the correct display order.
+        """
+        return self.authors.all().order_by('display_order')
+
     def get_author_info(self, separate_submitting=False, include_emails=False):
         """
         Get the project's authors, setting information needed to display
