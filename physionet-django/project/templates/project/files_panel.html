@@ -16,42 +16,41 @@
     {{ file_error|safe }}
   </div>
 {% else %}
-<ul class="list-group list-group-flush">
-  <li class="list-group-item">
-    <div class="row">
-      <div class="col-md-8 name"><strong>Name</strong></div>
-      <div class="col-md-2"><strong>Size</strong></div>
-      <div class="col-md-2"><strong>Modified</strong></div>
-    </div>
-  </li>
+<table class="files-panel">
+  <col class="files-panel-name"></col>
+  <col class="files-panel-size"></col>
+  <col class="files-panel-date"></col>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Size</th>
+      <th>Modified</th>
+    </tr>
+  </thead>
+  <tbody>
   {% if subdir %}
-    <li class="list-group-item">
-      <div class="row">
-        <div class="col-md-8">&nbsp;<i class="fas fa-angle-up"></i>&nbsp;&nbsp;<a href="../#files-panel" onclick="return navigateDir('{{ parent_dir }}')">Parent Directory</a></div>
-        <div class="col-md-2"></div>
-        <div class="col-md-2"></div>
-      </div>
-    </li>
+    <tr class="parentdir">
+      <td><a href="../#files-panel" onclick="return navigateDir('{{ parent_dir }}')">Parent Directory</a></td>
+      <td></td>
+      <td></td>
+    </tr>
   {% endif %}
   {% for dir in display_dirs %}
-    <li class="list-group-item">
-      <div class="row">
-        <div class="col-md-8"><i class="fas fa-folder-open"></i>&nbsp;&nbsp;<a href="{{ dir.name }}/#files-panel" onclick="return navigateDir('{{ dir.full_subdir }}')">{{ dir.name }}</a></div>
-        <div class="col-md-2"></div>
-        <div class="col-md-2"></div>
-      </div>
-    </li>
+    <tr class="subdir">
+      <td><a href="{{ dir.name }}/#files-panel" onclick="return navigateDir('{{ dir.full_subdir }}')">{{ dir.name }}</a></td>
+      <td></td>
+      <td></td>
+    </tr>
   {% endfor %}
   {% for file in display_files %}
-    <li class="list-group-item">
-      <div class="row">
-        <div class="col-md-8">&nbsp;<i class="far fa-file"></i>&nbsp;&nbsp;&nbsp;<a href="{{ file.url }}">{{ file.name }}</a></div>
-        <div class="col-md-2">{{ file.size }}</div>
-        <div class="col-md-2">{{ file.last_modified }}</div>
-      </div>
-    </li>
+    <tr>
+      <td><a href="{{ file.url }}">{{ file.name }}</a></td>
+      <td>{{ file.size }}</td>
+      <td>{{ file.last_modified }}</td>
+    </tr>
   {% endfor %}
-</ul>
+  </tbody>
+</table>
 {% endif %}
 
 <script>
