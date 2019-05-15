@@ -9,7 +9,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
+from django.core.exceptions import (ObjectDoesNotExist, PermissionDenied,
+    ValidationError)
 from django.db import transaction
 from django.forms import (formset_factory, inlineformset_factory,
     modelformset_factory)
@@ -733,6 +734,8 @@ def get_project_file_info(project, subdir):
         file_error = 'Directory not found'
     except OSError:
         file_error = 'Unable to read directory'
+    except ValidationError:
+        raise Http404()
 
     # Breadcrumbs
     dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
