@@ -2,25 +2,27 @@
   <input name="subdir" value="{{ subdir }}" type="hidden">
 
   <!-- Content manipulation buttons to trigger modals -->
-  <button id="upload-files-button" type="button" class="btn btn-success" data-toggle="modal" data-target="#upload-files-modal" onclick="prepareUpload()">
-    <i class="fa fa-arrow-circle-up"></i> Upload Files
-  </button>
-  <button id="create-folder-button" type="button" class="btn btn-success" data-toggle="modal" data-target="#create-folder-modal" onclick="prepareCreate()">
-    <i class="fa fa-folder-open"></i> Create Folder
-  </button>
-
-  <i style="float:right">
-    <button id="rename-item-button" type="button" class="btn btn-primary" data-toggle="modal" data-target="#rename-item-modal" disabled="true" onclick="prepareRename()">
-      <i class="fa fa-edit"></i> Rename Item
-    </button>
-    <button id="move-items-button" type="button" class="btn btn-primary" data-toggle="modal" data-target="#move-items-modal" disabled="true" onclick="prepareMove()">
-      <i class="fas fa-arrow-right"></i> Move Items
-    </button>
-
-    <button id="delete-items-button" type="button" class="btn btn-danger" data-toggle="modal" data-target="#delete-items-modal" disabled="true" onclick="prepareDelete()">
-      <i class="fa fa-trash-alt"></i> Delete Items
-    </button>
-  </i>
+  <div class="big-toolbar">
+    <span class="big-toolbar-left">
+      <button id="upload-files-button" type="button" class="btn btn-success" data-toggle="modal" data-target="#upload-files-modal" onclick="prepareUpload()">
+        <i class="fa fa-arrow-circle-up"></i> Upload Files
+      </button>
+      <button id="create-folder-button" type="button" class="btn btn-success" data-toggle="modal" data-target="#create-folder-modal" onclick="prepareCreate()">
+        <i class="fa fa-folder-open"></i> Create Folder
+      </button>
+    </span>
+    <span class="big-toolbar-right">
+      <button id="rename-item-button" type="button" class="btn btn-primary" data-toggle="modal" data-target="#rename-item-modal" disabled="true" onclick="prepareRename()">
+        <i class="fa fa-edit"></i> Rename Item
+      </button>
+      <button id="move-items-button" type="button" class="btn btn-primary" data-toggle="modal" data-target="#move-items-modal" disabled="true" onclick="prepareMove()">
+        <i class="fas fa-arrow-right"></i> Move Items
+      </button>
+      <button id="delete-items-button" type="button" class="btn btn-danger" data-toggle="modal" data-target="#delete-items-modal" disabled="true" onclick="prepareDelete()">
+        <i class="fa fa-trash-alt"></i> Delete Items
+      </button>
+    </span>
+  </div>
 
   <!-- File manipulation modals -->
   <div class="modal fade" id="upload-files-modal" tabindex="-1" role="dialog" aria-labelledby="upload-files-modal" aria-hidden="true">
@@ -128,5 +130,4 @@
       </div>
     </div>
   </div>
-  <br>
 {% endif %}
