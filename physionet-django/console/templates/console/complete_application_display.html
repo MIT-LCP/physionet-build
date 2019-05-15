@@ -1,0 +1,59 @@
+<div class="card mb-4">
+  <div class="card-header">
+    <h1 style='font-size:25px;' id='application_{{ application.id }}'>Process Credential Application - {{ application.first_names }} {{ application.last_name }} </h1>
+  </div>
+  <div class="card-body">
+    <div class='mb-2'>
+      <div class="card-columns row">
+        <div class="col-sm-12">
+          <p>Applicant full name: {{ application.get_full_name }}
+            <a class="btn btn-success" href='{{ application.mailto }}'>
+              Contact Applicant
+            </a>
+          </p>
+          {% if application.reference_contact_datetime %}
+            <p><i class="fas fa-envelope"></i> The reference was contacted on {{ application.reference_contact_datetime }}</p>
+          {% else %}
+            <form action="" method="post" class="form-signin">
+            {% csrf_token %}
+              Contact reference: {{ application.reference_email }} 
+              <button class="btn btn-success" name="contact_reference" value="{{ application.id }}" type="submit">
+                Contact Reference
+              </button>
+            </form><br>
+          {% endif %}
+          <form action="" method="post" class="form-signin">
+            {% csrf_token %}
+                <div class="form-group row">
+                  <label for="inputPassword">Reason:</label>
+                  <div class="col-sm-6">
+                    <input type='text' name='responder_comments'>
+                  </div>
+                  <div class="col-sm-4">
+                    <button class="btn btn-danger" type="submit" name="status" value="{{process_credential_form.status.field.choices.1.0}}">
+                      {{process_credential_form.status.field.choices.1.1}}
+                    </button>
+                    <button class="btn btn-success" type="submit" name="status" value="{{process_credential_form.status.field.choices.2.0}}">
+                      {{process_credential_form.status.field.choices.2.1}}
+                    </button>
+                  </div>
+                </div>
+                <input type='hidden' name='process_application' value="{{ application.id }}">
+
+            {% for error in process_credential_form.responder_comments.errors %}
+              <div class="alert alert-danger">
+                <strong>{{ error|escape }}</strong>
+              </div>
+            {% endfor %}
+            {% for error in process_credential_form.non_field_errors %}
+              <div class="alert alert-danger">
+                <strong>{{ error|escape }}</strong>
+              </div>
+            {% endfor %}
+          </form>
+               {% include "console/complete_application_display_table.html" %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

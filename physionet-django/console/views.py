@@ -1,38 +1,35 @@
 import re
 import pdb
 import logging
-import subprocess
 import os
 
 from django.core.validators  import validate_email
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
-from django.contrib.sites.shortcuts import get_current_site
 from django.forms import modelformset_factory, Select, Textarea
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
-from django.template import loader
 from django.urls import reverse
 from django.utils import timezone
 from django.db.models import Q, CharField, Value
 from background_task import background
 
-from . import forms, utility
 from notification.models import News
 import notification.utility as notification
 import project.forms as project_forms
 from project.models import (ActiveProject, ArchivedProject, StorageRequest,
-    EditLog, Reference, Topic, Publication, PublishedProject,
+    Reference, Topic, Publication, PublishedProject,
     exists_project_slug, GCP)
 from project.utility import readable_size
 from project.views import (get_file_forms, get_project_file_info,
     process_files_post)
 from user.models import User, CredentialApplication
+from . import forms, utility
 
 from django.conf import settings
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 
@@ -186,8 +183,7 @@ def edit_submission(request, project_slug, *args, **kwargs):
             return render(request, 'console/edit_complete.html',
                 {'decision':edit_log.decision,
                  'project':project, 'edit_log':edit_log})
-        else:
-            messages.error(request, 'Invalid response. See form below.')
+        messages.error(request, 'Invalid response. See form below.')
     else:
         edit_submission_form = forms.EditSubmissionForm(
             resource_type=project.resource_type, instance=edit_log)
@@ -560,13 +556,13 @@ def manage_published_project(request, project_slug, version):
                 GCP.objects.create(project=project, bucket_name=bucket_name,
                     managed_by=user, is_private=is_private)
                 send_files_to_gcp(project.id)
-                logger.info("Created GCP bucket for project {0}".format(
+                LOGGER.info("Created GCP bucket for project {0}".format(
                     project_slug))
                 messages.success(request, "The GCP bucket for project {0} was \
                     successfully created.".format(project_slug))
             else:
                 send_files_to_gcp(project.id)
-                logger.info("Created GCP bucket for project {0}".format(
+                LOGGER.info("Created GCP bucket for project {0}".format(
                     project_slug))
                 messages.success(request, "The bucket already exists. Resending the files \
                     for the project {0}.".format(project_slug))
@@ -693,17 +689,24 @@ def complete_credential_applications(request):
             else:
                 messages.error(request, 'Invalid submission. See form below.')
 
-    applications = CredentialApplication.objects.filter(status=0).order_by('application_datetime')
-    applications.order_by('reference_contact_datetime')
+    applications = CredentialApplication.objects.filter(status=0).annotate(mailto=Value('', CharField()))
 
-    applications.annotate(mailto=Value(0, CharField()))
-    for a in applications:
+    contacted_applications =  applications.filter(reference_contact_datetime__isnull=False
+        ).order_by('reference_contact_datetime')
+    not_contacted_applications =  applications.filter(reference_contact_datetime__isnull=True
+        ).order_by('application_datetime')
+
+    for a in contacted_applications:
+        a.mailto = notification.mailto_process_credential_complete(request, a, comments=False)
+
+    for a in not_contacted_applications:
         a.mailto = notification.mailto_process_credential_complete(request, a, comments=False)
 
     process_credential_form = forms.ProcessCredentialForm(responder=request.user)
 
     return render(request, 'console/complete_credential_applications.html',
-        {'applications':applications,
+        {'contacted_applications':contacted_applications,
+        'not_contacted_applications':not_contacted_applications,
         'process_credential_form':process_credential_form})
 
 
