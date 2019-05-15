@@ -23,71 +23,104 @@
     </p>
   </div>
 
-
 <!-- Outstanding tasks -->
-{% if invitation_response_formset|length %}
-<div class="card" >
-  <div class="card-header">
-    <h2>Project invitations</h2>
-    <p class="card-text">Invitations awaiting your response</p>
-  </div>
-  <form action="" method="post">
-    {{ invitation_response_formset.management_form }}
-    {% csrf_token %}
+{% if invitation_response_formset|length or pending_author_approvals|length or missing_affiliations|length %}
+  <div class="card" >
+    <div class="card-header">
+      <h2>Outstanding Tasks</h2>
+    </div>
+    {# Here is listed all outstanging author invitations #}
+    {% if invitation_response_formset|length %}
+<!--     <div class="card-header">
+      <p class="card-text"></p>
+    </div> -->
     <ul class="list-group list-group-flush">
       <li class="list-group-item">
         <div class="row">
-          <div class="col-md-6"><strong>Project</strong></div>
-          <div class="col-md-2"><strong>Inviter</strong></div>
-          <div class="col-md-2"><strong>Sent</strong></div>
+          <div class="col-md-5"><strong>Project</strong></div>
+          <div class="col-md-3"><strong>Pending Task</strong></div>
+          <div class="col-md-2"><strong>Date</strong></div>
           <div class="col-md-2"></div>
         </div>
       </li>
-      {% for invitation_response_form in invitation_response_formset %}
+      <form action="" method="post">
+        {{ invitation_response_formset.management_form }}
+        {% csrf_token %}
+        {% for invitation_response_form in invitation_response_formset %}
+          <li class="list-group-item">
+            <div class="row">
+              <div class="col-md-5">{{ invitation_response_form.instance.project  }}</div>
+              <div class="col-md-3">Authorship invitation</div>
+              <div class="col-md-2">{{ invitation_response_form.instance.request_datetime|date }}</div>
+              <div class="col-md-2"><button id="respond_button_{{ invitation_response_form.instance.project.id }}" type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#invitation-response-modal-{{ invitation_response_form.instance.id }}">
+                <i class="fa fa-reply"></i> Respond</button>
+              </div>
+            </div>
+          </li>
+          {# The modal for the response #}
+          <div class="modal fade" id="invitation-response-modal-{{ invitation_response_form.instance.id }}" tabindex="-1" role="dialog" aria-labelledby="invitation-response-modal-{{ invitation_response_form.invitation_id.value }}" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">Respond to invitation</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+
+                <div class="modal-body">
+                  <p>You have been invited to co-author "{{ invitation_response_form.instance.project }}" by {{ invitation_response_form.instance.inviter.get_full_name }}.</p>
+                  {{ invitation_response_form }}<br>
+                  {% if user.profile.affiliation %}
+                    <p>Your current affiliation "{{user.profile.affiliation}}" will be added to the project. To edit your affiliation, or to add an additional affiliation, please visit the project author page.</p>
+                  {% else %}
+                    <p><font color='red'>After accepting, please add your affiliation to the project author page.</font></p>
+                  {% endif %}
+                </div>
+
+                <div class="modal-footer">
+                  <button class="btn btn-primary" name="invitation_response" value="{{ invitation_response_form.instance.id }}" type="submit"><i class="fa fa-reply"></i> Submit Response</button>
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </form>
+    {% endif %}
+    {% if missing_affiliations|length %}
+      {% for project in missing_affiliations %}
         <li class="list-group-item">
           <div class="row">
-            <div class="col-md-6">{{ invitation_response_form.instance.project  }}</div>
-            <div class="col-md-2">{{ invitation_response_form.instance.inviter }}</div>
-            <div class="col-md-2">{{ invitation_response_form.instance.request_datetime|date }}</div>
-            <div class="col-md-2"><button id="respond_button_{{ invitation_response_form.instance.project.id }}" type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#invitation-response-modal-{{ invitation_response_form.instance.id }}">
-              <i class="fa fa-reply"></i> Respond</button>
+            <div class="col-md-5"><a href="{% url 'project_overview' project.0.slug %}">{{ project.0 }}</a></div>
+            <div class="col-md-3">Missing Affiliation</div>
+            <div class="col-md-2">{{ project.1|date }}</div>
+            <div class="col-md-2">
+              <a href="{% url 'project_authors' project.0.slug %}" class="btn btn-sm btn-primary">Add affiliations</a>
             </div>
           </div>
         </li>
-        {# The modal for the response #}
-        <div class="modal fade" id="invitation-response-modal-{{ invitation_response_form.instance.id }}" tabindex="-1" role="dialog" aria-labelledby="invitation-response-modal-{{ invitation_response_form.invitation_id.value }}" aria-hidden="true">
-          <div class="modal-dialog" role="document">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title">Respond to invitation</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
-
-              <div class="modal-body">
-                <p>You have been invited to co-author {{ invitation_response_form.instance.project  }}.</p>
-                {{ invitation_response_form }}<br>
-                {% if user.profile.affiliation %}
-                  <p>Your current affiliation "{{user.profile.affiliation}}" will be added to the project. To edit your affiliation, or to add an additional affiliation, please visit the project author page.</p>
-                {% else %}
-                  <p><font color='red'>After accepting, please add your affiliation to the project author page.</font></p>
-                {% endif %}
-              </div>
-
-              <div class="modal-footer">
-                <button class="btn btn-primary" name="invitation_response" value="{{ invitation_response_form.instance.id }}" type="submit"><i class="fa fa-reply"></i> Submit Response</button>
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-              </div>
+      {% endfor %}
+    {% endif %}
+    {% if pending_author_approvals|length %}
+      {% for project in pending_author_approvals %}
+        <li class="list-group-item">
+          <div class="row">
+            <div class="col-md-5"><a href="{% url 'project_overview' project.slug %}">{{ project }}</a></div>
+            <div class="col-md-3">Pending project approval</div>
+            <div class="col-md-2">{{ project.copyedit_completion_datetime|date }}</div>
+            <div class="col-md-2">
+              <a href="{% url 'project_submission' project.slug %}" class="btn btn-sm btn-primary">Approve project</a>
             </div>
           </div>
-        </div>
+        </li>
       {% endfor %}
+    {% endif %}
     </ul>
-  </form>
-</div>
-<br />
+  </div>
+  <br>
 {% endif %}
+
 <!-- Active projects -->
 
   <div class="card" >

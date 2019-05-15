@@ -161,6 +161,7 @@ class Author(BaseAuthor):
     project = GenericForeignKey('content_type', 'object_id')
     corresponding_email = models.ForeignKey('user.AssociatedEmail', null=True,
         on_delete=models.SET_NULL)
+    creation_date = models.DateTimeField(default=timezone.now)
 
     class Meta:
         unique_together = (('user', 'content_type', 'object_id',),
@@ -1493,6 +1494,9 @@ class AuthorInvitation(BaseInvitation):
     email = models.EmailField(max_length=255)
     # User who made the invitation
     inviter = models.ForeignKey('user.User', on_delete=models.CASCADE)
+    creation_datetime = models.DateTimeField(default=timezone.now)
+    invitation_datetime = models.DateTimeField(default=timezone.now)
+    reply_datetime = models.DateTimeField(null=True)
 
     def __str__(self):
         return 'ActiveProject: {0} To: {1} By: {2}'.format(self.project, self.email,
