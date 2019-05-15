@@ -163,6 +163,7 @@ th, td {
 }
 
 /* make drop-down menus work without javascript */
+.dropdown-menu:hover,
 .dropdown-toggle:focus + .dropdown-menu,
 .dropdown:focus-within .dropdown-menu {
     display: block;
