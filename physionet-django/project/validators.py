@@ -2,7 +2,6 @@ import re
 
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext as _
-from django.http import Http404
 
 def validate_filename(value):
     """
@@ -35,8 +34,6 @@ def validate_subdir(value):
     or empty. No consecutive dots or fwd slashes.
     """
     if not re.fullmatch(r'[\w\-\./]*', value) or '..' in value or value.startswith('/') or '//' in value:
-        if '@' in value:
-            raise Http404()
         raise ValidationError('Invalid path')
 
 
