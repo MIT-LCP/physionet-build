@@ -47,6 +47,14 @@ th, td {
   }
 }
 
+.visually-hidden {
+  position: absolute !important;
+  height: 1px; width: 1px;
+  overflow: hidden;
+  clip: rect(1px 1px 1px 1px);
+  clip: rect(1px, 1px, 1px, 1px);
+}
+
 .navbar{
   display: block;
   height: 55px;
@@ -231,16 +239,23 @@ a{
   padding: 5px;
   border-radius: 0;
   line-height: unset;
-  width: 200px;
+  width: 210px;
 }
 
 .btn-search{
-  border-radius: 0;
   background: transparent;
+  border-radius: 0;
+  border: 1px solid transparent;
   color: white;
   cursor: pointer;
-  padding: unset;
-  padding-left: 20px;
+  font-size: 1rem;
+  margin-left: 10px;
+  padding: 0px 0px 0px 2px;
+  user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-user-select: none;
+  width: 25px;
 }
 
 .pub-details{
