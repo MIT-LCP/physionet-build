@@ -433,3 +433,48 @@ a{
     float: right;
   }
 }
+
+table.files-panel {
+  margin: 0px;
+  table-layout: fixed;
+  border: none;
+  width: 100%;
+}
+.files-panel thead {
+  border: none;
+}
+.files-panel-name { width: 100%; }
+.files-panel-size { width: 6em; }
+.files-panel-date { width: 8em; }
+.files-panel-checkbox { width: 2em; }
+.files-panel td + td, .files-panel th + th { text-align: right; }
+.files-panel td + td + td, .files-panel th + th + th { text-align: center; }
+.files-panel td + td + td + td, .files-panel th + th + th + th { text-align: right; }
+
+.files-panel td:first-child:before {
+  content: "\F15B"; /* file */
+  font-family: "Font Awesome 5 Free";
+  font-weight: 400;
+  display: inline-block;
+  text-align: center;
+  width: 1.5em;
+  margin-right: 0.5em;
+}
+.files-panel tr.subdir td:first-child:before {
+  content: "\F07C"; /* folder-open */
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+  display: inline-block;
+  text-align: center;
+  width: 1.5em;
+  margin-right: 0.5em;
+}
+.files-panel tr.parentdir td:first-child:before {
+  content: "\F106"; /* angle-up */
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+  display: inline-block;
+  text-align: center;
+  width: 1.5em;
+  margin-right: 0.5em;
+}

@@ -24,46 +24,46 @@
         {{ file_error|safe }}
       </div>
       {% else %}
-      <ul class="list-group list-group-flush">
-        <li class="list-group-item">
-          <div class="row">
-            <div class="col-md-7">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>Name</strong></div>
-            <div class="col-md-2"><strong>Size</strong></div>
-            <div class="col-md-2"><strong>Modified</strong></div>
-            <div class="col-md-1"></div>
-          </div>
-        </li>
+      <table class="files-panel">
+        <col class="files-panel-name"></col>
+        <col class="files-panel-size"></col>
+        <col class="files-panel-date"></col>
+        <col class="files-panel-checkbox"></col>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Size</th>
+            <th>Modified</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
         {% if subdir %}
-          <li class="list-group-item">
-            <div class="row">
-              <div class="col-md-7">&nbsp;<i class="fas fa-angle-up"></i>&nbsp;&nbsp;<a href="../#files-panel" onclick="return navigateDir('{{ parent_dir }}')">Parent Directory</a></div>
-              <div class="col-md-2"></div>
-              <div class="col-md-2"></div>
-              <div class="col-md-1"></div>
-            </div>
+          <tr class="parentdir">
+            <td><a href="../#files-panel" onclick="return navigateDir('{{ parent_dir }}')">Parent Directory</a></td>
+            <td></td>
+            <td></td>
+            <td></td>
           </li>
         {% endif %}
         {% for dir in display_dirs %}
-          <li class="list-group-item">
-            <div class="row">
-              <div class="col-md-7"><i class="fas fa-folder-open"></i>&nbsp;&nbsp;<a href="{{ dir.name }}/#files-panel" onclick="return navigateDir('{{ dir.full_subdir }}')">{{ dir.name }}</a></div>
-              <div class="col-md-2"></div>
-              <div class="col-md-2"></div>
-              <div class="col-md-1"><input type="checkbox" name="items" value="{{ dir.name }}" onchange="countSelected(this)"></div>
-            </div>
-          </li>
+          <tr class="subdir">
+            <td><a href="{{ dir.name }}/#files-panel" onclick="return navigateDir('{{ dir.full_subdir }}')">{{ dir.name }}</a></td>
+            <td></td>
+            <td></td>
+            <td><input type="checkbox" name="items" value="{{ dir.name }}" onchange="countSelected(this)"></td>
+          </tr>
         {% endfor %}
         {% for file in display_files %}
-          <li class="list-group-item">
-            <div class="row">
-              <div class="col-md-7">&nbsp;<i class="far fa-file"></i>&nbsp;&nbsp;&nbsp;<a href="{{ file.url }}">{{ file.name }}</a></div>
-              <div class="col-md-2">{{ file.size }}</div>
-              <div class="col-md-2">{{ file.last_modified }}</div>
-              <div class="col-md-1"><input type="checkbox" name="items" value="{{ file.name }}" onchange="countSelected(this)"></div>
-            </div>
-          </li>
+          <tr>
+            <td><a href="{{ file.url }}">{{ file.name }}</a></td>
+            <td>{{ file.size }}</td>
+            <td>{{ file.last_modified }}</td>
+            <td><input type="checkbox" name="items" value="{{ file.name }}" onchange="countSelected(this)"></td>
+          </tr>
         {% endfor %}
-      </ul>
+        </tbody>
+      </table>
       {% endif %}
     </div>
   </form>
