@@ -411,3 +411,25 @@ a{
 , .no-pd label{
   padding: 0;
 }
+
+/* project files form */
+.big-toolbar-left, .big-toolbar-right {
+  display: block;
+  text-align: center;
+}
+.big-toolbar, .big-toolbar .btn {
+  margin: 0.25rem 0px;
+}
+.big-toolbar:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+@media only screen and (min-width: 992px) {
+  .big-toolbar-left {
+    float: left;
+  }
+  .big-toolbar-right {
+    float: right;
+  }
+}
