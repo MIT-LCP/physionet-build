@@ -1289,14 +1289,8 @@ class PublishedProject(Metadata, SubmissionInfo):
         Url of a file to download in this project
         """
         full_file_name = os.path.join(subdir, file)
-        if self.access_policy:
-            return reverse('serve_published_project_file',
-                args=(self.slug, self.version, full_file_name))
-        else:
-            if subdir and not subdir.endswith('/'):
-                subdir = subdir + '/'
-            return static('published-projects/{}/{}/{}'.format(
-                self.slug, self.version, full_file_name))
+        return reverse('serve_published_project_file',
+            args=(self.slug, self.version, full_file_name))
 
     def has_access(self, user):
         """
