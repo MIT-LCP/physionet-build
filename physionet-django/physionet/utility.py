@@ -11,16 +11,25 @@ def get_project_apps():
     """
     return [app for app in settings.INSTALLED_APPS if not app.startswith('django') and not app.startswith('ck') and not app.startswith('debug')]
 
+def _file_x_accel_path(file_path):
+    static_root = settings.STATIC_ROOT
+    media_root = settings.MEDIA_ROOT
+    media_alias = settings.MEDIA_X_ACCEL_ALIAS
+    if media_alias:
+        if file_path.startswith(static_root + '/'):
+            return '/static' + file_path[len(static_root):]
+        elif file_path.startswith(media_root + '/'):
+            return media_alias + file_path[len(media_root):]
+
 def serve_file(file_path, attach=True, content_type=''):
     """
     Serve a file to download. file_path is the real path of the file on
     the server.
     """
-    root = settings.MEDIA_ROOT
-    alias = settings.MEDIA_X_ACCEL_ALIAS
-    if alias and file_path.startswith(root + '/'):
+    accel_path = _file_x_accel_path(file_path)
+    if accel_path:
         response = HttpResponse()
-        response['X-Accel-Redirect'] = alias + file_path[len(root):]
+        response['X-Accel-Redirect'] = accel_path
     else:
         with open(file_path, 'rb') as f:
             response = HttpResponse(f.read())
