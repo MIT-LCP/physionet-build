@@ -17,7 +17,7 @@ from django.utils.translation import ugettext as _
 
 
 from .validators import (UsernameValidator, validate_name, validate_alphaplus,
-    validate_alphaplusplus)
+    validate_alphaplusplus, validate_nan)
 
 
 logger = logging.getLogger(__name__)
@@ -643,7 +643,7 @@ class CredentialApplication(models.Model):
     zip_code = models.CharField(max_length=60,
         validators=[validate_alphaplusplus], default='', blank=True)
     suffix = models.CharField(max_length=60,
-        validators=[validate_alphaplusplus], default='', blank=True)
+        validators=[validate_nan, validate_alphaplusplus], default='', blank=True)
     # Human resources training
     training_course_name = models.CharField(max_length=100,
         validators=[validate_alphaplusplus])
