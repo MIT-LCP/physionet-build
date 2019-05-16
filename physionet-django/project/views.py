@@ -865,14 +865,15 @@ def project_files(request, project_slug, subdir='', **kwargs):
         move_items_form, delete_items_form) = get_file_forms(project=project,
         subdir=subdir)
 
-    (display_files, display_dirs, dir_breadcrumbs, _,
+    (display_files, display_dirs, dir_breadcrumbs, parent_dir,
      file_error) = get_project_file_info(project=project, subdir=subdir)
 
     return render(request, 'project/project_files.html', {'project':project,
         'individual_size_limit':utility.readable_size(
             ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT),
-        'subdir':subdir, 'display_files':display_files,
-        'display_dirs':display_dirs, 'storage_info':storage_info,
+        'subdir':subdir, 'parent_dir':parent_dir,
+        'display_files':display_files, 'display_dirs':display_dirs,
+        'storage_info':storage_info,
         'storage_request':storage_request,
         'storage_request_form':storage_request_form,
         'upload_files_form':upload_files_form,
@@ -945,7 +946,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
         for e in project.integrity_errors:
             messages.error(request, e)
 
-    (display_files, display_dirs, dir_breadcrumbs, _,
+    (display_files, display_dirs, dir_breadcrumbs, parent_dir,
      file_error) = get_project_file_info(project=project, subdir=subdir)
     files_panel_url = reverse('preview_files_panel', args=(project.slug,))
 
@@ -956,7 +957,8 @@ def project_preview(request, project_slug, subdir='', **kwargs):
         'publication':publication, 'topics':topics, 'languages':languages,
         'passes_checks':passes_checks, 'dir_breadcrumbs':dir_breadcrumbs,
         'files_panel_url':files_panel_url, 'subdir':subdir,
-        'file_error':file_error, 'parent_projects':parent_projects})
+        'parent_dir':parent_dir, 'file_error':file_error,
+        'parent_projects':parent_projects})
 
 
 @project_auth(auth_mode=2)
@@ -1282,7 +1284,7 @@ def published_project(request, project_slug, version, subdir=''):
             'main_size':main_size, 'compressed_size':compressed_size,
             'display_files':display_files, 'display_dirs':display_dirs,
             'files_panel_url':files_panel_url, 'subdir':subdir,
-            'file_error':file_error}}
+            'parent_dir':parent_dir, 'file_error':file_error}}
     elif subdir:
         status = 403
     else:
