@@ -57,13 +57,13 @@ def handling_editor(base_view):
 
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_admin, redirect_field_name='project_home')
 def console_home(request):
     return redirect('submitted_projects')
 
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_admin, redirect_field_name='project_home')
 def submitted_projects(request):
     """
     List of active submissions. Editors are assigned here.
@@ -111,7 +111,7 @@ def submitted_projects(request):
 
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_admin, redirect_field_name='project_home')
 def editor_home(request):
     """
     List of submissions the editor is responsible for
@@ -143,7 +143,7 @@ def submission_info_redirect(request, project_slug):
 
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_admin, redirect_field_name='project_home')
 def submission_info(request, project_slug):
     """
     View information about a project under submission
@@ -444,7 +444,7 @@ def process_storage_response(request, storage_response_formset):
                     'The storage request has been {}'.format(notification.RESPONSE_ACTIONS[storage_request.response]))
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_admin, redirect_field_name='project_home')
 def storage_requests(request):
     """
     Page for listing and responding to project storage requests
@@ -467,7 +467,7 @@ def storage_requests(request):
 
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_admin, redirect_field_name='project_home')
 def unsubmitted_projects(request):
     """
     List of unsubmitted projects
@@ -479,7 +479,7 @@ def unsubmitted_projects(request):
 
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_admin, redirect_field_name='project_home')
 def published_projects(request):
     """
     List of published projects
@@ -504,7 +504,7 @@ def send_files_to_gcp(pid):
         project.gcp.save()
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_admin, redirect_field_name='project_home')
 def manage_published_project(request, project_slug, version):
     """
     Manage a published project
@@ -582,7 +582,7 @@ def manage_published_project(request, project_slug, version):
 
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_admin, redirect_field_name='project_home')
 def rejected_submissions(request):
     """
     List of rejected submissions
@@ -593,7 +593,7 @@ def rejected_submissions(request):
 
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_admin, redirect_field_name='project_home')
 def users(request):
     """
     List of users
@@ -602,7 +602,7 @@ def users(request):
     return render(request, 'console/users.html', {'users':users})
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_admin, redirect_field_name='project_home')
 def users_search(request):
     """
     List of users
@@ -625,7 +625,7 @@ def users_search(request):
 
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_admin, redirect_field_name='project_home')
 def users_inactive(request):
     """
     List of users
@@ -637,7 +637,7 @@ def users_inactive(request):
 
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_admin, redirect_field_name='project_home')
 def users_admin(request):
     """
     List of users
@@ -647,7 +647,7 @@ def users_admin(request):
         'admin_users':admin_users})
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_admin, redirect_field_name='project_home')
 def credential_applications(request):
     """
     Ongoing credential applications
@@ -658,7 +658,7 @@ def credential_applications(request):
         {'applications':applications})
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_admin, redirect_field_name='project_home')
 def complete_credential_applications(request):
     """
     Ongoing credential applications
@@ -702,7 +702,7 @@ def complete_credential_applications(request):
 
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_admin, redirect_field_name='project_home')
 def process_credential_application(request, application_slug):
     """
     Process a credential application. View details, contact reference,
@@ -735,7 +735,7 @@ def process_credential_application(request, application_slug):
 
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_admin, redirect_field_name='project_home')
 def view_credential_application(request, application_slug):
     """
     View a credential application in any status.
@@ -746,7 +746,7 @@ def view_credential_application(request, application_slug):
 
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_admin, redirect_field_name='project_home')
 def past_credential_applications(request):
     """
     Inactive credential applications. Split into successful and
@@ -761,7 +761,7 @@ def past_credential_applications(request):
 
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_admin, redirect_field_name='project_home')
 def credentialed_user_info(request, username):
     c_user = User.objects.get(username=username)
     application = CredentialApplication.objects.get(user=c_user, status=2)
@@ -770,7 +770,7 @@ def credentialed_user_info(request, username):
 
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_admin, redirect_field_name='project_home')
 def news_console(request):
     """
     List of news items
@@ -780,7 +780,7 @@ def news_console(request):
 
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_admin, redirect_field_name='project_home')
 def news_add(request):
     if request.method == 'POST':
         form = forms.NewsForm(data=request.POST)
@@ -794,7 +794,7 @@ def news_add(request):
 
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_admin, redirect_field_name='project_home')
 def news_search(request):
     """
     Filtered list of news items
@@ -810,7 +810,7 @@ def news_search(request):
 
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_admin, redirect_field_name='project_home')
 def news_edit(request, news_id):
     news = News.objects.get(id=news_id)
 
@@ -831,7 +831,7 @@ def news_edit(request, news_id):
 
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_admin, redirect_field_name='project_home')
 def featured_content(request):
     """
     List of news items
@@ -848,7 +848,7 @@ def featured_content(request):
 
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_admin, redirect_field_name='project_home')
 def add_featured(request):
     """
     List of news items
@@ -878,7 +878,7 @@ def add_featured(request):
         'projects':projects, 'form':form, 'valid_search':valid_search})
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_admin, redirect_field_name='project_home')
 def guidelines_review(request):
     """
     Guidelines for reviewers.
