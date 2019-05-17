@@ -730,12 +730,10 @@ def get_project_file_info(project, subdir):
         display_files, display_dirs = project.get_directory_content(
             subdir=subdir)
         file_error = None
-    except FileNotFoundError:
+    except (FileNotFoundError, ValidationError):
         file_error = 'Directory not found'
     except OSError:
         file_error = 'Unable to read directory'
-    except ValidationError:
-        raise Http404()
 
     # Breadcrumbs
     dir_breadcrumbs = utility.get_dir_breadcrumbs(subdir)
