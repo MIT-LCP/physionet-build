@@ -659,6 +659,7 @@ def complete_credential_applications(request):
     """
     Ongoing credential applications
     """
+    process_credential_form = forms.ProcessCredentialForm(responder=request.user)
 
     if request.method == 'POST':
         if 'contact_reference' in request.POST and request.POST['contact_reference'].isdigit():
@@ -701,8 +702,6 @@ def complete_credential_applications(request):
 
     for a in not_contacted_applications:
         a.mailto = notification.mailto_process_credential_complete(request, a, comments=False)
-
-    process_credential_form = forms.ProcessCredentialForm(responder=request.user)
 
     return render(request, 'console/complete_credential_applications.html',
         {'contacted_applications':contacted_applications,

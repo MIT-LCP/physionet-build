@@ -27,7 +27,7 @@
                 <div class="form-group row">
                   <label for="inputPassword">Reason:</label>
                   <div class="col-sm-6">
-                    <input type='text' name='responder_comments'>
+                    {{process_credential_form.responder_comments}}
                   </div>
                   <div class="col-sm-4">
                     <button class="btn btn-danger" type="submit" name="status" value="{{process_credential_form.status.field.choices.1.0}}">
