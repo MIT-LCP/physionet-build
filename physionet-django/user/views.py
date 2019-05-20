@@ -25,7 +25,7 @@ from . import forms
 from .models import AssociatedEmail, Profile, User, CredentialApplication, LegacyCredential
 from physionet import utility
 from project.models import Author, License
-from notification.utility import reference_deny_credential, credential_application_request
+from notification.utility import process_credential_complete, credential_application_request
 
 
 logger = logging.getLogger(__name__)
@@ -435,7 +435,7 @@ def credential_reference(request, application_slug):
     #     reference_response_datetime=None)
     application = CredentialApplication.objects.filter(
         slug=application_slug, reference_response_datetime=None)
-    
+
     if not application:
         return redirect('/')
     application = application.get()
@@ -448,13 +448,14 @@ def credential_reference(request, application_slug):
             # Automated email notifying that their reference has denied
             # their application.
             if application.reference_response == 1:
-                reference_deny_credential(request, application)
+                process_credential_complete(request, application,
+                                            comments=False)
 
             response = 'verifying' if application.reference_response == 2 else 'denying'
             return render(request, 'user/credential_reference_complete.html',
-                {'response':response, 'application':application})
+                {'response': response, 'application': application})
         else:
             messages.error(request, 'Invalid submission. See errors below.')
 
     return render(request, 'user/credential_reference.html',
-        {'form':form, 'application':application})
+        {'form': form, 'application': application})

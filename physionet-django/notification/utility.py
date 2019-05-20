@@ -403,25 +403,9 @@ def mailto_administrators(project, error):
         {'project':project, 'error':error,
          'signature':email_signature(),
          'footer':email_footer()})
-    
+
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [settings.CONTACT_EMAIL], fail_silently=False)
-
-def reference_deny_credential(request, application):
-    """
-    Notify an applicant that their reference has denied their
-    credentialing application.
-    """
-    applicant_name = application.get_full_name()
-    subject = 'Your reference for PhysioNet credentialing has denied your application'
-    body = loader.render_to_string('notification/email/reference_deny_credential.html',
-        {'applicant_name':applicant_name,
-         'domain':get_current_site(request),
-         'signature':email_signature(),
-         'footer':email_footer()})
-
-    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-              [application.user.email], fail_silently=False)
 
 def process_credential_complete(request, application, comments=True):
     """
@@ -429,7 +413,7 @@ def process_credential_complete(request, application, comments=True):
     """
     applicant_name = application.get_full_name()
     response = 'rejected' if application.status == 1 else 'accepted'
-    subject = 'PhysioNet credentialing {}'.format(response)
+    subject = 'Your application for PhysioNet credentialing'
     body = loader.render_to_string('notification/email/process_credential_complete.html',
         {'application':application, 'applicant_name':applicant_name,
          'domain':get_current_site(request), 'comments':comments,
