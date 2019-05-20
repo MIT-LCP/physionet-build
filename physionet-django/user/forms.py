@@ -285,6 +285,7 @@ class PersonalCAF(forms.ModelForm):
             'organization_name':self.profile.affiliation,
             'webpage':self.profile.website}
 
+
 class TrainingCAF(forms.ModelForm):
     """
     Credential application form training course attributes
@@ -360,7 +361,7 @@ class CredentialApplicationForm(forms.ModelForm):
         model = CredentialApplication
         fields = (
             # Personal
-            'first_names', 'last_name', 'researcher_category',
+            'first_names', 'last_name', 'suffix', 'researcher_category',
             'organization_name', 'job_title', 'city', 'state_province',
             'country', 'webpage',
             # Training course
@@ -426,10 +427,9 @@ class CredentialReferenceForm(forms.ModelForm):
         model = CredentialApplication
         fields = ('reference_response','reference_response_text')
         labels = {
-            'reference_response': 'Do you verify the applicant?',
-            'reference_response_text': 'Comments:'
+            'reference_response': 'I am familiar with the research and support this request.',
+            'reference_response_text': 'Please briefly describe your working relationship with the applicant.'
         }
-
         widgets = {
             'reference_response_text':forms.Textarea(attrs={'rows': 3}),
         }

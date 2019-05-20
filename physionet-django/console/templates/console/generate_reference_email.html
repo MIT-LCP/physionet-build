@@ -5,12 +5,14 @@
 {% block content %}
 <div class="card mb-3">
   <div class="card-header">
-    Reference was marked as contacted. ({{ application.user.get_full_name }})
+    Reference was marked as contacted. ({{ application.get_full_name }})
   </div>
   <div class="card-body">
-    <p><a class='btn btn-primary btn-lg' href="{{mailto}}">Generate contact reference email.</a></p>
+    <p><a class='btn btn-primary' href="{% url 'complete_credential_applications' %}">Back to manage applications</a></p>
     <br>
-    <p>Return to <a href="{% url 'complete_credential_applications' %}">manage the applications.</p>
+    <p>{{application.get_full_name}} -- {{application.user.email}}</p>
+    <p><a href="{{mailto}}">Contact reference</a></p>
   </div>
 </div>
 {% endblock %}
+

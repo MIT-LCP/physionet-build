@@ -352,8 +352,8 @@ def mailto_reference(request, application):
          'signature':email_signature(),
          'footer':email_footer()})
 
-    mailto = "mailto:{3}%3C{0}%3E?subject={1}&bcc=noreply@alpha.physionet.org&body={2}".format(application.reference_email,
-      parse.quote(subject), parse.quote(body), parse.quote('"'+application.reference_name+'"'))
+    mailto = "mailto:{3}%3C{0}%3E?subject={1}&bcc=credential-reference+{4}@alpha.physionet.org&body={2}".format(application.reference_email,
+      parse.quote(subject), parse.quote(body), parse.quote('"'+application.reference_name+'"'), application.id)
     return mailto
 
 def mailto_supervisor(request, application):
@@ -369,24 +369,29 @@ def mailto_supervisor(request, application):
          'signature':email_signature(),
          'footer':email_footer()})
 
-    mailto = "mailto:{3}%3C{0}%3E?subject={1}&bcc=noreply@alpha.physionet.org&body={2}".format(application.reference_email,
-      parse.quote(subject), parse.quote(body), parse.quote('"'+application.reference_name+'"'))
+    mailto = "mailto:{3}%3C{0}%3E?subject={1}&bcc=credential-reference+{4}@alpha.physionet.org&body={2}".format(application.reference_email,
+      parse.quote(subject), parse.quote(body), parse.quote('"'+application.reference_name+'"'), application.id)
     return mailto
 
 
-def mailto_process_credential_complete(request, application):
+def mailto_process_credential_complete(request, application, comments=True):
     """
     Notify user of credentialing decision
     """
     applicant_name = application.get_full_name()
     subject = 'PhysioNet clinical database access request for {}'.format(applicant_name)
-    body = loader.render_to_string('notification/email/notify_credential_request.html',
+    body = loader.render_to_string('notification/email/mailto_contact_applicant.html',
         {'application':application, 'applicant_name':applicant_name,
          'domain':get_current_site(request),
          'signature':email_signature()}).replace('\n','\n> ')
 
-    mailto = "mailto:{3}%3C{0}%3E?subject={1}&bcc=noreply@alpha.physionet.org&body={2}".format(application.user.email,
-      parse.quote(subject), parse.quote(body), parse.quote('"'+application.get_full_name()+'"'))
+    if comments:
+        body = 'Dear {0},\n\n{1}\n\n{2}'.format(application.first_names, 
+          application.responder_comments, body)
+    else:
+        body = 'Dear {0},\n\n{1}'.format(application.first_names, body)
+    mailto = "mailto:{3}%3C{0}%3E?subject={1}&bcc=credential-reference+{4}@alpha.physionet.org&body={2}".format(application.reference_email,
+      parse.quote(subject), parse.quote(body), parse.quote('"'+application.get_full_name()+'"'), application.id)
     return mailto
 
 def mailto_administrators(project, error):
@@ -398,36 +403,20 @@ def mailto_administrators(project, error):
         {'project':project, 'error':error,
          'signature':email_signature(),
          'footer':email_footer()})
-    
+
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [settings.CONTACT_EMAIL], fail_silently=False)
 
-def reference_deny_credential(request, application):
-    """
-    Notify an applicant that their reference has denied their
-    credentialing application.
-    """
-    applicant_name = application.get_full_name()
-    subject = 'Your reference for PhysioNet credentialing has denied your application'
-    body = loader.render_to_string('notification/email/reference_deny_credential.html',
-        {'applicant_name':applicant_name,
-         'domain':get_current_site(request),
-         'signature':email_signature(),
-         'footer':email_footer()})
-
-    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-              [application.user.email], fail_silently=False)
-
-def process_credential_complete(request, application):
+def process_credential_complete(request, application, comments=True):
     """
     Notify user of credentialing decision
     """
     applicant_name = application.get_full_name()
     response = 'rejected' if application.status == 1 else 'accepted'
-    subject = 'PhysioNet credentialing {}'.format(response)
+    subject = 'Your application for PhysioNet credentialing'
     body = loader.render_to_string('notification/email/process_credential_complete.html',
         {'application':application, 'applicant_name':applicant_name,
-         'domain':get_current_site(request),
+         'domain':get_current_site(request), 'comments':comments,
          'signature':email_signature(),
          'footer':email_footer()})
 

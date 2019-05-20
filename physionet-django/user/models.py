@@ -17,7 +17,7 @@ from django.utils.translation import ugettext as _
 
 
 from .validators import (UsernameValidator, validate_name, validate_alphaplus,
-    validate_alphaplusplus)
+    validate_alphaplusplus, validate_nan)
 
 
 logger = logging.getLogger(__name__)
@@ -637,13 +637,13 @@ class CredentialApplication(models.Model):
     city = models.CharField(max_length=100,
         validators=[validate_alphaplusplus])
     state_province = models.CharField(max_length=100,
-        validators=[validate_alphaplusplus])
+        validators=[validate_alphaplusplus], default='', blank=True)
     country = models.CharField(max_length=2, choices=COUNTRIES)
     webpage = models.URLField(default='', blank=True)
     zip_code = models.CharField(max_length=60,
         validators=[validate_alphaplusplus], default='', blank=True)
     suffix = models.CharField(max_length=60,
-        validators=[validate_alphaplusplus], default='', blank=True)
+        validators=[validate_nan, validate_alphaplusplus], default='', blank=True)
     # Human resources training
     training_course_name = models.CharField(max_length=100,
         validators=[validate_alphaplusplus])
@@ -669,8 +669,8 @@ class CredentialApplication(models.Model):
     # Whether reference verifies the applicant. 0 1 2 = null, no, yes
     reference_response = models.PositiveSmallIntegerField(default=0,
         choices=REFERENCE_RESPONSES)
-    reference_response_text = models.CharField(max_length=500, default='',
-        blank=True, validators=[validate_alphaplusplus])
+    reference_response_text = models.CharField(max_length=2000,
+        validators=[validate_alphaplusplus])
     research_summary = models.CharField(max_length=1000,
         validators=[validate_alphaplusplus])
     decision_datetime = models.DateTimeField(null=True)
