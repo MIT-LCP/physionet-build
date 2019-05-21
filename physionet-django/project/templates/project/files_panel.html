@@ -1,15 +1,19 @@
 <div class="card-header">
-  <div class="row">
-    <div class="col-md-12">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Folder Navigation:
-    {% for breadcrumb in dir_breadcrumbs %}
-      {% if forloop.counter == dir_breadcrumbs|length %}
-        {{ breadcrumb.name }}
-      {% else %}
-        <a href="{{ breadcrumb.rel_path }}#files-panel" onclick="return navigateDir('{{ breadcrumb.full_subdir }}')">{{ breadcrumb.name }}</a>&nbsp;/&nbsp;
-      {% endif %}
-    {% endfor %}
-    </div>
-  </div>
+  Folder Navigation:
+  {% spaceless %}
+    <span class="dir-breadcrumbs">
+      {% for breadcrumb in dir_breadcrumbs %}
+        {% if forloop.counter == dir_breadcrumbs|length %}
+          <span class="dir-breadcrumb-self">{{ breadcrumb.name }}</span>
+        {% else %}
+          <a href="{{ breadcrumb.rel_path }}#files-panel"
+             onclick="return navigateDir('{{ breadcrumb.full_subdir }}')"
+             class="dir-breadcrumb-up">{{ breadcrumb.name }}</a>
+          <span class="dir-breadcrumb-sep">/</span>
+        {% endif %}
+      {% endfor %}
+    </span>
+  {% endspaceless %}
 </div>
 {% if file_error %}
   <div class="alert alert-danger col-md-8" role="alert">
