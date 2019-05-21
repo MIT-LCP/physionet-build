@@ -8,6 +8,7 @@ import pytz
 
 import bleach
 import ckeditor.fields
+from html2text import html2text
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -1450,6 +1451,13 @@ class License(models.Model):
 
     def __str__(self):
         return self.name
+
+    def dua_text_content(self):
+        """
+        Returns dua_html_content as plain text. Used when adding the DUA to
+        plain text emails.
+        """
+        return html2text(self.dua_html_content)
 
 
 class DUASignature(models.Model):

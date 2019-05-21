@@ -8,6 +8,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
 from django.template import loader
 
+from project.models import License
 
 RESPONSE_ACTIONS = {0:'rejected', 1:'accepted'}
 
@@ -374,16 +375,15 @@ def mailto_supervisor(request, application):
     return mailto
 
 
-def mailto_process_credential_complete(request, application, comments=True):
+def mailto_process_credential_complete(application, comments=True):
     """
     Notify user of credentialing decision
     """
     applicant_name = application.get_full_name()
     subject = 'PhysioNet clinical database access request for {}'.format(applicant_name)
+    dua = License.objects.get(slug='physionet-credentialed-health-data-license-140')
     body = loader.render_to_string('notification/email/mailto_contact_applicant.html',
-        {'application':application, 'applicant_name':applicant_name,
-         'domain':get_current_site(request),
-         'signature':email_signature()}).replace('\n','\n> ')
+        {'application': application, 'dua': dua.dua_text_content()}).replace('\n', '\n> ')
 
     if comments:
         body = 'Dear {0},\n\n{1}\n\n{2}'.format(application.first_names, 
@@ -429,9 +429,10 @@ def credential_application_request(request, application):
     """
     applicant_name = application.get_full_name()
     subject = 'PhysioNet credentialing application notification'
+    dua = License.objects.get(slug='physionet-credentialed-health-data-license-140')
     body = loader.render_to_string('notification/email/notify_credential_request.html',
         {'application':application, 'applicant_name':applicant_name,
-         'domain':get_current_site(request),
+         'domain':get_current_site(request), 'dua':dua.dua_text_content(),
          'signature':email_signature(),
          'footer':email_footer()})
 
