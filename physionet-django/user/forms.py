@@ -8,6 +8,7 @@ from django.core.files.uploadedfile import UploadedFile
 from django.core.validators import EmailValidator
 from django.utils import timezone
 from django.utils.crypto import get_random_string
+from django.utils.translation import ugettext_lazy
 
 from .models import AssociatedEmail, User, Profile, CredentialApplication
 from .widgets import ProfilePhotoInput
@@ -87,6 +88,16 @@ class LoginForm(auth_forms.AuthenticationForm):
     )
 
     remember = forms.BooleanField(label='Remember Me', required=False)
+
+    error_messages = {
+        'invalid_login': ugettext_lazy(
+            "Please enter a correct %(username)s and password. Note that both "
+            "fields may be case-sensitive."
+        ),
+        'inactive': ugettext_lazy("This account has not been activated. Please check your "
+            "email for the activation link."),
+    }
+
 
 
 class UserChangeForm(forms.ModelForm):
