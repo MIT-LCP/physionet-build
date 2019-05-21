@@ -15,7 +15,7 @@
           type: "POST",
           url: "{% url 'users_list_search' %}",
           data: {'csrfmiddlewaretoken':csrftoken,
-                  'username':value, 
+                  'search_field':value, 
                   {% if request.path == user_list_inactive %}
                     'inactive':true,
                   {% endif %}

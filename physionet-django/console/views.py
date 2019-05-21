@@ -605,9 +605,11 @@ def users_search(request):
     """
 
     if request.method == 'POST':
-        username = request.POST['username']
+        search_field = request.POST['search_field']
 
-        users = User.objects.filter(username__icontains=username)
+        users = User.objects.filter(Q(username__icontains=search_field) |
+            Q(profile__first_names__icontains=search_field) |
+            Q(email__icontains=search_field))
         if 'inactive' in request.POST:
             users = users.filter(Q(is_active=False) |
                     Q(last_login__lt=timezone.now() 
