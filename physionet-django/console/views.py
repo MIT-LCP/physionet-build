@@ -684,7 +684,7 @@ def complete_credential_applications(request):
             if process_credential_form.is_valid():
                 application = process_credential_form.save()
                 notification.process_credential_complete(request, application, comments=False)
-                mailto = notification.mailto_process_credential_complete(request, application)
+                mailto = notification.mailto_process_credential_complete(application)
                 return render(request, 'console/generate_response_email.html',
                     {'application':application, 'mailto':mailto})
             else:
@@ -698,10 +698,10 @@ def complete_credential_applications(request):
         ).order_by('application_datetime')
 
     for a in contacted_applications:
-        a.mailto = notification.mailto_process_credential_complete(request, a, comments=False)
+        a.mailto = notification.mailto_process_credential_complete(a, comments=False)
 
     for a in not_contacted_applications:
-        a.mailto = notification.mailto_process_credential_complete(request, a, comments=False)
+        a.mailto = notification.mailto_process_credential_complete(a, comments=False)
 
     return render(request, 'console/complete_credential_applications.html',
         {'contacted_applications':contacted_applications,
