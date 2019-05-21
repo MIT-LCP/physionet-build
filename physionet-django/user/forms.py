@@ -91,8 +91,8 @@ class LoginForm(auth_forms.AuthenticationForm):
 
     error_messages = {
         'invalid_login': ugettext_lazy(
-            "Please enter a correct %(username)s and password. Note that both "
-            "fields may be case-sensitive."
+            "Please enter a correct username/email and password. Note that the password "
+            "field is case-sensitive."
         ),
         'inactive': ugettext_lazy("This account has not been activated. Please check your "
             "email for the activation link."),
