@@ -171,21 +171,24 @@ def project_home(request):
     pending_author_approvals = []
     missing_affiliations = []
     for p in projects:
-        if p.submission_status == 50 and not p.authors.get(user=user).approval_datetime:
+        if (p.submission_status == 50
+                and not p.authors.get(user=user).approval_datetime):
             pending_author_approvals.append(p)
-        if p.submission_status == 0 and p.authors.get(user=user).affiliations.count() == 0:
-            missing_affiliations.append([p,p.authors.get(user=user).creation_date])
+        if (p.submission_status == 0
+                and p.authors.get(user=user).affiliations.count() == 0):
+            missing_affiliations.append(
+                [p, p.authors.get(user=user).creation_date])
     rejected_projects = [a.project for a in archived_authors if a.project.archive_reason == 3]
 
     invitation_response_formset = InvitationResponseFormSet(
         queryset=AuthorInvitation.get_user_invitations(user))
 
     return render(request, 'project/project_home.html', {
-        'projects':projects, 'published_projects':published_projects,
-        'rejected_projects':rejected_projects, 
-        'missing_affiliations':missing_affiliations,
-        'pending_author_approvals':pending_author_approvals,
-        'invitation_response_formset':invitation_response_formset})
+        'projects': projects, 'published_projects': published_projects,
+        'rejected_projects': rejected_projects,
+        'missing_affiliations': missing_affiliations,
+        'pending_author_approvals': pending_author_approvals,
+        'invitation_response_formset': invitation_response_formset})
 
 @login_required
 def create_project(request):
