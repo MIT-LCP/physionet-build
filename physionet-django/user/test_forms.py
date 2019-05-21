@@ -53,7 +53,7 @@ class TestForms(TestCase):
     def test_login_form(self):
         self.create_test_forms(LoginForm, {'username':'admin','password':'Tester11!'},
             {'username':'admin', 'password':'wrong'})
-        self.run_test_forms({'__all__':['Please enter a correct username and password. Note that both fields may be case-sensitive.']})
+        self.run_test_forms({'__all__':['Please enter a correct username/email and password. Note that the password field is case-sensitive.']})
 
     def test_profile_form(self):
         self.create_test_forms(ProfileForm, {'first_names':'Tester Mid',
