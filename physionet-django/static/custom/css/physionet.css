@@ -450,6 +450,11 @@ a{
   }
 }
 
+.dir-breadcrumbs, .dir-breadcrumb-sep {
+  padding-left: 0.25em;
+  padding-right: 0.25em;
+}
+
 table.files-panel {
   margin: 0px;
   table-layout: fixed;
