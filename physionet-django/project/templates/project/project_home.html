@@ -30,7 +30,6 @@
       <h2>Outstanding Tasks</h2>
     </div>
     {# Here is listed all outstanging author invitations #}
-    {% if invitation_response_formset|length %}
 <!--     <div class="card-header">
       <p class="card-text"></p>
     </div> -->
@@ -43,6 +42,7 @@
           <div class="col-md-2"></div>
         </div>
       </li>
+    {% if invitation_response_formset|length %}
       <form action="" method="post">
         {{ invitation_response_formset.management_form }}
         {% csrf_token %}
