@@ -1,0 +1,11 @@
+{% extends "project/file_view.html" %}
+
+{% block file_content %}
+<img id="image" src="{{ file.raw_url }}" alt="Image: {{ file.basename }}">
+{% endblock %}
+
+{% block local_css %}
+<style>
+#image { max-width: 100%; }
+</style>
+{% endblock %}
