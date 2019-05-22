@@ -953,7 +953,8 @@ def serve_active_project_file(request, project_slug, file_name, **kwargs):
     """
     file_path = os.path.join(kwargs['project'].file_root(), file_name)
     try:
-        return serve_file(file_path)
+        attach = ('download' in request.GET)
+        return serve_file(file_path, attach=attach)
     except IsADirectoryError:
         return redirect(request.path + '/')
 
@@ -1252,7 +1253,8 @@ def serve_published_project_file(request, project_slug, version,
     if project.has_access(request.user):
         file_path = os.path.join(project.file_root(), full_file_name)
         try:
-            return serve_file(file_path)
+            attach = ('download' in request.GET)
+            return serve_file(file_path, attach=attach)
         except IsADirectoryError:
             return redirect(request.path + '/')
         except FileNotFoundError:
