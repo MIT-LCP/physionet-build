@@ -651,9 +651,15 @@ def credential_applications(request):
     Ongoing credential applications
     """
     applications = CredentialApplication.objects.filter(status=0)
-    applications.order_by('reference_contact_datetime')
+
+    contacted_applications =  applications.filter(reference_contact_datetime__isnull=False
+        ).order_by('reference_contact_datetime')
+    not_contacted_applications =  applications.filter(reference_contact_datetime__isnull=True
+        ).order_by('application_datetime')
+
     return render(request, 'console/credential_applications.html',
-        {'applications':applications})
+        {'contacted_applications':contacted_applications,
+        'not_contacted_applications':not_contacted_applications})
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
