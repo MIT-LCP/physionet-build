@@ -22,6 +22,12 @@ pre {
     border: 0.25pt dotted black;
   }
 }
+pre.plain {
+  background-color: transparent;
+  border: none;
+  padding: 0px;
+  margin: 0px;
+}
 
 /* Main content: tables */
 table {
