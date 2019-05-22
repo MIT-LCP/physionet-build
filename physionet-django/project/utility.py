@@ -216,3 +216,74 @@ def get_form_errors(form):
     for field in form.errors:
         all_errors += form.errors[field]
     return all_errors
+
+
+RAW_CONTENT_TYPE = {
+    '.html': 'text/html',
+    '.htm': 'text/html',
+
+    '.gif': 'image/gif',
+    '.jpeg': 'image/jpeg',
+    '.jpg': 'image/jpeg',
+    '.png': 'image/png',
+    '.tif': 'image/tiff',
+    '.tiff': 'image/tiff',
+    '.wbmp': 'image/vnd.wap.wbmp',
+    '.ico': 'image/x-icon',
+    '.jng': 'image/x-jng',
+    '.bmp': 'image/x-ms-bmp',
+    '.svg': 'image/svg+xml',
+    '.svgz': 'image/svg+xml',
+    '.webp': 'image/webp',
+
+    '.pdf': 'application/pdf',
+
+    '.zip': 'application/zip',
+    '.tar': 'application/x-tar',
+    '.gz': 'application/gzip',
+    '.bz2': 'application/x-bzip2',
+    '.xz': 'application/x-xz',
+
+    '.16a': 'application/octet-stream',
+    '.16a': 'application/octet-stream',
+    '.abp': 'application/octet-stream',
+    '.al': 'application/octet-stream',
+    '.all': 'application/octet-stream',
+    '.apn': 'application/octet-stream',
+    '.ari': 'application/octet-stream',
+    '.arou': 'application/octet-stream',
+    '.atr': 'application/octet-stream',
+    '.cvp': 'application/octet-stream',
+    '.dat': 'application/octet-stream',
+    '.ecg': 'application/octet-stream',
+    '.edf': 'application/octet-stream',
+    '.hyp': 'application/octet-stream',
+    '.hypn': 'application/octet-stream',
+    '.in': 'application/octet-stream',
+    '.let': 'application/octet-stream',
+    '.not': 'application/octet-stream',
+    '.oart': 'application/octet-stream',
+    '.pap': 'application/octet-stream',
+    '.ple': 'application/octet-stream',
+    '.pu': 'application/octet-stream',
+    '.pu0': 'application/octet-stream',
+    '.pu1': 'application/octet-stream',
+    '.q1c': 'application/octet-stream',
+    '.q2c': 'application/octet-stream',
+    '.qrs': 'application/octet-stream',
+    '.qrsc': 'application/octet-stream',
+    '.qt1': 'application/octet-stream',
+    '.qt2': 'application/octet-stream',
+    '.rec': 'application/octet-stream',
+    '.resp': 'application/octet-stream',
+    '.rit': 'application/octet-stream',
+    '.st': 'application/octet-stream',
+    '.st-': 'application/octet-stream',
+    '.str': 'application/octet-stream',
+    '.trigger': 'application/octet-stream',
+}
+
+
+def file_content_type(filename):
+    (_, ext) = os.path.splitext(filename)
+    return RAW_CONTENT_TYPE.get(ext, 'text/plain')
