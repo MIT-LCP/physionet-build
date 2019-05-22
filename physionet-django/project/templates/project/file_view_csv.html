@@ -1,0 +1,36 @@
+{% extends "project/file_view.html" %}
+
+{% block file_content %}
+<table class="data-table table-striped">
+  {% if header_row %}
+  <thead>
+    <tr>{% for col in header_row %}<th>{{ col }}</th>{% endfor %}</tr>
+  </thead>
+  {% endif %}
+  <tbody>
+    {% for row in data_rows %}
+    <tr>{% for col in row %}<td>{{ col }}</td>{% endfor %}</tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
+
+{% block file_footer %}
+  {% if truncated_rows %}
+    <div class="card-footer text-center">
+      <strong>Only the first {{ truncated_rows }} rows are shown.</strong>
+      <a href="{{ file_download_url }}">Click here to download the
+        complete file.</a>
+    </div>
+  {% endif %}
+{% endblock %}
+
+{% block local_css %}
+<style>
+  .data-table {
+    margin: 0px;
+    background-color: #fff;
+    border: 1px solid #dfdfdf;
+  }
+</style>
+{% endblock %}
