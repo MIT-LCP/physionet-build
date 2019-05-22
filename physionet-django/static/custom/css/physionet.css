@@ -274,7 +274,7 @@ a{
   text-align: right;
 }
 
-.container{
+.container, .container-fluid{
   margin-top: 1.5em;
   margin-bottom: 1.5em;
 }
