@@ -6,6 +6,7 @@ from urllib.parse import quote_plus
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import redirect_to_login
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.shortcuts import get_current_site
@@ -21,6 +22,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html, format_html_join
 
+from project.fileviews import display_project_file
 from project import forms
 from project.models import (Affiliation, Author, AuthorInvitation,
     ActiveProject, PublishedProject, StorageRequest, Reference,
@@ -957,6 +959,15 @@ def serve_active_project_file(request, project_slug, file_name, **kwargs):
 
 
 @project_auth(auth_mode=2)
+def display_active_project_file(request, project_slug, file_name, **kwargs):
+    """
+    Display a file in an active project. file_name is file path relative
+    to the project's file root.
+    """
+    return display_project_file(request, kwargs['project'], file_name)
+
+
+@project_auth(auth_mode=2)
 def preview_files_panel(request, project_slug, **kwargs):
     """
     Return the file panel for the project, along with the forms used to
@@ -1246,6 +1257,24 @@ def serve_published_project_file(request, project_slug, version,
             return redirect(request.path + '/')
         except FileNotFoundError:
             raise Http404()
+    raise PermissionDenied()
+
+
+def display_published_project_file(request, project_slug, version,
+                                   full_file_name):
+    """
+    Display a file in a published project. full_file_name is the file
+    path relative to the project's file root.
+    """
+    try:
+        project = PublishedProject.objects.get(slug=project_slug,
+                                               version=version)
+    except ObjectDoesNotExist:
+        raise Http404()
+    if project.has_access(request.user):
+        return display_project_file(request, project, full_file_name)
+    if not request.user.is_authenticated:
+        return redirect_to_login(request.get_full_path())
     raise PermissionDenied()
 
 
