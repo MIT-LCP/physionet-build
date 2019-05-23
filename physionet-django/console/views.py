@@ -12,7 +12,7 @@ from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
-from django.db.models import Q, CharField, Value
+from django.db.models import Q, CharField, Value, IntegerField
 from background_task import background
 
 from notification.models import News
@@ -650,10 +650,25 @@ def credential_applications(request):
     """
     Ongoing credential applications
     """
-    applications = CredentialApplication.objects.filter(status=0)
-    applications.order_by('reference_contact_datetime')
+    applications = CredentialApplication.objects.filter(status=0).annotate(
+        time_elapsed=Value(0, IntegerField()))
+
+    temp = []
+    for item in applications:
+        if item.reference_contact_datetime:
+            if item.reference_response_datetime:
+                item.time_elapsed = (timezone.now() - item.reference_response_datetime).days
+            else:
+                item.time_elapsed = (timezone.now() - item.reference_contact_datetime).days
+            temp.append([1, item.reference_contact_datetime, item])
+        else:
+            item.time_elapsed = (timezone.now() - item.application_datetime).days
+            temp.append([0, item.application_datetime, item])
+
+    applications = [item[2] for item in sorted(temp)]
+
     return render(request, 'console/credential_applications.html',
-        {'applications':applications})
+        {'applications': applications})
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
