@@ -665,7 +665,7 @@ def credential_applications(request):
             item.time_elapsed = (timezone.now() - item.application_datetime).days
             temp.append([0, item.application_datetime, item])
 
-    applications = (item[2] for item in sorted(temp))
+    applications = [item[2] for item in sorted(temp)]
 
     return render(request, 'console/credential_applications.html',
         {'applications': applications})
