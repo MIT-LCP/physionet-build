@@ -144,8 +144,8 @@ class CreateFolderForm(ActiveProjectFilesForm):
     """
     Form for creating a new folder in a directory
     """
-    folder_name = forms.CharField(max_length=50, required=False,
-        validators=[validators.validate_filename])
+    folder_name = forms.CharField(max_length=validators.MAX_FILENAME_LENGTH,
+        required=False, validators=[validators.validate_filename])
 
     def clean(self):
         """
@@ -204,8 +204,8 @@ class RenameItemForm(EditItemsForm):
     """
     # The name is 'items' to override the parent class field.
     items = forms.ChoiceField(required=False)
-    new_name = forms.CharField(max_length=50, required=False,
-        validators=[validators.validate_filename])
+    new_name = forms.CharField(max_length=validators.MAX_FILENAME_LENGTH,
+        required=False, validators=[validators.validate_filename])
 
     field_order = ['subdir', 'items', 'new_name']
 
