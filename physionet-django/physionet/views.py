@@ -7,7 +7,8 @@ from django.contrib.contenttypes.models import ContentType
 from notification.models import News
 import notification.utility as notification
 from project.models import (License, PublishedProject, Author, ActiveProject,
-                            Metadata)
+                            Metadata, PublishedTopic)
+
 from user.forms import ContactForm
 from project import forms
 
@@ -112,7 +113,22 @@ def database_overview(request):
     """
     Temporary content overview
     """
-    return render(request, 'about/database_index.html')
+    topics = PublishedTopic.objects.filter(projects__is_latest_version=True,
+                                           projects__resource_type=0)
+
+    projects = {}
+    for t in topics:
+        result = PublishedProject.objects.filter(is_latest_version=True,
+                                                 resource_type=0,
+                                                 topics__description=t)
+        # if too few topics, group as 'Miscellaneous'
+        if len(result) > 1:
+            projects[t.description] = result
+        else:
+            projects['Miscellaneous'] = result
+
+    return render(request, 'about/database_index.html',
+                  {'projects': projects})
 
 
 def software_overview(request):

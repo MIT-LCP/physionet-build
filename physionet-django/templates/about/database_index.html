@@ -19,34 +19,27 @@ PhysioNet Databases
     <div class="main-side">
 
       <div class="card">
-        <h2 class="card-header">Databases</h2>
+        <h2 class="card-header">Topics</h2>
         <div class="card-body">
 
-            <!-- Databases -->
-            <ul>
-              <li><a href="#lightwave">LightWAVE</a></li>
-              <li><a href="#clinical">Clinical</a></li>
-              <li><a href="#waveform">Waveform</a></li>
-              <li>
-                <ul>
-                <li><a href="#multi">Multiparameter</a></li>
-                <li><a href="#ecg">ECG</a></li>
-                <li><a href="#rr">RR Interval</a></li>
-                <li><a href="#cv">Other Cardio</a></li>
-                <li><a href="#gait">Gait and Balance</a></li>
-                <li><a href="#neuro">Neuroelectric</a></li>
-                <li><a href="#image">Image</a></li>
-                <li><a href="#synthetic">Synthetic</a></li>
-                <li><a href="#miscellaneous">Miscellaneous</a></li>
-              </ul>
-            </li>
-          </ul>
+        <!-- Databases -->
+        <ul>
+        {% for topic in projects %}
+          {% if topic|length < 4 %}
+          <li><a href="#{{ topic }}">{{ topic|upper }}</a></li>
+          {% else %}
+          <li><a href="#{{ topic }}">{{ topic|title }}</a></li>
+          {% endif %}
+        {% endfor %}
+        </ul>
+
         </div>
       </div>
     </div>
     <div class="main-content">
-      <div>{% include "about/database_content.html" %}</div>
+      <div>{% include "about/database_content.html" with projects=projects %}</div>
     </div>
+
   </div>
 </div>
 
