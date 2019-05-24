@@ -16,13 +16,24 @@ def validate_filename(value):
     allowed = ['h', 'hi1', 'hi1.txt', '1.1', 'hi1.x', 'hi_1', '1-hi.1']
     disallowed = ['', '!', 'hi!', '.hi', 'hi.', 'hi..hi', '.', '..']
     """
-    if (not _good_name_pattern.fullmatch(value)
-            or _bad_name_pattern.match(value)
-            or '..' in value):
-        raise ValidationError('Invalid filename: "%(filename)s" ' \
-            'Filenames may only contain letters, numbers, dashes, underscores, ' \
-            'and dots. They may not contain adjacent dots, begin with, ' \
-            'or end with a dot.', params={'filename':value})
+    if not _good_name_pattern.fullmatch(value):
+        raise ValidationError(
+            'Invalid file name "%(filename)s". '
+            'File names may only contain letters, numbers, dashes (-), dots '
+            '(.), and underscores (_). They may not begin or end with a dot '
+            'or dash.',
+            params={'filename': value})
+    if '..' in value:
+        raise ValidationError(
+            'Invalid file name "%(filename)s". '
+            'File names may not contain two consecutive dots.',
+            params={'filename': value})
+    if _bad_name_pattern.match(value):
+        raise ValidationError(
+            'Invalid file name "%(filename)s". '
+            'File names CON, NUL, AUX, PRN, COM0-COM9, LPT0-LPT9, or any of '
+            'these followed by a dot and file extension, are not allowed.',
+            params={'filename': value})
 
 
 def validate_doi(value):
