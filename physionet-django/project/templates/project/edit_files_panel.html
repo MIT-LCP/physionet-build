@@ -9,15 +9,15 @@
       <div class="card-header">
         Folder Navigation:
         {% spaceless %}
-          <span class="path-breadcrumbs">
+          <span class="dir-breadcrumbs">
             {% for breadcrumb in dir_breadcrumbs %}
               {% if forloop.counter == dir_breadcrumbs|length %}
-                <span class="path-breadcrumb-self">{{ breadcrumb.name }}</span>
+                <span class="dir-breadcrumb-self">{{ breadcrumb.name }}</span>
               {% else %}
                 <a href="{{ breadcrumb.rel_path }}#files-panel"
                    onclick="return navigateDir('{{ breadcrumb.full_subdir }}')"
-                   class="path-breadcrumb-up">{{ breadcrumb.name }}</a>
-                <span class="path-breadcrumb-sep">/</span>
+                   class="dir-breadcrumb-up">{{ breadcrumb.name }}</a>
+                <span class="dir-breadcrumb-sep">/</span>
               {% endif %}
             {% endfor %}
           </span>
