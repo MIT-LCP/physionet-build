@@ -16,9 +16,11 @@
   {% endspaceless %}
 </div>
 {% if file_error %}
-  <div class="alert alert-danger col-md-8" role="alert">
+<div class="card-body">
+  <div class="alert alert-danger" role="alert">
     {{ file_error|safe }}
   </div>
+</div>
 {% else %}
 <table class="files-panel">
   <col class="files-panel-name"></col>
