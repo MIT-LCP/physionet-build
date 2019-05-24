@@ -3,6 +3,11 @@ import re
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext as _
 
+_good_name_pattern = re.compile(r'\w+([\w\-\.]*\w+)?', re.ASCII)
+_bad_name_pattern = re.compile(r'^(?:con|nul|aux|prn|com\d|lpt\d)(?:\.|$)',
+                               re.ASCII|re.IGNORECASE)
+
+
 def validate_filename(value):
     """
     Validate file/folder names.
@@ -11,7 +16,9 @@ def validate_filename(value):
     allowed = ['h', 'hi1', 'hi1.txt', '1.1', 'hi1.x', 'hi_1', '1-hi.1']
     disallowed = ['', '!', 'hi!', '.hi', 'hi.', 'hi..hi', '.', '..']
     """
-    if not re.fullmatch(r'\w+([\w\-\.]*\w+)?', value) or '..' in value:
+    if (not _good_name_pattern.fullmatch(value)
+            or _bad_name_pattern.match(value)
+            or '..' in value):
         raise ValidationError('Invalid filename: "%(filename)s" ' \
             'Filenames may only contain letters, numbers, dashes, underscores, ' \
             'and dots. They may not contain adjacent dots, begin with, ' \
