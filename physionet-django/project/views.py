@@ -815,6 +815,8 @@ def project_files_panel(request, project_slug, **kwargs):
 
     (display_files, display_dirs, dir_breadcrumbs, parent_dir,
      file_error) = get_project_file_info(project=project, subdir=subdir)
+    file_warning = get_project_file_warning(display_files, display_dirs,
+                                              subdir)
 
     (upload_files_form, create_folder_form, rename_item_form,
         move_items_form, delete_items_form) = get_file_forms(project, subdir)
@@ -823,6 +825,7 @@ def project_files_panel(request, project_slug, **kwargs):
         {'project':project, 'subdir':subdir, 'file_error':file_error,
          'dir_breadcrumbs':dir_breadcrumbs, 'parent_dir':parent_dir,
          'display_files':display_files, 'display_dirs':display_dirs,
+         'file_warning':file_warning,
          'upload_files_form':upload_files_form,
          'create_folder_form':create_folder_form,
          'rename_item_form':rename_item_form,
@@ -914,6 +917,8 @@ def project_files(request, project_slug, subdir='', **kwargs):
 
     (display_files, display_dirs, dir_breadcrumbs, _,
      file_error) = get_project_file_info(project=project, subdir=subdir)
+    file_warning = get_project_file_warning(display_files, display_dirs,
+                                              subdir)
 
     return render(request, 'project/project_files.html', {'project':project,
         'individual_size_limit':utility.readable_size(
@@ -926,7 +931,8 @@ def project_files(request, project_slug, subdir='', **kwargs):
         'create_folder_form':create_folder_form,
         'rename_item_form':rename_item_form, 'move_items_form':move_items_form,
         'delete_items_form':delete_items_form, 'is_submitting':is_submitting,
-        'dir_breadcrumbs':dir_breadcrumbs, 'file_error':file_error})
+        'dir_breadcrumbs':dir_breadcrumbs, 'file_error':file_error,
+        'file_warning':file_warning})
 
 
 @project_auth(auth_mode=2)
@@ -957,12 +963,14 @@ def preview_files_panel(request, project_slug, **kwargs):
     (display_files, display_dirs, dir_breadcrumbs, parent_dir,
      file_error) = get_project_file_info(project=project, subdir=subdir)
     files_panel_url = reverse('preview_files_panel', args=(project.slug,))
+    file_warning = get_project_file_warning(display_files, display_dirs,
+                                              subdir)
 
     return render(request, 'project/files_panel.html',
         {'project':project, 'subdir':subdir, 'file_error':file_error,
          'dir_breadcrumbs':dir_breadcrumbs, 'parent_dir':parent_dir,
          'display_files':display_files, 'display_dirs':display_dirs,
-         'files_panel_url':files_panel_url})
+         'files_panel_url':files_panel_url, 'file_warning':file_warning})
 
 
 @project_auth(auth_mode=2)
@@ -995,6 +1003,8 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     (display_files, display_dirs, dir_breadcrumbs, _,
      file_error) = get_project_file_info(project=project, subdir=subdir)
     files_panel_url = reverse('preview_files_panel', args=(project.slug,))
+    file_warning = get_project_file_warning(display_files, display_dirs,
+                                              subdir)
 
     return render(request, 'project/project_preview.html', {'project':project,
         'display_files':display_files, 'display_dirs':display_dirs,
@@ -1003,7 +1013,8 @@ def project_preview(request, project_slug, subdir='', **kwargs):
         'publication':publication, 'topics':topics, 'languages':languages,
         'passes_checks':passes_checks, 'dir_breadcrumbs':dir_breadcrumbs,
         'files_panel_url':files_panel_url, 'subdir':subdir,
-        'file_error':file_error, 'parent_projects':parent_projects})
+        'file_error':file_error, 'file_warning':file_warning,
+        'parent_projects':parent_projects})
 
 
 @project_auth(auth_mode=2)
