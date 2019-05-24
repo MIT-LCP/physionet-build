@@ -3,6 +3,8 @@ import re
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext as _
 
+MAX_FILENAME_LENGTH = 50
+
 _good_name_pattern = re.compile(r'\w+([\w\-\.]*\w+)?', re.ASCII)
 _bad_name_pattern = re.compile(r'^(?:con|nul|aux|prn|com\d|lpt\d)(?:\.|$)',
                                re.ASCII|re.IGNORECASE)
@@ -16,6 +18,11 @@ def validate_filename(value):
     allowed = ['h', 'hi1', 'hi1.txt', '1.1', 'hi1.x', 'hi_1', '1-hi.1']
     disallowed = ['', '!', 'hi!', '.hi', 'hi.', 'hi..hi', '.', '..']
     """
+    if len(value) > MAX_FILENAME_LENGTH:
+        raise ValidationError(
+            'Invalid file name "%(filename)s". '
+            'File names may be at most %(limit)s characters long.',
+            params={'filename': value, 'limit': MAX_FILENAME_LENGTH})
     if not _good_name_pattern.fullmatch(value):
         raise ValidationError(
             'Invalid file name "%(filename)s". '
