@@ -19,6 +19,7 @@ from django.shortcuts import render, redirect
 from django.template import loader
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.html import format_html, format_html_join
 
 from project import forms
 from project.models import (Affiliation, Author, AuthorInvitation,
@@ -26,6 +27,7 @@ from project.models import (Affiliation, Author, AuthorInvitation,
     ArchivedProject, ProgrammingLanguage, Topic, Contact, Publication,
     PublishedAuthor, EditLog, CopyeditLog, DUASignature, CoreProject, GCP)
 from project import utility
+from project.validators import validate_filename
 import notification.utility as notification
 from physionet.utility import serve_file
 from user.forms import ProfileForm, AssociatedEmailChoiceForm
@@ -752,6 +754,51 @@ def get_project_file_info(project, subdir):
     parent_dir = os.path.split(subdir)[0]
 
     return display_files, display_dirs, dir_breadcrumbs, parent_dir, file_error
+
+
+def get_project_file_warning(display_files, display_dirs, subdir):
+    """
+    Check for invalid or otherwise problematic file names.
+    """
+    lower_names = {}
+    bad_names = []
+    case_conflicts = []
+    for l in (display_dirs, display_files):
+        for f in l:
+            try:
+                validate_filename(f.name)
+            except ValidationError:
+                bad_names.append(f.name)
+            else:
+                lower_name = f.name.lower()
+                try:
+                    other_name = lower_names[lower_name]
+                    case_conflicts.append((other_name, f.name))
+                except KeyError:
+                    lower_names[lower_name] = f.name
+    if bad_names or case_conflicts:
+        text = 'One or more files must be renamed before publication:<ul>'
+        if bad_names:
+            text += '<li>'
+            if len(bad_names) == 1:
+                text += 'Invalid file name: '
+            else:
+                text += 'Invalid file names: '
+            text += format_html_join(', ', '<strong>{}</strong>',
+                                     ([n] for n in bad_names[0:4]))
+            if len(bad_names) > 4:
+                text += ', and {} more'.format(len(bad_names) - 4)
+            text += '</li>'
+        if case_conflicts:
+            text += '<li>'
+            text += 'Conflicting file names: '
+            text += format_html('<strong>{}</strong> and <strong>{}</strong>',
+                                case_conflicts[0][0], case_conflicts[0][1])
+            if len(case_conflicts) > 1:
+                text += ', and {} more'.format(len(case_conflicts) - 1)
+        text += '</ul>'
+        return text
+
 
 @project_auth(auth_mode=2)
 def project_files_panel(request, project_slug, **kwargs):
