@@ -175,9 +175,7 @@ class CreateFolderForm(ActiveProjectFilesForm):
 
 class EditItemsForm(ActiveProjectFilesForm):
     """
-    Inherited form for manipulating existing files/directories.
-    Rename, edit, delete. This is also the form for deleting items.
-
+    Abstract form for manipulating existing files/directories.
     """
     # This field's choices depend on the `subdir` field
     items = forms.MultipleChoiceField()
@@ -193,6 +191,12 @@ class EditItemsForm(ActiveProjectFilesForm):
         existing_items = utility.list_items(self.file_dir, return_separate=False)
         self.fields['items'].choices = tuple((item, item) for item in existing_items)
         return self.cleaned_data['subdir']
+
+
+class DeleteItemsForm(EditItemsForm):
+    """
+    Form for deleting existing files/directories.
+    """
 
     def perform_action(self):
         """

@@ -728,7 +728,7 @@ def get_file_forms(project, subdir):
     create_folder_form = forms.CreateFolderForm(project=project)
     rename_item_form = forms.RenameItemForm(project=project)
     move_items_form = forms.MoveItemsForm(project=project, subdir=subdir)
-    delete_items_form = forms.EditItemsForm(project=project)
+    delete_items_form = forms.DeleteItemsForm(project=project)
 
     return (upload_files_form, create_folder_form, rename_item_form,
             move_items_form, delete_items_form)
@@ -874,7 +874,7 @@ def process_files_post(request, project):
         form = forms.MoveItemsForm(project=project, data=request.POST)
         subdir = process_items(request, form)
     elif 'delete_items' in request.POST:
-        form = forms.EditItemsForm(project=project, data=request.POST)
+        form = forms.DeleteItemsForm(project=project, data=request.POST)
         subdir = process_items(request, form)
 
     return subdir
