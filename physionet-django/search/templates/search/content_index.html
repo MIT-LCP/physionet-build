@@ -84,8 +84,6 @@ PhysioNet Index
   });
 
   $(".nselected").html($('.resource .row input:checked').length + ' selected');
-  console.log('calc(100% - ' + $('.nselected').width() + ')');
-  $(".resource .row").css('width', $('.nselected').width() + 40 + 'px');
   $(".resource .row input").click(function(){
     $('.nselected').html($('.resource .row input:checked').length + ' selected')
   });

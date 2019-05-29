@@ -90,20 +90,14 @@
 	display: none;
 }
 
-.resource{
+.resource, .sort label{
 	padding: 6px !important;
-	position: relative;
 }
 
 .resource .row{
 	margin: 0;
-	position: absolute;
-	top: 100%;
-	right: 0;
-	border: 1px solid #4D90FE;
 	width: 100%;
-	padding: 0 5px !important;
-	background: white;
+	padding-top: 10px !important;
 }
 
 .resource .row label{
