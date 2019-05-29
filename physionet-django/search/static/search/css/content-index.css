@@ -72,7 +72,7 @@
 	height: initial;
 	padding-left: 8px !important;
 	min-height: 2.6em;
-	vertical-align: top;
+	vertical-align: text-top;
 }
 
 .sort select{
@@ -90,7 +90,7 @@
 	display: none;
 }
 
-.resource, .sort label{
+.resource{
 	padding: 6px !important;
 }
 
