@@ -60,3 +60,96 @@
 .pagination li:last-of-type{
 	display: inline-block;
 }
+
+.search-options, .search-options select{
+	font-size: 0.8rem;
+}
+
+.search-options > div{
+	display: inline-block;
+	border: 1px silver solid;
+	border-radius: 5px;
+	height: initial;
+	padding-left: 8px !important;
+	min-height: 2.6em;
+	vertical-align: top;
+}
+
+.sort select{
+	border: 0;
+	padding-left: 5px;
+}
+
+.sort .row{
+	width: unset;
+	display: inline-block;
+	margin: 0;
+}
+
+.row > label{
+	display: none;
+}
+
+.resource{
+	padding: 6px !important;
+	position: relative;
+}
+
+.resource .row{
+	margin: 0;
+	position: absolute;
+	top: 100%;
+	right: 0;
+	border: 1px solid #4D90FE;
+	width: 100%;
+	padding: 0 5px !important;
+	background: white;
+}
+
+.resource .row label{
+	margin: 0;
+}
+
+.resource ul{
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.resource > label{
+	margin: 0;
+	-webkit-appearance: none;
+	background-color: white;
+	background-image: 
+	linear-gradient(45deg, transparent 50%, black 50%),
+	linear-gradient(135deg, black 50%, transparent 50%);
+	background-position:
+	calc(100% - 15px) 0.6em,
+	calc(100% - 10px) 0.6em;
+	background-size:
+	5px 6px,
+	5px 6px;
+	background-repeat: no-repeat;
+	padding-right: 25px;
+}
+
+#resource-check{
+	display: none;
+}
+
+#resource-check + div{
+	display: none;
+}
+
+#resource-check:checked + div{
+	display: block;
+}
+
+.nselected{
+	color: grey;
+	padding-left: 5px;
+}
+
+.search-card .col-md-10{
+	margin: 0;
+}

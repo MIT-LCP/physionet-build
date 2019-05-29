@@ -16,26 +16,23 @@ PhysioNet Index
     <form method="GET" action="" class="">
       <div class="card">
         <h2 class="card-header">Search</h2>
-        <div class="card-body no-pd">
+        <div class="card-body no-pd search-card">
             {% include "inline_form_snippet.html" with form=form_topic %}
+            <div class="search-options">
+              <div class="sort">
+                Sort by
+                <span>{% include "inline_form_snippet.html" with form=form_order %}</span>
+              </div>
+              <div class="resource">
+                <label for='resource-check'>
+                  Resource type
+                  <span class="nselected">&nbsp;</span>
+                </label>
+                <input type="checkbox" id="resource-check">
+                {% include "inline_form_snippet.html" with form=form_type %}
+              </div>
+            </div>
         </div>
-      </div>
-      <div class="card my-4">
-        <h2 class="card-header">Resource type</h2>
-        <div class="card-body no-pd resource-search" id="type-check">
-            {% include "inline_form_snippet.html" with form=form_type %}
-            <a id="selectall" href="#">Select all</a>
-        </div>
-      </div>
-      <div class="card my-4">
-        <h2 class="card-header">Sort</h2>
-        <div class="card-body no-pd">
-            {% include "inline_form_snippet.html" with form=form_order %}
-        </div>
-      </div>
-      <hr>
-      <div style="text-align: center;">
-        <button class="btn btn-primary btn-rsp" type="submit">Apply</button>
       </div>
     </form>
     </div><div class="main-content">
@@ -78,6 +75,21 @@ PhysioNet Index
 
 {% block local_js_bottom %}
 <script>
+  $("#resource-check").change(function() {
+    $(document).click(function(e){
+      if ($('.resource').is(e.target) || $('.resource').has(e.target).length > 0) return; 
+      $('#resource-check').prop("checked", false);
+      $(document).off('click');
+    })
+  });
+
+  $(".nselected").html($('.resource .row input:checked').length + ' selected');
+  console.log('calc(100% - ' + $('.nselected').width() + ')');
+  $(".resource .row").css('width', $('.nselected').width() + 40 + 'px');
+  $(".resource .row input").click(function(){
+    $('.nselected').html($('.resource .row input:checked').length + ' selected')
+  });
+
   $('#selectall').click(function(){ $('#type-check').find('input').prop('checked', true); return false; });
 </script>
 {% endblock %}
