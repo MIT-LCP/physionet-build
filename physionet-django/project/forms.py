@@ -190,7 +190,14 @@ class DeleteItemsForm(EditItemsForm):
         Delete the items
         """
         errors = ErrorList()
-        utility.remove_items([os.path.join(self.file_dir, i) for i in self.cleaned_data['items']])
+        for item in self.cleaned_data['items']:
+            path = os.path.join(self.file_dir, item)
+            try:
+                utility.remove_items([path])
+            except OSError as e:
+                errors.append(format_html(
+                    'Unable to delete <i>{}</i>',
+                    os.path.relpath(e.filename or path, self.file_dir)))
         return 'Your items have been deleted', errors
 
 
