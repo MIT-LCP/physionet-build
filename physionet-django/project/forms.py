@@ -56,7 +56,8 @@ class ActiveProjectFilesForm(forms.Form):
     and create folders, move, rename, delete items.
     """
     # The working subdirectory relative to the project root
-    subdir = forms.CharField(widget=forms.HiddenInput(), required=False)
+    subdir = forms.CharField(widget=forms.HiddenInput(), required=False,
+                             validators=[validators.validate_subdir])
 
     def __init__(self, project, *args, **kwargs):
         super(ActiveProjectFilesForm, self).__init__(*args, **kwargs)
