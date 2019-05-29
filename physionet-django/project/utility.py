@@ -1,4 +1,5 @@
 import datetime
+import errno
 import os
 import shutil
 import pdb
@@ -130,6 +131,19 @@ def clear_directory(directory):
     Delete all files and folders in a directory.
     """
     remove_items(os.path.join(directory, i) for i in os.listdir(directory))
+
+def rename_file(old_path, new_path):
+    """
+    Rename a file, without overwriting an existing file.
+
+    If the destination path already exists, this will attempt to raise
+    a FileExistsError.  This is not guaranteed to work correctly in
+    all cases.
+    """
+    if os.path.exists(new_path):
+        raise FileExistsError(errno.EEXIST, os.strerror(errno.EEXIST),
+                              old_path, new_path)
+    os.rename(old_path, new_path)
 
 def move_items(items, target_folder):
     """
