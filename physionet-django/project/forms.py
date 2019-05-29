@@ -4,6 +4,7 @@ import pdb
 import re
 
 from django import forms
+from django.forms.utils import ErrorList
 from django.contrib.contenttypes.forms import BaseGenericInlineFormSet
 from django.db.models.functions import Lower
 from django.template.defaultfilters import slugify
@@ -135,10 +136,11 @@ class UploadFilesForm(ActiveProjectFilesForm):
         """
         Upload the files
         """
+        errors = ErrorList()
         for file in self.files.getlist('file_field'):
             utility.write_uploaded_file(file=file,
                 write_file_path=os.path.join(self.file_dir, file.name))
-        return 'Your files have been uploaded'
+        return 'Your files have been uploaded', errors
 
 
 class CreateFolderForm(ActiveProjectFilesForm):
@@ -166,8 +168,9 @@ class CreateFolderForm(ActiveProjectFilesForm):
         """
         Create the folder
         """
+        errors = ErrorList()
         os.mkdir(os.path.join(self.file_dir, self.cleaned_data['folder_name']))
-        return 'Your folder has been created'
+        return 'Your folder has been created', errors
 
 
 class EditItemsForm(ActiveProjectFilesForm):
@@ -195,8 +198,9 @@ class EditItemsForm(ActiveProjectFilesForm):
         """
         Delete the items
         """
+        errors = ErrorList()
         utility.remove_items([os.path.join(self.file_dir, i) for i in self.cleaned_data['items']])
-        return 'Your items have been deleted'
+        return 'Your items have been deleted', errors
 
 
 class RenameItemForm(EditItemsForm):
@@ -229,9 +233,10 @@ class RenameItemForm(EditItemsForm):
         """
         Rename the items
         """
+        errors = ErrorList()
         os.rename(os.path.join(self.file_dir, self.cleaned_data['items']),
             os.path.join(self.file_dir, self.cleaned_data['new_name']))
-        return 'Your item has been renamed'
+        return 'Your item has been renamed', errors
 
 
 class MoveItemsForm(EditItemsForm):
@@ -307,9 +312,10 @@ class MoveItemsForm(EditItemsForm):
         """
         Move the items into the selected directory
         """
+        errors = ErrorList()
         utility.move_items([os.path.join(self.file_dir, i) for i in self.cleaned_data['items']],
             os.path.join(self.file_dir, self.cleaned_data['destination_folder']))
-        return 'Your items have been moved'
+        return 'Your items have been moved', errors
 
 
 class CreateProjectForm(forms.ModelForm):
