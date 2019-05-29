@@ -143,26 +143,20 @@ class CreateFolderForm(ActiveProjectFilesForm):
     folder_name = forms.CharField(max_length=validators.MAX_FILENAME_LENGTH,
         required=False, validators=[validators.validate_filename])
 
-    def clean(self):
-        """
-        Check for name clash with existing files/folders in the directory
-        """
-        if self.errors:
-            return
-
-        folder_name = self.cleaned_data['folder_name']
-        self.taken_names = utility.list_items(self.file_dir, return_separate=False)
-
-        if folder_name in self.taken_names:
-            raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
-                code='clashing_name', params={'taken_name':folder_name})
-
     def perform_action(self):
         """
         Create the folder
         """
         errors = ErrorList()
-        os.mkdir(os.path.join(self.file_dir, self.cleaned_data['folder_name']))
+        name = self.cleaned_data['folder_name']
+        try:
+            os.mkdir(os.path.join(self.file_dir, name))
+        except FileExistsError:
+            errors.append(format_html(
+                'Item named <i>{}</i> already exists', name))
+        except OSError:
+            errors.append(format_html(
+                'Unable to create <i>{}</i>', name))
         return 'Your folder has been created', errors
 
 
