@@ -10,6 +10,7 @@ from django.db.models.functions import Lower
 from django.template.defaultfilters import slugify
 from django.utils import timezone
 from django.utils.crypto import get_random_string
+from django.utils.html import format_html
 
 from project.models import (Affiliation, Author, AuthorInvitation, ActiveProject,
                             CoreProject, StorageRequest, ProgrammingLanguage,
@@ -116,30 +117,22 @@ class UploadFilesForm(ActiveProjectFilesForm):
             )
         return files
 
-    def clean(self):
-        """
-        Check for name clash with existing files/folders in the directory
-        """
-        if self.errors:
-            return
-
-        files = self.files.getlist('file_field')
-
-        self.taken_names = utility.list_items(self.file_dir, return_separate=False)
-
-        for file in files:
-            if file.name in self.taken_names:
-                raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
-                    code='clashing_name', params={'taken_name': file.name})
-
     def perform_action(self):
         """
         Upload the files
         """
         errors = ErrorList()
         for file in self.files.getlist('file_field'):
-            utility.write_uploaded_file(file=file,
-                write_file_path=os.path.join(self.file_dir, file.name))
+            try:
+                utility.write_uploaded_file(
+                    file=file, overwrite=False,
+                    write_file_path=os.path.join(self.file_dir, file.name))
+            except FileExistsError:
+                errors.append(format_html(
+                    'Item named <i>{}</i> already exists', file.name))
+            except OSError:
+                errors.append(format_html(
+                    'Unable to upload <i>{}</i>', file.name))
         return 'Your files have been uploaded', errors
 
 
