@@ -197,6 +197,18 @@ class TestAccessPresubmission(TestMixin, TestCase):
             'project_files', args=(project.slug,)),
             data={'create_folder':'', 'folder_name':'new-patients'})
         self.assertMessage(response, 25)
+        # Invalid subdir (contains ..)
+        response = self.client.post(
+            reverse('project_files', args=(project.slug,)),
+            data={'create_folder': '', 'subdir': 'new-patients/..',
+                  'folder_name': 'blabla'})
+        self.assertMessage(response, 40)
+        # Invalid subdir (absolute path)
+        response = self.client.post(
+            reverse('project_files', args=(project.slug,)),
+            data={'create_folder': '', 'subdir': project.file_root(),
+                  'folder_name': 'blabla2'})
+        self.assertMessage(response, 40)
 
         # Rename Item
         response = self.client.post(reverse(
@@ -222,6 +234,14 @@ class TestAccessPresubmission(TestMixin, TestCase):
             data={'delete_items':'', 'subdir':'', 'items':['ICUSTAYS.csv.gz', 'PATIENTS.csv.gz']})
         self.assertMessage(response, 40)
         self.assertTrue(os.path.isfile(os.path.join(project.file_root(), 'notes', 'ICUSTAYS.csv.gz')))
+        # Invalid subdir
+        response = self.client.post(reverse(
+            'project_files', args=(project.slug,)),
+            data={'delete_items': '', 'subdir': os.path.join(project.file_root(), 'notes'),
+                  'items': ['ICUSTAYS.csv.gz', 'PATIENTS.csv.gz']})
+        self.assertMessage(response, 40)
+        self.assertTrue(os.path.isfile(os.path.join(project.file_root(), 'notes', 'ICUSTAYS.csv.gz')))
+        self.assertTrue(os.path.isfile(os.path.join(project.file_root(), 'notes', 'PATIENTS.csv.gz')))
         # Existing items
         response = self.client.post(reverse(
             'project_files', args=(project.slug,)),
@@ -240,6 +260,13 @@ class TestAccessPresubmission(TestMixin, TestCase):
         self.assertEqual(
             open(os.path.join(project.file_root(), 'D_ITEMS.csv.gz'), 'rb').read(),
             open(os.path.join(project.file_root(), 'notes/D_ITEMS.csv.gz'), 'rb').read())
+        # Invalid subdir
+        response = self.client.post(
+            reverse('project_files', args=(project.slug,)),
+            data={'upload_files': '', 'subdir': project.file_root(),
+                  'file_field': SimpleUploadedFile('blabla3', b'')})
+        self.assertMessage(response, 40)
+        self.assertFalse(os.path.isfile(os.path.join(project.file_root(), 'blabla3')))
 
         # Non-submitting author cannot post
         self.client.login(username='aewj@mit.edu', password='Tester11!')
