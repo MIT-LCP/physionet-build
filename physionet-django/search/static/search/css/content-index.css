@@ -147,3 +147,9 @@
 .search-card .col-md-10{
 	margin: 0;
 }
+
+.search-card button{
+	font-size: 0.9em;
+	padding: 5px;
+	min-width: 100px;
+}
