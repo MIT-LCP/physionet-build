@@ -19,7 +19,7 @@
 <section id="summary">
   <h1>Databases by topic</h1>
 <p>
-This page displays a list of databases in the PhysioNet archives, grouped by topic. Projects tagged with multiple topics may appear multiple times. To find more databases on PhysioNet, <a href="{% url 'content_index' %}">search our resources</a>. Waveforms and associated annotations can be viewed with <a href="{% url 'lightwave_home' %}">LightWave</a>.</p>
+This page displays a list of databases in the PhysioNet archives, grouped by popular topics. To find more databases on PhysioNet, <a href="{% url 'content_index' %}">search our resources</a>. Waveforms and associated annotations can be viewed with <a href="{% url 'lightwave_home' %}">LightWave</a>.</p>
 
 {% for topic, values in projects.items %}
 {% if topic|length < 4 %}

@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from itertools import chain
 
 from django.contrib import messages
 from django.shortcuts import render, redirect
@@ -111,21 +112,47 @@ def content_overview(request):
 
 def database_overview(request):
     """
-    Temporary content overview
+    Display database projects grouped by topic.
     """
     topics = PublishedTopic.objects.filter(projects__is_latest_version=True,
-                                           projects__resource_type=0)
+                                           projects__resource_type=0).order_by(
+                                           'description')
 
-    projects = {}
+    # get the project ids by topic
+    pids = OrderedDict()
     for t in topics:
-        result = PublishedProject.objects.filter(is_latest_version=True,
+        result = PublishedProject.objects.values_list('id', flat=True).filter(
+                                                 is_latest_version=True,
                                                  resource_type=0,
-                                                 topics__description=t)
-        # if too few topics, group as 'Miscellaneous'
-        if len(result) > 1:
-            projects[t.description] = result
+                                                 topics__description=t).order_by(
+                                                 'title')
+
+        pids[t.description] = list(result)
+
+    # list each project only once, under the most common topic
+    pids_dedupe = pids.copy()
+    for k, qset in sorted(pids.items(), key=lambda x: len(x), reverse=True):
+        ids = pids_dedupe.pop(k)
+        ids_new = [x for x in set(ids) if x not in chain(*pids_dedupe.values())]
+        pids_dedupe[k] = ids_new
+
+    # collapse infrequent topics into miscellaneous
+    pids_misc = pids_dedupe.copy()
+    pids_misc['miscellaneous'] = []
+    for k, qset in sorted(pids_dedupe.items(), key=lambda x: len(x), reverse=True):
+        if len(pids_misc[k]) < 2:
+            pids_misc['miscellaneous'] += pids_misc.pop(k)
         else:
-            projects['Miscellaneous'] = result
+            break
+
+    # rm unwanted keys then get the project data
+    projects = OrderedDict()
+    pids_misc = {k: v for k, v in pids_misc.items() if v}
+    for k, p in pids_misc.items():
+        projects[k] = PublishedProject.objects.filter(is_latest_version=True,
+                                                      resource_type=0,
+                                                      id__in=p).order_by(
+                                                      'title')
 
     return render(request, 'about/database_index.html',
                   {'projects': projects})
