@@ -842,7 +842,11 @@ def process_items(request, form):
     Helper function for `project_files`.
     """
     if form.is_valid():
-        messages.success(request, form.perform_action())
+        success_msg, errors = form.perform_action()
+        if errors:
+            messages.error(request, errors)
+        else:
+            messages.success(request, success_msg)
         return form.cleaned_data['subdir']
     else:
         messages.error(request, utility.get_form_errors(form))
