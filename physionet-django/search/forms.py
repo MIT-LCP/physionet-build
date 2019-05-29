@@ -14,13 +14,7 @@ class ProjectOrderForm(forms.Form):
         ('main_storage_size', 'Size'),
     )
 
-    DIRECTION_CHOICES = (
-        ('desc', 'Descending'),
-        ('asc', 'Ascending'),
-    )
-
-    orderby = forms.ChoiceField(choices=ORDER_CHOICES, label='By')
-    direction = forms.ChoiceField(choices=DIRECTION_CHOICES, label='Order')
+    orderby = forms.ChoiceField(choices=ORDER_CHOICES, label='')
 
     def clean_order_by(self):
         pass
