@@ -193,7 +193,7 @@ class DeleteItemsForm(EditItemsForm):
         for item in self.cleaned_data['items']:
             path = os.path.join(self.file_dir, item)
             try:
-                utility.remove_items([path])
+                utility.remove_items([path], ignore_missing=False)
             except OSError as e:
                 errors.append(format_html(
                     'Unable to delete <i>{}</i>',
