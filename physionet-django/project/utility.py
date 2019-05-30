@@ -102,19 +102,35 @@ class StorageInfo():
 
 def list_files(directory):
     "List files in a directory"
-    return sorted([f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))])
+    files = []
+    for ent in os.scandir(directory):
+        if not ent.is_dir():
+            files.append(ent.name)
+    return sorted(files)
 
 
 def list_directories(directory):
     "List directories in a directory"
-    return sorted([d for d in os.listdir(directory) if os.path.isdir(os.path.join(directory, d))])
+    dirs = []
+    for ent in os.scandir(directory):
+        if ent.is_dir():
+            dirs.append(ent.name)
+    return sorted(dirs)
+
 
 def list_items(directory, return_separate=True):
     "List files and directories in a directory. Return separate or combine lists"
     if return_separate:
-        return (list_files(directory), list_directories(directory))
+        dirs = []
+        files = []
+        for ent in os.scandir(directory):
+            if ent.is_dir():
+                dirs.append(ent.name)
+            else:
+                files.append(ent.name)
+        return (sorted(files), sorted(dirs))
     else:
-        return sorted(list_files(directory)+list_directories(directory))
+        return sorted(os.listdir(directory))
 
 def remove_items(items, ignore_missing=True):
     """
