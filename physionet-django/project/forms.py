@@ -235,9 +235,7 @@ class MoveItemsForm(EditItemsForm):
     """
     Form for moving items into a target folder
     """
-    destination_folder = forms.ChoiceField(required=False)
-
-    field_order = ['subdir', 'items', 'destination_folder']
+    destination_folder = forms.Field(required=False, widget=forms.Select)
 
     def __init__(self, project, subdir=None, *args, **kwargs):
         """
@@ -246,8 +244,8 @@ class MoveItemsForm(EditItemsForm):
         super(MoveItemsForm, self).__init__(project, *args, **kwargs)
         # The choices are only set here for get requests
         if subdir is not None:
-            self.fields['destination_folder'].choices = MoveItemsForm.get_destination_choices(
-                project, subdir)
+            c = MoveItemsForm.get_destination_choices(project, subdir)
+            self.fields['destination_folder'].widget.choices = c
 
     def get_destination_choices(project, subdir):
         """
@@ -260,53 +258,47 @@ class MoveItemsForm(EditItemsForm):
             subdir_choices = [('../', '*Parent Directory*')] + subdir_choices
         return subdir_choices
 
-    def clean_subdir(self, *args, **kwargs):
-        """
-        Set the allowed destination choices after the subdir is cleaned
-        """
-        super(MoveItemsForm, self).clean_subdir(*args, **kwargs)
-        data = self.cleaned_data['subdir']
-        self.fields['destination_folder'].choices = MoveItemsForm.get_destination_choices(
-            self.project, data)
-        return data
-
     def clean(self):
         """
         Selected destination folder:
+        - May only be '..' if subdir is not the top level
         - Must not be one of the items selected to be moved
-        - Must not contain items with the same name as the items to be moved
-
         """
         cleaned_data = super(MoveItemsForm, self).clean()
-        validation_errors = []
 
         destination_folder = cleaned_data['destination_folder']
         selected_items = cleaned_data['items']
+        subdir = cleaned_data['subdir']
+
+        if subdir:
+            validators.validate_filename_or_parent(destination_folder)
+        else:
+            validators.validate_filename(destination_folder)
 
         if destination_folder in selected_items:
-            validation_errors.append(forms.ValidationError('Cannot move folder: %(destination_folder)s into itself',
+            raise forms.ValidationError('Cannot move folder: %(destination_folder)s into itself',
                 code='move_folder_self',
-                params={'destination_folder':destination_folder}))
+                params={'destination_folder':destination_folder})
 
-        taken_names = utility.list_items(os.path.join(self.file_dir, destination_folder),
-            return_separate=False)
-        clashing_names = set(selected_items).intersection(set(taken_names))
-
-        if clashing_names:
-            validation_errors.append(forms.ValidationError('Item named: "%(clashing_name)s" already exists in destination folder.',
-                code='clashing_name', params={'clashing_name':list(clashing_names)[0]}))
-
-        if validation_errors:
-            raise forms.ValidationError(validation_errors)
-
+        return cleaned_data
 
     def perform_action(self):
         """
         Move the items into the selected directory
         """
         errors = ErrorList()
-        utility.move_items([os.path.join(self.file_dir, i) for i in self.cleaned_data['items']],
-            os.path.join(self.file_dir, self.cleaned_data['destination_folder']))
+        dest = self.cleaned_data['destination_folder']
+        for item in self.cleaned_data['items']:
+            try:
+                utility.move_items([os.path.join(self.file_dir, item)],
+                                   os.path.join(self.file_dir, dest))
+            except FileExistsError:
+                errors.append(format_html(
+                    'Item named <i>{}</i> already exists in <i>{}</i>',
+                    item, dest))
+            except OSError:
+                errors.append(format_html(
+                    'Unable to move <i>{}</i> into <i>{}</i>', item, dest))
         return 'Your items have been moved', errors
 
 
