@@ -188,9 +188,13 @@ class DeleteItemsForm(EditItemsForm):
             try:
                 utility.remove_items([path], ignore_missing=False)
             except OSError as e:
-                errors.append(format_html(
-                    'Unable to delete <i>{}</i>',
-                    os.path.relpath(e.filename or path, self.file_dir)))
+                if not os.path.exists(path):
+                    errors.append(format_html(
+                        'Item named <i>{}</i> did not exist', item))
+                else:
+                    errors.append(format_html(
+                        'Unable to delete <i>{}</i>',
+                        os.path.relpath(e.filename or path, self.file_dir)))
         return 'Your items have been deleted', errors
 
 
@@ -220,6 +224,9 @@ class RenameItemForm(EditItemsForm):
         except FileExistsError:
             errors.append(format_html(
                 'Item named <i>{}</i> already exists', new_name))
+        except FileNotFoundError:
+            errors.append(format_html(
+                'Item named <i>{}</i> does not exist', old_name))
         except OSError:
             errors.append(format_html(
                 'Unable to rename <i>{}</i> to <i>{}</i>',
@@ -272,9 +279,15 @@ class MoveItemsForm(EditItemsForm):
             validators.validate_filename(destination_folder)
 
         if destination_folder in selected_items:
-            raise forms.ValidationError('Cannot move folder: %(destination_folder)s into itself',
-                code='move_folder_self',
-                params={'destination_folder':destination_folder})
+            raise forms.ValidationError(format_html(
+                'Cannot move folder <i>{}</i> into itself',
+                destination_folder))
+
+        self.dest_dir = os.path.join(self.file_dir, destination_folder)
+        if not os.path.isdir(self.dest_dir):
+            raise forms.ValidationError(format_html(
+                'Destination folder <i>{}</i> does not exist',
+                destination_folder))
 
         return cleaned_data
 
@@ -285,16 +298,20 @@ class MoveItemsForm(EditItemsForm):
         errors = ErrorList()
         dest = self.cleaned_data['destination_folder']
         for item in self.cleaned_data['items']:
+            path = os.path.join(self.file_dir, item)
             try:
-                utility.move_items([os.path.join(self.file_dir, item)],
-                                   os.path.join(self.file_dir, dest))
+                utility.move_items([path], self.dest_dir)
             except FileExistsError:
                 errors.append(format_html(
                     'Item named <i>{}</i> already exists in <i>{}</i>',
                     item, dest))
             except OSError:
-                errors.append(format_html(
-                    'Unable to move <i>{}</i> into <i>{}</i>', item, dest))
+                if not os.path.exists(path):
+                    errors.append(format_html(
+                        'Item named <i>{}</i> does not exist', item))
+                else:
+                    errors.append(format_html(
+                        'Unable to move <i>{}</i> into <i>{}</i>', item, dest))
         return 'Your items have been moved', errors
 
 
