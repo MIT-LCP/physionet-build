@@ -210,30 +210,24 @@ class RenameItemForm(EditItemsForm):
     new_name = forms.CharField(max_length=validators.MAX_FILENAME_LENGTH,
         required=False, validators=[validators.validate_filename])
 
-    field_order = ['subdir', 'items', 'new_name']
-
-
-    def clean_new_name(self):
-        """
-        - Prevent renaming to an already taken name in the current directory.
-        - Prevent illegal names
-        """
-        data = self.cleaned_data['new_name']
-        taken_names = utility.list_items(self.file_dir, return_separate=False)
-
-        if data in taken_names:
-            raise forms.ValidationError('Item named: "%(taken_name)s" already exists in current folder.',
-                code='clashing_name', params={'taken_name':data})
-
-        return data
 
     def perform_action(self):
         """
         Rename the items
         """
         errors = ErrorList()
-        os.rename(os.path.join(self.file_dir, self.cleaned_data['items']),
-            os.path.join(self.file_dir, self.cleaned_data['new_name']))
+        old_name = self.cleaned_data['items']
+        new_name = self.cleaned_data['new_name']
+        try:
+            utility.rename_file(os.path.join(self.file_dir, old_name),
+                                os.path.join(self.file_dir, new_name))
+        except FileExistsError:
+            errors.append(format_html(
+                'Item named <i>{}</i> already exists', new_name))
+        except OSError:
+            errors.append(format_html(
+                'Unable to rename <i>{}</i> to <i>{}</i>',
+                old_name, new_name))
         return 'Your item has been renamed', errors
 
 
