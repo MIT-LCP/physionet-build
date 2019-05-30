@@ -102,7 +102,7 @@ class StorageInfo():
 
 def list_files(directory):
     "List files in a directory"
-    return sorted([f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f)) and not f.endswith('~')])
+    return sorted([f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))])
 
 
 def list_directories(directory):
