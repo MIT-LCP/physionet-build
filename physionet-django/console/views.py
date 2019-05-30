@@ -292,12 +292,12 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
 
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
 
-    (upload_files_form, create_folder_form, rename_item_form,
-        move_items_form, delete_items_form) = get_file_forms(project=project,
-        subdir=subdir)
-
     (display_files, display_dirs, dir_breadcrumbs, _,
      file_error) = get_project_file_info(project=project, subdir=subdir)
+
+    (upload_files_form, create_folder_form, rename_item_form,
+     move_items_form, delete_items_form) = get_file_forms(
+         project=project, subdir=subdir, display_dirs=display_dirs)
 
     edit_url = reverse('edit_metadata_item', args=[project.slug])
 

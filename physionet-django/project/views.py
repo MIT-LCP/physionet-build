@@ -720,14 +720,15 @@ class ProjectAutocomplete(autocomplete.Select2QuerySetView):
         return qs
 
 
-def get_file_forms(project, subdir):
+def get_file_forms(project, subdir, display_dirs):
     """
     Get the file processing forms
     """
     upload_files_form = forms.UploadFilesForm(project=project)
     create_folder_form = forms.CreateFolderForm(project=project)
     rename_item_form = forms.RenameItemForm(project=project)
-    move_items_form = forms.MoveItemsForm(project=project, subdir=subdir)
+    move_items_form = forms.MoveItemsForm(project=project, subdir=subdir,
+                                          display_dirs=display_dirs)
     delete_items_form = forms.DeleteItemsForm(project=project)
 
     return (upload_files_form, create_folder_form, rename_item_form,
@@ -819,7 +820,8 @@ def project_files_panel(request, project_slug, **kwargs):
                                               subdir)
 
     (upload_files_form, create_folder_form, rename_item_form,
-        move_items_form, delete_items_form) = get_file_forms(project, subdir)
+     move_items_form, delete_items_form) = get_file_forms(
+         project=project, subdir=subdir, display_dirs=display_dirs)
 
     return render(request, 'project/edit_files_panel.html',
         {'project':project, 'subdir':subdir, 'file_error':file_error,
@@ -915,14 +917,15 @@ def project_files(request, project_slug, subdir='', **kwargs):
                                                     is_active=True).first()
     # Forms
     storage_request_form = forms.StorageRequestForm(project=project) if (not storage_request and is_submitting) else None
-    (upload_files_form, create_folder_form, rename_item_form,
-        move_items_form, delete_items_form) = get_file_forms(project=project,
-        subdir=subdir)
 
     (display_files, display_dirs, dir_breadcrumbs, _,
      file_error) = get_project_file_info(project=project, subdir=subdir)
     file_warning = get_project_file_warning(display_files, display_dirs,
                                               subdir)
+
+    (upload_files_form, create_folder_form, rename_item_form,
+     move_items_form, delete_items_form) = get_file_forms(
+         project=project, subdir=subdir, display_dirs=display_dirs)
 
     return render(request, 'project/project_files.html', {'project':project,
         'individual_size_limit':utility.readable_size(

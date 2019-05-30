@@ -240,26 +240,18 @@ class MoveItemsForm(EditItemsForm):
     """
     destination_folder = forms.Field(required=False, widget=forms.Select)
 
-    def __init__(self, project, subdir=None, *args, **kwargs):
+    def __init__(self, project, subdir=None, display_dirs=None,
+                 *args, **kwargs):
         """
         Set the choices for the destination folder
         """
         super(MoveItemsForm, self).__init__(project, *args, **kwargs)
         # The choices are only set here for get requests
         if subdir is not None:
-            c = MoveItemsForm.get_destination_choices(project, subdir)
-            self.fields['destination_folder'].widget.choices = c
-
-    def get_destination_choices(project, subdir):
-        """
-        Return allowed destination choices
-        """
-        existing_subdirs = utility.list_directories(
-            os.path.join(project.file_root(), subdir))
-        subdir_choices = [(s, s) for s in existing_subdirs]
-        if subdir:
-            subdir_choices = [('../', '*Parent Directory*')] + subdir_choices
-        return subdir_choices
+            choices = [(d.name, d.name) for d in display_dirs]
+            if subdir:
+                choices.insert(0, ('../', '*Parent Directory*'))
+            self.fields['destination_folder'].widget.choices = choices
 
     def clean(self):
         """
