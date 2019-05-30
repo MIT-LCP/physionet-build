@@ -1097,10 +1097,11 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         os.rename(self.file_root(), published_project.file_root())
         # Set the disk quota
         if settings.QUOTA:
-            quota = DiskQuota.objects.get(project=project.core_project)
+            quota = DiskQuota.objects.get(project=published_project.core_project)
             quota.group = slug
             quota.last_update = timezone.now()
             quota.save()
+            
             os.system('sudo /usr/local/bin/set-quota.sh {0} {1} {2} {3}'.format(
                 slug, self.slug, published_project.file_root(), 
                 self.core_project.storage_allowance,

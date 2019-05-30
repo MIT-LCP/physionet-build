@@ -11,7 +11,7 @@ if [ $# -eq 1 ]; then
 	# This step is forthe creation of a active project
 	# Argument #1 is the new group name.
 	/usr/sbin/groupadd $1
-	/bin/chgrp "$1" /data/pn-media/active-projects/$1
+	/bin/chgrp $1 /data/pn-media/active-projects/$1
 	/bin/chmod 2775 /data/pn-media/active-projects/$1
 	# The we set the initial quota for the group. 
 	/usr/sbin/xfs_quota -xc 'limit -g bsoft=100m bhard=100m '"$1" /data
@@ -19,7 +19,7 @@ elif [ $# -eq 2 ]; then
 	# This step is for the creation of a versioned project.
 	# Argument #1 is the group name. 
 	# Argument #2 is the location of the new files.
-	/bin/chgrp "$1" /data/pn-media/active-projects/$2
+	/bin/chgrp $1 /data/pn-media/active-projects/$2
 	/bin/chmod 2775 $1
 elif [ $# -eq 3 ]; then
 	# This step is for quota increase or decrease
@@ -34,13 +34,12 @@ elif [ $# -eq 4 ]; then
 	# Argument #3 is the location of the files.
 	# Argument #4 is the storage size.
 	/usr/sbin/groupadd $1
-	/bin/chgrp "$1 $3"
+	/bin/chgrp $1 $3
 	/bin/chmod 2775 $3
 	# To rename the quota, one removes the quota from the old group, and adds the quota to the new group
 	/usr/sbin/xfs_quota -xc 'limit -g bsoft='"$4"' bhard='"$4"' '"$2" /data
 	# The we set the initial quota for the group. 
-	/usr/sbin/xfs_quota -xc 'limit -g bsoft=0m bhard=0m $1' /data
+	/usr/sbin/xfs_quota -xc 'limit -g bsoft=0m bhard=0m '"$1" /data
 else
 	exit 1;
 fi
-

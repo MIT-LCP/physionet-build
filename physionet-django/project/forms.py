@@ -343,7 +343,7 @@ class CreateProjectForm(forms.ModelForm):
         os.mkdir(project.file_root())
         if settings.QUOTA:
             quota = DiskQuota.objects.create(project=project.core_project,
-                pid=int(project.id), alias=slug)
+                group=slug)
             os.system('sudo /usr/local/bin/set-quota.sh {}'.format(slug))
             LOGGER.info('Created disk quota for active project - {0}'.format(project))
 

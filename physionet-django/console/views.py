@@ -21,7 +21,7 @@ import notification.utility as notification
 import project.forms as project_forms
 from project.models import (ActiveProject, ArchivedProject, StorageRequest,
     Reference, Topic, Publication, PublishedProject,
-    exists_project_slug, GCP)
+    exists_project_slug, GCP, DiskQuota)
 from project.utility import readable_size
 from project.views import (get_file_forms, get_project_file_info,
     process_files_post)
@@ -437,14 +437,13 @@ def process_storage_response(request, storage_response_formset):
                     core_project.save()
                     # Set the disk quota
                     if settings.QUOTA:
-                        storage_request.proj
                         quota = DiskQuota.objects.get(
                             project=storage_request.project.core_project)
                         quota.quota = core_project.storage_allowance
                         quota.last_update = timezone.now()
                         quota.save()
                         os.system('sudo /usr/local/bin/set-quota.sh {0} {1} {0}'.format(
-                            quota.group, storage_request.request_allowance +'G'))
+                            quota.group, str(storage_request.request_allowance) +'G'))
                         LOGGER.info('Altered project quota {0} to {1}'.format(
                             quota.group, storage_request.request_allowance))
 
