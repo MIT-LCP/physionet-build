@@ -2,9 +2,12 @@ from collections import OrderedDict
 import os
 import pdb
 import re
+import logging
 
 from django import forms
 from django.forms.utils import ErrorList
+
+from django.conf import settings
 from django.contrib.contenttypes.forms import BaseGenericInlineFormSet
 from django.db.models.functions import Lower
 from django.template.defaultfilters import slugify
@@ -14,8 +17,8 @@ from django.utils.html import format_html
 
 from project.models import (Affiliation, Author, AuthorInvitation, ActiveProject,
                             CoreProject, StorageRequest, ProgrammingLanguage,
-                            License, Metadata, Reference, Publication,
-                            PublishedProject, Topic, exists_project_slug)
+                            License, Metadata, Reference, Publication, Topic,
+                            PublishedProject, exists_project_slug, DiskQuota)
 from project import utility
 from project import validators
 
@@ -26,6 +29,8 @@ INVITATION_CHOICES = (
     (1, 'Accept'),
     (0, 'Decline')
 )
+
+LOGGER = logging.getLogger(__name__)
 
 
 class CorrespondingAuthorForm(forms.Form):
@@ -324,9 +329,9 @@ class CreateProjectForm(forms.ModelForm):
         # Set the core project and slug
         core_project = CoreProject.objects.create()
         project.core_project = core_project
-        slug = get_random_string(20)
+        slug = get_random_string(20).lower()
         while exists_project_slug(slug):
-            slug = get_random_string(20)
+            slug = get_random_string(20).lower()
         project.slug = slug
         project.save()
         # Create the author object for the user
@@ -336,6 +341,12 @@ class CreateProjectForm(forms.ModelForm):
         author.import_profile_info()
         # Create file directory
         os.mkdir(project.file_root())
+        if settings.QUOTA:
+            quota = DiskQuota.objects.create(project=project.core_project,
+                pid=int(project.id), alias=slug)
+            os.system('sudo /usr/local/bin/set-quota.sh {}'.format(slug))
+            LOGGER.info('Created disk quota for active project - {0}'.format(project))
+
         return project
 
 
@@ -370,9 +381,9 @@ class NewProjectVersionForm(forms.ModelForm):
             if attr not in ['slug', 'version', 'creation_datetime']:
                 setattr(project, attr, getattr(self.latest_project, attr))
         # Set new fields
-        slug = get_random_string(20)
+        slug = get_random_string(20).lower()
         while exists_project_slug(slug):
-            slug = get_random_string(20)
+            slug = get_random_string(20).lower()
         project.slug = slug
         project.creation_datetime = timezone.now()
         project.version_order = self.latest_project.version_order + 1
@@ -423,6 +434,11 @@ class NewProjectVersionForm(forms.ModelForm):
                     if exc.errno != errno.EEXIST:
                         raise
             os.link(os.path.join(older_file_root, file),  destination)
+
+        if settings.QUOTA:
+            self.latest_project
+            os.system('sudo /usr/local/bin/set-quota.sh {}'.format(slug, self.latest_project.slug))
+            LOGGER.info('Added the quota for the new version of - {0}'.format(project))
 
         return project
 

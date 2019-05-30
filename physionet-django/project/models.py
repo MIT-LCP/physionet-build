@@ -5,6 +5,7 @@ import shutil
 import uuid
 import pdb
 import pytz
+import logging
 
 import bleach
 import ckeditor.fields
@@ -27,6 +28,7 @@ from project.validators import (validate_doi, validate_subdir,
 from user.validators import validate_alphaplus, validate_alphaplusplus
 from physionet.utility import zip_dir
 
+LOGGER = logging.getLogger(__name__)
 
 class SafeHTMLField(ckeditor.fields.RichTextField):
     """
@@ -1093,7 +1095,19 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             os.mkdir(published_project.project_file_root())
         # Move over main files
         os.rename(self.file_root(), published_project.file_root())
-        # Create special files if there are files. Should always be the case.
+        # Set the disk quota
+        if settings.QUOTA:
+            quota = DiskQuota.objects.get(project=project.core_project)
+            quota.group = slug
+            quota.last_update = timezone.now()
+            quota.save()
+            os.system('sudo /usr/local/bin/set-quota.sh {0} {1} {2} {3}'.format(
+                slug, self.slug, published_project.file_root(), 
+                self.core_project.storage_allowance,
+                published_project.get_storage_info().readable_allowance.split()[0]))
+            LOGGER.info('Moved project quota from {0} to - {1}'.format(
+                self.slug, slug))
+
         if bool(self.storage_used):
             published_project.make_special_files(make_zip=make_zip)
         published_project.set_storage_info()
@@ -1759,3 +1773,17 @@ class GCP(models.Model):
         on_delete=models.CASCADE)
     creation_datetime = models.DateTimeField(auto_now_add=True)
     finished_datetime = models.DateTimeField(null=True)
+
+
+class DiskQuota(models.Model):
+    """
+    Store the information for the disk quota
+    """
+    project = models.ForeignKey('project.CoreProject',
+        on_delete=models.CASCADE)
+    quota = models.BigIntegerField(default=104857600,
+        validators=[MaxValueValidator(109951162777600),
+                    MinValueValidator(104857600)])
+    last_update = models.DateTimeField(auto_now_add=True)
+    group = models.CharField(max_length=100, null=True)
+

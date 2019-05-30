@@ -435,6 +435,18 @@ def process_storage_response(request, storage_response_formset):
                     core_project = storage_request.project.core_project
                     core_project.storage_allowance = storage_request.request_allowance * 1024 ** 3
                     core_project.save()
+                    # Set the disk quota
+                    if settings.QUOTA:
+                        storage_request.proj
+                        quota = DiskQuota.objects.get(
+                            project=storage_request.project.core_project)
+                        quota.quota = core_project.storage_allowance
+                        quota.last_update = timezone.now()
+                        quota.save()
+                        os.system('sudo /usr/local/bin/set-quota.sh {0} {1} {0}'.format(
+                            quota.group, storage_request.request_allowance +'G'))
+                        LOGGER.info('Altered project quota {0} to {1}'.format(
+                            quota.group, storage_request.request_allowance))
 
                 notification.storage_response_notify(storage_request)
                 messages.success(request,

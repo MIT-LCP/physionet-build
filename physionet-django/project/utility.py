@@ -238,7 +238,6 @@ def write_uploaded_file(file, write_file_path, overwrite=True):
         for chunk in file.chunks():
             destination.write(chunk)
 
-
 def get_form_errors(form):
     """
     Extract all errors from a form eith errors
