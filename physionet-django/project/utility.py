@@ -116,15 +116,18 @@ def list_items(directory, return_separate=True):
     else:
         return sorted(list_files(directory)+list_directories(directory))
 
-def remove_items(items):
+def remove_items(items, ignore_missing=True):
     """
     Delete the list of (full file path) files/directories.
     """
     for item in items:
-        if os.path.isfile(item):
+        try:
             os.remove(item)
-        elif os.path.isdir(item):
+        except IsADirectoryError:
             shutil.rmtree(item)
+        except FileNotFoundError:
+            if not ignore_missing:
+                raise
 
 def clear_directory(directory):
     """
