@@ -164,20 +164,13 @@ class EditItemsForm(ActiveProjectFilesForm):
     """
     Abstract form for manipulating existing files/directories.
     """
-    # This field's choices depend on the `subdir` field
-    items = forms.MultipleChoiceField()
+    items = forms.Field(required=False)
 
-    field_order = ['subdir', 'items']
-
-    def clean_subdir(self, *args, **kwargs):
-        """
-        Set the items' valid choices after cleaning the subdirectory.
-        This must be called before clean_items.
-        """
-        super(EditItemsForm, self).clean_subdir(*args, **kwargs)
-        existing_items = utility.list_items(self.file_dir, return_separate=False)
-        self.fields['items'].choices = tuple((item, item) for item in existing_items)
-        return self.cleaned_data['subdir']
+    def clean_items(self):
+        items = self.data.getlist('items')
+        for item in items:
+            validators.validate_oldfilename(item)
+        return items
 
 
 class DeleteItemsForm(EditItemsForm):
@@ -205,18 +198,21 @@ class RenameItemForm(EditItemsForm):
     """
     Form for renaming an item in a directory
     """
-    # The name is 'items' to override the parent class field.
-    items = forms.ChoiceField(required=False)
     new_name = forms.CharField(max_length=validators.MAX_FILENAME_LENGTH,
         required=False, validators=[validators.validate_filename])
 
+    def clean_items(self):
+        items = super(RenameItemForm, self).clean_items()
+        if len(items) != 1:
+            raise forms.ValidationError('Must specify one item to rename')
+        return items
 
     def perform_action(self):
         """
         Rename the items
         """
         errors = ErrorList()
-        old_name = self.cleaned_data['items']
+        old_name = self.cleaned_data['items'][0]
         new_name = self.cleaned_data['new_name']
         try:
             utility.rename_file(os.path.join(self.file_dir, old_name),
