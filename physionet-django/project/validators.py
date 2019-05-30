@@ -43,6 +43,22 @@ def validate_filename(value):
             params={'filename': value})
 
 
+def validate_filename_or_parent(value):
+    """
+    Check if string is either a valid file base name, or '../'.
+    """
+    if value != '../':
+        validate_filename(value)
+
+
+def validate_oldfilename(value):
+    """
+    Check if string is potentially a file base name.
+    """
+    if '/' in value or value == '' or value == '.' or value == '..':
+        raise ValidationError('Not a valid file base name.')
+
+
 def validate_doi(value):
     """
     Validate a doi. Currently pn is assigned the 10.13026 prefix
