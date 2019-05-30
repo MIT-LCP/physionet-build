@@ -250,7 +250,7 @@ class MoveItemsForm(EditItemsForm):
         if subdir is not None:
             choices = [(d.name, d.name) for d in display_dirs]
             if subdir:
-                choices.insert(0, ('../', '*Parent Directory*'))
+                choices.insert(0, ('../', '(Parent directory)'))
             self.fields['destination_folder'].widget.choices = choices
 
     def clean(self):
