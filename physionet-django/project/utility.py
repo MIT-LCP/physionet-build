@@ -150,7 +150,7 @@ def move_items(items, target_folder):
     Move items (full path) into target folder (full path)
     """
     for item in items:
-        os.rename(item, os.path.join(target_folder, os.path.split(item)[-1]))
+        rename_file(item, os.path.join(target_folder, os.path.split(item)[-1]))
 
 def get_file_info(file_path):
     "Given a file path, get the information used to display it"
