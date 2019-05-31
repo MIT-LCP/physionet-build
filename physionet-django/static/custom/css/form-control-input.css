@@ -31,8 +31,8 @@ form select:not([multiple]){
     calc(100% - 15px) calc(1em + 1px),
     calc(100% - 10px) calc(1em + 1px);
   background-size:
-    5px 6px,
-    5px 6px;
+    5px 5px,
+    5px 5px;
   background-repeat: no-repeat;
   padding-right: 25px;
 }
