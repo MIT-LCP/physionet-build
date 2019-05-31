@@ -1097,13 +1097,18 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         os.rename(self.file_root(), published_project.file_root())
         # Set the disk quota
         if settings.QUOTA:
-            quota = DiskQuota.objects.get(project=published_project.core_project)
-            quota.group = slug
-            quota.last_update = timezone.now()
-            quota.save()
+            quota = DiskQuota.objects.filter(project=published_project.core_project)
+            if quota:
+                quota = quota.get()
+                quota.last_update = timezone.now()
+                if self.version_order:
+                    os.system('sudo /usr/local/bin/set-quota.sh {0} {1} {2}'.format(
+                        slug, self.slug, 'delete'))
+                else:
+                    os.system('sudo /usr/local/bin/set-quota.sh {0} {1} {2}'.format(
+                        slug, self.slug, 'publish'))
+                quota.save()
 
-            os.system('sudo /usr/local/bin/set-quota.sh {0} {1} {2}'.format(
-                slug, self.slug, 'publish'))
             LOGGER.info('Moved project quota from {0} to - {1}'.format(
                 self.slug, slug))
 

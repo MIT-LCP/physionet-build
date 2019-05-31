@@ -3,6 +3,7 @@ import os
 import pdb
 import re
 import logging
+import grp
 
 from django import forms
 from django.forms.utils import ErrorList
@@ -436,11 +437,16 @@ class NewProjectVersionForm(forms.ModelForm):
                         raise
             os.link(os.path.join(older_file_root, file),  destination)
 
-        if settings.QUOTA:            
-            os.system('sudo /usr/local/bin/set-quota.sh {}'.format(slug, 
-                self.latest_project.slug, project.file_root()))
-            LOGGER.info('Added the quota for the new version of - {0}'.format(project))
-
+        if settings.QUOTA:
+            try:
+                grpup_id = grp.getgrnam(self.latest_project.slug).gr_gid
+                os.system('sudo /usr/local/bin/set-quota.sh {0} {1} {2}'.format(slug,
+                    grpup_id, project.file_root()))
+                LOGGER.info('Added the quota for the new version of - {0}'.format(project))
+            except KeyError:
+                LOGGER.info('Initial group of this version doesnt exist,\
+                    the project is {0}, group {1}'.format(project, 
+                    self.latest_project.slug))
         return project
 
 
