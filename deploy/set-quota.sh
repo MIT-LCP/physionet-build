@@ -15,15 +15,15 @@ if [ $# -eq 2 ]; then
 	/usr/sbin/xfs_quota -xc 'limit -g bsoft=100m bhard=100m '"$1" /data
 elif [ $# -eq 3 ]; then
 	# This step is for quota increase or decrease
-	if [ "$3" -eq 'modify' ]; then
+	if [ $3 = "modify" ]; then
 		# Argument #1 is the group name. 
 		# Argument #2 is the new quota size in GB
 		# Alter the quota size
 		/usr/sbin/xfs_quota -xc 'limit -g bsoft='"$2"' bhard='"$2"' '"$1" /data
-	elif [ $3 -eq 'publish' ]; then
+	elif [ $3 = "publish" ]; then
 		# Rename the group on publish
 		/usr/sbin/groupmod -n $1 $2
-	elif [ $3 -eq 'delete' ]; then
+	elif [ $3 = "delete" ]; then
 		# Delete temporary group from version
 		/usr/sbin/groupdel $2
 	else
