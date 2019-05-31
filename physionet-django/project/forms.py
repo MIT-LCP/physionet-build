@@ -329,9 +329,9 @@ class CreateProjectForm(forms.ModelForm):
         # Set the core project and slug
         core_project = CoreProject.objects.create()
         project.core_project = core_project
-        slug = get_random_string(20).lower()
+        slug = get_random_string(20)
         while exists_project_slug(slug):
-            slug = get_random_string(20).lower()
+            slug = get_random_string(20)
         project.slug = slug
         project.save()
         # Create the author object for the user
@@ -344,7 +344,8 @@ class CreateProjectForm(forms.ModelForm):
         if settings.QUOTA:
             quota = DiskQuota.objects.create(project=project.core_project,
                 group=slug)
-            os.system('sudo /usr/local/bin/set-quota.sh {}'.format(slug))
+            os.system('sudo /usr/local/bin/set-quota.sh {0} {1}'.format(
+                slug, project.file_root()))
             LOGGER.info('Created disk quota for active project - {0}'.format(project))
 
         return project
@@ -381,9 +382,9 @@ class NewProjectVersionForm(forms.ModelForm):
             if attr not in ['slug', 'version', 'creation_datetime']:
                 setattr(project, attr, getattr(self.latest_project, attr))
         # Set new fields
-        slug = get_random_string(20).lower()
+        slug = get_random_string(20)
         while exists_project_slug(slug):
-            slug = get_random_string(20).lower()
+            slug = get_random_string(20)
         project.slug = slug
         project.creation_datetime = timezone.now()
         project.version_order = self.latest_project.version_order + 1
@@ -435,9 +436,9 @@ class NewProjectVersionForm(forms.ModelForm):
                         raise
             os.link(os.path.join(older_file_root, file),  destination)
 
-        if settings.QUOTA:
-            self.latest_project
-            os.system('sudo /usr/local/bin/set-quota.sh {}'.format(slug, self.latest_project.slug))
+        if settings.QUOTA:            
+            os.system('sudo /usr/local/bin/set-quota.sh {}'.format(slug, 
+                self.latest_project.slug, project.file_root()))
             LOGGER.info('Added the quota for the new version of - {0}'.format(project))
 
         return project

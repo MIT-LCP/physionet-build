@@ -2,6 +2,7 @@ import re
 import pdb
 import logging
 import os
+import grp
 
 from django.core.validators  import validate_email
 from django.contrib import messages
@@ -368,13 +369,17 @@ def publish_slug_available(request, project_slug, *args, **kwargs):
     # Check if any project has claimed it
     else:
         result = not exists_project_slug(desired_slug)
+        try:
+            grp.getgrnam(desired_slug)
+            result = False
+        except KeyError:
+            pass
 
     # check pattern validity
     result = (result
         and bool(re.fullmatch(r'[a-z0-9](?:[a-z0-9\-]{0,18}[a-z0-9])?', desired_slug))
         and '--' not in desired_slug
         and not re.fullmatch(r'.+\-[0-9]+', desired_slug))
-
     return JsonResponse({'available':result})
 
 
@@ -442,8 +447,8 @@ def process_storage_response(request, storage_response_formset):
                         quota.quota = core_project.storage_allowance
                         quota.last_update = timezone.now()
                         quota.save()
-                        os.system('sudo /usr/local/bin/set-quota.sh {0} {1} {0}'.format(
-                            quota.group, str(storage_request.request_allowance) +'G'))
+                        os.system('sudo /usr/local/bin/set-quota.sh {0} {1} {2}'.format(
+                            quota.group, str(storage_request.request_allowance) +'G', 'modify'))
                         LOGGER.info('Altered project quota {0} to {1}'.format(
                             quota.group, storage_request.request_allowance))
 

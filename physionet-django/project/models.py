@@ -1101,11 +1101,9 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             quota.group = slug
             quota.last_update = timezone.now()
             quota.save()
-            
-            os.system('sudo /usr/local/bin/set-quota.sh {0} {1} {2} {3}'.format(
-                slug, self.slug, published_project.file_root(), 
-                self.core_project.storage_allowance,
-                published_project.get_storage_info().readable_allowance.split()[0]))
+
+            os.system('sudo /usr/local/bin/set-quota.sh {0} {1} {2}'.format(
+                slug, self.slug, 'publish'))
             LOGGER.info('Moved project quota from {0} to - {1}'.format(
                 self.slug, slug))
 
