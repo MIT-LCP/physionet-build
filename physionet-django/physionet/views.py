@@ -124,8 +124,7 @@ def database_overview(request):
         result = PublishedProject.objects.values_list('id', flat=True).filter(
                                                  is_latest_version=True,
                                                  resource_type=0,
-                                                 topics__description=t).order_by(
-                                                 'title')
+                                                 topics__description=t)
 
         pids[t.description] = list(result)
 
