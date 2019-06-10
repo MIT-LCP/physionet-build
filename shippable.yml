@@ -29,6 +29,7 @@ build:
 
   # http://docs.shippable.com/ci/shippableyml/#ci
   ci:
+    - "sudo apt-get update --yes"
     - "cp .env.example .env"
     - "pip install -r requirements.txt"
     - "sudo apt-get install libseccomp-dev"
