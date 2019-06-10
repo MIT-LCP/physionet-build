@@ -381,7 +381,7 @@ def mailto_process_credential_complete(application, comments=True):
     """
     applicant_name = application.get_full_name()
     subject = 'PhysioNet clinical database access request for {}'.format(applicant_name)
-    dua = License.objects.get(slug='physionet-credentialed-health-data-license-140')
+    dua = License.objects.get(slug='physionet-credentialed-health-data-license-150')
     body = loader.render_to_string('notification/email/mailto_contact_applicant.html',
         {'application': application, 'dua': dua.dua_text_content()}).replace('\n', '\n> ')
 
@@ -429,7 +429,7 @@ def credential_application_request(request, application):
     """
     applicant_name = application.get_full_name()
     subject = 'PhysioNet credentialing application notification'
-    dua = License.objects.get(slug='physionet-credentialed-health-data-license-140')
+    dua = License.objects.get(slug='physionet-credentialed-health-data-license-150')
     body = loader.render_to_string('notification/email/notify_credential_request.html',
         {'application':application, 'applicant_name':applicant_name,
          'domain':get_current_site(request), 'dua':dua.dua_text_content(),
