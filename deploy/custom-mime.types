@@ -37,5 +37,5 @@ types {
     application/octet-stream str;
     application/octet-stream trigger;
 }
-default_type "";
+default_type "text/plain";
 
