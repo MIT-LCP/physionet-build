@@ -98,11 +98,12 @@ def serve_file(file_path, attach=True):
     if accel_path:
         response = HttpResponse()
         response['X-Accel-Redirect'] = accel_path
+        response['Content-Type'] = ''
     else:
         with open(file_path, 'rb') as f:
             response = HttpResponse(f.read())
+            response['Content-Type'] = file_content_type(file_path)
     base = os.path.basename(file_path)
-    response['Content-Type'] = ''
     if attach:
         response['Content-Disposition'] = 'attachment; filename=' + base
     else:
