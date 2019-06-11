@@ -3,6 +3,7 @@ import zipfile
 
 from django.conf import settings
 from django.http import HttpResponse, Http404
+from django.utils.html import format_html
 
 CONTENT_TYPE = {
     '.html': 'text/html',
@@ -89,10 +90,13 @@ def _file_x_accel_path(file_path):
         elif file_path.startswith(media_root + '/'):
             return media_alias + file_path[len(media_root):]
 
-def serve_file(file_path, attach=True):
+def serve_file(file_path, attach=True, allow_directory=False):
     """
     Serve a file to download. file_path is the real path of the file on
     the server.
+
+    If allow_directory is true and file_path ends with a slash, serve
+    a simple HTML directory listing.
     """
     accel_path = _file_x_accel_path(file_path)
     if accel_path:
@@ -100,9 +104,16 @@ def serve_file(file_path, attach=True):
         response['X-Accel-Redirect'] = accel_path
         response['Content-Type'] = ''
     else:
-        with open(file_path, 'rb') as f:
-            response = HttpResponse(f.read())
-            response['Content-Type'] = file_content_type(file_path)
+        if file_path.endswith('/') and allow_directory:
+            html = '<!DOCTYPE html><html><body><ul>\n'
+            for f in sorted(os.listdir(file_path)):
+                html += format_html('<li><a href="{0}">{0}</a></li>\n', f)
+            html += '</ul></body></html>'
+            return HttpResponse(html)
+        else:
+            with open(file_path, 'rb') as f:
+                response = HttpResponse(f.read())
+                response['Content-Type'] = file_content_type(file_path)
     base = os.path.basename(file_path)
     if attach:
         response['Content-Disposition'] = 'attachment; filename=' + base
