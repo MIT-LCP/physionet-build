@@ -1257,7 +1257,7 @@ def serve_published_project_file(request, project_slug, version,
             return serve_file(file_path, attach=attach, allow_directory=True)
         except IsADirectoryError:
             return redirect(request.path + '/')
-        except FileNotFoundError:
+        except (NotADirectoryError, FileNotFoundError):
             raise Http404()
     raise PermissionDenied()
 
