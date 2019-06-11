@@ -1241,7 +1241,7 @@ def published_files_panel(request, project_slug, version):
 def serve_published_project_file(request, project_slug, version,
         full_file_name):
     """
-    Serve a file of a published project.
+    Serve a file or subdirectory of a published project.
     Works for open and protected. Not needed for open.
 
     """
@@ -1254,7 +1254,7 @@ def serve_published_project_file(request, project_slug, version,
         file_path = os.path.join(project.file_root(), full_file_name)
         try:
             attach = ('download' in request.GET)
-            return serve_file(file_path, attach=attach)
+            return serve_file(file_path, attach=attach, allow_directory=True)
         except IsADirectoryError:
             return redirect(request.path + '/')
         except FileNotFoundError:
