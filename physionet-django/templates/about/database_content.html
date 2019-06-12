@@ -30,7 +30,7 @@ This page displays a list of databases in the PhysioNet archives, grouped by pop
 <ul>
   {% for project in values %}
   <li><a href="{% url 'published_project_latest' project.slug %}">{{ project.title }}</a>. 
-  {% if project.short_description %}{{ project.short_description }}{% else %}{{ project.abstract|safe|truncatechars:200 }}{% endif %}</li>
+  {% if project.short_description %}{{ project.short_description }}{% else %}{{ project.abstract|safe|truncatechars_html:200 }}{% endif %}</li>
   {% endfor %}
 </ul>
 {% endfor %}
