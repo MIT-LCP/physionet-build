@@ -1,47 +1,63 @@
-<section id="submission">
-  <h2>Submission process</h2>
-  <p>Submitting data and software to PhysioNet is similar to submitting an article to a journal. Briefly, the process for submitting your work for publication in PhysioNet is as follows:</p>
+<section id="project_descriptions">
+  <h2>Choosing a project type</h2>
+  <p>When submitting a project to PhysioNet you will be asked to select one of the following project types:</p>
   <ul>
-    <li>If you are the submitting author, create a new project using the project management system.</li>
-    <li>Add your project details. These will include contact information for co-authors, descriptive text, and data files.</li>
-    <li>Once you are satisfied, submit the project to the editorial team for review.</li>
-    <li>You will be notified of an editorial decision when the review process is complete.</li>
-    <li>Once any issues have been addressed, your data or software will be published on PhysioNet.</li>
-    <li>When a project is published, its content is fixed and cannot be changed.</li>
+  {% for key, value in descriptions.items %}
+    <li><strong>{{ key }}</strong>: {{ value }}</li>
+  {% endfor %}
   </ul>
 </section>
 
-<section id="preparing">
-  <h2>Preparing for submission</h2>
-  <p>PhysioNet helps you to ensure that your data and software is sufficiently well organized to enable reuse by the community. Before submitting your project for review, please make sure that you have:</p>
+<section id="project_draft">
+  <h2>Creating the project metadata</h2>
+  <p>To help the community to reuse your shared resources, we 
+    require a detailed description. The information that you provide 
+    should focus on the resource and how it might be reused. During the submission process
+  you are asked to provide information such as a title, an abstract
+  for distribution to search indexes, and context describing the manner in which
+  the resource was created. Further details are outlined below:</p>
   <ul>
-    <li>Added all co-authors to the system. Co-authors will receive a notification message upon submission and must approve of the submission prior to publication.</li>
-    <li>Provided detailed information about the resource. This information must include a high-level background, relevant methodology on the resource creation, notes for reuse, acknowledgments, and any conflicts of interest.</li>
-    <li>Selected an appropriate <a href="#licenses">license</a> for releasing your data files.</li>
-    <li>Converted all files to an open, non-proprietary format.</li>
+    <li><strong>Title</strong>: Your title should be no longer than 200 characters. Do not include acronyms and abbreviations, and where possible avoid leading with "The". Only letters, numbers, spaces, underscores, and hyphens are allowed.</li>
+    <li><strong>Abstract</strong>: Your abstract must be no longer than 250 words. It should provide the reader with a high level overview of your resource. References should not be included. </li>
+    <li><strong>Background</strong>: Your background should provide the reader with an introduction to the resource. The section should offer context in which the resource was created, outline your motivations for sharing, and highlight potential areas for reuse.</li>
+    <li><strong>Methods & Technical Implementation</strong>: The "Methods" and "Technical Implementation" sections provide details of the procedures used to create your resource. For software, the section may cover aspects such as development process, software design, and description of algorithms. For data, the section may include details such as experimental design, data acquisition, and data processing.</li>
+    <li><strong>Content description</strong>: Your content description should describe the resource in detail, outlining how files are structured, file formats, and a description of what the files contain.</li>
+    <li><strong>Usage notes</strong>: This section should provide the reader with information relevant to reuse. This might include technical instructions or ideas for projects that could make use of the resource.</li>
+    <li><strong>Acknowledgments</strong>: In this section, acknowledge the people who helped with the research, but who were not included as co-authors. In addition, provide funding information.</li>
+    <li><strong>Conflicts of interest</strong>: A statement on potential conflicts of interest is required. If the authors have no conflicts of interest, the section should say "The author(s) have no conflicts of interest to declare".</li>
+    <li><strong>Version</strong>: The version number of the resource. <a href="https://semver.org/">Semantic versioning</a> is encouraged (major version, minor version, patch version). If unsure, put "1.0.0".</li>
+    <li><strong>References</strong>: Please use the <a href="https://en.wikipedia.org/wiki/Vancouver_system">Vancouver reference style</a>. All citations should be numbered sequentially in the text in square brackets. For example, the first citation [1], the second citation [2], and the third and fourth citations [3,4]. Entries in the reference list should be in the following style: <em>1. Xu YZ, Geng DC, Mao HQ, Zhu XS, Yang HL (2010). "A comparison of the proximal femoral nail antirotation device and dynamic hip screw in the treatment of unstable pertrochanteric fracture". J Int Med Res. 38: 1266–1275. PMID 20925999.</em></li>
   </ul>
 </section>
 
-<section id="criteria">
-  <h2>Criteria for publication</h2>
-  <p>Our goals are to ensure that the data is safe to share and that it is sufficiently well structured and described for it to be a valuable resource for the research community. Some of the high-level criteria that we will be considering when reviewing your project include:</p>
-  <h5>Data Quality</h5>
-  {% include "about/data_quality_guidelines.html" %}
-  <h5>Software Quality</h5>
-  {% include "about/software_quality_guidelines.html" %}
-</section>
-
-<section id="editorial">
-  <h2>Editorial process</h2>
-  <p>Once your project is submitted to PhysioNet, it will be reviewed by one or more content specialists. Based on this review, you will be provided with an initial editorial decision within four weeks from submission. The possible decisions are:</p>
-  <ol>
-    <li>Accept: The editor is mostly satisfied with the content. The submission
-        continues into the copyedit stage.</li>
-    <li>Resubmit: The content is suitable for publication, but changes are
-        required to make it more clear or reusable. Changes may include adding 
-        required information, restructuring files, and rewording content. 
-        Once the submitting author has made these changes,
-        they may resubmit the project for review.</li>
-    <li>Reject: The content is not suitable for publication.</li>
-  </ol>
+<section id="project_files">
+  <h2>Preparing your project files</h2>
+  <p>When submitting a project, you will be asked to upload relevant data and
+  software files. Please review the following guidelines when preparing your
+  files for submission:</p>
+  <ul>
+    <li><strong>All projects</strong>:
+      <ul>
+        <li>A README file should be included alongside the files. At minimum, the readme should include 
+        a title and a brief description of the package content.</li>
+        <li>Sensitive data and protected health information must have been removed prior to submission.</li>
+        <li>Files should be clearly named and must not include spaces or special characters (e.g. "/","\,".").</li>
+        <li>Files should be provided in non-proprietary formats (for example, CSV), except where there is a clear reason not to do so.</li>
+      </ul>
+    </li>
+    <li><strong>Data (general)</strong>:
+      <ul>
+        <li>In most cases, tabulated datasets should be structured following the principles of "<a href="https://en.wikipedia.org/wiki/Tidy_data">tidy data</a>". For example, each variable should be in a column and each observation (or case) in a row.</li>
+      </ul>
+    </li>
+    <li><strong>Software</strong>:
+      <ul>
+        <li>Instructions for installation and usage should be clearly documented.</li>
+        <li>Dependencies should be clearly indicated, for example in a requirements file.</li>
+        <li>A testing framework should be used to demonstrate correct functioning of major features of the software.</li>
+        <li>Standard style guidelines should be followed where appropriate (for example, PEP8 for Python).</li>
+        <li>The software should be logically structured and packaged according to standard practice.</li>
+      </ul>
+    </li>
+  </ul>
 </section>
