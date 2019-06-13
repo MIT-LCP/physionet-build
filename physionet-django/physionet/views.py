@@ -30,11 +30,14 @@ def about_publish(request):
     Instructions for authors
     """
     licenses = OrderedDict()
-    for resource_type, resource_label in Metadata.RESOURCE_TYPES:
-        licenses[resource_label] = License.objects.filter(
-            resource_types__contains=str(resource_type)).order_by('access_policy')
+    descriptions = OrderedDict()
+    for res_type, res_label in Metadata.RESOURCE_TYPES:
+        descriptions[res_label] = Metadata.RESOURCE_TYPE_DESC.get(res_type)
+        licenses[res_label] = License.objects.filter(
+            resource_types__contains=str(res_type)).order_by('access_policy')
 
-    return render(request, 'about/publish.html', {'licenses': licenses})
+    return render(request, 'about/publish.html', {'licenses': licenses,
+                  'descriptions': descriptions})
 
 
 def license_content(request, license_slug):

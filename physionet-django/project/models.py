@@ -366,6 +366,22 @@ class Metadata(models.Model):
         (3, 'Model'),
     )
 
+    RESOURCE_TYPE_DESC = {
+        0: ('Research data with significant potential for reuse by the'
+            ' research community. This may include data that'
+            ' enables published studies to be reproduced, data for'
+            ' benchmarking algorithms, and data that supports novel'
+            ' investigations.'),
+        1: ('Software that has been developed for research applications.'),
+        2: ('Description of a challenge for the research community . Files'
+            ' such as datasets and software may be included as part of the'
+            ' challenge.'),
+        3: ('An implementation of a statistical or machine learning model'
+            ' with potential for reuse by the research community. Typically'
+            ' models will be created by a training process and may have '
+            ' dependencies on specific computational frameworks'),
+    }
+
     ACCESS_POLICIES = (
         (0, 'Open'),
         (1, 'Restricted'),
