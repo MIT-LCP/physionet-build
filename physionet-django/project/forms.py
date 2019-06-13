@@ -342,13 +342,26 @@ class CreateProjectForm(forms.ModelForm):
         author.import_profile_info()
         # Create file directory
         os.mkdir(project.file_root())
-        if settings.QUOTA:
+        if settings.USE_FILESYSTEM_QUOTA:
             quota = DiskQuota.objects.create(project=project.core_project,
                 group=slug)
-            os.system('sudo /usr/local/bin/set-quota.sh {0} {1}'.format(
-                slug, project.file_root()))
-            LOGGER.info('Created disk quota for active project - {0}'.format(project))
-
+            command = 'sudo /usr/local/bin/set-quota.sh {0} {1}'.format(
+                slug, project.file_root())
+            try:
+                subprocess.check_call(command.split())
+                LOGGER.info('Created disk quota for active project - {0}.'.format(project))
+            except subprocess.CalledProcessError:
+                LOGGER.info('There was a error setting the quota for - {0}'.format(project))
+                LOGGER.info('The command executed was ->{}<-'.format(command))
+            except OSError:
+                LOGGER.info('There was a system level error while \
+                    setting the quota for - {0}'.format(project))
+                LOGGER.info('The command executed was ->{}<-'.format(command))
+            except KeyError:
+                LOGGER.info('Initial group of this version doesnt exist,\
+                    the project is {0}, group {1}'.format(project,
+                    self.latest_project.slug))
+                LOGGER.info('The command executed was ->{}<-'.format(command))
         return project
 
 
@@ -437,16 +450,25 @@ class NewProjectVersionForm(forms.ModelForm):
                         raise
             os.link(os.path.join(older_file_root, file),  destination)
 
-        if settings.QUOTA:
+        if settings.USE_FILESYSTEM_QUOTA:
+            grpup_id = grp.getgrnam(self.latest_project.slug).gr_gid
+            command = 'sudo /usr/local/bin/set-quota.sh {0} {1} {2}'.format(
+                slug, grpup_id, project.file_root())
             try:
-                grpup_id = grp.getgrnam(self.latest_project.slug).gr_gid
-                os.system('sudo /usr/local/bin/set-quota.sh {0} {1} {2}'.format(slug,
-                    grpup_id, project.file_root()))
-                LOGGER.info('Added the quota for the new version of - {0}'.format(project))
+                subprocess.check_call(command.split())
+                LOGGER.info('Added the quota for the new version of - {0}.'.format(project))
+            except subprocess.CalledProcessError:
+                LOGGER.info('There was a error setting the quota for - {0}'.format(project))
+                LOGGER.info('The command executed was ->{}<-'.format(command))
+            except OSError:
+                LOGGER.info('There was a system level error while \
+                    setting the quota for - {0}'.format(project))
+                LOGGER.info('The command executed was ->{}<-'.format(command))
             except KeyError:
                 LOGGER.info('Initial group of this version doesnt exist,\
-                    the project is {0}, group {1}'.format(project, 
+                    the project is {0}, group {1}'.format(project,
                     self.latest_project.slug))
+                LOGGER.info('The command executed was ->{}<-'.format(command))
         return project
 
 

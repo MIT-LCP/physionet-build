@@ -6,6 +6,7 @@ import uuid
 import pdb
 import pytz
 import logging
+import subprocess
 
 import bleach
 import ckeditor.fields
@@ -1096,17 +1097,33 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         # Move over main files
         os.rename(self.file_root(), published_project.file_root())
         # Set the disk quota
-        if settings.QUOTA:
+        if settings.USE_FILESYSTEM_QUOTA:
             quota = DiskQuota.objects.filter(project=published_project.core_project)
             if quota:
                 quota = quota.get()
                 quota.last_update = timezone.now()
                 if self.version_order:
-                    os.system('sudo /usr/local/bin/set-quota.sh {0} {1} {2}'.format(
-                        slug, self.slug, 'delete'))
+                    command = 'sudo /usr/local/bin/set-quota.sh {0} {1} {2}'.format(
+                        slug, self.slug, 'delete')
                 else:
-                    os.system('sudo /usr/local/bin/set-quota.sh {0} {1} {2}'.format(
-                        slug, self.slug, 'publish'))
+                    command = 'sudo /usr/local/bin/set-quota.sh {0} {1} {2}'.format(
+                        slug, self.slug, 'publish')
+                try:
+                    subprocess.check_call(command.split())
+                    LOGGER.info('Created disk quota for project - {0}.'.format(project))
+                except subprocess.CalledProcessError:
+                    LOGGER.info('There was a error setting the quota for - {0}'.format(project))
+                    LOGGER.info('The command executed was ->{}<-'.format(command))
+                except OSError:
+                    LOGGER.info('There was a system level error while \
+                        setting the quota for - {0}'.format(project))
+                    LOGGER.info('The command executed was ->{}<-'.format(command))
+                except KeyError:
+                    LOGGER.info('Initial group of this version doesnt exist,\
+                        the project is {0}, group {1}'.format(project,
+                        self.latest_project.slug))
+                    LOGGER.info('The command executed was ->{}<-'.format(command))
+
                 quota.save()
 
             LOGGER.info('Moved project quota from {0} to - {1}'.format(
@@ -1788,6 +1805,5 @@ class DiskQuota(models.Model):
     quota = models.BigIntegerField(default=104857600,
         validators=[MaxValueValidator(109951162777600),
                     MinValueValidator(104857600)])
-    last_update = models.DateTimeField(auto_now_add=True)
-    group = models.CharField(max_length=100, null=True)
-
+    last_update = models.DateTimeField(auto_now=True)
+    group = models.PositiveIntegerField()

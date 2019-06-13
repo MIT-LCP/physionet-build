@@ -441,20 +441,33 @@ def process_storage_response(request, storage_response_formset):
                     core_project.storage_allowance = storage_request.request_allowance * 1024 ** 3
                     core_project.save()
                     # Set the disk quota
-                    if settings.QUOTA:
+                    if settings.USE_FILESYSTEM_QUOTA:
                         quota = DiskQuota.objects.get(
                             project=storage_request.project.core_project)
                         quota.quota = core_project.storage_allowance
-                        quota.last_update = timezone.now()
                         quota.save()
-                        os.system('sudo /usr/local/bin/set-quota.sh {0} {1} {2}'.format(
-                            quota.group, str(storage_request.request_allowance) +'G', 'modify'))
-                        LOGGER.info('Altered project quota {0} to {1}'.format(
-                            quota.group, storage_request.request_allowance))
+                        command = 'sudo /usr/local/bin/set-quota.sh {0} {1} {2}'.format(
+                            quota.group, str(storage_request.request_allowance) +'G', 'modify')
+                        try:
+                            subprocess.check_call(command.split())
+                            LOGGER.info('Altered project quota {0} to {1}'.format(
+                                    quota.group, storage_request.request_allowance))
+                        except subprocess.CalledProcessError:
+                            LOGGER.info('There was a error setting the quota for - {0}'.format(project))
+                            LOGGER.info('The command executed was ->{}<-'.format(command))
+                        except OSError:
+                            LOGGER.info('There was a system level error while \
+                                setting the quota for - {0}'.format(project))
+                            LOGGER.info('The command executed was ->{}<-'.format(command))
+                        except KeyError:
+                            LOGGER.info('Initial group of this version doesnt exist,\
+                                the project is {0}, group {1}'.format(project,
+                                self.latest_project.slug))
+                            LOGGER.info('The command executed was ->{}<-'.format(command))                        
 
                 notification.storage_response_notify(storage_request)
-                messages.success(request,
-                    'The storage request has been {}'.format(notification.RESPONSE_ACTIONS[storage_request.response]))
+                messages.success(request,'The storage request has been {}'.format(
+                        notification.RESPONSE_ACTIONS[storage_request.response]))
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
