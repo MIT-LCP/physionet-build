@@ -1,6 +1,7 @@
 from collections import OrderedDict
 
 from django.contrib import messages
+from django.http import Http404
 from django.shortcuts import render, redirect
 from django.contrib.contenttypes.models import ContentType
 
@@ -41,7 +42,11 @@ def license_content(request, license_slug):
     """
     Content for an individual license
     """
-    license = License.objects.get(slug=license_slug)
+    try:
+        license = License.objects.get(slug=license_slug)
+    except License.DoesNotExist:
+        return Http404
+
     return render(request, 'about/license_content.html', {'license': license})
 
 
