@@ -35,7 +35,7 @@ def email_signature():
         "The PhysioNet Team,\n"
         "MIT Laboratory for Computational Physiology,\n"
         "Institute for Medical Engineering and Science,\n"
-        "45 Carleton St, Cambridge, MA 02142"
+        "MIT, E25-505 77 Massachusetts Ave. Cambridge, MA 02139"
         )
 
     return signature
