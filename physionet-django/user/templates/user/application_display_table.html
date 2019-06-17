@@ -125,10 +125,10 @@
       <td>{% if application.status %}{{ application.get_status_display }}{% else %}<i class="fas fa-clock"></i> Pending{% endif %}</td>
     </tr>
     {% if application.responder_comments %}
-    <tr>
+<!--     <tr>
       <td>Admin Comments</td>
       <td>{{ application.responder_comments|linebreaks }}</td>
-    </tr>
+    </tr> -->
     {% endif %}
   </tbody>
 </table>

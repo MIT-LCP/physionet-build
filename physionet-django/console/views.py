@@ -779,7 +779,27 @@ def past_credential_applications(request):
 
     """
     s_applications = CredentialApplication.objects.filter(status=2)
-    u_applications = CredentialApplication.objects.filter(status=1)
+    u_applications = CredentialApplication.objects.filter(status=1).order_by('-application_datetime')
+    if request.method == 'POST':
+        if 'remove_credentialing' in request.POST and request.POST['remove_credentialing'].isdigit():
+            credentiallied_id = request.POST['remove_credentialing']
+            C_application = CredentialApplication.objects.filter(id=credentiallied_id)
+            if C_application:
+                C_application = C_application.get()
+                C_application.user.is_credentialed = False
+                C_application.user.credential_datetime = None
+                C_application.user.save()
+                C_application.decision_datetime = None
+                C_application.status = 1
+                C_application.save()
+        elif 'manage_credentialing' in request.POST and request.POST['manage_credentialing'].isdigit():
+            credentiallied_id = request.POST['manage_credentialing']
+            C_application = CredentialApplication.objects.filter(id=credentiallied_id)
+            if C_application:
+                C_application = C_application.get()
+                C_application.status = 0
+                C_application.save()
+
     return render(request, 'console/past_credential_applications.html',
         {'s_applications':s_applications,
          'u_applications':u_applications})

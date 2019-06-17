@@ -641,7 +641,7 @@ class CredentialApplication(models.Model):
     country = models.CharField(max_length=2, choices=COUNTRIES)
     webpage = models.URLField(default='', blank=True)
     zip_code = models.CharField(max_length=60,
-        validators=[validate_alphaplusplus], default='', blank=True)
+        validators=[validate_alphaplusplus])
     suffix = models.CharField(max_length=60,
         validators=[validate_nan, validate_alphaplusplus], default='', blank=True)
     # Human resources training
@@ -685,3 +685,13 @@ class CredentialApplication(models.Model):
 
     def get_full_name(self):
         return ' '.join([self.first_names, self.last_name])
+
+    def get_latest_by_user(self):
+        return CredentialApplication.objects.filter(user=self.user).last()
+
+    def is_last_by_user(self):
+        if self == CredentialApplication.objects.filter(user=self.user).last():
+            return True
+        else:
+            return False
+

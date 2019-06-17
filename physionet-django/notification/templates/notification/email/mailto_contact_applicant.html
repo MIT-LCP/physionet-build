@@ -1,4 +1,3 @@
-{% load i18n %}{% autoescape off %}
 ----------------
 {{ dua }}
 Application Date: {{ application.application_datetime|date }}
@@ -13,7 +12,6 @@ City: {{ application.city }}
 State/Province: {{ application.state_province }}
 Country: {{ application.get_country_display }}
 Webpage: {% if application.webpage %}{{ application.webpage }}{% endif %}
-General research area for which the data will be used: {{ application.research_summary }}
 
 Human studies training course (name of course): {{ application.training_course_name }}
 Date completed: {{ application.training_completion_date }}
@@ -28,4 +26,5 @@ Course Category: {{ application.get_course_category_display }}
 Course Info: {{ application.course_info }}
 {% endif %}
 
-{% endautoescape %}
+Application Date: {{ application.application_datetime|date }}
+General research area for which the data will be used: {{ application.research_summary }}
