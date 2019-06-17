@@ -71,8 +71,6 @@
 
 .search-options > div{
 	display: inline-block;
-	border: 1px silver solid;
-	border-radius: 5px;
 	height: initial;
 	padding-left: 8px !important;
 	min-height: 2.6em;
