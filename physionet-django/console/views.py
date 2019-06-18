@@ -12,6 +12,7 @@ from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.db import DatabaseError, transaction
 from django.db.models import Q, CharField, Value, IntegerField
 from background_task import background
 
@@ -782,23 +783,30 @@ def past_credential_applications(request):
     u_applications = CredentialApplication.objects.filter(status=1).order_by('-application_datetime')
     if request.method == 'POST':
         if 'remove_credentialing' in request.POST and request.POST['remove_credentialing'].isdigit():
-            credentiallied_id = request.POST['remove_credentialing']
-            C_application = CredentialApplication.objects.filter(id=credentiallied_id)
-            if C_application:
-                C_application = C_application.get()
-                C_application.user.is_credentialed = False
-                C_application.user.credential_datetime = None
-                C_application.user.save()
-                C_application.decision_datetime = None
-                C_application.status = 1
-                C_application.save()
+            cid = request.POST['remove_credentialing']
+            c_application = CredentialApplication.objects.filter(id=cid)
+            if c_application:
+                c_application = c_application.get()
+                c_application.user.is_credentialed = False
+                c_application.user.credential_datetime = None
+                c_application.decision_datetime = None
+                c_application.status = 1
+                try:
+                    with transaction.atomic():
+                        c_application.user.save()
+                        c_application.save()
+                except DatabaseError:
+                    s_applications = CredentialApplication.objects.filter(status=2)
+                    u_applications = CredentialApplication.objects.filter(
+                        status=1).order_by('-application_datetime')
+                    messages.error(request, 'There was a database error, please try again.')
         elif 'manage_credentialing' in request.POST and request.POST['manage_credentialing'].isdigit():
-            credentiallied_id = request.POST['manage_credentialing']
-            C_application = CredentialApplication.objects.filter(id=credentiallied_id)
-            if C_application:
-                C_application = C_application.get()
-                C_application.status = 0
-                C_application.save()
+            cid = request.POST['manage_credentialing']
+            c_application = CredentialApplication.objects.filter(id=cid)
+            if c_application:
+                c_application = c_application.get()
+                c_application.status = 0
+                c_application.save()
 
     return render(request, 'console/past_credential_applications.html',
         {'s_applications':s_applications,
