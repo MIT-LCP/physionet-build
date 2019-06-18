@@ -796,9 +796,6 @@ def past_credential_applications(request):
                         c_application.user.save()
                         c_application.save()
                 except DatabaseError:
-                    s_applications = CredentialApplication.objects.filter(status=2)
-                    u_applications = CredentialApplication.objects.filter(
-                        status=1).order_by('-application_datetime')
                     messages.error(request, 'There was a database error, please try again.')
         elif 'manage_credentialing' in request.POST and request.POST['manage_credentialing'].isdigit():
             cid = request.POST['manage_credentialing']
