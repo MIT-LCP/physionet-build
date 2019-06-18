@@ -132,10 +132,10 @@ def content_index(request, resource_type=None):
     # SORT PROJECTS
     orderby, direction = 'publish_datetime', 'desc'
     form_order = forms.ProjectOrderForm()
-    if 'orderby' in request.GET or 'direction' in request.GET:
+    if 'orderby' in request.GET:
         form_order = forms.ProjectOrderForm(request.GET)
         if form_order.is_valid():
-            orderby, direction = [form_order.cleaned_data[item] for item in ['orderby', 'direction']]
+            orderby, direction = form_order.cleaned_data['orderby'].split('-')
 
     # TOPIC SEARCH
     topic = ''

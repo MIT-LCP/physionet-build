@@ -16,30 +16,25 @@ input, select, django-ckeditor-widget, textarea {
   outline: none;
 }
 
-.resource-search ul{
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
 form li label input{
   display: inline-block;
   width: unset;
 }
 
-form select{
+form select:not([multiple]){
   -webkit-appearance: none;
   background-color: white;
   background-image: 
     linear-gradient(45deg, transparent 50%, black 50%),
     linear-gradient(135deg, black 50%, transparent 50%);
   background-position:
-    calc(100% - 20px) calc(1em + 2px),
-    calc(100% - 15px) calc(1em + 2px);
+    calc(100% - 15px) calc(1em + 1px),
+    calc(100% - 10px) calc(1em + 1px);
   background-size:
     5px 5px,
     5px 5px;
   background-repeat: no-repeat;
+  padding-right: 25px;
 }
 
 input::-ms-expand {
