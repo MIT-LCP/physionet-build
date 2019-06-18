@@ -308,7 +308,7 @@ class TrainingCAF(forms.ModelForm):
         help_texts = {
             'training_course_name':"The name of the human subjects training course you took. e.g. 'CITI Data or Specimens Only Research Course'",
             'training_completion_date': 'The date on which you finished your human subjects training course. Must match the date in your training completion report.',
-            'training_completion_report':"Upload the completion report from the CITI \"Data or Specimens Only Research\" training program (PDF or image file). The completion report lists all modules completed, with dates and scores. Do NOT upload the completion certificate. If you would like to submit multiple pages, please combine them into a single pdf file.",
+            'training_completion_report':"Upload the completion report from the CITI 'Data or Specimens Only Research' training program (PDF or image file). The completion report lists all modules completed, with dates and scores. Do NOT upload the completion certificate. If you would like to submit multiple pages, please combine them into a single pdf file.",
         }
         widgets = {
             'training_completion_date':forms.SelectDateWidget(years=list(range(1990, timezone.now().year+1))),

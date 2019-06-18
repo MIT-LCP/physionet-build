@@ -124,11 +124,5 @@
       <td>Decision</td>
       <td>{% if application.status %}{{ application.get_status_display }}{% else %}<i class="fas fa-clock"></i> Pending{% endif %}</td>
     </tr>
-    {% if application.responder_comments %}
-<!--     <tr>
-      <td>Admin Comments</td>
-      <td>{{ application.responder_comments|linebreaks }}</td>
-    </tr> -->
-    {% endif %}
   </tbody>
 </table>

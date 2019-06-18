@@ -689,7 +689,7 @@ class CredentialApplication(models.Model):
     def get_latest_by_user(self):
         return CredentialApplication.objects.filter(user=self.user).last()
 
-    def is_last_by_user(self):
+    def is_latest_by_user(self):
         if self == CredentialApplication.objects.filter(user=self.user).last():
             return True
         else:
