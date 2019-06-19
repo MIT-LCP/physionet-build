@@ -518,6 +518,8 @@ class Metadata(models.Model):
         for file in file_names:
             file_info = get_file_info(os.path.join(inspect_dir, file))
             file_info.url = self.file_display_url(subdir=subdir, file=file)
+            file_info.raw_url = self.file_url(subdir=subdir, file=file)
+            file_info.download_url = file_info.raw_url + '?download'
             display_files.append(file_info)
 
         # Directories require links
