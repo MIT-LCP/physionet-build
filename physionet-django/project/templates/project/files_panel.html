@@ -57,7 +57,12 @@
   {% endfor %}
   {% for file in display_files %}
     <tr>
-      <td><a href="{{ file.url }}">{{ file.name }}</a></td>
+      <td><a href="{{ file.url }}">{{ file.name }}</a>
+        <a class="download" href="{{ file.download_url }}"
+           title="Download {{ file.name }}">
+          <span class="visually-hidden">(download)</span>
+        </a>
+      </td>
       <td>{{ file.size }}</td>
       <td>{{ file.last_modified }}</td>
     </tr>

@@ -505,3 +505,14 @@ table.files-panel {
   width: 1.5em;
   margin-right: 0.5em;
 }
+.files-panel a.download {
+  float: right;
+}
+.files-panel a.download:before {
+  content: "\F019"; /* download */
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+  display: inline-block;
+  text-align: center;
+  width: 1.25em;
+}
