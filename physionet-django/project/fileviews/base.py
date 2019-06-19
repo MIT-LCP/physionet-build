@@ -2,6 +2,7 @@ import gzip
 import os
 
 from django.shortcuts import render, redirect
+from django.urls import reverse
 
 from physionet.utility import file_content_type
 from project.utility import get_dir_breadcrumbs
@@ -44,6 +45,15 @@ class FileView:
                 show_plain = ctype.startswith('text/')
 
         breadcrumbs = get_dir_breadcrumbs(self.path, directory=False)
+
+        # If '?return=files' is specified, make breadcrumb links point
+        # back to project_files rather than to project_preview.  This
+        # only makes sense for active (unpublished) projects.
+        if (request.GET.get('return') == 'files'
+                and not hasattr(self.project, 'publish_datetime')):
+            base_url = reverse('project_files', args=(self.project.slug,))
+            for b in breadcrumbs:
+                b.rel_path = os.path.join(base_url, b.full_subdir)
 
         response = render(request, template, {
             'breadcrumbs': breadcrumbs,
