@@ -552,6 +552,10 @@ class DiscoveryForm(forms.ModelForm):
         if resource_type != 1:
             del(self.fields['programming_languages'])
 
+    def clean_short_description(self):
+        data = self.cleaned_data['short_description']
+        return ' '.join(data.split())
+
 
 class AffiliationFormSet(forms.BaseInlineFormSet):
     """
