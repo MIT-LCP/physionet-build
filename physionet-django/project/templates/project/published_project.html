@@ -6,6 +6,12 @@
 
 {% load project_templatetags %}
 
+{% block meta %}
+{% if project.short_description %}
+<meta name="description" content="{{ project.short_description }}">
+{% endif %}
+{% endblock %}
+
 {% block local_css %}
 <link rel="stylesheet" type="text/css" href="{% static 'project/css/project-content.css' %}"/>
 <link rel="stylesheet" type="text/css" href="{% static 'highlight/css/default.min.css' %}"/>
