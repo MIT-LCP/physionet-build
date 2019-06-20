@@ -536,7 +536,13 @@ class DiscoveryForm(forms.ModelForm):
         fields = ('short_description', 'project_home_page', 'parent_projects',
             'programming_languages')
         help_texts = {
-            'short_description': 'Short (maximum 250 character) description of the project.',
+            'short_description':
+            '* A brief description (at most 250 characters) of the project. '
+            'This should be one or two complete sentences, and describe the '
+            'contents of the project to a reader who is generally '
+            'knowledgeable about the subject but is not specifically familiar '
+            'with your research.',
+
             'project_home_page': 'External home page for the project.'
         }
         widgets = {'short_description':forms.Textarea(attrs={'rows':'4'})}
