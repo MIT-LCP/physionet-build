@@ -21,7 +21,7 @@ def send_contact_message(contact_form):
         contact_form.cleaned_data['name'],
         contact_form.cleaned_data['email'],
         contact_form.cleaned_data['message'])
-    send_mail(contact_form.cleaned_data['subject'], body, settings.CONTACT_EMAIL,
+    send_mail(contact_form.cleaned_data['subject'], body, contact_form.cleaned_data['email'],
         [settings.CONTACT_EMAIL], fail_silently=False)
 
 
