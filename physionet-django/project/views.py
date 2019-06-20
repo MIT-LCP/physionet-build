@@ -1093,6 +1093,8 @@ def project_submission(request, project_slug, **kwargs):
                 project.submit(author_comments=author_comments_form.cleaned_data['author_comments'])
                 notification.submit_notify(project)
                 messages.success(request, 'Your project has been submitted. You will be notified when an editor is assigned.')
+            elif project.integrity_errors:
+                messages.error(request, project.integrity_errors)
             else:
                 messages.error(request, 'Fix the errors before submitting')
         elif 'resubmit_project' in request.POST and is_submitting:
