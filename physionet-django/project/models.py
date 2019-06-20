@@ -16,6 +16,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.forms.utils import ErrorList
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import strip_tags
@@ -844,7 +845,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         Run integrity tests on metadata fields and return whether the
         project passes the checks
         """
-        self.integrity_errors = []
+        self.integrity_errors = ErrorList()
 
         # Invitations
         for invitation in self.authorinvitations.filter(is_active=True):
