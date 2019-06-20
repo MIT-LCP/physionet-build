@@ -780,25 +780,33 @@ def past_credential_applications(request):
     unsuccessful.
 
     """
-    l_applications = LegacyCredential.objects.filter(migrated=True).order_by('-migration_date')
+    l_applications = LegacyCredential.objects.filter(migrated=True, migrated_user__is_credentialed=True).order_by('-migration_date')
     s_applications = CredentialApplication.objects.filter(status=2).order_by('-application_datetime')
     u_applications = CredentialApplication.objects.filter(status=1).order_by('-application_datetime')
     if request.method == 'POST':
-        if 'remove_credentialing' in request.POST and request.POST['remove_credentialing'].isdigit():
-            cid = request.POST['remove_credentialing']
-            c_application = CredentialApplication.objects.filter(id=cid)
-            if c_application:
-                c_application = c_application.get()
-                c_application.user.is_credentialed = False
-                c_application.user.credential_datetime = None
-                c_application.decision_datetime = None
-                c_application.status = 1
-                try:
-                    with transaction.atomic():
-                        c_application.user.save()
-                        c_application.save()
-                except DatabaseError:
-                    messages.error(request, 'There was a database error, please try again.')
+        if 'remove_credentialing' in request.POST:
+            if request.POST['remove_credentialing'].isdigit():
+                cid = request.POST['remove_credentialing']
+                c_application = CredentialApplication.objects.filter(id=cid)
+                if c_application:
+                    c_application = c_application.get()
+                    c_application.user.is_credentialed = False
+                    c_application.user.credential_datetime = None
+                    c_application.decision_datetime = None
+                    c_application.status = 1
+                    try:
+                        with transaction.atomic():
+                            c_application.user.save()
+                            c_application.save()
+                    except DatabaseError:
+                        messages.error(request, 'There was a database error, please try again.')
+            else:
+                l_application = LegacyCredential.objects.filter(email=request.POST['remove_credentialing'])
+                if l_application:
+                    l_application = l_application.get()
+                    l_application.migrated_user.credential_datetime = None
+                    l_application.migrated_user.is_credentialed = False
+                    l_application.migrated_user.save()
         elif 'manage_credentialing' in request.POST and request.POST['manage_credentialing'].isdigit():
             cid = request.POST['manage_credentialing']
             c_application = CredentialApplication.objects.filter(id=cid)
