@@ -276,6 +276,7 @@ class PersonalCAF(forms.ModelForm):
         }
         widgets = {
            'research_summary': forms.Textarea(attrs={'rows': 3}),
+           'suffix': forms.TextInput(attrs={'autocomplete': 'off'}),
         }
         labels = {
             'state_province': 'State/Province',
