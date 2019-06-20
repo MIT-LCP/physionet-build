@@ -408,8 +408,7 @@ class Metadata(models.Model):
     release_notes = SafeHTMLField(blank=True)
 
     # Short description used for search results, social media, etc
-    short_description = models.CharField(max_length=250, blank=True,
-        default='', validators=[validate_alphaplusplus])
+    short_description = models.CharField(max_length=250, blank=True)
 
     # Access information
     access_policy = models.SmallIntegerField(choices=ACCESS_POLICIES,
