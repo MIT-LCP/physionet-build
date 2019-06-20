@@ -678,18 +678,20 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     REQUIRED_FIELDS = (
         # 0: Database
         ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'conflicts_of_interest', 'version', 'license'),
+         'usage_notes', 'conflicts_of_interest', 'version', 'license',
+         'short_description'),
         # 1: Software
         ('title', 'abstract', 'background', 'content_description',
          'usage_notes', 'installation', 'conflicts_of_interest', 'version',
-         'license'),
+         'license', 'short_description'),
         # 2: Challenge
         ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'conflicts_of_interest', 'version', 'license'),
+         'usage_notes', 'conflicts_of_interest', 'version', 'license',
+         'short_description'),
         # 3: Model
         ('title', 'abstract', 'background', 'methods', 'content_description',
          'usage_notes', 'installation', 'conflicts_of_interest', 'version',
-         'license'),
+         'license', 'short_description'),
     )
 
     # Custom labels that don't match model field names

@@ -569,6 +569,7 @@
     "conflicts_of_interest": "<p>The authors declare no conflicts of interest.</p>",
     "version": "1.0.0",
     "release_notes": "",
+    "short_description": "The MIT-BIH Arrhythmia Database contains 48 half-hour excerpts of ambulatory ECG recordings, fully annotated with beat and rhythm labels.",
     "access_policy": 0,
     "license": 1,
     "project_home_page": "https://physionet.org/physiobank/database/mitdb/",
