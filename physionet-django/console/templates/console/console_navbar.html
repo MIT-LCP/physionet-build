@@ -94,6 +94,15 @@
         </ul>
       </li>
 
+      {% url 'project_access' as project_access %}      
+      <!-- project access -->
+      {% url 'storage_requests' as storage_requests %}
+      <li class="nav-item {% if request.path == project_access %}active{% endif %}" data-toggle="tooltip" data-placement="right">
+        <a id="nav_project_access" class="nav-link" href="{% url 'project_access' %}">
+          <i class="fa fa-fw fa-universal-access"></i>
+          <span class="nav-link-text">Project Access</span>
+        </a>
+      </li>
       <!-- users -->
       {% url 'user_list' as user_list %}
       {% url 'user_list_inactive' as user_list_inactive %}

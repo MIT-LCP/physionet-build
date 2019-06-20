@@ -998,3 +998,37 @@ def download_credentialed_users(request):
     return response
 
 
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def project_access(request):
+    """
+    List all the people that has access to credentialed databases
+    """
+    c_projects = PublishedProject.objects.filter(access_policy=2).annotate(
+        member_count=Value(0, IntegerField()))
+
+    for project in c_projects:
+        project.member_count = DUASignature.objects.filter(
+            project__access_policy = 2, project=project).count()
+
+    return render(request, 'console/project_access.html', {'c_projects':c_projects})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def project_access_manage(request, pid):
+    c_project = PublishedProject.objects.filter(id=pid)
+    if c_project:
+        c_project = c_project.get()
+        project_members = DUASignature.objects.filter(
+            project__access_policy = 2, project=c_project)
+
+        return render(request, 'console/project_access_manage.html', {
+            'c_project':c_project, 'project_members':project_members})
+
+
+
+
+
+
+
