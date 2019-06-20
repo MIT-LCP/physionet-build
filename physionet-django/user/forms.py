@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.translation import ugettext_lazy
 
+from project.models import PublishedProject
 from .models import AssociatedEmail, User, Profile, CredentialApplication
 from .widgets import ProfilePhotoInput
 from .validators import UsernameValidator, validate_name
@@ -259,7 +260,7 @@ class PersonalCAF(forms.ModelForm):
         model = CredentialApplication
         fields = ('first_names', 'last_name', 'suffix', 'researcher_category',
             'organization_name', 'job_title', 'city', 'state_province',
-            'zip_code', 'country', 'webpage','research_summary')
+            'zip_code', 'country', 'webpage')
         help_texts = {
             'first_names': 'Your first and middle names.',
             'last_name': 'Your last name',
@@ -296,6 +297,25 @@ class PersonalCAF(forms.ModelForm):
             'last_name':self.profile.last_name,
             'organization_name':self.profile.affiliation,
             'webpage':self.profile.website}
+
+
+class ResearchCAF(forms.ModelForm):
+    """
+    Credential application form research attributes
+    """
+    # credentialed_project = forms.ModelChoiceField(queryset=PublishedProject.objects.filter(access_policy=2),
+    #     label='Project of interest')
+
+    class Meta:
+        model = CredentialApplication
+        fields = ('research_summary','project_of_interest',)
+        help_texts = {
+            'research_summary': "Brief description on your research. If you will be using the data for a class, please include course name and number in your description.",
+        }
+        widgets = {
+           'research_summary': forms.Textarea(attrs={'rows': 3}),
+           # 'project_of_interest': queryset=PublishedProject.objects.filter(access_policy=2),
+        }
 
 
 class TrainingCAF(forms.ModelForm):
@@ -368,14 +388,13 @@ class CredentialApplicationForm(forms.ModelForm):
     """
     Form to apply for PhysioNet credentialling
     """
-
     class Meta:
         model = CredentialApplication
         fields = (
             # Personal
             'first_names', 'last_name', 'suffix', 'researcher_category',
             'organization_name', 'job_title', 'city', 'state_province',
-            'country', 'webpage',
+            'zip_code', 'country', 'webpage',
             # Training course
             'training_course_name', 'training_completion_date',
             'training_completion_report',
@@ -383,7 +402,9 @@ class CredentialApplicationForm(forms.ModelForm):
             'reference_category', 'reference_name',
             'reference_email', 'reference_title',
             # Taking a course?
-            'course_category', 'course_info','research_summary')
+            'course_category', 'course_info',
+            # Research area
+            'research_summary', 'project_of_interest')
 
         widgets = {
             'training_completion_date':forms.SelectDateWidget(years=list(range(1990, timezone.now().year+1))),

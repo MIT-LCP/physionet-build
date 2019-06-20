@@ -7,6 +7,8 @@
     <div class='mb-2'>
       <div class="card-columns row">
         <div class="col-sm-12">
+          <p>Database requested: {{ application.project_of_interest }}</p>
+
           <p>Applicant full name: {{ application.get_full_name }}
             <a class="btn btn-success" href='{{ application.mailto }}'>
               Contact Applicant
