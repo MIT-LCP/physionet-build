@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import hashlib
+from html import unescape
 import os
 import shutil
 import uuid
@@ -17,6 +18,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.html import strip_tags
 from django.utils.text import slugify
 
 from project.utility import (get_tree_size, get_file_info, get_directory_info,
@@ -872,7 +874,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
         # Metadata
         for attr in ActiveProject.REQUIRED_FIELDS[self.resource_type]:
-            if not getattr(self, attr):
+            text = unescape(strip_tags(getattr(self, attr)))
+            if not text or text.isspace():
                 l = self.LABELS[self.resource_type][attr] if attr in self.LABELS[self.resource_type] else attr.title().replace('_', ' ')
                 self.integrity_errors.append('Missing required field: {0}'.format(l))
 
