@@ -2,6 +2,7 @@
 Module for generating notifications
 """
 from urllib import parse
+from email.utils import formataddr
 
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
@@ -17,13 +18,11 @@ def send_contact_message(contact_form):
     """
     Send a message to the contact email
     """
-    body = 'From: {} {}\n\nMessage:\n{}'.format(
-        contact_form.cleaned_data['name'],
-        contact_form.cleaned_data['email'],
-        contact_form.cleaned_data['message'])
-    send_mail(contact_form.cleaned_data['subject'], body, contact_form.cleaned_data['email'],
+    body = contact_form.cleaned_data['message']
+    mail_from = formataddr((contact_form.cleaned_data['name'], 
+        contact_form.cleaned_data['email']))
+    send_mail(contact_form.cleaned_data['subject'], body, mail_from,
         [settings.CONTACT_EMAIL], fail_silently=False)
-
 
 # ---------- Project App ---------- #
 
