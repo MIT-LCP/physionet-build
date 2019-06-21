@@ -41,10 +41,7 @@ def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
     """
 
     published_project = PublishedProject.objects.get(id=pid)
-    try:
-        os.rename(dir_from, dir_to)
-    except:
-        print('Files not there')
+    os.rename(dir_from, dir_to)
 
     # Create special files if there are files. Should always be the case.
     if bool(published_project.storage_used):
@@ -56,11 +53,9 @@ def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
     file_root = published_project.file_root()
     files = get_tree_files(file_root, full_path=False)
     Dirs = []
-    print(files)
     for file in files: 
         if os.path.dirname(os.path.join(file_root, file)) not in Dirs:
             Dirs.append(os.path.dirname(os.path.join(file_root, file)))
-        print(os.path.join(file_root, file))
         os.chmod(os.path.join(file_root, file), stat.S_IRUSR |stat.S_IRGRP | stat.S_IROTH)
     # for directory in Dirs:
     #     os.chmod(directory, stat.S_IRUSR |stat.S_IRGRP | stat.S_IROTH)
