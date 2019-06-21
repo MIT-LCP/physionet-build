@@ -956,7 +956,7 @@ def download_credentialed_users(request):
     # Create the HttpResponse object with the appropriate CSV header.
     project_access = DUASignature.objects.filter(project__access_policy = 2)
     added = []
-    List = [['First name', 'Last name', 'E-mail', 'Institution', 'Country', 
+    dua_info_csv = [['First name', 'Last name', 'E-mail', 'Institution', 'Country', 
     'MIMIC approval date', 'eICU approval date', 
     'General research area for which the data will be used']]
     for person in project_access:
@@ -967,14 +967,14 @@ def download_credentialed_users(request):
         elif 'eicu' in person.project.slug:
             eicu_signature_date = person.sign_datetime
         if person.user.id in added:
-            for indx, item in enumerate(List):
+            for indx, item in enumerate(dua_info_csv):
                 if item[2] == person.user.email and item[5] == None:
-                    List[indx][5] = mimic_signature_date
+                    dua_info_csv[indx][5] = mimic_signature_date
                 elif item[2] == person.user.email and item[6] == None:
-                    List[indx][6] = eicu_signature_date
+                    dua_info_csv[indx][6] = eicu_signature_date
         else:
             if application:
-                List.append([person.user.profile.first_names,
+                dua_info_csv.append([person.user.profile.first_names,
                     person.user.profile.last_name, person.user.email,
                     application.organization_name, application.country,
                     mimic_signature_date, eicu_signature_date,
@@ -984,7 +984,7 @@ def download_credentialed_users(request):
                 legacy = LegacyCredential.objects.filter(migrated_user_id=person.user.id)
                 if legacy:
                     legacy = legacy.get()
-                    List.append([person.user.profile.first_names,
+                    dua_info_csv.append([person.user.profile.first_names,
                         person.user.profile.last_name, person.user.email,
                         'Legacy User', legacy.country,
                         legacy.mimic_approval_date, legacy.eicu_approval_date,
@@ -998,7 +998,7 @@ def download_credentialed_users(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="credentialed_users.csv"'
     writer = csv.writer(response)
-    for item in List:
+    for item in dua_info_csv:
         writer.writerow(item)
 
     return response
