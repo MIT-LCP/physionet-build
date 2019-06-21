@@ -1,6 +1,6 @@
 {% for field in form.visible_fields %}
   <div class="form-group row">
-    <label class="col-md-2" for="{{ field.name }}" title="{{ field.help_text }}">{{ field.label }}
+    <label class="col-md-2" for="{{ field.html_name }}" title="{{ field.help_text }}">{{ field.label }}
     </label>
     <div class='col-md-10'>
       {{ field }}
