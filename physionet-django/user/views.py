@@ -380,13 +380,13 @@ def credential_application(request):
             files=request.FILES, prefix="application")
         reference_form = forms.ReferenceCAF(data=request.POST, prefix="application")
         course_form = forms.CourseCAF(data=request.POST, require_courses=False, prefix="application")
-
+        
         form = CredentialApplicationForm(user=user, data=request.POST,
             files=request.FILES,  prefix="application")
 
         if (personal_form.is_valid() and training_form.is_valid()
                 and reference_form.is_valid() and course_form.is_valid()
-                and form.is_valid()):
+                and form.is_valid()) and research_form.is_valid():
             aplication = form.save()
             credential_application_request(request, aplication)
 
@@ -398,12 +398,13 @@ def credential_application(request):
         training_form = forms.TrainingCAF(prefix="application")
         reference_form = forms.ReferenceCAF(prefix="application")
         course_form = forms.CourseCAF(prefix="application")
+
         form = None
 
     return render(request, 'user/credential_application.html', {'form':form,
         'personal_form':personal_form, 'training_form':training_form,
         'reference_form':reference_form, 'course_form':course_form,
-        'license':license})
+        'license':license, 'research_form':research_form})
 
 
 @login_required

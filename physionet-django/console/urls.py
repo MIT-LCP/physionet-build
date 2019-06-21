@@ -16,7 +16,10 @@ urlpatterns = [
         name='published_projects'),
     path('rejected-submissions/', views.rejected_submissions,
         name='rejected_submissions'),
-
+    path('project-access', views.project_access,
+        name='project_access'),
+    path('project-access-manage/<pid>/', views.project_access_manage,
+        name='project_access_manage'),
     path('published-projects/<project_slug>/<version>/',
         views.manage_published_project, name='manage_published_project'),
 
@@ -54,7 +57,11 @@ urlpatterns = [
     path('credential-applications/<application_slug>/process/',
         views.process_credential_application,
         name='process_credential_application'),
-
+    
+    # Download a CSV of the people that have a credentialed DB access
+    path('download_credentialed_users/',
+        views.download_credentialed_users,
+        name="download_credentialed_users"),
 
     path('users/all/', views.users, name='user_list'),
     path('users/search/', views.users_search, name='users_list_search'),

@@ -2,13 +2,14 @@ import re
 import pdb
 import logging
 import os
+import csv
 
 from django.core.validators  import validate_email
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.forms import modelformset_factory, Select, Textarea
-from django.http import Http404, JsonResponse
+from django.http import Http404, JsonResponse, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -21,11 +22,11 @@ import notification.utility as notification
 import project.forms as project_forms
 from project.models import (ActiveProject, ArchivedProject, StorageRequest,
     Reference, Topic, Publication, PublishedProject,
-    exists_project_slug, GCP)
+    exists_project_slug, GCP, DUASignature)
 from project.utility import readable_size
 from project.views import (get_file_forms, get_project_file_info,
     process_files_post)
-from user.models import User, CredentialApplication
+from user.models import User, CredentialApplication, LegacyCredential
 from . import forms, utility
 
 from django.conf import settings
@@ -779,24 +780,33 @@ def past_credential_applications(request):
     unsuccessful.
 
     """
-    s_applications = CredentialApplication.objects.filter(status=2)
+    l_applications = LegacyCredential.objects.filter(migrated=True, migrated_user__is_credentialed=True).order_by('-migration_date')
+    s_applications = CredentialApplication.objects.filter(status=2).order_by('-application_datetime')
     u_applications = CredentialApplication.objects.filter(status=1).order_by('-application_datetime')
     if request.method == 'POST':
-        if 'remove_credentialing' in request.POST and request.POST['remove_credentialing'].isdigit():
-            cid = request.POST['remove_credentialing']
-            c_application = CredentialApplication.objects.filter(id=cid)
-            if c_application:
-                c_application = c_application.get()
-                c_application.user.is_credentialed = False
-                c_application.user.credential_datetime = None
-                c_application.decision_datetime = None
-                c_application.status = 1
-                try:
-                    with transaction.atomic():
-                        c_application.user.save()
-                        c_application.save()
-                except DatabaseError:
-                    messages.error(request, 'There was a database error, please try again.')
+        if 'remove_credentialing' in request.POST:
+            if request.POST['remove_credentialing'].isdigit():
+                cid = request.POST['remove_credentialing']
+                c_application = CredentialApplication.objects.filter(id=cid)
+                if c_application:
+                    c_application = c_application.get()
+                    c_application.user.is_credentialed = False
+                    c_application.user.credential_datetime = None
+                    c_application.decision_datetime = None
+                    c_application.status = 1
+                    try:
+                        with transaction.atomic():
+                            c_application.user.save()
+                            c_application.save()
+                    except DatabaseError:
+                        messages.error(request, 'There was a database error, please try again.')
+            else:
+                l_application = LegacyCredential.objects.filter(email=request.POST['remove_credentialing'])
+                if l_application:
+                    l_application = l_application.get()
+                    l_application.migrated_user.credential_datetime = None
+                    l_application.migrated_user.is_credentialed = False
+                    l_application.migrated_user.save()
         elif 'manage_credentialing' in request.POST and request.POST['manage_credentialing'].isdigit():
             cid = request.POST['manage_credentialing']
             c_application = CredentialApplication.objects.filter(id=cid)
@@ -807,7 +817,8 @@ def past_credential_applications(request):
 
     return render(request, 'console/past_credential_applications.html',
         {'s_applications':s_applications,
-         'u_applications':u_applications})
+         'u_applications':u_applications,
+         'l_applications':l_applications})
 
 
 @login_required
@@ -934,3 +945,90 @@ def guidelines_review(request):
     Guidelines for reviewers.
     """
     return render(request, 'console/guidelines_review.html')
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def download_credentialed_users(request):
+    """
+    CSV create and download for database access.
+    """
+    # Create the HttpResponse object with the appropriate CSV header.
+    project_access = DUASignature.objects.filter(project__access_policy = 2)
+    added = []
+    List = [['First name', 'Last name', 'E-mail', 'Institution', 'Country', 
+    'MIMIC approval date', 'eICU approval date', 
+    'General research area for which the data will be used']]
+    for person in project_access:
+        application = person.user.credential_applications.last()
+        mimic_signature_date = eicu_signature_date = None
+        if 'mimic' in person.project.slug:
+            mimic_signature_date = person.sign_datetime
+        elif 'eicu' in person.project.slug:
+            eicu_signature_date = person.sign_datetime
+        if person.user.id in added:
+            for indx, item in enumerate(List):
+                if item[2] == person.user.email and item[5] == None:
+                    List[indx][5] = mimic_signature_date
+                elif item[2] == person.user.email and item[6] == None:
+                    List[indx][6] = eicu_signature_date
+        else:
+            if application:
+                List.append([person.user.profile.first_names,
+                    person.user.profile.last_name, person.user.email,
+                    application.organization_name, application.country,
+                    mimic_signature_date, eicu_signature_date,
+                    application.research_summary])
+                added.append(person.user.id)
+            else:
+                legacy = LegacyCredential.objects.get(migrated_user_id=person.user.id)
+                List.append([person.user.profile.first_names,
+                    person.user.profile.last_name, person.user.email,
+                    'Legacy User', legacy.country,
+                    legacy.mimic_approval_date, legacy.eicu_approval_date,
+                    legacy.info])
+                added.append(person.user.id)
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="credentialed_users.csv"'
+    writer = csv.writer(response)
+    for item in List:
+        writer.writerow(item)
+
+    return response
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def project_access(request):
+    """
+    List all the people that has access to credentialed databases
+    """
+    c_projects = PublishedProject.objects.filter(access_policy=2).annotate(
+        member_count=Value(0, IntegerField()))
+
+    for project in c_projects:
+        project.member_count = DUASignature.objects.filter(
+            project__access_policy = 2, project=project).count()
+
+    return render(request, 'console/project_access.html', {'c_projects':c_projects})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def project_access_manage(request, pid):
+    c_project = PublishedProject.objects.filter(id=pid)
+    if c_project:
+        c_project = c_project.get()
+        project_members = DUASignature.objects.filter(
+            project__access_policy = 2, project=c_project)
+
+        return render(request, 'console/project_access_manage.html', {
+            'c_project':c_project, 'project_members':project_members})
+
+
+
+
+
+
+
