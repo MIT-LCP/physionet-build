@@ -398,7 +398,7 @@ def credential_application(request):
         training_form = forms.TrainingCAF(prefix="application")
         reference_form = forms.ReferenceCAF(prefix="application")
         course_form = forms.CourseCAF(prefix="application")
-
+        research_form = forms.ResearchCAF(prefix="application")
         form = None
 
     return render(request, 'user/credential_application.html', {'form':form,

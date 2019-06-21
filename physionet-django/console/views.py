@@ -981,13 +981,19 @@ def download_credentialed_users(request):
                     application.research_summary])
                 added.append(person.user.id)
             else:
-                legacy = LegacyCredential.objects.get(migrated_user_id=person.user.id)
-                List.append([person.user.profile.first_names,
-                    person.user.profile.last_name, person.user.email,
-                    'Legacy User', legacy.country,
-                    legacy.mimic_approval_date, legacy.eicu_approval_date,
-                    legacy.info])
-                added.append(person.user.id)
+                legacy = LegacyCredential.objects.filter(migrated_user_id=person.user.id)
+                if legacy:
+                    legacy = legacy.get()
+                    List.append([person.user.profile.first_names,
+                        person.user.profile.last_name, person.user.email,
+                        'Legacy User', legacy.country,
+                        legacy.mimic_approval_date, legacy.eicu_approval_date,
+                        legacy.info])
+                    added.append(person.user.id)
+                else:
+                    LOGGER.info("Failed locating information of user {}".format(
+                        person.user.id))
+
 
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="credentialed_users.csv"'
@@ -1025,10 +1031,4 @@ def project_access_manage(request, pid):
 
         return render(request, 'console/project_access_manage.html', {
             'c_project':c_project, 'project_members':project_members})
-
-
-
-
-
-
 
