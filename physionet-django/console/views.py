@@ -3,8 +3,9 @@ import pdb
 import logging
 import os
 import grp
+import subprocess
 
-from django.core.validators  import validate_email
+from django.core.validators import validate_email
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
@@ -442,8 +443,9 @@ def process_storage_response(request, storage_response_formset):
                     core_project.save()
                     # Set the disk quota
                     if settings.USE_FILESYSTEM_QUOTA:
+                        project = storage_request.project.core_project
                         quota = DiskQuota.objects.get(
-                            project=storage_request.project.core_project)
+                            project=project)
                         quota.quota = core_project.storage_allowance
                         quota.save()
                         command = 'sudo /usr/local/bin/set-quota.sh {0} {1} {2}'.format(

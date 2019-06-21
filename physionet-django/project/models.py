@@ -1101,7 +1101,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             quota = DiskQuota.objects.filter(project=published_project.core_project)
             if quota:
                 quota = quota.get()
-                quota.last_update = timezone.now()
+                quota.group = slug
+
                 if self.version_order:
                     command = 'sudo /usr/local/bin/set-quota.sh {0} {1} {2}'.format(
                         slug, self.slug, 'delete')
@@ -1110,22 +1111,20 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                         slug, self.slug, 'publish')
                 try:
                     subprocess.check_call(command.split())
-                    LOGGER.info('Created disk quota for project - {0}.'.format(project))
+                    LOGGER.info('Created disk quota for project - {0}.'.format(published_project))
+                    quota.save()
                 except subprocess.CalledProcessError:
-                    LOGGER.info('There was a error setting the quota for - {0}'.format(project))
+                    LOGGER.info('There was a error setting the quota for - {0}'.format(published_project))
                     LOGGER.info('The command executed was ->{}<-'.format(command))
                 except OSError:
                     LOGGER.info('There was a system level error while \
-                        setting the quota for - {0}'.format(project))
+                        setting the quota for - {0}'.format(published_project))
                     LOGGER.info('The command executed was ->{}<-'.format(command))
                 except KeyError:
                     LOGGER.info('Initial group of this version doesnt exist,\
-                        the project is {0}, group {1}'.format(project,
+                        the project is {0}, group {1}'.format(published_project,
                         self.latest_project.slug))
                     LOGGER.info('The command executed was ->{}<-'.format(command))
-
-                quota.save()
-
             LOGGER.info('Moved project quota from {0} to - {1}'.format(
                 self.slug, slug))
 
@@ -1806,4 +1805,4 @@ class DiskQuota(models.Model):
         validators=[MaxValueValidator(109951162777600),
                     MinValueValidator(104857600)])
     last_update = models.DateTimeField(auto_now=True)
-    group = models.PositiveIntegerField()
+    group = models.CharField(max_length=100, null=True)

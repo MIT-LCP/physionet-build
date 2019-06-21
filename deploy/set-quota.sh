@@ -27,7 +27,7 @@ elif [ $# -eq 3 ]; then
         # Argument #1 is the group name. 
         # Argument #2 is the new quota size in GB
         # Alter the quota size
-        if ! grep -q $1 /etc/group ; then
+        if grep -q $1 /etc/group ; then
             /usr/sbin/xfs_quota -xc 'limit -g bsoft='"$2"' bhard='"$2"' '"$1" /data
         else
             exit 1;
@@ -35,7 +35,7 @@ elif [ $# -eq 3 ]; then
     elif [ $3 = "publish" ]; then
         # Rename the group on publish
         if ! grep -q $1 /etc/group ; then
-            if ! grep -q $2 /etc/group ; then
+            if grep -q $2 /etc/group ; then
                 /usr/sbin/groupmod -n $1 $2
             else
                 exit 1;
@@ -45,7 +45,7 @@ elif [ $# -eq 3 ]; then
         fi
     elif [ $3 = "delete" ]; then
         # Delete temporary group from version
-        if ! grep -q $2 /etc/group ; then
+        if grep -q $2 /etc/group ; then
             /usr/sbin/groupdel $2
         else
             exit 1;
@@ -56,7 +56,7 @@ elif [ $# -eq 3 ]; then
         # Argument #2 is the group id. 
         # Argument #3 is the location of the new files.
         if ! grep -q $1 /etc/group ; then
-            if ! grep -q $2 /etc/group ; then
+            if grep -q $2 /etc/group ; then
                 if [ -d "$3" ]; then
                     /usr/sbin/groupadd $1 -g $2 -o
                     /bin/chgrp $1 $3
