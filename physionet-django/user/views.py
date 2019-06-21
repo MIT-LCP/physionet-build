@@ -378,6 +378,7 @@ def credential_application(request):
         personal_form = forms.PersonalCAF(user=user, data=request.POST, prefix="application")
         training_form = forms.TrainingCAF(data=request.POST,
             files=request.FILES, prefix="application")
+        research_form = forms.ResearchCAF(data=request.POST, prefix="application")
         reference_form = forms.ReferenceCAF(data=request.POST, prefix="application")
         course_form = forms.CourseCAF(data=request.POST, require_courses=False, prefix="application")
         
@@ -398,7 +399,7 @@ def credential_application(request):
         training_form = forms.TrainingCAF(prefix="application")
         reference_form = forms.ReferenceCAF(prefix="application")
         course_form = forms.CourseCAF(prefix="application")
-
+        research_form = forms.ResearchCAF(prefix="application")
         form = None
 
     return render(request, 'user/credential_application.html', {'form':form,
