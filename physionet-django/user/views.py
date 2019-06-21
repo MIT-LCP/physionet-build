@@ -375,14 +375,14 @@ def credential_application(request):
     if request.method == 'POST':
         # We use the individual forms to render the errors in the template
         # if not all valid
-        personal_form = forms.PersonalCAF(user=user, data=request.POST)
+        personal_form = forms.PersonalCAF(user=user, data=request.POST, prefix="application")
         training_form = forms.TrainingCAF(data=request.POST,
-            files=request.FILES)
-        reference_form = forms.ReferenceCAF(data=request.POST)
-        course_form = forms.CourseCAF(data=request.POST, require_courses=False)
+            files=request.FILES, prefix="application")
+        reference_form = forms.ReferenceCAF(data=request.POST, prefix="application")
+        course_form = forms.CourseCAF(data=request.POST, require_courses=False, prefix="application")
 
         form = CredentialApplicationForm(user=user, data=request.POST,
-            files=request.FILES)
+            files=request.FILES,  prefix="application")
 
         if (personal_form.is_valid() and training_form.is_valid()
                 and reference_form.is_valid() and course_form.is_valid()
@@ -394,10 +394,10 @@ def credential_application(request):
         else:
             messages.error(request, 'Invalid submission. See errors below.')
     else:
-        personal_form = forms.PersonalCAF(user=user)
-        training_form = forms.TrainingCAF()
-        reference_form = forms.ReferenceCAF()
-        course_form = forms.CourseCAF()
+        personal_form = forms.PersonalCAF(user=user, prefix="application")
+        training_form = forms.TrainingCAF(prefix="application")
+        reference_form = forms.ReferenceCAF(prefix="application")
+        course_form = forms.CourseCAF(prefix="application")
         form = None
 
     return render(request, 'user/credential_application.html', {'form':form,
