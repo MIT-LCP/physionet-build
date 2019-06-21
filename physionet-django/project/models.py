@@ -35,14 +35,10 @@ from physionet.utility import (sorted_tree_files, zip_dir)
 @background()
 def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
     """
-    Schedule a background task to send the files to GCP.
-    This function can be runned manually to force a re-send of all the files
-    to GCP. It only requires the Project ID.
+    Schedule a background task to set the files as read only.
     """
 
     published_project = PublishedProject.objects.get(id=pid)
-    os.rename(dir_from, dir_to)
-
     # Create special files if there are files. Should always be the case.
     if bool(published_project.storage_used):
         published_project.make_special_files(make_zip=make_zip)
@@ -50,15 +46,13 @@ def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
     published_project.set_storage_info()
 
     # Make the files read only
-    file_root = published_project.file_root()
-    files = get_tree_files(file_root, full_path=False)
-    Dirs = []
-    for file in files: 
-        if os.path.dirname(os.path.join(file_root, file)) not in Dirs:
-            Dirs.append(os.path.dirname(os.path.join(file_root, file)))
-        os.chmod(os.path.join(file_root, file), stat.S_IRUSR |stat.S_IRGRP | stat.S_IROTH)
-    # for directory in Dirs:
-    #     os.chmod(directory, stat.S_IRUSR |stat.S_IRGRP | stat.S_IROTH)
+    file_root = published_project.project_file_root()
+
+    for root, dirs, files in os.walk(file_root):
+        for d in dirs:
+            os.chmod(os.path.join(root, f), 0o555)
+        for f in files:
+            os.chmod(os.path.join(root, f), 0o555)
 
 
 class SafeHTMLField(ckeditor.fields.RichTextField):
@@ -1136,7 +1130,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         if not os.path.isdir(published_project.project_file_root()):
             os.mkdir(published_project.project_file_root())
         
-        # Move over main files and set read only
+        # Move over main files
+        os.rename(self.file_root(), published_project.file_root())
+
+        # Set files read only and make zip file if requested
         move_files_as_readonly(published_project.id, self.file_root(),
             published_project.file_root(), make_zip)
 

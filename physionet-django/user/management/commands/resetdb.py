@@ -99,4 +99,10 @@ def clear_created_static_files():
         subdir_items = [os.path.join(static_subdir, item) for item in os.listdir(static_subdir) if item != '.gitkeep']
 
         for item in subdir_items:
+            for root, dirs, files in os.walk(item):
+                for d in dirs:
+                    os.chmod(os.path.join(root, d), 0o775)
+                for f in files:
+                    os.chmod(os.path.join(root, f), 0o775)
+
             shutil.rmtree(item)
