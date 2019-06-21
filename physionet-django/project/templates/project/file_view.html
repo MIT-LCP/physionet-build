@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}{{ file.basename }} - {{ project.title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  {% if project.publish_datetime %}
+    <h1>{{ project.title }} {{ project.version }}</h1>
+  {% else %}
+    <h1><em>[Preview]:</em> {{ project.title }}</h1>
+  {% endif %}
+  <div class="card">
+    <div class="card-header">
+      File:
+      {% spaceless %}
+        <span class="dir-breadcrumbs">
+          {% for breadcrumb in breadcrumbs %}
+            {% if forloop.counter == breadcrumbs|length %}
+              <span class="dir-breadcrumb-self">{{ breadcrumb.name }}</span>
+            {% else %}
+              <a href="{{ breadcrumb.rel_path }}#files-panel"
+                 class="dir-breadcrumb-up">{{ breadcrumb.name }}</a>
+              <span class="dir-breadcrumb-sep">/</span>
+            {% endif %}
+          {% endfor %}
+        </span>
+      {% endspaceless %}
+      ({{ file.display_size }})
+      <ul class="float-right mb-0 list-inline">
+        {% if show_plain %}
+        <li class="list-inline-item">
+          <a class="btn btn-sm btn-secondary" href="{{ file.raw_url }}"
+             title="View this file as plain text">Plain</a>
+        </li>
+        {% endif %}
+        <li class="list-inline-item">
+          <a class="btn btn-sm btn-secondary" href="{{ file.download_url }}"
+             title="Download this file">Download</a>
+        </li>
+      </ul>
+    </div>
+    <div class="card-body">
+      {% block file_content %}
+      <div class="text-center">
+        This file cannot be viewed in the browser.
+        <a href="{{ file.download_url }}">Click here to download this file.</a>
+      </div>
+      {% endblock %}
+    </div>
+    {% block file_footer %}{% endblock %}
+  </div>
+</div>
+{% endblock %}

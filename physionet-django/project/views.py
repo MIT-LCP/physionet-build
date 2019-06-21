@@ -6,6 +6,7 @@ from urllib.parse import quote_plus
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import redirect_to_login
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.shortcuts import get_current_site
@@ -21,6 +22,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html, format_html_join
 
+from project.fileviews import display_project_file
 from project import forms
 from project.models import (Affiliation, Author, AuthorInvitation,
     ActiveProject, PublishedProject, StorageRequest, Reference,
@@ -918,7 +920,7 @@ def project_files(request, project_slug, subdir='', **kwargs):
     # Forms
     storage_request_form = forms.StorageRequestForm(project=project) if (not storage_request and is_submitting) else None
 
-    (display_files, display_dirs, dir_breadcrumbs, _,
+    (display_files, display_dirs, dir_breadcrumbs, parent_dir,
      file_error) = get_project_file_info(project=project, subdir=subdir)
     file_warning = get_project_file_warning(display_files, display_dirs,
                                               subdir)
@@ -930,8 +932,9 @@ def project_files(request, project_slug, subdir='', **kwargs):
     return render(request, 'project/project_files.html', {'project':project,
         'individual_size_limit':utility.readable_size(
             ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT),
-        'subdir':subdir, 'display_files':display_files,
-        'display_dirs':display_dirs, 'storage_info':storage_info,
+        'subdir':subdir, 'parent_dir':parent_dir,
+        'display_files':display_files, 'display_dirs':display_dirs,
+        'storage_info':storage_info,
         'storage_request':storage_request,
         'storage_request_form':storage_request_form,
         'upload_files_form':upload_files_form,
@@ -950,9 +953,19 @@ def serve_active_project_file(request, project_slug, file_name, **kwargs):
     """
     file_path = os.path.join(kwargs['project'].file_root(), file_name)
     try:
-        return serve_file(file_path)
+        attach = ('download' in request.GET)
+        return serve_file(file_path, attach=attach)
     except IsADirectoryError:
         return redirect(request.path + '/')
+
+
+@project_auth(auth_mode=2)
+def display_active_project_file(request, project_slug, file_name, **kwargs):
+    """
+    Display a file in an active project. file_name is file path relative
+    to the project's file root.
+    """
+    return display_project_file(request, kwargs['project'], file_name)
 
 
 @project_auth(auth_mode=2)
@@ -1007,7 +1020,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
         for e in project.integrity_errors:
             messages.error(request, e)
 
-    (display_files, display_dirs, dir_breadcrumbs, _,
+    (display_files, display_dirs, dir_breadcrumbs, parent_dir,
      file_error) = get_project_file_info(project=project, subdir=subdir)
     files_panel_url = reverse('preview_files_panel', args=(project.slug,))
     file_warning = get_project_file_warning(display_files, display_dirs,
@@ -1019,7 +1032,8 @@ def project_preview(request, project_slug, subdir='', **kwargs):
         'invitations':invitations, 'references':references,
         'publication':publication, 'topics':topics, 'languages':languages,
         'passes_checks':passes_checks, 'dir_breadcrumbs':dir_breadcrumbs,
-        'files_panel_url':files_panel_url, 'subdir':subdir,
+        'files_panel_url':files_panel_url,
+        'subdir':subdir, 'parent_dir':parent_dir,
         'file_error':file_error, 'file_warning':file_warning,
         'parent_projects':parent_projects})
 
@@ -1227,7 +1241,7 @@ def published_files_panel(request, project_slug, version):
 def serve_published_project_file(request, project_slug, version,
         full_file_name):
     """
-    Serve a file of a published project.
+    Serve a file or subdirectory of a published project.
     Works for open and protected. Not needed for open.
 
     """
@@ -1239,11 +1253,30 @@ def serve_published_project_file(request, project_slug, version,
     if project.has_access(request.user):
         file_path = os.path.join(project.file_root(), full_file_name)
         try:
-            return serve_file(file_path)
+            attach = ('download' in request.GET)
+            return serve_file(file_path, attach=attach, allow_directory=True)
         except IsADirectoryError:
             return redirect(request.path + '/')
-        except FileNotFoundError:
+        except (NotADirectoryError, FileNotFoundError):
             raise Http404()
+    raise PermissionDenied()
+
+
+def display_published_project_file(request, project_slug, version,
+                                   full_file_name):
+    """
+    Display a file in a published project. full_file_name is the file
+    path relative to the project's file root.
+    """
+    try:
+        project = PublishedProject.objects.get(slug=project_slug,
+                                               version=version)
+    except ObjectDoesNotExist:
+        raise Http404()
+    if project.has_access(request.user):
+        return display_project_file(request, project, full_file_name)
+    if not request.user.is_authenticated:
+        return redirect_to_login(request.get_full_path())
     raise PermissionDenied()
 
 
@@ -1347,7 +1380,7 @@ def published_project(request, project_slug, version, subdir=''):
             'main_size':main_size, 'compressed_size':compressed_size,
             'display_files':display_files, 'display_dirs':display_dirs,
             'files_panel_url':files_panel_url, 'subdir':subdir,
-            'file_error':file_error}}
+            'parent_dir':parent_dir, 'file_error':file_error}}
     elif subdir:
         status = 403
     else:

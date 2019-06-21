@@ -37,7 +37,7 @@ class DirectoryBreadcrumb():
         self.active = active
 
 
-def get_dir_breadcrumbs(subdir):
+def get_dir_breadcrumbs(path, directory=True):
     """
     Given a subdirectory, return all breadcrumb elements
 
@@ -49,17 +49,19 @@ def get_dir_breadcrumbs(subdir):
     d1/d2/d3/
     """
 
-    if subdir == '':
+    if path == '':
         return [DirectoryBreadcrumb(name='<base>', rel_path='',
                                     full_subdir='', active=False)]
-    if subdir.endswith('/'):
-        subdir = subdir[:-1]
-    dirs = subdir.split('/')
+    if path.endswith('/'):
+        path = path[:-1]
+    dirs = path.split('/')
     rel_path = '../' * len(dirs)
+    if not directory:
+        rel_path = (rel_path[3:] or './')
     dir_breadcrumbs = [DirectoryBreadcrumb(name='<base>', full_subdir='',
                                            rel_path=rel_path)]
     for i in range(len(dirs)):
-        rel_path = rel_path[3:]
+        rel_path = (rel_path[3:] or './')
         dir_breadcrumbs.append(DirectoryBreadcrumb(
             name=dirs[i], rel_path=rel_path,
             full_subdir='/'.join([d.name for d in dir_breadcrumbs[1:]]+ [dirs[i]])))

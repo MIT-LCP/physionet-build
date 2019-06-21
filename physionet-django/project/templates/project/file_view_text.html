@@ -1,0 +1,17 @@
+{% extends "project/file_view.html" %}
+
+{% block file_content %}
+<pre class="plain"><code>{{ text }}</code>{% if missing_newline %}<!--
+--><span class="missing-newline fa fa-times"
+         title="No newline at end of file"></span><!--
+-->{% endif %}</pre>
+{% endblock %}
+
+{% block local_css %}
+<style>
+.missing-newline {
+  padding-left: 0.25em;
+  color: #f00;
+}
+</style>
+{% endblock %}

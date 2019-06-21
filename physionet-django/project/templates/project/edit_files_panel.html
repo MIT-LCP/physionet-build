@@ -69,7 +69,7 @@
         {% endfor %}
         {% for file in display_files %}
           <tr>
-            <td><a href="{{ file.url }}">{{ file.name }}</a></td>
+            <td><a href="{{ file.url }}?return=files">{{ file.name }}</a></td>
             <td>{{ file.size }}</td>
             <td>{{ file.last_modified }}</td>
             <td><input type="checkbox" name="items" value="{{ file.name }}" onchange="countSelected(this)"></td>

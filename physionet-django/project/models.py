@@ -533,7 +533,9 @@ class Metadata(models.Model):
         # Files require desciptive info and download links
         for file in file_names:
             file_info = get_file_info(os.path.join(inspect_dir, file))
-            file_info.url = self.file_url(subdir=subdir, file=file)
+            file_info.url = self.file_display_url(subdir=subdir, file=file)
+            file_info.raw_url = self.file_url(subdir=subdir, file=file)
+            file_info.download_url = file_info.raw_url + '?download'
             display_files.append(file_info)
 
         # Directories require links
@@ -751,6 +753,13 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         Url of a file to download in this project
         """
         return reverse('serve_active_project_file',
+            args=(self.slug, os.path.join(subdir, file)))
+
+    def file_display_url(self, subdir, file):
+        """
+        URL of a file to display in this project
+        """
+        return reverse('display_active_project_file',
             args=(self.slug, os.path.join(subdir, file)))
 
     def under_submission(self):
@@ -1305,14 +1314,15 @@ class PublishedProject(Metadata, SubmissionInfo):
         Url of a file to download in this project
         """
         full_file_name = os.path.join(subdir, file)
-        if self.access_policy:
-            return reverse('serve_published_project_file',
-                args=(self.slug, self.version, full_file_name))
-        else:
-            if subdir and not subdir.endswith('/'):
-                subdir = subdir + '/'
-            return static('published-projects/{}/{}/{}'.format(
-                self.slug, self.version, full_file_name))
+        return reverse('serve_published_project_file',
+            args=(self.slug, self.version, full_file_name))
+
+    def file_display_url(self, subdir, file):
+        """
+        URL of a file to display in this project
+        """
+        return reverse('display_published_project_file',
+            args=(self.slug, self.version, os.path.join(subdir, file)))
 
     def has_access(self, user):
         """
