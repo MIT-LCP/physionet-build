@@ -380,6 +380,7 @@ def credential_application(request):
             files=request.FILES, prefix="application")
         reference_form = forms.ReferenceCAF(data=request.POST, prefix="application")
         course_form = forms.CourseCAF(data=request.POST, require_courses=False, prefix="application")
+        research_form = forms.ResearchCAF(data=request.POST, require_courses=False, prefix="application")
         
         form = CredentialApplicationForm(user=user, data=request.POST,
             files=request.FILES,  prefix="application")
@@ -398,6 +399,7 @@ def credential_application(request):
         training_form = forms.TrainingCAF(prefix="application")
         reference_form = forms.ReferenceCAF(prefix="application")
         course_form = forms.CourseCAF(prefix="application")
+        research_form = forms.CourseCAF(prefix="application")
 
         form = None
 
