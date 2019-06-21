@@ -2,9 +2,9 @@ from django.contrib import admin
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin as DefaultUserAdmin
 
-from . import models
+from user import models
 
-from . import forms
+from user import forms
 
 
 class UserAdmin(DefaultUserAdmin):
