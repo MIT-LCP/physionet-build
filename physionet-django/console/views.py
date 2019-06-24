@@ -820,7 +820,7 @@ def past_credential_applications(request):
             c_application = CredentialApplication.objects.filter(id=cid)
             if c_application:
                 c_application = c_application.get()
-                c_application.status = None
+                c_application.status = 0
                 c_application.save()
 
     return render(request, 'console/past_credential_applications.html',
