@@ -332,7 +332,7 @@ class TrainingCAF(forms.ModelForm):
             'training_completion_report':"Upload the completion report from the CITI 'Data or Specimens Only Research' training program (PDF or image file). The completion report lists all modules completed, with dates and scores. Do NOT upload the completion certificate. If you would like to submit multiple pages, please combine them into a single pdf file.",
         }
         widgets = {
-            'training_completion_date':forms.SelectDateWidget(years=list(range(2015, timezone.now().year+1))),
+            'training_completion_date':forms.SelectDateWidget(years=list(range(2000, timezone.now().year+1))),
         }
         labels = {
         'training_course_name': 'Human studies training course (name of course)',
