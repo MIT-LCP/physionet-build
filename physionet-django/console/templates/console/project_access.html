@@ -10,6 +10,7 @@
     Credentialed projects <span class="badge badge-pill badge-info">{{ c_projects|length }}</span>
   </div>
   <div class="card-body">
+    <a href="{% url 'download_credentialed_users' %}" class="btn btn-md btn-success">Download CSV</a>
     <div class="table-responsive">
       <table class="table table-bordered">
         <thead>
