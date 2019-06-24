@@ -778,7 +778,6 @@ def past_credential_applications(request):
     """
     Inactive credential applications. Split into successful and
     unsuccessful.
-
     """
     l_applications = LegacyCredential.objects.filter(migrated=True, migrated_user__is_credentialed=True).order_by('-migration_date')
     s_applications = CredentialApplication.objects.filter(status=2).order_by('-application_datetime')
@@ -794,12 +793,21 @@ def past_credential_applications(request):
                     c_application.user.credential_datetime = None
                     c_application.decision_datetime = None
                     c_application.status = 1
+                    project_access = PublishedProject.objects.filter(
+                        approved_users=c_application.user)
+                    dua_list = DUASignature.objects.filter(user = c_application.user,
+                        project__access_policy = 2)
                     try:
                         with transaction.atomic():
+                            for project in project_access:
+                                project.approved_users.remove(c_application.user)
+                                project.save()
+                            for dua in dua_list:
+                                dua.delete()
                             c_application.user.save()
                             c_application.save()
                     except DatabaseError:
-                        messages.error(request, 'There was a database error, please try again.')
+                        messages.error(request, 'There was a database error. Please try again.')
             else:
                 l_application = LegacyCredential.objects.filter(email=request.POST['remove_credentialing'])
                 if l_application:

@@ -389,7 +389,7 @@ def mailto_process_credential_complete(application, comments=True):
           application.responder_comments, body)
     else:
         body = 'Dear {0},\n\n{1}'.format(application.first_names, body)
-    mailto = "mailto:{3}%3C{0}%3E?subject={1}&bcc=credential-reference+{4}@alpha.physionet.org&body={2}".format(application.reference_email,
+    mailto = "mailto:{3}%3C{0}%3E?subject={1}&bcc=credential-reference+{4}@alpha.physionet.org&body={2}".format(application.user.email,
       parse.quote(subject), parse.quote(body), parse.quote('"'+application.get_full_name()+'"'), application.id)
     return mailto
 
