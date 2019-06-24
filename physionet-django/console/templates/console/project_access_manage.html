@@ -5,6 +5,7 @@
 {% block title %}View credentialed project members{% endblock %}
 
 {% block content %}
+<p><a href="{% url 'project_access' %}">Back to project access</a></p>
 <div class="card mb-3">
   <div class="card-header">
     {{ c_project }} <span class="badge badge-pill badge-info">{{ project_members|length }}</span>
@@ -34,5 +35,4 @@
   </div>
 </div>
 <br>
-<p><a href="{% url 'project_access' %}">Back to project access</a></p>
 {% endblock %}
