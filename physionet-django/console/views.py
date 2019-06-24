@@ -778,7 +778,6 @@ def past_credential_applications(request):
     """
     Inactive credential applications. Split into successful and
     unsuccessful.
-
     """
     l_applications = LegacyCredential.objects.filter(migrated=True, migrated_user__is_credentialed=True).order_by('-migration_date')
     s_applications = CredentialApplication.objects.filter(status=2).order_by('-application_datetime')

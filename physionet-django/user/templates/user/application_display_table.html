@@ -10,6 +10,9 @@
       <td><a href="{% url 'public_profile' user.username %}">{{ user }}</a></td>
     </tr>
     <tr>
+      <th colspan='2'>Personal Details</th>
+    </tr>
+    <tr>
       <td>First Names</td>
       <td>{{ application.first_names }}</td>
     </tr>
@@ -30,6 +33,10 @@
       <td>{{ application.organization_name }}</td>
     </tr>
     <tr>
+      <td>Job Title Or Position</td>
+      <td>{{ application.job_title }}</td>
+    </tr>
+    <tr>
       <td>City</td>
       <td>{{ application.city }}</td>
     </tr>
@@ -47,15 +54,10 @@
     </tr>
     <tr>
       <td>Webpage</td>
-      <td><a href="{{ application.website }}" target="_blank">{{ application.website }}</a></td>
+      <td><a href="{{ application.webpage }}" target="_blank">{{ application.webpage }}</a></td>
     </tr>
     <tr>
-      <td>Research Summary</td>
-      <td>{{ application.research_summary }}</td>
-    </tr>
-    <tr>
-      <td>Project Of Interest</td>
-      <td>{{ application.project_of_interest }}</td>
+      <th colspan='2'>Training Course</th>
     </tr>
     <tr>
       <td>Training Course Name</td>
@@ -67,24 +69,11 @@
     </tr>
     <tr>
       <td>Training Completion Report</td>
-      <td><a href="{% url 'training_report' application.slug %}">File</a></td>
+      <td><a href="{% url 'training_report' application.slug %}" target="_blank">File</a></td>
     </tr>
     <tr>
-      <td>Course Category</td>
-      <td>{{ application.get_course_category_display }}</td>
+      <th colspan='2'>Reference</th>
     </tr>
-    {% if application.course_name %}
-      <tr>
-        <td>Course Name</td>
-        <td>{{ application.course_name }}</td>
-      </tr>
-    {% endif %}
-    {% if application.course_number %}
-    <tr>
-      <td>Course Number</td>
-      <td>{{ application.course_number }}</td>
-    </tr>
-    {% endif %}
     <tr>
       <td>Reference Category</td>
       <td>{{ application.get_reference_category_display }}</td>
@@ -100,10 +89,37 @@
     <tr>
       <td>Reference Title</td>
       <td>{{ application.reference_title }}</td>
-    {% if application.reference_contact_datetime %}
+    </tr>
+    <tr>
+      <th colspan='2'>Course Survey</th>
+    </tr>
+    {% if application.course_category %}
       <tr>
-        <td><td>
+        <td>Course Info</td>
+        <td>{{ application.course_info }}</td>
       </tr>
+    {% else %}
+      <tr>
+        <td>Course Info</td>
+        <td>{{ application.get_course_category_display }}</td>
+      </tr>
+    {% endif %}
+    <tr>
+      <th colspan='2'>Research Area</th>
+    </tr>
+    <tr>
+      <td>Research Summary</td>
+      <td>{{ application.research_summary }}</td>
+    </tr>
+    <tr>
+      <td>Project Of Interest</td>
+      <td>{{ application.project_of_interest }}</td>
+    </tr>
+
+    <tr>
+      <th colspan='2'>Response</th>
+    </tr>
+    {% if application.reference_contact_datetime %}
       <tr>
         <td>Reference Contact Date</td>
         <td>{{ application.reference_contact_datetime|date }}</td>
@@ -113,24 +129,23 @@
           <td>Reference Response Date</td>
           <td>{{ application.reference_response_datetime|date }}</td>
         </tr>
-        <tr>
-          <td>Reference Verified</td>
-          <td>{{ application.get_reference_response_display }}</td>
-        </tr>
+        {# <tr> <td>Reference Verified</td> <td>{{ application.get_reference_response_display }}</td> </tr> #}
       {% endif %}
     {% endif %}
-    <tr>
-      <td><td>
-    </tr>
     {% if application.decision_datetime %}
       <tr>
         <td>Decision Date</td>
         <td>{{ application.decision_datetime|date }}</td>
       </tr>
-    {% endif %}
+      <tr>
+        <td>Decision</td>
+        <td>{{ application.get_status_display }}</td>
+      </tr>
+    {% else %}
     <tr>
       <td>Decision</td>
-      <td>{% if application.status %}{{ application.get_status_display }}{% else %}<i class="fas fa-clock"></i> Pending{% endif %}</td>
+      <td><i class="fas fa-clock"></i> Pending</td>
     </tr>
+    {% endif %}
   </tbody>
 </table>
