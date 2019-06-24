@@ -795,11 +795,15 @@ def past_credential_applications(request):
                     c_application.status = 1
                     project_access = PublishedProject.objects.filter(
                         approved_users=c_application.user)
+                    dua_list = DUASignature.objects.filter(user = c_application.user,
+                        project__access_policy = 2)
                     try:
                         with transaction.atomic():
                             for project in project_access:
                                 project.approved_users.remove(c_application.user)
                                 project.save()
+                            for dua in dua_list:
+                                dua.delete()
                             c_application.user.save()
                             c_application.save()
                     except DatabaseError:
@@ -816,7 +820,7 @@ def past_credential_applications(request):
             c_application = CredentialApplication.objects.filter(id=cid)
             if c_application:
                 c_application = c_application.get()
-                c_application.status = 0
+                c_application.status = None
                 c_application.save()
 
     return render(request, 'console/past_credential_applications.html',
