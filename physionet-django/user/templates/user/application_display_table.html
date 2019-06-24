@@ -1,16 +1,18 @@
 <table class="table table-bordered table-hover">
   <tbody>
     <tr>
-      <th>Application Date</th>
-      <th>{{ application.application_datetime|date }}</th>
+      <th colspan='2' class="bg-light">Application Details</th>
     </tr>
     <tr>
+      <td>Application Date</td>
+      <td>{{ application.application_datetime|date }}</td>
+    </tr>
     <tr>
       <td>User</td>
       <td><a href="{% url 'public_profile' user.username %}">{{ user }}</a></td>
     </tr>
     <tr>
-      <th colspan='2'>Personal Details</th>
+      <th colspan='2' class="bg-light">Personal Details</th>
     </tr>
     <tr>
       <td>First Names</td>
@@ -57,7 +59,7 @@
       <td><a href="{{ application.webpage }}" target="_blank">{{ application.webpage }}</a></td>
     </tr>
     <tr>
-      <th colspan='2'>Training Course</th>
+      <th colspan='2' class="bg-light">Training Course</th>
     </tr>
     <tr>
       <td>Training Course Name</td>
@@ -72,7 +74,7 @@
       <td><a href="{% url 'training_report' application.slug %}" target="_blank">File</a></td>
     </tr>
     <tr>
-      <th colspan='2'>Reference</th>
+      <th colspan='2' class="bg-light">Reference</th>
     </tr>
     <tr>
       <td>Reference Category</td>
@@ -91,7 +93,7 @@
       <td>{{ application.reference_title }}</td>
     </tr>
     <tr>
-      <th colspan='2'>Course Survey</th>
+      <th colspan='2' class="bg-light">Course Survey</th>
     </tr>
     {% if application.course_category %}
       <tr>
@@ -105,7 +107,7 @@
       </tr>
     {% endif %}
     <tr>
-      <th colspan='2'>Research Area</th>
+      <th colspan='2' class="bg-light">Research Area</th>
     </tr>
     <tr>
       <td>Research Summary</td>
@@ -117,7 +119,7 @@
     </tr>
 
     <tr>
-      <th colspan='2'>Response</th>
+      <th colspan='2' class="bg-light">Response</th>
     </tr>
     {% if application.reference_contact_datetime %}
       <tr>
