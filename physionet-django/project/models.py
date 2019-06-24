@@ -7,6 +7,7 @@ import uuid
 import pdb
 import pytz
 import stat
+import logging
 
 import bleach
 import ckeditor.fields
@@ -31,6 +32,8 @@ from project.validators import (validate_doi, validate_subdir,
                                 validate_version, validate_slug)
 from user.validators import validate_alphaplus, validate_alphaplusplus
 from physionet.utility import (sorted_tree_files, zip_dir)
+
+LOGGER = logging.getLogger(__name__)
 
 @background()
 def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
@@ -1129,9 +1132,17 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         # version with a different access policy
         if not os.path.isdir(published_project.project_file_root()):
             os.mkdir(published_project.project_file_root())
-        
+
         # Move over main files
-        os.rename(self.file_root(), published_project.file_root())
+        try:
+            os.rename(self.file_root(), published_project.file_root())
+        except FileNotFoundError:
+            send_emial_to_admin('Failed publishing files',
+                'Failed to move files of published project {0}.\
+                \nThe user publishing the project was: {1}'.format(
+                    published_project, published_project.editor.get_full_name))
+            LOGGER.info("Failed to move files of published project {}".format(
+                published_project))
 
         # Set files read only and make zip file if requested
         move_files_as_readonly(published_project.id, self.file_root(),
