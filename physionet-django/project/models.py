@@ -1134,15 +1134,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             os.mkdir(published_project.project_file_root())
 
         # Move over main files
-        try:
-            os.rename(self.file_root(), published_project.file_root())
-        except FileNotFoundError:
-            send_emial_to_admin('Failed publishing files',
-                'Failed to move files of published project {0}.\
-                \nThe user publishing the project was: {1}'.format(
-                    published_project, published_project.editor.get_full_name))
-            LOGGER.info("Failed to move files of published project {}".format(
-                published_project))
+        os.rename(self.file_root(), published_project.file_root())
 
         # Set files read only and make zip file if requested
         move_files_as_readonly(published_project.id, self.file_root(),

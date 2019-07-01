@@ -24,14 +24,6 @@ def send_contact_message(contact_form):
     send_mail(contact_form.cleaned_data['subject'], body, mail_from,
         [settings.CONTACT_EMAIL], fail_silently=False)
 
-
-def send_email_to_admin(subject, message):
-    """
-    Send a message to admin
-    """
-    send_mail(subject, message, settings.SERVER_EMAIL, [settings.ADMINS],
-        fail_silently=False)
-
 # ---------- Project App ---------- #
 
 def email_signature():
