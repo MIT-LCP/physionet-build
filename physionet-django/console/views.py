@@ -873,12 +873,13 @@ def news_console(request):
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def news_add(request):
     if request.method == 'POST':
-        form = forms.NewsForm(data=request.POST)
+        form = forms.NewsForm(data=request.POST, user=request.user)
         if form.is_valid():
             form.save()
-            return render(request, 'console/news_done.html', {'action':'Added'})
+            messages.success(request, 'The news item has added.')
+            return redirect('news_console')
     else:
-        form = forms.NewsForm()
+        form = forms.NewsForm(user=request.user)
 
     return render(request, 'console/news_add.html', {'form':form})
 
@@ -906,7 +907,7 @@ def news_edit(request, news_id):
 
     if request.method == 'POST':
         if 'update' in request.POST:
-            form = forms.NewsForm(data=request.POST, instance=news)
+            form = forms.NewsForm(data=request.POST, instance=news, user=request.user)
             if form.is_valid():
                 form.save()
                 messages.success(request, 'The news item has been updated')
@@ -914,7 +915,7 @@ def news_edit(request, news_id):
             news.delete()
             return render(request, 'console/news_done.html', {'action':'Deleted'})
     else:
-        form = forms.NewsForm(instance=news)
+        form = forms.NewsForm(instance=news, user=request.user)
 
     return render(request, 'console/news_edit.html', {'news':news,
         'form':form})

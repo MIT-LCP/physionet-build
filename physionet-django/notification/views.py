@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.utils import timezone
 from django.db.models import Min, Max
 
-from .models import News
+from notification.models import News
 
 from datetime import date
 
@@ -41,6 +41,21 @@ def news_year(request, year):
     return render(request, 'notification/news.html',
                   {'year': year, 'news_pieces': news_pieces,
                    'news_years': news_years})
+
+
+def news_guid(request, guid, max_items=20):
+    try:
+        news = News.objects.get(guid=guid)
+        # The year range of all the PN news in existence.
+        minmax = News.objects.all().aggregate(min=Min('publish_datetime'),
+                                              max=Max('publish_datetime'))
+        news_years = list(range(minmax['max'].year, minmax['min'].year-1, -1))
+
+        return render(request, 'notification/news_item.html', {'news': news,
+          'news_years': news_years})
+    except News.DoesNotExist:
+        messages.success(request, 'News requested was not found.')
+        return redirect('news')
 
 
 def news_rss(request, max_items=100):

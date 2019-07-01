@@ -339,7 +339,16 @@ class NewsForm(forms.ModelForm):
     class Meta:
         model = News
         fields = ('title', 'content', 'url', 'project')
+    
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.created_by = user
 
+    def save(self):
+        news = super().save()
+        news.created_by = self.created_by
+        news.save()
+        return news
 
 class FeaturedForm(forms.Form):
     """
