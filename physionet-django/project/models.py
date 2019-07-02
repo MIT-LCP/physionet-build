@@ -53,7 +53,7 @@ def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
 
     for root, dirs, files in os.walk(file_root):
         for d in dirs:
-            os.chmod(os.path.join(root, f), 0o555)
+            os.chmod(os.path.join(root, d), 0o555)
         for f in files:
             os.chmod(os.path.join(root, f), 0o555)
 

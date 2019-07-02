@@ -11,8 +11,8 @@ from django.core import mail
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
-from .models import AssociatedEmail, User
-from .views import (activate_user, edit_emails, edit_profile,
+from user.models import AssociatedEmail, User
+from user.views import (activate_user, edit_emails, edit_profile,
     edit_password_complete, public_profile, register, user_settings,
     verify_email)
 
@@ -67,6 +67,17 @@ class TestMixin():
         """
         Remove the testing media root
         """
+        for root, dirs, files in os.walk(settings.MEDIA_ROOT):
+            for d in dirs:
+                os.chmod(os.path.join(root, d), 0o755)
+            for f in files:
+                os.chmod(os.path.join(root, f), 0o755)
+        for root, dirs, files in os.walk(self.test_static_root):
+            for d in dirs:
+                os.chmod(os.path.join(root, d), 0o755)
+            for f in files:
+                os.chmod(os.path.join(root, f), 0o755)
+
         shutil.rmtree(settings.MEDIA_ROOT)
         shutil.rmtree(self.test_static_root)
 
