@@ -168,10 +168,8 @@ def zip_dir(zip_name, target_dir, enclosing_folder=''):
         target_dir = target_dir.rstrip('/')
 
     with zipfile.ZipFile(zip_name, 'w') as zipf:
-        for root, dirs, files in os.walk(target_dir):
-            for file in files:
-                # Do not include the path to the target directory when
-                # writing files in the zip
-                zipf.write(os.path.join(root, file),
-                    arcname=os.path.join(enclosing_folder,
-                    root[len(target_dir)+1:], file))
+        for path in sorted_tree_files(target_dir):
+            # Do not include the path to the target directory when
+            # writing files in the zip
+            zipf.write(os.path.join(target_dir, path),
+                       arcname=os.path.join(enclosing_folder, path))
