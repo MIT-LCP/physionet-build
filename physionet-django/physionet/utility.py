@@ -121,6 +121,39 @@ def serve_file(file_path, attach=True, allow_directory=False):
         response['Content-Disposition'] = 'inline; filename=' + base
     return response
 
+
+def sorted_tree_files(directory, *, prefix=''):
+    """
+    Return the recursive contents of a directory in order.
+
+    Paths are sorted in byte order, and only regular files are
+    returned (similar to 'find . -type f | LC_COLLATE=C sort').  For
+    example:
+
+    >>> import os
+    >>> import tempfile
+    >>> with tempfile.TemporaryDirectory() as d:
+    ...     os.system('cd %s; mkdir a c; touch B a+ a/2 a/10 ab' % d)
+    ...     list(sorted_tree_files(d))
+    0
+    ['B', 'a+', 'a/10', 'a/2', 'ab']
+    """
+    contents = []
+    for e in os.scandir(directory):
+        if e.is_dir(follow_symlinks=False):
+            contents.append(e.name + '/')
+        elif e.is_file(follow_symlinks=False):
+            contents.append(e.name)
+    contents.sort()
+    for name in contents:
+        path = prefix + name
+        if name.endswith('/'):
+            yield from sorted_tree_files(os.path.join(directory, name),
+                                         prefix=path)
+        else:
+            yield path
+
+
 def zip_dir(zip_name, target_dir, enclosing_folder=''):
     """
     Recursively zip contents in a directory.
