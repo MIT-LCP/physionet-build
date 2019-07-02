@@ -29,7 +29,7 @@ def news_year(request, year):
     """
     Get all the news of a specific year
     """
-    if int(year) < 1999 or int(year) > date.today().year:
+    if not year.isnumeric() or int(year) < 1999 or int(year) > date.today().year:
         return redirect('news')
 
     news_pieces = News.objects.filter(publish_datetime__year=int(year)) \

@@ -1,7 +1,0 @@
-{% for news in news_items %}
-  <tr>
-    <td><a href="{% url 'news_guid' news.guid %}" target="_blank">{{ news.title }}</a></td>
-    <td>{{ news.publish_datetime }}</td>
-    <td><a href="{% url 'news_edit' news.id %}" class="btn btn-sm btn-primary" role="button">Edit</a></td>
-  </tr>
-{% endfor %}

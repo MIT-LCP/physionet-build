@@ -60,11 +60,7 @@ PhysioNet
       <br>
       {% for news in news_pieces %}
         <h5>
-          {% if news.url %}
-            <a href="{{ news.url }}">{{ news.title }}</a>
-          {% else %}
-            {{ news.title }}
-          {% endif %}
+          <a href="{% url 'news_guid' news.guid %}">{{ news.title }}</a>
         </h5>
         <p><a class="text-muted">{{ news.publish_datetime|date }}</a></p>
         {{ news.content|safe }}
