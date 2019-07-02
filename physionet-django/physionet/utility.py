@@ -167,7 +167,8 @@ def zip_dir(zip_name, target_dir, enclosing_folder=''):
     if target_dir.endswith('/'):
         target_dir = target_dir.rstrip('/')
 
-    with zipfile.ZipFile(zip_name, 'w') as zipf:
+    with zipfile.ZipFile(zip_name, 'w',
+                         compression=zipfile.ZIP_DEFLATED) as zipf:
         for path in sorted_tree_files(target_dir):
             # Do not include the path to the target directory when
             # writing files in the zip
