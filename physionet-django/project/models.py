@@ -23,12 +23,12 @@ from django.utils.html import strip_tags
 from django.utils.text import slugify
 
 from project.utility import (get_tree_size, get_file_info, get_directory_info,
-                             list_items, StorageInfo, get_tree_files,
-                             list_files, clear_directory)
+                             list_items, StorageInfo, list_files,
+                             clear_directory)
 from project.validators import (validate_doi, validate_subdir,
                                 validate_version, validate_slug)
 from user.validators import validate_alphaplus, validate_alphaplusplus
-from physionet.utility import zip_dir
+from physionet.utility import (sorted_tree_files, zip_dir)
 
 
 class SafeHTMLField(ckeditor.fields.RichTextField):
@@ -1253,11 +1253,11 @@ class PublishedProject(Metadata, SubmissionInfo):
         if os.path.isfile(fname):
             os.remove(fname)
 
-        files = get_tree_files(self.file_root(), full_path=False)
         with open(fname, 'w') as outfile:
-            for f in files:
-                outfile.write('{} {}\n'.format(
-                    hashlib.sha256(open(os.path.join(self.file_root(), f), 'rb').read()).hexdigest(), f))
+            for f in sorted_tree_files(self.file_root()):
+                if f != 'SHA256SUMS.txt':
+                    outfile.write('{} {}\n'.format(
+                        hashlib.sha256(open(os.path.join(self.file_root(), f), 'rb').read()).hexdigest(), f))
 
         self.set_storage_info()
 
