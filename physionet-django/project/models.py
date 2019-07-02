@@ -1256,8 +1256,13 @@ class PublishedProject(Metadata, SubmissionInfo):
         with open(fname, 'w') as outfile:
             for f in sorted_tree_files(self.file_root()):
                 if f != 'SHA256SUMS.txt':
-                    outfile.write('{} {}\n'.format(
-                        hashlib.sha256(open(os.path.join(self.file_root(), f), 'rb').read()).hexdigest(), f))
+                    h = hashlib.sha256()
+                    with open(os.path.join(self.file_root(), f), 'rb') as fp:
+                        block = fp.read(h.block_size)
+                        while block:
+                            h.update(block)
+                            block = fp.read(h.block_size)
+                    outfile.write('{} {}\n'.format(h.hexdigest(), f))
 
         self.set_storage_info()
 
