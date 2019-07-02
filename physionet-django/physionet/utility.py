@@ -1,5 +1,7 @@
 import os
-import zipfile
+import shutil
+import subprocess
+import tempfile
 
 from django.conf import settings
 from django.http import HttpResponse, Http404
@@ -164,13 +166,60 @@ def zip_dir(zip_name, target_dir, enclosing_folder=''):
     target_dir : full path of directory to zip.
     enclosed_folder : enclosing folder name to write within zip file.
     """
-    if target_dir.endswith('/'):
-        target_dir = target_dir.rstrip('/')
 
-    with zipfile.ZipFile(zip_name, 'w',
-                         compression=zipfile.ZIP_DEFLATED) as zipf:
-        for path in sorted_tree_files(target_dir):
-            # Do not include the path to the target directory when
-            # writing files in the zip
-            zipf.write(os.path.join(target_dir, path),
-                       arcname=os.path.join(enclosing_folder, path))
+    # We use the 'zip' command here, rather than the zipfile library,
+    # because:
+    #  * zip supports multiple compression levels
+    #  * zip will automatically store files uncompressed if "deflate"
+    #    doesn't give any benefit
+
+    tmp_dir = None
+    try:
+        # If enclosing_folder is specified, temporarily create a
+        # symbolic link with that name that can be passed to 'zip'
+        if enclosing_folder:
+            tmp_dir = tempfile.mkdtemp()
+            os.symlink(os.path.realpath(target_dir),
+                       os.path.join(tmp_dir, enclosing_folder))
+            working_dir = tmp_dir
+            prefix = enclosing_folder + '/'
+        else:
+            working_dir = target_dir
+            prefix = ''
+
+        # Write the archive to a temporary file; delete that file if
+        # it already exists so that 'zip' won't try to update an
+        # existing archive
+        tmp_zip_name = zip_name + '.tmp'
+        try:
+            os.remove(tmp_zip_name)
+        except FileNotFoundError:
+            pass
+
+        # Invoke 'zip' and pass the sorted list of files to its
+        # standard input
+        command = ('zip', '-q', '-X', '-9',
+                   os.path.realpath(tmp_zip_name), '-@')
+        with subprocess.Popen(command, cwd=working_dir,
+                              stdin=subprocess.PIPE) as proc:
+            for path in sorted_tree_files(target_dir, prefix=prefix):
+                # File names that include \n or \r (which could be
+                # used to trick 'zip' into reading files from
+                # elsewhere on the system) are silently ignored.
+                if '\n' not in path and '\r' not in path:
+                    proc.stdin.write(path.encode() + b'\n')
+            proc.stdin.close()
+            if proc.wait() != 0:
+                raise subprocess.CalledProcessError(proc.returncode, command)
+
+        # Rename the temporary file to the target filename
+        os.rename(tmp_zip_name, zip_name)
+
+    finally:
+        # Remove the temporary directory and/or temporary zip file
+        if tmp_dir:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+        try:
+            os.remove(tmp_zip_name)
+        except FileNotFoundError:
+            pass
