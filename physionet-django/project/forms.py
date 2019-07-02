@@ -413,16 +413,20 @@ class NewProjectVersionForm(forms.ModelForm):
         os.mkdir(project.file_root())
         current_file_root = project.file_root()
         older_file_root = self.latest_project.file_root()
-        files = utility.get_tree_files(older_file_root, full_path=False)
-        for file in files:
-            destination = os.path.join(current_file_root, file)
-            if not os.path.exists(os.path.dirname(destination)):
+        for (directory, subdirs, files) in os.walk(older_file_root):
+            rel_dir = os.path.relpath(directory, older_file_root)
+            destination = os.path.join(current_file_root, rel_dir)
+            for d in subdirs:
                 try:
-                    os.makedirs(os.path.dirname(destination))
-                except OSError as exc: # Guard against race condition
-                    if exc.errno != errno.EEXIST:
-                        raise
-            os.link(os.path.join(older_file_root, file),  destination)
+                    os.mkdir(os.path.join(destination, d))
+                except FileExistsError:
+                    pass
+            for f in files:
+                try:
+                    os.link(os.path.join(directory, f),
+                            os.path.join(destination, f))
+                except FileExistsError:
+                    pass
 
         return project
 
