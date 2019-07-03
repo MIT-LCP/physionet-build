@@ -39,6 +39,7 @@ LOGGER = logging.getLogger(__name__)
 def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
     """
     Schedule a background task to set the files as read only.
+    If a file starts with a Shebang, then it will be set as executable.
     """
 
     published_project = PublishedProject.objects.get(id=pid)
@@ -50,12 +51,17 @@ def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
 
     # Make the files read only
     file_root = published_project.project_file_root()
-
+    folders = []
     for root, dirs, files in os.walk(file_root):
+        for f in files:
+            fline = open(os.path.join(root, f), 'rb').readline().rstrip()
+            if fline[:2] == b'#!':
+                os.chmod(os.path.join(root, f), 0o555)
+            else:
+                os.chmod(os.path.join(root, f), 0o444)
+
         for d in dirs:
             os.chmod(os.path.join(root, d), 0o555)
-        for f in files:
-            os.chmod(os.path.join(root, f), 0o555)
 
 
 class SafeHTMLField(ckeditor.fields.RichTextField):
