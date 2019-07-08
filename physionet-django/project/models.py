@@ -587,19 +587,19 @@ class SubmissionInfo(models.Model):
     """
     editor = models.ForeignKey('user.User',
         related_name='editing_%(class)ss', null=True,
-        on_delete=models.SET_NULL)
+        on_delete=models.SET_NULL, blank=True)
     # The very first submission
-    submission_datetime = models.DateTimeField(null=True)
-    author_comments = models.CharField(max_length=1000, default='')
-    editor_assignment_datetime = models.DateTimeField(null=True)
+    submission_datetime = models.DateTimeField(null=True, blank=True)
+    author_comments = models.CharField(max_length=1000, default='', blank=True)
+    editor_assignment_datetime = models.DateTimeField(null=True, blank=True)
     # The last revision request (if any)
-    revision_request_datetime = models.DateTimeField(null=True)
+    revision_request_datetime = models.DateTimeField(null=True, blank=True)
     # The last resubmission (if any)
-    resubmission_datetime = models.DateTimeField(null=True)
-    editor_accept_datetime = models.DateTimeField(null=True)
+    resubmission_datetime = models.DateTimeField(null=True, blank=True)
+    editor_accept_datetime = models.DateTimeField(null=True, blank=True)
     # The last copyedit (if any)
-    copyedit_completion_datetime = models.DateTimeField(null=True)
-    author_approval_datetime = models.DateTimeField(null=True)
+    copyedit_completion_datetime = models.DateTimeField(null=True, blank=True)
+    author_approval_datetime = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         abstract = True
