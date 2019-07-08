@@ -211,9 +211,9 @@ class TestState(TestMixin, TestCase):
             data={'slug':custom_slug, 'doi':'10.13026/MIT505', 'make_zip':1})
 
         # Disable logger for messages done by default in background tasks
-        LOGGER.disable(logging.INFO)
+        logging.disable(logging.INFO)
         self.assertTrue(bool(tasks.run_next_task()))
-        LOGGER.disable(logging.NOTSET)
+        logging.disable(logging.NOTSET)
 
         self.assertTrue(bool(PublishedProject.objects.filter(slug=custom_slug)))
         self.assertFalse(bool(PublishedProject.objects.filter(slug=project_slug)))
