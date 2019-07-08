@@ -3,6 +3,8 @@ import pdb
 
 from django.test import TestCase
 from django.urls import reverse
+from django.test.utils import get_runner
+from background_task.tasks import tasks
 
 from project.models import (ArchivedProject, ActiveProject, PublishedProject,
     Author, AuthorInvitation, License, StorageRequest)
@@ -204,6 +206,8 @@ class TestState(TestMixin, TestCase):
         response = self.client.post(reverse(
             'publish_submission', args=(project.slug,)),
             data={'slug':custom_slug, 'doi':'10.13026/MIT505', 'make_zip':1})
+
+        self.assertTrue(bool(tasks.run_next_task()))
         self.assertTrue(bool(PublishedProject.objects.filter(slug=custom_slug)))
         self.assertFalse(bool(PublishedProject.objects.filter(slug=project_slug)))
         self.assertFalse(bool(ActiveProject.objects.filter(slug=project_slug)))

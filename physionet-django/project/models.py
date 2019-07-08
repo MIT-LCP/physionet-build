@@ -6,6 +6,8 @@ import shutil
 import uuid
 import pdb
 import pytz
+import stat
+import logging
 
 import bleach
 import ckeditor.fields
@@ -21,6 +23,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import strip_tags
 from django.utils.text import slugify
+from background_task import background
 
 from project.utility import (get_tree_size, get_file_info, get_directory_info,
                              list_items, StorageInfo, list_files,
@@ -29,6 +32,35 @@ from project.validators import (validate_doi, validate_subdir,
                                 validate_version, validate_slug)
 from user.validators import validate_alphaplus, validate_alphaplusplus
 from physionet.utility import (sorted_tree_files, zip_dir)
+
+LOGGER = logging.getLogger(__name__)
+
+@background()
+def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
+    """
+    Schedule a background task to set the files as read only.
+    If a file starts with a Shebang, then it will be set as executable.
+    """
+
+    published_project = PublishedProject.objects.get(id=pid)
+    # Create special files if there are files. Should always be the case.
+    if bool(published_project.storage_used):
+        published_project.make_special_files(make_zip=make_zip)
+
+    published_project.set_storage_info()
+
+    # Make the files read only
+    file_root = published_project.project_file_root()
+    for root, dirs, files in os.walk(file_root):
+        for f in files:
+            fline = open(os.path.join(root, f), 'rb').read(2)
+            if fline[:2] == b'#!':
+                os.chmod(os.path.join(root, f), 0o555)
+            else:
+                os.chmod(os.path.join(root, f), 0o444)
+
+        for d in dirs:
+            os.chmod(os.path.join(root, d), 0o555)
 
 
 class SafeHTMLField(ckeditor.fields.RichTextField):
@@ -1105,12 +1137,14 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         # version with a different access policy
         if not os.path.isdir(published_project.project_file_root()):
             os.mkdir(published_project.project_file_root())
+
         # Move over main files
         os.rename(self.file_root(), published_project.file_root())
-        # Create special files if there are files. Should always be the case.
-        if bool(self.storage_used):
-            published_project.make_special_files(make_zip=make_zip)
-        published_project.set_storage_info()
+
+        # Set files read only and make zip file if requested
+        move_files_as_readonly(published_project.id, self.file_root(),
+            published_project.file_root(), make_zip)
+
         # Remove the ActiveProject
         self.delete()
 
