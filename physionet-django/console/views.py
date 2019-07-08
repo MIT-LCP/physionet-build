@@ -580,13 +580,13 @@ def manage_published_project(request, project_slug, version):
                     version=project.version)
                 GCP.objects.create(project=project, bucket_name=bucket_name,
                     managed_by=user, is_private=is_private)
-                send_files_to_gcp(project.id)
+                send_files_to_gcp(project.id, verbose_name='GCP - ' + str(project), creator=user)
                 LOGGER.info("Created GCP bucket for project {0}".format(
                     project_slug))
                 messages.success(request, "The GCP bucket for project {0} was \
                     successfully created.".format(project_slug))
             else:
-                send_files_to_gcp(project.id)
+                send_files_to_gcp(project.id, verbose_name='GCP - ' + str(project), creator=user)
                 LOGGER.info("Created GCP bucket for project {0}".format(
                     project_slug))
                 messages.success(request, "The bucket already exists. Resending the files \
