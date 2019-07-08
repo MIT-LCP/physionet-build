@@ -51,10 +51,9 @@ def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
 
     # Make the files read only
     file_root = published_project.project_file_root()
-    folders = []
     for root, dirs, files in os.walk(file_root):
         for f in files:
-            fline = open(os.path.join(root, f), 'rb').readline().rstrip()
+            fline = open(os.path.join(root, f), 'rb').read(2)
             if fline[:2] == b'#!':
                 os.chmod(os.path.join(root, f), 0o555)
             else:
