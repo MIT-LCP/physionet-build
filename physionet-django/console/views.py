@@ -246,7 +246,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
         max_num=project_forms.PublicationFormSet.max_forms, can_delete=False,
         formset=project_forms.PublicationFormSet, validate_max=True)
 
-    description_form = project_forms.MetadataForm(
+    description_form = project_forms.ContentForm(
         resource_type=project.resource_type, instance=project)
     access_form = project_forms.AccessMetadataForm(instance=project)
     discovery_form = project_forms.DiscoveryForm(resource_type=project.resource_type,
@@ -261,7 +261,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
 
     if request.method == 'POST':
         if 'edit_metadata' in request.POST:
-            description_form = project_forms.MetadataForm(
+            description_form = project_forms.ContentForm(
                 resource_type=project.resource_type, data=request.POST,
                 instance=project)
             access_form = project_forms.AccessMetadataForm(data=request.POST,
@@ -322,7 +322,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
      move_items_form, delete_items_form) = get_file_forms(
          project=project, subdir=subdir, display_dirs=display_dirs)
 
-    edit_url = reverse('edit_metadata_item', args=[project.slug])
+    edit_url = reverse('edit_content_item', args=[project.slug])
 
     return render(request, 'console/copyedit_submission.html', {
         'project':project, 'description_form':description_form,

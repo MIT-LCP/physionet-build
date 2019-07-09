@@ -35,12 +35,12 @@ urlpatterns = [
     path('<project_slug>/authors/edit-affiliation/', views.edit_affiliation,
         name='edit_affiliation'),
 
-    path('<project_slug>/metadata/', views.project_metadata,
-        name='project_metadata'),
+    path('<project_slug>/content/', views.project_content,
+        name='project_content'),
     # Edit a metadata item and reload the formset section
-    path('<project_slug>/metadata/edit-item/',
-        views.edit_metadata_item,
-        name='edit_metadata_item'),
+    path('<project_slug>/content/edit-item/',
+        views.edit_content_item,
+        name='edit_content_item'),
 
     path('<project_slug>/access/', views.project_access,
         name='project_access'),

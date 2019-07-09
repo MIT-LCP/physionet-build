@@ -21,7 +21,7 @@
 {% endif %}
 
 <form action="{% url 'project_access' project.slug %}" method="post" class="no-pd">
-  {% include "project/metadata_inline_form_snippet.html" with form=access_form %}
+  {% include "project/content_inline_form_snippet.html" with form=access_form %}
   <hr>
   <button class="btn btn-primary btn-rsp" type="submit" name="edit_access">Save Access Information</button>
 </form>

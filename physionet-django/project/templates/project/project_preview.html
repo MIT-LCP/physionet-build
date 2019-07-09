@@ -105,19 +105,19 @@
 
       {# 0: Database #}
       {% if project.resource_type == 0 %}
-        {% include "project/database_metadata_preview.html" %}
+        {% include "project/database_content_preview.html" %}
       {# 1: Software #}
       {% elif project.resource_type == 1 %}
-        {% include "project/software_metadata_preview.html" %}
+        {% include "project/software_content_preview.html" %}
       {# 2: Challenge #}
       {% elif project.resource_type == 2 %}
-        {% include "project/challenge_metadata_preview.html" %}
+        {% include "project/challenge_content_preview.html" %}
       {# 3: Model #}
       {% elif project.resource_type == 3 %}
-        {% include "project/model_metadata_preview.html" %}
+        {% include "project/model_content_preview.html" %}
       {# Other #}
       {% else %}
-        {% include "project/software_metadata_preview.html" %}
+        {% include "project/software_content_preview.html" %}
       {% endif %}
     </div>
     <!-- /.main column -->

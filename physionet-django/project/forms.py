@@ -431,9 +431,9 @@ class NewProjectVersionForm(forms.ModelForm):
         return project
 
 
-class MetadataForm(forms.ModelForm):
+class ContentForm(forms.ModelForm):
     """
-    Form for editing the metadata of a project.
+    Form for editing the content of a project.
     Fields, labels, and help texts may be defined differently for
     different resource types.
 
@@ -504,7 +504,7 @@ class MetadataForm(forms.ModelForm):
         }
 
     def __init__(self, resource_type, *args, **kwargs):
-        super(MetadataForm, self).__init__(*args, **kwargs)
+        super(ContentForm, self).__init__(*args, **kwargs)
         self.fields = OrderedDict((k, self.fields[k]) for k in self.FIELDS[resource_type])
 
         for l in ActiveProject.LABELS[resource_type]:

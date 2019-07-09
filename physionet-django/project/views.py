@@ -503,7 +503,7 @@ def project_authors(request, project_slug, **kwargs):
         'is_submitting':is_submitting})
 
 
-def edit_metadata_item(request, project_slug):
+def edit_content_item(request, project_slug):
     """
     Function accessed via ajax for editing a project's related item
     in a formset.
@@ -538,7 +538,7 @@ def edit_metadata_item(request, project_slug):
                        'topic':forms.TopicFormSet}
 
     # The fields of each formset
-    metadata_item_fields = {'reference': ('description',),
+    content_item_fields = {'reference': ('description',),
                             'publication': ('citation', 'url'),
                             'topic': ('description',)}
 
@@ -558,17 +558,17 @@ def edit_metadata_item(request, project_slug):
     # Create the formset
     if is_generic_relation[item]:
         ItemFormSet = generic_inlineformset_factory(model,
-            fields=metadata_item_fields[item], extra=extra_forms,
+            fields=content_item_fields[item], extra=extra_forms,
             max_num=custom_formsets[item].max_forms, can_delete=False,
             formset=custom_formsets[item], validate_max=True)
     else:
         ItemFormSet = inlineformset_factory(parent_model=ActiveProject,
-            model=model, fields=metadata_item_fields[item], extra=extra_forms,
+            model=model, fields=content_item_fields[item], extra=extra_forms,
             max_num=custom_formsets[item].max_forms, can_delete=False,
             formset=custom_formsets[item], validate_max=True)
 
     formset = ItemFormSet(instance=project)
-    edit_url = reverse('edit_metadata_item', args=[project.slug])
+    edit_url = reverse('edit_content_item', args=[project.slug])
 
     return render(request, 'project/item_list.html',
             {'formset':formset, 'item':item, 'item_label':formset.item_label,
@@ -577,39 +577,39 @@ def edit_metadata_item(request, project_slug):
 
 
 @project_auth(auth_mode=0, post_auth_mode=2)
-def project_metadata(request, project_slug, **kwargs):
+def project_content(request, project_slug, **kwargs):
     """
-    For editing project metadata
+    For editing project content
     """
     user, project, authors, is_submitting = (kwargs[k] for k in
         ('user', 'project', 'authors', 'is_submitting'))
 
-    # There are several forms for different types of metadata
+    # There are several forms for different types of content
     ReferenceFormSet = generic_inlineformset_factory(Reference,
         fields=('description',), extra=0,
         max_num=forms.ReferenceFormSet.max_forms, can_delete=False,
         formset=forms.ReferenceFormSet, validate_max=True)
 
-    description_form = forms.MetadataForm(resource_type=project.resource_type,
+    description_form = forms.ContentForm(resource_type=project.resource_type,
         instance=project)
     reference_formset = ReferenceFormSet(instance=project)
 
     if request.method == 'POST':
-        description_form = forms.MetadataForm(
+        description_form = forms.ContentForm(
             resource_type=project.resource_type, data=request.POST,
             instance=project)
         reference_formset = ReferenceFormSet(request.POST, instance=project)
         if description_form.is_valid() and reference_formset.is_valid():
             description_form.save()
             reference_formset.save()
-            messages.success(request, 'Your project metadata has been updated.')
+            messages.success(request, 'Your project content has been updated.')
             reference_formset = ReferenceFormSet(instance=project)
         else:
             messages.error(request,
                 'Invalid submission. See errors below.')
-    edit_url = reverse('edit_metadata_item', args=[project.slug])
+    edit_url = reverse('edit_content_item', args=[project.slug])
 
-    return render(request, 'project/project_metadata.html', {'project':project,
+    return render(request, 'project/project_content.html', {'project':project,
         'description_form':description_form, 'reference_formset':reference_formset,
         'messages':messages.get_messages(request),
         'is_submitting':is_submitting,
@@ -704,7 +704,7 @@ def project_discovery(request, project_slug, **kwargs):
             publication_formset = PublicationFormSet(instance=project)
         else:
             messages.error(request, 'Invalid submission. See errors below.')
-    edit_url = reverse('edit_metadata_item', args=[project.slug])
+    edit_url = reverse('edit_content_item', args=[project.slug])
     return render(request, 'project/project_discovery.html',
         {'project':project, 'discovery_form':discovery_form,
          'publication_formset':publication_formset,
