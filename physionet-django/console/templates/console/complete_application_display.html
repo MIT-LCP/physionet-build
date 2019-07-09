@@ -27,13 +27,13 @@
           <form action="" method="post" class="form-signin">
             {% csrf_token %}
                 <div class="form-group row">
-                  <label for="inputPassword">Reject:</label>
+                  <label for="inputPassword">Accept:</label>
                   <div class="col-sm-6">
                     {{ process_credential_form.responder_comments }}
                   </div>
                   <div class="col-sm-4">
-                    <button class="btn btn-danger" type="submit" name="status" value="{{ process_credential_form.status.field.choices.1.0 }}">
-                      {{ process_credential_form.status.field.choices.1.1 }}
+                    <button class="btn btn-success" type="submit" name="status" value="{{ process_credential_form.status.field.choices.2.0 }}">
+                      {{ process_credential_form.status.field.choices.2.1 }}
                     </button>
                   </div>
                 </div>
@@ -53,13 +53,13 @@
           <form action="" method="post" class="form-signin">
             {% csrf_token %}
                 <div class="form-group row">
-                  <label for="inputPassword">Accept:</label>
+                  <label for="inputPassword">Reject:</label>
                   <div class="col-sm-6">
                     {{ process_credential_form.responder_comments }}
                   </div>
                   <div class="col-sm-4">
-                    <button class="btn btn-success" type="submit" name="status" value="{{ process_credential_form.status.field.choices.2.0 }}">
-                      {{ process_credential_form.status.field.choices.2.1 }}
+                    <button class="btn btn-danger" type="submit" name="status" value="{{ process_credential_form.status.field.choices.1.0 }}">
+                      {{ process_credential_form.status.field.choices.1.1 }}
                     </button>
                   </div>
                 </div>
