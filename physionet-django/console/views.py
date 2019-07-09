@@ -34,6 +34,27 @@ from django.conf import settings
 LOGGER = logging.getLogger(__name__)
 
 
+@background()
+def make_zip_background(pid):
+    """
+    Schedule a background task to make the zip file
+    """
+    project = PublishedProject.objects.get(id=pid)
+    # Create zip file if there are files. Should always be the case.
+    project.make_zip()
+    project.set_storage_info()
+
+
+@background()
+def make_checksum_background(pid):
+    """
+    Schedule a background task to make the checksum file
+    """
+    project = PublishedProject.objects.get(id=pid)
+    # Create checksum file if there are files. Should always be the case.
+    project.make_checksum_file()
+    project.set_storage_info()
+
 
 def is_admin(user, *args, **kwargs):
     return user.is_admin
@@ -536,11 +557,11 @@ def manage_published_project(request, project_slug, version):
             else:
                 messages.error(request, 'Invalid submission. See form below.')
         elif 'make_checksum_file' in request.POST:
-            project.make_checksum_file()
-            messages.success(request, 'The files checksum list has been generated.')
+            make_checksum_background(pid=project.id, verbose_name='Making checksum file - {}'.format(project))
+            messages.success(request, 'The files checksum list has been scheduled.')
         elif 'make_zip' in request.POST:
-            project.make_zip()
-            messages.success(request, 'The zip of the main files has been generated.')
+            make_zip_background(pid=project.id, verbose_name='Making zip file - {}'.format(project))
+            messages.success(request, 'The zip of the main files has been scheduled.')
         elif 'deprecate_files' in request.POST and not project.deprecated_files:
             deprecate_form = forms.DeprecateFilesForm(data=request.POST)
             if deprecate_form.is_valid():
@@ -557,13 +578,13 @@ def manage_published_project(request, project_slug, version):
                     version=project.version)
                 GCP.objects.create(project=project, bucket_name=bucket_name,
                     managed_by=user, is_private=is_private)
-                send_files_to_gcp(project.id)
+                send_files_to_gcp(project.id, verbose_name='GCP - {}'.format(project), creator=user)
                 LOGGER.info("Created GCP bucket for project {0}".format(
                     project_slug))
                 messages.success(request, "The GCP bucket for project {0} was \
                     successfully created.".format(project_slug))
             else:
-                send_files_to_gcp(project.id)
+                send_files_to_gcp(project.id, verbose_name='GCP - {}'.format(project), creator=user)
                 LOGGER.info("Created GCP bucket for project {0}".format(
                     project_slug))
                 messages.success(request, "The bucket already exists. Resending the files \
