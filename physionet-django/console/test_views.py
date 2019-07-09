@@ -110,7 +110,7 @@ class TestState(TestMixin, TestCase):
         # Test that the editor cannot copyedit the content yet
         topic = project.topics.all().first()
         response = self.client.post(reverse(
-            'edit_metadata_item', args=(project.slug,)), data={
+            'edit_content_item', args=(project.slug,)), data={
             'item':'topic', 'remove_id':topic.id})
         self.assertEqual(response.status_code, 404)
         # Accept submission
@@ -123,7 +123,7 @@ class TestState(TestMixin, TestCase):
         # Copyedit project.
         # Remove a related item
         response = self.client.post(reverse(
-            'edit_metadata_item', args=(project.slug,)), data={
+            'edit_content_item', args=(project.slug,)), data={
             'item':'topic', 'remove_id':topic.id})
         self.assertEqual(response.status_code, 200)
         self.assertFalse(project.topics.all().filter(id=topic.id))

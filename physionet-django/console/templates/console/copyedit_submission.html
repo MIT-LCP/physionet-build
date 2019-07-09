@@ -26,7 +26,7 @@
         <a class="nav-link active" id="files-tab" data-toggle="tab" href="#files" role="tab" aria-controls="files" aria-selected="false">Edit Files</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" id="metadata-tab" data-toggle="tab" href="#metadata" role="tab" aria-controls="metadata" aria-selected="true">Edit Metadata</a>
+        <a class="nav-link" id="content-tab" data-toggle="tab" href="#content" role="tab" aria-controls="content" aria-selected="true">Edit Content</a>
       </li>
       <li class="nav-item">
         <a class="nav-link" id="complete-tab" data-toggle="tab" href="#complete" role="tab" aria-controls="complete" aria-selected="false">Complete Copyedit</a>
@@ -34,7 +34,7 @@
     </ul>
   </div>
   <div class="card-body">
-    {# Edit Metadata #}
+    {# Edit Content #}
     <div class="tab-content" id="tabContent">
       {# Edit Files #}
       <div class="tab-pane fade show active" id="files" role="tabpanel" aria-labelledby="files-tab">
@@ -51,19 +51,19 @@
         <br>
         {% include "project/edit_files_panel.html" %}
       </div>
-      <div class="tab-pane fade" id="metadata" role="tabpanel" aria-labelledby="metadata-tab">
+      <div class="tab-pane fade" id="content" role="tabpanel" aria-labelledby="content-tab">
         <form action="" method="post">
           <h3>Description</h3>
           {{ description_form.media }}
-          {% include "project/metadata_inline_form_snippet.html" with form=description_form %}
+          {% include "project/content_inline_form_snippet.html" with form=description_form %}
           {% include 'project/item_list.html' with item="reference" item_label=reference_formset.item_label formset=reference_formset form_name=reference_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}
           <h3>Access</h3>
-          {% include "project/metadata_inline_form_snippet.html" with form=access_form %}
+          {% include "project/content_inline_form_snippet.html" with form=access_form %}
           <h3>Discovery</h3>
-          {% include "project/metadata_inline_form_snippet.html" with form=discovery_form %}
+          {% include "project/content_inline_form_snippet.html" with form=discovery_form %}
           {% include 'project/item_list.html' with item="publication" item_label=publication_formset.item_label formset=publication_formset form_name=publication_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}
           {% include 'project/item_list.html' with item="topic" item_label=topic_formset.item_label formset=topic_formset form_name=topic_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}
-          <button class="btn btn-lg btn-primary" type="submit" name="edit_metadata">Save Metadata</button>
+          <button class="btn btn-lg btn-primary" type="submit" name="edit_content">Save Content</button>
         </form>
       </div>
       {# Complete Copyedit #}

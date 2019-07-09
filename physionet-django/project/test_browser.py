@@ -154,8 +154,8 @@ class TestSubmit(TestMixin, BaseSeleniumTest):
         # element.send_keys('Beth Israel Deaconess Medical Center')
         # self.selenium.find_element_by_name('edit_affiliations').click()
 
-        # # Metadata
-        # self.selenium.find_element_by_id('metadata_tab').click()
+        # # Content
+        # self.selenium.find_element_by_id('content_tab').click()
         # self.send_ck_content(outer_id='cke_id_background', content='Background')
         # self.send_ck_content(outer_id='cke_id_methods', content='Methods')
         # self.send_ck_content(outer_id='cke_id_content_description', content='Data Description')
@@ -307,7 +307,7 @@ class TestSubmit(TestMixin, BaseSeleniumTest):
         # # Author edits content and resubmits
         # self.selenium_login(username='rgmark', password='Tester11!', new=True)
         # self.selenium.find_element_by_link_text('MIT-BIH Arrhythmia Database').click()
-        # self.selenium.find_element_by_id('metadata_tab').click()
+        # self.selenium.find_element_by_id('content_tab').click()
         # self.selenium.find_element_by_id('id_version').clear()
         # self.selenium.find_element_by_id('id_version').send_keys('1.0.1')
         # self.selenium.find_element_by_name('edit_description').click()
@@ -356,7 +356,7 @@ class TestSubmit(TestMixin, BaseSeleniumTest):
         # self.selenium.find_element_by_name('reopen_copyedit').click()
         # self.selenium.find_element_by_link_text('copyediting').click()
 
-        # self.selenium.find_element_by_link_text('Edit Metadata').click()
+        # self.selenium.find_element_by_link_text('Edit Content').click()
         # self.send_ck_content(outer_id='cke_id_release_notes', content='This is a stable release.')
         # self.selenium.find_element_by_link_text('Complete Copyedit').click()
         # Select(self.selenium.find_element_by_id(
