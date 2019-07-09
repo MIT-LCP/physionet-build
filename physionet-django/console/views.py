@@ -34,6 +34,29 @@ from django.conf import settings
 LOGGER = logging.getLogger(__name__)
 
 
+@background()
+def make_zip_background(pid):
+    """
+    Schedule a background task to set the files as read only.
+    If a file starts with a Shebang, then it will be set as executable.
+    """
+    project = PublishedProject.objects.get(id=pid)
+    # Create special files if there are files. Should always be the case.
+    project.make_zip()
+    project.set_storage_info()
+
+
+@background()
+def make_checksum_background(pid):
+    """
+    Schedule a background task to set the files as read only.
+    If a file starts with a Shebang, then it will be set as executable.
+    """
+    project = PublishedProject.objects.get(id=pid)
+    # Create special files if there are files. Should always be the case.
+    project.make_checksum_file()
+    project.set_storage_info()
+
 
 def is_admin(user, *args, **kwargs):
     return user.is_admin
@@ -536,11 +559,11 @@ def manage_published_project(request, project_slug, version):
             else:
                 messages.error(request, 'Invalid submission. See form below.')
         elif 'make_checksum_file' in request.POST:
-            project.make_checksum_file()
-            messages.success(request, 'The files checksum list has been generated.')
+            make_checksum_background(pid=project.id, verbose_name='Making checksum file - '+str(project))
+            messages.success(request, 'The files checksum list has been scheduled.')
         elif 'make_zip' in request.POST:
-            project.make_zip()
-            messages.success(request, 'The zip of the main files has been generated.')
+            make_zip_background(pid=project.id, verbose_name='Making zip file - '+str(project))
+            messages.success(request, 'The zip of the main files has been scheduled.')
         elif 'deprecate_files' in request.POST and not project.deprecated_files:
             deprecate_form = forms.DeprecateFilesForm(data=request.POST)
             if deprecate_form.is_valid():
