@@ -517,7 +517,7 @@ class Profile(models.Model):
         on_delete=models.CASCADE)
     first_names = models.CharField(max_length=100, validators=[validate_name])
     last_name = models.CharField(max_length=50, validators=[validate_name])
-    affiliation = models.CharField(max_length=60, blank=True, default='',
+    affiliation = models.CharField(max_length=250, blank=True, default='',
         validators=[validate_alphaplusplus])
     location = models.CharField(max_length=100, blank=True, default='',
         validators=[validate_alphaplusplus])
