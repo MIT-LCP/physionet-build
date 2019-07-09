@@ -37,11 +37,10 @@ LOGGER = logging.getLogger(__name__)
 @background()
 def make_zip_background(pid):
     """
-    Schedule a background task to set the files as read only.
-    If a file starts with a Shebang, then it will be set as executable.
+    Schedule a background task to make the zip file
     """
     project = PublishedProject.objects.get(id=pid)
-    # Create special files if there are files. Should always be the case.
+    # Create zip file if there are files. Should always be the case.
     project.make_zip()
     project.set_storage_info()
 
@@ -49,11 +48,10 @@ def make_zip_background(pid):
 @background()
 def make_checksum_background(pid):
     """
-    Schedule a background task to set the files as read only.
-    If a file starts with a Shebang, then it will be set as executable.
+    Schedule a background task to make the checksum file
     """
     project = PublishedProject.objects.get(id=pid)
-    # Create special files if there are files. Should always be the case.
+    # Create checksum file if there are files. Should always be the case.
     project.make_checksum_file()
     project.set_storage_info()
 
