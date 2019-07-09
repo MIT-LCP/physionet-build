@@ -1144,7 +1144,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         # Set files read only and make zip file if requested
         move_files_as_readonly(published_project.id, self.file_root(),
             published_project.file_root(), make_zip, 
-            verbose_name='Read Only Files - ' + str(published_project))
+            verbose_name='Read Only Files - {}'.format(published_project))
 
         # Remove the ActiveProject
         self.delete()

@@ -3,8 +3,10 @@ from ckeditor.widgets import CKEditorWidget
 from django.contrib import admin
 from django.db.models import CharField, TextField
 from django.forms import TextInput, Textarea
+from background_task.models_completed import CompletedTask
+from background_task.models import Task
 
-from . import models
+from project import models
 
 
 class LicenseAdmin(admin.ModelAdmin):
@@ -64,6 +66,22 @@ class PublishedAuthorAdmin(admin.ModelAdmin):
     list_display = ('project', 'user')
     inlines = [PublishedAffiliationInline]
 
+class TaskAdmin(admin.ModelAdmin):
+    display_filter = ['verbose_name']
+    list_display = ['verbose_name', 'task_params', 'run_at', 'priority',
+        'attempts', 'has_error', 'locked_by', 'locked_by_pid_running', ]
+
+
+class CompletedTaskAdmin(admin.ModelAdmin):
+    display_filter = ['verbose_name']
+    list_display = ['verbose_name', 'task_params', 'run_at', 'priority',
+        'attempts', 'has_error', 'locked_by', 'locked_by_pid_running', ]
+
+
+# Unregister the tasks to add the custom tasks to the amdin page
+admin.site.unregister(Task)
+admin.site.unregister(CompletedTask)
+
 
 admin.site.register(models.ActiveProject)
 admin.site.register(models.AuthorInvitation)
@@ -89,3 +107,7 @@ admin.site.register(models.PublishedPublication)
 admin.site.register(models.PublishedReference)
 admin.site.register(models.StorageRequest)
 admin.site.register(models.GCP)
+
+# Add the custom tasks to the admin page
+admin.site.register(Task, TaskAdmin)
+admin.site.register(CompletedTask, CompletedTaskAdmin)

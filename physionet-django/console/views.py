@@ -557,10 +557,10 @@ def manage_published_project(request, project_slug, version):
             else:
                 messages.error(request, 'Invalid submission. See form below.')
         elif 'make_checksum_file' in request.POST:
-            make_checksum_background(pid=project.id, verbose_name='Making checksum file - '+str(project))
+            make_checksum_background(pid=project.id, verbose_name='Making checksum file - {}'.format(project))
             messages.success(request, 'The files checksum list has been scheduled.')
         elif 'make_zip' in request.POST:
-            make_zip_background(pid=project.id, verbose_name='Making zip file - '+str(project))
+            make_zip_background(pid=project.id, verbose_name='Making zip file - {}'.format(project))
             messages.success(request, 'The zip of the main files has been scheduled.')
         elif 'deprecate_files' in request.POST and not project.deprecated_files:
             deprecate_form = forms.DeprecateFilesForm(data=request.POST)
@@ -578,13 +578,13 @@ def manage_published_project(request, project_slug, version):
                     version=project.version)
                 GCP.objects.create(project=project, bucket_name=bucket_name,
                     managed_by=user, is_private=is_private)
-                send_files_to_gcp(project.id, verbose_name='GCP - ' + str(project), creator=user)
+                send_files_to_gcp(project.id, verbose_name='GCP - {}'.format(project), creator=user)
                 LOGGER.info("Created GCP bucket for project {0}".format(
                     project_slug))
                 messages.success(request, "The GCP bucket for project {0} was \
                     successfully created.".format(project_slug))
             else:
-                send_files_to_gcp(project.id, verbose_name='GCP - ' + str(project), creator=user)
+                send_files_to_gcp(project.id, verbose_name='GCP - {}'.format(project), creator=user)
                 LOGGER.info("Created GCP bucket for project {0}".format(
                     project_slug))
                 messages.success(request, "The bucket already exists. Resending the files \

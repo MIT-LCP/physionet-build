@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     # 'django_cron',
     'background_task',
 
-    'physionet',
     'user',
     'project',
     'console',
