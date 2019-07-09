@@ -14,7 +14,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.db import DatabaseError, transaction
-from django.db.models import Q, CharField, Value, IntegerField
+from django.db.models import Q, CharField, Value, IntegerField, BooleanField
 from background_task import background
 
 from notification.models import News
@@ -27,7 +27,7 @@ from project.utility import readable_size
 from project.views import (get_file_forms, get_project_file_info,
     process_files_post)
 from user.models import User, CredentialApplication, LegacyCredential
-from . import forms, utility
+from console import forms, utility
 
 from django.conf import settings
 
@@ -703,7 +703,7 @@ def complete_credential_applications(request):
 
     if request.method == 'POST':
         if 'contact_reference' in request.POST and request.POST['contact_reference'].isdigit():
-            application_id = request.POST.get('contact_reference','')
+            application_id = request.POST.get('contact_reference', '')
             application = CredentialApplication.objects.get(id=application_id)
             application.reference_contact_datetime = timezone.now()
             application.save()
@@ -714,9 +714,9 @@ def complete_credential_applications(request):
                 mailto = notification.mailto_reference(request, application)
             # messages.success(request, 'The reference contact email has been created.')
             return render(request, 'console/generate_reference_email.html',
-                {'application':application, 'mailto':mailto})
+                {'application': application, 'mailto': mailto})
         if 'process_application' in request.POST and request.POST['process_application'].isdigit():
-            application_id = request.POST.get('process_application','')
+            application_id = request.POST.get('process_application', '')
             application = CredentialApplication.objects.get(id=application_id)
             process_credential_form = forms.ProcessCredentialForm(
                 responder=request.user, data=request.POST, instance=application)
@@ -726,27 +726,29 @@ def complete_credential_applications(request):
                 notification.process_credential_complete(request, application, comments=False)
                 mailto = notification.mailto_process_credential_complete(application)
                 return render(request, 'console/generate_response_email.html',
-                    {'application':application, 'mailto':mailto})
+                    {'application' : application, 'mailto': mailto})
             else:
                 messages.error(request, 'Invalid submission. See form below.')
 
     applications = CredentialApplication.objects.filter(status=0).annotate(mailto=Value('', CharField()))
 
-    contacted_applications =  applications.filter(reference_contact_datetime__isnull=False
+    contacted_applications = applications.filter(reference_contact_datetime__isnull=False
         ).order_by('reference_contact_datetime')
-    not_contacted_applications =  applications.filter(reference_contact_datetime__isnull=True
-        ).order_by('application_datetime')
+    not_contacted_applications = applications.filter(reference_contact_datetime__isnull=True
+        ).order_by('application_datetime').annotate(known_ref=Value(False, BooleanField()))
 
     for a in contacted_applications:
         a.mailto = notification.mailto_process_credential_complete(a, comments=False)
 
     for a in not_contacted_applications:
         a.mailto = notification.mailto_process_credential_complete(a, comments=False)
-
+        if CredentialApplication.objects.filter(reference_email=a.reference_email,
+            reference_contact_datetime__isnull=False):
+                a.known_ref = True
     return render(request, 'console/complete_credential_applications.html',
-        {'contacted_applications':contacted_applications,
-        'not_contacted_applications':not_contacted_applications,
-        'process_credential_form':process_credential_form})
+        {'contacted_applications': contacted_applications,
+        'not_contacted_applications': not_contacted_applications,
+        'process_credential_form': process_credential_form})
 
 
 @login_required
