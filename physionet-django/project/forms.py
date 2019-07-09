@@ -442,21 +442,21 @@ class ContentForm(forms.ModelForm):
     FIELDS = (
         # 0: Database
         ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'version', 'release_notes', 'acknowledgements',
+         'usage_notes', 'release_notes', 'acknowledgements',
          'conflicts_of_interest',
          ),
         # 1: Software
         ('title', 'abstract', 'background', 'content_description',
-         'methods', 'installation', 'usage_notes', 'version', 'release_notes',
+         'methods', 'installation', 'usage_notes', 'release_notes',
          'acknowledgements', 'conflicts_of_interest', ),
         # 2: Challenge
         ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'version', 'release_notes', 'acknowledgements',
+         'usage_notes', 'release_notes', 'acknowledgements',
          'conflicts_of_interest',
          ),
         # 3: Model
         ('title', 'abstract', 'background', 'methods', 'content_description',
-         'installation', 'usage_notes', 'version', 'release_notes',
+         'installation', 'usage_notes', 'release_notes',
          'acknowledgements', 'conflicts_of_interest',
          ),
     )
@@ -490,7 +490,7 @@ class ContentForm(forms.ModelForm):
         fields = ('title', 'abstract', 'background', 'methods',
                   'content_description', 'installation', 'usage_notes',
                   'acknowledgements', 'conflicts_of_interest',
-                  'version', 'release_notes',)
+                  'release_notes',)
 
         help_texts = {
             'title': '* The title of the resource.',
@@ -499,7 +499,6 @@ class ContentForm(forms.ModelForm):
             'installation': '* Instructions on how to install the software, along with the required dependencies. Or specify the files in which they are listed.',
             'acknowledgements': 'Thank the people who helped with the research but did not qualify for authorship. In addition, provide any funding information.',
             'conflicts_of_interest': '* List whether any authors have a financial, commercial, legal, or professional relationship with other organizations, or with the people working with them, that could influence this research. State explicitly if there are none.',
-            'version': "* The version number of the resource. <a href=https://semver.org/ target=_blank>Semantic versioning</a> is encouraged. If unsure, put '1.0.0'.",
             'release_notes': 'Important notes about the current release, and changes from previous versions.'
         }
 
@@ -537,16 +536,17 @@ class DiscoveryForm(forms.ModelForm):
 
     class Meta:
         model = ActiveProject
-        fields = ('short_description', 'project_home_page', 'parent_projects',
+        fields = ('version', 'short_description', 'project_home_page', 'parent_projects',
             'programming_languages')
         help_texts = {
+            'version':
+            "* The version number of the resource. <a href=https://semver.org/ target=_blank>Semantic versioning</a> is encouraged. If unsure, put '1.0.0'.",
             'short_description':
             '* A brief description (at most 250 characters) of the project. '
             'This should be one or two complete sentences, and describe the '
             'contents of the project to a reader who is generally '
             'knowledgeable about the subject but is not specifically familiar '
             'with your research.',
-
             'project_home_page': 'External home page for the project.'
         }
         widgets = {'short_description':forms.Textarea(attrs={'rows':'4'})}
