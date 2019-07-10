@@ -9,7 +9,7 @@
 <hr>
 
 <p>
-  {{ project.resource_type|resource_badge|safe }}
+  {{ project.resource_type.id|resource_badge|safe }}
   {% if project.under_submission %}
     <span class="badge badge-info">Under Submission</span>
   {% endif %}
@@ -33,7 +33,7 @@ guidelines</a>.</p>
 <hr>
 <h3>Quality Guidelines</h3>
 <p>Your contribution must satisfy the following guidelines:</p>
-{% if project.resource_type == 0 %}
+{% if project.resource_type.id == 0 %}
   {% include "about/data_quality_guidelines.html" %}
 {% else %}
   {% include "about/software_quality_guidelines.html" %}

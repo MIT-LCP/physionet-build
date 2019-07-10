@@ -53,7 +53,7 @@
   {% endif %}
 
   <p>
-    {{ project.resource_type|resource_badge|safe }}
+    {{ project.resource_type.id|resource_badge|safe }}
     {{ project.access_policy|access_badge|safe }}
   </p>
   <h1 class="form-signin-heading"><em>[Preview]:</em> {{ project.title }}
@@ -105,16 +105,16 @@
     </div>
 
       {# 0: Database #}
-      {% if project.resource_type == 0 %}
+      {% if project.resource_type.id == 0 %}
         {% include "project/database_content_preview.html" %}
       {# 1: Software #}
-      {% elif project.resource_type == 1 %}
+      {% elif project.resource_type.id == 1 %}
         {% include "project/software_content_preview.html" %}
       {# 2: Challenge #}
-      {% elif project.resource_type == 2 %}
+      {% elif project.resource_type.id == 2 %}
         {% include "project/challenge_content_preview.html" %}
       {# 3: Model #}
-      {% elif project.resource_type == 3 %}
+      {% elif project.resource_type.id == 3 %}
         {% include "project/model_content_preview.html" %}
       {# Other #}
       {% else %}

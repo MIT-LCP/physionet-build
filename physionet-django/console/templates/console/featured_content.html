@@ -28,7 +28,7 @@
           <tr>
             <td><a href="{% url 'published_project' item.slug item.version %}" target="_blank">{{ item.title }}</a></td>
             <td>{{ item.version }}</td>
-            <td>{{ item.resource_type|resource_badge|safe }}</td>
+            <td>{{ item.resource_type.id|resource_badge|safe }}</td>
             <td>{{ item.access_policy|access_badge|safe }}</td>
             <td>{{ item.publish_datetime|date }}</td>
             <td>

@@ -26,7 +26,7 @@
 <div class="container">
   {% include "message_snippet.html" %}
   <p>
-    {{ project.resource_type|resource_badge|safe }}
+    {{ project.resource_type.id|resource_badge|safe }}
     {{ project.access_policy|access_badge|safe }}
   </p>
   <h1 class="form-signin-heading">{{ project.title }}</h1>
@@ -81,16 +81,16 @@
         <hr>
       {% else %}
         {# 0: Database #}
-        {% if project.resource_type == 0 %}
+        {% if project.resource_type.id == 0 %}
           {% include "project/database_content.html" %}
         {# 1: Software #}
-        {% elif project.resource_type == 1 %}
+        {% elif project.resource_type.id == 1 %}
           {% include "project/software_content.html" %}
         {# 2: Challenge #}
-        {% elif project.resource_type == 2 %}
+        {% elif project.resource_type.id == 2 %}
           {% include "project/challenge_content.html" %}
         {# 3: Model #}
-        {% elif project.resource_type == 3 %}
+        {% elif project.resource_type.id == 3 %}
           {% include "project/model_content.html" %}
         {% endif %}
       {% endif %}
@@ -106,7 +106,7 @@
           Contents
         </button>
         <div class="dropdown-menu">
-          {% if project.resource_type == 0 %}
+          {% if project.resource_type.id == 0 %}
             <a class="dropdown-item" href="#abstract">Abstract</a>
             <a class="dropdown-item" href="#background">Background</a>
             <a class="dropdown-item" href="#methods">Methods</a>
@@ -116,7 +116,7 @@
             <a class="dropdown-item" href="#conflicts-of-interest">Conflicts of Interest</a>
             <a class="dropdown-item" href="#references">References</a>
             <a class="dropdown-item" href="#files">Files</a>
-          {% elif project.resource_type == 1 %}
+          {% elif project.resource_type.id == 1 %}
             <a class="dropdown-item" href="#abstract">Abstract</a>
             <a class="dropdown-item" href="#background">Background</a>
             <a class="dropdown-item" href="#description">Software Description</a>
@@ -136,7 +136,7 @@
             <a class="dropdown-item" href="#conflicts-of-interest">Conflicts of Interest</a>
             <a class="dropdown-item" href="#references">References</a>
             <a class="dropdown-item" href="#files">Files</a>
-          {% elif project.resource_type == 2 %}
+          {% elif project.resource_type.id == 2 %}
             <a class="dropdown-item" href="#abstract">Abstract</a>
             <a class="dropdown-item" href="#background">Objective</a>
             <a class="dropdown-item" href="#methods">Participation</a>

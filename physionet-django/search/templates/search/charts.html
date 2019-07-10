@@ -212,7 +212,7 @@ xhr.onreadystatechange = function () {
 // Create and send a GET request
 // The first argument is the post type (GET, POST, PUT, DELETE, etc.)
 // The second argument is the endpoint URL
-xhr.open("GET", "/rest/published-stats-list/?resource_type={{ resource_type }}");
+xhr.open("GET", "/rest/published-stats-list/?resource_type={{ resource_type.id }}");
 xhr.send();
 
 </script>
