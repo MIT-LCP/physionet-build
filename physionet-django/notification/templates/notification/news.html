@@ -48,6 +48,9 @@
         </h2>
         {{ news.content|safe }}
         <p class="pub-details">Published: {{ news.publish_datetime|date }}.</p>
+        {% if news.project %}
+        <p class="pub-details">News from: <a href="{% url 'published_project' news.project.slug news.project.version %}">{{ news.project }}.</a></p>
+        {% endif %}
         <hr>
       {% endfor %}
       <br>
