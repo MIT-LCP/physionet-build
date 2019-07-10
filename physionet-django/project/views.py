@@ -593,13 +593,13 @@ def project_content(request, project_slug, **kwargs):
         max_num=forms.ReferenceFormSet.max_forms, can_delete=False,
         formset=forms.ReferenceFormSet, validate_max=True)
 
-    description_form = forms.ContentForm(resource_type=project.resource_type,
+    description_form = forms.ContentForm(resource_type=project.resource_type.id,
         instance=project)
     reference_formset = ReferenceFormSet(instance=project)
 
     if request.method == 'POST':
         description_form = forms.ContentForm(
-            resource_type=project.resource_type, data=request.POST,
+            resource_type=project.resource_type.id, data=request.POST,
             instance=project)
         reference_formset = ReferenceFormSet(request.POST, instance=project)
         if description_form.is_valid() and reference_formset.is_valid():
@@ -684,13 +684,13 @@ def project_discovery(request, project_slug, **kwargs):
         max_num=forms.PublicationFormSet.max_forms, can_delete=False,
         formset=forms.PublicationFormSet, validate_max=True)
 
-    discovery_form = forms.DiscoveryForm(resource_type=project.resource_type,
+    discovery_form = forms.DiscoveryForm(resource_type=project.resource_type.id,
         instance=project)
     publication_formset = PublicationFormSet(instance=project)
     topic_formset = TopicFormSet(instance=project)
 
     if request.method == 'POST':
-        discovery_form = forms.DiscoveryForm(resource_type=project.resource_type,
+        discovery_form = forms.DiscoveryForm(resource_type=project.resource_type.id,
             data=request.POST, instance=project)
         publication_formset = PublicationFormSet(request.POST,
                                                  instance=project)
