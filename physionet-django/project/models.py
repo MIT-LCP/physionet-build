@@ -387,6 +387,15 @@ class CoreProject(models.Model):
         return bool(self.activeprojects.filter())
 
 
+class ProjectType(models.Model):
+    """
+    The project types available on the platform
+    """
+    id = models.PositiveSmallIntegerField(primary_key=True)
+    name = models.CharField(max_length=20)
+    description = models.TextField()
+
+
 class Metadata(models.Model):
     """
     Metadata for all projects
@@ -395,28 +404,6 @@ class Metadata(models.Model):
     https://schema.datacite.org/meta/kernel-4.0/doc/DataCite-MetadataKernel_v4.1.pdf
     https://www.nature.com/sdata/publish/for-authors#format
     """
-    RESOURCE_TYPES = (
-        (0, 'Database'),
-        (1, 'Software'),
-        (2, 'Challenge'),
-        (3, 'Model'),
-    )
-
-    RESOURCE_TYPE_DESC = {
-        0: ('Research data with significant potential for reuse by the'
-            ' research community. This may include data that'
-            ' enables published studies to be reproduced, data for'
-            ' benchmarking algorithms, and data that supports novel'
-            ' investigations.'),
-        1: ('Software that has been developed for research applications.'),
-        2: ('Description of a challenge for the research community . Files'
-            ' such as datasets and software may be included as part of the'
-            ' challenge.'),
-        3: ('An implementation of a statistical or machine learning model'
-            ' with potential for reuse by the research community. Typically'
-            ' models will be created by a training process and may have '
-            ' dependencies on specific computational frameworks'),
-    }
 
     ACCESS_POLICIES = (
         (0, 'Open'),
@@ -424,7 +411,9 @@ class Metadata(models.Model):
         (2, 'Credentialed'),
     )
 
-    resource_type = models.PositiveSmallIntegerField(choices=RESOURCE_TYPES)
+    resource_type = models.ForeignKey('project.ProjectType',
+                                    related_name='%(class)ss',
+                                    on_delete=models.CASCADE)
 
     # Main body descriptive metadata
     title = models.CharField(max_length=200, validators=[validate_alphaplus])
@@ -923,11 +912,11 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 self.integrity_errors.append('Author {0} has not filled in affiliations'.format(author.user.username))
 
         # Metadata
-        for attr in ActiveProject.REQUIRED_FIELDS[self.resource_type]:
+        for attr in ActiveProject.REQUIRED_FIELDS[self.resource_type.id]:
             value = getattr(self, attr)
             text = unescape(strip_tags(str(value)))
             if value is None or not text or text.isspace():
-                l = self.LABELS[self.resource_type][attr] if attr in self.LABELS[self.resource_type] else attr.title().replace('_', ' ')
+                l = self.LABELS[self.resource_type.id][attr] if attr in self.LABELS[self.resource_type.id] else attr.title().replace('_', ' ')
                 self.integrity_errors.append('Missing required field: {0}'.format(l))
 
         published_projects = self.core_project.publishedprojects.all()
@@ -1169,7 +1158,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
         return published_project
 
-
+    
 class PublishedProject(Metadata, SubmissionInfo):
     """
     A published project. Immutable snapshot.
