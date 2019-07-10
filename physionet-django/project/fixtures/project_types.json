@@ -1,0 +1,34 @@
+[
+{
+    "model": "project.projecttype",
+    "pk": 0,
+    "fields": {
+        "name": "Database",
+        "description": "Research data with significant potential for reuse by the research community. This may include data that enables published studies to be reproduced, data for benchmarking algorithms, and data that supports novel investigations."
+    }
+},
+{
+    "model": "project.projecttype",
+    "pk": 1,
+    "fields": {
+        "name": "Software",
+        "description": "Software that has been developed for research applications."
+    }
+},
+{
+    "model": "project.projecttype",
+    "pk": 2,
+    "fields": {
+        "name": "Challenge",
+        "description": "Description of a challenge for the research community. Files such as datasets and software may be included as part of the challenge."
+    }
+},
+{
+    "model": "project.projecttype",
+    "pk": 3,
+    "fields": {
+        "name": "Model",
+        "description": "An implementation of a statistical or machine learning model with potential for reuse by the research community. Typically models will be created by a training process and may have dependencies on specific computational frameworks."
+    }
+}
+]
