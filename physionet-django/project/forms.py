@@ -15,7 +15,8 @@ from django.utils.html import format_html
 from project.models import (Affiliation, Author, AuthorInvitation, ActiveProject,
                             CoreProject, StorageRequest, ProgrammingLanguage,
                             License, Metadata, Reference, Publication, DataAccess,
-                            PublishedProject, Topic, exists_project_slug)
+                            PublishedProject, Topic, exists_project_slug,
+                            ProjectType)
 from project import utility
 from project import validators
 
@@ -314,6 +315,7 @@ class CreateProjectForm(forms.ModelForm):
     def __init__(self, user, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = user
+        self.fields['resource_type'].label_from_instance = lambda obj: obj.name
 
     class Meta:
         model = ActiveProject
@@ -736,7 +738,7 @@ class AccessMetadataForm(forms.ModelForm):
 
         # Get licenses for this resource type
         licenses = License.objects.filter(
-            resource_types__icontains=str(self.instance.resource_type))
+            resource_types__icontains=str(self.instance.resource_type.id))
         # Set allowed access policies based on license policies
         available_policies = [a for a in range(len(Metadata.ACCESS_POLICIES)) if licenses.filter(access_policy=a)]
         self.fields['access_policy'].choices = tuple(Metadata.ACCESS_POLICIES[p] for p in available_policies)
@@ -747,7 +749,7 @@ class AccessMetadataForm(forms.ModelForm):
         access policy.
         """
         self.fields['license'].queryset = License.objects.filter(
-            resource_types__icontains=str(self.instance.resource_type),
+            resource_types__icontains=str(self.instance.resource_type.id),
             access_policy=access_policy)
 
     def clean(self):
@@ -755,7 +757,7 @@ class AccessMetadataForm(forms.ModelForm):
         Ensure valid license access policy combinations
         """
         data = super().clean()
-        if (str(self.instance.resource_type) in data['license'].resource_types
+        if (str(self.instance.resource_type.id) in data['license'].resource_types
                 and data['access_policy'] == data['license'].access_policy):
             return data
 

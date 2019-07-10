@@ -8,7 +8,7 @@ from django.contrib.contenttypes.models import ContentType
 from notification.models import News
 import notification.utility as notification
 from project.models import (License, PublishedProject, Author, ActiveProject,
-                            Metadata)
+                            Metadata, ProjectType)
 from user.forms import ContactForm
 from project import forms
 
@@ -32,10 +32,10 @@ def about_publish(request):
     """
     licenses = OrderedDict()
     descriptions = OrderedDict()
-    for res_type, res_label in Metadata.RESOURCE_TYPES:
-        descriptions[res_label] = Metadata.RESOURCE_TYPE_DESC.get(res_type)
-        licenses[res_label] = License.objects.filter(
-            resource_types__contains=str(res_type)).order_by('access_policy')
+    for resource_type in ProjectType.objects.all():
+        descriptions[resource_type.name] = resource_type.description
+        licenses[resource_type.name] = License.objects.filter(
+            resource_types__contains=str(resource_type.id)).order_by('access_policy')
 
     return render(request, 'about/publish.html', {'licenses': licenses,
                   'descriptions': descriptions})
