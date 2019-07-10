@@ -131,7 +131,7 @@
         {% for project in projects %}
           <li class="list-group-item">
             <p>
-              {{ project.resource_type|resource_badge|safe }}
+              {{ project.resource_type.id|resource_badge|safe }}
               {% if project.under_submission %}
                 <span class="badge badge-info">Under Submission</span>
               {% elif project.submission_days_remaining < 14 %}
@@ -166,7 +166,7 @@
       {% for project in published_projects %}
         <li class="list-group-item">
           <p>
-            {{ project.resource_type|resource_badge|safe }}
+            {{ project.resource_type.id|resource_badge|safe }}
             {{ project.access_policy|access_badge|safe }}
           </p>
           <h3><a href="{% url 'published_project' project.slug project.version %}">{{ project.title }}</a> <a href="{% url 'published_submission_history' project.slug project.version %}" class="btn btn-primary ml-1" role="button" style="float:right">Submission History</a> {% if project.new_button %}<a href="{% url 'new_project_version' project.slug %}" class="btn btn-success ml-1" role="button" style="float:right">New Version</a>{% endif %}</h3>

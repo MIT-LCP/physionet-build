@@ -9,16 +9,16 @@
 <p>In addition, ensure that the following quality assurance guidelines are met:</p>
 
 {# data guidelines #}
-{% if project.resource_type == 0 %}
+{% if project.resource_type.id == 0 %}
   {% include "about/data_quality_guidelines.html" %}
 {# software guidelines #}
-{% elif project.resource_type == 1 %}
+{% elif project.resource_type.id == 1 %}
   {% include "about/software_quality_guidelines.html" %}
 {# challenge guidelines #}
-{% elif project.resource_type == 2 %}
+{% elif project.resource_type.id == 2 %}
   {% include "about/challenge_quality_guidelines.html" %}
 {# model guidelines #}
-{% elif project.resource_type == 3 %}
+{% elif project.resource_type.id == 3 %}
   {% include "about/model_quality_guidelines.html" %}
 {# other guidelines #}
 {% else %}
