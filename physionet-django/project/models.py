@@ -867,7 +867,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             copyedit_log.save()
         for parent_project in self.parent_projects.all():
             archived_project.parent_projects.add(parent_project)
-        if self.resource_type == 1:
+        if self.resource_type.id == 1:
             languages = self.programming_languages.all()
             if languages:
                 archived_project.programming_languages.add(*list(languages))
