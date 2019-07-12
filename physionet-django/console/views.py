@@ -248,9 +248,9 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
         formset=project_forms.PublicationFormSet, validate_max=True)
 
     description_form = project_forms.ContentForm(
-        resource_type=project.resource_type, instance=project)
+        resource_type=project.resource_type.id, instance=project)
     access_form = project_forms.AccessMetadataForm(instance=project)
-    discovery_form = project_forms.DiscoveryForm(resource_type=project.resource_type,
+    discovery_form = project_forms.DiscoveryForm(resource_type=project.resource_type.id,
         instance=project)
 
     access_form.set_license_queryset(access_policy=project.access_policy)
@@ -263,7 +263,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
     if request.method == 'POST':
         if 'edit_content' in request.POST:
             description_form = project_forms.ContentForm(
-                resource_type=project.resource_type, data=request.POST,
+                resource_type=project.resource_type.id, data=request.POST,
                 instance=project)
             access_form = project_forms.AccessMetadataForm(data=request.POST,
                 instance=project)
