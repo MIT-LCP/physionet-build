@@ -24,7 +24,7 @@ class TestAccessPresubmission(TestMixin, TestCase):
     Projects in presubmission state.
 
     """
-    fixtures = ['demo-user', 'demo-project', 'site-data']
+    fixtures = ['demo-user', 'project-types', 'demo-project', 'site-data']
 
     @prevent_request_warnings
     def test_visit_get(self):
@@ -284,7 +284,7 @@ class TestAccessPublished(TestMixin, TestCase):
     Published projects.
 
     """
-    fixtures = ['demo-user', 'demo-project', 'site-data']
+    fixtures = ['demo-user', 'project-types', 'demo-project', 'site-data']
 
     @prevent_request_warnings
     def test_credentialed(self):
@@ -396,7 +396,7 @@ class TestState(TestMixin, TestCase):
     after review/publication state transitions.
 
     """
-    fixtures = ['demo-user', 'demo-project', 'site-data']
+    fixtures = ['demo-user', 'project-types', 'demo-project', 'site-data']
 
     def test_create_archive(self):
         """
@@ -463,7 +463,7 @@ class TestInteraction(TestMixin, TestCase):
 
     """
 
-    fixtures = ['demo-user', 'demo-project', 'site-data']
+    fixtures = ['demo-user', 'project-types', 'demo-project', 'site-data']
 
     def test_storage_request(self):
         """

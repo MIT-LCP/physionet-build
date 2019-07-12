@@ -14,5 +14,5 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # Load project types
         project_types_fixtures = os.path.join(settings.BASE_DIR, 'project',
-                                          'fixtures', 'project_types.json')
+                                          'fixtures', 'project-types.json')
         call_command('loaddata', project_types_fixtures, verbosity=1)

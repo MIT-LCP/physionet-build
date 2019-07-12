@@ -40,7 +40,7 @@ class Command(BaseCommand):
 
         # Load fixtures for default project types
         project_types_fixtures = os.path.join(settings.BASE_DIR, 'project',
-                                          'fixtures', 'project_types.json')
+                                          'fixtures', 'project-types.json')
         call_command('loaddata', project_types_fixtures, verbosity=1)
 
         # Load other app fixtures
