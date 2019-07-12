@@ -96,13 +96,13 @@ class EditSubmissionForm(forms.ModelForm):
         self.resource_type = resource_type
 
         # This will be used in clean
-        self.quality_assurance_fields = EditLog.QUALITY_ASSURANCE_FIELDS[resource_type]
+        self.quality_assurance_fields = EditLog.QUALITY_ASSURANCE_FIELDS[resource_type.id]
 
         rm_fields = set(self.base_fields) - set(self.quality_assurance_fields) - set(EditLog.EDITOR_FIELDS)
         for f in rm_fields:
             del(self.fields[f])
 
-        for (f, lbl) in EditLog.LABELS[resource_type].items():
+        for (f, lbl) in EditLog.LABELS[resource_type.id].items():
             hints = EditLog.HINTS.get(f)
             if hints:
                 lbl += '<ul><li>' + '</li><li>'.join(hints) + '</li></ul>'
