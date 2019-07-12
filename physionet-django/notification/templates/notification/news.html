@@ -44,7 +44,7 @@
           </span>
         </p>
         <h2>
-            <a href="{% url 'news_guid' news.guid %}">{{ news.title }}</a>
+            <a href="{% url 'news_by_id' news.id %}">{{ news.title }}</a>
         </h2>
         {{ news.content|safe }}
         <p class="pub-details">Published: {{ news.publish_datetime|date }}.</p>

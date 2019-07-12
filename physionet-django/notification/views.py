@@ -43,9 +43,9 @@ def news_year(request, year):
                    'news_years': news_years})
 
 
-def news_guid(request, guid, max_items=20):
+def news_by_id(request, news_id, max_items=20):
     try:
-        news = News.objects.get(guid=guid)
+        news = News.objects.get(id=news_id)
         # The year range of all the PN news in existence.
         minmax = News.objects.all().aggregate(min=Min('publish_datetime'),
                                               max=Max('publish_datetime'))
