@@ -1719,15 +1719,15 @@ class EditLog(models.Model):
             return
 
         resource_type = self.project.resource_type
-
+        
         # See also YES_NO_UNDETERMINED in console/forms.py
         RESPONSE_LABEL = {True: 'Yes', False: 'No', None: 'Undetermined'}
-
+        
         # Retrieve their labels and results for our resource type
-        quality_assurance_fields = self.__class__.QUALITY_ASSURANCE_FIELDS[resource_type]
+        quality_assurance_fields = self.__class__.QUALITY_ASSURANCE_FIELDS[resource_type.id]
 
         # Create the labels dictionary for this resource type
-        labels = {**self.__class__.COMMON_LABELS, **self.__class__.LABELS[resource_type]}
+        labels = {**self.__class__.COMMON_LABELS, **self.__class__.LABELS[resource_type.id]}
 
         self.quality_assurance_results = []
         for f in quality_assurance_fields:
