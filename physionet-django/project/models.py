@@ -411,6 +411,7 @@ class Metadata(models.Model):
     )
 
     resource_type = models.ForeignKey('project.ProjectType',
+                                    db_column='resource_type',
                                     related_name='%(class)ss',
                                     on_delete=models.CASCADE)
 
