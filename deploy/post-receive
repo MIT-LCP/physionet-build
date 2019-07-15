@@ -1,4 +1,7 @@
 #!/bin/bash
+
+set -e
+
 destination=/physionet/physionet-build/
 echo "Deploying into $destination"
 GIT_WORK_TREE=$destination git checkout --force <staging OR production>
