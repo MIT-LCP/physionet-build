@@ -15,6 +15,23 @@ source /physionet/python-env/physionet/bin/activate
 pip install -r requirements.txt
 cd physionet-django
 python manage.py collectstatic --noinput
-touch physionet/wsgi.py
+
+echo "Checking system configuration files"
+exec 3>&1
+confupdate=$(
+    cd $destination/deploy
+    for subdir in common $branch; do
+        ( cd $subdir; find * -type f ) | while read file; do
+            if ! diff -Nu /$file $subdir/$file >&3; then
+                echo " * $subdir/$file"
+            fi
+        done
+    done
+)
 
 echo "Done. If there are any database changes, please make the migrations now."
+if [ -n "$confupdate" ]; then
+    echo "Install updated configuration files if needed (see above):"
+    echo "$confupdate"
+fi
+echo "Then, run 'touch /etc/uwsgi/vassals/physionet_uwsgi.ini'."
