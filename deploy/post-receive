@@ -3,11 +3,13 @@
 set -e
 
 destination=/physionet/physionet-build/
-echo "Deploying into $destination"
-GIT_WORK_TREE=$destination git checkout --force <staging OR production>
+branch=$(cat /physionet/deploy-branch) # production or staging
+
+echo "Deploying $branch into $destination"
+GIT_WORK_TREE=$destination git checkout --force $branch
 
 echo "Updating content"
-export DJANGO_SETTINGS_MODULE=physionet.settings.<staging OR production>
+export DJANGO_SETTINGS_MODULE=physionet.settings.$branch
 cd $destination
 source /physionet/python-env/physionet/bin/activate
 pip install -r requirements.txt
