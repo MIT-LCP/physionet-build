@@ -466,6 +466,13 @@ class SectionContentForm(forms.ModelForm):
         super(SectionContentForm, self).__init__(*args, **kwargs)
         self.fields['content'].label = self.instance.project_section.name
         self.fields['content'].help_text = self.instance.project_section.description
+        self.fields['content'].required = True
+
+    def add_prefix(self, field_name):
+        # look up field name; return original if not found
+        prefix = self.instance.project_section.name.replace(" ", "_").lower()
+        field_name = prefix+"_"+field_name
+        return super(SectionContentForm, self).add_prefix(field_name)        
 
 
 class DiscoveryForm(forms.ModelForm):
