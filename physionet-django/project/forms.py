@@ -441,82 +441,19 @@ class ContentForm(forms.ModelForm):
 
     """
 
-    FIELDS = (
-        # 0: Database
-        ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'release_notes', 'acknowledgements',
-         'conflicts_of_interest',
-         ),
-        # 1: Software
-        ('title', 'abstract', 'background', 'content_description',
-         'methods', 'installation', 'usage_notes', 'release_notes',
-         'acknowledgements', 'conflicts_of_interest', ),
-        # 2: Challenge
-        ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'release_notes', 'acknowledgements',
-         'conflicts_of_interest',
-         ),
-        # 3: Model
-        ('title', 'abstract', 'background', 'methods', 'content_description',
-         'installation', 'usage_notes', 'release_notes',
-         'acknowledgements', 'conflicts_of_interest',
-         ),
-    )
-
-    HELP_TEXTS = (
-        # 0: Database
-        {'methods': '* The methodology employed for the study or research. Describe how the data was collected.',
-         'content_description': '* Describe the data, and how the files are named and structured.',
-         'usage_notes': '* How the data is to be used. List external documentation pages. List related software developed for the dataset, and any special software required to use the data.'},
-        # 1: Software
-        {'content_description': '* Describe the software in this project.',
-         'methods': 'Details on the technical implementation. ie. the development process, and the underlying algorithms.',
-         'usage_notes': '* How the software is to be used. List some example function calls or specify the demo file(s).'},
-        # 2: Challenge
-        {'background': '* An introduction to the challenge and a description of the objective/s.',
-         'methods': '* A timeline for the challenge and rules for participation.',
-         'content_description': '* A description of the challenge data and access details.',
-         'usage_notes': '* Scoring details, information on submitting an entry, and a link to a sample submission.'},
-        # 3: Model
-        {'background': '* Introduce the model, providing context.',
-         'content_description': '* Describe the model and any supporting data and software.',
-         'installation': '* Instructions on how to set up a software environment for using the model.',
-         'usage_notes': '* Describe how you intend others to (re)use the model.',
-         'methods': 'Details on the technical implementation. ie. the development process, and the underlying algorithms.',
-         'usage_notes': '* How the software is to be used. List some example function calls or specify the demo file(s).'},
-    )
-
     class Meta:
         model = ActiveProject
         # This includes fields for all resource types.
-        fields = ('title', 'abstract', 'version', 'release_notes',)
+        fields = ('title', 'abstract', 'release_notes',)
 
         help_texts = {
             'title': '* The title of the resource.',
             'abstract': '* A brief description of the resource and the context in which it was created.',
-            # 'background': '* The content or research background.',
-            # 'installation': '* Instructions on how to install the software, along with the required dependencies. Or specify the files in which they are listed.',
-            # 'acknowledgements': 'Thank the people who helped with the research but did not qualify for authorship. In addition, provide any funding information.',
-            # 'conflicts_of_interest': '* List whether any authors have a financial, commercial, legal, or professional relationship with other organizations, or with the people working with them, that could influence this research. State explicitly if there are none.',
-            'version': "* The version number of the resource. <a href=https://semver.org/ target=_blank>Semantic versioning</a> is encouraged. If unsure, put '1.0.0'.",
             'release_notes': 'Important notes about the current release, and changes from previous versions.'
         }
 
     def __init__(self, resource_type, *args, **kwargs):
         super(ContentForm, self).__init__(*args, **kwargs)
-        self.fields = OrderedDict((k, self.fields[k]) for k in self.FIELDS[resource_type])
-
-        for l in ActiveProject.LABELS[resource_type]:
-            self.fields[l].label = ActiveProject.LABELS[resource_type][l]
-
-        for h in self.__class__.HELP_TEXTS[resource_type]:
-            self.fields[h].help_text = self.__class__.HELP_TEXTS[resource_type][h]
-
-    def clean_version(self):
-        data = self.cleaned_data['version']
-        if data in [p.version for p in self.instance.core_project.publishedprojects.all()]:
-            raise forms.ValidationError('Please specify a new unused version.')
-        return data
 
 
 class DiscoveryForm(forms.ModelForm):
@@ -559,6 +496,12 @@ class DiscoveryForm(forms.ModelForm):
     def clean_short_description(self):
         data = self.cleaned_data['short_description']
         return ' '.join(data.split())
+
+    def clean_version(self):
+        data = self.cleaned_data['version']
+        if data in [p.version for p in self.instance.core_project.publishedprojects.all()]:
+            raise forms.ValidationError('Please specify a new unused version.')
+        return data
 
 
 class AffiliationFormSet(forms.BaseInlineFormSet):
