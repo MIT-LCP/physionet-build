@@ -32,6 +32,7 @@ from project.models import (
     StorageRequest,
     Topic,
     exists_project_slug,
+    SectionContent,
 )
 from project.projectfiles import ProjectFiles
 from user.models import User
@@ -447,9 +448,6 @@ class NewProjectVersionForm(forms.ModelForm):
 class ContentForm(forms.ModelForm):
     """
     Form for editing the content of a project.
-    Fields, labels, and help texts may be defined differently for
-    different resource types.
-
     """
 
     FIELDS = (
@@ -537,6 +535,28 @@ class ContentForm(forms.ModelForm):
         if data in [p.version for p in self.instance.core_project.publishedprojects.all()]:
             raise forms.ValidationError('Please specify a new unused version.')
         return data
+
+
+class SectionContentForm(forms.ModelForm):
+    """
+    Form for editing the content of a section.
+    """
+
+    class Meta:
+        model = SectionContent
+        fields = ('content',)
+
+    def __init__(self, *args, **kwargs):
+        super(SectionContentForm, self).__init__(*args, **kwargs)
+        self.fields['content'].label = self.instance.project_section.name
+        self.fields['content'].help_text = self.instance.project_section.description
+        self.fields['content'].required = True
+
+    def add_prefix(self, field_name):
+        # look up field name; return original if not found
+        prefix = self.instance.project_section.name.replace(" ", "_").lower()
+        field_name = prefix+"_"+field_name
+        return super(SectionContentForm, self).add_prefix(field_name)        
 
 
 class DiscoveryForm(forms.ModelForm):
