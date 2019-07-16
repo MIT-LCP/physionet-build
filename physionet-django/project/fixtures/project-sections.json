@@ -3,7 +3,7 @@
     "model": "project.projectsection",
     "fields": {
         "name": "Background",
-        "description": "",
+        "description": "* The content or research background.",
         "resource_type": 0,
         "required": true
     }
@@ -12,7 +12,7 @@
     "model": "project.projectsection",
     "fields": {
         "name": "Methods",
-        "description": "",
+        "description": "* The methodology employed for the study or research. Describe how the data was collected.",
         "resource_type": 0,
         "required": true
     }
@@ -21,7 +21,7 @@
     "model": "project.projectsection",
     "fields": {
         "name": "Data Description",
-        "description": "",
+        "description": "* Describe the data, and how the files are named and structured.",
         "resource_type": 0,
         "required": true
     }
@@ -30,7 +30,7 @@
     "model": "project.projectsection",
     "fields": {
         "name": "Usage Notes",
-        "description": "",
+        "description": "* How the data is to be used. List external documentation pages. List related software developed for the dataset, and any special software required to use the data.",
         "resource_type": 0,
         "required": true
     }
@@ -39,7 +39,7 @@
     "model": "project.projectsection",
     "fields": {
         "name": "Conflicts of Interest",
-        "description": "",
+        "description": "* List whether any authors have a financial, commercial, legal, or professional relationship with other organizations, or with the people working with them, that could influence this research. State explicitly if there are none.",
         "resource_type": 0,
         "required": true
     }
@@ -48,7 +48,7 @@
     "model": "project.projectsection",
     "fields": {
         "name": "Background",
-        "description": "",
+        "description": "* The content or research background.",
         "resource_type": 1,
         "required": true
     }
@@ -57,7 +57,7 @@
     "model": "project.projectsection",
     "fields": {
         "name": "Software Description",
-        "description": "",
+        "description": "* Describe the software in this project.",
         "resource_type": 1,
         "required": true
     }
@@ -66,7 +66,7 @@
     "model": "project.projectsection",
     "fields": {
         "name": "Technical Implementation",
-        "description": "",
+        "description": "Details on the technical implementation. ie. the development process, and the underlying algorithms.",
         "resource_type": 1,
         "required": false
     }
@@ -75,7 +75,7 @@
     "model": "project.projectsection",
     "fields": {
         "name": "Usage Notes",
-        "description": "",
+        "description": "* How the software is to be used. List some example function calls or specify the demo file(s).",
         "resource_type": 1,
         "required": true
     }
@@ -84,7 +84,7 @@
     "model": "project.projectsection",
     "fields": {
         "name": "Installation and Requirements",
-        "description": "",
+        "description": "* Instructions on how to install the software, along with the required dependencies. Or specify the files in which they are listed.",
         "resource_type": 1,
         "required": true
     }
@@ -93,7 +93,7 @@
     "model": "project.projectsection",
     "fields": {
         "name": "Conflicts of Interest",
-        "description": "",
+        "description": "* List whether any authors have a financial, commercial, legal, or professional relationship with other organizations, or with the people working with them, that could influence this research. State explicitly if there are none.",
         "resource_type": 1,
         "required": true
     }
@@ -102,7 +102,7 @@
     "model": "project.projectsection",
     "fields": {
         "name": "Objective",
-        "description": "",
+        "description": "* An introduction to the challenge and a description of the objective/s.",
         "resource_type": 2,
         "required": true
     }
@@ -111,7 +111,7 @@
     "model": "project.projectsection",
     "fields": {
         "name": "Participation",
-        "description": "",
+        "description": "* A timeline for the challenge and rules for participation.",
         "resource_type": 2,
         "required": true
     }
@@ -120,7 +120,7 @@
     "model": "project.projectsection",
     "fields": {
         "name": "Data Description",
-        "description": "",
+        "description": "* A description of the challenge data and access details.",
         "resource_type": 2,
         "required": true
     }
@@ -129,7 +129,7 @@
     "model": "project.projectsection",
     "fields": {
         "name": "Evaluation",
-        "description": "",
+        "description": "* Scoring details, information on submitting an entry, and a link to a sample submission.",
         "resource_type": 2,
         "required": true
     }
@@ -138,7 +138,7 @@
     "model": "project.projectsection",
     "fields": {
         "name": "Conflicts of Interest",
-        "description": "",
+        "description": "* List whether any authors have a financial, commercial, legal, or professional relationship with other organizations, or with the people working with them, that could influence this research. State explicitly if there are none.",
         "resource_type": 2,
         "required": true
     }
@@ -147,7 +147,7 @@
     "model": "project.projectsection",
     "fields": {
         "name": "Background",
-        "description": "",
+        "description": "* The content or research background.",
         "resource_type": 3,
         "required": true
     }
@@ -156,7 +156,7 @@
     "model": "project.projectsection",
     "fields": {
         "name": "Technical Implementation",
-        "description": "",
+        "description": "Details on the technical implementation. ie. the development process, and the underlying algorithms.",
         "resource_type": 3,
         "required": true
     }
@@ -165,7 +165,7 @@
     "model": "project.projectsection",
     "fields": {
         "name": "Model Description",
-        "description": "",
+        "description": "* Describe the model and any supporting data and software.",
         "resource_type": 3,
         "required": true
     }
@@ -174,7 +174,7 @@
     "model": "project.projectsection",
     "fields": {
         "name": "Usage Notes",
-        "description": "",
+        "description": "* Describe how you intend others to (re)use the model.",
         "resource_type": 3,
         "required": true
     }
@@ -183,7 +183,7 @@
     "model": "project.projectsection",
     "fields": {
         "name": "Installation and Requirements",
-        "description": "",
+        "description": "* Instructions on how to set up a software environment for using the model.",
         "resource_type": 3,
         "required": true
     }
@@ -192,7 +192,7 @@
     "model": "project.projectsection",
     "fields": {
         "name": "Conflicts of Interest",
-        "description": "",
+        "description": "* List whether any authors have a financial, commercial, legal, or professional relationship with other organizations, or with the people working with them, that could influence this research. State explicitly if there are none.",
         "resource_type": 3,
         "required": true
     }
