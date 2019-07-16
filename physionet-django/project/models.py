@@ -1023,12 +1023,14 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 self.integrity_errors.append('Author {0} has not filled in affiliations'.format(author.user.username))
 
         # Metadata
-        for attr in ActiveProject.REQUIRED_FIELDS[self.resource_type.id]:
-            value = getattr(self, attr)
-            text = unescape(strip_tags(str(value)))
-            if value is None or not text or text.isspace():
-                l = self.LABELS[self.resource_type.id][attr] if attr in self.LABELS[self.resource_type.id] else attr.title().replace('_', ' ')
-                self.integrity_errors.append('Missing required field: {0}'.format(l))
+        sections = ProjectSection.objects.filter(resource_type=self.resource_type, required=True)
+        for attr in sections:
+            try:
+                text = unescape(strip_tags(SectionContent.objects.get(project_id=self.core_project, project_section=attr).content))
+                if not text or text.isspace():
+                    raise
+            except:
+                self.integrity_errors.append('Missing required field: {0}'.format(attr.name))
 
         published_projects = self.core_project.publishedprojects.all()
         if published_projects:
