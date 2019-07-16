@@ -85,44 +85,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
     FILE_ROOT = os.path.join(ProjectFiles().file_root, 'active-projects')
 
-    REQUIRED_FIELDS = (
-        # 0: Database
-        ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'conflicts_of_interest', 'version', 'license',
-         'short_description'),
-        # 1: Software
-        ('title', 'abstract', 'background', 'content_description',
-         'usage_notes', 'installation', 'conflicts_of_interest', 'version',
-         'license', 'short_description'),
-        # 2: Challenge
-        ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'conflicts_of_interest', 'version', 'license',
-         'short_description'),
-        # 3: Model
-        ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'installation', 'conflicts_of_interest', 'version',
-         'license', 'short_description'),
-    )
-
-    # Custom labels that don't match model field names
-    LABELS = (
-        # 0: Database
-        {'content_description': 'Data Description'},
-        # 1: Software
-        {'content_description': 'Software Description',
-         'methods': 'Technical Implementation',
-         'installation': 'Installation and Requirements'},
-        # 2: Challenge
-        {'background': 'Objective',
-         'methods': 'Participation',
-         'content_description': 'Data Description',
-         'usage_notes': 'Evaluation'},
-        # 3: Model
-        {'content_description': 'Model Description',
-         'methods': 'Technical Implementation',
-         'installation': 'Installation and Requirements'},
-    )
-
     SUBMISSION_STATUS_LABELS = {
         0: 'Not submitted.',
         10: 'Awaiting editor assignment.',

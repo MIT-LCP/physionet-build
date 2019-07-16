@@ -42,16 +42,9 @@ class Metadata(models.Model):
     # Main body descriptive metadata
     title = models.CharField(max_length=200, validators=[validate_title])
     abstract = SafeHTMLField(max_length=10000, blank=True)
-    background = SafeHTMLField(blank=True)
-    methods = SafeHTMLField(blank=True)
-    content_description = SafeHTMLField(blank=True)
-    usage_notes = SafeHTMLField(blank=True)
-    installation = SafeHTMLField(blank=True)
-    acknowledgements = SafeHTMLField(blank=True)
-    conflicts_of_interest = SafeHTMLField(blank=True)
+    release_notes = SafeHTMLField(blank=True)
     version = models.CharField(max_length=15, default='', blank=True,
                                validators=[validate_version])
-    release_notes = SafeHTMLField(blank=True)
 
     # Short description used for search results, social media, etc
     short_description = models.CharField(max_length=250, blank=True)
