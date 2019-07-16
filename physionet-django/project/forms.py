@@ -489,18 +489,16 @@ class ContentForm(forms.ModelForm):
     class Meta:
         model = ActiveProject
         # This includes fields for all resource types.
-        fields = ('title', 'abstract', 'background', 'methods',
-                  'content_description', 'installation', 'usage_notes',
-                  'acknowledgements', 'conflicts_of_interest',
-                  'release_notes',)
+        fields = ('title', 'abstract', 'version', 'release_notes',)
 
         help_texts = {
             'title': '* The title of the resource.',
             'abstract': '* A brief description of the resource and the context in which it was created.',
-            'background': '* The content or research background.',
-            'installation': '* Instructions on how to install the software, along with the required dependencies. Or specify the files in which they are listed.',
-            'acknowledgements': 'Thank the people who helped with the research but did not qualify for authorship. In addition, provide any funding information.',
-            'conflicts_of_interest': '* List whether any authors have a financial, commercial, legal, or professional relationship with other organizations, or with the people working with them, that could influence this research. State explicitly if there are none.',
+            # 'background': '* The content or research background.',
+            # 'installation': '* Instructions on how to install the software, along with the required dependencies. Or specify the files in which they are listed.',
+            # 'acknowledgements': 'Thank the people who helped with the research but did not qualify for authorship. In addition, provide any funding information.',
+            # 'conflicts_of_interest': '* List whether any authors have a financial, commercial, legal, or professional relationship with other organizations, or with the people working with them, that could influence this research. State explicitly if there are none.',
+            'version': "* The version number of the resource. <a href=https://semver.org/ target=_blank>Semantic versioning</a> is encouraged. If unsure, put '1.0.0'.",
             'release_notes': 'Important notes about the current release, and changes from previous versions.'
         }
 

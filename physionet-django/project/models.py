@@ -423,6 +423,42 @@ class ProjectType(models.Model):
     description = models.TextField()
 
 
+class ProjectSection(models.Model):
+    """
+    The content sections for each ProjectType
+    """
+    name = models.CharField(max_length=30)
+    description = models.TextField()
+    resource_type = models.ForeignKey('project.ProjectType',
+                                    db_column='resource_type',
+                                    related_name='%(class)ss',
+                                    on_delete=models.CASCADE)
+    default_order = models.PositiveSmallIntegerField()
+    required = models.BooleanField()
+
+    class Meta:
+        unique_together = (('name', 'resource_type'),)
+        unique_together = (('resource_type', 'default_order'),)
+
+
+class SectionContent(models.Model):
+    """
+    The content for each section of a project
+    """
+    project_id = models.ForeignKey('project.CoreProject',
+                                    db_column='project_id',
+                                    related_name='%(class)ss',
+                                    on_delete=models.CASCADE)
+    project_section = models.ForeignKey('project.ProjectSection',
+                                    db_column='project_section',
+                                    related_name='%(class)ss',
+                                    on_delete=models.CASCADE)
+    content = SafeHTMLField(blank=True)
+
+    class Meta:
+        unique_together = (('project_id', 'project_section'),)
+
+
 class Metadata(models.Model):
     """
     Metadata for all projects
@@ -446,16 +482,9 @@ class Metadata(models.Model):
     # Main body descriptive metadata
     title = models.CharField(max_length=200, validators=[validate_title])
     abstract = SafeHTMLField(max_length=10000, blank=True)
-    background = SafeHTMLField(blank=True)
-    methods = SafeHTMLField(blank=True)
-    content_description = SafeHTMLField(blank=True)
-    usage_notes = SafeHTMLField(blank=True)
-    installation = SafeHTMLField(blank=True)
-    acknowledgements = SafeHTMLField(blank=True)
-    conflicts_of_interest = SafeHTMLField(blank=True)
+    release_notes = SafeHTMLField(blank=True)
     version = models.CharField(max_length=15, default='', blank=True,
                                validators=[validate_version])
-    release_notes = SafeHTMLField(blank=True)
 
     # Short description used for search results, social media, etc
     short_description = models.CharField(max_length=250, blank=True)
@@ -833,44 +862,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     INDIVIDUAL_FILE_SIZE_LIMIT = 10 * 1024**3
     # Where all the active project files are kept
     FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'active-projects')
-
-    REQUIRED_FIELDS = (
-        # 0: Database
-        ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'conflicts_of_interest', 'version', 'license',
-         'short_description'),
-        # 1: Software
-        ('title', 'abstract', 'background', 'content_description',
-         'usage_notes', 'installation', 'conflicts_of_interest', 'version',
-         'license', 'short_description'),
-        # 2: Challenge
-        ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'conflicts_of_interest', 'version', 'license',
-         'short_description'),
-        # 3: Model
-        ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'installation', 'conflicts_of_interest', 'version',
-         'license', 'short_description'),
-    )
-
-    # Custom labels that don't match model field names
-    LABELS = (
-        # 0: Database
-        {'content_description': 'Data Description'},
-        # 1: Software
-        {'content_description': 'Software Description',
-         'methods': 'Technical Implementation',
-         'installation': 'Installation and Requirements'},
-        # 2: Challenge
-        {'background': 'Objective',
-         'methods': 'Participation',
-         'content_description': 'Data Description',
-         'usage_notes': 'Evaluation'},
-        # 3: Model
-        {'content_description': 'Model Description',
-         'methods': 'Technical Implementation',
-         'installation': 'Installation and Requirements'},
-    )
 
     SUBMISSION_STATUS_LABELS = {
         0: 'Not submitted.',
