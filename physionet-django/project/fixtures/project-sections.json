@@ -1,0 +1,288 @@
+[
+{
+	"model": "project.projectsection",
+	"pk": 1,
+	"fields": {
+		"name": "Background",
+		"description": "* The content or research background.",
+		"resource_type": 0,
+		"default_order": 1,
+		"required": true
+	}
+},
+{
+"model": "project.projectsection",
+	"pk": 2,
+	"fields": {
+		"name": "Methods",
+		"description": "* The methodology employed for the study or research. Describe how the data was collected.",
+		"resource_type": 0,
+		"default_order": 2,
+		"required": true
+	}
+},
+{
+	"model": "project.projectsection",
+	"pk": 3,
+	"fields": {
+		"name": "Data Description",
+		"description": "* Describe the data, and how the files are named and structured.",
+		"resource_type": 0,
+		"default_order": 3,
+		"required": true
+	}
+},
+{
+	"model": "project.projectsection",
+	"pk": 4,
+	"fields": {
+		"name": "Usage Notes",
+		"description": "* How the data is to be used. List external documentation pages. List related software developed for the dataset, and any special software required to use the data.",
+		"resource_type": 0,
+		"default_order": 4,
+		"required": true
+	}
+},
+{
+	"model": "project.projectsection",
+	"pk": 5,
+	"fields": {
+		"name": "Acknowledgements",
+		"description": "Thank the people who helped with the research but did not qualify for authorship. In addition, provide any funding information.",
+		"resource_type": 0,
+		"default_order": 5,
+		"required": false
+	}
+},
+{
+	"model": "project.projectsection",
+	"pk": 6,
+	"fields": {
+		"name": "Conflicts of Interest",
+		"description": "* List whether any authors have a financial, commercial, legal, or professional relationship with other organizations, or with the people working with them, that could influence this research. State explicitly if there are none.",
+		"resource_type": 0,
+		"default_order": 6,
+		"required": true
+	}
+},
+{
+	"model": "project.projectsection",
+	"pk": 7,
+	"fields": {
+		"name": "Background",
+		"description": "* The content or research background.",
+		"resource_type": 1,
+		"default_order": 1,
+		"required": true
+	}
+},
+{
+	"model": "project.projectsection",
+	"pk": 8,
+	"fields": {
+		"name": "Software Description",
+		"description": "* Describe the software in this project.",
+		"resource_type": 1,
+		"default_order": 2,
+		"required": true
+	}
+},
+{
+	"model": "project.projectsection",
+	"pk": 9,
+	"fields": {
+		"name": "Technical Implementation",
+		"description": "Details on the technical implementation. ie. the development process, and the underlying algorithms.",
+		"resource_type": 1,
+		"default_order": 3,
+		"required": false
+	}
+},
+{
+	"model": "project.projectsection",
+	"pk": 10,
+	"fields": {
+		"name": "Installation and Requirements",
+		"description": "* Instructions on how to install the software, along with the required dependencies. Or specify the files in which they are listed.",
+		"resource_type": 1,
+		"default_order": 4,
+		"required": true
+	}
+},
+{
+	"model": "project.projectsection",
+	"pk": 11,
+	"fields": {
+		"name": "Usage Notes",
+		"description": "* How the software is to be used. List some example function calls or specify the demo file(s).",
+		"resource_type": 1,
+		"default_order": 5,
+		"required": true
+	}
+},
+{
+	"model": "project.projectsection",
+	"pk": 12,
+	"fields": {
+		"name": "Acknowledgements",
+		"description": "Thank the people who helped with the research but did not qualify for authorship. In addition, provide any funding information.",
+		"resource_type": 1,
+		"default_order": 6,
+		"required": false
+	}
+},
+{
+	"model": "project.projectsection",
+	"pk": 13,
+	"fields": {
+		"name": "Conflicts of Interest",
+		"description": "* List whether any authors have a financial, commercial, legal, or professional relationship with other organizations, or with the people working with them, that could influence this research. State explicitly if there are none.",
+		"resource_type": 1,
+		"default_order": 7,
+		"required": true
+	}
+},
+{
+	"model": "project.projectsection",
+	"pk": 14,
+	"fields": {
+		"name": "Objective",
+		"description": "* An introduction to the challenge and a description of the objective/s.",
+		"resource_type": 2,
+		"default_order": 1,
+		"required": true
+	}
+},
+{
+	"model": "project.projectsection",
+	"pk": 15,
+	"fields": {
+		"name": "Participation",
+		"description": "* A timeline for the challenge and rules for participation.",
+		"resource_type": 2,
+		"default_order": 2,
+		"required": true
+	}
+},
+{
+	"model": "project.projectsection",
+	"pk": 16,
+	"fields": {
+		"name": "Data Description",
+		"description": "* A description of the challenge data and access details.",
+		"resource_type": 2,
+		"default_order": 3,
+		"required": true
+	}
+},
+{
+	"model": "project.projectsection",
+	"pk": 17,
+	"fields": {
+		"name": "Evaluation",
+		"description": "* Scoring details, information on submitting an entry, and a link to a sample submission.",
+		"resource_type": 2,
+		"default_order": 4,
+		"required": true
+	}
+},
+{
+	"model": "project.projectsection",
+	"pk": 18,
+	"fields": {
+		"name": "Acknowledgements",
+		"description": "Thank the people who helped with the research but did not qualify for authorship. In addition, provide any funding information.",
+		"resource_type": 2,
+		"default_order": 5,
+		"required": false
+	}
+},
+{
+	"model": "project.projectsection",
+	"pk": 19,
+	"fields": {
+		"name": "Conflicts of Interest",
+		"description": "* List whether any authors have a financial, commercial, legal, or professional relationship with other organizations, or with the people working with them, that could influence this research. State explicitly if there are none.",
+		"resource_type": 2,
+		"default_order": 6,
+		"required": true
+	}
+},
+{
+	"model": "project.projectsection",
+	"pk": 20,
+	"fields": {
+		"name": "Background",
+		"description": "* The content or research background.",
+		"resource_type": 3,
+		"default_order": 1,
+		"required": true
+	}
+},
+{
+	"model": "project.projectsection",
+	"pk": 21,
+	"fields": {
+		"name": "Technical Implementation",
+		"description": "Details on the technical implementation. ie. the development process, and the underlying algorithms.",
+		"resource_type": 3,
+		"default_order": 2,
+		"required": false
+	}
+},
+{
+	"model": "project.projectsection",
+	"pk": 22,
+	"fields": {
+		"name": "Model Description",
+		"description": "* Describe the model and any supporting data and software.",
+		"resource_type": 3,
+		"default_order": 3,
+		"required": true
+	}
+},
+{
+	"model": "project.projectsection",
+	"pk": 23,
+	"fields": {
+		"name": "Installation and Requirements",
+		"description": "* Instructions on how to set up a software environment for using the model.",
+		"resource_type": 3,
+		"default_order": 4,
+		"required": true
+	}
+},
+{
+	"model": "project.projectsection",
+	"pk": 24,
+	"fields": {
+		"name": "Usage Notes",
+		"description": "* Describe how you intend others to (re)use the model.",
+		"resource_type": 3,
+		"default_order": 5,
+		"required": true
+	}
+},
+{
+	"model": "project.projectsection",
+	"pk": 25,
+	"fields": {
+		"name": "Acknowledgements",
+		"description": "Thank the people who helped with the research but did not qualify for authorship. In addition, provide any funding information.",
+		"resource_type": 3,
+		"default_order": 6,
+		"required": false
+	}
+},
+{
+	"model": "project.projectsection",
+	"pk": 26,
+	"fields": {
+		"name": "Conflicts of Interest",
+		"description": "* List whether any authors have a financial, commercial, legal, or professional relationship with other organizations, or with the people working with them, that could influence this research. State explicitly if there are none.",
+		"resource_type": 3,
+		"default_order": 7,
+		"required": true
+	}
+}
+]
