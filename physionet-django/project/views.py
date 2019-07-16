@@ -1030,6 +1030,8 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     file_warning = get_project_file_warning(display_files, display_dirs,
                                               subdir)
 
+    content = SectionContent.objects.filter(project_id=project.core_project)                        
+
     return render(request, 'project/project_preview.html', {'project':project,
         'display_files':display_files, 'display_dirs':display_dirs,
         'authors':authors, 'corresponding_author':corresponding_author,
@@ -1039,7 +1041,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
         'files_panel_url':files_panel_url,
         'subdir':subdir, 'parent_dir':parent_dir,
         'file_error':file_error, 'file_warning':file_warning,
-        'parent_projects':parent_projects})
+        'parent_projects':parent_projects, 'content':content})
 
 
 @project_auth(auth_mode=2)
