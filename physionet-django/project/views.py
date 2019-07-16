@@ -30,7 +30,7 @@ from project.models import (Affiliation, Author, AuthorInvitation,
     ActiveProject, PublishedProject, StorageRequest, Reference, DataAccess,
     ArchivedProject, ProgrammingLanguage, Topic, Contact, Publication,
     PublishedAuthor, EditLog, CopyeditLog, DUASignature, CoreProject, GCP,
-    SectionContent)
+    SectionContent, ProjectSection)
 from project import utility
 from project.validators import validate_filename
 import notification.utility as notification
@@ -598,6 +598,16 @@ def project_content(request, project_slug, **kwargs):
         instance=project)
     reference_formset = ReferenceFormSet(instance=project)
 
+    section_forms = []
+    sections = ProjectSection.objects.filter(resource_type=project.resource_type)
+    for s in sections:
+        content = SectionContent.objects.get(project_id=project.core_project, project_section=s)
+        prefix = s.name.replace(" ", "_").lower()
+        if content:
+            section_forms.append(forms.SectionContentForm(instance=content, auto_id=prefix+"_%s"))
+        else:
+            section_forms.append(forms.SectionContentForm(auto_id=prefix+"_%s"))
+
     if request.method == 'POST':
         description_form = forms.ContentForm(
             resource_type=project.resource_type.id, data=request.POST,
@@ -617,7 +627,8 @@ def project_content(request, project_slug, **kwargs):
         'description_form':description_form, 'reference_formset':reference_formset,
         'messages':messages.get_messages(request),
         'is_submitting':is_submitting,
-        'add_item_url':edit_url, 'remove_item_url':edit_url})
+        'add_item_url':edit_url, 'remove_item_url':edit_url,
+        'section_forms':section_forms})
 
 
 @project_auth(auth_mode=0, post_auth_mode=2)

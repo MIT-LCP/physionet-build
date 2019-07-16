@@ -29,6 +29,9 @@
 
   {{ description_form.media }}
   {% include "project/content_inline_form_snippet.html" with form=description_form %}
+  {% for section in section_forms %}
+    {% include "project/content_inline_form_snippet.html" with form=section %}
+  {% endfor %}
   {% include 'project/item_list.html' with item="reference" item_label=reference_formset.item_label formset=reference_formset form_name=reference_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}
   <hr>
   <button class="btn btn-primary btn-rsp btn-left" type="submit" name="edit_description">Save Description</button>

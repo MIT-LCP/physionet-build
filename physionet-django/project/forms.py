@@ -16,7 +16,7 @@ from project.models import (Affiliation, Author, AuthorInvitation, ActiveProject
                             CoreProject, StorageRequest, ProgrammingLanguage,
                             License, Metadata, Reference, Publication, DataAccess,
                             PublishedProject, Topic, exists_project_slug,
-                            ProjectType)
+                            ProjectType, SectionContent)
 from project import utility
 from project import validators
 
@@ -436,9 +436,6 @@ class NewProjectVersionForm(forms.ModelForm):
 class ContentForm(forms.ModelForm):
     """
     Form for editing the content of a project.
-    Fields, labels, and help texts may be defined differently for
-    different resource types.
-
     """
 
     class Meta:
@@ -454,6 +451,21 @@ class ContentForm(forms.ModelForm):
 
     def __init__(self, resource_type, *args, **kwargs):
         super(ContentForm, self).__init__(*args, **kwargs)
+
+
+class SectionContentForm(forms.ModelForm):
+    """
+    Form for editing the content of a section.
+    """
+
+    class Meta:
+        model = SectionContent
+        fields = ('content',)
+
+    def __init__(self, *args, **kwargs):
+        super(SectionContentForm, self).__init__(*args, **kwargs)
+        self.fields['content'].label = self.instance.project_section.name
+        self.fields['content'].help_text = self.instance.project_section.description
 
 
 class DiscoveryForm(forms.ModelForm):
