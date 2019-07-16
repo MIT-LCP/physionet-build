@@ -1,0 +1,200 @@
+[
+{
+    "model": "project.projectsection",
+    "fields": {
+        "name": "Background",
+        "description": "",
+        "resource_type": 0,
+        "required": true
+    }
+},
+{
+    "model": "project.projectsection",
+    "fields": {
+        "name": "Methods",
+        "description": "",
+        "resource_type": 0,
+        "required": true
+    }
+},
+{
+    "model": "project.projectsection",
+    "fields": {
+        "name": "Data Description",
+        "description": "",
+        "resource_type": 0,
+        "required": true
+    }
+},
+{
+    "model": "project.projectsection",
+    "fields": {
+        "name": "Usage Notes",
+        "description": "",
+        "resource_type": 0,
+        "required": true
+    }
+},
+{
+    "model": "project.projectsection",
+    "fields": {
+        "name": "Conflicts of Interest",
+        "description": "",
+        "resource_type": 0,
+        "required": true
+    }
+},
+{
+    "model": "project.projectsection",
+    "fields": {
+        "name": "Background",
+        "description": "",
+        "resource_type": 1,
+        "required": true
+    }
+},
+{
+    "model": "project.projectsection",
+    "fields": {
+        "name": "Software Description",
+        "description": "",
+        "resource_type": 1,
+        "required": true
+    }
+},
+{
+    "model": "project.projectsection",
+    "fields": {
+        "name": "Technical Implementation",
+        "description": "",
+        "resource_type": 1,
+        "required": false
+    }
+},
+{
+    "model": "project.projectsection",
+    "fields": {
+        "name": "Usage Notes",
+        "description": "",
+        "resource_type": 1,
+        "required": true
+    }
+},
+{
+    "model": "project.projectsection",
+    "fields": {
+        "name": "Installation and Requirements",
+        "description": "",
+        "resource_type": 1,
+        "required": true
+    }
+},
+{
+    "model": "project.projectsection",
+    "fields": {
+        "name": "Conflicts of Interest",
+        "description": "",
+        "resource_type": 1,
+        "required": true
+    }
+},
+{
+    "model": "project.projectsection",
+    "fields": {
+        "name": "Objective",
+        "description": "",
+        "resource_type": 2,
+        "required": true
+    }
+},
+{
+    "model": "project.projectsection",
+    "fields": {
+        "name": "Participation",
+        "description": "",
+        "resource_type": 2,
+        "required": true
+    }
+},
+{
+    "model": "project.projectsection",
+    "fields": {
+        "name": "Data Description",
+        "description": "",
+        "resource_type": 2,
+        "required": true
+    }
+},
+{
+    "model": "project.projectsection",
+    "fields": {
+        "name": "Evaluation",
+        "description": "",
+        "resource_type": 2,
+        "required": true
+    }
+},
+{
+    "model": "project.projectsection",
+    "fields": {
+        "name": "Conflicts of Interest",
+        "description": "",
+        "resource_type": 2,
+        "required": true
+    }
+},
+{
+    "model": "project.projectsection",
+    "fields": {
+        "name": "Background",
+        "description": "",
+        "resource_type": 3,
+        "required": true
+    }
+},
+{
+    "model": "project.projectsection",
+    "fields": {
+        "name": "Technical Implementation",
+        "description": "",
+        "resource_type": 3,
+        "required": true
+    }
+},
+{
+    "model": "project.projectsection",
+    "fields": {
+        "name": "Model Description",
+        "description": "",
+        "resource_type": 3,
+        "required": true
+    }
+},
+{
+    "model": "project.projectsection",
+    "fields": {
+        "name": "Usage Notes",
+        "description": "",
+        "resource_type": 3,
+        "required": true
+    }
+},
+{
+    "model": "project.projectsection",
+    "fields": {
+        "name": "Installation and Requirements",
+        "description": "",
+        "resource_type": 3,
+        "required": true
+    }
+},
+{
+    "model": "project.projectsection",
+    "fields": {
+        "name": "Conflicts of Interest",
+        "description": "",
+        "resource_type": 3,
+        "required": true
+    }
+}
+]
