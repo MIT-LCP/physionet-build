@@ -113,22 +113,30 @@
       Signals (2003). Circulation. 101(23):e215-e220.</p>
     </div>
 
-      {# 0: Database #}
-      {% if project.resource_type.id == 0 %}
-        {% include "project/database_content_preview.html" %}
-      {# 1: Software #}
-      {% elif project.resource_type.id == 1 %}
-        {% include "project/software_content_preview.html" %}
-      {# 2: Challenge #}
-      {% elif project.resource_type.id == 2 %}
-        {% include "project/challenge_content_preview.html" %}
-      {# 3: Model #}
-      {% elif project.resource_type.id == 3 %}
-        {% include "project/model_content_preview.html" %}
-      {# Other #}
-      {% else %}
-        {% include "project/software_content_preview.html" %}
-      {% endif %}
+    <h2>Abstract</h2>
+    {{ project.abstract|safe }}
+    <hr>
+    {% for c in content|dictsort:"project_section.default_order" %}
+      <h2>{{ c.project_section.name }}</h2>
+        {{ c.content|safe }}
+      <hr>
+    {% endfor %}
+    {% if project.release_notes %}
+      <h2>Release Notes</h2>
+      {{ project.release_notes|safe }}
+      <hr>
+    {% endif %}
+    {% if references %}
+      <h2 id="references">References</h2>
+      <ol>
+      {% for reference in references %}
+        <li style="word-break: break-all;">{{ reference.description }}</li>
+      {% endfor %}
+      </ol>
+      <hr>
+    {% endif %}
+    <hr>
+
     </div>
     <!-- /.main column -->
 
