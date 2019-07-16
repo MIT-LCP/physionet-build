@@ -80,19 +80,11 @@
         {{ project.full_description|safe }}
         <hr>
       {% else %}
-        {# 0: Database #}
-        {% if project.resource_type.id == 0 %}
-          {% include "project/database_content.html" %}
-        {# 1: Software #}
-        {% elif project.resource_type.id == 1 %}
-          {% include "project/software_content.html" %}
-        {# 2: Challenge #}
-        {% elif project.resource_type.id == 2 %}
-          {% include "project/challenge_content.html" %}
-        {# 3: Model #}
-        {% elif project.resource_type.id == 3 %}
-          {% include "project/model_content.html" %}
-        {% endif %}
+        {% for c in content %}
+          <h2>{{ c.project_section.name }}</h2>
+            {{ c.content|safe }}
+          <hr>
+        {% endfor %}
       {% endif %}
     </div>
     <!-- /.main column -->

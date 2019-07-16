@@ -29,7 +29,8 @@ from project import forms
 from project.models import (Affiliation, Author, AuthorInvitation,
     ActiveProject, PublishedProject, StorageRequest, Reference, DataAccess,
     ArchivedProject, ProgrammingLanguage, Topic, Contact, Publication,
-    PublishedAuthor, EditLog, CopyeditLog, DUASignature, CoreProject, GCP)
+    PublishedAuthor, EditLog, CopyeditLog, DUASignature, CoreProject, GCP,
+    SectionContent)
 from project import utility
 from project.validators import validate_filename
 import notification.utility as notification
@@ -1368,13 +1369,17 @@ def published_project(request, project_slug, version, subdir=''):
     current_site = get_current_site(request)
     all_project_versions = PublishedProject.objects.filter(
         slug=project_slug).order_by('version_order')
+
+    content = SectionContent.objects.filter(project_id=project.core_project)
+
     context = {'project': project, 'authors': authors,
                'references': references, 'publication': publication,
                'topics': topics, 'languages': languages, 'contact': contact,
                'has_access': has_access, 'current_site': current_site,
                'news': news, 'all_project_versions': all_project_versions,
                'parent_projects':parent_projects, 'data_access':data_access,
-               'messages':messages.get_messages(request)}
+               'messages':messages.get_messages(request), 'content':content}
+
     # The file and directory contents
     if has_access:
         (display_files, display_dirs, dir_breadcrumbs, parent_dir,
