@@ -80,11 +80,19 @@
         {{ project.full_description|safe }}
         <hr>
       {% else %}
+        <h2>Abstract</h2>
+        {{ project.abstract|safe }}
+        <hr>
         {% for c in content %}
           <h2>{{ c.project_section.name }}</h2>
-            {{ c.content|safe }}
+          {{ c.content|safe }}
           <hr>
         {% endfor %}
+        {% if project.release_notes %}
+          <h2>Release Notes</h2>
+          {{ project.release_notes|safe }}
+          <hr>
+        {% endif %}
       {% endif %}
     </div>
     <!-- /.main column -->
