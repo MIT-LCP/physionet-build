@@ -158,6 +158,7 @@ _inline_tags = {
     'sub':    True,
     'sup':    True,
     'time':   True,
+    'u':      True,
     'var':    True,
     'wbr':    True,
 }
