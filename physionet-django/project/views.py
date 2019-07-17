@@ -40,6 +40,8 @@ from user.models import User, CloudInformation
 from console.utility import add_email_bucket_access
 
 from dal import autocomplete
+from html import unescape
+from django.utils.html import strip_tags
 
 LOGGER = logging.getLogger(__name__)
 
@@ -629,7 +631,8 @@ def project_content(request, project_slug, **kwargs):
             description_form.save()
             reference_formset.save()
             for sf in section_forms:
-                if ''.join(sf.instance.content.split()) != '':
+                text = unescape(strip_tags(sf.instance.content))
+                if text or not text.isspace():
                     sf.save()
 
             messages.success(request, 'Your project content has been updated.')
