@@ -601,11 +601,11 @@ def project_content(request, project_slug, **kwargs):
     section_forms = []
     sections = ProjectSection.objects.filter(resource_type=project.resource_type)
     for s in sections:
-        content = SectionContent.objects.get(project_id=project.core_project, project_section=s)
-        if content:
+        try:
+            content = SectionContent.objects.get(project_id=project.core_project, project_section=s)
             section_forms.append(forms.SectionContentForm(instance=content))
-        else:
-            section_forms.append(forms.SectionContentForm())
+        except:
+            section_forms.append(forms.SectionContentForm(project_id=project.core_project, project_section=s))
 
     if request.method == 'POST':
         description_form = forms.ContentForm(
@@ -616,8 +616,12 @@ def project_content(request, project_slug, **kwargs):
         valid = True
         section_forms = []
         for s in sections:
-            content = SectionContent.objects.get(project_id=project.core_project, project_section=s)
-            sf = forms.SectionContentForm(data=request.POST, instance=content)
+            try:
+                content = SectionContent.objects.get(project_id=project.core_project, project_section=s)
+                sf = forms.SectionContentForm(data=request.POST, instance=content)
+            except:
+                sf = forms.SectionContentForm(project_id=project.core_project, project_section=s, data=request.POST)
+
             section_forms.append(sf)
             valid = valid and sf.is_valid()
 
@@ -625,7 +629,8 @@ def project_content(request, project_slug, **kwargs):
             description_form.save()
             reference_formset.save()
             for sf in section_forms:
-                sf.save()
+                if ''.join(sf.instance.content.split()) != '':
+                    sf.save()
 
             messages.success(request, 'Your project content has been updated.')
             reference_formset = ReferenceFormSet(instance=project)
