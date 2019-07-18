@@ -413,7 +413,7 @@ class Metadata(models.Model):
     resource_type = models.ForeignKey('project.ProjectType',
                                     db_column='resource_type',
                                     related_name='%(class)ss',
-                                    on_delete=models.CASCADE)
+                                    on_delete=models.PROTECT)
 
     # Main body descriptive metadata
     title = models.CharField(max_length=200, validators=[validate_alphaplus])

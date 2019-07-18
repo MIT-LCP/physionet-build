@@ -34,16 +34,16 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='activeproject',
             name='resource_type',
-            field=models.ForeignKey(db_column='resource_type', on_delete=django.db.models.deletion.CASCADE, related_name='activeprojects', to='project.ProjectType'),
+            field=models.ForeignKey(db_column='resource_type', on_delete=django.db.models.deletion.PROTECT, related_name='activeprojects', to='project.ProjectType'),
         ),
         migrations.AlterField(
             model_name='archivedproject',
             name='resource_type',
-            field=models.ForeignKey(db_column='resource_type', on_delete=django.db.models.deletion.CASCADE, related_name='archivedprojects', to='project.ProjectType'),
+            field=models.ForeignKey(db_column='resource_type', on_delete=django.db.models.deletion.PROTECT, related_name='archivedprojects', to='project.ProjectType'),
         ),
         migrations.AlterField(
             model_name='publishedproject',
             name='resource_type',
-            field=models.ForeignKey(db_column='resource_type', on_delete=django.db.models.deletion.CASCADE, related_name='publishedprojects', to='project.ProjectType'),
+            field=models.ForeignKey(db_column='resource_type', on_delete=django.db.models.deletion.PROTECT, related_name='publishedprojects', to='project.ProjectType'),
         ),
     ]
