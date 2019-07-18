@@ -631,10 +631,10 @@ def project_content(request, project_slug, **kwargs):
     sections = ProjectSection.objects.filter(resource_type=project.resource_type).order_by('default_order')
     for s in sections:
         try:
-            content = SectionContent.objects.get(project_id=project.core_project, project_section=s)
+            content = project.content.get(project_section=s)
             section_forms.append(forms.SectionContentForm(instance=content))
         except:
-            section_forms.append(forms.SectionContentForm(project_id=project.core_project, project_section=s))
+            section_forms.append(forms.SectionContentForm(project_id=project, project_section=s))
 
     if request.method == 'POST':
         description_form = forms.ContentForm(
@@ -646,10 +646,10 @@ def project_content(request, project_slug, **kwargs):
         section_forms = []
         for s in sections:
             try:
-                content = SectionContent.objects.get(project_id=project.core_project, project_section=s)
+                content = project.content.get(project_section=s)
                 sf = forms.SectionContentForm(data=request.POST, instance=content)
             except:
-                sf = forms.SectionContentForm(project_id=project.core_project, project_section=s, data=request.POST)
+                sf = forms.SectionContentForm(project_id=project, project_section=s, data=request.POST)
 
             section_forms.append(sf)
             valid = valid and sf.is_valid()
@@ -1129,9 +1129,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
                                               subdir)
                                             
     # Flag for anonymous access
-    has_passphrase = kwargs['has_passphrase']
-
-    content = SectionContent.objects.filter(project_id=project.core_project)                        
+    has_passphrase = kwargs['has_passphrase']                      
 
     return render(request, 'project/project_preview.html', {'project':project,
         'display_files':display_files, 'display_dirs':display_dirs,
@@ -1142,8 +1140,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
         'files_panel_url':files_panel_url,
         'subdir':subdir, 'parent_dir':parent_dir,
         'file_error':file_error, 'file_warning':file_warning,
-        'parent_projects':parent_projects, 'has_passphrase':has_passphrase,
-        'content':content})
+        'parent_projects':parent_projects, 'has_passphrase':has_passphrase})
 
 
 @project_auth(auth_mode=3)
@@ -1556,8 +1553,6 @@ def published_project(request, project_slug, version, subdir=''):
     url_prefix = notification.get_url_prefix(request)
     all_project_versions = PublishedProject.objects.filter(
         slug=project_slug).order_by('version_order')
-    content = SectionContent.objects.filter(project_id=project.core_project)
-
     context = {'project': project, 'authors': authors,
                'references': references, 'publication': publication,
                'topics': topics, 'languages': languages, 'contact': contact,
@@ -1565,7 +1560,7 @@ def published_project(request, project_slug, version, subdir=''):
                'url_prefix': url_prefix,
                'news': news, 'all_project_versions': all_project_versions,
                'parent_projects':parent_projects, 'data_access':data_access,
-               'messages':messages.get_messages(request), 'content':content}
+               'messages':messages.get_messages(request)}
 
     # The file and directory contents
     if has_access:

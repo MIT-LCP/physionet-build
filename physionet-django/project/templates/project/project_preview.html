@@ -116,7 +116,7 @@
     <h2>Abstract</h2>
     {{ project.abstract|safe }}
     <hr>
-    {% for c in content|dictsort:"project_section.default_order" %}
+    {% for c in project.content.all|dictsort:"project_section.default_order" %}
       <h2>{{ c.project_section.name }}</h2>
         {{ c.content|safe }}
       <hr>
