@@ -424,7 +424,7 @@ class SectionContent(models.Model):
                                     related_name='%(class)ss',
                                     on_delete=models.PROTECT)
 
-    content = SafeHTMLField(blank=True)
+    section_content = SafeHTMLField(blank=True)
 
     class Meta:
         unique_together = (('content_type', 'object_id', 'project_section'),)
@@ -456,6 +456,9 @@ class Metadata(models.Model):
     release_notes = SafeHTMLField(blank=True)
     version = models.CharField(max_length=15, default='', blank=True,
                                validators=[validate_version])
+
+    # Project content
+    project_content = GenericRelation(SectionContent)
 
     # Short description used for search results, social media, etc
     short_description = models.CharField(max_length=250, blank=True)
@@ -696,7 +699,6 @@ class ArchivedProject(Metadata, UnpublishedProject, SubmissionInfo):
     """
     archive_datetime = models.DateTimeField(auto_now_add=True)
     archive_reason = models.PositiveSmallIntegerField()
-    content = GenericRelation(SectionContent)
 
     # Where all the archived project files are kept
     FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'archived-projects')
@@ -737,8 +739,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         50: 'Awaiting authors to approve publication.',
         60: 'Awaiting editor to publish.',
     }
-
-    content = GenericRelation(SectionContent)
 
     def storage_used(self):
         """
@@ -1179,8 +1179,6 @@ class PublishedProject(Metadata, SubmissionInfo):
         'RECORDS.txt':'List of WFDB format records',
         'ANNOTATORS.tsv':'List of WFDB annotation file types'
     }
-
-    content = GenericRelation(SectionContent)
 
     class Meta:
         unique_together = (('core_project', 'version'),)

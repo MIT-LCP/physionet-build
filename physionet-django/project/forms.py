@@ -460,16 +460,16 @@ class SectionContentForm(forms.ModelForm):
 
     class Meta:
         model = SectionContent
-        fields = ('content',)
+        fields = ('section_content',)
 
     def __init__(self, project_id=None, project_section=None, *args, **kwargs):
         if 'instance' not in kwargs:
             kwargs['instance'] = SectionContent(project_id=project_id, project_section=project_section)
 
         super(SectionContentForm, self).__init__(*args, **kwargs)
-        self.fields['content'].label = self.instance.project_section.name
-        self.fields['content'].help_text = self.instance.project_section.description
-        self.fields['content'].required = self.instance.project_section.required
+        self.fields['section_content'].label = self.instance.project_section.name
+        self.fields['section_content'].help_text = self.instance.project_section.description
+        self.fields['section_content'].required = self.instance.project_section.required
 
     def add_prefix(self, field_name):
         # look up field name; return original if not found
