@@ -107,7 +107,7 @@
     <h2>Abstract</h2>
     {{ project.abstract|safe }}
     <hr>
-    {% for c in content %}
+    {% for c in project.content.all %}
       <h2>{{ c.project_section.name }}</h2>
       {{ c.content|safe }}
       <hr>

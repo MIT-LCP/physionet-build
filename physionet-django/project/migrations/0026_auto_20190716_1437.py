@@ -60,8 +60,7 @@ def migrate_content(apps, schema_editor):
 
         for l, n in labels.items():
             section = ProjectSection.objects.get(name=n, resource_type=d.resource_type.id)
-            core = CoreProject.objects.get(id=d.core_project.id)
-            SectionContent.objects.create(project_id=core, project_section=section,
+            SectionContent.objects.create(project_id=d, project_section=section,
                                           content=d._meta.get_field(l).value_from_object(d))
 
 
@@ -83,7 +82,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=30)),
                 ('description', models.TextField()),
                 ('required', models.BooleanField()),
-                ('resource_type', models.ForeignKey(db_column='resource_type', on_delete=django.db.models.deletion.CASCADE, related_name='projectsections', to='project.ProjectType')),
+                ('resource_type', models.ForeignKey(db_column='resource_type', on_delete=django.db.models.deletion.PROTECT, related_name='projectsections', to='project.ProjectType')),
             ],
         ),
         migrations.RunPython(load_fixture, reverse_code=unload_fixture),
@@ -92,8 +91,9 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('content', project.models.SafeHTMLField(blank=True)),
-                ('project_id', models.ForeignKey(db_column='project_id', on_delete=django.db.models.deletion.CASCADE, related_name='sectioncontents', to='project.CoreProject')),
-                ('project_section', models.ForeignKey(db_column='project_section', on_delete=django.db.models.deletion.CASCADE, related_name='sectioncontents', to='project.ProjectSection')),
+                ('content_type', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='contenttypes.ContentType')),
+                ('object_id', models.PositiveIntegerField()),
+                ('project_section', models.ForeignKey(db_column='project_section', on_delete=django.db.models.deletion.PROTECT, related_name='sectioncontents', to='project.ProjectSection')),
             ],
         ),
         migrations.RunPython(migrate_content, reverse_code=undo_migrate_content),
@@ -183,7 +183,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterUniqueTogether(
             name='sectioncontent',
-            unique_together={('project_id', 'project_section')},
+            unique_together={('content_type', 'object_id', 'project_section')},
         ),
         migrations.AlterUniqueTogether(
             name='projectsection',
