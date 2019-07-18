@@ -381,6 +381,14 @@ class NewProjectVersionForm(forms.ModelForm):
         project.is_new_version = True
         project.save()
 
+        # Copy content for earch project section
+        for c in self.latest_project.project_content.all():
+            SectionContent.objects.create(
+                project_id=project,
+                project_section=c.project_section,
+                section_content=c.section_content
+            )
+
         # Copy over the author/affiliation objects
         for p_author in self.latest_project.authors.all():
             author = Author.objects.create(project=project, user=p_author.user,
