@@ -627,13 +627,16 @@ def project_content(request, project_slug, **kwargs):
                                          instance=project, editable=editable)
     reference_formset = ReferenceFormSet(instance=project)
 
+    # Creates forms for each section of this project's content type
     section_forms = []
     sections = ProjectSection.objects.filter(resource_type=project.resource_type).order_by('default_order')
     for s in sections:
         try:
-            content = project.content.get(project_section=s)
-            section_forms.append(forms.SectionContentForm(instance=content))
+            # Try to get currently existing content for section
+            section_content = project.project_content.get(project_section=s)
+            section_forms.append(forms.SectionContentForm(instance=section_content))
         except:
+            # Creates form with empty instace in case content is not found
             section_forms.append(forms.SectionContentForm(project_id=project, project_section=s))
 
     if request.method == 'POST':
@@ -642,24 +645,33 @@ def project_content(request, project_slug, **kwargs):
             instance=project, editable=editable)
         reference_formset = ReferenceFormSet(request.POST, instance=project)
 
+        # Creates forms for each section of this project's content type
         valid = True
         section_forms = []
         for s in sections:
             try:
-                content = project.content.get(project_section=s)
-                sf = forms.SectionContentForm(data=request.POST, instance=content)
+                # Try to get currently existing content for section
+                section_content = project.project_content.get(project_section=s)
+                sf = forms.SectionContentForm(data=request.POST, instance=section_content)
             except:
+                # Creates form with empty instace in case content is not found
                 sf = forms.SectionContentForm(project_id=project, project_section=s, data=request.POST)
 
+            # Appends form to array
             section_forms.append(sf)
+
+            # Validation of all `section_content` forms
             valid = valid and sf.is_valid()
 
+        # Checks if all forms are valid
         if description_form.is_valid() and reference_formset.is_valid() and valid:
             description_form.save()
             reference_formset.save()
+
+            # Only saves each `section_content` if it's not empty
             for sf in section_forms:
                 sf.save()
-                text = unescape(strip_tags(sf.instance.content))
+                text = unescape(strip_tags(sf.instance.section_content))
                 if not text or text.isspace():
                     sf.instance.delete()
 

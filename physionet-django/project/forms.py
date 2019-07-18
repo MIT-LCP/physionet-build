@@ -477,7 +477,7 @@ class SectionContentForm(forms.ModelForm):
 
     class Meta:
         model = SectionContent
-        fields = ('content',)
+        fields = ('section_content',)
 
     def __init__(self, project_id=None, project_section=None, editable=True, *args, **kwargs):
         # Creates a new instace of SectionContent if none is passed as argument
@@ -486,8 +486,8 @@ class SectionContentForm(forms.ModelForm):
 
         # Sets label and help text for form fields
         super(SectionContentForm, self).__init__(*args, **kwargs)
-        self.fields['content'].label = self.instance.project_section.name
-        self.fields['content'].help_text = self.instance.project_section.description
+        self.fields['section_content'].label = self.instance.project_section.name
+        self.fields['section_content'].help_text = self.instance.project_section.description
 
         if not editable:
             for f in self.fields.values():

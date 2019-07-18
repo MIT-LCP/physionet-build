@@ -454,7 +454,7 @@ class SectionContent(models.Model):
                                     related_name='%(class)ss',
                                     on_delete=models.PROTECT)
 
-    content = SafeHTMLField(blank=True)
+    section_content = SafeHTMLField(blank=True)
 
     class Meta:
         unique_together = (('content_type', 'object_id', 'project_section'),)
@@ -486,6 +486,9 @@ class Metadata(models.Model):
     release_notes = SafeHTMLField(blank=True)
     version = models.CharField(max_length=15, default='', blank=True,
                                validators=[validate_version])
+
+    # Project content
+    project_content = GenericRelation(SectionContent)
 
     # Short description used for search results, social media, etc
     short_description = models.CharField(max_length=250, blank=True)
@@ -833,7 +836,6 @@ class ArchivedProject(Metadata, UnpublishedProject, SubmissionInfo):
     """
     archive_datetime = models.DateTimeField(auto_now_add=True)
     archive_reason = models.PositiveSmallIntegerField()
-    content = GenericRelation(SectionContent)
 
     # Where all the archived project files are kept
     FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'archived-projects')
@@ -874,8 +876,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         50: 'Awaiting authors to approve publication.',
         60: 'Awaiting editor to publish.',
     }
-
-    content = GenericRelation(SectionContent)
 
     def storage_used(self):
         """
@@ -1026,15 +1026,24 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             if not author.affiliations.all():
                 self.integrity_errors.append('Author {0} has not filled in affiliations'.format(author.user.username))
 
-        # Metadata
+        # Content
         sections = ProjectSection.objects.filter(resource_type=self.resource_type, required=True)
         for attr in sections:
             try:
-                text = unescape(strip_tags(self.content.get(project_section=attr).content))
+                text = unescape(strip_tags(self.project_content.get(project_section=attr).section_content))
                 if not text or text.isspace():
                     raise
             except:
                 self.integrity_errors.append('Missing required field: {0}'.format(attr.name))
+
+        # Metadata
+        meta = ['title', 'abstract', 'version', 'license', 'short_description']
+        for attr in meta:
+            value = getattr(self, attr)
+            text = unescape(strip_tags(str(value)))
+            if value is None or not text or text.isspace():
+                l = attr.replace('_', ' ').capitalize()
+                self.integrity_errors.append('Missing required field: {0}'.format(l))
 
         published_projects = self.core_project.publishedprojects.all()
         if published_projects:
@@ -1320,8 +1329,6 @@ class PublishedProject(Metadata, SubmissionInfo):
         'RECORDS.txt':'List of WFDB format records',
         'ANNOTATORS.tsv':'List of WFDB annotation file types'
     }
-
-    content = GenericRelation(SectionContent)
 
     class Meta:
         unique_together = (('core_project', 'version'),('featured',),)
