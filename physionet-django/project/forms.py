@@ -469,7 +469,6 @@ class SectionContentForm(forms.ModelForm):
         super(SectionContentForm, self).__init__(*args, **kwargs)
         self.fields['section_content'].label = self.instance.project_section.name
         self.fields['section_content'].help_text = self.instance.project_section.description
-        self.fields['section_content'].required = self.instance.project_section.required
 
     def add_prefix(self, field_name):
         # look up field name; return original if not found
