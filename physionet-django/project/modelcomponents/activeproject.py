@@ -98,8 +98,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         60: 'Awaiting editor to publish.',
     }
 
-    content = GenericRelation(SectionContent)
-
     def storage_used(self):
         """
         Total storage used in bytes.
@@ -266,17 +264,27 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             if not author.affiliations.all():
                 self.integrity_errors.append('Author {0} has not filled in affiliations'.format(author.user.username))
 
-        # Metadata
+        # Content
         sections = ProjectSection.objects.filter(
             resource_type=self.resource_type, required=True)
         for attr in sections:
             try:
-                content = self.content.get(project_section=attr).content
+                content = self.project_content.get(
+                    project_section=attr).section_content
                 text = unescape(strip_tags(content))
                 if not text or text.isspace():
                     raise
             except:
                 self.integrity_errors.append('Missing required field: {0}'.format(attr.name))
+
+        # Metadata
+        meta = ['title', 'abstract', 'version', 'license', 'short_description']
+        for attr in meta:
+            value = getattr(self, attr)
+            text = unescape(strip_tags(str(value)))
+            if value is None or not text or text.isspace():
+                l = attr.replace('_', ' ').capitalize()
+                self.integrity_errors.append('Missing required field: {0}'.format(l))
 
         published_projects = self.core_project.publishedprojects.all()
         if published_projects:

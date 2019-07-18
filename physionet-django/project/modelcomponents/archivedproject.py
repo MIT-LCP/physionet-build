@@ -20,7 +20,6 @@ class ArchivedProject(Metadata, UnpublishedProject, SubmissionInfo):
     """
     archive_datetime = models.DateTimeField(auto_now_add=True)
     archive_reason = models.PositiveSmallIntegerField()
-    content = GenericRelation(SectionContent)
 
     # Where all the archived project files are kept
     FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'archived-projects')

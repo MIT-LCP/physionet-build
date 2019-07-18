@@ -64,8 +64,6 @@ class PublishedProject(Metadata, SubmissionInfo):
         'ANNOTATORS.tsv':'List of WFDB annotation file types'
     }
 
-    content = GenericRelation(SectionContent)
-
     class Meta:
         unique_together = (('core_project', 'version'),('featured',),)
 

@@ -68,7 +68,7 @@ def migrate_content(apps, schema_editor):
         for l, n in labels.items():
             section = ProjectSection.objects.get(name=n, resource_type=d.resource_type.id)
             SectionContent.objects.create(project_id=d, project_section=section,
-                                          content=d._meta.get_field(l).value_from_object(d))
+                                          section_content=d._meta.get_field(l).value_from_object(d))
 
 
 def undo_migrate_content(apps, schema_editor):
@@ -98,7 +98,7 @@ class Migration(migrations.Migration):
             name='SectionContent',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('content', project.models.SafeHTMLField(blank=True)),
+                ('section_content', project.models.SafeHTMLField(blank=True)),
                 ('content_type', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='contenttypes.ContentType')),
                 ('object_id', models.PositiveIntegerField()),
                 ('project_section', models.ForeignKey(db_column='project_section', on_delete=django.db.models.deletion.PROTECT, related_name='sectioncontents', to='project.ProjectSection')),

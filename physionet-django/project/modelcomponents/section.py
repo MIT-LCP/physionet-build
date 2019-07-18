@@ -35,7 +35,7 @@ class SectionContent(models.Model):
                                     db_column='project_section',
                                     related_name='%(class)ss',
                                     on_delete=models.PROTECT)
-    content = SafeHTMLField(blank=True)
+    section_content = SafeHTMLField(blank=True)
 
     class Meta:
         unique_together = (('content_type', 'object_id', 'project_section'),)

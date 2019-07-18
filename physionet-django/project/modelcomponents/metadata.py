@@ -1,6 +1,8 @@
 import os
 
-from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import (
+    GenericForeignKey, GenericRelation
+)
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils import timezone
@@ -8,6 +10,7 @@ from django.utils.html import format_html
 from html2text import html2text
 from project.modelcomponents.access import AccessPolicy, AnonymousAccess
 from project.modelcomponents.fields import SafeHTMLField
+from project.modelcomponents.section import SectionContent
 from project.projectfiles import ProjectFiles
 from project.utility import LinkFilter, get_directory_info, get_file_info, list_items
 from project.validators import validate_title, validate_topic, validate_version
@@ -45,6 +48,9 @@ class Metadata(models.Model):
     release_notes = SafeHTMLField(blank=True)
     version = models.CharField(max_length=15, default='', blank=True,
                                validators=[validate_version])
+ 
+    # Project content
+    project_content = GenericRelation(SectionContent)
 
     # Short description used for search results, social media, etc
     short_description = models.CharField(max_length=250, blank=True)
