@@ -80,17 +80,26 @@
         {{ project.full_description|safe }}
         <hr>
       {% else %}
-        <h2>Abstract</h2>
+        <h2 id="abstract">Abstract</h2>
         {{ project.abstract|safe }}
         <hr>
         {% for c in project.project_content.all %}
-          <h2>{{ c.project_section.name }}</h2>
+          <h2 id='{{ c.project_section.name|slugify }}'>{{ c.project_section.name }}</h2>
           {{ c.section_content|safe }}
           <hr>
         {% endfor %}
         {% if project.release_notes %}
-          <h2>Release Notes</h2>
+          <h2 id="release-notes">Release Notes</h2>
           {{ project.release_notes|safe }}
+          <hr>
+        {% endif %}
+        {% if references %}
+          <h2 id="references">References</h2>
+          <ol>
+          {% for reference in references %}
+            <li style="word-break: break-all;">{{ reference.description }}</li>
+          {% endfor %}
+          </ol>
           <hr>
         {% endif %}
       {% endif %}
@@ -106,49 +115,17 @@
           Contents
         </button>
         <div class="dropdown-menu">
-          {% if project.resource_type.id == 0 %}
-            <a class="dropdown-item" href="#abstract">Abstract</a>
-            <a class="dropdown-item" href="#background">Background</a>
-            <a class="dropdown-item" href="#methods">Methods</a>
-            <a class="dropdown-item" href="#description">Data Description</a>
-            <a class="dropdown-item" href="#usage-notes">Usage Notes</a>
-            <a class="dropdown-item" href="#acknowledgements">Acknowledgements</a>
-            <a class="dropdown-item" href="#conflicts-of-interest">Conflicts of Interest</a>
-            <a class="dropdown-item" href="#references">References</a>
-            <a class="dropdown-item" href="#files">Files</a>
-          {% elif project.resource_type.id == 1 %}
-            <a class="dropdown-item" href="#abstract">Abstract</a>
-            <a class="dropdown-item" href="#background">Background</a>
-            <a class="dropdown-item" href="#description">Software Description</a>
-            {% if project.methods %}
-              <a class="dropdown-item" href="#implementation">Technical Implementation</a>
-            {% endif %}
-            {% if project.installation %}
-              <a class="dropdown-item" href="#installation">Installation and Requirements</a>
-            {% endif %}
-            <a class="dropdown-item" href="#usage-notes">Usage Notes</a>
-            {% if project.release_notes %}
-              <a class="dropdown-item" href="#release-notes">Release Notes</a>
-            {% endif %}
-            {% if project.acknowledgements %}
-              <a class="dropdown-item" href="#acknowledgements">Acknowledgements</a>
-            {% endif %}
-            <a class="dropdown-item" href="#conflicts-of-interest">Conflicts of Interest</a>
-            <a class="dropdown-item" href="#references">References</a>
-            <a class="dropdown-item" href="#files">Files</a>
-          {% elif project.resource_type.id == 2 %}
-            <a class="dropdown-item" href="#abstract">Abstract</a>
-            <a class="dropdown-item" href="#background">Objective</a>
-            <a class="dropdown-item" href="#methods">Participation</a>
-            <a class="dropdown-item" href="#description">Data Description</a>
-            <a class="dropdown-item" href="#usage-notes">Evaluation</a>
-            <a class="dropdown-item" href="#acknowledgements">Acknowledgements</a>
-            <a class="dropdown-item" href="#conflicts-of-interest">Conflicts of Interest</a>
-            <a class="dropdown-item" href="#references">References</a>
-            <a class="dropdown-item" href="#files">Files</a>
-          {% else %}
-            <a class="dropdown-item" href="#files">Files</a>
+          <a class="dropdown-item" href="#abstract">Abstract</a>
+          {% for c in project.project_content.all %}
+            <a class="dropdown-item" href="#{{ c.project_section.name|slugify }}">{{ c.project_section.name }}</a>
+          {% endfor %}
+          {% if project.release_notes %}
+            <a class="dropdown-item" href="#release-notes">Release Notes</a>
           {% endif %}
+          {% if references %}
+            <a class="dropdown-item" href="#references">References</a>
+          {% endif %}
+          <a class="dropdown-item" href="#files">Files</a>
         </div>
       </div>
       {% endif %}
