@@ -684,10 +684,10 @@ def project_content(request, project_slug, **kwargs):
     sections = ProjectSection.objects.filter(resource_type=project.resource_type).order_by('default_order')
     for s in sections:
         try:
-            content = SectionContent.objects.get(project_id=project.core_project, project_section=s)
+            content = project.content.get(project_section=s)
             section_forms.append(forms.SectionContentForm(instance=content))
         except:
-            section_forms.append(forms.SectionContentForm(project_id=project.core_project, project_section=s))
+            section_forms.append(forms.SectionContentForm(project_id=project, project_section=s))
 
     if request.method == 'POST':
         description_form = forms.ContentForm(
@@ -699,10 +699,10 @@ def project_content(request, project_slug, **kwargs):
         section_forms = []
         for s in sections:
             try:
-                content = SectionContent.objects.get(project_id=project.core_project, project_section=s)
+                content = project.content.get(project_section=s)
                 sf = forms.SectionContentForm(data=request.POST, instance=content)
             except:
-                sf = forms.SectionContentForm(project_id=project.core_project, project_section=s, data=request.POST)
+                sf = forms.SectionContentForm(project_id=project, project_section=s, data=request.POST)
 
             section_forms.append(sf)
             valid = valid and sf.is_valid()
@@ -1197,7 +1197,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     languages = project.programming_languages.all()
     citations = project.citation_text_all()
     platform_citations = project.get_platform_citation()
-    content = SectionContent.objects.filter(project_id=project.core_project)
+    content = SectionContent.objects.filter(project_id=project)
 
     passes_checks = project.check_integrity()
 
@@ -1241,7 +1241,6 @@ def project_preview(request, project_slug, subdir='', **kwargs):
             'parent_projects': parent_projects,
             'has_passphrase': has_passphrase,
             'is_lightwave_supported': ProjectFiles().is_lightwave_supported(),
-            'content': content,
         },
     )
 
@@ -1672,7 +1671,6 @@ def published_project(request, project_slug, version, subdir=''):
     current_site = get_current_site(request)
     url_prefix = notification.get_url_prefix(request)
     all_project_versions = PublishedProject.objects.filter(slug=project_slug).order_by('version_order')
-    content = SectionContent.objects.filter(project_id=project.core_project)
     context = {
         'project': project,
         'authors': authors,
@@ -1693,7 +1691,6 @@ def published_project(request, project_slug, version, subdir=''):
         'platform_citations': platform_citations,
         'is_lightwave_supported': ProjectFiles().is_lightwave_supported(),
         'is_wget_supported': ProjectFiles().is_wget_supported(),
-        'content':content,
     }
     # The file and directory contents
     if has_access:

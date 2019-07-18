@@ -6,10 +6,13 @@ from django.conf import settings
 from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
+from django.contrib.contenttypes.fields import GenericRelation
+
 from project.modelcomponents.access import DataAccessRequest, DataAccessRequestReviewer, DUASignature
 from project.modelcomponents.fields import SafeHTMLField
 from project.modelcomponents.metadata import Metadata, PublishedTopic
 from project.modelcomponents.submission import SubmissionInfo
+from project.modelcomponents.section import SectionContent
 from project.models import AccessPolicy
 from project.projectfiles import ProjectFiles
 from project.utility import StorageInfo, clear_directory, get_tree_size
@@ -60,6 +63,8 @@ class PublishedProject(Metadata, SubmissionInfo):
         'RECORDS.txt':'List of WFDB format records',
         'ANNOTATORS.tsv':'List of WFDB annotation file types'
     }
+
+    content = GenericRelation(SectionContent)
 
     class Meta:
         unique_together = (('core_project', 'version'),('featured',),)
