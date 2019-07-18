@@ -701,6 +701,7 @@ class ArchivedProject(Metadata, UnpublishedProject, SubmissionInfo):
     """
     archive_datetime = models.DateTimeField(auto_now_add=True)
     archive_reason = models.PositiveSmallIntegerField()
+    content = GenericRelation(SectionContent)
 
     # Where all the archived project files are kept
     FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'archived-projects')
@@ -741,6 +742,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         50: 'Awaiting authors to approve publication.',
         60: 'Awaiting editor to publish.',
     }
+
+    content = GenericRelation(SectionContent)
 
     def storage_used(self):
         """
@@ -1199,6 +1202,8 @@ class PublishedProject(Metadata, SubmissionInfo):
         'RECORDS.txt':'List of WFDB format records',
         'ANNOTATORS.tsv':'List of WFDB annotation file types'
     }
+
+    content = GenericRelation(SectionContent)
 
     class Meta:
         unique_together = (('core_project', 'version'),)
