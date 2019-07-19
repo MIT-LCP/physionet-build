@@ -602,7 +602,7 @@ def project_content(request, project_slug, **kwargs):
 
     # Creates forms for each section of this project's content type
     section_forms = []
-    sections = ProjectSection.objects.filter(resource_type=project.resource_type)
+    sections = ProjectSection.objects.filter(resource_type=project.resource_type).order_by('default_order')
     for s in sections:
         try:
             # Try to get currently existing content for section

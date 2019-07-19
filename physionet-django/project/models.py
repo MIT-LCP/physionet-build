@@ -405,10 +405,12 @@ class ProjectSection(models.Model):
                                     db_column='resource_type',
                                     related_name='%(class)ss',
                                     on_delete=models.PROTECT)
+    default_order = models.PositiveSmallIntegerField()
     required = models.BooleanField()
 
     class Meta:
         unique_together = (('name', 'resource_type'),)
+        unique_together = (('resource_type', 'default_order'),)
 
 
 class SectionContent(models.Model):

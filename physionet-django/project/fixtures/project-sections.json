@@ -6,6 +6,7 @@
 		"name": "Background",
 		"description": "* The content or research background.",
 		"resource_type": 0,
+		"default_order": 1,
 		"required": true
 	}
 },
@@ -16,6 +17,7 @@
 		"name": "Methods",
 		"description": "* The methodology employed for the study or research. Describe how the data was collected.",
 		"resource_type": 0,
+		"default_order": 2,
 		"required": true
 	}
 },
@@ -26,6 +28,7 @@
 		"name": "Data Description",
 		"description": "* Describe the data, and how the files are named and structured.",
 		"resource_type": 0,
+		"default_order": 3,
 		"required": true
 	}
 },
@@ -36,6 +39,7 @@
 		"name": "Usage Notes",
 		"description": "* How the data is to be used. List external documentation pages. List related software developed for the dataset, and any special software required to use the data.",
 		"resource_type": 0,
+		"default_order": 4,
 		"required": true
 	}
 },
@@ -46,6 +50,7 @@
 		"name": "Conflicts of Interest",
 		"description": "* List whether any authors have a financial, commercial, legal, or professional relationship with other organizations, or with the people working with them, that could influence this research. State explicitly if there are none.",
 		"resource_type": 0,
+		"default_order": 5,
 		"required": true
 	}
 },
@@ -56,6 +61,7 @@
 		"name": "Background",
 		"description": "* The content or research background.",
 		"resource_type": 1,
+		"default_order": 1,
 		"required": true
 	}
 },
@@ -66,6 +72,7 @@
 		"name": "Software Description",
 		"description": "* Describe the software in this project.",
 		"resource_type": 1,
+		"default_order": 2,
 		"required": true
 	}
 },
@@ -76,6 +83,7 @@
 		"name": "Technical Implementation",
 		"description": "Details on the technical implementation. ie. the development process, and the underlying algorithms.",
 		"resource_type": 1,
+		"default_order": 3,
 		"required": false
 	}
 },
@@ -86,6 +94,7 @@
 		"name": "Usage Notes",
 		"description": "* How the software is to be used. List some example function calls or specify the demo file(s).",
 		"resource_type": 1,
+		"default_order": 4,
 		"required": true
 	}
 },
@@ -96,6 +105,7 @@
 		"name": "Installation and Requirements",
 		"description": "* Instructions on how to install the software, along with the required dependencies. Or specify the files in which they are listed.",
 		"resource_type": 1,
+		"default_order": 5,
 		"required": true
 	}
 },
@@ -106,6 +116,7 @@
 		"name": "Conflicts of Interest",
 		"description": "* List whether any authors have a financial, commercial, legal, or professional relationship with other organizations, or with the people working with them, that could influence this research. State explicitly if there are none.",
 		"resource_type": 1,
+		"default_order": 6,
 		"required": true
 	}
 },
@@ -116,6 +127,7 @@
 		"name": "Objective",
 		"description": "* An introduction to the challenge and a description of the objective/s.",
 		"resource_type": 2,
+		"default_order": 1,
 		"required": true
 	}
 },
@@ -126,6 +138,7 @@
 		"name": "Participation",
 		"description": "* A timeline for the challenge and rules for participation.",
 		"resource_type": 2,
+		"default_order": 2,
 		"required": true
 	}
 },
@@ -136,6 +149,7 @@
 		"name": "Data Description",
 		"description": "* A description of the challenge data and access details.",
 		"resource_type": 2,
+		"default_order": 3,
 		"required": true
 	}
 },
@@ -146,6 +160,7 @@
 		"name": "Evaluation",
 		"description": "* Scoring details, information on submitting an entry, and a link to a sample submission.",
 		"resource_type": 2,
+		"default_order": 4,
 		"required": true
 	}
 },
@@ -156,6 +171,7 @@
 		"name": "Conflicts of Interest",
 		"description": "* List whether any authors have a financial, commercial, legal, or professional relationship with other organizations, or with the people working with them, that could influence this research. State explicitly if there are none.",
 		"resource_type": 2,
+		"default_order": 5,
 		"required": true
 	}
 },
@@ -166,6 +182,7 @@
 		"name": "Background",
 		"description": "* The content or research background.",
 		"resource_type": 3,
+		"default_order": 1,
 		"required": true
 	}
 },
@@ -176,6 +193,7 @@
 		"name": "Technical Implementation",
 		"description": "Details on the technical implementation. ie. the development process, and the underlying algorithms.",
 		"resource_type": 3,
+		"default_order": 2,
 		"required": true
 	}
 },
@@ -186,6 +204,7 @@
 		"name": "Model Description",
 		"description": "* Describe the model and any supporting data and software.",
 		"resource_type": 3,
+		"default_order": 3,
 		"required": true
 	}
 },
@@ -196,6 +215,7 @@
 		"name": "Usage Notes",
 		"description": "* Describe how you intend others to (re)use the model.",
 		"resource_type": 3,
+		"default_order": 4,
 		"required": true
 	}
 },
@@ -206,6 +226,7 @@
 		"name": "Installation and Requirements",
 		"description": "* Instructions on how to set up a software environment for using the model.",
 		"resource_type": 3,
+		"default_order": 5,
 		"required": true
 	}
 },
@@ -216,6 +237,7 @@
 		"name": "Conflicts of Interest",
 		"description": "* List whether any authors have a financial, commercial, legal, or professional relationship with other organizations, or with the people working with them, that could influence this research. State explicitly if there are none.",
 		"resource_type": 3,
+		"default_order": 6,
 		"required": true
 	}
 }

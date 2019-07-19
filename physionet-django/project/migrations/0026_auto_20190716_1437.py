@@ -81,6 +81,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=30)),
                 ('description', models.TextField()),
+                ('default_order', models.PositiveSmallIntegerField()),
                 ('required', models.BooleanField()),
                 ('resource_type', models.ForeignKey(db_column='resource_type', on_delete=django.db.models.deletion.PROTECT, related_name='projectsections', to='project.ProjectType')),
             ],
@@ -188,5 +189,9 @@ class Migration(migrations.Migration):
         migrations.AlterUniqueTogether(
             name='projectsection',
             unique_together={('name', 'resource_type')},
+        ),
+        migrations.AlterUniqueTogether(
+            name='projectsection',
+            unique_together={('resource_type', 'default_order')},
         ),
     ]

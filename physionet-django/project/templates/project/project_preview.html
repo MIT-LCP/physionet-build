@@ -107,7 +107,7 @@
     <h2>Abstract</h2>
     {{ project.abstract|safe }}
     <hr>
-    {% for c in project.project_content.all %}
+    {% for c in project.project_content.all|dictsort:"project_section.default_order" %}
       <h2>{{ c.project_section.name }}</h2>
       {{ c.section_content|safe }}
       <hr>
@@ -179,7 +179,7 @@
             <p><strong>Programming Languages:</strong>
             <br>
             {% for language in languages %}
-              <style class="badge badge-info">{{ language.name }}</style>
+              <span class="badge badge-info">{{ language.name }}</span>
             {% endfor %}
             </p>
           {% endif %}
