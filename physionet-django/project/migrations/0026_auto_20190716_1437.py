@@ -49,6 +49,7 @@ def migrate_content(apps, schema_editor):
         'conflicts_of_interest': 'Conflicts of Interest'},
     ]
 
+    # Gets all projects currently in the database
     data = chain(
         apps.get_model("project", "ActiveProject").objects.all(),
         apps.get_model("project", "PublishedProject").objects.all(),
@@ -56,8 +57,10 @@ def migrate_content(apps, schema_editor):
     )
 
     for d in data:
+        # Separates labels for one resource type
         labels = LABELS[d.resource_type.id]
 
+        # Persists new SectionContent entity based on content from the previous structure
         for l, n in labels.items():
             section = ProjectSection.objects.get(name=n, resource_type=d.resource_type.id)
             SectionContent.objects.create(project_id=d, project_section=section,

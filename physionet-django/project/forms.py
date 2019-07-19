@@ -471,15 +471,17 @@ class SectionContentForm(forms.ModelForm):
         fields = ('section_content',)
 
     def __init__(self, project_id=None, project_section=None, *args, **kwargs):
+        # Creates a new instace of SectionContent if none is passed as argument
         if 'instance' not in kwargs:
             kwargs['instance'] = SectionContent(project_id=project_id, project_section=project_section)
 
+        # Sets label and help text for form fields
         super(SectionContentForm, self).__init__(*args, **kwargs)
         self.fields['section_content'].label = self.instance.project_section.name
         self.fields['section_content'].help_text = self.instance.project_section.description
 
     def add_prefix(self, field_name):
-        # look up field name; return original if not found
+        # Adds the section's name as a prefix to the html tag's id and name
         prefix = self.instance.project_section.name.replace(" ", "_").lower()
         field_name = prefix+"_"+field_name
         return super(SectionContentForm, self).add_prefix(field_name)
