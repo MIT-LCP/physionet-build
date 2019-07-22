@@ -11,7 +11,7 @@ from django.utils.crypto import get_random_string
 from django.utils.translation import ugettext_lazy
 
 from project.models import PublishedProject
-from user.models import AssociatedEmail, User, Profile, CredentialApplication
+from user.models import AssociatedEmail, User, Profile, CredentialApplication, CloudInformation
 from user.widgets import ProfilePhotoInput
 from user.validators import UsernameValidator, validate_name
 
@@ -503,3 +503,21 @@ class ContactForm(forms.Form):
         attrs={'class': 'form-control', 'placeholder': 'Subject *'}))
     message = forms.CharField(max_length=2000, widget=forms.Textarea(
         attrs={'class': 'form-control', 'placeholder': 'Message *'}))
+
+class CloudForm(forms.ModelForm):
+    """
+    Form to store the AWS ID, and point to the google GCP email.
+    """
+    class Meta:
+        model = CloudInformation
+        fields = ('gcp_email','aws_id',)
+        labels = {
+            'gcp_email': 'GCP Email',
+            'aws_id': 'AWS ID',
+        }
+    def __init__(self, *args, **kwargs):
+        # Email choices are those belonging to a user
+        super().__init__(*args, **kwargs)
+        associated_emails = self.instance.user.associated_emails.filter(is_verified=True)
+        self.fields['gcp_email'].queryset = associated_emails
+        self.fields['gcp_email'].required = False

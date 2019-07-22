@@ -697,3 +697,13 @@ class CredentialApplication(models.Model):
         else:
             return False
 
+
+class CloudInformation(models.Model):
+    """
+    Location where the cloud accounts for the user will be stored
+    """
+    user = models.OneToOneField('user.User', related_name='cloud_information',
+        on_delete=models.CASCADE)
+    gcp_email = models.OneToOneField('user.AssociatedEmail', related_name='gcp_email',
+        on_delete=models.SET_NULL, null=True)
+    aws_id = models.BigIntegerField(blank=True, null=True)

@@ -20,9 +20,8 @@ from django.utils import timezone
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
-from .forms import AddEmailForm, AssociatedEmailChoiceForm, ProfileForm, RegistrationForm, UsernameChangeForm, CredentialApplicationForm, CredentialReferenceForm
-from . import forms
-from .models import AssociatedEmail, Profile, User, CredentialApplication, LegacyCredential
+from user import forms
+from user.models import AssociatedEmail, Profile, User, CredentialApplication, LegacyCredential, CloudInformation
 from physionet import utility
 from project.models import Author, License
 from notification.utility import process_credential_complete, credential_application_request
@@ -153,11 +152,11 @@ def edit_emails(request):
 
     associated_emails = AssociatedEmail.objects.filter(
         user=user).order_by('-is_verified', '-is_primary_email')
-    primary_email_form = AssociatedEmailChoiceForm(user=user,
+    primary_email_form = forms.AssociatedEmailChoiceForm(user=user,
                                                    selection_type='primary')
-    public_email_form = AssociatedEmailChoiceForm(user=user,
+    public_email_form = forms.AssociatedEmailChoiceForm(user=user,
                                                   selection_type='public')
-    add_email_form = AddEmailForm()
+    add_email_form = forms.AddEmailForm()
 
     if request.method == 'POST':
         if 'remove_email' in request.POST:
@@ -165,16 +164,16 @@ def edit_emails(request):
             email_id = int(request.POST['remove_email'])
             remove_email(request, email_id)
         elif 'set_primary_email' in request.POST:
-            primary_email_form = AssociatedEmailChoiceForm(user=user,
+            primary_email_form = forms.AssociatedEmailChoiceForm(user=user,
                 selection_type='primary', data=request.POST)
             set_primary_email(request, primary_email_form)
         elif 'set_public_email' in request.POST:
-            public_email_form = AssociatedEmailChoiceForm(user=user,
+            public_email_form = forms.AssociatedEmailChoiceForm(user=user,
                 selection_type='public', data=request.POST)
             set_public_email(request, public_email_form)
 
         elif 'add_email' in request.POST:
-            add_email_form = AddEmailForm(request.POST)
+            add_email_form = forms.AddEmailForm(request.POST)
             add_email(request, add_email_form)
 
     context = {'associated_emails':associated_emails,
@@ -193,13 +192,13 @@ def edit_profile(request):
     Edit the profile fields
     """
     profile = request.user.profile
-    form = ProfileForm(instance=profile)
+    form = forms.ProfileForm(instance=profile)
 
     if request.method == 'POST':
         if 'edit_profile' in request.POST:
             # Update the profile and return to the same page. Place a message
             # at the top of the page: 'your profile has been updated'
-            form = ProfileForm(data=request.POST, files=request.FILES,
+            form = forms.ProfileForm(data=request.POST, files=request.FILES,
                                instance=profile)
             if form.is_valid():
                 form.save()
@@ -209,7 +208,7 @@ def edit_profile(request):
             messages.success(request, 'Your profile photo has been deleted.')
 
         if not form.errors:
-            form = ProfileForm(instance=profile)
+            form = forms.ProfileForm(instance=profile)
 
     return render(request, 'user/edit_profile.html', {'form':form})
 
@@ -254,7 +253,7 @@ def register(request):
         return redirect('home')
 
     if request.method == 'POST':
-        form = RegistrationForm(request.POST)
+        form = forms.RegistrationForm(request.POST)
         if form.is_valid():
             # Create the new user
             user = form.save()
@@ -272,7 +271,7 @@ def register(request):
             # Registration successful
             return render(request, 'user/register_done.html', {'email':user.email})
     else:
-        form = RegistrationForm()
+        form = forms.RegistrationForm()
 
     return render(request, 'user/register.html', {'form':form})
 
@@ -321,9 +320,9 @@ def edit_username(request):
     """
     user = request.user
 
-    form = UsernameChangeForm(instance=user)
+    form = forms.UsernameChangeForm(instance=user)
     if request.method == 'POST':
-        form = UsernameChangeForm(instance=user, data=request.POST)
+        form = forms.UsernameChangeForm(instance=user, data=request.POST)
 
         if form.is_valid():
             form.save()
@@ -382,7 +381,7 @@ def credential_application(request):
         reference_form = forms.ReferenceCAF(data=request.POST, prefix="application")
         course_form = forms.CourseCAF(data=request.POST, require_courses=False, prefix="application")
         
-        form = CredentialApplicationForm(user=user, data=request.POST,
+        form = forms.CredentialApplicationForm(user=user, data=request.POST,
             files=request.FILES,  prefix="application")
 
         if (personal_form.is_valid() and training_form.is_valid()
@@ -441,10 +440,10 @@ def credential_reference(request, application_slug):
     if not application:
         return redirect('/')
     application = application.get()
-    form = CredentialReferenceForm(instance=application)
+    form = forms.CredentialReferenceForm(instance=application)
 
     if request.method == 'POST':
-        form = CredentialReferenceForm(data=request.POST, instance=application)
+        form = forms.CredentialReferenceForm(data=request.POST, instance=application)
         if form.is_valid():
             application = form.save()
             # Automated email notifying that their reference has denied
@@ -461,3 +460,22 @@ def credential_reference(request, application_slug):
 
     return render(request, 'user/credential_reference.html',
         {'form': form, 'application': application})
+
+@login_required
+def edit_cloud(request):
+    """
+    Page to add the information for cloud usage. 
+    """
+    user = request.user
+    cloud_info = CloudInformation.objects.get_or_create(user=user)[0]
+    form = forms.CloudForm(instance=cloud_info)
+    if request.method == 'POST':
+        form = forms.CloudForm(instance=cloud_info, data=request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your cloud information has been saved.')
+        else:
+            messages.error(request, 'Invalid submission. See errors below.')
+
+    return render(request, 'user/edit_cloud.html', {'form':form, 'user':user})
+

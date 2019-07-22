@@ -14,7 +14,7 @@ from django.utils.html import format_html
 
 from project.models import (Affiliation, Author, AuthorInvitation, ActiveProject,
                             CoreProject, StorageRequest, ProgrammingLanguage,
-                            License, Metadata, Reference, Publication,
+                            License, Metadata, Reference, Publication, DataAccess,
                             PublishedProject, Topic, exists_project_slug)
 from project import utility
 from project import validators
@@ -874,3 +874,4 @@ class InvitationResponseForm(forms.ModelForm):
                   'You are not invited.')
 
         return cleaned_data
+

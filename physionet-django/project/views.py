@@ -2,8 +2,11 @@ import os
 import pdb
 import re
 import logging
+import requests
+import json
 from urllib.parse import quote_plus
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
@@ -26,7 +29,7 @@ from django.utils.html import format_html, format_html_join
 from project.fileviews import display_project_file
 from project import forms
 from project.models import (Affiliation, Author, AuthorInvitation,
-    ActiveProject, PublishedProject, StorageRequest, Reference,
+    ActiveProject, PublishedProject, StorageRequest, Reference, DataAccess,
     ArchivedProject, ProgrammingLanguage, Topic, Contact, Publication,
     PublishedAuthor, EditLog, CopyeditLog, DUASignature, CoreProject, GCP)
 from project import utility
@@ -34,8 +37,8 @@ from project.validators import validate_filename
 import notification.utility as notification
 from physionet.utility import serve_file
 from user.forms import ProfileForm, AssociatedEmailChoiceForm
-from user.models import User
-from console.utility import add_email_bucket_access
+from user.models import User, CloudInformation
+from console.utility import add_email_bucket_access, create_directory_service
 
 from dal import autocomplete
 
@@ -1362,7 +1365,7 @@ def published_project(request, project_slug, version, subdir=''):
     news = project.news.all().order_by('-publish_datetime')
     parent_projects = project.parent_projects.all()
     # derived_projects = project.derived_publishedprojects.all()
-
+    data_access = DataAccess.objects.filter(project=project)
     has_access = project.has_access(request.user)
     current_site = get_current_site(request)
     all_project_versions = PublishedProject.objects.filter(
@@ -1372,7 +1375,7 @@ def published_project(request, project_slug, version, subdir=''):
                'topics': topics, 'languages': languages, 'contact': contact,
                'has_access': has_access, 'current_site': current_site,
                'news': news, 'all_project_versions': all_project_versions,
-               'parent_projects':parent_projects}
+               'parent_projects':parent_projects, 'data_access':data_access}
 
     # The file and directory contents
     if has_access:
@@ -1392,7 +1395,8 @@ def published_project(request, project_slug, version, subdir=''):
             'main_size':main_size, 'compressed_size':compressed_size,
             'display_files':display_files, 'display_dirs':display_dirs,
             'files_panel_url':files_panel_url, 'subdir':subdir,
-            'parent_dir':parent_dir, 'file_error':file_error}}
+            'parent_dir':parent_dir, 'file_error':file_error,
+            'data_access':data_access}}
     elif subdir:
         status = 403
     else:
@@ -1438,3 +1442,69 @@ def sign_dua(request, project_slug, version):
 
     return render(request, 'project/sign_dua.html', {'project':project,
         'license':license, 'license_content':license_content})
+
+
+@login_required
+def project_request_access(request, project_slug, version, access_type):
+    """
+    Page to grant access to AWS storage, Google storage or Big Query
+    to a specific user.
+    """
+    user = request.user
+    project = PublishedProject.objects.get(slug=project_slug, version=version)
+    if not project.has_access(request.user):
+        return redirect('published_project', project_slug=project_slug,
+            version=version)
+    data_access = DataAccess.objects.filter(project=project,
+        platform=access_type)
+    try:
+        # check user if user has gcp info in profile
+        if (user.cloud_information.gcp_email == None and 3 <= access_type >= 4) or (
+            user.cloud_information.aws_id == None and access_type == 2):
+            messages.error(request, 'Please set the user cloud information in your settings')
+            return redirect('edit_cloud')
+        if access_type == 2:
+            pdb.set_trace()
+            url = settings.AWS_CLOUD_FORMATION
+            payload = {'accountid': user.cloud_information.aws_id}
+            headers = {settings.AWS_HEADER_KEY: settings.AWS_HEADER_VALUE, settings.AWS_HEADER_KEY2: settings.AWS_HEADER_VALUE2}
+            response = requests.post(url, data=json.dumps(payload), headers=headers)
+        if access_type == 3:
+            email = user.cloud_information.gcp_email.email
+            grant_permissions = add_email_bucket_access(project, email)
+            if grant_permissions:
+                LOGGER.info("Access for GCP storage has been granted to {0}\
+                for project {1}".format(email, project))
+                messages.success(request, "Access for GCP storage has been \
+                    granted to {0} for project {1}".format(email, project))
+            else:
+                LOGGER.info("Error granting access for GCP storage for {0}\
+                in project {1}".format(email, project))
+                messages.success(request, "Error granting access for GCP \
+                    storage for {0} in project {1}".format(email, project))
+        elif access_type == 4:
+            email = user.cloud_information.gcp_email.email
+            service = create_directory_service(settings.GCP_DELEGATION_EMAIL)
+            for item in data_access:
+                members = service.members().list(groupKey=item.location).execute()
+                if email not in str(members):
+                    # if not a member, add to the group
+                    outcome = service.members().insert(groupKey=item.location,
+                        body={"email": email, "delivery_settings": "NONE"}).execute()
+                    if outcome['role'] == "MEMBER":
+                        messages.success(request, 'BigQuery access has been \
+                            granted to {0} for project: {1}'.format(email, project))
+                        LOGGER.info("Added user {0} to BigQuery group {1}".format(
+                            email, item.location))
+                    else:
+                        LOGGER.info("Error adding the user {0} to Bigquery \
+                            group {1}".format(email, item.location))
+                else:
+                    messages.success(request, 'BigQuery access was awarded \
+                        previously to {0} for project: {1}'.format(email, project))
+    except CloudInformation.DoesNotExist:
+        messages.error(request, 'Please set the user cloud information in your settings')
+        return redirect('edit_cloud')
+    return redirect('published_project', project_slug=project_slug, version=version)
+
+

@@ -1,0 +1,16 @@
+{% extends "user/settings.html" %}
+
+{% block title %} Edit Cloud information {% endblock %}
+
+{% block main_content %}
+<h1 class="form-signin-heading">Manage cloud settings</h1>
+
+<form action="{% url 'edit_cloud' %}" method="post" class="form-signin no-pd">
+  <hr>
+  {% csrf_token %}
+  {% include "inline_form_snippet.html" %}
+  <button class="btn btn-primary btn-custom btn-rsp" type="submit">Save</button>
+</form>
+
+
+{% endblock %}

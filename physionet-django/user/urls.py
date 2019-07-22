@@ -50,6 +50,7 @@ urlpatterns = [
     path('settings/password/changed/', views.edit_password_complete, name='edit_password_complete'),
     path('settings/emails/', views.edit_emails, name='edit_emails'),
     path('settings/username/', views.edit_username, name='edit_username'),
+    path('settings/cloud/', views.edit_cloud, name='edit_cloud'),
     path('settings/credentialing/', views.edit_credentialing, name='edit_credentialing'),
     path('settings/credentialing/applications/',
         views.user_credential_applications, name='user_credential_applications'),

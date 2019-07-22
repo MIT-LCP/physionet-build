@@ -23,7 +23,7 @@ import notification.utility as notification
 import project.forms as project_forms
 from project.models import (ActiveProject, ArchivedProject, StorageRequest,
     Reference, Topic, Publication, PublishedProject,
-    exists_project_slug, GCP, DUASignature)
+    exists_project_slug, GCP, DUASignature, DataAccess)
 from project.utility import readable_size
 from project.views import (get_file_forms, get_project_file_info,
     process_files_post)
@@ -521,6 +521,10 @@ def send_files_to_gcp(pid):
         utility.upload_files(project)
         project.gcp.sent_files = True
         project.gcp.finished_datetime = timezone.now()
+        DataAccess.objects.create(project=project, platform=3,
+            location='gs://{}'.format(project.gcp.bucket_name))
+        if project.compressed_storage_size:
+            project.gcp.sent_zip = True
         project.gcp.save()
 
 @login_required
@@ -540,7 +544,7 @@ def manage_published_project(request, project_slug, version):
     topic_form.set_initial()
     deprecate_form = None if project.deprecated_files else forms.DeprecateFilesForm()
     has_credentials = os.path.exists(os.environ["GOOGLE_APPLICATION_CREDENTIALS"])
-
+    data_access_form = forms.DataAccessForm(project=project)
     if request.method == 'POST':
         if 'set_doi' in request.POST:
             doi_form = forms.DOIForm(data=request.POST, instance=project)
@@ -590,15 +594,28 @@ def manage_published_project(request, project_slug, version):
                     project_slug))
                 messages.success(request, "The bucket already exists. Resending the files \
                     for the project {0}.".format(project_slug))
-
+        elif 'platform' in request.POST:
+            data_access_form = forms.DataAccessForm(project=project, data=request.POST)
+            if data_access_form.is_valid():
+                data_access_form.save()
+                messages.success(request, "Stored method to access the files")
+        elif 'data_access_removal' in request.POST and request.POST['data_access_removal'].isdigit():
+            try:
+                data_access = DataAccess.objects.get(project=project, id=request.POST['data_access_removal'])
+                data_access.delete()
+            except TypeError:
+                pass
+                
+    data_access = DataAccess.objects.filter(project=project)
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
 
     return render(request, 'console/manage_published_project.html',
-        {'project':project, 'authors':authors, 'author_emails':author_emails,
-         'storage_info':storage_info, 'edit_logs':edit_logs,
-         'copyedit_logs':copyedit_logs, 'latest_version':latest_version,
-         'published':True, 'doi_form':doi_form, 'topic_form':topic_form,
-         'deprecate_form':deprecate_form, 'has_credentials':has_credentials})
+        {'project': project, 'authors': authors, 'author_emails': author_emails,
+         'storage_info': storage_info, 'edit_logs': edit_logs,
+         'copyedit_logs': copyedit_logs, 'latest_version': latest_version,
+         'published': True, 'doi_form': doi_form, 'topic_form': topic_form,
+         'deprecate_form': deprecate_form, 'has_credentials': has_credentials, 
+         'data_access_form': data_access_form, 'data_access': data_access})
 
 
 @login_required
