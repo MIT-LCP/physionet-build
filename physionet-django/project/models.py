@@ -1699,7 +1699,7 @@ class EditLog(models.Model):
     decision = models.SmallIntegerField(null=True)
     decision_datetime = models.DateTimeField(null=True)
     # Comments for the decision
-    editor_comments = models.CharField(max_length=2500)
+    editor_comments = models.CharField(max_length=10000)
 
     def set_quality_assurance_results(self):
         """
