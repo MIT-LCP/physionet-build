@@ -268,7 +268,7 @@ a{
 .pub-details{
   font-size: 75%;
   color: grey;
-  margin-block-end: 0;
+  margin: 0;
 }
 
 .more{

@@ -345,7 +345,7 @@ class NewsForm(forms.ModelForm):
         self.created_by = user
 
     def save(self):
-        news = super().save()
+        news = super().save(commit=False)
         news.created_by = self.created_by
         news.save()
         return news
