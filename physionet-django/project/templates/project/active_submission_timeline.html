@@ -45,14 +45,14 @@
     {% elif project.submission_status == 60 %}
       <li class="list-group-item">
         <div class="row">
-          <div class="col-md-2">{{ project.author_approval_datetime|date }}</div>
-          <div class="col-md-10">All authors approved the final project for publication.
+          <div class="col-md-2">Currently</div>
+          <div class="col-md-10"><i class="far fa-clock"></i> Waiting for editor to publish submission.</div>
         </div>
       </li>
       <li class="list-group-item">
         <div class="row">
-          <div class="col-md-2">Currently</div>
-          <div class="col-md-10"><i class="far fa-clock"></i> Waiting for editor to publish submission.</div>
+          <div class="col-md-2">{{ project.author_approval_datetime|date }}</div>
+          <div class="col-md-10">All authors approved the final project for publication.
         </div>
       </li>
     {% endif %}
