@@ -1721,7 +1721,6 @@ class EditLog(models.Model):
         # Create the labels dictionary for this resource type
         labels = {**self.__class__.COMMON_LABELS, **self.__class__.LABELS[resource_type]}
 
-        # Our QA response is either Yes, No, or N/A.
         self.quality_assurance_results = []
         for f in quality_assurance_fields:
             qa_str = '{} {}'.format(labels[f], RESPONSE_LABEL[getattr(self, f)])
