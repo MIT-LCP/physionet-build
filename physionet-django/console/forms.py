@@ -29,6 +29,13 @@ YES_NO = (
     (0, 'No')
 )
 
+YES_NO_NA = (
+    ('', '-----------'),
+    (1, 'Yes'),
+    (0, 'No'),
+    ('', 'N/A')
+)
+
 
 class AssignEditorForm(forms.Form):
     """
@@ -65,15 +72,15 @@ class EditSubmissionForm(forms.ModelForm):
         labels = EditLog.COMMON_LABELS
 
         widgets = {
-            'soundly_produced':forms.Select(choices=YES_NO),
-            'well_described':forms.Select(choices=YES_NO),
-            'open_format':forms.Select(choices=YES_NO),
-            'data_machine_readable':forms.Select(choices=YES_NO),
-            'reusable':forms.Select(choices=YES_NO),
-            'no_phi':forms.Select(choices=YES_NO),
-            'pn_suitable':forms.Select(choices=YES_NO),
-            'editor_comments':forms.Textarea(),
-            'decision':forms.Select(choices=SUBMISSION_RESPONSE_CHOICES)
+            'soundly_produced': forms.Select(choices=YES_NO_NA),
+            'well_described': forms.Select(choices=YES_NO_NA),
+            'open_format': forms.Select(choices=YES_NO_NA),
+            'data_machine_readable': forms.Select(choices=YES_NO_NA),
+            'reusable': forms.Select(choices=YES_NO_NA),
+            'no_phi': forms.Select(choices=YES_NO_NA),
+            'pn_suitable': forms.Select(choices=YES_NO_NA),
+            'editor_comments': forms.Textarea(),
+            'decision': forms.Select(choices=SUBMISSION_RESPONSE_CHOICES)
         }
 
     def __init__(self, resource_type, *args, **kwargs):

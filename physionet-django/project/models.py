@@ -1712,14 +1712,19 @@ class EditLog(models.Model):
 
         resource_type = self.project.resource_type
         NO_YES = ('No', 'Yes')
-        # The quality assurance fields we want.
-        # Retrieve their labels and results.
+
+        # Retrieve their labels and results for our resource type
         quality_assurance_fields = self.__class__.QUALITY_ASSURANCE_FIELDS[resource_type]
+
         # Create the labels dictionary for this resource type
         labels = {**self.__class__.COMMON_LABELS, **self.__class__.LABELS[resource_type]}
 
-        self.quality_assurance_results = ['{}: {}'.format(
-            labels[f], NO_YES[getattr(self, f)]) for f in quality_assurance_fields]
+        # Our QA response is either Yes, No, or N/A.
+        self.quality_assurance_results = []
+        for f in quality_assurance_fields:
+            qa_str = '{} {}'.format(labels[f],
+                NO_YES[getattr(self, f)] if isinstance(getattr(self, f), bool) else 'N/A')
+            self.quality_assurance_results.append(qa_str)
 
 
 class CopyeditLog(models.Model):
