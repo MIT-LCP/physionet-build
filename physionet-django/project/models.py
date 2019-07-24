@@ -1711,7 +1711,9 @@ class EditLog(models.Model):
             return
 
         resource_type = self.project.resource_type
-        NO_YES = ('No', 'Yes')
+
+        # See also YES_NO_UNDETERMINED in console/forms.py
+        RESPONSE_LABEL = {True: 'Yes', False: 'No', None: 'Undetermined'}
 
         # Retrieve their labels and results for our resource type
         quality_assurance_fields = self.__class__.QUALITY_ASSURANCE_FIELDS[resource_type]
@@ -1722,8 +1724,7 @@ class EditLog(models.Model):
         # Our QA response is either Yes, No, or N/A.
         self.quality_assurance_results = []
         for f in quality_assurance_fields:
-            qa_str = '{} {}'.format(labels[f],
-                NO_YES[getattr(self, f)] if isinstance(getattr(self, f), bool) else 'N/A')
+            qa_str = '{} {}'.format(labels[f], RESPONSE_LABEL[getattr(self, f)])
             self.quality_assurance_results.append(qa_str)
 
 

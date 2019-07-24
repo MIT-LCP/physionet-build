@@ -29,11 +29,12 @@ YES_NO = (
     (0, 'No')
 )
 
-YES_NO_NA = (
+# See also RESPONSE_LABEL in project/models.py
+YES_NO_UNDETERMINED = (
     ('', '-----------'),
     (1, 'Yes'),
     (0, 'No'),
-    ('', 'N/A')
+    (None, 'Undetermined')
 )
 
 
@@ -51,6 +52,7 @@ class AssignEditorForm(forms.Form):
         if ActiveProject.objects.get(id=pid) not in ActiveProject.objects.filter(submission_status=10):
             raise forms.ValidationError('Incorrect project selected.')
         return pid
+
 
 class EditSubmissionForm(forms.ModelForm):
     """
@@ -72,13 +74,13 @@ class EditSubmissionForm(forms.ModelForm):
         labels = EditLog.COMMON_LABELS
 
         widgets = {
-            'soundly_produced': forms.Select(choices=YES_NO_NA),
-            'well_described': forms.Select(choices=YES_NO_NA),
-            'open_format': forms.Select(choices=YES_NO_NA),
-            'data_machine_readable': forms.Select(choices=YES_NO_NA),
-            'reusable': forms.Select(choices=YES_NO_NA),
-            'no_phi': forms.Select(choices=YES_NO_NA),
-            'pn_suitable': forms.Select(choices=YES_NO_NA),
+            'soundly_produced': forms.Select(choices=YES_NO_UNDETERMINED),
+            'well_described': forms.Select(choices=YES_NO_UNDETERMINED),
+            'open_format': forms.Select(choices=YES_NO_UNDETERMINED),
+            'data_machine_readable': forms.Select(choices=YES_NO_UNDETERMINED),
+            'reusable': forms.Select(choices=YES_NO_UNDETERMINED),
+            'no_phi': forms.Select(choices=YES_NO_UNDETERMINED),
+            'pn_suitable': forms.Select(choices=YES_NO_UNDETERMINED),
             'editor_comments': forms.Textarea(),
             'decision': forms.Select(choices=SUBMISSION_RESPONSE_CHOICES)
         }
