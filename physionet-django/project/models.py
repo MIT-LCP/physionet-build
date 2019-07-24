@@ -980,12 +980,13 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         if not self.is_resubmittable():
             raise Exception('ActiveProject is not resubmittable')
 
-        self.submission_status = 20
-        self.resubmission_datetime = timezone.now()
-        self.save()
-        # Create a new edit log
-        EditLog.objects.create(project=self, is_resubmission=True,
-            author_comments=author_comments)
+        with transaction.atomic():
+            self.submission_status = 20
+            self.resubmission_datetime = timezone.now()
+            self.save()
+            # Create a new edit log
+            EditLog.objects.create(project=self, is_resubmission=True,
+                author_comments=author_comments)
 
     def reopen_copyedit(self):
         """
