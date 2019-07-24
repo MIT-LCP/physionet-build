@@ -1686,7 +1686,7 @@ class EditLog(models.Model):
     # When the submitting author submits/resubmits
     submission_datetime = models.DateTimeField(auto_now_add=True)
     is_resubmission = models.BooleanField(default=False)
-    author_comments = models.CharField(max_length=1000, default='')
+    author_comments = models.CharField(max_length=10000, default='')
     # Quality assurance fields
     soundly_produced = models.NullBooleanField(null=True)
     well_described = models.NullBooleanField(null=True)
