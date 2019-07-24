@@ -1,24 +1,57 @@
 {# Submission timeline for a non-changing project. Used for rejected archived and published projects #}
 {# This assumes all edits and copyedits have been complete #}
+
 <ul class="list-group list-group-flush">
-  <li class="list-group-item">
-    <div class="row">
-      <div class="col-md-2">{{ project.submission_datetime|date }}</div>
-      <div class="col-md-10">
-        <p>The project was submitted for review.</p>
-        {% if project.author_comments %}
-          <p>The submitting author included the following comments:</p>
-          <a class="editor-comments">{{ project.author_comments|linebreaks }}</a>
-        {% endif %}
+
+  {% if published %}
+
+    <!-- published date -->
+    <li class="list-group-item">
+      <div class="row">
+        <div class="col-md-2">{{ project.publish_datetime|date }}</div>
+        <div class="col-md-10">The project was published.</div>
       </div>
-    </div>
-  </li>
-  <li class="list-group-item">
-    <div class="row">
-      <div class="col-md-2">{{ project.editor_assignment_datetime|date }}</div>
-      <div class="col-md-10">The project was assigned the editor: {{ project.editor.disp_name_email }}
-    </div>
-  </li>
+    </li>
+
+    <!-- author approval -->
+    <li class="list-group-item">
+      <div class="row">
+        <div class="col-md-2">{{ project.author_approval_datetime|date }}</div>
+        <div class="col-md-10">All authors approved the final project for publication.
+      </div>
+    </li>
+
+    <!-- copyediting -->
+    {# There may have been any number of copyedits #}
+    {% for c in copyedit_logs reversed %}
+
+      {% if c.is_reedit %}
+        <li class="list-group-item">
+          <div class="row">
+            <div class="col-md-2">{{ c.start_datetime|date }}</div>
+            <div class="col-md-10">The editor reopened the submission for copyediting.</div>
+          </div>
+        </li>
+      {% endif %}
+
+      <li class="list-group-item">
+        <div class="row">
+          <div class="col-md-2">{{ c.complete_datetime|date }}</div>
+          <div class="col-md-10">
+            <p>The editor finished copyediting the submission.</p>
+            {% if c.made_changes %}
+              <p>The editor comments regarding the changes made are as follows:</p>
+              <a class="editor-comments">{{ c.changelog_summary|linebreaks }}</a>
+            {% else %}
+              <p>No changes were made during the copyedit.</p>
+            {% endif %}
+          </div>
+        </div>
+      </li>
+    {% endfor %}
+  {% endif %}
+
+  <!-- resubmissions -->
   {# There may have been any number of submissions #}
   {% for e in edit_logs %}
     {% if e.is_resubmission %}
@@ -34,6 +67,7 @@
         </div>
       </li>
     {% endif %}
+
     <li class="list-group-item">
       <div class="row">
         <div class="col-md-2">{{ e.decision_datetime|date }}</div>
@@ -58,44 +92,27 @@
       </div>
     </li>
   {% endfor %}
-  {# End here if the project was rejected instead of published #}
-  {% if published %}
-    {# There may have been any number of copyedits #}
-    {% for c in copyedit_logs %}
-      {% if c.is_reedit %}
-        <li class="list-group-item">
-          <div class="row">
-            <div class="col-md-2">{{ c.start_datetime|date }}</div>
-            <div class="col-md-10">The editor reopened the submission for copyediting.</div>
-          </div>
-        </li>
-      {% endif %}
-      <li class="list-group-item">
-        <div class="row">
-          <div class="col-md-2">{{ c.complete_datetime|date }}</div>
-          <div class="col-md-10">
-            <p>The editor finished copyediting the submission.</p>
-            {% if c.made_changes %}
-              <p>The editor comments regarding the changes made are as follows:</p>
-              <a class="editor-comments">{{ c.changelog_summary|linebreaks }}</a>
-            {% else %}
-              <p>No changes were made during the copyedit.</p>
-            {% endif %}
-          </div>
-        </div>
-      </li>
-    {% endfor %}
-    <li class="list-group-item">
-      <div class="row">
-        <div class="col-md-2">{{ project.author_approval_datetime|date }}</div>
-        <div class="col-md-10">All authors approved the final project for publication.
+
+  <!-- editor assigned -->
+  <li class="list-group-item">
+    <div class="row">
+      <div class="col-md-2">{{ project.editor_assignment_datetime|date }}</div>
+      <div class="col-md-10">The project was assigned the editor: {{ project.editor.disp_name_email }}
+    </div>
+  </li>
+
+  <!-- submitted -->
+  <li class="list-group-item">
+    <div class="row">
+      <div class="col-md-2">{{ project.submission_datetime|date }}</div>
+      <div class="col-md-10">
+        <p>The project was submitted for review.</p>
+        {% if project.author_comments %}
+          <p>The submitting author included the following comments:</p>
+          <a class="editor-comments">{{ project.author_comments|linebreaks }}</a>
+        {% endif %}
       </div>
-    </li>
-    <li class="list-group-item">
-      <div class="row">
-        <div class="col-md-2">{{ project.publish_datetime|date }}</div>
-        <div class="col-md-10">The project was published.</div>
-      </div>
-    </li>
-  {% endif %}
+    </div>
+  </li>
+
 </ul>

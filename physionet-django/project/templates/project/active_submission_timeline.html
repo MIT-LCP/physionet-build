@@ -1,7 +1,7 @@
 {# Submission timeline for a project under submission #}
 <ul class="list-group list-group-flush">
 
-    <!-- break -->
+    <!-- author approval -->
     {# Awaiting authors to approve final project #}
     {% if project.submission_status == 50 %}
       <li class="list-group-item">
@@ -42,6 +42,8 @@
           </div>
         </div>
       </li>
+
+    <!-- editor approval -->
     {% elif project.submission_status == 60 %}
       <li class="list-group-item">
         <div class="row">
@@ -57,7 +59,7 @@
       </li>
     {% endif %}
 
-  <!-- break -->
+  <!-- copyediting -->
   {# Waiting for revisions #}
   {% if project.submission_status == 30 %}
     <li class="list-group-item">
@@ -128,7 +130,7 @@
       {% endfor %}
     {% endif %}
 
-  <!-- break -->
+  <!-- resubmissions -->
   {# At this point, there may have been any number of submissions #}
   {% for e in edit_logs reversed %}
     <li class="list-group-item">
@@ -176,7 +178,7 @@
     {% endif %}
   {% endfor %}
 
-  <!-- break -->
+  <!-- editor assigned -->
   {# Waiting for editor #}
   {% if project.submission_status == 10 %}
   <li class="list-group-item">
@@ -195,7 +197,7 @@
   </li>
   {% endif %}
 
-  <!-- break -->
+  <!-- submitted -->
   {# Submitted #}
   <li class="list-group-item">
     <div class="row">
