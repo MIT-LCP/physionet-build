@@ -1,3 +1,4 @@
+
 <table class="table table-bordered">
   <thead>
     <tr>
@@ -5,6 +6,9 @@
       <th>Email</th>
       <th>Profile</th>
       <th>Approval Date</th>
+     {% if is_submitting %}
+      <th>Approve on author's behalf  </th>
+      {% endif %}
     </tr>
   </thead>
   <tbody>
@@ -18,8 +22,41 @@
           <i class="fas fa-check" style="color:green"></i> {{ author.approval_datetime }}
         {% else %}
           <i class="far fa-clock"></i> Waiting
+
         {% endif %}
       </td>
+     {% if is_submitting and not author.approval_datetime and author.user != user %}
+      <td>
+        <button id="approve-on-behalf-publication-modal-button" type="button" class="btn btn-success" data-toggle="modal" data-target="#approve-on-behalf-modal">Approve
+        </button>
+        <div class="modal fade" id="approve-on-behalf-modal" tabindex="-1" role="dialog" aria-labelledby="approve-on-behalf-modal" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Approve on behalf of {{ author.name }}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+               <form action="" method="post">
+                  <div class="modal-body">
+                    {% csrf_token %}
+                    <p>If you are satisfied with the final state of the project, you may approve the publication.</p>
+                  </div>
+                  <div class="modal-footer">
+                    <button id="approve-publication-button" class="btn btn-success" type="submit" value="{{ author.id }}" name="approve_publication">Approve Publication</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                  </div>
+                </form>
+            </div>
+          </div>
+        </div>
+      </td>
+      {% else %}
+      <td>
+      </td>
+      {% endif %}
+
     </tr>
   {% endfor %}
   </tbody>

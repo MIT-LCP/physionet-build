@@ -1,6 +1,7 @@
 import os
 import pdb
 import re
+import logging
 from urllib.parse import quote_plus
 
 from django.contrib import messages
@@ -38,6 +39,7 @@ from console.utility import add_email_bucket_access
 
 from dal import autocomplete
 
+LOGGER = logging.getLogger(__name__)
 
 def project_auth(auth_mode=0, post_auth_mode=0):
     """
@@ -1106,6 +1108,14 @@ def project_submission(request, project_slug, **kwargs):
         # Author approves publication
         elif 'approve_publication' in request.POST:
             author = authors.get(user=user)
+            if (request.POST and author.is_submitting and
+                request.POST['approve_publication'].isnumeric()):
+                try:
+                    author = authors.get(id=request.POST['approve_publication'])
+                    LOGGER.info('Submitting author {0} for project {1} is approving\
+                     on behalf of {2}'.format(user, project, author.user))
+                except Author.DoesNotExist:
+                    pass
             # Register the approval if valid
             if project.approve_author(author):
                 if project.submission_status == 60:
