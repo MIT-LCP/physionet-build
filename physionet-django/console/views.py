@@ -260,7 +260,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
     copyedit_form = forms.CopyeditForm(instance=copyedit_log)
 
     if request.method == 'POST':
-        if 'edit_metadata' in request.POST:
+        if 'edit_content' in request.POST:
             description_form = project_forms.ContentForm(
                 resource_type=project.resource_type, data=request.POST,
                 instance=project)
