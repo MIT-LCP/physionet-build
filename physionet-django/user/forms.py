@@ -11,9 +11,9 @@ from django.utils.crypto import get_random_string
 from django.utils.translation import ugettext_lazy
 
 from project.models import PublishedProject
-from .models import AssociatedEmail, User, Profile, CredentialApplication
-from .widgets import ProfilePhotoInput
-from .validators import UsernameValidator, validate_name
+from user.models import AssociatedEmail, User, Profile, CredentialApplication
+from user.widgets import ProfilePhotoInput
+from user.validators import UsernameValidator, validate_name
 
 
 class AssociatedEmailChoiceForm(forms.Form):
@@ -134,6 +134,8 @@ class UsernameChangeForm(forms.ModelForm):
         "Record the original username in case it is needed"
         self.old_username = self.instance.username
         self.old_file_root = self.instance.file_root()
+        if User.objects.filter(username__iexact=self.cleaned_data['username']):
+            raise forms.ValidationError("A user with that username already exists.")
         return self.cleaned_data['username']
 
     def save(self):
@@ -214,6 +216,13 @@ class RegistrationForm(forms.ModelForm):
             'username':forms.TextInput(attrs={'class': 'form-control'}),
         }
 
+    def clean_username(self):
+        "Record the original username in case it is needed"
+        if User.objects.filter(username__iexact=self.cleaned_data['username']):
+            raise forms.ValidationError("A user with that username already exists.")
+        return self.cleaned_data['username']
+
+
     def clean_password2(self):
         # Check that the two password entries match
         password1 = self.cleaned_data.get('password1')
@@ -241,7 +250,6 @@ class RegistrationForm(forms.ModelForm):
         user = super(RegistrationForm, self).save(commit=False)
         user.set_password(self.cleaned_data['password1'])
         user.email = user.email.lower()
-        user.username = user.username.lower()
         if commit:
             user.save()
             # Save additional fields in Profile model

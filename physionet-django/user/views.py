@@ -227,8 +227,8 @@ def public_profile(request, username):
     """
     A user's public profile
     """
-    if User.objects.filter(username=username).exists():
-        public_user = User.objects.get(username=username)
+    if User.objects.filter(username__iexact=username).exists():
+        public_user = User.objects.get(username__iexact=username)
         public_email = public_user.associated_emails.filter(is_public=True).first()
     else:
         raise Http404()
@@ -242,7 +242,7 @@ def profile_photo(request, username):
     """
     Serve a user's profile photo
     """
-    user = User.objects.get(username=username)
+    user = User.objects.get(username__iexact=username)
     return utility.serve_file(user.profile.photo.path)
 
 def register(request):
