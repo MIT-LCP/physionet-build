@@ -48,6 +48,9 @@
           {% if news.project %}
           <p class="pub-details">News from: <a href="{% url 'published_project' news.project.slug news.project.version %}">{{ news.project }}.</a></p>
           {% endif %}
+          {% if news.url %}
+          <p class="pub-details">URL: <a href="{{ news.url }}">{{ news.url }}</a></p>
+          {% endif %}
         </font>
         <hr>
       {% endfor %}
