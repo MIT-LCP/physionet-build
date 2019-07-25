@@ -152,8 +152,8 @@ class UsernameChangeForm(forms.ModelForm):
                 name_components[1] = new_username
                 profile.photo.name = '/'.join(name_components)
                 profile.save()
-
-            os.rename(self.old_file_root, self.instance.file_root())
+            if os.path.exists(self.old_file_root):
+                os.rename(self.old_file_root, self.instance.file_root())
 
 
 class ProfileForm(forms.ModelForm):
