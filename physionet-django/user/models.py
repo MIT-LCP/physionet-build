@@ -7,16 +7,16 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 # from django.contrib.auth. import user_logged_in
 from django.contrib.auth import get_user_model, signals
 from django.core.exceptions import ValidationError
-from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
-from django.core.validators import EmailValidator
+from django.core.validators import (EmailValidator, validate_integer,
+    FileExtensionValidator, integer_validator)
 from django.utils.translation import ugettext as _
 
 
-from .validators import (UsernameValidator, validate_name, validate_alphaplus,
+from user.validators import (UsernameValidator, validate_name, validate_alphaplus,
     validate_alphaplusplus, validate_nan)
 
 
@@ -706,4 +706,5 @@ class CloudInformation(models.Model):
         on_delete=models.CASCADE)
     gcp_email = models.OneToOneField('user.AssociatedEmail', related_name='gcp_email',
         on_delete=models.SET_NULL, null=True)
-    aws_id = models.BigIntegerField(blank=True, null=True)
+    aws_id = models.CharField(max_length=60, null=True,  blank=True, default=None)#,
+        #validators=[integer_validator])

@@ -1459,30 +1459,20 @@ def project_request_access(request, project_slug, version, access_type):
         platform=access_type)
     try:
         # check user if user has gcp info in profile
-        if (user.cloud_information.gcp_email == None and 3 <= access_type >= 4) or (
+        if (user.cloud_information.gcp_email == None and access_type in [3,4]) or (
             user.cloud_information.aws_id == None and access_type == 2):
             messages.error(request, 'Please set the user cloud information in your settings')
             return redirect('edit_cloud')
         if access_type == 2:
-            pdb.set_trace()
             url = settings.AWS_CLOUD_FORMATION
-            payload = {'accountid': user.cloud_information.aws_id}
+            payload = {'accountid': ["{}".format(user.cloud_information.aws_id)]}
             headers = {settings.AWS_HEADER_KEY: settings.AWS_HEADER_VALUE, settings.AWS_HEADER_KEY2: settings.AWS_HEADER_VALUE2}
             response = requests.post(url, data=json.dumps(payload), headers=headers)
-        if access_type == 3:
-            email = user.cloud_information.gcp_email.email
-            grant_permissions = add_email_bucket_access(project, email)
-            if grant_permissions:
-                LOGGER.info("Access for GCP storage has been granted to {0}\
-                for project {1}".format(email, project))
-                messages.success(request, "Access for GCP storage has been \
-                    granted to {0} for project {1}".format(email, project))
-            else:
-                LOGGER.info("Error granting access for GCP storage for {0}\
-                in project {1}".format(email, project))
-                messages.success(request, "Error granting access for GCP \
-                    storage for {0} in project {1}".format(email, project))
-        elif access_type == 4:
+            message = response.json()['message'].split(',')[0]
+            LOGGER.info("AWS message '{0}' for project {1}".format(
+                response.json()['message'], project))
+            messages.success(request, message)
+        elif access_type in [3, 4]:
             email = user.cloud_information.gcp_email.email
             service = create_directory_service(settings.GCP_DELEGATION_EMAIL)
             for item in data_access:

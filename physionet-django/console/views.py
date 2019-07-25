@@ -521,8 +521,6 @@ def send_files_to_gcp(pid):
         utility.upload_files(project)
         project.gcp.sent_files = True
         project.gcp.finished_datetime = timezone.now()
-        DataAccess.objects.create(project=project, platform=3,
-            location='gs://{}'.format(project.gcp.bucket_name))
         if project.compressed_storage_size:
             project.gcp.sent_zip = True
         project.gcp.save()

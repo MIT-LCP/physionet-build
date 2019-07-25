@@ -31,7 +31,6 @@ def create_bucket(project, version, protected=False):
     """
     Function to create a bucket and set its permissions
     """
-    pdb.set_trace()
     storage_client = storage.Client()
     domain = 'physionet.org'
     if 'production' not in settings.SETTINGS_MODULE:

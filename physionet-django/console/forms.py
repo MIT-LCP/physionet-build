@@ -3,7 +3,9 @@ import pdb
 
 from django import forms
 from django.utils import timezone
-from django.core.validators import validate_integer
+from django.core.validators import validate_integer, validate_email, URLValidator
+from google.cloud import storage
+
 
 from notification.models import News
 from project.models import (ActiveProject, EditLog, CopyeditLog,
@@ -359,12 +361,28 @@ class DataAccessForm(forms.ModelForm):
             'platform': 'Form to access the data.',
             'location': """URL for aws-open-data:<br> https://URL<br><br>
                            Bucket name for aws-s3:<br> s3://BUCKET_NAME<br><br>
-                           Bucket name for gcp-bucket:<br> gs://BUCKET_NAME<br><br>
+                           Organizational Google Group manageing access for gcp-bucket:<br> EMAIL@ORGANIZATION<br><br>
                            Organizational Google Group manageing access for gcp-bigquery:<br> EMAIL@ORGANIZATION""",
             }
     def __init__(self, project, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.project = project
+
+    def clean_location(self):
+        platform = self.cleaned_data['platform']
+        location = self.cleaned_data['location']
+        if platform == 1:
+            validate = URLValidator()
+            validate(location)
+        elif platform == 2:
+            bucket = location.split('s3://')
+            if len(bucket) != 2 or bucket[0] != '':
+                raise forms.ValidationError('The AWS Bucket name is not valid')
+            if not re.fullmatch(r'[\da-z][\da-z-.]+[\da-z]', bucket[1]):
+                raise forms.ValidationError('The AWS Bucket name is not valid')
+        elif platform in [3, 4]:
+            validate_email(location)
+        return location
 
     def save(self):
         data_access = super(DataAccessForm, self).save(commit=False)
