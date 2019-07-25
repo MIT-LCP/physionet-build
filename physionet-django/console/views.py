@@ -853,7 +853,7 @@ def past_credential_applications(request):
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def credentialed_user_info(request, username):
-    c_user = User.objects.get(username=username)
+    c_user = User.objects.get(username__iexact=username)
     application = CredentialApplication.objects.get(user=c_user, status=2)
     return render(request, 'console/credentialed_user_info.html',
         {'c_user':c_user, 'application':application})
