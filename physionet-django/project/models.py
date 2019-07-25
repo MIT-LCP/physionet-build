@@ -590,7 +590,7 @@ class SubmissionInfo(models.Model):
         on_delete=models.SET_NULL, blank=True)
     # The very first submission
     submission_datetime = models.DateTimeField(null=True, blank=True)
-    author_comments = models.CharField(max_length=1000, default='', blank=True)
+    author_comments = models.CharField(max_length=10000, default='', blank=True)
     editor_assignment_datetime = models.DateTimeField(null=True, blank=True)
     # The last revision request (if any)
     revision_request_datetime = models.DateTimeField(null=True, blank=True)
@@ -1608,7 +1608,7 @@ class StorageRequest(BaseInvitation):
         validators=[MaxValueValidator(10240), MinValueValidator(1)])
     responder = models.ForeignKey('user.User', null=True,
         on_delete=models.SET_NULL)
-    response_message = models.CharField(max_length=500, default='', blank=True)
+    response_message = models.CharField(max_length=10000, default='', blank=True)
 
     def __str__(self):
         return '{0}GB for project: {1}'.format(self.request_allowance,
@@ -1742,7 +1742,7 @@ class CopyeditLog(models.Model):
     # Whether the submission was reopened for copyediting
     is_reedit = models.BooleanField(default=False)
     made_changes = models.NullBooleanField(null=True)
-    changelog_summary = models.CharField(default='', max_length=2500, blank=True)
+    changelog_summary = models.CharField(default='', max_length=10000, blank=True)
     complete_datetime = models.DateTimeField(null=True)
 
 
@@ -1813,7 +1813,7 @@ class GCP(models.Model):
     """
     project = models.OneToOneField('project.PublishedProject', related_name='gcp',
         on_delete=models.CASCADE)
-    bucket_name = models.CharField(max_length=100, null=True)
+    bucket_name = models.CharField(max_length=150, null=True)
     is_private = models.BooleanField(default=False)
     sent_files = models.BooleanField(default=False)
     managed_by = models.ForeignKey('user.User', related_name='gcp_manager',
