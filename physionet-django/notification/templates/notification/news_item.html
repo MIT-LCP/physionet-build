@@ -36,18 +36,9 @@
     {# Left column #}
     <div class="main-content">
       <h1>{{ news.title }}</h1>
-      <font size="5">
-      <p class="pub-details">Published: {{ news.publish_datetime|date }}.</p>
-      {% if news.project %}
-        <p class="pub-details">News from: <a href="{% url 'published_project' news.project.slug news.project.version %}">{{ news.project }}.</a></p>
-      {% endif %}
-      {% if news.url %}
-        <p class="pub-details">URL: <a href="{{ news.url }}">{{ news.url }}</a></p>
-      {% endif %}
-      </font>
-      <hr>
 
-        {{ news.content|safe }}
+        {% include "notification/news_content.html" %}
+
     </div>
   </div>
 </div>

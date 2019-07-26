@@ -271,6 +271,9 @@ a{
   margin: 0;
 }
 
+.news-content{
+  margin-top: 1em;
+}
 .more{
   text-align: right;
 }

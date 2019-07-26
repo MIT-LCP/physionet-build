@@ -42,16 +42,7 @@
         <h2>
             <a href="{% url 'news_by_id' news.id %}">{{ news.title }}</a>
         </h2>
-        {{ news.content|safe }}
-        <font size="4">
-          <p class="pub-details">Published: {{ news.publish_datetime|date }}.</p>
-          {% if news.project %}
-          <p class="pub-details">News from: <a href="{% url 'published_project' news.project.slug news.project.version %}">{{ news.project }}.</a></p>
-          {% endif %}
-          {% if news.url %}
-          <p class="pub-details">URL: <a href="{{ news.url }}">{{ news.url }}</a></p>
-          {% endif %}
-        </font>
+        {% include "notification/news_content.html" %}
         <hr>
       {% endfor %}
       <br>

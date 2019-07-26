@@ -1,0 +1,10 @@
+{% if news.project %}
+<p class="pub-details">News from: <a href="{% url 'published_project' news.project.slug news.project.version %}">{{ news.project }}.</a></p>
+{% endif %}
+<p class="pub-details">{{ news.publish_datetime|date }}</p>
+<div class='news-content'>
+  {{ news.content|safe }}
+</div>
+{% if news.url %}
+<p class="pub-details">Read more: <a href="{{ news.url }}">{{ news.url }}</a></p>
+{% endif %}
