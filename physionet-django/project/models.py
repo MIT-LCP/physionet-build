@@ -895,7 +895,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         sections = ProjectSection.objects.filter(resource_type=self.resource_type, required=True)
         for attr in sections:
             try:
-                text = unescape(strip_tags(self.content.get(project_section=attr).content))
+                text = unescape(strip_tags(self.project_content.get(project_section=attr).section_content))
                 if not text or text.isspace():
                     raise
             except:
