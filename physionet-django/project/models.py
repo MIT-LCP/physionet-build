@@ -432,7 +432,31 @@ class SectionContent(models.Model):
         unique_together = (('content_type', 'object_id', 'project_section'),)
 
 
-class Metadata(models.Model):
+class SubmissionInfo(models.Model):
+    """
+    Submission information, inherited by all projects.
+    """
+    editor = models.ForeignKey('user.User',
+        related_name='editing_%(class)ss', null=True,
+        on_delete=models.SET_NULL, blank=True)
+    # The very first submission
+    submission_datetime = models.DateTimeField(null=True, blank=True)
+    author_comments = models.CharField(max_length=1000, default='', blank=True)
+    editor_assignment_datetime = models.DateTimeField(null=True, blank=True)
+    # The last revision request (if any)
+    revision_request_datetime = models.DateTimeField(null=True, blank=True)
+    # The last resubmission (if any)
+    resubmission_datetime = models.DateTimeField(null=True, blank=True)
+    editor_accept_datetime = models.DateTimeField(null=True, blank=True)
+    # The last copyedit (if any)
+    copyedit_completion_datetime = models.DateTimeField(null=True, blank=True)
+    author_approval_datetime = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        abstract = True
+
+
+class Metadata(SubmissionInfo):
     """
     Metadata for all projects
 
@@ -490,7 +514,7 @@ class Metadata(models.Model):
     version_order = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
-        abstract = True
+        unique_together = (('core_project', 'version'),)
 
     def author_contact_info(self, only_submitting=False):
         """
@@ -604,30 +628,6 @@ class Metadata(models.Model):
         return display_files, display_dirs
 
 
-class SubmissionInfo(models.Model):
-    """
-    Submission information, inherited by all projects.
-    """
-    editor = models.ForeignKey('user.User',
-        related_name='editing_%(class)ss', null=True,
-        on_delete=models.SET_NULL, blank=True)
-    # The very first submission
-    submission_datetime = models.DateTimeField(null=True, blank=True)
-    author_comments = models.CharField(max_length=10000, default='', blank=True)
-    editor_assignment_datetime = models.DateTimeField(null=True, blank=True)
-    # The last revision request (if any)
-    revision_request_datetime = models.DateTimeField(null=True, blank=True)
-    # The last resubmission (if any)
-    resubmission_datetime = models.DateTimeField(null=True, blank=True)
-    editor_accept_datetime = models.DateTimeField(null=True, blank=True)
-    # The last copyedit (if any)
-    copyedit_completion_datetime = models.DateTimeField(null=True, blank=True)
-    author_approval_datetime = models.DateTimeField(null=True, blank=True)
-
-    class Meta:
-        abstract = True
-
-
 class UnpublishedProject(models.Model):
     """
     Abstract model inherited by ArchivedProject/ActiveProject
@@ -691,7 +691,7 @@ class UnpublishedProject(models.Model):
         return os.path.isfile(os.path.join(self.file_root(), 'RECORDS'))
 
 
-class ArchivedProject(Metadata, UnpublishedProject, SubmissionInfo):
+class ArchivedProject(Metadata, UnpublishedProject):
     """
     An archived project. Created when (maps to archive_reason):
     1. A user chooses to 'delete' their ActiveProject.
@@ -710,7 +710,7 @@ class ArchivedProject(Metadata, UnpublishedProject, SubmissionInfo):
         return ('{0} v{1}'.format(self.title, self.version))
 
 
-class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
+class ActiveProject(Metadata, UnpublishedProject):
     """
     The project used for submitting
 
@@ -1162,7 +1162,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         return published_project
 
     
-class PublishedProject(Metadata, SubmissionInfo):
+class PublishedProject(Metadata):
     """
     A published project. Immutable snapshot.
 
@@ -1202,11 +1202,6 @@ class PublishedProject(Metadata, SubmissionInfo):
         'RECORDS.txt':'List of WFDB format records',
         'ANNOTATORS.tsv':'List of WFDB annotation file types'
     }
-
-    content = GenericRelation(SectionContent)
-
-    class Meta:
-        unique_together = (('core_project', 'version'),)
 
     def __str__(self):
         return ('{0} v{1}'.format(self.title, self.version))
