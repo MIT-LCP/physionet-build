@@ -480,11 +480,13 @@ class Metadata(SubmissionInfo):
     title = models.CharField(max_length=200, validators=[validate_alphaplus])
     abstract = SafeHTMLField(max_length=10000, blank=True)
     release_notes = SafeHTMLField(blank=True)
-    version = models.CharField(max_length=15, default='', blank=True,
-                               validators=[validate_version])
+    authors = GenericRelation('project.Author')
+    topics = GenericRelation('project.Topic')
 
     # Project content
     project_content = GenericRelation(SectionContent)
+    references = GenericRelation('project.Reference')
+    publications = GenericRelation('project.Publication')
 
     # Short description used for search results, social media, etc
     short_description = models.CharField(max_length=250, blank=True)
@@ -510,8 +512,21 @@ class Metadata(SubmissionInfo):
     edit_logs = GenericRelation('project.EditLog')
     copyedit_logs = GenericRelation('project.CopyeditLog')
 
-    # For ordering projects with multiple versions
+    # Versioning and ordering of projects with multiple versions
+    version = models.CharField(max_length=15, default='', blank=True,
+                               validators=[validate_version])
     version_order = models.PositiveSmallIntegerField(default=0)
+
+    # Tracking of status change
+    modified_datetime = models.DateTimeField(auto_now=True)
+    archive_datetime = models.DateTimeField(auto_now_add=True)
+    archive_reason = models.PositiveSmallIntegerField()
+
+    # Whether this project is being worked on as a new version
+    is_new_version = models.BooleanField(default=False)
+    
+    # Access url slug, also used as a submitting project id.
+    slug = models.SlugField(max_length=20, db_index=True)
 
     class Meta:
         unique_together = (('core_project', 'version'),)
@@ -628,22 +643,10 @@ class Metadata(SubmissionInfo):
         return display_files, display_dirs
 
 
-class UnpublishedProject(models.Model):
+class UnpublishedProject():
     """
     Abstract model inherited by ArchivedProject/ActiveProject
     """
-    modified_datetime = models.DateTimeField(auto_now=True)
-    # Whether this project is being worked on as a new version
-    is_new_version = models.BooleanField(default=False)
-    # Access url slug, also used as a submitting project id.
-    slug = models.SlugField(max_length=20, db_index=True)
-
-    authors = GenericRelation('project.Author')
-    references = GenericRelation('project.Reference')
-    publications = GenericRelation('project.Publication')
-    topics = GenericRelation('project.Topic')
-
-    authors = GenericRelation('project.Author')
 
     class Meta:
         abstract = True
@@ -691,6 +694,13 @@ class UnpublishedProject(models.Model):
         return os.path.isfile(os.path.join(self.file_root(), 'RECORDS'))
 
 
+class ArchivedManager(models.Manager):
+    '''
+    Manager that returns a queryset of archived projects
+    '''
+    def get_queryset(self):
+        return super().get_queryset().exclude(archive_datetime=None)
+
 class ArchivedProject(Metadata, UnpublishedProject):
     """
     An archived project. Created when (maps to archive_reason):
@@ -699,12 +709,15 @@ class ArchivedProject(Metadata, UnpublishedProject):
     3. An ActiveProject is submitted and rejected.
     4. An ActiveProject is submitted and times out.
     """
-    archive_datetime = models.DateTimeField(auto_now_add=True)
-    archive_reason = models.PositiveSmallIntegerField()
-    content = GenericRelation(SectionContent)
 
     # Where all the archived project files are kept
     FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'archived-projects')
+
+    # Override default manager
+    objects = ArchivedManager()
+
+    class Meta:
+        proxy = True
 
     def __str__(self):
         return ('{0} v{1}'.format(self.title, self.version))
@@ -1176,8 +1189,6 @@ class PublishedProject(Metadata):
     # doi = models.CharField(max_length=50, unique=True, validators=[validate_doi])
     # Temporary workaround
     doi = models.CharField(max_length=50, default='')
-    slug = models.SlugField(max_length=20, db_index=True,
-        validators=[validate_slug])
     approved_users = models.ManyToManyField('user.User', db_index=True)
     # Fields for legacy pb databases
     is_legacy = models.BooleanField(default=False)
