@@ -518,6 +518,7 @@ class Metadata(SubmissionInfo):
     version_order = models.PositiveSmallIntegerField(default=0)
 
     # Tracking of status change
+    submission_status = models.PositiveSmallIntegerField(default=0)
     modified_datetime = models.DateTimeField(auto_now=True)
     archive_datetime = models.DateTimeField(auto_now_add=True)
     archive_reason = models.PositiveSmallIntegerField()
@@ -723,6 +724,14 @@ class ArchivedProject(Metadata, UnpublishedProject):
         return ('{0} v{1}'.format(self.title, self.version))
 
 
+class ActiveManager(models.Manager):
+    '''
+    Manager that returns a queryset of archived projects
+    '''
+    def get_queryset(self):
+        return super().get_queryset().filter(archive_datetime=None, publish_datetime=None)
+
+
 class ActiveProject(Metadata, UnpublishedProject):
     """
     The project used for submitting
@@ -738,7 +747,6 @@ class ActiveProject(Metadata, UnpublishedProject):
     - 60 : Authors approve copyedit. Ready for editor to publish
 
     """
-    submission_status = models.PositiveSmallIntegerField(default=0)
 
     # Max number of active submitting projects a user is allowed to have
     MAX_SUBMITTING_PROJECTS = 10
@@ -749,14 +757,18 @@ class ActiveProject(Metadata, UnpublishedProject):
     SUBMISSION_STATUS_LABELS = {
         0: 'Not submitted.',
         10: 'Awaiting editor assignment.',
-        20: 'Awaiting editor decision.',
+        20: 'Awaiting editor decision.Author',
         30: 'Revisions requested.',
         40: 'Submission accepted; awaiting editor copyedits.',
         50: 'Awaiting authors to approve publication.',
         60: 'Awaiting editor to publish.',
     }
 
-    content = GenericRelation(SectionContent)
+    # Override default manager
+    objects = ActiveManager()
+
+    class Meta:
+        proxy = True
 
     def storage_used(self):
         """
@@ -833,40 +845,10 @@ class ActiveProject(Metadata, UnpublishedProject):
         Archive the project. Create an ArchivedProject object, copy over
         the fields, and delete this object
         """
-        archived_project = ArchivedProject(archive_reason=archive_reason,
-            slug=self.slug)
 
-        # Direct copy over fields
-        for attr in [f.name for f in Metadata._meta.fields] + [f.name for f in SubmissionInfo._meta.fields] + ['modified_datetime']:
-            setattr(archived_project, attr, getattr(self, attr))
-
-        archived_project.save()
-
-        # Redirect the related objects
-        for reference in self.references.all():
-            reference.project = archived_project
-            reference.save()
-        for publication in self.publications.all():
-            publication.project = archived_project
-            publication.save()
-        for topic in self.topics.all():
-            topic.project = archived_project
-            topic.save()
-        for author in self.authors.all():
-            author.project = archived_project
-            author.save()
-        for edit_log in self.edit_logs.all():
-            edit_log.project = archived_project
-            edit_log.save()
-        for copyedit_log in self.copyedit_logs.all():
-            copyedit_log.project = archived_project
-            copyedit_log.save()
-        for parent_project in self.parent_projects.all():
-            archived_project.parent_projects.add(parent_project)
-        if self.resource_type.id == 1:
-            languages = self.programming_languages.all()
-            if languages:
-                archived_project.programming_languages.add(*list(languages))
+        self.archive_datetime = timezone.now()
+        self.archive_reason = archive_reason
+        self.save()
 
         # Voluntary delete
         if archive_reason == 1:
@@ -881,7 +863,6 @@ class ActiveProject(Metadata, UnpublishedProject):
         Appear to delete this project. Actually archive it.
         """
         self.archive(archive_reason=1)
-
 
     def check_integrity(self):
         """
@@ -1564,7 +1545,7 @@ class BaseInvitation(models.Model):
     """
     Base class for authorship invitations and storage requests
     """
-    project = models.ForeignKey('project.ActiveProject',
+    project = models.ForeignKey('project.Metadata',
         related_name='%(class)ss', on_delete=models.CASCADE)
     request_datetime = models.DateTimeField(auto_now_add=True)
     response_datetime = models.DateTimeField(null=True)
