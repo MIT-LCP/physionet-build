@@ -158,6 +158,7 @@ def create_directory_service(user_email):
         settings.SERVICE_ACCOUNT_PKCS12_FILE_PATH,
         settings.GCP_SECRET_KEY,
         scopes=['https://www.googleapis.com/auth/admin.directory.group'])
+    # This requires the email used to delegate the credentials to the serivce account
     credentials = credentials.create_delegated(user_email)
     return build('admin', 'directory_v1', credentials=credentials)
 

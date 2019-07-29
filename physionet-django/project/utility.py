@@ -8,6 +8,7 @@ import logging
 import requests
 import json
 
+from django.contrib import messages
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse, Http404
@@ -278,23 +279,33 @@ def grant_aws_open_data_access(user, project):
 def grant_gcp_group_access(user, project, data_access):
     """
     Funtion to add a specific email address to a organizational google group
+    Returns two things:
+        The first argunet is if acces was awarded.
+        The second argunet is if the access was awarded in a previous time.
     """
     email = user.cloud_information.gcp_email.email
     service = create_directory_service(settings.GCP_DELEGATION_EMAIL)
     for item in data_access:
         members = service.members().list(groupKey=item.location).execute()
+        access = "Access to the GCP BigQuery"
+        if data_access == 3:
+            access = "Access to the GCP bucket"
         if email not in str(members):
             # if not a member, add to the group
             outcome = service.members().insert(groupKey=item.location,
                 body={"email": email, "delivery_settings": "NONE"}).execute()
             if outcome['role'] == "MEMBER":
-                messages.success(request, 'BigQuery access has been \
-                    granted to {0} for project: {1}'.format(email, project))
+                messages.success(request, '{0} has been granted \
+                    to {1} for project: {2}'.format(access, email, project))
                 LOGGER.info("Added user {0} to BigQuery group {1}".format(
                     email, item.location))
+                return True
             else:
-                LOGGER.info("Error adding the user {0} to Bigquery \
-                    group {1}".format(email, item.location))
+                messages.success(request, 'There was an error granting \
+                    access.')
+                LOGGER.info("Error adding the user {0} to Bigquery group \
+                    {1}. Error: {2}".format(email, item.location, outcome))
         else:
-            messages.success(request, 'BigQuery access was awarded \
-                previously to {0} for project: {1}'.format(email, project))
+            messages.success(request, '{0} was previously awarded \
+                to {1} for project: {2}'.format(access, email, project))
+            return False

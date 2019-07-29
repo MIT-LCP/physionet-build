@@ -1462,14 +1462,18 @@ def project_request_access(request, project_slug, version, access_type):
             user.cloud_information.aws_id is None and access_type == 2):
             messages.error(request, 'Please set the user cloud information in your settings')
             return redirect('edit_cloud')
-        # Check if the request for access is for AWS Bucket
-        if access_type == 2:
-            message = utility.grant_aws_open_data_access(user, project)
-            messages.success(request, message)
-        # Checks if the request for access is either storage or BigQuery 
-        elif access_type in [3, 4]:
-            utility.grant_gcp_group_access(user, project, data_access)
     except CloudInformation.DoesNotExist:
         messages.error(request, 'Please set the user cloud information in your settings')
         return redirect('edit_cloud')
+            # Check if the request for access is for AWS Bucket
+    if access_type == 2:
+        message = utility.grant_aws_open_data_access(user, project, item)
+        notification.notify_aws_access_request(user, project, data_access)
+        messages.success(request, message)
+    elif access_type in [3, 4]:
+        for item in data_access:
+            # Checks if the request for access is either storage or BigQuery 
+            new_user = utility.grant_gcp_group_access(user, project, item)
+            notification.notify_gcp_access_request(item, user, project, new_user)
+
     return redirect('published_project', project_slug=project_slug, version=version)
