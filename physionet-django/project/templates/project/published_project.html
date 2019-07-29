@@ -24,6 +24,7 @@
 
 {% block content %}
 <div class="container">
+  {% include "message_snippet.html" %}
   <p>
     {{ project.resource_type|resource_badge|safe }}
     {{ project.access_policy|access_badge|safe }}

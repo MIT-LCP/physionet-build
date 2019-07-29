@@ -1373,7 +1373,8 @@ def published_project(request, project_slug, version, subdir=''):
                'topics': topics, 'languages': languages, 'contact': contact,
                'has_access': has_access, 'current_site': current_site,
                'news': news, 'all_project_versions': all_project_versions,
-               'parent_projects':parent_projects, 'data_access':data_access}
+               'parent_projects':parent_projects, 'data_access':data_access,
+               'messages':messages.get_messages(request)}
     # The file and directory contents
     if has_access:
         (display_files, display_dirs, dir_breadcrumbs, parent_dir,
