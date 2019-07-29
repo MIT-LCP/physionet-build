@@ -29,7 +29,7 @@ def news_year(request, year):
     """
     Get all the news of a specific year
     """
-    if int(year) < 1999 or int(year) > date.today().year:
+    if year < 1999 or year > date.today().year:
         return redirect('news')
 
     news_pieces = News.objects.filter(publish_datetime__year=int(year)) \
