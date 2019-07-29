@@ -730,25 +730,38 @@ def complete_credential_applications(request):
             else:
                 messages.error(request, 'Invalid submission. See form below.')
 
-    applications = CredentialApplication.objects.filter(status=0).annotate(mailto=Value('', CharField()))
+    applications = CredentialApplication.objects.filter(status=0)
+    # Create the extra field in the application to set the mailto link
+    applications.annotate(mailto=Value('', CharField()))
+    # Create the extra field in the application to set if its a known reference
+    applications.annotate(known_ref=Value(False, BooleanField()))
 
-    contacted_applications = applications.filter(reference_contact_datetime__isnull=False
-        ).order_by('reference_contact_datetime')
-    not_contacted_applications = applications.filter(reference_contact_datetime__isnull=True
-        ).order_by('application_datetime').annotate(known_ref=Value(False, BooleanField()))
-
-    for a in contacted_applications:
-        a.mailto = notification.mailto_process_credential_complete(a, comments=False)
-
-    for a in not_contacted_applications:
-        a.mailto = notification.mailto_process_credential_complete(a, comments=False)
-        if CredentialApplication.objects.filter(reference_email=a.reference_email,
+    for application in applications:
+        # Generate the mail to link
+        application.mailto = notification.mailto_process_credential_complete(application, comments=False)
+        if CredentialApplication.objects.filter(reference_email=application.reference_email,
             reference_contact_datetime__isnull=False):
-                a.known_ref = True
+            # If the reference has been contacted before, mark it so
+            application.known_ref = True
+
+    # Same function as before to sort the applications by contact date
+    temp = []
+    for item in applications:
+        if item.reference_contact_datetime:
+            if item.reference_response_datetime:
+                item.time_elapsed = (timezone.now() - item.reference_response_datetime).days
+            else:
+                item.time_elapsed = (timezone.now() - item.reference_contact_datetime).days
+            temp.append([1, item.reference_contact_datetime, item])
+        else:
+            item.time_elapsed = (timezone.now() - item.application_datetime).days
+            temp.append([0, item.application_datetime, item])
+
+    applications = [item[2] for item in sorted(temp)]
+
     return render(request, 'console/complete_credential_applications.html',
-        {'contacted_applications': contacted_applications,
-        'not_contacted_applications': not_contacted_applications,
-        'process_credential_form': process_credential_form})
+        {'process_credential_form': process_credential_form, 
+        'applications': applications})
 
 
 @login_required
