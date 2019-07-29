@@ -4,11 +4,17 @@ import os
 import shutil
 import pdb
 import uuid
+import logging
+import requests
+import json
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse, Http404
 
+from console.utility import create_directory_service
+
+LOGGER = logging.getLogger(__name__)
 
 class FileInfo():
     """
@@ -249,3 +255,46 @@ def get_form_errors(form):
     for field in form.errors:
         all_errors += form.errors[field]
     return all_errors
+
+def grant_aws_open_data_access(user, project):
+    """
+    Function to grant a AWS ID access to the bukets in the Open Data
+    AWS platform.
+    """
+    url = settings.AWS_CLOUD_FORMATION
+    # The paylod has to be a string in an array
+    payload = {'accountid': ["{}".format(user.cloud_information.aws_id)]}
+    # Custom headers set as a key for a lambda function in AWS to grant access
+    headers = {settings.AWS_HEADER_KEY: settings.AWS_HEADER_VALUE,
+        settings.AWS_HEADER_KEY2: settings.AWS_HEADER_VALUE2}
+    # Do a request to AWS and try to add the user ID to the bucket
+    response = requests.post(url, data=json.dumps(payload), headers=headers)
+    message = response.json()['message'].split(',')[0]
+    # The message can differ if the ID is already there, or non-existent
+    LOGGER.info("AWS message '{0}' for project {1}".format(
+        response.json()['message'], project))
+    return message
+
+def grant_gcp_group_access(user, project, data_access):
+    """
+    Funtion to add a specific email address to a organizational google group
+    """
+    email = user.cloud_information.gcp_email.email
+    service = create_directory_service(settings.GCP_DELEGATION_EMAIL)
+    for item in data_access:
+        members = service.members().list(groupKey=item.location).execute()
+        if email not in str(members):
+            # if not a member, add to the group
+            outcome = service.members().insert(groupKey=item.location,
+                body={"email": email, "delivery_settings": "NONE"}).execute()
+            if outcome['role'] == "MEMBER":
+                messages.success(request, 'BigQuery access has been \
+                    granted to {0} for project: {1}'.format(email, project))
+                LOGGER.info("Added user {0} to BigQuery group {1}".format(
+                    email, item.location))
+            else:
+                LOGGER.info("Error adding the user {0} to Bigquery \
+                    group {1}".format(email, item.location))
+        else:
+            messages.success(request, 'BigQuery access was awarded \
+                previously to {0} for project: {1}'.format(email, project))

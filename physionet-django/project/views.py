@@ -2,8 +2,6 @@ import os
 import pdb
 import re
 import logging
-import requests
-import json
 from urllib.parse import quote_plus
 
 from django.conf import settings
@@ -38,7 +36,7 @@ import notification.utility as notification
 from physionet.utility import serve_file
 from user.forms import ProfileForm, AssociatedEmailChoiceForm
 from user.models import User, CloudInformation
-from console.utility import add_email_bucket_access, create_directory_service
+from console.utility import add_email_bucket_access
 
 from dal import autocomplete
 
@@ -1376,7 +1374,6 @@ def published_project(request, project_slug, version, subdir=''):
                'has_access': has_access, 'current_site': current_site,
                'news': news, 'all_project_versions': all_project_versions,
                'parent_projects':parent_projects, 'data_access':data_access}
-
     # The file and directory contents
     if has_access:
         (display_files, display_dirs, dir_breadcrumbs, parent_dir,
@@ -1452,49 +1449,26 @@ def project_request_access(request, project_slug, version, access_type):
     """
     user = request.user
     project = PublishedProject.objects.get(slug=project_slug, version=version)
+    # Check if the person has access to the project.
     if not project.has_access(request.user):
         return redirect('published_project', project_slug=project_slug,
             version=version)
     data_access = DataAccess.objects.filter(project=project,
         platform=access_type)
     try:
-        # check user if user has gcp info in profile
-        if (user.cloud_information.gcp_email == None and access_type in [3,4]) or (
-            user.cloud_information.aws_id == None and access_type == 2):
+        # check user if user has GCP or AWS info in profile
+        if (user.cloud_information.gcp_email is None and access_type in [3, 4]) or (
+            user.cloud_information.aws_id is None and access_type == 2):
             messages.error(request, 'Please set the user cloud information in your settings')
             return redirect('edit_cloud')
+        # Check if the request for access is for AWS Bucket
         if access_type == 2:
-            url = settings.AWS_CLOUD_FORMATION
-            payload = {'accountid': ["{}".format(user.cloud_information.aws_id)]}
-            headers = {settings.AWS_HEADER_KEY: settings.AWS_HEADER_VALUE, settings.AWS_HEADER_KEY2: settings.AWS_HEADER_VALUE2}
-            response = requests.post(url, data=json.dumps(payload), headers=headers)
-            message = response.json()['message'].split(',')[0]
-            LOGGER.info("AWS message '{0}' for project {1}".format(
-                response.json()['message'], project))
+            message = utility.grant_aws_open_data_access(user, project)
             messages.success(request, message)
+        # Checks if the request for access is either storage or BigQuery 
         elif access_type in [3, 4]:
-            email = user.cloud_information.gcp_email.email
-            service = create_directory_service(settings.GCP_DELEGATION_EMAIL)
-            for item in data_access:
-                members = service.members().list(groupKey=item.location).execute()
-                if email not in str(members):
-                    # if not a member, add to the group
-                    outcome = service.members().insert(groupKey=item.location,
-                        body={"email": email, "delivery_settings": "NONE"}).execute()
-                    if outcome['role'] == "MEMBER":
-                        messages.success(request, 'BigQuery access has been \
-                            granted to {0} for project: {1}'.format(email, project))
-                        LOGGER.info("Added user {0} to BigQuery group {1}".format(
-                            email, item.location))
-                    else:
-                        LOGGER.info("Error adding the user {0} to Bigquery \
-                            group {1}".format(email, item.location))
-                else:
-                    messages.success(request, 'BigQuery access was awarded \
-                        previously to {0} for project: {1}'.format(email, project))
+            utility.grant_gcp_group_access(user, project, data_access)
     except CloudInformation.DoesNotExist:
         messages.error(request, 'Please set the user cloud information in your settings')
         return redirect('edit_cloud')
     return redirect('published_project', project_slug=project_slug, version=version)
-
-
