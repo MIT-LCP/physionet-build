@@ -572,6 +572,7 @@ def manage_published_project(request, project_slug, version):
                     delete_files=int(deprecate_form.cleaned_data['delete_files']))
                 messages.success(request, 'The project files have been deprecated.')
         elif 'bucket' in request.POST and has_credentials:
+            # Bucket names cannot be capitalized letters
             slug = request.POST['bucket'].lower()
             if not utility.check_bucket(slug, project.version):
                 bucket_name = is_private = False
@@ -601,7 +602,8 @@ def manage_published_project(request, project_slug, version):
             try:
                 data_access = DataAccess.objects.get(project=project, id=request.POST['data_access_removal'])
                 data_access.delete()
-            except TypeError:
+                # Deletes the object if it exists for that specific project.
+            except DataAccess.DoesNotExist:
                 pass
                 
     data_access = DataAccess.objects.filter(project=project)
