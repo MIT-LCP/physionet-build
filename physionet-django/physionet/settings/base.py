@@ -161,6 +161,7 @@ _inline_tags = {
     'u':      True,
     'var':    True,
     'wbr':    True,
+    'img':    {'attributes': ['alt', 'src', 'height', 'width']},
 }
 # Block/flow content
 _block_tags = {
