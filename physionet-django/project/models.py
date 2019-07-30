@@ -908,8 +908,9 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
         # Metadata
         for attr in ActiveProject.REQUIRED_FIELDS[self.resource_type]:
-            text = unescape(strip_tags(getattr(self, attr)))
-            if not text or text.isspace():
+            value = getattr(self, attr)
+            text = unescape(strip_tags(str(value)))
+            if value is None or not text or text.isspace():
                 l = self.LABELS[self.resource_type][attr] if attr in self.LABELS[self.resource_type] else attr.title().replace('_', ' ')
                 self.integrity_errors.append('Missing required field: {0}'.format(l))
 
