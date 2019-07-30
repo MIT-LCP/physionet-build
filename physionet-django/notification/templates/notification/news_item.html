@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+{{ year }} News
+{% endblock %}
+
+
+{% block content %}
+<div class="main">
+  <div class="row">
+    {# Right column #}
+    <div class="main-side">
+      <div class="card">
+        <h2 class="card-header">Archives</h2>
+        <div class="card-body">
+          <ol class="list-unstyled mb-0">
+            {% for year in news_years %}
+              <li><a href="{% url 'news_year' year %}">{{ year }}</a></li>
+            {% endfor %}
+          </ol>
+        </div>
+      </div>
+      <div class="card my-4">
+        <h2 class="card-header">Elsewhere</h2>
+        <div class="card-body">
+          <ul class="list-unstyled mb-0">
+            <li>
+              <a href="https://github.com/MIT-LCP/" style="text-decoration: none; color: #000000;"><i class="fab fa-github"></i> Github</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    {# Left column #}
+    <div class="main-content">
+      <h1>{{ news.title }}</h1>
+
+        {% include "notification/news_content.html" %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}
