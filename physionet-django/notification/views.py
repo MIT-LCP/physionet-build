@@ -3,6 +3,7 @@ from datetime import date
 from django.shortcuts import render, redirect
 from django.utils import timezone
 from django.db.models import Min, Max
+from django.http import Http404
 
 from notification.models import News
 
@@ -57,8 +58,7 @@ def news_by_id(request, news_id, max_items=20):
         return render(request, 'notification/news_item.html', {'news': news,
           'news_years': news_years})
     except News.DoesNotExist:
-        messages.success(request, 'News requested was not found.')
-        return redirect('news')
+        raise Http404()
 
 def news_rss(request, max_items=100):
     news_pieces = News.objects.order_by('-publish_datetime')[:max_items]
