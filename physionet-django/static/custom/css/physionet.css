@@ -36,6 +36,9 @@ table {
   border-bottom: 1px solid #dfdfdf;
   margin: 1em auto;
 }
+table > caption {
+  caption-side: top;
+}
 thead, tbody, tfoot {
   border-top: 1px solid #dfdfdf;
 }
