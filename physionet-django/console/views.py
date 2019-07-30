@@ -876,7 +876,8 @@ def news_add(request):
         form = forms.NewsForm(data=request.POST)
         if form.is_valid():
             form.save()
-            return render(request, 'console/news_done.html', {'action':'Added'})
+            messages.success(request, 'The news item has been added')
+            return redirect('news_console')
     else:
         form = forms.NewsForm()
 
@@ -912,7 +913,8 @@ def news_edit(request, news_id):
                 messages.success(request, 'The news item has been updated')
         elif 'delete' in request.POST:
             news.delete()
-            return render(request, 'console/news_done.html', {'action':'Deleted'})
+            messages.success(request, 'The news item has been deleted')
+            return redirect('news_console')
     else:
         form = forms.NewsForm(instance=news)
 
