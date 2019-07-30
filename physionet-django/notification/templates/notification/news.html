@@ -37,21 +37,12 @@
     </div>{# Left column #}<div class="main-content">
       <h1>{{ year }} News</h1>
       <br>
+
       {% for news in news_pieces %}
-        <p>
-          <span class="badge badge-dark">
-            <i class="fa fa-newspaper"></i>{{ news.publish_datetime|date:"Y" }}
-          </span>
-        </p>
         <h2>
-          {% if news.url %}
-            <a href="{{ news.url }}">{{ news.title }}</a>
-          {% else %}
-            {{ news.title }}
-          {% endif %}
+            <a href="{% url 'news_by_id' news.id %}">{{ news.title }}</a>
         </h2>
-        {{ news.content|safe }}
-        <p class="pub-details">Published: {{ news.publish_datetime|date }}.</p>
+        {% include "notification/news_content.html" %}
         <hr>
       {% endfor %}
       <br>

@@ -271,6 +271,12 @@ a{
 .pub-details{
   font-size: 75%;
   color: grey;
+  margin: 0;
+}
+
+.news-content{
+  margin-top: 1em;
+
 }
 
 .more{
