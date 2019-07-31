@@ -16,6 +16,7 @@ from django.utils import timezone
 from django.db import DatabaseError, transaction
 from django.db.models import Q, CharField, Value, IntegerField
 from background_task import background
+from django.core.paginator import Paginator
 
 from notification.models import News
 import notification.utility as notification
@@ -617,8 +618,22 @@ def users(request):
     """
     List of users
     """
-    users = User.objects.all().order_by('username')
-    return render(request, 'console/users.html', {'users':users})
+    all_users = User.objects.all().order_by('username')
+
+    # PAGINATION
+    page = request.GET.get('page', 1)
+    paginator = Paginator(all_users, 100)
+    try:
+        users = paginator.page(page)
+    except:
+        users = paginator.page(1)
+
+    querystring = re.sub(r'\&*page=\d*', '', request.GET.urlencode())
+    if querystring != '':
+        querystring += '&'
+
+    return render(request, 'console/users.html', {'users': users,
+        'querystring': querystring})
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
@@ -651,10 +666,24 @@ def users_inactive(request):
     """
     List of users
     """
-    inactive_users = User.objects.filter(Q(is_active=False) | Q(last_login__lt=timezone.now() 
-                + timezone.timedelta(days=-90))).order_by('username')
+    all_inactive_users = User.objects.filter(Q(is_active=False) | Q(
+        last_login__lt=timezone.now() + timezone.timedelta(days=-90))
+        ).order_by('username')
 
-    return render(request, 'console/users.html', {'users':inactive_users})
+    # PAGINATION
+    page = request.GET.get('page', 1)
+    paginator = Paginator(all_inactive_users, 100)
+    try:
+        inactive_users = paginator.page(page)
+    except:
+        inactive_users = paginator.page(1)
+
+    querystring = re.sub(r'\&*page=\d*', '', request.GET.urlencode())
+    if querystring != '':
+        querystring += '&'
+
+    return render(request, 'console/users.html', {'users': inactive_users,
+        'querystring': querystring})
 
 
 @login_required
