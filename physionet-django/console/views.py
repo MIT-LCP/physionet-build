@@ -621,22 +621,14 @@ def users(request):
     all_users = User.objects.all().order_by('username')
 
     # PAGINATION
-    params = request.GET.copy()
-    page = params.get('page', 1)
-    if 'page' in params:
-        params.pop('page')
+    page = request.GET.get('page', 1)
     paginator = Paginator(all_users, 100)
     try:
         users = paginator.page(page)
     except (EmptyPage, PageNotAnInteger):
         users = paginator.page(1)
 
-    querystring = params.urlencode()
-    if querystring != '':
-        querystring += '&'
-
-    return render(request, 'console/users.html', {'users': users,
-        'querystring': querystring})
+    return render(request, 'console/users.html', {'users': users})
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
@@ -674,22 +666,14 @@ def users_inactive(request):
         ).order_by('username')
 
     # PAGINATION
-    params = request.GET.copy()
-    page = params.get('page', 1)
-    if 'page' in params:
-        params.pop('page')
+    page = request.GET.get('page', 1)
     paginator = Paginator(all_inactive_users, 100)
     try:
         inactive_users = paginator.page(page)
     except (EmptyPage, PageNotAnInteger):
         inactive_users = paginator.page(1)
 
-    querystring = params.urlencode()
-    if querystring != '':
-        querystring += '&'
-
-    return render(request, 'console/users.html', {'users': inactive_users,
-        'querystring': querystring})
+    return render(request, 'console/users.html', {'users': inactive_users})
 
 
 @login_required
