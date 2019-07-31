@@ -33,9 +33,9 @@
 <div class="card mb-3">
   <div class="card-header">
     {% ifequal request.path user_list_inactive %}Inactive
-      PhysioNet Users <span class="badge badge-pill badge-danger">{{ users|length }}</span>
+      PhysioNet Users <span class="badge badge-pill badge-danger">{{ users.paginator.count }}</span>
     {% else %}
-      PhysioNet Users <span class="badge badge-pill badge-info">{{ users|length }}</span>
+      PhysioNet Users <span class="badge badge-pill badge-info">{{ users.paginator.count }}</span>
     {% endifequal %}
   </div>
   <div class="card-body">
