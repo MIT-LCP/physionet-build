@@ -16,7 +16,7 @@ from django.utils import timezone
 from django.db import DatabaseError, transaction
 from django.db.models import Q, CharField, Value, IntegerField
 from background_task import background
-from django.core.paginator import Paginator
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from notification.models import News
 import notification.utility as notification
@@ -621,14 +621,17 @@ def users(request):
     all_users = User.objects.all().order_by('username')
 
     # PAGINATION
-    page = request.GET.get('page', 1)
+    params = request.GET.copy()
+    page = params.get('page', 1)
+    if 'page' in params:
+        params.pop('page')
     paginator = Paginator(all_users, 100)
     try:
         users = paginator.page(page)
-    except:
+    except (EmptyPage, PageNotAnInteger):
         users = paginator.page(1)
 
-    querystring = re.sub(r'\&*page=\d*', '', request.GET.urlencode())
+    querystring = params.urlencode()
     if querystring != '':
         querystring += '&'
 
@@ -671,14 +674,17 @@ def users_inactive(request):
         ).order_by('username')
 
     # PAGINATION
-    page = request.GET.get('page', 1)
+    params = request.GET.copy()
+    page = params.get('page', 1)
+    if 'page' in params:
+        params.pop('page')
     paginator = Paginator(all_inactive_users, 100)
     try:
         inactive_users = paginator.page(page)
-    except:
+    except (EmptyPage, PageNotAnInteger):
         inactive_users = paginator.page(1)
 
-    querystring = re.sub(r'\&*page=\d*', '', request.GET.urlencode())
+    querystring = params.urlencode()
     if querystring != '':
         querystring += '&'
 
