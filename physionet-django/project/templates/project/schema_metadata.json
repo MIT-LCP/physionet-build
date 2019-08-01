@@ -12,22 +12,22 @@
   {% else %}{# >3: treat as data}
   "@type": "Dataset",
   {% endif %}
-  "name": "{{ project.title }}",
-  "description": "{{ project.abstract|truncatechars_html:5000|striptags }}",
-  "version": "{{ project.version }}",
-  "license": "{{ project.license }}",
-  "datePublished" : "{{ project.publish_datetime|date }}",
-  "url": "https://{{ current_site }}{% url 'published_project_latest' project.slug %}",
+  "name": "{{ project.title|escapejs }}",
+  "description": "{{ project.abstract|truncatechars_html:5000|striptags|escapejs }}",
+  "version": "{{ project.version|escapejs }}",
+  "license": "{{ project.license|escapejs }}",
+  "datePublished" : "{{ project.publish_datetime|date|escapejs }}",
+  "url": "https://{{ current_site }}{% url 'published_project_latest' project.slug|escapejs %}",
   {% if project.doi %}
-  "identifier": "https://doi.org/{{ project.doi }}",
+  "identifier": "https://doi.org/{{ project.doi|escapejs }}",
   {% endif %}
   "creator": [
   {% for author in authors %}
     {
       "@type": "Person",
-      "givenName": "{{ author.first_names }}",
-      "familyName": "{{ author.last_name }}",
-      "name": "{{ author.first_names }} {{ author.last_name }}"
+      "givenName": "{{ author.first_names|escapejs }}",
+      "familyName": "{{ author.last_name|escapejs }}",
+      "name": "{{ author.first_names|escapejs }} {{ author.last_name|escapejs }}"
     }{% if forloop.counter < authors|length %},{% endif %}
   {% endfor %}
     ],
@@ -38,7 +38,7 @@
   "distribution": [
     {
       "@type": "DataDownload",
-      "contentUrl": "https://{{ current_site }}{% url 'published_project_latest' project.slug %}#files"
+      "contentUrl": "https://{{ current_site }}{% url 'published_project_latest' project.slug|escapejs %}#files"
     }
   ]
 }
