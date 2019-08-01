@@ -14,7 +14,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.db import DatabaseError, transaction
-from django.db.models import Q, CharField, Value, IntegerField, BooleanField
+from django.db.models import Q, CharField, Value, IntegerField, F, functions
 from background_task import background
 
 from notification.models import News
@@ -673,22 +673,16 @@ def credential_applications(request):
     """
     Ongoing credential applications
     """
-    applications = CredentialApplication.objects.filter(status=0).annotate(
-        time_elapsed=Value(0, IntegerField()))
-
-    temp = []
-    for item in applications:
-        if item.reference_contact_datetime:
-            if item.reference_response_datetime:
-                item.time_elapsed = (timezone.now() - item.reference_response_datetime).days
-            else:
-                item.time_elapsed = (timezone.now() - item.reference_contact_datetime).days
-            temp.append([1, item.reference_contact_datetime, item])
-        else:
-            item.time_elapsed = (timezone.now() - item.application_datetime).days
-            temp.append([0, item.application_datetime, item])
-
-    applications = [item[2] for item in sorted(temp)]
+    applications = CredentialApplication.objects.filter(status=0)
+    # Set first_date as the first occurrence of the following three
+    applications = applications.annotate(first_date=functions.Coalesce(
+            'reference_response_datetime', 'reference_contact_datetime',
+            'application_datetime'))
+    # Do the propper sort
+    applications = applications.order_by(F('reference_contact_datetime'), 'application_datetime')
+    # Set the days that have passed since the last action was taken
+    for application in applications:
+        application.time_elapsed = (timezone.now() - application.first_date).days
 
     return render(request, 'console/credential_applications.html',
         {'applications': applications})
@@ -731,33 +725,16 @@ def complete_credential_applications(request):
                 messages.error(request, 'Invalid submission. See form below.')
 
     applications = CredentialApplication.objects.filter(status=0)
-    # Create the extra field in the application to set the mailto link
-    applications.annotate(mailto=Value('', CharField()))
-    # Create the extra field in the application to set if its a known reference
-    applications.annotate(known_ref=Value(False, BooleanField()))
+    # Do the proper sort
+    applications = applications.order_by(F('reference_contact_datetime'), 'application_datetime')
 
     for application in applications:
-        # Generate the mail to link
-        application.mailto = notification.mailto_process_credential_complete(application, comments=False)
+        application.mailto = notification.mailto_process_credential_complete(
+            application, comments=False)
         if CredentialApplication.objects.filter(reference_email=application.reference_email,
             reference_contact_datetime__isnull=False):
             # If the reference has been contacted before, mark it so
             application.known_ref = True
-
-    # Same function as before to sort the applications by contact date
-    temp = []
-    for item in applications:
-        if item.reference_contact_datetime:
-            if item.reference_response_datetime:
-                item.time_elapsed = (timezone.now() - item.reference_response_datetime).days
-            else:
-                item.time_elapsed = (timezone.now() - item.reference_contact_datetime).days
-            temp.append([1, item.reference_contact_datetime, item])
-        else:
-            item.time_elapsed = (timezone.now() - item.application_datetime).days
-            temp.append([0, item.application_datetime, item])
-
-    applications = [item[2] for item in sorted(temp)]
 
     return render(request, 'console/complete_credential_applications.html',
         {'process_credential_form': process_credential_form, 
