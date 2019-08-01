@@ -8,7 +8,7 @@
   {% elif project.resource_type == 2 %}{# 2: Challenge #}
   "@type": "Article",
   {% elif project.resource_type == 3 %}{# 3: Model #}
-  "@type": "@type": "Dataset",
+  "@type": "Dataset",
   {% else %}{# >3: treat as data}
   "@type": "Dataset",
   {% endif %}
@@ -42,7 +42,4 @@
     }
   ]
 }
-</script>
-
-
- 
+</script> 
