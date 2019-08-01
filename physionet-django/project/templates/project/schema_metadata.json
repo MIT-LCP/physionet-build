@@ -1,17 +1,7 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org/",
-  {% if project.resource_type == 0 %}{# 0: Data #}
-  "@type": "Dataset",
-  {% elif project.resource_type == 1 %}{# 1: Software #}
-  "@type": "SoftwareSourceCode",
-  {% elif project.resource_type == 2 %}{# 2: Challenge #}
-  "@type": "Article",
-  {% elif project.resource_type == 3 %}{# 3: Model #}
-  "@type": "Dataset",
-  {% else %}{# >3: treat as data}
-  "@type": "Dataset",
-  {% endif %}
+  "@type": "{{ project.schema_org_resource_type|escapejs }}",
   "name": "{{ project.title|escapejs }}",
   "description": "{{ project.abstract|truncatechars_html:5000|striptags|escapejs }}",
   "version": "{{ project.version|escapejs }}",
@@ -42,4 +32,4 @@
     }
   ]
 }
-</script> 
+</script>
