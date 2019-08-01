@@ -6,7 +6,7 @@ After=emperor.uwsgi.service
 Environment=DJANGO_SETTINGS_MODULE=physionet.settings.production
 ExecStart=/physionet/python-env/physionet/bin/python /physionet/physionet-build/physionet-django/manage.py process_tasks --log-std
 Restart=always
-KillSignal=SIGQUIT
+KillSignal=SIGINT
 Type=simple
 StandardError=syslog
 NotifyAccess=all
