@@ -1,0 +1,48 @@
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org/",
+  {% if project.resource_type == 0 %}{# 0: Data #}
+  "@type": "Dataset",
+  {% elif project.resource_type == 1 %}{# 1: Software #}
+  "@type": "SoftwareSourceCode",
+  {% elif project.resource_type == 2 %}{# 2: Challenge #}
+  "@type": "Article",
+  {% elif project.resource_type == 3 %}{# 3: Model #}
+  "@type": "@type": "Dataset",
+  {% else %}{# >3: treat as data}
+  "@type": "Dataset",
+  {% endif %}
+  "name": "{{ project.title }}",
+  "description": "{{ project.abstract|truncatechars_html:5000|striptags }}",
+  "version": "{{ project.version }}",
+  "license": "{{ project.license }}",
+  "datePublished" : "{{ project.publish_datetime|date }}",
+  "url": "https://{{ current_site }}{% url 'published_project_latest' project.slug %}",
+  {% if project.doi %}
+  "identifier": "https://doi.org/{{ project.doi }}",
+  {% endif %}
+  "creator": [
+  {% for author in authors %}
+    {
+      "@type": "Person",
+      "givenName": "{{ author.first_names }}",
+      "familyName": "{{ author.last_name }}",
+      "name": "{{ author.first_names }} {{ author.last_name }}"
+    }{% if forloop.counter < authors|length %},{% endif %}
+  {% endfor %}
+    ],
+  "includedInDataCatalog":{
+     "@type": "DataCatalog",
+     "name": "physionet.org"
+  },
+  "distribution": [
+    {
+      "@type": "DataDownload",
+      "contentUrl": "https://{{ current_site }}{% url 'published_project_latest' project.slug %}#files-panel"
+    }
+  ]
+}
+</script>
+
+
+ 
