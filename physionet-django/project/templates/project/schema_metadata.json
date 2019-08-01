@@ -33,7 +33,7 @@
     ],
   "includedInDataCatalog":{
      "@type": "DataCatalog",
-     "name": "physionet.org"
+     "name": "{{ current_site }}"
   },
   "distribution": [
     {
