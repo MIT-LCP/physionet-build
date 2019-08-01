@@ -38,7 +38,7 @@
   "distribution": [
     {
       "@type": "DataDownload",
-      "contentUrl": "https://{{ current_site }}{% url 'published_project_latest' project.slug %}#files-panel"
+      "contentUrl": "https://{{ current_site }}{% url 'published_project_latest' project.slug %}#files"
     }
   ]
 }
