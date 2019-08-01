@@ -8,6 +8,9 @@ from .base import *
 DEBUG = False
 
 ALLOWED_HOSTS = ['alpha.physionet.org', 'physionet-production.ecg.mit.edu', 'physionet.org', 'www.physionet.org']
+SITE_ID = 1
+INSTALLED_APPS += ['django.contrib.sites']
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
