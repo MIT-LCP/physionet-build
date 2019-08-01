@@ -3,7 +3,7 @@
     <ul class="pagination">
       <li><a href="?{{ querystring }}page=1">&laquo;</a></li>
       {% if pagination.has_previous %}
-        <li><a href="?{{ querystring }}page={{ users.previous_page_number }}">&lsaquo;</a></li>
+        <li><a href="?{{ querystring }}page={{ pagination.previous_page_number }}">&lsaquo;</a></li>
       {% else %}
         <li class="disabled"><span>&lsaquo;</span></li>
       {% endif %}
