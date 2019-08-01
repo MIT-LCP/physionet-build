@@ -6,6 +6,7 @@ from google.api_core.exceptions import BadRequest
 from googleapiclient.discovery import build
 from google.cloud import storage
 from django.conf import settings
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 import logging
 
@@ -162,4 +163,13 @@ def create_directory_service(user_email):
     credentials = credentials.create_delegated(user_email)
     return build('admin', 'directory_v1', credentials=credentials)
 
+
+def paginate(request, to_paginate, maximun):
+    """
+    Function to paginate the arguments. 
+    """
+    page = request.GET.get('page', 1)
+    paginator = Paginator(to_paginate, maximun)
+    paginated = paginator.get_page(page)
+    return paginated
 

@@ -16,7 +16,6 @@ from django.utils import timezone
 from django.db import DatabaseError, transaction
 from django.db.models import Q, CharField, Value, IntegerField, F, functions
 from background_task import background
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from notification.models import News
 import notification.utility as notification
@@ -59,6 +58,7 @@ def make_checksum_background(pid):
 
 def is_admin(user, *args, **kwargs):
     return user.is_admin
+
 
 def handling_editor(base_view):
     """
@@ -634,14 +634,7 @@ def users(request):
     List of users
     """
     all_users = User.objects.all().order_by('username')
-
-    # PAGINATION
-    page = request.GET.get('page', 1)
-    paginator = Paginator(all_users, 100)
-    try:
-        users = paginator.page(page)
-    except (EmptyPage, PageNotAnInteger):
-        users = paginator.page(1)
+    users = utility.paginate(request, all_users, 100)
 
     return render(request, 'console/users.html', {'users': users})
 
@@ -680,13 +673,7 @@ def users_inactive(request):
         last_login__lt=timezone.now() + timezone.timedelta(days=-90))
         ).order_by('username')
 
-    # PAGINATION
-    page = request.GET.get('page', 1)
-    paginator = Paginator(all_inactive_users, 100)
-    try:
-        inactive_users = paginator.page(page)
-    except (EmptyPage, PageNotAnInteger):
-        inactive_users = paginator.page(1)
+    inactive_users = utility.paginate(request, all_inactive_users, 100)
 
     return render(request, 'console/users.html', {'users': inactive_users})
 
@@ -826,9 +813,6 @@ def past_credential_applications(request):
     Inactive credential applications. Split into successful and
     unsuccessful.
     """
-    l_applications = LegacyCredential.objects.filter(migrated=True, migrated_user__is_credentialed=True).order_by('-migration_date')
-    s_applications = CredentialApplication.objects.filter(status=2).order_by('-application_datetime')
-    u_applications = CredentialApplication.objects.filter(status=1).order_by('-application_datetime')
     if request.method == 'POST':
         if 'remove_credentialing' in request.POST:
             if request.POST['remove_credentialing'].isdigit():
@@ -870,10 +854,13 @@ def past_credential_applications(request):
                 c_application.status = 0
                 c_application.save()
 
+    rejected_applications = CredentialApplication.objects.filter(status=1).order_by('-application_datetime')
+
+    approved_applications = User.objects.filter(is_credentialed=True).order_by('-credential_datetime')
+
     return render(request, 'console/past_credential_applications.html',
-        {'s_applications':s_applications,
-         'u_applications':u_applications,
-         'l_applications':l_applications})
+        {'approved_applications':approved_applications,
+         'rejected_applications':rejected_applications})
 
 
 @login_required

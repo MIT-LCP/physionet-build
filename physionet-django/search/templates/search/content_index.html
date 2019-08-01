@@ -42,35 +42,9 @@ PhysioNet Index
       <br>
       {% if projects|length < 1 %} No results {% endif %}
       {% include "search/content_list.html" %}
-      {% if projects.has_other_pages %}
-        <div style="text-align: center;">
-          <ul class="pagination">
-            <li><a href="?{{ querystring }}page=1">&laquo;</a></li>
-            {% if projects.has_previous %}
-              <li><a href="?{{ querystring }}page={{ users.previous_page_number }}">&lsaquo;</a></li>
-            {% else %}
-              <li class="disabled"><span>&lsaquo;</span></li>
-            {% endif %}
-            {% for i in i|ljust:10 %}
-              {% with num=forloop.counter|add:projects.number|add:"-4" %}
-              {% if num > 0 and num <= projects.paginator.num_pages %}
-                {% if projects.number == num %}
-                  <li class="active"><span>{{ num }} <span class="sr-only">(current)</span></span></li>
-                {% else %}
-                  <li><a href="?{{ querystring }}page={{ num }}">{{ num }}</a></li>
-                {% endif %}
-              {% endif %}
-              {% endwith %}
-            {% endfor %}
-            {% if projects.has_next %}
-              <li><a href="?{{ querystring }}page={{ projects.next_page_number }}">&rsaquo;</a></li>
-            {% else %}
-              <li class="disabled"><span>&rsaquo;</span></li>
-            {% endif %}
-            <li><a href="?{{ querystring }}page={{ projects.paginator.num_pages }}">&raquo;</a></li>
-          </ul>
-        </div>
-      {% endif %}
+
+      {% include "console/pagination.html" with pagination=projects %}
+
     </div>
 </div>
 {% endblock %}

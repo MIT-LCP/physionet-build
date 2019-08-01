@@ -1,20 +1,17 @@
 import pdb
 import re
+import operator
+from functools import reduce
 
 from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.shortcuts import render, redirect, reverse
-
-from . import forms
-from project.models import PublishedProject, PublishedTopic
-
-import operator
-from functools import reduce
 from django.db.models import Q, Count, Case, When, Value, IntegerField, Sum
-
-from django.core.paginator import Paginator
 from django.conf import settings
 from django.http import Http404
 
+from search import forms
+from project.models import PublishedProject, PublishedTopic
+from console.utility import paginate
 
 def topic_search(request):
     """
@@ -153,12 +150,7 @@ def content_index(request, resource_type=None):
                                      topic=topic)
 
     # PAGINATION
-    page = request.GET.get('page', 1)
-    paginator = Paginator(published_projects, 10)
-    try:
-        projects = paginator.page(page)
-    except:
-        projects = paginator.page(1)
+    projects = paginate(request, published_projects, 10)
 
     querystring = re.sub(r'\&*page=\d*', '', request.GET.urlencode())
     if querystring != '':
