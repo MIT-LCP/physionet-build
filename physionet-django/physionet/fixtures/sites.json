@@ -1,0 +1,18 @@
+[
+    {
+        "model": "sites.Site",
+        "pk": 1,
+        "fields": {
+            "name": "PhysioNet",
+            "domain": "alpha.physionet.org"
+        }
+    },
+    {
+        "model": "sites.Site",
+        "pk": 2,
+        "fields": {
+            "name": "PhysioNet-staging",
+            "domain": "staging.physionet.org"
+        }
+    }
+]
