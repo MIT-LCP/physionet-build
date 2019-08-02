@@ -10,6 +10,8 @@ KillSignal=SIGINT
 Type=simple
 StandardError=syslog
 NotifyAccess=all
+User=pn
+Group=pn
 
 [Install]
 WantedBy=multi-user.target
