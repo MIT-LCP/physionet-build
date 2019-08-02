@@ -5,7 +5,7 @@
   "name": "{{ project.title|escapejs }}",
   "description": "{{ project.abstract|truncatechars_html:5000|striptags|escapejs }}",
   "version": "{{ project.version|escapejs }}",
-  "license": "{{ project.license|escapejs }}",
+  "license": "{{ project.license.home_page|escapejs }}",
   "datePublished" : "{{ project.publish_datetime|date|escapejs }}",
   "url": "https://{{ current_site }}{% url 'published_project' project.slug|escapejs project.version|escapejs %}",
   {% if project.doi %}
