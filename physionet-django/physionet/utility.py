@@ -6,6 +6,7 @@ import tempfile
 from django.conf import settings
 from django.http import HttpResponse, Http404
 from django.utils.html import format_html
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 CONTENT_TYPE = {
     '.html': 'text/html',
@@ -223,3 +224,21 @@ def zip_dir(zip_name, target_dir, enclosing_folder=''):
             os.remove(tmp_zip_name)
         except FileNotFoundError:
             pass
+
+
+def paginate(request, to_paginate, maximum):
+    """
+    Function to split an array into pages of a specified size.
+
+    Parameters
+    ----------
+    request : HTTP request to get the desired page if not defaults to 1.
+    to_paginate : Array to paginate.
+    maximum : Maximum ammount of elments in a page.
+
+    Returns a page in the array.
+    """
+    page = request.GET.get('page', 1)
+    paginator = Paginator(to_paginate, maximum)
+    paginated = paginator.get_page(page)
+    return paginated

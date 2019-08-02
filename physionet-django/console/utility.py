@@ -6,7 +6,6 @@ from google.api_core.exceptions import BadRequest
 from googleapiclient.discovery import build
 from google.cloud import storage
 from django.conf import settings
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 import logging
 
@@ -172,4 +171,3 @@ def paginate(request, to_paginate, maximun):
     paginator = Paginator(to_paginate, maximun)
     paginated = paginator.get_page(page)
     return paginated
-

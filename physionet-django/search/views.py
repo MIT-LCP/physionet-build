@@ -11,7 +11,7 @@ from django.http import Http404
 
 from search import forms
 from project.models import PublishedProject, PublishedTopic
-from console.utility import paginate
+from physionet.utility import paginate
 
 def topic_search(request):
     """
@@ -152,9 +152,14 @@ def content_index(request, resource_type=None):
     # PAGINATION
     projects = paginate(request, published_projects, 10)
 
-    querystring = re.sub(r'\&*page=\d*', '', request.GET.urlencode())
-    if querystring != '':
-        querystring += '&'
+    params = request.GET.copy()
+    # Remove the page argument from the querystring if it exists
+    try:
+        params.pop('page')
+    except KeyError:
+        pass
+
+    querystring = params.urlencode()
 
     return render(request, 'search/content_index.html',
                   {'form_order': form_order,

@@ -19,6 +19,7 @@ from background_task import background
 
 from notification.models import News
 import notification.utility as notification
+from physionet.utility import paginate
 import project.forms as project_forms
 from project.models import (ActiveProject, ArchivedProject, StorageRequest,
     Reference, Topic, Publication, PublishedProject,
@@ -634,7 +635,7 @@ def users(request):
     List of users
     """
     all_users = User.objects.all().order_by('username')
-    users = utility.paginate(request, all_users, 100)
+    users = paginate(request, all_users, 100)
 
     return render(request, 'console/users.html', {'users': users})
 
@@ -673,7 +674,7 @@ def users_inactive(request):
         last_login__lt=timezone.now() + timezone.timedelta(days=-90))
         ).order_by('username')
 
-    inactive_users = utility.paginate(request, all_inactive_users, 100)
+    inactive_users = paginate(request, all_inactive_users, 100)
 
     return render(request, 'console/users.html', {'users': inactive_users})
 
