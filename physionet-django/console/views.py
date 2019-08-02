@@ -14,7 +14,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.db import DatabaseError, transaction
-from django.db.models import Q, CharField, Value, IntegerField
+from django.db.models import Q, CharField, Value, IntegerField, F, functions
 from background_task import background
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
@@ -28,7 +28,7 @@ from project.utility import readable_size
 from project.views import (get_file_forms, get_project_file_info,
     process_files_post)
 from user.models import User, CredentialApplication, LegacyCredential
-from . import forms, utility
+from console import forms, utility
 
 from django.conf import settings
 
@@ -692,22 +692,16 @@ def credential_applications(request):
     """
     Ongoing credential applications
     """
-    applications = CredentialApplication.objects.filter(status=0).annotate(
-        time_elapsed=Value(0, IntegerField()))
-
-    temp = []
-    for item in applications:
-        if item.reference_contact_datetime:
-            if item.reference_response_datetime:
-                item.time_elapsed = (timezone.now() - item.reference_response_datetime).days
-            else:
-                item.time_elapsed = (timezone.now() - item.reference_contact_datetime).days
-            temp.append([1, item.reference_contact_datetime, item])
-        else:
-            item.time_elapsed = (timezone.now() - item.application_datetime).days
-            temp.append([0, item.application_datetime, item])
-
-    applications = [item[2] for item in sorted(temp)]
+    applications = CredentialApplication.objects.filter(status=0)
+    # Set first_date as the first occurrence of the following three
+    applications = applications.annotate(first_date=functions.Coalesce(
+            'reference_response_datetime', 'reference_contact_datetime',
+            'application_datetime'))
+    # Do the propper sort
+    applications = applications.order_by(F('reference_contact_datetime'), 'application_datetime')
+    # Set the days that have passed since the last action was taken
+    for application in applications:
+        application.time_elapsed = (timezone.now() - application.first_date).days
 
     return render(request, 'console/credential_applications.html',
         {'applications': applications})
@@ -722,7 +716,7 @@ def complete_credential_applications(request):
 
     if request.method == 'POST':
         if 'contact_reference' in request.POST and request.POST['contact_reference'].isdigit():
-            application_id = request.POST.get('contact_reference','')
+            application_id = request.POST.get('contact_reference', '')
             application = CredentialApplication.objects.get(id=application_id)
             application.reference_contact_datetime = timezone.now()
             application.save()
@@ -733,9 +727,9 @@ def complete_credential_applications(request):
                 mailto = notification.mailto_reference(request, application)
             # messages.success(request, 'The reference contact email has been created.')
             return render(request, 'console/generate_reference_email.html',
-                {'application':application, 'mailto':mailto})
+                {'application': application, 'mailto': mailto})
         if 'process_application' in request.POST and request.POST['process_application'].isdigit():
-            application_id = request.POST.get('process_application','')
+            application_id = request.POST.get('process_application', '')
             application = CredentialApplication.objects.get(id=application_id)
             process_credential_form = forms.ProcessCredentialForm(
                 responder=request.user, data=request.POST, instance=application)
@@ -745,27 +739,25 @@ def complete_credential_applications(request):
                 notification.process_credential_complete(request, application, comments=False)
                 mailto = notification.mailto_process_credential_complete(application)
                 return render(request, 'console/generate_response_email.html',
-                    {'application':application, 'mailto':mailto})
+                    {'application' : application, 'mailto': mailto})
             else:
                 messages.error(request, 'Invalid submission. See form below.')
 
-    applications = CredentialApplication.objects.filter(status=0).annotate(mailto=Value('', CharField()))
+    applications = CredentialApplication.objects.filter(status=0)
+    # Do the proper sort
+    applications = applications.order_by(F('reference_contact_datetime'), 'application_datetime')
 
-    contacted_applications =  applications.filter(reference_contact_datetime__isnull=False
-        ).order_by('reference_contact_datetime')
-    not_contacted_applications =  applications.filter(reference_contact_datetime__isnull=True
-        ).order_by('application_datetime')
-
-    for a in contacted_applications:
-        a.mailto = notification.mailto_process_credential_complete(a, comments=False)
-
-    for a in not_contacted_applications:
-        a.mailto = notification.mailto_process_credential_complete(a, comments=False)
+    for application in applications:
+        application.mailto = notification.mailto_process_credential_complete(
+            application, comments=False)
+        if CredentialApplication.objects.filter(reference_email=application.reference_email,
+            reference_contact_datetime__isnull=False):
+            # If the reference has been contacted before, mark it so
+            application.known_ref = True
 
     return render(request, 'console/complete_credential_applications.html',
-        {'contacted_applications':contacted_applications,
-        'not_contacted_applications':not_contacted_applications,
-        'process_credential_form':process_credential_form})
+        {'process_credential_form': process_credential_form, 
+        'applications': applications})
 
 
 @login_required

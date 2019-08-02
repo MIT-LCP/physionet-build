@@ -19,7 +19,10 @@
             Contact reference: {{ application.reference_email }} 
             <button class="btn btn-success" name="contact_reference" value="{{ application.id }}" type="submit">
               Contact Reference
-            </button>
+            </button> 
+            {% if application.known_ref %}
+              [Reference is known]
+            {% endif %}
           </form><br>
           {% if application.reference_contact_datetime %}
             <p><i class="fas fa-envelope"></i> The reference was contacted on {{ application.reference_contact_datetime }}</p>
