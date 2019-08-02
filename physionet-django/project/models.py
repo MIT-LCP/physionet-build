@@ -586,7 +586,7 @@ class Metadata(models.Model):
         """
         type_map = {0: 'Dataset',  # database
                     1: 'SoftwareSourceCode',  # software
-                    2: 'Article',  # challenge
+                    2: 'Dataset',  # challenge
                     3: 'Dataset'  # model
                     }
 
