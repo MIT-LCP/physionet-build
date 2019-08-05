@@ -561,7 +561,7 @@ class Metadata(models.Model):
         """
         # Get folder to inspect if valid
         inspect_dir = self.get_inspect_dir(subdir)
-        file_names , dir_names = list_items(inspect_dir)
+        file_names, dir_names = list_items(inspect_dir)
         display_files, display_dirs = [], []
 
         # Files require desciptive info and download links
@@ -579,6 +579,21 @@ class Metadata(models.Model):
             display_dirs.append(dir_info)
 
         return display_files, display_dirs
+
+    def schema_org_resource_type(self):
+        """
+        Return a valid https://schema.org resource type.
+        """
+        type_map = {0: 'Dataset',  # database
+                    1: 'SoftwareSourceCode',  # software
+                    2: 'Dataset',  # challenge
+                    3: 'Dataset'  # model
+                    }
+
+        try:
+            return type_map[self.resource_type]
+        except KeyError:
+            return 'Dataset'
 
 
 class SubmissionInfo(models.Model):

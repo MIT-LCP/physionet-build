@@ -342,9 +342,15 @@
   {% endif %}
   <br>
 </div>
+
 {% endblock %}
 
 {% block local_js_bottom %}
 <script src="{% static 'custom/js/enable-popover.js' %}"></script>
 <script>hljs.initHighlightingOnLoad();</script>
+{% endblock %}
+
+{% block meta_bottom %}
+<!-- https://schema.org/ metadata for discovery -->
+{% include "project/schema_metadata.json" with project=project authors=authors %}
 {% endblock %}

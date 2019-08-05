@@ -1,0 +1,35 @@
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org/",
+  "@type": "{{ project.schema_org_resource_type|escapejs }}",
+  "name": "{{ project.title|escapejs }}",
+  "description": "{{ project.abstract|truncatechars_html:5000|striptags|escapejs }}",
+  "version": "{{ project.version|escapejs }}",
+  "license": "{{ project.license.home_page|escapejs }}",
+  "datePublished" : "{{ project.publish_datetime|date|escapejs }}",
+  "url": "https://{{ current_site }}{% url 'published_project' project.slug|escapejs project.version|escapejs %}",
+  {% if project.doi %}
+  "identifier": "https://doi.org/{{ project.doi|escapejs }}",
+  {% endif %}
+  "creator": [
+  {% for author in authors %}
+    {
+      "@type": "Person",
+      "givenName": "{{ author.first_names|escapejs }}",
+      "familyName": "{{ author.last_name|escapejs }}",
+      "name": "{{ author.first_names|escapejs }} {{ author.last_name|escapejs }}"
+    }{% if forloop.counter < authors|length %},{% endif %}
+  {% endfor %}
+    ],
+  "includedInDataCatalog":{
+     "@type": "DataCatalog",
+     "name": "{{ current_site }}"
+  },
+  "distribution": [
+    {
+      "@type": "DataDownload",
+      "contentUrl": "https://{{ current_site }}{% url 'published_project' project.slug|escapejs project.version|escapejs %}#files"
+    }
+  ]
+}
+</script>
