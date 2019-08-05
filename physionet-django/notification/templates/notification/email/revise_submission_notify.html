@@ -3,9 +3,9 @@
 
 Dear {{ name }},
 
-Thank you for submitting your project entitled "{{ project.title }}" to PhysioNet. 
+Thank you for submitting your project entitled "{{ project.title }}" to PhysioNet.
 
-A summary of our standard set of editorial checks is listed below: 
+A summary of our standard set of editorial checks is listed below:
 {% for result in edit_log.quality_assurance_results %}- {{ result }}
 {% endfor %}
 We ask that you address the following comments before we proceed:
