@@ -210,3 +210,36 @@ After this, enter the server and run any migrations (if needed), then touch the 
 ./manage.py migrate
 touch /etc/uwsgi/vassals/physionet_uwsgi.ini 
 ```
+
+## GCP integration
+There are two GCP integrations:
+ - A service account to create and edit of buckets 
+ - A service account to manage the access of the buckets and Big Query handled by Google G Suite
+
+Since Google G Suite goesnt have direct acess to GCP, the access has to be delegated to a service account.
+
+The following variables should be added to the enviroment file:
+```
+SECRET_KEY=secret
+ALLOWED_HOSTS=[]
+GOOGLE_APPLICATION_CREDENTIALS=json.file
+GCP_DELEGATION_EMAIL=email@physionet.org
+GCP_SECRET_KEY=secret
+```
+
+
+## AWS Open Data integration
+There is some data stored in the Amazon Open Data platform.
+That is managed by a doing a POST request to a REST API.
+
+The following variables should be added to the enviroment file:
+```
+AWS_KEY=string1
+AWS_KEY2=string2
+AWS_VALUE=value1
+AWS_VALUE2=value2
+AWS_CLOUD_FORMATION=URL
+```
+This functionality will send the AWS ID to a Lambda function in the AWS Cloud Formation.
+That ID will be then added to the storage bucket and databases.
+
