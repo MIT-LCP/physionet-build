@@ -65,14 +65,16 @@ def invitation_notify(request, invite_author_form, target_email):
     inviter = invite_author_form.inviter
     project = invite_author_form.project
     subject = 'Invitation to author project: {}'.format(project.title)
-    email_context = {'inviter_name':inviter.get_full_name(),
-                     'inviter_email':inviter.email,
-                     'project':project,
-                     'domain':get_current_site(request),
-                     'signature':email_signature(),
-                     'project_info':email_project_info(project),
-                     'footer':email_footer(),
-                     'target_email':target_email}
+    email_context = {
+        'inviter_name': inviter.get_full_name(),
+        'inviter_email': inviter.email,
+        'project': project,
+        'domain': get_current_site(request),
+        'signature': email_signature(),
+        'project_info': email_project_info(project),
+        'footer': email_footer(),
+        'target_email': target_email
+    }
 
     body = loader.render_to_string('notification/email/invite_author.html',
                                     email_context)
@@ -91,9 +93,14 @@ def invitation_response_notify(invitation, affected_emails):
     subject = 'Authorship invitation {} for project: {}'.format(response,
                                                                 project.title)
     email, name = project.author_contact_info(only_submitting=True)
-    email_context = {'name':name, 'project':project,
-        'response':response, 'signature':email_signature(),
-        'project_info':email_project_info(project),'footer':email_footer()}
+    email_context = {
+        'name': name,
+        'project': project,
+        'response': response,
+        'signature': email_signature(),
+        'project_info': email_project_info(project),
+        'footer': email_footer()
+    }
 
     # Send an email for each email belonging to the accepting user
     for author_email in affected_emails:
@@ -109,8 +116,12 @@ def submit_notify(project):
     Notify authors when a project is submitted
     """
     subject = 'Submission of project: {}'.format(project.title)
-    email_context = {'project':project, 'signature':email_signature(),
-        'project_info':email_project_info(project),'footer':email_footer()}
+    email_context = {
+        'project': project,
+        'signature': email_signature(),
+        'project_info': email_project_info(project),
+        'footer': email_footer()
+    }
 
     for email, name in project.author_contact_info():
         email_context['name'] = name
@@ -126,8 +137,12 @@ def resubmit_notify(project):
     Notify authors and the editor when a project is resubmitted
     """
     subject = 'Resubmission of project: {}'.format(project.title)
-    email_context = {'project':project, 'signature':email_signature(),
-        'project_info':email_project_info(project),'footer':email_footer()}
+    email_context = {
+        'project': project,
+        'signature': email_signature(),
+        'project_info': email_project_info(project),
+        'footer': email_footer()
+    }
 
     for email, name in project.author_contact_info():
         email_context['name'] = name
@@ -155,12 +170,14 @@ def assign_editor_notify(project):
 
     for email, name in project.author_contact_info():
         body = loader.render_to_string(
-            'notification/email/assign_editor_notify.html',
-            {'name':name, 'project':project,
-             'editor':project.editor,
-             'signature':email_signature(),
-             'project_info':email_project_info(project),
-             'footer':email_footer()})
+            'notification/email/assign_editor_notify.html', {
+                'name': name,
+                'project': project,
+                'editor': project.editor,
+                'signature': email_signature(),
+                'project_info': email_project_info(project),
+                'footer': email_footer()
+            })
 
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)
@@ -173,12 +190,14 @@ def editor_notify_new_project(project, assignee):
         project.title)
 
     body = loader.render_to_string(
-        'notification/email/editor_notify_new_project.html',
-        {'project':project, 'editor':project.editor,
-         'signature':email_signature(),
-         'user':assignee.get_full_name(),
-         'project_info':email_project_info(project),
-         'footer':email_footer()})
+        'notification/email/editor_notify_new_project.html', {
+            'project': project,
+            'editor': project.editor,
+            'signature': email_signature(),
+            'user': assignee.get_full_name(),
+            'project_info': email_project_info(project),
+            'footer': email_footer()
+        })
 
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [project.editor.email], fail_silently=False)
@@ -201,12 +220,15 @@ def edit_decision_notify(request, project, edit_log):
         template = 'notification/email/accept_submission_notify.html'
 
     for email, name in project.author_contact_info():
-        body = loader.render_to_string(template,
-            {'name':name, 'project':project, 'edit_log':edit_log,
-             'domain':get_current_site(request),
-             'signature':email_signature(),
-             'project_info':email_project_info(project),
-             'footer':email_footer()})
+        body = loader.render_to_string(template, {
+            'name': name,
+            'project': project,
+            'edit_log': edit_log,
+            'domain': get_current_site(request),
+            'signature': email_signature(),
+            'project_info': email_project_info(project),
+            'footer': email_footer()
+        })
 
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)
@@ -220,12 +242,15 @@ def copyedit_complete_notify(request, project, copyedit_log):
 
     for email, name in project.author_contact_info():
         body = loader.render_to_string(
-            'notification/email/copyedit_complete_notify.html',
-            {'name':name, 'project':project, 'copyedit_log':copyedit_log,
-             'domain':get_current_site(request),
-             'signature':email_signature(),
-             'project_info':email_project_info(project),
-             'footer':email_footer()})
+            'notification/email/copyedit_complete_notify.html', {
+                'name': name,
+                'project': project,
+                'copyedit_log': copyedit_log,
+                'domain': get_current_site(request),
+                'signature': email_signature(),
+                'project_info': email_project_info(project),
+                'footer': email_footer()
+            })
 
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)
@@ -239,12 +264,14 @@ def reopen_copyedit_notify(request, project):
 
     for email, name in project.author_contact_info():
         body = loader.render_to_string(
-            'notification/email/reopen_copyedit_notify.html',
-            {'name':name, 'project':project,
-             'domain':get_current_site(request),
-             'signature':email_signature(),
-             'project_info':email_project_info(project),
-             'footer':email_footer()})
+            'notification/email/reopen_copyedit_notify.html', {
+                'name': name,
+                'project': project,
+                'domain': get_current_site(request),
+                'signature': email_signature(),
+                'project_info': email_project_info(project),
+                'footer': email_footer()
+            })
 
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)
@@ -258,12 +285,14 @@ def authors_approved_notify(request, project):
 
     for email, name in project.author_contact_info():
         body = loader.render_to_string(
-            'notification/email/authors_approved_notify.html',
-            {'name':name, 'project':project,
-             'domain':get_current_site(request),
-             'signature':email_signature(),
-             'project_info':email_project_info(project),
-             'footer':email_footer()})
+            'notification/email/authors_approved_notify.html', {
+                'name': name,
+                'project': project,
+                'domain': get_current_site(request),
+                'signature': email_signature(),
+                'project_info': email_project_info(project),
+                'footer': email_footer()
+            })
 
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)
@@ -277,12 +306,14 @@ def publish_notify(request, published_project):
 
     for email, name in published_project.author_contact_info():
         body = loader.render_to_string(
-            'notification/email/publish_notify.html',
-            {'name':name, 'published_project':published_project,
-             'domain':get_current_site(request),
-             'signature':email_signature(),
-             'project_info':email_project_info(published_project),
-             'footer':email_footer()})
+            'notification/email/publish_notify.html', {
+                'name': name,
+                'published_project': published_project,
+                'domain': get_current_site(request),
+                'signature': email_signature(),
+                'project_info': email_project_info(published_project),
+                'footer': email_footer()
+            })
 
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)
@@ -296,13 +327,17 @@ def storage_response_notify(storage_request):
     subject = 'Storage request {0} for project: {1}'.format(response,
         project.title)
     email, name = project.author_contact_info(only_submitting=True)
-    body = loader.render_to_string('notification/email/storage_response_notify.html',
-        {'name':name, 'project':project, 'response':response,
-         'allowance':storage_request.request_allowance,
-         'response_message':storage_request.response_message,
-         'signature':email_signature(),
-         'project_info':email_project_info(project),
-         'footer':email_footer()})
+    body = loader.render_to_string(
+        'notification/email/storage_response_notify.html', {
+            'name': name,
+            'project': project,
+            'response': response,
+            'allowance': storage_request.request_allowance,
+            'response_message': storage_request.response_message,
+            'signature': email_signature(),
+            'project_info': email_project_info(project),
+            'footer': email_footer()
+        })
 
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [email], fail_silently=False)
@@ -314,11 +349,14 @@ def contact_reference(request, application):
     applicant_name = ' '.join([application.first_names, application.last_name])
     subject = 'Please verify {} for PhysioNet credentialing'.format(
         applicant_name)
-    body = loader.render_to_string('notification/email/contact_reference.html',
-        {'application':application, 'applicant_name':applicant_name,
-         'domain':get_current_site(request),
-         'signature':email_signature(),
-         'footer':email_footer()})
+    body = loader.render_to_string(
+        'notification/email/contact_reference.html', {
+            'application': application,
+            'applicant_name': applicant_name,
+            'domain': get_current_site(request),
+            'signature': email_signature(),
+            'footer': email_footer()
+        })
 
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [application.reference_email], fail_silently=False)
@@ -330,11 +368,14 @@ def contact_supervisor(request, application):
     applicant_name = ' '.join([application.first_names, application.last_name])
     subject = 'Please verify {} for PhysioNet credentialing'.format(
         applicant_name)
-    body = loader.render_to_string('notification/email/contact_supervisor.html',
-        {'application':application, 'applicant_name':applicant_name,
-         'domain':get_current_site(request),
-         'signature':email_signature(),
-         'footer':email_footer()})
+    body = loader.render_to_string(
+        'notification/email/contact_supervisor.html', {
+            'application': application,
+            'applicant_name': applicant_name,
+            'domain': get_current_site(request),
+            'signature': email_signature(),
+            'footer': email_footer()
+        })
 
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [application.reference_email], fail_silently=False)
@@ -346,11 +387,14 @@ def mailto_reference(request, application):
     applicant_name = application.get_full_name()
     subject = '{} -- PhysioNet clinical database access request'.format(
         applicant_name)
-    body = loader.render_to_string('notification/email/mailto_contact_reference.html',
-        {'application':application, 'applicant_name':applicant_name,
-         'domain':get_current_site(request),
-         'signature':email_signature(),
-         'footer':email_footer()})
+    body = loader.render_to_string(
+        'notification/email/mailto_contact_reference.html', {
+            'application': application,
+            'applicant_name': applicant_name,
+            'domain': get_current_site(request),
+            'signature': email_signature(),
+            'footer': email_footer()
+        })
 
     mailto = "mailto:{3}%3C{0}%3E?subject={1}&bcc=credential-reference+{4}@alpha.physionet.org&body={2}".format(application.reference_email,
       parse.quote(subject), parse.quote(body), parse.quote('"'+application.reference_name+'"'), application.id)
@@ -363,11 +407,14 @@ def mailto_supervisor(request, application):
     applicant_name = application.get_full_name()
     subject = '{} -- PhysioNet clinical database access request'.format(
         applicant_name)
-    body = loader.render_to_string('notification/email/mailto_contact_supervisor.html',
-        {'application':application, 'applicant_name':applicant_name,
-         'domain':get_current_site(request),
-         'signature':email_signature(),
-         'footer':email_footer()})
+    body = loader.render_to_string(
+        'notification/email/mailto_contact_supervisor.html', {
+            'application': application,
+            'applicant_name': applicant_name,
+            'domain': get_current_site(request),
+            'signature': email_signature(),
+            'footer': email_footer()
+        })
 
     mailto = "mailto:{3}%3C{0}%3E?subject={1}&bcc=credential-reference+{4}@alpha.physionet.org&body={2}".format(application.reference_email,
       parse.quote(subject), parse.quote(body), parse.quote('"'+application.reference_name+'"'), application.id)
@@ -381,8 +428,11 @@ def mailto_process_credential_complete(application, comments=True):
     applicant_name = application.get_full_name()
     subject = 'PhysioNet clinical database access request for {}'.format(applicant_name)
     dua = License.objects.get(slug='physionet-credentialed-health-data-license-150')
-    body = loader.render_to_string('notification/email/mailto_contact_applicant.html',
-        {'application': application, 'dua': dua.dua_text_content()}).replace('\n', '\n> ')
+    body = loader.render_to_string(
+        'notification/email/mailto_contact_applicant.html', {
+            'application': application,
+            'dua': dua.dua_text_content()
+        }).replace('\n', '\n> ')
 
     if comments:
         body = 'Dear {0},\n\n{1}\n\n{2}'.format(application.first_names, 
@@ -398,10 +448,13 @@ def mailto_administrators(project, error):
     Request verification from a credentialing applicant's reference
     """
     subject = 'Error sending files to GCP for {}'.format(project.slug)
-    body = loader.render_to_string('notification/email/contact_administrators.html',
-        {'project':project, 'error':error,
-         'signature':email_signature(),
-         'footer':email_footer()})
+    body = loader.render_to_string(
+        'notification/email/contact_administrators.html', {
+            'project': project,
+            'error': error,
+            'signature': email_signature(),
+            'footer': email_footer()
+        })
 
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [settings.CONTACT_EMAIL], fail_silently=False)
@@ -413,11 +466,15 @@ def process_credential_complete(request, application, comments=True):
     applicant_name = application.get_full_name()
     response = 'rejected' if application.status == 1 else 'accepted'
     subject = 'Your application for PhysioNet credentialing'
-    body = loader.render_to_string('notification/email/process_credential_complete.html',
-        {'application':application, 'applicant_name':applicant_name,
-         'domain':get_current_site(request), 'comments':comments,
-         'signature':email_signature(),
-         'footer':email_footer()})
+    body = loader.render_to_string(
+        'notification/email/process_credential_complete.html', {
+            'application': application,
+            'applicant_name': applicant_name,
+            'domain': get_current_site(request),
+            'comments': comments,
+            'signature': email_signature(),
+            'footer': email_footer()
+        })
 
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [application.user.email], fail_silently=False)
@@ -429,11 +486,15 @@ def credential_application_request(request, application):
     applicant_name = application.get_full_name()
     subject = 'PhysioNet credentialing application notification'
     dua = License.objects.get(slug='physionet-credentialed-health-data-license-150')
-    body = loader.render_to_string('notification/email/notify_credential_request.html',
-        {'application':application, 'applicant_name':applicant_name,
-         'domain':get_current_site(request), 'dua':dua.dua_text_content(),
-         'signature':email_signature(),
-         'footer':email_footer()})
+    body = loader.render_to_string(
+        'notification/email/notify_credential_request.html', {
+            'application': application,
+            'applicant_name': applicant_name,
+            'domain': get_current_site(request),
+            'dua': dua.dua_text_content(),
+            'signature': email_signature(),
+            'footer': email_footer()
+        })
 
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [application.user.email], fail_silently=False)
@@ -443,18 +504,28 @@ def notify_gcp_access_request(data_access, user, project, new_user):
     email = user.cloud_information.gcp_email.email
     if data_access == 3:
         subject = 'PhysioNet Google Cloud Platform storage read access'
-    body = loader.render_to_string('notification/email/notify_gcp_access_request.html',
-        {'signature': email_signature(), 'data_access': data_access,
-        'user': user, 'new_user': new_user, 'footer': email_footer()})
+    body = loader.render_to_string(
+        'notification/email/notify_gcp_access_request.html', {
+            'signature': email_signature(),
+            'data_access': data_access,
+            'user': user,
+            'new_user': new_user,
+            'footer': email_footer()
+        })
 
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [email], fail_silently=False)
 
 def notify_aws_access_request(user, project, data_access):
     subject = 'PhysioNet Amazon Web Service storage access'
-    body = loader.render_to_string('notification/email/notify_aws_access_request.html',
-        {'user': user, 'project': project, 'signature': email_signature(),
-        'footer': email_footer(), 'data_access': data_access})
+    body = loader.render_to_string(
+        'notification/email/notify_aws_access_request.html', {
+            'user': user,
+            'project': project,
+            'signature': email_signature(),
+            'footer': email_footer(),
+            'data_access': data_access
+        })
 
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [user.email], fail_silently=False)
