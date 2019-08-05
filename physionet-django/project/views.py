@@ -1467,8 +1467,8 @@ def project_request_access(request, project_slug, version, access_type):
         return redirect('edit_cloud')
             # Check if the request for access is for AWS Bucket
     if access_type == 2:
-        message = utility.grant_aws_open_data_access(user, project, item)
-        notification.notify_aws_access_request(user, project, data_access)
+        message = utility.grant_aws_open_data_access(user, project)
+        notification.notify_aws_access_request(user, project, data_access.get())
         messages.success(request, message)
     elif access_type in [3, 4]:
         for item in data_access:

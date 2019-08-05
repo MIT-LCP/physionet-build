@@ -1,7 +1,7 @@
 Dear {{ user.get_full_name }},
 
 {% if data_access == 3 %}
-You have request access to use {{ project }} in GCP Storage.
+You have requested access to use {{ project }} in GCP Storage.
 {% if not new_user %}
 You already have been granted access for this resource. 
 {% endif %}
@@ -12,14 +12,16 @@ You can use the following command to copy the content of the bucket to your comp
 gsutil -m cp -r {{ project.gcp.bucket_name }} DESTINATION
 
 {% else %}
-You have request access to use {{ project }} in GCP BigQuery.
+You have requested access to use {{ project }} in GCP BigQuery.
 {% if not new_user %}
 You already have been granted access for this resource. 
 {% endif %}
 For information on how to access this resource please follow these steps
-1. 
-2. 
-3. 
+1. Navigate to: https://console.cloud.google.com/bigquery
+2. In the left sidebar, there will be a button saying "+ADD DATA". Click it and pin the project "physionet-data".
+3. You should now see the PhysioNet datasets in the left sidebar.
+   - If you don't have access to a particular dataset, no information will be displayed when you click on the dataset name (and you may see a spinning circle icon).
+   - If you cannot add the project "physionet-data", please access it through this link: https://console.cloud.google.com/bigquery?project=physionet-data&page=dataset
 {% endif %}
 
 {{ signature }}

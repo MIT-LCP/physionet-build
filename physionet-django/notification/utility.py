@@ -450,15 +450,11 @@ def notify_gcp_access_request(data_access, user, project, new_user):
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [email], fail_silently=False)
 
-def notify_aws_access_request(user, project):
+def notify_aws_access_request(user, project, data_access):
     subject = 'PhysioNet Amazon Web Service storage access'
     body = loader.render_to_string('notification/email/notify_aws_access_request.html',
         {'user': user, 'project': project, 'signature': email_signature(),
         'footer': email_footer(), 'data_access': data_access})
 
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-              [email], fail_silently=False)
-
-
-
-
+              [user.email], fail_silently=False)

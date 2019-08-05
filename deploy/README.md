@@ -214,9 +214,9 @@ touch /etc/uwsgi/vassals/physionet_uwsgi.ini
 ## GCP integration
 There are two GCP integrations:
  - A service account to create and edit of buckets 
- - A service account to manage the access of the buckets and Big Query handled by Google G Suite
+ - A service account to manage the access to the buckets and Big Query, both handled by Google G Suite
 
-Since Google G Suite goesnt have direct acess to GCP, the access has to be delegated to a service account.
+Since Google G Suite doesn't have direct acess to GCP, the access has to be delegated to a service account.
 
 The following variables should be added to the enviroment file:
 ```
