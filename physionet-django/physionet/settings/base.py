@@ -132,15 +132,15 @@ SERVICE_ACCOUNT_EMAIL = 'gcp-physionet-groups@physionet-data.iam.gserviceaccount
 
 SERVICE_ACCOUNT_PKCS12_FILE_PATH = os.path.join(BASE_DIR, 'PhysioNet-Data-credentials.p12')
 
-GCP_DELEGATION_EMAIL = config('GCP_DELEGATION_EMAIL')
-GCP_SECRET_KEY = config('GCP_SECRET_KEY')
+GCP_DELEGATION_EMAIL = config('GCP_DELEGATION_EMAIL', default=False)
+GCP_SECRET_KEY = config('GCP_SECRET_KEY', default=False)
 
 # Header tags for the AWS lambda function that grants access to S3 storage
-AWS_HEADER_KEY = config('AWS_KEY')
-AWS_HEADER_VALUE = config('AWS_VALUE')
-AWS_HEADER_KEY2 = config('AWS_KEY2')
-AWS_HEADER_VALUE2 = config('AWS_VALUE2')
-AWS_CLOUD_FORMATION = config('AWS_CLOUD_FORMATION')
+AWS_HEADER_KEY = config('AWS_KEY', default=False)
+AWS_HEADER_VALUE = config('AWS_VALUE', default=False)
+AWS_HEADER_KEY2 = config('AWS_KEY2', default=False)
+AWS_HEADER_VALUE2 = config('AWS_VALUE2', default=False)
+AWS_CLOUD_FORMATION = config('AWS_CLOUD_FORMATION', default=False)
 
 # List of permitted HTML tags and attributes for rich text fields.
 # The 'default' configuration permits all of the tags below.  Other
