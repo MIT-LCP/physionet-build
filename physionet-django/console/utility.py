@@ -24,7 +24,7 @@ def check_bucket(project, version):
     bucket_name = '{0}-{1}.{2}'.format(project, version, domain)
     exists = storage_client.lookup_bucket(bucket_name)
     if exists:
-        return True
+        return bucket_name
     return False
 
 def create_bucket(project, version, protected=False):

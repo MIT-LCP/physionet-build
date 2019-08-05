@@ -1473,7 +1473,7 @@ def project_request_access(request, project_slug, version, access_type):
     elif access_type in [3, 4]:
         for item in data_access:
             # Checks if the request for access is either storage or BigQuery 
-            new_user = utility.grant_gcp_group_access(user, project, item)
+            new_user = utility.grant_gcp_group_access(user, project, item, request)
             notification.notify_gcp_access_request(item, user, project, new_user)
 
     return redirect('published_project', project_slug=project_slug, version=version)

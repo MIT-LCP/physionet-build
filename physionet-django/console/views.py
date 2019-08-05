@@ -573,26 +573,24 @@ def manage_published_project(request, project_slug, version):
                 messages.success(request, 'The project files have been deprecated.')
         elif 'bucket' in request.POST and has_credentials:
             # Bucket names cannot be capitalized letters
-            slug = request.POST['bucket'].lower()
-            if not utility.check_bucket(slug, project.version):
-                bucket_name = is_private = False
-                if project.access_policy > 0:
-                    is_private = True
-                bucket_name = utility.create_bucket(project=slug, protected=is_private,
-                    version=project.version)
+            bucket_name = is_private = False
+            if project.access_policy > 0:
+                is_private = True
+            # Check if the bucket name exists, and if not create it.
+            try:
+                bucket_name = project.gcp.bucket_name
+                messages.success(request, "The bucket already exists. Resending\
+                 the files for the project {0}.".format(project))
+            except GCP.DoesNotExist:
+                bucket_name = utility.check_bucket(project.slug, project.version)
+                if not bucket_name:
+                    bucket_name = utility.create_bucket(project=project.slug,
+                        protected=is_private, version=project.version)
                 GCP.objects.create(project=project, bucket_name=bucket_name,
                     managed_by=user, is_private=is_private)
-                send_files_to_gcp(project.id, verbose_name='GCP - {}'.format(project), creator=user)
-                LOGGER.info("Created GCP bucket for project {0}".format(
-                    project_slug))
                 messages.success(request, "The GCP bucket for project {0} was \
-                    successfully created.".format(project_slug))
-            else:
-                send_files_to_gcp(project.id, verbose_name='GCP - {}'.format(project), creator=user)
-                LOGGER.info("Created GCP bucket for project {0}".format(
-                    project_slug))
-                messages.success(request, "The bucket already exists. Resending the files \
-                    for the project {0}.".format(project_slug))
+                    successfully created.".format(project))
+            send_files_to_gcp(project.id, verbose_name='GCP - {}'.format(project), creator=user)
         elif 'platform' in request.POST:
             data_access_form = forms.DataAccessForm(project=project, data=request.POST)
             if data_access_form.is_valid():
