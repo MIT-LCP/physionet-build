@@ -706,5 +706,4 @@ class CloudInformation(models.Model):
         on_delete=models.CASCADE)
     gcp_email = models.OneToOneField('user.AssociatedEmail', related_name='gcp_email',
         on_delete=models.SET_NULL, null=True)
-    aws_id = models.CharField(max_length=60, null=True,  blank=True, default=None)#,
-        #validators=[integer_validator])
+    aws_id = models.CharField(max_length=60, null=True,  blank=True, default=None)

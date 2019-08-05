@@ -361,9 +361,10 @@ class DataAccessForm(forms.ModelForm):
             'platform': 'Form to access the data.',
             'location': """URL for aws-open-data:<br> https://URL<br><br>
                            Bucket name for aws-s3:<br> s3://BUCKET_NAME<br><br>
-                           Organizational Google Group manageing access for gcp-bucket:<br> EMAIL@ORGANIZATION<br><br>
-                           Organizational Google Group manageing access for gcp-bigquery:<br> EMAIL@ORGANIZATION""",
+                           Organizational Google Group managing access for gcp-bucket:<br> EMAIL@ORGANIZATION<br><br>
+                           Organizational Google Group managing access for gcp-bigquery:<br> EMAIL@ORGANIZATION""",
             }
+
     def __init__(self, project, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.project = project
