@@ -313,6 +313,7 @@
             {% endif %}
             {% if project.gcp.sent_files %}
               <li>Access the files using the Google Cloud Storage Browser <a href="https://console.cloud.google.com/storage/browser/{{ project.gcp.bucket_name }}/">here</a>. Login with a Google account is required.
+              <li>Access the data using Google Cloud "gsutil": <code>gsutil -m cp -r {{ project.gcp.bucket_name }} DESTINATION</code></li>
             {% endif %}
           {% elif project.compressed_storage_size %}
             <li><a href="{% static project.zip_url %}">Download the ZIP file</a> ({{ compressed_size }})</li>
@@ -323,8 +324,6 @@
               <li>Access using AWS <a href="{{item.location}}">Open Data repository</a></li>
             {% elif item.platform == 2 %} {# ID for AWS cloud bucket #}
               <li>Access the data using AWS command line tools: <code>aws s3 sync {{item.location}} DESTINATION</code></li>
-            {% elif item.platform == 3  and project.gcp.sent_files %} {# ID for Google cloud bucket #}
-              <li>Access the data using Google Cloud "gsutil": <code>gsutil -m cp -r {{ project.gcp.bucket_name }} DESTINATION</code></li>
             {% elif item.platform == 4 %} {# ID for google BigQuery #}
               <li><a href="{% url 'project_request_access' project.slug project.version 4 %}">Request</a> access using Google BigQuery.</li>
             {% endif %}
