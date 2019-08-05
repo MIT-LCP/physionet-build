@@ -814,6 +814,9 @@ def past_credential_applications(request):
     Inactive credential applications. Split into successful and
     unsuccessful.
     """
+    l_applications = LegacyCredential.objects.filter(migrated=True, migrated_user__is_credentialed=True).order_by('-migration_date')
+    s_applications = CredentialApplication.objects.filter(status=2).order_by('-application_datetime')
+    u_applications = CredentialApplication.objects.filter(status=1).order_by('-application_datetime')
     if request.method == 'POST':
         if 'remove_credentialing' in request.POST:
             if request.POST['remove_credentialing'].isdigit():
@@ -855,13 +858,10 @@ def past_credential_applications(request):
                 c_application.status = 0
                 c_application.save()
 
-    rejected_applications = CredentialApplication.objects.filter(status=1).order_by('-application_datetime')
-
-    approved_applications = User.objects.filter(is_credentialed=True).order_by('-credential_datetime')
-
     return render(request, 'console/past_credential_applications.html',
-        {'approved_applications':approved_applications,
-         'rejected_applications':rejected_applications})
+        {'s_applications':s_applications,
+         'u_applications':u_applications,
+         'l_applications':l_applications})
 
 
 @login_required
