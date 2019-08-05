@@ -26,6 +26,20 @@ def send_contact_message(contact_form):
 
 # ---------- Project App ---------- #
 
+def get_url_prefix(request):
+    """
+    Return a URL protocol and host, such as 'https://example.com'.
+
+    django.contrib.sites.shortcuts is used to look up a "canonical"
+    hostname, if one is defined.
+    """
+    site = get_current_site(request)
+    if request and not request.is_secure():
+        return 'http://' + site.domain
+    else:
+        return 'https://' + site.domain
+
+
 def email_signature():
     """
     Gets the signature for the emails
