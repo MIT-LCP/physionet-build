@@ -437,3 +437,24 @@ def credential_application_request(request, application):
 
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [application.user.email], fail_silently=False)
+
+def notify_gcp_access_request(data_access, user, project, new_user):
+    subject = 'PhysioNet Google Cloud Platform BigQuery access'
+    email = user.cloud_information.gcp_email.email
+    if data_access == 3:
+        subject = 'PhysioNet Google Cloud Platform storage read access'
+    body = loader.render_to_string('notification/email/notify_gcp_access_request.html',
+        {'signature': email_signature(), 'data_access': data_access,
+        'user': user, 'new_user': new_user, 'footer': email_footer()})
+
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+              [email], fail_silently=False)
+
+def notify_aws_access_request(user, project, data_access):
+    subject = 'PhysioNet Amazon Web Service storage access'
+    body = loader.render_to_string('notification/email/notify_aws_access_request.html',
+        {'user': user, 'project': project, 'signature': email_signature(),
+        'footer': email_footer(), 'data_access': data_access})
+
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+              [user.email], fail_silently=False)

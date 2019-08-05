@@ -124,7 +124,23 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR,'static')]
+# Google Storge service account credentials
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(BASE_DIR, 'PhysioNet-Data-credentials.json')
 
+# Google G suite Groups service account and Private Key file
+SERVICE_ACCOUNT_EMAIL = 'gcp-physionet-groups@physionet-data.iam.gserviceaccount.com'
+
+SERVICE_ACCOUNT_PKCS12_FILE_PATH = os.path.join(BASE_DIR, 'PhysioNet-Data-credentials.p12')
+
+GCP_DELEGATION_EMAIL = config('GCP_DELEGATION_EMAIL')
+GCP_SECRET_KEY = config('GCP_SECRET_KEY')
+
+# Header tags for the AWS lambda function that grants access to S3 storage
+AWS_HEADER_KEY = config('AWS_KEY')
+AWS_HEADER_VALUE = config('AWS_VALUE')
+AWS_HEADER_KEY2 = config('AWS_KEY2')
+AWS_HEADER_VALUE2 = config('AWS_VALUE2')
+AWS_CLOUD_FORMATION = config('AWS_CLOUD_FORMATION')
 
 # List of permitted HTML tags and attributes for rich text fields.
 # The 'default' configuration permits all of the tags below.  Other

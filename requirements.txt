@@ -29,6 +29,12 @@ uWSGI==2.0.18 \
  --hash=sha256:4972ac538800fb2d421027f49b4a1869b66048839507ccf0aa2fda792d99f583
 zxcvbn-python==4.4.18 \
  --hash=sha256:a9beaf3fde32957ea13f979f5dd61c0023af0da7d3e1cb9bbc0c000770be12f6
+oauth2client==4.1.3 \
+ --hash=sha256:b8a81cc5d60e2d364f0b1b98f958dbd472887acaf1a5b05e21c28c31a2d6d3ac
+pyOpenSSL==19.0.0 \
+ --hash=sha256:c727930ad54b10fc157015014b666f2d8b41f70c0d03e83ab67624fd3dd5d1e6
+google-api-python-client==1.7.9 \
+ --hash=sha256:5def5a485b1cbc998b8f869456c7bde0c0e6d3d0a5ea1f300b5ef57cb4b1ce8f
 
 #### Requirements for development and testing ####
 
@@ -100,3 +106,24 @@ idna==2.8 \
  --hash=sha256:ea8b7f6188e6fa117537c3df7da9fc686d485087abf6ac197f9c46432f7e4a3c
 urllib3==1.24.3 \
  --hash=sha256:a637e5fae88995b256e3409dc4d52c2e2e0ba32c42a6365fee8bbd2238de3cfb
+
+# required by oauth2client 4.1.3
+httplib2==0.13.0 \
+ --hash=sha256:158fbd0ffbba536829d664bf3f32c4f45df41f8f791663665162dfaf21ffd075
+
+# required by pyOpenSSL 19.0.0
+asn1crypto==0.24.0 \
+ --hash=sha256:2f1adbb7546ed199e3c90ef23ec95c5cf3585bac7d11fb7eb562a3fe89c64e87
+cffi==1.12.3 \
+ --hash=sha256:ae61af521ed676cf16ae94f30fe202781a38d7178b6b4ab622e4eec8cefaff42
+pycparser==2.19 \
+ --hash=sha256:a988718abfad80b6b157acce7bf130a30876d27603738ac39f140993246b25b3
+cryptography==2.7 \
+ --hash=sha256:96d8473848e984184b6728e2c9d391482008646276c3ff084a1bd89e15ff53a1
+
+# required by google-api-python-client 1.7.9
+uritemplate==3.0.0 \
+ --hash=sha256:1b9c467a940ce9fb9f50df819e8ddd14696f89b9a8cc87ac77952ba416e0a8fd
+google-auth-httplib2==0.0.3 \
+ --hash=sha256:f1c437842155680cf9918df9bc51c1182fda41feef88c34004bd1978c8157e08
+

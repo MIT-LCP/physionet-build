@@ -24,6 +24,7 @@
 
 {% block content %}
 <div class="container">
+  {% include "message_snippet.html" %}
   <p>
     {{ project.resource_type|resource_badge|safe }}
     {{ project.access_policy|access_badge|safe }}
@@ -259,19 +260,6 @@
     <!-- /.sidebar -->
   </div>
 
-  {% if project.gcp.sent_files %}
-    <h2 id="files">Files on Google Cloud</h2>
-    {% if project.access_policy %}
-      {% if has_access %}
-        <p>Click <a href="https://console.cloud.google.com/storage/browser/{{ project.gcp.bucket_name }}/">here</a> to view the files in the Google Cloud Console. Login with a Google account is required.</p>
-        <p><a href="https://storage.googleapis.com/{{ project.gcp.bucket_name }}/{{ project.zip_name }}" class="btn btn-primary btn-sm">Download Zip from Google</a> </p>
-      {% endif %}
-    {% else %}
-        <p>Click <a href="https://console.cloud.google.com/storage/browser/{{ project.gcp.bucket_name }}/">here</a> to view the files in the Google Cloud Console. Login with a Google account is required.</p>
-        <p><a href="https://storage.googleapis.com/{{ project.gcp.bucket_name }}/{{ project.zip_name }}" class="btn btn-primary btn-sm">Download Zip from Google</a> </p>
-    {% endif %}
-  {% endif %}
-
   <h2 id="files">Files</h2>
   {% if project.deprecated_files %}
     <div class="alert alert-danger col-md-8" role="alert">
@@ -280,7 +268,29 @@
   {% else %}
     {% if project.access_policy %}
       {% if has_access %}
-        <p>Total uncompressed size: {{ main_size }}.{% if project.compressed_storage_size %}<a class="btn btn-success btn-sm btn-rsp" href="{% url 'serve_published_project_zip' project.slug project.version %}" style="float:right">Download Zip ({{ compressed_size }})</a>{% endif %}</p>
+        <p>Total uncompressed size: {{ main_size }}.
+{# ZIP START #}
+          {% if project.compressed_storage_size %}
+            <li><a href="{% url 'serve_published_project_zip' project.slug project.version %}">Download the ZIP file</a> ({{ compressed_size }})</li>
+          {% endif %}
+          {% if data_access %}
+            {% for item in data_access %}
+              {% if item.platform == 1 %} {# ID for AWS open data #}
+                <li>Access using AWS <a href="{{item.location}}">Open Data repository</a></li>
+              {% elif item.platform == 2 %} {# ID for AWS cloud bucket #}
+                <li><a href="{% url 'project_request_access' project.slug project.version 2 %}">Request</a> access the data using AWS command line tools: <code>aws s3 sync {{item.location}} DESTINATION</code></li>
+              {% elif item.platform == 3 %} {# ID for Google cloud bucket email #}
+                {% if project.gcp and project.gcp.sent_files %}
+                    <li><a href="{% url 'project_request_access' project.slug project.version 3 %}">Request access</a> the files using the <a href="https://console.cloud.google.com/storage/browser/{{ project.gcp.bucket_name }}/">Google Cloud Storage Browser</a>. Login with a Google account is required.</li>
+                {% endif %}
+
+              {% elif item.platform == 4 %} {# ID for google BigQuery email #}
+                <li><a href="{% url 'project_request_access' project.slug project.version 4 %}">Request</a> access using Google BigQuery.</li>
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+{# ZIP END #}
+        </p>
         <div id="files-panel" class="card">
           {% include "project/files_panel.html" %}
         </div>
@@ -290,7 +300,38 @@
       </div>
       {% endif %}
     {% else %}
-      <p>Total uncompressed size: {{ main_size }}.{% if project.compressed_storage_size %}<a class="btn btn-success btn-sm btn-rsp" href="{% static project.zip_url %}" style="float:right">Download Zip ({{ compressed_size }})</a>{% endif %}</p>
+      <p>Total uncompressed size: {{ main_size }}.
+{# ZIP START #}
+        <h5>Access the files</h5>
+        <ul>
+          {% if project.gcp %}
+            {% if project.gcp.sent_zip %}
+              <li><a href="https://storage.googleapis.com/{{ project.gcp.bucket_name }}/{{ project.zip_name }}">Download the ZIP file</a> ({{ compressed_size }}).</a>
+            {% elif project.compressed_storage_size %}
+              <li><a href="{% static project.zip_url %}">Download the ZIP file</a> ({{ compressed_size }})</li>
+            {% endif %}
+            {% if project.gcp.sent_files %}
+              <li>Access the files using the Google Cloud Storage Browser <a href="https://console.cloud.google.com/storage/browser/{{ project.gcp.bucket_name }}/">here</a>. Login with a Google account is required.
+              <li>Access the data using Google Cloud "gsutil": <code>gsutil -m cp -r {{ project.gcp.bucket_name }} DESTINATION</code></li>
+            {% endif %}
+          {% elif project.compressed_storage_size %}
+            <li><a href="{% static project.zip_url %}">Download the ZIP file</a> ({{ compressed_size }})</li>
+          {% endif %}
+        {% if data_access %}
+          {% for item in data_access %}
+            {% if item.platform == 1 %} {# ID for AWS open data #}
+              <li>Access using AWS <a href="{{item.location}}">Open Data repository</a></li>
+            {% elif item.platform == 2 %} {# ID for AWS cloud bucket #}
+              <li>Access the data using AWS command line tools: <code>aws s3 sync {{item.location}} DESTINATION</code></li>
+            {% elif item.platform == 4 %} {# ID for google BigQuery #}
+              <li><a href="{% url 'project_request_access' project.slug project.version 4 %}">Request</a> access using Google BigQuery.</li>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+          <li>Download the files using your terminal: <code>wget -r -np -nd -P DESTINATION {{ request.build_absolute_uri }}</code></li>
+        </ul>
+{# ZIP END #}
+      </p>
       {% if project.has_wfdb %}
         <p><a href="{% url 'lightwave_home' %}?db={{ project.slug }}/{{ project.version }}"><i class="fas fa-chart-line"></i> Visualize waveforms</a></p>
       {% endif %}

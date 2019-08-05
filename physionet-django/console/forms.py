@@ -3,11 +3,13 @@ import pdb
 
 from django import forms
 from django.utils import timezone
-from django.core.validators import validate_integer
+from django.core.validators import validate_integer, validate_email, URLValidator
+from google.cloud import storage
+
 
 from notification.models import News
 from project.models import (ActiveProject, EditLog, CopyeditLog,
-    PublishedProject, exists_project_slug)
+    PublishedProject, exists_project_slug, DataAccess)
 from project.validators import validate_slug
 from user.models import User, CredentialApplication
 
@@ -346,3 +348,44 @@ class FeaturedForm(forms.Form):
     To add featured projects
     """
     title = forms.CharField(max_length=50, required=False, label='Title')
+
+
+class DataAccessForm(forms.ModelForm):
+    """
+    To add all of the forms to access the data for a project.
+    """
+    class Meta:
+        model = DataAccess
+        fields = ('platform', 'location')
+        help_texts = {
+            'platform': 'Form to access the data.',
+            'location': """URL for aws-open-data:<br> https://URL<br><br>
+                           Bucket name for aws-s3:<br> s3://BUCKET_NAME<br><br>
+                           Organizational Google Group manageing access for gcp-bucket:<br> EMAIL@ORGANIZATION<br><br>
+                           Organizational Google Group manageing access for gcp-bigquery:<br> EMAIL@ORGANIZATION""",
+            }
+    def __init__(self, project, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.project = project
+
+    def clean_location(self):
+        platform = self.cleaned_data['platform']
+        location = self.cleaned_data['location']
+        if platform == 1:
+            validate = URLValidator()
+            validate(location)
+        elif platform == 2:
+            bucket = location.split('s3://')
+            if len(bucket) != 2 or bucket[0] != '':
+                raise forms.ValidationError('The AWS Bucket name is not valid')
+            if not re.fullmatch(r'[\da-z][\da-z-.]+[\da-z]', bucket[1]):
+                raise forms.ValidationError('The AWS Bucket name is not valid')
+        elif platform in [3, 4]:
+            validate_email(location)
+        return location
+
+    def save(self):
+        data_access = super(DataAccessForm, self).save(commit=False)
+        data_access.project = self.project
+        data_access.save()
+        return data_access

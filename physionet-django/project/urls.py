@@ -77,4 +77,9 @@ urlpatterns = [
         name='check_integrity'),
     path('<project_slug>/submission/', views.project_submission,
         name='project_submission'),
+
+    path('<project_slug>/<version>/request_access/<int:access_type>',
+        views.project_request_access, name='project_request_access'),
+
+
 ]

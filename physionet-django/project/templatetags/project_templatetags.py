@@ -2,6 +2,7 @@ from django import template
 from django.shortcuts import reverse
 from django.utils.http import urlencode
 
+
 register = template.Library()
 
 
@@ -119,3 +120,4 @@ def show_all_author_info(author):
     """
     return author_popover(author, show_submitting=True, show_email=True,
                           show_corresponding=True)
+

@@ -4,6 +4,7 @@ import re
 import logging
 from urllib.parse import quote_plus
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
@@ -26,7 +27,7 @@ from django.utils.html import format_html, format_html_join
 from project.fileviews import display_project_file
 from project import forms
 from project.models import (Affiliation, Author, AuthorInvitation,
-    ActiveProject, PublishedProject, StorageRequest, Reference,
+    ActiveProject, PublishedProject, StorageRequest, Reference, DataAccess,
     ArchivedProject, ProgrammingLanguage, Topic, Contact, Publication,
     PublishedAuthor, EditLog, CopyeditLog, DUASignature, CoreProject, GCP)
 from project import utility
@@ -34,7 +35,7 @@ from project.validators import validate_filename
 import notification.utility as notification
 from physionet.utility import serve_file
 from user.forms import ProfileForm, AssociatedEmailChoiceForm
-from user.models import User
+from user.models import User, CloudInformation
 from console.utility import add_email_bucket_access
 
 from dal import autocomplete
@@ -1362,7 +1363,7 @@ def published_project(request, project_slug, version, subdir=''):
     news = project.news.all().order_by('-publish_datetime')
     parent_projects = project.parent_projects.all()
     # derived_projects = project.derived_publishedprojects.all()
-
+    data_access = DataAccess.objects.filter(project=project)
     has_access = project.has_access(request.user)
     current_site = get_current_site(request)
     all_project_versions = PublishedProject.objects.filter(
@@ -1372,8 +1373,8 @@ def published_project(request, project_slug, version, subdir=''):
                'topics': topics, 'languages': languages, 'contact': contact,
                'has_access': has_access, 'current_site': current_site,
                'news': news, 'all_project_versions': all_project_versions,
-               'parent_projects':parent_projects}
-
+               'parent_projects':parent_projects, 'data_access':data_access,
+               'messages':messages.get_messages(request)}
     # The file and directory contents
     if has_access:
         (display_files, display_dirs, dir_breadcrumbs, parent_dir,
@@ -1392,7 +1393,8 @@ def published_project(request, project_slug, version, subdir=''):
             'main_size':main_size, 'compressed_size':compressed_size,
             'display_files':display_files, 'display_dirs':display_dirs,
             'files_panel_url':files_panel_url, 'subdir':subdir,
-            'parent_dir':parent_dir, 'file_error':file_error}}
+            'parent_dir':parent_dir, 'file_error':file_error,
+            'data_access':data_access}}
     elif subdir:
         status = 403
     else:
@@ -1438,3 +1440,40 @@ def sign_dua(request, project_slug, version):
 
     return render(request, 'project/sign_dua.html', {'project':project,
         'license':license, 'license_content':license_content})
+
+
+@login_required
+def project_request_access(request, project_slug, version, access_type):
+    """
+    Page to grant access to AWS storage, Google storage or Big Query
+    to a specific user.
+    """
+    user = request.user
+    project = PublishedProject.objects.get(slug=project_slug, version=version)
+    # Check if the person has access to the project.
+    if not project.has_access(request.user):
+        return redirect('published_project', project_slug=project_slug,
+            version=version)
+    data_access = DataAccess.objects.filter(project=project,
+        platform=access_type)
+    try:
+        # check user if user has GCP or AWS info in profile
+        if (user.cloud_information.gcp_email is None and access_type in [3, 4]) or (
+            user.cloud_information.aws_id is None and access_type == 2):
+            messages.error(request, 'Please set the user cloud information in your settings')
+            return redirect('edit_cloud')
+    except CloudInformation.DoesNotExist:
+        messages.error(request, 'Please set the user cloud information in your settings')
+        return redirect('edit_cloud')
+            # Check if the request for access is for AWS Bucket
+    if access_type == 2:
+        message = utility.grant_aws_open_data_access(user, project)
+        notification.notify_aws_access_request(user, project, data_access.get())
+        messages.success(request, message)
+    elif access_type in [3, 4]:
+        for item in data_access:
+            # Checks if the request for access is either storage or BigQuery 
+            new_user = utility.grant_gcp_group_access(user, project, item, request)
+            notification.notify_gcp_access_request(item, user, project, new_user)
+
+    return redirect('published_project', project_slug=project_slug, version=version)

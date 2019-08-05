@@ -105,7 +105,36 @@
         </div>
       </div>
     {% endif %}
-
+    <br>
+    <h2>Accessing the data</h2>
+    <hr>
+        <form action="" method="post">
+          {% csrf_token %}
+          {% include "project/content_inline_form_snippet.html" with form=data_access_form %}
+          <button class="btn btn-primary" type="submit">Submit</button>
+        </form>
+        {% if data_access %}
+        <table class="table table-bordered">
+            <tr>
+              <th>Data Accessible By</th>
+              <th>Location</th>
+              <th>Remove</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in data_access %}
+            <tr>
+              <td>{{item.get_platform_display}}</td>
+              <td>{{item.location}}</td>
+              <form action="" method="post">
+                {% csrf_token %}
+                <td><button class='btn btn-danger' name='data_access_removal' value='{{item.id}}'>Remove</button></td>
+              </form>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% endif %}
     <br>
     <h2>Google Cloud</h2>
     <hr>

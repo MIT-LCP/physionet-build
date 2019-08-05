@@ -23,7 +23,7 @@ import notification.utility as notification
 import project.forms as project_forms
 from project.models import (ActiveProject, ArchivedProject, StorageRequest,
     Reference, Topic, Publication, PublishedProject,
-    exists_project_slug, GCP, DUASignature)
+    exists_project_slug, GCP, DUASignature, DataAccess)
 from project.utility import readable_size
 from project.views import (get_file_forms, get_project_file_info,
     process_files_post)
@@ -521,6 +521,8 @@ def send_files_to_gcp(pid):
         utility.upload_files(project)
         project.gcp.sent_files = True
         project.gcp.finished_datetime = timezone.now()
+        if project.compressed_storage_size:
+            project.gcp.sent_zip = True
         project.gcp.save()
 
 @login_required
@@ -540,7 +542,7 @@ def manage_published_project(request, project_slug, version):
     topic_form.set_initial()
     deprecate_form = None if project.deprecated_files else forms.DeprecateFilesForm()
     has_credentials = os.path.exists(os.environ["GOOGLE_APPLICATION_CREDENTIALS"])
-
+    data_access_form = forms.DataAccessForm(project=project)
     if request.method == 'POST':
         if 'set_doi' in request.POST:
             doi_form = forms.DOIForm(data=request.POST, instance=project)
@@ -570,35 +572,48 @@ def manage_published_project(request, project_slug, version):
                     delete_files=int(deprecate_form.cleaned_data['delete_files']))
                 messages.success(request, 'The project files have been deprecated.')
         elif 'bucket' in request.POST and has_credentials:
-            slug = request.POST['bucket'].lower()
-            if not utility.check_bucket(slug, project.version):
-                bucket_name = is_private = False
-                if project.access_policy > 0:
-                    is_private = True
-                bucket_name = utility.create_bucket(project=slug, protected=is_private,
-                    version=project.version)
+            # Bucket names cannot be capitalized letters
+            bucket_name = is_private = False
+            if project.access_policy > 0:
+                is_private = True
+            # Check if the bucket name exists, and if not create it.
+            try:
+                bucket_name = project.gcp.bucket_name
+                messages.success(request, "The bucket already exists. Resending\
+                 the files for the project {0}.".format(project))
+            except GCP.DoesNotExist:
+                bucket_name = utility.check_bucket(project.slug, project.version)
+                if not bucket_name:
+                    bucket_name = utility.create_bucket(project=project.slug,
+                        protected=is_private, version=project.version)
                 GCP.objects.create(project=project, bucket_name=bucket_name,
                     managed_by=user, is_private=is_private)
-                send_files_to_gcp(project.id, verbose_name='GCP - {}'.format(project), creator=user)
-                LOGGER.info("Created GCP bucket for project {0}".format(
-                    project_slug))
                 messages.success(request, "The GCP bucket for project {0} was \
-                    successfully created.".format(project_slug))
-            else:
-                send_files_to_gcp(project.id, verbose_name='GCP - {}'.format(project), creator=user)
-                LOGGER.info("Created GCP bucket for project {0}".format(
-                    project_slug))
-                messages.success(request, "The bucket already exists. Resending the files \
-                    for the project {0}.".format(project_slug))
-
+                    successfully created.".format(project))
+            send_files_to_gcp(project.id, verbose_name='GCP - {}'.format(project), creator=user)
+        elif 'platform' in request.POST:
+            data_access_form = forms.DataAccessForm(project=project, data=request.POST)
+            if data_access_form.is_valid():
+                data_access_form.save()
+                messages.success(request, "Stored method to access the files")
+        elif 'data_access_removal' in request.POST and request.POST['data_access_removal'].isdigit():
+            try:
+                data_access = DataAccess.objects.get(project=project, id=request.POST['data_access_removal'])
+                data_access.delete()
+                # Deletes the object if it exists for that specific project.
+            except DataAccess.DoesNotExist:
+                pass
+                
+    data_access = DataAccess.objects.filter(project=project)
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
 
     return render(request, 'console/manage_published_project.html',
-        {'project':project, 'authors':authors, 'author_emails':author_emails,
-         'storage_info':storage_info, 'edit_logs':edit_logs,
-         'copyedit_logs':copyedit_logs, 'latest_version':latest_version,
-         'published':True, 'doi_form':doi_form, 'topic_form':topic_form,
-         'deprecate_form':deprecate_form, 'has_credentials':has_credentials})
+        {'project': project, 'authors': authors, 'author_emails': author_emails,
+         'storage_info': storage_info, 'edit_logs': edit_logs,
+         'copyedit_logs': copyedit_logs, 'latest_version': latest_version,
+         'published': True, 'doi_form': doi_form, 'topic_form': topic_form,
+         'deprecate_form': deprecate_form, 'has_credentials': has_credentials, 
+         'data_access_form': data_access_form, 'data_access': data_access})
 
 
 @login_required

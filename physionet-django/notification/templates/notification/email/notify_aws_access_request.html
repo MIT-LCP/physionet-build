@@ -1,0 +1,10 @@
+Dear {{ user.get_full_name }},
+
+You have requested access to use {{ project }} in AWS S3 Storage.
+
+The name of the bucket is: {{ data_access.location }}
+
+You can use the following command to copy the content of the bucket to your computer:
+aws s3 sync {{ data_access.location }} DESTINATION
+
+{{ signature }}

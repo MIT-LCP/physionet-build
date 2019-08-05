@@ -1,6 +1,9 @@
 from os import walk, chdir, listdir, path
+import pdb
 
+from oauth2client.service_account import ServiceAccountCredentials
 from google.api_core.exceptions import BadRequest
+from googleapiclient.discovery import build
 from google.cloud import storage
 from django.conf import settings
 
@@ -21,7 +24,7 @@ def check_bucket(project, version):
     bucket_name = '{0}-{1}.{2}'.format(project, version, domain)
     exists = storage_client.lookup_bucket(bucket_name)
     if exists:
-        return True
+        return bucket_name
     return False
 
 def create_bucket(project, version, protected=False):
@@ -34,6 +37,7 @@ def create_bucket(project, version, protected=False):
         domain = 'testing-delete.' + domain
     bucket_name = '{0}-{1}.{2}'.format(project, version, domain)
     bucket = storage_client.create_bucket(bucket_name)
+    bucket = storage_client.bucket(bucket_name)
     bucket.iam_configuration.bucket_policy_only_enabled = True
     bucket.patch()
     logger.info("Created bucket {0} for project {1}".format(bucket_name.lower(), project))
@@ -84,9 +88,11 @@ def add_email_bucket_access(project, email):
         bucket.set_iam_policy(policy)
         logger.info("Added email {0} to the project {1} access list".format(
             email, project))
+        return True
     except BadRequest: 
         logger.info("There was an error on the request. The email {} was ignored.".format(
             email))
+        return False
 
 def upload_files(project):
     """
@@ -136,3 +142,24 @@ def list_bucket_permissions(bucket):
     for role in policy:
         members = policy[role]
         print('Role: {}, Members: {}'.format(role, members))
+
+
+def create_directory_service(user_email):
+    """Build and returns an Admin SDK Directory service object authorized with the service accounts
+    that act on behalf of the given user.
+    Args:
+      user_email: The email of the user. Needs permissions to access the Admin APIs.
+    Returns:
+      Admin SDK directory service object.
+    """
+    logging.getLogger('googleapiclient.discovery_cache').setLevel(logging.ERROR)
+    credentials = ServiceAccountCredentials.from_p12_keyfile(
+        settings.SERVICE_ACCOUNT_EMAIL,
+        settings.SERVICE_ACCOUNT_PKCS12_FILE_PATH,
+        settings.GCP_SECRET_KEY,
+        scopes=['https://www.googleapis.com/auth/admin.directory.group'])
+    # This requires the email used to delegate the credentials to the serivce account
+    credentials = credentials.create_delegated(user_email)
+    return build('admin', 'directory_v1', credentials=credentials)
+
+
