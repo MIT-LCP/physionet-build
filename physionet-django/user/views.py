@@ -24,7 +24,9 @@ from user import forms
 from user.models import AssociatedEmail, Profile, User, CredentialApplication, LegacyCredential, CloudInformation
 from physionet import utility
 from project.models import Author, License
-from notification.utility import process_credential_complete, credential_application_request
+from notification.utility import (process_credential_complete,
+                                  credential_application_request,
+                                  get_url_prefix)
 
 
 logger = logging.getLogger(__name__)
@@ -139,6 +141,7 @@ def add_email(request, add_email_form):
         context = {
             'name': user.get_full_name(),
             'domain': get_current_site(request),
+            'url_prefix': get_url_prefix(request),
             'uidb64': uidb64,
             'token': token
         }
@@ -269,6 +272,7 @@ def register(request):
             context = {
                 'name': user.get_full_name(),
                 'domain': get_current_site(request),
+                'url_prefix': get_url_prefix(request),
                 'uidb64': uidb64,
                 'token': token
             }

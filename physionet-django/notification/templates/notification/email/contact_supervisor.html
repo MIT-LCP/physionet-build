@@ -9,7 +9,7 @@ Are you {{ applicant_name }}'s supervisor for this project, and is the summary a
 
 If you support this application for credentialed access, please indicate your approval using the link below. If you do not support their application, please ignore this email or update us directly via the link.
 
-http://{{ domain }}{% url 'credential_reference' application.slug %}
+{{ url_prefix }}{% url 'credential_reference' application.slug %}
 
 {{ signature }}
 {% endfilter %}{% endautoescape %}

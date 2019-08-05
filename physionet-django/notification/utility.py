@@ -84,6 +84,7 @@ def invitation_notify(request, invite_author_form, target_email):
         'inviter_email': inviter.email,
         'project': project,
         'domain': get_current_site(request),
+        'url_prefix': get_url_prefix(request),
         'signature': email_signature(),
         'project_info': email_project_info(project),
         'footer': email_footer(),
@@ -239,6 +240,7 @@ def edit_decision_notify(request, project, edit_log):
             'project': project,
             'edit_log': edit_log,
             'domain': get_current_site(request),
+            'url_prefix': get_url_prefix(request),
             'signature': email_signature(),
             'project_info': email_project_info(project),
             'footer': email_footer()
@@ -261,6 +263,7 @@ def copyedit_complete_notify(request, project, copyedit_log):
                 'project': project,
                 'copyedit_log': copyedit_log,
                 'domain': get_current_site(request),
+                'url_prefix': get_url_prefix(request),
                 'signature': email_signature(),
                 'project_info': email_project_info(project),
                 'footer': email_footer()
@@ -282,6 +285,7 @@ def reopen_copyedit_notify(request, project):
                 'name': name,
                 'project': project,
                 'domain': get_current_site(request),
+                'url_prefix': get_url_prefix(request),
                 'signature': email_signature(),
                 'project_info': email_project_info(project),
                 'footer': email_footer()
@@ -303,6 +307,7 @@ def authors_approved_notify(request, project):
                 'name': name,
                 'project': project,
                 'domain': get_current_site(request),
+                'url_prefix': get_url_prefix(request),
                 'signature': email_signature(),
                 'project_info': email_project_info(project),
                 'footer': email_footer()
@@ -324,6 +329,7 @@ def publish_notify(request, published_project):
                 'name': name,
                 'published_project': published_project,
                 'domain': get_current_site(request),
+                'url_prefix': get_url_prefix(request),
                 'signature': email_signature(),
                 'project_info': email_project_info(published_project),
                 'footer': email_footer()
@@ -368,6 +374,7 @@ def contact_reference(request, application):
             'application': application,
             'applicant_name': applicant_name,
             'domain': get_current_site(request),
+            'url_prefix': get_url_prefix(request),
             'signature': email_signature(),
             'footer': email_footer()
         })
@@ -387,6 +394,7 @@ def contact_supervisor(request, application):
             'application': application,
             'applicant_name': applicant_name,
             'domain': get_current_site(request),
+            'url_prefix': get_url_prefix(request),
             'signature': email_signature(),
             'footer': email_footer()
         })
@@ -406,6 +414,7 @@ def mailto_reference(request, application):
             'application': application,
             'applicant_name': applicant_name,
             'domain': get_current_site(request),
+            'url_prefix': get_url_prefix(request),
             'signature': email_signature(),
             'footer': email_footer()
         })
@@ -426,6 +435,7 @@ def mailto_supervisor(request, application):
             'application': application,
             'applicant_name': applicant_name,
             'domain': get_current_site(request),
+            'url_prefix': get_url_prefix(request),
             'signature': email_signature(),
             'footer': email_footer()
         })
@@ -485,6 +495,7 @@ def process_credential_complete(request, application, comments=True):
             'application': application,
             'applicant_name': applicant_name,
             'domain': get_current_site(request),
+            'url_prefix': get_url_prefix(request),
             'comments': comments,
             'signature': email_signature(),
             'footer': email_footer()
@@ -505,6 +516,7 @@ def credential_application_request(request, application):
             'application': application,
             'applicant_name': applicant_name,
             'domain': get_current_site(request),
+            'url_prefix': get_url_prefix(request),
             'dua': dua.dua_text_content(),
             'signature': email_signature(),
             'footer': email_footer()

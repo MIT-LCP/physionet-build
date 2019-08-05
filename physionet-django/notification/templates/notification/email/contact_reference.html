@@ -9,7 +9,7 @@ Are you familiar with {{ applicant_name }}'s research, and in your view would it
 
 If you support this application for credentialed access, please indicate your approval using the link below. If you do not support the application, please ignore this email or update us directly via the link.
 
-http://{{ domain }}{% url 'credential_reference' application.slug %}
+{{ url_prefix }}{% url 'credential_reference' application.slug %}
 
 {{ signature }}
 {% endfilter %}{% endautoescape %}
