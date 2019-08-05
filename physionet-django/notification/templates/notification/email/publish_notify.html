@@ -1,4 +1,4 @@
-{% load i18n %}{% autoescape off %}
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
 {{ project_info }}
 
 Dear {{ name }},
@@ -10,4 +10,4 @@ We encourage you to share this link to increase your work's visibility within th
 {{ signature }}
 
 {{ footer }}
-{% endautoescape %}
+{% endfilter %}{% endautoescape %}

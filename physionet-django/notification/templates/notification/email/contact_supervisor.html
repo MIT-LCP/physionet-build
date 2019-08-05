@@ -1,4 +1,4 @@
-{% load i18n %}{% autoescape off %}
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
 Dear {{ application.reference_name }},
 
 {{ applicant_name }} is applying for credentialed access to PhysioNet, the website for sharing biomedical data. He/She have listed you as their supervisor and he/she have summarized the research project as follows:
@@ -12,4 +12,4 @@ If you support this application for credentialed access, please indicate your ap
 http://{{ domain }}{% url 'credential_reference' application.slug %}
 
 {{ signature }}
-{% endautoescape %}
+{% endfilter %}{% endautoescape %}

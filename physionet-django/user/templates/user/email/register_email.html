@@ -1,4 +1,4 @@
-{% load i18n %}{% autoescape off %}
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
 Dear {{ name }},
 
 Thanks for registering for an account on {{ domain }}. Please activate your account by clicking the following activation link or by copying and pasting the link into your web browser: 
@@ -7,4 +7,4 @@ http://{{ domain }}{% url 'activate_user' uidb64=uidb64 token=token %}
 
 Regards
 The PhysioNet Team
-{% endautoescape %}
+{% endfilter %}{% endautoescape %}

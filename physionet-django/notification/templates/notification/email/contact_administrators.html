@@ -1,4 +1,4 @@
-{% load i18n %}{% autoescape off %}
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
 
 Dear Physionet Team,
 
@@ -9,4 +9,4 @@ There was an error sending the files from "{{project}}" to the GCP bucket {{proj
 {{ signature }}
 
 {{ footer }}
-{% endautoescape %}
+{% endfilter %}{% endautoescape %}
