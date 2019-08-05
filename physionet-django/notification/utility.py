@@ -197,7 +197,7 @@ def assign_editor_notify(project):
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)
 
-def editor_notify_new_project(project, assignee):
+def editor_notify_new_project(project, assigner):
     """
     Notify authors when an editor is assigned
     """
@@ -209,7 +209,7 @@ def editor_notify_new_project(project, assignee):
             'project': project,
             'editor': project.editor,
             'signature': email_signature(),
-            'user': assignee.get_full_name(),
+            'user': assigner.get_full_name(),
             'project_info': email_project_info(project),
             'footer': email_footer()
         })
