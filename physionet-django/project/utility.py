@@ -263,7 +263,7 @@ def grant_aws_open_data_access(user, project):
     AWS platform.
     """
     url = settings.AWS_CLOUD_FORMATION
-    # The paylod has to be a string in an array
+    # The payload has to be a string in an array
     payload = {'accountid': ["{}".format(user.cloud_information.aws_id)]}
     # Custom headers set as a key for a lambda function in AWS to grant access
     headers = {settings.AWS_HEADER_KEY: settings.AWS_HEADER_VALUE,
@@ -278,14 +278,18 @@ def grant_aws_open_data_access(user, project):
 
 def grant_gcp_group_access(user, project, data_access, request):
     """
-    Funtion to add a specific email address to a organizational google group
+    Add a specific email address to a organizational google group
     Returns two things:
-        The first argunet is if acces was awarded.
-        The second argunet is if the access was awarded in a previous time.
+        The first argument is if access was awarded.
+        The second argument is if the access was awarded in a previous time.
     """
     email = user.cloud_information.gcp_email.email
     service = create_directory_service(settings.GCP_DELEGATION_EMAIL)
+    # Get all the members of the Google group
     members = service.members().list(groupKey=data_access.location).execute()
+    # Set the type of access depending on the  request
+    # Access == 3 is for the GCP Bucket
+    # Access == 4 is for the GCP Big Query
     access = "Access to the GCP BigQuery"
     if data_access == 3:
         access = "Access to the GCP bucket"
