@@ -381,10 +381,10 @@ class NewProjectVersionForm(forms.ModelForm):
         project.is_new_version = True
         project.save()
 
-        # Copy content for earch project section
+        # Copy content for each project section
         for c in self.latest_project.project_content.all():
             SectionContent.objects.create(
-                project_id=project,
+                project=project,
                 project_section=c.project_section,
                 section_content=c.section_content
             )
@@ -470,10 +470,10 @@ class SectionContentForm(forms.ModelForm):
         model = SectionContent
         fields = ('section_content',)
 
-    def __init__(self, project_id=None, project_section=None, *args, **kwargs):
+    def __init__(self, project=None, project_section=None, *args, **kwargs):
         # Creates a new instace of SectionContent if none is passed as argument
         if 'instance' not in kwargs:
-            kwargs['instance'] = SectionContent(project_id=project_id, project_section=project_section)
+            kwargs['instance'] = SectionContent(project=project, project_section=project_section)
 
         # Sets label and help text for form fields
         super(SectionContentForm, self).__init__(*args, **kwargs)
