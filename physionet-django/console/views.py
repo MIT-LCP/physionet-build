@@ -16,10 +16,10 @@ from django.utils import timezone
 from django.db import DatabaseError, transaction
 from django.db.models import Q, CharField, Value, IntegerField, F, functions
 from background_task import background
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from notification.models import News
 import notification.utility as notification
+from physionet.utility import paginate
 import project.forms as project_forms
 from project.models import (ActiveProject, ArchivedProject, StorageRequest,
     Reference, Topic, Publication, PublishedProject,
@@ -59,6 +59,7 @@ def make_checksum_background(pid):
 
 def is_admin(user, *args, **kwargs):
     return user.is_admin
+
 
 def handling_editor(base_view):
     """
@@ -634,14 +635,7 @@ def users(request):
     List of users
     """
     all_users = User.objects.all().order_by('username')
-
-    # PAGINATION
-    page = request.GET.get('page', 1)
-    paginator = Paginator(all_users, 100)
-    try:
-        users = paginator.page(page)
-    except (EmptyPage, PageNotAnInteger):
-        users = paginator.page(1)
+    users = paginate(request, all_users, 100)
 
     return render(request, 'console/users.html', {'users': users})
 
@@ -680,13 +674,7 @@ def users_inactive(request):
         last_login__lt=timezone.now() + timezone.timedelta(days=-90))
         ).order_by('username')
 
-    # PAGINATION
-    page = request.GET.get('page', 1)
-    paginator = Paginator(all_inactive_users, 100)
-    try:
-        inactive_users = paginator.page(page)
-    except (EmptyPage, PageNotAnInteger):
-        inactive_users = paginator.page(1)
+    inactive_users = paginate(request, all_inactive_users, 100)
 
     return render(request, 'console/users.html', {'users': inactive_users})
 

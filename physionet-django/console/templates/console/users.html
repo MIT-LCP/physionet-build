@@ -5,7 +5,7 @@
 {% block title %}PhysioNet Users{% endblock %}
 
 {% block local_css %}
-<link rel="stylesheet" type="text/css" href="{% static 'search/css/content-index.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/pagination.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -57,35 +57,7 @@
           {% include 'console/users_list.html' %}
         </tbody>
       </table>
-      {% if users.has_other_pages %}
-        <div style="text-align: center;">
-          <ul class="pagination">
-            <li><a href="?page=1">&laquo;</a></li>
-            {% if users.has_previous %}
-              <li><a href="?page={{ users.previous_page_number }}">&lsaquo;</a></li>
-            {% else %}
-              <li class="disabled"><span>&lsaquo;</span></li>
-            {% endif %}
-            {% for i in i|ljust:10 %}
-              {% with num=forloop.counter|add:users.number|add:"-4" %}
-              {% if num > 0 and num <= users.paginator.num_pages %}
-                {% if users.number == num %}
-                  <li class="active"><span>{{ num }} <span class="sr-only">(current)</span></span></li>
-                {% else %}
-                  <li><a href="?page={{ num }}">{{ num }}</a></li>
-                {% endif %}
-              {% endif %}
-              {% endwith %}
-            {% endfor %}
-            {% if users.has_next %}
-              <li><a href="?page={{ users.next_page_number }}">&rsaquo;</a></li>
-            {% else %}
-              <li class="disabled"><span>&rsaquo;</span></li>
-            {% endif %}
-            <li><a href="?page={{ users.paginator.num_pages }}">&raquo;</a></li>
-          </ul>
-        </div>
-      {% endif %}
+      {% include "console/pagination.html" with pagination=users %}
     </div>
   </div>
 </div>

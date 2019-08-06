@@ -1,0 +1,29 @@
+{% if pagination.has_other_pages %}
+  <div style="text-align: center;">
+    <ul class="pagination">
+      <li><a href="?{{ querystring }}&page=1">&laquo;</a></li>
+      {% if pagination.has_previous %}
+        <li><a href="?{{ querystring }}&page={{ pagination.previous_page_number }}">&lsaquo;</a></li>
+      {% else %}
+        <li class="disabled"><span>&lsaquo;</span></li>
+      {% endif %}
+      {% for i in i|ljust:10 %}
+        {% with num=forloop.counter|add:pagination.number|add:"-4" %}
+        {% if num > 0 and num <= pagination.paginator.num_pages %}
+          {% if pagination.number == num %}
+            <li class="active"><span>{{ num }} <span class="sr-only">(current)</span></span></li>
+          {% else %}
+            <li><a href="?{{ querystring }}&page={{ num }}">{{ num }}</a></li>
+          {% endif %}
+        {% endif %}
+        {% endwith %}
+      {% endfor %}
+      {% if pagination.has_next %}
+        <li><a href="?{{ querystring }}&page={{ pagination.next_page_number }}">&rsaquo;</a></li>
+      {% else %}
+        <li class="disabled"><span>&rsaquo;</span></li>
+      {% endif %}
+      <li><a href="?{{ querystring }}&page={{ pagination.paginator.num_pages }}">&raquo;</a></li>
+    </ul>
+  </div>
+{% endif %}
