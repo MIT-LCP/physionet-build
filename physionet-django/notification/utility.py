@@ -449,7 +449,7 @@ def mailto_supervisor(request, application):
     return mailto
 
 
-def mailto_process_credential_complete(application, comments=True):
+def mailto_process_credential_complete(request, application, comments=True):
     """
     Notify user of credentialing decision
     """

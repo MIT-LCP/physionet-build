@@ -740,7 +740,8 @@ def complete_credential_applications(request):
             if process_credential_form.is_valid():
                 application = process_credential_form.save()
                 notification.process_credential_complete(request, application, comments=False)
-                mailto = notification.mailto_process_credential_complete(application)
+                mailto = notification.mailto_process_credential_complete(
+                    request, application)
                 return render(request, 'console/generate_response_email.html',
                     {'application' : application, 'mailto': mailto})
             else:
@@ -752,7 +753,7 @@ def complete_credential_applications(request):
 
     for application in applications:
         application.mailto = notification.mailto_process_credential_complete(
-            application, comments=False)
+            request, application, comments=False)
         if CredentialApplication.objects.filter(reference_email=application.reference_email,
             reference_contact_datetime__isnull=False):
             # If the reference has been contacted before, mark it so
