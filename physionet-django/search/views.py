@@ -63,7 +63,7 @@ def get_content(resource_type, orderby, direction, topic):
     if len(topic) == 0:
         query = Q(resource_type__in=resource_type)
     else:
-        topic = re.split(r"\W", topic)
+        topic = re.split(r'\s*[\;\,\s]\s*', topic)
         query = reduce(operator.or_, (Q(topics__description__iregex=r'{0}{1}{0}'.format(wb,
             item)) for item in topic))
         query = query | reduce(operator.or_, (Q(abstract__iregex=r'{0}{1}{0}'.format(wb,
@@ -127,7 +127,7 @@ def content_index(request, resource_type=None):
         form_type = forms.ProjectTypeForm({'types': resource_type})
 
     # SORT PROJECTS
-    orderby, direction = 'publish_datetime', 'desc'
+    orderby, direction = 'relevance', 'desc'
     form_order = forms.ProjectOrderForm()
     if 'orderby' in request.GET:
         form_order = forms.ProjectOrderForm(request.GET)
