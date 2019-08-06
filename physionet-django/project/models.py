@@ -13,7 +13,6 @@ import bleach
 import ckeditor.fields
 from html2text import html2text
 from django.conf import settings
-from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -150,18 +149,6 @@ class Affiliation(models.Model):
         unique_together = (('name', 'author'),)
 
 
-class PublishedAffiliation(models.Model):
-    """
-    Affiliations belonging to a published author
-    """
-    name = models.CharField(max_length=202, validators=[validate_alphaplus])
-    author = models.ForeignKey('project.PublishedAuthor',
-        related_name='affiliations', on_delete=models.CASCADE)
-
-    class Meta:
-        unique_together = (('name', 'author'),)
-
-
 class BaseAuthor(models.Model):
     """
     Base model for a project's author/creator. Credited for creating the
@@ -177,6 +164,7 @@ class BaseAuthor(models.Model):
     is_corresponding = models.BooleanField(default=False)
     # When they approved the project for publication
     approval_datetime = models.DateTimeField(null=True)
+    corresponding_email = models.EmailField(null=True)
 
     class Meta:
         abstract = True
@@ -191,16 +179,25 @@ class Author(BaseAuthor):
     """
     The author model for ArchivedProject/ActiveProject
     """
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    project = GenericForeignKey('content_type', 'object_id')
-    corresponding_email = models.ForeignKey('user.AssociatedEmail', null=True,
-        on_delete=models.SET_NULL)
+    project = models.ForeignKey('project.Metadata',
+        related_name='authors', db_index=True, on_delete=models.CASCADE)
     creation_date = models.DateTimeField(default=timezone.now)
 
     class Meta:
-        unique_together = (('user', 'content_type', 'object_id',),
-                           ('display_order', 'content_type', 'object_id'))
+        unique_together = (('user', 'project'),
+                           ('display_order', 'project'))
+
+    @classmethod
+    def from_db(cls, db, field_names, values):
+        instance = super(Author, cls).from_db(db, field_names, values)
+
+        # Check if the project is published
+        publish = instance.project.publish_datetime
+        ins_cls = instance.__class__
+        if(ins_cls == Author and publish is not None):
+            instance = instance.publishedauthor
+
+        return instance
 
     def get_full_name(self):
         """
@@ -239,19 +236,12 @@ class Author(BaseAuthor):
             self.text_affiliations = [a.name for a in self.affiliations.all()]
 
 
-class PublishedAuthor(BaseAuthor):
+class PublishedAuthor(Author):
     """
     The author model for PublishedProject
     """
     first_names = models.CharField(max_length=100, default='')
     last_name = models.CharField(max_length=50, default='')
-    corresponding_email = models.EmailField(null=True)
-    project = models.ForeignKey('project.PublishedProject',
-        related_name='authors', db_index=True, on_delete=models.CASCADE)
-
-    class Meta:
-        unique_together = (('user', 'project'),
-                           ('display_order', 'project'))
 
     def get_full_name(self):
         return ' '.join([self.first_names, self.last_name])
@@ -271,60 +261,54 @@ class PublishedAuthor(BaseAuthor):
 
 class Topic(models.Model):
     """
-    Topic information to tag ActiveProject/ArchivedProject
+    Topic information to tag Project
     """
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    project = GenericForeignKey('content_type', 'object_id')
-
+    project = models.ForeignKey('project.Metadata',
+        related_name='topics', on_delete=models.CASCADE)
     description = models.CharField(max_length=50, validators=[validate_alphaplus])
 
     class Meta:
-        unique_together = (('description', 'content_type', 'object_id'),)
+        unique_together = (('description', 'project',))
 
     def __str__(self):
         return self.description
 
 
-class PublishedTopic(models.Model):
-    """
-    Topic information to tag PublishedProject
-    """
-    projects = models.ManyToManyField('project.PublishedProject',
-        related_name='topics')
-    description = models.CharField(max_length=50, validators=[validate_alphaplus])
-    project_count = models.PositiveIntegerField(default=0)
+class PublishedTopicManager(models.Manager):
+    '''
+    Manager that returns a queryset of archived projects
+    '''
+    def get_queryset(self):
+        return (super().get_queryset()
+            .filter(project__archive_datetime=None)
+            .exclude(project__publish_datetime=None)
+        )
 
-    def __str__(self):
-        return self.description
+
+class PublishedTopic(Topic):
+    """
+    Topic information to tag Project
+    """
+
+    objects = PublishedTopicManager()
+
+    class Meta:
+        proxy = True
 
 
 class Reference(models.Model):
     """
-    Reference field for ActiveProject/ArchivedProject
-    """
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    project = GenericForeignKey('content_type', 'object_id')
-
-    description = models.CharField(max_length=1000)
-
-    class Meta:
-        unique_together = (('description', 'content_type', 'object_id'),)
-
-    def __str__(self):
-        return self.description
-
-
-class PublishedReference(models.Model):
-    """
+    Reference field for Metadata
     """
     description = models.CharField(max_length=1000)
-    project = models.ForeignKey('project.PublishedProject',
+    project = models.ForeignKey('project.Metadata',
         related_name='references', on_delete=models.CASCADE)
 
     class Meta:
         unique_together = (('description', 'project'))
+
+    def __str__(self):
+        return self.description
 
 
 class Contact(models.Model):
@@ -334,7 +318,7 @@ class Contact(models.Model):
     name = models.CharField(max_length=120)
     affiliations = models.CharField(max_length=150)
     email = models.EmailField(max_length=255)
-    project = models.OneToOneField('project.PublishedProject',
+    project = models.OneToOneField('project.Metadata',
         related_name='contact', on_delete=models.CASCADE)
 
 
@@ -353,16 +337,7 @@ class Publication(BasePublication):
     """
     Publication for ArchivedProject/ActiveProject
     """
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    project = GenericForeignKey('content_type', 'object_id')
-
-
-class PublishedPublication(BasePublication):
-    """
-    Publication for published project
-    """
-    project = models.ForeignKey('project.PublishedProject',
+    project = models.ForeignKey('project.Metadata',
         db_index=True, related_name='publications', on_delete=models.CASCADE)
 
 
@@ -383,7 +358,7 @@ class CoreProject(models.Model):
 
     def active_new_version(self):
         "Whether there is a new version being worked on"
-        return bool(self.activeprojects.filter())
+        return bool(self.projects.filter(publish_datetime=None, archive_datetime=None))
 
 
 class ProjectType(models.Model):
@@ -417,9 +392,8 @@ class SectionContent(models.Model):
     """
     The content for each section of a project
     """
-    content_type = models.ForeignKey(ContentType, on_delete=models.PROTECT)
-    object_id = models.PositiveIntegerField()
-    project = GenericForeignKey('content_type', 'object_id')
+    project = models.ForeignKey('project.Metadata',
+        related_name='project_content', on_delete=models.CASCADE)
 
     project_section = models.ForeignKey('project.ProjectSection',
                                     db_column='project_section',
@@ -429,7 +403,7 @@ class SectionContent(models.Model):
     section_content = SafeHTMLField(blank=True)
 
     class Meta:
-        unique_together = (('content_type', 'object_id', 'project_section'),)
+        unique_together = (('project', 'project_section'),)
 
 
 class SubmissionInfo(models.Model):
@@ -480,13 +454,6 @@ class Metadata(SubmissionInfo):
     title = models.CharField(max_length=200, validators=[validate_alphaplus])
     abstract = SafeHTMLField(max_length=10000, blank=True)
     release_notes = SafeHTMLField(blank=True)
-    authors = GenericRelation('project.Author')
-    topics = GenericRelation('project.Topic')
-
-    # Project content
-    project_content = GenericRelation(SectionContent)
-    references = GenericRelation('project.Reference')
-    publications = GenericRelation('project.Publication')
 
     # Short description used for search results, social media, etc
     short_description = models.CharField(max_length=250, blank=True)
@@ -497,20 +464,17 @@ class Metadata(SubmissionInfo):
     license = models.ForeignKey('project.License', null=True,
         on_delete=models.SET_NULL)
     project_home_page = models.URLField(default='', blank=True)
-    parent_projects = models.ManyToManyField('project.PublishedProject',
+    parent_projects = models.ManyToManyField('project.Metadata',
         blank=True, related_name='derived_%(class)ss')
     programming_languages = models.ManyToManyField(
         'project.ProgrammingLanguage', related_name='%(class)ss', blank=True)
 
     core_project = models.ForeignKey('project.CoreProject',
-                                     related_name='%(class)ss',
+                                     related_name='projects',
                                      on_delete=models.CASCADE)
 
     # When the submitting project was created
     creation_datetime = models.DateTimeField(auto_now_add=True)
-
-    edit_logs = GenericRelation('project.EditLog')
-    copyedit_logs = GenericRelation('project.CopyeditLog')
 
     # Versioning and ordering of projects with multiple versions
     version = models.CharField(max_length=15, default='', blank=True,
@@ -520,8 +484,9 @@ class Metadata(SubmissionInfo):
     # Tracking of status change
     submission_status = models.PositiveSmallIntegerField(default=0)
     modified_datetime = models.DateTimeField(auto_now=True)
-    archive_datetime = models.DateTimeField(auto_now_add=True)
-    archive_reason = models.PositiveSmallIntegerField()
+    publish_datetime = models.DateTimeField(null=True)
+    archive_datetime = models.DateTimeField(null=True)
+    archive_reason = models.PositiveSmallIntegerField(null=True)
 
     # Whether this project is being worked on as a new version
     is_new_version = models.BooleanField(default=False)
@@ -529,8 +494,50 @@ class Metadata(SubmissionInfo):
     # Access url slug, also used as a submitting project id.
     slug = models.SlugField(max_length=20, db_index=True)
 
+    # File storage sizes in bytes
+    main_storage_size = models.BigIntegerField(default=0)
+    compressed_storage_size = models.BigIntegerField(default=0)
+    deprecated_files = models.BooleanField(default=False)
+
+    # Temporary workaround
+    doi = models.CharField(max_length=50, default='')
+    approved_users = models.ManyToManyField('user.User', db_index=True)
+
+    # Fields for legacy pb databases
+    is_legacy = models.BooleanField(default=False)
+    full_description = SafeHTMLField(default='')
+
+    # Useful flags
+    is_latest_version = models.BooleanField(default=True)
+    has_other_versions = models.BooleanField(default=False)
+
+    # Featured content
+    featured = models.BooleanField(default=False)
+    has_wfdb = models.BooleanField(default=False)
+
     class Meta:
         unique_together = (('core_project', 'version'),)
+
+    @classmethod
+    def from_db(cls, db, field_names, values):
+        instance = super(Metadata, cls).from_db(db, field_names, values)
+
+        # Check if the project is published
+        publish = instance.publish_datetime
+        archive = instance.archive_datetime
+        
+        # Assign class
+        if(archive is not None):
+            instance.__class__ = ArchivedProject
+        elif(publish is not None):
+            instance.__class__ = PublishedProject
+        else:
+            instance.__class__ = ActiveProject
+
+        return instance
+        
+    def __str__(self):
+        return ('{0} v{1}'.format(self.title, self.version))
 
     def author_contact_info(self, only_submitting=False):
         """
@@ -907,7 +914,7 @@ class ActiveProject(Metadata, UnpublishedProject):
                 l = attr.replace('_', ' ').capitalize()
                 self.integrity_errors.append('Missing required field: {0}'.format(l))
 
-        published_projects = self.core_project.publishedprojects.all()
+        published_projects = PublishedProject.objects.filter(core_project=self.core_project)
         if published_projects:
             published_versions = [p.version for p in published_projects]
             if self.version in published_versions:
@@ -1044,7 +1051,7 @@ class ActiveProject(Metadata, UnpublishedProject):
         """
         if not self.is_publishable():
             raise Exception('The project is not publishable')
-
+        
         # If this is a new version, previous fields need to be updated
         # and slug needs to be carried over
         if self.version_order:
@@ -1054,57 +1061,31 @@ class ActiveProject(Metadata, UnpublishedProject):
             slug = previous_published_projects.first().slug
             title = previous_published_projects.first().title
 
-        published_project = PublishedProject(doi=doi,
-            has_wfdb=self.has_wfdb())
+        # Sets class to PublishedProject
+        self.__class__ = PublishedProject
 
-        # Direct copy over fields
-        for attr in [f.name for f in Metadata._meta.fields] + [f.name for f in SubmissionInfo._meta.fields]:
-            setattr(published_project, attr, getattr(self, attr))
+        # Sets wfdb flag
+        self.has_wfdb = self.has_wfdb()
 
         # Set the slug if specified
-        published_project.slug = slug or self.slug
-        published_project.title = title or self.title
+        self.slug = slug or self.slug
+        self.title = title or self.title
 
         if self.core_project.publishedprojects.all() and len(previous_published_projects) > 0:
             for project in previous_published_projects:
-                if project.version > published_project.version:
+                if project.version > self.version:
                     project.is_latest_version = True
-                    published_project.is_latest_version = False
+                    self.is_latest_version = False
                     project.save()
             previous_published_projects.update(has_other_versions=True)
 
-        published_project.save()
+        # Save modifications
+        self.save()
 
-        # Copy content
-        content = self.project_content.all()
-        for c in content:
-            SectionContent.objects.create(
-                project=published_project,
-                section_content=c.section_content,
-                project_section=c.project_section
-            )
+        # Topic mapping
+        self.set_topics([t.description for t in self.topics.all()])
 
-        # Same content, different objects.
-        for reference in self.references.all():
-            published_reference = PublishedReference.objects.create(
-                description=reference.description,
-                project=published_project)
-
-        for publication in self.publications.all():
-            published_publication = PublishedPublication.objects.create(
-                citation=publication.citation, url=publication.url,
-                project=published_project)
-
-        published_project.set_topics([t.description for t in self.topics.all()])
-
-        for parent_project in self.parent_projects.all():
-            published_project.parent_projects.add(parent_project)
-
-        if self.resource_type.id == 1:
-            languages = self.programming_languages.all()
-            if languages:
-                published_project.programming_languages.add(*list(languages))
-
+        # Create PublishedAuthor(s)
         for author in self.authors.all():
             author_profile = author.user.profile
             published_author = PublishedAuthor.objects.create(
@@ -1115,72 +1096,51 @@ class ActiveProject(Metadata, UnpublishedProject):
                 display_order=author.display_order,
                 first_names=author_profile.first_names,
                 last_name=author_profile.last_name,
-                )
-
-            affiliations = author.affiliations.all()
-            for affiliation in affiliations:
-                published_affiliation = PublishedAffiliation.objects.create(
-                    name=affiliation.name, author=published_author)
-
+            )
+            
             if author.is_corresponding:
-                published_author.corresponding_email = author.corresponding_email.email
-                published_author.save()
-                contact = Contact.objects.create(name=author.get_full_name(),
-                affiliations='; '.join(a.name for a in affiliations),
-                email=author.corresponding_email, project=published_project)
-
-        # Move the edit and copyedit logs
-        for edit_log in self.edit_logs.all():
-            edit_log.project = published_project
-            edit_log.save()
-        for copyedit_log in self.copyedit_logs.all():
-            copyedit_log.project = published_project
-            copyedit_log.save()
+                contact = Contact.objects.create(
+                    name=author.get_full_name(),
+                    affiliations='; '.join(a.name for a in affiliations),
+                    email=author.corresponding_email,
+                    project=published_project
+                )
+            
+            author.delete()
 
         # Create project file root if this is first version or the first
         # version with a different access policy
-        if not os.path.isdir(published_project.project_file_root()):
-            os.mkdir(published_project.project_file_root())
+        if not os.path.isdir(self.project_file_root()):
+            os.mkdir(self.project_file_root())
 
         # Move over main files
-        os.rename(self.file_root(), published_project.file_root())
+        os.rename(self.file_root(), self.file_root())
 
         # Set files read only and make zip file if requested
-        move_files_as_readonly(published_project.id, self.file_root(),
-            published_project.file_root(), make_zip, 
-            verbose_name='Read Only Files - {}'.format(published_project))
+        move_files_as_readonly(self.id, self.file_root(),
+            self.file_root(), make_zip, 
+            verbose_name='Read Only Files - {}'.format(self))
 
-        # Remove the ActiveProject
-        self.delete()
+        return self
 
-        return published_project
 
+class PublishedManager(models.Manager):
+    '''
+    Manager that returns a queryset of archived projects
+    '''
+    def get_queryset(self):
+        return super().get_queryset().filter(archive_datetime=None).exclude(publish_datetime=None)
     
+
 class PublishedProject(Metadata):
     """
     A published project. Immutable snapshot.
 
     """
-    # File storage sizes in bytes
-    main_storage_size = models.BigIntegerField(default=0)
-    compressed_storage_size = models.BigIntegerField(default=0)
-    publish_datetime = models.DateTimeField(auto_now_add=True)
-    has_other_versions = models.BooleanField(default=False)
-    deprecated_files = models.BooleanField(default=False)
-    # doi = models.CharField(max_length=50, unique=True, validators=[validate_doi])
-    # Temporary workaround
-    doi = models.CharField(max_length=50, default='')
-    approved_users = models.ManyToManyField('user.User', db_index=True)
-    # Fields for legacy pb databases
-    is_legacy = models.BooleanField(default=False)
-    full_description = SafeHTMLField(default='')
 
-    is_latest_version = models.BooleanField(default=True)
-    # Featured content
-    featured = models.BooleanField(default=False)
-    has_wfdb = models.BooleanField(default=False)
     # Where all the published project files are kept, depending on access.
     PROTECTED_FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'published-projects')
+
     # Workaround for development
     if os.environ['DJANGO_SETTINGS_MODULE'] == 'physionet.settings.development':
         PUBLIC_FILE_ROOT = os.path.join(settings.STATICFILES_DIRS[0], 'published-projects')
@@ -1195,8 +1155,11 @@ class PublishedProject(Metadata):
         'ANNOTATORS.tsv':'List of WFDB annotation file types'
     }
 
-    def __str__(self):
-        return ('{0} v{1}'.format(self.title, self.version))
+    # Override default manager
+    objects = PublishedManager()
+
+    class Meta:
+        proxy = True
 
     def project_file_root(self):
         """
@@ -1535,7 +1498,7 @@ class DUASignature(models.Model):
     """
     Log of user signing DUA
     """
-    project = models.ForeignKey('project.PublishedProject',
+    project = models.ForeignKey('project.Metadata',
         on_delete=models.CASCADE)
     user = models.ForeignKey('user.User', on_delete=models.CASCADE)
     sign_datetime = models.DateTimeField(auto_now_add=True)
@@ -1678,9 +1641,8 @@ class EditLog(models.Model):
         ],
     }
 
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    project = GenericForeignKey('content_type', 'object_id')
+    project = models.ForeignKey('project.Metadata',
+        related_name='edit_logs', on_delete=models.CASCADE)
 
     # When the submitting author submits/resubmits
     submission_datetime = models.DateTimeField(auto_now_add=True)
@@ -1730,9 +1692,8 @@ class CopyeditLog(models.Model):
     """
     Log for an editor copyedit
     """
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    project = GenericForeignKey('content_type', 'object_id')
+    project = models.ForeignKey('project.Metadata',
+        related_name='copyedit_logs', on_delete=models.CASCADE)
     # Either the time the project was accepted and moved into copyedit
     # from the edit stage, or the time it was reopened for copyedit from
     # the author approval stage.
@@ -1809,7 +1770,7 @@ class GCP(models.Model):
     """
     Store all of the Google Cloud information with a relation to a project.
     """
-    project = models.OneToOneField('project.PublishedProject', related_name='gcp',
+    project = models.OneToOneField('project.Metadata', related_name='gcp',
         on_delete=models.CASCADE)
     bucket_name = models.CharField(max_length=150, null=True)
     is_private = models.BooleanField(default=False)
@@ -1835,7 +1796,7 @@ class DataAccess(models.Model):
         (4, 'gcp-bigquery'),
     )
 
-    project = models.ForeignKey('project.PublishedProject',
+    project = models.ForeignKey('project.Metadata',
         related_name='%(class)ss', db_index=True, on_delete=models.CASCADE)
     platform = models.PositiveSmallIntegerField(choices=PLATFORM_ACCESS)
     location = models.CharField(max_length=100, null=True)

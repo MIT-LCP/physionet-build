@@ -24,7 +24,7 @@ class PublishedPublicationInline(admin.TabularInline):
     """
     Used to add/edit the publication of a published project
     """
-    model = models.PublishedPublication
+    model = models.Publication
     max_num = 1
 
 
@@ -58,7 +58,7 @@ class PublishedAffiliationInline(admin.TabularInline):
     """
     Used to add/edit affiliations of published authors
     """
-    model = models.PublishedAffiliation
+    model = models.Affiliation
     max_num = 3
 
 
@@ -89,7 +89,6 @@ admin.site.register(models.LegacyProject, LegacyProjectModelAdmin)
 admin.site.register(models.License, LicenseAdmin)
 admin.site.register(models.PublishedAuthor, PublishedAuthorAdmin)
 admin.site.register(models.PublishedProject, PublishedProjectAdmin)
-admin.site.register(models.PublishedTopic)
 admin.site.register(models.ProgrammingLanguage)
 admin.site.register(models.Reference)
 admin.site.register(models.Topic)
@@ -100,9 +99,6 @@ admin.site.register(models.CopyeditLog)
 admin.site.register(models.DUASignature)
 admin.site.register(models.EditLog)
 admin.site.register(models.Publication)
-admin.site.register(models.PublishedAffiliation)
-admin.site.register(models.PublishedPublication)
-admin.site.register(models.PublishedReference)
 admin.site.register(models.StorageRequest)
 admin.site.register(models.GCP)
 

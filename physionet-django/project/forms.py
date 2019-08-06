@@ -529,7 +529,7 @@ class DiscoveryForm(forms.ModelForm):
 
     def clean_version(self):
         data = self.cleaned_data['version']
-        if data in [p.version for p in self.instance.core_project.publishedprojects.all()]:
+        if PublishedProject.objects.filter(core_project=self.instance.core_project, version=data).first():
             raise forms.ValidationError('Please specify a new unused version.')
         return data
 
@@ -570,11 +570,11 @@ class AffiliationFormSet(forms.BaseInlineFormSet):
                 names.append(name)
 
 
-class ReferenceFormSet(BaseGenericInlineFormSet):
+class ReferenceFormSet(forms.BaseInlineFormSet):
     """
     Formset for adding a ActiveProject's references
     """
-    form_name = 'project-reference-content_type-object_id'
+    form_name = 'references'
     item_label = 'References'
     max_forms = 50
 
@@ -606,11 +606,11 @@ class ReferenceFormSet(BaseGenericInlineFormSet):
                 descriptions.append(description)
 
 
-class PublicationFormSet(BaseGenericInlineFormSet):
+class PublicationFormSet(forms.BaseInlineFormSet):
     """
     Formset for adding a ActiveProject's publication
     """
-    form_name = 'project-publication-content_type-object_id'
+    form_name = 'publications'
     item_label = 'Publication'
     max_forms = 1
 
@@ -636,11 +636,11 @@ class PublicationFormSet(BaseGenericInlineFormSet):
             raise forms.ValidationError('Maximum number of allowed items exceeded.')
 
 
-class TopicFormSet(BaseGenericInlineFormSet):
+class TopicFormSet(forms.BaseInlineFormSet):
     """
     Formset for adding a ActiveProject's topics
     """
-    form_name = 'project-topic-content_type-object_id'
+    form_name = 'topics'
     item_label = 'Topics'
     max_forms = 20
 

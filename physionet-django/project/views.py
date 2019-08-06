@@ -9,7 +9,6 @@ from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import redirect_to_login
-from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import (ObjectDoesNotExist, PermissionDenied,
@@ -30,7 +29,7 @@ from project.models import (Affiliation, Author, AuthorInvitation,
     ActiveProject, PublishedProject, StorageRequest, Reference, DataAccess,
     ArchivedProject, ProgrammingLanguage, Topic, Contact, Publication,
     PublishedAuthor, EditLog, CopyeditLog, DUASignature, CoreProject, GCP,
-    SectionContent, ProjectSection)
+    SectionContent, ProjectSection, Metadata)
 from project import utility
 from project.validators import validate_filename
 import notification.utility as notification
@@ -166,11 +165,10 @@ def project_home(request):
             return redirect('project_authors', project_slug=project.slug)
 
     active_authors = Author.objects.filter(user=user,
-        content_type=ContentType.objects.get_for_model(ActiveProject))
-    archived_authors = Author.objects.filter(user=user,
-        content_type=ContentType.objects.get_for_model(ArchivedProject))
+        project__archive_datetime=None, project__publish_datetime=None)
+    archived_authors = Author.objects.filter(user=user).exclude(project__archive_datetime=None)
     published_authors = PublishedAuthor.objects.filter(user=user,
-        project__is_latest_version=True)
+        project__archive_datetime=None).exclude(project__publish_datetime=None)
 
     # Get the various projects.
     projects = [a.project for a in active_authors]
@@ -180,6 +178,7 @@ def project_home(request):
 
     pending_author_approvals = []
     missing_affiliations = []
+    
     for p in projects:
         if (p.submission_status == 50
                 and not p.authors.get(user=user).approval_datetime):
@@ -228,8 +227,8 @@ def new_project_version(request, project_slug):
     """
     user = request.user
 
-    n_submitting = Author.objects.filter(user=user, is_submitting=True,
-        content_type=ContentType.objects.get_for_model(ActiveProject)).count()
+    n_submitting = Author.objects.filter(user=user, is_submitting=True, 
+        project__archive_datetime=None, project__publish_datetime=None)
     if n_submitting >= ActiveProject.MAX_SUBMITTING_PROJECTS:
         return render(request, 'project/project_limit_reached.html',
             {'max_projects':ActiveProject.MAX_SUBMITTING_PROJECTS})
@@ -535,9 +534,6 @@ def edit_content_item(request, project_slug):
 
     model_dict = {'reference': Reference, 'publication': Publication,
                   'topic': Topic}
-    # Whether the item relation is generic
-    is_generic_relation = {'reference': True, 'publication':True,
-                           'topic': True}
 
     custom_formsets = {'reference':forms.ReferenceFormSet,
                        'publication':forms.PublicationFormSet,
@@ -562,16 +558,10 @@ def edit_content_item(request, project_slug):
         model.objects.filter(id=item_id).delete()
 
     # Create the formset
-    if is_generic_relation[item]:
-        ItemFormSet = generic_inlineformset_factory(model,
-            fields=content_item_fields[item], extra=extra_forms,
-            max_num=custom_formsets[item].max_forms, can_delete=False,
-            formset=custom_formsets[item], validate_max=True)
-    else:
-        ItemFormSet = inlineformset_factory(parent_model=ActiveProject,
-            model=model, fields=content_item_fields[item], extra=extra_forms,
-            max_num=custom_formsets[item].max_forms, can_delete=False,
-            formset=custom_formsets[item], validate_max=True)
+    ItemFormSet = inlineformset_factory(parent_model=Metadata,
+        model=model, fields=content_item_fields[item], extra=extra_forms,
+        max_num=custom_formsets[item].max_forms, can_delete=False,
+        formset=custom_formsets[item], validate_max=True)
 
     formset = ItemFormSet(instance=project)
     edit_url = reverse('edit_content_item', args=[project.slug])
@@ -591,7 +581,7 @@ def project_content(request, project_slug, **kwargs):
         ('user', 'project', 'authors', 'is_submitting'))
 
     # There are several forms for different types of content
-    ReferenceFormSet = generic_inlineformset_factory(Reference,
+    ReferenceFormSet = inlineformset_factory(Metadata, Reference,
         fields=('description',), extra=0,
         max_num=forms.ReferenceFormSet.max_forms, can_delete=False,
         formset=forms.ReferenceFormSet, validate_max=True)
@@ -719,10 +709,10 @@ def project_discovery(request, project_slug, **kwargs):
     project, is_submitting = (kwargs[k] for k in ('project',
         'is_submitting'))
 
-    TopicFormSet = generic_inlineformset_factory(Topic,
+    TopicFormSet = inlineformset_factory(Metadata, Topic,
         fields=('description',), extra=0, max_num=forms.TopicFormSet.max_forms,
         can_delete=False, formset=forms.TopicFormSet, validate_max=True)
-    PublicationFormSet = generic_inlineformset_factory(Publication,
+    PublicationFormSet = inlineformset_factory(Metadata, Publication,
         fields=('citation', 'url'), extra=0,
         max_num=forms.PublicationFormSet.max_forms, can_delete=False,
         formset=forms.PublicationFormSet, validate_max=True)
