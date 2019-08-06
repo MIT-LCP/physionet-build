@@ -12,6 +12,7 @@ from django.contrib import messages
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse, Http404
+from googleapiclient.errors import HttpError
 
 from console.utility import create_directory_service
 
@@ -295,14 +296,22 @@ def grant_gcp_group_access(user, project, data_access, request):
         access = "Access to the GCP bucket"
     if email not in str(members):
         # if not a member, add to the group
-        outcome = service.members().insert(groupKey=data_access.location,
-            body={"email": email, "delivery_settings": "NONE"}).execute()
-        if outcome['role'] == "MEMBER":
-            messages.success(request, '{0} has been granted \
-                to {1} for project: {2}'.format(access, email, project))
-            LOGGER.info("Added user {0} to BigQuery group {1}".format(
-                email, data_access.location))
-            return True
+        try:
+            outcome = service.members().insert(groupKey=data_access.location, 
+                body={"email": email, "delivery_settings": "NONE"}).execute()
+            if outcome['role'] == "MEMBER":
+                messages.success(request, '{0} has been granted \
+                    to {1} for project: {2}'.format(access, email, project))
+                LOGGER.info("Added user {0} to BigQuery group {1}".format(
+                    email, data_access.location))
+                return True
+        except HttpError as e:
+            if json.loads(e.content)['error']['message'] == 'Member already exists.':
+                messages.success(request, '{0} was previously awarded \
+                    to {1} for project: {2}'.format(access, email, project))
+                return False
+            else:
+                raise e
         else:
             messages.success(request, 'There was an error granting \
                 access.')
