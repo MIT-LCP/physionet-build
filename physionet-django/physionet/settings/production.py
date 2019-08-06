@@ -30,11 +30,11 @@ EMAIL_HOST_USER = ''
 EMAIL_HOST_PASSWORD = ''
 EMAIL_USE_TLS = False
 
-DEFAULT_FROM_EMAIL = 'PhysioNet Automated System <noreply@alpha.physionet.org>'
-CONTACT_EMAIL = 'PhysioNet Contact <contact@alpha.physionet.org>'
-SERVER_EMAIL = 'PhysioNet System <root@alpha.physionet.org>'
+DEFAULT_FROM_EMAIL = 'PhysioNet Automated System <noreply@physionet.org>'
+CONTACT_EMAIL = 'PhysioNet Contact <contact@physionet.org>'
+SERVER_EMAIL = 'PhysioNet System <root@physionet.org>'
 
-ADMINS = [('PhysioNet Technical', 'technical@alpha.physionet.org')]
+ADMINS = [('PhysioNet Technical', 'technical@physionet.org')]
 
 DEMO_FILE_ROOT = os.path.join(os.path.abspath(os.path.join(BASE_DIR, os.pardir)), 'demo-files')
 

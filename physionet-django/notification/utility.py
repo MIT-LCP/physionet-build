@@ -419,8 +419,10 @@ def mailto_reference(request, application):
             'footer': email_footer()
         })
 
-    mailto = "mailto:{3}%3C{0}%3E?subject={1}&bcc=credential-reference+{4}@alpha.physionet.org&body={2}".format(application.reference_email,
-      parse.quote(subject), parse.quote(body), parse.quote('"'+application.reference_name+'"'), application.id)
+    mailto = "mailto:{3}%3C{0}%3E?subject={1}&bcc=credential-reference+{4}@{5}&body={2}".format(
+        application.reference_email, parse.quote(subject), parse.quote(body),
+        parse.quote('"'+application.reference_name+'"'), application.id, 
+        get_current_site(request))
     return mailto
 
 def mailto_supervisor(request, application):
@@ -440,12 +442,14 @@ def mailto_supervisor(request, application):
             'footer': email_footer()
         })
 
-    mailto = "mailto:{3}%3C{0}%3E?subject={1}&bcc=credential-reference+{4}@alpha.physionet.org&body={2}".format(application.reference_email,
-      parse.quote(subject), parse.quote(body), parse.quote('"'+application.reference_name+'"'), application.id)
+    mailto = "mailto:{3}%3C{0}%3E?subject={1}&bcc=credential-reference+{4}@a{5}&body={2}".format(
+        application.reference_email, parse.quote(subject), parse.quote(body),
+        parse.quote('"'+application.reference_name+'"'), application.id,
+        get_current_site(request))
     return mailto
 
 
-def mailto_process_credential_complete(application, comments=True):
+def mailto_process_credential_complete(request, application, comments=True):
     """
     Notify user of credentialing decision
     """
@@ -463,8 +467,10 @@ def mailto_process_credential_complete(application, comments=True):
           application.responder_comments, body)
     else:
         body = 'Dear {0},\n\n{1}'.format(application.first_names, body)
-    mailto = "mailto:{3}%3C{0}%3E?subject={1}&bcc=credential-reference+{4}@alpha.physionet.org&body={2}".format(application.user.email,
-      parse.quote(subject), parse.quote(body), parse.quote('"'+application.get_full_name()+'"'), application.id)
+    mailto = "mailto:{3}%3C{0}%3E?subject={1}&bcc=credential-reference+{4}@a{5}&body={2}".format(
+        application.user.email, parse.quote(subject), parse.quote(body), 
+        parse.quote('"'+application.get_full_name()+'"'), application.id,
+        get_current_site(request))
     return mailto
 
 def mailto_administrators(project, error):
