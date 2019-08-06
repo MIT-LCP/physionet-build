@@ -1194,6 +1194,7 @@ class PublishedProject(Metadata, SubmissionInfo):
     # Featured content
     featured = models.BooleanField(default=False)
     has_wfdb = models.BooleanField(default=False)
+    display_publications = models.BooleanField(default=True)
     # Where all the published project files are kept, depending on access.
     PROTECTED_FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'published-projects')
     # Workaround for development
