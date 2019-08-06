@@ -447,7 +447,7 @@ class SectionContent(models.Model):
     """
     content_type = models.ForeignKey(ContentType, on_delete=models.PROTECT)
     object_id = models.PositiveIntegerField()
-    project_id = GenericForeignKey('content_type', 'object_id')
+    project = GenericForeignKey('content_type', 'object_id')
 
     project_section = models.ForeignKey('project.ProjectSection',
                                     db_column='project_section',
@@ -1215,6 +1215,15 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 published_project.doi = self.doi
 
                 published_project.save()
+
+                # Copy content
+                content = self.project_content.all()
+                for c in content:
+                    SectionContent.objects.create(
+                        project=published_project,
+                        section_content=c.section_content,
+                        project_section=c.project_section
+                    )
 
                 # If this is a new version, all version fields have to be updated
                 if self.version_order > 0:
