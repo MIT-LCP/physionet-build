@@ -3,10 +3,10 @@ Description=uWSGI Emperor
 After=syslog.target
 
 [Service]
-ExecStart=/usr/local/bin/uwsgi --emperor /etc/uwsgi/vassals
+ExecStart=/physionet/python-env/physionet/bin/uwsgi --emperor /etc/uwsgi/vassals 
 # Requires systemd version 211 or newer
-User=pn
-Group=pn
+User=www-data
+Group=www-data
 RuntimeDirectory=uwsgi
 Restart=always
 KillSignal=SIGQUIT
