@@ -67,7 +67,7 @@ def migrate_content(apps, schema_editor):
         # Persists new SectionContent entity based on content from the previous structure
         for l, n in labels.items():
             section = ProjectSection.objects.get(name=n, resource_type=d.resource_type.id)
-            SectionContent.objects.create(project_id=d, project_section=section,
+            SectionContent.objects.create(project=d, project_section=section,
                                           section_content=d._meta.get_field(l).value_from_object(d))
 
 

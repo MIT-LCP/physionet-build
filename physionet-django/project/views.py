@@ -690,7 +690,7 @@ def project_content(request, project_slug, **kwargs):
             section_forms.append(forms.SectionContentForm(instance=section_content))
         except:
             # Creates form with empty instace in case content is not found
-            section_forms.append(forms.SectionContentForm(project_id=project, project_section=s))
+            section_forms.append(forms.SectionContentForm(project=project, project_section=s))
 
     if request.method == 'POST':
         description_form = forms.ContentForm(
@@ -708,7 +708,7 @@ def project_content(request, project_slug, **kwargs):
                 sf = forms.SectionContentForm(data=request.POST, instance=section_content)
             except:
                 # Creates form with empty instace in case content is not found
-                sf = forms.SectionContentForm(project_id=project, project_section=s, data=request.POST)
+                sf = forms.SectionContentForm(project=project, project_section=s, data=request.POST)
 
             # Appends form to array
             section_forms.append(sf)

@@ -29,7 +29,7 @@ class SectionContent(models.Model):
     content_type = models.ForeignKey(models.ContentType,
                                      on_delete=models.PROTECT)
     object_id = models.PositiveIntegerField()
-    project_id = GenericForeignKey('content_type', 'object_id')
+    project = GenericForeignKey('content_type', 'object_id')
 
     project_section = models.ForeignKey('project.ProjectSection',
                                     db_column='project_section',
