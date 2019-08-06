@@ -312,7 +312,7 @@
             {% endif %}
             {% if project.gcp.sent_files %}
               <li>Access the files using the Google Cloud Storage Browser <a href="https://console.cloud.google.com/storage/browser/{{ project.gcp.bucket_name }}/">here</a>. Login with a Google account is required.
-              <li>Access the data using Google Cloud "gsutil": <code>gsutil -m cp -r {{ project.gcp.bucket_name }} DESTINATION</code></li>
+              <li>Access the data using Google Cloud "gsutil": <code>gsutil -m cp -r gs://{{ project.gcp.bucket_name }} DESTINATION</code></li>
             {% endif %}
           {% elif project.compressed_storage_size %}
             <li><a href="{% static project.zip_url %}">Download the ZIP file</a> ({{ compressed_size }})</li>
@@ -328,11 +328,12 @@
             {% endif %}
           {% endfor %}
         {% endif %}
-          <li>Download the files using your terminal: <code>wget -r -np -nd -P DESTINATION {{ request.build_absolute_uri }}</code></li>
+          <li>Download the files using your terminal: <code>wget -r -np -nd -P DESTINATION {{ current_site }}{% url 'serve_published_project_file' project.slug project.version subdir %}</code></li>
         </ul>
 {# ZIP END #}
       </p>
       {% if project.has_wfdb %}
+
         <p><a href="{% url 'lightwave_home' %}?db={{ project.slug }}/{{ project.version }}"><i class="fas fa-chart-line"></i> Visualize waveforms</a></p>
       {% endif %}
       <div id="files-panel" class="card">

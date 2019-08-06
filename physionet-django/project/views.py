@@ -1389,12 +1389,13 @@ def published_project(request, project_slug, version, subdir=''):
         files_panel_url = reverse('published_files_panel',
             args=(project.slug, project.version))
 
-        context = {**context, **{'dir_breadcrumbs':dir_breadcrumbs,
-            'main_size':main_size, 'compressed_size':compressed_size,
-            'display_files':display_files, 'display_dirs':display_dirs,
-            'files_panel_url':files_panel_url, 'subdir':subdir,
-            'parent_dir':parent_dir, 'file_error':file_error,
-            'data_access':data_access}}
+        context = {**context, **{'dir_breadcrumbs': dir_breadcrumbs,
+            'main_size': main_size, 'compressed_size': compressed_size,
+            'display_files': display_files, 'display_dirs': display_dirs,
+            'files_panel_url': files_panel_url, 'subdir': subdir,
+            'parent_dir': parent_dir, 'file_error': file_error,
+            'current_site': get_current_site(request),
+            'data_access': data_access, }}
     elif subdir:
         status = 403
     else:
