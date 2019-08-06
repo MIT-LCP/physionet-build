@@ -20,7 +20,8 @@ html2text==2018.1.9 \
  --hash=sha256:490db40fe5b2cd79c461cf56be4d39eb8ca68191ae41ba3ba79f6cb05b7dd662
 Pillow==5.2.0 \
  --hash=sha256:8194d913ca1f459377c8a4ed8f9b7ad750068b8e0e3f3f9c6963fcc87a84515f\
- --hash=sha256:b3ef168d4d6fd4fa6685aef7c91400f59f7ab1c0da734541f7031699741fb23f
+ --hash=sha256:b3ef168d4d6fd4fa6685aef7c91400f59f7ab1c0da734541f7031699741fb23f\
+ --hash=sha256:a3d7511d3fad1618a82299aab71a5fceee5c015653a77ffea75ced9ef917e71a
 python-decouple==3.1 \
  --hash=sha256:1317df14b43efee4337a4aa02914bf004f010cd56d6c4bd894e6474ec8c4fe2d
 pytz==2017.2 \
@@ -79,7 +80,8 @@ google-resumable-media==0.3.2 \
 # required by google-api-core 1.13.0
 protobuf==3.9.0 \
  --hash=sha256:05c36022fef3c7d3562ac22402965c0c2b9fe8421f459bb377323598996e407f\
- --hash=sha256:72edcbacd0c73eef507d2ff1af99a6c27df18e66a3ff4351e401182e4de62b03
+ --hash=sha256:72edcbacd0c73eef507d2ff1af99a6c27df18e66a3ff4351e401182e4de62b03\
+ --hash=sha256:d86ee389c2c4fc3cebabb8ce83a8e97b6b3b5dc727b7419c1ccdc7b6e545a233
 google-auth==1.6.3 \
  --hash=sha256:20705f6803fd2c4d1cc2dcb0df09d4dfcb9a7d51fd59e94a3a28231fd93119ed
 googleapis-common-protos==1.6.0 \
@@ -116,11 +118,13 @@ asn1crypto==0.24.0 \
  --hash=sha256:2f1adbb7546ed199e3c90ef23ec95c5cf3585bac7d11fb7eb562a3fe89c64e87
 cffi==1.12.3 \
  --hash=sha256:4d0004eb4351e35ed950c14c11e734182591465a33e960a4ab5e8d4f04d72647\
- --hash=sha256:ae61af521ed676cf16ae94f30fe202781a38d7178b6b4ab622e4eec8cefaff42
+ --hash=sha256:ae61af521ed676cf16ae94f30fe202781a38d7178b6b4ab622e4eec8cefaff42\
+ --hash=sha256:a1f0fd46eba2d71ce1589f7e50a9e2ffaeb739fb2c11e8192aa2b45d5f6cc41f
 pycparser==2.19 \
  --hash=sha256:a988718abfad80b6b157acce7bf130a30876d27603738ac39f140993246b25b3
 cryptography==2.7 \
- --hash=sha256:96d8473848e984184b6728e2c9d391482008646276c3ff084a1bd89e15ff53a1
+ --hash=sha256:96d8473848e984184b6728e2c9d391482008646276c3ff084a1bd89e15ff53a1\
+ --hash=sha256:24b61e5fcb506424d3ec4e18bca995833839bf13c59fc43e530e488f28d46b8c
 
 # required by google-api-python-client 1.7.9
 uritemplate==3.0.0 \
