@@ -1,10 +1,10 @@
-{% load i18n %}{% autoescape off %}
-Dear {{ name }}
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
+Dear {{ name }},
 
 You have requested this email to be added to your account on {{ domain }}. Please verify this email by clicking the following activation link, or copying and pasting the link into your web browser:
 
-http://{{ domain }}{% url 'verify_email' uidb64=uidb64 token=token %}
+{{ url_prefix }}{% url 'verify_email' uidb64=uidb64 token=token %}
 
 Regards
 The PhysioNet Team
-{% endautoescape %}
+{% endfilter %}{% endautoescape %}

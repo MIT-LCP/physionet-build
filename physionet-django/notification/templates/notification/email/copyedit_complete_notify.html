@@ -1,11 +1,11 @@
-{% load i18n %}{% autoescape off %}
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
 {{ project_info }}
 
 Dear {{ name }},
 
 We are pleased to say that copyediting of your project entitled {{ project.title }}" is now complete. To proceed with publication, you must now approve the project using the following link:
 
-http://{{ domain }}{% url 'project_submission' project.slug %}
+{{ url_prefix }}{% url 'project_submission' project.slug %}
 
 {% if copyedit_log.made_changes %}
 The changes made during the copyediting process are summarized below:
@@ -17,4 +17,4 @@ Please check this version carefully because it will not be possible to edit the 
 {{ signature }}
 
 {{ footer }}
-{% endautoescape %}
+{% endfilter %}{% endautoescape %}

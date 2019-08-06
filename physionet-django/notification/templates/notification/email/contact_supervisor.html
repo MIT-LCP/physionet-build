@@ -1,7 +1,7 @@
-{% load i18n %}{% autoescape off %}
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
 Dear {{ application.reference_name }},
 
-{{ applicant_name }} is applying for credentialed access to PhysioNet, the website for sharing biomedical data. He/She have listed you as their supervisor and he/she have summarized the research project as follows:
+{{ applicant_name }} is applying for credentialed access to PhysioNet, the website for sharing biomedical data. He/she has listed you as his/her supervisor and has summarized the research project as follows:
 
 {{application.research_summary}}
 
@@ -9,7 +9,7 @@ Are you {{ applicant_name }}'s supervisor for this project, and is the summary a
 
 If you support this application for credentialed access, please indicate your approval using the link below. If you do not support their application, please ignore this email or update us directly via the link.
 
-http://{{ domain }}{% url 'credential_reference' application.slug %}
+{{ url_prefix }}{% url 'credential_reference' application.slug %}
 
 {{ signature }}
-{% endautoescape %}
+{% endfilter %}{% endautoescape %}

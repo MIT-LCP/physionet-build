@@ -1,4 +1,4 @@
-{% load i18n %}{% autoescape off %}
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
 {{ project_info }}
 
 Dear {{ name }},
@@ -8,4 +8,4 @@ Your invitation to {{ author_email }} to co-author your project entitled "{{ pro
 {{ signature }}
 
 {{ footer }}
-{% endautoescape %}
+{% endfilter %}{% endautoescape %}

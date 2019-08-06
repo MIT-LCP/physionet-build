@@ -24,7 +24,9 @@ from user import forms
 from user.models import AssociatedEmail, Profile, User, CredentialApplication, LegacyCredential, CloudInformation
 from physionet import utility
 from project.models import Author, License
-from notification.utility import process_credential_complete, credential_application_request
+from notification.utility import (process_credential_complete,
+                                  credential_application_request,
+                                  get_url_prefix)
 
 
 logger = logging.getLogger(__name__)
@@ -136,8 +138,13 @@ def add_email(request, add_email_form):
         uidb64 = force_text(urlsafe_base64_encode(force_bytes(associated_email.pk)))
         token = default_token_generator.make_token(user)
         subject = "PhysioNet Email Verification"
-        context = {'name':user.get_full_name(),
-            'domain':get_current_site(request), 'uidb64':uidb64, 'token':token}
+        context = {
+            'name': user.get_full_name(),
+            'domain': get_current_site(request),
+            'url_prefix': get_url_prefix(request),
+            'uidb64': uidb64,
+            'token': token
+        }
         body = loader.render_to_string('user/email/verify_email_email.html', context)
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
             [add_email_form.cleaned_data['email']], fail_silently=False)
@@ -262,8 +269,13 @@ def register(request):
             uidb64 = force_text(urlsafe_base64_encode(force_bytes(user.pk)))
             token = default_token_generator.make_token(user)
             subject = "PhysioNet Account Activation"
-            context = {'name':user.get_full_name(),
-                'domain':get_current_site(request), 'uidb64':uidb64, 'token':token}
+            context = {
+                'name': user.get_full_name(),
+                'domain': get_current_site(request),
+                'url_prefix': get_url_prefix(request),
+                'uidb64': uidb64,
+                'token': token
+            }
             body = loader.render_to_string('user/email/register_email.html', context)
             send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                 [form.cleaned_data['email']], fail_silently=False)

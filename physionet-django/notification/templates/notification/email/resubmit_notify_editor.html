@@ -1,13 +1,13 @@
-{% load i18n %}{% autoescape off %}
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
 {{ project_info }}
 
 Dear {{ name }},
 
-The project you have requested revisions for: {{ project.title }} has been resubmitted for review. 
+The project you have requested revisions for, "{{ project.title }}", has been resubmitted for review.
 
 We would be grateful if you could review the revised submission within 7 days.
 
 {{ signature }}
 
 {{ footer }}
-{% endautoescape %}
+{% endfilter %}{% endautoescape %}
