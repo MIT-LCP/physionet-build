@@ -14,10 +14,6 @@ blockquote {
   background: #F0F0F0;
 }
 
-a{
-  word-break: break-word;
-}
-
 @media (min-width: 768px){
   .btn-right{
     float: right;
