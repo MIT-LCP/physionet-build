@@ -19,6 +19,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.views.decorators.debug import sensitive_post_parameters
 
 from user import forms
 from user.models import AssociatedEmail, Profile, User, CredentialApplication, LegacyCredential, CloudInformation
@@ -251,6 +252,7 @@ def profile_photo(request, username):
     user = User.objects.get(username__iexact=username)
     return utility.serve_file(user.profile.photo.path)
 
+@sensitive_post_parameters('password1', 'password2')
 def register(request):
     """
     User registration page
