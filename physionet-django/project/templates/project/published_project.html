@@ -239,7 +239,7 @@
             <p>
               {{ contact.name }}<br>
               {{ contact.affiliations }}.<br>
-              {{ contact.email }}
+              {% mailto_link contact.email subject=project %}
             </p>
           {% else %}
             <em>You must be logged in to view the contact information.</em>
