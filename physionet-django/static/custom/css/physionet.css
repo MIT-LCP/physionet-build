@@ -525,3 +525,7 @@ table.files-panel {
   text-align: center;
   width: 1.25em;
 }
+
+a, code{
+  word-break: break-word;
+}
