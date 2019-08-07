@@ -6,7 +6,7 @@ from email.utils import formataddr
 
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.mail import send_mail
+from django.core.mail import EmailMessage, send_mail
 from django.template import loader
 
 from project.models import License
@@ -18,11 +18,21 @@ def send_contact_message(contact_form):
     """
     Send a message to the contact email
     """
+    subject = contact_form.cleaned_data['subject']
     body = contact_form.cleaned_data['message']
-    mail_from = formataddr((contact_form.cleaned_data['name'], 
+    mail_from = formataddr((contact_form.cleaned_data['name'],
         contact_form.cleaned_data['email']))
-    send_mail(contact_form.cleaned_data['subject'], body, mail_from,
-        [settings.CONTACT_EMAIL], fail_silently=False)
+    message = EmailMessage(
+        subject=subject,
+        body=body,
+        from_email=settings.DEFAULT_FROM_EMAIL,  # envelope sender
+        to=[settings.CONTACT_EMAIL],
+        headers={
+            'From': mail_from,
+            'Sender': settings.DEFAULT_FROM_EMAIL
+        })
+    message.send(fail_silently=False)
+
 
 # ---------- Project App ---------- #
 
