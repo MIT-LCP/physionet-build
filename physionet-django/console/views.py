@@ -701,7 +701,8 @@ def credential_applications(request):
             'reference_response_datetime', 'reference_contact_datetime',
             'application_datetime'))
     # Do the propper sort
-    applications = applications.order_by(F('reference_contact_datetime'), 'application_datetime')
+    applications = applications.order_by(F('reference_contact_datetime').asc(
+        nulls_first=True), 'application_datetime')
     # Set the days that have passed since the last action was taken
     for application in applications:
         application.time_elapsed = (timezone.now() - application.first_date).days
@@ -749,7 +750,8 @@ def complete_credential_applications(request):
 
     applications = CredentialApplication.objects.filter(status=0)
     # Do the proper sort
-    applications = applications.order_by(F('reference_contact_datetime'), 'application_datetime')
+    applications = applications.order_by(F('reference_contact_datetime').asc(
+        nulls_first=True), 'application_datetime')
 
     for application in applications:
         application.mailto = notification.mailto_process_credential_complete(
