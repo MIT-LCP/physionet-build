@@ -17,7 +17,7 @@ def home(request):
     """
     Homepage
     """
-    featured = PublishedProject.objects.filter(featured=True).order_by('-publish_datetime')[:6]
+    featured = PublishedProject.objects.filter(featured__isnull=False).order_by('featured')[:6]
     latest = PublishedProject.objects.all().order_by('-publish_datetime')[:6]
     news_pieces = News.objects.all().order_by('-publish_datetime')[:5]
 
