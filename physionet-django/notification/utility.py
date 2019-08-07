@@ -14,6 +14,32 @@ from project.models import License
 RESPONSE_ACTIONS = {0:'rejected', 1:'accepted'}
 
 
+def mailto_url(*recipients, **params):
+    """
+    Generate a 'mailto:' URL.
+
+    The recipient address(es) are specified as positional arguments.
+    Additional header fields (such as 'subject') and the special
+    pseudo-header 'body' may be specified as keyword arguments.
+
+    Note that RFC 6068 requires each recipient to be a simple address
+    ("root@example.org"), while the older RFC 2368 permits the full
+    RFC 822 mailbox syntax ("Root <root@example.org>").  Many, but not
+    all, clients will accept the latter syntax.
+
+    >>> mailto_url('alice@example.com', 'bob@example.com')
+    'mailto:alice@example.com,bob@example.com'
+
+    >>> mailto_url('fred&wilma@example.org', subject='Hello world')
+    'mailto:fred%26wilma@example.org?subject=Hello%20world'
+    """
+    encoded_addrs = (parse.quote(addr, safe='@') for addr in recipients)
+    url = 'mailto:' + ','.join(encoded_addrs)
+    if params:
+        url += '?' + parse.urlencode(params, quote_via=parse.quote)
+    return url
+
+
 def send_contact_message(contact_form):
     """
     Send a message to the contact email
