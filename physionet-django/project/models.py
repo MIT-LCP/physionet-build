@@ -1192,7 +1192,7 @@ class PublishedProject(Metadata, SubmissionInfo):
 
     is_latest_version = models.BooleanField(default=True)
     # Featured content
-    featured = models.BooleanField(default=False)
+    featured = models.PositiveSmallIntegerField(null=True)
     has_wfdb = models.BooleanField(default=False)
     display_publications = models.BooleanField(default=True)
     # Where all the published project files are kept, depending on access.
@@ -1212,7 +1212,7 @@ class PublishedProject(Metadata, SubmissionInfo):
     }
 
     class Meta:
-        unique_together = (('core_project', 'version'),)
+        unique_together = (('core_project', 'version'),('featured',),)
 
     def __str__(self):
         return ('{0} v{1}'.format(self.title, self.version))

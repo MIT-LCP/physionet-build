@@ -20,6 +20,7 @@
             <th>Resource Type</th>
             <th>Access Policy</th>
             <th>Publish Date</th>
+            <th>Order</th>
             <th>Remove</th>
           </tr>
         </thead>
@@ -31,6 +32,14 @@
             <td>{{ item.resource_type|resource_badge|safe }}</td>
             <td>{{ item.access_policy|access_badge|safe }}</td>
             <td>{{ item.publish_datetime|date }}</td>
+            <td><form method="POST">
+              {% csrf_token %}
+              {% if not forloop.first %}
+                <button class="btn btn-sm" name="up" value="{{ item.featured }}" title="Move Author Up" style="background:none"><i class="fas fa-arrow-up"></i></button>
+              {% elif not forloop.last %}
+                <button class="btn btn-sm" name="down" value="{{ item.featured }}" title="Move Author Down" style="background:none"><i class="fas fa-arrow-down"></i></button>
+              {% endif %}
+              </form></td>
             <td>
               <form method="POST">
                 {% csrf_token %}

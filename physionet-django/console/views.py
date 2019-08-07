@@ -945,11 +945,40 @@ def featured_content(request):
     """
 
     if 'add' in request.POST:
-        project = PublishedProject.objects.filter(id=request.POST['id']).update(featured=True)
+        featured = PublishedProject.objects.filter(featured__isnull=False)
+        mx = max(featured.values_list('featured', flat=True))
+        project = PublishedProject.objects.filter(id=request.POST['id']).update(featured=mx+1)
     elif 'remove' in request.POST:
-        project = PublishedProject.objects.filter(id=request.POST['id']).update(featured=False)
+        project = PublishedProject.objects.filter(id=request.POST['id']).update(featured=None)
+    elif 'up' in request.POST:
+        # Get project to be moved
+        idx = int(request.POST['up'])
+        move = PublishedProject.objects.get(featured=idx)
 
-    featured_content = PublishedProject.objects.filter(featured=True)
+        # Sets featured to 0 (avoid constraint violation)
+        move.featured = 0
+        move.save()
+
+        # Swap positions
+        PublishedProject.objects.filter(featured=idx-1).update(featured=idx)
+        move.featured = idx-1
+        move.save()
+    elif 'down' in request.POST:
+        # Get project to be moved
+        idx = int(request.POST['down'])
+        move = PublishedProject.objects.get(featured=idx)
+
+        # Sets featured to 0 (avoid constraint violation)
+        move.featured = 0
+        move.save()
+
+        # Swap positions
+        PublishedProject.objects.filter(featured=idx+1).update(featured=idx)
+        move.featured = idx+1
+        move.save()
+
+
+    featured_content = PublishedProject.objects.filter(featured__isnull=False).order_by('featured')
 
     return render(request, 'console/featured_content.html', {'featured_content':featured_content})
 
@@ -976,7 +1005,7 @@ def add_featured(request):
 
         projects = PublishedProject.objects.filter(
             title__iregex=r'{0}{1}{0}'.format(wb,title),
-            featured=False
+            featured__isnull=True
         )
     else:
         form = forms.FeaturedForm()
