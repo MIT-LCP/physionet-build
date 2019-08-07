@@ -1,6 +1,9 @@
 from django import template
 from django.shortcuts import reverse
+from django.utils.html import format_html
 from django.utils.http import urlencode
+
+from notification.utility import mailto_url
 
 
 register = template.Library()
@@ -121,3 +124,19 @@ def show_all_author_info(author):
     return author_popover(author, show_submitting=True, show_email=True,
                           show_corresponding=True)
 
+
+@register.simple_tag(name='mailto_link')
+def mailto_link(*recipients, **params):
+    """
+    Format an email address as an HTML link.
+
+    The recipient address(es) are specified as positional arguments.
+    Additional header fields (such as 'subject') and the special
+    pseudo-header 'body' may be specified as keyword arguments.
+
+    For example, {% mailto_link "alice@example.com" %}
+    yields "<a href="mailto:alice@example.com">alice@example.com</a>".
+    """
+    url = mailto_url(*recipients, **params)
+    label = ', '.join(recipients)
+    return format_html('<a href="{0}">{1}</a>', url, label)
