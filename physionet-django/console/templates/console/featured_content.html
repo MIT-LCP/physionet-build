@@ -36,7 +36,8 @@
               {% csrf_token %}
               {% if not forloop.first %}
                 <button class="btn btn-sm" name="up" value="{{ item.featured }}" title="Move Author Up" style="background:none"><i class="fas fa-arrow-up"></i></button>
-              {% elif not forloop.last %}
+              {% endif %}
+              {% if not forloop.last %}
                 <button class="btn btn-sm" name="down" value="{{ item.featured }}" title="Move Author Down" style="background:none"><i class="fas fa-arrow-down"></i></button>
               {% endif %}
               </form></td>
