@@ -946,7 +946,7 @@ def featured_content(request):
 
     if 'add' in request.POST:
         featured = PublishedProject.objects.filter(featured__isnull=False)
-        mx = max(featured.values_list('featured', flat=True))
+        mx = max(featured.values_list('featured', flat=True), default=1)
         project = PublishedProject.objects.filter(id=request.POST['id']).update(featured=mx+1)
     elif 'remove' in request.POST:
         project = PublishedProject.objects.filter(id=request.POST['id']).update(featured=None)
