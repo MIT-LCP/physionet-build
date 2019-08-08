@@ -3,18 +3,19 @@
 from django.db import migrations, models
 from project.models import PublishedProject
 
-def featured(apps, schema_editor):
-    projects = PublishedProject.objects.filter()
+
+featured = {}
+def save_featured(apps, schema_editor):
+    projects = PublishedProject.objects.filter(featured=True)
 
     i = 1
     for p in projects:
-        if p.featured == 0:
-            p.featured = None
-        else:
-            p.featured = i
-            i += 1
+        featured[p.pk] = i
+        i += 1
 
-        p.save()
+def migrate_featured(apps, schema_editor):
+    for p, i in featured.items():
+        PublishedProject.objects.filter(pk=p).update(featured=i)
 
         
 class Migration(migrations.Migration):
@@ -24,12 +25,17 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterField(
+        migrations.RunPython(save_featured),
+        migrations.RemoveField(
+            model_name='publishedproject',
+            name='featured',
+        ),
+        migrations.AddField(
             model_name='publishedproject',
             name='featured',
             field=models.PositiveSmallIntegerField(null=True),
         ),
-        migrations.RunPython(featured),
+        migrations.RunPython(migrate_featured),
         migrations.AlterUniqueTogether(
             name='publishedproject',
             unique_together={('featured',), ('core_project', 'version')},
