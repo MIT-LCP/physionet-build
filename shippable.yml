@@ -24,6 +24,7 @@ addons:
 
 services:
   - selenium
+  - postgres
 
 build:
 
@@ -33,6 +34,8 @@ build:
     - "cp .env.example .env"
     - "pip install -r requirements.txt"
     - "sudo apt-get install libseccomp-dev"
+    - psql -c "create user physionet with superuser password 'password';" -U postgres
+    - psql -c "create database physionet;" -U postgres
     - "wget https://github.com/bemoody/wfdb/archive/10.6.2.tar.gz -O wfdb.tar.gz"
     - "tar -xf wfdb.tar.gz"
     - "(cd wfdb-* && ./configure --without-netfiles && sudo make -C lib install && sudo make -C data install)"
