@@ -4,13 +4,18 @@
   <head>
     <title>Contact reference email</title>
     {% include "base_css.html" %}
+    <style>
+      a {
+	  text-decoration: underline;
+      }
+      </style>
   </head>
   <body>
     <div class="container-fluid">
-      <p>Contact reference</p>
-      <p><a class='btn btn-primary' href="{% url 'complete_credential_applications' %}">Back to manage applications</a></p>
-      <p> {{ application.get_full_name }} -- {{ application.user.email }}</p>
-      <p><a href="{{mailto}}">Contact reference</a></p>
+<!--       <p>Contact reference</p> -->
+      <p style="font-size: .9rem;"><a class="" href="{% url 'complete_credential_applications' %}">Back to pending applications</a></p>
+<!--       <p> Contact reference for {{ application.get_full_name }} -- {{ application.user.email }}</p> -->
+      <p style="margin-left: 4rem;"><a href="{{mailto}}">Contact reference for  {{ application.get_full_name }} -- {{ application.user.email }}</a></p>
     </div>
 </body>
 </html>
