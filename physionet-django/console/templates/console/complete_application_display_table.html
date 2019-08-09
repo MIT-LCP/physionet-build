@@ -1,7 +1,7 @@
 {# Status section #}
-<p>Training Completion Report: <a href="{% url 'training_report' application.slug %}" target="_blank">File</a><br></p>
-
-<p>Application Date: {{ application.application_datetime|date }}<br>
+<p><a href="{% url 'training_report' application.slug %}" target="_blank">Training Completion Report</a><br>
+<!--
+   Application Date: {{ application.application_datetime|date }}<br>
 
 {% if application.reference_contact_datetime %}
   Reference Contact Date: {{ application.reference_contact_datetime|date }}<br>
@@ -20,6 +20,7 @@ Decision: {% if application.status %}{{ application.get_status_display }}{% else
 {% if application.responder_comments %}
   Admin Comments:<br> {{ application.responder_comments|linebreaks }}<br>
 {% endif %}</p>
+  -->
 
 {# Personal details #}
 
@@ -53,7 +54,7 @@ Webpage: {% if application.webpage %}<a href="{{ application.webpage }}" target=
 
 Date completed: {{ application.training_completion_date }}<br>
 
-Training Completion Report: <a href="{% url 'training_report' application.slug %}" target="_blank">File</a><br></p>
+<!-- Training Completion Report: <a href="{% url 'training_report' application.slug %}" target="_blank">File</a><br></p> -->
 
 {% if application.course_category %}
   <p>Course Category: {{ application.get_course_category_display }}<br>
