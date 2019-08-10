@@ -330,7 +330,7 @@ logging.config.dictConfig({
         },
         'mail_admins': {
             'level': 'ERROR',
-            'class': 'django.utils.log.AdminEmailHandler',
+            'class': 'physionet.log.SaferAdminEmailHandler',
         }, 
     },
     'loggers': {
