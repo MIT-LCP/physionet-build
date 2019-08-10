@@ -279,7 +279,7 @@
               {% if item.platform == 1 %} {# ID for AWS open data #}
                 <li>Access using AWS <a href="{{item.location}}">Open Data repository</a></li>
               {% elif item.platform == 2 %} {# ID for AWS cloud bucket #}
-                <li><a href="{% url 'project_request_access' project.slug project.version 2 %}">Request</a> access the data using AWS command line tools: <code>aws s3 sync {{item.location}} DESTINATION</code></li>
+                <li><a href="{% url 'project_request_access' project.slug project.version 2 %}">Request</a> access the data using AWS command line tools: <pre class="shell-command">aws s3 sync {{item.location}} DESTINATION</pre></li>
               {% elif item.platform == 3 %} {# ID for Google cloud bucket email #}
                 {% if project.gcp and project.gcp.sent_files %}
                     <li><a href="{% url 'project_request_access' project.slug project.version 3 %}">Request access</a> the files using the <a href="https://console.cloud.google.com/storage/browser/{{ project.gcp.bucket_name }}/">Google Cloud Storage Browser</a>. Login with a Google account is required.</li>
@@ -313,7 +313,7 @@
             {% endif %}
             {% if project.gcp.sent_files %}
               <li>Access the files using the Google Cloud Storage Browser <a href="https://console.cloud.google.com/storage/browser/{{ project.gcp.bucket_name }}/">here</a>. Login with a Google account is required.
-              <li>Access the data using Google Cloud "gsutil": <code>gsutil -m cp -r gs://{{ project.gcp.bucket_name }} DESTINATION</code></li>
+              <li>Access the data using Google Cloud "gsutil": <pre class="shell-command">gsutil -m cp -r gs://{{ project.gcp.bucket_name }} DESTINATION</pre></li>
             {% endif %}
           {% elif project.compressed_storage_size %}
             <li><a href="{% static project.zip_url %}">Download the ZIP file</a> ({{ compressed_size }})</li>
@@ -323,13 +323,13 @@
             {% if item.platform == 1 %} {# ID for AWS open data #}
               <li>Access using AWS <a href="{{item.location}}">Open Data repository</a></li>
             {% elif item.platform == 2 %} {# ID for AWS cloud bucket #}
-              <li>Access the data using AWS command line tools: <code>aws s3 sync {{item.location}} DESTINATION</code></li>
+              <li>Access the data using AWS command line tools: <pre class="shell-command">aws s3 sync {{item.location}} DESTINATION</pre></li>
             {% elif item.platform == 4 %} {# ID for google BigQuery #}
               <li><a href="{% url 'project_request_access' project.slug project.version 4 %}">Request</a> access using Google BigQuery.</li>
             {% endif %}
           {% endfor %}
         {% endif %}
-          <li>Download the files using your terminal: <code>wget -r -N -c -np http://{{ current_site }}{% url 'serve_published_project_file' project.slug project.version '' %}</code></li>
+          <li>Download the files using your terminal: <pre class="shell-command">wget -r -N -c -np http://{{ current_site }}{% url 'serve_published_project_file' project.slug project.version '' %}</pre></li>
         </ul>
 {# ZIP END #}
       </p>
