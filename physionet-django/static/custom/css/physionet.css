@@ -15,6 +15,7 @@ pre {
   margin: 0.75em;
   white-space: pre-wrap;
   word-wrap: break-word;
+  overflow: visible;
 }
 @media print {
   pre {
@@ -26,6 +27,11 @@ pre.plain {
   background-color: transparent;
   border: none;
   padding: 0px;
+  margin: 0px;
+}
+pre.shell-command {
+  display: inline-block;
+  padding: 0px 0.25em;
   margin: 0px;
 }
 
