@@ -50,6 +50,7 @@ class TestUnpublished(TestMixin, TestCase):
     """
     Test operation of LightWAVE server for active projects.
     """
+
     fixtures = ['demo-user', 'project-types', 'demo-project', 'site-data']
 
     @prevent_request_warnings
