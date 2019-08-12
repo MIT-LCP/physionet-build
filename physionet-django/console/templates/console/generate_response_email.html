@@ -1,16 +1,16 @@
-{% extends "console/base_console.html" %}
-
-{% block title %}Credentialing Application Email Notification{% endblock %}
-
-{% block content %}
-<div class="card mb-3">
-  <div class="card-header">
-    Application was marked as {{ application.get_status_display }} -- ({{ application.get_full_name }})
-  </div>
-  <div class="card-body">
-    <p><a class='btn btn-primary' href="{% url 'complete_credential_applications' %}">Back to manage applications</a></p>
-    <br>
-    <p><a href="{{mailto}}">Generate applicant email.</a></p>
-  </div>
-</div>
-{% endblock %}
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+  <head>
+    <title>Contact reference email</title>
+    {% include "base_css.html" %}
+    <style>
+      a { text-decoration: underline; }
+      body { padding: 2rem; }
+    </style>
+  </head>
+  <body>
+    <p>Application was marked as {{ application.get_status_display }} -- ({{ application.get_full_name }})</p>
+    <p style="font-size: .9rem;"><a class="" href="{% url 'complete_credential_applications' %}">Back to pending applications</a></p>
+  </body>
+</html>
