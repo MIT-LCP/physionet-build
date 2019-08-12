@@ -23,7 +23,7 @@ class TestPublished(TestMixin, TestCase):
     """
     Test operation of LightWAVE server for public databases.
     """
-    fixtures = ['demo-user', 'project-types', 'demo-project', 'site-data']
+    fixtures = ['demo-user', 'demo-project', 'site-data']
 
     def test_home(self):
         response = self.client.get(reverse('lightwave_home'))
@@ -51,7 +51,7 @@ class TestUnpublished(TestMixin, TestCase):
     Test operation of LightWAVE server for active projects.
     """
 
-    fixtures = ['demo-user', 'project-types', 'demo-project', 'site-data']
+    fixtures = ['demo-user', 'demo-project', 'site-data']
 
     @prevent_request_warnings
     def test_home(self):
