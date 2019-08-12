@@ -17,7 +17,7 @@ urlpatterns = [
     path('rejected-submissions/', views.rejected_submissions,
         name='rejected_submissions'),
     path('project-access', views.project_access,
-        name='project_access'),
+        name='protected_project_access'),
     path('project-access-manage/<pid>/', views.project_access_manage,
         name='project_access_manage'),
     path('published-projects/<project_slug>/<version>/',
