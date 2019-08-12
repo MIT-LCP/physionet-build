@@ -129,7 +129,7 @@ def lightwave_server(request):
     """
     Request LightWAVE data for a published database.
     """
-    if request.GET['action'] == 'dblist':
+    if request.GET.get('action', '') == 'dblist':
         projects = PublishedProject.objects.filter(
             has_wfdb=True, access_policy=0, deprecated_files=False).order_by(
             'title', '-version_order')
