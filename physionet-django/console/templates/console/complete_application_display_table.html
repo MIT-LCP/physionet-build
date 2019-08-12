@@ -31,7 +31,11 @@ Webpage: {% if application.webpage %}<a href="{{ application.webpage }}" target=
 
 <p>Human studies training course (name of course): {{ application.training_course_name }}<br>
 
-Date completed: {{ application.training_completion_date }}<br></p>
+Date completed: {{ application.training_completion_date }}<br>
+
+Researcher's Category: {{ application.get_researcher_category_display }}<br>
+
+Project of interest: {{ application.project_of_interest }}<br></p>
 
 {% if application.course_category %}
   <p>Course Category: {{ application.get_course_category_display }}<br>
@@ -50,10 +54,6 @@ Reference's Email: {{ application.reference_email }}<br>
 Reference's job title or position: {{ application.reference_title }}</p>
 
 
-<p>Researcher's Category: {{ application.get_researcher_category_display }}<br>
-
-Research Summary: {{ application.research_summary }}<br>
-
-Project of interest: {{ application.project_of_interest }}<br>
+<p>Research Summary: {{ application.research_summary }}<br>
 
 Date of this agreement: {{application.application_datetime}}<br></p>
