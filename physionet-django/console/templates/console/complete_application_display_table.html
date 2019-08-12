@@ -1,26 +1,5 @@
 {# Status section #}
-<p><a href="{% url 'training_report' application.slug %}" target="_blank">Training Completion Report</a><br>
-<!--
-   Application Date: {{ application.application_datetime|date }}<br>
-
-{% if application.reference_contact_datetime %}
-  Reference Contact Date: {{ application.reference_contact_datetime|date }}<br>
-  {% if application.reference_response_datetime %}
-    Reference Response Date: {{ application.reference_response_datetime|date }}<br>
-    Reference Verified: {{ application.get_reference_response_display }}<br>
-  {% endif %}
-{% endif %}
-
-{% if application.decision_datetime %}
-  Decision Date: {{ application.decision_datetime|date }}<br>
-{% endif %}
-
-Decision: {% if application.status %}{{ application.get_status_display }}{% else %}<i class="fas fa-clock"></i> Pending{% endif %}<br>
-
-{% if application.responder_comments %}
-  Admin Comments:<br> {{ application.responder_comments|linebreaks }}<br>
-{% endif %}</p>
-  -->
+<p><a href="{% url 'training_report' application.slug %}" target="_blank">Training Completion Report</a><br></p>
 
 {# Personal details #}
 
@@ -52,9 +31,7 @@ Webpage: {% if application.webpage %}<a href="{{ application.webpage }}" target=
 
 <p>Human studies training course (name of course): {{ application.training_course_name }}<br>
 
-Date completed: {{ application.training_completion_date }}<br>
-
-<!-- Training Completion Report: <a href="{% url 'training_report' application.slug %}" target="_blank">File</a><br></p> -->
+Date completed: {{ application.training_completion_date }}<br></p>
 
 {% if application.course_category %}
   <p>Course Category: {{ application.get_course_category_display }}<br>
@@ -73,7 +50,7 @@ Reference's Email: {{ application.reference_email }}<br>
 Reference's job title or position: {{ application.reference_title }}</p>
 
 
-Researcher's Category: {{ application.get_researcher_category_display }}<br>
+<p>Researcher's Category: {{ application.get_researcher_category_display }}<br>
 
 Research Summary: {{ application.research_summary }}<br>
 
