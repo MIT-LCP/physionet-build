@@ -1,92 +1,85 @@
-<font color="{{ color }}">
-  <div class="card mb-4">
-    <div class="card-header">
-      <h1 style='font-size: 1.2rem;' id='application_{{ application.id }}'>{{ application.get_full_name }}</h1>
-      <div class="mb-2">
-	<div class="card-columns row">
-          <div class="col-sm-12">
-            <p>
-              <a class="" href='{{ application.mailto }}'>
-		Send e-mail to applicant
-              </a><br>
-	      Database requested: {{ application.project_of_interest }}
-
-              <form action="" method="post" class="form-signin">
-		{% csrf_token %}
-		<button class="" name="contact_reference" value="{{ application.id }}" type="submit" style="margin-right: 1em;">
-		  Contact Reference
-		</button> 
-		{{ application.reference_email }} 
-		{% if application.reference_contact_datetime %}
+<div class="card mb-4" style="color: {{ color }}">
+  <div class="card-header" id="application_{{ application.id }}">
+    <h2 style="font-size: 1.2rem;">{{ application.get_full_name }}</h2>
+    <p>
+      <a href='{{ application.mailto }}'>
+	Send e-mail to applicant
+      </a><br>
+      Database requested: {{ application.project_of_interest }}
+    </p>
+    <form action="" method="post" class="form-signin"> <!-- empty action generates error! -->
+      <p>
+	{% csrf_token %}
+	<button name="contact_reference" value="{{ application.id }}" type="submit" style="margin-right: 1em;">
+	  Contact Reference
+	</button> 
+	{{ application.reference_email }} 
+	{% if application.reference_contact_datetime %}
 		[The reference was contacted on {{ application.reference_contact_datetime }}]
-		{% else %}
-                {% if application.known_ref %}
-                [Reference is known]
-                {% endif %}
-		{% endif %}
-              </form>
-	    </p>
-            <p>
-	      <form action="" method="post" class="form-signin">
-		{% csrf_token %}
-                <div class="form-group row">
-                  <label for="inputPassword">Reason for approval:</label>
-                  <div class="col-sm-6">
-                    {{ process_credential_form.responder_comments }}
-                  </div> <!-- col-sm-6 -->
-                  <div class="col-sm-4">
-                    <button class="" type="submit" name="status" value="{{ process_credential_form.status.field.choices.2.0 }}">
-                      {{ process_credential_form.status.field.choices.2.1 }}
-                    </button>
-                  </div> <!-- col-sm-4 -->
-                </div> <!-- form-group row -->
-                <input type='hidden' name='process_application' value="{{ application.id }}">
+	{% elif application.known_ref %}
+        	[Reference is known]
+	{% endif %}
+      </p>
+    </form>
+    <form method="post" class="form-signin">  <!-- empty action generates error! -->
+      <p>
+	{% csrf_token %}
+        <div class="form-group row">
+	  <label for="inputPassword">Reason for approval:</label>
+	  <div class="col-sm-6">
+	    {{ process_credential_form.responder_comments }}
+	  </div> <!-- col-sm-6 -->
+	  <div class="col-sm-4">
+	    <button class="" type="submit" name="status" value="{{ process_credential_form.status.field.choices.2.0 }}">
+              {{ process_credential_form.status.field.choices.2.1 }}
+	    </button>
+	  </div> <!-- col-sm-4 -->
+        </div> <!-- form-group row -->
+        <input type='hidden' name='process_application' value="{{ application.id }}">
 
-		{% for error in process_credential_form.responder_comments.errors %}
-		<div class="alert alert-danger">
-                  <strong>{{ error|escape }}</strong>
-		</div> <!-- alert alert-danger -->
-		{% endfor %}
-		{% for error in process_credential_form.non_field_errors %}
-		<div class="alert alert-danger">
-                  <strong>{{ error|escape }}</strong>
-		</div> <!-- alert alert-danger -->
-		{% endfor %}
-              </form>
-              <form action="" method="post" class="form-signin">
-		{% csrf_token %}
-                <div class="form-group row">
-                  <label for="inputPassword">Reason for discard:</label>
-                  <div class="col-sm-6">
-                    {{ process_credential_form.responder_comments }}
-                  </div> <!-- col-sm-6 -->
-                  <div class="col-sm-4">
-                    <button class="" type="submit" name="status" value="{{ process_credential_form.status.field.choices.1.0 }}">
-                      {{ process_credential_form.status.field.choices.1.1 }}
-                    </button>
-                  </div> <!-- col-sm-4 -->
-                </div> <!-- form-group row -->
-                <input type='hidden' name='process_application' value="{{ application.id }}">
+	{% for error in process_credential_form.responder_comments.errors %}
+	<div class="alert alert-danger">
+	  <strong>{{ error|escape }}</strong>
+	</div> <!-- alert alert-danger -->
+	{% endfor %}
+	{% for error in process_credential_form.non_field_errors %}
+	<div class="alert alert-danger">
+	  <strong>{{ error|escape }}</strong>
+	</div> <!-- alert alert-danger -->
+	{% endfor %}
+      </p>
+    </form>
+    <form method="post" class="form-signin">
+      <p>
+	{% csrf_token %}
+        <div class="form-group row">
+	  <label for="inputPassword">Reason for discard:</label>
+	  <div class="col-sm-6">
+	    {{ process_credential_form.responder_comments }}
+	  </div> <!-- col-sm-6 -->
+	  <div class="col-sm-4">
+	    <button class="" type="submit" name="status" value="{{ process_credential_form.status.field.choices.1.0 }}">
+              {{ process_credential_form.status.field.choices.1.1 }}
+	    </button>
+	  </div> <!-- col-sm-4 -->
+        </div> <!-- form-group row -->
+        <input type='hidden' name='process_application' value="{{ application.id }}">
 
-		{% for error in process_credential_form.responder_comments.errors %}
-		<div class="alert alert-danger">
-                  <strong>{{ error|escape }}</strong>
-		</div> <!-- alert alert-danger -->
-		{% endfor %}
-		{% for error in process_credential_form.non_field_errors %}
-		<div class="alert alert-danger">
-                  <strong>{{ error|escape }}</strong>
-		</div> <!-- alert alert-danger -->
-		{% endfor %}
-              </form>
-	    </p>
-	  </div>
-	</div> <!-- col-sm-12 -->
-	</div> <!-- card-columns row -->
-      </div> <!-- mb-2 -->
-    </div> <!-- card-header -->
-	  <div class="card-body" style="margin-left: 2rem;" >
-            {% include "console/complete_application_display_table.html" %}
-          </div> <!-- card-body -->
-    </div> <!-- card mb-4 -->
-</font>
+	{% for error in process_credential_form.responder_comments.errors %}
+	<div class="alert alert-danger">
+	  <strong>{{ error|escape }}</strong>
+	</div> <!-- alert alert-danger -->
+	{% endfor %}
+	{% for error in process_credential_form.non_field_errors %}
+	<div class="alert alert-danger">
+	  <strong>{{ error|escape }}</strong>
+	</div> <!-- alert alert-danger -->
+	{% endfor %}
+      </p>
+    </form>
+  </div>
+  <div class="card-body" style="color: {{ color }}; margin-left: 2rem; font-family: monospace;" >
+    {% include "console/complete_application_display_table.html" %}
+  </div> <!-- card-body -->
+</div> <!-- card mb-4 -->
+
