@@ -16,10 +16,8 @@
 	{{ application.reference_email }} 
 	{% if application.reference_contact_datetime %}
 		[The reference was contacted on {{ application.reference_contact_datetime }}]
-	{% else %}
-        {% if application.known_ref %}
+	{% elif application.known_ref %}
         	[Reference is known]
-        {% endif %}
 	{% endif %}
       </p>
     </form>
