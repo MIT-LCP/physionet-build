@@ -481,7 +481,7 @@ class CredentialReferenceForm(forms.ModelForm):
         """
         Process the decision
         """
-        application = super().save()
+        application = super().save(commit=False)
 
         # Deny
         if self.cleaned_data['reference_response'] == 1:
