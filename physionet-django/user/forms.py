@@ -144,19 +144,19 @@ class UsernameChangeForm(forms.ModelForm):
         Change the media file directory name and photo name if any,
         to match the new username
         """
-        super().save()
         new_username = self.cleaned_data['username']
 
         if self.old_username != new_username:
-            profile = self.instance.profile
-            if profile.photo:
-                # user/<username>/profile-photo.ext
-                name_components = profile.photo.name.split('/')
-                name_components[1] = new_username
-                profile.photo.name = '/'.join(name_components)
-                profile.save()
-            if os.path.exists(self.old_file_root):
-                os.rename(self.old_file_root, self.instance.file_root())
+            with transaction.atomic():
+                super().save()
+                profile = self.instance.profile
+                if profile.photo:
+                    name_components = profile.photo.name.split('/')
+                    name_components[1] = new_username
+                    profile.photo.name = '/'.join(name_components)
+                    profile.save()
+                if os.path.exists(self.old_file_root):
+                    os.rename(self.old_file_root, self.instance.file_root())
 
 
 class ProfileForm(forms.ModelForm):
