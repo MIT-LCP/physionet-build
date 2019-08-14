@@ -9,6 +9,7 @@ from django.core.validators import EmailValidator
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.translation import ugettext_lazy
+from django.db import transaction
 
 from project.models import PublishedProject
 from user.models import AssociatedEmail, User, Profile, CredentialApplication, CloudInformation
@@ -242,7 +243,7 @@ class RegistrationForm(forms.ModelForm):
         return password2
 
 
-    def save(self, commit=True):
+    def save(self):
         # Save the provided password in hashed format
 
         if self.errors: return
@@ -250,7 +251,8 @@ class RegistrationForm(forms.ModelForm):
         user = super(RegistrationForm, self).save(commit=False)
         user.set_password(self.cleaned_data['password1'])
         user.email = user.email.lower()
-        if commit:
+
+        with transaction.atomic():
             user.save()
             # Save additional fields in Profile model
             profile = Profile.objects.create(user=user,
