@@ -4,6 +4,7 @@ After=syslog.target
 
 [Service]
 ExecStart=/physionet/python-env/physionet/bin/uwsgi --emperor /etc/uwsgi/vassals 
+ExecReload=/bin/kill -HUP $MAINPID
 # Requires systemd version 211 or newer
 User=www-data
 Group=www-data
