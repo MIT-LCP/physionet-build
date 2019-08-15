@@ -29,12 +29,14 @@ from project.views import (get_file_forms, get_project_file_info,
     process_files_post)
 from user.models import User, CredentialApplication, LegacyCredential
 from console import forms, utility
+from console.tasks import associated_task, get_associated_tasks
 
 from django.conf import settings
 
 LOGGER = logging.getLogger(__name__)
 
 
+@associated_task(PublishedProject, 'pid')
 @background()
 def make_zip_background(pid):
     """
@@ -46,6 +48,7 @@ def make_zip_background(pid):
     project.set_storage_info()
 
 
+@associated_task(PublishedProject, 'pid')
 @background()
 def make_checksum_background(pid):
     """
@@ -509,6 +512,8 @@ def published_projects(request):
     return render(request, 'console/published_projects.html',
         {'projects':projects})
 
+
+@associated_task(PublishedProject, 'pid', read_only=True)
 @background()
 def send_files_to_gcp(pid):
     """
@@ -608,13 +613,18 @@ def manage_published_project(request, project_slug, version):
     data_access = DataAccess.objects.filter(project=project)
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
 
+    tasks = list(get_associated_tasks(project))
+    ro_tasks = [task for (task, read_only) in tasks if read_only]
+    rw_tasks = [task for (task, read_only) in tasks if not read_only]
+
     return render(request, 'console/manage_published_project.html',
         {'project': project, 'authors': authors, 'author_emails': author_emails,
          'storage_info': storage_info, 'edit_logs': edit_logs,
          'copyedit_logs': copyedit_logs, 'latest_version': latest_version,
          'published': True, 'doi_form': doi_form, 'topic_form': topic_form,
          'deprecate_form': deprecate_form, 'has_credentials': has_credentials, 
-         'data_access_form': data_access_form, 'data_access': data_access})
+         'data_access_form': data_access_form, 'data_access': data_access,
+         'rw_tasks': rw_tasks, 'ro_tasks': ro_tasks})
 
 
 @login_required

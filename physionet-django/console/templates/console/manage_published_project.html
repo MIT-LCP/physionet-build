@@ -72,14 +72,31 @@
 
     <h2>Manage Files</h2>
     <hr>
+    {% for task in rw_tasks %}
+    <div class="alert alert-warning">
+      <strong>Pending task:</strong> {{ task }}
+    </div>
+    {% endfor %}
+    {% for task in ro_tasks %}
+    <div class="alert alert-info">
+      <strong>Pending task:</strong> {{ task }} (read-only)
+    </div>
+    {% endfor %}
     {% if project.deprecated_files %}
       <p>This project's files are deprecated.</p>
     {% else %}
       <form action="" method="post">
         {% csrf_token %}
-        <button class="btn btn-primary btn-fixed" name="make_checksum_file" type="submit">Make Checksum File</button>
-        <button class="btn btn-primary btn-fixed" name="make_zip" type="submit">Make Zip</button>
-        <button id="delete-items-button" type="button" class="btn btn-primary btn-fixed" data-toggle="modal" data-target="#deprecate-files-modal">Deprecate Files</button>
+        <button class="btn btn-primary btn-fixed" name="make_checksum_file"
+                {% if rw_tasks or ro_tasks %} disabled="disabled" {% endif %}
+                type="submit">Make Checksum File</button>
+        <button class="btn btn-primary btn-fixed" name="make_zip"
+                {% if rw_tasks or ro_tasks %} disabled="disabled" {% endif %}
+                type="submit">Make Zip</button>
+        <button id="delete-items-button" type="button"
+                class="btn btn-primary btn-fixed" data-toggle="modal"
+                {% if rw_tasks or ro_tasks %} disabled="disabled" {% endif %}
+                data-target="#deprecate-files-modal">Deprecate Files</button>
       </form>
       {# Modal for deprecating files #}
       <div class="modal fade" id="deprecate-files-modal" tabindex="-1" role="dialog" aria-hidden="true">
@@ -144,14 +161,18 @@
         <p>Create the GCP bucket to store all of the information of this project.</p>
         <form action="" method="post">
           {% csrf_token %}
-          <button class="btn btn-primary" name="bucket" value='{{project.slug}}' type="submit">Create GCP bucket and send files </button><br><br>
+          <button class="btn btn-primary" name="bucket" value='{{project.slug}}'
+                  {% if rw_tasks %} disabled="disabled" {% endif %}
+                  type="submit">Create GCP bucket and send files </button><br><br>
         </form>
         <p>Please make the special files before sending the files to GCP</p>
       {% elif project.gcp.sent_files and project.gcp.bucket_name %}
         <p>The files have been sent to GCP. The bucket name is: {{project.gcp.bucket_name}}.</p>
         <form action="" method="post">
           {% csrf_token %}
-          <button class="btn btn-primary" name="bucket" value='{{project.slug}}' type="submit">Resend files </button><br><br>
+          <button class="btn btn-primary" name="bucket" value='{{project.slug}}'
+                  {% if rw_tasks %} disabled="disabled" {% endif %}
+                  type="submit">Resend files </button><br><br>
         </form>
 
       {% else %}
