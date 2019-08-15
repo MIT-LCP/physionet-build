@@ -9,6 +9,7 @@ from django.core.validators import EmailValidator
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.translation import ugettext_lazy
+from django.db import transaction
 
 from project.models import PublishedProject
 from user.models import AssociatedEmail, User, Profile, CredentialApplication, CloudInformation
@@ -143,19 +144,19 @@ class UsernameChangeForm(forms.ModelForm):
         Change the media file directory name and photo name if any,
         to match the new username
         """
-        super().save()
         new_username = self.cleaned_data['username']
 
         if self.old_username != new_username:
-            profile = self.instance.profile
-            if profile.photo:
-                # user/<username>/profile-photo.ext
-                name_components = profile.photo.name.split('/')
-                name_components[1] = new_username
-                profile.photo.name = '/'.join(name_components)
-                profile.save()
-            if os.path.exists(self.old_file_root):
-                os.rename(self.old_file_root, self.instance.file_root())
+            with transaction.atomic():
+                super().save()
+                profile = self.instance.profile
+                if profile.photo:
+                    name_components = profile.photo.name.split('/')
+                    name_components[1] = new_username
+                    profile.photo.name = '/'.join(name_components)
+                    profile.save()
+                if os.path.exists(self.old_file_root):
+                    os.rename(self.old_file_root, self.instance.file_root())
 
 
 class ProfileForm(forms.ModelForm):
@@ -242,7 +243,7 @@ class RegistrationForm(forms.ModelForm):
         return password2
 
 
-    def save(self, commit=True):
+    def save(self):
         # Save the provided password in hashed format
 
         if self.errors: return
@@ -250,7 +251,8 @@ class RegistrationForm(forms.ModelForm):
         user = super(RegistrationForm, self).save(commit=False)
         user.set_password(self.cleaned_data['password1'])
         user.email = user.email.lower()
-        if commit:
+
+        with transaction.atomic():
             user.save()
             # Save additional fields in Profile model
             profile = Profile.objects.create(user=user,
@@ -479,7 +481,7 @@ class CredentialReferenceForm(forms.ModelForm):
         """
         Process the decision
         """
-        application = super().save()
+        application = super().save(commit=False)
 
         # Deny
         if self.cleaned_data['reference_response'] == 1:
