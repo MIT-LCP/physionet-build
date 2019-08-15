@@ -566,11 +566,23 @@ def manage_published_project(request, project_slug, version):
             else:
                 messages.error(request, 'Invalid submission. See form below.')
         elif 'make_checksum_file' in request.POST:
-            make_checksum_background(pid=project.id, verbose_name='Making checksum file - {}'.format(project))
-            messages.success(request, 'The files checksum list has been scheduled.')
+            if any(get_associated_tasks(project)):
+                messages.error(request, 'Project has tasks pending.')
+            else:
+                make_checksum_background(
+                    pid=project.id,
+                    verbose_name='Making checksum file - {}'.format(project))
+                messages.success(
+                    request, 'The files checksum list has been scheduled.')
         elif 'make_zip' in request.POST:
-            make_zip_background(pid=project.id, verbose_name='Making zip file - {}'.format(project))
-            messages.success(request, 'The zip of the main files has been scheduled.')
+            if any(get_associated_tasks(project)):
+                messages.error(request, 'Project has tasks pending.')
+            else:
+                make_zip_background(
+                    pid=project.id,
+                    verbose_name='Making zip file - {}'.format(project))
+                messages.success(
+                    request, 'The zip of the main files has been scheduled.')
         elif 'deprecate_files' in request.POST and not project.deprecated_files:
             deprecate_form = forms.DeprecateFilesForm(data=request.POST)
             if deprecate_form.is_valid():
@@ -578,25 +590,28 @@ def manage_published_project(request, project_slug, version):
                     delete_files=int(deprecate_form.cleaned_data['delete_files']))
                 messages.success(request, 'The project files have been deprecated.')
         elif 'bucket' in request.POST and has_credentials:
-            # Bucket names cannot be capitalized letters
-            bucket_name = is_private = False
-            if project.access_policy > 0:
-                is_private = True
-            # Check if the bucket name exists, and if not create it.
-            try:
-                bucket_name = project.gcp.bucket_name
-                messages.success(request, "The bucket already exists. Resending\
-                 the files for the project {0}.".format(project))
-            except GCP.DoesNotExist:
-                bucket_name = utility.check_bucket(project.slug, project.version)
-                if not bucket_name:
-                    bucket_name = utility.create_bucket(project=project.slug,
-                        protected=is_private, version=project.version)
-                GCP.objects.create(project=project, bucket_name=bucket_name,
-                    managed_by=user, is_private=is_private)
-                messages.success(request, "The GCP bucket for project {0} was \
-                    successfully created.".format(project))
-            send_files_to_gcp(project.id, verbose_name='GCP - {}'.format(project), creator=user)
+            if any(get_associated_tasks(project, read_only=False)):
+                messages.error(request, 'Project has tasks pending.')
+            else:
+                # Bucket names cannot be capitalized letters
+                bucket_name = is_private = False
+                if project.access_policy > 0:
+                    is_private = True
+                # Check if the bucket name exists, and if not create it.
+                try:
+                    bucket_name = project.gcp.bucket_name
+                    messages.success(request, "The bucket already exists. Resending\
+                     the files for the project {0}.".format(project))
+                except GCP.DoesNotExist:
+                    bucket_name = utility.check_bucket(project.slug, project.version)
+                    if not bucket_name:
+                        bucket_name = utility.create_bucket(project=project.slug,
+                            protected=is_private, version=project.version)
+                    GCP.objects.create(project=project, bucket_name=bucket_name,
+                        managed_by=user, is_private=is_private)
+                    messages.success(request, "The GCP bucket for project {0} was \
+                        successfully created.".format(project))
+                send_files_to_gcp(project.id, verbose_name='GCP - {}'.format(project), creator=user)
         elif 'platform' in request.POST:
             data_access_form = forms.DataAccessForm(project=project, data=request.POST)
             if data_access_form.is_valid():
