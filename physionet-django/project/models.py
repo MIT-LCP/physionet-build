@@ -43,9 +43,7 @@ def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
     """
 
     published_project = PublishedProject.objects.get(id=pid)
-    # Create special files if there are files. Should always be the case.
-    if bool(published_project.storage_used):
-        published_project.make_special_files(make_zip=make_zip)
+    published_project.make_special_files(make_zip=make_zip)
 
     published_project.set_storage_info()
 
