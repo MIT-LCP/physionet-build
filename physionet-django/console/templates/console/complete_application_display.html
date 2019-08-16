@@ -2,9 +2,9 @@
   <div class="card-header" id="application_{{ application.id }}">
     <h2 style="font-size: 1.2rem;">{{ application.get_full_name }}</h2>
     <p>
-      <a href='{{ application.mailto }}'>
+      <a href='{{ application.mailto }}' style="padding-right: 1.5rem;">
 	Send e-mail to applicant
-      </a><br>
+      </a>  {{ application.user.email }} <br>
       Database requested: {{ application.project_of_interest }}
     </p>
     <form action="" method="post" class="form-signin"> <!-- empty action generates error! -->
