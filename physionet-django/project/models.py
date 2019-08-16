@@ -17,6 +17,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelatio
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.contrib.auth.hashers import check_password, make_password
 from django.db import models, DatabaseError, transaction
 from django.forms.utils import ErrorList
 from django.urls import reverse
@@ -24,6 +25,7 @@ from django.utils import timezone
 from django.utils.html import strip_tags
 from django.utils.text import slugify
 from background_task import background
+from django.utils.crypto import get_random_string
 
 from project.utility import (get_tree_size, get_file_info, get_directory_info,
                              list_items, StorageInfo, list_files,
@@ -1501,6 +1503,11 @@ def exists_project_slug(slug):
             or ArchivedProject.objects.filter(slug=slug)
             or PublishedProject.objects.filter(slug=slug))
 
+def exists_anonymus_access(slug):
+    """
+    Whether the slug has been taken by an existing anonymus access to projects
+    """
+    return bool(AnonymousAccess.objects.filter(slug=slug))
 
 class ProgrammingLanguage(models.Model):
     """
@@ -1849,4 +1856,32 @@ class DataAccess(models.Model):
         related_name='%(class)ss', db_index=True, on_delete=models.CASCADE)
     platform = models.PositiveSmallIntegerField(choices=PLATFORM_ACCESS)
     location = models.CharField(max_length=100, null=True)
+
+
+class AnonymousAccess(models.Model):
+    """
+    Makes it possible to manage anonymus access to project's metadata,
+    while creating a passfrase to be used by nginx to control files.
+    """
+    project = models.OneToOneField('project.PublishedProject',
+        related_name='anonymous_access', on_delete=models.CASCADE)
+    slug = models.CharField(max_length=20, db_index=True)
+    passphrase = models.CharField(max_length=128)
+    creation_datetime = models.DateTimeField(auto_now_add=True)
+    expiration_datetime = models.DateTimeField(null=True)
+    creator = models.ForeignKey('user.User', related_name='anonymous_access_creator',
+        on_delete=models.SET_NULL, null=True, blank=True)
+
+    def set_passphrase(self, raw_passphrase):
+        self.passphrase = make_password(raw_passphrase)
+        self.slug = get_random_string(20)
+        while exists_anonymus_access(self.slug):
+            self.slug = get_random_string(20)
+
+    def check_passphrase(self, raw_passphrase):
+        """
+        Return a boolean of whether the raw_password was correct. Handles
+        hashing formats behind the scenes.
+        """
+        return check_password(raw_passphrase)
 

@@ -51,6 +51,7 @@ def project_auth(auth_mode=0, post_auth_mode=0):
     - 0 : the user must be an author.
     - 1 : the user must be the submitting author.
     - 2 : the user must be an author or an admin
+    - 3 : the user must provide a passphrase for anonymous reviewer access
 
     post_auth_mode is one of the following and applies only to post:
     - 0 : no additional check
@@ -58,6 +59,7 @@ def project_auth(auth_mode=0, post_auth_mode=0):
           its author editable stages.
     - 2 : the user must be the submitting author, and the project must
           be in one of its author editable stages.
+    - 3 : Has the anonymous cookie
     """
     def real_decorator(base_view):
         @login_required
@@ -72,6 +74,7 @@ def project_auth(auth_mode=0, post_auth_mode=0):
 
             is_author = bool(authors.filter(user=user))
             is_submitting = (user == authors.get(is_submitting=True).user)
+            is_reviewer = request.COOKIES.get('anonymus', False)
 
             if auth_mode == 0:
                 allow = is_author
@@ -79,6 +82,10 @@ def project_auth(auth_mode=0, post_auth_mode=0):
                 allow = is_submitting
             elif auth_mode == 2:
                 allow = is_author or user.is_admin
+            elif auth_mode == 3 and is_reviewer:
+                allow = is_reviewer
+            else:
+                allow = False
 
             if request.method == 'POST':
                 if post_auth_mode == 1:
@@ -92,6 +99,7 @@ def project_auth(auth_mode=0, post_auth_mode=0):
                 kwargs['authors'] = authors
                 kwargs['is_author'] = is_author
                 kwargs['is_submitting'] = is_submitting
+                kwargs['is_reviewer'] = is_reviewer
                 return base_view(request, *args, **kwargs)
             raise PermissionDenied()
         return view_wrapper
