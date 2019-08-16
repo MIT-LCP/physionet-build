@@ -517,13 +517,13 @@ class Metadata(models.Model):
             else:
                 return authors
 
-    def info_card(self, include_emails=True):
+    def info_card(self, include_emails=True, force_calculate=False):
         """
         Get all the information needed for the project info card
         seen by an admin
         """
         authors, author_emails = self.get_author_info(include_emails=include_emails)
-        storage_info = self.get_storage_info()
+        storage_info = self.get_storage_info(force_calculate=force_calculate)
         edit_logs = self.edit_logs.all()
         for e in edit_logs:
             e.set_quality_assurance_results()
