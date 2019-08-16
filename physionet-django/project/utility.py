@@ -202,22 +202,6 @@ def get_tree_size(path):
             total += entry.stat(follow_symlinks=False).st_size
     return total
 
-def get_tree_files(path, full_path=True):
-    """
-    Return list of files from a base path
-    """
-    files = []
-    for entry in os.scandir(path):
-        if entry.is_dir(follow_symlinks=False):
-            files += get_tree_files(entry.path, full_path=True)
-        else:
-            files.append(entry.path)
-    # Strip the original path if desired
-    if not full_path:
-        if not path.endswith('/'):
-            path += '/'
-        files = [f[len(path):] for f in files]
-    return files
 
 def readable_size(num, suffix='B'):
     "Display human readable size of byte number"
