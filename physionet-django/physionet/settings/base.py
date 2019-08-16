@@ -324,8 +324,7 @@ logging.config.dictConfig({
         },
         'Custom_Logging': {
             'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': '/tmp/physionet.log',
+            'class': 'logging.StreamHandler',
             'formatter': 'simple',
         },
         'mail_admins': {
@@ -341,6 +340,11 @@ logging.config.dictConfig({
         'user': {
             'level': 'INFO',
             'handlers': ['Custom_Logging'],
+            'propagate': False,
+        },
+        'django.security.DisallowedHost': {
+            'handlers': ['mail_admins'],
+            'level': 'CRITICAL',
             'propagate': False,
         },
        'django.request': {
