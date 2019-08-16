@@ -3,15 +3,15 @@
 
 {# Personal details #}
 
-<p>User: <a href="{% url 'public_profile' application.user.username %}">{{ application.user.username }}</a><br>
+<p>User: <a href="{% url 'public_profile' application.user.username %}">{{ application.user.username }}</a>
+
+PhysioNet e-mail: {{ application.user.email }}<br>
 
 My first (given) name(s): {{ application.first_names }}<br>
 
 My last (family) name(s): {{ application.last_name }}<br>
 
 Suffix (e.g., Jr.), if applicable: {{ application.suffix }}<br>
-
-My PhysioNet email: {{ application.user.email }}<br>
 
 Organization Name: {{ application.organization_name }}<br>
 
@@ -25,7 +25,7 @@ ZIP/postal code: {{ application.zip_code }}<br>
 
 Country: {{ application.get_country_display }}<br>
 
-Webpage: {% if application.webpage %}<a href="{{ application.webpage }}" target="_blank">{{ application.webpage }}</a>{% endif %}<br></p>
+Webpage: {{ application.webpage }}<br></p>
 
 {# Training #}
 
