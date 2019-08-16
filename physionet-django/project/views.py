@@ -1493,3 +1493,13 @@ def project_request_access(request, project_slug, version, access_type):
             notification.notify_gcp_access_request(item, user, project, new_user)
 
     return redirect('published_project', project_slug=project_slug, version=version)
+
+
+def reviewer_login(request):
+    form = forms.AnonymousAccessLoginForm()
+    if request.method == 'POST':
+        form = forms.AnonymousAccessLoginForm(data=request.POST)
+        if form.is_valid():
+            pass
+
+    return render(request, 'project/reviewer_login.html', {'form': form})
