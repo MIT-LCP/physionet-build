@@ -647,13 +647,20 @@ class UnpublishedProject(models.Model):
         """
         return os.path.join(self.__class__.FILE_ROOT, self.slug)
 
-    def get_storage_info(self):
+    def get_storage_info(self, force_calculate=True):
         """
         Return an object containing information about the project's
         storage usage.
+
+        If force_calculate is true, calculate the size by recursively
+        scanning the directory tree.  This is deprecated.
         """
+        if force_calculate:
+            used = self.storage_used()
+        else:
+            used = None
         return StorageInfo(allowance=self.core_project.storage_allowance,
-            used=self.storage_used(), include_remaining=True)
+                           used=used, include_remaining=True)
 
     def get_previous_slug(self):
         """
@@ -1400,12 +1407,16 @@ class PublishedProject(Metadata, SubmissionInfo):
         else:
             return True
 
-    def get_storage_info(self):
+    def get_storage_info(self, force_calculate=True):
         """
         Return an object containing information about the project's
         storage usage. Main, compressed, total files, and allowance.
+
+        This function always returns the cached information stored in
+        the model.  The force_calculate argument has no effect.
         """
-        main, compressed = self.storage_used()
+        main = self.main_storage_size
+        compressed = self.compressed_storage_size
         return StorageInfo(allowance=self.core_project.storage_allowance,
             used=main+compressed, include_remaining=False, main_used=main,
             compressed_used=compressed)
