@@ -459,6 +459,9 @@ class Metadata(models.Model):
     # For ordering projects with multiple versions
     version_order = models.PositiveSmallIntegerField(default=0)
 
+    # Anonymous access
+    anonymous = GenericRelation('project.AnonymousAccess')
+
     class Meta:
         abstract = True
 
@@ -587,6 +590,26 @@ class Metadata(models.Model):
             return type_map[self.resource_type]
         except KeyError:
             return 'Dataset'
+
+    def is_valid_reviewer(self, raw_passphrase):
+        """
+        Checks if passphrase is valid for project
+        """
+        if not self.anonymous.first():
+            return False
+
+        return self.anonymous.first().check_passphrase(raw_passphrase)
+
+    def generate_passphrase(self):
+        """
+        Checks if passphrase is valid for project
+        """
+        if not self.anonymous.first():
+            reviewer = AnonymousAccess(project=self)
+        else:
+            reviewer = self.anonymous.first()
+
+        return reviewer.set_passphrase()
 
 
 class SubmissionInfo(models.Model):
@@ -1388,7 +1411,9 @@ class PublishedProject(Metadata, SubmissionInfo):
             return False
 
         if self.access_policy:
-            if self.approved_users.filter(id=user.id):
+            if type(user) == str:
+                return self.is_valid_reviewer(user)
+            elif self.approved_users.filter(id=user.id):
                 return True
             else:
                 return False
@@ -1503,11 +1528,6 @@ def exists_project_slug(slug):
             or ArchivedProject.objects.filter(slug=slug)
             or PublishedProject.objects.filter(slug=slug))
 
-def exists_anonymus_access(slug):
-    """
-    Whether the slug has been taken by an existing anonymus access to projects
-    """
-    return bool(AnonymousAccess.objects.filter(slug=slug))
 
 class ProgrammingLanguage(models.Model):
     """
@@ -1860,28 +1880,42 @@ class DataAccess(models.Model):
 
 class AnonymousAccess(models.Model):
     """
-    Makes it possible to manage anonymus access to project's metadata,
-    while creating a passfrase to be used by nginx to control files.
+    Makes it possible to manage anonymous access to project's metadata,
+    while creating a passphrase to be used for reviewer login
     """
-    project = models.OneToOneField('project.PublishedProject',
-        related_name='anonymous_access', on_delete=models.CASCADE)
-    slug = models.CharField(max_length=20, db_index=True)
+    # Project GenericFK
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    project = GenericForeignKey('content_type', 'object_id')
+
+    # Model fields
     passphrase = models.CharField(max_length=128)
     creation_datetime = models.DateTimeField(auto_now_add=True)
     expiration_datetime = models.DateTimeField(null=True)
     creator = models.ForeignKey('user.User', related_name='anonymous_access_creator',
         on_delete=models.SET_NULL, null=True, blank=True)
 
-    def set_passphrase(self, raw_passphrase):
-        self.passphrase = make_password(raw_passphrase)
-        self.slug = get_random_string(20)
-        while exists_anonymus_access(self.slug):
-            self.slug = get_random_string(20)
+    class Meta:
+        unique_together = (("content_type", "object_id"),)
+
+    def set_passphrase(self):
+        # Generate and encode random password
+        raw = get_random_string(20)
+
+        # Has to be unique
+        while AnonymousAccess.objects.filter(passphrase=raw).first():
+            raw = get_random_string(20)
+
+        # Store encode passphrase
+        self.passphrase = make_password(raw)
+        self.save()
+
+        return raw
 
     def check_passphrase(self, raw_passphrase):
         """
         Return a boolean of whether the raw_password was correct. Handles
         hashing formats behind the scenes.
         """
-        return check_password(raw_passphrase)
+        return check_password(raw_passphrase, self.passphrase)
 
