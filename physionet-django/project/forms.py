@@ -879,7 +879,7 @@ class InvitationResponseForm(forms.ModelForm):
 
 class AnonymousAccessLoginForm(forms.ModelForm):
     """
-    Updating the username filed
+    Login for anonymous users
     """
 
     class Meta:
@@ -887,6 +887,6 @@ class AnonymousAccessLoginForm(forms.ModelForm):
         fields = ('passphrase',)
         widgets = {
             'passphrase':forms.PasswordInput(attrs={'class': 'form-control', 
-                'placeholder': 'Password', 'label': 'Password'}),
+                'placeholder': 'Passphrase', 'label': 'Passphrase'}),
         }
 

@@ -17,7 +17,7 @@ from django.core.exceptions import (ObjectDoesNotExist, PermissionDenied,
 from django.db import transaction
 from django.forms import (formset_factory, inlineformset_factory,
     modelformset_factory)
-from django.http import HttpResponse, Http404, JsonResponse
+from django.http import HttpResponse, Http404, JsonResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.template import loader
 from django.urls import reverse
@@ -29,7 +29,8 @@ from project import forms
 from project.models import (Affiliation, Author, AuthorInvitation,
     ActiveProject, PublishedProject, StorageRequest, Reference, DataAccess,
     ArchivedProject, ProgrammingLanguage, Topic, Contact, Publication,
-    PublishedAuthor, EditLog, CopyeditLog, DUASignature, CoreProject, GCP)
+    PublishedAuthor, EditLog, CopyeditLog, DUASignature, CoreProject, GCP,
+    AnonymousAccess)
 from project import utility
 from project.validators import validate_filename
 import notification.utility as notification
@@ -51,7 +52,7 @@ def project_auth(auth_mode=0, post_auth_mode=0):
     - 0 : the user must be an author.
     - 1 : the user must be the submitting author.
     - 2 : the user must be an author or an admin
-    - 3 : the user must provide a passphrase for anonymous reviewer access
+    - 3 : the user must be a reviewer or author
 
     post_auth_mode is one of the following and applies only to post:
     - 0 : no additional check
@@ -59,40 +60,52 @@ def project_auth(auth_mode=0, post_auth_mode=0):
           its author editable stages.
     - 2 : the user must be the submitting author, and the project must
           be in one of its author editable stages.
-    - 3 : Has the anonymous cookie
     """
     def real_decorator(base_view):
-        @login_required
         def view_wrapper(request, *args, **kwargs):
-            user = request.user
+            # Verify project
             try:
                 project = ActiveProject.objects.get(
                     slug=kwargs['project_slug'])
             except ObjectDoesNotExist:
                 raise PermissionDenied()
+
+            # Authenticate anonymous reviewers
+            reviewer = request.get_signed_cookie('reviewer', False, max_age=60*60)
+            is_reviewer = project.is_valid_reviewer(reviewer)
+
+            # Get user
+            user = request.user
+
+            # Requires login if is not a reviewer
+            if not is_reviewer and not user.is_authenticated:
+                return redirect_to_login(request.get_full_path())
+
+            # Verify user's role in project
             authors = project.authors.all().order_by('display_order')
-
-            is_author = bool(authors.filter(user=user))
+            is_author = not user.is_anonymous and bool(authors.filter(user=user))
             is_submitting = (user == authors.get(is_submitting=True).user)
-            is_reviewer = request.COOKIES.get('anonymus', False)
 
+            # Authentication
             if auth_mode == 0:
                 allow = is_author
             elif auth_mode == 1:
                 allow = is_submitting
             elif auth_mode == 2:
                 allow = is_author or user.is_admin
-            elif auth_mode == 3 and is_reviewer:
-                allow = is_reviewer
+            elif auth_mode == 3:
+                allow = is_reviewer or is_author
             else:
                 allow = False
 
+            # Post authentication
             if request.method == 'POST':
                 if post_auth_mode == 1:
                     allow = is_author and project.author_editable()
                 elif post_auth_mode == 2:
                     allow = is_submitting and project.author_editable()
 
+            # Render
             if allow:
                 kwargs['user'] = user
                 kwargs['project'] = project
@@ -956,7 +969,7 @@ def project_files(request, project_slug, subdir='', **kwargs):
         'file_warning':file_warning})
 
 
-@project_auth(auth_mode=2)
+@project_auth(auth_mode=3)
 def serve_active_project_file(request, project_slug, file_name, **kwargs):
     """
     Serve a file in an active project. file_name is file path relative
@@ -970,7 +983,7 @@ def serve_active_project_file(request, project_slug, file_name, **kwargs):
         return redirect(request.path + '/')
 
 
-@project_auth(auth_mode=2)
+@project_auth(auth_mode=3)
 def display_active_project_file(request, project_slug, file_name, **kwargs):
     """
     Display a file in an active project. file_name is file path relative
@@ -979,7 +992,7 @@ def display_active_project_file(request, project_slug, file_name, **kwargs):
     return display_project_file(request, kwargs['project'], file_name)
 
 
-@project_auth(auth_mode=2)
+@project_auth(auth_mode=3)
 def preview_files_panel(request, project_slug, **kwargs):
     """
     Return the file panel for the project, along with the forms used to
@@ -1004,7 +1017,7 @@ def preview_files_panel(request, project_slug, **kwargs):
          'files_panel_url':files_panel_url, 'file_warning':file_warning})
 
 
-@project_auth(auth_mode=2)
+@project_auth(auth_mode=3)
 def project_preview(request, project_slug, subdir='', **kwargs):
     """
     Preview what the published project would look like. Includes
@@ -1024,7 +1037,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     languages = project.programming_languages.all()
 
     passes_checks = project.check_integrity()
-
+    
     if passes_checks:
         messages.success(request, 'The project has passed all automatic checks.')
     else:
@@ -1036,6 +1049,9 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     files_panel_url = reverse('preview_files_panel', args=(project.slug,))
     file_warning = get_project_file_warning(display_files, display_dirs,
                                               subdir)
+                                            
+    # Reviewer flag
+    is_reviewer = kwargs['is_reviewer']
 
     return render(request, 'project/project_preview.html', {'project':project,
         'display_files':display_files, 'display_dirs':display_dirs,
@@ -1046,10 +1062,10 @@ def project_preview(request, project_slug, subdir='', **kwargs):
         'files_panel_url':files_panel_url,
         'subdir':subdir, 'parent_dir':parent_dir,
         'file_error':file_error, 'file_warning':file_warning,
-        'parent_projects':parent_projects})
+        'parent_projects':parent_projects, 'is_reviewer':is_reviewer})
 
 
-@project_auth(auth_mode=2)
+@project_auth(auth_mode=3)
 def project_license_preview(request, project_slug, **kwargs):
     """
     View a project's license
@@ -1243,7 +1259,8 @@ def published_files_panel(request, project_slug, version):
         return redirect('published_project', project_slug=project_slug,
             version=version)
 
-    if project.has_access(request.user):
+    user = request.get_signed_cookie('reviewer', request.user, max_age=60*60)
+    if project.has_access(user):
         (display_files, display_dirs, dir_breadcrumbs, parent_dir,
          file_error) = get_project_file_info(project=project, subdir=subdir)
 
@@ -1271,7 +1288,9 @@ def serve_published_project_file(request, project_slug, version,
             version=version)
     except ObjectDoesNotExist:
         raise Http404()
-    if project.has_access(request.user):
+        
+    user = request.get_signed_cookie('reviewer', request.user, max_age=60*60)
+    if project.has_access(user):
         file_path = os.path.join(project.file_root(), full_file_name)
         try:
             attach = ('download' in request.GET)
@@ -1294,7 +1313,9 @@ def display_published_project_file(request, project_slug, version,
                                                version=version)
     except ObjectDoesNotExist:
         raise Http404()
-    if project.has_access(request.user):
+        
+    user = request.get_signed_cookie('reviewer', request.user, max_age=60*60)
+    if project.has_access(user):
         return display_project_file(request, project, full_file_name)
 
     # Display error message: "you must [be a credentialed user and]
@@ -1319,7 +1340,9 @@ def serve_published_project_zip(request, project_slug, version):
             version=version)
     except ObjectDoesNotExist:
         raise Http404()
-    if project.has_access(request.user):
+        
+    user = request.get_signed_cookie('reviewer', request.user, max_age=60*60)
+    if project.has_access(user):
         try:
             return serve_file(project.zip_name(full=True))
         except FileNotFoundError:
@@ -1379,7 +1402,8 @@ def published_project(request, project_slug, version, subdir=''):
     parent_projects = project.parent_projects.all()
     # derived_projects = project.derived_publishedprojects.all()
     data_access = DataAccess.objects.filter(project=project)
-    has_access = project.has_access(request.user)
+    user = request.get_signed_cookie('reviewer', request.user, max_age=60*60)
+    has_access = project.has_access(user)
     current_site = get_current_site(request)
     all_project_versions = PublishedProject.objects.filter(
         slug=project_slug).order_by('version_order')
@@ -1495,11 +1519,38 @@ def project_request_access(request, project_slug, version, access_type):
     return redirect('published_project', project_slug=project_slug, version=version)
 
 
-def reviewer_login(request):
+def reviewer_login(request, project_slug, **kwargs):
+    # Validate project url
+    try:
+        if 'version' in kwargs:
+            version = kwargs['version']
+            project = PublishedProject.objects.get(slug=project_slug,
+                                                   version=version)
+            response = redirect('published_project', project_slug=project_slug, version=version)
+        else:
+            project = ActiveProject.objects.get(slug=project_slug)
+            response = redirect('project_preview', project_slug=project_slug)
+    except ObjectDoesNotExist:
+        raise Http404()
+
+    # Empty form
     form = forms.AnonymousAccessLoginForm()
+
+    # Validate input from submission
     if request.method == 'POST':
         form = forms.AnonymousAccessLoginForm(data=request.POST)
         if form.is_valid():
-            pass
+            # Validates passphrase
+            passphrase = request.POST["passphrase"]
+            if project.is_valid_reviewer(passphrase):
+                # Set cookie and redirects to project page
+                response.set_signed_cookie('reviewer', passphrase, max_age=60*60)
+                return response
+            
+            # Did not find any valid passphrase
+            messages.error(request, 'Invalid project or passphrase.')
+        else:
+            # Invalid form error
+            messages.error(request, 'Submission unsuccessful. See form for errors.')
 
-    return render(request, 'project/reviewer_login.html', {'form': form})
+    return render(request, 'project/reviewer_login.html', {'project': project, 'form': form})

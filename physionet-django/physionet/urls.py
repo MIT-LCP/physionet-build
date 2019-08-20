@@ -23,7 +23,6 @@ urlpatterns = [
     path('', include('user.urls')),
     # project app
     path('projects/', include('project.urls')),
-    path('reviewer_login/', project_views.reviewer_login, name='reviewer_login'),
     # notification app
     path('', include('notification.urls')),
     # search app

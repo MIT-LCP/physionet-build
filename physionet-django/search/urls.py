@@ -20,6 +20,8 @@ urlpatterns = [
         name='published_project_latest'),
     path('content/<project_slug>/<version>/', project_views.published_project,
         name='published_project'),
+    path('content/<project_slug>/<version>/reviewer/', project_views.reviewer_login, 
+        name='reviewer_login'),
     re_path('^content/(?P<project_slug>[\w\-]+)/(?P<version>[\d\.]+)/(?P<subdir>.+)/$',
         project_views.published_project, name='published_project_subdir'),
     path('content/<project_slug>/files-panel/<version>/',

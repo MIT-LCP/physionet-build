@@ -21,13 +21,13 @@
     <p><a class="btn btn-secondary"
         href="{% url 'submission_info' project.slug %}" role="button">
         <i class="fas fa-angle-left"></i> Return to the admin console</a></p>
-  {% else %}
+  {% elif not is_reviewer %}
     <p><a class="btn btn-secondary"
         href="{% url 'project_overview' project.slug %}" role="button">
         <i class="fas fa-angle-left"></i> Return to project overview</a></p>
   {% endif %}
       
-  {% if messages %}
+  {% if messages and not is_reviewer %}
     {% if passes_checks %}
       <div class="alert alert-success alert-dismissible">
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">

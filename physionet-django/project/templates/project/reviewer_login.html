@@ -10,7 +10,12 @@
 
 {% block content %}
 <div class="container">
-  <form action="{% url 'login' %}" method="post" class="form-signin">
+  {% include "message_snippet.html" %}
+  {% if project.publish_datetime %}
+  <form action="{% url 'reviewer_login' project.slug project.version %}" method="post" class="form-signin">
+  {% else %}
+  <form action="{% url 'reviewer_login' project.slug %}" method="post" class="form-signin">
+  {% endif %}
     <h2 class="form-signin-heading">Reviewer Login</h2>
     {% csrf_token %}
     {{ form.passphrase }}
@@ -19,14 +24,7 @@
         <strong>{{ error|escape }}</strong>
       </div>
     {% endfor %}
-    <input type="hidden" name="next" value="{{ next }}"/>
     <button id="login" class="btn btn-lg btn-primary btn-block" type="submit">Log In</button>
   </form>
-  <div class="alert alert-warning alert-dismissible fade show" role="alert">
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-      <span aria-hidden="true">&times;</span>
-    </button>
-    Previous PhysioNet user? Please create an account on the new website. If you register using the same email address as before, your permission to access protected databases such as MIMIC-III will be automatically transferred.
-  </div>
 </div>
 {% endblock %}
