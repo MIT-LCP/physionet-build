@@ -238,7 +238,9 @@ Q_CLUSTER = {
     'label': 'Django Q2',
 }
 
-# Django background tasks max attempts
+# Background tasks
+
+BACKGROUND_TASK_RUN_ASYNC = True
 MAX_ATTEMPTS = 5
 
 # Static files (CSS, JavaScript, Images)
