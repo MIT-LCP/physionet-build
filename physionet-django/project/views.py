@@ -646,9 +646,9 @@ def project_access(request, project_slug, **kwargs):
     Page to edit project access policy
 
     """
-    user, project = kwargs['user'], kwargs['project']
+    user, project, passphrase = kwargs['user'], kwargs['project'], ''
 
-    if request.method == 'POST':
+    if 'access_policy' in request.POST:
         access_form = forms.AccessMetadataForm(data=request.POST,
             instance=project)
         # The first validation is to check for valid access policy choice
@@ -663,11 +663,17 @@ def project_access(request, project_slug, **kwargs):
             messages.error(request,
                 'Invalid submission. See errors below.')
     else:
+        # Generate new passphrase
+        if 'generate_passphrase' in request.POST:
+            passphrase = project.generate_passphrase()
+        
+        # Access form
         access_form = forms.AccessMetadataForm(instance=project)
         access_form.set_license_queryset(access_policy=project.access_policy)
 
     return render(request, 'project/project_access.html', {'project':project,
-        'access_form':access_form, 'is_submitting':kwargs['is_submitting']})
+        'access_form':access_form, 'is_submitting':kwargs['is_submitting'],
+        'passphrase':passphrase})
 
 
 def load_license(request, project_slug):
