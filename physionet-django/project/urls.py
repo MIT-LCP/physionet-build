@@ -18,6 +18,8 @@ urlpatterns = [
     path('published/<project_slug>/<version>/submission-history/',
         views.published_submission_history,
         name='published_submission_history'),
+    path('published/<project_slug>/<version>/manage/', views.published_manage,
+        name='published_manage'),
 
     path('project-autocomplete/', views.ProjectAutocomplete.as_view(),
         name='project-autocomplete'),

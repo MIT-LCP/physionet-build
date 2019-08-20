@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/settings.css' %}"/>
+{% endblock %}
+
+
+{% block content %}
+<div class="container">
+    <h2 style="line-height: calc(1em + 15px);">
+        <span style="padding: 5px;" class="alert alert-danger">Managing</span>
+        {{ project }}
+    </h2>
+    <hr>
+    <div class="card">
+        <h3 class="card-header">
+            Reviewer Access
+        </h3>
+        <div class="card-body">
+            <p>
+            You can generate a passphrase that will allow anonymous access to your project.
+            This is useful if you are submitting an article to a peer-reviewed journal and access
+            to your PhysioNet resource is needed during the review process.
+            <br>
+            The URL for reviewer access is:
+            <a href="{% url 'reviewer_login' project.slug project.version %}" target="_blank">
+                {{ request.get_host }}{% url 'reviewer_login' project.slug project.version %}
+            </a>
+            </p>
+            <form action="{% url 'published_manage' project.slug project.version %}" method="POST">
+            {% csrf_token %}
+            <input type="text" disabled style="background-color: rgba(0,0,0,0.1)"
+            {% if not passphrase and project.anonymous.first %}
+                value="Warning: generating a new passphrase will revoke the existing access"
+                class="text-danger"
+            {% else %}
+                value="{{ passphrase }}"
+                class="text-success"
+            {% endif %}
+            /><br>
+            <button class="btn btn-primary btn-rsp" type="submit" name="generate_passphrase"
+            {% if passphrase %}
+                disabled
+            {% endif %}
+            >
+                Generate passphrase
+            </button>
+            </form>
+        </div>
+    </div>
+</div><!--/.container-->
+{% endblock %}

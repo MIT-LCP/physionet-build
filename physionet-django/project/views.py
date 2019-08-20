@@ -1450,6 +1450,23 @@ def published_project(request, project_slug, version, subdir=''):
                   status=status)
 
 
+def published_manage(request, project_slug, version):
+    try:
+        project = PublishedProject.objects.get(slug=project_slug,
+                                               version=version)
+    except ObjectDoesNotExist:
+        raise Http404()
+    
+    # Generate new passphrase
+    if 'generate_passphrase' in request.POST:
+        passphrase = project.generate_passphrase()
+    else:
+        passphrase = ''
+
+    return render(request, 'project/published_manage.html', {'project': project,
+                  'passphrase':passphrase})
+
+
 @login_required
 def sign_dua(request, project_slug, version):
     """
