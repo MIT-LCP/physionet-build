@@ -66,8 +66,8 @@ urlpatterns = [
 
     path('<project_slug>/preview/', views.project_preview,
         name='project_preview'),
-    path('<project_slug>/reviewer/', views.reviewer_login, 
-        name='reviewer_login'),
+    path('anonymous/<project_slug>/', views.anonymous_login, 
+        name='anonymous_login'),
     path('<project_slug>/preview/<path:subdir>/', views.project_preview,
         name='project_preview_subdir'),
     path('<project_slug>/preview/<path:file_name>',

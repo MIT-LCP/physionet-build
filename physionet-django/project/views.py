@@ -52,7 +52,8 @@ def project_auth(auth_mode=0, post_auth_mode=0):
     - 0 : the user must be an author.
     - 1 : the user must be the submitting author.
     - 2 : the user must be an author or an admin
-    - 3 : the user must be a reviewer or author
+    - 3 : the user must be an author or an admin
+          or be authenticated with a passphrase
 
     post_auth_mode is one of the following and applies only to post:
     - 0 : no additional check
@@ -70,15 +71,14 @@ def project_auth(auth_mode=0, post_auth_mode=0):
             except ObjectDoesNotExist:
                 raise PermissionDenied()
 
-            # Authenticate anonymous reviewers
-            reviewer = request.get_signed_cookie('reviewer', False, max_age=60*60)
-            is_reviewer = project.is_valid_reviewer(reviewer)
+            # Authenticate passphrase for anonymous access
+            has_passphrase = request.get_signed_cookie('anonymousaccess', False, max_age=60*60)
 
             # Get user
             user = request.user
 
-            # Requires login if is not a reviewer
-            if not is_reviewer and not user.is_authenticated:
+            # Requires login if passphrase is non-existent
+            if not has_passphrase and not user.is_authenticated:
                 return redirect_to_login(request.get_full_path())
 
             # Verify user's role in project
@@ -94,7 +94,7 @@ def project_auth(auth_mode=0, post_auth_mode=0):
             elif auth_mode == 2:
                 allow = is_author or user.is_admin
             elif auth_mode == 3:
-                allow = is_reviewer or is_author
+                allow = has_passphrase or is_author or user.is_admin
             else:
                 allow = False
 
@@ -112,7 +112,7 @@ def project_auth(auth_mode=0, post_auth_mode=0):
                 kwargs['authors'] = authors
                 kwargs['is_author'] = is_author
                 kwargs['is_submitting'] = is_submitting
-                kwargs['is_reviewer'] = is_reviewer
+                kwargs['has_passphrase'] = has_passphrase
                 return base_view(request, *args, **kwargs)
             raise PermissionDenied()
         return view_wrapper
@@ -1056,8 +1056,8 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     file_warning = get_project_file_warning(display_files, display_dirs,
                                               subdir)
                                             
-    # Reviewer flag
-    is_reviewer = kwargs['is_reviewer']
+    # Flag for anonymous access
+    has_passphrase = kwargs['has_passphrase']
 
     return render(request, 'project/project_preview.html', {'project':project,
         'display_files':display_files, 'display_dirs':display_dirs,
@@ -1068,7 +1068,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
         'files_panel_url':files_panel_url,
         'subdir':subdir, 'parent_dir':parent_dir,
         'file_error':file_error, 'file_warning':file_warning,
-        'parent_projects':parent_projects, 'is_reviewer':is_reviewer})
+        'parent_projects':parent_projects, 'has_passphrase':has_passphrase})
 
 
 @project_auth(auth_mode=3)
@@ -1265,8 +1265,9 @@ def published_files_panel(request, project_slug, version):
         return redirect('published_project', project_slug=project_slug,
             version=version)
 
-    user = request.get_signed_cookie('reviewer', request.user, max_age=60*60)
-    if project.has_access(user):
+    user = request.user
+    has_passphrase = request.get_signed_cookie('anonymousaccess', False, max_age=60*60)
+    if project.has_access(user) or has_passphrase:
         (display_files, display_dirs, dir_breadcrumbs, parent_dir,
          file_error) = get_project_file_info(project=project, subdir=subdir)
 
@@ -1295,8 +1296,9 @@ def serve_published_project_file(request, project_slug, version,
     except ObjectDoesNotExist:
         raise Http404()
         
-    user = request.get_signed_cookie('reviewer', request.user, max_age=60*60)
-    if project.has_access(user):
+    user = request.user
+    has_passphrase = request.get_signed_cookie('anonymousaccess', False, max_age=60*60)
+    if project.has_access(user) or has_passphrase:
         file_path = os.path.join(project.file_root(), full_file_name)
         try:
             attach = ('download' in request.GET)
@@ -1320,8 +1322,9 @@ def display_published_project_file(request, project_slug, version,
     except ObjectDoesNotExist:
         raise Http404()
         
-    user = request.get_signed_cookie('reviewer', request.user, max_age=60*60)
-    if project.has_access(user):
+    user = request.user
+    has_passphrase = request.get_signed_cookie('anonymousaccess', False, max_age=60*60)
+    if project.has_access(user) or has_passphrase:
         return display_project_file(request, project, full_file_name)
 
     # Display error message: "you must [be a credentialed user and]
@@ -1347,8 +1350,9 @@ def serve_published_project_zip(request, project_slug, version):
     except ObjectDoesNotExist:
         raise Http404()
         
-    user = request.get_signed_cookie('reviewer', request.user, max_age=60*60)
-    if project.has_access(user):
+    user = request.user
+    has_passphrase = request.get_signed_cookie('anonymousaccess', False, max_age=60*60)
+    if project.has_access(user) or has_passphrase:
         try:
             return serve_file(project.zip_name(full=True))
         except FileNotFoundError:
@@ -1408,8 +1412,9 @@ def published_project(request, project_slug, version, subdir=''):
     parent_projects = project.parent_projects.all()
     # derived_projects = project.derived_publishedprojects.all()
     data_access = DataAccess.objects.filter(project=project)
-    user = request.get_signed_cookie('reviewer', request.user, max_age=60*60)
-    has_access = project.has_access(user)
+    user = request.user
+    has_passphrase = request.get_signed_cookie('anonymousaccess', False, max_age=60*60)
+    has_access = project.has_access(user) or has_passphrase
     current_site = get_current_site(request)
     all_project_versions = PublishedProject.objects.filter(
         slug=project_slug).order_by('version_order')
@@ -1542,7 +1547,7 @@ def project_request_access(request, project_slug, version, access_type):
     return redirect('published_project', project_slug=project_slug, version=version)
 
 
-def reviewer_login(request, project_slug, **kwargs):
+def anonymous_login(request, project_slug, **kwargs):
     # Validate project url
     try:
         if 'version' in kwargs:
@@ -1565,9 +1570,9 @@ def reviewer_login(request, project_slug, **kwargs):
         if form.is_valid():
             # Validates passphrase
             passphrase = request.POST["passphrase"]
-            if project.is_valid_reviewer(passphrase):
+            if project.is_valid_passphrase(passphrase):
                 # Set cookie and redirects to project page
-                response.set_signed_cookie('reviewer', passphrase, max_age=60*60)
+                response.set_signed_cookie('anonymousaccess', True, max_age=60*60)
                 return response
             
             # Did not find any valid passphrase
@@ -1576,4 +1581,4 @@ def reviewer_login(request, project_slug, **kwargs):
             # Invalid form error
             messages.error(request, 'Submission unsuccessful. See form for errors.')
 
-    return render(request, 'project/reviewer_login.html', {'project': project, 'form': form})
+    return render(request, 'project/anonymous_login.html', {'project': project, 'form': form})

@@ -10,13 +10,13 @@
 {% block content %}
 <div class="container">
     <h2 style="line-height: calc(1em + 15px);">
-        <span style="padding: 5px;" class="alert alert-danger">Managing</span>
+        <span class="alert alert-danger p-1">Managing</span>
         {{ project }}
     </h2>
     <hr>
     <div class="card">
         <h3 class="card-header">
-            Reviewer Access
+            Anonymous Access
         </h3>
         <div class="card-body">
             <p>
@@ -24,22 +24,22 @@
             This is useful if you are submitting an article to a peer-reviewed journal and access
             to your PhysioNet resource is needed during the review process.
             <br>
-            The URL for reviewer access is:
-            <a href="{% url 'reviewer_login' project.slug project.version %}" target="_blank">
-                {{ request.get_host }}{% url 'reviewer_login' project.slug project.version %}
+            The URL for anonymous access is:
+            <a href="{% url 'anonymous_login' project.slug project.version %}" target="_blank">
+                {{ request.get_host }}{% url 'anonymous_login' project.slug project.version %}
             </a>
+            </p>
+            <p
+            {% if not passphrase and project.anonymous.first %}
+                class="alert alert-danger">
+                Warning: generating a new passphrase will revoke the existing access
+            {% else %}
+                class="alert alert-success">
+                {{ passphrase }}
+            {% endif %}
             </p>
             <form action="{% url 'published_manage' project.slug project.version %}" method="POST">
             {% csrf_token %}
-            <input type="text" disabled style="background-color: rgba(0,0,0,0.1)"
-            {% if not passphrase and project.anonymous.first %}
-                value="Warning: generating a new passphrase will revoke the existing access"
-                class="text-danger"
-            {% else %}
-                value="{{ passphrase }}"
-                class="text-success"
-            {% endif %}
-            /><br>
             <button class="btn btn-primary btn-rsp" type="submit" name="generate_passphrase"
             {% if passphrase %}
                 disabled

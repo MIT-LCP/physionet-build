@@ -591,7 +591,7 @@ class Metadata(models.Model):
         except KeyError:
             return 'Dataset'
 
-    def is_valid_reviewer(self, raw_passphrase):
+    def is_valid_passphrase(self, raw_passphrase):
         """
         Checks if passphrase is valid for project
         """
@@ -605,11 +605,11 @@ class Metadata(models.Model):
         Checks if passphrase is valid for project
         """
         if not self.anonymous.first():
-            reviewer = AnonymousAccess(project=self)
+            anonymous = AnonymousAccess(project=self)
         else:
-            reviewer = self.anonymous.first()
+            anonymous = self.anonymous.first()
 
-        return reviewer.set_passphrase()
+        return anonymous.set_passphrase()
 
 
 class SubmissionInfo(models.Model):
@@ -1411,9 +1411,7 @@ class PublishedProject(Metadata, SubmissionInfo):
             return False
 
         if self.access_policy:
-            if type(user) == str:
-                return self.is_valid_reviewer(user)
-            elif self.approved_users.filter(id=user.id):
+            if self.approved_users.filter(id=user.id):
                 return True
             else:
                 return False
@@ -1880,16 +1878,18 @@ class DataAccess(models.Model):
 
 class AnonymousAccess(models.Model):
     """
-    Makes it possible to manage anonymous access to project's metadata,
-    while creating a passphrase to be used for reviewer login
+    Makes it possible to grant anonymous access (without user auth)
+    to a project and its files by authenticating with a passphrase.
     """
     # Project GenericFK
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     project = GenericForeignKey('content_type', 'object_id')
 
-    # Model fields
+    # Stores hashed passphrase
     passphrase = models.CharField(max_length=128)
+
+    # Record tracking
     creation_datetime = models.DateTimeField(auto_now_add=True)
     expiration_datetime = models.DateTimeField(null=True)
     creator = models.ForeignKey('user.User', related_name='anonymous_access_creator',
