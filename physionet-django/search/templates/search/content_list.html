@@ -13,11 +13,13 @@
           {% endfor %}
       </p>
     {% endif %}
-    {% if not published_project.short_description %}
-      {{ published_project.abstract|safe|truncatechars_html:250 }}
-    {% else %}
-      {{ published_project.short_description }}
-    {% endif %}
+    <div style="margin-bottom: 1rem;">
+      {% if not published_project.short_description %}
+        {{ published_project.abstract|safe|truncatechars_html:250 }}
+      {% else %}
+        {{ published_project.short_description }}
+      {% endif %}
+    </div>
     <p class="text-muted">
       {% for topic in published_project.topics.all %}
         {{ topic|topic_badge|safe }}
