@@ -29,12 +29,14 @@ from project.views import (get_file_forms, get_project_file_info,
     process_files_post)
 from user.models import User, CredentialApplication, LegacyCredential
 from console import forms, utility
+from console.tasks import associated_task, get_associated_tasks
 
 from django.conf import settings
 
 LOGGER = logging.getLogger(__name__)
 
 
+@associated_task(PublishedProject, 'pid')
 @background()
 def make_zip_background(pid):
     """
@@ -46,6 +48,7 @@ def make_zip_background(pid):
     project.set_storage_info()
 
 
+@associated_task(PublishedProject, 'pid')
 @background()
 def make_checksum_background(pid):
     """
@@ -509,6 +512,8 @@ def published_projects(request):
     return render(request, 'console/published_projects.html',
         {'projects':projects})
 
+
+@associated_task(PublishedProject, 'pid', read_only=True)
 @background()
 def send_files_to_gcp(pid):
     """
@@ -561,11 +566,23 @@ def manage_published_project(request, project_slug, version):
             else:
                 messages.error(request, 'Invalid submission. See form below.')
         elif 'make_checksum_file' in request.POST:
-            make_checksum_background(pid=project.id, verbose_name='Making checksum file - {}'.format(project))
-            messages.success(request, 'The files checksum list has been scheduled.')
+            if any(get_associated_tasks(project)):
+                messages.error(request, 'Project has tasks pending.')
+            else:
+                make_checksum_background(
+                    pid=project.id,
+                    verbose_name='Making checksum file - {}'.format(project))
+                messages.success(
+                    request, 'The files checksum list has been scheduled.')
         elif 'make_zip' in request.POST:
-            make_zip_background(pid=project.id, verbose_name='Making zip file - {}'.format(project))
-            messages.success(request, 'The zip of the main files has been scheduled.')
+            if any(get_associated_tasks(project)):
+                messages.error(request, 'Project has tasks pending.')
+            else:
+                make_zip_background(
+                    pid=project.id,
+                    verbose_name='Making zip file - {}'.format(project))
+                messages.success(
+                    request, 'The zip of the main files has been scheduled.')
         elif 'deprecate_files' in request.POST and not project.deprecated_files:
             deprecate_form = forms.DeprecateFilesForm(data=request.POST)
             if deprecate_form.is_valid():
@@ -573,25 +590,28 @@ def manage_published_project(request, project_slug, version):
                     delete_files=int(deprecate_form.cleaned_data['delete_files']))
                 messages.success(request, 'The project files have been deprecated.')
         elif 'bucket' in request.POST and has_credentials:
-            # Bucket names cannot be capitalized letters
-            bucket_name = is_private = False
-            if project.access_policy > 0:
-                is_private = True
-            # Check if the bucket name exists, and if not create it.
-            try:
-                bucket_name = project.gcp.bucket_name
-                messages.success(request, "The bucket already exists. Resending\
-                 the files for the project {0}.".format(project))
-            except GCP.DoesNotExist:
-                bucket_name = utility.check_bucket(project.slug, project.version)
-                if not bucket_name:
-                    bucket_name = utility.create_bucket(project=project.slug,
-                        protected=is_private, version=project.version)
-                GCP.objects.create(project=project, bucket_name=bucket_name,
-                    managed_by=user, is_private=is_private)
-                messages.success(request, "The GCP bucket for project {0} was \
-                    successfully created.".format(project))
-            send_files_to_gcp(project.id, verbose_name='GCP - {}'.format(project), creator=user)
+            if any(get_associated_tasks(project, read_only=False)):
+                messages.error(request, 'Project has tasks pending.')
+            else:
+                # Bucket names cannot be capitalized letters
+                bucket_name = is_private = False
+                if project.access_policy > 0:
+                    is_private = True
+                # Check if the bucket name exists, and if not create it.
+                try:
+                    bucket_name = project.gcp.bucket_name
+                    messages.success(request, "The bucket already exists. Resending\
+                     the files for the project {0}.".format(project))
+                except GCP.DoesNotExist:
+                    bucket_name = utility.check_bucket(project.slug, project.version)
+                    if not bucket_name:
+                        bucket_name = utility.create_bucket(project=project.slug,
+                            protected=is_private, version=project.version)
+                    GCP.objects.create(project=project, bucket_name=bucket_name,
+                        managed_by=user, is_private=is_private)
+                    messages.success(request, "The GCP bucket for project {0} was \
+                        successfully created.".format(project))
+                send_files_to_gcp(project.id, verbose_name='GCP - {}'.format(project), creator=user)
         elif 'platform' in request.POST:
             data_access_form = forms.DataAccessForm(project=project, data=request.POST)
             if data_access_form.is_valid():
@@ -608,13 +628,18 @@ def manage_published_project(request, project_slug, version):
     data_access = DataAccess.objects.filter(project=project)
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
 
+    tasks = list(get_associated_tasks(project))
+    ro_tasks = [task for (task, read_only) in tasks if read_only]
+    rw_tasks = [task for (task, read_only) in tasks if not read_only]
+
     return render(request, 'console/manage_published_project.html',
         {'project': project, 'authors': authors, 'author_emails': author_emails,
          'storage_info': storage_info, 'edit_logs': edit_logs,
          'copyedit_logs': copyedit_logs, 'latest_version': latest_version,
          'published': True, 'doi_form': doi_form, 'topic_form': topic_form,
          'deprecate_form': deprecate_form, 'has_credentials': has_credentials, 
-         'data_access_form': data_access_form, 'data_access': data_access})
+         'data_access_form': data_access_form, 'data_access': data_access,
+         'rw_tasks': rw_tasks, 'ro_tasks': ro_tasks})
 
 
 @login_required
