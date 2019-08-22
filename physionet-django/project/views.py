@@ -41,6 +41,8 @@ from console.utility import add_email_bucket_access
 
 from dal import autocomplete
 
+from ast import literal_eval
+
 LOGGER = logging.getLogger(__name__)
 
 def project_auth(auth_mode=0, post_auth_mode=0):
@@ -72,7 +74,8 @@ def project_auth(auth_mode=0, post_auth_mode=0):
                 raise PermissionDenied()
 
             # Authenticate passphrase for anonymous access
-            has_passphrase = request.get_signed_cookie('anonymousaccess', False, max_age=60*60)
+            an_slug = request.get_signed_cookie('anonymousactive', None, max_age=60*60)
+            has_passphrase = project.slug == an_slug
 
             # Get user
             user = request.user
@@ -640,7 +643,7 @@ def project_content(request, project_slug, **kwargs):
         'add_item_url':edit_url, 'remove_item_url':edit_url})
 
 
-@project_auth(auth_mode=0, post_auth_mode=2)
+@project_auth(auth_mode=0)
 def project_access(request, project_slug, **kwargs):
     """
     Page to edit project access policy
@@ -649,6 +652,12 @@ def project_access(request, project_slug, **kwargs):
     user, project, passphrase = kwargs['user'], kwargs['project'], ''
 
     if 'access_policy' in request.POST:
+        # Throws 403 if project is not in editable stage
+        # or user is not submitting author
+        is_submitting = (user == project.authors.get(is_submitting=True).user)
+        if not is_submitting or not project.author_editable():
+            raise PermissionDenied()
+
         access_form = forms.AccessMetadataForm(data=request.POST,
             instance=project)
         # The first validation is to check for valid access policy choice
@@ -1266,7 +1275,11 @@ def published_files_panel(request, project_slug, version):
             version=version)
 
     user = request.user
-    has_passphrase = request.get_signed_cookie('anonymousaccess', False, max_age=60*60)
+
+    # Anonymous access authentication
+    an_slug, an_version = literal_eval(request.get_signed_cookie('anonymouspublished', '(None, None)', max_age=60*60))
+    has_passphrase = (project.slug == an_slug) and (project.version == an_version)
+
     if project.has_access(user) or has_passphrase:
         (display_files, display_dirs, dir_breadcrumbs, parent_dir,
          file_error) = get_project_file_info(project=project, subdir=subdir)
@@ -1297,7 +1310,11 @@ def serve_published_project_file(request, project_slug, version,
         raise Http404()
         
     user = request.user
-    has_passphrase = request.get_signed_cookie('anonymousaccess', False, max_age=60*60)
+
+    # Anonymous access authentication
+    an_slug, an_version = literal_eval(request.get_signed_cookie('anonymouspublished', '(None, None)', max_age=60*60))
+    has_passphrase = (project.slug == an_slug) and (project.version == an_version)
+
     if project.has_access(user) or has_passphrase:
         file_path = os.path.join(project.file_root(), full_file_name)
         try:
@@ -1323,7 +1340,11 @@ def display_published_project_file(request, project_slug, version,
         raise Http404()
         
     user = request.user
-    has_passphrase = request.get_signed_cookie('anonymousaccess', False, max_age=60*60)
+
+    # Anonymous access authentication
+    an_slug, an_version = literal_eval(request.get_signed_cookie('anonymouspublished', '(None, None)', max_age=60*60))
+    has_passphrase = (project.slug == an_slug) and (project.version == an_version)
+
     if project.has_access(user) or has_passphrase:
         return display_project_file(request, project, full_file_name)
 
@@ -1351,7 +1372,11 @@ def serve_published_project_zip(request, project_slug, version):
         raise Http404()
         
     user = request.user
-    has_passphrase = request.get_signed_cookie('anonymousaccess', False, max_age=60*60)
+
+    # Anonymous access authentication
+    an_slug, an_version = literal_eval(request.get_signed_cookie('anonymouspublished', '(None, None)', max_age=60*60))
+    has_passphrase = (project.slug == an_slug) and (project.version == an_version)
+
     if project.has_access(user) or has_passphrase:
         try:
             return serve_file(project.zip_name(full=True))
@@ -1413,7 +1438,11 @@ def published_project(request, project_slug, version, subdir=''):
     # derived_projects = project.derived_publishedprojects.all()
     data_access = DataAccess.objects.filter(project=project)
     user = request.user
-    has_passphrase = request.get_signed_cookie('anonymousaccess', False, max_age=60*60)
+
+    # Anonymous access authentication
+    an_slug, an_version = literal_eval(request.get_signed_cookie('anonymouspublished', '(None, None)', max_age=60*60))
+    has_passphrase = (project.slug == an_slug) and (project.version == an_version)
+
     has_access = project.has_access(user) or has_passphrase
     current_site = get_current_site(request)
     all_project_versions = PublishedProject.objects.filter(
@@ -1555,9 +1584,13 @@ def anonymous_login(request, project_slug, **kwargs):
             project = PublishedProject.objects.get(slug=project_slug,
                                                    version=version)
             response = redirect('published_project', project_slug=project_slug, version=version)
+            cookie_key = 'anonymouspublished'
+            cookie_val = (project.slug, project.version)
         else:
             project = ActiveProject.objects.get(slug=project_slug)
             response = redirect('project_preview', project_slug=project_slug)
+            cookie_key = 'anonymousactive'
+            cookie_val = (project.slug)
     except ObjectDoesNotExist:
         raise Http404()
 
@@ -1567,12 +1600,12 @@ def anonymous_login(request, project_slug, **kwargs):
     # Validate input from submission
     if request.method == 'POST':
         form = forms.AnonymousAccessLoginForm(data=request.POST)
-        if form.is_valid():
+        if form.is_valid() and project.submission_status > 20:
             # Validates passphrase
             passphrase = request.POST["passphrase"]
             if project.is_valid_passphrase(passphrase):
                 # Set cookie and redirects to project page
-                response.set_signed_cookie('anonymousaccess', True, max_age=60*60)
+                response.set_signed_cookie(cookie_key, cookie_val, max_age=60*60)
                 return response
             
             # Did not find any valid passphrase

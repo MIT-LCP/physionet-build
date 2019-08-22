@@ -26,6 +26,7 @@
   <button class="btn btn-primary btn-rsp" type="submit" name="edit_access">Save Access Information</button>
 </form>
 
+{% if project.submission_status > 20 %}
 <h3 style="padding-top:50px;" id="reviewer">Anonymous Access</h3>
 <hr>
 <p>
@@ -37,16 +38,20 @@
   The URL for reviewer access is:
   <a href="{% url 'anonymous_login' project.slug %}" target="_blank">{{ request.get_host }}{% url 'anonymous_login' project.slug %}</a>
 </p>
-<p
-  {% if not passphrase and project.anonymous.first %}
+<div
+  {% if not passphrase %}
     class="alert alert-danger">
-    Warning: generating a new passphrase will revoke the existing access
+    <p>Note: When providing anonymous access to third parties, keep in mind that any changes made during
+      the PhysioNet review process will impact anyone viewing your project through that access.</p>
+    {% if project.anonymous.first %}
+      <p class="m-0"><strong>Warning: generating a new passphrase will revoke the existing access</strong></p>
+    {% endif %}
   {% else %}
     class="alert alert-success">
     {{ passphrase }}
   {% endif %}
-</p>
-<form action="{% url 'project_access' project.slug %}#reviewer" method="POST">
+</div>
+<form action="{% url 'project_access' project.slug %}#reviewer" method="POST" id="passphrase_form">
   {% csrf_token %}
   <button class="btn btn-primary btn-rsp" type="submit" name="generate_passphrase"
   {% if passphrase %}
@@ -56,6 +61,8 @@
     Generate passphrase
   </button>
 </form>
+{% endif %}
+
 {% endblock %}
 
 {% block local_js_bottom %}
@@ -69,5 +76,11 @@
 {# Disable submission if not currently editable or not submitting author #}
 {% if not is_submitting or not project.author_editable %}
   <script src="{% static 'custom/js/disable-input.js' %}"></script>
+  {% if project.submission_status > 20 %}
+    <script>
+      $("#passphrase_form input").removeAttr("disabled")
+      $("#passphrase_form button").removeAttr("disabled")
+    </script>
+  {% endif %}
 {% endif %}
 {% endblock %}
