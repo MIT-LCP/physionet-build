@@ -1,0 +1,17 @@
+[Unit]
+Description=Command that runs Django background tasks
+After=emperor.uwsgi.service
+
+[Service]
+Environment=DJANGO_SETTINGS_MODULE=physionet.settings.staging
+ExecStart=/physionet/python-env/physionet/bin/python /physionet/physionet-build/physionet-django/manage.py process_tasks --log-std
+Restart=always
+KillSignal=SIGINT
+Type=simple
+StandardError=syslog
+NotifyAccess=all
+User=www-data
+Group=www-data
+
+[Install]
+WantedBy=multi-user.target
