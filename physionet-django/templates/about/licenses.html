@@ -1,6 +1,7 @@
 <p>When sharing data and software, it is important to be clear about how you intend the content to be reused. To maximize reuse potential of the content, we encourage permissive, open licenses. Currently, authors submitting content to PhysioNet are able to select the following licenses.</p>
 
 {% for key, value in licenses.items %}
+<div class="indented-box">
 	<h5 id="{{ key|lower }}">{{ key }}</h5>
 	<ul>
 	{% for license in value %}
@@ -10,6 +11,6 @@
       <a href="{% url 'license_content' license.slug %}">License</a> - <a href="{{ license.home_page }}">Home page <i class="fas fa-external-link-alt"></i></a>
 		</li>
   	{% endfor %}
-  	</ul>
-  	<br>
+	</ul>
+</div>  
 {% endfor %}

@@ -535,3 +535,12 @@ table.files-panel {
 a, code{
   word-break: break-word;
 }
+
+.indented-box{
+  margin-left: 0.75em;
+  padding-left: 25px;
+  margin-top: 25px;
+  border-left: 1px solid;
+  border-image: linear-gradient(to bottom, silver 0%, silver 60%, transparent 100%) 1% 100%;
+          
+}
