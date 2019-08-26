@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext as _
 
 MAX_FILENAME_LENGTH = 50
+MAX_PROJECT_SLUG_LENGTH = 30
 
 _good_name_pattern = re.compile(r'\w+([\w\-\.]*\w+)?', re.ASCII)
 _bad_name_pattern = re.compile(r'^(?:con|nul|aux|prn|com\d|lpt\d)(?:\.|$)',
@@ -90,11 +91,17 @@ def validate_version(value):
 def validate_slug(value):
     """
     Validate a published slug. Not ending with dash number for google
-    cloud.
+    cloud. Must not exceed MAX_PROJECT_SLUG_LENGTH.
     """
-    if (not re.fullmatch(r'[a-z0-9](?:[a-z0-9\-]{0,18}[a-z0-9])?', value)
+    if len(value) > MAX_PROJECT_SLUG_LENGTH:
+        raise ValidationError(
+            'Invalid file name "%(slug)s". '
+            'Slug may be at most %(limit)s characters long.',
+            params={'filename': value, 'limit': MAX_PROJECT_SLUG_LENGTH})
+    if (not re.fullmatch(r'[a-z0-9](?:[a-z0-9\-]*[a-z0-9])?', value)
             or '--' in value or re.fullmatch(r'.+\-[0-9]+', value)):
-        raise ValidationError((
-            'Slug must only contain lowercase alphanumerics and hyphens, of '
-            'length 1-20. Must begin and end with an alphanumeric. Must not '
-            'contain consecutive hyphens or end with hypen number.'))
+        raise ValidationError("""
+            Slug must only contain lowercase alphanumerics and hyphens, and
+            must be of length 1-{}. Must begin and end with an alphanumeric.
+            Must not contain consecutive hyphens or end with hyphen number.
+            """.format(MAX_PROJECT_SLUG_LENGTH))
