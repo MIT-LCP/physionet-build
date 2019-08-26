@@ -25,6 +25,7 @@ from project.models import (ActiveProject, ArchivedProject, StorageRequest,
     Reference, Topic, Publication, PublishedProject,
     exists_project_slug, GCP, DUASignature, DataAccess)
 from project.utility import readable_size
+from project.validators import MAX_PROJECT_SLUG_LENGTH
 from project.views import (get_file_forms, get_project_file_info,
     process_files_post)
 from user.models import User, CredentialApplication, LegacyCredential
@@ -396,12 +397,6 @@ def publish_slug_available(request, project_slug, *args, **kwargs):
     else:
         result = not exists_project_slug(desired_slug)
 
-    # check pattern validity
-    result = (result
-        and bool(re.fullmatch(r'[a-z0-9](?:[a-z0-9\-]{0,18}[a-z0-9])?', desired_slug))
-        and '--' not in desired_slug
-        and not re.fullmatch(r'.+\-[0-9]+', desired_slug))
-
     return JsonResponse({'available':result})
 
 
@@ -438,7 +433,8 @@ def publish_submission(request, project_slug, *args, **kwargs):
         {'project':project, 'publishable':publishable, 'authors':authors,
          'author_emails':author_emails, 'storage_info':storage_info,
          'edit_logs':edit_logs, 'copyedit_logs':copyedit_logs,
-         'latest_version':latest_version, 'publish_form':publish_form})
+         'latest_version':latest_version, 'publish_form':publish_form,
+         'max_slug_length': MAX_PROJECT_SLUG_LENGTH})
 
 
 def process_storage_response(request, storage_response_formset):
