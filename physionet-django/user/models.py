@@ -658,7 +658,7 @@ class CredentialApplication(models.Model):
     course_info = models.CharField(max_length=100, default='',
         validators=[validate_alphaplusplus])
     # Reference
-    reference_category = models.PositiveSmallIntegerField(default=None, 
+    reference_category = models.PositiveSmallIntegerField(null=True,
         blank=True, choices=REFERENCE_CATEGORIES)
     reference_name = models.CharField(max_length=202, default='', blank=True,
                                       validators=[validate_name])
