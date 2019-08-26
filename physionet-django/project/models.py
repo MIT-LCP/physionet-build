@@ -29,7 +29,8 @@ from project.utility import (get_tree_size, get_file_info, get_directory_info,
                              list_items, StorageInfo, list_files,
                              clear_directory)
 from project.validators import (validate_doi, validate_subdir,
-                                validate_version, validate_slug)
+                                validate_version, validate_slug,
+                                MAX_PROJECT_SLUG_LENGTH)
 from user.validators import validate_alphaplus, validate_alphaplusplus
 from physionet.utility import (sorted_tree_files, zip_dir)
 
@@ -628,7 +629,7 @@ class UnpublishedProject(models.Model):
     # Whether this project is being worked on as a new version
     is_new_version = models.BooleanField(default=False)
     # Access url slug, also used as a submitting project id.
-    slug = models.SlugField(max_length=20, db_index=True)
+    slug = models.SlugField(max_length=MAX_PROJECT_SLUG_LENGTH, db_index=True)
 
     authors = GenericRelation('project.Author')
     references = GenericRelation('project.Reference')
@@ -1160,7 +1161,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
         # Set files read only and make zip file if requested
         move_files_as_readonly(published_project.id, self.file_root(),
-            published_project.file_root(), make_zip, 
+            published_project.file_root(), make_zip,
             verbose_name='Read Only Files - {}'.format(published_project))
 
         # Remove the ActiveProject
@@ -1183,7 +1184,7 @@ class PublishedProject(Metadata, SubmissionInfo):
     # doi = models.CharField(max_length=50, unique=True, validators=[validate_doi])
     # Temporary workaround
     doi = models.CharField(max_length=50, default='')
-    slug = models.SlugField(max_length=20, db_index=True,
+    slug = models.SlugField(max_length=MAX_PROJECT_SLUG_LENGTH, db_index=True,
         validators=[validate_slug])
     approved_users = models.ManyToManyField('user.User', db_index=True)
     # Fields for legacy pb databases

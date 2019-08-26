@@ -10,7 +10,7 @@ from google.cloud import storage
 from notification.models import News
 from project.models import (ActiveProject, EditLog, CopyeditLog,
     PublishedProject, exists_project_slug, DataAccess)
-from project.validators import validate_slug
+from project.validators import validate_slug, MAX_PROJECT_SLUG_LENGTH
 from user.models import User, CredentialApplication
 
 RESPONSE_CHOICES = (
@@ -195,7 +195,8 @@ class PublishForm(forms.Form):
     """
     Form for publishing a project
     """
-    slug = forms.CharField(max_length=20, validators=[validate_slug])
+    slug = forms.CharField(max_length=MAX_PROJECT_SLUG_LENGTH,
+                           validators=[validate_slug])
     doi = forms.CharField(max_length=50, label='DOI', required=False)
     make_zip = forms.ChoiceField(choices=YES_NO, label='Make zip of all files')
 

@@ -46,7 +46,7 @@
   <div class="card-body">
     <p>
       {% if publishable %}
-        The project is ready to publish. You may choose a unique slug of lowercase alphanumerics and hyphens, of length 1-20. Must begin and end with an alphanumeric. Must not contain consecutive hyphens or end with hyphen number.
+        The project is ready to publish. You may choose a unique slug of lowercase alphanumerics and hyphens, of length 1-{{ max_slug_length }}. Must begin and end with an alphanumeric. Must not contain consecutive hyphens or end with hyphen number.
       {% else %}
         Something has gone wrong. The project should be publishable at this point but it is not. Please check it.
       {% endif %}
