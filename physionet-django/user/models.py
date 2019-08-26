@@ -658,11 +658,12 @@ class CredentialApplication(models.Model):
     course_info = models.CharField(max_length=100, default='',
         validators=[validate_alphaplusplus])
     # Reference
-    reference_category = models.PositiveSmallIntegerField(
-        choices=REFERENCE_CATEGORIES)
-    reference_name = models.CharField(max_length=202, validators=[validate_name])
-    reference_email = models.EmailField()
-    reference_title = models.CharField(max_length=60,
+    reference_category = models.PositiveSmallIntegerField(default=None, 
+        blank=True, choices=REFERENCE_CATEGORIES)
+    reference_name = models.CharField(max_length=202, default='', blank=True,
+                                      validators=[validate_name])
+    reference_email = models.EmailField(default='', blank=True)
+    reference_title = models.CharField(max_length=60, default='', blank=True,
         validators=[validate_alphaplusplus])
     # 0 1 2 = pending, rejected, accepted
     status = models.PositiveSmallIntegerField(default=0, choices=REJECT_ACCEPT)
