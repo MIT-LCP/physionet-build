@@ -33,16 +33,6 @@ Webpage: {{ application.webpage }}<br></p>
 
 Date completed: {{ application.training_completion_date }}<br>
 
-Researcher's Category: {{ application.get_researcher_category_display }}<br>
-
-Project of interest: {{ application.project_of_interest }}<br></p>
-
-{% if application.course_category %}
-  <p>Course Category: {{ application.get_course_category_display }}<br>
-
-  Course Info: {{ application.course_info }}<br></p>
-{% endif %}
-
 {# Reference #}
 
 <p>Reference Category: {{ application.get_reference_category_display }}<br>
