@@ -313,18 +313,18 @@ class ResearchCAF(forms.ModelForm):
     """
     Credential application form research attributes
     """
-    # credentialed_project = forms.ModelChoiceField(queryset=PublishedProject.objects.filter(access_policy=2),
-    #     label='Project of interest')
-
     class Meta:
         model = CredentialApplication
-        fields = ('research_summary','project_of_interest',)
+        fields = ('research_summary',)
         help_texts = {
             'research_summary': "Brief description on your research. If you will be using the data for a class, please include course name and number in your description.",
         }
         widgets = {
-           'research_summary': forms.Textarea(attrs={'rows': 3}),
-           # 'project_of_interest': queryset=PublishedProject.objects.filter(access_policy=2),
+           'research_summary': forms.Textarea(attrs={'rows': 2}),
+        }
+
+        labels = {
+            'research_summary': 'Reference Topic'
         }
 
 
@@ -376,11 +376,8 @@ class CredentialApplicationForm(forms.ModelForm):
             'reference_category', 'reference_name',
             'reference_email', 'reference_title',
             # Research area
-            'research_summary', 'project_of_interest')
+            'research_summary')
 
-        widgets = {
-            'training_completion_date':forms.SelectDateWidget(years=list(range(1990, timezone.now().year+1))),
-        }
 
     def __init__(self, user, *args, **kwargs):
         """
