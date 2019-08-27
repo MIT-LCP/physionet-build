@@ -309,6 +309,11 @@ LOGLEVEL = os.environ.get('LOGLEVEL', 'info').upper()
 logging.config.dictConfig({
     'version': 1,
     'disable_existing_loggers': False,
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+    },
     'formatters': {
         'console': {
             'format': '%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
@@ -327,10 +332,15 @@ logging.config.dictConfig({
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
         },
+        'verbose_console': {
+            'class': 'physionet.log.VerboseStreamHandler',
+            'formatter': 'console',
+        },
         'mail_admins': {
             'level': 'ERROR',
-            'class': 'django.utils.log.AdminEmailHandler',
-        }, 
+            'filters': ['require_debug_false'],
+            'class': 'physionet.log.SaferAdminEmailHandler',
+        },
     },
     'loggers': {
         '': {
@@ -348,7 +358,7 @@ logging.config.dictConfig({
             'propagate': False,
         },
        'django.request': {
-            'handlers': ['mail_admins'],
+            'handlers': ['verbose_console', 'mail_admins'],
             'level': 'ERROR',
             'propagate': False,
         },
