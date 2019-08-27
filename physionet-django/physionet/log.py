@@ -66,8 +66,9 @@ FILES:{% for k, v in request_FILES_items %}
 COOKIES:{% for k, v in request_COOKIES_items %}
 {{ k }} = '********************'{% empty %} No cookie data{% endfor %}
 
-META:{% for k, v in request.META.items|dictsort:0 %}
-{{ k }} = '********************'{% endfor %}
+META:
+HTTP_USER_AGENT = {{ request.META.HTTP_USER_AGENT|stringformat:"r" }}
+REMOTE_ADDR = {{ request.META.REMOTE_ADDR|stringformat:"r" }}
 {% else %}Request data not supplied
 {% endif %}
 Settings:
