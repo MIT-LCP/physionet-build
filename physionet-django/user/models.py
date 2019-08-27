@@ -647,15 +647,16 @@ class CredentialApplication(models.Model):
     suffix = models.CharField(max_length=60,
         validators=[validate_nan, validate_alphaplusplus], default='', blank=True)
     # Human resources training
-    training_course_name = models.CharField(max_length=100,
-        validators=[validate_alphaplusplus])
-    training_completion_date = models.DateField()
+    training_course_name = models.CharField(max_length=100, default='',
+        blank=True, validators=[validate_alphaplusplus])
+    training_completion_date = models.DateField(null=True, blank=True)
     training_completion_report = models.FileField(
         upload_to=training_report_path, validators=[FileExtensionValidator(
             ['pdf'], 'File must be a pdf.')])
     # Course info
-    course_category = models.PositiveSmallIntegerField(choices=COURSE_CATEGORIES)
-    course_info = models.CharField(max_length=100, default='',
+    course_category = models.PositiveSmallIntegerField(choices=COURSE_CATEGORIES,
+        null=True, blank=True)
+    course_info = models.CharField(max_length=100, default='', blank=True,
         validators=[validate_alphaplusplus])
     # Reference
     reference_category = models.PositiveSmallIntegerField(null=True,
