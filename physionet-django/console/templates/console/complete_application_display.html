@@ -5,13 +5,7 @@
       <a href='{{ application.mailto }}' style="padding-right: 1.5rem;">
 	Send e-mail to applicant
       </a>  {{ application.user.email }} <br>
-      Database requested: {{ application.project_of_interest }}<br>
       Researcher's Category: {{ application.get_researcher_category_display }}<br>
-      Project(s) of interest: {{ application.project_of_interest }}<br>
-      {% if application.course_category %}
-      Course Category: {{ application.get_course_category_display }}<br>
-      Course Info: {{ application.course_info }}<br>
-      {% endif %}
     </p>
     <form action="" method="post" class="form-signin"> <!-- empty action generates error! -->
       <p>
