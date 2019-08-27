@@ -401,8 +401,8 @@ def credential_application(request):
         if (personal_form.is_valid() and training_form.is_valid()
                 and reference_form.is_valid() and course_form.is_valid()
                 and form.is_valid()) and research_form.is_valid():
-            aplication = form.save()
-            credential_application_request(request, aplication)
+            application = form.save()
+            credential_application_request(request, application)
 
             return render(request, 'user/credential_application_complete.html')
         else:
