@@ -45,7 +45,7 @@ Topic Search
           <tr>
             <td><a href="{% url 'published_project' project.slug project.version %}">{{ project.title }}</a></td>
             <td>{{ project.version }}</td>
-            <td>{{ project.resource_type|resource_badge|safe }}</td>
+            <td>{{ project.resource_type.id|resource_badge|safe }}</td>
             <td>{{ project.access_policy|access_badge|safe }}</td>
             <td>{{ project.publish_datetime|date }}</td>
           </tr>

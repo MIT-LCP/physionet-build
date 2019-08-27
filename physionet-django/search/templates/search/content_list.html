@@ -2,7 +2,7 @@
 
 {% for published_project in projects %}
   <div class="project">
-    <p>{{ published_project.resource_type|resource_badge|safe }}
+    <p>{{ published_project.resource_type.id|resource_badge|safe }}
        {{ published_project.access_policy|access_badge|safe }}
     </p>
     <h2><a href="{% url 'published_project' published_project.slug published_project.version %}" style="word-wrap: break-word;">{{ published_project.title }}</a></h2>

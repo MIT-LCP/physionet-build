@@ -21,7 +21,7 @@ class TestState(TestMixin, TestCase):
     after review/publication state transitions.
 
     """
-    fixtures = ['demo-user', 'demo-project', 'site-data']
+    fixtures = ['demo-user', 'project-types', 'demo-project', 'site-data']
 
     def test_assign_editor(self):
         """

@@ -38,6 +38,11 @@ class Command(BaseCommand):
                                           'fixtures', 'site-data.json')
         call_command('loaddata', site_data_fixtures, verbosity=1)
 
+        # Load fixtures for default project types
+        project_types_fixtures = os.path.join(settings.BASE_DIR, 'project',
+                                          'fixtures', 'project-types.json')
+        call_command('loaddata', project_types_fixtures, verbosity=1)
+
         # Load other app fixtures
         project_apps = get_project_apps()
         demo_fixtures = find_demo_fixtures(project_apps)
@@ -50,7 +55,6 @@ class Command(BaseCommand):
         # Make symlink of wfdbcal for lightwave
         if os.path.exists(ORIGINAL_DBCAL_FILE):
             os.symlink(ORIGINAL_DBCAL_FILE, DBCAL_FILE)
-
 
 def find_demo_fixtures(project_apps):
     """
