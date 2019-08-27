@@ -171,7 +171,6 @@
           </p>
           <h3>
             <a href="{% url 'published_project' project.slug project.version %}">{{ project.title }}</a>
-            <a href="{% url 'published_manage' project.slug project.version %}" class="btn btn-primary ml-1" role="button" style="float:right">Manage</a>
             <a href="{% url 'published_submission_history' project.slug project.version %}" class="btn btn-primary ml-1" role="button" style="float:right">Submission History</a>
             {% if project.new_button %}
               <a href="{% url 'new_project_version' project.slug %}" class="btn btn-success ml-1" role="button" style="float:right">New Version</a>

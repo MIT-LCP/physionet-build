@@ -16,12 +16,12 @@ urlpatterns = [
     path('content/', views.content_index, name='content_index'),
 
     # published project content
+    re_path('^(?P<anonymous_url>[\w\d]{64})/$', project_views.anonymous_login,
+        name='anonymous_login'),
     path('content/<project_slug>/', project_views.published_project_latest,
         name='published_project_latest'),
     path('content/<project_slug>/<version>/', project_views.published_project,
         name='published_project'),
-    path('anonymous/<project_slug>/<version>/', project_views.anonymous_login, 
-        name='anonymous_login'),
     re_path('^content/(?P<project_slug>[\w\-]+)/(?P<version>[\d\.]+)/(?P<subdir>.+)/$',
         project_views.published_project, name='published_project_subdir'),
     path('content/<project_slug>/files-panel/<version>/',

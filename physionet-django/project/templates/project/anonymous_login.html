@@ -11,11 +11,7 @@
 {% block content %}
 <div class="container">
   {% include "message_snippet.html" %}
-  {% if project.publish_datetime %}
-  <form action="{% url 'anonymous_login' project.slug project.version %}" method="post" class="form-signin">
-  {% else %}
-  <form action="{% url 'anonymous_login' project.slug %}" method="post" class="form-signin">
-  {% endif %}
+  <form action="{% url 'anonymous_login' anonymous_url %}" method="post" class="form-signin">
     <h2 class="form-signin-heading">Reviewer Login</h2>
     {% csrf_token %}
     {{ form.passphrase }}

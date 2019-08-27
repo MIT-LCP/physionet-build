@@ -595,10 +595,11 @@ class Metadata(models.Model):
         """
         Checks if passphrase is valid for project
         """
-        if not self.anonymous.first():
+        anonymous = self.anonymous.first()
+        if not anonymous:
             return False
 
-        return self.anonymous.first().check_passphrase(raw_passphrase)
+        return anonymous.check_passphrase(raw_passphrase)
 
     def generate_passphrase(self):
         """
@@ -610,6 +611,27 @@ class Metadata(models.Model):
             anonymous = self.anonymous.first()
 
         return anonymous.set_passphrase()
+
+    def generate_anonymous_url(self):
+        """
+        Generates url for anonymous access
+        """
+        if not self.anonymous.first():
+            anonymous = AnonymousAccess(project=self)
+        else:
+            anonymous = self.anonymous.first()
+
+        return anonymous.generate_url()
+
+    def get_anonymous_url(self):
+        """
+        Returns current url for anonymous access
+        """
+        anonymous = self.anonymous.first()
+        if not anonymous:
+            return False
+
+        return anonymous.url
 
 
 class SubmissionInfo(models.Model):
@@ -1889,6 +1911,9 @@ class AnonymousAccess(models.Model):
     # Stores hashed passphrase
     passphrase = models.CharField(max_length=128)
 
+    # Random url
+    url = models.CharField(max_length=64)
+
     # Record tracking
     creation_datetime = models.DateTimeField(auto_now_add=True)
     expiration_datetime = models.DateTimeField(null=True)
@@ -1898,16 +1923,25 @@ class AnonymousAccess(models.Model):
     class Meta:
         unique_together = (("content_type", "object_id"),)
 
+    def generate_url(self):
+        url = get_random_string(64)
+
+        # Has to be unique
+        while AnonymousAccess.objects.filter(url=url).first():
+            url = get_random_string(64)
+        
+        # Persist new url
+        self.url = url
+        self.save()
+
+        return url
+
     def set_passphrase(self):
         # Generate and encode random password
         raw = get_random_string(20)
 
-        # Has to be unique
-        while AnonymousAccess.objects.filter(passphrase=raw).first():
-            raw = get_random_string(20)
-
-        # Store encode passphrase
-        self.passphrase = make_password(raw)
+        # Store encoded passphrase
+        self.passphrase = make_password(raw, salt='project.AnonymousAccess')
         self.save()
 
         return raw

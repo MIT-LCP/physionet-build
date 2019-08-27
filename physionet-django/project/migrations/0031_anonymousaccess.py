@@ -17,6 +17,7 @@ class Migration(migrations.Migration):
             name='AnonymousAccess',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('url', models.CharField(max_length=64)),
                 ('passphrase', models.CharField(max_length=128)),
                 ('creation_datetime', models.DateTimeField(auto_now_add=True)),
                 ('expiration_datetime', models.DateTimeField(null=True)),

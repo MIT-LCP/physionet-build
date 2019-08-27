@@ -51,6 +51,47 @@
 </div>
 
 <div class="card mb-3">
+    <div class="card-header">
+      Anonymous Access
+    </div>
+    <div class="card-body">
+        <p>
+          You can generate a passphrase that will allow anonymous access to the
+          <i><a href="{% url 'published_project' project.slug project.version %}" target="_blank">content</a></i> of this project.
+          This is useful if the authors are submitting an article to a peer-reviewed journal and access
+          to a PhysioNet resource is needed during the review process.
+          <br>
+          {% if anonymous_url %}
+            The URL for reviewer access is:
+            <a href="{% url 'anonymous_login' anonymous_url %}" target="_blank">{{ request.get_host }}{% url 'anonymous_login' anonymous_url %}</a>
+          {% endif %}
+        </p>
+        <div
+          {% if not passphrase %}
+            class="alert alert-danger">
+            <p class='m-0'>Note: When providing anonymous access to third parties, keep in mind that any changes made during
+              the PhysioNet review process will impact anyone viewing the project through that access.</p>
+            {% if project.anonymous.first %}
+              <p class="mb-0 mt-3"><strong>Warning: generating a new passphrase will revoke the existing access</strong></p>
+            {% endif %}
+          {% else %}
+            class="alert alert-success">
+            {{ passphrase }}
+          {% endif %}
+        </div>
+        <form action="{% url 'manage_published_project' project.slug project.version %}" method="POST" id="passphrase_form">
+          {% csrf_token %}
+          <button class="btn btn-primary btn-rsp" type="submit" name="generate_passphrase"
+          {% if passphrase %}
+            disabled
+          {% endif %}
+          >
+            Generate passphrase
+          </button>
+        </form>
+    </div>
+</div>
+<div class="card mb-3">
   <div class="card-header">
     Manage Content
   </div>

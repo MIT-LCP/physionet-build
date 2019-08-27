@@ -25,44 +25,6 @@
   <hr>
   <button class="btn btn-primary btn-rsp" type="submit" name="edit_access">Save Access Information</button>
 </form>
-
-{% if project.submission_status > 20 %}
-<h3 style="padding-top:50px;" id="reviewer">Anonymous Access</h3>
-<hr>
-<p>
-  You can generate a passphrase that will allow anonymous access to the
-  <i><a href="{% url 'project_preview' project.slug %}" target="_blank">preview</a></i> of your project.
-  This is useful if you are submitting an article to a peer-reviewed journal and access
-  to your PhysioNet resource is needed during the review process.
-  <br>
-  The URL for reviewer access is:
-  <a href="{% url 'anonymous_login' project.slug %}" target="_blank">{{ request.get_host }}{% url 'anonymous_login' project.slug %}</a>
-</p>
-<div
-  {% if not passphrase %}
-    class="alert alert-danger">
-    <p>Note: When providing anonymous access to third parties, keep in mind that any changes made during
-      the PhysioNet review process will impact anyone viewing your project through that access.</p>
-    {% if project.anonymous.first %}
-      <p class="m-0"><strong>Warning: generating a new passphrase will revoke the existing access</strong></p>
-    {% endif %}
-  {% else %}
-    class="alert alert-success">
-    {{ passphrase }}
-  {% endif %}
-</div>
-<form action="{% url 'project_access' project.slug %}#reviewer" method="POST" id="passphrase_form">
-  {% csrf_token %}
-  <button class="btn btn-primary btn-rsp" type="submit" name="generate_passphrase"
-  {% if passphrase %}
-    disabled
-  {% endif %}
-  >
-    Generate passphrase
-  </button>
-</form>
-{% endif %}
-
 {% endblock %}
 
 {% block local_js_bottom %}

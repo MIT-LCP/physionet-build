@@ -18,8 +18,6 @@ urlpatterns = [
     path('published/<project_slug>/<version>/submission-history/',
         views.published_submission_history,
         name='published_submission_history'),
-    path('published/<project_slug>/<version>/manage/', views.published_manage,
-        name='published_manage'),
 
     path('project-autocomplete/', views.ProjectAutocomplete.as_view(),
         name='project-autocomplete'),
@@ -66,8 +64,6 @@ urlpatterns = [
 
     path('<project_slug>/preview/', views.project_preview,
         name='project_preview'),
-    path('anonymous/<project_slug>/', views.anonymous_login, 
-        name='anonymous_login'),
     path('<project_slug>/preview/<path:subdir>/', views.project_preview,
         name='project_preview_subdir'),
     path('<project_slug>/preview/<path:file_name>',

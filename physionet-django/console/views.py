@@ -177,10 +177,18 @@ def submission_info(request, project_slug):
     project = ActiveProject.objects.get(slug=project_slug)
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
 
+    passphrase = ''
+    anonymous_url = project.get_anonymous_url()
+
+    if 'generate_passphrase' in request.POST:
+        passphrase = project.generate_passphrase()
+        anonymous_url = project.generate_anonymous_url()
+
     return render(request, 'console/submission_info.html',
         {'project':project, 'authors':authors, 'author_emails':author_emails,
          'storage_info':storage_info, 'edit_logs':edit_logs,
-         'copyedit_logs':copyedit_logs, 'latest_version':latest_version})
+         'copyedit_logs':copyedit_logs, 'latest_version':latest_version,
+         'passphrase':passphrase, 'anonymous_url':anonymous_url})
 
 
 @handling_editor
@@ -539,6 +547,8 @@ def manage_published_project(request, project_slug, version):
     """
     user = request.user
     project = PublishedProject.objects.get(slug=project_slug, version=version)
+    passphrase = ''
+    anonymous_url = project.get_anonymous_url()
     doi_form = forms.DOIForm(instance=project)
     topic_form = forms.TopicForm(project=project)
     topic_form.set_initial()
@@ -620,6 +630,9 @@ def manage_published_project(request, project_slug, version):
                 # Deletes the object if it exists for that specific project.
             except DataAccess.DoesNotExist:
                 pass
+        elif 'generate_passphrase' in request.POST:
+            passphrase = project.generate_passphrase()
+            anonymous_url = project.generate_anonymous_url()
                 
     data_access = DataAccess.objects.filter(project=project)
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
@@ -635,7 +648,8 @@ def manage_published_project(request, project_slug, version):
          'published': True, 'doi_form': doi_form, 'topic_form': topic_form,
          'deprecate_form': deprecate_form, 'has_credentials': has_credentials, 
          'data_access_form': data_access_form, 'data_access': data_access,
-         'rw_tasks': rw_tasks, 'ro_tasks': ro_tasks})
+         'rw_tasks': rw_tasks, 'ro_tasks': ro_tasks,
+         'anonymous_url':anonymous_url, 'passphrase':passphrase})
 
 
 @login_required
