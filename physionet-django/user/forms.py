@@ -357,32 +357,6 @@ class ReferenceCAF(forms.ModelForm):
             'reference_title': 'Reference job title or position'
         }
 
-class CourseCAF(forms.ModelForm):
-    """
-    Credential application form course information attributes
-    """
-    class Meta:
-        model = CredentialApplication
-        fields = ('course_category', 'course_info')
-        help_texts = {
-            'course_category': 'Specify if you are using this data for a course.',
-            'course_info': 'The name of the course you are taking.'
-        }
-
-        labels = {
-            'course_category': 'Is this for a course?'
-        }
-
-    def __init__(self, require_courses=True, *args, **kwargs):
-        """
-        The course info is required by default.
-        For post requests, do not enforce the fields.
-        """
-        super().__init__(*args, **kwargs)
-
-        if not require_courses:
-            self.fields['course_info'].required = False
-
 
 class CredentialApplicationForm(forms.ModelForm):
     """
@@ -401,8 +375,6 @@ class CredentialApplicationForm(forms.ModelForm):
             # Reference
             'reference_category', 'reference_name',
             'reference_email', 'reference_title',
-            # Taking a course?
-            'course_category', 'course_info',
             # Research area
             'research_summary', 'project_of_interest')
 
@@ -412,14 +384,11 @@ class CredentialApplicationForm(forms.ModelForm):
 
     def __init__(self, user, *args, **kwargs):
         """
-        Because this form is only for processing post requests, do not
-        enforce the course name/number fields by default.
+        This form is only for processing post requests.
         """
         super().__init__(*args, **kwargs)
         self.user = user
         self.profile = user.profile
-
-        self.fields['course_info'].required = False
 
 
     def clean(self):
@@ -431,12 +400,6 @@ class CredentialApplicationForm(forms.ModelForm):
         # Students and postdocs must provide their supervisor as a reference
         if data['researcher_category'] in [0, 1] and data['reference_category'] != 0:
             raise forms.ValidationError('If you are a student or postdoc, you must provide your supervisor as a reference.')
-        # If the application is not for a course, they cannot put one.
-        if data['course_category'] == 0 and data['course_info']:
-            raise forms.ValidationError('If you are not using the data for a course, do not put one in.')
-        # If it is for a course, they must put one.
-        elif data['course_category'] > 0 and not data['course_info']:
-            raise forms.ValidationError('If you are using the data for a course, you must specify the course information.')
 
         if not self.instance and CredentialApplication.objects.filter(user=self.user, status=0):
             raise forms.ValidationError('Outstanding application exists.')
