@@ -1288,9 +1288,16 @@ def display_published_project_file(request, project_slug, version,
         raise Http404()
     if project.has_access(request.user):
         return display_project_file(request, project, full_file_name)
-    if not request.user.is_authenticated:
-        return redirect_to_login(request.get_full_path())
-    raise PermissionDenied()
+
+    # Display error message: "you must [be a credentialed user and]
+    # sign the data use agreement"
+    breadcrumbs = utility.get_dir_breadcrumbs(full_file_name, directory=False)
+    context = {
+        'project': project,
+        'breadcrumbs': breadcrumbs,
+    }
+    return render(request, 'project/file_view_unauthorized.html',
+                  context, status=403)
 
 
 def serve_published_project_zip(request, project_slug, version):
