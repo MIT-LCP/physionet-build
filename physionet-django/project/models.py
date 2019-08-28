@@ -601,7 +601,7 @@ class Metadata(models.Model):
 
         return anonymous.check_passphrase(raw_passphrase)
 
-    def generate_passphrase(self):
+    def generate_anonymous_access(self):
         """
         Checks if passphrase is valid for project
         """
@@ -610,18 +610,7 @@ class Metadata(models.Model):
         else:
             anonymous = self.anonymous.first()
 
-        return anonymous.set_passphrase()
-
-    def generate_anonymous_url(self):
-        """
-        Generates url for anonymous access
-        """
-        if not self.anonymous.first():
-            anonymous = AnonymousAccess(project=self)
-        else:
-            anonymous = self.anonymous.first()
-
-        return anonymous.generate_url()
+        return anonymous.generate_access()
 
     def get_anonymous_url(self):
         """
@@ -1923,6 +1912,12 @@ class AnonymousAccess(models.Model):
     class Meta:
         unique_together = (("content_type", "object_id"),)
 
+    def generate_access(self):
+        url = self.generate_url()
+        passphrase = self.set_passphrase()
+
+        return url, passphrase
+
     def generate_url(self):
         url = get_random_string(64)
 
@@ -1951,5 +1946,8 @@ class AnonymousAccess(models.Model):
         Return a boolean of whether the raw_password was correct. Handles
         hashing formats behind the scenes.
         """
-        return check_password(raw_passphrase, self.passphrase)
+        expire_datetime = self.creation_datetime + timedelta(days=60)
+        isnot_expired = timezone.now() < expire_datetime
+
+        return isnot_expired and check_password(raw_passphrase, self.passphrase)
 

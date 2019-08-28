@@ -181,8 +181,10 @@ def submission_info(request, project_slug):
     anonymous_url = project.get_anonymous_url()
 
     if 'generate_passphrase' in request.POST:
-        passphrase = project.generate_passphrase()
-        anonymous_url = project.generate_anonymous_url()
+        anonymous_url, passphrase = project.generate_anonymous_access()
+    elif 'remove_passphrase' in request.POST:
+        project.anonymous.all().delete()
+        anonymous_url = ''
 
     return render(request, 'console/submission_info.html',
         {'project':project, 'authors':authors, 'author_emails':author_emails,
@@ -631,8 +633,10 @@ def manage_published_project(request, project_slug, version):
             except DataAccess.DoesNotExist:
                 pass
         elif 'generate_passphrase' in request.POST:
-            passphrase = project.generate_passphrase()
-            anonymous_url = project.generate_anonymous_url()
+            anonymous_url, passphrase = project.generate_anonymous_access()
+        elif 'remove_passphrase' in request.POST:
+            project.anonymous.all().delete()
+            anonymous_url = ''
                 
     data_access = DataAccess.objects.filter(project=project)
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()

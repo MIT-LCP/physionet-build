@@ -72,7 +72,7 @@
             <p class='m-0'>Note: When providing anonymous access to third parties, keep in mind that any changes made during
               the PhysioNet review process will impact anyone viewing the project through that access.</p>
             {% if project.anonymous.first %}
-              <p class="mb-0 mt-3"><strong>Warning: generating a new passphrase will revoke the existing access</strong></p>
+              <p class="mb-0 mt-3"><strong>Warning: generating a new access will revoke the existing.</strong></p>
             {% endif %}
           {% else %}
             class="alert alert-success">
@@ -86,8 +86,13 @@
             disabled
           {% endif %}
           >
-            Generate passphrase
+            Generate access
           </button>
+          {% if project.anonymous.first %}
+          <button class="btn btn-danger btn-rsp" type="submit" name="remove_passphrase">
+            Remove passphrase
+          </button>
+          {% endif %}
         </form>
     </div>
 </div>
