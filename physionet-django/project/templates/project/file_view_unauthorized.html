@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}{{ project.title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <h1>{{ project.title }} {{ project.version }}</h1>
+  <div class="card">
+    <div class="card-header">
+      File:
+      {% spaceless %}
+        <span class="dir-breadcrumbs">
+          {% for breadcrumb in breadcrumbs %}
+            {% if forloop.last %}
+              <span class="dir-breadcrumb-self">{{ breadcrumb.name }}</span>
+            {% elif forloop.first %}
+              <a href="{{ breadcrumb.rel_path }}#files-panel"
+                 class="dir-breadcrumb-up">{{ breadcrumb.name }}</a>
+              <span class="dir-breadcrumb-sep">/</span>
+            {% else %}
+              <span class="dir-breadcrumb-up">{{ breadcrumb.name }}</a>
+              <span class="dir-breadcrumb-sep">/</span>
+            {% endif %}
+          {% endfor %}
+        </span>
+      {% endspaceless %}
+    </div>
+    <div class="card-body">
+      {% include "project/published_project_unauthorized.html" %}
+    </div>
+  </div>
+</div>
+{% endblock %}
