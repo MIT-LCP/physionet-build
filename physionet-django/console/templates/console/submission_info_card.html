@@ -49,30 +49,24 @@
           {% endif %}
         </p>
         <div
-          {% if not passphrase %}
+          {% if not passphrase or passphrase == "revoked" %}
             class="alert alert-danger">
             <p class='m-0'>Note: When providing anonymous access to third parties, keep in mind that any changes made during
               the PhysioNet review process will impact anyone viewing the project through that access.</p>
-            {% if project.anonymous.first %}
-              <p class="mb-0 mt-3"><strong>Warning: generating a new access will revoke the existing.</strong></p>
-            {% endif %}
           {% else %}
             class="alert alert-success">
-            {{ passphrase }}
+            Passphrase: {{ passphrase }}
           {% endif %}
         </div>
         <form action="{% url 'submission_info' project.slug %}" method="POST" id="passphrase_form">
           {% csrf_token %}
-          <button class="btn btn-primary btn-rsp" type="submit" name="generate_passphrase"
-          {% if passphrase %}
-            disabled
-          {% endif %}
-          >
-            Generate access
+          {% if not project.anonymous.first %}
+          <button class="btn btn-primary btn-rsp" type="submit" name="generate_passphrase">
+            Grant access
           </button>
-          {% if project.anonymous.first %}
+          {% else %}
           <button class="btn btn-danger btn-rsp" type="submit" name="remove_passphrase">
-            Remove passphrase
+            Revoke access
           </button>
           {% endif %}
         </form>

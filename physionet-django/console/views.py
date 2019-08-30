@@ -184,7 +184,7 @@ def submission_info(request, project_slug):
         anonymous_url, passphrase = project.generate_anonymous_access()
     elif 'remove_passphrase' in request.POST:
         project.anonymous.all().delete()
-        anonymous_url = ''
+        anonymous_url, passphrase = '', 'revoked'
 
     return render(request, 'console/submission_info.html',
         {'project':project, 'authors':authors, 'author_emails':author_emails,
