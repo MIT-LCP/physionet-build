@@ -24,7 +24,7 @@ from django.views.decorators.debug import sensitive_post_parameters
 from user import forms
 from user.models import AssociatedEmail, Profile, User, CredentialApplication, LegacyCredential, CloudInformation
 from physionet import utility
-from project.models import Author, License
+from project.models import Author, License, PublishedProject
 from notification.utility import (process_credential_complete,
                                   credential_application_request,
                                   get_url_prefix)
@@ -240,9 +240,14 @@ def public_profile(request, username):
     else:
         raise Http404()
 
+    # get list of projects
+    projects = PublishedProject.objects.filter(authors__user__username__iexact=username,
+        is_latest_version=True).order_by('-publish_datetime')
+
+
     return render(request, 'user/public_profile.html', {
         'public_user':public_user, 'profile':public_user.profile,
-        'public_email':public_email})
+        'public_email':public_email, 'projects':projects})
 
 
 def profile_photo(request, username):

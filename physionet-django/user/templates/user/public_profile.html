@@ -24,6 +24,7 @@ Profile for {{ public_user.username }}
       <a class="btn btn-primary btn-rsp" style="vertical-align: top" href="{% url 'edit_profile' %}" role="button">Settings</a>
       {% endif %}
       <hr>
+      <h3>Profile</h3>
       <div class="row mb-1">
         <div class="col-md-2">
           Name:
@@ -76,6 +77,19 @@ Profile for {{ public_user.username }}
           </div>
         </div>
       {% endif %}
+      
+      {% if projects %}
+      <br />
+      <h3>Contributions</h3>
+        <div class="row mb-1">
+          <ul>
+            {% for project in projects %}
+            <li><a href="{% url 'published_project' project.slug project.version %}">{{ project.citation_text }}</a>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+
     </div>
   </div>
   <br>
