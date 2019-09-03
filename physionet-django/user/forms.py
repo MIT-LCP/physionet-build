@@ -272,7 +272,7 @@ class PersonalCAF(forms.ModelForm):
             'organization_name', 'job_title', 'city', 'state_province',
             'zip_code', 'country', 'webpage')
         help_texts = {
-            'first_names': "First (given) names.",
+            'first_names': "First and middle names.",
             'last_name': "Last (family) name.",
             'suffix': """Please leave the suffix blank if your name does not 
                 include a suffix like "Jr." or "III". Do not list degrees. 
@@ -300,8 +300,8 @@ class PersonalCAF(forms.ModelForm):
         }
         labels = {
             'state_province': 'State/Province',
-            'first_names': 'My first (given) name(s)',
-            'last_name': 'My last (family) name(s)',
+            'first_names': 'First (given) name(s)',
+            'last_name': 'Last (family) name(s)',
             'suffix': 'Suffix, if applicable:',
             'job_title': 'Job title or position',
             'zip_code': 'ZIP/postal code'
