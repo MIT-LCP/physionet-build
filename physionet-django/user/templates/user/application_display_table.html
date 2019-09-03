@@ -56,18 +56,10 @@
     </tr>
     <tr>
       <td>Webpage</td>
-      <td><a href="{{ application.webpage }}" target="_blank">{{ application.webpage }}</a></td>
+      <td>{% if application.webpage|length > 0 %}<a href="{{ application.webpage }}" target="_blank">{{ application.webpage }}{% endif %}</a></td>
     </tr>
     <tr>
-      <th colspan='2' class="bg-light">Training Course</th>
-    </tr>
-    <tr>
-      <td>Training Course Name</td>
-      <td>{{ application.training_course_name }}</td>
-    </tr>
-    <tr>
-      <td>Training Completion Date</td>
-      <td>{{ application.training_completion_date }}</td>
+      <th colspan='2' class="bg-light">CITI Completion Report</th>
     </tr>
     <tr>
       <td>Training Completion Report</td>
@@ -93,29 +85,11 @@
       <td>{{ application.reference_title }}</td>
     </tr>
     <tr>
-      <th colspan='2' class="bg-light">Course Survey</th>
-    </tr>
-    {% if application.course_category %}
-      <tr>
-        <td>Course Info</td>
-        <td>{{ application.course_info }}</td>
-      </tr>
-    {% else %}
-      <tr>
-        <td>Course Info</td>
-        <td>{{ application.get_course_category_display }}</td>
-      </tr>
-    {% endif %}
-    <tr>
-      <th colspan='2' class="bg-light">Research Area</th>
+      <th colspan='2' class="bg-light">Research</th>
     </tr>
     <tr>
-      <td>Research Summary</td>
+      <td>Research Topic</td>
       <td>{{ application.research_summary }}</td>
-    </tr>
-    <tr>
-      <td>Project Of Interest</td>
-      <td>{{ application.project_of_interest }}</td>
     </tr>
 
     <tr>
