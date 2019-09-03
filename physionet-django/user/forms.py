@@ -282,7 +282,7 @@ class PersonalCAF(forms.ModelForm):
             'researcher_category': "Your research status.",
             'organization_name': """Your employer or primary affiliation. 
                 Put 'None' if you are an independent researcher.""",
-            'job_title': """You job title or position (e.g., student) within 
+            'job_title': """Your job title or position (e.g., student) within 
                 your institution or organization.""",
             'city': "The city where you live.",
             'state_province': 'The state or province where you live.',
