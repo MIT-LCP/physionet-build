@@ -324,7 +324,7 @@ class ResearchCAF(forms.ModelForm):
         }
 
         labels = {
-            'research_summary': 'Reference Topic'
+            'research_summary': 'Research Topic'
         }
 
 
