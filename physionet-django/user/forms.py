@@ -277,8 +277,7 @@ class PersonalCAF(forms.ModelForm):
             'suffix': """Please leave the suffix blank if your name does not 
                 include a suffix like 'Jr.' or 'III'. Do not list degrees. 
                 Do not put a prefix like 'Mr' or 'Ms'. Do not put 'not 
-                applicable'. Especially, do not leave a string of digits from 
-                browser autofill.""",
+                applicable'.""",
             'researcher_category': "Your research status.",
             'organization_name': """Your employer or primary affiliation. 
                 Put 'None' if you are an independent researcher.""",
@@ -291,9 +290,9 @@ class PersonalCAF(forms.ModelForm):
             'webpage': """Your organization's webpage. If possible, please 
                 include a link to a webpage with your biography or other 
                 personal details.""",
-            'research_summary': """Brief description on your research. If you 
-                will be using the data for a class, please include course name 
-                and number in your description.""",
+            'research_summary': """Brief description of your proposed research. 
+                If you will be using the data for a class, please include 
+                course name and number in your description.""",
         }
         widgets = {
            'research_summary': forms.Textarea(attrs={'rows': 3}),
@@ -349,11 +348,7 @@ class TrainingCAF(forms.ModelForm):
         fields = ('training_completion_report',)
         help_texts = {
             'training_completion_report': """Upload the completion report from 
-                the CITI 'Data or Specimens Only Research' training program 
-                (PDF or image file). The completion report lists all modules 
-                completed, with dates and scores. Do NOT upload the completion 
-                certificate. If you would like to submit multiple pages, please 
-                combine them into a single pdf file.""",
+                the CITI 'Data or Specimens Only Research' training program.""",
         }
 
 
