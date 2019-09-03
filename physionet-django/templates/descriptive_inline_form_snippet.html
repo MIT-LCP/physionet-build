@@ -2,7 +2,7 @@
 {% for field in form.visible_fields %}
   <div class="form-group row">
     <label class="col-md-3" for="{{ field.html_name }}">
-      {{ field.label|title }}
+      {{ field.label|capfirst }}
       {% if field.field.required %}
         <a style="color:red"> *</a>
       {% endif %}
