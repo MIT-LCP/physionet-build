@@ -272,21 +272,21 @@ class PersonalCAF(forms.ModelForm):
             'organization_name', 'job_title', 'city', 'state_province',
             'zip_code', 'country', 'webpage')
         help_texts = {
-            'first_names': 'First (given) name.',
+            'first_names': "First (given) names.",
             'last_name': "Last (family) name.",
             'suffix': """Please leave the suffix blank if your name does not 
-                include a suffix like 'Jr.' or 'III'. Do not list degrees. 
-                Do not put a prefix like 'Mr' or 'Ms'. Do not put 'not 
-                applicable'.""",
+                include a suffix like "Jr." or "III". Do not list degrees. 
+                Do not put a prefix like "Mr" or "Ms". Do not put "not 
+                applicable".""",
             'researcher_category': "Your research status.",
             'organization_name': """Your employer or primary affiliation. 
-                Put 'None' if you are an independent researcher.""",
+                Put "None" if you are an independent researcher.""",
             'job_title': """Your job title or position (e.g., student) within 
                 your institution or organization.""",
             'city': "The city where you live.",
-            'state_province': 'The state or province where you live.',
+            'state_province': "The state or province where you live.",
             'zip_code': "The zip code of the city where you live.",
-            'country': 'The country where you live.',
+            'country': "The country where you live.",
             'webpage': """Your organization's webpage. If possible, please 
                 include a link to a webpage with your biography or other 
                 personal details.""",
