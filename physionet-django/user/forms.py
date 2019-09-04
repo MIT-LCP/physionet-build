@@ -272,18 +272,27 @@ class PersonalCAF(forms.ModelForm):
             'organization_name', 'job_title', 'city', 'state_province',
             'zip_code', 'country', 'webpage')
         help_texts = {
-            'first_names': 'Your first and middle names.',
-            'last_name': 'Your last name',
-            'suffix': "Additional information about your name, for example 'Jr' or 'Sr'. Not a number", 
-            'researcher_category': 'The type of researcher you are.',
-            'organization_name':"The name of your organization. Put 'None' if you are an independent researcher.",
-            'job_title': 'The title of your job/role.',
-            'city': 'The city where you live.',
-            'state_province': 'The state or province where you live.',
-            'zip_code': 'The zip code of the city where you live.',
-            'country': 'The country where you live.',
-            'webpage': "Your organization's webpage. If possible, please include a link to a webpage with your biography or other personal details.",
-            'research_summary': "Brief description on your research. If you will be using the data for a class, please include course name and number in your description.",
+            'first_names': "First and middle names.",
+            'last_name': "Last (family) name.",
+            'suffix': """Please leave the suffix blank if your name does not 
+                include a suffix like "Jr." or "III". Do not list degrees. 
+                Do not put a prefix like "Mr" or "Ms". Do not put "not 
+                applicable".""",
+            'researcher_category': "Your research status.",
+            'organization_name': """Your employer or primary affiliation. 
+                Put "None" if you are an independent researcher.""",
+            'job_title': """Your job title or position (e.g., student) within 
+                your institution or organization.""",
+            'city': "The city where you live.",
+            'state_province': "The state or province where you live.",
+            'zip_code': "The zip code of the city where you live.",
+            'country': "The country where you live.",
+            'webpage': """Your organization's webpage. If possible, please 
+                include a link to a webpage with your biography or other 
+                personal details.""",
+            'research_summary': """Brief description of your proposed research. 
+                If you will be using the data for a class, please include 
+                course name and number in your description.""",
         }
         widgets = {
            'research_summary': forms.Textarea(attrs={'rows': 3}),
@@ -291,8 +300,8 @@ class PersonalCAF(forms.ModelForm):
         }
         labels = {
             'state_province': 'State/Province',
-            'first_names': 'My first (given) name(s)',
-            'last_name': 'My last (family) name(s)',
+            'first_names': 'First (given) name(s)',
+            'last_name': 'Last (family) name(s)',
             'suffix': 'Suffix, if applicable:',
             'job_title': 'Job title or position',
             'zip_code': 'ZIP/postal code'
@@ -317,14 +326,16 @@ class ResearchCAF(forms.ModelForm):
         model = CredentialApplication
         fields = ('research_summary',)
         help_texts = {
-            'research_summary': "Brief description on your research. If you will be using the data for a class, please include course name and number in your description.",
+            'research_summary': """Brief description on your research. If you 
+                will be using the data for a class, please include course name 
+                and number in your description.""",
         }
         widgets = {
            'research_summary': forms.Textarea(attrs={'rows': 2}),
         }
 
         labels = {
-            'research_summary': 'Reference Topic'
+            'research_summary': 'Research Topic'
         }
 
 
@@ -336,8 +347,10 @@ class TrainingCAF(forms.ModelForm):
         model = CredentialApplication
         fields = ('training_completion_report',)
         help_texts = {
-            'training_completion_report':"Upload the completion report from the CITI 'Data or Specimens Only Research' training program (PDF or image file). The completion report lists all modules completed, with dates and scores. Do NOT upload the completion certificate. If you would like to submit multiple pages, please combine them into a single pdf file.",
+            'training_completion_report': """Upload the completion report from 
+                the CITI 'Data or Specimens Only Research' training program.""",
         }
+
 
 class ReferenceCAF(forms.ModelForm):
     """
@@ -348,10 +361,11 @@ class ReferenceCAF(forms.ModelForm):
         fields = ('reference_category', 'reference_name',
             'reference_email', 'reference_title')
         help_texts = {
-            'reference_category': "Your reference's relationship to you. If you are a student or postdoc, this must be your supervisor.",
+            'reference_category': """Your reference's relationship to you. If 
+                you are a student or postdoc, this must be your supervisor.""",
             'reference_name': 'The full name of your reference.',
             'reference_email': 'The email address of your reference.',
-            'reference_title': 'The title of your reference. e.g. Professor, Dr.'
+            'reference_title': "Your reference's professional title or position."
         }
         labels = {
             'reference_title': 'Reference job title or position'
@@ -418,7 +432,7 @@ class CredentialReferenceForm(forms.ModelForm):
     """
     class Meta:
         model = CredentialApplication
-        fields = ('reference_response','reference_response_text')
+        fields = ('reference_response', 'reference_response_text')
         labels = {
             'reference_response': 'I am familiar with the research and support this request.',
             'reference_response_text': 'Please briefly describe your working relationship with the applicant.'
