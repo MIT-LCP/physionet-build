@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}Reviewer Login{% endblock %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/login-register.css' %}"/>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  {% include "message_snippet.html" %}
+  <form action="{% url 'anonymous_login' anonymous_url %}" method="post" class="form-signin">
+    <h2 class="form-signin-heading">Reviewer Login</h2>
+    {% csrf_token %}
+    {{ form.passphrase }}
+    {% for error in form.non_field_errors %}
+      <div class="alert alert-danger">
+        <strong>{{ error|escape }}</strong>
+      </div>
+    {% endfor %}
+    <button id="login" class="btn btn-lg btn-primary btn-block" type="submit">Log In</button>
+  </form>
+</div>
+{% endblock %}

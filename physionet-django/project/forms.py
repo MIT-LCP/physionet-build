@@ -16,7 +16,7 @@ from project.models import (Affiliation, Author, AuthorInvitation, ActiveProject
                             CoreProject, StorageRequest, ProgrammingLanguage,
                             License, Metadata, Reference, Publication, DataAccess,
                             PublishedProject, Topic, exists_project_slug,
-                            ProjectType)
+                            ProjectType, AnonymousAccess)
 from project import utility
 from project import validators
 
@@ -876,4 +876,17 @@ class InvitationResponseForm(forms.ModelForm):
                   'You are not invited.')
 
         return cleaned_data
+
+class AnonymousAccessLoginForm(forms.ModelForm):
+    """
+    Login for anonymous users
+    """
+
+    class Meta:
+        model = AnonymousAccess
+        fields = ('passphrase',)
+        widgets = {
+            'passphrase':forms.PasswordInput(attrs={'class': 'form-control', 
+                'placeholder': 'Passphrase', 'label': 'Passphrase'}),
+        }
 

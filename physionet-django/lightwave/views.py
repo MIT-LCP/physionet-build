@@ -44,7 +44,7 @@ def lightwave_home(request):
     })
 
 
-@project_auth(auth_mode=2)
+@project_auth(auth_mode=3)
 def lightwave_project_home(request, project_slug, project, **kwargs):
     """
     Render LightWAVE main page for an active project.
@@ -144,7 +144,7 @@ def lightwave_server(request):
                            public=True)
 
 
-@project_auth(auth_mode=2)
+@project_auth(auth_mode=3)
 def lightwave_project_server(request, project_slug, project, **kwargs):
     """
     Request LightWAVE data for an active project.

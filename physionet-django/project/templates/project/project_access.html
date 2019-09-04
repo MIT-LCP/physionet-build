@@ -38,5 +38,11 @@
 {# Disable submission if not currently editable or not submitting author #}
 {% if not is_submitting or not project.author_editable %}
   <script src="{% static 'custom/js/disable-input.js' %}"></script>
+  {% if project.submission_status > 20 %}
+    <script>
+      $("#passphrase_form input").removeAttr("disabled")
+      $("#passphrase_form button").removeAttr("disabled")
+    </script>
+  {% endif %}
 {% endif %}
 {% endblock %}

@@ -21,13 +21,22 @@
     <p><a class="btn btn-secondary"
         href="{% url 'submission_info' project.slug %}" role="button">
         <i class="fas fa-angle-left"></i> Return to the admin console</a></p>
-  {% else %}
+  {% elif not has_passphrase %}
     <p><a class="btn btn-secondary"
         href="{% url 'project_overview' project.slug %}" role="button">
         <i class="fas fa-angle-left"></i> Return to project overview</a></p>
   {% endif %}
-      
-  {% if messages %}
+  
+  {% if has_passphrase %}
+  <div class="alert alert-danger">
+    <p>This is a preview of a resource that is undergoing our editorial process and is subject to change.</p>
+    <p>It is not guaranteed that this resource will be published, or that the content will be the same
+      at time of publication.</p>
+    <p class="m-0"><strong>Last modified: {{ project.modified_datetime }}</strong></p>
+  </div>
+  {% endif %}
+
+  {% if messages and not has_passphrase %}
     {% if passes_checks %}
       <div class="alert alert-success alert-dismissible">
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">

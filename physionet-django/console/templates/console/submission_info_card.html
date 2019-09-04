@@ -3,17 +3,20 @@
   <div class="card-header">
     <ul class="nav nav-tabs card-header-tabs">
       <li class="nav-item">
-        <a class="nav-link active" id="info-tab" data-toggle="tab" href="#info" role="tab" aria-controls="info" aria-selected="true">Project Information</a>
+        <a class="nav-link {% if not passphrase %} active {% endif %}" id="info-tab" data-toggle="tab" href="#info" role="tab" aria-controls="info" aria-selected="true">Project Information</a>
       </li>
       <li class="nav-item">
         <a class="nav-link" id="timeline-tab" data-toggle="tab" href="#timeline" role="tab" aria-controls="timeline" aria-selected="false">Submission Timeline</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if passphrase %} active {% endif %}" id="anonymous-tab" data-toggle="tab" href="#anonymous" role="tab" aria-controls="anonymous" aria-selected="false">Anonymous Access</a>
       </li>
     </ul>
   </div>
   <div class="card-body">
     <div class="tab-content">
       {# Project Information #}
-      <div class="tab-pane fade show active" id="info" role="tabpanel" aria-labelledby="info-tab">
+      <div class="tab-pane fade {% if not passphrase %} show active {% endif %}" id="info" role="tabpanel" aria-labelledby="info-tab">
         <p>{{ project.resource_type.id|resource_badge|safe }} {{ project.access_policy|access_badge|safe }}</p>
         <h4 class="card-title">{{ project.title }}</h4>
         <p class="card-text">
@@ -31,6 +34,42 @@
       {# Submission Timeline #}
       <div class="tab-pane fade" id="timeline" role="tabpanel" aria-labelledby="timeline-tab">
         {% include "project/active_submission_timeline.html" %}
+      </div>
+      {# Anonymous Access #}
+      <div class="tab-pane fade {% if passphrase %} show active {% endif %}" id="anonymous" role="tabpanel" aria-labelledby="anonymous-tab">
+        <p>
+          You can generate a passphrase that will allow anonymous access to the
+          <i><a href="{% url 'project_preview' project.slug %}" target="_blank">preview</a></i> of this project.
+          This is useful if the authors are submitting an article to a peer-reviewed journal and access
+          to a PhysioNet resource is needed during the review process.
+          <br>
+          {% if anonymous_url %}
+            The URL for reviewer access is:
+            <a href="{% url 'anonymous_login' anonymous_url %}" target="_blank">{{ request.get_host }}{% url 'anonymous_login' anonymous_url %}</a>
+          {% endif %}
+        </p>
+        <div
+          {% if not passphrase or passphrase == "revoked" %}
+            class="alert alert-danger">
+            <p class='m-0'>Note: When providing anonymous access to third parties, keep in mind that any changes made during
+              the PhysioNet review process will impact anyone viewing the project through that access.</p>
+          {% else %}
+            class="alert alert-success">
+            Passphrase: {{ passphrase }}
+          {% endif %}
+        </div>
+        <form action="{% url 'submission_info' project.slug %}" method="POST" id="passphrase_form">
+          {% csrf_token %}
+          {% if not project.anonymous.first %}
+          <button class="btn btn-primary btn-rsp" type="submit" name="generate_passphrase">
+            Grant access
+          </button>
+          {% else %}
+          <button class="btn btn-danger btn-rsp" type="submit" name="remove_passphrase">
+            Revoke access
+          </button>
+          {% endif %}
+        </form>
       </div>
     </div>
   </div>

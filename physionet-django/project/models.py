@@ -17,6 +17,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelatio
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.contrib.auth.hashers import check_password, make_password
 from django.db import models, DatabaseError, transaction
 from django.forms.utils import ErrorList
 from django.urls import reverse
@@ -24,6 +25,7 @@ from django.utils import timezone
 from django.utils.html import strip_tags
 from django.utils.text import slugify
 from background_task import background
+from django.utils.crypto import get_random_string
 
 from project.utility import (get_tree_size, get_file_info, get_directory_info,
                              list_items, StorageInfo, list_files,
@@ -457,6 +459,9 @@ class Metadata(models.Model):
     # For ordering projects with multiple versions
     version_order = models.PositiveSmallIntegerField(default=0)
 
+    # Anonymous access
+    anonymous = GenericRelation('project.AnonymousAccess')
+
     class Meta:
         abstract = True
 
@@ -585,6 +590,37 @@ class Metadata(models.Model):
             return type_map[self.resource_type]
         except KeyError:
             return 'Dataset'
+
+    def is_valid_passphrase(self, raw_passphrase):
+        """
+        Checks if passphrase is valid for project
+        """
+        anonymous = self.anonymous.first()
+        if not anonymous:
+            return False
+
+        return anonymous.check_passphrase(raw_passphrase)
+
+    def generate_anonymous_access(self):
+        """
+        Checks if passphrase is valid for project
+        """
+        if not self.anonymous.first():
+            anonymous = AnonymousAccess(project=self)
+        else:
+            anonymous = self.anonymous.first()
+
+        return anonymous.generate_access()
+
+    def get_anonymous_url(self):
+        """
+        Returns current url for anonymous access
+        """
+        anonymous = self.anonymous.first()
+        if not anonymous:
+            return False
+
+        return anonymous.url
 
 
 class SubmissionInfo(models.Model):
@@ -1849,4 +1885,69 @@ class DataAccess(models.Model):
         related_name='%(class)ss', db_index=True, on_delete=models.CASCADE)
     platform = models.PositiveSmallIntegerField(choices=PLATFORM_ACCESS)
     location = models.CharField(max_length=100, null=True)
+
+
+class AnonymousAccess(models.Model):
+    """
+    Makes it possible to grant anonymous access (without user auth)
+    to a project and its files by authenticating with a passphrase.
+    """
+    # Project GenericFK
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    project = GenericForeignKey('content_type', 'object_id')
+
+    # Stores hashed passphrase
+    passphrase = models.CharField(max_length=128)
+
+    # Random url
+    url = models.CharField(max_length=64)
+
+    # Record tracking
+    creation_datetime = models.DateTimeField(auto_now_add=True)
+    expiration_datetime = models.DateTimeField(null=True)
+    creator = models.ForeignKey('user.User', related_name='anonymous_access_creator',
+        on_delete=models.SET_NULL, null=True, blank=True)
+
+    class Meta:
+        unique_together = (("content_type", "object_id"),)
+
+    def generate_access(self):
+        url = self.generate_url()
+        passphrase = self.set_passphrase()
+
+        return url, passphrase
+
+    def generate_url(self):
+        url = get_random_string(64)
+
+        # Has to be unique
+        while AnonymousAccess.objects.filter(url=url).first():
+            url = get_random_string(64)
+        
+        # Persist new url
+        self.url = url
+        self.save()
+
+        return url
+
+    def set_passphrase(self):
+        # Generate and encode random password
+        raw = get_random_string(20)
+
+        # Store encoded passphrase
+        self.passphrase = make_password(raw, salt='project.AnonymousAccess')
+        self.save()
+
+        return raw
+
+    def check_passphrase(self, raw_passphrase):
+        """
+        Return a boolean of whether the raw_password was correct. Handles
+        hashing formats behind the scenes.
+        """
+        expire_datetime = self.creation_datetime + timedelta(days=60)
+        isnot_expired = timezone.now() < expire_datetime
+
+        return isnot_expired and check_password(raw_passphrase, self.passphrase)
 
