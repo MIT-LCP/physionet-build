@@ -1,7 +1,7 @@
 <section id="project_descriptions" class="indented-box">
   <h2>Choosing a project type</h2>
   <p>When submitting a project to PhysioNet you will be asked to select one of the following project types:</p>
-  <ul>
+  <ul class="static-list bullet">
   {% for key, value in descriptions.items %}
     <li><strong>{{ key }}</strong>: {{ value }}</li>
   {% endfor %}
@@ -16,7 +16,7 @@
   you are asked to provide information such as a title, an abstract
   for distribution to search indexes, and context describing the manner in which
   the resource was created. Further details are outlined below:</p>
-  <ul>
+  <ul class="static-list bullet">
     <li><strong>Title</strong>: Your title should be no longer than 200 characters. Do not include acronyms and abbreviations, and where possible avoid leading with "The". Only letters, numbers, spaces, underscores, and hyphens are allowed.</li>
     <li><strong>Abstract</strong>: Your abstract must be no longer than 250 words. The focus should be on the resource being shared. If the resource was generated as part of a scientific investigation, relevant information may be provided to facilitate reuse. References should not be included. </li>
     <li><strong>Background</strong>: Your background should provide the reader with an introduction to the resource. The section should offer context in which the resource was created, outline your motivations for sharing, and highlight potential areas for reuse.</li>
@@ -35,9 +35,9 @@
   <p>When submitting a project, you will be asked to upload relevant data and
   software files. Please review the following guidelines when preparing your
   files for submission:</p>
-  <ul>
-    <li><strong>All projects</strong>:
-      <ul>
+  <ul class="static-list bullet">
+    <li><h5>All projects</h5>
+      <ul class="static-list check">
         <li>A README file should be included alongside the files. At minimum, the readme should include 
         a title and a brief description of the package content.</li>
         <li>Sensitive data and protected health information must have been removed prior to submission.</li>
@@ -45,13 +45,13 @@
         <li>Files should be provided in non-proprietary formats (for example, CSV), except where there is a clear reason not to do so.</li>
       </ul>
     </li>
-    <li><strong>Data (general)</strong>:
-      <ul>
+    <li><h5>Data</h5>
+      <ul class="static-list check">
         <li>In most cases, tabulated datasets should be structured following the principles of "<a href="https://en.wikipedia.org/wiki/Tidy_data">tidy data</a>". For example, each variable should be in a column and each observation (or case) in a row.</li>
       </ul>
     </li>
-    <li><strong>Software</strong>:
-      <ul>
+    <li><h5>Software</h5>
+      <ul class="static-list check">
         <li>Instructions for installation and usage should be clearly documented.</li>
         <li>Dependencies should be clearly indicated, for example in a requirements file.</li>
         <li>A testing framework should be used to demonstrate correct functioning of major features of the software.</li>

@@ -3,12 +3,11 @@
 {% for key, value in licenses.items %}
 <div class="indented-box">
 	<h5 id="{{ key|lower }}">{{ key }}</h5>
-	<ul>
+	<ul class="static-list bullet">
 	{% for license in value %}
-		<li>
-		  {{ license.name }}
-      <br>
-      <a href="{% url 'license_content' license.slug %}">License</a> - <a href="{{ license.home_page }}">Home page <i class="fas fa-external-link-alt"></i></a>
+		<li>{{ license.name }}
+      		<br>
+     		<a href="{% url 'license_content' license.slug %}">License</a> - <a href="{{ license.home_page }}">Home page <i class="fas fa-external-link-alt"></i></a>
 		</li>
   	{% endfor %}
 	</ul>

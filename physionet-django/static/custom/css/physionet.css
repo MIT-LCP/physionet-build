@@ -541,6 +541,41 @@ a, code{
   padding-left: 25px;
   margin-top: 25px;
   border-left: 1px solid;
-  border-image: linear-gradient(to bottom, silver 0%, silver 60%, transparent 100%) 1% 100%;
-          
+  border-image: linear-gradient(to bottom, silver 0%, silver 90%, transparent 100%) 1% 100%;    
+}
+
+.static-list{
+  padding: 0;
+  list-style: none;
+}
+
+.static-list > li{
+  margin-top: 1em;
+  position: relative;
+}
+
+.static-list > li:before{
+  font-size: 25px;
+  position: absolute;
+  line-height: 1em;
+}
+
+.static-list.check > li:before{
+  left: -33px;
+  content:"\2713";
+  color: darkgreen;
+  background: white;
+}
+
+.static-list.down > li:not(:last-of-type):before{
+  top: -5px;
+  left: -36px;
+  content:"\2304";
+  background: linear-gradient(to bottom, transparent 0%, transparent 50%, white 50%, white 100%) 0% 100%;
+}
+
+
+.static-list.bullet > li:before, .static-list.down > li:last-of-type:before{
+  left: -30px;
+  content: "\2022";
 }
