@@ -241,7 +241,7 @@ def public_profile(request, username):
         raise Http404()
 
     # get list of projects
-    projects = PublishedProject.objects.filter(authors__user__username__iexact=username,
+    projects = PublishedProject.objects.filter(authors__user=public_user,
         is_latest_version=True).order_by('-publish_datetime')
 
 
