@@ -84,7 +84,7 @@ Profile for {{ public_user.username }}
         <div class="row mb-1">
           <ul>
             {% for project in projects %}
-            <li><a href="{% url 'published_project' project.slug project.version %}">{{ project.citation_text }}</a>
+            <li><a href="{% url 'published_project' project.slug project.version %}">{{ project.citation_text }}</a> (v{{ project.version }})
             {% endfor %}
           </ul>
         </div>
