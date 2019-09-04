@@ -46,9 +46,7 @@ def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
     """
 
     published_project = PublishedProject.objects.get(id=pid)
-    # Create special files if there are files. Should always be the case.
-    if bool(published_project.storage_used):
-        published_project.make_special_files(make_zip=make_zip)
+    published_project.make_special_files(make_zip=make_zip)
 
     published_project.set_storage_info()
 
@@ -515,13 +513,13 @@ class Metadata(models.Model):
             else:
                 return authors
 
-    def info_card(self, include_emails=True):
+    def info_card(self, include_emails=True, force_calculate=False):
         """
         Get all the information needed for the project info card
         seen by an admin
         """
         authors, author_emails = self.get_author_info(include_emails=include_emails)
-        storage_info = self.get_storage_info()
+        storage_info = self.get_storage_info(force_calculate=force_calculate)
         edit_logs = self.edit_logs.all()
         for e in edit_logs:
             e.set_quality_assurance_results()
@@ -676,13 +674,20 @@ class UnpublishedProject(models.Model):
         """
         return os.path.join(self.__class__.FILE_ROOT, self.slug)
 
-    def get_storage_info(self):
+    def get_storage_info(self, force_calculate=True):
         """
         Return an object containing information about the project's
         storage usage.
+
+        If force_calculate is true, calculate the size by recursively
+        scanning the directory tree.  This is deprecated.
         """
+        if force_calculate:
+            used = self.storage_used()
+        else:
+            used = None
         return StorageInfo(allowance=self.core_project.storage_allowance,
-            used=self.storage_used(), include_remaining=True)
+                           used=used, include_remaining=True)
 
     def get_previous_slug(self):
         """
@@ -1429,12 +1434,16 @@ class PublishedProject(Metadata, SubmissionInfo):
         else:
             return True
 
-    def get_storage_info(self):
+    def get_storage_info(self, force_calculate=True):
         """
         Return an object containing information about the project's
         storage usage. Main, compressed, total files, and allowance.
+
+        This function always returns the cached information stored in
+        the model.  The force_calculate argument has no effect.
         """
-        main, compressed = self.storage_used()
+        main = self.main_storage_size
+        compressed = self.compressed_storage_size
         return StorageInfo(allowance=self.core_project.storage_allowance,
             used=main+compressed, include_remaining=False, main_used=main,
             compressed_used=compressed)

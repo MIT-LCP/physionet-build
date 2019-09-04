@@ -81,25 +81,32 @@ class StorageInfo():
     """
     Object for storing display information about a project's storage.
     """
-    def __init__(self, allowance, used, include_remaining,
+    def __init__(self, allowance, used, include_remaining=True,
         main_used=None, compressed_used=None):
         """
         Initialize fields with optional args for published and
         unpublished projects
+
+        The include_remaining argument has no effect and is kept for
+        compatibility.
         """
         self.allowance = allowance
         self.readable_allowance = readable_size(allowance)
 
         # Total used
         self.used = used
-        self.readable_used = readable_size(used)
-
-        if include_remaining:
-            remaining = allowance - used
-            self.remaining = remaining
-            self.readable_remaining = readable_size(remaining)
-            self.p_used = round(used *100 / allowance)
-            self.p_remaining = round(remaining *100 / allowance)
+        if used is None:
+            self.readable_used = 'unknown'
+            self.remaining = None
+            self.readable_remaining = 'unknown'
+            self.p_used = '?'
+            self.p_remaining = '?'
+        else:
+            self.readable_used = readable_size(used)
+            self.remaining = allowance - used
+            self.readable_remaining = readable_size(self.remaining)
+            self.p_used = round(used * 100 / allowance)
+            self.p_remaining = round(self.remaining * 100 / allowance)
 
         if main_used is not None:
             self.main_used = main_used
@@ -202,22 +209,6 @@ def get_tree_size(path):
             total += entry.stat(follow_symlinks=False).st_size
     return total
 
-def get_tree_files(path, full_path=True):
-    """
-    Return list of files from a base path
-    """
-    files = []
-    for entry in os.scandir(path):
-        if entry.is_dir(follow_symlinks=False):
-            files += get_tree_files(entry.path, full_path=True)
-        else:
-            files.append(entry.path)
-    # Strip the original path if desired
-    if not full_path:
-        if not path.endswith('/'):
-            path += '/'
-        files = [f[len(path):] for f in files]
-    return files
 
 def readable_size(num, suffix='B'):
     "Display human readable size of byte number"
