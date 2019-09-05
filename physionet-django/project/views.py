@@ -1356,6 +1356,7 @@ def serve_published_project_zip(request, project_slug, version):
     Works for open and protected. Not needed for open.
 
     """
+    utility.check_http_auth(request)
     try:
         project = PublishedProject.objects.get(slug=project_slug,
             version=version)
@@ -1373,7 +1374,8 @@ def serve_published_project_zip(request, project_slug, version):
             return serve_file(project.zip_name(full=True))
         except FileNotFoundError:
             raise Http404()
-    raise PermissionDenied()
+
+    return utility.require_http_auth(request)
 
 
 def published_project_license(request, project_slug, version):
