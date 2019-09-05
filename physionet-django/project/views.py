@@ -1267,7 +1267,7 @@ def published_files_panel(request, project_slug, version):
 
     # Anonymous access authentication
     an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60*60)
-    has_passphrase = project.get_anonymous_url == an_url
+    has_passphrase = project.get_anonymous_url() == an_url
 
     if project.has_access(user) or has_passphrase:
         (display_files, display_dirs, dir_breadcrumbs, parent_dir,
@@ -1302,7 +1302,7 @@ def serve_published_project_file(request, project_slug, version,
 
     # Anonymous access authentication
     an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60*60)
-    has_passphrase = project.get_anonymous_url == an_url
+    has_passphrase = project.get_anonymous_url() == an_url
 
     if project.has_access(user) or has_passphrase:
         file_path = os.path.join(project.file_root(), full_file_name)
@@ -1332,7 +1332,7 @@ def display_published_project_file(request, project_slug, version,
 
     # Anonymous access authentication
     an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60*60)
-    has_passphrase = project.get_anonymous_url == an_url
+    has_passphrase = project.get_anonymous_url() == an_url
 
     if project.has_access(user) or has_passphrase:
         return display_project_file(request, project, full_file_name)
@@ -1364,7 +1364,7 @@ def serve_published_project_zip(request, project_slug, version):
 
     # Anonymous access authentication
     an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60*60)
-    has_passphrase = project.get_anonymous_url == an_url
+    has_passphrase = project.get_anonymous_url() == an_url
 
     if project.has_access(user) or has_passphrase:
         try:
@@ -1430,7 +1430,7 @@ def published_project(request, project_slug, version, subdir=''):
 
     # Anonymous access authentication
     an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60*60)
-    has_passphrase = project.get_anonymous_url == an_url
+    has_passphrase = project.get_anonymous_url() == an_url
 
     has_access = project.has_access(user) or has_passphrase
     current_site = get_current_site(request)
