@@ -1582,4 +1582,4 @@ def anonymous_login(request, anonymous_url):
             messages.error(request, 'Submission unsuccessful. See form for errors.')
 
     return render(request, 'project/anonymous_login.html', {'anonymous_url': anonymous_url,
-                  'form': form})
+                  'form': form, 'license':project.license})
