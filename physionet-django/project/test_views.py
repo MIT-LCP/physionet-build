@@ -1,3 +1,4 @@
+import base64
 import os
 import pdb
 
@@ -14,6 +15,14 @@ PROJECT_VIEWS = [
     'project_access', 'project_discovery', 'project_files',
     'project_proofread', 'project_preview', 'project_submission'
 ]
+
+def _basic_auth(username, password, encoding='UTF-8'):
+    """
+    Generate an HTTP Basic authorization header.
+    """
+    token = username + ':' + password
+    token = base64.b64encode(token.encode(encoding)).decode()
+    return 'Basic ' + token
 
 
 class TestAccessPresubmission(TestMixin, TestCase):
@@ -357,6 +366,36 @@ class TestAccessPublished(TestMixin, TestCase):
             'published_project_subdir',
             args=(project.slug, project.version, 'fnord')))
         self.assertEqual(response.status_code, 404)
+
+        # Download file using wget
+        self.client.logout()
+        response = self.client.get(
+            reverse('serve_published_project_file',
+                    args=(project.slug, project.version, 'SHA256SUMS.txt')),
+            secure=True,
+            HTTP_USER_AGENT='Wget/1.18')
+        self.assertEqual(response.status_code, 401)
+        response = self.client.get(
+            reverse('serve_published_project_file',
+                    args=(project.slug, project.version, 'SHA256SUMS.txt')),
+            secure=True,
+            HTTP_USER_AGENT='Wget/1.18',
+            HTTP_AUTHORIZATION=_basic_auth('aewj@mit.edu', 'Tester11!'))
+        self.assertEqual(response.status_code, 403)
+        response = self.client.get(
+            reverse('serve_published_project_file',
+                    args=(project.slug, project.version, 'SHA256SUMS.txt')),
+            secure=True,
+            HTTP_USER_AGENT='libwfdb/10.6.0',
+            HTTP_AUTHORIZATION=_basic_auth('rgmark@mit.edu', 'badpassword'))
+        self.assertEqual(response.status_code, 401)
+        response = self.client.get(
+            reverse('serve_published_project_file',
+                    args=(project.slug, project.version, 'SHA256SUMS.txt')),
+            secure=True,
+            HTTP_USER_AGENT='libwfdb/10.6.0',
+            HTTP_AUTHORIZATION=_basic_auth('rgmark@mit.edu', 'Tester11!'))
+        self.assertEqual(response.status_code, 200)
 
     def test_open(self):
         """
