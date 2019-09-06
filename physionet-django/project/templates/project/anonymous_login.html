@@ -9,18 +9,36 @@
 {% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container text-center">
   {% include "message_snippet.html" %}
-  <form action="{% url 'anonymous_login' anonymous_url %}" method="post" class="form-signin">
-    <h2 class="form-signin-heading">Reviewer Login</h2>
+  <form action="{% url 'anonymous_login' anonymous_url %}" method="post">
     {% csrf_token %}
-    {{ form.passphrase }}
+    <div class="form-signin">
+      <h2 class="form-signin-heading text-center">Reviewer Login</h2>
+      {{ form.passphrase }}
+    </div>
+    {% if license.dua_html_content %}
+      <div class="card text-left">
+        <div class="card-header">
+          Data Use Agreement (DUA)
+        </div>
+        <div class="card-body">
+          {{ license.dua_html_content|safe }}
+        </div>
+      </div>
+    {% endif %}
     {% for error in form.non_field_errors %}
       <div class="alert alert-danger">
         <strong>{{ error|escape }}</strong>
       </div>
     {% endfor %}
-    <button id="login" class="btn btn-lg btn-primary btn-block" type="submit">Log In</button>
+    <button id="login" class="btn btn-lg btn-success btn-rsp" type="submit">
+      {% if license.dua_html_content %}
+        Accept and log in
+      {% else %}
+        Log in
+      {% endif %}
+    </button>
   </form>
 </div>
 {% endblock %}
