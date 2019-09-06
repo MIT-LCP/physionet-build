@@ -156,13 +156,13 @@ def remove_items(items, ignore_missing=True):
     for item in items:
         try:
             os.unlink(item)
+        except FileNotFoundError:
+            if not ignore_missing:
+                raise
         except OSError as e:
             if e.errno not in (errno.EISDIR, errno.EPERM):
                 raise
             shutil.rmtree(item)
-        except FileNotFoundError:
-            if not ignore_missing:
-                raise
 
 def clear_directory(directory):
     """
