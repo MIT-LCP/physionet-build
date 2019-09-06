@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container text-center">
   {% include "message_snippet.html" %}
   <form action="{% url 'anonymous_login' anonymous_url %}" method="post">
     {% csrf_token %}
@@ -18,7 +18,7 @@
       {{ form.passphrase }}
     </div>
     {% if license.dua_html_content %}
-      <div class="card">
+      <div class="card text-left">
         <div class="card-header">
           Data Use Agreement (DUA)
         </div>
@@ -32,7 +32,7 @@
         <strong>{{ error|escape }}</strong>
       </div>
     {% endfor %}
-    <button id="login" class="btn btn-lg btn-success btn-block w-25 mx-auto" type="submit">
+    <button id="login" class="btn btn-lg btn-success btn-rsp" type="submit">
       {% if license.dua_html_content %}
         Accept and log in
       {% else %}
