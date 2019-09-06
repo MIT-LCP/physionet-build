@@ -339,6 +339,8 @@ class NewsForm(forms.ModelForm):
     """
     To add and edit news items
     """
+    project = forms.ModelChoiceField(queryset=PublishedProject.objects.order_by('title'))
+
     class Meta:
         model = News
         fields = ('title', 'content', 'url', 'project')
