@@ -271,6 +271,8 @@
       {% if has_access %}
         <p>Total uncompressed size: {{ main_size }}.
 {# ZIP START #}
+          <h5>Access the files</h5>
+          <ul>
           {% if project.compressed_storage_size %}
             <li><a href="{% url 'serve_published_project_zip' project.slug project.version %}">Download the ZIP file</a> ({{ compressed_size }})</li>
           {% endif %}
@@ -290,6 +292,7 @@
               {% endif %}
             {% endfor %}
           {% endif %}
+          </ul>
 {# ZIP END #}
         </p>
         <div id="files-panel" class="card">
