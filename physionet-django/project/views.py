@@ -1438,12 +1438,14 @@ def published_project(request, project_slug, version, subdir=''):
 
     has_access = project.has_access(user) or has_passphrase
     current_site = get_current_site(request)
+    url_prefix = notification.get_url_prefix(request)
     all_project_versions = PublishedProject.objects.filter(
         slug=project_slug).order_by('version_order')
     context = {'project': project, 'authors': authors,
                'references': references, 'publication': publication,
                'topics': topics, 'languages': languages, 'contact': contact,
                'has_access': has_access, 'current_site': current_site,
+               'url_prefix': url_prefix,
                'news': news, 'all_project_versions': all_project_versions,
                'parent_projects':parent_projects, 'data_access':data_access,
                'messages':messages.get_messages(request)}

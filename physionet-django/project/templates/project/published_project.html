@@ -292,7 +292,7 @@
               {% endif %}
             {% endfor %}
           {% endif %}
-          <li>Download the files using your terminal: <pre class="shell-command">wget -r -N -c -np --user {{ user }} --ask-password https://{{ current_site }}{% url 'serve_published_project_file' project.slug project.version '' %}</pre></li>
+          <li>Download the files using your terminal: <pre class="shell-command">wget -r -N -c -np --user {{ user }} --ask-password {{ url_prefix }}{% url 'serve_published_project_file' project.slug project.version '' %}</pre></li>
           </ul>
 {# ZIP END #}
         </p>
@@ -331,7 +331,7 @@
             {% endif %}
           {% endfor %}
         {% endif %}
-          <li>Download the files using your terminal: <pre class="shell-command">wget -r -N -c -np http://{{ current_site }}{% url 'serve_published_project_file' project.slug project.version '' %}</pre></li>
+          <li>Download the files using your terminal: <pre class="shell-command">wget -r -N -c -np {{ url_prefix }}{% url 'serve_published_project_file' project.slug project.version '' %}</pre></li>
         </ul>
 {# ZIP END #}
       </p>
