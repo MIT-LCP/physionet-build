@@ -397,6 +397,21 @@ class TestAccessPublished(TestMixin, TestCase):
             HTTP_AUTHORIZATION=_basic_auth('rgmark@mit.edu', 'Tester11!'))
         self.assertEqual(response.status_code, 200)
 
+        # Download archive using wget
+        response = self.client.get(
+            reverse('serve_published_project_zip',
+                    args=(project.slug, project.version)),
+            secure=True,
+            HTTP_USER_AGENT='Wget/1.18')
+        self.assertEqual(response.status_code, 401)
+        response = self.client.get(
+            reverse('serve_published_project_zip',
+                    args=(project.slug, project.version)),
+            secure=True,
+            HTTP_USER_AGENT='Wget/1.18',
+            HTTP_AUTHORIZATION=_basic_auth('rgmark@mit.edu', 'Tester11!'))
+        self.assertEqual(response.status_code, 200)
+
     def test_open(self):
         """
         Test access to an open project.
