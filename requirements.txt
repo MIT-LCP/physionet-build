@@ -37,6 +37,12 @@ pyOpenSSL==19.0.0 \
 google-api-python-client==1.7.9 \
  --hash=sha256:5def5a485b1cbc998b8f869456c7bde0c0e6d3d0a5ea1f300b5ef57cb4b1ce8f
 
+#### Required for postgresql database backend ####
+
+psycopg2-binary==2.8.3 \
+ --hash=sha256:d305313c5a9695f40c46294d4315ed3a07c7d2b55e48a9010dad7db7a66c8b7f\
+ --hash=sha256:19d013e7b0817087517a4b3cab39c084d78898369e5c46258aab7be4f233d6a1
+
 #### Requirements for development and testing ####
 
 coverage==4.4.2 \
