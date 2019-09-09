@@ -1,3 +1,4 @@
+import base64
 import datetime
 import errno
 import os
@@ -5,12 +6,14 @@ import shutil
 import pdb
 import uuid
 import logging
+import re
 import requests
 import json
 
-from django.contrib import messages
+from django.contrib import auth, messages
+from django.contrib.sites.shortcuts import get_current_site
 from django.conf import settings
-from django.core.exceptions import ValidationError
+from django.core.exceptions import (PermissionDenied, ValidationError)
 from django.http import HttpResponse, Http404
 from googleapiclient.errors import HttpError
 
@@ -312,3 +315,108 @@ def grant_gcp_group_access(user, project, data_access, request):
         messages.success(request, '{0} was previously awarded \
             to {1} for project: {2}'.format(access, email, project))
         return False
+
+
+# The following regular expression defines user agents that are
+# permitted to use HTTP authentication for accessing protected
+# databases.  This list should not include web browsers.  (If you are
+# writing a new program for accessing protected databases, please use
+# a distinctive UA string so that your program can be whitelisted
+# here.  Do not use the generic UA string provided by your HTTP client
+# library.)
+HTTP_AUTH_USER_AGENT = re.compile('|'.join((
+    'Wget/',
+    'libwfdb/',
+)))
+
+
+def http_auth_allowed(request):
+    """
+    Check if HTTP authentication is permitted for the given request.
+
+    Web browsers typically don't implement HTTP authentication in a
+    very user-friendly or secure way, so this mechanism is only
+    permitted for specific non-interactive user agents.  For safety,
+    HTTP authentication is only permitted for GET and HEAD requests,
+    and (unless settings.DEBUG is set) only via HTTPS.
+    """
+
+    if request.method not in ('GET', 'HEAD'):
+        return False
+    if not request.is_secure() and not settings.DEBUG:
+        return False
+
+    ua = request.META.get('HTTP_USER_AGENT', '')
+    if HTTP_AUTH_USER_AGENT.match(ua):
+        return True
+    else:
+        return False
+
+
+def check_http_auth(request):
+    """
+    Check if a request includes HTTP authentication.
+
+    If HTTP authentication is permitted for the given request, and a
+    valid username and password are provided, set request.user to the
+    corresponding user object.  Otherwise, the request is not
+    modified.
+
+    For safety, HTTP authentication is only used for certain requests
+    from non-interactive user agents; see http_auth_allowed().
+
+    This should be invoked at the start of the view before checking
+    user credentials, and should be paired with require_http_auth().
+    """
+
+    if 'HTTP_AUTHORIZATION' in request.META:
+        # If an Authorization header is supplied, but this request is
+        # not allowed to use HTTP authentication, ignore the header.
+        if not http_auth_allowed(request):
+            return
+
+        # If the user is already authenticated, ignore the header.
+        if request.user.is_authenticated:
+            return
+
+        tokens = request.META['HTTP_AUTHORIZATION'].split()
+        if len(tokens) == 2 and tokens[0].lower() == 'basic':
+            try:
+                data = base64.b64decode(tokens[1], validate=True).decode()
+                username, password = data.split(':', 1)
+            except Exception:
+                return
+
+            user = auth.authenticate(request=request,
+                                     username=username,
+                                     password=password)
+            if user:
+                request.user = user
+
+
+def require_http_auth(request):
+    """
+    Ask the client to authenticate itself and retry the request.
+
+    For safety, HTTP authentication is only allowed for certain
+    requests from non-interactive user agents; see
+    http_auth_allowed().  If this request is not allowed, or if the
+    user is already authenticated, raise PermissionDenied.
+
+    Otherwise, return an HttpResponse with status 401 (Unauthorized),
+    which indicates the client should repeat the request with a
+    username and password.
+
+    This should be invoked after check_http_auth(), if the user is
+    unknown or is not authorized to view the given resource.
+    """
+
+    if http_auth_allowed(request) and not request.user.is_authenticated:
+        site = get_current_site(request)
+        response = HttpResponse(status=401)
+        response['WWW-Authenticate'] = (
+            'Basic realm="{}", charset="UTF-8"'.format(site.name)
+        )
+        return response
+    else:
+        raise PermissionDenied()

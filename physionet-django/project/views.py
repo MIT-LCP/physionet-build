@@ -1292,6 +1292,7 @@ def serve_published_project_file(request, project_slug, version,
     Works for open and protected. Not needed for open.
 
     """
+    utility.check_http_auth(request)
     try:
         project = PublishedProject.objects.get(slug=project_slug,
             version=version)
@@ -1313,7 +1314,8 @@ def serve_published_project_file(request, project_slug, version,
             return redirect(request.path + '/')
         except (NotADirectoryError, FileNotFoundError):
             raise Http404()
-    raise PermissionDenied()
+
+    return utility.require_http_auth(request)
 
 
 def display_published_project_file(request, project_slug, version,
@@ -1354,6 +1356,7 @@ def serve_published_project_zip(request, project_slug, version):
     Works for open and protected. Not needed for open.
 
     """
+    utility.check_http_auth(request)
     try:
         project = PublishedProject.objects.get(slug=project_slug,
             version=version)
@@ -1371,7 +1374,8 @@ def serve_published_project_zip(request, project_slug, version):
             return serve_file(project.zip_name(full=True))
         except FileNotFoundError:
             raise Http404()
-    raise PermissionDenied()
+
+    return utility.require_http_auth(request)
 
 
 def published_project_license(request, project_slug, version):
@@ -1434,12 +1438,14 @@ def published_project(request, project_slug, version, subdir=''):
 
     has_access = project.has_access(user) or has_passphrase
     current_site = get_current_site(request)
+    url_prefix = notification.get_url_prefix(request)
     all_project_versions = PublishedProject.objects.filter(
         slug=project_slug).order_by('version_order')
     context = {'project': project, 'authors': authors,
                'references': references, 'publication': publication,
                'topics': topics, 'languages': languages, 'contact': contact,
                'has_access': has_access, 'current_site': current_site,
+               'url_prefix': url_prefix,
                'news': news, 'all_project_versions': all_project_versions,
                'parent_projects':parent_projects, 'data_access':data_access,
                'messages':messages.get_messages(request)}
