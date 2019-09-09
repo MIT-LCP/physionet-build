@@ -1,10 +1,17 @@
 {% extends "user/settings.html" %}
 
-{% block title %} Edit Cloud information {% endblock %}
+{% block title %} User Cloud information {% endblock %}
 
 {% block main_content %}
-<h1 class="form-signin-heading">Manage cloud settings</h1>
+<h1 class="form-signin-heading">User Cloud information</h1>
 
+<p>Some of our databases are on Google Cloud Platform or Amazon Web Services.</p>
+<p>To gain access to them:</p>
+<ol>
+<li>Enter your google email address and/or your AWS numerical ID.</li>
+<li>Go to a published database and above the files click "Request access".</li>
+</ol>
+<p>Note: If the database does not have a "Request access", then that database is not available in the cloud at the moment.</p>
 <form action="{% url 'edit_cloud' %}" method="post" class="form-signin no-pd">
   <hr>
   {% csrf_token %}
