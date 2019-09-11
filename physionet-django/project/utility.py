@@ -155,15 +155,26 @@ def list_items(directory, return_separate=True):
 def remove_items(items, ignore_missing=True):
     """
     Delete the list of (full file path) files/directories.
+
+    Args:
+      items: Is a list of files or directories to delete.
+      ignore_missing: Flag to ignore missing files or directories.
     """
-    for item in items:
-        try:
-            os.remove(item)
-        except IsADirectoryError:
-            shutil.rmtree(item)
-        except FileNotFoundError:
-            if not ignore_missing:
-                raise
+    if isinstance(items,(tuple,list)):
+        for item in items:
+            try:
+                os.unlink(item)
+            except FileNotFoundError:
+                if not ignore_missing:
+                    raise
+            except OSError as e:
+                if e.errno not in (errno.EISDIR, errno.EPERM):
+                    raise
+                shutil.rmtree(item)
+    else:
+        LOGGER.info("Non list/tuple entered in remove items. The 'item' entered \
+         was: {0}".format(items))
+        raise TypeError
 
 def clear_directory(directory):
     """
