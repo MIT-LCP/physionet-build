@@ -89,7 +89,7 @@
             <a id="nav_credential_applications" href="{% url 'credential_applications' %}">Ongoing Applications</a>
           </li>
           <li class="nav-item {% if request.path == past_credential_applications %}active{% endif %} {% if '/console/view-credential-applications/' in request.path %}active{% endif %}">
-            <a id="nav_past_credential_applications" href="{% url 'past_credential_applications' %}">Past Applications</a>
+            <a id="nav_past_credential_applications" href="{% url 'past_credential_applications' 'successfull' %}">Past Applications</a>
           </li>
         </ul>
       </li>

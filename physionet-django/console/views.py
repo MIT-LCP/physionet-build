@@ -4,6 +4,7 @@ import logging
 import os
 import csv
 from datetime import datetime
+from itertools import chain
 
 from django.core.validators  import validate_email
 from django.contrib import messages
@@ -879,14 +880,11 @@ def view_credential_application(request, application_slug):
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
-def past_credential_applications(request):
+def past_credential_applications(request, status):
     """
     Inactive credential applications. Split into successful and
     unsuccessful.
     """
-    l_applications = LegacyCredential.objects.filter(migrated=True, migrated_user__is_credentialed=True).order_by('-migration_date')
-    s_applications = CredentialApplication.objects.filter(status=2).order_by('-application_datetime')
-    u_applications = CredentialApplication.objects.filter(status=1).order_by('-application_datetime')
     if request.method == 'POST':
         if 'remove_credentialing' in request.POST:
             if request.POST['remove_credentialing'].isdigit():
@@ -928,10 +926,21 @@ def past_credential_applications(request):
                 c_application.status = 0
                 c_application.save()
 
+
+    l_applications = LegacyCredential.objects.filter(migrated=True, 
+        migrated_user__is_credentialed=True).order_by('-migration_date')
+    s_applications = CredentialApplication.objects.filter(status=2
+        ).order_by('-application_datetime')
+    # Here legacy applications and new applications are merged into a list
+    applications = list(chain(s_applications, l_applications))
+    applications = paginate(request, applications, 1)
+
+    u_applications = CredentialApplication.objects.filter(status=1
+        ).order_by('-application_datetime')
+    u_applications = paginate(request, u_applications, 1)
+
     return render(request, 'console/past_credential_applications.html',
-        {'s_applications':s_applications,
-         'u_applications':u_applications,
-         'l_applications':l_applications})
+        {'applications': applications, 'u_applications': u_applications})
 
 
 @login_required
