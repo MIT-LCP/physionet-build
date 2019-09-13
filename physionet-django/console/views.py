@@ -933,11 +933,11 @@ def past_credential_applications(request, status):
         ).order_by('-application_datetime')
     # Here legacy applications and new applications are merged into a list
     applications = list(chain(s_applications, l_applications))
-    applications = paginate(request, applications, 1)
+    applications = paginate(request, applications, 100)
 
     u_applications = CredentialApplication.objects.filter(status=1
         ).order_by('-application_datetime')
-    u_applications = paginate(request, u_applications, 1)
+    u_applications = paginate(request, u_applications, 100)
 
     return render(request, 'console/past_credential_applications.html',
         {'applications': applications, 'u_applications': u_applications})
