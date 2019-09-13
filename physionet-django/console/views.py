@@ -799,7 +799,8 @@ def complete_credential_applications(request):
             reference_contact_datetime__isnull=False):
             # If the reference has been contacted before, mark it so
             application.known_ref = True
-        elif LegacyCredential.objects.filter(reference_email__iexact=application.reference_email):
+        elif LegacyCredential.objects.filter(reference_email__iexact=application.reference_email).exclude(
+            reference_email=''):
             application.known_ref = True
 
     return render(request, 'console/complete_credential_applications.html',
