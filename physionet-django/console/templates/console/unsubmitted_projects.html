@@ -1,6 +1,12 @@
 {% extends "console/base_console.html" %}
 
+{% load static %}
+
 {% block title %}Unsubmitted Projects{% endblock %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/pagination.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="card mb-3">
@@ -27,6 +33,7 @@
         {% endfor %}
         </tbody>
       </table>
+      {% include "console/pagination.html" with pagination=projects %}
     </div>
   </div>
 </div>

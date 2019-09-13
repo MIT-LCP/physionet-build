@@ -505,6 +505,8 @@ def unsubmitted_projects(request):
     """
     projects = ActiveProject.objects.filter(submission_status=0).order_by(
         'creation_datetime')
+    projects = paginate(request, projects, 100)
+
     return render(request, 'console/unsubmitted_projects.html',
         {'projects':projects})
 
@@ -516,6 +518,7 @@ def published_projects(request):
     List of published projects
     """
     projects = PublishedProject.objects.all().order_by('-publish_datetime')
+    projects = paginate(request, projects, 100)
     return render(request, 'console/published_projects.html',
         {'projects':projects})
 
@@ -664,6 +667,7 @@ def rejected_submissions(request):
     List of rejected submissions
     """
     projects = ArchivedProject.objects.filter(archive_reason=3).order_by('archive_datetime')
+    projects = paginate(request, projects, 100)
     return render(request, 'console/rejected_submissions.html',
         {'projects':projects})
 
@@ -946,6 +950,7 @@ def news_console(request):
     List of news items
     """
     news_items = News.objects.all().order_by('-publish_datetime')
+    news_items = paginate(request, news_items, 100)
     return render(request, 'console/news_console.html', {'news_items':news_items})
 
 

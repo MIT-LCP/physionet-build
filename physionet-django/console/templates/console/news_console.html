@@ -4,6 +4,10 @@
 
 {% block title %}News Items{% endblock %}
 
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/pagination.css' %}">
+{% endblock %}
+
 {% block content %}
  <script src="{% static 'custom/js/cookie.js' %}"></script>
  <script src="{% static 'project/js/dynamic-formset.js' %}"></script>
@@ -42,6 +46,7 @@
           {% include "console/news_list.html" %}
         </tbody>
       </table>
+      {% include "console/pagination.html" with pagination=news_items %}
     </div>
   </div>
 </div>
