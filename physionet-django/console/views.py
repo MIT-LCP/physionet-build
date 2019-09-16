@@ -942,7 +942,7 @@ def past_credential_applications(request, status):
                 c_application.save()
 
 
-    l_applications = LegacyCredential.objects.filter(migrated=True, 
+    l_applications = LegacyCredential.objects.filter(migrated=True,
         migrated_user__is_credentialed=True).order_by('-migration_date')
     s_applications = CredentialApplication.objects.filter(status=2
         ).order_by('-application_datetime')
@@ -950,7 +950,7 @@ def past_credential_applications(request, status):
     applications = list(chain(s_applications, l_applications))
     applications = paginate(request, applications, 50)
 
-    u_applications = CredentialApplication.objects.filter(status=1
+    u_applications = CredentialApplication.objects.filter(status__in=[1, 3]
         ).order_by('-application_datetime')
     u_applications = paginate(request, u_applications, 50)
 

@@ -363,9 +363,18 @@ def edit_credentialing(request):
     applications = CredentialApplication.objects.filter(user=request.user)
     current_application = applications.filter(status=0).first()
 
+    if request.method == 'POST' and 'withdraw_credentialing' in request.POST:
+        current_application.apply_decision(decision=3, responder=request.user)
+        return redirect('withdraw_credentialing_success')
+
     return render(request, 'user/edit_credentialing.html', {
         'applications':applications,
         'current_application':current_application})
+
+
+@login_required
+def withdraw_credentialing_success(request):
+    return render(request, 'user/withdraw_credentialing_success.html')
 
 
 @login_required

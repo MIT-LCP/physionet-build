@@ -301,7 +301,7 @@ class ProcessCredentialForm(forms.ModelForm):
         model = CredentialApplication
         fields = ('responder_comments', 'status')
         labels = {
-            'responder_comments':'Comments (for rejections)',
+            'responder_comments':'Comments (required for rejected or withdrawn applications)',
             'status':'Decision',
         }
         # widgets = {
@@ -316,22 +316,13 @@ class ProcessCredentialForm(forms.ModelForm):
         if self.errors:
             return
 
-        if self.cleaned_data['status'] == 1 and not self.cleaned_data['responder_comments']:
-            raise forms.ValidationError('If you reject, you must describe why.')
+        if self.cleaned_data['status'] in [1, 3] and not self.cleaned_data['responder_comments']:
+            raise forms.ValidationError('If you reject or withdraw, you must explain why.')
 
     def save(self):
         application = super().save()
-        now = timezone.now()
-
-        if application.status == 2:
-            user = application.user
-            user.is_credentialed = True
-            user.credential_datetime = now
-            user.save()
-
-        application.responder = self.responder
-        application.decision_datetime = timezone.now()
-        application.save()
+        application.apply_decision(decision=application.status,
+                                   responder=self.responder)
         return application
 
 
