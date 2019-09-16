@@ -617,10 +617,11 @@ class CredentialApplication(models.Model):
         (2, 'Yes')
     )
 
-    REJECT_ACCEPT = (
+    REJECT_ACCEPT_WITHDRAW = (
         ('', '-----------'),
         (1, 'Reject'),
-        (2, 'Accept')
+        (2, 'Accept'),
+        (3, 'Withdrawn')
     )
 
     # Location for storing files associated with the application
@@ -669,8 +670,8 @@ class CredentialApplication(models.Model):
     reference_email = models.EmailField(default='', blank=True)
     reference_title = models.CharField(max_length=60, default='', blank=True,
         validators=[validate_alphaplusplus])
-    # 0 1 2 = pending, rejected, accepted
-    status = models.PositiveSmallIntegerField(default=0, choices=REJECT_ACCEPT)
+    # 0 1 2 3 = pending, rejected, accepted, withdrawn
+    status = models.PositiveSmallIntegerField(default=0, choices=REJECT_ACCEPT_WITHDRAW)
     reference_contact_datetime = models.DateTimeField(null=True)
     reference_response_datetime = models.DateTimeField(null=True)
     # Whether reference verifies the applicant. 0 1 2 = null, no, yes
@@ -706,6 +707,26 @@ class CredentialApplication(models.Model):
 
     def is_legacy(self):
         return False
+
+    def apply_decision(self, decision, responder):
+        """
+        Reject (1), accept (2), or withdraw (3) a credentialing application.
+
+        Args:
+            decision (int): 1 is reject, 2 is accept, 3 is withdraw.
+            responder (str): User object
+        """
+        # if accepted, credential the user
+        if decision == 2:
+            user = self.user
+            user.is_credentialed = True
+            user.credential_datetime = timezone.now()
+            user.save()
+
+        self.responder = responder
+        self.status = decision
+        self.decision_datetime = timezone.now()
+        self.save()
 
 
 class CloudInformation(models.Model):
