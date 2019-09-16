@@ -12,7 +12,11 @@
   <br /><br />
   <p>It might be located at: <a href="https://archive.physionet.org{{ request.get_full_path_info }}">https://archive.physionet.org{{ request.get_full_path_info }}</a>.
 
-  <p>If you think this is an error, please email us at: <a href="mailto:contact@physionet.org?subject=Missing%20URL%20in%20physionet.org&body=Dear%20Physionet%20Team%2C%0A%0AThe%20following%20URL%20is%20missing%20from%20the%20website.%0A%0A{{ request.get_full_path_info|urlencode }}">contact@physionet.org</a>  </p>
+  <p>If you think this is an error, please email us at: <a href="mailto:contact@physionet.org?subject=Missing%20URL%20in%20physionet.org&body={% filter urlencode %}Dear Physionet Team,
+
+The following URL is missing from the website.
+
+{{ request.get_full_path_info }}{% endfilter %}">contact@physionet.org</a>  </p>
 
 
 </div>
