@@ -10,6 +10,7 @@ from django.core.validators  import validate_email
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
+from django.core.exceptions import ObjectDoesNotExist
 from django.forms import modelformset_factory, Select, Textarea
 from django.http import Http404, JsonResponse, HttpResponse
 from django.shortcuts import redirect, render
@@ -856,8 +857,15 @@ def process_credential_application(request, application_slug):
     Process a credential application. View details, contact reference,
     and make final decision.
     """
-    application = CredentialApplication.objects.get(slug=application_slug,
-        status=0)
+    try:
+        application = CredentialApplication.objects.get(slug=application_slug,
+            status=0)
+    except ObjectDoesNotExist:
+        messages.error(request, """The application has already been
+            processed. It may have been withdrawn by the applicant or
+            handled by another administrator.""")
+        return redirect('credential_applications')
+
     process_credential_form = forms.ProcessCredentialForm(responder=request.user,
         instance=application)
 
