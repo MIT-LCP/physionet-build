@@ -478,8 +478,8 @@ class CloudForm(forms.ModelForm):
         model = CloudInformation
         fields = ('gcp_email','aws_id',)
         labels = {
-            'gcp_email': 'GCP Email',
-            'aws_id': 'AWS ID',
+            'gcp_email': 'Google (Email)',
+            'aws_id': 'Amazon (ID)',
         }
     def __init__(self, *args, **kwargs):
         # Email choices are those belonging to a user
