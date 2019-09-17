@@ -816,9 +816,14 @@ def complete_list_credentialed_people(request):
 
     credentialed_people = []
     for item in legacy_cred_user:
-        credentialed_people.append([item.first_names, item.last_name, 
-            item.email, item.country, datetime.strptime(item.mimic_approval_date, '%m/%d/%Y'), 
-            datetime.strptime(item.eicu_approval_date, '%m/%d/%Y'), item.info])
+        try:
+            credentialed_people.append([item.first_names, item.last_name,
+                item.email, item.country, datetime.strptime(item.mimic_approval_date, '%m/%d/%Y'),
+                datetime.strptime(item.eicu_approval_date, '%m/%d/%Y'), item.info])
+        except ValueError:
+            credentialed_people.append([item.first_names, item.last_name,
+                item.email, item.country, datetime.strptime(item.mimic_approval_date, '%m/%d/%Y'),
+                None, item.info])
     for item in new_cred_user:
         credentialed_people.append([item.first_names, item.last_name, 
             item.user.email, item.country, item.decision_datetime.replace(tzinfo=None), 
