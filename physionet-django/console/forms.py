@@ -322,8 +322,16 @@ class ProcessCredentialForm(forms.ModelForm):
 
     def save(self):
         application = super().save()
-        application.apply_decision(decision=application.status,
-                                   responder=self.responder)
+
+        if application.status == 1:
+            application.reject(self.responder)
+        elif application.status == 2:
+            application.accept(self.responder)
+        elif application.status == 3:
+            application.withdraw(self.responder)
+        else:
+            raise forms.ValidationError('Application status not valid.')
+
         return application
 
 

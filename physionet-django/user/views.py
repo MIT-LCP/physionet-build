@@ -365,7 +365,7 @@ def edit_credentialing(request):
 
     if request.method == 'POST' and 'withdraw_credentialing' in request.POST:
         try:
-            current_application.apply_decision(decision=3, responder=request.user)
+            current_application.withdraw(responder=request.user)
             return redirect('withdraw_credentialing_success')
         except AttributeError:
             messages.error(request, 'The application has already been processed.')

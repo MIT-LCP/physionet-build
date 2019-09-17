@@ -3,11 +3,12 @@ import os
 import pdb
 
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 # from django.contrib.auth. import user_logged_in
 from django.contrib.auth import get_user_model, signals
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import models, DatabaseError, transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
@@ -708,25 +709,45 @@ class CredentialApplication(models.Model):
     def is_legacy(self):
         return False
 
-    def apply_decision(self, decision, responder):
+    def _apply_decision(self, decision, responder):
         """
-        Reject (1), accept (2), or withdraw (3) a credentialing application.
+        Reject, accept, or withdraw a credentialing application.
 
         Args:
-            decision (int): 1 is reject, 2 is accept, 3 is withdraw.
+            decision (int): 1 = reject, 2 = accept, 3 = withdraw.
             responder (str): User object
         """
-        # if accepted, credential the user
-        if decision == 2:
-            user = self.user
-            user.is_credentialed = True
-            user.credential_datetime = timezone.now()
-            user.save()
-
         self.responder = responder
         self.status = decision
         self.decision_datetime = timezone.now()
         self.save()
+
+    def reject(self, responder):
+        """
+        Reject a credentialing application.
+        """
+        self._apply_decision(1, responder)
+
+    def accept(self, responder):
+        """
+        Reject a credentialing application.
+        """
+        try:
+            with transaction.atomic():
+                self._apply_decision(2, responder)
+                # update the user credentials
+                user = self.user
+                user.is_credentialed = True
+                user.credential_datetime = timezone.now()
+                user.save()
+        except DatabaseError:
+            messages.error(request, 'Database error. Please try again.')
+
+    def withdraw(self, responder):
+        """
+        Reject a credentialing application.
+        """
+        self._apply_decision(3, responder)
 
 
 class CloudInformation(models.Model):
