@@ -358,7 +358,6 @@ def edit_username(request):
 def edit_credentialing(request):
     """
     Credentials settings page.
-
     """
     applications = CredentialApplication.objects.filter(user=request.user)
     current_application = applications.filter(status=0).first()
@@ -366,18 +365,13 @@ def edit_credentialing(request):
     if request.method == 'POST' and 'withdraw_credentialing' in request.POST:
         try:
             current_application.withdraw(responder=request.user)
-            return redirect('withdraw_credentialing_success')
+            return render(request, 'user/withdraw_credentialing_success.html')
         except AttributeError:
             messages.error(request, 'The application has already been processed.')
 
     return render(request, 'user/edit_credentialing.html', {
         'applications': applications,
         'current_application': current_application})
-
-
-@login_required
-def withdraw_credentialing_success(request):
-    return render(request, 'user/withdraw_credentialing_success.html')
 
 
 @login_required

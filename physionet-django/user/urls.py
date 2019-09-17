@@ -52,8 +52,6 @@ urlpatterns = [
     path('settings/username/', views.edit_username, name='edit_username'),
     path('settings/cloud/', views.edit_cloud, name='edit_cloud'),
     path('settings/credentialing/', views.edit_credentialing, name='edit_credentialing'),
-    path('settings/withdraw-credentialing-success/', views.withdraw_credentialing_success,
-        name='withdraw_credentialing_success'),
     path('settings/credentialing/applications/',
         views.user_credential_applications, name='user_credential_applications'),
     re_path('^verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
@@ -72,4 +70,3 @@ urlpatterns = [
     path('credential-applications/<application_slug>/training-report/',
         views.training_report, name='training_report'),
 ]
-
