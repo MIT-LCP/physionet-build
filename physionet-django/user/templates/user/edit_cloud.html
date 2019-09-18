@@ -1,9 +1,16 @@
 {% extends "user/settings.html" %}
 
-{% block title %} Edit Cloud information {% endblock %}
+{% block title %} Edit Cloud Details {% endblock %}
 
 {% block main_content %}
-<h1 class="form-signin-heading">Manage cloud settings</h1>
+<h1 class="form-signin-heading">Edit Cloud Details</h1>
+
+<p>PhysioNet is integrated with several cloud services. To access data via these services, you will need to:</p>
+<ul>
+<li>Provide the appropriate account identifier using the form below.</li>
+<li>Navigate to the "Files" section of the relevant project (for example, https://physionet.org/content/eicu-crd-demo/#files).</li>
+<li>Follow the instructions to request access. If instructions for cloud access are not shown, the project is not currently available on the cloud.</li>
+</ul>
 
 <form action="{% url 'edit_cloud' %}" method="post" class="form-signin no-pd">
   <hr>
