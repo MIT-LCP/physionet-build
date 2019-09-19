@@ -1,6 +1,6 @@
 Dear {{ user.get_full_name }},
 
-{% if data_access == 3 %}
+{% if data_access.platform == 3 %}
 You have requested access to use {{ project }} in GCP Storage.
 {% if not new_user %}
 You already have been granted access for this resource. 

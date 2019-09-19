@@ -573,7 +573,7 @@ def credential_application_request(request, application):
 def notify_gcp_access_request(data_access, user, project, new_user):
     subject = 'PhysioNet Google Cloud Platform BigQuery access'
     email = user.cloud_information.gcp_email.email
-    if data_access == 3:
+    if data_access.platform == 3:
         subject = 'PhysioNet Google Cloud Platform storage read access'
     body = loader.render_to_string(
         'notification/email/notify_gcp_access_request.html', {
