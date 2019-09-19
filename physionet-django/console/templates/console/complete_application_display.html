@@ -15,7 +15,7 @@
 	</button> 
 	{{ application.reference_email }} 
 	{% if application.reference_contact_datetime %}
-		[The reference was contacted on {{ application.reference_contact_datetime }}]
+		[The {{ application.reference_category|yesno:"reference,supervisor" }} was contacted on {{ application.reference_contact_datetime }}]
 	{% elif application.known_ref %}
         	[Reference is known]
 	{% endif %}
