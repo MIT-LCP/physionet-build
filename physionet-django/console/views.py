@@ -506,7 +506,7 @@ def unsubmitted_projects(request):
     """
     projects = ActiveProject.objects.filter(submission_status=0).order_by(
         'creation_datetime')
-    projects = paginate(request, projects, 100)
+    projects = paginate(request, projects, 50)
 
     return render(request, 'console/unsubmitted_projects.html',
         {'projects':projects})
@@ -519,7 +519,7 @@ def published_projects(request):
     List of published projects
     """
     projects = PublishedProject.objects.all().order_by('-publish_datetime')
-    projects = paginate(request, projects, 100)
+    projects = paginate(request, projects, 50)
     return render(request, 'console/published_projects.html',
         {'projects':projects})
 
@@ -668,7 +668,7 @@ def rejected_submissions(request):
     List of rejected submissions
     """
     projects = ArchivedProject.objects.filter(archive_reason=3).order_by('archive_datetime')
-    projects = paginate(request, projects, 100)
+    projects = paginate(request, projects, 50)
     return render(request, 'console/rejected_submissions.html',
         {'projects':projects})
 
@@ -680,7 +680,7 @@ def users(request):
     List of users
     """
     all_users = User.objects.all().order_by('username')
-    users = paginate(request, all_users, 100)
+    users = paginate(request, all_users, 50)
 
     return render(request, 'console/users.html', {'users': users})
 
@@ -719,7 +719,7 @@ def users_inactive(request):
         last_login__lt=timezone.now() + timezone.timedelta(days=-90))
         ).order_by('username')
 
-    inactive_users = paginate(request, all_inactive_users, 100)
+    inactive_users = paginate(request, all_inactive_users, 50)
 
     return render(request, 'console/users.html', {'users': inactive_users})
 
@@ -933,11 +933,11 @@ def past_credential_applications(request, status):
         ).order_by('-application_datetime')
     # Here legacy applications and new applications are merged into a list
     applications = list(chain(s_applications, l_applications))
-    applications = paginate(request, applications, 100)
+    applications = paginate(request, applications, 50)
 
     u_applications = CredentialApplication.objects.filter(status=1
         ).order_by('-application_datetime')
-    u_applications = paginate(request, u_applications, 100)
+    u_applications = paginate(request, u_applications, 50)
 
     return render(request, 'console/past_credential_applications.html',
         {'applications': applications, 'u_applications': u_applications})
@@ -959,7 +959,7 @@ def news_console(request):
     List of news items
     """
     news_items = News.objects.all().order_by('-publish_datetime')
-    news_items = paginate(request, news_items, 100)
+    news_items = paginate(request, news_items, 50)
     return render(request, 'console/news_console.html', {'news_items':news_items})
 
 
