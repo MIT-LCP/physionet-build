@@ -410,6 +410,7 @@ def update_user_login(sender, **kwargs):
     else:
         ip = request.META.get('REMOTE_ADDR')
     UserLogin.objects.create(user=user, ip=ip)
+    logger.info('User logged in {0}'.format(user.email))
 
 signals.user_logged_in.connect(update_user_login, sender=User)
 
@@ -572,7 +573,6 @@ class DualAuthModelBackend():
         try:
             user = get_user_model().objects.get(**kwargs)
             if user.check_password(password):
-                logger.info('User logged in {0}'.format(user.email))
                 return user
         except User.DoesNotExist:
             logger.error('Unsuccessful authentication {0}'.format(username.lower()))
