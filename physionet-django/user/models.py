@@ -503,6 +503,9 @@ class LegacyCredential(models.Model):
     def __str__(self):
         return self.email
 
+    def is_legacy(self):
+        return True
+
 
 class Profile(models.Model):
     """
@@ -700,6 +703,9 @@ class CredentialApplication(models.Model):
             return True
         else:
             return False
+
+    def is_legacy(self):
+        return False
 
 
 class CloudInformation(models.Model):

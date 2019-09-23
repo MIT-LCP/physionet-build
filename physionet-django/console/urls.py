@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from console import views
 
 urlpatterns = [
     path('', views.console_home,
@@ -48,7 +48,7 @@ urlpatterns = [
         name='complete_credential_applications'),
     path('complete-list-credentialed-people/', views.complete_list_credentialed_people,
         name='complete_list_credentialed_people'),
-    path('past-credential-applications/', views.past_credential_applications,
+    path('past-credential-applications/<status>', views.past_credential_applications,
         name='past_credential_applications'),
 
     path('credentialed-users/<username>/',
