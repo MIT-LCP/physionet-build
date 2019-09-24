@@ -137,7 +137,7 @@ class UsernameChangeForm(forms.ModelForm):
         self.old_file_root = self.instance.file_root()
         if User.objects.filter(username__iexact=self.cleaned_data['username']):
             raise forms.ValidationError("A user with that username already exists.")
-        return self.cleaned_data['username']
+        return self.cleaned_data['username'].lower()
 
     def save(self):
         """
@@ -221,7 +221,7 @@ class RegistrationForm(forms.ModelForm):
         "Record the original username in case it is needed"
         if User.objects.filter(username__iexact=self.cleaned_data['username']):
             raise forms.ValidationError("A user with that username already exists.")
-        return self.cleaned_data['username']
+        return self.cleaned_data['username'].lower()
 
 
     def clean_password2(self):
