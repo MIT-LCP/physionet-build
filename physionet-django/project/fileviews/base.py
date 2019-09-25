@@ -53,7 +53,7 @@ class FileView:
                 and not hasattr(self.project, 'publish_datetime')):
             base_url = reverse('project_files', args=(self.project.slug,))
             for b in breadcrumbs:
-                b.rel_path = os.path.join(base_url, b.full_subdir)
+                b.rel_path = os.path.join(base_url, b.full_subdir, '')
 
         response = render(request, template, {
             'breadcrumbs': breadcrumbs,
