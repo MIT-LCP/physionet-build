@@ -53,6 +53,8 @@ def activate_user(request, uidb64, token):
         email.save()
         logger.info('User activated - {0}'.format(user.email))
         context = {'title':'Activation Successful', 'isvalid':True}
+    elif user is not None and user.is_active:
+        context = {'title':'Activation Successful', 'isvalid':True}
     else:
         logger.warning('Invalid Activation Link')
         context = {'title':'Invalid Activation Link', 'isvalid':False}
