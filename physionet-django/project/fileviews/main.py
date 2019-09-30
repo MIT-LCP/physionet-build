@@ -41,5 +41,5 @@ def display_project_file(request, project, file_path):
             return view.render(request)
     except IsADirectoryError:
         return redirect(request.path + '/')
-    except FileNotFoundError:
+    except (FileNotFoundError, NotADirectoryError):
         raise Http404()
