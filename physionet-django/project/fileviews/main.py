@@ -29,17 +29,19 @@ def display_project_file(request, project, file_path):
     file_path is the name of the file relative to project.file_root().
     """
 
+    abs_path = os.path.join(project.file_root(), file_path)
     try:
-        abs_path = os.path.join(project.file_root(), file_path)
-        with open(abs_path, 'rb') as infile:
-            if file_path.endswith('.csv.gz'):
-                cls = GzippedCSVFileView
-            else:
-                (_, suffix) = os.path.splitext(file_path)
-                cls = _suffixes.get(suffix, TextFileView)
-            view = cls(project, file_path, infile)
-            return view.render(request)
+        infile = open(abs_path, 'rb')
     except IsADirectoryError:
         return redirect(request.path + '/')
     except (FileNotFoundError, NotADirectoryError):
         raise Http404()
+
+    with infile:
+        if file_path.endswith('.csv.gz'):
+            cls = GzippedCSVFileView
+        else:
+            (_, suffix) = os.path.splitext(file_path)
+            cls = _suffixes.get(suffix, TextFileView)
+        view = cls(project, file_path, infile)
+        return view.render(request)
