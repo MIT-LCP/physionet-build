@@ -581,6 +581,7 @@ def notify_gcp_access_request(data_access, user, project, new_user):
             'data_access': data_access,
             'user': user,
             'new_user': new_user,
+            'project':project,
             'footer': email_footer()
         })
 
