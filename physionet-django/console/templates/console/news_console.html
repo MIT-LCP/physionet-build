@@ -28,7 +28,7 @@
  </script>
  <div class="card mb-3">
   <div class="card-header">
-    News Items <span class="badge badge-pill badge-info">{{ news_items|length }}</span>
+    News Items <span class="badge badge-pill badge-info">{{ news_items.paginator.count }}</span>
   </div>
   <div class="card-body">
     <p><a href="{% url 'news_add' %}" class="btn btn-lg btn-success">Add News Item</a></p>
