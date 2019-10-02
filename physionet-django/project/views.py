@@ -37,7 +37,6 @@ import notification.utility as notification
 from physionet.utility import serve_file
 from user.forms import ProfileForm, AssociatedEmailChoiceForm
 from user.models import User, CloudInformation
-from console.utility import add_email_bucket_access
 
 from dal import autocomplete
 
@@ -1505,11 +1504,6 @@ def sign_dua(request, project_slug, version):
     if request.method == 'POST' and 'agree' in request.POST:
         project.approved_users.add(user)
         DUASignature.objects.create(user=user, project=project)
-        # Add all the emails affiliated with the user to the bucket
-        if GCP.objects.filter(project=project.id) and project.gcp.bucket_name:
-            email_list = user.get_emails()
-            for email in email_list:
-                add_email_bucket_access(project, email)
         return render(request, 'project/sign_dua_complete.html', {
             'project':project})
 
