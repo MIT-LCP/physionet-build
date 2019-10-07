@@ -1298,11 +1298,8 @@ def serve_active_project_file_editor(request, project_slug, full_file_name):
 
     user = request.user
 
-    # Anonymous access authentication
-    an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60*60)
-    has_passphrase = project.get_anonymous_url() == an_url
-
-    if user in project.author_list() or user == project.editor:
+    if user.is_authenticated and (project.authors.filter(user=user) or
+        user == project.editor or user.is_admin):
         file_path = os.path.join(project.file_root(), full_file_name)
         try:
             attach = ('download' in request.GET)

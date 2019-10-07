@@ -432,6 +432,38 @@ class TestAccessPublished(TestMixin, TestCase):
             HTTP_AUTHORIZATION=_basic_auth('rgmark@mit.edu', 'Tester11!'))
         self.assertEqual(response.status_code, 200)
 
+        # Download file using wget on active projects
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+
+        response = self.client.get(reverse('serve_active_project_file_editor',
+            args=(project.slug, 'RECORDS')), secure=True,
+             HTTP_USER_AGENT='Wget/1.18')
+        self.assertEqual(response.status_code, 401)
+
+        response = self.client.get(reverse('serve_active_project_file_editor',
+            args=(project.slug, 'RECORDS')), secure=True,
+            HTTP_USER_AGENT='Wget/1.18',
+            HTTP_AUTHORIZATION=_basic_auth('aewj@mit.edu', 'Tester11!'))
+        self.assertEqual(response.status_code, 403)
+
+        response = self.client.get(reverse('serve_active_project_file_editor',
+            args=(project.slug, 'RECORDS')), secure=True,
+            HTTP_USER_AGENT='Wget/1.18',
+            HTTP_AUTHORIZATION=_basic_auth('rgmark@mit.edu', 'badpassword'))
+        self.assertEqual(response.status_code, 401)
+
+        response = self.client.get(reverse('serve_active_project_file_editor',
+            args=(project.slug, 'RECORDS')), secure=True,
+            HTTP_USER_AGENT='Wget/1.18',
+            HTTP_AUTHORIZATION=_basic_auth('rgmark@mit.edu', 'Tester11!'))
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.get(reverse('serve_active_project_file_editor',
+            args=(project.slug, '')), secure=True,
+            HTTP_USER_AGENT='Wget/1.18',
+            HTTP_AUTHORIZATION=_basic_auth('admin@mit.edu', 'Tester11!'))
+        self.assertEqual(response.status_code, 200)
+
     def test_open(self):
         """
         Test access to an open project.
