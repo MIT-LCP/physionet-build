@@ -81,5 +81,7 @@ urlpatterns = [
     path('<project_slug>/<version>/request_access/<int:access_type>',
         views.project_request_access, name='project_request_access'),
 
-
+    re_path('^(?P<project_slug>\w+)/download/(?P<full_file_name>.*)$',
+        views.serve_active_project_file_editor,
+        name='serve_active_project_file_editor'),
 ]

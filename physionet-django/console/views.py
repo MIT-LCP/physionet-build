@@ -188,11 +188,14 @@ def submission_info(request, project_slug):
         project.anonymous.all().delete()
         anonymous_url, passphrase = '', 'revoked'
 
+    url_prefix = notification.get_url_prefix(request)
+
     return render(request, 'console/submission_info.html',
         {'project':project, 'authors':authors, 'author_emails':author_emails,
          'storage_info':storage_info, 'edit_logs':edit_logs,
          'copyedit_logs':copyedit_logs, 'latest_version':latest_version,
-         'passphrase':passphrase, 'anonymous_url':anonymous_url})
+         'passphrase':passphrase, 'anonymous_url':anonymous_url,
+         'url_prefix':url_prefix})
 
 
 @handling_editor
@@ -230,12 +233,13 @@ def edit_submission(request, project_slug, *args, **kwargs):
             resource_type=project.resource_type, instance=edit_log)
 
     authors, author_emails, storage_info, edit_logs, _, latest_version = project.info_card()
+    url_prefix = notification.get_url_prefix(request)
 
     return render(request, 'console/edit_submission.html',
         {'project':project, 'edit_submission_form':edit_submission_form,
          'authors':authors, 'author_emails':author_emails,
          'storage_info':storage_info, 'edit_logs':edit_logs,
-         'latest_version':latest_version})
+         'latest_version':latest_version, 'url_prefix':url_prefix})
 
 
 @handling_editor
@@ -341,6 +345,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
          project=project, subdir=subdir, display_dirs=display_dirs)
 
     edit_url = reverse('edit_content_item', args=[project.slug])
+    url_prefix = notification.get_url_prefix(request)
 
     return render(request, 'console/copyedit_submission.html', {
         'project':project, 'description_form':description_form,
@@ -361,7 +366,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
         'storage_info':storage_info, 'edit_logs':edit_logs,
         'copyedit_logs':copyedit_logs, 'latest_version':latest_version,
         'add_item_url':edit_url, 'remove_item_url':edit_url,
-        'discovery_form':discovery_form})
+        'discovery_form':discovery_form, 'url_prefix':url_prefix})
 
 
 @handling_editor
@@ -387,11 +392,13 @@ def awaiting_authors(request, project_slug, *args, **kwargs):
         return render(request, 'console/reopen_copyedit_complete.html',
             {'project':project})
 
+    url_prefix = notification.get_url_prefix(request)
+
     return render(request, 'console/awaiting_authors.html',
         {'project':project, 'authors':authors, 'author_emails':author_emails,
          'storage_info':storage_info, 'edit_logs':edit_logs,
          'copyedit_logs':copyedit_logs, 'latest_version':latest_version,
-         'outstanding_emails':outstanding_emails})
+         'outstanding_emails':outstanding_emails, 'url_prefix':url_prefix})
 
 
 @handling_editor
@@ -441,12 +448,15 @@ def publish_submission(request, project_slug, *args, **kwargs):
                 {'published_project':published_project})
 
     publishable = project.is_publishable()
+    url_prefix = notification.get_url_prefix(request)
+
     return render(request, 'console/publish_submission.html',
         {'project':project, 'publishable':publishable, 'authors':authors,
          'author_emails':author_emails, 'storage_info':storage_info,
          'edit_logs':edit_logs, 'copyedit_logs':copyedit_logs,
          'latest_version':latest_version, 'publish_form':publish_form,
-         'max_slug_length': MAX_PROJECT_SLUG_LENGTH})
+         'max_slug_length': MAX_PROJECT_SLUG_LENGTH, 
+         'url_prefix':url_prefix})
 
 
 def process_storage_response(request, storage_response_formset):

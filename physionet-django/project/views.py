@@ -1284,6 +1284,32 @@ def published_files_panel(request, project_slug, version):
     else:
         raise Http404()
 
+def serve_active_project_file_editor(request, project_slug, full_file_name):
+    """
+    Serve a file or subdirectory of a published project.
+    Works for open and protected. Not needed for open.
+
+    """
+    utility.check_http_auth(request)
+    try:
+        project = ActiveProject.objects.get(slug=project_slug)
+    except ObjectDoesNotExist:
+        raise Http404()
+
+    user = request.user
+
+    if user.is_authenticated and (project.authors.filter(user=user) or
+        user == project.editor or user.is_admin):
+        file_path = os.path.join(project.file_root(), full_file_name)
+        try:
+            attach = ('download' in request.GET)
+            return serve_file(file_path, attach=attach, allow_directory=True)
+        except IsADirectoryError:
+            return redirect(request.path + '/')
+        except (NotADirectoryError, FileNotFoundError):
+            raise Http404()
+
+    return utility.require_http_auth(request)
 
 def serve_published_project_file(request, project_slug, version,
         full_file_name):
