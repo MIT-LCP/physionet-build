@@ -410,7 +410,8 @@ class CredentialApplicationForm(forms.ModelForm):
 
         # Students and postdocs must provide their supervisor as a reference
         if data['researcher_category'] in [0, 1] and data['reference_category'] != 0:
-            raise forms.ValidationError('If you are a student or postdoc, you must provide your supervisor as a reference.')
+            raise forms.ValidationError("""If you are a student or postdoc,
+                you must provide your supervisor as a reference.""")
 
         if not self.instance and CredentialApplication.objects.filter(user=self.user, status=0):
             raise forms.ValidationError('Outstanding application exists.')
