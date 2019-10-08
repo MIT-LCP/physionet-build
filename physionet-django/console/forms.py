@@ -301,7 +301,7 @@ class ProcessCredentialForm(forms.ModelForm):
         model = CredentialApplication
         fields = ('responder_comments', 'status')
         labels = {
-            'responder_comments':'Comments (for rejections)',
+            'responder_comments':'Comments (required for rejected applications)',
             'status':'Decision',
         }
         # widgets = {
@@ -311,27 +311,27 @@ class ProcessCredentialForm(forms.ModelForm):
     def __init__(self, responder, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.responder = responder
+        self.fields['status'].choices = CredentialApplication.REJECT_ACCEPT_WITHDRAW[:3]
 
     def clean(self):
         if self.errors:
             return
 
         if self.cleaned_data['status'] == 1 and not self.cleaned_data['responder_comments']:
-            raise forms.ValidationError('If you reject, you must describe why.')
+            raise forms.ValidationError('If you reject, you must explain why.')
 
     def save(self):
         application = super().save()
-        now = timezone.now()
 
-        if application.status == 2:
-            user = application.user
-            user.is_credentialed = True
-            user.credential_datetime = now
-            user.save()
+        if application.status == 1:
+            application.reject(self.responder)
+        elif application.status == 2:
+            application.accept(self.responder)
+        elif application.status == 3:
+            application.withdraw(self.responder)
+        else:
+            raise forms.ValidationError('Application status not valid.')
 
-        application.responder = self.responder
-        application.decision_datetime = timezone.now()
-        application.save()
         return application
 
 

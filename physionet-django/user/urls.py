@@ -70,4 +70,3 @@ urlpatterns = [
     path('credential-applications/<application_slug>/training-report/',
         views.training_report, name='training_report'),
 ]
-

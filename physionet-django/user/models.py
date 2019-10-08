@@ -3,11 +3,12 @@ import os
 import pdb
 
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 # from django.contrib.auth. import user_logged_in
 from django.contrib.auth import get_user_model, signals
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import models, DatabaseError, transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
@@ -617,10 +618,11 @@ class CredentialApplication(models.Model):
         (2, 'Yes')
     )
 
-    REJECT_ACCEPT = (
+    REJECT_ACCEPT_WITHDRAW = (
         ('', '-----------'),
         (1, 'Reject'),
-        (2, 'Accept')
+        (2, 'Accept'),
+        (3, 'Withdrawn')
     )
 
     # Location for storing files associated with the application
@@ -669,8 +671,8 @@ class CredentialApplication(models.Model):
     reference_email = models.EmailField(default='', blank=True)
     reference_title = models.CharField(max_length=60, default='', blank=True,
         validators=[validate_alphaplusplus])
-    # 0 1 2 = pending, rejected, accepted
-    status = models.PositiveSmallIntegerField(default=0, choices=REJECT_ACCEPT)
+    # 0 1 2 3 = pending, rejected, accepted, withdrawn
+    status = models.PositiveSmallIntegerField(default=0, choices=REJECT_ACCEPT_WITHDRAW)
     reference_contact_datetime = models.DateTimeField(null=True)
     reference_response_datetime = models.DateTimeField(null=True)
     # Whether reference verifies the applicant. 0 1 2 = null, no, yes
@@ -706,6 +708,46 @@ class CredentialApplication(models.Model):
 
     def is_legacy(self):
         return False
+
+    def _apply_decision(self, decision, responder):
+        """
+        Reject, accept, or withdraw a credentialing application.
+
+        Args:
+            decision (int): 1 = reject, 2 = accept, 3 = withdraw.
+            responder (str): User object
+        """
+        self.responder = responder
+        self.status = decision
+        self.decision_datetime = timezone.now()
+        self.save()
+
+    def reject(self, responder):
+        """
+        Reject a credentialing application.
+        """
+        self._apply_decision(1, responder)
+
+    def accept(self, responder):
+        """
+        Reject a credentialing application.
+        """
+        try:
+            with transaction.atomic():
+                self._apply_decision(2, responder)
+                # update the user credentials
+                user = self.user
+                user.is_credentialed = True
+                user.credential_datetime = timezone.now()
+                user.save()
+        except DatabaseError:
+            messages.error(request, 'Database error. Please try again.')
+
+    def withdraw(self, responder):
+        """
+        Reject a credentialing application.
+        """
+        self._apply_decision(3, responder)
 
 
 class CloudInformation(models.Model):

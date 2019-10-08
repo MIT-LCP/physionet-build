@@ -789,7 +789,14 @@ def complete_credential_applications(request):
                 {'application': application, 'mailto': mailto})
         if 'process_application' in request.POST and request.POST['process_application'].isdigit():
             application_id = request.POST.get('process_application', '')
-            application = CredentialApplication.objects.get(id=application_id)
+            try:
+                application = CredentialApplication.objects.get(id=application_id,
+                    status=0)
+            except CredentialApplication.DoesNotExist:
+                messages.error(request, """The application has already been
+                    processed. It may have been withdrawn by the applicant or
+                    handled by another administrator.""")
+                return redirect('complete_credential_applications')
             process_credential_form = forms.ProcessCredentialForm(
                 responder=request.user, data=request.POST, instance=application)
 
@@ -856,8 +863,15 @@ def process_credential_application(request, application_slug):
     Process a credential application. View details, contact reference,
     and make final decision.
     """
-    application = CredentialApplication.objects.get(slug=application_slug,
-        status=0)
+    try:
+        application = CredentialApplication.objects.get(slug=application_slug,
+            status=0)
+    except CredentialApplication.DoesNotExist:
+        messages.error(request, """The application has already been
+            processed. It may have been withdrawn by the applicant or
+            handled by another administrator.""")
+        return redirect('credential_applications')
+
     process_credential_form = forms.ProcessCredentialForm(responder=request.user,
         instance=application)
 
@@ -942,7 +956,7 @@ def past_credential_applications(request, status):
                 c_application.save()
 
 
-    l_applications = LegacyCredential.objects.filter(migrated=True, 
+    l_applications = LegacyCredential.objects.filter(migrated=True,
         migrated_user__is_credentialed=True).order_by('-migration_date')
     s_applications = CredentialApplication.objects.filter(status=2
         ).order_by('-application_datetime')
@@ -950,7 +964,7 @@ def past_credential_applications(request, status):
     applications = list(chain(s_applications, l_applications))
     applications = paginate(request, applications, 50)
 
-    u_applications = CredentialApplication.objects.filter(status=1
+    u_applications = CredentialApplication.objects.filter(status__in=[1, 3]
         ).order_by('-application_datetime')
     u_applications = paginate(request, u_applications, 50)
 
