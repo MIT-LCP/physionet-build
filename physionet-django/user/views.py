@@ -363,10 +363,10 @@ def edit_credentialing(request):
     current_application = applications.filter(status=0).first()
 
     if request.method == 'POST' and 'withdraw_credentialing' in request.POST:
-        try:
+        if current_application:
             current_application.withdraw(responder=request.user)
             return render(request, 'user/withdraw_credentialing_success.html')
-        except AttributeError:
+        else:
             messages.error(request, 'The application has already been processed.')
 
     return render(request, 'user/edit_credentialing.html', {
