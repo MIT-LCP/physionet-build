@@ -272,7 +272,7 @@ class PersonalCAF(forms.ModelForm):
             'organization_name', 'job_title', 'city', 'state_province',
             'zip_code', 'country', 'webpage')
         help_texts = {
-            'first_names': "First and middle names.",
+            'first_names': "First name(s).",
             'last_name': "Last (family) name.",
             'suffix': """Please leave the suffix blank if your name does not 
                 include a suffix like "Jr." or "III". Do not list degrees. 
