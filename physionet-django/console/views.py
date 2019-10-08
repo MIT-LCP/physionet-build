@@ -789,7 +789,14 @@ def complete_credential_applications(request):
                 {'application': application, 'mailto': mailto})
         if 'process_application' in request.POST and request.POST['process_application'].isdigit():
             application_id = request.POST.get('process_application', '')
-            application = CredentialApplication.objects.get(id=application_id)
+            try:
+                application = CredentialApplication.objects.get(id=application_id,
+                    status=0)
+            except CredentialApplication.DoesNotExist:
+                messages.error(request, """The application has already been
+                    processed. It may have been withdrawn by the applicant or
+                    handled by another administrator.""")
+                return redirect('complete_credential_applications')
             process_credential_form = forms.ProcessCredentialForm(
                 responder=request.user, data=request.POST, instance=application)
 
