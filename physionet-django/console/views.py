@@ -812,7 +812,7 @@ def complete_credential_applications(request):
         application.mailto = notification.mailto_process_credential_complete(
             request, application, comments=False)
         if CredentialApplication.objects.filter(reference_email__iexact=application.reference_email,
-            reference_contact_datetime__isnull=False):
+            reference_contact_datetime__isnull=False).exclude(reference_email=''):
             # If the reference has been contacted before, mark it so
             application.known_ref = True
         elif LegacyCredential.objects.filter(reference_email__iexact=application.reference_email).exclude(
