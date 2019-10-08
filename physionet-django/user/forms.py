@@ -326,7 +326,7 @@ class ResearchCAF(forms.ModelForm):
         model = CredentialApplication
         fields = ('research_summary',)
         help_texts = {
-            'research_summary': """Brief description on your research. If you 
+            'research_summary': """Brief description of your research. If you 
                 will be using the data for a class, please include course name 
                 and number in your description.""",
         }
