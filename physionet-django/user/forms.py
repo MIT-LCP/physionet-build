@@ -409,7 +409,11 @@ class CredentialApplicationForm(forms.ModelForm):
             return
 
         # Students and postdocs must provide their supervisor as a reference
-        if data['researcher_category'] in [0, 1] and data['reference_category'] != 0:
+        if data['researcher_category'] in [0, 1] and (
+            data['reference_category'] != 0
+            or not data['reference_name']
+            or not data['reference_email']
+            or not data['reference_title']):
             raise forms.ValidationError("""If you are a student or postdoc,
                 you must provide your supervisor as a reference.""")
 
