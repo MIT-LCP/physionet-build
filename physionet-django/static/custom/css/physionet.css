@@ -544,3 +544,8 @@ a, code{
   border-image: linear-gradient(to bottom, silver 0%, silver 60%, transparent 100%) 1% 100%;
           
 }
+
+.tooltip-inner {
+  text-align: left;
+  max-width: 350px;
+}
