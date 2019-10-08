@@ -417,6 +417,10 @@ class CredentialApplicationForm(forms.ModelForm):
             raise forms.ValidationError("""If you are a student or postdoc,
                 you must provide your supervisor as a reference.""")
 
+        # If applicant is from USA or Canada, the state must be provided
+        if data['country'] in ['US', 'CA'] and not data['state_province']:
+            raise forms.ValidationError("Please add your state or province.")
+
         if not self.instance and CredentialApplication.objects.filter(user=self.user, status=0):
             raise forms.ValidationError('Outstanding application exists.')
 
