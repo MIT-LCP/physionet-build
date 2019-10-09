@@ -272,7 +272,7 @@ class PersonalCAF(forms.ModelForm):
             'organization_name', 'job_title', 'city', 'state_province',
             'zip_code', 'country', 'webpage')
         help_texts = {
-            'first_names': "First and middle names.",
+            'first_names': "First name(s).",
             'last_name': "Last (family) name.",
             'suffix': """Please leave the suffix blank if your name does not 
                 include a suffix like "Jr." or "III". Do not list degrees. 
@@ -326,7 +326,7 @@ class ResearchCAF(forms.ModelForm):
         model = CredentialApplication
         fields = ('research_summary',)
         help_texts = {
-            'research_summary': """Brief description on your research. If you 
+            'research_summary': """Brief description of your research. If you 
                 will be using the data for a class, please include course name 
                 and number in your description.""",
         }
@@ -409,8 +409,17 @@ class CredentialApplicationForm(forms.ModelForm):
             return
 
         # Students and postdocs must provide their supervisor as a reference
-        if data['researcher_category'] in [0, 1] and data['reference_category'] != 0:
-            raise forms.ValidationError('If you are a student or postdoc, you must provide your supervisor as a reference.')
+        if data['researcher_category'] in [0, 1] and (
+            data['reference_category'] != 0
+            or not data['reference_name'].strip()
+            or not data['reference_email'].strip()
+            or not data['reference_title'].strip()):
+            raise forms.ValidationError("""If you are a student or postdoc,
+                you must provide your supervisor as a reference.""")
+
+        # If applicant is from USA or Canada, the state must be provided
+        if data['country'] in ['US', 'CA'] and not data['state_province']:
+            raise forms.ValidationError("Please add your state or province.")
 
         if not self.instance and CredentialApplication.objects.filter(user=self.user, status=0):
             raise forms.ValidationError('Outstanding application exists.')
