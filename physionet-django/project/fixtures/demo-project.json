@@ -705,7 +705,6 @@
     "is_latest_version": true,
     "doi": "10.13026/G2F309",
     "programming_languages": [],
-    "approved_users": [],
     "featured": 1
   }
 },
@@ -751,8 +750,7 @@
     "programming_languages": [
       1,
       4
-    ],
-    "approved_users": []
+    ]
   }
 },
 {
@@ -795,8 +793,7 @@
     "is_legacy": false,
     "has_wfdb": true,
     "full_description": "",
-    "programming_languages": [],
-    "approved_users": []
+    "programming_languages": []
   }
 },
 {
