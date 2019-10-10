@@ -49,7 +49,7 @@ def all_topics(request):
                   {'topics': topics})
 
 
-def get_content(resource_type, orderby, direction, topic):
+def get_content(resource_type, orderby, direction, search_term):
     """
     Helper function to get content shown on a resource listing page
     """
@@ -60,16 +60,16 @@ def get_content(resource_type, orderby, direction, topic):
         wb = r'\y'
 
     # Build query for resource type and keyword filtering
-    if len(topic) == 0:
+    if len(search_term) == 0:
         query = Q(resource_type__in=resource_type)
     else:
-        topic = re.split(r'\s*[\;\,\s]\s*', topic)
+        search_term = re.split(r'\s*[\;\,\s]\s*', search_term)
         query = reduce(operator.or_, (Q(topics__description__iregex=r'{0}{1}{0}'.format(wb,
-            item)) for item in topic))
+            item)) for item in search_term))
         query = query | reduce(operator.or_, (Q(abstract__iregex=r'{0}{1}{0}'.format(wb,
-            item)) for item in topic))
+            item)) for item in search_term))
         query = query | reduce(operator.or_, (Q(title__iregex=r'{0}{1}{0}'.format(wb,
-            item)) for item in topic))
+            item)) for item in search_term))
         query = query & Q(resource_type__in=resource_type)
     published_projects = (PublishedProject.objects
         .filter(query, is_latest_version=True)
@@ -78,7 +78,7 @@ def get_content(resource_type, orderby, direction, topic):
     )
 
     # Relevance
-    for t in topic:
+    for t in search_term:
         published_projects = (published_projects.annotate(has_keys=Case(
                 When(topics__description__iregex=r'{0}{1}{0}'.format(wb, t),
                      then=Value(3)),
@@ -147,7 +147,7 @@ def content_index(request, resource_type=None):
     published_projects = get_content(resource_type=resource_type,
                                      orderby=orderby,
                                      direction=direction,
-                                     topic=topic)
+                                     search_term=topic)
 
     # PAGINATION
     projects = paginate(request, published_projects, 10)
