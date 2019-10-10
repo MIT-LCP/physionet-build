@@ -63,7 +63,7 @@ def get_content(resource_type, orderby, direction, search_term):
     if len(search_term) == 0:
         query = Q(resource_type__in=resource_type)
     else:
-        search_term = re.split(r'\s*[\;\,\s]\s*', search_term)
+        search_term = re.split(r'\s*[\;\,\s]\s*', re.escape(search_term))
         query = reduce(operator.or_, (Q(topics__description__iregex=r'{0}{1}{0}'.format(wb,
             item)) for item in search_term))
         query = query | reduce(operator.or_, (Q(abstract__iregex=r'{0}{1}{0}'.format(wb,
