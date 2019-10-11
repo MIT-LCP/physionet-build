@@ -23,6 +23,7 @@ from django.template import loader
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html, format_html_join
+from django.views.decorators.cache import never_cache
 
 from project.fileviews import display_project_file
 from project import forms
@@ -162,7 +163,6 @@ def process_invitation_response(request, invitation_response_formset):
                 return False, False
 
 
-
 @login_required
 def project_home(request):
     """
@@ -220,6 +220,7 @@ def project_home(request):
         'pending_author_approvals': pending_author_approvals,
         'invitation_response_formset': invitation_response_formset})
 
+
 @login_required
 def create_project(request):
     user = request.user
@@ -239,6 +240,7 @@ def create_project(request):
         form = forms.CreateProjectForm(user=user)
 
     return render(request, 'project/create_project.html', {'form':form})
+
 
 @login_required
 def new_project_version(request, project_slug):
@@ -345,6 +347,7 @@ def remove_author(request, author_id, project, authors):
                 author.save()
 
         messages.success(request, 'The author has been removed from the project')
+
 
 def cancel_invitation(request, invitation_id, project):
     """
@@ -690,7 +693,6 @@ def load_license(request, project_slug):
     return render(request, 'project/license_input.html', {'form':form})
 
 
-
 @project_auth(auth_mode=0, post_auth_mode=2)
 def project_discovery(request, project_slug, **kwargs):
     """
@@ -762,6 +764,7 @@ def get_file_forms(project, subdir, display_dirs):
 
     return (upload_files_form, create_folder_form, rename_item_form,
             move_items_form, delete_items_form)
+
 
 def get_project_file_info(project, subdir):
     """
@@ -865,6 +868,7 @@ def project_files_panel(request, project_slug, **kwargs):
          'is_submitting':is_submitting,
          'is_editor':is_editor})
 
+
 def process_items(request, form):
     """
     Process the file manipulation items with the appropriate form and
@@ -886,6 +890,7 @@ def process_items(request, form):
             return form.cleaned_data['subdir']
         else:
             return ''
+
 
 def process_files_post(request, project):
     """
@@ -972,6 +977,7 @@ def project_files(request, project_slug, subdir='', **kwargs):
         'file_warning':file_warning})
 
 
+@never_cache
 @project_auth(auth_mode=3)
 def serve_active_project_file(request, project_slug, file_name, **kwargs):
     """
@@ -1310,6 +1316,8 @@ def serve_active_project_file_editor(request, project_slug, full_file_name):
 
     return utility.require_http_auth(request)
 
+
+@never_cache
 def serve_published_project_file(request, project_slug, version,
         full_file_name):
     """
@@ -1375,6 +1383,7 @@ def display_published_project_file(request, project_slug, version,
                   context, status=403)
 
 
+@never_cache
 def serve_published_project_zip(request, project_slug, version):
     """
     Serve the zip file of a published project.

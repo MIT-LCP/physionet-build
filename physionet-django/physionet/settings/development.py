@@ -48,3 +48,21 @@ MEDIA_X_ACCEL_ALIAS = None
 if len(sys.argv) > 1 and sys.argv[1] == 'test':
     MEDIA_ROOT = os.path.join(MEDIA_ROOT, 'test')
     STATICFILES_DIRS[0] = os.path.join(STATICFILES_DIRS[0], 'test')
+
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+#     }
+# }
+
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': '/tmp/django_cache',
+        'TIMEOUT': 60,
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000
+        }
+    }
+}

@@ -51,3 +51,15 @@ STATIC_ROOT = '/data/pn-static'
 if len(sys.argv) > 1 and sys.argv[1] == 'test':
     MEDIA_ROOT = os.path.join(MEDIA_ROOT, 'test')
     STATIC_ROOT = os.path.join(STATIC_ROOT, 'test')
+
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': '/tmp/django_cache',
+        'TIMEOUT': 60,
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000
+        }
+    }
+}
