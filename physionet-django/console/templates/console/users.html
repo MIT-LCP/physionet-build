@@ -13,9 +13,10 @@
 <script src="{% static 'custom/js/cookie.js' %}"></script>
 <script src="{% static 'project/js/dynamic-formset.js' %}"></script>
 <script type="text/javascript">
+ var currentRequest = null;
  function search(value){
   var csrftoken = getCookie('csrftoken');
-  $.ajax({
+  currentRequest = $.ajax({
     type: "POST",
     url: "{% url 'users_list_search' %}",
     data: {'csrfmiddlewaretoken':csrftoken,
@@ -23,6 +24,11 @@
             {% if request.path == user_list_inactive %}
               'inactive':true,
             {% endif %}
+    },
+    beforeSend : function()    {
+        if(currentRequest != null) {
+            currentRequest.abort();
+        }
     },
     success: function reloadSection(result){
         $("#userlist").html(result);
@@ -44,6 +50,7 @@
       <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
         <thead>
           <tr>
+            <th></th>
             <th>Username</th>
             <th>Full Name</th>
             <th>Email</th>

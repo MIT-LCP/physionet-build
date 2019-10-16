@@ -1,5 +1,7 @@
 {% for user in users %}
   <tr>
+    {% if user.is_active %}<td><i class="fas fa-user-check"></i></td>
+    {% else %}<td></td>{% endif %}
     <td><a href="{% url 'public_profile' user.username %}">{{ user.username }}</td>
     <td>{{ user.get_full_name }}</td>
     <td>{{ user.email }}</td>

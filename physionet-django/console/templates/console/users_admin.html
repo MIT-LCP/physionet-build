@@ -12,6 +12,7 @@
       <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
         <thead>
           <tr>
+            <th></th>
             <th>Username</th>
             <th>Full Name</th>
             <th>Email</th>
@@ -22,17 +23,7 @@
           </tr>
         </thead>
         <tbody>
-        {% for user in admin_users %}
-          <tr>
-            <td><a href="{% url 'public_profile' user.username %}">{{ user.username }}</td>
-            <td>{{ user.get_full_name }}</td>
-            <td>{{ user.email }}</td>
-            <td>{{ user.join_date }}</td>
-            <td>{{ user.last_login|date }}</td>
-            <td>{{ user.login_time.values_list|length }} </td>
-            <td>{{ user.credential_datetime|date}}</td>
-          </tr>
-        {% endfor %}
+          {% include 'console/users_list.html' with users=admin_users %}
         </tbody>
       </table>
     </div>
