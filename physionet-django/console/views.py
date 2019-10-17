@@ -721,17 +721,21 @@ def users_search(request):
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
-def users_inactive(request):
+def user_status_list(request, status):
     """
     List of users
     """
-    all_inactive_users = User.objects.filter(Q(is_active=False) | Q(
-        last_login__lt=timezone.now() + timezone.timedelta(days=-90))
-        ).order_by('username')
+    if status == 'active':
+        all_active_users = User.objects.filter(Q(is_active=True) & Q(last_login__gt=timezone.now() + timezone.timedelta(days=-90))).order_by('username')
+        users = paginate(request, all_active_users, 50)
+    else:
+        all_inactive_users = User.objects.filter(Q(is_active=False) | Q(
+            last_login__lt=timezone.now() + timezone.timedelta(days=-90))
+            ).order_by('username')
 
-    inactive_users = paginate(request, all_inactive_users, 50)
+        users = paginate(request, all_inactive_users, 50)
 
-    return render(request, 'console/users.html', {'users': inactive_users})
+    return render(request, 'console/users.html', {'users': users})
 
 
 @login_required

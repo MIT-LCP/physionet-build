@@ -68,7 +68,8 @@ urlpatterns = [
     path('users/all/', views.users, name='user_list'),
     path('users/search/', views.users_search, name='users_list_search'),
     path('users/admin/', views.users_admin, name='user_list_admin'),
-    path('users/inactive/', views.users_inactive, name='user_list_inactive'),
+    path('users/<status>/', views.user_status_list, name='user_status_list'),
+
     # path('users/lcp/', views.lcp_affiliates, name='lcp_affiliates'),
 
     path('news/', views.news_console, name='news_console'),
