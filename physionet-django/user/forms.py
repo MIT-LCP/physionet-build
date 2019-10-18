@@ -372,6 +372,35 @@ class ReferenceCAF(forms.ModelForm):
         }
 
 
+    def clean_reference_name(self):
+        reference_name = self.cleaned_data.get('reference_name')
+        if reference_name:
+            return reference_name.strip()
+
+    def clean_reference_email(self):
+        reference_email = self.cleaned_data.get('reference_email')
+        if reference_email:
+            return reference_email.strip()
+
+    def clean_reference_title(self):
+        reference_title = self.cleaned_data.get('reference_title')
+        if reference_title:
+            return reference_title.strip()
+
+    def clean(self):
+        data = self.cleaned_data
+
+        if any(self.errors):
+            return
+
+        # If a reference category is provided, then the reference fields must me filled.
+        if ((data['reference_category'] in [0, 1, 2, 3] and (not data['reference_name'] or not data['reference_email'] or not data['reference_title']))
+        or (data['reference_name'] and (not data['reference_category'] or not data['reference_email'] or not data['reference_title']))
+        or (data['reference_email'] and (not data['reference_category'] or not data['reference_name'] or not data['reference_title']))
+        or (data['reference_title'] and (not data['reference_category'] or not data['reference_name'] or not data['reference_email']))):
+            raise forms.ValidationError("""Please provide the reference information.""")
+
+
 class CredentialApplicationForm(forms.ModelForm):
     """
     Form to apply for PhysioNet credentialling
@@ -411,9 +440,9 @@ class CredentialApplicationForm(forms.ModelForm):
         # Students and postdocs must provide their supervisor as a reference
         if data['researcher_category'] in [0, 1] and (
             data['reference_category'] != 0
-            or not data['reference_name'].strip()
-            or not data['reference_email'].strip()
-            or not data['reference_title'].strip()):
+            or not data['reference_name']
+            or not data['reference_email']
+            or not data['reference_title']):
             raise forms.ValidationError("""If you are a student or postdoc,
                 you must provide your supervisor as a reference.""")
 
