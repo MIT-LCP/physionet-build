@@ -146,6 +146,7 @@
                   <th>Submitted</th>
                   <th>Revision Requested</th>
                   <th>Editor</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -156,6 +157,16 @@
                   <td>{{ project.submission_datetime|date }}</td>
                   <td>{{ project.revision_request_datetime|date }}</td>
                   <td>{{ project.editor }}</td>
+                  <td>
+                    <form action="" method="post" class="form-signin">
+                      {% csrf_token %}
+                      {% if project.latest_reminder < yesterday %}
+                      <button class="btn btn-primary" name="send_revision_reminder" value="{{ project.id }}" type="submit">Send Reminder Email</button>
+                      {% else %}
+                      <button class="btn btn-primary" name="send_revision_reminder" value="{{ project.id }}" disabled type="submit">Send Reminder Email</button>
+                      {% endif %}
+                    </form>
+                  </td>
                 </tr>
               {% endfor %}
               </tbody>
@@ -215,6 +226,7 @@
                   <th>Editor Accepted</th>
                   <th>Copyedit Completed</th>
                   <th>Editor</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -226,6 +238,13 @@
                   <td>{{ project.editor_accept_datetime|date }}</td>
                   <td>{{ project.copyedit_completion_datetime|date }}</td>
                   <td>{{ project.editor }}</td>
+                  <td>
+                    {% if project.latest_reminder < yesterday %}
+                      <button class="btn btn-primary" name="send_approval_reminder" value="{{ project.id }}" type="submit">Send Reminder Email</button>
+                    {% else %}
+                      <button class="btn btn-primary" name="send_approval_reminder" value="{{ project.id }}" disabled type="submit">Send Reminder Email</button>
+                    {% endif %}
+                  </td>
                 </tr>
               {% endfor %}
               </tbody>

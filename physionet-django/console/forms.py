@@ -5,6 +5,7 @@ from django import forms
 from django.utils import timezone
 from django.core.validators import validate_integer, validate_email, URLValidator
 from google.cloud import storage
+from django.db import transaction
 
 
 from notification.models import News
@@ -129,31 +130,34 @@ class EditSubmissionForm(forms.ModelForm):
         """
         Process the editor decision
         """
-        edit_log = super().save()
-        project = edit_log.project
-        now = timezone.now()
-        # This object has to be saved first before calling reject, which
-        # edits the related EditLog objects (this).
-        edit_log.decision_datetime = now
-        edit_log.save()
-        # Reject
-        if edit_log.decision == 0:
-            project.reject()
-            # Have to reload this object which is changed by the reject
-            # function
-            edit_log = EditLog.objects.get(id=edit_log.id)
-        # Resubmit with revisions
-        elif edit_log.decision == 1:
-            project.submission_status = 30
-            project.revision_request_datetime = now
-            project.save()
-        # Accept
-        else:
-            project.submission_status = 40
-            project.editor_accept_datetime = now
-            CopyeditLog.objects.create(project=project)
-            project.save()
-        return edit_log
+        with transaction.atomic():
+            edit_log = super().save(commit=False)
+            project = edit_log.project
+            now = timezone.now()
+            # This object has to be saved first before calling reject, which
+            # edits the related EditLog objects (this).
+            edit_log.decision_datetime = now
+            edit_log.save()
+            # Reject
+            if edit_log.decision == 0:
+                project.reject()
+                # Have to reload this object which is changed by the reject
+                # function
+                edit_log = EditLog.objects.get(id=edit_log.id)
+            # Resubmit with revisions
+            elif edit_log.decision == 1:
+                project.submission_status = 30
+                project.revision_request_datetime = now
+                project.latest_reminder = now
+                project.save()
+            # Accept
+            else:
+                project.submission_status = 40
+                project.editor_accept_datetime = now
+                project.latest_reminder = now
+                CopyeditLog.objects.create(project=project)
+                project.save()
+            return edit_log
 
 
 class CopyeditForm(forms.ModelForm):
@@ -180,15 +184,17 @@ class CopyeditForm(forms.ModelForm):
         """
         Complete the copyedit
         """
-        copyedit_log = super().save()
-        project = copyedit_log.project
-        now = timezone.now()
-        copyedit_log.complete_datetime = now
-        copyedit_log.save()
-        project.submission_status = 50
-        project.copyedit_completion_datetime = now
-        project.save()
-        return copyedit_log
+        with transaction.atomic():
+            copyedit_log = super().save(commit=False)
+            project = copyedit_log.project
+            now = timezone.now()
+            copyedit_log.complete_datetime = now
+            project.submission_status = 50
+            project.copyedit_completion_datetime = now
+            project.latest_reminder = now
+            copyedit_log.save()
+            project.save()
+            return copyedit_log
 
 
 class PublishForm(forms.Form):

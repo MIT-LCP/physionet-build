@@ -69,6 +69,7 @@
               <th>Submitting Author</th>
               <th>Submission Date</th>
               <th>Revision Request Date</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -78,6 +79,16 @@
               <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
               <td>{{ project.submission_datetime|date }}</td>
               <td>{{ project.revision_request_datetime|date }}</td>
+              <td>
+                <form action="" method="post" class="form-signin">
+                  {% csrf_token %}
+                  {% if project.latest_reminder < yesterday %}
+                  <button class="btn btn-primary" name="send_reminder" value="{{ project.id }}" type="submit">Send Reminder Email</button>
+                  {% else %}
+                  <button class="btn btn-primary" name="send_reminder" value="{{ project.id }}" disabled type="submit">Send Reminder Email</button>
+                  {% endif %}
+                </form>
+              </td>
             </tr>
           {% endfor %}
           </tbody>
@@ -153,7 +164,7 @@
               <td>{{ project.submission_datetime|date }}</td>
               <td>{{ project.editor_accept_datetime|date }}</td>
               <td>{{ project.copyedit_completion_datetime|date }}</td>
-              <td><a class="btn btn-primary btn-sm" href="{% url 'awaiting_authors' project.slug %}" role="button">View Authors</a></td>
+              <td><a class="btn btn-primary btn-sm" href="{% url 'awaiting_authors' project.slug %}" role="button">View</a></td>
             </tr>
           {% endfor %}
           </tbody>

@@ -23,13 +23,19 @@
   <div class="card-body">
     <div class="table-responsive">
       {% include "project/awaiting_authors_table.html" %}
-      <button class="btn btn-lg btn-primary" onclick="copyToClipboard('{{ outstanding_emails }}')">Copy Outstanding Emails</button>
+      <form action="" method="post" class="form-signin">
+        {% csrf_token %}
+        <button class="btn btn-lg btn-primary" onclick="copyToClipboard('{{ outstanding_emails }}')">Copy Outstanding Emails</button>
+        {% if project.latest_reminder < yesterday %}
+          <button class="btn btn-lg btn-primary" name="send_reminder" type="submit">Send Reminder Email</button>
+        {% else %}
+          <button class="btn btn-lg btn-primary" name="send_reminder" type="submit" disabled>Send Reminder Email</button>
+        {% endif %}
+      </form>
     </div>
     <hr>
-
   </div>
 </div>
-
 <div class="card mb-3">
   <div class="card-header">
     Reopen Copyedit
