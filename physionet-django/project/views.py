@@ -1598,7 +1598,10 @@ def anonymous_login(request, anonymous_url):
             passphrase = request.POST["passphrase"]
             if project.is_valid_passphrase(passphrase):
                 # Set cookie and redirects to project page
-                response.set_signed_cookie('anonymousaccess', anonymous_url, max_age=60*60)
+                response.set_signed_cookie('anonymousaccess', anonymous_url,
+                                           max_age=60*60, httponly=True,
+                                           secure=(not settings.DEBUG),
+                                           samesite='Lax')
                 return response
             
             # Did not find any valid passphrase
