@@ -402,7 +402,7 @@ def check_http_auth(request):
             # Existing session is valid only if the password has not
             # changed.
             if constant_time_compare(user.get_session_auth_hash(),
-                                     authhash):
+                                     authhash) and user.is_active:
                 request.user = user
                 return
 
@@ -417,7 +417,7 @@ def check_http_auth(request):
             user = auth.authenticate(request=request,
                                      username=username,
                                      password=password)
-            if user:
+            if user and user.is_active:
                 request.user = user
 
                 # Save the state in session variables, so that we
