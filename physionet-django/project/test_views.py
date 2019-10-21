@@ -395,6 +395,7 @@ class TestAccessPublished(TestMixin, TestCase):
             secure=True,
             HTTP_USER_AGENT='Wget/1.18')
         self.assertEqual(response.status_code, 401)
+        self.client.logout()
         response = self.client.get(
             reverse('serve_published_project_file',
                     args=(project.slug, project.version, 'SHA256SUMS.txt')),
@@ -402,6 +403,7 @@ class TestAccessPublished(TestMixin, TestCase):
             HTTP_USER_AGENT='Wget/1.18',
             HTTP_AUTHORIZATION=_basic_auth('aewj@mit.edu', 'Tester11!'))
         self.assertEqual(response.status_code, 403)
+        self.client.logout()
         response = self.client.get(
             reverse('serve_published_project_file',
                     args=(project.slug, project.version, 'SHA256SUMS.txt')),
@@ -409,6 +411,7 @@ class TestAccessPublished(TestMixin, TestCase):
             HTTP_USER_AGENT='libwfdb/10.6.0',
             HTTP_AUTHORIZATION=_basic_auth('rgmark@mit.edu', 'badpassword'))
         self.assertEqual(response.status_code, 401)
+        self.client.logout()
         response = self.client.get(
             reverse('serve_published_project_file',
                     args=(project.slug, project.version, 'SHA256SUMS.txt')),
@@ -418,12 +421,14 @@ class TestAccessPublished(TestMixin, TestCase):
         self.assertEqual(response.status_code, 200)
 
         # Download archive using wget
+        self.client.logout()
         response = self.client.get(
             reverse('serve_published_project_zip',
                     args=(project.slug, project.version)),
             secure=True,
             HTTP_USER_AGENT='Wget/1.18')
         self.assertEqual(response.status_code, 401)
+        self.client.logout()
         response = self.client.get(
             reverse('serve_published_project_zip',
                     args=(project.slug, project.version)),
@@ -435,29 +440,34 @@ class TestAccessPublished(TestMixin, TestCase):
         # Download file using wget on active projects
         project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
 
+        self.client.logout()
         response = self.client.get(reverse('serve_active_project_file_editor',
             args=(project.slug, 'RECORDS')), secure=True,
              HTTP_USER_AGENT='Wget/1.18')
         self.assertEqual(response.status_code, 401)
 
+        self.client.logout()
         response = self.client.get(reverse('serve_active_project_file_editor',
             args=(project.slug, 'RECORDS')), secure=True,
             HTTP_USER_AGENT='Wget/1.18',
             HTTP_AUTHORIZATION=_basic_auth('aewj@mit.edu', 'Tester11!'))
         self.assertEqual(response.status_code, 403)
 
+        self.client.logout()
         response = self.client.get(reverse('serve_active_project_file_editor',
             args=(project.slug, 'RECORDS')), secure=True,
             HTTP_USER_AGENT='Wget/1.18',
             HTTP_AUTHORIZATION=_basic_auth('rgmark@mit.edu', 'badpassword'))
         self.assertEqual(response.status_code, 401)
 
+        self.client.logout()
         response = self.client.get(reverse('serve_active_project_file_editor',
             args=(project.slug, 'RECORDS')), secure=True,
             HTTP_USER_AGENT='Wget/1.18',
             HTTP_AUTHORIZATION=_basic_auth('rgmark@mit.edu', 'Tester11!'))
         self.assertEqual(response.status_code, 200)
 
+        self.client.logout()
         response = self.client.get(reverse('serve_active_project_file_editor',
             args=(project.slug, '')), secure=True,
             HTTP_USER_AGENT='Wget/1.18',
