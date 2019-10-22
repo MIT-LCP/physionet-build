@@ -1217,7 +1217,6 @@ class PublishedProject(Metadata, SubmissionInfo):
     doi = models.CharField(max_length=50, default='')
     slug = models.SlugField(max_length=MAX_PROJECT_SLUG_LENGTH, db_index=True,
         validators=[validate_slug])
-    approved_users = models.ManyToManyField('user.User', db_index=True)
     # Fields for legacy pb databases
     is_legacy = models.BooleanField(default=False)
     full_description = SafeHTMLField(default='')
@@ -1427,7 +1426,7 @@ class PublishedProject(Metadata, SubmissionInfo):
             return False
 
         if self.access_policy:
-            if self.approved_users.filter(id=user.id):
+            if DUASignature.objects.filter(project=self, user__id=user.id):
                 return True
             else:
                 return False

@@ -925,15 +925,10 @@ def past_credential_applications(request, status):
                     c_application.user.credential_datetime = None
                     c_application.decision_datetime = None
                     c_application.status = 1
-                    project_access = PublishedProject.objects.filter(
-                        approved_users=c_application.user)
                     dua_list = DUASignature.objects.filter(user = c_application.user,
                         project__access_policy = 2)
                     try:
                         with transaction.atomic():
-                            for project in project_access:
-                                project.approved_users.remove(c_application.user)
-                                project.save()
                             for dua in dua_list:
                                 dua.delete()
                             c_application.user.save()

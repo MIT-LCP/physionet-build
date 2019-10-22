@@ -1528,7 +1528,6 @@ def sign_dua(request, project_slug, version):
     license_content = project.license_content(fmt='html')
 
     if request.method == 'POST' and 'agree' in request.POST:
-        project.approved_users.add(user)
         DUASignature.objects.create(user=user, project=project)
         return render(request, 'project/sign_dua_complete.html', {
             'project':project})
