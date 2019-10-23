@@ -4,8 +4,8 @@ bleach==3.1.0 \
  --hash=sha256:213336e49e102af26d9cde77dd2d0397afabc5a6bf2fed985dc35b5d1e285a16
 chardet==3.0.4 \
  --hash=sha256:fc323ffcaeaed0e0a02bf4d117757b98aed530d9ed4531e3e15460124c106691
-Django==2.2.4 \
- --hash=sha256:9a2f98211ab474c710fcdad29c82f30fc14ce9917c7a70c3682162a624de4035
+Django==2.2.6 \
+ --hash=sha256:4025317ca01f75fc79250ff7262a06d8ba97cd4f82e93394b2a0a6a4a925caeb
 django-autocomplete-light==3.3.4 \
  --hash=sha256:cff0b1cad0e233e49c8cce08dff22868951123cbb79a7c1768eda78845044568
 django-background-tasks==1.2.0 \
@@ -18,10 +18,9 @@ google-cloud-storage==1.14.0 \
  --hash=sha256:a3115c22a71e2f172fade72c7b7b797a071f3ac9b66043191fc84c214ba0c671
 html2text==2018.1.9 \
  --hash=sha256:490db40fe5b2cd79c461cf56be4d39eb8ca68191ae41ba3ba79f6cb05b7dd662
-Pillow==5.2.0 \
- --hash=sha256:8194d913ca1f459377c8a4ed8f9b7ad750068b8e0e3f3f9c6963fcc87a84515f\
- --hash=sha256:b3ef168d4d6fd4fa6685aef7c91400f59f7ab1c0da734541f7031699741fb23f\
- --hash=sha256:a3d7511d3fad1618a82299aab71a5fceee5c015653a77ffea75ced9ef917e71a
+Pillow==6.2.1 \
+ --hash=sha256:c9e5ffb910b14f090ac9c38599063e354887a5f6d7e6d26795e916b4514f2c1a\
+ --hash=sha256:0f66dc6c8a3cc319561a633b6aa82c44107f12594643efa37210d8c924fc1c71
 python-decouple==3.1 \
  --hash=sha256:1317df14b43efee4337a4aa02914bf004f010cd56d6c4bd894e6474ec8c4fe2d
 pytz==2017.2 \
@@ -41,7 +40,8 @@ google-api-python-client==1.7.9 \
 
 psycopg2-binary==2.8.3 \
  --hash=sha256:d305313c5a9695f40c46294d4315ed3a07c7d2b55e48a9010dad7db7a66c8b7f\
- --hash=sha256:19d013e7b0817087517a4b3cab39c084d78898369e5c46258aab7be4f233d6a1
+ --hash=sha256:19d013e7b0817087517a4b3cab39c084d78898369e5c46258aab7be4f233d6a1\
+ --hash=sha256:85e699fcabe7f817c0f0a412d4e7c6627e00c412b418da7666ff353f38e30f67
 
 #### Requirements for development and testing ####
 
