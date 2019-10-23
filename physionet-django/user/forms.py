@@ -372,6 +372,22 @@ class ReferenceCAF(forms.ModelForm):
         }
 
 
+    def clean_reference_name(self):
+        reference_name = self.cleaned_data.get('reference_name')
+        if reference_name:
+            return reference_name.strip()
+
+    def clean_reference_email(self):
+        reference_email = self.cleaned_data.get('reference_email')
+        if reference_email:
+            return reference_email.strip()
+
+    def clean_reference_title(self):
+        reference_title = self.cleaned_data.get('reference_title')
+        if reference_title:
+            return reference_title.strip()
+
+
 class CredentialApplicationForm(forms.ModelForm):
     """
     Form to apply for PhysioNet credentialling
@@ -411,11 +427,20 @@ class CredentialApplicationForm(forms.ModelForm):
         # Students and postdocs must provide their supervisor as a reference
         if data['researcher_category'] in [0, 1] and (
             data['reference_category'] != 0
-            or not data['reference_name'].strip()
-            or not data['reference_email'].strip()
-            or not data['reference_title'].strip()):
+            or not data['reference_name']
+            or not data['reference_email']
+            or not data['reference_title']):
             raise forms.ValidationError("""If you are a student or postdoc,
                 you must provide your supervisor as a reference.""")
+
+        # If a reference category is provided, then the reference fields must be filled.
+        ref = [data['reference_name'], data['reference_email'], data['reference_title']]
+        if data['reference_category'] is None and any(ref):
+            raise forms.ValidationError("""Please select a reference category.""")
+        elif data['reference_category'] is None:
+            pass
+        elif data['reference_category'] in [0, 1, 2, 3] and not all(ref):
+            raise forms.ValidationError("""Please provide your reference information.""")
 
         # If applicant is from USA or Canada, the state must be provided
         if data['country'] in ['US', 'CA'] and not data['state_province']:
