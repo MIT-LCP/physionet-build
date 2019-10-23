@@ -1,4 +1,4 @@
-/var/log/uwsgi/*.log 
+/data/log/uwsgi/*.log
 {
         rotate 7
         daily
@@ -6,9 +6,9 @@
         notifempty
         delaycompress
         compress
-        create 0640 pn pn
+        create 0640 www-data www-data
         sharedscripts
         postrotate
-                systemctl restart uwsgi
+                systemctl reload emperor.uwsgi
         endscript
 }
