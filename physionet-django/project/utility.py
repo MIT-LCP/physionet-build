@@ -15,9 +15,11 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.conf import settings
 from django.core.exceptions import (PermissionDenied, ValidationError)
 from django.http import HttpResponse, Http404
+from django.utils.crypto import constant_time_compare
 from googleapiclient.errors import HttpError
 
 from console.utility import create_directory_service
+from user.models import User
 
 LOGGER = logging.getLogger(__name__)
 
@@ -390,6 +392,20 @@ def check_http_auth(request):
         if request.user.is_authenticated:
             return
 
+        try:
+            uid = request.session['pn_httpauth_uid']
+            authhash = request.session['pn_httpauth_hash']
+            user = User.objects.get(id=uid)
+        except (KeyError, User.DoesNotExist):
+            pass
+        else:
+            # Existing session is valid only if the password has not
+            # changed.
+            if constant_time_compare(user.get_session_auth_hash(),
+                                     authhash) and user.is_active:
+                request.user = user
+                return
+
         tokens = request.META['HTTP_AUTHORIZATION'].split()
         if len(tokens) == 2 and tokens[0].lower() == 'basic':
             try:
@@ -401,8 +417,18 @@ def check_http_auth(request):
             user = auth.authenticate(request=request,
                                      username=username,
                                      password=password)
-            if user:
+            if user and user.is_active:
                 request.user = user
+
+                # Save the state in session variables, so that we
+                # don't have to verify the password on subsequent
+                # requests.  We don't invoke auth.login() here,
+                # specifically so that this session ID cannot be
+                # reused to access URLs that don't permit HTTP
+                # authentication.
+                request.session['pn_httpauth_uid'] = user.id
+                request.session['pn_httpauth_hash'] \
+                    = user.get_session_auth_hash()
 
 
 def require_http_auth(request):
