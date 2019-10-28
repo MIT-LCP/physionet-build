@@ -579,12 +579,11 @@ class DualAuthModelBackend():
             logger.error('Unsuccessful authentication {0}'.format(username.lower()))
             return None
 
-    def get_user(self, username):
+    def get_user(self, user_id):
         try:
-            return get_user_model().objects.get(pk=username)
+            return get_user_model().objects.get(pk=user_id)
         except get_user_model().DoesNotExist:
             return None
-
 
 class CredentialApplication(models.Model):
     """

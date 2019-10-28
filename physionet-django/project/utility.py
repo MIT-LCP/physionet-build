@@ -420,15 +420,18 @@ def check_http_auth(request):
             if user and user.is_active:
                 request.user = user
 
-                # Save the state in session variables, so that we
-                # don't have to verify the password on subsequent
-                # requests.  We don't invoke auth.login() here,
-                # specifically so that this session ID cannot be
-                # reused to access URLs that don't permit HTTP
-                # authentication.
-                request.session['pn_httpauth_uid'] = user.id
-                request.session['pn_httpauth_hash'] \
-                    = user.get_session_auth_hash()
+                # If the client supports cookies, save the state so
+                # that we don't have to verify the password on
+                # subsequent requests.  If the client doesn't support
+                # cookies, don't bother.
+                if request.COOKIES:
+                    # We don't invoke auth.login() here, specifically
+                    # so that this session ID cannot be reused to
+                    # access URLs that don't permit HTTP
+                    # authentication.
+                    request.session['pn_httpauth_uid'] = user.id
+                    request.session['pn_httpauth_hash'] \
+                        = user.get_session_auth_hash()
 
 
 def require_http_auth(request):
@@ -454,6 +457,9 @@ def require_http_auth(request):
         response['WWW-Authenticate'] = (
             'Basic realm="{}", charset="UTF-8"'.format(site.name)
         )
+        # Check whether the client supports cookies.
+        response.set_cookie('testcookie', '1', secure=(not settings.DEBUG),
+                            httponly=True, samesite='Lax')
         return response
     else:
         raise PermissionDenied()
