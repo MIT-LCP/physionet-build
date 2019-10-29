@@ -654,6 +654,7 @@ class UnpublishedProject(models.Model):
     is_new_version = models.BooleanField(default=False)
     # Access url slug, also used as a submitting project id.
     slug = models.SlugField(max_length=MAX_PROJECT_SLUG_LENGTH, db_index=True)
+    latest_reminder = models.DateTimeField(null=True, blank=True)
 
     authors = GenericRelation('project.Author')
     references = GenericRelation('project.Reference')

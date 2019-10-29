@@ -126,16 +126,38 @@ def submitted_projects(request):
 
     assign_editor_form = forms.AssignEditorForm()
 
+    # Time to check if the reminder email can be sent
+    yesterday = timezone.now() + timezone.timedelta(days=-1)
+
+    if request.method == "POST":
+        try:
+            if 'send_approval_reminder' in request.POST:
+                pid = request.POST.get('send_approval_reminder', '')
+                project = ActiveProject.objects.get(id=pid)
+                notification.copyedit_complete_notify(request, project,
+                    project.copyedit_logs.last())
+                project.latest_reminder = timezone.now()
+                project.save()
+                messages.success(request, 'The reminder email has been sent.')
+            elif 'send_revision_reminder' in request.POST:
+                pid = request.POST.get('send_revision_reminder', '')
+                project = ActiveProject.objects.get(id=pid)
+                notification.edit_decision_notify(request, project,
+                    project.edit_logs.last())
+                project.latest_reminder = timezone.now()
+                project.save()
+                messages.success(request, 'The reminder email has been sent.')
+        except (ValueError, ActiveProject.DoesNotExist):
+            pass
     return render(request, 'console/submitted_projects.html',
-        {
-         'assign_editor_form':assign_editor_form,
-         'assignment_projects':assignment_projects,
-         'decision_projects':decision_projects,
-         'revision_projects':revision_projects,
-         'copyedit_projects':copyedit_projects,
-         'approval_projects':approval_projects,
-         'publish_projects':publish_projects
-         })
+        {'assign_editor_form': assign_editor_form,
+         'assignment_projects': assignment_projects,
+         'decision_projects': decision_projects,
+         'revision_projects': revision_projects,
+         'copyedit_projects': copyedit_projects,
+         'approval_projects': approval_projects,
+         'publish_projects': publish_projects,
+         'yesterday': yesterday })
 
 
 @login_required
@@ -158,12 +180,27 @@ def editor_home(request):
     # Awaiting editor publish
     publish_projects = projects.filter(submission_status=60)
 
+    # Time to check if the reminder email can be sent
+    yesterday = timezone.now() + timezone.timedelta(days=-1)
+
+    if request.method == "POST" and 'send_reminder' in request.POST:
+        try:
+            pid = request.POST.get('send_reminder', '')
+            project = ActiveProject.objects.get(id=pid)
+            notification.edit_decision_notify(request, project,
+                project.edit_logs.last())
+            project.latest_reminder = timezone.now()
+            project.save()
+            messages.success(request, 'The reminder email has been sent.')
+        except (ValueError, ActiveProject.DoesNotExist):
+            pass
     return render(request, 'console/editor_home.html',
-        {'decision_projects':decision_projects,
-         'revision_projects':revision_projects,
-         'copyedit_projects':copyedit_projects,
-         'approval_projects':approval_projects,
-         'publish_projects':publish_projects})
+        {'decision_projects': decision_projects,
+         'revision_projects': revision_projects,
+         'copyedit_projects': copyedit_projects,
+         'approval_projects': approval_projects,
+         'publish_projects': publish_projects,
+         'yesterday': yesterday})
 
 
 def submission_info_redirect(request, project_slug):
@@ -386,19 +423,28 @@ def awaiting_authors(request, project_slug, *args, **kwargs):
     outstanding_emails = ';'.join([a.user.email for a in authors.filter(
         approval_datetime=None)])
 
-    if request.method == 'POST' and 'reopen_copyedit' in request.POST:
-        project.reopen_copyedit()
-        notification.reopen_copyedit_notify(request, project)
-        return render(request, 'console/reopen_copyedit_complete.html',
-            {'project':project})
+    if request.method == 'POST':
+        if 'reopen_copyedit' in request.POST:
+            project.reopen_copyedit()
+            notification.reopen_copyedit_notify(request, project)
+            return render(request, 'console/reopen_copyedit_complete.html',
+                {'project':project})
+        elif 'send_reminder' in request.POST:
+            notification.copyedit_complete_notify(request, project,
+                project.copyedit_logs.last())
+            messages.success(request, 'The reminder email has been sent.')
+            project.latest_reminder = timezone.now()
+            project.save()
 
     url_prefix = notification.get_url_prefix(request)
+    yesterday = timezone.now() + timezone.timedelta(days=-1)
 
     return render(request, 'console/awaiting_authors.html',
-        {'project':project, 'authors':authors, 'author_emails':author_emails,
-         'storage_info':storage_info, 'edit_logs':edit_logs,
-         'copyedit_logs':copyedit_logs, 'latest_version':latest_version,
-         'outstanding_emails':outstanding_emails, 'url_prefix':url_prefix})
+        {'project': project, 'authors': authors, 'author_emails': author_emails,
+         'storage_info': storage_info, 'edit_logs': edit_logs,
+         'copyedit_logs': copyedit_logs, 'latest_version': latest_version,
+         'outstanding_emails': outstanding_emails, 'url_prefix': url_prefix,
+         'yesterday': yesterday})
 
 
 @handling_editor

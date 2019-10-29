@@ -292,21 +292,21 @@ def copyedit_complete_notify(request, project, copyedit_log):
     """
     subject = 'Your approval needed to publish: {0}'.format(project.title)
 
-    for email, name in project.author_contact_info():
-        body = loader.render_to_string(
-            'notification/email/copyedit_complete_notify.html', {
-                'name': name,
-                'project': project,
-                'copyedit_log': copyedit_log,
-                'domain': get_current_site(request),
-                'url_prefix': get_url_prefix(request),
-                'signature': email_signature(),
-                'project_info': email_project_info(project),
-                'footer': email_footer()
-            })
-
-        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                  [email], fail_silently=False)
+    for person in project.author_list():
+        if not person.approval_datetime:
+            body = loader.render_to_string(
+                'notification/email/copyedit_complete_notify.html', {
+                    'name': person.get_full_name(),
+                    'project': project,
+                    'copyedit_log': copyedit_log,
+                    'domain': get_current_site(request),
+                    'url_prefix': get_url_prefix(request),
+                    'signature': email_signature(),
+                    'project_info': email_project_info(project),
+                    'footer': email_footer()
+                })
+            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                      [person.user.email], fail_silently=False)
 
 
 def reopen_copyedit_notify(request, project):
