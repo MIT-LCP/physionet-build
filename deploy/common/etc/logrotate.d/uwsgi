@@ -4,7 +4,6 @@
         daily
         missingok
         notifempty
-        copytruncate
         delaycompress
         compress
         create 0640 www-data www-data
