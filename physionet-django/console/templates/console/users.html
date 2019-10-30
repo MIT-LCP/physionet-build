@@ -12,35 +12,19 @@
 {% url 'user_list_inactive' as user_list_inactive %}
 <script src="{% static 'custom/js/cookie.js' %}"></script>
 <script src="{% static 'project/js/dynamic-formset.js' %}"></script>
-<script type="text/javascript">
- function search(value){
-  var csrftoken = getCookie('csrftoken');
-  $.ajax({
-    type: "POST",
-    url: "{% url 'users_list_search' %}",
-    data: {'csrfmiddlewaretoken':csrftoken,
-            'search_field':value,
-            {% if request.path == user_list_inactive %}
-              'inactive':true,
-            {% endif %}
-    },
-    success: function reloadSection(result){
-        $("#userlist").html(result);
-    },
-  });
- }
-</script>
+<script src="{% static 'custom/js/search-console.js' %}"></script>
+
 <div class="card mb-3">
   <div class="card-header">
-    {% ifequal request.path user_list_inactive %}Inactive
-      PhysioNet Users <span class="badge badge-pill badge-danger">{{ users.paginator.count }}</span>
-    {% else %}
-      PhysioNet Users <span class="badge badge-pill badge-info">{{ users.paginator.count }}</span>
-    {% endifequal %}
+    PhysioNet Users <span class="badge badge-pill badge-info">{{ users.paginator.count }}</span>
   </div>
   <div class="card-body">
     <div class="table-responsive">
-      <input type="search" oninput="search(value);" placeholder="Search...">
+      {% if request.path == user_list_inactive %}
+      <input type="search" oninput="search(['{% url "users_list_search" group="inactive" %}', value]);" placeholder="Search...">
+      {% else %}
+      <input type="search" oninput="search(['{% url "users_list_search" group="all" %}', value]);" placeholder="Search...">
+      {% endif %}
       <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
         <thead>
           <tr>
@@ -53,7 +37,7 @@
             <th>Credentialed</th>
           </tr>
         </thead>
-        <tbody id="userlist">
+        <tbody id="searchitems">
           {% include 'console/users_list.html' %}
         </tbody>
       </table>

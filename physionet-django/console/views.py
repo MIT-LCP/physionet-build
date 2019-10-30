@@ -740,29 +740,35 @@ def users(request):
 
     return render(request, 'console/users.html', {'users': users})
 
+
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
-def users_search(request):
+def users_search(request, group):
     """
-    List of users
+    Search user list.
+
+    Args:
+        group (str): group of users to filter search (currently only 'inactive')
     """
 
     if request.method == 'POST':
-        search_field = request.POST['search_field']
+        search_field = request.POST['search']
 
         users = User.objects.filter(Q(username__icontains=search_field) |
             Q(profile__first_names__icontains=search_field) |
             Q(email__icontains=search_field))
-        if 'inactive' in request.POST:
+
+        if 'inactive' in group:
             users = users.filter(Q(is_active=False) |
                     Q(last_login__lt=timezone.now() 
                         + timezone.timedelta(days=-90))
             )
+
         users = users.order_by('username')
 
         return render(request, 'console/users_list.html', {'users':users})
 
-    raise Http404()    
+    raise Http404()
 
 
 @login_required
