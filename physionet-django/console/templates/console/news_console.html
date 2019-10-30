@@ -11,21 +11,8 @@
 {% block content %}
  <script src="{% static 'custom/js/cookie.js' %}"></script>
  <script src="{% static 'project/js/dynamic-formset.js' %}"></script>
- <script type="text/javascript">
-   function search(value){
-    var csrftoken = getCookie('csrftoken');
-    $.ajax({
-            type: "POST",
-            url: "{% url 'news_search' %}",
-            data: {'csrfmiddlewaretoken':csrftoken,
-                   'search':value
-            },
-            success: function reloadSection(result){
-                $("#newsitems").html(result);
-            },
-    });
-   }
- </script>
+ <script src="{% static 'custom/js/search-console.js' %}"></script>
+
  <div class="card mb-3">
   <div class="card-header">
     News Items <span class="badge badge-pill badge-info">{{ news_items.paginator.count }}</span>
@@ -33,7 +20,8 @@
   <div class="card-body">
     <p><a href="{% url 'news_add' %}" class="btn btn-lg btn-success">Add News Item</a></p>
     <div class="table-responsive">
-      <input type="search" oninput="search(value);" placeholder="Search...">
+        
+      <input type="search" oninput="search(['{% url "news_search" %}', value]);" placeholder="Search...">
       <table class="table table-bordered">
         <thead>
           <tr>
@@ -42,7 +30,7 @@
             <th>Edit</th>
           </tr>
         </thead>
-        <tbody id="newsitems">
+        <tbody id="searchitems">
           {% include "console/news_list.html" %}
         </tbody>
       </table>
