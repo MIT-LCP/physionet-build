@@ -135,7 +135,7 @@ def submitted_projects(request):
                 pid = request.POST.get('send_approval_reminder', '')
                 project = ActiveProject.objects.get(id=pid)
                 notification.copyedit_complete_notify(request, project,
-                    project.copyedit_logs.last())
+                    project.copyedit_logs.last(), reminder=True)
                 project.latest_reminder = timezone.now()
                 project.save()
                 messages.success(request, 'The reminder email has been sent.')
@@ -143,7 +143,7 @@ def submitted_projects(request):
                 pid = request.POST.get('send_revision_reminder', '')
                 project = ActiveProject.objects.get(id=pid)
                 notification.edit_decision_notify(request, project,
-                    project.edit_logs.last())
+                    project.edit_logs.last(), reminder=True)
                 project.latest_reminder = timezone.now()
                 project.save()
                 messages.success(request, 'The reminder email has been sent.')
@@ -188,7 +188,7 @@ def editor_home(request):
             pid = request.POST.get('send_reminder', '')
             project = ActiveProject.objects.get(id=pid)
             notification.edit_decision_notify(request, project,
-                project.edit_logs.last())
+                project.edit_logs.last(), reminder=True)
             project.latest_reminder = timezone.now()
             project.save()
             messages.success(request, 'The reminder email has been sent.')
@@ -431,7 +431,7 @@ def awaiting_authors(request, project_slug, *args, **kwargs):
                 {'project':project})
         elif 'send_reminder' in request.POST:
             notification.copyedit_complete_notify(request, project,
-                project.copyedit_logs.last())
+                project.copyedit_logs.last(), reminder=True)
             messages.success(request, 'The reminder email has been sent.')
             project.latest_reminder = timezone.now()
             project.save()

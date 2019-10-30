@@ -253,7 +253,7 @@ def editor_notify_new_project(project, assigner):
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [project.editor.email], fail_silently=False)
 
-def edit_decision_notify(request, project, edit_log):
+def edit_decision_notify(request, project, edit_log, reminder=False):
     """
     Notify authors when an editor makes a decision
     """
@@ -269,6 +269,9 @@ def edit_decision_notify(request, project, edit_log):
     else:
         subject = 'Submission accepted for project: {}'.format(project.title)
         template = 'notification/email/accept_submission_notify.html'
+    # Prepend reminder to the subject if needed
+    if reminder:
+        subject = "Reminder - {}".format(subject)
 
     for email, name in project.author_contact_info():
         body = loader.render_to_string(template, {
@@ -286,11 +289,14 @@ def edit_decision_notify(request, project, edit_log):
                   [email], fail_silently=False)
 
 
-def copyedit_complete_notify(request, project, copyedit_log):
+def copyedit_complete_notify(request, project, copyedit_log, reminder=False):
     """
     Notify authors when the editor has finished copyediting
     """
     subject = 'Your approval needed to publish: {0}'.format(project.title)
+    # Prepend reminder to the subject if needed
+    if reminder:
+        subject = "Reminder - {}".format(subject)
 
     for person in project.author_list():
         if not person.approval_datetime:
