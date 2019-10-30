@@ -4,9 +4,9 @@
         daily
         missingok
         notifempty
-        copytruncate
         delaycompress
         compress
+        su www-data www-data
         create 0640 www-data www-data
         sharedscripts
         postrotate
