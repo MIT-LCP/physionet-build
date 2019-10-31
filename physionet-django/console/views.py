@@ -748,7 +748,8 @@ def users_search(request, group):
     Search user list.
 
     Args:
-        group (str): group of users to filter search (currently only 'inactive')
+        group (str): group of users to filter search. Either 'all' for all users or 
+            'inactive' to filter to inactive users only.
     """
 
     if request.method == 'POST':
