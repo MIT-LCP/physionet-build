@@ -1,13 +1,13 @@
 // Script to search lists in the console
 // e.g. search users, news items, etc.
 
-function search(args){
+function search(url, value){
  var csrftoken = getCookie('csrftoken');
  $.ajax({
          type: "POST",
-         url: args[0],
+         url: url,
          data: {'csrfmiddlewaretoken':csrftoken,
-                'search':args[1]
+                'search': value
          },
          success: function reloadSection(result){
              $("#searchitems").html(result);

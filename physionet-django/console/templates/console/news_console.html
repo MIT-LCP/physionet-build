@@ -21,7 +21,7 @@
     <p><a href="{% url 'news_add' %}" class="btn btn-lg btn-success">Add News Item</a></p>
     <div class="table-responsive">
         
-      <input type="search" oninput="search(['{% url "news_search" %}', value]);" placeholder="Search...">
+      <input type="search" oninput="search('{% url "news_search" %}', value);" placeholder="Search...">
       <table class="table table-bordered">
         <thead>
           <tr>

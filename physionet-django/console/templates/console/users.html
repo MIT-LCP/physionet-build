@@ -21,9 +21,9 @@
   <div class="card-body">
     <div class="table-responsive">
       {% if request.path == user_list_inactive %}
-      <input type="search" oninput="search(['{% url "users_list_search" group="inactive" %}', value]);" placeholder="Search...">
+      <input type="search" oninput="search('{% url "users_list_search" group="inactive" %}', value);" placeholder="Search...">
       {% else %}
-      <input type="search" oninput="search(['{% url "users_list_search" group="all" %}', value]);" placeholder="Search...">
+      <input type="search" oninput="search('{% url "users_list_search" group="all" %}', value);" placeholder="Search...">
       {% endif %}
       <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
         <thead>
