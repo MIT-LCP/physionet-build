@@ -30,6 +30,7 @@
           <button class="btn btn-lg btn-primary" name="send_reminder" type="submit">Send Reminder Email</button>
         {% else %}
           <button class="btn btn-lg btn-primary" name="send_reminder" type="submit" disabled>Send Reminder Email</button>
+          Last sent on: {{ project.latest_reminder }}
         {% endif %}
       </form>
     </div>

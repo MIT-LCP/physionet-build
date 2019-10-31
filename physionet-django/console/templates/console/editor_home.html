@@ -24,8 +24,8 @@
             <tr>
               <th>Project</th>
               <th>Submitting Author</th>
-              <th>Submission Date</th>
-              <th>Resubmission Date</th>
+              <th>Submitted</th>
+              <th>Resubmitted</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -67,8 +67,9 @@
             <tr>
               <th>Project</th>
               <th>Submitting Author</th>
-              <th>Submission Date</th>
-              <th>Revision Request Date</th>
+              <th>Submitted</th>
+              <th>Revision requested</th>
+              <th>Latest reminder</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -79,6 +80,7 @@
               <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
               <td>{{ project.submission_datetime|date }}</td>
               <td>{{ project.revision_request_datetime|date }}</td>
+              <td>{{ project.latest_reminder|date }}</td>
               <td>
                 <form action="" method="post" class="form-signin">
                   {% csrf_token %}
@@ -113,8 +115,8 @@
             <tr>
               <th>Project</th>
               <th>Submitting Author</th>
-              <th>Submission Date</th>
-              <th>Editor Accept Date</th>
+              <th>Submitted</th>
+              <th>Accepted</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -150,9 +152,10 @@
             <tr>
               <th>Project</th>
               <th>Submitting Author</th>
-              <th>Submission Date</th>
-              <th>Editor Accept Date</th>
-              <th>Copyedit Completion Date</th>
+              <th>Submitted</th>
+              <th>Accepted</th>
+              <th>Copyedit Completed</th>
+              <th>Latest reminder</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -164,6 +167,7 @@
               <td>{{ project.submission_datetime|date }}</td>
               <td>{{ project.editor_accept_datetime|date }}</td>
               <td>{{ project.copyedit_completion_datetime|date }}</td>
+              <td>{{ project.latest_reminder|date }}</td>
               <td><a class="btn btn-primary btn-sm" href="{% url 'awaiting_authors' project.slug %}" role="button">View</a></td>
             </tr>
           {% endfor %}
@@ -189,10 +193,10 @@
             <tr>
               <th>Project</th>
               <th>Submitting Author</th>
-              <th>Submission Date</th>
-              <th>Editor Accept Date</th>
-              <th>Copyedit Completion Date</th>
-              <th>Author Approval Date</th>
+              <th>Submitted</th>
+              <th>Accepted</th>
+              <th>Copyedit Completed</th>
+              <th>Author Approved</th>
               <th>Action</th>
             </tr>
           </thead>

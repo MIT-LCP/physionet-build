@@ -145,6 +145,7 @@
                   <th>Submitted By</th>
                   <th>Submitted</th>
                   <th>Revision Requested</th>
+                  <th>Latest reminder</th>
                   <th>Editor</th>
                   <th>Action</th>
                 </tr>
@@ -156,6 +157,7 @@
                   <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
                   <td>{{ project.submission_datetime|date }}</td>
                   <td>{{ project.revision_request_datetime|date }}</td>
+                  <td>{{ project.latest_reminder |date }}</td>
                   <td>{{ project.editor }}</td>
                   <td>
                     <form action="" method="post" class="form-signin">
@@ -186,7 +188,7 @@
                   <th>Project</th>
                   <th>Submitted By</th>
                   <th>Submitted</th>
-                  <th>Editor Accepted</th>
+                  <th>Accepted</th>
                   <th>Editor</th>
                   <th>Manage</th>
                 </tr>
@@ -223,8 +225,9 @@
                   <th>Project</th>
                   <th>Submitted By</th>
                   <th>Submitted</th>
-                  <th>Editor Accepted</th>
+                  <th>Accepted</th>
                   <th>Copyedit Completed</th>
+                  <th>Latest reminder</th>
                   <th>Editor</th>
                   <th>Action</th>
                 </tr>
@@ -237,6 +240,7 @@
                   <td>{{ project.submission_datetime|date }}</td>
                   <td>{{ project.editor_accept_datetime|date }}</td>
                   <td>{{ project.copyedit_completion_datetime|date }}</td>
+                  <td>{{ project.latest_reminder |date }}</td>
                   <td>{{ project.editor }}</td>
                   <td>
                     {% if project.latest_reminder < yesterday %}
@@ -264,7 +268,7 @@
                   <th>Project</th>
                   <th>Submitted By</th>
                   <th>Submitted</th>
-                  <th>Editor Accepted</th>
+                  <th>Accepted</th>
                   <th>Copyedit Completed</th>
                   <th>Author Approved</th>
                   <th>Editor</th>
