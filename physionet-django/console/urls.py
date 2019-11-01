@@ -59,21 +59,21 @@ urlpatterns = [
     path('credential-applications/<application_slug>/process/',
         views.process_credential_application,
         name='process_credential_application'),
-    
+
     # Download a CSV of the people that have a credentialed DB access
     path('download_credentialed_users/',
         views.download_credentialed_users,
         name="download_credentialed_users"),
 
     path('users/all/', views.users, name='user_list'),
-    path('users/search/', views.users_search, name='users_list_search'),
+    path('users/search/<group>/', views.users_search, name='users_list_search'),
     path('users/admin/', views.users_admin, name='user_list_admin'),
     path('users/inactive/', views.users_inactive, name='user_list_inactive'),
     # path('users/lcp/', views.lcp_affiliates, name='lcp_affiliates'),
 
     path('news/', views.news_console, name='news_console'),
     path('news/add/', views.news_add, name='news_add'),
-    path('news/search', views.news_search, name='news_search'),
+    path('news/search/', views.news_search, name='news_search'),
     path('news/edit/<news_id>/', views.news_edit, name='news_edit'),
 
     path('featured/', views.featured_content, name='featured_content'),
