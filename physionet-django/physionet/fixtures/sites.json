@@ -3,7 +3,7 @@
         "model": "sites.Site",
         "pk": 1,
         "fields": {
-            "name": "PhysioNet",
+            "name": "PhysioNet-alpha",
             "domain": "alpha.physionet.org"
         }
     },
@@ -13,6 +13,14 @@
         "fields": {
             "name": "PhysioNet-staging",
             "domain": "staging.physionet.org"
+        }
+    },
+    {
+        "model": "sites.Site",
+        "pk": 3,
+        "fields": {
+            "name": "PhysioNet",
+            "domain": "physionet.org"
         }
     }
 ]
