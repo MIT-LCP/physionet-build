@@ -26,7 +26,8 @@ from physionet.utility import paginate
 import project.forms as project_forms
 from project.models import (ActiveProject, ArchivedProject, StorageRequest,
     Reference, Topic, Publication, PublishedProject,
-    exists_project_slug, GCP, DUASignature, DataAccess)
+    exists_project_slug, GCP, DUASignature, DataAccess,
+    ProjectSection)
 from project.utility import readable_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH
 from project.views import (get_file_forms, get_project_file_info,
@@ -36,6 +37,9 @@ from console import forms, utility
 from console.tasks import associated_task, get_associated_tasks
 
 from django.conf import settings
+
+from html import unescape
+from django.utils.html import strip_tags
 
 LOGGER = logging.getLogger(__name__)
 
@@ -320,6 +324,18 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
 
     copyedit_form = forms.CopyeditForm(instance=copyedit_log)
 
+    # Creates forms for each section of this project's content type
+    section_forms = []
+    sections = ProjectSection.objects.filter(resource_type=project.resource_type).order_by('default_order')
+    for s in sections:
+        try:
+            # Try to get currently existing content for section
+            section_content = project.project_content.get(project_section=s)
+            section_forms.append(project_forms.SectionContentForm(instance=section_content))
+        except:
+            # Creates form with empty instace in case content is not found
+            section_forms.append(project_forms.SectionContentForm(project=project, project_section=s))
+
     if request.method == 'POST':
         if 'edit_content' in request.POST:
             description_form = project_forms.ContentForm(
@@ -335,17 +351,45 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
             publication_formset = PublicationFormSet(request.POST,
                                                  instance=project)
             topic_formset = TopicFormSet(request.POST, instance=project)
+
+            # Creates forms for each section of this project's content type
+            valid = True
+            section_forms = []
+            for s in sections:
+                try:
+                    # Try to get currently existing content for section
+                    section_content = project.project_content.get(project_section=s)
+                    sf = project_forms.SectionContentForm(data=request.POST, instance=section_content)
+                except:
+                    # Creates form with empty instace in case content is not found
+                    sf = project_forms.SectionContentForm(project=project, project_section=s, data=request.POST)
+
+                # Appends form to array
+                section_forms.append(sf)
+
+                # Validation of all `section_content` forms
+                valid = valid and sf.is_valid()
+
             if (description_form.is_valid() and access_form.is_valid()
                                             and reference_formset.is_valid()
                                             and publication_formset.is_valid()
                                             and topic_formset.is_valid()
-                                            and discovery_form.is_valid()):
+                                            and discovery_form.is_valid()
+                                            and valid):
                 description_form.save()
                 access_form.save()
                 discovery_form.save()
                 reference_formset.save()
                 publication_formset.save()
                 topic_formset.save()
+
+                # Only saves each `section_content` if it's not empty
+                for sf in section_forms:
+                    sf.save()
+                    text = unescape(strip_tags(sf.instance.section_content))
+                    if not text or text.isspace():
+                        sf.instance.delete()
+
                 messages.success(request,
                     'The project metadata has been updated.')
                 # Reload formsets
@@ -407,7 +451,8 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
         'storage_info': storage_info, 'edit_logs': edit_logs,
         'copyedit_logs': copyedit_logs, 'latest_version': latest_version,
         'add_item_url': edit_url, 'remove_item_url': edit_url,
-        'discovery_form': discovery_form, 'url_prefix': url_prefix})
+        'discovery_form': discovery_form, 'url_prefix': url_prefix,
+        'section_forms':section_forms})
 
 
 @handling_editor
