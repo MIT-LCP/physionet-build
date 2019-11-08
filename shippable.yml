@@ -52,7 +52,6 @@ build:
     - "./manage.py makemigrations --dry-run --no-input --check"
     - "./manage.py resetdb"
     - "./manage.py loaddemo"
-    - psql -c "CREATE DATABASE test_physionet WITH TEMPLATE physionet;" -U postgres
     - "./manage.py test --verbosity=3 --keepdb"
     - "coverage run --source='.' manage.py test --keepdb"
     - "coverage xml -o $CODE_COVERAGE_DIR/coverage.xml"
