@@ -1,7 +1,7 @@
 import os
 import sys
 import pdb
-from ..base import *
+from physionet.settings.base import *
 
 DEBUG = True
 SESSION_COOKIE_SECURE = False
