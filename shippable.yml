@@ -18,7 +18,7 @@ env:
     - CODE_COVERAGE_DIR=$SHIPPABLE_REPO_DIR/shippable/codecoverage
     - TESTS_LOC_DIR=$SHIPPABLE_REPO_DIR/tests
     - MOD_LOC=$SHIPPABLE_REPO_DIR/node_modules/.bin/
-    - DJANGO_SETTINGS_MODULE=physionet.settings.development.shippable
+    - DJANGO_SETTINGS_MODULE=physionet.settings.development.pgsql
 
 addons:
   firefox: "64.0"
