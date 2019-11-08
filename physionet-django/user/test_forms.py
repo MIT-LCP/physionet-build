@@ -7,9 +7,6 @@ from user.models import User
 
 
 class TestForms(TestCase):
-
-    fixtures = ['demo-user']
-
     def create_test_forms(self, FormClass, valid_dict, invalid_dict, user=None):
         """
         Helper method to create a valid and invalid form of a certain form class.

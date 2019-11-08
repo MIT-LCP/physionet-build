@@ -2,7 +2,6 @@ import os
 import pdb
 import logging
 
-from django.test import TestCase
 from django.urls import reverse
 from django.test.utils import get_runner
 from background_task.tasks import tasks
@@ -15,13 +14,12 @@ from user.test_views import prevent_request_warnings, TestMixin
 LOGGER = logging.getLogger(__name__)
 
 
-class TestState(TestMixin, TestCase):
+class TestState(TestMixin):
     """
     Test that all objects are in their intended states, during and
     after review/publication state transitions.
 
     """
-    fixtures = ['demo-user', 'project-types', 'demo-project', 'site-data']
 
     def test_assign_editor(self):
         """

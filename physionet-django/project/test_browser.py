@@ -115,9 +115,6 @@ class BaseSeleniumTest(StaticLiveServerTestCase, TestCase):
 
 @tag('browser')
 class TestSubmit(TestMixin, BaseSeleniumTest):
-
-    fixtures = ['demo-user', 'project-types', 'demo-project']
-
     def setUp(self):
         """
         Call methods in explicit order so that content is not
