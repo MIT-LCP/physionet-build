@@ -6,6 +6,7 @@ from django.shortcuts import redirect
 from project.fileviews.base import RawFileView
 from project.fileviews.csv import CSVFileView, GzippedCSVFileView
 from project.fileviews.image import ImageFileView
+from project.fileviews.inline import InlineFileView
 from project.fileviews.text import TextFileView
 
 _suffixes = {
@@ -17,6 +18,7 @@ _suffixes = {
     '.jpeg': ImageFileView,
     '.jpg': ImageFileView,
     '.png': ImageFileView,
+    '.pdf': InlineFileView,
     '.svg': ImageFileView,
 }
 
