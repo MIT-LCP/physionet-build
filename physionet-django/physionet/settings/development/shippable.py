@@ -1,7 +1,7 @@
 import os
 import sys
 import pdb
-from .base import *
+from ..base import *
 
 DEBUG = True
 SESSION_COOKIE_SECURE = False
@@ -28,25 +28,16 @@ DEBUG_TOOLBAR_CONFIG = {
 
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
-
-if os.getenv('SHIPPABLE', None):
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'physionet',
-            'USER': 'physionet',
-            'PASSWORD': 'password',
-            'HOST': 'localhost',
-            'PORT': '',
-        }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'physionet',
+        'USER': 'physionet',
+        'PASSWORD': 'password',
+        'HOST': 'localhost',
+        'PORT': '',
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'physionet.db.chaotic.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        }
-    }
+}
 
 DEMO_FILE_ROOT = os.path.join(os.path.abspath(os.path.join(BASE_DIR, os.pardir)), 'demo-files')
 
