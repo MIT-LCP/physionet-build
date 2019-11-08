@@ -3,7 +3,6 @@ import os
 import pdb
 
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase
 from django.urls import reverse
 
 from project.models import (ArchivedProject, ActiveProject, PublishedProject,
@@ -25,7 +24,7 @@ def _basic_auth(username, password, encoding='UTF-8'):
     return 'Basic ' + token
 
 
-class TestAccessPresubmission(TestMixin, TestCase):
+class TestAccessPresubmission(TestMixin):
     """
     Test that certain views or content in their various states can only
     be accessed by the appropriate users.
@@ -33,7 +32,6 @@ class TestAccessPresubmission(TestMixin, TestCase):
     Projects in presubmission state.
 
     """
-    fixtures = ['demo-user', 'project-types', 'demo-project', 'site-data']
 
     @prevent_request_warnings
     def test_visit_get(self):
@@ -297,7 +295,7 @@ class TestAccessPresubmission(TestMixin, TestCase):
         self.assertEqual(response.status_code, 403)
 
 
-class TestAccessPublished(TestMixin, TestCase):
+class TestAccessPublished(TestMixin):
     """
     Test that certain views or content in their various states can only
     be accessed by the appropriate users.
@@ -305,8 +303,6 @@ class TestAccessPublished(TestMixin, TestCase):
     Published projects.
 
     """
-    fixtures = ['demo-user', 'project-types', 'demo-project', 'site-data']
-
     @prevent_request_warnings
     def test_credentialed(self):
         """
@@ -518,14 +514,12 @@ class TestAccessPublished(TestMixin, TestCase):
         self.assertEqual(response.status_code, 404)
 
 
-class TestState(TestMixin, TestCase):
+class TestState(TestMixin):
     """
     Test that all objects are in their intended states, during and
     after review/publication state transitions.
 
     """
-    fixtures = ['demo-user', 'project-types', 'demo-project', 'site-data']
-
     def test_create_archive(self):
         """
         Create and archive a project
@@ -584,14 +578,12 @@ class TestState(TestMixin, TestCase):
         self.assertFalse(project.author_editable())
 
 
-class TestInteraction(TestMixin, TestCase):
+class TestInteraction(TestMixin):
     """
     Test project views that require multiple user interaction that are
     not directly related to reviewing/editing the project.
 
     """
-
-    fixtures = ['demo-user', 'project-types', 'demo-project', 'site-data']
 
     def test_storage_request(self):
         """

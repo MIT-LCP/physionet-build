@@ -12,7 +12,6 @@ class TestAuth(TestCase):
     """
     Test views that require authentication
     """
-    fixtures = ['demo-user']
 
     def setUp(self):
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
@@ -59,7 +58,6 @@ class TestPublic(TestCase):
     """
     Test views that do not require authentication
     """
-    fixtures = ['demo-user']
 
     def test_admin_home(self):
         """
@@ -108,7 +106,6 @@ class TestCredentialing(TestCase):
     """
     Test credentialing logic
     """
-    fixtures = ['demo-user']
 
     def test_registration_credential(self):
         """

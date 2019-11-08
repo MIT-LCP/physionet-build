@@ -35,7 +35,7 @@ def prevent_request_warnings(original_function):
     return new_function
 
 
-class TestMixin():
+class TestMixin(TestCase):
     """
     Mixin for test methods
 
@@ -171,11 +171,10 @@ class TestMixin():
                 kwargs=redirect_reverse_kwargs))
 
 
-class TestAuth(TestCase, TestMixin):
+class TestAuth(TestMixin):
     """
     Test views that require authentication
     """
-    fixtures = ['demo-user']
 
     def setUp(self):
         super().setUp()
@@ -251,11 +250,10 @@ class TestAuth(TestCase, TestMixin):
         self.assertTrue(bool(AssociatedEmail.objects.get(email='tester0@mit.edu').verification_date))
 
 
-class TestPublic(TestCase, TestMixin):
+class TestPublic(TestMixin):
     """
     Test views that do not require authentication
     """
-    fixtures = ['demo-user']
 
     def setUp(self):
         super().setUp()

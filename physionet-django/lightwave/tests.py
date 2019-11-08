@@ -2,7 +2,6 @@ import json
 import shutil
 from unittest import skipIf
 
-from django.test import TestCase
 from django.urls import reverse
 
 from project.models import ActiveProject
@@ -19,11 +18,10 @@ test_queries = (
 server = shutil.which('sandboxed-lightwave')
 
 
-class TestPublished(TestMixin, TestCase):
+class TestPublished(TestMixin):
     """
     Test operation of LightWAVE server for public databases.
     """
-    fixtures = ['demo-user', 'project-types', 'demo-project', 'site-data']
 
     def test_home(self):
         response = self.client.get(reverse('lightwave_home'))
@@ -46,11 +44,10 @@ class TestPublished(TestMixin, TestCase):
             self.assertEqual(data['success'], True)
 
 
-class TestUnpublished(TestMixin, TestCase):
+class TestUnpublished(TestMixin):
     """
     Test operation of LightWAVE server for active projects.
     """
-    fixtures = ['demo-user', 'project-types', 'demo-project', 'site-data']
 
     @prevent_request_warnings
     def test_home(self):

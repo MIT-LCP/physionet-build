@@ -46,7 +46,7 @@ class Command(BaseCommand):
                     os.remove(db_file)
             elif db_type == 'postgresql':
                 # Drop the database that holds all the tables and recreate it
-                os.system('sudo -u postgres dropdb physionet')
+                os.system('sudo -u postgres dropdb --if-exists physionet')
                 os.system('sudo -u postgres createdb physionet -O physionet')
             else:
                 sys.exit('Unable to reset database of type: {}'.format(db_type))

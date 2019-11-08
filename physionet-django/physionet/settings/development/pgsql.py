@@ -1,7 +1,7 @@
 import os
 import sys
 import pdb
-from .base import *
+from physionet.settings.base import *
 
 DEBUG = True
 SESSION_COOKIE_SECURE = False
@@ -28,11 +28,17 @@ DEBUG_TOOLBAR_CONFIG = {
 
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
-
 DATABASES = {
     'default': {
-        'ENGINE': 'physionet.db.chaotic.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'physionet',
+        'USER': 'physionet',
+        'PASSWORD': 'password',
+        'HOST': 'localhost',
+        'PORT': '',
+        'TEST': {
+            'MIRROR': 'default'
+        }
     }
 }
 
