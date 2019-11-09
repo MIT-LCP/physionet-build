@@ -1,0 +1,19 @@
+{% extends "project/file_view.html" %}
+
+{% block file_content %}
+<iframe id="doc" src="{{ file.raw_url }}"></iframe>
+{% endblock %}
+
+{% block local_css %}
+<style>
+#doc {
+    display: block;
+    width: 100%;
+    height: calc(100vh - 12.75rem);
+    min-height: 20rem;
+}
+.card-body {
+    padding: 0px;
+}
+</style>
+{% endblock %}
