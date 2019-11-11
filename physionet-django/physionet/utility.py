@@ -93,7 +93,7 @@ def _file_x_accel_path(file_path):
         elif file_path.startswith(media_root + '/'):
             return media_alias + file_path[len(media_root):]
 
-def serve_file(file_path, attach=True, allow_directory=False):
+def serve_file(file_path, attach=True, allow_directory=False, sandbox=True):
     """
     Serve a file to download. file_path is the real path of the file on
     the server.
@@ -118,6 +118,8 @@ def serve_file(file_path, attach=True, allow_directory=False):
                 response = HttpResponse(f.read())
                 response['Content-Type'] = file_content_type(file_path)
     base = os.path.basename(file_path)
+    if sandbox:
+        response['Content-Security-Policy'] = "sandbox; default-src 'self'"
     if attach:
         response['Content-Disposition'] = 'attachment; filename=' + base
     else:

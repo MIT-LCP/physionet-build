@@ -981,7 +981,18 @@ def serve_active_project_file(request, project_slug, file_name, **kwargs):
     file_path = os.path.join(kwargs['project'].file_root(), file_name)
     try:
         attach = ('download' in request.GET)
-        return serve_file(file_path, attach=attach)
+
+        # Temporary workaround: Chromium doesn't permit viewing PDF
+        # files in sandboxed mode:
+        # https://bugs.chromium.org/p/chromium/issues/detail?id=271452
+        # Until this is fixed, disable CSP sandbox for PDF files when
+        # viewed by the authors.
+        if file_path.endswith('.pdf') and kwargs['is_author']:
+            sandbox = False
+        else:
+            sandbox = True
+
+        return serve_file(file_path, attach=attach, sandbox=sandbox)
     except IsADirectoryError:
         return redirect(request.path + '/')
 
@@ -1334,7 +1345,19 @@ def serve_published_project_file(request, project_slug, version,
         file_path = os.path.join(project.file_root(), full_file_name)
         try:
             attach = ('download' in request.GET)
-            return serve_file(file_path, attach=attach, allow_directory=True)
+
+            # Temporary workaround: Chromium doesn't permit viewing
+            # PDF files in sandboxed mode:
+            # https://bugs.chromium.org/p/chromium/issues/detail?id=271452
+            # Until this is fixed, disable CSP sandbox for published
+            # PDF files.
+            if file_path.endswith('.pdf'):
+                sandbox = False
+            else:
+                sandbox = True
+
+            return serve_file(file_path, attach=attach, allow_directory=True,
+                              sandbox=sandbox)
         except IsADirectoryError:
             return redirect(request.path + '/')
         except (NotADirectoryError, FileNotFoundError):
