@@ -56,10 +56,12 @@ class TestMixin(TestCase):
         Does not run collectstatic. The StaticLiveServerTestCase should
         do that automatically for tests that need it.
         """
+        shutil.rmtree(settings.MEDIA_ROOT, ignore_errors=True)
         shutil.copytree(os.path.abspath(os.path.join(settings.DEMO_FILE_ROOT, 'media')),
             settings.MEDIA_ROOT)
 
         self.test_static_root = settings.STATIC_ROOT if settings.STATIC_ROOT else settings.STATICFILES_DIRS[0]
+        shutil.rmtree(self.test_static_root, ignore_errors=True)
         shutil.copytree(os.path.abspath(os.path.join(settings.DEMO_FILE_ROOT, 'static')),
             self.test_static_root)
 
