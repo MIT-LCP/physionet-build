@@ -1,5 +1,4 @@
-import sys
-import os 
+import os
 
 from decouple import config
 
@@ -48,6 +47,6 @@ MEDIA_X_ACCEL_ALIAS = '/protected'
 
 STATIC_ROOT = '/data/pn-static'
 
-if len(sys.argv) > 1 and sys.argv[1] == 'test':
+if RUNNING_TEST_SUITE:
     MEDIA_ROOT = os.path.join(MEDIA_ROOT, 'test')
     STATIC_ROOT = os.path.join(STATIC_ROOT, 'test')

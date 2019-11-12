@@ -1,6 +1,4 @@
 import os
-import sys
-import pdb
 from physionet.settings.base import *
 
 DEBUG = True
@@ -48,6 +46,6 @@ MEDIA_ROOT = os.path.join(os.path.abspath(os.path.join(BASE_DIR, os.pardir)), 'm
 # header so that nginx can serve the file directly.
 MEDIA_X_ACCEL_ALIAS = None
 
-if len(sys.argv) > 1 and sys.argv[1] == 'test':
+if RUNNING_TEST_SUITE:
     MEDIA_ROOT = os.path.join(MEDIA_ROOT, 'test')
     STATICFILES_DIRS[0] = os.path.join(STATICFILES_DIRS[0], 'test')

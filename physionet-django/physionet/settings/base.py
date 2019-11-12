@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
+import sys
 import os
 
 from decouple import config
@@ -306,8 +307,16 @@ CKEDITOR_CONFIGS = {
 
 }
 
+# True if the program is invoked as 'manage.py test'
+RUNNING_TEST_SUITE = (len(sys.argv) > 1 and sys.argv[1] == 'test')
+
 LOGGING_CONFIG = None
 LOGLEVEL = os.environ.get('LOGLEVEL', 'info').upper()
+
+if RUNNING_TEST_SUITE:
+    _logfile = open(os.path.join(BASE_DIR, 'test.log'), 'w')
+else:
+    _logfile = sys.stderr
 
 logging.config.dictConfig({
     'version': 1,
@@ -329,15 +338,18 @@ logging.config.dictConfig({
         'console': {
             'class': 'logging.StreamHandler',
             'formatter': 'console',
+            'stream': _logfile,
         },
         'Custom_Logging': {
             'level': 'INFO',
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
+            'stream': _logfile,
         },
         'verbose_console': {
             'class': 'physionet.log.VerboseStreamHandler',
             'formatter': 'console',
+            'stream': _logfile,
         },
         'mail_admins': {
             'level': 'ERROR',
