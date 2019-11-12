@@ -210,6 +210,15 @@ class Author(BaseAuthor):
         """
         return self.user.profile.get_full_name()
 
+    def initialed_name(self):
+        """
+        Return author's name in citation style.
+        """
+        last = self.user.profile.last_name
+        first = self.user.profile.first_names
+        return '{}, {}'.format(
+            last, ' '.join('{}.'.format(i[0]) for i in first.split()))
+
     def disp_name_email(self):
         """
         """
@@ -689,6 +698,23 @@ class UnpublishedProject(models.Model):
             used = None
         return StorageInfo(allowance=self.core_project.storage_allowance,
                            used=used, include_remaining=True)
+
+    def citation_text(self):
+        """
+        Return template citation text.
+
+        This text resembles the final "citation text" as it will
+        appear once the project is published.  Since the project is
+        not yet published, the current year is used in place of the
+        publication year, and '*****' is used in place of the DOI
+        suffix.
+        """
+        authors = self.authors.all().order_by('display_order')
+        year = timezone.now().year
+        doi = '10.13026/*****'
+        return '{} ({}). {}. PhysioNet. doi:{}'.format(
+            ', '.join(a.initialed_name() for a in authors),
+            year, self.title, doi)
 
     def get_previous_slug(self):
         """
