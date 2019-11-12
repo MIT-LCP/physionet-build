@@ -1,6 +1,4 @@
 import os
-import sys
-import pdb
 from physionet.settings.base import *
 
 DEBUG = True
