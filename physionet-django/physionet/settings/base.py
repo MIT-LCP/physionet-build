@@ -313,6 +313,11 @@ RUNNING_TEST_SUITE = (len(sys.argv) > 1 and sys.argv[1] == 'test')
 LOGGING_CONFIG = None
 LOGLEVEL = os.environ.get('LOGLEVEL', 'info').upper()
 
+if RUNNING_TEST_SUITE:
+    _logfile = open(os.path.join(BASE_DIR, 'test.log'), 'w')
+else:
+    _logfile = sys.stderr
+
 logging.config.dictConfig({
     'version': 1,
     'disable_existing_loggers': False,
@@ -333,15 +338,18 @@ logging.config.dictConfig({
         'console': {
             'class': 'logging.StreamHandler',
             'formatter': 'console',
+            'stream': _logfile,
         },
         'Custom_Logging': {
             'level': 'INFO',
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
+            'stream': _logfile,
         },
         'verbose_console': {
             'class': 'physionet.log.VerboseStreamHandler',
             'formatter': 'console',
+            'stream': _logfile,
         },
         'mail_admins': {
             'level': 'ERROR',
