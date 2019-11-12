@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
+import sys
 import os
 
 from decouple import config
@@ -305,6 +306,9 @@ CKEDITOR_CONFIGS = {
     }
 
 }
+
+# True if the program is invoked as 'manage.py test'
+RUNNING_TEST_SUITE = (len(sys.argv) > 1 and sys.argv[1] == 'test')
 
 LOGGING_CONFIG = None
 LOGLEVEL = os.environ.get('LOGLEVEL', 'info').upper()
