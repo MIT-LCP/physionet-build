@@ -27,6 +27,7 @@ from django.utils.html import format_html, strip_tags
 from django.utils.text import slugify
 from background_task import background
 from django.utils.crypto import get_random_string
+from django.core.exceptions import ObjectDoesNotExist
 
 from project.utility import (get_tree_size, get_file_info, get_directory_info,
                              list_items, StorageInfo, list_files,
@@ -483,7 +484,6 @@ class Metadata(models.Model):
     # Main body descriptive metadata
     title = models.CharField(max_length=200, validators=[validate_title])
     abstract = SafeHTMLField(max_length=10000, blank=True)
-    release_notes = SafeHTMLField(blank=True)
     version = models.CharField(max_length=15, default='', blank=True,
                                validators=[validate_version])
 
@@ -1033,7 +1033,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 text = unescape(strip_tags(self.project_content.get(project_section=attr).section_content))
                 if not text or text.isspace():
                     raise
-            except:
+            except ObjectDoesNotExist:
                 self.integrity_errors.append('Missing required field: {0}'.format(attr.name))
 
         # Metadata

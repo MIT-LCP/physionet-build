@@ -23,6 +23,7 @@ from django.template import loader
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html, format_html_join
+from django.core.exceptions import ObjectDoesNotExist
 
 from project.fileviews import display_project_file
 from project import forms
@@ -635,8 +636,8 @@ def project_content(request, project_slug, **kwargs):
             # Try to get currently existing content for section
             section_content = project.project_content.get(project_section=s)
             section_forms.append(forms.SectionContentForm(instance=section_content))
-        except:
-            # Creates form with empty instace in case content is not found
+        except ObjectDoesNotExist:
+            # Creates form with empty instance in case content is not found
             section_forms.append(forms.SectionContentForm(project=project, project_section=s))
 
     if request.method == 'POST':
@@ -653,8 +654,8 @@ def project_content(request, project_slug, **kwargs):
                 # Try to get currently existing content for section
                 section_content = project.project_content.get(project_section=s)
                 sf = forms.SectionContentForm(data=request.POST, instance=section_content)
-            except:
-                # Creates form with empty instace in case content is not found
+            except ObjectDoesNotExist:
+                # Creates form with empty instance in case content is not found
                 sf = forms.SectionContentForm(project=project, project_section=s, data=request.POST)
 
             # Appends form to array

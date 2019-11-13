@@ -19,6 +19,7 @@ from django.db import DatabaseError, transaction
 from django.db.models import Q, CharField, Value, IntegerField, F, functions
 from background_task import background
 from django.contrib.sites.models import Site
+from django.core.exceptions import ObjectDoesNotExist
 
 from notification.models import News
 import notification.utility as notification
@@ -332,8 +333,8 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
             # Try to get currently existing content for section
             section_content = project.project_content.get(project_section=s)
             section_forms.append(project_forms.SectionContentForm(instance=section_content))
-        except:
-            # Creates form with empty instace in case content is not found
+        except ObjectDoesNotExist:
+            # Creates form with empty instance in case content is not found
             section_forms.append(project_forms.SectionContentForm(project=project, project_section=s))
 
     if request.method == 'POST':
@@ -360,8 +361,8 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
                     # Try to get currently existing content for section
                     section_content = project.project_content.get(project_section=s)
                     sf = project_forms.SectionContentForm(data=request.POST, instance=section_content)
-                except:
-                    # Creates form with empty instace in case content is not found
+                except ObjectDoesNotExist:
+                    # Creates form with empty instance in case content is not found
                     sf = project_forms.SectionContentForm(project=project, project_section=s, data=request.POST)
 
                 # Appends form to array
