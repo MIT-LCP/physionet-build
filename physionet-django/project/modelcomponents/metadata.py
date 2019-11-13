@@ -45,7 +45,6 @@ class Metadata(models.Model):
     # Main body descriptive metadata
     title = models.CharField(max_length=200, validators=[validate_title])
     abstract = SafeHTMLField(max_length=10000, blank=True)
-    release_notes = SafeHTMLField(blank=True)
     version = models.CharField(max_length=15, default='', blank=True,
                                validators=[validate_version])
  

@@ -11,7 +11,7 @@ from django.forms.utils import ErrorList
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import strip_tags
-from django.contrib.contenttypes.fields import GenericRelation
+from django.core.exceptions import ObjectDoesNotExist
 
 from physionet.settings.base import StorageTypes
 from project.modelcomponents.archivedproject import ArchivedProject
@@ -274,7 +274,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 text = unescape(strip_tags(content))
                 if not text or text.isspace():
                     raise
-            except:
+            except ObjectDoesNotExist:
                 self.integrity_errors.append('Missing required field: {0}'.format(attr.name))
 
         # Metadata

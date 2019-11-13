@@ -9,14 +9,18 @@ from project.models import ProjectSection, SectionContent, CoreProject
 from itertools import chain
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
+from html import unescape
+from django.utils.html import strip_tags
 import os
 
 
 LABELS = [
     # 0: Database
-    {'background': 'Background', 'methods': 'Methods',
+    {'background': 'Background',
+    'methods': 'Methods',
     'content_description': 'Data Description',
     'usage_notes': 'Usage Notes',
+    'release_notes': 'Release Notes',
     'acknowledgements': 'Acknowledgements',
     'conflicts_of_interest': 'Conflicts of Interest'},
     # 1: Software
@@ -24,6 +28,7 @@ LABELS = [
     'content_description': 'Software Description',
     'methods': 'Technical Implementation',
     'usage_notes': 'Usage Notes',
+    'release_notes': 'Release Notes',
     'installation': 'Installation and Requirements',
     'acknowledgements': 'Acknowledgements',
     'conflicts_of_interest': 'Conflicts of Interest'},
@@ -32,6 +37,7 @@ LABELS = [
     'methods': 'Participation',
     'content_description': 'Data Description',
     'usage_notes': 'Evaluation',
+    'release_notes': 'Release Notes',
     'acknowledgements': 'Acknowledgements',
     'conflicts_of_interest': 'Conflicts of Interest'},
     # 3: Model
@@ -39,6 +45,7 @@ LABELS = [
     'content_description': 'Model Description',
     'methods': 'Technical Implementation',
     'usage_notes': 'Usage Notes',
+    'release_notes': 'Release Notes',
     'installation': 'Installation and Requirements',
     'acknowledgements': 'Acknowledgements',
     'conflicts_of_interest': 'Conflicts of Interest'},
@@ -71,8 +78,10 @@ def migrate_content(apps, schema_editor):
         # Persists new SectionContent entity based on content from the previous structure
         for l, n in labels.items():
             section = ProjectSection.objects.get(name=n, resource_type=d.resource_type.id)
-            SectionContent.objects.create(project=d, project_section=section,
-                                          section_content=d._meta.get_field(l).value_from_object(d))
+            text = unescape(strip_tags(d._meta.get_field(l).value_from_object(d)))
+            if text and not text.isspace():
+                SectionContent.objects.create(project=d, project_section=section,
+                                            section_content=d._meta.get_field(l).value_from_object(d))
 
 
 def undo_migrate_content(apps, schema_editor):
@@ -133,6 +142,10 @@ class Migration(migrations.Migration):
         migrations.RunPython(migrate_content, reverse_code=undo_migrate_content),
         migrations.RemoveField(
             model_name='activeproject',
+            name='release_notes',
+        ),
+        migrations.RemoveField(
+            model_name='activeproject',
             name='acknowledgements',
         ),
         migrations.RemoveField(
@@ -161,6 +174,10 @@ class Migration(migrations.Migration):
         ),
         migrations.RemoveField(
             model_name='archivedproject',
+            name='release_notes',
+        ),
+        migrations.RemoveField(
+            model_name='archivedproject',
             name='acknowledgements',
         ),
         migrations.RemoveField(
@@ -186,6 +203,10 @@ class Migration(migrations.Migration):
         migrations.RemoveField(
             model_name='archivedproject',
             name='usage_notes',
+        ),
+        migrations.RemoveField(
+            model_name='publishedproject',
+            name='release_notes',
         ),
         migrations.RemoveField(
             model_name='publishedproject',
