@@ -1005,30 +1005,47 @@ def past_credential_applications(request, status):
         elif "search" in request.POST:
             # Here I take the search field that will be username, first name or email
             # and do a custom query search
-            search_field = request.POST['search']
-            l_applications = LegacyCredential.objects.filter(Q(migrated=True) &
-                Q(migrated_user__is_credentialed=True) &
-                (Q(migrated_user__username__icontains=search_field) |
-                Q(migrated_user__profile__first_names__icontains=search_field) |
-                Q(migrated_user__email__icontains=search_field))).order_by('-migration_date')
-            s_search_applications = CredentialApplication.objects.filter(
-                Q(status=2) & (Q(user__username__icontains=search_field) |
-                Q(user__profile__first_names__icontains=search_field) |
-                Q(user__email__icontains=search_field))).order_by('-application_datetime')
-            applications = list(chain(s_search_applications, l_applications))
-            u_search_applications = CredentialApplication.objects.filter(
-                Q(status__in=[1, 3]) & (Q(user__username__icontains=search_field) |
-                Q(user__profile__first_names__icontains=search_field) |
-                Q(user__email__icontains=search_field))).order_by('-application_datetime')
-            applications = paginate(request, applications, 50)
-            u_applications = paginate(request, u_search_applications, 50)
-            # u_applications = u_search_applications
+            applications, u_applications = search_credential_applications(request, status)
             if status == 'successful':
                 return render(request, 'console/past_credential_successful_user_list.html',
                     {'applications': applications, 'u_applications': u_applications})
             elif status == 'unsuccessful':
                 return render(request, 'console/past_credential_unsuccessful_user_list.html',
                     {'applications': applications, 'u_applications': u_applications})
+
+    applications, u_applications = search_credential_applications(request, status)
+
+    return render(request, 'console/past_credential_applications.html',
+        {'applications': applications, 'u_applications': u_applications})
+
+def search_credential_applications(request, status):
+    """
+    Function takes the request and status as arguments
+     - status is used to display the propper template, either successful
+       or unsuccessful.
+
+    Here we search for either ALL the applications which is the default, or
+    do the custom search by the keywords entered.
+    """
+    if request.POST:
+        search_field = request.POST['search']
+        l_applications = LegacyCredential.objects.filter(Q(migrated=True) &
+            Q(migrated_user__is_credentialed=True) &
+            (Q(migrated_user__username__icontains=search_field) |
+            Q(migrated_user__profile__first_names__icontains=search_field) |
+            Q(migrated_user__email__icontains=search_field))).order_by('-migration_date')
+        s_search_applications = CredentialApplication.objects.filter(
+            Q(status=2) & (Q(user__username__icontains=search_field) |
+            Q(user__profile__first_names__icontains=search_field) |
+            Q(user__email__icontains=search_field))).order_by('-application_datetime')
+        u_search_applications = CredentialApplication.objects.filter(
+            Q(status__in=[1, 3]) & (Q(user__username__icontains=search_field) |
+            Q(user__profile__first_names__icontains=search_field) |
+            Q(user__email__icontains=search_field))).order_by('-application_datetime')
+        applications = list(chain(s_search_applications, l_applications))
+        applications = paginate(request, applications, 50)
+        u_applications = paginate(request, u_search_applications, 50)
+        return applications, u_applications
 
     l_applications = LegacyCredential.objects.filter(migrated=True,
         migrated_user__is_credentialed=True).order_by('-migration_date')
@@ -1041,9 +1058,7 @@ def past_credential_applications(request, status):
     u_applications = CredentialApplication.objects.filter(status__in=[1, 3]
         ).order_by('-application_datetime')
     u_applications = paginate(request, u_applications, 50)
-
-    return render(request, 'console/past_credential_applications.html',
-        {'applications': applications, 'u_applications': u_applications})
+    return applications, u_applications
 
 
 @login_required
