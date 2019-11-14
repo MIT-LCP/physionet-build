@@ -105,3 +105,13 @@ def validate_slug(value):
             must be of length 1-{}. Must begin and end with an alphanumeric.
             Must not contain consecutive hyphens or end with hyphen number.
             """.format(MAX_PROJECT_SLUG_LENGTH))
+
+
+def validate_title(value):
+    """
+    Validate titles that start with an alphabetical character followed by
+    characters marked as letters in Unicode along side with the following
+    special characters: , - ' * ? : ( )
+    """
+    if not re.fullmatch(r'[a-zA-Z][\w \,\-\'\*\?\:\(\)]+', value):
+        raise ValidationError("Enter a valid title. This value may contain only letters, numbers, spaces and [,-'*?:()]")
