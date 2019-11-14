@@ -1018,14 +1018,15 @@ def past_credential_applications(request, status):
     return render(request, 'console/past_credential_applications.html',
         {'applications': applications, 'u_applications': u_applications})
 
+
 def search_credential_applications(request, status):
     """
-    Function takes the request and status as arguments
-     - status is used to display the propper template, either successful
-       or unsuccessful.
+    Search past credentialing applications.
 
-    Here we search for either ALL the applications which is the default, or
-    do the custom search by the keywords entered.
+    Args:
+        request (obj): Django WSGIRequest object.
+        status (str): filter for applications to search (either successful or
+                      unsuccessful).
     """
     if request.POST:
         search_field = request.POST['search']
@@ -1051,13 +1052,15 @@ def search_credential_applications(request, status):
         migrated_user__is_credentialed=True).order_by('-migration_date')
     s_applications = CredentialApplication.objects.filter(status=2
         ).order_by('-application_datetime')
-    # Here legacy applications and new applications are merged into a list
+
+    # Merge legacy applications and new applications
     applications = list(chain(s_applications, l_applications))
     applications = paginate(request, applications, 50)
 
     u_applications = CredentialApplication.objects.filter(status__in=[1, 3]
         ).order_by('-application_datetime')
     u_applications = paginate(request, u_applications, 50)
+
     return applications, u_applications
 
 
