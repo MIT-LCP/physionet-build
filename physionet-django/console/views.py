@@ -1003,9 +1003,7 @@ def past_credential_applications(request, status):
                 c_application.status = 0
                 c_application.save()
         elif "search" in request.POST:
-            # Here I take the search field that will be username, first name or email
-            # and do a custom query search
-            applications, u_applications = search_credential_applications(request, status)
+            applications, u_applications = search_credential_applications(request)
             if status == 'successful':
                 return render(request, 'console/past_credential_successful_user_list.html',
                     {'applications': applications, 'u_applications': u_applications})
@@ -1013,20 +1011,18 @@ def past_credential_applications(request, status):
                 return render(request, 'console/past_credential_unsuccessful_user_list.html',
                     {'applications': applications, 'u_applications': u_applications})
 
-    applications, u_applications = search_credential_applications(request, status)
+    applications, u_applications = search_credential_applications(request)
 
     return render(request, 'console/past_credential_applications.html',
         {'applications': applications, 'u_applications': u_applications})
 
 
-def search_credential_applications(request, status):
+def search_credential_applications(request):
     """
     Search past credentialing applications.
 
     Args:
         request (obj): Django WSGIRequest object.
-        status (str): filter for applications to search (either successful or
-                      unsuccessful).
     """
     if request.POST:
         search_field = request.POST['search']
