@@ -32,7 +32,7 @@ from project.utility import (get_tree_size, get_file_info, get_directory_info,
                              clear_directory)
 from project.validators import (validate_doi, validate_subdir,
                                 validate_version, validate_slug,
-                                MAX_PROJECT_SLUG_LENGTH)
+                                MAX_PROJECT_SLUG_LENGTH, validate_title)
 from user.validators import validate_alphaplus, validate_alphaplusplus
 from physionet.utility import (sorted_tree_files, zip_dir)
 
@@ -417,7 +417,7 @@ class Metadata(models.Model):
                                     on_delete=models.PROTECT)
 
     # Main body descriptive metadata
-    title = models.CharField(max_length=200, validators=[validate_alphaplus])
+    title = models.CharField(max_length=200, validators=[validate_title])
     abstract = SafeHTMLField(max_length=10000, blank=True)
     background = SafeHTMLField(blank=True)
     methods = SafeHTMLField(blank=True)
