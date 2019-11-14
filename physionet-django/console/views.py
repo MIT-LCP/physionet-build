@@ -1003,18 +1003,32 @@ def past_credential_applications(request, status):
                 c_application.status = 0
                 c_application.save()
         elif "search" in request.POST:
-            applications, u_applications = search_credential_applications(request)
+            all_successful_apps, unsuccessful_apps = search_credential_applications(request)
             if status == 'successful':
                 return render(request, 'console/past_credential_successful_user_list.html',
-                    {'applications': applications, 'u_applications': u_applications})
+                    {'applications': all_successful_apps,
+                     'u_applications': unsuccessful_apps})
             elif status == 'unsuccessful':
                 return render(request, 'console/past_credential_unsuccessful_user_list.html',
-                    {'applications': applications, 'u_applications': u_applications})
+                    {'applications': all_successful_apps,
+                     'u_applications': unsuccessful_apps})
 
-    applications, u_applications = search_credential_applications(request)
+    legacy_apps = LegacyCredential.objects.filter(migrated=True,
+        migrated_user__is_credentialed=True).order_by('-migration_date')
+
+    successful_apps = CredentialApplication.objects.filter(status=2
+        ).order_by('-application_datetime')
+    unsuccessful_apps = CredentialApplication.objects.filter(status__in=[1, 3]
+        ).order_by('-application_datetime')
+
+    # Merge legacy applications and new applications
+    all_successful_apps = list(chain(successful_apps, legacy_apps))
+
+    all_successful_apps = paginate(request, all_successful_apps, 50)
+    unsuccessful_apps = paginate(request, unsuccessful_apps, 50)
 
     return render(request, 'console/past_credential_applications.html',
-        {'applications': applications, 'u_applications': u_applications})
+        {'applications': all_successful_apps, 'u_applications': unsuccessful_apps})
 
 
 def search_credential_applications(request):
@@ -1026,38 +1040,30 @@ def search_credential_applications(request):
     """
     if request.POST:
         search_field = request.POST['search']
-        l_applications = LegacyCredential.objects.filter(Q(migrated=True) &
+
+        legacy_apps = LegacyCredential.objects.filter(Q(migrated=True) &
             Q(migrated_user__is_credentialed=True) &
             (Q(migrated_user__username__icontains=search_field) |
             Q(migrated_user__profile__first_names__icontains=search_field) |
             Q(migrated_user__email__icontains=search_field))).order_by('-migration_date')
-        s_search_applications = CredentialApplication.objects.filter(
+
+        successful_apps = CredentialApplication.objects.filter(
             Q(status=2) & (Q(user__username__icontains=search_field) |
             Q(user__profile__first_names__icontains=search_field) |
             Q(user__email__icontains=search_field))).order_by('-application_datetime')
-        u_search_applications = CredentialApplication.objects.filter(
+
+        unsuccessful_apps = CredentialApplication.objects.filter(
             Q(status__in=[1, 3]) & (Q(user__username__icontains=search_field) |
             Q(user__profile__first_names__icontains=search_field) |
             Q(user__email__icontains=search_field))).order_by('-application_datetime')
-        applications = list(chain(s_search_applications, l_applications))
-        applications = paginate(request, applications, 50)
-        u_applications = paginate(request, u_search_applications, 50)
-        return applications, u_applications
 
-    l_applications = LegacyCredential.objects.filter(migrated=True,
-        migrated_user__is_credentialed=True).order_by('-migration_date')
-    s_applications = CredentialApplication.objects.filter(status=2
-        ).order_by('-application_datetime')
+        # Merge legacy applications with new applications
+        all_successful_apps = list(chain(successful_apps, legacy_apps))
 
-    # Merge legacy applications and new applications
-    applications = list(chain(s_applications, l_applications))
-    applications = paginate(request, applications, 50)
+        all_successful_apps = paginate(request, all_successful_apps, 50)
+        unsuccessful_apps = paginate(request, unsuccessful_apps, 50)
 
-    u_applications = CredentialApplication.objects.filter(status__in=[1, 3]
-        ).order_by('-application_datetime')
-    u_applications = paginate(request, u_applications, 50)
-
-    return applications, u_applications
+        return all_successful_apps, unsuccessful_apps
 
 
 @login_required
