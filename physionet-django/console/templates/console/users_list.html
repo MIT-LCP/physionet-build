@@ -1,11 +1,29 @@
-{% for user in users %}
-  <tr>
-    <td><a href="{% url 'public_profile' user.username %}">{{ user.username }}</td>
-    <td>{{ user.get_full_name }}</td>
-    <td>{{ user.email }}</td>
-    <td>{{ user.join_date }}</td>
-    <td>{{ user.last_login|date }}</td>
-    <td>{{ user.login_time.values_list | length }} </td>
-    <td>{{ user.credential_datetime|date }}</td>
-  </tr>
-{% endfor %}
+<div id="searchitems">
+  <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Full Name</th>
+        <th>Email</th>
+        <th>Join Date</th>
+        <th>Last Login</th>
+        <th>Logins  {% if request.path != user_list_inactive %}(90 days){% else %}(total){% endif %}</th>
+        <th>Credentialed</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+      <tr>
+        <td><a href="{% url 'public_profile' user.username %}">{{ user.username }}</td>
+        <td>{{ user.get_full_name }}</td>
+        <td>{{ user.email }}</td>
+        <td>{{ user.join_date }}</td>
+        <td>{{ user.last_login|date }}</td>
+        <td>{{ user.login_time.values_list | length }} </td>
+        <td>{{ user.credential_datetime|date }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% include "console/pagination.html" with pagination=users %}
+</div>
