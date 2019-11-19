@@ -19,7 +19,6 @@
 
 table, th, td {
   border: 1px solid lightgrey;
-  width: 100%;
 }
 
 tr:nth-child(even) {
