@@ -24,7 +24,7 @@
         <tbody>
         	{% for project in c_projects %}
         	<tr>
-        		<td>{{ project }}</td>
+        		<td><a href="{% url 'published_project' project.slug project.version %}">{{ project }}</a></a></td>
         		<td>{{ project.publish_datetime }}</td>
         		<td>{{ project.member_count }}</td>
         		<td><a href="{% url 'project_access_manage' project.id %}" class="btn btn-sm btn-primary" role="button">View</a></td>
