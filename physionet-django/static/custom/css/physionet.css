@@ -540,6 +540,7 @@ a, code{
   margin-left: 0.75em;
   padding-left: 25px;
   margin-top: 25px;
+  border-width: 0;
   border-left: 1px solid;
   border-image: linear-gradient(to bottom, silver 0%, silver 60%, transparent 100%) 1% 100%;
           
