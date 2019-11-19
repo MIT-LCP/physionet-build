@@ -767,6 +767,9 @@ def users_search(request, group):
 
         users = users.order_by('username')
 
+        if len(search_field) == 0:
+            users = paginate(request, users, 50)
+
         return render(request, 'console/users_list.html', {'users':users})
 
     raise Http404()
@@ -1060,8 +1063,9 @@ def search_credential_applications(request):
         # Merge legacy applications with new applications
         all_successful_apps = list(chain(successful_apps, legacy_apps))
 
-        all_successful_apps = paginate(request, all_successful_apps, 50)
-        unsuccessful_apps = paginate(request, unsuccessful_apps, 50)
+        if len(search_field) == 0:
+            all_successful_apps = paginate(request, all_successful_apps, 50)
+            unsuccessful_apps = paginate(request, unsuccessful_apps, 50)
 
         return all_successful_apps, unsuccessful_apps
 
