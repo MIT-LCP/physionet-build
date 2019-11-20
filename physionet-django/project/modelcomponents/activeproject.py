@@ -11,7 +11,6 @@ from django.forms.utils import ErrorList
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import strip_tags
-from django.core.exceptions import ObjectDoesNotExist
 
 from physionet.settings.base import StorageTypes
 from project.modelcomponents.archivedproject import ArchivedProject
@@ -97,6 +96,9 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         50: 'Awaiting authors to approve publication.',
         60: 'Awaiting editor to publish.',
     }
+
+    REQUIRED_FIELDS = ['title', 'abstract', 'version', 'license',
+        'short_description']
 
     def storage_used(self):
         """
@@ -269,17 +271,15 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             resource_type=self.resource_type, required=True)
         for attr in sections:
             try:
-                content = self.project_content.get(
-                    project_section=attr).section_content
-                text = unescape(strip_tags(content))
-                if not text or text.isspace():
-                    raise
-            except ObjectDoesNotExist:
-                self.integrity_errors.append('Missing required field: {0}'.format(attr.name))
+                section = self.project_content.get(project_section=attr)
+                if not section.is_valid():
+                    raise SectionContent.DoesNotExist
+            except SectionContent.DoesNotExist:
+                self.integrity_errors.append(
+                    'Missing required field: {0}'.format(attr.title))
 
         # Metadata
-        meta = ['title', 'abstract', 'version', 'license', 'short_description']
-        for attr in meta:
+        for attr in ActiveProject.REQUIRED_FIELDS:
             value = getattr(self, attr)
             text = unescape(strip_tags(str(value)))
             if value is None or not text or text.isspace():

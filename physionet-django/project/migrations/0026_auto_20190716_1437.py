@@ -5,10 +5,8 @@ import django.db.models.deletion
 import project.models
 from django.conf import settings
 from django.core.management import call_command
-from project.models import ProjectSection, SectionContent, CoreProject
 from itertools import chain
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ObjectDoesNotExist
 from html import unescape
 from django.utils.html import strip_tags
 import os
@@ -16,45 +14,45 @@ import os
 
 LABELS = [
     # 0: Database
-    {'background': 'Background',
-    'methods': 'Methods',
-    'content_description': 'Data Description',
-    'usage_notes': 'Usage Notes',
-    'release_notes': 'Release Notes',
-    'acknowledgements': 'Acknowledgements',
-    'conflicts_of_interest': 'Conflicts of Interest'},
+    {'Background': 'background',
+    'Methods': 'methods',
+    'Data Description': 'content_description',
+    'Usage Notes': 'usage_notes',
+    'Release Notes': 'release_notes',
+    'Acknowledgements': 'acknowledgements',
+    'Conflicts of Interest': 'conflicts_of_interest'},
     # 1: Software
-    {'background': 'Background',
-    'content_description': 'Software Description',
-    'methods': 'Technical Implementation',
-    'usage_notes': 'Usage Notes',
-    'release_notes': 'Release Notes',
-    'installation': 'Installation and Requirements',
-    'acknowledgements': 'Acknowledgements',
-    'conflicts_of_interest': 'Conflicts of Interest'},
+    {'Background': 'background',
+    'Software Description': 'content_description',
+    'Technical Implementation': 'methods',
+    'Usage Notes': 'usage_notes',
+    'Release Notes': 'release_notes',
+    'Installation and Requirements': 'installation',
+    'Acknowledgements': 'acknowledgements',
+    'Conflicts of Interest': 'conflicts_of_interest'},
     # 2: Challenge
-    {'background': 'Objective',
-    'methods': 'Participation',
-    'content_description': 'Data Description',
-    'usage_notes': 'Evaluation',
-    'release_notes': 'Release Notes',
-    'acknowledgements': 'Acknowledgements',
-    'conflicts_of_interest': 'Conflicts of Interest'},
+    {'Objective': 'background',
+    'Participation': 'methods',
+    'Data Description': 'content_description',
+    'Evaluation': 'usage_notes',
+    'Release Notes': 'release_notes',
+    'Acknowledgements': 'acknowledgements',
+    'Conflicts of Interest': 'conflicts_of_interest'},
     # 3: Model
-    {'background': 'Background',
-    'content_description': 'Model Description',
-    'methods': 'Technical Implementation',
-    'usage_notes': 'Usage Notes',
-    'release_notes': 'Release Notes',
-    'installation': 'Installation and Requirements',
-    'acknowledgements': 'Acknowledgements',
-    'conflicts_of_interest': 'Conflicts of Interest'},
+    {'Background': 'background',
+    'Model Description': 'content_description',
+    'Technical Implementation': 'methods',
+    'Usage Notes': 'usage_notes',
+    'Release Notes': 'release_notes',
+    'Installation and Requirements': 'installation',
+    'Acknowledgements': 'acknowledgements',
+    'Conflicts of Interest': 'conflicts_of_interest'}
 ]
 
 
 def load_fixture(apps, schema_editor):
     project_types_fixtures = os.path.join(settings.BASE_DIR, 'project',
-                                          'fixtures', 'project-sections.json')
+        'fixtures', 'project-sections.json')
     call_command('loaddata', project_types_fixtures) 
 
 
@@ -64,56 +62,64 @@ def unload_fixture(apps, schema_editor):
 
 
 def migrate_content(apps, schema_editor):
+    section_model = apps.get_model("project", "ProjectSection")
+    content_model = apps.get_model("project", "SectionContent")
     # Gets all projects currently in the database
     data = chain(
         apps.get_model("project", "ActiveProject").objects.all(),
         apps.get_model("project", "PublishedProject").objects.all(),
         apps.get_model("project", "ArchivedProject").objects.all()
-    )
+        )
 
     for d in data:
         # Separates labels for one resource type
         labels = LABELS[d.resource_type.id]
 
         # Persists new SectionContent entity based on content from the previous structure
-        for l, n in labels.items():
-            section = ProjectSection.objects.get(name=n, resource_type=d.resource_type.id)
-            text = unescape(strip_tags(d._meta.get_field(l).value_from_object(d)))
-            if text and not text.isspace():
-                SectionContent.objects.create(project=d, project_section=section,
-                                            section_content=d._meta.get_field(l).value_from_object(d))
+        sections = section_model.objects.filter(title__in=labels.keys(), resource_type=d.resource_type.id)
+        for section in sections:
+            l = labels[section.title]
+            value = d._meta.get_field(l).value_from_object(d)
+            text = unescape(strip_tags(value))
+
+            # Do nothing if empty
+            if not text or text.isspace():
+                continue
+            
+            with transaction.atomic():
+                content_type = ContentType.objects.get_for_model(d).id
+                content_model.objects.create(object_id=d.id, content_type_id=content_type,
+                    project_section=section, section_content=value)
 
 
 def undo_migrate_content(apps, schema_editor):
-    sections = apps.get_model("project", "ProjectSection")
-    content = apps.get_model("project", "SectionContent")
+    content_model = apps.get_model("project", "SectionContent")
     data = chain(
         apps.get_model("project", "ActiveProject").objects.all(),
         apps.get_model("project", "PublishedProject").objects.all(),
         apps.get_model("project", "ArchivedProject").objects.all()
-    )
+        )
 
     for d in data:
         # Separates labels for one resource type
         labels = LABELS[d.resource_type.id]
 
         # Persists new SectionContent entity based on content from the previous structure
-        for l, n in labels.items():
-            try:
-                section = sections.objects.get(name=n, resource_type=d.resource_type.id)
-                content_type = ContentType.objects.get_for_model(d).id
-                value = content.objects.get(object_id=d.id, content_type=content_type, project_section=section).section_content
-                with transaction.atomic():
-                    setattr(d, l, value)
-                    d.save()
-            except ObjectDoesNotExist:
-                pass
+        content_type = ContentType.objects.get_for_model(d).id
+        project_content = content_model.objects.filter(object_id=d.id, content_type=content_type)
+        for pc in project_content:
+            value = pc.section_content
+            title = pc.project_section.title
+            l = labels[title]
+            with transaction.atomic():
+                setattr(d, l, value)
+                d.save()
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('project', '0033_auto_20191029_1506'),
+        ('project', '0034_auto_20191114_1301'),
     ]
 
     operations = [
@@ -121,7 +127,8 @@ class Migration(migrations.Migration):
             name='ProjectSection',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=30)),
+                ('title', models.CharField(max_length=30)),
+                ('html_id', models.SlugField(max_length=30)),
                 ('description', models.TextField()),
                 ('default_order', models.PositiveSmallIntegerField()),
                 ('required', models.BooleanField()),
@@ -242,10 +249,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterUniqueTogether(
             name='projectsection',
-            unique_together={('name', 'resource_type')},
-        ),
-        migrations.AlterUniqueTogether(
-            name='projectsection',
-            unique_together={('resource_type', 'default_order')},
+            unique_together={('resource_type', 'title'), ('resource_type', 'html_id'), ('resource_type', 'default_order')},
         ),
     ]

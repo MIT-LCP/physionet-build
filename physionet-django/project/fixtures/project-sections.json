@@ -3,7 +3,8 @@
 	"model": "project.projectsection",
 	"pk": 1,
 	"fields": {
-		"name": "Background",
+		"title": "Background",
+		"html_id": "background",
 		"description": "* The content or research background.",
 		"resource_type": 0,
 		"default_order": 1,
@@ -14,7 +15,8 @@
 	"model": "project.projectsection",
 	"pk": 2,
 	"fields": {
-		"name": "Methods",
+		"title": "Methods",
+		"html_id": "methods",
 		"description": "* The methodology employed for the study or research. Describe how the data was collected.",
 		"resource_type": 0,
 		"default_order": 2,
@@ -25,7 +27,8 @@
 	"model": "project.projectsection",
 	"pk": 3,
 	"fields": {
-		"name": "Data Description",
+		"title": "Data Description",
+		"html_id": "description",
 		"description": "* Describe the data, and how the files are named and structured.",
 		"resource_type": 0,
 		"default_order": 3,
@@ -36,7 +39,8 @@
 	"model": "project.projectsection",
 	"pk": 4,
 	"fields": {
-		"name": "Usage Notes",
+		"title": "Usage Notes",
+		"html_id": "usage-notes",
 		"description": "* How the data is to be used. List external documentation pages. List related software developed for the dataset, and any special software required to use the data.",
 		"resource_type": 0,
 		"default_order": 4,
@@ -47,7 +51,8 @@
 	"model": "project.projectsection",
 	"pk": 5,
 	"fields": {
-		"name": "Release Notes",
+		"title": "Release Notes",
+		"html_id": "release-notes",
 		"description": "Important notes about the current release, and changes from previous versions.",
 		"resource_type": 0,
 		"default_order": 5,
@@ -58,7 +63,8 @@
 	"model": "project.projectsection",
 	"pk": 6,
 	"fields": {
-		"name": "Acknowledgements",
+		"title": "Acknowledgements",
+		"html_id": "acknowledgements",
 		"description": "Thank the people who helped with the research but did not qualify for authorship. In addition, provide any funding information.",
 		"resource_type": 0,
 		"default_order": 6,
@@ -69,7 +75,8 @@
 	"model": "project.projectsection",
 	"pk": 7,
 	"fields": {
-		"name": "Conflicts of Interest",
+		"title": "Conflicts of Interest",
+		"html_id": "conflicts-of-interest",
 		"description": "* List whether any authors have a financial, commercial, legal, or professional relationship with other organizations, or with the people working with them, that could influence this research. State explicitly if there are none.",
 		"resource_type": 0,
 		"default_order": 7,
@@ -80,7 +87,8 @@
 	"model": "project.projectsection",
 	"pk": 8,
 	"fields": {
-		"name": "Background",
+		"title": "Background",
+		"html_id": "background",
 		"description": "* The content or research background.",
 		"resource_type": 1,
 		"default_order": 1,
@@ -91,7 +99,8 @@
 	"model": "project.projectsection",
 	"pk": 9,
 	"fields": {
-		"name": "Software Description",
+		"title": "Software Description",
+		"html_id": "description",
 		"description": "* Describe the software in this project.",
 		"resource_type": 1,
 		"default_order": 2,
@@ -102,7 +111,8 @@
 	"model": "project.projectsection",
 	"pk": 10,
 	"fields": {
-		"name": "Technical Implementation",
+		"title": "Technical Implementation",
+		"html_id": "implementation",
 		"description": "Details on the technical implementation. ie. the development process, and the underlying algorithms.",
 		"resource_type": 1,
 		"default_order": 3,
@@ -113,7 +123,8 @@
 	"model": "project.projectsection",
 	"pk": 11,
 	"fields": {
-		"name": "Installation and Requirements",
+		"title": "Installation and Requirements",
+		"html_id": "installation",
 		"description": "* Instructions on how to install the software, along with the required dependencies. Or specify the files in which they are listed.",
 		"resource_type": 1,
 		"default_order": 4,
@@ -124,7 +135,8 @@
 	"model": "project.projectsection",
 	"pk": 12,
 	"fields": {
-		"name": "Usage Notes",
+		"title": "Usage Notes",
+		"html_id": "usage-notes",
 		"description": "* How the software is to be used. List some example function calls or specify the demo file(s).",
 		"resource_type": 1,
 		"default_order": 5,
@@ -135,7 +147,8 @@
 	"model": "project.projectsection",
 	"pk": 13,
 	"fields": {
-		"name": "Release Notes",
+		"title": "Release Notes",
+		"html_id": "release-notes",
 		"description": "Important notes about the current release, and changes from previous versions.",
 		"resource_type": 1,
 		"default_order": 6,
@@ -146,7 +159,8 @@
 	"model": "project.projectsection",
 	"pk": 14,
 	"fields": {
-		"name": "Acknowledgements",
+		"title": "Acknowledgements",
+		"html_id": "acknowledgements",
 		"description": "Thank the people who helped with the research but did not qualify for authorship. In addition, provide any funding information.",
 		"resource_type": 1,
 		"default_order": 7,
@@ -157,7 +171,8 @@
 	"model": "project.projectsection",
 	"pk": 15,
 	"fields": {
-		"name": "Conflicts of Interest",
+		"title": "Conflicts of Interest",
+		"html_id": "conflicts-of-interest",
 		"description": "* List whether any authors have a financial, commercial, legal, or professional relationship with other organizations, or with the people working with them, that could influence this research. State explicitly if there are none.",
 		"resource_type": 1,
 		"default_order": 8,
@@ -168,7 +183,8 @@
 	"model": "project.projectsection",
 	"pk": 16,
 	"fields": {
-		"name": "Objective",
+		"title": "Objective",
+		"html_id": "objective",
 		"description": "* An introduction to the challenge and a description of the objective/s.",
 		"resource_type": 2,
 		"default_order": 1,
@@ -179,7 +195,8 @@
 	"model": "project.projectsection",
 	"pk": 17,
 	"fields": {
-		"name": "Participation",
+		"title": "Participation",
+		"html_id": "participation",
 		"description": "* A timeline for the challenge and rules for participation.",
 		"resource_type": 2,
 		"default_order": 2,
@@ -190,7 +207,8 @@
 	"model": "project.projectsection",
 	"pk": 18,
 	"fields": {
-		"name": "Data Description",
+		"title": "Data Description",
+		"html_id": "description",
 		"description": "* A description of the challenge data and access details.",
 		"resource_type": 2,
 		"default_order": 3,
@@ -201,7 +219,8 @@
 	"model": "project.projectsection",
 	"pk": 19,
 	"fields": {
-		"name": "Evaluation",
+		"title": "Evaluation",
+		"html_id": "evaluation",
 		"description": "* Scoring details, information on submitting an entry, and a link to a sample submission.",
 		"resource_type": 2,
 		"default_order": 4,
@@ -212,7 +231,8 @@
 	"model": "project.projectsection",
 	"pk": 20,
 	"fields": {
-		"name": "Release Notes",
+		"title": "Release Notes",
+		"html_id": "release-notes",
 		"description": "Important notes about the current release, and changes from previous versions.",
 		"resource_type": 2,
 		"default_order": 5,
@@ -223,7 +243,8 @@
 	"model": "project.projectsection",
 	"pk": 21,
 	"fields": {
-		"name": "Acknowledgements",
+		"title": "Acknowledgements",
+		"html_id": "acknowledgements",
 		"description": "Thank the people who helped with the research but did not qualify for authorship. In addition, provide any funding information.",
 		"resource_type": 2,
 		"default_order": 6,
@@ -234,7 +255,8 @@
 	"model": "project.projectsection",
 	"pk": 22,
 	"fields": {
-		"name": "Conflicts of Interest",
+		"title": "Conflicts of Interest",
+		"html_id": "conflicts-of-interest",
 		"description": "* List whether any authors have a financial, commercial, legal, or professional relationship with other organizations, or with the people working with them, that could influence this research. State explicitly if there are none.",
 		"resource_type": 2,
 		"default_order": 7,
@@ -245,7 +267,8 @@
 	"model": "project.projectsection",
 	"pk": 23,
 	"fields": {
-		"name": "Background",
+		"title": "Background",
+		"html_id": "background",
 		"description": "* The content or research background.",
 		"resource_type": 3,
 		"default_order": 1,
@@ -256,7 +279,8 @@
 	"model": "project.projectsection",
 	"pk": 24,
 	"fields": {
-		"name": "Technical Implementation",
+		"title": "Technical Implementation",
+		"html_id": "implementation",
 		"description": "Details on the technical implementation. ie. the development process, and the underlying algorithms.",
 		"resource_type": 3,
 		"default_order": 2,
@@ -267,7 +291,8 @@
 	"model": "project.projectsection",
 	"pk": 25,
 	"fields": {
-		"name": "Model Description",
+		"title": "Model Description",
+		"html_id": "description",
 		"description": "* Describe the model and any supporting data and software.",
 		"resource_type": 3,
 		"default_order": 3,
@@ -278,7 +303,8 @@
 	"model": "project.projectsection",
 	"pk": 26,
 	"fields": {
-		"name": "Installation and Requirements",
+		"title": "Installation and Requirements",
+		"html_id": "installation",
 		"description": "* Instructions on how to set up a software environment for using the model.",
 		"resource_type": 3,
 		"default_order": 4,
@@ -289,7 +315,8 @@
 	"model": "project.projectsection",
 	"pk": 27,
 	"fields": {
-		"name": "Usage Notes",
+		"title": "Usage Notes",
+		"html_id": "usage-notes",
 		"description": "* Describe how you intend others to (re)use the model.",
 		"resource_type": 3,
 		"default_order": 5,
@@ -300,7 +327,8 @@
 	"model": "project.projectsection",
 	"pk": 28,
 	"fields": {
-		"name": "Release Notes",
+		"title": "Release Notes",
+		"html_id": "release-notes",
 		"description": "Important notes about the current release, and changes from previous versions.",
 		"resource_type": 3,
 		"default_order": 6,
@@ -311,7 +339,8 @@
 	"model": "project.projectsection",
 	"pk": 29,
 	"fields": {
-		"name": "Acknowledgements",
+		"title": "Acknowledgements",
+		"html_id": "acknowledgements",
 		"description": "Thank the people who helped with the research but did not qualify for authorship. In addition, provide any funding information.",
 		"resource_type": 3,
 		"default_order": 7,
@@ -322,7 +351,8 @@
 	"model": "project.projectsection",
 	"pk": 30,
 	"fields": {
-		"name": "Conflicts of Interest",
+		"title": "Conflicts of Interest",
+		"html_id": "conflicts-of-interest",
 		"description": "* List whether any authors have a financial, commercial, legal, or professional relationship with other organizations, or with the people working with them, that could influence this research. State explicitly if there are none.",
 		"resource_type": 3,
 		"default_order": 8,
