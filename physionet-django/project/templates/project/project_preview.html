@@ -117,7 +117,7 @@
     {{ project.abstract|safe }}
     <hr>
     {% for c in project.project_content.all|dictsort:"project_section.default_order" %}
-      <h2>{{ c.project_section.name }}</h2>
+      <h2>{{ c.project_section.title }}</h2>
       {{ c.section_content|safe }}
       <hr>
     {% endfor %}
@@ -130,7 +130,7 @@
       <h2 id="references">References</h2>
       <ol>
       {% for reference in references %}
-        <li style="word-break: break-all;">{{ reference.description }}</li>
+        <li>{{ reference.description }}</li>
       {% endfor %}
       </ol>
       <hr>

@@ -386,8 +386,7 @@ class NewProjectVersionForm(forms.ModelForm):
             SectionContent.objects.create(
                 project=project,
                 project_section=c.project_section,
-                section_content=c.section_content
-            )
+                section_content=c.section_content)
 
         # Copy over the author/affiliation objects
         for p_author in self.latest_project.authors.all():
@@ -481,11 +480,20 @@ class SectionContentForm(forms.ModelForm):
     def __init__(self, project=None, project_section=None, editable=True, *args, **kwargs):
         # Creates a new instance of SectionContent if none is passed as argument
         if 'instance' not in kwargs:
-            kwargs['instance'] = SectionContent(project=project, project_section=project_section)
+            try:
+                # Try to get currently existing content for section
+                section_content = project.project_content.get(
+                    project_section=project_section)
+            except:
+                # Creates form with empty instance in case content is not found
+                section_content = SectionContent(project=project,
+                    project_section=project_section)
+
+            kwargs['instance'] = section_content
 
         # Sets label and help text for form fields
         super(SectionContentForm, self).__init__(*args, **kwargs)
-        self.fields['section_content'].label = self.instance.project_section.name
+        self.fields['section_content'].label = self.instance.project_section.title
         self.fields['section_content'].help_text = self.instance.project_section.description
 
         if not editable:
@@ -493,10 +501,24 @@ class SectionContentForm(forms.ModelForm):
                 f.disabled = True
 
     def add_prefix(self, field_name):
-        # Adds the section's name as a prefix to the html tag's id and name
-        prefix = self.instance.project_section.name.replace(" ", "_").lower()
+        # Adds the section's `html_id` as a prefix to the html tag's id and name
+        prefix = self.instance.project_section.html_id
         field_name = prefix+"_"+field_name
         return super(SectionContentForm, self).add_prefix(field_name)
+
+    def save(self):
+        # Save if not empty
+        section = super(SectionContentForm, self).save(commit=False)
+        if section.is_valid():
+            return section.save()
+
+        if section.id:
+            # Delete if in database and new
+            # content is empty
+            return section.delete()
+
+        return
+
 
 class DiscoveryForm(forms.ModelForm):
     """

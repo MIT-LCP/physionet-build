@@ -40,8 +40,6 @@ from user.forms import ProfileForm, AssociatedEmailChoiceForm
 from user.models import User, CloudInformation
 
 from dal import autocomplete
-from html import unescape
-from django.utils.html import strip_tags
 
 from ast import literal_eval
 
@@ -613,76 +611,51 @@ def project_content(request, project_slug, **kwargs):
     user, project, authors, is_submitting = (kwargs[k] for k in
         ('user', 'project', 'authors', 'is_submitting'))
 
-    if is_submitting and project.author_editable():
-        editable = True
-    else:
-        editable = False
+    editable = is_submitting and project.author_editable()
+
+    # If form was submitted then define data
+    # variable used to initialize the forms
+    data = request.POST or None
 
     # There are several forms for different types of content
     ReferenceFormSet = generic_inlineformset_factory(Reference,
         fields=('description',), extra=0,
         max_num=forms.ReferenceFormSet.max_forms, can_delete=False,
         formset=forms.ReferenceFormSet, validate_max=True)
+    reference_formset = ReferenceFormSet(instance=project, data=data)
+    description_form = forms.ContentForm(
+        resource_type=project.resource_type.id,
+        instance=project, data=data, editable=editable)
 
-    description_form = forms.ContentForm(resource_type=project.resource_type.id,
-                                         instance=project, editable=editable)
-    reference_formset = ReferenceFormSet(instance=project)
-
-    # Creates forms for each section of this project's content type
+    # Creates forms for each section of this project
+    # according to its content type
+    valid = True
     section_forms = []
     sections = ProjectSection.objects.filter(resource_type=project.resource_type).order_by('default_order')
     for s in sections:
-        try:
-            # Try to get currently existing content for section
-            section_content = project.project_content.get(project_section=s)
-            section_forms.append(forms.SectionContentForm(instance=section_content))
-        except ObjectDoesNotExist:
-            # Creates form with empty instance in case content is not found
-            section_forms.append(forms.SectionContentForm(project=project, project_section=s))
+        form = forms.SectionContentForm(project=project, 
+            project_section=s, data=data, editable=editable)
+        section_forms.append(form)
+        # Validation of all `section_content` forms
+        valid = valid and form.is_valid()
 
+    # Form submission
     if request.method == 'POST':
-        description_form = forms.ContentForm(
-            resource_type=project.resource_type.id, data=request.POST,
-            instance=project, editable=editable)
-        reference_formset = ReferenceFormSet(request.POST, instance=project)
+        # Save if all forms are valid
+        if (description_form.is_valid()
+                and reference_formset.is_valid()
+                and valid):
 
-        # Creates forms for each section of this project's content type
-        valid = True
-        section_forms = []
-        for s in sections:
-            try:
-                # Try to get currently existing content for section
-                section_content = project.project_content.get(project_section=s)
-                sf = forms.SectionContentForm(data=request.POST, instance=section_content)
-            except ObjectDoesNotExist:
-                # Creates form with empty instance in case content is not found
-                sf = forms.SectionContentForm(project=project, project_section=s, data=request.POST)
-
-            # Appends form to array
-            section_forms.append(sf)
-
-            # Validation of all `section_content` forms
-            valid = valid and sf.is_valid()
-
-        # Checks if all forms are valid
-        if description_form.is_valid() and reference_formset.is_valid() and valid:
             description_form.save()
             reference_formset.save()
-
-            # Only saves each `section_content` if it's not empty
-            for sf in section_forms:
-                sf.save()
-                text = unescape(strip_tags(sf.instance.section_content))
-                if not text or text.isspace():
-                    sf.instance.delete()
-
+            for form in section_forms:
+                form.save()
             messages.success(request, 'Your project content has been updated.')
-            reference_formset = ReferenceFormSet(instance=project)
         else:
             messages.error(request,
                 'Invalid submission. See errors below.')
-    edit_url = reverse('edit_content_item', args=[project.slug])
 
+    edit_url = reverse('edit_content_item', args=[project.slug])
     return render(request, 'project/project_content.html', {'project':project,
         'description_form':description_form, 'reference_formset':reference_formset,
         'messages':messages.get_messages(request),
@@ -1142,7 +1115,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
                                               subdir)
                                             
     # Flag for anonymous access
-    has_passphrase = kwargs['has_passphrase']                      
+    has_passphrase = kwargs['has_passphrase']
 
     return render(request, 'project/project_preview.html', {'project':project,
         'display_files':display_files, 'display_dirs':display_dirs,

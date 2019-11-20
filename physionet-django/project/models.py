@@ -27,7 +27,6 @@ from django.utils.html import format_html, strip_tags
 from django.utils.text import slugify
 from background_task import background
 from django.utils.crypto import get_random_string
-from django.core.exceptions import ObjectDoesNotExist
 
 from project.utility import (get_tree_size, get_file_info, get_directory_info,
                              list_items, StorageInfo, list_files,
@@ -428,18 +427,19 @@ class ProjectSection(models.Model):
     """
     The content sections for each ProjectType
     """
-    name = models.CharField(max_length=30)
+    title = models.CharField(max_length=30)
+    html_id = models.SlugField(max_length=30)
     description = models.TextField()
-    resource_type = models.ForeignKey('project.ProjectType',
-                                    db_column='resource_type',
-                                    related_name='%(class)ss',
-                                    on_delete=models.PROTECT)
+    resource_type = models.ForeignKey(
+        'project.ProjectType', db_column='resource_type',
+        related_name='%(class)ss', on_delete=models.PROTECT)
     default_order = models.PositiveSmallIntegerField()
     required = models.BooleanField()
 
     class Meta:
-        unique_together = (('name', 'resource_type'),)
-        unique_together = (('resource_type', 'default_order'),)
+        unique_together = (('resource_type', 'title'),
+            ('resource_type', 'default_order'),
+            (('resource_type', 'html_id')))
 
 
 class SectionContent(models.Model):
@@ -450,15 +450,18 @@ class SectionContent(models.Model):
     object_id = models.PositiveIntegerField()
     project = GenericForeignKey('content_type', 'object_id')
 
-    project_section = models.ForeignKey('project.ProjectSection',
-                                    db_column='project_section',
-                                    related_name='%(class)ss',
-                                    on_delete=models.PROTECT)
+    project_section = models.ForeignKey(
+        'project.ProjectSection', db_column='project_section',
+        related_name='%(class)ss', on_delete=models.PROTECT)
 
     section_content = SafeHTMLField(blank=True)
 
     class Meta:
         unique_together = (('content_type', 'object_id', 'project_section'),)
+
+    def is_valid(self):
+        text = unescape(strip_tags(self.section_content))
+        return text and not text.isspace()
 
 
 class Metadata(models.Model):
@@ -877,6 +880,9 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         60: 'Awaiting editor to publish.',
     }
 
+    REQUIRED_FIELDS = ['title', 'abstract', 'version', 'license',
+        'short_description']
+
     def storage_used(self):
         """
         Total storage used in bytes
@@ -1030,15 +1036,14 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         sections = ProjectSection.objects.filter(resource_type=self.resource_type, required=True)
         for attr in sections:
             try:
-                text = unescape(strip_tags(self.project_content.get(project_section=attr).section_content))
-                if not text or text.isspace():
-                    raise
-            except ObjectDoesNotExist:
-                self.integrity_errors.append('Missing required field: {0}'.format(attr.name))
+                section = self.project_content.get(project_section=attr)
+                if not section.is_valid():
+                    raise SectionContent.DoesNotExist
+            except SectionContent.DoesNotExist:
+                self.integrity_errors.append('Missing required field: {0}'.format(attr.title))
 
         # Metadata
-        meta = ['title', 'abstract', 'version', 'license', 'short_description']
-        for attr in meta:
+        for attr in ActiveProject.REQUIRED_FIELDS:
             value = getattr(self, attr)
             text = unescape(strip_tags(str(value)))
             if value is None or not text or text.isspace():
@@ -1222,8 +1227,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                     SectionContent.objects.create(
                         project=published_project,
                         section_content=c.section_content,
-                        project_section=c.project_section
-                    )
+                        project_section=c.project_section)
 
                 # If this is a new version, all version fields have to be updated
                 if self.version_order > 0:

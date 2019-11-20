@@ -298,6 +298,11 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
 
     copyedit_log = project.copyedit_logs.get(complete_datetime=None)
 
+    # If form was submitted then define data
+    # variable used to initialize the forms
+    data_edit = request.POST if 'edit_content' in request.POST else None
+    data_complete = request.POST if 'complete_copyedit' in request.POST else None
+
     # Metadata forms and formsets
     ReferenceFormSet = generic_inlineformset_factory(Reference,
         fields=('description',), extra=0,
@@ -312,95 +317,53 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
         max_num=project_forms.PublicationFormSet.max_forms, can_delete=False,
         formset=project_forms.PublicationFormSet, validate_max=True)
 
-    description_form = project_forms.ContentForm(
+    description_form = project_forms.ContentForm(data=data_edit,
         resource_type=project.resource_type.id, instance=project)
-    access_form = project_forms.AccessMetadataForm(instance=project)
-    discovery_form = project_forms.DiscoveryForm(resource_type=project.resource_type.id,
-        instance=project)
-
+    access_form = project_forms.AccessMetadataForm(instance=project, data=data_edit)
     access_form.set_license_queryset(access_policy=project.access_policy)
-    reference_formset = ReferenceFormSet(instance=project)
-    publication_formset = PublicationFormSet(instance=project)
-    topic_formset = TopicFormSet(instance=project)
+    discovery_form = project_forms.DiscoveryForm(resource_type=project.resource_type.id,
+        instance=project, data=data_edit)
 
-    copyedit_form = forms.CopyeditForm(instance=copyedit_log)
+    reference_formset = ReferenceFormSet(instance=project, data=data_edit)
+    publication_formset = PublicationFormSet(instance=project, data=data_edit)
+    topic_formset = TopicFormSet(instance=project, data=data_edit)
 
-    # Creates forms for each section of this project's content type
+    copyedit_form = forms.CopyeditForm(instance=copyedit_log, data=data_complete)
+
+    # Creates forms for each section of this project
+    # according to its content type
+    valid = True
     section_forms = []
     sections = ProjectSection.objects.filter(resource_type=project.resource_type).order_by('default_order')
     for s in sections:
-        try:
-            # Try to get currently existing content for section
-            section_content = project.project_content.get(project_section=s)
-            section_forms.append(project_forms.SectionContentForm(instance=section_content))
-        except ObjectDoesNotExist:
-            # Creates form with empty instance in case content is not found
-            section_forms.append(project_forms.SectionContentForm(project=project, project_section=s))
+        form = project_forms.SectionContentForm(project=project, 
+            project_section=s, data=data_edit)
+        section_forms.append(form)
+        # Validation of all `section_content` forms
+        valid = valid and form.is_valid()
 
     if request.method == 'POST':
         if 'edit_content' in request.POST:
-            description_form = project_forms.ContentForm(
-                resource_type=project.resource_type.id, data=request.POST,
-                instance=project)
-            access_form = project_forms.AccessMetadataForm(data=request.POST,
-                instance=project)
-            discovery_form = project_forms.DiscoveryForm(
-                resource_type=project.resource_type, data=request.POST,
-                instance=project)
-            reference_formset = ReferenceFormSet(data=request.POST,
-                instance=project)
-            publication_formset = PublicationFormSet(request.POST,
-                                                 instance=project)
-            topic_formset = TopicFormSet(request.POST, instance=project)
-
-            # Creates forms for each section of this project's content type
-            valid = True
-            section_forms = []
-            for s in sections:
-                try:
-                    # Try to get currently existing content for section
-                    section_content = project.project_content.get(project_section=s)
-                    sf = project_forms.SectionContentForm(data=request.POST, instance=section_content)
-                except ObjectDoesNotExist:
-                    # Creates form with empty instance in case content is not found
-                    sf = project_forms.SectionContentForm(project=project, project_section=s, data=request.POST)
-
-                # Appends form to array
-                section_forms.append(sf)
-
-                # Validation of all `section_content` forms
-                valid = valid and sf.is_valid()
-
             if (description_form.is_valid() and access_form.is_valid()
-                                            and reference_formset.is_valid()
-                                            and publication_formset.is_valid()
-                                            and topic_formset.is_valid()
-                                            and discovery_form.is_valid()
-                                            and valid):
+                    and reference_formset.is_valid()
+                    and publication_formset.is_valid()
+                    and topic_formset.is_valid()
+                    and discovery_form.is_valid()
+                    and valid):
+
                 description_form.save()
                 access_form.save()
                 discovery_form.save()
                 reference_formset.save()
                 publication_formset.save()
                 topic_formset.save()
-
-                # Only saves each `section_content` if it's not empty
                 for sf in section_forms:
                     sf.save()
-                    text = unescape(strip_tags(sf.instance.section_content))
-                    if not text or text.isspace():
-                        sf.instance.delete()
-
                 messages.success(request,
                     'The project metadata has been updated.')
-                # Reload formsets
-                reference_formset = ReferenceFormSet(instance=project)
-                publication_formset = PublicationFormSet(instance=project)
-                topic_formset = TopicFormSet(instance=project)
             else:
                 messages.error(request,
                     'Invalid submission. See errors below.')
-            access_form.set_license_queryset(access_policy=access_form.instance.access_policy)
         elif 'complete_copyedit' in request.POST:
             copyedit_form = forms.CopyeditForm(request.POST,
                 instance=copyedit_log)
