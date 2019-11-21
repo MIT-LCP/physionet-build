@@ -105,11 +105,12 @@
         </a>
       </li>
       <!-- users -->
-      {% url 'user_list' as user_list %}
-      {% url 'user_list_inactive' as user_list_inactive %}
-      {% url 'user_list_admin' as user_list_admin %}
+      {% url 'users' 'active' as active_user_list %}
+      {% url 'users' 'inactive' as inactive_user_list %}
+      {% url 'users' 'all' as all_user_list %}
+      {% url 'users' 'admin' as user_list_admin %}
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
-      {% if request.path == user_list or request.path == user_list_inactive or request.path == user_list_admin  %}
+      {% if request.path == all_user_list or request.path == active_user_list or request.path == inactive_user_list or request.path == user_list_admin  %}
         <a id="nav_users_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#userComponents" data-parent="#sideAccordion" aria-expanded="true">
       {% else %}
         <a id="nav_users_dropdown" class="nav-link nav-link-collapse drop collapsed" data-toggle="collapse" href="#userComponents" data-parent="#sideAccordion" aria-expanded="false">
@@ -118,19 +119,22 @@
           <span class="nav-link-text">Users</span>
         </a>
         <!-- submenu -->
-      {% if request.path == user_list or request.path == user_list_inactive or request.path == user_list_admin  %}
+      {% if request.path == all_user_list or request.path == active_user_list or request.path == inactive_user_list or request.path == user_list_admin  %}
         <ul class="sidenav-second-level collapse show" id="userComponents">
       {% else  %}
         <ul class="sidenav-second-level collapse" id="userComponents">
       {% endif %}
-          <li class="nav-item {% if request.path == user_list %}active{% endif %}">
-            <a id="nav_all_users" class="nav-link" href="{% url 'user_list' %}">All Users</a>
+          <li class="nav-item {% if request.path == active_user_list %}active{% endif %}">
+            <a id="nav_active_users" class="nav-link" href="{% url 'users' 'active' %}">Active Users</a>
           </li>
-          <li class="nav-item {% if request.path == user_list_inactive %}active{% endif %}">
-            <a id="nav_all_users" class="nav-link" href="{% url 'user_list_inactive' %}">Inactive Users</a>
+          <li class="nav-item {% if request.path == inactive_user_list %}active{% endif %}">
+            <a id="nav_active_users" class="nav-link" href="{% url 'users' 'inactive' %}">Inactive Users</a>
+          </li>
+          <li class="nav-item {% if request.path == all_user_list %}active{% endif %}">
+            <a id="nav_all_users" class="nav-link" href="{% url 'users' 'all' %}">All Users</a>
           </li>
           <li class="nav-item {% if request.path == user_list_admin %}active{% endif %}">
-            <a id="nav_all_users" class="nav-link" href="{% url 'user_list_admin' %}">Administrators</a>
+            <a id="nav_all_users" class="nav-link" href="{% url 'users' 'admin' %}">Administrators</a>
           </li>
         </ul>
       </li>
