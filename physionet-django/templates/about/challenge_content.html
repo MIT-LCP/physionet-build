@@ -51,13 +51,15 @@
           {% endif %}
         </td>
         <td>
-          {% if challenge.sources %}
-          <a href="{% url 'serve_published_project_file' challenge.slug challenge.version 'sources' %}">View software</a>
+          {% if challenge.papers %}
+            <a href="{% url 'serve_published_project_file' challenge.slug challenge.version 'papers/index.html' %}">View papers</a>
           {% endif %}
         </td>
         <td>
-          {% if challenge.papers %}
-            <a href="{% url 'serve_published_project_file' challenge.slug challenge.version 'papers/index.html' %}">View papers</a>
+          {% if challenge.sources and challenge.sources_index %}
+          <a href="{% url 'serve_published_project_file' challenge.slug challenge.version 'sources/index.html' %}">View software</a>
+          {% elif challenge.sources %}
+          <a href="{% url 'serve_published_project_file' challenge.slug challenge.version 'sources' %}">View software</a>
           {% endif %}
         </td>
       </tr>
