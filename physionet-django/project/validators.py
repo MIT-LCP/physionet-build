@@ -83,27 +83,27 @@ def validate_version(value):
     """
     Validate version string. Allow empty value for initial state.
     """
-    if value:
-        if not re.fullmatch(r'[0-9]+(\.[0-9]+)*', value) or '..' in value:
-            raise ValidationError('Version may only contain numbers and dots, and must begin and end with a number.')
+    if not re.fullmatch(r'[0-9]+(\.[0-9]+)+', value) or '..' in value:
+        raise ValidationError('Version may only contain numbers and dots, and must begin and end with a number.')
 
 
 def validate_slug(value):
     """
     Validate a published slug. Not ending with dash number for google
     cloud. Must not exceed MAX_PROJECT_SLUG_LENGTH.
+
+    Only accepts lowercase alphanumerics and hyphens
     """
     if len(value) > MAX_PROJECT_SLUG_LENGTH:
         raise ValidationError(
             'Invalid file name "%(slug)s". '
             'Slug may be at most %(limit)s characters long.',
             params={'filename': value, 'limit': MAX_PROJECT_SLUG_LENGTH})
-    if (not re.fullmatch(r'[a-z0-9](?:[a-z0-9\-]*[a-z0-9])?', value)
-            or '--' in value or re.fullmatch(r'.+\-[0-9]+', value)):
+    if (not re.fullmatch(r'[a-z0-9](?:[a-z0-9-]*[a-z0-9])?', value) or '--' in value):
         raise ValidationError("""
             Slug must only contain lowercase alphanumerics and hyphens, and
             must be of length 1-{}. Must begin and end with an alphanumeric.
-            Must not contain consecutive hyphens or end with hyphen number.
+            Must not contain consecutive hyphens.
             """.format(MAX_PROJECT_SLUG_LENGTH))
 
 
@@ -111,7 +111,16 @@ def validate_title(value):
     """
     Validate titles that start with an alphabetical character followed by
     characters marked as letters in Unicode along side with the following
-    special characters: , - ' * ? : ( )
+    special characters: ' , * ? : ( ) -
     """
-    if not re.fullmatch(r'[a-zA-Z][\w \,\-\'\*\?\:\(\)]+', value):
+    if not re.fullmatch(r'[a-zA-Z][\w\'*,?:( )-]+', value):
         raise ValidationError("Enter a valid title. This value may contain only letters, numbers, spaces and [,-'*?:()]")
+
+
+def validate_topic(value):
+    """
+    Validate topics that start with an alphabetical character
+    followed by characters marked as letters in Unicode and dashes.
+    """
+    if not re.fullmatch(r'[a-zA-Z\d][\w -]*', value):
+        raise ValidationError('Letters, numbers, spaces, underscores, and hyphens only. Must begin with a letter or number.')

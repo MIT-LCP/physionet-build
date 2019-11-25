@@ -32,8 +32,10 @@ from project.utility import (get_tree_size, get_file_info, get_directory_info,
                              clear_directory)
 from project.validators import (validate_doi, validate_subdir,
                                 validate_version, validate_slug,
-                                MAX_PROJECT_SLUG_LENGTH, validate_title)
-from user.validators import validate_alphaplus, validate_alphaplusplus
+                                MAX_PROJECT_SLUG_LENGTH,
+                                validate_title, validate_topic)
+from user.validators import validate_affiliation
+
 from physionet.utility import (sorted_tree_files, zip_dir)
 
 LOGGER = logging.getLogger(__name__)
@@ -143,7 +145,7 @@ class Affiliation(models.Model):
     """
     Affiliations belonging to an author
     """
-    name = models.CharField(max_length=202, validators=[validate_alphaplusplus])
+    name = models.CharField(max_length=202, validators=[validate_affiliation])
     author = models.ForeignKey('project.Author', related_name='affiliations',
         on_delete=models.CASCADE)
 
@@ -155,7 +157,7 @@ class PublishedAffiliation(models.Model):
     """
     Affiliations belonging to a published author
     """
-    name = models.CharField(max_length=202, validators=[validate_alphaplus])
+    name = models.CharField(max_length=202, validators=[validate_affiliation])
     author = models.ForeignKey('project.PublishedAuthor',
         related_name='affiliations', on_delete=models.CASCADE)
 
@@ -287,7 +289,7 @@ class Topic(models.Model):
     object_id = models.PositiveIntegerField()
     project = GenericForeignKey('content_type', 'object_id')
 
-    description = models.CharField(max_length=50, validators=[validate_alphaplus])
+    description = models.CharField(max_length=50, validators=[validate_topic])
 
     class Meta:
         unique_together = (('description', 'content_type', 'object_id'),)
@@ -302,7 +304,7 @@ class PublishedTopic(models.Model):
     """
     projects = models.ManyToManyField('project.PublishedProject',
         related_name='topics')
-    description = models.CharField(max_length=50, validators=[validate_alphaplus])
+    description = models.CharField(max_length=50, validators=[validate_topic])
     project_count = models.PositiveIntegerField(default=0)
 
     def __str__(self):
