@@ -522,6 +522,28 @@ class Metadata(models.Model):
             else:
                 return authors
 
+    def edit_log_history(self):
+        """
+        Get a list of EditLog objects in submission order.
+
+        Every object corresponds to a single submission from the
+        author (and objects are listed in that order), but also
+        includes the details of the editor's response (if any) to that
+        particular submission.
+        """
+        return self.edit_logs.order_by('submission_datetime').all()
+
+    def copyedit_log_history(self):
+        """
+        Get a list of CopyeditLog objects in creation order.
+
+        Every object represents a point in time when the project was
+        "opened for copyediting" (which happens once when the project
+        is "accepted", and may happen again if the authors
+        subsequently request further changes.)
+        """
+        return self.copyedit_logs.order_by('start_datetime').all()
+
     def info_card(self, include_emails=True, force_calculate=False):
         """
         Get all the information needed for the project info card
