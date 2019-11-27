@@ -1169,8 +1169,8 @@ def project_submission(request, project_slug, **kwargs):
     # Whether the submission is currently waiting for the user to approve
     awaiting_user_approval = False
     if project.under_submission():
-        edit_logs = project.edit_logs.all()
-        copyedit_logs = project.copyedit_logs.all()
+        edit_logs = project.edit_log_history()
+        copyedit_logs = project.copyedit_log_history()
         for e in edit_logs:
             e.set_quality_assurance_results()
         # Awaiting authors
@@ -1201,10 +1201,10 @@ def rejected_submission_history(request, project_slug):
     else:
         raise Http404()
     if user.is_admin or project.authors.filter(user=user):
-        edit_logs = project.edit_logs.all()
+        edit_logs = project.edit_log_history()
         for e in edit_logs:
             e.set_quality_assurance_results()
-        copyedit_logs = project.copyedit_logs.all()
+        copyedit_logs = project.copyedit_log_history()
 
         return render(request, 'project/rejected_submission_history.html',
             {'project':project, 'edit_logs':edit_logs,
@@ -1243,10 +1243,10 @@ def published_submission_history(request, project_slug, version):
     else:
         raise Http404()
     if user.is_admin or project.authors.filter(user=user):
-        edit_logs = project.edit_logs.all()
+        edit_logs = project.edit_log_history()
         for e in edit_logs:
             e.set_quality_assurance_results()
-        copyedit_logs = project.copyedit_logs.all()
+        copyedit_logs = project.copyedit_log_history()
 
         return render(request, 'project/published_submission_history.html',
             {'project':project, 'edit_logs':edit_logs,

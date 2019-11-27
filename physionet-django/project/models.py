@@ -551,10 +551,10 @@ class Metadata(models.Model):
         """
         authors, author_emails = self.get_author_info(include_emails=include_emails)
         storage_info = self.get_storage_info(force_calculate=force_calculate)
-        edit_logs = self.edit_logs.all()
+        edit_logs = self.edit_log_history()
         for e in edit_logs:
             e.set_quality_assurance_results()
-        copyedit_logs = self.copyedit_logs.all()
+        copyedit_logs = self.copyedit_log_history()
         # The last published version. May be None.
         latest_version = self.core_project.publishedprojects.all().last()
         return authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version
