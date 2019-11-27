@@ -522,6 +522,28 @@ class Metadata(models.Model):
             else:
                 return authors
 
+    def edit_log_history(self):
+        """
+        Get a list of EditLog objects in submission order.
+
+        Every object corresponds to a single submission from the
+        author (and objects are listed in that order), but also
+        includes the details of the editor's response (if any) to that
+        particular submission.
+        """
+        return self.edit_logs.order_by('submission_datetime').all()
+
+    def copyedit_log_history(self):
+        """
+        Get a list of CopyeditLog objects in creation order.
+
+        Every object represents a point in time when the project was
+        "opened for copyediting" (which happens once when the project
+        is "accepted", and may happen again if the authors
+        subsequently request further changes.)
+        """
+        return self.copyedit_logs.order_by('start_datetime').all()
+
     def info_card(self, include_emails=True, force_calculate=False):
         """
         Get all the information needed for the project info card
@@ -529,10 +551,10 @@ class Metadata(models.Model):
         """
         authors, author_emails = self.get_author_info(include_emails=include_emails)
         storage_info = self.get_storage_info(force_calculate=force_calculate)
-        edit_logs = self.edit_logs.all()
+        edit_logs = self.edit_log_history()
         for e in edit_logs:
             e.set_quality_assurance_results()
-        copyedit_logs = self.copyedit_logs.all()
+        copyedit_logs = self.copyedit_log_history()
         # The last published version. May be None.
         latest_version = self.core_project.publishedprojects.all().last()
         return authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version
