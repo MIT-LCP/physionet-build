@@ -39,9 +39,6 @@ from console.tasks import associated_task, get_associated_tasks
 
 from django.conf import settings
 
-from html import unescape
-from django.utils.html import strip_tags
-
 LOGGER = logging.getLogger(__name__)
 
 
