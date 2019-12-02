@@ -59,9 +59,6 @@ from project.validators import MAX_PROJECT_SLUG_LENGTH
 from project.views import get_file_forms, get_project_file_info, process_files_post
 from user.models import AssociatedEmail, CredentialApplication, CredentialReview, LegacyCredential, User
 
-from html import unescape
-from django.utils.html import strip_tags
-
 LOGGER = logging.getLogger(__name__)
 
 
