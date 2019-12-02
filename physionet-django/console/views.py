@@ -731,7 +731,7 @@ def rejected_submissions(request):
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
-def users(request, category):
+def users(request, category='all'):
     """
     List of users
     """
@@ -750,7 +750,7 @@ def users(request, category):
     users = paginate(request, user_list, 50)
 
     return render(request, 'console/users.html', {'users': users,
-        'show_inactive':show_inactive})
+        'show_inactive': show_inactive, 'group': category})
 
 
 @login_required
