@@ -446,10 +446,6 @@ class SectionContent(models.Model):
     """
     The content for each section of a project
     """
-    content_type = models.ForeignKey(ContentType, on_delete=models.PROTECT)
-    object_id = models.PositiveIntegerField()
-    project = GenericForeignKey('content_type', 'object_id')
-
     project_section = models.ForeignKey(
         'project.ProjectSection', db_column='project_section',
         related_name='%(class)ss', on_delete=models.PROTECT)
@@ -457,11 +453,27 @@ class SectionContent(models.Model):
     section_content = SafeHTMLField(blank=True)
 
     class Meta:
-        unique_together = (('content_type', 'object_id', 'project_section'),)
+        abstract = True
+        unique_together = (('project', 'project_section'),)
 
     def is_valid(self):
         text = unescape(strip_tags(self.section_content))
         return text and not text.isspace()
+
+
+class PublishedSectionContent(SectionContent):
+    project = models.ForeignKey('project.PublishedProject',
+        related_name='project_content', on_delete=models.CASCADE)
+
+
+class ActiveSectionContent(SectionContent):
+    project = models.ForeignKey('project.ActiveProject',
+        related_name='project_content', on_delete=models.CASCADE)
+
+
+class ArchivedSectionContent(SectionContent):
+    project = models.ForeignKey('project.ArchivedProject',
+        related_name='project_content', on_delete=models.CASCADE)
 
 
 class Metadata(models.Model):
@@ -489,9 +501,6 @@ class Metadata(models.Model):
     abstract = SafeHTMLField(max_length=10000, blank=True)
     version = models.CharField(max_length=15, default='', blank=True,
                                validators=[validate_version])
-
-    # Project content
-    project_content = GenericRelation(SectionContent)
 
     # Short description used for search results, social media, etc
     short_description = models.CharField(max_length=250, blank=True)
@@ -1038,8 +1047,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             try:
                 section = self.project_content.get(project_section=attr)
                 if not section.is_valid():
-                    raise SectionContent.DoesNotExist
-            except SectionContent.DoesNotExist:
+                    raise ActiveSectionContent.DoesNotExist
+            except ActiveSectionContent.DoesNotExist:
                 self.integrity_errors.append('Missing required field: {0}'.format(attr.title))
 
         # Metadata
@@ -1224,7 +1233,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 # Copy content
                 content = self.project_content.all()
                 for c in content:
-                    SectionContent.objects.create(
+                    PublishedSectionContent.objects.create(
                         project=published_project,
                         section_content=c.section_content,
                         project_section=c.project_section)

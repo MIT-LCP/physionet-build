@@ -31,7 +31,7 @@ from project.models import (Affiliation, Author, AuthorInvitation,
     ActiveProject, PublishedProject, StorageRequest, Reference, DataAccess,
     ArchivedProject, ProgrammingLanguage, Topic, Contact, Publication,
     PublishedAuthor, EditLog, CopyeditLog, DUASignature, CoreProject, GCP,
-    AnonymousAccess, SectionContent, ProjectSection)
+    AnonymousAccess, ProjectSection)
 from project import utility
 from project.validators import validate_filename
 import notification.utility as notification

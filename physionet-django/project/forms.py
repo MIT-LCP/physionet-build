@@ -16,7 +16,7 @@ from project.models import (Affiliation, Author, AuthorInvitation, ActiveProject
                             CoreProject, StorageRequest, ProgrammingLanguage,
                             License, Metadata, Reference, Publication, DataAccess,
                             PublishedProject, Topic, exists_project_slug,
-                            ProjectType, AnonymousAccess, SectionContent)
+                            ProjectType, AnonymousAccess, ActiveSectionContent)
 from project import utility
 from project import validators
 
@@ -383,7 +383,7 @@ class NewProjectVersionForm(forms.ModelForm):
 
         # Copy content for each project section
         for c in self.latest_project.project_content.all():
-            SectionContent.objects.create(
+            ActiveSectionContent.objects.create(
                 project=project,
                 project_section=c.project_section,
                 section_content=c.section_content)
@@ -474,7 +474,7 @@ class SectionContentForm(forms.ModelForm):
     """
 
     class Meta:
-        model = SectionContent
+        model = ActiveSectionContent
         fields = ('section_content',)
 
     def __init__(self, project=None, project_section=None, editable=True, *args, **kwargs):
@@ -486,7 +486,7 @@ class SectionContentForm(forms.ModelForm):
                     project_section=project_section)
             except:
                 # Creates form with empty instance in case content is not found
-                section_content = SectionContent(project=project,
+                section_content = ActiveSectionContent(project=project,
                     project_section=project_section)
 
             kwargs['instance'] = section_content

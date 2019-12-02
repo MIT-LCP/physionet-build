@@ -558,456 +558,316 @@
   }
 },
 {
-  "model": "project.sectioncontent",
+  "model": "project.activesectioncontent",
   "pk": 1,
   "fields": {
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 2,
+    "project_id": 2,
     "project_section": 1,
     "section_content": "<p>Since 1975, our laboratories at Boston&#39;s Beth Israel Hospital (now the Beth Israel Deaconess Medical Center) and at MIT have supported our own research into arrhythmia analysis and related subjects. One of the first major products of that effort was the MIT-BIH Arrhythmia Database, which we completed and began distributing in 1980. The database was the first generally available set of standard test material for evaluation of arrhythmia detectors, and has been used for that purpose as well as for basic research into cardiac dynamics at more than 500 sites worldwide. Originally, we distributed the database on 9-track half-inch digital tape at 800 and 1600 bpi, and on quarter-inch IRIG-format FM analog tape. In August, 1989, we produced a CD-ROM version of the database.</p>"
   }
 },
 {
-  "model": "project.sectioncontent",
+  "model": "project.activesectioncontent",
   "pk": 2,
   "fields": {
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 2,
+    "project_id": 2,
     "project_section": 2,
     "section_content": "<p>The recordings were digitized at 360 samples per second per channel with 11-bit resolution over a 10 mV range. Two or more cardiologists independently annotated each record; disagreements were resolved to obtain the computer-readable reference annotations for each beat (approximately 110,000 annotations in all) included with the database.</p>\r\n\r\n<p>The charts for each recording were given to two cardiologists, who worked independently, adding additional beat labels and deleting false detections as necessary, and changing the labels for abnormal beats. The cardiologists also added rhythm and signal quality labels. At this point the two sets of annotations were compared automatically and another chart recording was printed, showing the cardiologists&rsquo; annotations in the margin, with all discrepancies highlighted. Each discrepancy was examined and resolved by consensus.</p>"
   }
 },
 {
-  "model": "project.sectioncontent",
+  "model": "project.activesectioncontent",
   "pk": 3,
   "fields": {
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 2,
+    "project_id": 2,
     "project_section": 3,
     "section_content": "<p>This directory contains the entire MIT-BIH Arrhythmia Database. About half (25 of 48 complete records, and reference annotation files for all 48 records) of this database has been freely available here since PhysioNet&#39;s inception in September 1999. The 23 remaining signal files, which had been available only on the MIT-BIH Arrhythmia Database CD-ROM, were posted here in February 2005.</p>"
   }
 },
 {
-  "model": "project.sectioncontent",
+  "model": "project.activesectioncontent",
   "pk": 4,
   "fields": {
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 2,
+    "project_id": 2,
     "project_section": 4,
     "section_content": "<p>Use one of the <a href=\"https://physionet.org/physiotools/ecg.shtml\">ecg</a> software package distributions to read the files. The ecg record files contain the regularly sampled multichannel waveforms, and the <em>.atr annotation files contain the reference annotations.</em></p>"
   }
 },
 {
-  "model": "project.sectioncontent",
+  "model": "project.activesectioncontent",
   "pk": 5,
   "fields": {
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 2,
+    "project_id": 2,
     "project_section": 6,
     "section_content": "<p>This research and development was supported by grants NIH-R01-EB017205, NIH-R01-EB001659, and NIH-R01-GM104987 from the National Institutes of Health. The authors would also like to thank Philips Healthcare and staff at the Beth Israel Deaconess Medical Center, Boston, for supporting database development, and Ken Pierce for providing Fig. 1.</p>"
   }
 },
 {
-  "model": "project.sectioncontent",
+  "model": "project.activesectioncontent",
   "pk": 6,
   "fields": {
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 2,
+    "project_id": 2,
     "project_section": 7,
     "section_content": "<p>The authors declare no conflicts of interest.</p>"
   }
 },
 {
-  "model": "project.sectioncontent",
+  "model": "project.activesectioncontent",
   "pk": 7,
   "fields": {
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 4,
+    "project_id": 4,
     "project_section": 1,
     "section_content": "<p>Many found that it would be useful to explore the structure of the database before installing the full version.</p>"
   }
 },
 {
-  "model": "project.sectioncontent",
+  "model": "project.activesectioncontent",
   "pk": 8,
   "fields": {
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 4,
+    "project_id": 4,
     "project_section": 2,
     "section_content": "<p>Took 100 patients from the full database.</p>"
   }
 },
 {
-  "model": "project.sectioncontent",
+  "model": "project.activesectioncontent",
   "pk": 9,
   "fields": {
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 4,
+    "project_id": 4,
     "project_section": 3,
     "section_content": "<p>Limited information up to 100 patients. Notes are not included.</p>"
   }
 },
 {
-  "model": "project.sectioncontent",
+  "model": "project.activesectioncontent",
   "pk": 10,
   "fields": {
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 1,
+    "project_id": 1,
     "project_section": 1,
     "section_content": "<p>Since 1975, our laboratories at Boston&#39;s Beth Israel Hospital (now the Beth Israel Deaconess Medical Center) and at MIT have supported our own research into arrhythmia analysis and related subjects. One of the first major products of that effort was the MIT-BIH Arrhythmia Database, which we completed and began distributing in 1980. The database was the first generally available set of standard test material for evaluation of arrhythmia detectors, and has been used for that purpose as well as for basic research into cardiac dynamics at more than 500 sites worldwide. Originally, we distributed the database on 9-track half-inch digital tape at 800 and 1600 bpi, and on quarter-inch IRIG-format FM analog tape. In August, 1989, we produced a CD-ROM version of the database.</p>"
   }
 },
 {
-  "model": "project.sectioncontent",
+  "model": "project.activesectioncontent",
   "pk": 11,
   "fields": {
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 1,
+    "project_id": 1,
     "project_section": 2,
     "section_content": "<p>The recordings were digitized at 360 samples per second per channel with 11-bit resolution over a 10 mV range. Two or more cardiologists independently annotated each record; disagreements were resolved to obtain the computer-readable reference annotations for each beat (approximately 110,000 annotations in all) included with the database.</p>\r\n\r\n<p>The charts for each recording were given to two cardiologists, who worked independently, adding additional beat labels and deleting false detections as necessary, and changing the labels for abnormal beats. The cardiologists also added rhythm and signal quality labels. At this point the two sets of annotations were compared automatically and another chart recording was printed, showing the cardiologists&rsquo; annotations in the margin, with all discrepancies highlighted. Each discrepancy was examined and resolved by consensus.</p>"
   }
 },
 {
-  "model": "project.sectioncontent",
+  "model": "project.activesectioncontent",
   "pk": 12,
   "fields": {
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 1,
+    "project_id": 1,
     "project_section": 3,
     "section_content": "<p>This directory contains the entire MIT-BIH Arrhythmia Database. About half (25 of 48 complete records, and reference annotation files for all 48 records) of this database has been freely available here since PhysioNet&#39;s inception in September 1999. The 23 remaining signal files, which had been available only on the MIT-BIH Arrhythmia Database CD-ROM, were posted here in February 2005.</p>"
   }
 },
 {
-  "model": "project.sectioncontent",
+  "model": "project.activesectioncontent",
   "pk": 13,
   "fields": {
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 1,
+    "project_id": 1,
     "project_section": 4,
     "section_content": "<p>Use one of the <a href=\"https://physionet.org/physiotools/ecg.shtml\">ecg</a> software package distributions to read the files. The ecg record files contain the regularly sampled multichannel waveforms, and the <em>.atr annotation files contain the reference annotations.</em></p>"
   }
 },
 {
-  "model": "project.sectioncontent",
+  "model": "project.activesectioncontent",
   "pk": 14,
   "fields": {
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 1,
+    "project_id": 1,
     "project_section": 6,
     "section_content": "<p>Thank you to the cardiologists who labelled over 100000 heartbeats.</p>"
   }
 },
 {
-  "model": "project.sectioncontent",
+  "model": "project.activesectioncontent",
   "pk": 15,
   "fields": {
-    "content_type": [
-      "project",
-      "activeproject"
-    ],
-    "object_id": 1,
+    "project_id": 1,
     "project_section": 7,
     "section_content": "<p>The authors declare no conflicts of interest.</p>"
   }
 },
 {
-  "model": "project.sectioncontent",
-  "pk": 16,
+  "model": "project.publishedsectioncontent",
+  "pk": 1,
   "fields": {
-    "content_type": [
-      "project",
-      "publishedproject"
-    ],
-    "object_id": 3,
+    "project_id": 3,
     "project_section": 16,
     "section_content": "<p>The BHI &amp; BSN Data Challenge asks participants to carry out a retrospective study using the MIMIC-III Database. This year&rsquo;s research question is focused on a controversial and important logistical issue hospitals encounter every week:</p>\r\n\r\n<p><strong>Are patients admitted to the intensive care unit on a weekend more likely to die in the hospital than those admitted on a weekday?</strong></p>\r\n\r\n<p>Teams must register for the challenge using the following form before midnight (PST) on&nbsp;<strong>1 March 2018</strong>:&nbsp;<a href=\"http://goo.gl/yQUazq\">http://goo.gl/yQUazq</a>.</p>\r\n\r\n<p>Challenge entries must be submitted in the form of a 7-minute research presentation, which should be emailed to&nbsp;<code>data-challenge@physionet.org</code>&nbsp;before&nbsp;<strong>7am (PST) Wednesday 7 March 2018</strong>.</p>\r\n\r\n<p>Guidelines for entering the challenge and preparing the presentation are outlined below.</p>"
   }
 },
 {
-  "model": "project.sectioncontent",
-  "pk": 17,
+  "model": "project.publishedsectioncontent",
+  "pk": 2,
   "fields": {
-    "content_type": [
-      "project",
-      "publishedproject"
-    ],
-    "object_id": 3,
+    "project_id": 3,
     "project_section": 17,
     "section_content": "<p>The Challenge is now open for registration! Participating teams have one month to carry out a research project using the MIMIC-III database. Final submissions must be sent for consideration by noon (PST) on&nbsp;<strong>6 March 2018</strong>.</p>\r\n\r\n<ul>\r\n\t<li>Challenge announced: 5 February 2018</li>\r\n\t<li>Deadline for registration of teams: 1 March 2018 or as space permits (<strong>updated: 6 March 2018</strong>)</li>\r\n\t<li>Office hours and help with projects: 6 March 2018 (2.15pm-3.45pm) in Treasure Island F.</li>\r\n\t<li>Deadline for final submission: 6 March 2018 (<strong>updated: 7am on Wednesday 7 March!</strong>)</li>\r\n\t<li>Challenge Presentations: 7 March 2018 (8.50am-11:35am) in Treasure Island F.</li>\r\n\t<li>Awards: 7 March 2018: 5.50pm.</li>\r\n</ul>\r\n\r\n<p>Sample code is available at:&nbsp;<a href=\"https://github.com/MIT-LCP/bhi-bsn-challenge\">https://github.com/MIT-LCP/bhi-bsn-challenge</a>. For example, see these Jupyter Notebooks in&nbsp;<a href=\"https://github.com/MIT-LCP/bhi-bsn-challenge/blob/master/challenge-demo.ipynb\">Python</a>&nbsp;and&nbsp;<a href=\"https://github.com/MIT-LCP/bhi-bsn-challenge/blob/master/jupyter_example_notebook_in_R.ipynb\">R</a>.</p>"
   }
 },
 {
-  "model": "project.sectioncontent",
-  "pk": 18,
+  "model": "project.publishedsectioncontent",
+  "pk": 3,
   "fields": {
-    "content_type": [
-      "project",
-      "publishedproject"
-    ],
-    "object_id": 3,
+    "project_id": 3,
     "project_section": 18,
     "section_content": "<p>Participants will use the MIMIC-III database, which comprises routinely collected data for critical care patients for over 50,000 hospital stays. There is a formal process for requesting access to MIMIC-III, which is described at:&nbsp;<a href=\"https://mimic.physionet.org/gettingstarted/access/\">https://mimic.physionet.org/gettingstarted/access/</a></p>\r\n\r\n<p>Gaining access to the full MIMIC-III dataset may take several days, so we suggest using the MIMIC-III demo while waiting to gain full access:&nbsp;<a href=\"https://mimic.physionet.org/gettingstarted/demo/\">https://mimic.physionet.org/gettingstarted/demo/</a></p>\r\n\r\n<p>If you need help getting set up with access to MIMIC-III for the Challenge, please contact us at:&nbsp;<code>data-challenge@physionet.org</code>.</p>"
   }
 },
 {
-  "model": "project.sectioncontent",
-  "pk": 19,
+  "model": "project.publishedsectioncontent",
+  "pk": 4,
   "fields": {
-    "content_type": [
-      "project",
-      "publishedproject"
-    ],
-    "object_id": 3,
+    "project_id": 3,
     "project_section": 19,
     "section_content": "<p>At least one member of a team must be able to attend the&nbsp;<a href=\"https://bhi-bsn.embs.org/2018/\">BHI &amp; BSN Annual Conference</a>&nbsp;in Las Vegas, USA 4-7 March 2018 to give a short presentation at the event on&nbsp;<strong>7 March 2018</strong>. Registration at the conference is&nbsp;<em>not</em>&nbsp;a requirement, and not all team members need be present.</p>\r\n\r\n<p>Project entries will be assessed by a judging panel on the following criteria:</p>\r\n\r\n<ul>\r\n\t<li>Reproducibility</li>\r\n\t<li>Scientific methods</li>\r\n\t<li>Presentation</li>\r\n\t<li>Novelty</li>\r\n</ul>"
   }
 },
 {
-  "model": "project.sectioncontent",
-  "pk": 20,
+  "model": "project.publishedsectioncontent",
+  "pk": 5,
   "fields": {
-    "content_type": [
-      "project",
-      "publishedproject"
-    ],
-    "object_id": 3,
+    "project_id": 3,
     "project_section": 21,
     "section_content": "<p>The organizers would like to thanks&nbsp;<a href=\"https://cloud.google.com/\">Google Cloud</a>&nbsp;and&nbsp;<a href=\"http://www.gatech.edu/\">Georgia Tech</a>&nbsp;for supporting the event.</p>"
   }
 },
 {
-  "model": "project.sectioncontent",
-  "pk": 21,
+  "model": "project.publishedsectioncontent",
+  "pk": 6,
   "fields": {
-    "content_type": [
-      "project",
-      "publishedproject"
-    ],
-    "object_id": 3,
+    "project_id": 3,
     "project_section": 22,
     "section_content": "<p>No conflicts of interest.</p>"
   }
 },
 {
-  "model": "project.sectioncontent",
-  "pk": 22,
+  "model": "project.publishedsectioncontent",
+  "pk": 7,
   "fields": {
-    "content_type": [
-      "project",
-      "publishedproject"
-    ],
-    "object_id": 2,
+    "project_id": 2,
     "project_section": 8,
     "section_content": "<p>We have developed a large collection of tools for processing ECGs.</p>"
   }
 },
 {
-  "model": "project.sectioncontent",
-  "pk": 23,
+  "model": "project.publishedsectioncontent",
+  "pk": 8,
   "fields": {
-    "content_type": [
-      "project",
-      "publishedproject"
-    ],
-    "object_id": 2,
+    "project_id": 2,
     "project_section": 9,
     "section_content": "<p><strong>ECG library</strong></p>\r\n\r\n<p>This is a <a href=\"https://physionet.org/physiotools/ecg/lib/\">set of functions</a> (subroutines) for reading and writing files in the formats used by PhysioBank databases (among others). The ECG library is <a href=\"https://physionet.org/physiotools/ecg/lib/COPYING.LIB\">LGPL</a>ed, and can be used by programs written in ANSI/ISO C, K&amp;R C, C++, or Fortran, running under any operating system for which an ANSI/ISO or K&amp;R C compiler is available, including all versions of Unix, MS-DOS, MS-Windows, the Macintosh OS, and VMS.</p>\r\n\r\n<p>Optionally, the ECG library may be compiled with support for reading input directly from web (HTTP) and FTP servers without the use of a web browser or an FTP client. This optional feature allows applications linked with the ecg library to view or analyze data such as those available from <a href=\"https://physionet.org/physiobank/\">PhysioBank</a> without the need to download entire records and to store them locally. To enable this feature, you will also need either the World Wide Web Consortium&#39;s <a href=\"https://physionet.org/physiotools/libwww/\">libwww</a> package, or the modern and enhanced alternative, <a href=\"https://physionet.org/physiotools/libcurl/\">libcurl</a>.</p>\r\n\r\n<p>The ecg library is documented by the <em>ecg Programmer&#39;s Guide</em> (available as <a href=\"https://physionet.org/physiotools/wpg/wpg.htm\">HTML</a> or <a href=\"https://physionet.org/physiotools/wpg/wpg.pdf\">PDF</a>). Texinfo sources for the <em>ecg Programmer&#39;s Guide</em> are included in the <a href=\"https://physionet.org/physiotools/ecg/doc/\">doc</a> directory of the ecg Software Package.</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p><strong>ecg applications</strong></p>\r\n\r\n<p>A large set of well-tested, interoperable command-line tools for signal processing and automated analysis is included in the <a href=\"https://physionet.org/physiotools/ecg/app/\">app</a>, <a href=\"https://physionet.org/physiotools/ecg/convert/\">convert</a>, and <a href=\"https://physionet.org/physiotools/ecg/psd/\">psd</a> directories of the ecg Software Package. These applications are described in the <em>ecg Applications Guide</em> (available as <a href=\"https://physionet.org/physiotools/wag/wag.htm\">HTML</a> or <a href=\"https://physionet.org/physiotools/wag/wag.pdf\">PDF</a>). The troff (Unix man page) sources for the <em>ecg Applications Guide</em> are included in the <a href=\"https://physionet.org/physiotools/ecg/doc/\">doc</a> directory of the ecg Software Package.</p>"
   }
 },
 {
-  "model": "project.sectioncontent",
-  "pk": 24,
+  "model": "project.publishedsectioncontent",
+  "pk": 9,
   "fields": {
-    "content_type": [
-      "project",
-      "publishedproject"
-    ],
-    "object_id": 2,
+    "project_id": 2,
     "project_section": 10,
     "section_content": "<p>Two American National Standards, ANSI/AAMI EC38:1998 (Ambulatory Electrocardiographs) and ANSI/AAMI EC57:1998 have endored this.</p>"
   }
 },
 {
-  "model": "project.sectioncontent",
-  "pk": 25,
+  "model": "project.publishedsectioncontent",
+  "pk": 10,
   "fields": {
-    "content_type": [
-      "project",
-      "publishedproject"
-    ],
-    "object_id": 2,
+    "project_id": 2,
     "project_section": 12,
     "section_content": "<p>Individual application instructions are contained in the man pages.</p>"
   }
 },
 {
-  "model": "project.sectioncontent",
-  "pk": 26,
+  "model": "project.publishedsectioncontent",
+  "pk": 11,
   "fields": {
-    "content_type": [
-      "project",
-      "publishedproject"
-    ],
-    "object_id": 2,
+    "project_id": 2,
     "project_section": 13,
     "section_content": "<p>This is a stable version.</p>"
   }
 },
 {
-  "model": "project.sectioncontent",
-  "pk": 27,
+  "model": "project.publishedsectioncontent",
+  "pk": 12,
   "fields": {
-    "content_type": [
-      "project",
-      "publishedproject"
-    ],
-    "object_id": 2,
+    "project_id": 2,
     "project_section": 11,
     "section_content": "<p>Run the makefile.</p>"
   }
 },
 {
-  "model": "project.sectioncontent",
-  "pk": 28,
+  "model": "project.publishedsectioncontent",
+  "pk": 13,
   "fields": {
-    "content_type": [
-      "project",
-      "publishedproject"
-    ],
-    "object_id": 2,
+    "project_id": 2,
     "project_section": 14,
     "section_content": "<p>Thanks to the many algorithm contributors.</p>"
   }
 },
 {
-  "model": "project.sectioncontent",
-  "pk": 29,
+  "model": "project.publishedsectioncontent",
+  "pk": 14,
   "fields": {
-    "content_type": [
-      "project",
-      "publishedproject"
-    ],
-    "object_id": 2,
+    "project_id": 2,
     "project_section": 15,
     "section_content": "<p>None to declare.</p>"
   }
 },
 {
-  "model": "project.sectioncontent",
-  "pk": 30,
+  "model": "project.publishedsectioncontent",
+  "pk": 15,
   "fields": {
-    "content_type": [
-      "project",
-      "publishedproject"
-    ],
-    "object_id": 1,
+    "project_id": 1,
     "project_section": 1,
     "section_content": "<p>The <a href=\"http://www.usa.philips.com/healthcare/product/HCNOCTN503/eicu-program-telehealth-for-the-intensive-care-unit\">Philips eICU program</a> is a transformational critical care telehealth program that delivers need-to-know information to caregivers, empowering them to care for the patients. It is a supplement &mdash; not a replacement &mdash; to the bedside team, and the data utilized by the remote care givers is archived for research purposes.</p>\r\n\r\n<p>Through this work, we have generated a large database which has potential for facilitating additional research initiatives on patient outcomes, trends, and other best practice protocols in use today at most healthcare facilities. The Philips eICU Research Institute (eRI), which maintains the data, has generously contributed the eICU Collaborative Research Database described here.</p>"
   }
 },
 {
-  "model": "project.sectioncontent",
-  "pk": 31,
+  "model": "project.publishedsectioncontent",
+  "pk": 16,
   "fields": {
-    "content_type": [
-      "project",
-      "publishedproject"
-    ],
-    "object_id": 1,
+    "project_id": 1,
     "project_section": 2,
     "section_content": "<p>The eICU Collaborative Research Database is populated with data from a combination of many critical care units throughout the continental United States. The data in the collaborative database covers patients who were admitted to critical care units in 2014 and 2015.</p>"
   }
 },
 {
-  "model": "project.sectioncontent",
-  "pk": 32,
+  "model": "project.publishedsectioncontent",
+  "pk": 17,
   "fields": {
-    "content_type": [
-      "project",
-      "publishedproject"
-    ],
-    "object_id": 1,
+    "project_id": 1,
     "project_section": 3,
     "section_content": "<p>Identifiers are used across the database to identify unique concepts such as patients, hospitals, ICU stays, and so on. These identifiers include:</p>\r\n\r\n<ul>\r\n\t<li>hospitalid - which uniquely identifies each hospital in the database.</li>\r\n\t<li>uniquepid - uniquely identifies patients (i.e. it is always the same value for the same person)</li>\r\n\t<li>patienthealthsystemsstayid - uniquely identifies hospitals stays</li>\r\n\t<li>patientunitstayid - uniquely identifies unit stays (usually the unit is an ICU within a hospital)</li>\r\n</ul>\r\n\r\n<p>Almost all tables use patientunitstayid as the primary identifier.</p>"
   }
 },
 {
-  "model": "project.sectioncontent",
-  "pk": 33,
+  "model": "project.publishedsectioncontent",
+  "pk": 18,
   "fields": {
-    "content_type": [
-      "project",
-      "publishedproject"
-    ],
-    "object_id": 1,
+    "project_id": 1,
     "project_section": 4,
     "section_content": "<p>Data from each patient is collected into a common warehouse only if certain &ldquo;interfaces&rdquo; are available. Each interface is used to transform and load a certain type of data: vital sign interfaces incorporate vital signs, laboratory interfaces provide measurements on blood samples, and so on. It is important to be aware that different care units may have different interfaces in place, and that the lack of an interface will result in no data being available for a given patient, even if those measurements were made in reality.</p>\r\n\r\n<p><strong>Inputs and Outputs</strong></p>\r\n\r\n<ul>\r\n\t<li>The medication table is essentially an interface to pharmacy data - i.e. prescribed medications.</li>\r\n\t<li>The intakeoutput and infusiondrug tables should be used for fluids and drugs, respectively. It is a challenge to decide whether a hospital is actually collecting and archiving data in the infusiondrug table.</li>\r\n</ul>\r\n\r\n<p><strong>Laboratory tests</strong></p>\r\n\r\n<ul>\r\n\t<li>The lab table is populated by ~160 &ldquo;standard&rdquo; laboratory measurements. When a hospital first participates in the eICU program, they must map these values to their local system. As a result, most common labs are well harmonized in this table. However, it is possible for the lab interface to be down and for standard labs to be recorded in the customlab table (e.g. during software upgrades). These downtimes are in principle rare, but an empirical study on how frequently this occurs is yet to be undertaken.</li>\r\n</ul>"
   }
 },
 {
-  "model": "project.sectioncontent",
-  "pk": 34,
+  "model": "project.publishedsectioncontent",
+  "pk": 19,
   "fields": {
-    "content_type": [
-      "project",
-      "publishedproject"
-    ],
-    "object_id": 1,
+    "project_id": 1,
     "project_section": 6,
     "section_content": "<p>The eICU Collaborative Research Database is made available largely through the work of Philips Healthcare and collaborators at MIT Laboratory for Computational Physiology. If you use the data, code or algorithms, please provide a citation to this project.</p>"
   }
 },
 {
-  "model": "project.sectioncontent",
-  "pk": 35,
+  "model": "project.publishedsectioncontent",
+  "pk": 20,
   "fields": {
-    "content_type": [
-      "project",
-      "publishedproject"
-    ],
-    "object_id": 1,
+    "project_id": 1,
     "project_section": 7,
     "section_content": "<p>None</p>"
   }
