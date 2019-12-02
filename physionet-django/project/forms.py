@@ -514,8 +514,16 @@ class SectionContentForm(forms.ModelForm):
 
     def add_prefix(self, field_name):
         # Adds the section's `html_id` as a prefix to the html tag's id and name
-        prefix = self.instance.project_section.html_id
-        field_name = prefix+"_"+field_name
+        field_name = self.instance.project_section.html_id
+
+        # Compatiblity with old form ids
+        field_name = field_name.replace("-", "_")
+        field_name = field_name.replace("implementation", "methods")
+        field_name = field_name.replace("objective", "background")
+        field_name = field_name.replace("participation", "methods")
+        field_name = field_name.replace("evaluation", "usage_notes")
+        field_name = field_name.replace("description", "content_description")
+
         return super(SectionContentForm, self).add_prefix(field_name)
 
     def save(self):
