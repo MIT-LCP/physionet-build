@@ -22,32 +22,51 @@
 
 <section id="challenge">
   <h1>Challenges</h1>
-    <p> In cooperation with the annual <a href="http://www.cinc.org/"
-    target="_blank">Computing in Cardiology</a> conference, PhysioNet hosts a series
-    of challenges, inviting participants to tackle clinically interesting
-    problems that are either unsolved or not well-solved.</p>
-  <ul>
-    <li><a href="{% url 'published_project_latest' 'challenge-2019' %}">2019</a>: Early Prediction of Sepsis from Clinical Data.</li>
-    <li><a href="{% url 'published_project_latest' 'challenge-2018' %}">2018</a>: You Snooze, You Win.</li>
-    <li><a href="{% url 'published_project_latest' 'challenge-2017' %}">2017</a>: AF Classification from a Short Single Lead ECG Recording.</li>
-    <li><a href="{% url 'published_project_latest' 'challenge-2016' %}">2016</a>: Classification of Normal/Abnormal Heart Sound Recordings.</li>
-    <li><a href="{% url 'published_project_latest' 'challenge-2015' %}">2015</a>: Reducing false arrhythmia alarms in the icu.</li>
-    <li><a href="{% url 'published_project_latest' 'challenge-2014' %}">2014</a>: Robust detection of heart beats in multimodal data.</li>
-    <li><a href="{% url 'published_project_latest' 'challenge-2013' %}">2013</a>: Non-invaside fetal ECG.</li>
-    <li><a href="{% url 'published_project_latest' 'challenge-2012' %}">2012</a>: Predicting mortality of ICU patients.</li>
-    <li><a href="{% url 'published_project_latest' 'challenge-2011' %}">2011</a>: Improving the quality of ECGs collected using mobile phones.</li>
-    <li><a href="{% url 'published_project_latest' 'challenge-2010' %}">2010</a>: Mind the Gap.</li>
-    <li><a href="{% url 'published_project_latest' 'challenge-2009' %}">2009</a>: Predicting Acute Hypotensive Episodes.</li>
-    <li><a href="{% url 'published_project_latest' 'challenge-2008' %}">2008</a>: Detecting and Quantifying T-Wave Alternans.</li>
-    <li><a href="{% url 'published_project_latest' 'challenge-2007' %}">2007</a>: Electrocardiographic Imaging of Myocardial Infarction.</li>
-    <li><a href="{% url 'published_project_latest' 'challenge-2006' %}">2006</a>: QT Interval Measurement.</li>
-    <li><a href="{% url 'published_project_latest' 'challenge-2005' %}">2005</a>: The First Five Challenges Revisited.</li>
-    <li><a href="{% url 'published_project_latest' 'challenge-2004' %}">2004</a>: Spontaneous Termination of Atrial Fibrillation.</li>
-    <li><a href="{% url 'published_project_latest' 'challenge-2003' %}">2003</a>: Distinguishing Ischemic from Non-Ischemic ST Changes.</li>
-    <li><a href="{% url 'published_project_latest' 'challenge-2002' %}">2002</a>: RR Interval Time Series Modeling.</li>
-    <li><a href="{% url 'published_project_latest' 'challenge-2001' %}">2001</a>: Predicting Paroxysmal Atrial Fibrillation.</li>
-    <li><a href="{% url 'published_project_latest' 'challenge-2000' %}">2000</a>: Detecting Sleep Apnea from the ECG.</li>
-  </ul>
+    <p>PhysioNet supports challenges, which invite participants to tackle clinically
+    interesting questions that are either unsolved or not well-solved. In cooperation
+    with the <a href="http://www.cinc.org/" target="_blank">Computing in Cardiology</a>
+     conference, PhysioNet has been co-hosting a challenge annually.</p>
+
+  {% if all_challenges %}
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Date</th>
+        <th>Host</th>
+        <th>Papers</th>
+        <th>Contributed Software</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for challenge in all_challenges %}
+      <tr>
+        <td><a href="{% url 'published_project_latest' challenge.slug %}">{{ challenge.title }}</a></td>
+        <td>{{ challenge.publish_datetime|date }}</td>
+        <td>
+          {% if challenge.year %}
+          PhysioNet/CinC {{ challenge.year }}
+          {% else %}
+          PhysioNet
+          {% endif %}
+        </td>
+        <td>
+          {% if challenge.papers %}
+            <a href="{% url 'serve_published_project_file' challenge.slug challenge.version 'papers/index.html' %}">View papers</a>
+          {% endif %}
+        </td>
+        <td>
+          {% if challenge.sources and challenge.sources_index %}
+          <a href="{% url 'serve_published_project_file' challenge.slug challenge.version 'sources/index.html' %}">View software</a>
+          {% elif challenge.sources %}
+          <a href="{% url 'serve_published_project_file' challenge.slug challenge.version 'sources' %}">View software</a>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
 
 <p>To find more challenges on PhysioNet, <a href="{% url 'content_index' %}">search our resources</a>.</p>
 </section>

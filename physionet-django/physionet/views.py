@@ -1,4 +1,6 @@
 from collections import OrderedDict
+from os import path
+from re import fullmatch
 
 from django.contrib import messages
 from django.http import Http404
@@ -134,7 +136,21 @@ def challenge_overview(request):
     """
     Temporary content overview
     """
-    return render(request, 'about/challenge_index.html')
+    all_challenges = PublishedProject.objects.filter(resource_type=2,
+        is_latest_version=True).order_by('-publish_datetime')
+
+    for challenge in all_challenges:
+        if fullmatch(r'challenge-[0-9]{4}$', challenge.slug):
+            challenge.year = challenge.slug.split('-')[1]
+        if path.exists(path.join(challenge.file_root() , 'sources')):
+            challenge.sources = True
+            if path.exists(path.join(challenge.file_root() , 'sources/index.html')):
+                challenge.sources_index = True
+        if path.exists(path.join(challenge.file_root() , 'papers/index.html')):
+            challenge.papers = True
+
+    return render(request, 'about/challenge_index.html',
+        {'all_challenges': all_challenges})
 
 
 def tutorial_overview(request):
