@@ -47,9 +47,6 @@ class Metadata(models.Model):
     abstract = SafeHTMLField(max_length=10000, blank=True)
     version = models.CharField(max_length=15, default='', blank=True,
                                validators=[validate_version])
- 
-    # Project content
-    project_content = GenericRelation(SectionContent)
 
     # Short description used for search results, social media, etc
     short_description = models.CharField(max_length=250, blank=True)

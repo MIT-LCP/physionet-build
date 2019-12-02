@@ -19,7 +19,8 @@ from project.modelcomponents.metadata import Contact, Metadata, PublishedPublica
 from project.modelcomponents.publishedproject import PublishedProject
 from project.modelcomponents.submission import CopyeditLog, EditLog, SubmissionInfo
 from project.modelcomponents.unpublishedproject import UnpublishedProject
-from project.modelcomponents.section import ProjectSection, SectionContent
+from project.modelcomponents.section import (
+    ProjectSection, ActiveSectionContent, PublishedSectionContent)
 from project.projectfiles import ProjectFiles
 from project.validators import validate_subdir
 
@@ -273,8 +274,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             try:
                 section = self.project_content.get(project_section=attr)
                 if not section.is_valid():
-                    raise SectionContent.DoesNotExist
-            except SectionContent.DoesNotExist:
+                    raise ActiveSectionContent.DoesNotExist
+            except ActiveSectionContent.DoesNotExist:
                 self.integrity_errors.append(
                     'Missing required field: {0}'.format(attr.title))
 
@@ -472,7 +473,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 # Copy content
                 content = self.project_content.all()
                 for c in content:
-                    SectionContent.objects.create(
+                    PublishedSectionContent.objects.create(
                         project=published_project,
                         section_content=c.section_content,
                         project_section=c.project_section

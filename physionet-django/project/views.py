@@ -55,7 +55,7 @@ from project.models import (
     Reference,
     StorageRequest,
     Topic,
-    SectionContent,
+    ActiveSectionContent,
     ProjectSection,
 )
 from project.projectfiles import ProjectFiles
@@ -1185,7 +1185,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     languages = project.programming_languages.all()
     citations = project.citation_text_all()
     platform_citations = project.get_platform_citation()
-    content = SectionContent.objects.filter(project_id=project)
+    content = ActiveSectionContent.objects.filter(project_id=project)
 
     passes_checks = project.check_integrity()
 

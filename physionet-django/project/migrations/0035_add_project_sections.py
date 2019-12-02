@@ -6,7 +6,6 @@ import project.models
 from django.conf import settings
 from django.core.management import call_command
 from itertools import chain
-from django.contrib.contenttypes.models import ContentType
 from html import unescape
 from django.utils.html import strip_tags
 import os
@@ -63,7 +62,6 @@ def unload_fixture(apps, schema_editor):
 
 def migrate_content(apps, schema_editor):
     section_model = apps.get_model("project", "ProjectSection")
-    content_model = apps.get_model("project", "SectionContent")
     # Gets all projects currently in the database
     data = chain(
         apps.get_model("project", "ActiveProject").objects.all(),
@@ -74,6 +72,10 @@ def migrate_content(apps, schema_editor):
     for d in data:
         # Separates labels for one resource type
         labels = LABELS[d.resource_type.id]
+
+        # Get SectionContent model according to project status
+        model = d._meta.model_name.replace("project", "").capitalize()
+        content_model = apps.get_model("project", model+"SectionContent")
 
         # Persists new SectionContent entity based on content from the previous structure
         sections = section_model.objects.filter(title__in=labels.keys(), resource_type=d.resource_type.id)
@@ -87,13 +89,11 @@ def migrate_content(apps, schema_editor):
                 continue
             
             with transaction.atomic():
-                content_type = ContentType.objects.get_for_model(d).id
-                content_model.objects.create(object_id=d.id, content_type_id=content_type,
-                    project_section=section, section_content=value)
+                content_model.objects.create(project=d, project_section=section,
+                    section_content=value)
 
 
 def undo_migrate_content(apps, schema_editor):
-    content_model = apps.get_model("project", "SectionContent")
     data = chain(
         apps.get_model("project", "ActiveProject").objects.all(),
         apps.get_model("project", "PublishedProject").objects.all(),
@@ -104,9 +104,12 @@ def undo_migrate_content(apps, schema_editor):
         # Separates labels for one resource type
         labels = LABELS[d.resource_type.id]
 
+        # Get SectionContent model according to project status
+        model = d._meta.model_name.replace("project", "").capitalize()
+        content_model = apps.get_model("project", model+"SectionContent")
+
         # Persists new SectionContent entity based on content from the previous structure
-        content_type = ContentType.objects.get_for_model(d).id
-        project_content = content_model.objects.filter(object_id=d.id, content_type=content_type)
+        project_content = content_model.objects.filter(project=d)
         for pc in project_content:
             value = pc.section_content
             title = pc.project_section.title
@@ -137,19 +140,44 @@ class Migration(migrations.Migration):
         ),
         migrations.RunPython(load_fixture, reverse_code=unload_fixture),
         migrations.CreateModel(
-            name='SectionContent',
+            name='ActiveSectionContent',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('section_content', project.models.SafeHTMLField(blank=True)),
-                ('content_type', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='contenttypes.ContentType')),
-                ('object_id', models.PositiveIntegerField()),
-                ('project_section', models.ForeignKey(db_column='project_section', on_delete=django.db.models.deletion.PROTECT, related_name='sectioncontents', to='project.ProjectSection')),
+                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='project_content', to='project.ActiveProject')),
+                ('project_section', models.ForeignKey(db_column='project_section', on_delete=django.db.models.deletion.PROTECT, related_name='activesectioncontents', to='project.ProjectSection')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='ArchivedSectionContent',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('section_content', project.models.SafeHTMLField(blank=True)),
+                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='project_content', to='project.ArchivedProject')),
+                ('project_section', models.ForeignKey(db_column='project_section', on_delete=django.db.models.deletion.PROTECT, related_name='archivedsectioncontents', to='project.ProjectSection')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='PublishedSectionContent',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('section_content', project.models.SafeHTMLField(blank=True)),
+                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='project_content', to='project.PublishedProject')),
+                ('project_section', models.ForeignKey(db_column='project_section', on_delete=django.db.models.deletion.PROTECT, related_name='publishedsectioncontents', to='project.ProjectSection')),
             ],
         ),
         migrations.RunPython(migrate_content, reverse_code=undo_migrate_content),
         migrations.AlterUniqueTogether(
-            name='sectioncontent',
-            unique_together={('content_type', 'object_id', 'project_section')},
+            name='activesectioncontent',
+            unique_together={('project', 'project_section')},
+        ),
+        migrations.AlterUniqueTogether(
+            name='archivedsectioncontent',
+            unique_together={('project', 'project_section')},
+        ),
+        migrations.AlterUniqueTogether(
+            name='publishedsectioncontent',
+            unique_together={('project', 'project_section')},
         ),
         migrations.AlterUniqueTogether(
             name='projectsection',

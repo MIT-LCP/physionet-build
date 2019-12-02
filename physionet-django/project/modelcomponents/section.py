@@ -30,20 +30,30 @@ class SectionContent(models.Model):
     """
     The content for each section of a project
     """
-    content_type = models.ForeignKey(models.ContentType,
-                                     on_delete=models.PROTECT)
-    object_id = models.PositiveIntegerField()
-    project = GenericForeignKey('content_type', 'object_id')
-
     project_section = models.ForeignKey(
         'project.ProjectSection', db_column='project_section',
         related_name='%(class)ss', on_delete=models.PROTECT)
     section_content = SafeHTMLField(blank=True)
 
     class Meta:
-        unique_together = (('content_type', 'object_id', 'project_section'),)
+        abstract = True
+        unique_together = (('project', 'project_section'),)
 
     def is_valid(self):
         text = unescape(strip_tags(self.section_content))
         return text and not text.isspace()
 
+
+class PublishedSectionContent(SectionContent):
+    project = models.ForeignKey('project.PublishedProject',
+        related_name='project_content', on_delete=models.CASCADE)
+
+
+class ActiveSectionContent(SectionContent):
+    project = models.ForeignKey('project.ActiveProject',
+        related_name='project_content', on_delete=models.CASCADE)
+
+
+class ArchivedSectionContent(SectionContent):
+    project = models.ForeignKey('project.ArchivedProject',
+        related_name='project_content', on_delete=models.CASCADE)
