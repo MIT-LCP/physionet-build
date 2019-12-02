@@ -137,7 +137,7 @@ def challenge_overview(request):
     Temporary content overview
     """
     all_challenges = PublishedProject.objects.filter(resource_type=2,
-        is_latest_version=True)
+        is_latest_version=True).order_by('-publish_datetime')
 
     for challenge in all_challenges:
         if fullmatch(r'challenge-[0-9]{4}$', challenge.slug):
