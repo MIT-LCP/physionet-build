@@ -731,18 +731,18 @@ def rejected_submissions(request):
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
-def users(request, category='all'):
+def users(request, group='all'):
     """
     List of users
     """
     show_inactive = False
-    if category == 'admin':
+    if group == 'admin':
         admin_users = User.objects.filter(is_admin=True).order_by('username')
         return render(request, 'console/users_admin.html', {
             'admin_users':admin_users})
-    elif category == 'active':
+    elif group == 'active':
         user_list = User.objects.filter(is_active=True).order_by('username')
-    elif category == 'inactive':
+    elif group == 'inactive':
         user_list = User.objects.filter(is_active=False).order_by('username')
     else:
         user_list = User.objects.all().order_by('username')
@@ -750,7 +750,7 @@ def users(request, category='all'):
     users = paginate(request, user_list, 50)
 
     return render(request, 'console/users.html', {'users': users,
-        'show_inactive': show_inactive, 'group': category})
+        'show_inactive': show_inactive, 'group': group})
 
 
 @login_required

@@ -66,7 +66,7 @@ urlpatterns = [
         name="download_credentialed_users"),
 
     path('users/search/<group>/', views.users_search, name='users_list_search'),
-    path('users/<category>/', views.users, name='users'),
+    path('users/<group>/', views.users, name='users'),
 
     path('news/', views.news_console, name='news_console'),
     path('news/add/', views.news_add, name='news_add'),

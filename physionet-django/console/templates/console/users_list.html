@@ -2,7 +2,7 @@
   <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
     <thead>
       <tr>
-        {% if show_inactive %}<th>Activated</th>{% endif %}
+        {% if group == 'all' %}<th>Activated</th>{% endif %}
         <th>Username</th>
         <th>Full Name</th>
         <th>Email</th>
@@ -15,7 +15,7 @@
     <tbody>
       {% for user in users %}
       <tr>
-        {% if show_inactive %}<td>{% if user.is_active %}<i class="fa fa-check" aria-hidden="true"></i>{% endif %}</td>{% endif %}
+        {% if group == 'all' %}<td>{% if user.is_active %}<span class="fa fa-check"><span class="visually-hidden">&#10004;</span></span>{% endif %}</td>{% endif %}
         <td><a href="{% url 'public_profile' user.username %}">{{ user.username }}</td>
         <td>{{ user.get_full_name }}</td>
         <td>{{ user.email }}</td>
