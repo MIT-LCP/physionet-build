@@ -731,14 +731,26 @@ def rejected_submissions(request):
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
-def users(request):
+def users(request, group='all'):
     """
     List of users
     """
-    all_users = User.objects.all().order_by('username')
-    users = paginate(request, all_users, 50)
+    show_inactive = False
+    if group == 'admin':
+        admin_users = User.objects.filter(is_admin=True).order_by('username')
+        return render(request, 'console/users_admin.html', {
+            'admin_users':admin_users})
+    elif group == 'active':
+        user_list = User.objects.filter(is_active=True).order_by('username')
+    elif group == 'inactive':
+        user_list = User.objects.filter(is_active=False).order_by('username')
+    else:
+        user_list = User.objects.all().order_by('username')
+        show_inactive = True
+    users = paginate(request, user_list, 50)
 
-    return render(request, 'console/users.html', {'users': users})
+    return render(request, 'console/users.html', {'users': users,
+        'show_inactive': show_inactive, 'group': group})
 
 
 @login_required
@@ -760,45 +772,20 @@ def users_search(request, group):
             Q(email__icontains=search_field))
 
         if 'inactive' in group:
-            users = users.filter(Q(is_active=False) |
-                    Q(last_login__lt=timezone.now() 
-                        + timezone.timedelta(days=-90))
-            )
+            users = users.filter(is_active=False)
+        elif 'active' in group:
+            users = users.filter(is_active=True)
 
         users = users.order_by('username')
 
         if len(search_field) == 0:
             users = paginate(request, users, 50)
 
-        return render(request, 'console/users_list.html', {'users':users})
+        return render(request, 'console/users_list.html', {'users':users,
+            'group': group})
 
     raise Http404()
 
-
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
-def users_inactive(request):
-    """
-    List of users
-    """
-    all_inactive_users = User.objects.filter(Q(is_active=False) | Q(
-        last_login__lt=timezone.now() + timezone.timedelta(days=-90))
-        ).order_by('username')
-
-    inactive_users = paginate(request, all_inactive_users, 50)
-
-    return render(request, 'console/users.html', {'users': inactive_users})
-
-
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
-def users_admin(request):
-    """
-    List of users
-    """
-    admin_users = User.objects.filter(is_admin=True).order_by('username')
-    return render(request, 'console/users_admin.html', {
-        'admin_users':admin_users})
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')

@@ -9,7 +9,6 @@
 {% endblock %}
 
 {% block content %}
-{% url 'user_list_inactive' as user_list_inactive %}
 <script src="{% static 'custom/js/cookie.js' %}"></script>
 <script src="{% static 'project/js/dynamic-formset.js' %}"></script>
 <script src="{% static 'console/js/search-console.js' %}"></script>
@@ -20,8 +19,10 @@
   </div>
   <div class="card-body">
     <div class="table-responsive">
-      {% if request.path == user_list_inactive %}
+      {% if group == 'inactive' %}
       <input type="search" oninput="search('{% url "users_list_search" group="inactive" %}', value);" placeholder="Search...">
+      {% elif group == 'active' %}
+      <input type="search" oninput="search('{% url "users_list_search" group="active" %}', value);" placeholder="Search...">
       {% else %}
       <input type="search" oninput="search('{% url "users_list_search" group="all" %}', value);" placeholder="Search...">
       {% endif %}
