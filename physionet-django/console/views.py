@@ -781,7 +781,8 @@ def users_search(request, group):
         if len(search_field) == 0:
             users = paginate(request, users, 50)
 
-        return render(request, 'console/users_list.html', {'users':users})
+        return render(request, 'console/users_list.html', {'users':users,
+            'group': group})
 
     raise Http404()
 

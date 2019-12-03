@@ -19,9 +19,9 @@
   </div>
   <div class="card-body">
     <div class="table-responsive">
-      {% if category == 'inactive' %}
+      {% if group == 'inactive' %}
       <input type="search" oninput="search('{% url "users_list_search" group="inactive" %}', value);" placeholder="Search...">
-      {% elif category == 'active' %}
+      {% elif group == 'active' %}
       <input type="search" oninput="search('{% url "users_list_search" group="active" %}', value);" placeholder="Search...">
       {% else %}
       <input type="search" oninput="search('{% url "users_list_search" group="all" %}', value);" placeholder="Search...">
