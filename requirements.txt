@@ -4,8 +4,9 @@ bleach==3.1.0 \
  --hash=sha256:213336e49e102af26d9cde77dd2d0397afabc5a6bf2fed985dc35b5d1e285a16
 chardet==3.0.4 \
  --hash=sha256:fc323ffcaeaed0e0a02bf4d117757b98aed530d9ed4531e3e15460124c106691
-Django==2.2.6 \
- --hash=sha256:4025317ca01f75fc79250ff7262a06d8ba97cd4f82e93394b2a0a6a4a925caeb
+Django==2.2.8 \
+ --hash=sha256:fa98ec9cc9bf5d72a08ebf3654a9452e761fbb8566e3f80de199cbc15477e891 \
+ --hash=sha256:a4ad4f6f9c6a4b7af7e2deec8d0cbff28501852e5010d6c2dc695d3d1fae7ca0
 django-autocomplete-light==3.3.4 \
  --hash=sha256:cff0b1cad0e233e49c8cce08dff22868951123cbb79a7c1768eda78845044568
 django-background-tasks==1.2.0 \
