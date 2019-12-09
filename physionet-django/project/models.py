@@ -1002,6 +1002,14 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             if languages:
                 archived_project.programming_languages.add(*list(languages))
 
+        # Copy content
+        content = self.project_content.all()
+        for c in content:
+            ArchivedSectionContent.objects.create(
+                project=archived_project,
+                section_content=c.section_content,
+                project_section=c.project_section)
+
         # Voluntary delete
         if archive_reason == 1:
             self.clear_files()
