@@ -121,11 +121,6 @@
       {{ c.section_content|safe }}
       <hr>
     {% endfor %}
-    {% if project.release_notes %}
-      <h2>Release Notes</h2>
-      {{ project.release_notes|safe }}
-      <hr>
-    {% endif %}
     {% if references %}
       <h2 id="references">References</h2>
       <ol>
