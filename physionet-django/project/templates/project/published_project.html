@@ -141,11 +141,6 @@
           {{ c.section_content|safe }}
           <hr>
         {% endfor %}
-        {% if project.release_notes %}
-          <h2 id="release-notes">Release Notes</h2>
-          {{ project.release_notes|safe }}
-          <hr>
-        {% endif %}
         {% if references %}
           <h2 id="references">References</h2>
           <ol>
@@ -172,9 +167,6 @@
           {% for c in content %}
             <a class="dropdown-item" href="#{{ c.project_section.html_id }}">{{ c.project_section.title }}</a>
           {% endfor %}
-          {% if project.release_notes %}
-            <a class="dropdown-item" href="#release-notes">Release Notes</a>
-          {% endif %}
           {% if references %}
             <a class="dropdown-item" href="#references">References</a>
           {% endif %}
