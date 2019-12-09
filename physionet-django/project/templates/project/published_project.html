@@ -136,7 +136,7 @@
         <h2 id="abstract">Abstract</h2>
         {{ project.abstract|safe }}
         <hr>
-        {% for c in project.project_content.all|dictsort:"project_section.default_order" %}
+        {% for c in content %}
           <h2 id='{{ c.project_section.html_id }}'>{{ c.project_section.title }}</h2>
           {{ c.section_content|safe }}
           <hr>
@@ -169,7 +169,7 @@
         </button>
         <div class="dropdown-menu">
           <a class="dropdown-item" href="#abstract">Abstract</a>
-          {% for c in project.project_content.all|dictsort:"project_section.default_order" %}
+          {% for c in content %}
             <a class="dropdown-item" href="#{{ c.project_section.html_id }}">{{ c.project_section.title }}</a>
           {% endfor %}
           {% if project.release_notes %}

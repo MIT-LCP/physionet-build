@@ -1202,6 +1202,10 @@ def project_preview(request, project_slug, subdir='', **kwargs):
 
     # Flag for anonymous access
     has_passphrase = kwargs['has_passphrase']
+    
+    # Ordered project content
+    content = project.project_content.all().order_by(
+        "project_section__default_order")
 
     return render(
         request,
@@ -1229,6 +1233,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
             'parent_projects': parent_projects,
             'has_passphrase': has_passphrase,
             'is_lightwave_supported': ProjectFiles().is_lightwave_supported(),
+            'content': content,
         },
     )
 
@@ -1715,6 +1720,10 @@ def published_project(request, project_slug, version, subdir=''):
         status = 403
     else:
         status = 200
+
+    # Ordered project content
+    context["content"] = project.project_content.all().order_by(
+        "project_section__default_order")
 
     return render(request, 'project/published_project.html', context,
                   status=status)
