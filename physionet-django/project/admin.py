@@ -42,16 +42,34 @@ class ContactInline(admin.TabularInline):
     model = models.Contact
 
 
+class PublishedSectionInline(admin.TabularInline):
+    """
+    Used to add/edit the content of a published project
+    """
+    fields = ('section_content',)
+    model = models.PublishedSectionContent
+
+
 class PublishedProjectAdmin(admin.ModelAdmin):
-    fields = ('title', 'abstract', 'background', 'methods',
-        'content_description', 'usage_notes', 'installation',
-        'acknowledgements', 'conflicts_of_interest', 'release_notes',
+    fields = ('title', 'abstract',
         'short_description', 'project_home_page', 'doi')
 
     readonly_fields = ('publish_datetime',)
-    inlines = [PublishedPublicationInline, ContactInline,
+    inlines = [PublishedSectionInline, PublishedPublicationInline, ContactInline,
         PublishedAuthorInline]
     list_display = ('title', 'version', 'is_legacy', 'publish_datetime')
+
+
+class ActiveSectionInline(admin.TabularInline):
+    fields = ('section_content',)
+    model = models.ActiveSectionContent
+
+
+class ActiveProjectAdmin(admin.ModelAdmin):
+    """
+    Used to add/edit the content of a active project
+    """
+    inlines = [ActiveSectionInline]
 
 
 class PublishedAffiliationInline(admin.TabularInline):
@@ -83,7 +101,7 @@ admin.site.unregister(Task)
 admin.site.unregister(CompletedTask)
 
 
-admin.site.register(models.ActiveProject)
+admin.site.register(models.ActiveProject, ActiveProjectAdmin)
 admin.site.register(models.AuthorInvitation)
 admin.site.register(models.CoreProject)
 admin.site.register(models.LegacyProject, LegacyProjectModelAdmin)
