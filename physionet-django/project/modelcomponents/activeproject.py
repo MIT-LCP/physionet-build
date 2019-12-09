@@ -20,7 +20,8 @@ from project.modelcomponents.publishedproject import PublishedProject
 from project.modelcomponents.submission import CopyeditLog, EditLog, SubmissionInfo
 from project.modelcomponents.unpublishedproject import UnpublishedProject
 from project.modelcomponents.section import (
-    ProjectSection, ActiveSectionContent, PublishedSectionContent)
+    ProjectSection, ActiveSectionContent, PublishedSectionContent,
+    ArchivedSectionContent)
 from project.projectfiles import ProjectFiles
 from project.validators import validate_subdir
 
@@ -220,6 +221,14 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             languages = self.programming_languages.all()
             if languages:
                 archived_project.programming_languages.add(*list(languages))
+
+        # Copy content
+        content = self.project_content.all()
+        for c in content:
+            ArchivedSectionContent.objects.create(
+                project=archived_project,
+                section_content=c.section_content,
+                project_section=c.project_section)
 
         # Voluntary delete
         if archive_reason == 1:
