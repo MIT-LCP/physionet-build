@@ -1,0 +1,18 @@
+#### PhysioNet privileged operations ####
+
+# This file defines specific commands that may be invoked by automated
+# scripts using 'sudo'.  Each command listed in this file must have a
+# single, clearly-defined function.  The program must be carefully
+# written to check all of its inputs to avoid privilege escalation.
+# Do not add commands to this list without carefully considering the
+# consequences.
+
+Defaults:pn env_reset, !env_keep, !env_check
+
+# Reload emperor.uwsgi.service (if it is running)
+pn ALL=(root:root) NOPASSWD: \
+    /bin/systemctl reload emperor.uwsgi.service
+
+# Restart django-background-tasks.service (if it is running)
+pn ALL=(root:root) NOPASSWD: \
+    /bin/systemctl try-restart django-background-tasks.service
