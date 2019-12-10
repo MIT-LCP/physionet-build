@@ -3,8 +3,13 @@ Description=uWSGI Emperor
 After=syslog.target
 
 [Service]
+Environment=PHYSIONET_LOCK_FILE=/run/uwsgi/pn.lock
 ExecStart=/physionet/python-env/physionet/bin/uwsgi --emperor /etc/uwsgi/vassals
-ExecReload=/bin/kill -HUP $MAINPID
+ExecReload=/bin/sh -c                                           \
+    "mv -fT /run/uwsgi/pn.lock /run/uwsgi/pn.lock.old &&        \
+     kill -HUP $MAINPID &&                                      \
+     flock -x /run/uwsgi/pn.lock.old /bin/true"
+
 # Requires systemd version 211 or newer
 User=www-data
 Group=www-data
