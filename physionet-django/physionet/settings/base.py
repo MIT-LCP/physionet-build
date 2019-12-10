@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
+import fcntl
 import sys
 import os
 
@@ -383,3 +384,17 @@ logging.config.dictConfig({
         }
     },
 })
+
+# If this environment variable is set, acquire a shared lock on the
+# named file.  The file descriptor is left open, but is
+# non-inheritable (close-on-exec), so the lock will be inherited by
+# forked child processes, but not by execed programs.
+if os.getenv('PHYSIONET_LOCK_FILE'):
+    _lockfd = os.open(os.getenv('PHYSIONET_LOCK_FILE'),
+                      os.O_RDWR | os.O_CREAT, 0o660)
+    # Note that Python has at least three different ways of locking
+    # files.  We want fcntl.flock (i.e. flock(2)), which is tied to
+    # the file desciptor and inherited by child processes.  In
+    # contrast, fcntl.lockf uses fcntl(2) and os.lockf uses lockf(3),
+    # both of which are tied to the PID.
+    fcntl.flock(_lockfd, fcntl.LOCK_SH)
