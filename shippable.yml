@@ -1,9 +1,3 @@
-# Language setting http://docs.shippable.com/ci/languages/node/
-language: python
-
-python:
-  - 3.7
-
 # use this to control what branches get built.
 # http://docs.shippable.com/ci/advancedOptions/branches/
 branches:
@@ -20,23 +14,23 @@ env:
     - MOD_LOC=$SHIPPABLE_REPO_DIR/node_modules/.bin/
     - DJANGO_SETTINGS_MODULE=physionet.settings.development.pgsql
 
-addons:
-  firefox: "64.0"
-
-services:
-  - selenium
-  - postgres
-
 build:
-
+  pre_ci_boot:
+    image_name: debian
+    image_tag: buster
+    pull: true
   # http://docs.shippable.com/ci/shippableyml/#ci
   ci:
     - "sudo apt-get update --yes"
+    - "sudo apt-get install python3-dev build-essential postgresql zip wget python-virtualenv --yes"
+    - "sudo service postgresql start"
+    - "virtualenv -p python3.7 env3"
+    - "source env3/bin/activate"
     - "cp .env.example .env"
     - "pip install -r requirements.txt"
     - "sudo apt-get install libseccomp-dev"
-    - psql -c "create user physionet with superuser password 'password';" -U postgres
-    - psql -c "create database physionet;" -U postgres
+    - sudo -u postgres psql -c "create user physionet with superuser password 'password';" -U postgres
+    - sudo -u postgres psql -c "create database physionet;" -U postgres
     - "wget https://github.com/bemoody/wfdb/archive/10.6.2.tar.gz -O wfdb.tar.gz"
     - "tar -xf wfdb.tar.gz"
     - "(cd wfdb-* && ./configure --without-netfiles && sudo make -C lib install && sudo make -C data install)"
@@ -49,10 +43,10 @@ build:
     - "tar -xf geckodriver-v0.23.0-linux64.tar.gz -C geckodriver"
     - "export PATH=$PATH:$PWD/geckodriver"
     - "cd physionet-django"
-    - "./manage.py makemigrations --dry-run --no-input --check"
-    - "./manage.py resetdb"
-    - "./manage.py loaddemo"
-    - "./manage.py test --verbosity=3 --keepdb"
+    - "python manage.py makemigrations --dry-run --no-input --check"
+    - "python manage.py resetdb"
+    - "python manage.py loaddemo"
+    - "python manage.py test --verbosity=3 --keepdb"
     - "coverage run --source='.' manage.py test --keepdb"
     - "coverage xml -o $CODE_COVERAGE_DIR/coverage.xml"
 
