@@ -130,3 +130,6 @@ TAGS
 
 # Credential file
 physionet-django/*credentials*
+
+# VSCode temp file
+.vscode/
