@@ -1,0 +1,44 @@
+{% extends "console/base_console.html" %}
+
+{% load project_templatetags %}
+
+{% block title %}Featured Content{% endblock %}
+
+{% block content %}
+ <div class="card mb-3">
+  <div class="card-header">
+    Pinned News <span class="badge badge-pill badge-info">{{ pinned_news|length }}</span>
+  </div>
+  <div class="card-body">
+    {% if pinned_news%}
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Creation Date</th>
+            <th>External URL</th>
+            <th>Remove</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ pinned_news.0.title }}</td>
+            <td>{{ pinned_news.0.publish_datetime }}</td>
+            <td>{% if pinned_news.0.url %}<a href='pinned_news.0.url'>pinned_news.0.url</a>{% else %}None{% endif %}</td>
+
+            <td>
+              <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="remove_news" value="{{ pinned_news.0.id }}">
+                <button type="submit" class="btn btn-sm btn-primary" role="button">Remove</button>
+              </form>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+     {% else %}
+     <a id="nav_pinned_news" class="nav-link" href="{% url 'news_console' %}">Search or add a pinned news item</a>
+    {% endif %}
+  </div>
+ </div>
+{% endblock %}

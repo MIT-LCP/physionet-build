@@ -1132,6 +1132,25 @@ def news_edit(request, news_id):
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
+def news_pinned(request):
+    """
+    List of news items
+    """
+    if 'remove_news' in request.POST:
+        try:
+            pinned_news = News.objects.get(id=request.POST['remove_news'])
+            pinned_news.pinned=False
+            pinned_news.save()
+        except News.DoesNotExist:
+            pass
+
+    pinned_news = News.objects.filter(pinned=True)
+
+    return render(request, 'console/pinned_news.html', {'pinned_news':pinned_news})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
 def featured_content(request):
     """
     List of news items

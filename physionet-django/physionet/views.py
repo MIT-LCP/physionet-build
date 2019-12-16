@@ -22,10 +22,12 @@ def home(request):
     featured = PublishedProject.objects.filter(featured__isnull=False).order_by('featured')[:6]
     latest = PublishedProject.objects.all().order_by('-publish_datetime')[:6]
     news_pieces = News.objects.all().order_by('-publish_datetime')[:5]
+    pinned_news = News.objects.filter(pinned=True)
 
     return render(request, 'home.html', {'featured': featured,
                                          'latest': latest,
-                                         'news_pieces': news_pieces})
+                                         'news_pieces': news_pieces,
+                                         'pinned_news': pinned_news})
 
 
 def about_publish(request):

@@ -19,6 +19,14 @@ PhysioNet
   {% include "navbar.html" %}
 
   <div class="main-header">
+    {% if pinned_news %}
+    <div class="alert alert-warning alert-dismissible fade show" role="alert" style='position: absolute; width: 100%; margin-top:1em; padding-bottom: 0;'>
+      <a href="{% url 'news_by_id' pinned_news.0.id %}" style="font-size: 1.5rem; float: left; position: relative; left: 40%;">{{pinned_news.0.title}}</a>
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    {% endif %}
     <div class="center">
       <h1>PhysioNet</h1>
       <p>
