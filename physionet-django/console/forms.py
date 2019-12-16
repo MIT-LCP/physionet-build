@@ -349,7 +349,14 @@ class NewsForm(forms.ModelForm):
 
     class Meta:
         model = News
-        fields = ('title', 'content', 'url', 'project')
+        fields = ('title', 'content', 'url', 'project', 'pinned')
+
+    def clean_pinned(self):
+        new_pinned_news = self.cleaned_data['pinned']
+        old_pinned_news = News.objects.filter(pinned=True)
+        if old_pinned_news and new_pinned_news:
+           raise forms.ValidationError('There is a pinned news, please remove it before adding another one.')
+        return new_pinned_news
 
 
 class FeaturedForm(forms.Form):
