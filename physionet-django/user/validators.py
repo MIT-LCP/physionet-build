@@ -60,7 +60,7 @@ def validate_name(value):
     Only accept words that start with an alphabetical character followed by
     alphanumeric characters incluiding spaces, underscores, hyphens, and apostrophes.
     """
-    if not re.fullmatch(r'[a-zA-Z]([\w\' -])+', value):
+    if not re.fullmatch(r'[^\W_0-9]([\w\' -])+', value):
         raise ValidationError('Letters, numbers, spaces, underscores, hyphens, and apostrophes only. Must begin with a letter.')
 
 
@@ -130,7 +130,8 @@ def validate_zipcode(value):
     followed by alphanumeric characters, spaces, underscores, hyphens,
     apostrophes, periods and commas
     """
-    if not re.fullmatch(r'[a-zA-Z][\w\',. -]+', value):
+
+    if not re.fullmatch(r'[A-Za-z0-9-][A-Za-z0-9- ]*', value):
         raise ValidationError('Letters, numbers, spaces, hyphens, underscores, apostrophes, periods, and commas only. Must begin with a letter.')
 
 
@@ -201,10 +202,10 @@ def validate_research_summary(value):
     Validate the research summary e that start with an
     alphabetical character followed by alphanumeric characters,
     spaces, underscores, apostrophes and the following special
-    characters: !@#$%&*()+={};:"<>?,./`-
+    characters: !@#$%&*()[]~+={};:"<>?,./`-
     """
-    if not re.fullmatch(r'[a-zA-Z][\w\'!@#$%&*()+={};:"<>?,./` -]+', value):
-        raise ValidationError('Letters, numbers, spaces, apostrophes and [!@#$%&*()_+-={ };:"<>?,./`] characters only. Must begin with a letter.')
+    if not re.fullmatch(r'[a-zA-Z][\w\'\[\]\n\r~!@#$%&*()+={};:"<>?,./` -]+', value):
+        raise ValidationError('Letters, numbers, spaces, apostrophes and [!@#$%&*()[]~_+-={ };:"<>?,./`] characters only. Must begin with a letter.')
 
 
 def validate_nan(value):
