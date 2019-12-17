@@ -2,6 +2,7 @@
   <tr>
     <td>{% if news.url %}<a href="{{ news.url }}" target="_blank">{% endif %}{{ news.title }}{% if news.url %}{% endif %}</a></td>
     <td>{{ news.publish_datetime }}</td>
+	<td>{% if pinned_news.0.url %}<a href='{{ pinned_news.0.url }}'>{{ pinned_news.0.url }}</a>{% else %}None{% endif %}</td>
     <td><a href="{% url 'news_edit' news.id %}" class="btn btn-sm btn-primary" role="button">Edit</a></td>
   </tr>
 {% endfor %}

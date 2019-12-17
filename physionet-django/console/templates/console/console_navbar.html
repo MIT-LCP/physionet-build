@@ -150,29 +150,14 @@
 
       <!-- news -->
       {% url 'news_console' as news_console %}
-      {% url 'news_pinned' as news_pinned %}
-      <li class="nav-item" data-toggle="tooltip" data-placement="right">
-      {% if request.path == news_console or request.path == news_pinned %}
-        <a id="nav_users_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#newsComponents" data-parent="#sideAccordion" aria-expanded="true">
-      {% else %}
-        <a id="nav_users_dropdown" class="nav-link nav-link-collapse drop collapsed" data-toggle="collapse" href="#newsComponents" data-parent="#sideAccordion" aria-expanded="false">
-      {% endif %}
-          <i class="fa fa-fw fa-user-check"></i>
+      {% url 'news_edit' as news_edit %}
+      {% url 'news_add' as news_add %}
+      <li class="nav-item {% if request.path == news_console or request.path == news_add or news_edit in request.path %}active{% endif %}" data-toggle="tooltip" data-placement="right">
+        <a id="nav_editor_home" class="nav-link" href="{% url 'news_console' %}">
+          <i class="fa fa-fw fa-book-open"></i>
           <span class="nav-link-text">News</span>
         </a>
-      {% if request.path == news_console or request.path == news_pinned %}
-        <ul class="sidenav-second-level collapse show" id="newsComponents">
-      {% else  %}
-        <ul class="sidenav-second-level collapse" id="newsComponents">
-      {% endif %}
-          <li class="nav-item {% if request.path == news_console %}active{% endif %}">
-            <a id="nav_all_news" class="nav-link" href="{% url 'news_console' %}">All News</a>
-          </li>
-          <li class="nav-item {% if request.path == news_pinned %}active{% endif %}">
-            <a id="nav_pinned_news" class="nav-link" href="{% url 'news_pinned' %}">Pinned News</a>
-          </li>
-      </ul>
-    </li>
+      </li>
 
       <!-- guidelines and documentation -->
       {% url 'guidelines_review' as guidelines_review %}

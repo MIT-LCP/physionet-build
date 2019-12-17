@@ -69,7 +69,6 @@ urlpatterns = [
     path('users/<group>/', views.users, name='users'),
 
     path('news/', views.news_console, name='news_console'),
-    path('news/pinned/', views.news_pinned, name='news_pinned'),
     path('news/add/', views.news_add, name='news_add'),
     path('news/search/', views.news_search, name='news_search'),
     path('news/edit/<news_id>/', views.news_edit, name='news_edit'),

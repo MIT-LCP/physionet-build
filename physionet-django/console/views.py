@@ -1074,7 +1074,19 @@ def news_console(request):
     """
     news_items = News.objects.all().order_by('-publish_datetime')
     news_items = paginate(request, news_items, 50)
-    return render(request, 'console/news_console.html', {'news_items':news_items})
+
+    if 'remove_news' in request.POST:
+        try:
+            pinned_news = News.objects.get(id=request.POST['remove_news'])
+            pinned_news.pinned=False
+            pinned_news.save()
+        except News.DoesNotExist:
+            pass
+
+    pinned_news = News.objects.filter(pinned=True)
+
+    return render(request, 'console/news_console.html', {'news_items': news_items,
+        'pinned_news': pinned_news})
 
 
 @login_required
@@ -1128,25 +1140,6 @@ def news_edit(request, news_id):
 
     return render(request, 'console/news_edit.html', {'news':news,
         'form':form})
-
-
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
-def news_pinned(request):
-    """
-    List of news items
-    """
-    if 'remove_news' in request.POST:
-        try:
-            pinned_news = News.objects.get(id=request.POST['remove_news'])
-            pinned_news.pinned=False
-            pinned_news.save()
-        except News.DoesNotExist:
-            pass
-
-    pinned_news = News.objects.filter(pinned=True)
-
-    return render(request, 'console/pinned_news.html', {'pinned_news':pinned_news})
 
 
 @login_required
