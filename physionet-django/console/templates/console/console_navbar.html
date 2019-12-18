@@ -150,9 +150,8 @@
 
       <!-- news -->
       {% url 'news_console' as news_console %}
-      {% url 'news_edit' as news_edit %}
       {% url 'news_add' as news_add %}
-      <li class="nav-item {% if request.path == news_console or request.path == news_add or news_edit in request.path %}active{% endif %}" data-toggle="tooltip" data-placement="right">
+      <li class="nav-item {% if request.path == news_console or request.path == news_add %}active{% endif %}" data-toggle="tooltip" data-placement="right">
         <a id="nav_editor_home" class="nav-link" href="{% url 'news_console' %}">
           <i class="fa fa-fw fa-book-open"></i>
           <span class="nav-link-text">News</span>
