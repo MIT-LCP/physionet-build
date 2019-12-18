@@ -349,14 +349,21 @@ class NewsForm(forms.ModelForm):
 
     class Meta:
         model = News
-        fields = ('title', 'content', 'url', 'project', 'pinned')
+        fields = ('title', 'content', 'url', 'project', 'front_page_banner')
 
-    def clean_pinned(self):
-        new_pinned_news = self.cleaned_data['pinned']
-        old_pinned_news = News.objects.filter(pinned=True)
-        if old_pinned_news and new_pinned_news:
-           raise forms.ValidationError('There is a pinned news, please remove it before adding another one.')
-        return new_pinned_news
+    def clean_front_page_banner(self):
+        new_front_page_banner = self.cleaned_data['front_page_banner']
+        old_front_page_banner = News.objects.filter(front_page_banner=True)
+        if old_front_page_banner and new_front_page_banner:
+           raise forms.ValidationError('There is a front page banner news, please remove it before adding another one.')
+        return new_front_page_banner
+
+    def clean_global_site_banner(self):
+        new_global_site_banner = self.cleaned_data['global_site_banner']
+        old_global_site_banner = News.objects.filter(global_site_banner=True)
+        if old_global_site_banner and new_global_site_banner:
+           raise forms.ValidationError('There is a global site banner news, please remove it before adding another one.')
+        return new_global_site_banner
 
 
 class FeaturedForm(forms.Form):

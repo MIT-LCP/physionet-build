@@ -15,7 +15,8 @@ class News(models.Model):
     project = models.ForeignKey('project.PublishedProject', null=True, blank=True,
         on_delete=models.SET_NULL, related_name='news')
     guid = models.CharField(max_length=64, default=uuid.uuid4)
-    pinned = models.BooleanField(default=False)
+    front_page_banner = models.BooleanField(default=False)
+    global_site_banner = models.BooleanField(default=False)
 
     def __str__(self):
         return '{} - {}'.format(self.title, self.publish_datetime.date())

@@ -1077,16 +1077,16 @@ def news_console(request):
 
     if 'remove_news' in request.POST:
         try:
-            pinned_news = News.objects.get(id=request.POST['remove_news'])
-            pinned_news.pinned=False
-            pinned_news.save()
+            front_banner_news = News.objects.get(id=request.POST['remove_news'])
+            front_banner_news.front_page_banner=False
+            front_banner_news.save()
         except News.DoesNotExist:
             pass
 
-    pinned_news = News.objects.filter(pinned=True)
+    front_banner_news = News.objects.filter(front_page_banner=True)
 
     return render(request, 'console/news_console.html', {'news_items': news_items,
-        'pinned_news': pinned_news})
+        'front_banner_news': front_banner_news})
 
 
 @login_required
