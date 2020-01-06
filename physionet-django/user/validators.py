@@ -80,7 +80,7 @@ def validate_location(value):
     followed by alphanumeric characters, spaces, underscores, hyphens,
     apostrophes, periods and commas
     """
-    if not re.fullmatch(r'[a-zA-Z][\w\',. -]+', value):
+    if not re.fullmatch(r'[^\W_0-9]([\w\',. -])+', value):
         raise ValidationError('Letters, numbers, spaces, hyphens, underscores, apostrophes, periods, and commas only. Must begin with a letter.')
 
 
@@ -90,7 +90,7 @@ def validate_organization(value):
     followed by alphanumeric characters, spaces, underscores, hyphens, apostrophes,
     periods and commas
     """
-    if not re.fullmatch(r'[a-zA-Z][\w\',. -]+', value):
+    if not re.fullmatch(r'[^\W_0-9]([\w\',. -])+', value):
         raise ValidationError('Letters, numbers, spaces, hyphens, underscores, apostrophes, periods, and commas only. Must begin with a letter.')
 
 
@@ -100,7 +100,7 @@ def validate_job_title(value):
     followed by alphanumeric characters, spaces, underscores, hyphens,
     apostrophes, periods and commas
     """
-    if not re.fullmatch(r'[a-zA-Z][\w\',. -]+', value):
+    if not re.fullmatch(r'[^\W_0-9]([\w\',. -])+', value):
         raise ValidationError('Letters, numbers, spaces, hyphens, underscores, apostrophes, periods, and commas only. Must begin with a letter.')
 
 
@@ -110,7 +110,7 @@ def validate_city(value):
     followed by alphanumeric characters, spaces, underscores, hyphens,
     apostrophes, periods and commas
     """
-    if not re.fullmatch(r'[a-zA-Z][\w\',. -]+', value):
+    if not re.fullmatch(r'[^\W_0-9]([\w\',. -])+', value):
         raise ValidationError('Letters, numbers, spaces, hyphens, underscores, apostrophes, periods, and commas only. Must begin with a letter.')
 
 
@@ -120,7 +120,7 @@ def validate_state(value):
     followed by alphanumeric characters, spaces, underscores, hyphens,
     apostrophes, periods and commas
     """
-    if not re.fullmatch(r'[a-zA-Z][\w\',. -]+', value):
+    if not re.fullmatch(r'[^\W_0-9]([\w\',. -])+', value):
         raise ValidationError('Letters, numbers, spaces, hyphens, underscores, apostrophes, periods, and commas only. Must begin with a letter.')
 
 
@@ -153,7 +153,7 @@ def validate_training_course(value):
     character followed by alphanumeric characters, spaces, underscores,
     hyphens, apostrophes, periods and commas
     """
-    if not re.fullmatch(r'[a-zA-Z][\w\',. -]+', value):
+    if not re.fullmatch(r'[^\W_0-9]([\w\',. -])+', value):
         raise ValidationError('Letters, numbers, spaces, hyphens, underscores, apostrophes, periods, and commas only. Must begin with a letter.')
 
 
@@ -163,8 +163,8 @@ def validate_course(value):
     character followed by alphanumeric characters, spaces, underscores,
     hyphens, apostrophes, periods and commas.
     """
-    if not re.fullmatch(r'[a-zA-Z0-9][\w\',. -]+', value):
-        raise ValidationError('Letters, numbers, spaces, hyphens, underscores, apostrophes, periods, and commas only. Must begin with a letter opr number.')
+    if not re.fullmatch(r'[^\W_0-9]([\w\',. -])+', value):
+        raise ValidationError('Letters, numbers, spaces, hyphens, underscores, apostrophes, periods, and commas only. Must begin with a letter.')
 
 
 def validate_reference_name(value):
@@ -183,9 +183,8 @@ def validate_reference_title(value):
     alphabetical character followed by alphanumeric characters,
     spaces, underscores, hyphens, apostrophes, periods and commas.
     """
-    if not re.fullmatch(r'[a-zA-Z][\w\',. -]+', value):
+    if not re.fullmatch(r'[^\W_0-9]([\w\',. -])+', value):
         raise ValidationError('Letters, numbers, spaces, hyphens, underscores, apostrophes, periods, and commas only. Must begin with a letter.')
-
 
 def validate_reference_response(value):
     """
@@ -193,7 +192,7 @@ def validate_reference_response(value):
     alphabetical character followed by alphanumeric characters,
     spaces, underscores, hyphens, apostrophes, periods and commas.
     """
-    if not re.fullmatch(r'[a-zA-Z][\w\',. -]+', value):
+    if not re.fullmatch(r'[^\W_0-9]([\w\',. -])+', value):
         raise ValidationError('Letters, numbers, spaces, hyphens, underscores, apostrophes, periods, and commas only. Must begin with a letter.')
 
 
