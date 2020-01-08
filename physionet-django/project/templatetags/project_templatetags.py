@@ -1,6 +1,6 @@
 from django import template
 from django.shortcuts import reverse
-from django.utils.html import format_html
+from django.utils.html import format_html, escape
 from django.utils.http import urlencode
 
 from notification.utility import mailto_url
@@ -86,7 +86,7 @@ def author_popover(author, show_submitting=False, show_email=False,
     Helper function for the popover of show_author_info and
     show_all_author_info
     """
-    affiliation_info = '<b>Affiliations</b><p>' + '<br>'.join(a for a in author.text_affiliations) + '</p>'
+    affiliation_info = escape('<b>Affiliations</b><p>{}</p>'.format('<br>'.join(escape(a) for a in author.text_affiliations)))
     profile_info = '<p><b>PhysioNet Profile</b><br><a href=/users/{} target=_blank>{}</a></p>'.format(author.username, author.username)
     popover_body = ''.join((affiliation_info, profile_info))
 
