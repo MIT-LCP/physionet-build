@@ -15,9 +15,4 @@ class Migration(migrations.Migration):
             name='front_page_banner',
             field=models.BooleanField(default=False),
         ),
-        migrations.AddField(
-            model_name='news',
-            name='global_site_banner',
-            field=models.BooleanField(default=False),
-        ),
     ]

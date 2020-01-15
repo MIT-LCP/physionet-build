@@ -1074,19 +1074,7 @@ def news_console(request):
     """
     news_items = News.objects.all().order_by('-publish_datetime')
     news_items = paginate(request, news_items, 50)
-
-    if 'remove_news' in request.POST:
-        try:
-            front_banner_news = News.objects.get(id=request.POST['remove_news'])
-            front_banner_news.front_page_banner=False
-            front_banner_news.save()
-        except News.DoesNotExist:
-            pass
-
-    front_banner_news = News.objects.filter(front_page_banner=True)
-
-    return render(request, 'console/news_console.html', {'news_items': news_items,
-        'front_banner_news': front_banner_news})
+    return render(request, 'console/news_console.html', {'news_items': news_items})
 
 
 @login_required
