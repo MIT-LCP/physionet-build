@@ -454,7 +454,7 @@ or more digitized ECG signals and a set of beat annotations.</p>
 
 <li>[Class 3; core] <a href="{% url 'published_project_latest' 'nsrdb' %}">MIT-BIH Normal Sinus Rhythm Database</a>
     (including signal files not previously released).  Also available: <a
-    href="https://archive.physionet.org/physiobank/database/excluded/">recordings excluded</a> from the MIT-BIH Normal Sinus Rhythm
+    href="{% url 'published_project_latest' 'excluded' %}">recordings excluded</a> from the MIT-BIH Normal Sinus Rhythm
     Database (because of the presence of occasional ectopic beats).</li>
 
 <li>[Class 3; core] <a href="{% url 'published_project_latest' 'stdb' %}">MIT-BIH ST Change Database</a>.  This database
