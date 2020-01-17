@@ -61,8 +61,8 @@ Each database is placed into a class according to the following specifications. 
 
 <p>
 On this page, listings within each group are ordered by class, and then
-alphabetically by the name of the database.  Those designated below as
-<b>core</b> databases are available from all PhysioNet mirrors. Visitors to these mirrors are redirected to the master PhysioNet server when following a link to a PhysioBank record outside of the core collection. You may not notice that any redirection has occurred unless your connection to the master server is significantly slower than your connection to the mirror.</p>
+alphabetically by the name of the database.
+</p>
 </section>
 
 <br>
@@ -206,7 +206,7 @@ recording.  Please visit the links below for details.</p>
 
   <li>[Class 2] <a href="{% url 'published_project_latest' 'picsdb' %}">Preterm Infant Cardio-Respiratory Signals Database</a>. Simultaneous ECG and respiration recordings of ten preterm infants collected from the Neonatal Intensive Care Unit (NICU) of the University of Massachusetts Memorial Healthcare.
 
-  <li>[Class 2; core] <a href="{% url 'published_project_latest' 'prcp' %}">Physiologic Response to Changes in
+  <li>[Class 2] <a href="{% url 'published_project_latest' 'prcp' %}">Physiologic Response to Changes in
     Posture</a>.  A collection of physiological signals (ECG and ABP)
     in ten healthy subjects in response to a slow tilt, a fast tilt,
     and a standing-up maneuver.
@@ -220,7 +220,7 @@ recording.  Please visit the links below for details.</p>
 
 <li>[Class 2] <a href="{% url 'published_project_latest' 'wrist' %}">Wrist PPG During Exercise</a> This database contains wrist PPGs recorded during walking, running and bike riding. Simultaneous motion estimates are collected using both accelerometers and gyroscopes to give multiple options for the removal of motion interference from the PPG traces. A reference chest ECG is included to allow a gold-standard comparison of heart rate during exercise.</li>
 
-  <li>[Class 3; core] <a href="{% url 'published_project_latest' 'apnea-ecg' %}">Apnea-ECG Database</a>.  This database has been assembled for
+  <li>[Class 3] <a href="{% url 'published_project_latest' 'apnea-ecg' %}">Apnea-ECG Database</a>.  This database has been assembled for
     the <a href="{% url 'published_project_latest' 'challenge-2000' %}">PhysioNet/Computers in Cardiology
     Challenge 2000</a>.  It consists of 70 ECG recordings, each
     typically 8 hours long, with accompanying sleep apnea annotations
@@ -250,15 +250,15 @@ recording.  Please visit the links below for details.</p>
     a uterine contraction (UC) signal, each sampled at 4 Hz.  Each CTG is also
     accompanied by maternal, delivery, and fetal clinical details.</li>
 
-  <li>[Class 3; core] <a href="{% url 'published_project_latest' 'fantasia' %}">Fantasia Database</a>.  ECG and respiration recordings, with beat annotations from 20 young and 20
+  <li>[Class 3] <a href="{% url 'published_project_latest' 'fantasia' %}">Fantasia Database</a>.  ECG and respiration recordings, with beat annotations from 20 young and 20
     elderly subjects, all healthy, in sinus rhythm during a resting
     state (two hours each).  Half of the recordings also include
     (uncalibrated) continuous noninvasive blood pressure signals.</li>
 
-<li>[Class 3; core] <a href="{% url 'published_project_latest' 'slpdb' %}">MIT-BIH Polysomnographic Database</a>.  Includes new annotation files with sleep stage and
+<li>[Class 3] <a href="{% url 'published_project_latest' 'slpdb' %}">MIT-BIH Polysomnographic Database</a>.  Includes new annotation files with sleep stage and
     apnea annotations.
     <ul>
-      <li>[Class 2; core] <a href="{% url 'published_project_latest' 'santa-fe' %}">Santa Fe Time Series Competition Data Set B</a> (data extracted from the MIT-BIH
+      <li>[Class 2] <a href="{% url 'published_project_latest' 'santa-fe' %}">Santa Fe Time Series Competition Data Set B</a> (data extracted from the MIT-BIH
         Polysomnographic Database).
       </li>
     </ul>
@@ -318,15 +318,15 @@ Unless specifically noted, each recording in these databases includes one
 or more digitized ECG signals and a set of beat annotations.</p>
 
 <ul>
-<li>[Class 1; core] <a href="{% url 'published_project_latest' 'aami-ec13' %}">ANSI/AAMI EC13 Test Waveforms</a>. These 10 short recordings are specified by the current American
+<li>[Class 1] <a href="{% url 'published_project_latest' 'aami-ec13' %}">ANSI/AAMI EC13 Test Waveforms</a>. These 10 short recordings are specified by the current American
     National Standard for testing various devices that measure heart rate.</li>
 
-<li>[Class 1; core] <a href="{% url 'published_project_latest' 'edb' %}">European ST-T Database</a>.  The creators of this database, and the European Society of Cardiology, have
+<li>[Class 1] <a href="{% url 'published_project_latest' 'edb' %}">European ST-T Database</a>.  The creators of this database, and the European Society of Cardiology, have
     contributed all 90 two-hour records of this database in
     their entirety.  The reference annotation and header files for the
     remaining records are also available here.</li>
 
-<li>[Class 1; core] <a href="{% url 'published_project_latest' 'ltstdb' %}">Long-Term ST Database</a>.  The creators of this database contributed half of it to PhysioNet in 2003, and the
+<li>[Class 1] <a href="{% url 'published_project_latest' 'ltstdb' %}">Long-Term ST Database</a>.  The creators of this database contributed half of it to PhysioNet in 2003, and the
     remaining records in 2007.  Each of the 86 records is 21 to 24 hours long,
     and contains 2 or 3 ECG signals, annotated beat-by-beat and with respect
     to ST episodes, rhythm changes, and signal quality changes; each record
@@ -335,18 +335,18 @@ or more digitized ECG signals and a set of beat annotations.</p>
     href="https://archive.physionet.org/physiobank/database/ltstdb/lt96/">1996</a> and <a href="https://archive.physionet.org/physiobank/database/ltstdb/lt00/">2000</a>)
     are available here.</li>
 
-<li>[Class 1; core] <a href="{% url 'published_project_latest' 'mitdb' %}">MIT-BIH Arrhythmia Database</a>.  This collection of 48 fully annotated half-hour two-lead ECGs is
+<li>[Class 1] <a href="{% url 'published_project_latest' 'mitdb' %}">MIT-BIH Arrhythmia Database</a>.  This collection of 48 fully annotated half-hour two-lead ECGs is
     available here in its entirety.</li>
 
-<li>[Class 1; core] <a href="{% url 'published_project_latest' 'nstdb' %}">MIT-BIH Noise Stress Test Database</a>. Twelve half-hour ECG recordings and 3 half-hour recordings of noise
+<li>[Class 1] <a href="{% url 'published_project_latest' 'nstdb' %}">MIT-BIH Noise Stress Test Database</a>. Twelve half-hour ECG recordings and 3 half-hour recordings of noise
     typical in ambulatory ECG recordings.  The ECG recordings were
     created by adding calibrated amounts of noise to clean ECG recordings
     from the MIT-BIH Arrhythmia Database.</li>
 
-<li>[Class 1; core] <a href="{% url 'published_project_latest' 'staffiii' %}">STAFF-III Database</a>.
+<li>[Class 1] <a href="{% url 'published_project_latest' 'staffiii' %}">STAFF-III Database</a>.
     The STAFF III database was acquired during 1995–96 at Charleston Area Medical Center (WV, USA) where single prolonged balloon inflation had been introduced to achieve optimal results of percutaneous transluminal coronary angiography (PTCA) procedures, replacing the typical series of brief inflations. The database consists of standard 12-lead ECG recordings from 104 patients.</li>
 
-<li>[Class 2; core] <a href="{% url 'published_project_latest' 'chfdb' %}">BIDMC Congestive Heart Failure Database</a>. Long-term ECGs (about 20 hours each) from 15 subjects with severe CHF
+<li>[Class 2] <a href="{% url 'published_project_latest' 'chfdb' %}">BIDMC Congestive Heart Failure Database</a>. Long-term ECGs (about 20 hours each) from 15 subjects with severe CHF
     (NYHA class 3-4).</li>
 
 <li>[Class 2] <a href="{% url 'published_project_latest' 'ecgcipa' %}">CiPA ECG Validation Study (FDA Study 3)</a> ECG effects of ranolazine, verapamil, lopinavir+ritonavir, chloroquine, dofetilide, diltiazem, and dofetilide+diltiazem in a small sample size clinical study. The ECGCIPA database contains multi-channel ECG recordings of 60 subjects participating in the CiPA ECG validation study.</li>
@@ -371,11 +371,11 @@ or more digitized ECG signals and a set of beat annotations.</p>
     short single-lead ECG recordings from 90 volunteers, collected to support
     studies of using the ECG for biometric identification.</li>
 
-<li>[Class 2; core] <a href="{% url 'published_project_latest' 'szdb' %}">Post-Ictal Heart Rate Oscillations in Partial
+<li>[Class 2] <a href="{% url 'published_project_latest' 'szdb' %}">Post-Ictal Heart Rate Oscillations in Partial
     Epilepsy</a>.  Seven annotated single-lead ECG recordings, with times
     of seizures indicated.  A <a href="https://archive.physionet.org/physiobank/database/szdb/szdb.shtml">study of these recordings</a> is available here.</li>
 
-<li>[Class 2; core] <a href="{% url 'published_project_latest' 'qtdb' %}">QT Database</a>.  Over 100 fifteen-minute
+<li>[Class 2] <a href="{% url 'published_project_latest' 'qtdb' %}">QT Database</a>.  Over 100 fifteen-minute
     two-lead ECG recordings (many excerpted from other databases), with
     onset, peak, and end markers for P, QRS, T, and (where present) U waves
     of from 30 to 50 selected beats in each recording.  A <a
@@ -390,7 +390,7 @@ or more digitized ECG signals and a set of beat annotations.</p>
 
 <li>[Class 2] <a href="{% url 'published_project_latest' 'nifeadb' %}">The Non-Invasive Fetal ECG Arrhythmia Database</a> The Non-Invasive Fetal ECG Arrhythmia Database (NIFEA DB) provides a series of fetal arrhythmias recordings (n=12) and a number of control normal rhythm recordings (n=14) performed using the non-invasive fetal electrocardiography (NI-FECG) technique.</li>
 
-<li>[Class 3; core] <a href="{% url 'published_project_latest' 'adfecgdb' %}">Abdominal and Direct Fetal ECG
+<li>[Class 3] <a href="{% url 'published_project_latest' 'adfecgdb' %}">Abdominal and Direct Fetal ECG
     Database</a>.  Five-minute multichannel fetal ECG recordings, with
     cardiologist-verified annotations of all fetal heart beats, from five women
     in labor, from the Medical University of Silesia, Poland.  Each record
@@ -398,7 +398,7 @@ or more digitized ECG signals and a set of beat annotations.</p>
     recorded reference direct fetal ECG from the fetal scalp; all signals are
     sampled at 1 KHz with 16-bit resolution.</li>
 
-<li>[Class 3; core] <a href="{% url 'published_project_latest' 'aftdb' %}">AF Termination Challenge Database</a>.  This
+<li>[Class 3] <a href="{% url 'published_project_latest' 'aftdb' %}">AF Termination Challenge Database</a>.  This
     database has been compiled for the
     <a href="{% url 'published_project_latest' 'challenge-2004' %}">PhysioNet/Computers in Cardiology Challenge 2004</a>.  It consists of a learning set of 30 records and two test sets
     of 30 and 20 records.  Each record contains a one-minute excerpt of a
@@ -406,7 +406,7 @@ or more digitized ECG signals and a set of beat annotations.</p>
     sustained atrial fibrillation;  the challenge is to identify which
     records in the test set show self-terminating AF.</li>
 
-<li>[Class 3; core] <a href="{% url 'published_project_latest' 'cudb' %}">Creighton University Ventricular
+<li>[Class 3] <a href="{% url 'published_project_latest' 'cudb' %}">Creighton University Ventricular
     Tachyarrhythmia Database</a>.  This database includes a
     preliminary set of beat annotations (all beats marked as normal)
     with additional annotations that indicate episodes of ventricular
@@ -418,7 +418,7 @@ or more digitized ECG signals and a set of beat annotations.</p>
     with moderate to large, relatively compact infarcts, together with MRI
     images and clinical summaries.</li>
 
-<li>[Class 3; core] <a href="{% url 'published_project_latest' 'iafdb' %}">Intracardiac Atrial Fibrillation
+<li>[Class 3] <a href="{% url 'published_project_latest' 'iafdb' %}">Intracardiac Atrial Fibrillation
     Database</a>.  A collection of high-resolution recordings from
     eight subjects in atrial fibrillation or flutter; each recording
     includes three surface ECG signals and five intracardiac signals,
@@ -433,36 +433,36 @@ or more digitized ECG signals and a set of beat annotations.</p>
     The new set contains manually reviewed reference beat type and rhythm
     annotations.</li>
 
-<li>[Class 3; core] <a href="{% url 'published_project_latest' 'macecgdb' %}">Motion Artifact Contaminated
+<li>[Class 3] <a href="{% url 'published_project_latest' 'macecgdb' %}">Motion Artifact Contaminated
     ECG Database</a>.  Short duration ECG signals are recorded from a
     healthy 25-year-old male performing different physical activities
     to study the effect of motion artifacts on ECG signals and their
     sparsity.</li>
 
-<li>[Class 3; core] <a href="{% url 'published_project_latest' 'afdb' %}">MIT-BIH Atrial Fibrillation Database</a>
+<li>[Class 3] <a href="{% url 'published_project_latest' 'afdb' %}">MIT-BIH Atrial Fibrillation Database</a>
     (including signal files not previously released).  Signal files for 23
     of the 25 ten-hour records are available, along with reference rhythm
     annotations and unaudited beat annotations for all 25 records.</li>
 
-<li>[Class 3; core] <a href="{% url 'published_project_latest' 'cdb' %}">MIT-BIH ECG Compression Test Database</a>. This database is unannotated.</li>
+<li>[Class 3] <a href="{% url 'published_project_latest' 'cdb' %}">MIT-BIH ECG Compression Test Database</a>. This database is unannotated.</li>
 
-<li>[Class 3; core] <a href="{% url 'published_project_latest' 'ltdb' %}">MIT-BIH Long-Term Database</a>.  Six lengthy two-lead ECG recordings and one three-lead ECG recording.</li>
+<li>[Class 3] <a href="{% url 'published_project_latest' 'ltdb' %}">MIT-BIH Long-Term Database</a>.  Six lengthy two-lead ECG recordings and one three-lead ECG recording.</li>
 
-<li>[Class 3; core] <a href="{% url 'published_project_latest' 'vfdb' %}">MIT-BIH Malignant Ventricular Arrhythmia
+<li>[Class 3] <a href="{% url 'published_project_latest' 'vfdb' %}">MIT-BIH Malignant Ventricular Arrhythmia
     Database</a>.  This database contains rhythm and signal quality annotations
     only (no beat annotations).</li>
 
-<li>[Class 3; core] <a href="{% url 'published_project_latest' 'nsrdb' %}">MIT-BIH Normal Sinus Rhythm Database</a>
+<li>[Class 3] <a href="{% url 'published_project_latest' 'nsrdb' %}">MIT-BIH Normal Sinus Rhythm Database</a>
     (including signal files not previously released).  Also available: <a
     href="{% url 'published_project_latest' 'excluded' %}">recordings excluded</a> from the MIT-BIH Normal Sinus Rhythm
     Database (because of the presence of occasional ectopic beats).</li>
 
-<li>[Class 3; core] <a href="{% url 'published_project_latest' 'stdb' %}">MIT-BIH ST Change Database</a>.  This database
+<li>[Class 3] <a href="{% url 'published_project_latest' 'stdb' %}">MIT-BIH ST Change Database</a>.  This database
     includes beat annotations but currently no ST change annotations.  The
     recordings are primarily from exercise stress tests and exhibit transient
     ST changes.</li>
 
-<li>[Class 3; core] <a href="{% url 'published_project_latest' 'svdb' %}">MIT-BIH Supraventricular Arrhythmia
+<li>[Class 3] <a href="{% url 'published_project_latest' 'svdb' %}">MIT-BIH Supraventricular Arrhythmia
     Database</a>.  Seventy-eight half-hour ECG recordings chosen to
     supplement the examples of SV arrhythmias in the MIT-BIH
     Arrhythmia Database.</li>
@@ -471,7 +471,7 @@ or more digitized ECG signals and a set of beat annotations.</p>
     Database</a>.  Fifty-five recordings of maternal and maternal+fetal ECGs
     recorded over a 20-week period from a single subject, in EDF+ format.</li>
 
-<li>[Class 3; core] <a href="{% url 'published_project_latest' 'afpdb' %}">PAF Prediction Challenge Database</a>.  This
+<li>[Class 3] <a href="{% url 'published_project_latest' 'afpdb' %}">PAF Prediction Challenge Database</a>.  This
     database has been compiled for the <a
     href="{% url 'published_project_latest' 'challenge-2001' %}">PhysioNet/Computers in Cardiology Challenge
     2001</a>.  It consists of 100 record sets, each including a pair of
@@ -482,7 +482,7 @@ or more digitized ECG signals and a set of beat annotations.</p>
     each 30-minute record.  In the 50 record sets belonging to the test set,
     the challenge is to identify which records immediately precede PAF.</li>
 
-<li>[Class 3; core] <a href="{% url 'published_project_latest' 'ptbdb' %}">PTB Diagnostic ECG
+<li>[Class 3] <a href="{% url 'published_project_latest' 'ptbdb' %}">PTB Diagnostic ECG
     Database</a>. This database of 549 high-resolution 15-lead ECGs
     (12 standard leads together with Frank XYZ leads) includes
     clinical summaries for each record.  From one to five ECG records
@@ -523,11 +523,11 @@ are unavailable.</p>
     and on-therapy records are available;  the database consists of 1543
     records, including roughly 150 million RR interval measurements.</li>
 
-<li>[Class 2; core] <a href="{% url 'published_project_latest' 'chf2db' %}">Congestive Heart Failure RR Interval
+<li>[Class 2] <a href="{% url 'published_project_latest' 'chf2db' %}">Congestive Heart Failure RR Interval
     Database</a>.  Beat annotation files (about 24 hours each) from
     29 subjects with congestive heart failure (NYHA classes 1, 2, and 3).</li>
 
-<li>[Class 2; core] <a href="{% url 'published_project_latest' 'meditation' %}">Exaggerated heart rate
+<li>[Class 2] <a href="{% url 'published_project_latest' 'meditation' %}">Exaggerated heart rate
     oscillations during two meditation techniques</a>, with additional
     data from spontaneously and metronomically breathing controls, and
     from highly trained athletes.  These data include times of beat
@@ -535,11 +535,11 @@ are unavailable.</p>
 
 <li>[Class 2] <a href="{% url 'published_project_latest' 'pwave' %}">MIT-BIH P-wave Annotations</a> This database contains reference p-wave annotations for twelve signals from the MIT-BIH arrhythmia database.</li>
 
-<li>[Class 2; core] <a href="{% url 'published_project_latest' 'nsr2db' %}">Normal Sinus Rhythm RR Interval
+<li>[Class 2] <a href="{% url 'published_project_latest' 'nsr2db' %}">Normal Sinus Rhythm RR Interval
     Database</a>.  Beat annotation files (about 24 hours each) from
     54 subjects in normal sinus rhythm.</li>
 
-<li>[Class 2; core] <a href="{% url 'published_project_latest' 'mvtdb' %}">Spontaneous Ventricular Tachyarrhythmia Database</a> (Version 1.0 from Medtronic, Inc.).  This database
+<li>[Class 2] <a href="{% url 'published_project_latest' 'mvtdb' %}">Spontaneous Ventricular Tachyarrhythmia Database</a> (Version 1.0 from Medtronic, Inc.).  This database
     contains 135 pairs of RR interval time series, recorded by
     implanted cardioverter defibrillators in 78 subjects. Each series
     contains between 986 and 1022 RR intervals.  One series of each
@@ -553,16 +553,16 @@ are unavailable.</p>
 <h3 id="cv">Other Cardiovascular Databases</h3>
 
 <ul>
-<li>[Class 2; core] <a href="{% url 'published_project_latest' 'bpssrat' %}">Time Course Data for Blood Pressure in Dahl SS and SSBN13 Rats</a>.  Two-minute continuous non-invasive blood pressure recordings from 9 SS (salt-sensitive) and 6 SSBN13 Dahl rats.  Each rat was
+<li>[Class 2] <a href="{% url 'published_project_latest' 'bpssrat' %}">Time Course Data for Blood Pressure in Dahl SS and SSBN13 Rats</a>.  Two-minute continuous non-invasive blood pressure recordings from 9 SS (salt-sensitive) and 6 SSBN13 Dahl rats.  Each rat was
 recorded twice, initially while on a low-salt diet and subsequently while on a
 high-salt diet, in support of a study of the physiologic origins of baroreflex
 dysfunction in salt-sensitive hypertension.</li>
 
-<li>[Class 2; core] <a href="{% url 'published_project_latest' 'osv' %}">Pattern Analysis of Oxygen Saturation
+<li>[Class 2] <a href="{% url 'published_project_latest' 'osv' %}">Pattern Analysis of Oxygen Saturation
 Variability</a>. This database contains one hour oxygen saturation measurements
 of 36 patients, used for the analysis of oxygen saturation variability.</li>
 
-<li>[Class 2; core] <a href="{% url 'published_project_latest' 'sufhsdb' %}">Shiraz University Fetal Heart Sounds Database (SUFHSDB)</a>. Contains fetal and maternal PCG recordings from 109
+<li>[Class 2] <a href="{% url 'published_project_latest' 'sufhsdb' %}">Shiraz University Fetal Heart Sounds Database (SUFHSDB)</a>. Contains fetal and maternal PCG recordings from 109
 pregnant women.</li>
 </ul>
 
@@ -574,23 +574,23 @@ These databases contain stride interval (gait cycle duration) time series
 in text form (follow the links below for details).</p>
 
 <ul>
-<li>[Class 2; core] <a href="{% url 'published_project_latest' 'gaitndd' %}">Gait Dynamics in Neuro-Degenerative Disease
+<li>[Class 2] <a href="{% url 'published_project_latest' 'gaitndd' %}">Gait Dynamics in Neuro-Degenerative Disease
     Database</a>.  A collection of 64 recordings of gait (including original
     foot signals) from 15 subjects with Parkinson's disease, 20 with
     Huntington's disease, 13 with amyotrophic lateral sclerosis, and 16
     healthy controls.</li>
 
-<li>[Class 2; core] <a href="{% url 'published_project_latest' 'gaitdb' %}">Gait in Aging and Disease Database</a> (a
+<li>[Class 2] <a href="{% url 'published_project_latest' 'gaitdb' %}">Gait in Aging and Disease Database</a> (a
     "mini-collection" of data from healthy young and old volunteers,
     and patients with Parkinson's disease)</li>
 
-<li>[Class 2; core] <a href="{% url 'published_project_latest' 'gait-maturation-db' %}">Gait Maturation Database</a> (a collection of data from healthy children ages 3-14)</li>
+<li>[Class 2] <a href="{% url 'published_project_latest' 'gait-maturation-db' %}">Gait Maturation Database</a> (a collection of data from healthy children ages 3-14)</li>
 
-<li>[Class 2; core] <a href="{% url 'published_project_latest' 'ltmm' %}">Long Term Movement Monitoring
+<li>[Class 2] <a href="{% url 'published_project_latest' 'ltmm' %}">Long Term Movement Monitoring
     Database</a>. 3-day 3D accelerometer recordings of 71 elder community
   residents, used to study gait, stability, and fall risk.
 
-<li>[Class 2; core] <a href="{% url 'published_project_latest' 'nesfdb' %}">Noise Enhancement of Sensorimotor Function</a>.  Measurements of postural sway in 27 healthy volunteers
+<li>[Class 2] <a href="{% url 'published_project_latest' 'nesfdb' %}">Noise Enhancement of Sensorimotor Function</a>.  Measurements of postural sway in 27 healthy volunteers
     (15 young, 12 elderly), with and without subsensory stimulation of the
     soles of the feet using mechanical noise.</li>
 
@@ -604,7 +604,7 @@ in text form (follow the links below for details).</p>
     a two-arm randomized clinical trial (RCT) along with an additional
     observational comparison group.</li>
 
-<li>[Class 2; core] <a href="{% url 'published_project_latest' 'umwdb' %}">Unconstrained and Metronomic
+<li>[Class 2] <a href="{% url 'published_project_latest' 'umwdb' %}">Unconstrained and Metronomic
     Walking Database</a> (a collection of long-term recordings of gait
     dynamics from 10 healthy young volunteers).</li>
 
@@ -635,7 +635,7 @@ using the BCI2000 system, and a set of task annotations.</li>
 <li>[Class 2] <a href="{% url 'published_project_latest' 'ltrsvp' %}">EEG Signals from an RSVP Task</a>.
 This project contains EEG data from 11 healthy participants upon rapid presentation of images through the Rapid Serial Visual Presentation (RSVP) protocol at speeds of 5, 6, and 10 Hz.</li>
 
-<li>[Class 2; core] <a href="{% url 'published_project_latest' 'tremordb' %}">Effect of Deep Brain Stimulation on
+<li>[Class 2] <a href="{% url 'published_project_latest' 'tremordb' %}">Effect of Deep Brain Stimulation on
 Parkinsonian Tremor</a>.  Rest tremor velocity in the index finger of 16
 subjects with Parkinson's disease, who receive chronic high frequency
 electrical deep brain stimulation.</li>
@@ -692,7 +692,7 @@ made later.</li>
   into the three PROP taster status classes), during a stimulation with 30uL,
   3.2 mmol/L solution of 6-n-propylthiouracil (PROP).</li>
 
-<li>[Class 3; core] <a href="{% url 'published_project_latest' 'emgdb' %}">Examples of Electromyograms</a>. Short
+<li>[Class 3] <a href="{% url 'published_project_latest' 'emgdb' %}">Examples of Electromyograms</a>. Short
 EMG recordings from three subjects (one without neuromuscular disease,
 one with myopathy, one with neuropathy).</li>
 </ul>
@@ -709,7 +709,7 @@ one with myopathy, one with neuropathy).</li>
 synthetic fetal phonocardiographic signals (PCGs) relative to different fetal
 states and recording conditions.</li>
 
-<!-- <li>[Class 2; core] <a href="{% url 'published_project_latest' 'chbmit' %}synthetic/tns/">Surrogate Data with
+<!-- <li>[Class 2] <a href="{% url 'published_project_latest' 'chbmit' %}synthetic/tns/">Surrogate Data with
     Correlations, Trends, and Nonstationarities</a>.  Surrogate
     stationary time series with varying degrees of correlations,
     trends of several types, and various types of nonstationarities.</li> -->
@@ -721,7 +721,7 @@ states and recording conditions.</li>
 
 
 <ul>
-<li>[Class 3; core] <a href="{% url 'published_project_latest' 'images' %}">Samples of MR Images</a> (magnetic resonance angiography images)</li>
+<li>[Class 3] <a href="{% url 'published_project_latest' 'images' %}">Samples of MR Images</a> (magnetic resonance angiography images)</li>
 </ul>
 
 <br>
