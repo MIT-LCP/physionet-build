@@ -18,20 +18,19 @@ PhysioNet
 <body>
   {% include "navbar.html" %}
 
-    <!-- highlighted news items -->
-    {% if front_page_banner %}
-      <div class="alert alert-primary" style="margin-bottom: 0;">
-        <ul class="list-unstyled" style="margin-bottom: 0;">
-        {% for news in front_page_banner %}
-          <li>
-            <a href="{% url 'news_by_id' news.id %}">{{ news.title|safe }}</a></li>
-        {% endfor %}
-        </ul>
-      </div>
-    {% endif %}
+  {% if front_page_banner %}
+  <div class="alert alert-primary" style="margin-bottom: 0;">
+    <ul class="list-unstyled" style="margin-bottom: 0;">
+    {% for news in front_page_banner %}
+    <li>
+      <a href="{% url 'news_by_id' news.id %}">{{ news.title }}</a>
+    </li>
+    {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
 
   <div class="main-header">
-
     <div class="center">
       <h1>PhysioNet</h1>
       <p>
