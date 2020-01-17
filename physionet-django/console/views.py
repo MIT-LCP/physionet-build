@@ -1074,7 +1074,7 @@ def news_console(request):
     """
     news_items = News.objects.all().order_by('-publish_datetime')
     news_items = paginate(request, news_items, 50)
-    return render(request, 'console/news_console.html', {'news_items':news_items})
+    return render(request, 'console/news_console.html', {'news_items': news_items})
 
 
 @login_required
