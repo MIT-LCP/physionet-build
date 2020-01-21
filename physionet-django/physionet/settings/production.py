@@ -8,7 +8,6 @@ DEBUG = False
 
 ALLOWED_HOSTS = ['alpha.physionet.org', 'physionet-production.ecg.mit.edu', 'physionet.org', 'www.physionet.org']
 SITE_ID = 3
-INSTALLED_APPS += ['django.contrib.sites']
 
 DATABASES = {
     'default': {

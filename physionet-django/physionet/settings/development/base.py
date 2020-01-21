@@ -6,6 +6,8 @@ SESSION_COOKIE_SECURE = False
 
 ALLOWED_HOSTS = ['*']
 
+SITE_ID = 4
+
 INSTALLED_APPS += [
     'debug_toolbar',
 ]
