@@ -244,7 +244,7 @@ class TestAuth(TestMixin):
 
         # Test 5: Verify the newly added email
         # Get the activation info from the sent email
-        uidb64, token = re.findall('http://testserver/verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
+        uidb64, token = re.findall('http://localhost:8000/verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
             mail.outbox[0].body)[0]
         self.make_get_request('verify_email', {'uidb64':uidb64, 'token':token})
         self.tst_get_request(verify_email,
@@ -285,7 +285,7 @@ class TestPublic(TestMixin):
         self.assertFalse(User.objects.get(email='jackreacher@mit.edu').is_active)
 
         # Get the activation info from the sent email
-        uidb64, token = re.findall('http://testserver/activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
+        uidb64, token = re.findall('http://localhost:8000/activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
             mail.outbox[0].body)[0]
         # Visit the activation link
         self.make_get_request('activate_user', {'uidb64':uidb64, 'token':token})
