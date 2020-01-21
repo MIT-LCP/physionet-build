@@ -43,6 +43,12 @@ class Command(BaseCommand):
                                           'fixtures', 'project-types.json')
         call_command('loaddata', project_types_fixtures, verbosity=1)
 
+        # Load fixtures for default physionet sites
+        physionet_site_fixtures = os.path.join(settings.BASE_DIR, 'physionet',
+                                          'fixtures', 'sites.json')
+        call_command('loaddata', physionet_site_fixtures, verbosity=1)
+
+
         # Load other app fixtures
         project_apps = get_project_apps()
         demo_fixtures = find_demo_fixtures(project_apps)
