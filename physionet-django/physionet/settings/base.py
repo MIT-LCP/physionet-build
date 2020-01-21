@@ -148,6 +148,13 @@ AWS_HEADER_KEY2 = config('AWS_KEY2', default=False)
 AWS_HEADER_VALUE2 = config('AWS_VALUE2', default=False)
 AWS_CLOUD_FORMATION = config('AWS_CLOUD_FORMATION', default=False)
 
+# Tags for the DataCite API used for DOI
+DATACITE_URL = config('DATACITE_URL', default=False)
+DATACITE_KEY = config('DATACITE_KEY', default=False)
+DATACITE_PREFIX = config('DATACITE_PREFIX', default=False)
+DATACITE_TEST_PREFIX = config('DATACITE_TEST_PREFIX', default=False)
+DATACITE_TEST_URL = config('DATACITE_TEST_URL', default=False)
+
 # List of permitted HTML tags and attributes for rich text fields.
 # The 'default' configuration permits all of the tags below.  Other
 # configurations may be added that permit different sets of tags.
