@@ -8,7 +8,9 @@ ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS += [
     'debug_toolbar',
+    'django.contrib.sites',
 ]
+SITE_ID = 4
 
 MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware', ]
 

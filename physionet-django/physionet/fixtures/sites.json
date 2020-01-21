@@ -22,5 +22,13 @@
             "name": "PhysioNet",
             "domain": "physionet.org"
         }
+    },
+    {
+        "model": "sites.Site",
+        "pk": 4,
+        "fields": {
+            "name": "PhysioNet-dev",
+            "domain": "localhost:8000"
+        }
     }
 ]
