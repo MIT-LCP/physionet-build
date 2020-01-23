@@ -42,6 +42,8 @@ DATABASES = {
     }
 }
 
+DATACITE_TEST_URL = False
+
 DEMO_FILE_ROOT = os.path.join(os.path.abspath(os.path.join(BASE_DIR, os.pardir)), 'demo-files')
 
 MEDIA_ROOT = os.path.join(os.path.abspath(os.path.join(BASE_DIR, os.pardir)), 'media')
