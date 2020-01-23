@@ -190,14 +190,17 @@ def create_doa_draft(project):
         return ""
 
     prefix = settings.DATACITE_TEST_PREFIX
+    key = settings.DATACITE_TEST_KEY
+
     current_site = Site.objects.get_current()
     production_site = Site.objects.get(id=3)
     if current_site.domain == production_site.domain:
         prefix = settings.DATACITE_PREFIX
         url = settings.DATACITE_URL
+        key = settings.DATACITE_KEY
 
     headers = {'Content-Type': 'application/vnd.api+json',
-        'authorization': "Basic {}".format(settings.DATACITE_KEY)}
+        'authorization': "Basic {}".format(key)}
 
     Dataset = ['Database', 'Challenge', 'Model']
     Software = ['Software']
@@ -263,17 +266,19 @@ def publish_doa_draft(project_url, doi):
         return ""
 
     prefix = settings.DATACITE_TEST_PREFIX
-
+    key = settings.DATACITE_TEST_KEY
     current_site = Site.objects.get_current()
     production_site = Site.objects.get(id=3)
     url += '/{1}/{2}'.format(settings.DATACITE_TEST_URL, prefix, doi)
 
     if current_site.domain == production_site.domain:
         prefix = settings.DATACITE_PREFIX
+        key = settings.DATACITE_KEY
+
         url = '{0}/{1}/{2}'.format(settings.DATACITE_URL, prefix, doi)
 
     headers = {'Content-Type': 'application/vnd.api+json',
-        'authorization': "Basic {}".format(settings.DATACITE_KEY)}
+        'authorization': "Basic {}".format(key)}
 
     payload = {
       "data": {

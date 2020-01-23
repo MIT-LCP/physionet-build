@@ -152,8 +152,9 @@ AWS_CLOUD_FORMATION = config('AWS_CLOUD_FORMATION', default=False)
 DATACITE_URL = config('DATACITE_URL', default=False)
 DATACITE_KEY = config('DATACITE_KEY', default=False)
 DATACITE_PREFIX = config('DATACITE_PREFIX', default=False)
-DATACITE_TEST_PREFIX = config('DATACITE_TEST_PREFIX', default=False)
 DATACITE_TEST_URL = config('DATACITE_TEST_URL', default=False)
+DATACITE_TEST_KEY = config('DATACITE_TEST_KEY', default=False)
+DATACITE_TEST_PREFIX = config('DATACITE_TEST_PREFIX', default=False)
 
 # List of permitted HTML tags and attributes for rich text fields.
 # The 'default' configuration permits all of the tags below.  Other
