@@ -186,8 +186,10 @@ def create_doa_draft(project):
     The assigned DOI is returned to be used in the template.
     """
     url = settings.DATACITE_TEST_URL
-    prefix = settings.DATACITE_TEST_PREFIX
+    if url == False:
+        return ""
 
+    prefix = settings.DATACITE_TEST_PREFIX
     current_site = Site.objects.get_current()
     production_site = Site.objects.get(id=3)
     if current_site.domain == production_site.domain:
@@ -256,15 +258,15 @@ def publish_doa_draft(project_url, doi):
     A PUT request is done in order to update the information od the DOI.
     The URL is made using the prefix and doi assigned to the project.
     """
-
-    if doi == 'False':
-        return False
+    url = settings.DATACITE_TEST_URL
+    if url == False:
+        return ""
 
     prefix = settings.DATACITE_TEST_PREFIX
 
     current_site = Site.objects.get_current()
     production_site = Site.objects.get(id=3)
-    url = '{0}/{1}/{2}'.format(settings.DATACITE_TEST_URL, prefix, doi)
+    url += '/{1}/{2}'.format(settings.DATACITE_TEST_URL, prefix, doi)
 
     if current_site.domain == production_site.domain:
         prefix = settings.DATACITE_PREFIX
