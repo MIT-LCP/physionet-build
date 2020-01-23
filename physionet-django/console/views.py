@@ -18,6 +18,7 @@ from django.utils import timezone
 from django.db import DatabaseError, transaction
 from django.db.models import Q, CharField, Value, IntegerField, F, functions
 from background_task import background
+from django.contrib.sites.models import Site
 
 from notification.models import News
 import notification.utility as notification
@@ -479,7 +480,6 @@ def publish_submission(request, project_slug, *args, **kwargs):
         return redirect('editor_home')
 
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
-    publish_form = forms.PublishForm(project=project)
 
     if request.method == 'POST':
         publish_form = forms.PublishForm(project=project, data=request.POST)
@@ -492,12 +492,19 @@ def publish_submission(request, project_slug, *args, **kwargs):
                 doi=publish_form.cleaned_data['doi'],
                 slug=slug,
                 make_zip=int(publish_form.cleaned_data['make_zip']))
+
+            production_site = Site.objects.get(id=3)
+            url = 'https://{0}/content/{1}/{2}'.format(production_site, slug, project.version)
+            if utility.publish_doa_draft(url, publish_form.cleaned_data['doi']):
+                messages.success(request, 'Succesfully created DOI.')
             notification.publish_notify(request, published_project)
             return render(request, 'console/publish_complete.html',
                 {'published_project': published_project, 'editor_home': True})
 
     publishable = project.is_publishable()
     url_prefix = notification.get_url_prefix(request)
+    doi = utility.create_doa_draft(project)
+    publish_form = forms.PublishForm(project=project, initial={'doi': doi})
 
     return render(request, 'console/publish_submission.html',
         {'project': project, 'publishable': publishable, 'authors': authors,

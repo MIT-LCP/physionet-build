@@ -203,7 +203,8 @@ class PublishForm(forms.Form):
     """
     slug = forms.CharField(max_length=MAX_PROJECT_SLUG_LENGTH,
                            validators=[validate_slug])
-    doi = forms.CharField(max_length=50, label='DOI', required=False)
+    doi = forms.CharField(max_length=50, label='DOI', required=False,
+                          widget=forms.TextInput(attrs={'readonly': True}))
     make_zip = forms.ChoiceField(choices=YES_NO, label='Make zip of all files')
 
     def __init__(self, project, *args, **kwargs):

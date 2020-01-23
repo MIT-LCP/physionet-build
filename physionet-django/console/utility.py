@@ -1,15 +1,20 @@
 from os import walk, chdir, listdir, path
+from requests import post, put
+import json
 import pdb
 
 from oauth2client.service_account import ServiceAccountCredentials
 from google.api_core.exceptions import BadRequest
+from django.contrib.sites.models import Site
 from googleapiclient.discovery import build
+from django.utils.html import strip_tags
+from django.utils import timezone
 from google.cloud import storage
 from django.conf import settings
 
 import logging
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 Public_Roles = ['roles/storage.legacyBucketReader', 'roles/storage.legacyObjectReader',
     'roles/storage.objectViewer']
 
@@ -40,7 +45,7 @@ def create_bucket(project, version, protected=False):
     bucket = storage_client.bucket(bucket_name)
     bucket.iam_configuration.bucket_policy_only_enabled = True
     bucket.patch()
-    logger.info("Created bucket {0} for project {1}".format(bucket_name.lower(), project))
+    LOGGER.info("Created bucket {0} for project {1}".format(bucket_name.lower(), project))
     if not protected:
         make_bucket_public(bucket)
     else:
@@ -55,7 +60,7 @@ def make_bucket_public(bucket):
     for role in Public_Roles:
         policy[role].add('allUsers')
     bucket.set_iam_policy(policy)
-    logger.info("Made bucket {} public".format(bucket.name))
+    LOGGER.info("Made bucket {} public".format(bucket.name))
 
 def remove_bucket_permissions(bucket):
     """
@@ -71,7 +76,7 @@ def remove_bucket_permissions(bucket):
         policy[item[0]].discard(item[1])
     if to_remove:
         bucket.set_iam_policy(policy)
-        logger.info("Removed all read permissions from bucket {}".format(bucket.name))
+        LOGGER.info("Removed all read permissions from bucket {}".format(bucket.name))
 
 def add_email_bucket_access(project, email):
     """
@@ -86,11 +91,11 @@ def add_email_bucket_access(project, email):
         policy[role].add('user:'+email)
     try:
         bucket.set_iam_policy(policy)
-        logger.info("Added email {0} to the project {1} access list".format(
+        LOGGER.info("Added email {0} to the project {1} access list".format(
             email, project))
         return True
     except BadRequest: 
-        logger.info("There was an error on the request. The email {} was ignored.".format(
+        LOGGER.info("There was an error on the request. The email {} was ignored.".format(
             email))
         return False
 
@@ -152,7 +157,7 @@ def create_directory_service(user_email):
     Returns:
       Admin SDK directory service object.
     """
-    logging.getLogger('googleapiclient.discovery_cache').setLevel(logging.ERROR)
+    logging.getLOGGER('googleapiclient.discovery_cache').setLevel(logging.ERROR)
     credentials = ServiceAccountCredentials.from_p12_keyfile(
         settings.SERVICE_ACCOUNT_EMAIL,
         settings.SERVICE_ACCOUNT_PKCS12_FILE_PATH,
@@ -171,3 +176,118 @@ def paginate(request, to_paginate, maximun):
     paginator = Paginator(to_paginate, maximun)
     paginated = paginator.get_page(page)
     return paginated
+
+
+def create_doa_draft(project):
+    """
+    Create a draft DOI with some basic information about the project.
+
+    A POST request is done to set the base information.
+    The assigned DOI is returned to be used in the template.
+    """
+    url = settings.DATACITE_TEST_URL
+    prefix = settings.DATACITE_TEST_PREFIX
+
+    current_site = Site.objects.get_current()
+    production_site = Site.objects.get(id=3)
+    if current_site.domain == production_site.domain:
+        prefix = settings.DATACITE_PREFIX
+        url = settings.DATACITE_URL
+
+    headers = {'Content-Type': 'application/vnd.api+json',
+        'authorization': "Basic {}".format(settings.DATACITE_KEY)}
+
+    Dataset = ['Database', 'Challenge', 'Model']
+    Software = ['Software']
+
+    if project.resource_type.name in Dataset:
+        resource_type = 'Dataset'
+    elif project.resource_type.name in Software:
+        resource_type = 'Software'
+
+    author_list = project.author_list().order_by('display_order')
+    authors = []
+    for author in author_list:
+        authors.append({"name": author.get_full_name()})
+
+    description = strip_tags(project.abstract)
+
+    payload = {
+      "data": {
+        "type": "dois",
+        "attributes": {
+          "event": "draft",
+          "prefix": prefix,
+          "creators": authors,
+          "titles": [{
+            "title": project.title
+          }],
+          "publisher": production_site.name,
+          "publicationYear": timezone.now().year,
+
+          "types": {
+            "resourceTypeGeneral": resource_type
+          },
+          "url": 'https://{}'.format(production_site.domain),
+          "descriptions": [
+          {
+            "description": description,
+            "descriptionType": "Abstract"
+          }],
+        }
+      }
+    }
+
+    response = post(url, data=json.dumps(payload), headers=headers)
+    if response.status_code < 200 or response.status_code >= 300:
+        raise Exception("There was an unkown error submitting the DOI, here is \
+            the response text: {}".format(response.text))
+
+    content = json.loads(response.text)
+    doi = content['data']['id'].split('/')[1]
+    LOGGER.info("DOI draft for project {0} was created with DOI: {1}.".format(
+        project.title, doi))
+    return doi
+
+def publish_doa_draft(project_url, doi):
+    """
+    Upate a DOI from draft to publish.
+
+    A PUT request is done in order to update the information od the DOI.
+    The URL is made using the prefix and doi assigned to the project.
+    """
+
+    if doi == 'False':
+        return False
+
+    prefix = settings.DATACITE_TEST_PREFIX
+
+    current_site = Site.objects.get_current()
+    production_site = Site.objects.get(id=3)
+    url = '{0}/{1}/{2}'.format(settings.DATACITE_TEST_URL, prefix, doi)
+
+    if current_site.domain == production_site.domain:
+        prefix = settings.DATACITE_PREFIX
+        url = '{0}/{1}/{2}'.format(settings.DATACITE_URL, prefix, doi)
+
+    headers = {'Content-Type': 'application/vnd.api+json',
+        'authorization': "Basic {}".format(settings.DATACITE_KEY)}
+
+    payload = {
+      "data": {
+        "id": doi,
+        "type": "dois",
+        "attributes": {
+          "state": "publish",
+          "event": "publish",
+          "url": project_url
+        }
+      }
+    }
+    response = put(url, data=json.dumps(payload), headers=headers)
+    if response.status_code < 200 or response.status_code >= 300:
+        raise Exception("There was an unkown error updating the DOI, here is \
+            the response text: {0}".format(response.text))
+    content = json.loads(response.text)
+    LOGGER.info("DOI draft {} was published".format(doi))
+    return content
