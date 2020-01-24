@@ -149,11 +149,14 @@ AWS_CLOUD_FORMATION = config('AWS_CLOUD_FORMATION', default=False)
 
 # Tags for the DataCite API used for DOI
 DATACITE_URL = config('DATACITE_URL', default=False)
-DATACITE_KEY = config('DATACITE_KEY', default=False)
 DATACITE_PREFIX = config('DATACITE_PREFIX', default=False)
+DATACITE_USER = config('DATACITE_USER', default=False)
+DATACITE_PASS = config('DATACITE_PASS', default=False)
+
 DATACITE_TEST_URL = config('DATACITE_TEST_URL', default=False)
-DATACITE_TEST_KEY = config('DATACITE_TEST_KEY', default=False)
 DATACITE_TEST_PREFIX = config('DATACITE_TEST_PREFIX', default=False)
+DATACITE_TEST_USER = config('DATACITE_TEST_USER', default=False)
+DATACITE_TEST_PASS = config('DATACITE_TEST_PASS', default=False)
 
 # List of permitted HTML tags and attributes for rich text fields.
 # The 'default' configuration permits all of the tags below.  Other

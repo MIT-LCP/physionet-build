@@ -1,5 +1,6 @@
 from os import walk, chdir, listdir, path
 from requests import post, put
+from base64 import b64encode
 import json
 import pdb
 
@@ -190,17 +191,19 @@ def create_doa_draft(project):
         return ""
 
     prefix = settings.DATACITE_TEST_PREFIX
-    key = settings.DATACITE_TEST_KEY
-
+    username = settings.DATACITE_TEST_USER
+    password = settings.DATACITE_TEST_PASS
     current_site = Site.objects.get_current()
     production_site = Site.objects.get(id=3)
     if current_site.domain == production_site.domain:
         prefix = settings.DATACITE_PREFIX
         url = settings.DATACITE_URL
-        key = settings.DATACITE_KEY
+        username = settings.DATACITE_USER
+        password = settings.DATACITE_PASS
 
+    key = b64encode("{0}:{1}".format(username, password).encode())
     headers = {'Content-Type': 'application/vnd.api+json',
-        'authorization': "Basic {}".format(key)}
+        'authorization': "Basic {}".format(key.decode())}
 
     Dataset = ['Database', 'Challenge', 'Model']
     Software = ['Software']
@@ -265,20 +268,22 @@ def publish_doa_draft(project_url, doi):
     if url == False:
         return ""
 
+    username = settings.DATACITE_TEST_USER
+    password = settings.DATACITE_TEST_PASS
     prefix = settings.DATACITE_TEST_PREFIX
-    key = settings.DATACITE_TEST_KEY
     current_site = Site.objects.get_current()
     production_site = Site.objects.get(id=3)
     url += '/{1}/{2}'.format(settings.DATACITE_TEST_URL, prefix, doi)
 
     if current_site.domain == production_site.domain:
         prefix = settings.DATACITE_PREFIX
-        key = settings.DATACITE_KEY
-
         url = '{0}/{1}/{2}'.format(settings.DATACITE_URL, prefix, doi)
+        username = settings.DATACITE_USER
+        password = settings.DATACITE_PASS
 
+    key = b64encode("{0}:{1}".format(username, password).encode())
     headers = {'Content-Type': 'application/vnd.api+json',
-        'authorization': "Basic {}".format(key)}
+        'authorization': "Basic {}".format(key.decode())}
 
     payload = {
       "data": {
