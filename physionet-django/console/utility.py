@@ -1,6 +1,6 @@
 from os import walk, chdir, listdir, path
+from requests.auth import HTTPBasicAuth
 from requests import post, put
-from base64 import b64encode
 import json
 import pdb
 
@@ -201,9 +201,7 @@ def create_doa_draft(project):
         username = settings.DATACITE_USER
         password = settings.DATACITE_PASS
 
-    key = b64encode("{0}:{1}".format(username, password).encode())
-    headers = {'Content-Type': 'application/vnd.api+json',
-        'authorization': "Basic {}".format(key.decode())}
+    headers = {'Content-Type': 'application/vnd.api+json'}
 
     Dataset = ['Database', 'Challenge', 'Model']
     Software = ['Software']
@@ -246,6 +244,9 @@ def create_doa_draft(project):
       }
     }
 
+    response = post(url, data=json.dumps(payload), headers=headers,
+        auth=HTTPBasicAuth(username, password))
+
     response = post(url, data=json.dumps(payload), headers=headers)
     if response.status_code < 200 or response.status_code >= 300:
         raise Exception("There was an unkown error submitting the DOI, here is \
@@ -281,10 +282,7 @@ def publish_doa_draft(project_url, doi):
         username = settings.DATACITE_USER
         password = settings.DATACITE_PASS
 
-    key = b64encode("{0}:{1}".format(username, password).encode())
-    headers = {'Content-Type': 'application/vnd.api+json',
-        'authorization': "Basic {}".format(key.decode())}
-
+    headers = {'Content-Type': 'application/vnd.api+json'}
     payload = {
       "data": {
         "id": doi,
@@ -296,7 +294,9 @@ def publish_doa_draft(project_url, doi):
         }
       }
     }
-    response = put(url, data=json.dumps(payload), headers=headers)
+    response = put(url, data=json.dumps(payload), headers=headers,
+        auth=HTTPBasicAuth(username, password))
+
     if response.status_code < 200 or response.status_code >= 300:
         raise Exception("There was an unkown error updating the DOI, here is \
             the response text: {0}".format(response.text))
