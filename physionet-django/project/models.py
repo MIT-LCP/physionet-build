@@ -688,7 +688,7 @@ class UnpublishedProject(models.Model):
     # Access url slug, also used as a submitting project id.
     slug = models.SlugField(max_length=MAX_PROJECT_SLUG_LENGTH, db_index=True)
     latest_reminder = models.DateTimeField(null=True, blank=True)
-
+    doi = models.CharField(max_length=50, default='')
     authors = GenericRelation('project.Author')
     references = GenericRelation('project.Reference')
     publications = GenericRelation('project.Publication')
@@ -1141,14 +1141,13 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         shutil.rmtree(self.file_root())
 
-    def publish(self, doi, slug=None, make_zip=True, title=None):
+    def publish(self, slug=None, make_zip=True, title=None):
         """
         Create a published version of this project and update the
         submission status.
 
         Parameters
         ----------
-        doi : the desired doi of the published project.
         slug : the desired custom slug of the published project.
         make_zip : whether to make a zip of all the files.
         """
@@ -1156,6 +1155,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             raise Exception('The project is not publishable')
 
         published_project = PublishedProject(doi=doi, has_wfdb=self.has_wfdb())
+
         # Direct copy over fields
         for attr in [f.name for f in Metadata._meta.fields] + [f.name for f in SubmissionInfo._meta.fields]:
             setattr(published_project, attr, getattr(self, attr))

@@ -488,14 +488,12 @@ def publish_submission(request, project_slug, *args, **kwargs):
                 slug = project.get_previous_slug()
             else:
                 slug = publish_form.cleaned_data['slug']
-            published_project = project.publish(
-                doi=publish_form.cleaned_data['doi'],
-                slug=slug,
+            published_project = project.publish(slug=slug,
                 make_zip=int(publish_form.cleaned_data['make_zip']))
 
             production_site = Site.objects.get(id=3)
             url = 'https://{0}/content/{1}/{2}'.format(production_site, slug, project.version)
-            if utility.publish_doa_draft(url, publish_form.cleaned_data['doi']):
+            if utility.publish_doa_draft(url, project.doi):
                 messages.success(request, 'Succesfully created DOI.')
             notification.publish_notify(request, published_project)
             return render(request, 'console/publish_complete.html',
@@ -503,8 +501,10 @@ def publish_submission(request, project_slug, *args, **kwargs):
 
     publishable = project.is_publishable()
     url_prefix = notification.get_url_prefix(request)
-    doi = utility.create_doa_draft(project)
-    publish_form = forms.PublishForm(project=project, initial={'doi': doi})
+    if project.doi == '':
+        project.doi = utility.create_doa_draft(project)
+        project.save()
+    publish_form = forms.PublishForm(project=project)
 
     return render(request, 'console/publish_submission.html',
         {'project': project, 'publishable': publishable, 'authors': authors,
