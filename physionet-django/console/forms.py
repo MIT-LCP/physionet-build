@@ -210,6 +210,7 @@ class PublishForm(forms.Form):
     def __init__(self, project, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.project = project
+        self.fields['doi'].initial = project.doi
         # No option to set slug if publishing new version
         if self.project.version_order:
             del(self.fields['slug'])
@@ -225,13 +226,6 @@ class PublishForm(forms.Form):
             if exists_project_slug(data):
                 raise forms.ValidationError('The slug is already taken by another project.')
 
-        return data
-
-    def clean_doi(self):
-        data = self.cleaned_data['doi']
-        # Temporary workaround
-        # if PublishedProject.objects.filter(doi=data):
-        #     raise forms.ValidationError('Published project with DOI already exists.')
         return data
 
 
