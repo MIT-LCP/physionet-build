@@ -194,8 +194,7 @@ def create_doa_draft(project):
     username = settings.DATACITE_TEST_USER
     password = settings.DATACITE_TEST_PASS
     current_site = Site.objects.get_current()
-    production_site = Site.objects.get(id=3)
-    if current_site.domain == production_site.domain:
+    if settings.PRODUCTION:
         prefix = settings.DATACITE_PREFIX
         url = settings.DATACITE_URL
         username = settings.DATACITE_USER
@@ -228,13 +227,13 @@ def create_doa_draft(project):
           "titles": [{
             "title": project.title
           }],
-          "publisher": production_site.name,
+          "publisher": current_site.name,
           "publicationYear": timezone.now().year,
 
           "types": {
             "resourceTypeGeneral": resource_type
           },
-          "url": 'https://{}'.format(production_site.domain),
+          "url": 'https://{}'.format(current_site.domain),
           "descriptions": [
           {
             "description": description,
@@ -246,17 +245,14 @@ def create_doa_draft(project):
 
     response = post(url, data=json.dumps(payload), headers=headers,
         auth=HTTPBasicAuth(username, password))
-
-    response = post(url, data=json.dumps(payload), headers=headers)
     if response.status_code < 200 or response.status_code >= 300:
         raise Exception("There was an unkown error submitting the DOI, here is \
             the response text: {}".format(response.text))
 
     content = json.loads(response.text)
-    doi = content['data']['id'].split('/')[1]
     LOGGER.info("DOI draft for project {0} was created with DOI: {1}.".format(
-        project.title, doi))
-    return doi
+        project.title, content['data']['id']))
+    return content['data']['id']
 
 def publish_doa_draft(project_url, doi):
     """
@@ -271,21 +267,17 @@ def publish_doa_draft(project_url, doi):
 
     username = settings.DATACITE_TEST_USER
     password = settings.DATACITE_TEST_PASS
-    prefix = settings.DATACITE_TEST_PREFIX
-    current_site = Site.objects.get_current()
-    production_site = Site.objects.get(id=3)
-    url += '/{1}/{2}'.format(settings.DATACITE_TEST_URL, prefix, doi)
+    url += '/{0}'.format(doi)
 
-    if current_site.domain == production_site.domain:
-        prefix = settings.DATACITE_PREFIX
-        url = '{0}/{1}/{2}'.format(settings.DATACITE_URL, prefix, doi)
+    if settings.PRODUCTION:
+        url = '{0}/{1}'.format(settings.DATACITE_URL, doi)
         username = settings.DATACITE_USER
         password = settings.DATACITE_PASS
 
     headers = {'Content-Type': 'application/vnd.api+json'}
     payload = {
       "data": {
-        "id": doi,
+        "id": doi.split('/')[1],
         "type": "dois",
         "attributes": {
           "state": "publish",
@@ -296,7 +288,6 @@ def publish_doa_draft(project_url, doi):
     }
     response = put(url, data=json.dumps(payload), headers=headers,
         auth=HTTPBasicAuth(username, password))
-
     if response.status_code < 200 or response.status_code >= 300:
         raise Exception("There was an unkown error updating the DOI, here is \
             the response text: {0}".format(response.text))

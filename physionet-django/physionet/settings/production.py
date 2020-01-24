@@ -38,6 +38,8 @@ DEMO_FILE_ROOT = os.path.join(os.path.abspath(os.path.join(BASE_DIR, os.pardir))
 
 MEDIA_ROOT = '/data/pn-media'
 
+PRODUCTION = True
+
 # If defined, MEDIA_X_ACCEL_ALIAS is the virtual URL path
 # corresponding to MEDIA_ROOT. If possible, when serving a file
 # located in MEDIA_ROOT, the response will use an X-Accel-Redirect
