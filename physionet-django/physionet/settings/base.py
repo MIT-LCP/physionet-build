@@ -158,6 +158,9 @@ DATACITE_TEST_PREFIX = config('DATACITE_TEST_PREFIX', default=False)
 DATACITE_TEST_USER = config('DATACITE_TEST_USER', default=False)
 DATACITE_TEST_PASS = config('DATACITE_TEST_PASS', default=False)
 
+# Used to verify if we are running in the production environment
+PRODUCTION = False
+
 # List of permitted HTML tags and attributes for rich text fields.
 # The 'default' configuration permits all of the tags below.  Other
 # configurations may be added that permit different sets of tags.

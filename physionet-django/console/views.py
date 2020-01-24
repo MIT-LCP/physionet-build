@@ -481,6 +481,7 @@ def publish_submission(request, project_slug, *args, **kwargs):
     if request.method == 'POST':
         publish_form = forms.PublishForm(project=project, data=request.POST)
         if project.is_publishable() and publish_form.is_valid():
+
             if project.version_order:
                 slug = project.get_previous_slug()
             else:
@@ -488,8 +489,8 @@ def publish_submission(request, project_slug, *args, **kwargs):
             published_project = project.publish(slug=slug,
                 make_zip=int(publish_form.cleaned_data['make_zip']))
 
-            production_site = Site.objects.get(id=3)
-            url = 'https://{0}/content/{1}/{2}'.format(production_site, slug, project.version)
+            current_site = Site.objects.get_current()
+            url = 'https://{0}/content/{1}/{2}'.format(current_site, slug, project.version)
             if utility.publish_doa_draft(url, project.doi):
                 messages.success(request, 'Succesfully created DOI.')
             notification.publish_notify(request, published_project)
