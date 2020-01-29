@@ -947,14 +947,16 @@ def view_credential_application(request, application_slug):
     """
     application = CredentialApplication.objects.get(slug=application_slug)
     form = forms.AlterCommentsCredentialForm(initial={
-        'responder_comments' : application.responder_comments})
+        'responder_comments': application.responder_comments})
     if request.method == 'POST':
-        form = forms.AlterCommentsCredentialForm(data=request.POST, instance=application)
+        form = forms.AlterCommentsCredentialForm(data=request.POST,
+                                                 instance=application)
         if form.is_valid():
             form.save()
 
     return render(request, 'console/view_credential_application.html',
-        {'application': application, 'app_user': application.user, 'form': form})
+                  {'application': application, 'app_user': application.user,
+                   'form': form})
 
 
 @login_required

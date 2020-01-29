@@ -343,13 +343,13 @@ class ProcessCredentialForm(forms.ModelForm):
 
 class AlterCommentsCredentialForm(forms.ModelForm):
     """
-    Form to change the response comments on a processed application
+    Change the response comments on a processed application
     """
     class Meta:
         model = CredentialApplication
         fields = ('responder_comments',)
         labels = {
-            'responder_comments':'Comments',
+            'responder_comments': 'Comments',
         }
 
 
