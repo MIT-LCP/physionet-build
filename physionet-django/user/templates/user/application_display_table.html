@@ -1,3 +1,7 @@
+{% if request.user.is_admin and application.status != 0 and form %}
+<form action="" method="post">
+{% endif %}
+
 <table class="table table-bordered table-hover">
   <tbody>
     <tr>
@@ -119,6 +123,10 @@
         <td>Decision</td>
         <td>{{ application.get_status_display }}</td>
       </tr>
+      {% if request.user.is_admin and form %}
+          {% csrf_token %}
+          {{ form }}
+      {% endif %}
     {% else %}
       <tr>
         <td>Decision</td>
@@ -127,3 +135,7 @@
     {% endif %}
   </tbody>
 </table>
+{% if request.user.is_admin and application.status != 0 and form %}
+  <button class="btn btn-success pull-right" name="manage_credentialing" value="{{ application.id }}" type="submit">Submit</button>
+</form>
+{% endif %}
