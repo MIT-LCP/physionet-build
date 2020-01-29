@@ -1007,9 +1007,9 @@ def past_credential_applications(request, status):
         migrated_user__is_credentialed=True).order_by('-migration_date')
 
     successful_apps = CredentialApplication.objects.filter(status=2
-        ).order_by('-application_datetime')
+        ).order_by('-decision_datetime')
     unsuccessful_apps = CredentialApplication.objects.filter(status__in=[1, 3]
-        ).order_by('-application_datetime')
+        ).order_by('-decision_datetime')
 
     # Merge legacy applications and new applications
     all_successful_apps = list(chain(successful_apps, legacy_apps))
