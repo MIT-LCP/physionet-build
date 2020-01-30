@@ -1504,7 +1504,7 @@ class PublishedProject(Metadata, SubmissionInfo):
 
         authors = self.authors.all().order_by('display_order')
         if self.doi:
-            return '{} ({}). {}. PhysioNet. doi:{}'.format(
+            return '{} ({}). {}. PhysioNet. https://doi.org/{}'.format(
                 ', '.join(a.initialed_name() for a in authors),
                 self.publish_datetime.year, self.title, self.doi)
         return '{} ({}). {}. PhysioNet.'.format(
