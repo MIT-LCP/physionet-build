@@ -736,7 +736,7 @@ class UnpublishedProject(models.Model):
         authors = self.authors.all().order_by('display_order')
         year = timezone.now().year
         doi = '10.13026/*****'
-        return '{} ({}). {}. PhysioNet. doi:{}'.format(
+        return '{} ({}). {}. PhysioNet. https://doi.org/{}'.format(
             ', '.join(a.initialed_name() for a in authors),
             year, self.title, doi)
 
