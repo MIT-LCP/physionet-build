@@ -737,11 +737,12 @@ class UnpublishedProject(models.Model):
         year = timezone.now().year
         doi = '10.13026/*****'
         return format_html(
-            '{authors} ({year}). {title}. '
+            '{authors} ({year}). {title} (version {version}). '
             '<i>PhysioNet</i>. https://doi.org/{doi}',
             authors=', '.join(a.initialed_name() for a in authors),
             year=year,
             title=self.title,
+            version=self.version,
             doi=doi)
 
     def get_previous_slug(self):
@@ -1509,19 +1510,21 @@ class PublishedProject(Metadata, SubmissionInfo):
         authors = self.authors.all().order_by('display_order')
         if self.doi:
             return format_html(
-                '{authors} ({year}). {title}. '
+                '{authors} ({year}). {title} (version {version}). '
                 '<i>PhysioNet</i>. https://doi.org/{doi}',
                 authors=', '.join(a.initialed_name() for a in authors),
                 year=self.publish_datetime.year,
                 title=self.title,
+                version=self.version,
                 doi=self.doi)
         else:
             return format_html(
-                '{authors} ({year}). {title}. '
+                '{authors} ({year}). {title} (version {version}). '
                 '<i>PhysioNet</i>.',
                 authors=', '.join(a.initialed_name() for a in authors),
                 year=self.publish_datetime.year,
-                title=self.title)
+                title=self.title,
+                version=self.version)
 
     def remove(self, force=False):
         """
