@@ -1511,7 +1511,8 @@ class PublishedProject(Metadata, SubmissionInfo):
         if self.doi:
             return format_html(
                 '{authors} ({year}). {title} (version {version}). '
-                '<i>PhysioNet</i>. https://doi.org/{doi}',
+                '<i>PhysioNet</i>. '
+                '<a href="https://doi.org/{doi}">https://doi.org/{doi}</a>',
                 authors=', '.join(a.initialed_name() for a in authors),
                 year=self.publish_datetime.year,
                 title=self.title,
