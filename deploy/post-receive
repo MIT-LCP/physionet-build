@@ -112,7 +112,7 @@ fi
 # Restart the django-background-tasks server
 (
     cd $working_dir/physionet-django
-    if ! cmp -s OLD-TARGETS LATE-TARGETS; then
+    if cmp -s OLD-TARGETS LATE-TARGETS; then
         # assume that if there are no migrations, no need to restart
         # background tasks (and don't even bother showing a message)
         :
