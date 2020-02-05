@@ -187,7 +187,7 @@ def create_doi_draft(project):
     The assigned DOI is returned to be used in the template.
     """
     url = settings.DATACITE_TEST_URL
-    if url == False:
+    if not url:
         return ""
 
     prefix = settings.DATACITE_TEST_PREFIX
@@ -263,7 +263,7 @@ def publish_doi_draft(project_url, doi):
     The URL is made using the prefix and doi assigned to the project.
     """
     url = settings.DATACITE_TEST_URL
-    if url == False:
+    if not url:
         return ""
 
     username = settings.DATACITE_TEST_USER
