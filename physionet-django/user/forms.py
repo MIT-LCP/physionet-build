@@ -408,7 +408,6 @@ class CredentialApplicationForm(forms.ModelForm):
             # Research area
             'research_summary')
 
-
     def __init__(self, user, *args, **kwargs):
         """
         This form is only for processing post requests.
@@ -417,33 +416,32 @@ class CredentialApplicationForm(forms.ModelForm):
         self.user = user
         self.profile = user.profile
 
-
     def clean(self):
         data = self.cleaned_data
 
         if any(self.errors):
             return
 
+        ref_details = (data['reference_name']
+                       and data['reference_email']
+                       and data['reference_title'])
+
+        ref_required = data['researcher_category'] in [0, 1, 2, 3, 6]
+        supervisor_required = data['researcher_category'] in [0, 1]
+        state_required = data['country'] in ['US', 'CA']
+
+        # Check the full reference details are provided if appropriate
+        if ref_required and not ref_details:
+            raise forms.ValidationError("""Please provide full contact details
+                for your reference.""")
+
         # Students and postdocs must provide their supervisor as a reference
-        if data['researcher_category'] in [0, 1] and (
-            data['reference_category'] != 0
-            or not data['reference_name']
-            or not data['reference_email']
-            or not data['reference_title']):
+        if supervisor_required and data['reference_category'] != 0:
             raise forms.ValidationError("""If you are a student or postdoc,
                 you must provide your supervisor as a reference.""")
 
-        # If a reference category is provided, then the reference fields must be filled.
-        ref = [data['reference_name'], data['reference_email'], data['reference_title']]
-        if data['reference_category'] is None and any(ref):
-            raise forms.ValidationError("""Please select a reference category.""")
-        elif data['reference_category'] is None:
-            pass
-        elif data['reference_category'] in [0, 1, 2, 3] and not all(ref):
-            raise forms.ValidationError("""Please provide your reference information.""")
-
         # If applicant is from USA or Canada, the state must be provided
-        if data['country'] in ['US', 'CA'] and not data['state_province']:
+        if state_required and not data['state_province']:
             raise forms.ValidationError("Please add your state or province.")
 
         if not self.instance and CredentialApplication.objects.filter(user=self.user, status=0):
