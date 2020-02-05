@@ -254,6 +254,7 @@ def create_doi_draft(project):
         project.title, content['data']['id']))
     return content['data']['id']
 
+
 def publish_doi_draft(project_url, doi):
     """
     Upate a DOI from draft to publish.
