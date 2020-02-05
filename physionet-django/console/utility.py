@@ -158,7 +158,7 @@ def create_directory_service(user_email):
     Returns:
       Admin SDK directory service object.
     """
-    logging.getLOGGER('googleapiclient.discovery_cache').setLevel(logging.ERROR)
+    logging.getLogger('googleapiclient.discovery_cache').setLevel(logging.ERROR)
     credentials = ServiceAccountCredentials.from_p12_keyfile(
         settings.SERVICE_ACCOUNT_EMAIL,
         settings.SERVICE_ACCOUNT_PKCS12_FILE_PATH,
@@ -179,7 +179,7 @@ def paginate(request, to_paginate, maximun):
     return paginated
 
 
-def create_doa_draft(project):
+def create_doi_draft(project):
     """
     Create a draft DOI with some basic information about the project.
 
@@ -246,7 +246,7 @@ def create_doa_draft(project):
     response = post(url, data=json.dumps(payload), headers=headers,
         auth=HTTPBasicAuth(username, password))
     if response.status_code < 200 or response.status_code >= 300:
-        raise Exception("There was an unkown error submitting the DOI, here is \
+        raise Exception("There was an unknown error submitting the DOI, here is \
             the response text: {}".format(response.text))
 
     content = json.loads(response.text)
@@ -254,11 +254,11 @@ def create_doa_draft(project):
         project.title, content['data']['id']))
     return content['data']['id']
 
-def publish_doa_draft(project_url, doi):
+def publish_doi_draft(project_url, doi):
     """
     Upate a DOI from draft to publish.
 
-    A PUT request is done in order to update the information od the DOI.
+    A PUT request is done in order to update the information for the DOI.
     The URL is made using the prefix and doi assigned to the project.
     """
     url = settings.DATACITE_TEST_URL
@@ -289,7 +289,7 @@ def publish_doa_draft(project_url, doi):
     response = put(url, data=json.dumps(payload), headers=headers,
         auth=HTTPBasicAuth(username, password))
     if response.status_code < 200 or response.status_code >= 300:
-        raise Exception("There was an unkown error updating the DOI, here is \
+        raise Exception("There was an unknown error updating the DOI, here is \
             the response text: {0}".format(response.text))
     content = json.loads(response.text)
     LOGGER.info("DOI draft {} was published".format(doi))
