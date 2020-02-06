@@ -278,4 +278,3 @@ def publish_doi_draft(project_url, doi):
             the response text: {0}".format(response.text))
     content = json.loads(response.text)
     LOGGER.info("DOI draft {} was published".format(doi))
-    return content
