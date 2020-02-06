@@ -186,28 +186,18 @@ def create_doi_draft(project):
     A POST request is done to set the base information.
     The assigned DOI is returned to be used in the template.
     """
-    url = settings.DATACITE_TEST_URL
+    url = settings.DATACITE_API_URL
+    prefix = settings.DATACITE_PREFIX
+    username = settings.DATACITE_USER
+    password = settings.DATACITE_PASS
     if not url:
         return ""
 
-    prefix = settings.DATACITE_TEST_PREFIX
-    username = settings.DATACITE_TEST_USER
-    password = settings.DATACITE_TEST_PASS
     current_site = Site.objects.get_current()
-    if settings.PRODUCTION:
-        prefix = settings.DATACITE_PREFIX
-        url = settings.DATACITE_URL
-        username = settings.DATACITE_USER
-        password = settings.DATACITE_PASS
 
     headers = {'Content-Type': 'application/vnd.api+json'}
-
-    Dataset = ['Database', 'Challenge', 'Model']
-    Software = ['Software']
-
-    if project.resource_type.name in Dataset:
-        resource_type = 'Dataset'
-    elif project.resource_type.name in Software:
+    resource_type = 'Dataset'
+    if project.resource_type.name == 'Software':
         resource_type = 'Software'
 
     author_list = project.author_list().order_by('display_order')
@@ -262,19 +252,13 @@ def publish_doi_draft(project_url, doi):
     A PUT request is done in order to update the information for the DOI.
     The URL is made using the prefix and doi assigned to the project.
     """
-    url = settings.DATACITE_TEST_URL
+    url = settings.DATACITE_API_URL
+    username = settings.DATACITE_USER
+    password = settings.DATACITE_PASS
     if not url:
         return ""
 
-    username = settings.DATACITE_TEST_USER
-    password = settings.DATACITE_TEST_PASS
     url += '/{0}'.format(doi)
-
-    if settings.PRODUCTION:
-        url = '{0}/{1}'.format(settings.DATACITE_URL, doi)
-        username = settings.DATACITE_USER
-        password = settings.DATACITE_PASS
-
     headers = {'Content-Type': 'application/vnd.api+json'}
     payload = {
       "data": {

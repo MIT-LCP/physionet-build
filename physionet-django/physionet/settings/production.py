@@ -39,6 +39,10 @@ DEMO_FILE_ROOT = os.path.join(os.path.abspath(os.path.join(BASE_DIR, os.pardir))
 MEDIA_ROOT = '/data/pn-media'
 
 PRODUCTION = True
+DATACITE_API_URL = 'https://api.datacite.org/dois'
+DATACITE_PREFIX = config('DATACITE_PREFIX', default=False)
+DATACITE_USER = config('DATACITE_USER', default=False)
+DATACITE_PASS = config('DATACITE_PASS', default=False)
 
 # If defined, MEDIA_X_ACCEL_ALIAS is the virtual URL path
 # corresponding to MEDIA_ROOT. If possible, when serving a file
