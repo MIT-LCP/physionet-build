@@ -422,23 +422,30 @@ class CredentialApplicationForm(forms.ModelForm):
         if any(self.errors):
             return
 
-        ref_details = (data['reference_name']
-                       and data['reference_email']
-                       and data['reference_title'])
+        ref_details = [data['reference_category'] is not None,
+                       data['reference_name'],
+                       data['reference_email'],
+                       data['reference_title']]
 
         ref_required = data['researcher_category'] in [0, 1, 2, 3, 6]
         supervisor_required = data['researcher_category'] in [0, 1]
         state_required = data['country'] in ['US', 'CA']
 
-        # Check the full reference details are provided if appropriate
-        if ref_required and not ref_details:
-            raise forms.ValidationError("""Please provide full contact details
-                for your reference.""")
-
         # Students and postdocs must provide their supervisor as a reference
         if supervisor_required and data['reference_category'] != 0:
             raise forms.ValidationError("""If you are a student or postdoc,
                 you must provide your supervisor as a reference.""")
+
+        # Check the full reference details are provided if appropriate
+        if ref_required and not all(ref_details):
+            raise forms.ValidationError("""A reference is required. Please
+                provide full contact details, including a reference
+                category.""")
+
+        # if any reference fields are add, all fields must be completed
+        if any(ref_details) and not all(ref_details):
+            raise forms.ValidationError("""Please provide full details for your
+                reference, including the reference category.""")
 
         # If applicant is from USA or Canada, the state must be provided
         if state_required and not data['state_province']:
