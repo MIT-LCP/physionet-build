@@ -148,15 +148,10 @@ AWS_HEADER_VALUE2 = config('AWS_VALUE2', default=False)
 AWS_CLOUD_FORMATION = config('AWS_CLOUD_FORMATION', default=False)
 
 # Tags for the DataCite API used for DOI
-DATACITE_URL = config('DATACITE_URL', default=False)
-DATACITE_PREFIX = config('DATACITE_PREFIX', default=False)
-DATACITE_USER = config('DATACITE_USER', default=False)
-DATACITE_PASS = config('DATACITE_PASS', default=False)
-
-DATACITE_TEST_URL = config('DATACITE_TEST_URL', default=False)
-DATACITE_TEST_PREFIX = config('DATACITE_TEST_PREFIX', default=False)
-DATACITE_TEST_USER = config('DATACITE_TEST_USER', default=False)
-DATACITE_TEST_PASS = config('DATACITE_TEST_PASS', default=False)
+DATACITE_API_URL = 'https://api.test.datacite.org/dois'
+DATACITE_PREFIX = config('DATACITE_TEST_PREFIX', default=False)
+DATACITE_USER = config('DATACITE_TEST_USER', default=False)
+DATACITE_PASS = config('DATACITE_TEST_PASS', default=False)
 
 # Used to verify if we are running in the production environment
 PRODUCTION = False
