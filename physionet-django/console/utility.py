@@ -187,9 +187,6 @@ def create_doi_draft(project):
     The assigned DOI is returned to be used in the template.
     """
     url = settings.DATACITE_API_URL
-    prefix = settings.DATACITE_PREFIX
-    username = settings.DATACITE_USER
-    password = settings.DATACITE_PASS
     if not url:
         return ""
 
@@ -212,7 +209,7 @@ def create_doi_draft(project):
         "type": "dois",
         "attributes": {
           "event": "draft",
-          "prefix": prefix,
+          "prefix": settings.DATACITE_PREFIX,
           "creators": authors,
           "titles": [{
             "title": project.title
@@ -234,7 +231,7 @@ def create_doi_draft(project):
     }
 
     response = post(url, data=json.dumps(payload), headers=headers,
-        auth=HTTPBasicAuth(username, password))
+        auth=HTTPBasicAuth(settings.DATACITE_USER, settings.DATACITE_PASS))
     if response.status_code < 200 or response.status_code >= 300:
         raise Exception("There was an unknown error submitting the DOI, here is \
             the response text: {}".format(response.text))
@@ -253,8 +250,6 @@ def publish_doi_draft(project_url, doi):
     The URL is made using the prefix and doi assigned to the project.
     """
     url = settings.DATACITE_API_URL
-    username = settings.DATACITE_USER
-    password = settings.DATACITE_PASS
     if not url:
         return ""
 
@@ -272,7 +267,7 @@ def publish_doi_draft(project_url, doi):
       }
     }
     response = put(url, data=json.dumps(payload), headers=headers,
-        auth=HTTPBasicAuth(username, password))
+        auth=HTTPBasicAuth(settings.DATACITE_USER, settings.DATACITE_PASS))
     if response.status_code < 200 or response.status_code >= 300:
         raise Exception("There was an unknown error updating the DOI, here is \
             the response text: {0}".format(response.text))
