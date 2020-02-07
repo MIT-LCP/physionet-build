@@ -185,10 +185,13 @@ def create_doi_draft(project):
 
     A POST request is done to set the base information.
     The assigned DOI is returned to be used in the template.
+
+    On successfull creation returns the asigned DOI
+    On tests return empty leaving the DOI object the same
     """
     url = settings.DATACITE_API_URL
     if not url:
-        return ""
+        return ''
 
     current_site = Site.objects.get_current()
 
@@ -251,7 +254,7 @@ def publish_doi_draft(project_url, doi):
     """
     url = settings.DATACITE_API_URL
     if not url:
-        return ""
+        return
 
     url += '/{0}'.format(doi)
     headers = {'Content-Type': 'application/vnd.api+json'}
