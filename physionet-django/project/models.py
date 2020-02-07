@@ -524,6 +524,12 @@ class Metadata(models.Model):
             else:
                 return authors
 
+    def abstract_text_content(self):
+        """
+        Returns abstract as plain text.
+        """
+        return html2text(self.abstract)
+
     def edit_log_history(self):
         """
         Get a list of EditLog objects in submission order.
@@ -1264,7 +1270,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             os.rename(published_project.file_root(), self.file_root())
             raise
 
-    
+
 class PublishedProject(Metadata, SubmissionInfo):
     """
     A published project. Immutable snapshot.

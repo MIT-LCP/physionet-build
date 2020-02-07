@@ -13,7 +13,7 @@ from django.utils import timezone
 from google.cloud import storage
 from django.conf import settings
 from django.urls import reverse
-from html2text import HTML2Text
+from html2text import html2text
 
 import logging
 
@@ -249,7 +249,7 @@ def publish_doi(project):
                         "familyName": author.user.profile.last_name,
                         "name": author.get_full_name()})
 
-    description = HTML2Text().handle(project.abstract)
+    description = project.abstract_text_content()
 
     payload = {
       "data": {
