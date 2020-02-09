@@ -480,33 +480,21 @@ def publish_submission(request, project_slug, *args, **kwargs):
         return redirect('editor_home')
 
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
-
     if request.method == 'POST':
         publish_form = forms.PublishForm(project=project, data=request.POST)
         if project.is_publishable() and publish_form.is_valid():
-
             if project.version_order:
                 slug = project.get_previous_slug()
             else:
                 slug = publish_form.cleaned_data['slug']
             published_project = project.publish(slug=slug,
                 make_zip=int(publish_form.cleaned_data['make_zip']))
-
-            current_site = Site.objects.get_current()
-            url = 'https://{0}/content/{1}/{2}'.format(current_site, slug, project.version)
-            if datacite_is_enabled and project.doi:
-                utility.publish_doi_draft(url, project.doi)
-                messages.success(request, 'Successfully created DOI.')
             notification.publish_notify(request, published_project)
+            utility.publish_doi(published_project)
             return render(request, 'console/publish_complete.html',
                 {'published_project': published_project, 'editor_home': True})
-
     publishable = project.is_publishable()
     url_prefix = notification.get_url_prefix(request)
-    if datacite_is_enabled and project.doi == '':
-        project.doi = utility.create_doi_draft(project)
-        project.save()
-
     publish_form = forms.PublishForm(project=project)
 
     return render(request, 'console/publish_submission.html',
