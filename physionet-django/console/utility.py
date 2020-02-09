@@ -12,6 +12,8 @@ from django.utils.html import strip_tags
 from django.utils import timezone
 from google.cloud import storage
 from django.conf import settings
+from django.urls import reverse
+from html2text import HTML2Text
 
 import logging
 
@@ -190,22 +192,11 @@ def create_doi_draft(project):
     On tests return empty leaving the DOI object the same
     """
     url = settings.DATACITE_API_URL
-    if not url:
-        return ''
-
     current_site = Site.objects.get_current()
-
     headers = {'Content-Type': 'application/vnd.api+json'}
     resource_type = 'Dataset'
     if project.resource_type.name == 'Software':
         resource_type = 'Software'
-
-    author_list = project.author_list().order_by('display_order')
-    authors = []
-    for author in author_list:
-        authors.append({"name": author.get_full_name()})
-
-    description = strip_tags(project.abstract)
 
     payload = {
       "data": {
@@ -213,7 +204,6 @@ def create_doi_draft(project):
         "attributes": {
           "event": "draft",
           "prefix": settings.DATACITE_PREFIX,
-          "creators": authors,
           "titles": [{
             "title": project.title
           }],
@@ -223,12 +213,6 @@ def create_doi_draft(project):
           "types": {
             "resourceTypeGeneral": resource_type
           },
-          "url": 'https://{}'.format(current_site.domain),
-          "descriptions": [
-          {
-            "description": description,
-            "descriptionType": "Abstract"
-          }],
         }
       }
     }
@@ -236,8 +220,8 @@ def create_doi_draft(project):
     response = post(url, data=json.dumps(payload), headers=headers,
         auth=HTTPBasicAuth(settings.DATACITE_USER, settings.DATACITE_PASS))
     if response.status_code < 200 or response.status_code >= 300:
-        raise Exception("There was an unknown error submitting the DOI, here is \
-            the response text: {}".format(response.text))
+        raise Exception("There was an unknown error submitting the DOI, here \
+            is the response text: {}".format(response.text))
 
     content = json.loads(response.text)
     LOGGER.info("DOI draft for project {0} was created with DOI: {1}.".format(
@@ -245,34 +229,49 @@ def create_doi_draft(project):
     return content['data']['id']
 
 
-def publish_doi_draft(project_url, doi):
+def publish_doi(project):
     """
     Upate a DOI from draft to publish.
 
     A PUT request is done in order to update the information for the DOI.
     The URL is made using the prefix and doi assigned to the project.
     """
-    url = settings.DATACITE_API_URL
-    if not url:
-        return
-
-    url += '/{0}'.format(doi)
+    url = '{0}/{1}'.format(settings.DATACITE_API_URL, project.doi)
     headers = {'Content-Type': 'application/vnd.api+json'}
+    current_site = Site.objects.get_current()
+    project_url = "https://{0}/{1}".format(current_site,
+        reverse('published_project', args=(project.slug, project.version)))
+
+    author_list = project.author_list().order_by('display_order')
+    authors = []
+    for author in author_list:
+        authors.append({"givenName": author.user.profile.first_names,
+                        "familyName": author.user.profile.last_name,
+                        "name": author.get_full_name()})
+
+    description = HTML2Text().handle(project.abstract)
+
     payload = {
       "data": {
-        "id": doi.split('/')[1],
         "type": "dois",
         "attributes": {
+          "creators": authors,
+          "descriptions": [
+          {
+            "description": description,
+            "descriptionType": "Abstract"
+          }],
           "state": "publish",
           "event": "publish",
           "url": project_url
         }
       }
     }
+
     response = put(url, data=json.dumps(payload), headers=headers,
         auth=HTTPBasicAuth(settings.DATACITE_USER, settings.DATACITE_PASS))
     if response.status_code < 200 or response.status_code >= 300:
         raise Exception("There was an unknown error updating the DOI, here is \
             the response text: {0}".format(response.text))
     content = json.loads(response.text)
-    LOGGER.info("DOI draft {} was published".format(doi))
+    LOGGER.info("DOI draft {} was published".format(project.doi))
