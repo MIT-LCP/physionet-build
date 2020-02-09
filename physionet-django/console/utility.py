@@ -15,6 +15,8 @@ from django.conf import settings
 from django.urls import reverse
 from html2text import html2text
 
+from project.validators import validate_doi
+
 import logging
 
 LOGGER = logging.getLogger(__name__)
@@ -338,8 +340,9 @@ def create_doi_draft(project):
             is the response text: {}".format(response.text))
 
     content = json.loads(response.text)
+    validate_doi(content['data']['attributes']['doi'])
     LOGGER.info("DOI draft for project {0} was created with DOI: {1}.".format(
-        project.title, content['data']['id']))
+        project.title, content['data']['attributes']['doi']))
     return content['data']['attributes']['doi']
 
 

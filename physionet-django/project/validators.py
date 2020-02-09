@@ -62,11 +62,13 @@ def validate_oldfilename(value):
 
 def validate_doi(value):
     """
-    Validate a doi. Currently pn is assigned the 10.13026 prefix
+    Validate a doi.
+    This follows the regular expression in the DataCite website.
+
+    https://support.datacite.org/docs/doi-basics
     """
-    if not re.fullmatch(r'10\.13026/[\w]{5,10}', value):
-        raise ValidationError('Invalid DOI: %(doi)s',
-            params={'doi':value})
+    if not re.fullmatch(r'^10.\d{4,9}/[-._;()/:a-zA-Z0-9]+$', value):
+        raise ValidationError('Invalid DOI: %(doi)s', params={'doi': value})
 
 
 def validate_subdir(value):
