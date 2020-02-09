@@ -477,34 +477,20 @@ def publish_submission(request, project_slug, *args, **kwargs):
         return redirect('editor_home')
 
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
-    datacite_is_enabled = settings.DATACITE_PREFIX
-
     if request.method == 'POST':
         publish_form = forms.PublishForm(project=project, data=request.POST)
         if project.is_publishable() and publish_form.is_valid():
-
             if project.version_order:
                 slug = project.get_previous_slug()
             else:
                 slug = publish_form.cleaned_data['slug']
             published_project = project.publish(slug=slug,
                 make_zip=int(publish_form.cleaned_data['make_zip']))
-
-            current_site = Site.objects.get_current()
-            url = 'https://{0}/content/{1}/{2}'.format(current_site, slug, project.version)
-            if datacite_is_enabled and project.doi:
-                utility.publish_doi_draft(url, project.doi)
-                messages.success(request, 'Successfully created DOI.')
             notification.publish_notify(request, published_project)
             return render(request, 'console/publish_complete.html',
-                {'published_project':published_project})
-
+                {'published_project': published_project})
     publishable = project.is_publishable()
     url_prefix = notification.get_url_prefix(request)
-    if datacite_is_enabled and project.doi == '':
-        project.doi = utility.create_doi_draft(project)
-        project.save()
-
     publish_form = forms.PublishForm(project=project)
 
     return render(request, 'console/publish_submission.html',
@@ -512,8 +498,7 @@ def publish_submission(request, project_slug, *args, **kwargs):
          'author_emails': author_emails, 'storage_info': storage_info,
          'edit_logs': edit_logs, 'copyedit_logs': copyedit_logs,
          'latest_version': latest_version, 'publish_form': publish_form,
-         'max_slug_length': MAX_PROJECT_SLUG_LENGTH,
-         'url_prefix': url_prefix, 'datacite_is_enabled': datacite_is_enabled})
+         'max_slug_length': MAX_PROJECT_SLUG_LENGTH, 'url_prefix': url_prefix})
 
 
 def process_storage_response(request, storage_response_formset):
