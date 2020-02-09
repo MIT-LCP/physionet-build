@@ -190,6 +190,121 @@ def create_doi_draft(project):
 
     On successfull creation returns the asigned DOI
     On tests return empty leaving the DOI object the same
+
+    Example of the API return response.
+    {
+       'data':{
+          'id':'10.7966/v2jx-h492',
+          'type':'dois',
+          'attributes':{
+             'doi':'10.7966/v2jx-h492',
+             'prefix':'10.7966',
+             'suffix':'v2jx-h492',
+             'identifiers':None,
+             'creators':[ ],
+             'titles':[ { 'title':'Example title' } ],
+             'publisher':'PhysioNet-dev',
+             'container':{ },
+             'publicationYear':2020,
+             'subjects':None,
+             'contributors':[ ],
+             'dates':None,
+             'language':None,
+             'types':{ 'resourceTypeGeneral':'Dataset' },
+             'relatedIdentifiers':None,
+             'sizes':None,
+             'formats':None,
+             'version':None,
+             'rightsList':[ ],
+             'descriptions':None,
+             'geoLocations':None,
+             'fundingReferences':None,
+             'xml':'',
+             'url':None,
+             'contentUrl':None,
+             'metadataVersion':0,
+             'schemaVersion':None,
+             'source':None,
+             'isActive':False,
+             'state':'draft',
+             'reason':None,
+             'landingPage':None,
+             'viewCount':0,
+             'downloadCount':0,
+             'referenceCount':0,
+             'citationCount':0,
+             'partCount':0,
+             'partOfCount':0,
+             'versionCount':0,
+             'versionOfCount':0,
+             'viewsOverTime':[ ],
+             'downloadsOverTime':[ ],
+             'created':'2020-02-09T15:24:49.000Z',
+             'registered':None,
+             'published':'2020',
+             'updated':'2020-02-09T15:24:49.000Z'
+          },
+          'relationships':{
+             'client':{
+                'data':{
+                   'id':'XYZ.XYZ',
+                   'type':'clients'
+                }
+             },
+             'media':{
+                'data':{
+                   'id':'10.7966/v2jx-h492',
+                   'type':'media'
+                }
+             },
+             'references':{ 'data':[ ] },
+             'citations':{ 'data':[ ] },
+             'parts':{ 'data':[ ] },
+             'versions':{ 'data':[ ] }
+          }
+       },
+       'included':[
+          {
+             'id':'XYZ.XYZ',
+             'type':'clients',
+             'attributes':{
+                'name':'XYZ',
+                'symbol':'XYZ.XYZ',
+                'year':2019,
+                'contactEmail':'XYZ@XYZ.XYZ',
+                'alternateName':None,
+                'description':None,
+                'language':None,
+                'clientType':'repository',
+                'domains':'*',
+                're3data':None,
+                'opendoar':None,
+                'issn':{ },
+                'url':'https://www.physionet.org/',
+                'created':'2019-02-25T18:25:27.000Z',
+                'updated':'2020-01-23T20:10:43.000Z',
+                'isActive':True,
+                'hasPassword':True
+             },
+             'relationships':{
+                'provider':{
+                   'data':{
+                      'id':'XYZ',
+                      'type':'providers'
+                   }
+                },
+                'prefixes':{
+                   'data':[
+                      {
+                         'id':'10.7966',
+                         'type':'prefixes'
+                      }
+                   ]
+                }
+             }
+          }
+       ]
+    }
     """
     url = settings.DATACITE_API_URL
     current_site = Site.objects.get_current()
@@ -199,22 +314,21 @@ def create_doi_draft(project):
         resource_type = 'Software'
 
     payload = {
-      "data": {
-        "type": "dois",
-        "attributes": {
-          "event": "draft",
-          "prefix": settings.DATACITE_PREFIX,
-          "titles": [{
-            "title": project.title
-          }],
-          "publisher": current_site.name,
-          "publicationYear": timezone.now().year,
-
-          "types": {
-            "resourceTypeGeneral": resource_type
-          },
+        "data": {
+            "type": "dois",
+            "attributes": {
+                "event": "draft",
+                "prefix": settings.DATACITE_PREFIX,
+                "titles": [{
+                    "title": project.title
+                }],
+                "publisher": current_site.name,
+                "publicationYear": timezone.now().year,
+                "types": {
+                    "resourceTypeGeneral": resource_type
+                },
+            }
         }
-      }
     }
 
     response = post(url, data=json.dumps(payload), headers=headers,
@@ -226,7 +340,7 @@ def create_doi_draft(project):
     content = json.loads(response.text)
     LOGGER.info("DOI draft for project {0} was created with DOI: {1}.".format(
         project.title, content['data']['id']))
-    return content['data']['id']
+    return content['data']['attributes']['doi']
 
 
 def publish_doi(project):
@@ -252,20 +366,19 @@ def publish_doi(project):
     description = project.abstract_text_content()
 
     payload = {
-      "data": {
-        "type": "dois",
-        "attributes": {
-          "creators": authors,
-          "descriptions": [
-          {
-            "description": description,
-            "descriptionType": "Abstract"
-          }],
-          "state": "publish",
-          "event": "publish",
-          "url": project_url
+        "data": {
+            "type": "dois",
+            "attributes": {
+                "creators": authors,
+                "descriptions": [{
+                    "description": description,
+                    "descriptionType": "Abstract"
+                }],
+                "state": "publish",
+                "event": "publish",
+                "url": project_url
+            }
         }
-      }
     }
 
     response = put(url, data=json.dumps(payload), headers=headers,
