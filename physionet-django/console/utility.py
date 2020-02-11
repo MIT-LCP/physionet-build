@@ -1,6 +1,6 @@
 from os import walk, chdir, listdir, path
 from requests.auth import HTTPBasicAuth
-from requests import post, put
+from requests import post, put, get
 import json
 import pdb
 
@@ -350,14 +350,47 @@ def publish_doi(project):
     """
     Upate a DOI from draft to publish.
 
-    A PUT request is done in order to update the information for the DOI.
     The URL is made using the prefix and doi assigned to the project.
     """
-    url = '{0}/{1}'.format(settings.DATACITE_API_URL, project.doi)
+    if project.doi and get_doi_status(project.doi) == 'draft':
+        payload, url = generate_doi_info(project)
+        send_doi_update(url, payload)
+    if project.core_project.doi and get_doi_status(project.core_project.doi) == 'draft':
+        payload, url = generate_doi_info(project, core_project=True)
+        send_doi_update(url, payload)
+
+
+def send_doi_update(url, payload):
+    """
+    Execute a DOI change. This can be used to update and/or publish the DOI.
+
+    A PUT request is done in order to update the information for the DOI.
+    """
     headers = {'Content-Type': 'application/vnd.api+json'}
+    response = put(url, data=json.dumps(payload), headers=headers,
+        auth=HTTPBasicAuth(settings.DATACITE_USER, settings.DATACITE_PASS))
+    if response.status_code < 200 or response.status_code >= 300:
+        raise Exception("There was an unknown error updating the DOI, \
+            here is the response text: {0}".format(response.text))
+
+
+def generate_doi_info(project, core_project=False, event="publish"):
+    """
+    Generate the payload and url to be used to update a DOI information.
+
+    Returns the payload that will publish or update the DOI and its URL
+    """
     current_site = Site.objects.get_current()
-    project_url = "https://{0}/{1}".format(current_site,
-        reverse('published_project', args=(project.slug, project.version)))
+    #
+    url = '{0}/{1}'.format(settings.DATACITE_API_URL, project.doi)
+    project_url = "https://{0}{1}".format(current_site, reverse(
+        'published_project', args=(project.slug, project.version)))
+
+    if core_project:
+        url = '{0}/{1}'.format(settings.DATACITE_API_URL,
+            project.core_project.doi)
+        project_url = "https://{0}/{1}".format(current_site, reverse(
+            'published_project_latest', args=(project.slug,)))
 
     author_list = project.author_list().order_by('display_order')
     authors = []
@@ -367,27 +400,38 @@ def publish_doi(project):
                         "name": author.get_full_name()})
 
     description = project.abstract_text_content()
-
     payload = {
         "data": {
             "type": "dois",
             "attributes": {
+                "titles": [{
+                    "title": project.title
+                }],
+                "publicationYear": timezone.now().year,
                 "creators": authors,
                 "descriptions": [{
                     "description": description,
                     "descriptionType": "Abstract"
                 }],
-                "state": "publish",
-                "event": "publish",
+                "state": event,
+                "event": event,
                 "url": project_url
             }
         }
     }
+    return payload, url
 
-    response = put(url, data=json.dumps(payload), headers=headers,
-        auth=HTTPBasicAuth(settings.DATACITE_USER, settings.DATACITE_PASS))
+
+def get_doi_status(project_doi):
+    """
+    Get the status of a DOI which can be draft, registered or findable.
+    """
+    headers = {'Content-Type': 'application/vnd.api+json'}
+    url = '{0}/{1}'.format(settings.DATACITE_API_URL, project_doi)
+    response = get(url, headers=headers, auth=HTTPBasicAuth(
+        settings.DATACITE_USER, settings.DATACITE_PASS))
     if response.status_code < 200 or response.status_code >= 300:
         raise Exception("There was an unknown error updating the DOI, here is \
             the response text: {0}".format(response.text))
     content = json.loads(response.text)
-    LOGGER.info("DOI draft {} was published".format(project.doi))
+    return content['data']['attributes']['state']
