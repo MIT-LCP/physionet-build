@@ -489,6 +489,7 @@ def publish_submission(request, project_slug, *args, **kwargs):
                 slug = publish_form.cleaned_data['slug']
             published_project = project.publish(slug=slug,
                 make_zip=int(publish_form.cleaned_data['make_zip']))
+            utility.publish_doi(published_project)
             notification.publish_notify(request, published_project)
             utility.publish_doi(published_project)
             return render(request, 'console/publish_complete.html',
