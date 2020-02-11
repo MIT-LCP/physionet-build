@@ -355,7 +355,8 @@ def publish_doi(project):
     if project.doi and get_doi_status(project.doi) == 'draft':
         payload, url = generate_doi_info(project)
         send_doi_update(url, payload)
-    if project.core_project.doi and get_doi_status(project.core_project.doi) == 'draft':
+    if (project.core_project.doi and get_doi_status(project.core_project.doi)
+            == 'draft' and project.is_latest_version):
         payload, url = generate_doi_info(project, core_project=True)
         send_doi_update(url, payload)
 
