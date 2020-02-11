@@ -1768,14 +1768,15 @@ class EditLog(models.Model):
          'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable'),
     )
     # The editor's free input fields
-    EDITOR_FIELDS = ('editor_comments', 'decision')
+    EDITOR_FIELDS = ('editor_comments', 'decision', 'auto_doi')
 
     COMMON_LABELS = {
         'reusable': 'Does the project include everything needed for reuse by the community?',
         'pn_suitable': 'Is the content suitable for PhysioNet?',
         'editor_comments': 'Comments to authors',
         'no_phi': 'Is the project free of protected health information?',
-        'data_machine_readable': 'Are all files machine-readable?'
+        'data_machine_readable': 'Are all files machine-readable?',
+        'auto_doi': 'Automatically assign a new doi?',
     }
 
     LABELS = (
@@ -1834,6 +1835,7 @@ class EditLog(models.Model):
     decision_datetime = models.DateTimeField(null=True)
     # Comments for the decision
     editor_comments = models.CharField(max_length=10000)
+    auto_doi = models.BooleanField(default=False)
 
     def set_quality_assurance_results(self):
         """

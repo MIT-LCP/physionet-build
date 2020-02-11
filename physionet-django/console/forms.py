@@ -13,6 +13,7 @@ from project.models import (ActiveProject, EditLog, CopyeditLog,
     PublishedProject, exists_project_slug, DataAccess)
 from project.validators import validate_slug, MAX_PROJECT_SLUG_LENGTH
 from user.models import User, CredentialApplication
+from console.utility import create_doi_draft
 
 RESPONSE_CHOICES = (
     (1, 'Accept'),
@@ -72,7 +73,7 @@ class EditSubmissionForm(forms.ModelForm):
         model = EditLog
         fields = ('soundly_produced', 'well_described', 'open_format',
             'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable',
-            'editor_comments', 'decision')
+            'editor_comments', 'auto_doi', 'decision')
 
         labels = EditLog.COMMON_LABELS
 
@@ -85,6 +86,7 @@ class EditSubmissionForm(forms.ModelForm):
             'no_phi': forms.Select(choices=YES_NO_UNDETERMINED),
             'pn_suitable': forms.Select(choices=YES_NO_UNDETERMINED),
             'editor_comments': forms.Textarea(),
+            'auto_doi': forms.Select(choices=YES_NO),
             'decision': forms.Select(choices=SUBMISSION_RESPONSE_CHOICES)
         }
 
@@ -155,6 +157,11 @@ class EditSubmissionForm(forms.ModelForm):
                 project.submission_status = 40
                 project.editor_accept_datetime = now
                 project.latest_reminder = now
+                if self.cleaned_data['auto_doi'] and not project.doi:
+                    project.doi = create_doi_draft(project)
+                    if not project.core_project.doi:
+                        project.core_project.doi = create_doi_draft(project)
+                        project.core_project.save()
                 CopyeditLog.objects.create(project=project)
                 project.save()
             return edit_log
