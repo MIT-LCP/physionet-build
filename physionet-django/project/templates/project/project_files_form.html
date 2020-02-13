@@ -56,7 +56,7 @@
           </button>
         </div>
           <div class="modal-body">
-            <label>{{ create_folder_form.folder_name.label }}:</label>
+            <label for="{{ create_folder_form.folder_name.id_for_label }}">{{ create_folder_form.folder_name.label }}:</label>
             {{ create_folder_form.folder_name }}
           </div>
           <div class="modal-footer">
@@ -78,7 +78,7 @@
         </div>
           <div class="modal-body">
             <p id="rename-item-message"></p>
-            <label>{{ rename_item_form.new_name.label }}:</label>
+            <label for="{{ rename_item_form.new_name.id_for_label }}">{{ rename_item_form.new_name.label }}:</label>
             {{ rename_item_form.new_name }}
           </div>
           <div class="modal-footer">
@@ -100,7 +100,7 @@
         </div>
           <div class="modal-body">
             <p id="move-items-message"></p>
-            <label>{{ move_items_form.destination_folder.label }}:</label>
+            <label for="{{ move_items_form.destination_folder.id_for_label }}">{{ move_items_form.destination_folder.label }}:</label>
             {{ move_items_form.destination_folder }}
           </div>
           <div class="modal-footer">
