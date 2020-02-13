@@ -433,7 +433,12 @@ def get_doi_status(project_doi):
     response = get(url, headers=headers, auth=HTTPBasicAuth(
         settings.DATACITE_USER, settings.DATACITE_PASS))
     if response.status_code < 200 or response.status_code >= 300:
+        if response.status_code == 404:
+            raise Exception("DOI {} not found.".format(project_doi))
         raise Exception("There was an unknown error updating the DOI, here is \
             the response text: {0}".format(response.text))
     content = json.loads(response.text)
-    return content['data']['attributes']['state']
+    state = content['data']['attributes']['state']
+    if state and isinstance(state, str):
+        return state
+    raise Exception('Unkown state of the DOI')
