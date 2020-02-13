@@ -353,11 +353,12 @@ def publish_doi(project):
     The URL is made using the prefix and doi assigned to the project.
     """
     if project.doi and get_doi_status(project.doi):
-        payload, url = generate_doi_info(project)
+        payload, url = generate_doi_info(project, publish=True)
         send_doi_update(url, payload)
     if (project.core_project.doi and project.is_latest_version and
             get_doi_status(project.core_project.doi)):
-        payload, url = generate_doi_info(project, core_project=True)
+        payload, url = generate_doi_info(project, core_project=True,
+            publish=True)
         send_doi_update(url, payload)
 
 
@@ -375,7 +376,7 @@ def send_doi_update(url, payload):
             here is the response text: {0}".format(response.text))
 
 
-def generate_doi_info(project, core_project=False):
+def generate_doi_info(project, core_project=False, publish=False):
     """
     Generate the payload and url to be used to update a DOI information.
 
@@ -414,11 +415,12 @@ def generate_doi_info(project, core_project=False):
                     "description": description,
                     "descriptionType": "Abstract"
                 }],
-                "state": "publish",
                 "url": project_url
             }
         }
     }
+    if publish:
+        payload["data"]["attributes"]["event"] = "publish"
     return payload, url
 
 
