@@ -576,7 +576,11 @@ def credential_application_request(request, application):
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [application.user.email], fail_silently=False)
 
-def notify_gcp_access_request(data_access, user, project, new_user):
+
+def notify_gcp_access_request(data_access, user, project):
+    """
+    Notify user of GCP access
+    """
     subject = 'PhysioNet Google Cloud Platform BigQuery access'
     email = user.cloud_information.gcp_email.email
     if data_access.platform == 3:
@@ -586,8 +590,7 @@ def notify_gcp_access_request(data_access, user, project, new_user):
             'signature': email_signature(),
             'data_access': data_access,
             'user': user,
-            'new_user': new_user,
-            'project':project,
+            'project': project,
             'footer': email_footer()
         })
 
