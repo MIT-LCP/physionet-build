@@ -351,6 +351,8 @@ def publish_doi(project):
     Upate a DOI from draft to publish.
 
     The URL is made using the prefix and doi assigned to the project.
+
+    get_doi_status will raise an exception if the DOI does not exist.
     """
     publish = False
     if project.doi:
