@@ -386,7 +386,7 @@ class CoreProject(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     creation_datetime = models.DateTimeField(auto_now_add=True)
     # doi pointing to the latest version of the published project
-    doi = models.CharField(max_length=50, default='')
+    doi = models.CharField(max_length=50, blank=True, null=True)
     # Maximum allowed storage capacity in bytes.
     # Default = 100Mb. Max = 10Tb
     storage_allowance = models.BigIntegerField(default=104857600,
@@ -694,7 +694,7 @@ class UnpublishedProject(models.Model):
     # Access url slug, also used as a submitting project id.
     slug = models.SlugField(max_length=MAX_PROJECT_SLUG_LENGTH, db_index=True)
     latest_reminder = models.DateTimeField(null=True, blank=True)
-    doi = models.CharField(max_length=50, default='')
+    doi = models.CharField(max_length=50, blank=True, null=True)
     authors = GenericRelation('project.Author')
     references = GenericRelation('project.Reference')
     publications = GenericRelation('project.Publication')
@@ -1270,7 +1270,7 @@ class PublishedProject(Metadata, SubmissionInfo):
     deprecated_files = models.BooleanField(default=False)
     # doi = models.CharField(max_length=50, unique=True, validators=[validate_doi])
     # Temporary workaround
-    doi = models.CharField(max_length=50, default='')
+    doi = models.CharField(max_length=50, blank=True, null=True)
     slug = models.SlugField(max_length=MAX_PROJECT_SLUG_LENGTH, db_index=True,
         validators=[validate_slug])
     # Fields for legacy pb databases
