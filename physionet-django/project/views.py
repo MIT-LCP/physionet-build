@@ -610,6 +610,11 @@ def project_content(request, project_slug, **kwargs):
     user, project, authors, is_submitting = (kwargs[k] for k in
         ('user', 'project', 'authors', 'is_submitting'))
 
+    if is_submitting and project.author_editable():
+        editable = True
+    else:
+        editable = False
+
     # There are several forms for different types of content
     ReferenceFormSet = generic_inlineformset_factory(Reference,
         fields=('description',), extra=0,
@@ -617,13 +622,13 @@ def project_content(request, project_slug, **kwargs):
         formset=forms.ReferenceFormSet, validate_max=True)
 
     description_form = forms.ContentForm(resource_type=project.resource_type.id,
-        instance=project)
+                                         instance=project, editable=editable)
     reference_formset = ReferenceFormSet(instance=project)
 
     if request.method == 'POST':
         description_form = forms.ContentForm(
             resource_type=project.resource_type.id, data=request.POST,
-            instance=project)
+            instance=project, editable=editable)
         reference_formset = ReferenceFormSet(request.POST, instance=project)
         if description_form.is_valid() and reference_formset.is_valid():
             description_form.save()

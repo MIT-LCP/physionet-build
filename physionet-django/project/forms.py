@@ -504,8 +504,8 @@ class ContentForm(forms.ModelForm):
             'release_notes': 'Important notes about the current release, and changes from previous versions.'
         }
 
-    def __init__(self, resource_type, *args, **kwargs):
-        super(ContentForm, self).__init__(*args, **kwargs)
+    def __init__(self, resource_type, editable=True, **kwargs):
+        super(ContentForm, self).__init__(**kwargs)
         self.fields = OrderedDict((k, self.fields[k]) for k in self.FIELDS[resource_type])
 
         for l in ActiveProject.LABELS[resource_type]:
@@ -513,6 +513,15 @@ class ContentForm(forms.ModelForm):
 
         for h in self.__class__.HELP_TEXTS[resource_type]:
             self.fields[h].help_text = self.__class__.HELP_TEXTS[resource_type][h]
+
+        if not editable:
+            for f in self.fields.values():
+                f.disabled = True
+
+        # We require new versions of a previously published project to
+        # share the same title
+        if self.instance and self.instance.is_new_version:
+            self.fields['title'].disabled = True
 
     def clean_version(self):
         data = self.cleaned_data['version']
