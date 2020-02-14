@@ -354,12 +354,12 @@ def publish_doi(project):
     """
     publish = False
     if project.doi:
-        if get_doi_status(project.doi) == "draft":
+        if get_doi_status(project.doi) in ["draft", "registered"]:
             publish = True
         payload, url = generate_doi_info(project, publish=publish)
         send_doi_update(url, payload)
     if project.core_project.doi and project.is_latest_version:
-        if get_doi_status(project.core_project.doi) == "draft":
+        if get_doi_status(project.core_project.doi) in ["draft", "registered"]:
             publish = True
         payload, url = generate_doi_info(project, core_project=True,
             publish=publish)
