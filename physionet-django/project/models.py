@@ -1835,7 +1835,7 @@ class EditLog(models.Model):
     decision_datetime = models.DateTimeField(null=True)
     # Comments for the decision
     editor_comments = models.CharField(max_length=10000)
-    auto_doi = models.BooleanField(default=False)
+    auto_doi = models.BooleanField(default=True)
 
     def set_quality_assurance_results(self):
         """
