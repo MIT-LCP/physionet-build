@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.core.validators import validate_integer, validate_email, URLValidator
 from google.cloud import storage
 from django.db import transaction
-
+from django.conf import settings
 
 from notification.models import News
 from project.models import (ActiveProject, EditLog, CopyeditLog,
@@ -96,6 +96,10 @@ class EditSubmissionForm(forms.ModelForm):
         """
         super().__init__(*args, **kwargs)
         self.resource_type = resource_type
+
+        if not settings.DATACITE_PREFIX:
+            self.fields['auto_doi'].disabled = True
+            self.initial['auto_doi'] = False
 
         # This will be used in clean
         self.quality_assurance_fields = EditLog.QUALITY_ASSURANCE_FIELDS[resource_type.id]
