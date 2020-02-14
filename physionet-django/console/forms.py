@@ -86,7 +86,6 @@ class EditSubmissionForm(forms.ModelForm):
             'no_phi': forms.Select(choices=YES_NO_UNDETERMINED),
             'pn_suitable': forms.Select(choices=YES_NO_UNDETERMINED),
             'editor_comments': forms.Textarea(),
-            'auto_doi': forms.Select(choices=YES_NO),
             'decision': forms.Select(choices=SUBMISSION_RESPONSE_CHOICES)
         }
 
