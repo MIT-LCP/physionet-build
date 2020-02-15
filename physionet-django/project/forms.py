@@ -562,10 +562,14 @@ class DiscoveryForm(forms.ModelForm):
         }
         widgets = {'short_description':forms.Textarea(attrs={'rows':'4'})}
 
-    def __init__(self, resource_type, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, resource_type, editable=True, **kwargs):
+        super().__init__(**kwargs)
         if resource_type != 1:
             del(self.fields['programming_languages'])
+
+        if not editable:
+            for f in self.fields.values():
+                f.disabled = True
 
     def clean_short_description(self):
         data = self.cleaned_data['short_description']

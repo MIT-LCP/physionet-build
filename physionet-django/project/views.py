@@ -705,6 +705,11 @@ def project_discovery(request, project_slug, **kwargs):
     project, is_submitting = (kwargs[k] for k in ('project',
         'is_submitting'))
 
+    if is_submitting and project.author_editable():
+        editable = True
+    else:
+        editable = False
+
     TopicFormSet = generic_inlineformset_factory(Topic,
         fields=('description',), extra=0, max_num=forms.TopicFormSet.max_forms,
         can_delete=False, formset=forms.TopicFormSet, validate_max=True)
@@ -713,14 +718,16 @@ def project_discovery(request, project_slug, **kwargs):
         max_num=forms.PublicationFormSet.max_forms, can_delete=False,
         formset=forms.PublicationFormSet, validate_max=True)
 
-    discovery_form = forms.DiscoveryForm(resource_type=project.resource_type.id,
-        instance=project)
+    discovery_form = forms.DiscoveryForm(
+        resource_type=project.resource_type.id,
+        instance=project, editable=editable)
     publication_formset = PublicationFormSet(instance=project)
     topic_formset = TopicFormSet(instance=project)
 
     if request.method == 'POST':
-        discovery_form = forms.DiscoveryForm(resource_type=project.resource_type.id,
-            data=request.POST, instance=project)
+        discovery_form = forms.DiscoveryForm(
+            resource_type=project.resource_type.id, data=request.POST,
+            instance=project, editable=editable)
         publication_formset = PublicationFormSet(request.POST,
                                                  instance=project)
         topic_formset = TopicFormSet(request.POST, instance=project)
