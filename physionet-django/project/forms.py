@@ -738,7 +738,7 @@ class AccessMetadataForm(forms.ModelForm):
         help_texts = {'access_policy': '* Access policy for files.',
                       'license': "* License for usage. <a href='/about/publish/#licenses' target='_blank'>View available.</a>"}
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, editable=True, **kwargs):
         """
         Control the available access policies based on the existing
         licenses. The license queryset is set in the following
@@ -747,7 +747,7 @@ class AccessMetadataForm(forms.ModelForm):
         Each license has one access policy, and potentially multiple
         resource types.
         """
-        super().__init__(*args, **kwargs)
+        super().__init__(**kwargs)
 
         # Get licenses for this resource type
         licenses = License.objects.filter(
@@ -755,6 +755,10 @@ class AccessMetadataForm(forms.ModelForm):
         # Set allowed access policies based on license policies
         available_policies = [a for a in range(len(Metadata.ACCESS_POLICIES)) if licenses.filter(access_policy=a)]
         self.fields['access_policy'].choices = tuple(Metadata.ACCESS_POLICIES[p] for p in available_policies)
+
+        if not editable:
+            for f in self.fields.values():
+                f.disabled = True
 
     def set_license_queryset(self, access_policy):
         """

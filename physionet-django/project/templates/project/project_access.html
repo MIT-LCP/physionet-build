@@ -22,8 +22,10 @@
 
 <form action="{% url 'project_access' project.slug %}" method="post" class="no-pd">
   {% include "project/content_inline_form_snippet.html" with form=access_form %}
+  {% if is_submitting and project.author_editable %}
   <hr>
   <button class="btn btn-primary btn-rsp" type="submit" name="edit_access">Save Access Information</button>
+  {% endif %}
 </form>
 {% endblock %}
 
@@ -35,14 +37,4 @@
   access_policy_input = document.getElementById("id_access_policy");
   access_policy_input.onchange = loadLicense;
 </script>
-{# Disable submission if not currently editable or not submitting author #}
-{% if not is_submitting or not project.author_editable %}
-  <script src="{% static 'custom/js/disable-input.js' %}"></script>
-  {% if project.submission_status > 20 %}
-    <script>
-      $("#passphrase_form input").removeAttr("disabled")
-      $("#passphrase_form button").removeAttr("disabled")
-    </script>
-  {% endif %}
-{% endif %}
 {% endblock %}

@@ -654,11 +654,18 @@ def project_access(request, project_slug, **kwargs):
 
     """
     user, project, passphrase = kwargs['user'], kwargs['project'], ''
+    is_submitting = kwargs['is_submitting']
+
+    if is_submitting and project.author_editable():
+        editable = True
+    else:
+        editable = False
 
     if 'access_policy' in request.POST:
         # The first validation is to check for valid access policy choice
         access_form = forms.AccessMetadataForm(data=request.POST,
-            instance=project)
+                                               instance=project,
+                                               editable=editable)
         if access_form.is_valid():
             # The second validation is to check for valid license choice
             access_form.set_license_queryset(
@@ -671,7 +678,8 @@ def project_access(request, project_slug, **kwargs):
                 'Invalid submission. See errors below.')
     else:
         # Access form
-        access_form = forms.AccessMetadataForm(instance=project)
+        access_form = forms.AccessMetadataForm(instance=project,
+                                               editable=editable)
         access_form.set_license_queryset(access_policy=project.access_policy)
 
     return render(request, 'project/project_access.html', {'project':project,
