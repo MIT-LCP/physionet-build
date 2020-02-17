@@ -1,7 +1,7 @@
 /data/log/nginx/*.log {
 	daily
 	missingok
-	rotate 14
+	rotate 3650
 	compress
 	delaycompress
 	notifempty

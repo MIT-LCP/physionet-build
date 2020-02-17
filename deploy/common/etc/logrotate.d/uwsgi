@@ -1,6 +1,6 @@
 /data/log/uwsgi/*.log
 {
-        rotate 7
+        rotate 3650
         daily
         missingok
         notifempty
