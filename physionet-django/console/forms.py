@@ -342,6 +342,18 @@ class ProcessCredentialForm(forms.ModelForm):
         return application
 
 
+class AlterCommentsCredentialForm(forms.ModelForm):
+    """
+    Change the response comments on a processed application
+    """
+    class Meta:
+        model = CredentialApplication
+        fields = ('responder_comments',)
+        labels = {
+            'responder_comments': 'Comments',
+        }
+
+
 class NewsForm(forms.ModelForm):
     """
     To add and edit news items
@@ -350,7 +362,7 @@ class NewsForm(forms.ModelForm):
 
     class Meta:
         model = News
-        fields = ('title', 'content', 'url', 'project')
+        fields = ('title', 'content', 'url', 'project', 'front_page_banner')
 
 
 class FeaturedForm(forms.Form):

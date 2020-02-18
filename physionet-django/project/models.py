@@ -22,7 +22,7 @@ from django.db import models, DatabaseError, transaction
 from django.forms.utils import ErrorList
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.html import strip_tags
+from django.utils.html import format_html, strip_tags
 from django.utils.text import slugify
 from background_task import background
 from django.utils.crypto import get_random_string
@@ -742,9 +742,14 @@ class UnpublishedProject(models.Model):
         authors = self.authors.all().order_by('display_order')
         year = timezone.now().year
         doi = '10.13026/*****'
-        return '{} ({}). {}. PhysioNet. doi:{}'.format(
-            ', '.join(a.initialed_name() for a in authors),
-            year, self.title, doi)
+        return format_html(
+            '{authors} ({year}). {title} (version {version}). '
+            '<i>PhysioNet</i>. https://doi.org/{doi}',
+            authors=', '.join(a.initialed_name() for a in authors),
+            year=year,
+            title=self.title,
+            version=self.version,
+            doi=doi)
 
     def get_previous_slug(self):
         """
@@ -1509,12 +1514,23 @@ class PublishedProject(Metadata, SubmissionInfo):
 
         authors = self.authors.all().order_by('display_order')
         if self.doi:
-            return '{} ({}). {}. PhysioNet. doi:{}'.format(
-                ', '.join(a.initialed_name() for a in authors),
-                self.publish_datetime.year, self.title, self.doi)
-        return '{} ({}). {}. PhysioNet.'.format(
-            ', '.join(a.initialed_name() for a in authors),
-            self.publish_datetime.year, self.title)
+            return format_html(
+                '{authors} ({year}). {title} (version {version}). '
+                '<i>PhysioNet</i>. '
+                '<a href="https://doi.org/{doi}">https://doi.org/{doi}</a>',
+                authors=', '.join(a.initialed_name() for a in authors),
+                year=self.publish_datetime.year,
+                title=self.title,
+                version=self.version,
+                doi=self.doi)
+        else:
+            return format_html(
+                '{authors} ({year}). {title} (version {version}). '
+                '<i>PhysioNet</i>.',
+                authors=', '.join(a.initialed_name() for a in authors),
+                year=self.publish_datetime.year,
+                title=self.title,
+                version=self.version)
 
     def remove(self, force=False):
         """

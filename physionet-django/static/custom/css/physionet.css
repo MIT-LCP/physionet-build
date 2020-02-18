@@ -62,6 +62,10 @@ th, td {
   }
 }
 
+.front-page-banner {
+  margin-bottom: 0;
+}
+
 .visually-hidden {
   position: absolute !important;
   height: 1px; width: 1px;

@@ -18,6 +18,18 @@ PhysioNet
 <body>
   {% include "navbar.html" %}
 
+  {% if front_page_banner %}
+  <div class="alert alert-primary front-page-banner">
+    <ul class="list-unstyled front-page-banner">
+    {% for news in front_page_banner %}
+    <li>
+      <a href="{% url 'news_by_id' news.id %}">{{ news.title }}</a>
+    </li>
+    {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
   <div class="main-header">
     <div class="center">
       <h1>PhysioNet</h1>
@@ -26,7 +38,7 @@ PhysioNet
       </p>
       <br>
       <div>
-        <a href="{% url 'database_index' %}">Data</a>
+        <a href="{% url 'database_overview' %}">Data</a>
         <a href="{% url 'software_overview' %}">Software</a>
         <a href="{% url 'challenge_overview' %}">Challenges</a>
         <a href="{% url 'tutorial_overview' %}">Tutorials</a>
