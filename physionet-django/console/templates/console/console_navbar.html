@@ -12,8 +12,7 @@
     <ul class="navbar-nav navbar-sidenav" id="sideAccordion">
 
       <!-- editor home -->
-      {% url 'editor_home' as editor_home %}
-      <li class="nav-item {% if request.path == editor_home %}active{% endif %}" data-toggle="tooltip" data-placement="right">
+      <li class="nav-item {% if editor_home %}active{% endif %}" data-toggle="tooltip" data-placement="right">
         <a id="nav_editor_home" class="nav-link" href="{% url 'editor_home' %}">
           <i class="fa fa-fw fa-book-open"></i>
           <span class="nav-link-text">Editor Home</span>
@@ -21,12 +20,8 @@
       </li>
 
       <!-- projects -->
-      {% url 'unsubmitted_projects' as unsubmitted_projects %}
-      {% url 'submitted_projects' as submitted_projects %}
-      {% url 'published_projects' as published_projects %}
-      {% url 'rejected_submissions' as rejected_submissions %}      
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
-      {% if request.path == unsubmitted_projects or request.path == submitted_projects or request.path == published_projects or request.path == rejected_submissions or '/console/published-projects/' in request.path %}
+      {% if project_info_nav or submitted_projects_nav or unsubmitted_projects_nav or published_projects_nav or rejected_projects_nav %}
         <a id="nav_projects_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#projectComponents" data-parent="#sideAccordion" aria-expanded="true">
       {% else %}
         <a id="nav_projects_dropdown" class="nav-link nav-link-collapse drop collapsed" data-toggle="collapse" href="#projectComponents" data-parent="#sideAccordion" aria-expanded="false">
@@ -35,28 +30,27 @@
           <span class="nav-link-text">Projects</span>
         </a>
         <!-- submenu -->
-      {% if request.path == unsubmitted_projects or request.path == submitted_projects or request.path == published_projects or request.path == rejected_submissions or '/console/published-projects/' in request.path %}
+      {% if project_info_nav or submitted_projects_nav or unsubmitted_projects_nav or published_projects_nav or rejected_projects_nav %}
         <ul class="sidenav-second-level collapse show" id="projectComponents" style="">
       {% else %}
         <ul class="sidenav-second-level collapse" id="projectComponents">
       {% endif %}
-          <li class="nav-item {% if request.path == unsubmitted_projects %}active{% endif %}">
+          <li class="nav-item {% if unsubmitted_projects_nav %}active{% endif %}">
             <a id="nav_unsubmitted_projects" class="nav-link" href="{% url 'unsubmitted_projects' %}">Unsubmitted</a>
           </li>
-          <li class="nav-item {% if request.path == submitted_projects %}active{% endif %}">
+          <li class="nav-item {% if submitted_projects_nav %}active{% endif %}">
             <a id="nav_submitted_projects" class="nav-link" href="{% url 'submitted_projects' %}">Submitted</a>
           </li>
-          <li class="nav-item {% if request.path == published_projects %}active{% endif %}">
+          <li class="nav-item {% if published_projects_nav %}active{% endif %}">
             <a id="nav_published_projects" class="nav-link" href="{% url 'published_projects' %}">Published</a>
           </li>
-          <li class="nav-item {% if request.path == rejected_submissions %}active{% endif %}">
+          <li class="nav-item {% if rejected_projects_nav %}active{% endif %}">
             <a id="nav_rejected_submissions" class="nav-link" href="{% url 'rejected_submissions' %}">Rejected</a>
           </li>          
         </ul>
       </li>
       <!-- storage requests -->
-      {% url 'storage_requests' as storage_requests %}
-      <li class="nav-item {% if request.path == storage_requests %}active{% endif %}" data-toggle="tooltip" data-placement="right">
+      <li class="nav-item {% if storage_requests_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
         <a id="nav_storage_requests" class="nav-link" href="{% url 'storage_requests' %}">
           <i class="fa fa-fw fa-cube"></i>
           <span class="nav-link-text">Storage</span>
@@ -64,12 +58,8 @@
       </li>
 
       <!-- credentialing -->
-      {% url 'credential_applications' as credential_applications %}
-      {% url 'past_credential_applications' 'successful' as past_credential_applications %}
-      {% url 'past_credential_applications' 'unsuccessful' as past_credential_applications_2 %}
-      {% url 'complete_credential_applications' as complete_credential_applications %}
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
-      {% if request.path == credential_applications or request.path == past_credential_applications or request.path == past_credential_applications_2 or '/console/view-credential-applications/' in request.path or '/console/credential-applications/' in request.path %}
+      {% if credentials_nav or complete_credentials_nav or past_credentials_nav %}
         <a id="nav_credentialing_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#credentialComponents" data-parent="#sideAccordion" aria-expanded="true">
       {% else %}
         <a id="nav_credentialing_dropdown" class="nav-link nav-link-collapse drop collapsed" data-toggle="collapse" href="#credentialComponents" data-parent="#sideAccordion" aria-expanded="false">
@@ -78,39 +68,33 @@
           <span class="nav-link-text">Credentialing</span>
         </a>
         <!-- submenu -->
-      {% if request.path == credential_applications or request.path == complete_credential_applications or request.path == past_credential_applications or  request.path == past_credential_applications_2 or '/console/view-credential-applications/' in request.path or '/console/credential-applications/' in request.path %}
+      {% if credentials_nav or complete_credentials_nav or past_credentials_nav %}
         <ul class="sidenav-second-level collapse show" id="credentialComponents">
       {% else %}
         <ul class="sidenav-second-level collapse" id="credentialComponents">
       {% endif %}
-          <li class="nav-item {% if request.path == complete_credential_applications %}active{% endif %}">
+          <li class="nav-item {% if complete_credentials_nav %}active{% endif %}">
             <a id="nav_credential_applications" href="{% url 'complete_credential_applications' %}">Management</a>
           </li>
-          <li class="nav-item {% if request.path == credential_applications %}active{% endif %}  {% if '/console/credential-applications/' in request.path %}active{% endif %}">
+          <li class="nav-item {% if credentials_nav %}active{% endif %}">
             <a id="nav_credential_applications" href="{% url 'credential_applications' %}">Ongoing Applications</a>
           </li>
-          <li class="nav-item {% if request.path == past_credential_applications %}active{% elif request.path == past_credential_applications_2 %}active{% endif %} ">
+          <li class="nav-item {% if past_credentials_nav %}active{% endif %} ">
             <a id="nav_past_credential_applications" href="{% url 'past_credential_applications' 'successful' %}">Past Applications</a>
           </li>
         </ul>
       </li>
-<!-- {% if '/console/view-credential-applications/' in request.path %}active{% endif %} -->
-      {% url 'protected_project_access' as protected_project_access %}      
+
       <!-- project access -->
-      {% url 'storage_requests' as storage_requests %}
-      <li class="nav-item {% if request.path == protected_project_access %}active{% endif %}" data-toggle="tooltip" data-placement="right">
+      <li class="nav-item {% if project_access_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
         <a id="nav_protected_project_access" class="nav-link" href="{% url 'protected_project_access' %}">
           <i class="fa fa-fw fa-universal-access"></i>
           <span class="nav-link-text">Access</span>
         </a>
       </li>
       <!-- users -->
-      {% url 'users' 'active' as active_user_list %}
-      {% url 'users' 'inactive' as inactive_user_list %}
-      {% url 'users' 'all' as all_user_list %}
-      {% url 'users' 'admin' as user_list_admin %}
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
-      {% if request.path == all_user_list or request.path == active_user_list or request.path == inactive_user_list or request.path == user_list_admin  %}
+      {% if user_nav %}
         <a id="nav_users_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#userComponents" data-parent="#sideAccordion" aria-expanded="true">
       {% else %}
         <a id="nav_users_dropdown" class="nav-link nav-link-collapse drop collapsed" data-toggle="collapse" href="#userComponents" data-parent="#sideAccordion" aria-expanded="false">
@@ -119,29 +103,28 @@
           <span class="nav-link-text">Users</span>
         </a>
         <!-- submenu -->
-      {% if request.path == all_user_list or request.path == active_user_list or request.path == inactive_user_list or request.path == user_list_admin  %}
+      {% if user_nav %}
         <ul class="sidenav-second-level collapse show" id="userComponents">
       {% else  %}
         <ul class="sidenav-second-level collapse" id="userComponents">
       {% endif %}
-          <li class="nav-item {% if request.path == active_user_list %}active{% endif %}">
+          <li class="nav-item {% if group == 'active' %}active{% endif %}">
             <a id="nav_active_users" class="nav-link" href="{% url 'users' 'active' %}">Active Users</a>
           </li>
-          <li class="nav-item {% if request.path == inactive_user_list %}active{% endif %}">
+          <li class="nav-item {% if group == 'inactive' %}active{% endif %}">
             <a id="nav_active_users" class="nav-link" href="{% url 'users' 'inactive' %}">Inactive Users</a>
           </li>
-          <li class="nav-item {% if request.path == all_user_list %}active{% endif %}">
+          <li class="nav-item {% if group == 'all' %}active{% endif %}">
             <a id="nav_all_users" class="nav-link" href="{% url 'users' 'all' %}">All Users</a>
           </li>
-          <li class="nav-item {% if request.path == user_list_admin %}active{% endif %}">
-            <a id="nav_all_users" class="nav-link" href="{% url 'users' 'admin' %}">Administrators</a>
+          <li class="nav-item {% if group == 'admin' %}active{% endif %}">
+            <a id="nav_all_users" class="nav-link" href="{% url 'users' 'admin' %}"> {{admin}}Administrators</a>
           </li>
         </ul>
       </li>
 
       <!-- featured content -->
-      {% url 'featured_content' as featured_content %}
-      <li class="nav-item {% if request.path == featured_content %}active{% endif %}" data-toggle="tooltip" data-placement="right">
+      <li class="nav-item {% if featured_content_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
         <a id="nav_console_featured" class="nav-link" href="{% url 'featured_content' %}">
           <i class="fa fa-fw fa-star"></i>
           <span class="nav-link-text">Featured Content</span>
@@ -149,8 +132,7 @@
       </li>
 
       <!-- news -->
-      {% url 'news_console' as news_console %}
-      <li class="nav-item {% if request.path == news_console %}active{% endif %}" data-toggle="tooltip" data-placement="right">
+      <li class="nav-item {% if news_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
         <a id="nav_console_news" class="nav-link" href="{% url 'news_console' %}">
           <i class="fa fa-fw fa-newspaper"></i>
           <span class="nav-link-text">News</span>
@@ -158,9 +140,9 @@
       </li>
 
       <!-- guidelines and documentation -->
-      {% url 'guidelines_review' as guidelines_review %}
+
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
-      {% if request.path == guidelines_review %}
+      {% if guidelines_review_nav %}
         <a id="nav_guidelines_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#guidelinesComponents" data-parent="#sideAccordion" aria-expanded="true">
       {% else %}
         <a id="nav_guidelines_dropdown" class="nav-link nav-link-collapse drop collapsed" data-toggle="collapse" href="#guidelinesComponents" data-parent="#sideAccordion" aria-expanded="false">
@@ -169,12 +151,12 @@
           <span class="nav-link-text">Guidelines</span>
         </a>
         <!-- submenu -->
-      {% if request.path == guidelines_review %}
+      {% if guidelines_review_nav %}
         <ul class="sidenav-second-level collapse show" id="guidelinesComponents">
       {% else  %}
         <ul class="sidenav-second-level collapse" id="guidelinesComponents">
       {% endif %}
-          <li class="nav-item {% if request.path == guidelines_review %}active{% endif %}">
+          <li class="nav-item {% if guidelines_review_nav %}active{% endif %}">
             <a href="{% url 'guidelines_review' %}">Project review</a>
           </li>
         </ul>
