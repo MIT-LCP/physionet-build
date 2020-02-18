@@ -157,7 +157,8 @@ def submitted_projects(request):
          'copyedit_projects': copyedit_projects,
          'approval_projects': approval_projects,
          'publish_projects': publish_projects,
-         'yesterday': yesterday })
+         'submitted_projects_nav': True,
+         'yesterday': yesterday})
 
 
 @login_required
@@ -200,7 +201,7 @@ def editor_home(request):
          'copyedit_projects': copyedit_projects,
          'approval_projects': approval_projects,
          'publish_projects': publish_projects,
-         'yesterday': yesterday})
+         'yesterday': yesterday, 'editor_home': True})
 
 
 def submission_info_redirect(request, project_slug):
@@ -226,13 +227,13 @@ def submission_info(request, project_slug):
         anonymous_url, passphrase = '', 'revoked'
 
     url_prefix = notification.get_url_prefix(request)
-
     return render(request, 'console/submission_info.html',
-        {'project':project, 'authors':authors, 'author_emails':author_emails,
-         'storage_info':storage_info, 'edit_logs':edit_logs,
-         'copyedit_logs':copyedit_logs, 'latest_version':latest_version,
-         'passphrase':passphrase, 'anonymous_url':anonymous_url,
-         'url_prefix':url_prefix})
+        {'project': project, 'authors': authors,
+         'author_emails': author_emails, 'storage_info': storage_info,
+         'edit_logs': edit_logs, 'copyedit_logs': copyedit_logs,
+         'latest_version': latest_version, 'passphrase': passphrase,
+         'anonymous_url': anonymous_url, 'url_prefix': url_prefix,
+         'project_info_nav': True})
 
 
 @handling_editor
@@ -262,8 +263,8 @@ def edit_submission(request, project_slug, *args, **kwargs):
             # Notify the authors
             notification.edit_decision_notify(request, project, edit_log)
             return render(request, 'console/edit_complete.html',
-                {'decision':edit_log.decision,
-                 'project':project, 'edit_log':edit_log})
+                {'decision': edit_log.decision, 'editor_home': True,
+                 'project': project, 'edit_log': edit_log})
         messages.error(request, 'Invalid response. See form below.')
     else:
         edit_submission_form = forms.EditSubmissionForm(
@@ -273,10 +274,11 @@ def edit_submission(request, project_slug, *args, **kwargs):
     url_prefix = notification.get_url_prefix(request)
 
     return render(request, 'console/edit_submission.html',
-        {'project':project, 'edit_submission_form':edit_submission_form,
-         'authors':authors, 'author_emails':author_emails,
-         'storage_info':storage_info, 'edit_logs':edit_logs,
-         'latest_version':latest_version, 'url_prefix':url_prefix})
+        {'project': project, 'edit_submission_form': edit_submission_form,
+         'authors': authors, 'author_emails': author_emails,
+         'storage_info': storage_info, 'edit_logs': edit_logs,
+         'latest_version': latest_version, 'url_prefix': url_prefix,
+         'editor_home': True})
 
 
 @handling_editor
@@ -285,7 +287,6 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
     Page to copyedit the submission
     """
     project = kwargs['project']
-
     if project.submission_status != 40:
         return redirect('editor_home')
 
@@ -362,7 +363,8 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
                 notification.copyedit_complete_notify(request, project,
                     copyedit_log)
                 return render(request, 'console/copyedit_complete.html',
-                    {'project':project, 'copyedit_log':copyedit_log})
+                    {'project': project, 'copyedit_log': copyedit_log,
+                     'editor_home': True})
             else:
                 messages.error(request, 'Invalid submission. See errors below.')
         else:
@@ -385,25 +387,25 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
     url_prefix = notification.get_url_prefix(request)
 
     return render(request, 'console/copyedit_submission.html', {
-        'project':project, 'description_form':description_form,
-        'individual_size_limit':readable_size(ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT),
-        'access_form':access_form, 'reference_formset':reference_formset,
-        'publication_formset':publication_formset,
-        'topic_formset':topic_formset,
-        'storage_info':storage_info, 'upload_files_form':upload_files_form,
-        'create_folder_form':create_folder_form,
-        'rename_item_form':rename_item_form,
-        'move_items_form':move_items_form,
-        'delete_items_form':delete_items_form,
-        'subdir':subdir, 'display_files':display_files,
-        'display_dirs':display_dirs, 'dir_breadcrumbs':dir_breadcrumbs,
-        'file_error':file_error,
-        'is_editor':True, 'copyedit_form':copyedit_form,
-        'authors':authors, 'author_emails':author_emails,
-        'storage_info':storage_info, 'edit_logs':edit_logs,
-        'copyedit_logs':copyedit_logs, 'latest_version':latest_version,
-        'add_item_url':edit_url, 'remove_item_url':edit_url,
-        'discovery_form':discovery_form, 'url_prefix':url_prefix})
+        'project': project, 'description_form': description_form,
+        'individual_size_limit': readable_size(ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT),
+        'access_form': access_form, 'reference_formset':reference_formset,
+        'publication_formset': publication_formset,
+        'topic_formset': topic_formset,
+        'storage_info': storage_info, 'upload_files_form':upload_files_form,
+        'create_folder_form': create_folder_form,
+        'rename_item_form': rename_item_form,
+        'move_items_form': move_items_form,
+        'delete_items_form': delete_items_form,
+        'subdir': subdir, 'display_files': display_files,
+        'display_dirs': display_dirs, 'dir_breadcrumbs': dir_breadcrumbs,
+        'file_error': file_error, 'editor_home': True,
+        'is_editor': True, 'copyedit_form': copyedit_form,
+        'authors': authors, 'author_emails': author_emails,
+        'storage_info': storage_info, 'edit_logs': edit_logs,
+        'copyedit_logs': copyedit_logs, 'latest_version': latest_version,
+        'add_item_url': edit_url, 'remove_item_url': edit_url,
+        'discovery_form': discovery_form, 'url_prefix': url_prefix})
 
 
 @handling_editor
@@ -444,7 +446,7 @@ def awaiting_authors(request, project_slug, *args, **kwargs):
          'storage_info': storage_info, 'edit_logs': edit_logs,
          'copyedit_logs': copyedit_logs, 'latest_version': latest_version,
          'outstanding_emails': outstanding_emails, 'url_prefix': url_prefix,
-         'yesterday': yesterday})
+         'yesterday': yesterday, 'editor_home': True})
 
 
 @handling_editor
@@ -491,18 +493,18 @@ def publish_submission(request, project_slug, *args, **kwargs):
                 make_zip=int(publish_form.cleaned_data['make_zip']))
             notification.publish_notify(request, published_project)
             return render(request, 'console/publish_complete.html',
-                {'published_project':published_project})
+                {'published_project': published_project, 'editor_home': True})
 
     publishable = project.is_publishable()
     url_prefix = notification.get_url_prefix(request)
 
     return render(request, 'console/publish_submission.html',
-        {'project':project, 'publishable':publishable, 'authors':authors,
-         'author_emails':author_emails, 'storage_info':storage_info,
-         'edit_logs':edit_logs, 'copyedit_logs':copyedit_logs,
-         'latest_version':latest_version, 'publish_form':publish_form,
-         'max_slug_length': MAX_PROJECT_SLUG_LENGTH, 
-         'url_prefix':url_prefix})
+        {'project': project, 'publishable': publishable, 'authors': authors,
+         'author_emails': author_emails, 'storage_info': storage_info,
+         'edit_logs': edit_logs, 'copyedit_logs': copyedit_logs,
+         'latest_version': latest_version, 'publish_form': publish_form,
+         'max_slug_length': MAX_PROJECT_SLUG_LENGTH, 'editor_home': True,
+         'url_prefix': url_prefix})
 
 
 def process_storage_response(request, storage_response_formset):
@@ -551,7 +553,8 @@ def storage_requests(request):
         queryset=StorageRequest.objects.filter(is_active=True))
 
     return render(request, 'console/storage_requests.html',
-        {'storage_response_formset':storage_response_formset})
+        {'storage_response_formset': storage_response_formset,
+         'storage_requests_nav': True})
 
 
 @login_required
@@ -565,7 +568,7 @@ def unsubmitted_projects(request):
     projects = paginate(request, projects, 50)
 
     return render(request, 'console/unsubmitted_projects.html',
-        {'projects':projects})
+        {'projects': projects, 'unsubmitted_projects_nav': True})
 
 
 @login_required
@@ -577,7 +580,7 @@ def published_projects(request):
     projects = PublishedProject.objects.all().order_by('-publish_datetime')
     projects = paginate(request, projects, 50)
     return render(request, 'console/published_projects.html',
-        {'projects':projects})
+        {'projects': projects, 'published_projects_nav': True})
 
 
 @associated_task(PublishedProject, 'pid', read_only=True)
@@ -714,7 +717,8 @@ def manage_published_project(request, project_slug, version):
          'deprecate_form': deprecate_form, 'has_credentials': has_credentials, 
          'data_access_form': data_access_form, 'data_access': data_access,
          'rw_tasks': rw_tasks, 'ro_tasks': ro_tasks,
-         'anonymous_url':anonymous_url, 'passphrase':passphrase})
+         'anonymous_url': anonymous_url, 'passphrase': passphrase,
+         'published_projects_nav': True})
 
 
 @login_required
@@ -726,7 +730,7 @@ def rejected_submissions(request):
     projects = ArchivedProject.objects.filter(archive_reason=3).order_by('archive_datetime')
     projects = paginate(request, projects, 50)
     return render(request, 'console/rejected_submissions.html',
-        {'projects':projects})
+        {'projects': projects, 'rejected_projects_nav': True})
 
 
 @login_required
@@ -739,7 +743,7 @@ def users(request, group='all'):
     if group == 'admin':
         admin_users = User.objects.filter(is_admin=True).order_by('username')
         return render(request, 'console/users_admin.html', {
-            'admin_users':admin_users})
+            'admin_users': admin_users, 'group': group, 'user_nav': True})
     elif group == 'active':
         user_list = User.objects.filter(is_active=True).order_by('username')
     elif group == 'inactive':
@@ -750,7 +754,7 @@ def users(request, group='all'):
     users = paginate(request, user_list, 50)
 
     return render(request, 'console/users.html', {'users': users,
-        'show_inactive': show_inactive, 'group': group})
+        'show_inactive': show_inactive, 'group': group, 'user_nav': True})
 
 
 @login_required
@@ -806,7 +810,7 @@ def credential_applications(request):
         application.time_elapsed = (timezone.now() - application.first_date).days
 
     return render(request, 'console/credential_applications.html',
-        {'applications': applications})
+        {'applications': applications, 'credentials_nav': True})
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
@@ -871,7 +875,7 @@ def complete_credential_applications(request):
 
     return render(request, 'console/complete_credential_applications.html',
         {'process_credential_form': process_credential_form, 
-        'applications': applications})
+        'applications': applications, 'complete_credentials_nav': True})
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
@@ -935,8 +939,9 @@ def process_credential_application(request, application_slug):
             else:
                 messages.error(request, 'Invalid submission. See form below.')
     return render(request, 'console/process_credential_application.html',
-        {'application':application, 'app_user':application.user,
-         'process_credential_form':process_credential_form})
+        {'application': application, 'app_user': application.user,
+         'process_credential_form': process_credential_form,
+         'credentials_nav': True})
 
 
 @login_required
@@ -956,7 +961,7 @@ def view_credential_application(request, application_slug):
 
     return render(request, 'console/view_credential_application.html',
                   {'application': application, 'app_user': application.user,
-                   'form': form})
+                   'form': form, 'past_credentials_nav': True})
 
 
 @login_required
@@ -1027,7 +1032,8 @@ def past_credential_applications(request, status):
     unsuccessful_apps = paginate(request, unsuccessful_apps, 50)
 
     return render(request, 'console/past_credential_applications.html',
-        {'applications': all_successful_apps, 'u_applications': unsuccessful_apps})
+        {'applications': all_successful_apps, 'past_credentials_nav': True,
+         'u_applications': unsuccessful_apps})
 
 
 def search_credential_applications(request):
@@ -1083,7 +1089,8 @@ def news_console(request):
     """
     news_items = News.objects.all().order_by('-publish_datetime')
     news_items = paginate(request, news_items, 50)
-    return render(request, 'console/news_console.html', {'news_items': news_items})
+    return render(request, 'console/news_console.html', 
+        {'news_items': news_items, 'news_nav': True})
 
 
 @login_required
@@ -1098,7 +1105,8 @@ def news_add(request):
     else:
         form = forms.NewsForm()
 
-    return render(request, 'console/news_add.html', {'form':form})
+    return render(request, 'console/news_add.html', {'form': form,
+        'news_nav': True})
 
 
 @login_required
@@ -1135,8 +1143,8 @@ def news_edit(request, news_id):
     else:
         form = forms.NewsForm(instance=news)
 
-    return render(request, 'console/news_edit.html', {'news':news,
-        'form':form})
+    return render(request, 'console/news_edit.html', {'news': news,
+        'form': form, 'news_nav': True})
 
 
 @login_required
@@ -1182,7 +1190,8 @@ def featured_content(request):
 
     featured_content = PublishedProject.objects.filter(featured__isnull=False).order_by('featured')
 
-    return render(request, 'console/featured_content.html', {'featured_content':featured_content})
+    return render(request, 'console/featured_content.html',
+        {'featured_content': featured_content, 'featured_content_nav': True})
 
 
 @login_required
@@ -1212,8 +1221,9 @@ def add_featured(request):
     else:
         form = forms.FeaturedForm()
 
-    return render(request, 'console/add_featured.html', {'title':title,
-        'projects':projects, 'form':form, 'valid_search':valid_search})
+    return render(request, 'console/add_featured.html', {'title': title,
+        'projects': projects, 'form': form, 'valid_search': valid_search,
+        'featured_content_nav': True})
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
@@ -1221,7 +1231,8 @@ def guidelines_review(request):
     """
     Guidelines for reviewers.
     """
-    return render(request, 'console/guidelines_review.html')
+    return render(request, 'console/guidelines_review.html',
+        {'guidelines_review_nav': True})
 
 
 @login_required
@@ -1294,7 +1305,8 @@ def project_access(request):
         project.member_count = DUASignature.objects.filter(
             project__access_policy = 2, project=project).count()
 
-    return render(request, 'console/project_access.html', {'c_projects':c_projects})
+    return render(request, 'console/project_access.html',
+        {'c_projects': c_projects, 'project_access_nav': True})
 
 
 @login_required
@@ -1307,5 +1319,6 @@ def project_access_manage(request, pid):
             project__access_policy = 2, project=c_project)
 
         return render(request, 'console/project_access_manage.html', {
-            'c_project':c_project, 'project_members':project_members})
+            'c_project': c_project, 'project_members': project_members,
+            'project_access_nav': True})
 
