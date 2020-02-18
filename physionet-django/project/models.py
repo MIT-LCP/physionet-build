@@ -1155,6 +1155,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         if not self.is_publishable():
             raise Exception('The project is not publishable')
 
+        published = False
+        active_file_root = None
         with transaction.atomic():
             # If this is a new version, previous fields need to be updated
             # and slug needs to be carried over
@@ -1239,6 +1241,12 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 copyedit_log.project = published_project
                 copyedit_log.save()
 
+            active_file_root = self.file_root()
+            # Remove the ActiveProject
+            self.delete()
+            published = True
+
+        if published and active_file_root is not None:
             # Create project file root if this is first version or the first
             # version with a different access policy
             if not os.path.isdir(published_project.project_file_root()):
@@ -1248,13 +1256,9 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             os.rename(self.file_root(), published_project.file_root())
 
             # Set files read only and make zip file if requested
-            move_files_as_readonly(published_project.id, self.file_root(),
+            move_files_as_readonly(published_project.id, active_file_root,
                 published_project.file_root(), make_zip,
                 verbose_name='Read Only Files - {}'.format(published_project))
-
-            # Remove the ActiveProject
-            self.delete()
-
             return published_project
 
     
