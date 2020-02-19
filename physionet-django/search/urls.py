@@ -40,6 +40,8 @@ urlpatterns = [
         name='published_project_license'),
     path('sign-dua/<project_slug>/<version>/', project_views.sign_dua,
         name='sign_dua'),
+    path('request-data-access/<project_slug>/<version>/', project_views.request_data_access,
+         name='request_data_access'),
 
     path('charts/', views.charts, name='charts'),
 

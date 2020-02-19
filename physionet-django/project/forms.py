@@ -16,7 +16,7 @@ from project.models import (Affiliation, Author, AuthorInvitation, ActiveProject
                             CoreProject, StorageRequest, ProgrammingLanguage,
                             License, Metadata, Reference, Publication, DataAccess,
                             PublishedProject, Topic, exists_project_slug,
-                            ProjectType, AnonymousAccess)
+                            ProjectType, AnonymousAccess, DataAccessRequest)
 from project import utility
 from project import validators
 
@@ -903,7 +903,67 @@ class AnonymousAccessLoginForm(forms.ModelForm):
         model = AnonymousAccess
         fields = ('passphrase',)
         widgets = {
-            'passphrase':forms.PasswordInput(attrs={'class': 'form-control', 
+            'passphrase':forms.PasswordInput(attrs={'class': 'form-control',
                 'placeholder': 'Passphrase', 'label': 'Passphrase'}),
         }
 
+
+class DataAccessRequestForm(forms.ModelForm):
+    class Meta:
+        model = DataAccessRequest
+        fields = ('data_use_purpose',)
+        help_texts = {
+            'data_use_purpose': """Brief description of your intended use for this project""",
+        }
+        widgets = {
+            'data_use_purpose': forms.Textarea(attrs={'rows': 3}),
+        }
+
+        labels = {
+            'data_use_purpose': 'Data Use'
+        }
+
+    def save(self):
+        proj_request = super().save(commit=False)
+        proj_request.project = self.project
+        proj_request.user = self.user
+
+        proj_request.save()
+        return proj_request
+
+    def __init__(self, project, user, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.project = project
+        self.user = user
+
+
+class DataAccessResponseForm(forms.ModelForm):
+    class Meta:
+        model = DataAccessRequest
+        fields = ('status', 'responder_comments')
+        help_texts = {
+            'responder_comments': """Brief justification in case of rejection or comment for the requester""",
+        }
+        widgets = {
+            'responder_comments': forms.Textarea(attrs={'rows': 3}),
+            'status': forms.Select(choices=DataAccessRequest.REJECT_ACCEPT)
+        }
+
+        labels = {
+            'status': 'Decision',
+            'responder_comments': 'Comment or Justification'
+        }
+
+    def save(self):
+        r = super().save(commit=False)
+        r.decision_datetime = timezone.now()
+        r.responder_id = self.user
+        r.save()
+
+        return r
+
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.user = user

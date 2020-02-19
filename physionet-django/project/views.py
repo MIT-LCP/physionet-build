@@ -30,7 +30,7 @@ from project.models import (Affiliation, Author, AuthorInvitation,
     ActiveProject, PublishedProject, StorageRequest, Reference, DataAccess,
     ArchivedProject, ProgrammingLanguage, Topic, Contact, Publication,
     PublishedAuthor, EditLog, CopyeditLog, DUASignature, CoreProject, GCP,
-    AnonymousAccess)
+    AnonymousAccess, DataAccessRequest)
 from project import utility
 from project.validators import validate_filename
 import notification.utility as notification
@@ -162,6 +162,18 @@ def process_invitation_response(request, invitation_response_formset):
                 return False, False
 
 
+def process_data_access_response(request, data_access_response_formset):
+    response_id = int(request.POST['data_access_response'])
+
+    for response_form in data_access_response_formset:
+        response_form.data = request.POST
+
+        if response_form.instance.id == response_id and response_form.is_valid():
+            response_form.save()
+
+            # notify user
+            notification.notify_user_data_access_request(response_form.instance)
+
 
 @login_required
 def project_home(request):
@@ -175,15 +187,8 @@ def project_home(request):
 
     InvitationResponseFormSet = modelformset_factory(AuthorInvitation,
         form=forms.InvitationResponseForm, extra=0)
-
-    if request.method == 'POST':
-        invitation_response_formset = InvitationResponseFormSet(request.POST,
-            queryset=AuthorInvitation.get_user_invitations(user))
-        imported, project = process_invitation_response(request, invitation_response_formset)
-        if project:
-            if imported:
-                messages.info(request,'Please fill in the affiliation at the end of the page.')
-            return redirect('project_authors', project_slug=project.slug)
+    DataAccessRequestFormSet = modelformset_factory(DataAccessRequest,
+        form=forms.DataAccessResponseForm, extra=0)
 
     active_authors = Author.objects.filter(user=user,
         content_type=ContentType.objects.get_for_model(ActiveProject))
@@ -197,6 +202,22 @@ def project_home(request):
     published_projects = [a.project for a in published_authors]
     for p in published_projects:
         p.new_button = p.can_publish_new(user)
+
+    if request.method == 'POST' and 'invitation_response' in request.POST.keys():
+        invitation_response_formset = InvitationResponseFormSet(request.POST,
+            queryset=AuthorInvitation.get_user_invitations(user))
+        imported, project = process_invitation_response(request, invitation_response_formset)
+        if project:
+            if imported:
+                messages.info(request,'Please fill in the affiliation at the end of the page.')
+            return redirect('project_authors', project_slug=project.slug)
+    elif request.method == 'POST' and 'data_access_response' in request.POST.keys():
+        data_access_response_formset = DataAccessRequestFormSet(request.POST, queryset=
+                                                                       DataAccessRequest.objects.filter(
+                                                                           project__in=published_projects,
+                                                                           status=0), form_kwargs={'user': user})  # TOOD need to do something?
+        process_data_access_response(request, data_access_response_formset)
+
 
     pending_author_approvals = []
     missing_affiliations = []
@@ -213,12 +234,18 @@ def project_home(request):
     invitation_response_formset = InvitationResponseFormSet(
         queryset=AuthorInvitation.get_user_invitations(user))
 
+    # CONTINUE.
+    da_resp_queryset = DataAccessRequest.objects.filter(project__in=published_projects, status=0)
+    data_access_request_formset = DataAccessRequestFormSet(queryset=da_resp_queryset, form_kwargs = { 'user': user})
+
     return render(request, 'project/project_home.html', {
         'projects': projects, 'published_projects': published_projects,
         'rejected_projects': rejected_projects,
         'missing_affiliations': missing_affiliations,
         'pending_author_approvals': pending_author_approvals,
-        'invitation_response_formset': invitation_response_formset})
+        'invitation_response_formset': invitation_response_formset,
+        'data_access_request_formset' : data_access_request_formset
+    })
 
 @login_required
 def create_project(request):
@@ -1084,7 +1111,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     languages = project.programming_languages.all()
 
     passes_checks = project.check_integrity()
-    
+
     if passes_checks:
         messages.success(request, 'The project has passed all automatic checks.')
     else:
@@ -1096,7 +1123,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     files_panel_url = reverse('preview_files_panel', args=(project.slug,))
     file_warning = get_project_file_warning(display_files, display_dirs,
                                               subdir)
-                                            
+
     # Flag for anonymous access
     has_passphrase = kwargs['has_passphrase']
 
@@ -1367,7 +1394,7 @@ def serve_published_project_file(request, project_slug, version,
             version=version)
     except ObjectDoesNotExist:
         raise Http404()
-        
+
     user = request.user
 
     # Anonymous access authentication
@@ -1410,7 +1437,7 @@ def display_published_project_file(request, project_slug, version,
                                                version=version)
     except ObjectDoesNotExist:
         raise Http404()
-        
+
     user = request.user
 
     # Anonymous access authentication
@@ -1443,7 +1470,7 @@ def serve_published_project_zip(request, project_slug, version):
             version=version)
     except ObjectDoesNotExist:
         raise Http404()
-        
+
     user = request.user
 
     # Anonymous access authentication
@@ -1593,6 +1620,53 @@ def sign_dua(request, project_slug, version):
 
 
 @login_required
+def request_data_access(request, project_slug, version):
+    user = request.user
+
+    # TODO: error handling
+    proj = PublishedProject.objects.get(slug=project_slug, version=version)
+
+    # TODO how to handle version?
+    da_requests = DataAccessRequest.objects.filter(user=user, project=proj)
+
+    if da_requests:
+        # TODO: write test. exploiting the fac
+        assert DataAccessRequest.ACCEPT_REQUEST_VALUE > DataAccessRequest.REJECT_REQUEST_VALUE > 0
+        da_requests_sorted = sorted(da_requests, key=lambda r: r.status, reverse=True)
+        return render(request, 'project/data_access_request_status.html', {'data_access_request' : da_requests_sorted[0]})
+
+
+    da_requests_accepted = [r for r in da_requests if r.status == DataAccessRequest.ACCEPT_REQUEST_VALUE]
+    da_requests_rejected = [r for r in da_requests if r.status == DataAccessRequest.REJECT_REQUEST_VALUE]
+    da_requests_pending = [r for r in da_requests if (r.status == 0)] # TODO enogh?
+
+    if da_requests_accepted:
+        return render(request, 'project/data_access_request_status.html')
+    if da_requests_rejected:
+        return render(request, 'project/')
+    if da_requests_pending:
+        return render(request, 'project/pending')
+
+    # not request pending for that user and that project. process form
+
+    if request.method == 'POST':
+        project_request_form = forms.DataAccessRequestForm(project=proj, user=user, prefix="proj", data=request.POST)
+
+        if (project_request_form.is_valid()):
+            data_access_req = project_request_form.save()
+
+            # trigger e-mail notification to reviewers
+            users_notify = [p.user for p in PublishedAuthor.objects.filter(project=proj, is_corresponding=1)]
+            notification.notify_owner_data_access_request(users_notify, data_access_req)
+
+            return render(request, 'project/data_access_request_submitted.html')
+    else:
+        project_request_form = forms.DataAccessRequestForm(project=proj, user=user, prefix="proj")
+
+    return render(request, 'project/request_data_access.html', {'project_request_form' : project_request_form})
+
+
+@login_required
 def project_request_access(request, project_slug, version, access_type):
     """
     Page to grant access to AWS storage, Google storage or Big Query
@@ -1661,7 +1735,7 @@ def anonymous_login(request, anonymous_url):
                                            secure=(not settings.DEBUG),
                                            samesite='Lax')
                 return response
-            
+
             # Did not find any valid passphrase
             messages.error(request, 'Invalid passphrase.')
         else:

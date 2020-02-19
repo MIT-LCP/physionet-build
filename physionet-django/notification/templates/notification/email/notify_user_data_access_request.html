@@ -1,0 +1,12 @@
+Dear {{ data_access_request.user.get_full_name }},
+
+You have requested access to the data of {{ data_access_request.project }}
+
+The authors decided to {% if data_access_request.status == 2 %}accept{%else%}deny{% endif %} this request.
+
+{% if data_access_request.responder_comments %}
+The authors response:
+{{ data_access_request.responder_comments }}
+{% endif %}
+
+{{ signature }}

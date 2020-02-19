@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+Requesting access for {{ project }}
+{% endblock %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/form-control-input.css' %}"/>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <p>TODO add instructions</p>
+
+
+    <p>TODO add DUA</p>
+
+    <form action="" method="post" enctype="multipart/form-data" class="form-signin no-pd" autocomplete="off">
+        {% csrf_token %}
+        {% include "descriptive_inline_form_snippet.html" with form=project_request_form %}
+
+        <p>By submitting this form, you agree to the data user agreement
+            above.</p>
+        <button class="btn btn-primary btn-rsp" type="submit">Submit Request</button>
+    </form>
+
+
+</div>
+{% endblock %}
+
+{% block local_js_bottom %}
+<script src="{% static 'custom/js/enable-tooltip.js' %}"></script>
+{% endblock %}

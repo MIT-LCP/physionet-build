@@ -506,7 +506,7 @@ def mailto_process_credential_complete(request, application, comments=True):
         }).replace('\n', '\n> ')
 
     if comments:
-        body = 'Dear {0},\n\n{1}\n\n{2}'.format(application.first_names, 
+        body = 'Dear {0},\n\n{1}\n\n{2}'.format(application.first_names,
           application.responder_comments, body)
     else:
         body = 'Dear {0},\n\n{1}'.format(application.first_names, body)
@@ -609,3 +609,33 @@ def notify_aws_access_request(user, project, data_access):
 
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [user.email], fail_silently=False)
+
+
+def notify_owner_data_access_request(users, data_access_request):
+    subject = "PhysioNet New Data Access Request"
+
+    for user in users:
+        body = loader.render_to_string('notification/email/notify_owner_data_access_request.html', {
+            'user': user,
+            'data_access_request': data_access_request,
+            'signature': email_signature(),
+            'footer': email_footer()
+        })
+
+        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                  [user.email],
+                  fail_silently=False)
+
+
+def notify_user_data_access_request(data_access_request):
+    subject = "PhysioNet Data Access Request Decision"
+
+    body = loader.render_to_string('notification/email/notify_user_data_access_request.html', {
+        'data_access_request': data_access_request,
+        'signature': email_signature(),
+        'footer': email_footer()
+    })
+
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+              [data_access_request.user.email],
+              fail_silently=False)

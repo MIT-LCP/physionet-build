@@ -18,6 +18,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth.hashers import check_password, make_password
+from django.contrib.auth import get_user_model
 from django.db import models, DatabaseError, transaction
 from django.forms.utils import ErrorList
 from django.urls import reverse
@@ -462,6 +463,7 @@ class Metadata(models.Model):
     # Access information
     access_policy = models.SmallIntegerField(choices=ACCESS_POLICIES,
                                              default=0)
+    is_self_managed_access = models.BooleanField(default=False)
     license = models.ForeignKey('project.License', null=True,
         on_delete=models.SET_NULL)
     project_home_page = models.URLField(default='', blank=True)
@@ -1512,10 +1514,14 @@ class PublishedProject(Metadata, SubmissionInfo):
             return False
 
         if self.access_policy:
-            if DUASignature.objects.filter(project=self, user__id=user.id):
-                return True
-            else:
+            if self.access_policy == 2 and (not user.is_authenticated or not user.is_credentialed):
                 return False
+
+            if self.is_self_managed_access:
+                records = DataAccessRequest.objects.filter(project=self, user__id=user.id)
+                return any(r.status == DataAccessRequest.ACCEPT_REQUEST_VALUE for r in records)
+            else:
+                return DUASignature.objects.filter(project=self, user__id=user.id)
         else:
             return True
 
@@ -1692,6 +1698,33 @@ class DUASignature(models.Model):
     sign_datetime = models.DateTimeField(auto_now_add=True)
 
 
+class DataAccessRequest(models.Model):
+    REJECT_REQUEST_VALUE = 1
+    ACCEPT_REQUEST_VALUE = 2
+
+    REJECT_ACCEPT = (
+        ('', 'Pending'),
+        (REJECT_REQUEST_VALUE, 'Reject'),
+        (ACCEPT_REQUEST_VALUE, 'Accept'),
+    )
+
+    request_datetime = models.DateTimeField(auto_now_add=True)
+
+    user = models.ForeignKey('user.User', on_delete=models.CASCADE)
+
+    project = models.ForeignKey('project.PublishedProject', related_name='data_access_request_project', on_delete=models.CASCADE)
+
+    data_use_purpose = models.CharField(max_length=2000)
+
+    status = models.PositiveSmallIntegerField(default=0, choices=REJECT_ACCEPT)
+
+    decision_datetime = models.DateTimeField(null=True)
+    # TODO: on delete: or no action?, assuming 1 is admin user
+    responder = models.ForeignKey('user.User', null=True, related_name='data_access_request_user', on_delete=models.SET(1))
+
+    responder_comments = models.CharField(max_length=500, blank=True)
+
+
 class BaseInvitation(models.Model):
     """
     Base class for authorship invitations and storage requests
@@ -1863,10 +1896,10 @@ class EditLog(models.Model):
             return
 
         resource_type = self.project.resource_type
-        
+
         # See also YES_NO_UNDETERMINED in console/forms.py
         RESPONSE_LABEL = {True: 'Yes', False: 'No', None: 'Undetermined'}
-        
+
         # Retrieve their labels and results for our resource type
         quality_assurance_fields = self.__class__.QUALITY_ASSURANCE_FIELDS[resource_type.id]
 
@@ -2032,7 +2065,7 @@ class AnonymousAccess(models.Model):
         # Has to be unique
         while AnonymousAccess.objects.filter(url=url).first():
             url = get_random_string(64)
-        
+
         # Persist new url
         self.url = url
         self.save()

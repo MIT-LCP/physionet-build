@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}Data Access Request Status{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1>Data Access Request Status</h1>
+
+        We received the following request on
+        {{ data_access_request.request_datetime|date }} to access to the
+        data of
+        {{ data_access_request.project }}.
+
+        <hr/>
+        <p>
+            {{ data_access_request.data_use_purpose }}
+        </p>
+        <hr/>
+
+        {% if data_access_request.status != 0 %}
+            {#  TODO remove magic constants by function #}
+            The authors decided to {% if data_access_request.status == 2 %}
+            accept{% else %}deny{% endif %} this request.
+
+            {% if data_access_request.responder_comments %}
+                The authors response:
+                <hr/>
+                <p>
+                {{ data_access_request.responder_comments }}
+                </p>
+                <hr/>
+            {% endif %}
+        {% else %}
+            The request is still pending with the authors.
+        {% endif %}
+    </div>
+{% endblock %}
