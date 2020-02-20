@@ -1,3 +1,4 @@
+import json
 import os
 import pdb
 import logging
@@ -5,6 +6,7 @@ import logging
 from django.urls import reverse
 from django.test.utils import get_runner
 from background_task.tasks import tasks
+import requests_mock
 
 from project.models import (ArchivedProject, ActiveProject, PublishedProject,
     Author, AuthorInvitation, License, StorageRequest)
@@ -169,9 +171,10 @@ class TestState(TestMixin):
         # Accept submission
         response = self.client.post(reverse(
             'edit_submission', args=(project.slug,)), data={
-            'soundly_produced':1, 'well_described':1, 'open_format':1,
-            'data_machine_readable':1, 'reusable':1, 'no_phi':1,
-            'pn_suitable':1, 'editor_comments':'Good.', 'decision':2
+                'soundly_produced': 1, 'well_described': 1, 'open_format': 1,
+                'data_machine_readable': 1, 'reusable': 1, 'no_phi': 1,
+                'pn_suitable': 1, 'editor_comments': 'Good.', 'decision': 2,
+                'auto_doi': 1
             })
         # Complete copyedit
         response = self.client.post(reverse(
@@ -231,3 +234,46 @@ class TestState(TestMixin):
         response = self.client.get(reverse('published_submission_history',
             args=(project.slug, project.version,)))
         self.assertEqual(response.status_code, 200)
+
+    @requests_mock.Mocker()
+    def test_publish_with_doi(self, mocker):
+        """
+        Test publishing a project while automatically assigning DOIs.
+        """
+
+        # Initial creation of draft DOIs
+        # (console.utility.create_doi_draft)
+        mocker.post('https://api.datacite.example/dois', [
+            {'text': json.dumps(
+                {'data': {'attributes': {'doi': '10.0000/aaa'}}})},
+            {'text': json.dumps(
+                {'data': {'attributes': {'doi': '10.0000/bbb'}}})},
+        ])
+
+        # Checking status of DOIs when project is about to be
+        # published (console.utility.get_doi_status)
+        mocker.get('https://api.datacite.example/dois/10.0000/aaa', [
+            {'text': json.dumps(
+                {'data': {'attributes': {'state': 'draft'}}})},
+        ])
+        mocker.get('https://api.datacite.example/dois/10.0000/bbb', [
+            {'text': json.dumps(
+                {'data': {'attributes': {'state': 'draft'}}})},
+        ])
+
+        # Updating DOI state (console.utility.send_doi_update)
+        mocker.put('https://api.datacite.example/dois/10.0000/aaa')
+        mocker.put('https://api.datacite.example/dois/10.0000/bbb')
+
+        with self.settings(
+                DATACITE_API_URL='https://api.datacite.example/dois',
+                DATACITE_USER='admin',
+                DATACITE_PASSWORD='letmein',
+                DATACITE_PREFIX='10.0000'):
+            self.test_publish()
+
+            project = PublishedProject.objects.get(slug='mitbih')
+            self.assertEqual(project.doi, '10.0000/aaa')
+            self.assertEqual(project.core_project.doi, '10.0000/bbb')
+
+        self.assertEqual(mocker.call_count, 6)
