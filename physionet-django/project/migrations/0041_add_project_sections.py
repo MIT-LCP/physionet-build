@@ -122,7 +122,7 @@ def undo_migrate_content(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('project', '0034_auto_20191114_1301'),
+        ('project', '0040_gcp_access_group'),
     ]
 
     operations = [
