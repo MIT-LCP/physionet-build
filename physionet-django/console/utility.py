@@ -405,7 +405,7 @@ def generate_doi_info(project, core_project=False, publish=False):
     for author in author_list:
         authors.append({"givenName": author.first_names,
                         "familyName": author.last_name,
-                        "name": author.get_full_name()})
+                        "name": author.get_full_name_srs()})
 
     description = project.abstract_text_content()
     payload = {
