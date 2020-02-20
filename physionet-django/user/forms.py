@@ -5,7 +5,6 @@ from django import forms
 from django.contrib.auth import forms as auth_forms
 from django.contrib.auth import password_validation
 from django.core.files.uploadedfile import UploadedFile
-from django.core.validators import EmailValidator
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.translation import ugettext_lazy
@@ -54,8 +53,8 @@ class AddEmailForm(forms.ModelForm):
         model = AssociatedEmail
         fields = ('email',)
         widgets = {
-            'email':forms.EmailInput(attrs={'class': 'form-control dropemail',
-                'validators':[EmailValidator]}),
+            'email': forms.EmailInput(
+                attrs={'class': 'form-control dropemail'}),
         }
 
     def clean_email(self):
@@ -212,8 +211,8 @@ class RegistrationForm(forms.ModelForm):
         model = User
         fields = ('email','username',)
         widgets = {
-            'email':forms.EmailInput(attrs={'class': 'form-control dropemail',
-                'validators':[EmailValidator]}),
+            'email': forms.EmailInput(
+                attrs={'class': 'form-control dropemail'}),
             'username':forms.TextInput(attrs={'class': 'form-control'}),
         }
 
