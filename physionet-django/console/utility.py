@@ -403,8 +403,8 @@ def generate_doi_info(project, core_project=False, publish=False):
     author_list = project.author_list().order_by('display_order')
     authors = []
     for author in author_list:
-        authors.append({"givenName": author.user.profile.first_names,
-                        "familyName": author.user.profile.last_name,
+        authors.append({"givenName": author.first_names,
+                        "familyName": author.last_name,
                         "name": author.get_full_name()})
 
     description = project.abstract_text_content()
