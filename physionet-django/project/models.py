@@ -268,6 +268,12 @@ class PublishedAuthor(BaseAuthor):
     def get_full_name(self):
         return ' '.join([self.first_names, self.last_name])
 
+    def get_full_name_srs(self):
+        """
+        Return the full name in SRS format
+        """
+        return ', '.join([self.last_name, self.first_names])
+
     def set_display_info(self):
         """
         Set the fields used to display the author
