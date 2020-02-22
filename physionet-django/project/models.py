@@ -451,8 +451,8 @@ class SectionContent(models.Model):
         related_name='%(class)ss', on_delete=models.PROTECT,
         null=True)
 
-    custom_title = models.CharField(max_length=30)
-    custom_order = models.PositiveSmallIntegerField()
+    custom_title = models.CharField(max_length=30, null=True)
+    custom_order = models.PositiveSmallIntegerField(null=True)
     section_content = SafeHTMLField(blank=True)
 
     class Meta:
@@ -1988,7 +1988,7 @@ class LegacyProject(models.Model):
         """
         p = PublishedProject.objects.create(title=self.title,
             doi=self.doi, slug=self.slug,
-            resource_type=self.resource_type,
+            resource_type_id=self.resource_type,
             core_project=CoreProject.objects.create(),
             abstract=self.abstract,
             is_legacy=True, full_description=self.full_description,
