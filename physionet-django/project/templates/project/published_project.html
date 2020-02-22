@@ -128,28 +128,27 @@
 
       </div>
     {% endif %}
-
-      {% if project.is_legacy %}
-        {{ project.full_description|safe }}
-        <hr>
-      {% else %}
+      
+      {% if not project.is_legacy %}
         <h2 id="abstract">Abstract</h2>
         {{ project.abstract|safe }}
         <hr>
-        {% for c in content %}
-          <h2 id='{{ c.project_section.html_id }}'>{{ c.project_section.title }}</h2>
-          {{ c.section_content|safe }}
-          <hr>
+      {% endif %}
+      {% for c in content %}
+        <h2 id='{% firstof c.project_section.html_id c.custom_title|slugify %}'>
+          {% firstof c.project_section.title c.custom_title %}
+        </h2>
+        {{ c.section_content|safe }}
+        <hr>
+      {% endfor %}
+      {% if references %}
+        <h2 id="references">References</h2>
+        <ol>
+        {% for reference in references %}
+          <li>{{ reference.description }}</li>
         {% endfor %}
-        {% if references %}
-          <h2 id="references">References</h2>
-          <ol>
-          {% for reference in references %}
-            <li>{{ reference.description }}</li>
-          {% endfor %}
-          </ol>
-          <hr>
-        {% endif %}
+        </ol>
+        <hr>
       {% endif %}
     </div>
     <!-- /.main column -->
@@ -157,15 +156,19 @@
     <!-- Sidebar Column -->
     <div class="col-md-4">
       {# Contents Button #}
-      {% if not project.is_legacy %}
       <div class="card" style="border: 0">
         <button class="btn btn-secondary dropdown-toggle btn-rsp btn-right" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           Contents
         </button>
         <div class="dropdown-menu">
-          <a class="dropdown-item" href="#abstract">Abstract</a>
+
+          {% if not project.is_legacy %}
+            <a class="dropdown-item" href="#abstract">Abstract</a>
+          {% endif %}
           {% for c in content %}
-            <a class="dropdown-item" href="#{{ c.project_section.html_id }}">{{ c.project_section.title }}</a>
+            <a class="dropdown-item" href="#{% firstof c.project_section.html_id c.custom_title|slugify %}">
+              {% firstof c.project_section.title c.custom_title %}
+            </a>
           {% endfor %}
           {% if references %}
             <a class="dropdown-item" href="#references">References</a>
@@ -173,7 +176,6 @@
           <a class="dropdown-item" href="#files">Files</a>
         </div>
       </div>
-      {% endif %}
 
       {% if parent_projects %}
       <div class="card my-4">
