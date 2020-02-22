@@ -1581,7 +1581,7 @@ def published_project(request, project_slug, version, subdir=''):
 
     # Ordered project content
     context["content"] = project.project_content.all().order_by(
-        "project_section__default_order")
+        "project_section__default_order", "custom_order")
 
     return render(request, 'project/published_project.html', context,
                   status=status)
