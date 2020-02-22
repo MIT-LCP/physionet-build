@@ -9,9 +9,12 @@ import pytz
 import stat
 import logging
 from distutils.version import StrictVersion
+import re
 
 import bleach
 import ckeditor.fields
+from bs4 import Comment
+from bs4 import BeautifulSoup
 from html2text import html2text
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
@@ -1689,6 +1692,65 @@ class PublishedProject(Metadata, SubmissionInfo):
             if sorted_versions[-1] == version:
                 tmp.is_latest_version = True
             tmp.save()
+
+    def parse_legacy_content(self):
+        """
+        Parse the concent from legacy projects
+        into project sections
+        """
+        if not self.is_legacy:
+            return
+
+        # Delete existing sections to deal
+        # with parsing multiple times
+        self.project_content.all().delete()
+
+        # Parse html description
+        full_description = BeautifulSoup(self.full_description,
+            features="html.parser")
+
+        # Find highest header
+        first_h = re.search(r'h(\d)', str(full_description))
+        hnum = first_h.group(1) if first_h else None
+
+        # Iterate through content
+        section = ""
+        content_itr = list(full_description)
+        content_len = len(content_itr)
+        for i, tag in enumerate(reversed(content_itr)):
+            tagstr = tag.string
+            # Skip html comment
+            if isinstance(tag, Comment):
+                continue
+
+            # If a header is found,
+            # finish this section
+            if hnum and tag.name == f'h{hnum}':
+                PublishedSectionContent.objects.create(
+                    project=self,
+                    custom_title=tag.text,
+                    custom_order=content_len-i,
+                    section_content=section)
+                section = ""
+            # In case last item is not a header
+            # or single section with no header
+            elif i == content_len-1 and tagstr.strip():
+                # If two words or less use
+                # as section header
+                if len(tagstr.split()) <= 2:
+                    title = tagstr 
+                else:
+                    title = "Description"
+                    section = str(tag) + section
+
+                PublishedSectionContent.objects.create(
+                    project=self,
+                    custom_title=title,
+                    custom_order=content_len-i,
+                    section_content=section)
+            else:
+                # Attach to section content
+                section = str(tag) + section
 
 
 def exists_project_slug(slug):
