@@ -212,10 +212,13 @@ def project_home(request):
                 messages.info(request,'Please fill in the affiliation at the end of the page.')
             return redirect('project_authors', project_slug=project.slug)
     elif request.method == 'POST' and 'data_access_response' in request.POST.keys():
-        data_access_response_formset = DataAccessRequestFormSet(request.POST, queryset=
-                                                                       DataAccessRequest.objects.filter(
-                                                                           project__in=published_projects,
-                                                                           status=0), form_kwargs={'user': user})  # TOOD need to do something?
+        data_access_response_formset = DataAccessRequestFormSet(request.POST,
+                                                                queryset=
+                                                                DataAccessRequest.objects.filter(
+                                                                    project__in=published_projects,
+                                                                    status=0),
+                                                                form_kwargs={
+                                                                    'user': user})
         process_data_access_response(request, data_access_response_formset)
 
 
@@ -234,7 +237,6 @@ def project_home(request):
     invitation_response_formset = InvitationResponseFormSet(
         queryset=AuthorInvitation.get_user_invitations(user))
 
-    # CONTINUE.
     da_resp_queryset = DataAccessRequest.objects.filter(project__in=published_projects, status=0)
     data_access_request_formset = DataAccessRequestFormSet(queryset=da_resp_queryset, form_kwargs = { 'user': user})
 
