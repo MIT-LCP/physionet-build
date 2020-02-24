@@ -379,12 +379,10 @@ def move_author(request, project_slug, **kwargs):
             # Get attributes of selected author
             display_order = author.display_order
             shared = author.shared
-            first = authors.filter(shared=shared).aggregate(min=Min('display_order'))['min']
-            last = authors.filter(shared=shared).aggregate(max=Max('display_order'))['max']
 
             # Direction of action
             if direction == 'up' and 1 < author.display_order <= n_authors:
-                # Shared groups
+                # Get shared groups numbers
                 up_shared = authors.get(display_order=display_order-1).shared
                 dw_shared = shared
 
@@ -392,7 +390,8 @@ def move_author(request, project_slug, **kwargs):
                 up_query = Q(display_order=display_order)
                 dw_query = Q(display_order=display_order-1)
 
-                # In case there are shared authorships
+                # Also get authors in the shared groups
+                # of the authors to be swaped
                 if up_shared != dw_shared:
                     up_query = up_query | Q(shared=shared, shared__isnull=False)
                     dw_query = dw_query | Q(shared=up_shared, shared__isnull=False)
@@ -402,7 +401,7 @@ def move_author(request, project_slug, **kwargs):
                 dw_authors = authors.filter(dw_query)
                 
             elif direction == 'down' and 1 <= author.display_order < n_authors:
-                # Shared groups
+                # Get shared groups numbers
                 up_shared = shared
                 dw_shared = authors.get(display_order=display_order+1).shared
 
@@ -410,7 +409,8 @@ def move_author(request, project_slug, **kwargs):
                 up_query = Q(display_order=display_order+1)
                 dw_query = Q(display_order=display_order)
 
-                # In case there are shared authorships
+                # Also get authors in the shared groups
+                # of the authors to be swaped
                 if up_shared != dw_shared:
                     up_query = up_query | Q(shared=dw_shared, shared__isnull=False)
                     dw_query = dw_query | Q(shared=shared, shared__isnull=False)
@@ -422,26 +422,33 @@ def move_author(request, project_slug, **kwargs):
             else:
                 raise Http404()
 
-            # Swap positions
+            # Swap author positions
             with transaction.atomic():
-                # Get the offsets
+                # We have constraints on unique author position
+                # so we have get offsets to shift all authors
+                # before swaping positions.
                 mx = authors.count()
                 up = dw_authors.count()+mx
                 dw = up_authors.count()-mx
 
-                # Get author ids
+                # The queryset we are using was retrived using
+                # the display order. Because they are being swaped,
+                # we need to get the author ids to make sure we
+                # are moving them correctly.
                 up_ids = list(up_authors.values_list('id', flat=True))
                 dw_ids = list(dw_authors.values_list('id', flat=True))
 
-                # Avoid constraint violation
+                # Shift all the authors by max display order
+                # to avoid the constraint violation
                 authors.filter(id__in=up_ids).update(display_order=F('display_order')+mx)
                 authors.filter(id__in=dw_ids).update(display_order=F('display_order')+mx)
 
-                # Move authors
+                # Swap the display positions for the two groups
                 authors.filter(id__in=up_ids).update(display_order=F('display_order')-up)
                 authors.filter(id__in=dw_ids).update(display_order=F('display_order')+dw)
 
-                # Swap shared groups
+                # Swap the number of their shared groups so they
+                # remain sequential in relation to display order
                 if up_shared and dw_shared:
                     authors.filter(id__in=up_ids).update(shared=up_shared)
                     authors.filter(id__in=dw_ids).update(shared=dw_shared)
@@ -466,42 +473,57 @@ def share(request, project_slug, **kwargs):
         display_order = int(request.POST['display_order'])
 
         with transaction.atomic():
-            # Get authors to share authorship
+            # Get author selected on share action
             author = authors.get(display_order=display_order-1)
             share = authors.get(display_order=display_order)
 
-            # Get shared number
+            # Get the highest number of a shared group
             shared = authors.aggregate(max=Max('shared'))['max']
+
+            # If there's no shared groups, we start at one
+            # otherwise, we set the new group to be max+1
             if shared == None:
                 shared = 1
             else:
                 shared = shared + 1
 
-            # Assign shared authorship
+            # If the selected author and the author listed right
+            # before him are already in a group, we merge them
             if author.shared and share.shared:
                 authors.filter(shared=share.shared).update(shared=author.shared)
+            # If only the previous author is in a group, we
+            # add the selected author to that group
             elif share.shared:
                 author.shared = share.shared
                 author.save(update_fields=('shared',))
+            # If they are both without a group
+            # We add them both to the new (max+1) group
             elif author.shared == None:
                 author.shared = shared
                 share.shared = author.shared
                 author.save(update_fields=('shared',))
                 share.save(update_fields=('shared',))
+            # If only the selected author is in a group
+            # we add the previous author to that group
             else:
                 share.shared = author.shared
                 share.save(update_fields=('shared',))
 
-            # Swap if new is group is displayed first
+            # The code above can cause the new group
+            # to be inconsistent with the display order
+            # e.g. group 1 has authors 5 and 6 and
+            #      group 2 has authors 1 and 2
+            # so we update the groups to ensure ordering
             if share.display_order <= share.shared:
-                # All authors that come after
+                # Get all authors that come after the new group
                 after = authors.filter(display_order__gt=share.display_order)
 
-                # Shift new group to earlier order
+                # Shift new group number to be the mininum
+                # group number of the authors after that group
                 new_shared = after.aggregate(min=Min('shared'))['min']
                 authors.filter(shared=share.shared).update(shared=new_shared)
 
-                # Shift the others by one
+                # Shift all the groups after it by 1
                 after.update(shared=F('shared')+1)
 
         # Update page
@@ -525,21 +547,31 @@ def unshare(request, project_slug, **kwargs):
         display_order = int(request.POST['display_order'])
 
         with transaction.atomic():
-            # Get author to unshare authorship
+            # Get author selected on unshare action
             author = authors.get(display_order=display_order)
             shared = author.shared
 
-            # Removed from this group
+            # The folowing sequence ensures that when an author
+            # is selected to be removed from a shared group
+            # the group he is currently part of is split in two
+            # for authors before and after him, respectively.
+            # 1. Get all authors displayed after the selected and
+            # 2. Exclude the ones without a shared group
+            # 3. Increase their shared group number by 1
             remove = authors.filter(display_order__gte=display_order)
-            remove.exclude(shared=None).update(shared=F('shared')+1)
+            remove = remove.exclude(shared=None)
+            remove.update(shared=F('shared')+1)
 
-            # Delete group if is left with single author
+            # If any of the groups is left with a single
+            # author, we remove it
             for s in [shared+1, shared]:
                 share = authors.filter(shared=s)
                 if(len(share) < 2):
                     share.update(shared=None)
 
-                    # Shifts up other groups
+                    # For each group removed we update
+                    # the remaining group numbers to ensure
+                    # that they are sequential
                     authors.filter(shared__gt=s).update(shared=F('shared')-1)
 
         # Update page
