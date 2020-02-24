@@ -1260,7 +1260,6 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     authors = project.get_author_info()
     invitations = project.authorinvitations.filter(is_active=True)
     corresponding_author = authors.get(is_corresponding=True)
-    corresponding_author.text_affiliations = ', '.join(a.name for a in corresponding_author.affiliations.all())
 
     references = project.references.all()
     publication = project.publications.all().first()

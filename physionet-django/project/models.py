@@ -206,6 +206,22 @@ class Author(BaseAuthor):
         unique_together = (('user', 'content_type', 'object_id',),
                            ('display_order', 'content_type', 'object_id'))
 
+    @property
+    def name(self):
+        return self.user.profile.get_full_name()
+    
+    @property
+    def email(self):
+        return self.user.email
+    
+    @property
+    def username(self):
+        return self.user.username
+
+    @property
+    def text_affiliations(self):
+        return [a.name for a in self.affiliations.all()]
+
     def get_full_name(self):
         """
         The name is tied to the profile. There is no form for authors
@@ -239,18 +255,6 @@ class Author(BaseAuthor):
             return True
         return False
 
-    def set_display_info(self, set_affiliations=True):
-        """
-        Set the fields used to display the author
-        """
-        user = self.user
-        self.name = user.profile.get_full_name()
-        self.email = user.email
-        self.username = user.username
-
-        if set_affiliations:
-            self.text_affiliations = [a.name for a in self.affiliations.all()]
-
 
 class PublishedAuthor(BaseAuthor):
     """
@@ -266,6 +270,22 @@ class PublishedAuthor(BaseAuthor):
         unique_together = (('user', 'project'),
                            ('display_order', 'project'))
 
+    @property
+    def name(self):
+        return self.user.profile.get_full_name()
+    
+    @property
+    def email(self):
+        return self.user.email
+    
+    @property
+    def username(self):
+        return self.user.username
+
+    @property
+    def text_affiliations(self):
+        return [a.name for a in self.affiliations.all()]
+
     def get_full_name(self, reverse=False):
         """
         Return the full name.
@@ -277,15 +297,6 @@ class PublishedAuthor(BaseAuthor):
             return ', '.join([self.last_name, self.first_names])
         else:
             return ' '.join([self.first_names, self.last_name])
-
-    def set_display_info(self):
-        """
-        Set the fields used to display the author
-        """
-        self.name = self.get_full_name()
-        self.username = self.user.username
-        self.email = self.user.email
-        self.text_affiliations = [a.name for a in self.affiliations.all()]
 
     def initialed_name(self):
         return '{}, {}'.format(self.last_name, ' '.join('{}.'.format(i[0]) for i in self.first_names.split()))
@@ -514,32 +525,6 @@ class Metadata(models.Model):
         """
         return self.authors.all().order_by('display_order')
 
-    def get_author_info(self, separate_submitting=False, include_emails=False):
-        """
-        Get the project's authors, setting information needed to display
-        their attributes.
-        """
-        authors = self.authors.all().order_by('display_order')
-        author_emails = ';'.join(a.user.email for a in authors)
-
-        if separate_submitting:
-            submitting_author = authors.get(is_submitting=True)
-            coauthors = authors.filter(is_submitting=False)
-            submitting_author.set_display_infprevious_versiono()
-            for a in coauthors:
-                a.set_display_info()
-            if include_emails:
-                return submitting_author, coauthors, author_emails
-            else:
-                return submitting_author, coauthors
-        else:
-            for a in authors:
-                a.set_display_info()
-            if include_emails:
-                return authors, author_emails
-            else:
-                return authors
-
     def abstract_text_content(self):
         """
         Returns abstract as plain text.
@@ -573,7 +558,8 @@ class Metadata(models.Model):
         Get all the information needed for the project info card
         seen by an admin
         """
-        authors, author_emails = self.get_author_info(include_emails=include_emails)
+        authors = self.authors.order_by('display_order')
+        author_emails = ';'.join(a.user.email for a in authors)
         storage_info = self.get_storage_info(force_calculate=force_calculate)
         edit_logs = self.edit_log_history()
         for e in edit_logs:
