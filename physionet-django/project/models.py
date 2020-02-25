@@ -265,14 +265,18 @@ class PublishedAuthor(BaseAuthor):
         unique_together = (('user', 'project'),
                            ('display_order', 'project'))
 
-    def get_full_name(self):
-        return ' '.join([self.first_names, self.last_name])
+    def get_full_name(self, reverse=False):
+        """
+        Return the full name.
 
-    def get_full_name_srs(self):
+        Args:
+            reverse: Format of the return string. If False (default) then
+                [first name, last name]. If True then [last name, first name]
         """
-        Return the full name in SRS format
-        """
-        return ', '.join([self.last_name, self.first_names])
+        if reverse:
+            return ', '.join([self.last_name, self.first_names])
+        else:
+            return ' '.join([self.first_names, self.last_name])
 
     def set_display_info(self):
         """
@@ -402,6 +406,12 @@ class CoreProject(models.Model):
     def active_new_version(self):
         "Whether there is a new version being worked on"
         return bool(self.activeprojects.filter())
+
+    def get_published_versions(self):
+        """
+        Return a queryset of PublishedProjects, sorted by version.
+        """
+        return self.publishedprojects.filter().order_by('version_order')
 
 
 class ProjectType(models.Model):
@@ -1765,7 +1775,7 @@ class EditLog(models.Model):
          'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable'),
     )
     # The editor's free input fields
-    EDITOR_FIELDS = ('editor_comments', 'decision', 'auto_doi')
+    EDITOR_FIELDS = ('editor_comments', 'decision')
 
     COMMON_LABELS = {
         'reusable': 'Does the project include everything needed for reuse by the community?',
@@ -1773,7 +1783,6 @@ class EditLog(models.Model):
         'editor_comments': 'Comments to authors',
         'no_phi': 'Is the project free of protected health information?',
         'data_machine_readable': 'Are all files machine-readable?',
-        'auto_doi': 'Automatically assign a new DOI once it has been publish?',
     }
 
     LABELS = (
@@ -1832,7 +1841,6 @@ class EditLog(models.Model):
     decision_datetime = models.DateTimeField(null=True)
     # Comments for the decision
     editor_comments = models.CharField(max_length=10000)
-    auto_doi = models.BooleanField(default=True)
 
     def set_quality_assurance_results(self):
         """
