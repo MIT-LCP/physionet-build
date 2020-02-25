@@ -11,6 +11,11 @@
       <li class="nav-item">
         <a class="nav-link {% if passphrase %} active {% endif %}" id="anonymous-tab" data-toggle="tab" href="#anonymous" role="tab" aria-controls="anonymous" aria-selected="false">Anonymous Access</a>
       </li>
+      {% if project.submission_status == 60 %}
+      <li class="nav-item">
+        <a class="nav-link" id="doi-tab" data-toggle="tab" href="#doi" role="tab" aria-controls="timeline" aria-selected="false">Reserve DOI</a>
+      </li>
+      {% endif %}
     </ul>
   </div>
   <div class="card-body">
@@ -79,8 +84,28 @@
             Revoke access
           </button>
           {% endif %}
-
         </form>
+      </div>
+      {# Reserve a DOI #}
+      <div class="tab-pane fade" id="doi" role="tabpanel" aria-labelledby="doi-tab">
+        <p>You can reserve DOIs for projects that are ready to publish. This is useful 
+          if a formal citation is required in advance of publication (for example, if the project is being announced in a press release or cited in paper). The DOI will only become active when the project is published.</p>
+      <form action="{% url 'submission_info' project.slug %}" method="POST" id="reserve_doi_form">
+        {% csrf_token %}
+        {% if not project.doi %}
+        <button class="btn btn-primary btn-rsp" type="submit" name="generate_draft_doi">
+          Generate draft DOI
+        </button>
+        {% else %}
+        <div class="alert alert-success">
+          <strong>Latest version</strong>: https://doi.org/{{ project.core_project.doi }}<br />
+          <strong>This version (version {{ project.version }})</strong>: https://doi.org/{{ project.doi }}
+        </div>
+        <button class="btn btn-primary btn-rsp" type="submit" name="generate_draft_doi" disabled=True>
+          Generate draft DOI
+        </button>
+        {% endif %}
+      </form>
       </div>
     </div>
   </div>
