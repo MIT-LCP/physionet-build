@@ -1,5 +1,6 @@
 import re
 import pdb
+import warnings
 
 from django import forms
 from django.utils import timezone
@@ -13,7 +14,7 @@ from project.models import (ActiveProject, EditLog, CopyeditLog,
     PublishedProject, exists_project_slug, DataAccess)
 from project.validators import validate_slug, MAX_PROJECT_SLUG_LENGTH
 from user.models import User, CredentialApplication
-from console.utility import create_doi_draft
+
 
 RESPONSE_CHOICES = (
     (1, 'Accept'),
@@ -73,7 +74,7 @@ class EditSubmissionForm(forms.ModelForm):
         model = EditLog
         fields = ('soundly_produced', 'well_described', 'open_format',
             'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable',
-            'editor_comments', 'auto_doi', 'decision')
+            'editor_comments', 'decision')
 
         labels = EditLog.COMMON_LABELS
 
@@ -96,10 +97,6 @@ class EditSubmissionForm(forms.ModelForm):
         """
         super().__init__(*args, **kwargs)
         self.resource_type = resource_type
-
-        if not settings.DATACITE_PREFIX:
-            self.fields['auto_doi'].disabled = True
-            self.initial['auto_doi'] = False
 
         # This will be used in clean
         self.quality_assurance_fields = EditLog.QUALITY_ASSURANCE_FIELDS[resource_type.id]
@@ -160,11 +157,6 @@ class EditSubmissionForm(forms.ModelForm):
                 project.submission_status = 40
                 project.editor_accept_datetime = now
                 project.latest_reminder = now
-                if self.cleaned_data['auto_doi'] and not project.doi:
-                    project.doi = create_doi_draft(project)
-                    if not project.core_project.doi:
-                        project.core_project.doi = create_doi_draft(project)
-                        project.core_project.save()
                 CopyeditLog.objects.create(project=project)
                 project.save()
             return edit_log
@@ -214,15 +206,31 @@ class PublishForm(forms.Form):
     slug = forms.CharField(max_length=MAX_PROJECT_SLUG_LENGTH,
                            validators=[validate_slug])
     make_zip = forms.ChoiceField(choices=YES_NO, label='Make zip of all files')
+    register_doi = forms.ChoiceField(initial='1', choices=YES_NO,
+                                     label='Register a DOI')
+    draft_doi_exists = forms.BooleanField(initial=False, required=False,
+                                          widget=forms.HiddenInput())
 
     def __init__(self, project, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.project = project
+
         # No option to set slug if publishing new version
         if self.project.version_order:
             del(self.fields['slug'])
         else:
             self.fields['slug'].initial = project.slug
+
+        # If DOI has been reserved, it should be registered
+        if project.doi:
+            self.fields['register_doi'].widget = forms.HiddenInput()
+            self.fields['draft_doi_exists'].initial = True
+
+        if not settings.DATACITE_PREFIX:
+            self.fields['register_doi'].widget = forms.HiddenInput()
+            self.fields['register_doi'] = 0
+            warnings.warn("""To register DOIs, add DATACITE credentials to your
+                .env file""")
 
     def clean_slug(self):
         """
