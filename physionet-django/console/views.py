@@ -226,6 +226,16 @@ def submission_info(request, project_slug):
     elif 'remove_passphrase' in request.POST:
         project.anonymous.all().delete()
         anonymous_url, passphrase = '', 'revoked'
+    elif 'generate_draft_doi' in request.POST:
+        if not project.doi:
+            payload = utility.generate_doi_payload(project, event="draft")
+            project.doi = utility.register_doi(payload)
+            project.save()
+        if not project.core_project.doi:
+            payload = utility.generate_doi_payload(project, core_project=True,
+                                                    event="draft")
+            project.core_project.doi = utility.register_doi(payload)
+            project.core_project.save()
 
     url_prefix = notification.get_url_prefix(request)
     return render(request, 'console/submission_info.html',
@@ -481,28 +491,59 @@ def publish_submission(request, project_slug, *args, **kwargs):
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
     if request.method == 'POST':
         publish_form = forms.PublishForm(project=project, data=request.POST)
+
         if project.is_publishable() and publish_form.is_valid():
+
             if project.version_order:
                 slug = project.get_previous_slug()
             else:
                 slug = publish_form.cleaned_data['slug']
+
             published_project = project.publish(slug=slug,
                 make_zip=int(publish_form.cleaned_data['make_zip']))
             notification.publish_notify(request, published_project)
-            utility.publish_doi(published_project)
+
+            if int(publish_form.cleaned_data['register_doi']):
+
+                # register/update the core DOI
+                payload_core = utility.generate_doi_payload(published_project,
+                                                            core_project=True,
+                                                            event="publish")
+                if project.core_project.doi:
+                    utility.update_doi(project.core_project.doi, payload_core)
+                else:
+                    published_project.core_project.doi = utility.register_doi(payload_core)
+                    published_project.core_project.save()
+
+                # register/update the project DOI
+                payload = utility.generate_doi_payload(published_project,
+                                                       core_project=False,
+                                                       event="publish")
+
+                if project.doi:
+                    utility.update_doi(project.doi, payload)
+                else:
+                    published_project.doi = utility.register_doi(payload)
+                    published_project.save()
+
             return render(request, 'console/publish_complete.html',
-                {'published_project': published_project, 'editor_home': True})
+                          {'published_project': published_project,
+                           'editor_home': True})
+
     publishable = project.is_publishable()
     url_prefix = notification.get_url_prefix(request)
     publish_form = forms.PublishForm(project=project)
 
     return render(request, 'console/publish_submission.html',
-        {'project': project, 'publishable': publishable, 'authors': authors,
-         'author_emails': author_emails, 'storage_info': storage_info,
-         'edit_logs': edit_logs, 'copyedit_logs': copyedit_logs,
-         'latest_version': latest_version, 'publish_form': publish_form,
-         'max_slug_length': MAX_PROJECT_SLUG_LENGTH, 'editor_home': True,
-         'url_prefix': url_prefix})
+                  {'project': project, 'publishable': publishable,
+                   'authors': authors, 'author_emails': author_emails,
+                   'storage_info': storage_info, 'edit_logs': edit_logs,
+                   'copyedit_logs': copyedit_logs,
+                   'latest_version': latest_version,
+                   'publish_form': publish_form,
+                   'max_slug_length': MAX_PROJECT_SLUG_LENGTH,
+                   'editor_home': True,
+                   'url_prefix': url_prefix})
 
 
 def process_storage_response(request, storage_response_formset):
