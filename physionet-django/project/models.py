@@ -1273,6 +1273,35 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             os.rename(published_project.file_root(), self.file_root())
             raise
 
+    def get_author_info(self):
+        authors = self.authors.all().order_by('display_order')
+
+        # If first author or first shared cannot go up
+        # If last author or last shared cannot go down
+        window = {'partition_by': models.F('shared')}
+        authors = authors.annotate(
+            can_move_up=models.Case(
+                models.When(display_order=1, 
+                    then=models.Value(False)),
+                models.When(display_order=models.Window(
+                        expression=models.Min('display_order'),
+                        **window),
+                    then=models.Value(False)),
+                default=models.Value(True),
+                output_field=models.BooleanField()),
+            can_move_down=models.Case(
+                models.When(display_order=models.Window(
+                    models.Max('display_order')),
+                    then=models.Value(False)),
+                models.When(display_order=models.Window(
+                    expression=models.Max('display_order'),
+                    **window), then=models.Value(False)),
+                default=models.Value(True),
+                output_field=models.BooleanField()),
+        )
+
+        return authors
+
 
 class PublishedProject(Metadata, SubmissionInfo):
     """

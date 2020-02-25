@@ -362,6 +362,28 @@ def cancel_invitation(request, invitation_id, project):
         messages.success(request, 'The invitation has been cancelled')
 
 
+def swap(authors, up_author, dw_author):
+    # Swap author positions
+    with transaction.atomic():
+        # We have constraints on unique author position
+        # so we have get offsets to shift all authors
+        # before swaping positions.
+        mx = authors.count()
+
+        # Shift all the authors by max display order
+        # to avoid the constraint violation
+        up_author.display_order = F('display_order')+mx
+        dw_author.display_order = F('display_order')+mx
+        up_author.save()
+        dw_author.save()
+
+        # Swap the display positions for the two groups
+        up_author.display_order = F('display_order')-1-mx
+        dw_author.display_order = F('display_order')+1-mx
+        up_author.save()
+        dw_author.save()
+
+
 @project_auth(auth_mode=1, post_auth_mode=2)
 def move_author(request, project_slug, **kwargs):
     """
@@ -372,86 +394,33 @@ def move_author(request, project_slug, **kwargs):
         ('project', 'authors', 'is_submitting'))
 
     if request.method == 'POST':
+        # Get author to be moved
         author = authors.get(id=int(request.POST['author_id']))
         direction = request.POST['direction']
         n_authors = authors.count()
-        if n_authors > 1:
-            # Get attributes of selected author
-            display_order = author.display_order
-            shared = author.shared
 
-            # Direction of action
-            if direction == 'up' and 1 < author.display_order <= n_authors:
-                # Get shared groups numbers
-                up_shared = authors.get(display_order=display_order-1).shared
-                dw_shared = shared
+        # Min and max position for the authors in that group
+        if author.shared:
+            group = author.get(shared=author.shared)
+            max_pos = group.aggregate(max=Max('shared'))['min']
+            min_pos = group.aggregate(max=Max('shared'))['max']
 
-                # Get selected and previous author
-                up_query = Q(display_order=display_order)
-                dw_query = Q(display_order=display_order-1)
-
-                # Also get authors in the shared groups
-                # of the authors to be swaped
-                if up_shared != dw_shared:
-                    up_query = up_query | Q(shared=shared, shared__isnull=False)
-                    dw_query = dw_query | Q(shared=up_shared, shared__isnull=False)
-
-                # Authors queryset
-                up_authors = authors.filter(up_query)
-                dw_authors = authors.filter(dw_query)
-                
-            elif direction == 'down' and 1 <= author.display_order < n_authors:
-                # Get shared groups numbers
-                up_shared = shared
-                dw_shared = authors.get(display_order=display_order+1).shared
-
-                # Get selected and next author
-                up_query = Q(display_order=display_order+1)
-                dw_query = Q(display_order=display_order)
-
-                # Also get authors in the shared groups
-                # of the authors to be swaped
-                if up_shared != dw_shared:
-                    up_query = up_query | Q(shared=dw_shared, shared__isnull=False)
-                    dw_query = dw_query | Q(shared=shared, shared__isnull=False)
-
-                # Authors queryset
-                up_authors = authors.filter(up_query)
-                dw_authors = authors.filter(dw_query)
-
-            else:
+            # Do nothing if selected author is first or last
+            # in the group
+            if author.display_order in [max_pos, min_pos]:
                 raise Http404()
 
-            # Swap author positions
-            with transaction.atomic():
-                # We have constraints on unique author position
-                # so we have get offsets to shift all authors
-                # before swaping positions.
-                mx = authors.count()
-                up = dw_authors.count()+mx
-                dw = up_authors.count()-mx
-
-                # The queryset we are using was retrived using
-                # the display order. Because they are being swaped,
-                # we need to get the author ids to make sure we
-                # are moving them correctly.
-                up_ids = list(up_authors.values_list('id', flat=True))
-                dw_ids = list(dw_authors.values_list('id', flat=True))
-
-                # Shift all the authors by max display order
-                # to avoid the constraint violation
-                authors.filter(id__in=up_ids).update(display_order=F('display_order')+mx)
-                authors.filter(id__in=dw_ids).update(display_order=F('display_order')+mx)
-
-                # Swap the display positions for the two groups
-                authors.filter(id__in=up_ids).update(display_order=F('display_order')-up)
-                authors.filter(id__in=dw_ids).update(display_order=F('display_order')+dw)
-
-                # Swap the number of their shared groups so they
-                # remain sequential in relation to display order
-                if up_shared and dw_shared:
-                    authors.filter(id__in=up_ids).update(shared=up_shared)
-                    authors.filter(id__in=dw_ids).update(shared=dw_shared)
+        if n_authors > 1:
+            # Direction of action
+            display_order = author.display_order
+            if direction == 'up' and 1 < author.display_order <= n_authors:
+                other = authors.get(display_order=display_order-1)
+                swap(authors, author, other)
+            elif direction == 'down' and 1 <= author.display_order < n_authors:
+                other = authors.get(display_order=display_order+1)
+                swap(authors, other, author)
+            else:
+                raise Http404()
 
             authors = project.get_author_info()
             return render(request, 'project/author_list.html',
@@ -1397,7 +1366,6 @@ def project_submission(request, project_slug, **kwargs):
         if project.submission_status == 50:
             authors = authors.order_by('approval_datetime')
             for a in authors:
-                a.set_display_info()
                 if user == a.user and not a.approval_datetime:
                     awaiting_user_approval = True
     else:
@@ -1687,8 +1655,6 @@ def published_project(request, project_slug, version, subdir=''):
         raise Http404()
 
     authors = project.authors.all().order_by('display_order')
-    for a in authors:
-        a.set_display_info()
     references = project.references.all()
     publication = project.publications.all().first()
     topics = project.topics.all()

@@ -61,11 +61,11 @@
       {% if is_submitting %}
         <a class="float-right">
           {# Up button #}
-          {% if author.display_order > 1 %}
+          {% if author.can_move_up %}
             <button class="btn btn-sm pointer" onclick="moveAuthor({{ author.id }}, 'up')" title="Move Author Up" style="background:none"><i class="fas fa-arrow-up"></i></button>
           {% endif %}
           {# Down button #}
-          {% if author.display_order < authors|length %}
+          {% if author.can_move_down %}
             <button class="btn btn-sm pointer" onclick="moveAuthor({{ author.id }}, 'down')"type="button" title="Move Author Down" style="background:none"><i class="fas fa-arrow-down"></i></button>
           {% else %}
             <button class="btn btn-sm pointer" type="button" style="background:none; color:white"><i class="fa-arrow-down"></i></button>
