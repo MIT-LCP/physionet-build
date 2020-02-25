@@ -1259,13 +1259,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
                 return published_project
 
-        except Exception as exception:
+        except:
+            # Move the files to the active project directory
             os.rename(published_project.file_root(), self.file_root())
-            # Create project file root if this is first version or the first
-            # version with a different access policy
-            if os.path.isdir(published_project.project_file_root()):
-                os.rmdir(published_project.project_file_root())
-            raise exception
+            raise
 
     
 class PublishedProject(Metadata, SubmissionInfo):
