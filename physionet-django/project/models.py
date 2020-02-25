@@ -1155,111 +1155,117 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         if not self.is_publishable():
             raise Exception('The project is not publishable')
 
-        published = False
-        active_file_root = None
-        with transaction.atomic():
-            # If this is a new version, previous fields need to be updated
-            # and slug needs to be carried over
-            if self.version_order:
-                previous_published_projects = self.core_project.publishedprojects.all()
-                previous_published_projects.update(is_latest_version=False)
+        published_project = PublishedProject(doi=doi, has_wfdb=self.has_wfdb())
+        # Direct copy over fields
+        for attr in [f.name for f in Metadata._meta.fields] + [f.name for f in SubmissionInfo._meta.fields]:
+            setattr(published_project, attr, getattr(self, attr))
 
-                slug = previous_published_projects.first().slug
-                title = previous_published_projects.first().title
+        published_project.slug = slug or self.slug
 
-            published_project = PublishedProject(doi=doi,
-                has_wfdb=self.has_wfdb())
+        # Create project file root if this is first version or the first
+        # version with a different access policy
+        if not os.path.isdir(published_project.project_file_root()):
+            os.mkdir(published_project.project_file_root())
+        os.rename(self.file_root(), published_project.file_root())
 
-            # Direct copy over fields
-            for attr in [f.name for f in Metadata._meta.fields] + [f.name for f in SubmissionInfo._meta.fields]:
-                setattr(published_project, attr, getattr(self, attr))
+        try:
+            with transaction.atomic():
+                # If this is a new version, previous fields need to be updated
+                # and slug needs to be carried over
+                if self.version_order:
+                    previous_published_projects = self.core_project.publishedprojects.all()
+                    previous_published_projects.update(is_latest_version=False)
 
-            # Set the slug if specified
-            published_project.slug = slug or self.slug
-            published_project.title = title or self.title
+                    slug = previous_published_projects.first().slug
+                    title = previous_published_projects.first().title
+                    if slug != published_project.slug:
+                        raise ValueError(
+                            {"message": "The published project has different slugs."})
 
-            if self.core_project.publishedprojects.all() and len(previous_published_projects) > 0:
-                for project in previous_published_projects:
-                    if project.version > published_project.version:
-                        project.is_latest_version = True
-                        published_project.is_latest_version = False
-                        project.save()
-                previous_published_projects.update(has_other_versions=True)
+                # Set the slug if specified
+                published_project.slug = slug or self.slug
+                published_project.title = title or self.title
 
-            published_project.save()
+                if self.core_project.publishedprojects.all() and len(previous_published_projects) > 0:
+                    for project in previous_published_projects:
+                        if project.version > published_project.version:
+                            project.is_latest_version = True
+                            published_project.is_latest_version = False
+                            project.save()
+                    previous_published_projects.update(has_other_versions=True)
 
-            # Same content, different objects.
-            for reference in self.references.all():
-                published_reference = PublishedReference.objects.create(
-                    description=reference.description,
-                    project=published_project)
+                published_project.save()
 
-            for publication in self.publications.all():
-                published_publication = PublishedPublication.objects.create(
-                    citation=publication.citation, url=publication.url,
-                    project=published_project)
+                # Same content, different objects.
+                for reference in self.references.all():
+                    published_reference = PublishedReference.objects.create(
+                        description=reference.description,
+                        project=published_project)
 
-            published_project.set_topics([t.description for t in self.topics.all()])
+                for publication in self.publications.all():
+                    published_publication = PublishedPublication.objects.create(
+                        citation=publication.citation, url=publication.url,
+                        project=published_project)
 
-            for parent_project in self.parent_projects.all():
-                published_project.parent_projects.add(parent_project)
+                published_project.set_topics([t.description for t in self.topics.all()])
 
-            if self.resource_type.id == 1:
-                languages = self.programming_languages.all()
-                if languages:
-                    published_project.programming_languages.add(*list(languages))
+                for parent_project in self.parent_projects.all():
+                    published_project.parent_projects.add(parent_project)
 
-            for author in self.authors.all():
-                author_profile = author.user.profile
-                published_author = PublishedAuthor.objects.create(
-                    project=published_project, user=author.user,
-                    is_submitting=author.is_submitting,
-                    is_corresponding=author.is_corresponding,
-                    approval_datetime=author.approval_datetime,
-                    display_order=author.display_order,
-                    first_names=author_profile.first_names,
-                    last_name=author_profile.last_name,
-                    )
+                if self.resource_type.id == 1:
+                    languages = self.programming_languages.all()
+                    if languages:
+                        published_project.programming_languages.add(*list(languages))
 
-                affiliations = author.affiliations.all()
-                for affiliation in affiliations:
-                    published_affiliation = PublishedAffiliation.objects.create(
-                        name=affiliation.name, author=published_author)
+                for author in self.authors.all():
+                    author_profile = author.user.profile
+                    published_author = PublishedAuthor.objects.create(
+                        project=published_project, user=author.user,
+                        is_submitting=author.is_submitting,
+                        is_corresponding=author.is_corresponding,
+                        approval_datetime=author.approval_datetime,
+                        display_order=author.display_order,
+                        first_names=author_profile.first_names,
+                        last_name=author_profile.last_name,
+                        )
 
-                if author.is_corresponding:
-                    published_author.corresponding_email = author.corresponding_email.email
-                    published_author.save()
-                    contact = Contact.objects.create(name=author.get_full_name(),
-                    affiliations='; '.join(a.name for a in affiliations),
-                    email=author.corresponding_email, project=published_project)
+                    affiliations = author.affiliations.all()
+                    for affiliation in affiliations:
+                        published_affiliation = PublishedAffiliation.objects.create(
+                            name=affiliation.name, author=published_author)
 
-            # Move the edit and copyedit logs
-            for edit_log in self.edit_logs.all():
-                edit_log.project = published_project
-                edit_log.save()
-            for copyedit_log in self.copyedit_logs.all():
-                copyedit_log.project = published_project
-                copyedit_log.save()
+                    if author.is_corresponding:
+                        published_author.corresponding_email = author.corresponding_email.email
+                        published_author.save()
+                        contact = Contact.objects.create(name=author.get_full_name(),
+                        affiliations='; '.join(a.name for a in affiliations),
+                        email=author.corresponding_email, project=published_project)
 
-            active_file_root = self.file_root()
-            # Remove the ActiveProject
-            self.delete()
-            published = True
+                # Move the edit and copyedit logs
+                for edit_log in self.edit_logs.all():
+                    edit_log.project = published_project
+                    edit_log.save()
+                for copyedit_log in self.copyedit_logs.all():
+                    copyedit_log.project = published_project
+                    copyedit_log.save()
 
-        if published and active_file_root is not None:
+                # Set files read only and make zip file if requested
+                move_files_as_readonly(published_project.id, self.file_root(),
+                    published_project.file_root(), make_zip,
+                    verbose_name='Read Only Files - {}'.format(published_project))
+
+                # Remove the ActiveProject
+                self.delete()
+
+                return published_project
+
+        except Exception as exception:
+            os.rename(published_project.file_root(), self.file_root())
             # Create project file root if this is first version or the first
             # version with a different access policy
-            if not os.path.isdir(published_project.project_file_root()):
-                os.mkdir(published_project.project_file_root())
-
-            # Move over main files
-            os.rename(self.file_root(), published_project.file_root())
-
-            # Set files read only and make zip file if requested
-            move_files_as_readonly(published_project.id, active_file_root,
-                published_project.file_root(), make_zip,
-                verbose_name='Read Only Files - {}'.format(published_project))
-            return published_project
+            if os.path.isdir(published_project.project_file_root()):
+                os.rmdir(published_project.project_file_root())
+            raise exception
 
     
 class PublishedProject(Metadata, SubmissionInfo):
