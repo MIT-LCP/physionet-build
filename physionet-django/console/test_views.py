@@ -173,8 +173,7 @@ class TestState(TestMixin):
             'edit_submission', args=(project.slug,)), data={
                 'soundly_produced': 1, 'well_described': 1, 'open_format': 1,
                 'data_machine_readable': 1, 'reusable': 1, 'no_phi': 1,
-                'pn_suitable': 1, 'editor_comments': 'Good.', 'decision': 2,
-                'auto_doi': 1
+                'pn_suitable': 1, 'editor_comments': 'Good.', 'decision': 2
             })
         # Complete copyedit
         response = self.client.post(reverse(
@@ -188,7 +187,7 @@ class TestState(TestMixin):
             data={'approve_publication':''})
         self.assertTrue(ActiveProject.objects.get(id=project.id).is_publishable())
 
-    def test_publish(self):
+    def test_publish(self, doi=0):
         """
         Test publishing project
         """
@@ -203,13 +202,13 @@ class TestState(TestMixin):
         taken_slug = PublishedProject.objects.all().first().slug
         response = self.client.post(reverse(
             'publish_submission', args=(project.slug,)),
-            data={'slug':taken_slug, 'doi': False, 'make_zip':1})
+            data={'slug':taken_slug, 'register_doi': doi, 'make_zip':1})
         self.assertTrue(bool(ActiveProject.objects.filter(slug=project_slug)))
 
         # Publish with a valid custom slug
         response = self.client.post(reverse(
             'publish_submission', args=(project.slug,)),
-            data={'slug':custom_slug, 'doi': False, 'make_zip':1})
+            data={'slug':custom_slug, 'register_doi': doi, 'make_zip':1})
 
         # Run background tasks
         self.assertTrue(bool(tasks.run_next_task()))
@@ -242,7 +241,7 @@ class TestState(TestMixin):
         """
 
         # Initial creation of draft DOIs
-        # (console.utility.create_doi_draft)
+        # (console.utility.register_doi)
         mocker.post('https://api.datacite.example/dois', [
             {'text': json.dumps(
                 {'data': {'attributes': {'doi': '10.0000/aaa'}}})},
@@ -261,7 +260,7 @@ class TestState(TestMixin):
                 {'data': {'attributes': {'state': 'draft'}}})},
         ])
 
-        # Updating DOI state (console.utility.send_doi_update)
+        # Updating DOI state (console.utility.update_doi)
         mocker.put('https://api.datacite.example/dois/10.0000/aaa')
         mocker.put('https://api.datacite.example/dois/10.0000/bbb')
 
@@ -270,10 +269,10 @@ class TestState(TestMixin):
                 DATACITE_USER='admin',
                 DATACITE_PASSWORD='letmein',
                 DATACITE_PREFIX='10.0000'):
-            self.test_publish()
+            self.test_publish(doi=1)
 
             project = PublishedProject.objects.get(slug='mitbih')
-            self.assertEqual(project.doi, '10.0000/aaa')
-            self.assertEqual(project.core_project.doi, '10.0000/bbb')
+            self.assertEqual(project.core_project.doi, '10.0000/aaa')
+            self.assertEqual(project.doi, '10.0000/bbb')
 
-        self.assertEqual(mocker.call_count, 6)
+        self.assertEqual(mocker.call_count, 2)
