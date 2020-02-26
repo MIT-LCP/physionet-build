@@ -76,7 +76,7 @@ def bucket_info(project, version, email=False):
 
 def make_bucket_public(bucket):
     """
-    Function to make a bucket public to all users 
+    Make a bucket public to all users.
     """
     policy = bucket.get_iam_policy()
     for role in Public_Roles:
@@ -84,21 +84,27 @@ def make_bucket_public(bucket):
     bucket.set_iam_policy(policy)
     LOGGER.info("Made bucket {} public".format(bucket.name))
 
+
 def remove_bucket_permissions(bucket):
     """
-    Function to remove all permissions from bucket but owner 
+    Remove all permissions from a bucket for everyone except the owner.
     """
     policy = bucket.get_iam_policy()
     to_remove = []
+
     for role in policy:
         if role != 'roles/storage.legacyBucketOwner':
             for member in policy[role]:
                 to_remove.append([role, member])
+
     for item in to_remove:
         policy[item[0]].discard(item[1])
+
     if to_remove:
         bucket.set_iam_policy(policy)
-        LOGGER.info("Removed all read permissions from bucket {}".format(bucket.name))
+        logger.info("Removed all read permissions from "
+                    "bucket {}".format(bucket.name))
+
 
 def create_access_group(bucket, project, version, title):
     """
@@ -187,50 +193,41 @@ def add_email_bucket_access(project, email, group=False):
         LOGGER.info("Added email {0} to the project {1} access list".format(
             email, project))
         return True
-    except BadRequest: 
-        LOGGER.info("There was an error on the request. The email {} was ignored.".format(
-            email))
+    except BadRequest:
+        logger.info("Error in the request. The email {} was "
+                    "ignored.".format(email))
         return False
+
 
 def upload_files(project):
     """
-    Function to send files to a bucket. Gets a list of all the 
-    files under the project root directory then it sends each file 
-    one by one. The only way to know if the zip file is created is to 
-    heck the compressed sotrage size. If the zip is created, then send it.
+    Upload files to a bucket. Gets a list of all the files under the project
+    root directory, then sends each file individually. Check storage size to
+    confirm that the zip file was created.
     """
     file_root = project.file_root()
     subfolders_fullpath = [x[0] for x in walk(file_root)]
     storage_client = storage.Client()
     bucket = storage_client.get_bucket(project.gcp.bucket_name)
+
     for indx, location in enumerate(subfolders_fullpath):
         chdir(location)
         files = [f for f in listdir('.') if path.isfile(f)]
         for file in files:
-            temp_dir = location.replace(file_root,'')
+            temp_dir = location.replace(file_root, '')
             if temp_dir != '':
                 blob = bucket.blob(path.join(temp_dir, file)[1:])
                 blob.upload_from_filename(file)
             else:
                 blob = bucket.blob(file)
                 blob.upload_from_filename(file)
+
     if project.compressed_storage_size:
         zip_name = project.zip_name()
         chdir(project.project_file_root())
         blob = bucket.blob(zip_name)
         blob.upload_from_filename(zip_name)
 
-############################################################
-## Unused functions below this line, but usefull to have.
-def set_bucket_permissions(bucket_name, email):
-    """
-    Function to set the permissions of a bucket to a specific group
-    if ACL are used. At the moment we deal with bucket level permissions. 
-    """
-    storage_client = storage.Client()
-    bucket = storage_client.bucket(bucket_name)
-    bucket.acl.group(email).grant_read()
-    bucket.acl.save()
 
 def create_directory_service(user_email, group=False):
     """
@@ -260,7 +257,7 @@ def create_directory_service(user_email, group=False):
 
 def paginate(request, to_paginate, maximun):
     """
-    Function to paginate the arguments. 
+    Paginate the request.
     """
     page = request.GET.get('page', 1)
     paginator = Paginator(to_paginate, maximun)
