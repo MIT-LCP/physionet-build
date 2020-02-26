@@ -101,6 +101,7 @@ def serve_file(file_path, attach=True, allow_directory=False, sandbox=True):
     If allow_directory is true and file_path ends with a slash, serve
     a simple HTML directory listing.
     """
+    file_path = file_path.strip()
     accel_path = _file_x_accel_path(file_path)
     if accel_path:
         response = HttpResponse()
