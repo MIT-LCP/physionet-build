@@ -6,7 +6,7 @@ import pdb
 
 from oauth2client.service_account import ServiceAccountCredentials
 from google.api_core.exceptions import BadRequest
-from django.contrib.sites.models import Site
+from googleapiclient.errors import HttpError
 from googleapiclient.discovery import build
 from django.utils.html import strip_tags
 from django.utils import timezone
@@ -100,17 +100,88 @@ def remove_bucket_permissions(bucket):
         bucket.set_iam_policy(policy)
         LOGGER.info("Removed all read permissions from bucket {}".format(bucket.name))
 
-def add_email_bucket_access(project, email):
+def create_access_group(bucket, project, version, title):
     """
-    Function to add access to a bucket from a email 
-    If the email is elegible to be used in GCP the set iam policy will pass
-    If not, it will return a error as a bad requet.
+    Create an access group with appropriate permissions, if the group does not
+    already exist.
+
+    Returns:
+        bool: False if there was an error or change to the API. True otherwise.
+    """
+    email = bucket_info(project, version, email=True)
+    service = create_directory_service(settings.GCP_DELEGATION_EMAIL)
+    production_domain = Site.objects.get(id=3)
+
+    # Get all the members of the Google group
+    try:
+        outcome = service.groups().list(domain=production_domain).execute()
+        if not any(group['email'] in email for group in outcome['groups']):
+            creation = service.groups().insert(body={
+                'email': email,
+                'name': '{0} v{1}'.format(title, version),
+                'description': "Access group for the project {0} version "
+                               "{1}.".format(title, version)}).execute()
+            if creation['kind'] != 'admin#directory#group':
+                logger.info("Error {0} creating the "
+                            "group {1}.".format(creation, email))
+                return False
+            logger.info("Access group {0} was created.".format(email))
+            if update_access_group(email):
+                logger.info("Access group {0} was updated.".format(email))
+        else:
+            logger.info("Access group {0} already exists.".format(email))
+    except HttpError as e:
+        if json.loads(e.content)['error']['message'] != 'Member already exists.':
+            logger.info("Error {0} creating the access group {1} for "
+                        "{1}.".format(e.content, email, project))
+            raise e
+        else:
+            logger.info("Access group {0} already exists.".format(email))
+
+    return email
+
+
+def update_access_group(email):
+    """
+    Set permissions for an access group.
+
+    Returns:
+        bool: False if there was an error or change to the API. True otherwise.
+    """
+    service = create_directory_service(settings.GCP_DELEGATION_EMAIL,
+                                       group=True)
+    update = service.groups().update(groupUniqueId=email, body={
+        'allowExternalMembers': 'true',
+        'whoCanPostMessage': 'ALL_OWNERS_CAN_POST',
+        'whoCanModerateMembers': 'OWNERS_AND_MANAGERS',
+        'whoCanJoin': 'INVITED_CAN_JOIN'}).execute()
+
+    if update['kind'] != 'groupsSettings#groups':
+        logger.info("Error {0} setting the permissions for group "
+                    "{1}".format(update, email))
+        return False
+
+    return True
+
+
+def add_email_bucket_access(project, email, group=False):
+    """
+    Grant access to a bucket for the specified email address.
+
+    Returns:
+        bool: True is access is successfully granted. False otherwise.
     """
     storage_client = storage.Client()
     bucket = storage_client.get_bucket(project.gcp.bucket_name)
     policy = bucket.get_iam_policy()
-    for role in Public_Roles:
-        policy[role].add('user:'+email)
+
+    if group:
+        for role in Public_Roles:
+            policy[role].add('group:'+email)
+    else:
+        for role in Public_Roles:
+            policy[role].add('user:'+email)
+
     try:
         bucket.set_iam_policy(policy)
         LOGGER.info("Added email {0} to the project {1} access list".format(
@@ -161,32 +232,29 @@ def set_bucket_permissions(bucket_name, email):
     bucket.acl.group(email).grant_read()
     bucket.acl.save()
 
-def list_bucket_permissions(bucket):
+def create_directory_service(user_email, group=False):
     """
-    Function to list all the permissions of a bucket.
-    """
-    policy = bucket.get_iam_policy()
-    for role in policy:
-        members = policy[role]
-        print('Role: {}, Members: {}'.format(role, members))
+    Create an Admin SDK Directory Service object authorized with the service
+    accounts that act on behalf of the given user.
 
-
-def create_directory_service(user_email):
-    """Build and returns an Admin SDK Directory service object authorized with the service accounts
-    that act on behalf of the given user.
     Args:
-      user_email: The email of the user. Needs permissions to access the Admin APIs.
+        user_email: The user's email address. Needs permission to access the
+                    Admin API.
     Returns:
-      Admin SDK directory service object.
+        Admin SDK Directory Service object.
     """
     logging.getLogger('googleapiclient.discovery_cache').setLevel(logging.ERROR)
     credentials = ServiceAccountCredentials.from_p12_keyfile(
         settings.SERVICE_ACCOUNT_EMAIL,
         settings.SERVICE_ACCOUNT_PKCS12_FILE_PATH,
         settings.GCP_SECRET_KEY,
-        scopes=['https://www.googleapis.com/auth/admin.directory.group'])
-    # This requires the email used to delegate the credentials to the serivce account
+        scopes=['https://www.googleapis.com/auth/admin.directory.group',
+                'https://www.googleapis.com/auth/apps.groups.settings'])
+
+    # The email for delegating credentials to the service account is required.
     credentials = credentials.create_delegated(user_email)
+    if group:
+        return build('groupssettings', 'v1', credentials=credentials)
     return build('admin', 'directory_v1', credentials=credentials)
 
 
