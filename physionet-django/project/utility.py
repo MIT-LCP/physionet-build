@@ -284,50 +284,39 @@ def grant_aws_open_data_access(user, project):
         response.json()['message'], project))
     return message
 
-def grant_gcp_group_access(user, project, data_access, request):
+
+def grant_gcp_group_access(user, project, data_access):
     """
-    Add a specific email address to a organizational google group
-    Returns two things:
-        The first argument is if access was awarded.
-        The second argument is if the access was awarded in a previous time.
+    Add a specific email address to a organizational google group in G Suite
+    Possible access types would be:
+    - 3 is for the GCP Bucket
+    - 4 is for the GCP Big Query
     """
     email = user.cloud_information.gcp_email.email
     service = create_directory_service(settings.GCP_DELEGATION_EMAIL)
-    # Get all the members of the Google group
-    members = service.members().list(groupKey=data_access.location).execute()
-    # Set the type of access depending on the  request
-    # Access == 3 is for the GCP Bucket
-    # Access == 4 is for the GCP Big Query
     access = "Access to the GCP BigQuery"
     if data_access == 3:
         access = "Access to the GCP bucket"
-    if email not in str(members):
-        # if not a member, add to the group
-        try:
-            outcome = service.members().insert(groupKey=data_access.location, 
-                body={"email": email, "delivery_settings": "NONE"}).execute()
-            if outcome['role'] == "MEMBER":
-                messages.success(request, '{0} has been granted \
-                    to {1} for project: {2}'.format(access, email, project))
-                LOGGER.info("Added user {0} to BigQuery group {1}".format(
-                    email, data_access.location))
-                return True
-        except HttpError as e:
-            if json.loads(e.content)['error']['message'] == 'Member already exists.':
-                messages.success(request, '{0} was previously awarded \
-                    to {1} for project: {2}'.format(access, email, project))
-                return False
-            else:
-                raise e
-        else:
-            messages.success(request, 'There was an error granting \
-                access.')
-            LOGGER.info("Error adding the user {0} to Bigquery group \
-                {1}. Error: {2}".format(email, data_access.location, outcome))
-    else:
-        messages.success(request, '{0} was previously awarded \
-            to {1} for project: {2}'.format(access, email, project))
-        return False
+
+    try:
+        group_members = service.members()
+        # Check is the access was granted and no action is needed
+        members = group_members.list(groupKey=data_access.location).execute()
+        if email in str(members):
+            return '{0} was previously awarded to {1} for project: {2}'.format(
+                access, email, project)
+
+        outcome = group_members.insert(groupKey=data_access.location, body={
+            "email": email, "delivery_settings": "NONE"}).execute()
+        if outcome['role'] == "MEMBER":
+            message = '{0} has been granted to {1} for project: {2}'.format(
+                access, email, project)
+            LOGGER.info("{0} email {1}".format(message, data_access.location))
+            return message
+        raise Exception('Wrong access granted to {0} in GCP email {1}'.format(
+            email, data_access.location))
+    except HttpError as error:
+        raise error
 
 
 # The following regular expression defines user agents that are
