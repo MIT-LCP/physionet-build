@@ -1965,6 +1965,7 @@ class GCP(models.Model):
     project = models.OneToOneField('project.PublishedProject', related_name='gcp',
         on_delete=models.CASCADE)
     bucket_name = models.CharField(max_length=150, null=True)
+    access_group = models.CharField(max_length=170, null=True)
     is_private = models.BooleanField(default=False)
     sent_zip = models.BooleanField(default=False)
     sent_files = models.BooleanField(default=False)
