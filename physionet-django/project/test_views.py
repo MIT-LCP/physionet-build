@@ -724,16 +724,13 @@ class TestSelfManagedProjectWorkflows(TestMixin):
         self.assertContains(response, "Pending data use request", html=True)
 
         # submitter accepts with comment
-        self.client.post(reverse('project_home'),
-                         data={'form-0-status': [
+        self.client.post(reverse('data_access_request_view', args=(
+            project.id, User.objects.get(username=self.REQUESTER).id), ),
+                         data={'proj-status': [
                              str(DataAccessRequest.ACCEPT_REQUEST_VALUE)],
-                               'form-0-responder_comments': ['great!'],
-                               'form-0-id': [str(da_req[0].id)],
-                               'data_access_response': [str(da_req[0].id)],
-                               'form-TOTAL_FORMS': ['1'],
-                               'form-INITIAL_FORMS': ['1'],
-                               'form-MIN_NUM_FORMS': ['0'],
-                               'form-MAX_NUM_FORMS': ['1000']})
+                             'proj-responder_comments': ['great!'],
+                             'data_access_response': [str(da_req[0].id)]}
+                         )
 
         # requester should receive an email
         self.assertEqual(len(mail.outbox), 2)

@@ -1699,11 +1699,12 @@ class DUASignature(models.Model):
 
 
 class DataAccessRequest(models.Model):
+    PENDING_VALUE = 0
     REJECT_REQUEST_VALUE = 1
-    ACCEPT_REQUEST_VALUE = 2
+    WITHDRAWN_VALUE = 2
+    ACCEPT_REQUEST_VALUE = 3
 
     REJECT_ACCEPT = (
-        ('', 'Pending'),
         (REJECT_REQUEST_VALUE, 'Reject'),
         (ACCEPT_REQUEST_VALUE, 'Accept'),
     )
@@ -1723,6 +1724,18 @@ class DataAccessRequest(models.Model):
     responder = models.ForeignKey('user.User', null=True, related_name='data_access_request_user', on_delete=models.SET(1))
 
     responder_comments = models.CharField(max_length=500, blank=True)
+
+    def is_accepted(self):
+        return self.status == self.ACCEPT_REQUEST_VALUE
+
+    def is_rejected(self):
+        return self.status == self.REJECT_REQUEST_VALUE
+
+    def is_withdrawn(self):
+        return self.status == self.WITHDRAWN_VALUE
+
+    def is_pending(self):
+        return self.status == self.PENDING_VALUE
 
 
 class BaseInvitation(models.Model):

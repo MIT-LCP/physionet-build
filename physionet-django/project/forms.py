@@ -958,12 +958,12 @@ class DataAccessResponseForm(forms.ModelForm):
     def save(self):
         r = super().save(commit=False)
         r.decision_datetime = timezone.now()
-        r.responder_id = self.user
+        r.responder_id = self.responder_id
         r.save()
 
         return r
 
-    def __init__(self, user, *args, **kwargs):
+    def __init__(self, responder_id, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.user = user
+        self.responder_id = responder_id

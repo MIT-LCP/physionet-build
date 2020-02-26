@@ -6,7 +6,7 @@
 
   {% if project.is_self_managed_access %}
     <a
-        href="{% url 'request_data_access' project.slug project.version %}">submit a
+        href="{% url 'data_access_request_status' project.slug project.version %}">submit a
         request to the authors</a> to use the data for your project.
   {% else %}
     <a href="{% url 'sign_dua' project.slug project.version %}">sign the

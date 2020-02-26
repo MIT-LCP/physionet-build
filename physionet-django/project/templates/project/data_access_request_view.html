@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}View Data Access Request{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1>Data Access Request</h1>
+
+        <form action="" method="post">
+            {% csrf_token %}
+            <div class="modal-body">
+                <p>
+                    {# TODO: link to user profile #}
+                    The
+                    user {{ da_request.user.username }}
+                    requested
+                    access
+                    to {{ da_request.project.title }}
+                    on {{ da_request.request_datetime|date }}.
+                </p>
+                <p>
+                    The purpose of the data use was stated as
+                    follows:
+                </p>
+
+                <p style="height: 100px; overflow: scroll">
+                    {{ da_request.data_use_purpose }}
+                </p>
+
+                {% if is_pending %}
+                    {% if da_request.responder_comments %}
+                        The authors response:
+                        <hr/>
+                        <p>
+                            {{ da_request.responder_comments }}
+                        </p>
+                        <hr/>
+                    {% endif %}
+                    {% include "descriptive_inline_form_snippet.html" with form=response_form %}
+
+                    <button class="btn btn-primary"
+                            name="data_access_response"
+                            type="button" data-toggle="modal"
+                            data-target="#check-modal"
+                            onclick="setCheckButtonText('{{ response_form.status.auto_id }}');">
+                        <i
+                                class="fa fa-reply"></i>
+                        Submit
+                        Decision
+                    </button>
+                {% elif is_accepted or is_rejected %}
+                    {#  TODO fix #}
+                    The authors decided
+                    to {% if is_accepted %}
+                    accept{% else %}not grant{% endif %} this request.
+                {% elif is_withdrawn %}
+                    The requester withdrew the request on the
+                    {{ da_request.decision_datetime|date }}
+                {% endif %}
+
+
+            </div>
+            <div class="modal fade" id="check-modal" tabindex="-1"
+                 role="dialog" aria-labelledby="check-modal"
+                 aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Are you sure?</h5>
+                            <button type="button" class="close"
+                                    data-dismiss="modal"
+                                    aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-footer">
+                            <button id="check-button-submit"
+                                    class="btn btn-danger"
+                                    name="data_access_response"
+                                    value="{{ da_request.id }}"
+                                    type="submit">Yes
+                            </button>
+                            <button type="button"
+                                    class="btn btn-secondary"
+                                    data-dismiss="modal">No
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <script type="application/javascript">
+                function setCheckButtonText(selector_id) {
+                    var selector = document.querySelector("#" + selector_id);
+                    var buttonText = "Yes, " + selector.options[selector
+                            .selectedIndex]
+                            .text;
+
+                    document.querySelector('#check-button-submit').innerHTML =
+                            buttonText;
+                }
+            </script>
+        </form>
+        <hr/>
+        {% include "project/data_access_request_table_snippet.html" %}
+    </div>
+{% endblock %}

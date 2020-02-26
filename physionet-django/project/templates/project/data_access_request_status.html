@@ -19,10 +19,11 @@
         </p>
         <hr/>
 
-        {% if data_access_request.status != 0 %}
+        {% if is_accepted or is_rejected %}
             {#  TODO remove magic constants by function #}
-            The authors decided to {% if data_access_request.status == 2 %}
-            accept{% else %}deny{% endif %} this request.
+            The authors decided
+            to {% if is_accepted %}
+            accept{% else %}not grant{% endif %} this request.
 
             {% if data_access_request.responder_comments %}
                 The authors response:
@@ -32,8 +33,58 @@
                 </p>
                 <hr/>
             {% endif %}
-        {% else %}
-            The request is still pending with the authors.
+        {% elif is_pending %}
+            The request is currently pending with the authors.
+            <br/>
+            <button id="withdraw-button" type="button" class="btn
+            btn-danger" data-toggle="modal"
+                    data-target="#withdraw-modal">Withdraw Request
+            </button>
+            <div class="modal fade" id="withdraw-modal" tabindex="-1"
+                 role="dialog" aria-labelledby="withdraw-modal"
+                 aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Withdraw Request</h5>
+                            <button type="button" class="close"
+                                    data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <form action="" method="post">
+                            <div class="modal-body">
+                                {% csrf_token %}
+                                <p>Are you sure you wish to withdraw the request?</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button id="withdraw-button-submit"
+                                        class="btn btn-danger"
+                                        name="cancel_request"
+                                        value="{{ data_access_request.id }}"
+                                        type="submit">Yes, withdraw
+                                </button>
+                                <button type="button" class="btn btn-secondary"
+                                        data-dismiss="modal">No
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        {%  elif is_withdrawn %}
+            You withdrew the request.
         {% endif %}
+
+        {% if is_rejected or is_withdrawn %}
+            <br/>
+            <div class="btn-container-rsp">
+                <a class="btn btn-primary btn-rsp" href="{% url 'request_data_access' data_access_request.project.slug data_access_request.project.version %}"  role="button">Reapply</a>
+            </div>
+        {% endif %}
+
+        <hr/>
+
+        {% include "project/data_access_request_table_snippet.html" %}
     </div>
 {% endblock %}

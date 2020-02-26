@@ -24,7 +24,7 @@
   </div>
 
 <!-- Outstanding tasks -->
-{% if invitation_response_formset|length or pending_author_approvals|length or missing_affiliations|length or data_access_request_formset|length %}
+{% if invitation_response_formset|length or pending_author_approvals|length or missing_affiliations|length or data_access_requests|length %}
   <div class="card" >
     <div class="card-header">
       <h2>Outstanding Tasks</h2>
@@ -113,66 +113,22 @@
         </li>
       {% endfor %}
     {% endif %}
-    {% if data_access_request_formset|length %}
-        <form action="" method="post">
-        {{ data_access_request_formset.management_form }}
-        {% csrf_token %}
-         {% for da_request in data_access_request_formset %}
+    {% if data_access_requests|length %}
+         {% for da_request in data_access_requests %}
          <li class="list-group-item">
-            <div class="row">
-                <div class="col-md-5"><a
-                    href="{% url 'project_overview' da_request.instance.project.slug %}">{{ da_request.instance.project.title }} </a></div>
-                <div class="col-md-3">Pending data use request</div>
-                <div class="col-md-2">{{ da_request.instance.request_datetime|date }}</div>
-                 <div class="col-md-2"><button
-                     id="respond_button_{{ da_request.instance.project.id }}"
-                     type="button" class="btn btn-sm btn-primary"
-                     data-toggle="modal"
-                     data-target="#data-access-response-modal-{{ da_request.instance.id }}">
-                <i class="fa fa-reply"></i> Respond</button>
-              </div>
-            </div>
+             <div class="row">
+                 <div class="col-md-5"><a
+                         href="{% url 'project_overview' da_request.project.slug %}">{{ da_request.project.title }} </a>
+                 </div>
+                 <div class="col-md-3">Pending data use request</div>
+                 <div class="col-md-2">{{ da_request.request_datetime|date }}</div>
+                 <div class="col-md-2">
+                     <a class="btn btn-sm btn-primary" href=
+                             "{% url 'data_access_request_view' da_request.project.id da_request.user.id %}"><i class="fa fa-reply"></i>Respond</a>
+                 </div>
+             </div>
           </li>
-         {# The modal for the data access response #}
-          <div class="modal fade"
-               id="data-access-response-modal-{{ da_request.instance.id }}"
-               tabindex="-1" role="dialog"
-               aria-labelledby="data-access-response-modal-{{ data_access_request_formset.id.value }}" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h5 class="modal-title">Respond to data access request</h5>
-                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                  </button>
-                </div>
-
-                <div class="modal-body">
-                    <p>
-                        {# TODO: link to user profile, in new window? #}
-                        The user {{ da_request.instance.user.username }} requested
-                        access to {{ da_request.instance.project.title }} on {{ da_request.instance.application_datetime|date }}.
-                    </p>
-                    <p>
-                        The purpose of the data use was stated as follows:
-                    </p>
-
-                    <p style="height: 200px; overflow: scroll">
-                        {{ da_request.instance.data_use_purpose}}
-                    </p>
-                    {{ da_request }}
-                </div>
-
-                <div class="modal-footer">
-                  <button class="btn btn-primary" name="data_access_response"
-                          value="{{ da_request.instance.id }}" type="submit"><i class="fa fa-reply"></i> Submit Decision</button>
-                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                </div>
-              </div>
-            </div>
-          </div>
          {% endfor %}
-        </form>
     {% endif %}
     </ul>
   </div>

@@ -17,7 +17,8 @@ from django.core.exceptions import (ObjectDoesNotExist, PermissionDenied,
 from django.db import transaction
 from django.forms import (formset_factory, inlineformset_factory,
     modelformset_factory)
-from django.http import HttpResponse, Http404, JsonResponse, HttpResponseRedirect
+from django.http import HttpResponse, Http404,JsonResponse, HttpResponseRedirect
+from django.http import HttpResponseForbidden
 from django.shortcuts import render, redirect
 from django.template import loader
 from django.urls import reverse
@@ -162,19 +163,6 @@ def process_invitation_response(request, invitation_response_formset):
                 return False, False
 
 
-def process_data_access_response(request, data_access_response_formset):
-    response_id = int(request.POST['data_access_response'])
-
-    for response_form in data_access_response_formset:
-        response_form.data = request.POST
-
-        if response_form.instance.id == response_id and response_form.is_valid():
-            response_form.save()
-
-            # notify user
-            notification.notify_user_data_access_request(response_form.instance)
-
-
 @login_required
 def project_home(request):
     """
@@ -187,8 +175,6 @@ def project_home(request):
 
     InvitationResponseFormSet = modelformset_factory(AuthorInvitation,
         form=forms.InvitationResponseForm, extra=0)
-    DataAccessRequestFormSet = modelformset_factory(DataAccessRequest,
-        form=forms.DataAccessResponseForm, extra=0)
 
     active_authors = Author.objects.filter(user=user,
         content_type=ContentType.objects.get_for_model(ActiveProject))
@@ -211,16 +197,6 @@ def project_home(request):
             if imported:
                 messages.info(request,'Please fill in the affiliation at the end of the page.')
             return redirect('project_authors', project_slug=project.slug)
-    elif request.method == 'POST' and 'data_access_response' in request.POST.keys():
-        data_access_response_formset = DataAccessRequestFormSet(request.POST,
-                                                                queryset=
-                                                                DataAccessRequest.objects.filter(
-                                                                    project__in=published_projects,
-                                                                    status=0),
-                                                                form_kwargs={
-                                                                    'user': user})
-        process_data_access_response(request, data_access_response_formset)
-
 
     pending_author_approvals = []
     missing_affiliations = []
@@ -237,8 +213,7 @@ def project_home(request):
     invitation_response_formset = InvitationResponseFormSet(
         queryset=AuthorInvitation.get_user_invitations(user))
 
-    da_resp_queryset = DataAccessRequest.objects.filter(project__in=published_projects, status=0)
-    data_access_request_formset = DataAccessRequestFormSet(queryset=da_resp_queryset, form_kwargs = { 'user': user})
+    data_access_requests = DataAccessRequest.objects.filter(project__in=published_projects, status=0)
 
     return render(request, 'project/project_home.html', {
         'projects': projects, 'published_projects': published_projects,
@@ -246,7 +221,7 @@ def project_home(request):
         'missing_affiliations': missing_affiliations,
         'pending_author_approvals': pending_author_approvals,
         'invitation_response_formset': invitation_response_formset,
-        'data_access_request_formset' : data_access_request_formset
+        'data_access_requests': data_access_requests
     })
 
 @login_required
@@ -1624,34 +1599,17 @@ def sign_dua(request, project_slug, version):
 @login_required
 def request_data_access(request, project_slug, version):
     user = request.user
-
-    # TODO: error handling
     proj = PublishedProject.objects.get(slug=project_slug, version=version)
 
-    # TODO how to handle version?
-    da_requests = DataAccessRequest.objects.filter(user=user, project=proj)
+    if not proj:
+        raise Http404()
 
-    if da_requests:
-        # TODO: write test. exploiting the fac
-        assert DataAccessRequest.ACCEPT_REQUEST_VALUE > DataAccessRequest.REJECT_REQUEST_VALUE > 0
-        da_requests_sorted = sorted(da_requests, key=lambda r: r.status, reverse=True)
-        return render(request, 'project/data_access_request_status.html', {'data_access_request' : da_requests_sorted[0]})
+    if DataAccessRequest.objects.filter(user=user, project=proj, status__in=[DataAccessRequest.PENDING_VALUE, DataAccessRequest.ACCEPT_REQUEST_VALUE]):
+        return redirect('data_access_request_status', project_slug=proj.slug, version=proj.version)
 
-
-    da_requests_accepted = [r for r in da_requests if r.status == DataAccessRequest.ACCEPT_REQUEST_VALUE]
-    da_requests_rejected = [r for r in da_requests if r.status == DataAccessRequest.REJECT_REQUEST_VALUE]
-    da_requests_pending = [r for r in da_requests if (r.status == 0)] # TODO enogh?
-
-    if da_requests_accepted:
-        return render(request, 'project/data_access_request_status.html')
-    if da_requests_rejected:
-        return render(request, 'project/')
-    if da_requests_pending:
-        return render(request, 'project/pending')
-
-    # not request pending for that user and that project. process form
-
+    # not request pending for that user and that project.
     if request.method == 'POST':
+        # process access request form
         project_request_form = forms.DataAccessRequestForm(project=proj, user=user, prefix="proj", data=request.POST)
 
         if (project_request_form.is_valid()):
@@ -1661,11 +1619,88 @@ def request_data_access(request, project_slug, version):
             users_notify = [p.user for p in PublishedAuthor.objects.filter(project=proj, is_corresponding=1)]
             notification.notify_owner_data_access_request(users_notify, data_access_req)
 
-            return render(request, 'project/data_access_request_submitted.html')
+            return render(request, 'project/data_access_request_submitted.html',
+                          {'project': proj})
     else:
         project_request_form = forms.DataAccessRequestForm(project=proj, user=user, prefix="proj")
 
     return render(request, 'project/request_data_access.html', {'project_request_form' : project_request_form})
+
+
+@login_required
+def data_access_request_status(request, project_slug, version):
+    user = request.user
+    proj = PublishedProject.objects.get(slug=project_slug, version=version)
+
+    if not proj:
+        raise Http404()
+
+    da_requests = DataAccessRequest.objects.filter(user=user, project=proj).order_by('-request_datetime')
+
+    if not da_requests:
+        return redirect('request_data_access', project_slug=proj.slug, version=proj.version)
+
+    if request.method == 'POST' and 'cancel_request' in request.POST.keys():
+        withdraw_req = DataAccessRequest.objects.get(id=request.POST['cancel_request'])
+        withdraw_req.status = DataAccessRequest.WITHDRAWN_VALUE
+        withdraw_req.decision_datetime = timezone.now()
+        withdraw_req.save()
+
+        da_requests = DataAccessRequest.objects.filter(user=user,
+                                                       project=proj).order_by('-request_datetime')
+
+    assert DataAccessRequest.ACCEPT_REQUEST_VALUE > DataAccessRequest.REJECT_REQUEST_VALUE > 0
+    # exploiting the fact, that ACCEPT_REQUEST_VALUE has the highest value
+    #da_requests_sorted = sorted([ r for r in da_requests if r.status != DataAccessRequest.WITHDRAWN_VALUE], key=lambda r: r.status, reverse=True)
+
+    # TODO: proper logic for selecting "relevant" field.
+    return render(request, 'project/data_access_request_status.html',
+                  {'data_access_request': da_requests[0],
+                   'is_accepted': da_requests[0].is_accepted(),
+                   'is_rejected': da_requests[0].is_rejected(),
+                   'is_pending': da_requests[0].is_pending(),
+                   'is_withdrawn': da_requests[0].is_withdrawn(),
+                   'older_requests': da_requests[1:]
+    })
+
+@login_required
+def data_access_request_view(request, project_id, user_id):
+    user = request.user
+    requester = User.objects.get(id=user_id)
+
+    proj = PublishedProject.objects.get(id=project_id)
+
+    if not requester or not proj:
+        raise Http404()
+
+    if not PublishedAuthor.objects.get(user_id=user.id, project_id=proj.id):
+        raise Http404() # TODO better message
+
+    da_requests = DataAccessRequest.objects.filter(user_id=requester, project_id=proj).order_by('-request_datetime') # TODO use version?
+
+    if not da_requests:
+        raise Http404()
+
+    if request.method == 'POST' and 'data_access_response' in request.POST.keys():
+        entry = DataAccessRequest.objects.get(id=request.POST['data_access_response'])
+        response_form = forms.DataAccessResponseForm(responder_id=user.id, prefix="proj", data=request.POST, instance=entry)
+
+        if response_form.is_valid():
+            response_form.save()
+            notification.notify_user_data_access_request(entry)
+            return redirect('project_home')
+    else:
+        response_form = forms.DataAccessResponseForm(responder_id=user.id, prefix="proj")
+
+    return render(request, 'project/data_access_request_view.html',
+                  {'da_request': da_requests[0],
+                   'response_form': response_form,
+                   'is_accepted': da_requests[0].is_accepted(),
+                   'is_rejected': da_requests[0].is_rejected(),
+                   'is_pending': da_requests[0].is_pending(),
+                   'is_withdrawn': da_requests[0].is_withdrawn(),
+                   'older_requests': da_requests[1:]
+                   })
 
 
 @login_required
