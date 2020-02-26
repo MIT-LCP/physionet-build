@@ -21,8 +21,9 @@ from project.validators import validate_doi
 import logging
 
 LOGGER = logging.getLogger(__name__)
-Public_Roles = ['roles/storage.legacyBucketReader', 'roles/storage.legacyObjectReader',
-    'roles/storage.objectViewer']
+ROLES = ['roles/storage.legacyBucketReader',
+         'roles/storage.legacyObjectReader',
+         'roles/storage.objectViewer']
 
 
 def check_bucket_exists(project, version):
@@ -79,7 +80,7 @@ def make_bucket_public(bucket):
     Make a bucket public to all users.
     """
     policy = bucket.get_iam_policy()
-    for role in Public_Roles:
+    for role in ROLES:
         policy[role].add('allUsers')
     bucket.set_iam_policy(policy)
     LOGGER.info("Made bucket {} public".format(bucket.name))
@@ -102,7 +103,7 @@ def remove_bucket_permissions(bucket):
 
     if to_remove:
         bucket.set_iam_policy(policy)
-        logger.info("Removed all read permissions from "
+        LOGGER.info("Removed all read permissions from "
                     "bucket {}".format(bucket.name))
 
 
@@ -128,21 +129,21 @@ def create_access_group(bucket, project, version, title):
                 'description': "Access group for the project {0} version "
                                "{1}.".format(title, version)}).execute()
             if creation['kind'] != 'admin#directory#group':
-                logger.info("Error {0} creating the "
+                LOGGER.info("Error {0} creating the "
                             "group {1}.".format(creation, email))
                 return False
-            logger.info("Access group {0} was created.".format(email))
+            LOGGER.info("Access group {0} was created.".format(email))
             if update_access_group(email):
-                logger.info("Access group {0} was updated.".format(email))
+                LOGGER.info("Access group {0} was updated.".format(email))
         else:
-            logger.info("Access group {0} already exists.".format(email))
+            LOGGER.info("Access group {0} already exists.".format(email))
     except HttpError as e:
         if json.loads(e.content)['error']['message'] != 'Member already exists.':
-            logger.info("Error {0} creating the access group {1} for "
+            LOGGER.info("Error {0} creating the access group {1} for "
                         "{1}.".format(e.content, email, project))
             raise e
         else:
-            logger.info("Access group {0} already exists.".format(email))
+            LOGGER.info("Access group {0} already exists.".format(email))
 
     return email
 
@@ -163,7 +164,7 @@ def update_access_group(email):
         'whoCanJoin': 'INVITED_CAN_JOIN'}).execute()
 
     if update['kind'] != 'groupsSettings#groups':
-        logger.info("Error {0} setting the permissions for group "
+        LOGGER.info("Error {0} setting the permissions for group "
                     "{1}".format(update, email))
         return False
 
@@ -182,10 +183,10 @@ def add_email_bucket_access(project, email, group=False):
     policy = bucket.get_iam_policy()
 
     if group:
-        for role in Public_Roles:
+        for role in ROLES:
             policy[role].add('group:'+email)
     else:
-        for role in Public_Roles:
+        for role in ROLES:
             policy[role].add('user:'+email)
 
     try:
@@ -194,7 +195,7 @@ def add_email_bucket_access(project, email, group=False):
             email, project))
         return True
     except BadRequest:
-        logger.info("Error in the request. The email {} was "
+        LOGGER.info("Error in the request. The email {} was "
                     "ignored.".format(email))
         return False
 
