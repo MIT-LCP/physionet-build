@@ -11,6 +11,7 @@ from googleapiclient.discovery import build
 from django.utils.html import strip_tags
 from django.utils import timezone
 from google.cloud import storage
+from django.contrib.sites.models import Site
 from django.conf import settings
 from django.urls import reverse
 from html2text import html2text
@@ -23,39 +24,55 @@ LOGGER = logging.getLogger(__name__)
 Public_Roles = ['roles/storage.legacyBucketReader', 'roles/storage.legacyObjectReader',
     'roles/storage.objectViewer']
 
-def check_bucket(project, version):
+
+def check_bucket_exists(project, version):
     """
-    Function to check if a bucket already exists 
+    Check if a bucket exists.
     """
     storage_client = storage.Client()
-    domain = 'physionet.org'
-    if 'production' not in settings.SETTINGS_MODULE:
-        domain = 'testing-delete.' + domain
-    bucket_name = '{0}-{1}.{2}'.format(project, version, domain)
-    exists = storage_client.lookup_bucket(bucket_name)
-    if exists:
-        return bucket_name
+    bucket_name = bucket_info(project, version)
+    if storage_client.lookup_bucket(bucket_name):
+        return True
     return False
 
-def create_bucket(project, version, protected=False):
+
+def create_bucket(project, version, title, protected=True):
     """
-    Function to create a bucket and set its permissions
+    Create a bucket with either public or private permissions.
+
+    There are two different types of buckets:
+     - Public which are open to the world.
+     - Private which access is handled by an organizational email.
     """
     storage_client = storage.Client()
-    domain = 'physionet.org'
-    if 'production' not in settings.SETTINGS_MODULE:
-        domain = 'testing-delete.' + domain
-    bucket_name = '{0}-{1}.{2}'.format(project, version, domain)
+    bucket_name = bucket_info(project, version)
     bucket = storage_client.create_bucket(bucket_name)
     bucket = storage_client.bucket(bucket_name)
     bucket.iam_configuration.bucket_policy_only_enabled = True
     bucket.patch()
-    LOGGER.info("Created bucket {0} for project {1}".format(bucket_name.lower(), project))
-    if not protected:
-        make_bucket_public(bucket)
-    else:
+    LOGGER.info("Created bucket {0} for project "
+                "{1}".format(bucket_name.lower(), project))
+    if protected:
         remove_bucket_permissions(bucket)
-    return bucket_name
+        group = create_access_group(bucket, project, version, title)
+        LOGGER.info("Removed permissions from bucket {0} and granted {1} "
+                    "read access".format(bucket_name.lower(), group))
+    else:
+        make_bucket_public(bucket)
+        LOGGER.info("Made bucket {0} public".format(bucket_name.lower()))
+
+
+def bucket_info(project, version, email=False):
+    """
+    Generate the bucket name or the email for managing access to the bucket.
+
+    """
+    production_site = Site.objects.get(id=3)
+    name = '{0}{1}-{2}'.format(settings.GCP_BUCKET_PREFIX, project, version)
+    if email:
+        return '{0}@{1}'.format(name, production_site.domain)
+    return '{0}.{1}'.format(name, production_site.domain)
+
 
 def make_bucket_public(bucket):
     """

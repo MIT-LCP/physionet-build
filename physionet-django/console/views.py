@@ -608,7 +608,7 @@ def send_files_to_gcp(pid):
     to GCP. It only requires the Project ID.
     """
     project = PublishedProject.objects.get(id=pid)
-    exists = utility.check_bucket(project.slug, project.version)
+    exists = utility.check_bucket_exists(project.slug, project.version)
     if exists:
         utility.upload_files(project)
         project.gcp.sent_files = True
@@ -681,25 +681,7 @@ def manage_published_project(request, project_slug, version):
             if any(get_associated_tasks(project, read_only=False)):
                 messages.error(request, 'Project has tasks pending.')
             else:
-                # Bucket names cannot be capitalized letters
-                bucket_name = is_private = False
-                if project.access_policy > 0:
-                    is_private = True
-                # Check if the bucket name exists, and if not create it.
-                try:
-                    bucket_name = project.gcp.bucket_name
-                    messages.success(request, "The bucket already exists. Resending\
-                     the files for the project {0}.".format(project))
-                except GCP.DoesNotExist:
-                    bucket_name = utility.check_bucket(project.slug, project.version)
-                    if not bucket_name:
-                        bucket_name = utility.create_bucket(project=project.slug,
-                            protected=is_private, version=project.version)
-                    GCP.objects.create(project=project, bucket_name=bucket_name,
-                        managed_by=user, is_private=is_private)
-                    messages.success(request, "The GCP bucket for project {0} was \
-                        successfully created.".format(project))
-                send_files_to_gcp(project.id, verbose_name='GCP - {}'.format(project), creator=user)
+                gcp_bucket_management(request, project, user)
         elif 'platform' in request.POST:
             data_access_form = forms.DataAccessForm(project=project, data=request.POST)
             if data_access_form.is_valid():
@@ -737,6 +719,49 @@ def manage_published_project(request, project_slug, version):
          'rw_tasks': rw_tasks, 'ro_tasks': ro_tasks,
          'anonymous_url': anonymous_url, 'passphrase': passphrase,
          'published_projects_nav': True, 'url_prefix': url_prefix})
+
+def gcp_bucket_management(request, project, user):
+    """
+    Create the database object and cloud bucket if they do not exist, and send
+    the files to the bucket.
+    """
+    is_private = True
+
+    if project.access_policy == 0:
+        is_private = False
+        group = None
+    else:
+        group = utility.bucket_info(project.slug, project.version, email=True)
+
+    bucket_name = utility.bucket_info(project.slug, project.version)
+
+    try:
+        gcp_object = GCP.objects.get(bucket_name=bucket_name)
+        messages.success(request, "The bucket already exists. Resending the \
+            files for the project {0}.".format(project))
+    except GCP.DoesNotExist:
+        if utility.check_bucket_exists(project.slug, project.version):
+            LOGGER.info("The bucket {0} already exists, skipping bucket and \
+                group creation".format(bucket_name))
+        else:
+            utility.create_bucket(project.slug, project.version, project.title, is_private)
+            messages.success(request, "The GCP bucket for project {0} was \
+                successfully created.".format(project))
+        GCP.objects.create(project=project, bucket_name=bucket_name,
+            managed_by=user, is_private=is_private, access_group=group)
+        if group:
+            granted = utility.add_email_bucket_access(project, group, True)
+            DataAccess.objects.create(project=project, platform=3, location=group)
+            if not granted:
+                error = "The GCP bucket for project {0} was successfully created, \
+                    but there was an error granting read permissions to the \
+                    group: {1}".format(project, group)
+                messages.success(request, error)
+                raise Exception(error)
+            messages.success(request, "The access group for project {0} was \
+                successfully added.".format(project))
+
+    send_files_to_gcp(project.id, verbose_name='GCP - {}'.format(project), creator=user)
 
 
 @login_required

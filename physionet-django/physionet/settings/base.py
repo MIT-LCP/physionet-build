@@ -142,6 +142,8 @@ SERVICE_ACCOUNT_PKCS12_FILE_PATH = os.path.join(BASE_DIR, 'PhysioNet-Data-creden
 GCP_DELEGATION_EMAIL = config('GCP_DELEGATION_EMAIL', default=False)
 GCP_SECRET_KEY = config('GCP_SECRET_KEY', default=False)
 
+GCP_BUCKET_PREFIX = "testing-delete."
+
 # Header tags for the AWS lambda function that grants access to S3 storage
 AWS_HEADER_KEY = config('AWS_KEY', default=False)
 AWS_HEADER_VALUE = config('AWS_VALUE', default=False)

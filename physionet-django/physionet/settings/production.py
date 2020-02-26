@@ -34,6 +34,8 @@ SERVER_EMAIL = 'PhysioNet System <root@physionet.org>'
 
 ADMINS = [('PhysioNet Technical', 'technical@physionet.org')]
 
+GCP_BUCKET_PREFIX = ""
+
 DEMO_FILE_ROOT = os.path.join(os.path.abspath(os.path.join(BASE_DIR, os.pardir)), 'demo-files')
 
 MEDIA_ROOT = '/data/pn-media'
