@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/login-register.css' %}"/>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>{{ title }}</h2>
+    {% if isvalid %}
+        <p>Your account has been successfully activated. You may now <a href="{% url 'login' %}">log in</a>.
+    {% else %}
+        <p>There was an error with your link. Please try again or contact the site administrator.</a>.
+    {% endif %}
+</div>
+{% endblock %}

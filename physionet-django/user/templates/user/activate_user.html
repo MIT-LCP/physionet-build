@@ -10,11 +10,14 @@
 
 {% block content %}
 <div class="container">
-    <h2>{{ title }}</h2>
-    {% if isvalid %}
-        <p>Your account has been successfully activated. You may now <a href="{% url 'login' %}">log in</a>.
-    {% else %}
-        <p>There was an error with your link. Please try again or contact the site administrator.</a>.
-    {% endif %}
+  {% include "message_snippet.html" %}
+    <form method="post">
+      <h1 class="form-signin-heading">{{ title }}</h1>
+      <hr>
+      {% csrf_token %}
+      {% include "inline_form_snippet.html" %}
+      <button class="btn btn-primary btn-custom btn-rsp" type="submit">Activate</button>
+    </form>
+
 </div>
 {% endblock %}

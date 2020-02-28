@@ -202,18 +202,13 @@ class RegistrationForm(forms.ModelForm):
     last_name = forms.CharField(max_length=50, label='Last Name',
                     widget=forms.TextInput(attrs={'class': 'form-control'}),
                     validators=[validate_name])
-    password1 = forms.CharField(label='Password',
-                    widget=forms.PasswordInput(attrs={'class': 'form-control'}))
-    password2 = forms.CharField(label='Password Confirmation',
-                    widget=forms.PasswordInput(attrs={'class': 'form-control'}))
 
     class Meta:
         model = User
         fields = ('email','username',)
         widgets = {
-            'email': forms.EmailInput(
-                attrs={'class': 'form-control dropemail'}),
-            'username':forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'username': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
     def clean_username(self):
@@ -222,33 +217,12 @@ class RegistrationForm(forms.ModelForm):
             raise forms.ValidationError("A user with that username already exists.")
         return self.cleaned_data['username'].lower()
 
-
-    def clean_password2(self):
-        # Check that the two password entries match
-        password1 = self.cleaned_data.get('password1')
-        password2 = self.cleaned_data.get('password2')
-        if password1 and password2 and password1 != password2:
-            raise forms.ValidationError("The passwords don't match")
-
-        # Note: if any of the following fields are missing, the form
-        # should ultimately be rejected, but we want to go ahead and
-        # check the password anyway
-        self.instance.username = self.cleaned_data.get('username', '')
-        self.instance.first_names = self.cleaned_data.get('first_names', '')
-        self.instance.last_name = self.cleaned_data.get('last_name', '')
-        self.instance.email = self.cleaned_data.get('email', '')
-        password_validation.validate_password(self.cleaned_data.get('password2'),
-            self.instance)
-        return password2
-
-
     def save(self):
         # Save the provided password in hashed format
 
         if self.errors: return
 
         user = super(RegistrationForm, self).save(commit=False)
-        user.set_password(self.cleaned_data['password1'])
         user.email = user.email.lower()
 
         with transaction.atomic():
@@ -257,7 +231,7 @@ class RegistrationForm(forms.ModelForm):
             profile = Profile.objects.create(user=user,
                 first_names=self.cleaned_data['first_names'],
                 last_name=self.cleaned_data['last_name'])
-        return user
+            return user
 
 
 # Split the credential application forms into multiple forms
@@ -525,3 +499,38 @@ class CloudForm(forms.ModelForm):
         associated_emails = self.instance.user.associated_emails.filter(is_verified=True)
         self.fields['gcp_email'].queryset = associated_emails
         self.fields['gcp_email'].required = False
+
+
+# class ActivationForm(forms.ModelForm):
+class ActivationForm(forms.Form):
+    """A form for creating new users. Includes all the required
+    fields, plus a repeated password.
+    """
+    username = forms.CharField(widget=forms.TextInput(attrs={
+        'class': 'form-control', 'readonly': True}))
+    email = forms.EmailField(widget=forms.TextInput(attrs={
+        'class': 'form-control', 'readonly': True}))
+    password1 = forms.CharField(label='Password',
+                    widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+    password2 = forms.CharField(label='Password Confirmation',
+                    widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+
+    def __init__(self, user, *args, **kwargs):
+        """
+        This form is only for processing post requests.
+        """
+        super().__init__(*args, **kwargs)
+        self.fields['username'].initial = user.username
+        self.fields['email'].initial = user.email
+
+    def clean_password2(self):
+        # Check that the two password entries match
+        password1 = self.cleaned_data.get('password1')
+        password2 = self.cleaned_data.get('password2')
+        if password1 and password2 and password1 != password2:
+            raise forms.ValidationError("The passwords don't match")
+
+        user = User.objects.get(username=self.data['username'])
+        password_validation.validate_password(self.cleaned_data.get('password1'), user=user)
+
+        return password1
