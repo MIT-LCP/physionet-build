@@ -64,7 +64,7 @@
             <td><a href="{{ dir.name }}/#files-panel" onclick="return navigateDir('{{ dir.full_subdir }}')">{{ dir.name }}</a></td>
             <td></td>
             <td></td>
-            <td><input type="checkbox" name="items" value="{{ dir.name }}" onchange="countSelected(this)"></td>
+            <td>{% if files_editable %}<input type="checkbox" name="items" value="{{ dir.name }}" onchange="countSelected(this)">{% endif %}</td>
           </tr>
         {% endfor %}
         {% for file in display_files %}
@@ -72,7 +72,7 @@
             <td><a href="{{ file.url }}?return=files">{{ file.name }}</a></td>
             <td>{{ file.size }}</td>
             <td>{{ file.last_modified }}</td>
-            <td><input type="checkbox" name="items" value="{{ file.name }}" onchange="countSelected(this)"></td>
+            <td>{% if files_editable %}<input type="checkbox" name="items" value="{{ file.name }}" onchange="countSelected(this)">{% endif %}</td>
           </tr>
         {% endfor %}
         </tbody>

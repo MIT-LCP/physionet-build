@@ -860,6 +860,13 @@ def project_files_panel(request, project_slug, **kwargs):
     is_editor = request.user == project.editor
     subdir = request.GET['subdir']
 
+    if is_submitting and project.author_editable():
+        files_editable = True
+    elif is_editor and project.copyeditable():
+        files_editable = True
+    else:
+        files_editable = False
+
     if not request.is_ajax():
         return redirect('project_files', project_slug=project_slug)
 
@@ -883,7 +890,8 @@ def project_files_panel(request, project_slug, **kwargs):
          'move_items_form':move_items_form,
          'delete_items_form':delete_items_form,
          'is_submitting':is_submitting,
-         'is_editor':is_editor})
+         'is_editor':is_editor,
+         'files_editable':files_editable})
 
 def process_items(request, form):
     """
@@ -961,6 +969,11 @@ def project_files(request, project_slug, subdir='', **kwargs):
             subdir = process_files_post(request, project)
             project.modified_datetime = timezone.now()
 
+    if is_submitting and project.author_editable():
+        files_editable = True
+    else:
+        files_editable = False
+
     storage_info = project.get_storage_info()
     storage_request = StorageRequest.objects.filter(project=project,
                                                     is_active=True).first()
@@ -989,7 +1002,7 @@ def project_files(request, project_slug, subdir='', **kwargs):
         'rename_item_form':rename_item_form, 'move_items_form':move_items_form,
         'delete_items_form':delete_items_form, 'is_submitting':is_submitting,
         'dir_breadcrumbs':dir_breadcrumbs, 'file_error':file_error,
-        'file_warning':file_warning})
+        'file_warning':file_warning, 'files_editable':files_editable})
 
 
 @project_auth(auth_mode=3)

@@ -37,7 +37,7 @@
     <br>
     {% if storage_request %}
       <em>Storage request for {{ storage_request.request_allowance }}GB pending.</em>
-      {% if is_submitting %}
+      {% if files_editable %}
         <br><button id="cancel-storage-button" type="button" class="btn btn-danger" data-toggle="modal" data-target="#cancel-storage-modal">Cancel Request</button>
         <div class="modal fade" id="cancel-storage-modal" tabindex="-1" role="dialog" aria-labelledby="cancel-storage-modal" aria-hidden="true">
           <div class="modal-dialog" role="document">
@@ -64,7 +64,7 @@
       {% endif %}
 
     {% else %}
-      {% if is_submitting %}
+      {% if files_editable %}
         <button id="request-storage-button" type="button" class="btn btn-primary" data-toggle="modal" data-target="#request-storage-modal">
           <i class="fa fa-cube"></i> Request Storage
         </button>
