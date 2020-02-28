@@ -610,6 +610,11 @@ def project_content(request, project_slug, **kwargs):
     user, project, authors, is_submitting = (kwargs[k] for k in
         ('user', 'project', 'authors', 'is_submitting'))
 
+    if is_submitting and project.author_editable():
+        editable = True
+    else:
+        editable = False
+
     # There are several forms for different types of content
     ReferenceFormSet = generic_inlineformset_factory(Reference,
         fields=('description',), extra=0,
@@ -617,13 +622,13 @@ def project_content(request, project_slug, **kwargs):
         formset=forms.ReferenceFormSet, validate_max=True)
 
     description_form = forms.ContentForm(resource_type=project.resource_type.id,
-        instance=project)
+                                         instance=project, editable=editable)
     reference_formset = ReferenceFormSet(instance=project)
 
     if request.method == 'POST':
         description_form = forms.ContentForm(
             resource_type=project.resource_type.id, data=request.POST,
-            instance=project)
+            instance=project, editable=editable)
         reference_formset = ReferenceFormSet(request.POST, instance=project)
         if description_form.is_valid() and reference_formset.is_valid():
             description_form.save()
@@ -649,11 +654,18 @@ def project_access(request, project_slug, **kwargs):
 
     """
     user, project, passphrase = kwargs['user'], kwargs['project'], ''
+    is_submitting = kwargs['is_submitting']
+
+    if is_submitting and project.author_editable():
+        editable = True
+    else:
+        editable = False
 
     if 'access_policy' in request.POST:
         # The first validation is to check for valid access policy choice
         access_form = forms.AccessMetadataForm(data=request.POST,
-            instance=project)
+                                               instance=project,
+                                               editable=editable)
         if access_form.is_valid():
             # The second validation is to check for valid license choice
             access_form.set_license_queryset(
@@ -666,7 +678,8 @@ def project_access(request, project_slug, **kwargs):
                 'Invalid submission. See errors below.')
     else:
         # Access form
-        access_form = forms.AccessMetadataForm(instance=project)
+        access_form = forms.AccessMetadataForm(instance=project,
+                                               editable=editable)
         access_form.set_license_queryset(access_policy=project.access_policy)
 
     return render(request, 'project/project_access.html', {'project':project,
@@ -700,6 +713,11 @@ def project_discovery(request, project_slug, **kwargs):
     project, is_submitting = (kwargs[k] for k in ('project',
         'is_submitting'))
 
+    if is_submitting and project.author_editable():
+        editable = True
+    else:
+        editable = False
+
     TopicFormSet = generic_inlineformset_factory(Topic,
         fields=('description',), extra=0, max_num=forms.TopicFormSet.max_forms,
         can_delete=False, formset=forms.TopicFormSet, validate_max=True)
@@ -708,14 +726,16 @@ def project_discovery(request, project_slug, **kwargs):
         max_num=forms.PublicationFormSet.max_forms, can_delete=False,
         formset=forms.PublicationFormSet, validate_max=True)
 
-    discovery_form = forms.DiscoveryForm(resource_type=project.resource_type.id,
-        instance=project)
+    discovery_form = forms.DiscoveryForm(
+        resource_type=project.resource_type.id,
+        instance=project, editable=editable)
     publication_formset = PublicationFormSet(instance=project)
     topic_formset = TopicFormSet(instance=project)
 
     if request.method == 'POST':
-        discovery_form = forms.DiscoveryForm(resource_type=project.resource_type.id,
-            data=request.POST, instance=project)
+        discovery_form = forms.DiscoveryForm(
+            resource_type=project.resource_type.id, data=request.POST,
+            instance=project, editable=editable)
         publication_formset = PublicationFormSet(request.POST,
                                                  instance=project)
         topic_formset = TopicFormSet(request.POST, instance=project)
@@ -840,6 +860,13 @@ def project_files_panel(request, project_slug, **kwargs):
     is_editor = request.user == project.editor
     subdir = request.GET['subdir']
 
+    if is_submitting and project.author_editable():
+        files_editable = True
+    elif is_editor and project.copyeditable():
+        files_editable = True
+    else:
+        files_editable = False
+
     if not request.is_ajax():
         return redirect('project_files', project_slug=project_slug)
 
@@ -863,7 +890,8 @@ def project_files_panel(request, project_slug, **kwargs):
          'move_items_form':move_items_form,
          'delete_items_form':delete_items_form,
          'is_submitting':is_submitting,
-         'is_editor':is_editor})
+         'is_editor':is_editor,
+         'files_editable':files_editable})
 
 def process_items(request, form):
     """
@@ -941,6 +969,11 @@ def project_files(request, project_slug, subdir='', **kwargs):
             subdir = process_files_post(request, project)
             project.modified_datetime = timezone.now()
 
+    if is_submitting and project.author_editable():
+        files_editable = True
+    else:
+        files_editable = False
+
     storage_info = project.get_storage_info()
     storage_request = StorageRequest.objects.filter(project=project,
                                                     is_active=True).first()
@@ -969,7 +1002,7 @@ def project_files(request, project_slug, subdir='', **kwargs):
         'rename_item_form':rename_item_form, 'move_items_form':move_items_form,
         'delete_items_form':delete_items_form, 'is_submitting':is_submitting,
         'dir_breadcrumbs':dir_breadcrumbs, 'file_error':file_error,
-        'file_warning':file_warning})
+        'file_warning':file_warning, 'files_editable':files_editable})
 
 
 @project_auth(auth_mode=3)

@@ -504,8 +504,8 @@ class ContentForm(forms.ModelForm):
             'release_notes': 'Important notes about the current release, and changes from previous versions.'
         }
 
-    def __init__(self, resource_type, *args, **kwargs):
-        super(ContentForm, self).__init__(*args, **kwargs)
+    def __init__(self, resource_type, editable=True, **kwargs):
+        super(ContentForm, self).__init__(**kwargs)
         self.fields = OrderedDict((k, self.fields[k]) for k in self.FIELDS[resource_type])
 
         for l in ActiveProject.LABELS[resource_type]:
@@ -513,6 +513,15 @@ class ContentForm(forms.ModelForm):
 
         for h in self.__class__.HELP_TEXTS[resource_type]:
             self.fields[h].help_text = self.__class__.HELP_TEXTS[resource_type][h]
+
+        if not editable:
+            for f in self.fields.values():
+                f.disabled = True
+
+        # We require new versions of a previously published project to
+        # share the same title
+        if self.instance and self.instance.is_new_version:
+            self.fields['title'].disabled = True
 
     def clean_version(self):
         data = self.cleaned_data['version']
@@ -553,10 +562,14 @@ class DiscoveryForm(forms.ModelForm):
         }
         widgets = {'short_description':forms.Textarea(attrs={'rows':'4'})}
 
-    def __init__(self, resource_type, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, resource_type, editable=True, **kwargs):
+        super().__init__(**kwargs)
         if resource_type != 1:
             del(self.fields['programming_languages'])
+
+        if not editable:
+            for f in self.fields.values():
+                f.disabled = True
 
     def clean_short_description(self):
         data = self.cleaned_data['short_description']
@@ -725,7 +738,7 @@ class AccessMetadataForm(forms.ModelForm):
         help_texts = {'access_policy': '* Access policy for files.',
                       'license': "* License for usage. <a href='/about/publish/#licenses' target='_blank'>View available.</a>"}
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, editable=True, **kwargs):
         """
         Control the available access policies based on the existing
         licenses. The license queryset is set in the following
@@ -734,7 +747,7 @@ class AccessMetadataForm(forms.ModelForm):
         Each license has one access policy, and potentially multiple
         resource types.
         """
-        super().__init__(*args, **kwargs)
+        super().__init__(**kwargs)
 
         # Get licenses for this resource type
         licenses = License.objects.filter(
@@ -742,6 +755,10 @@ class AccessMetadataForm(forms.ModelForm):
         # Set allowed access policies based on license policies
         available_policies = [a for a in range(len(Metadata.ACCESS_POLICIES)) if licenses.filter(access_policy=a)]
         self.fields['access_policy'].choices = tuple(Metadata.ACCESS_POLICIES[p] for p in available_policies)
+
+        if not editable:
+            for f in self.fields.values():
+                f.disabled = True
 
     def set_license_queryset(self, access_policy):
         """
