@@ -1601,6 +1601,7 @@ def request_data_access(request, project_slug, version):
     user = request.user
     proj = PublishedProject.objects.get(slug=project_slug, version=version)
 
+
     if not proj:
         raise Http404()
 
@@ -1624,7 +1625,11 @@ def request_data_access(request, project_slug, version):
     else:
         project_request_form = forms.DataAccessRequestForm(project=proj, user=user, prefix="proj")
 
-    return render(request, 'project/request_data_access.html', {'project_request_form' : project_request_form})
+    needs_credentialing = proj.access_policy == 2 and not bool(CredentialApplication.objects.get(user_id=user))
+
+    return render(request, 'project/request_data_access.html',
+                  {'project_request_form': project_request_form,
+                   'needs_credentialing': needs_credentialing})
 
 
 @login_required

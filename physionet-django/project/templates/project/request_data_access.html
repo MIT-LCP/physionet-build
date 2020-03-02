@@ -11,23 +11,28 @@ Requesting access for {{ project }}
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <p>TODO add instructions</p>
+    <div class="container">
+        <p>TODO add instructions</p>
 
+        <p>TODO add DUA</p>
 
-    <p>TODO add DUA</p>
+        {% if not needs_credentialing %}
+            <form action="" method="post" enctype="multipart/form-data"
+                  class="form-signin no-pd" autocomplete="off">
+                {% csrf_token %}
+                {% include "descriptive_inline_form_snippet.html" with form=project_request_form %}
 
-    <form action="" method="post" enctype="multipart/form-data" class="form-signin no-pd" autocomplete="off">
-        {% csrf_token %}
-        {% include "descriptive_inline_form_snippet.html" with form=project_request_form %}
-
-        <p>By submitting this form, you agree to the data user agreement
-            above.</p>
-        <button class="btn btn-primary btn-rsp" type="submit">Submit Request</button>
-    </form>
-
-
-</div>
+                <p>By submitting this form, you agree to the data user agreement
+                    above.</p>
+                <button class="btn btn-primary btn-rsp" type="submit">Submit
+                    Request
+                </button>
+            </form>
+        {% else %}
+            <p>You need to be <a href="{% url 'edit_credentialing' %}">credentialed</a>
+                before you can request access to this resource.</p>
+        {% endif %}
+    </div>
 {% endblock %}
 
 {% block local_js_bottom %}
