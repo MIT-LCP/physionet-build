@@ -12,13 +12,50 @@
             {% csrf_token %}
             <div class="modal-body">
                 <p>
-                    {# TODO: link to user profile #}
-                    The
-                    user {{ da_request.user.username }}
-                    requested
-                    access
-                    to {{ da_request.project.title }}
-                    on {{ da_request.request_datetime|date }}.
+                    The user
+                    <a href="{% url 'public_profile' da_request.user.username %}">
+                    {{ da_request.user.username }}</a>
+                    requested access to {{ da_request.project.title }} on
+                    {{ da_request.request_datetime|date }}.
+                </p>
+                <p>
+                    {% if credentialing_data %}
+                        <div class="table-responsive">
+                            <table class="table table-bordered" width="100%"
+                                   cellspacing="0">
+                                <tbody>
+                                <tr>
+                                    <td>Organization Name</td>
+                                    <td>{{ credentialing_data.organization_name }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Location</td>
+                                    <td>{{ credentialing_data.city }}
+                                        {{ credentialing_data.country }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Job Title</td>
+                                    <td>{{ credentialing_data.job_title }}</td>
+                                </tr>
+
+                                {% if credentialing_data.webpage %}
+                                    <tr>
+                                        <td>Webpage</td>
+                                        <td>
+                                            <a href="{{ credentialing_data.webpage }}">Link</a>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        {#  should not happen #}
+                        No credentialing information found for this user.
+                    {% endif %}
                 </p>
                 <p>
                     The purpose of the data use was stated as
@@ -51,8 +88,8 @@
                         Decision
                     </button>
                 {% elif is_accepted or is_rejected %}
-                    {#  TODO fix #}
-                    The authors decided
+                    {{ da_request.responder }} decided
+                    {{ da_request.decision_datetime|date }}
                     to {% if is_accepted %}
                     accept{% else %}not grant{% endif %} this request.
                 {% elif is_withdrawn %}

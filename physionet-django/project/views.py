@@ -37,7 +37,7 @@ from project.validators import validate_filename
 import notification.utility as notification
 from physionet.utility import serve_file
 from user.forms import ProfileForm, AssociatedEmailChoiceForm
-from user.models import User, CloudInformation
+from user.models import User, CloudInformation, CredentialApplication
 
 from dal import autocomplete
 
@@ -1692,6 +1692,8 @@ def data_access_request_view(request, project_id, user_id):
     else:
         response_form = forms.DataAccessResponseForm(responder_id=user.id, prefix="proj")
 
+    credentialing_data = CredentialApplication.objects.get(user_id=requester.id)
+
     return render(request, 'project/data_access_request_view.html',
                   {'da_request': da_requests[0],
                    'response_form': response_form,
@@ -1699,7 +1701,8 @@ def data_access_request_view(request, project_id, user_id):
                    'is_rejected': da_requests[0].is_rejected(),
                    'is_pending': da_requests[0].is_pending(),
                    'is_withdrawn': da_requests[0].is_withdrawn(),
-                   'older_requests': da_requests[1:]
+                   'older_requests': da_requests[1:],
+                   'credentialing_data' : credentialing_data
                    })
 
 
