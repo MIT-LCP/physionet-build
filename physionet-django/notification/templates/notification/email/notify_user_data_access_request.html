@@ -2,11 +2,9 @@ Dear {{ data_access_request.user.get_full_name }},
 
 You have requested access to the data of {{ data_access_request.project }}
 
-The authors decided to {% if data_access_request.status == 2 %}accept{%else%}deny{% endif %} this request.
+The authors decided to {% if is_accepted %}accept{%else%}not grant{% endif %}this request.
 
-{% if data_access_request.responder_comments %}
-The authors response:
-{{ data_access_request.responder_comments }}
-{% endif %}
+More <a href="{{ request_protocol}}://{{ request_host}}{% url 'data_access_request_status' data_access_request.project.slug data_access_request.project.version %}">
+">details</a>
 
 {{ signature }}

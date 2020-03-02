@@ -1618,7 +1618,7 @@ def request_data_access(request, project_slug, version):
 
             # trigger e-mail notification to reviewers
             users_notify = [p.user for p in PublishedAuthor.objects.filter(project=proj, is_corresponding=1)]
-            notification.notify_owner_data_access_request(users_notify, data_access_req)
+            notification.notify_owner_data_access_request(users_notify, data_access_req, request.scheme, request.get_host())
 
             return render(request, 'project/data_access_request_submitted.html',
                           {'project': proj})
@@ -1692,7 +1692,7 @@ def data_access_request_view(request, project_id, user_id):
 
         if response_form.is_valid():
             response_form.save()
-            notification.notify_user_data_access_request(entry)
+            notification.notify_user_data_access_request(entry, request.scheme, request.get_host())
             return redirect('project_home')
     else:
         response_form = forms.DataAccessResponseForm(responder_id=user.id, prefix="proj")

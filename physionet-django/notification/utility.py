@@ -611,7 +611,7 @@ def notify_aws_access_request(user, project, data_access):
               [user.email], fail_silently=False)
 
 
-def notify_owner_data_access_request(users, data_access_request):
+def notify_owner_data_access_request(users, data_access_request, request_protocol, request_host):
     subject = "PhysioNet New Data Access Request"
 
     for user in users:
@@ -619,7 +619,9 @@ def notify_owner_data_access_request(users, data_access_request):
             'user': user,
             'data_access_request': data_access_request,
             'signature': email_signature(),
-            'footer': email_footer()
+            'footer': email_footer(),
+            'request_host': request_host,
+            'request_protocol': request_protocol
         })
 
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
@@ -627,13 +629,16 @@ def notify_owner_data_access_request(users, data_access_request):
                   fail_silently=False)
 
 
-def notify_user_data_access_request(data_access_request):
+def notify_user_data_access_request(data_access_request, request_protocol, request_host):
     subject = "PhysioNet Data Access Request Decision"
 
     body = loader.render_to_string('notification/email/notify_user_data_access_request.html', {
         'data_access_request': data_access_request,
         'signature': email_signature(),
-        'footer': email_footer()
+        'footer': email_footer(),
+        'request_host': request_host,
+        'request_protocol': request_protocol,
+        'is_accepted': data_access_request.is_accepted()
     })
 
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
