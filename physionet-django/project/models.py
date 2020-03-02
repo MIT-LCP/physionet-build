@@ -1166,7 +1166,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         if not self.is_publishable():
             raise Exception('The project is not publishable')
 
-        published_project = PublishedProject(doi=doi, has_wfdb=self.has_wfdb())
+        published_project = PublishedProject(has_wfdb=self.has_wfdb())
 
         # Direct copy over fields
         for attr in [f.name for f in Metadata._meta.fields] + [f.name for f in SubmissionInfo._meta.fields]:
