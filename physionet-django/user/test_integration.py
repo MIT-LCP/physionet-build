@@ -119,12 +119,18 @@ class TestCredentialing(TestCase):
         # Register and activate a user with old credentialed account
         response = self.client.post(reverse('register'),
             data={'email':'admin@upr.edu', 'username':'adminupr',
-            'first_names': 'admin', 'last_name': 'upr',
-            'password1':'Very5trongt0t@11y', 'password2':'Very5trongt0t@11y'})
+            'first_names': 'admin', 'last_name': 'upr'})
         uidb64, token = re.findall('activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
             mail.outbox[-1].body)[0]
-        response = self.client.get(reverse('activate_user',
-            kwargs={'uidb64':uidb64,'token':token}))
+
+        response = self.client.get(reverse('activate_user', args=(uidb64, token)))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(self.client.session['_activation_reset_token'], token)
+
+        response = self.client.post(reverse('activate_user',
+            args=(uidb64, 'user-activation')),
+            data={'email':'admin@upr.edu', 'username': 'adminupr',
+            'password1': 'Very5trongt0t@11y', 'password2': 'Very5trongt0t@11y'})
 
         # Check if the user is active and credentialed
         self.assertTrue(User.objects.get(email='admin@upr.edu').is_active)
@@ -152,8 +158,15 @@ class TestCredentialing(TestCase):
             'password1':'Very5trongt0t@11y', 'password2':'Very5trongt0t@11y'})
         uidb64, token = re.findall('activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
             mail.outbox[-1].body)[0]
-        response = self.client.get(reverse('activate_user',
-            kwargs={'uidb64':uidb64,'token':token}))
+
+        response = self.client.get(reverse('activate_user', args=(uidb64, token)))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(self.client.session['_activation_reset_token'], token)
+
+        response = self.client.post(reverse('activate_user',
+            args=(uidb64, 'user-activation')),
+            data={'email': 'admin@upr.edu', 'username': 'adminupr',
+            'password1': 'Very5trongt0t@11y', 'password2': 'Very5trongt0t@11y'})
 
         # The user is not automatically credentialed because the email's
         # credentialing status was already migrated to the other account
