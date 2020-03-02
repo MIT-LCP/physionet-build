@@ -1514,14 +1514,19 @@ class PublishedProject(Metadata, SubmissionInfo):
             return False
 
         if self.access_policy:
-            if self.access_policy == 2 and (not user.is_authenticated or not user.is_credentialed):
+            if self.access_policy == 2 and (
+                not user.is_authenticated or not user.is_credentialed):
                 return False
 
             if self.is_self_managed_access:
-                records = DataAccessRequest.objects.filter(project=self, user__id=user.id)
-                return any(r.status == DataAccessRequest.ACCEPT_REQUEST_VALUE for r in records)
+                records = DataAccessRequest.objects.filter(project=self,
+                                                           user__id=user.id)
+                return any(
+                    r.status == DataAccessRequest.ACCEPT_REQUEST_VALUE for r in
+                    records)
             else:
-                return DUASignature.objects.filter(project=self, user__id=user.id)
+                return DUASignature.objects.filter(project=self,
+                                                   user__id=user.id)
         else:
             return True
 
@@ -1713,7 +1718,9 @@ class DataAccessRequest(models.Model):
 
     user = models.ForeignKey('user.User', on_delete=models.CASCADE)
 
-    project = models.ForeignKey('project.PublishedProject', related_name='data_access_request_project', on_delete=models.CASCADE)
+    project = models.ForeignKey('project.PublishedProject',
+                                related_name='data_access_request_project',
+                                on_delete=models.CASCADE)
 
     data_use_purpose = models.CharField(max_length=2000)
 
@@ -1721,7 +1728,9 @@ class DataAccessRequest(models.Model):
 
     decision_datetime = models.DateTimeField(null=True)
     # TODO: on delete: or no action?, assuming 1 is admin user
-    responder = models.ForeignKey('user.User', null=True, related_name='data_access_request_user', on_delete=models.SET(1))
+    responder = models.ForeignKey('user.User', null=True,
+                                  related_name='data_access_request_user',
+                                  on_delete=models.SET(1))
 
     responder_comments = models.CharField(max_length=500, blank=True)
 
