@@ -12,9 +12,11 @@ Requesting access for {{ project }}
 
 {% block content %}
     <div class="container">
-        <p>TODO add instructions</p>
-
-        <p>TODO add DUA</p>
+        <p>This dataset requires special permission by the depositor on a
+            project by project basis. To proceed, please provide below a
+            description of the research you aim to do with the data. The
+            request will then be reviewed within 14 days by the data
+            depositor. You'll get notified via e-mail about their decision.</p>
 
         {% if not needs_credentialing %}
             <form action="" method="post" enctype="multipart/form-data"
@@ -22,6 +24,7 @@ Requesting access for {{ project }}
                 {% csrf_token %}
                 {% include "descriptive_inline_form_snippet.html" with form=project_request_form %}
 
+                <p>TODO add DUA</p>
                 <p>By submitting this form, you agree to the data user agreement
                     above.</p>
                 <button class="btn btn-primary btn-rsp" type="submit">Submit

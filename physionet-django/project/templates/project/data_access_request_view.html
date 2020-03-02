@@ -67,14 +67,6 @@
                 </p>
 
                 {% if is_pending %}
-                    {% if da_request.responder_comments %}
-                        The authors response:
-                        <hr/>
-                        <p>
-                            {{ da_request.responder_comments }}
-                        </p>
-                        <hr/>
-                    {% endif %}
                     {% include "descriptive_inline_form_snippet.html" with form=response_form %}
 
                     <button class="btn btn-primary"
@@ -92,6 +84,15 @@
                     {{ da_request.decision_datetime|date }}
                     to {% if is_accepted %}
                     accept{% else %}not grant{% endif %} this request.
+
+                     {% if da_request.responder_comments %}
+                        The response was:
+                        <hr/>
+                        <p>
+                            {{ da_request.responder_comments }}
+                        </p>
+                        <hr/>
+                    {% endif %}
                 {% elif is_withdrawn %}
                     The requester withdrew the request on the
                     {{ da_request.decision_datetime|date }}
