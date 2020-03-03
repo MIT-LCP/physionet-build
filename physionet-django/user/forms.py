@@ -506,10 +506,10 @@ class ActivationForm(forms.Form):
     """A form for creating new users. Includes all the required
     fields, plus a repeated password.
     """
-    username = forms.CharField(widget=forms.TextInput(attrs={
-        'class': 'form-control', 'disabled': True}))
-    email = forms.EmailField(widget=forms.TextInput(attrs={
-        'class': 'form-control', 'disabled': True}))
+    username = forms.CharField(disabled=True, widget=forms.TextInput(attrs={
+        'class': 'form-control'}))
+    email = forms.EmailField(disabled=True, widget=forms.TextInput(attrs={
+        'class': 'form-control'}))
     password1 = forms.CharField(label='Password',
                     widget=forms.PasswordInput(attrs={'class': 'form-control'}))
     password2 = forms.CharField(label='Password Confirmation',
