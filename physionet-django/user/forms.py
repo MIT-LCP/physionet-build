@@ -522,6 +522,7 @@ class ActivationForm(forms.Form):
         super().__init__(*args, **kwargs)
         self.fields['username'].initial = user.username
         self.fields['email'].initial = user.email
+        self.user = user
 
     def clean_password2(self):
         # Check that the two password entries match
@@ -530,7 +531,7 @@ class ActivationForm(forms.Form):
         if password1 and password2 and password1 != password2:
             raise forms.ValidationError("The passwords don't match")
 
-        user = User.objects.get(username=self.data['username'])
-        password_validation.validate_password(self.cleaned_data.get('password1'), user=user)
+        password_validation.validate_password(
+            self.cleaned_data.get('password1'), user=self.user)
 
         return password1
