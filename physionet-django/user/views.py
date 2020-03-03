@@ -35,6 +35,7 @@ from notification.utility import (process_credential_complete,
 logger = logging.getLogger(__name__)
 
 
+@sensitive_post_parameters('password1', 'password2')
 def activate_user(request, uidb64, token):
     """
     Page to active the account of a newly registered user.
@@ -295,7 +296,7 @@ def profile_photo(request, username):
     user = User.objects.get(username__iexact=username)
     return utility.serve_file(user.profile.photo.path)
 
-@sensitive_post_parameters('password1', 'password2')
+
 def register(request):
     """
     User registration page
