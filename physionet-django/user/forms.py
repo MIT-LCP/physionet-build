@@ -507,9 +507,9 @@ class ActivationForm(forms.Form):
     fields, plus a repeated password.
     """
     username = forms.CharField(widget=forms.TextInput(attrs={
-        'class': 'form-control', 'readonly': True}))
+        'class': 'form-control', 'disabled': True}))
     email = forms.EmailField(widget=forms.TextInput(attrs={
-        'class': 'form-control', 'readonly': True}))
+        'class': 'form-control', 'disabled': True}))
     password1 = forms.CharField(label='Password',
                     widget=forms.PasswordInput(attrs={'class': 'form-control'}))
     password2 = forms.CharField(label='Password Confirmation',
