@@ -172,6 +172,10 @@ class CopyeditForm(forms.ModelForm):
             'changelog_summary':forms.Textarea()
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['made_changes'].required = True
+
     def clean(self):
         if self.errors:
             return
