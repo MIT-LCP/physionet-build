@@ -1722,6 +1722,7 @@ class DataAccessRequest(models.Model):
                                 related_name='data_access_request_project',
                                 on_delete=models.CASCADE)
 
+    data_use_title = models.CharField(max_length=200, default='')
     data_use_purpose = models.CharField(max_length=2000)
 
     status = models.PositiveSmallIntegerField(default=0, choices=REJECT_ACCEPT)

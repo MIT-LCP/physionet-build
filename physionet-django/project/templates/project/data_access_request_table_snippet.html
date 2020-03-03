@@ -8,6 +8,7 @@
                 <th>Request Time</th>
                 <th>Status</th>
                 <th>Last status update</th>
+                <th>Title</th>
                 <th>Data Use Purpose</th>
                 <th>Responder Comment</th>
             </tr>
@@ -18,6 +19,7 @@
                     <td>{{ req.request_datetime|date }}</td>
                     <td>{{ req.status }}</td>
                     <td>{{ req.decision_datetime|date }}</td>
+                    <td>{{ req.data_use_title }}</td>
                     <td>{{ req.data_use_purpose }}</td>
                     <td>{{ req.responder_comments }}</td>
                 </tr>

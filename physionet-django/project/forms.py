@@ -911,16 +911,18 @@ class AnonymousAccessLoginForm(forms.ModelForm):
 class DataAccessRequestForm(forms.ModelForm):
     class Meta:
         model = DataAccessRequest
-        fields = ('data_use_purpose',)
+        fields = ('data_use_title', 'data_use_purpose',)
         help_texts = {
-            'data_use_purpose': """Brief description of your intended use for this project""",
+            'data_use_title': """Title of the project you would like to use the data for""",
+            'data_use_purpose': """Detailed description of the data use.""",
         }
         widgets = {
             'data_use_purpose': forms.Textarea(attrs={'rows': 3}),
         }
 
         labels = {
-            'data_use_purpose': 'Data Use'
+            'data_use_title': 'Research Project Title',
+            'data_use_purpose': 'Research Project Details'
         }
 
     def save(self):

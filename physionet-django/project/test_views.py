@@ -701,7 +701,8 @@ class TestSelfManagedProjectWorkflows(TestMixin):
         data_use_purpose_msg = 'I would like ...'
         self.client.post(reverse('request_data_access',
                                  args=(project.slug, project.version,)),
-                         data={'proj-data_use_purpose': data_use_purpose_msg})
+                         data={'proj-data_use_purpose': data_use_purpose_msg,
+                               'proj-data_use_title': 'example title'})
 
         da_req = DataAccessRequest.objects.filter(
             user_id=User.objects.get(username=self.REQUESTER),
