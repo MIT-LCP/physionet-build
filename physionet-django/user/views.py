@@ -52,6 +52,10 @@ def activate_user(request, uidb64, token):
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
         user = None
 
+    if user.is_active:
+        messages.success(request, 'The account is active.')
+        return redirect('login')
+
     if request.method == 'GET':
         if token == activation_url_token:
             session_token = request.session.get(activation_session_token)
