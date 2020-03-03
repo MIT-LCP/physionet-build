@@ -16,8 +16,17 @@
       <hr>
       {% csrf_token %}
       {% include "inline_form_snippet.html" %}
+      <div class="progress">
+        <div id="StrengthProgressBar" class="progress-bar"></div>
+      </div>
       <button class="btn btn-primary btn-custom btn-rsp" type="submit">Activate</button>
     </form>
 
 </div>
+{% endblock %}
+
+{% block local_js_bottom %}
+<script src="{% static 'zxcvbn/zxcvbn.js' %}"></script>
+<script src="{% static 'zxcvbn/zxcvbn-bootstrap-strength-meter.js' %}"></script>
+<script src="{% static 'zxcvbn/zxcvbn_ProgressBar_Register.js' %}"></script>
 {% endblock %}
