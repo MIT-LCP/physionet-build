@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'ckeditor',
     # 'django_cron',
     'background_task',
+    'django.contrib.sites',
 
     'user',
     'project',
@@ -146,6 +147,15 @@ AWS_HEADER_VALUE = config('AWS_VALUE', default=False)
 AWS_HEADER_KEY2 = config('AWS_KEY2', default=False)
 AWS_HEADER_VALUE2 = config('AWS_VALUE2', default=False)
 AWS_CLOUD_FORMATION = config('AWS_CLOUD_FORMATION', default=False)
+
+# Tags for the DataCite API used for DOI
+DATACITE_API_URL = 'https://api.test.datacite.org/dois'
+DATACITE_PREFIX = config('DATACITE_TEST_PREFIX', default=False)
+DATACITE_USER = config('DATACITE_TEST_USER', default=False)
+DATACITE_PASS = config('DATACITE_TEST_PASS', default=False)
+
+# Used to verify if we are running in the production environment
+PRODUCTION = False
 
 # List of permitted HTML tags and attributes for rich text fields.
 # The 'default' configuration permits all of the tags below.  Other

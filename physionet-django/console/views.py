@@ -18,6 +18,7 @@ from django.utils import timezone
 from django.db import DatabaseError, transaction
 from django.db.models import Q, CharField, Value, IntegerField, F, functions
 from background_task import background
+from django.contrib.sites.models import Site
 
 from notification.models import News
 import notification.utility as notification
@@ -479,8 +480,6 @@ def publish_submission(request, project_slug, *args, **kwargs):
         return redirect('editor_home')
 
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
-    publish_form = forms.PublishForm(project=project)
-
     if request.method == 'POST':
         publish_form = forms.PublishForm(project=project, data=request.POST)
         if project.is_publishable() and publish_form.is_valid():
@@ -488,16 +487,15 @@ def publish_submission(request, project_slug, *args, **kwargs):
                 slug = project.get_previous_slug()
             else:
                 slug = publish_form.cleaned_data['slug']
-            published_project = project.publish(
-                doi=publish_form.cleaned_data['doi'],
-                slug=slug,
+            published_project = project.publish(slug=slug,
                 make_zip=int(publish_form.cleaned_data['make_zip']))
             notification.publish_notify(request, published_project)
+            utility.publish_doi(published_project)
             return render(request, 'console/publish_complete.html',
                 {'published_project': published_project, 'editor_home': True})
-
     publishable = project.is_publishable()
     url_prefix = notification.get_url_prefix(request)
+    publish_form = forms.PublishForm(project=project)
 
     return render(request, 'console/publish_submission.html',
         {'project': project, 'publishable': publishable, 'authors': authors,

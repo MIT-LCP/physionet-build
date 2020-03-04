@@ -6,13 +6,14 @@ from django.utils import timezone
 from django.core.validators import validate_integer, validate_email, URLValidator
 from google.cloud import storage
 from django.db import transaction
-
+from django.conf import settings
 
 from notification.models import News
 from project.models import (ActiveProject, EditLog, CopyeditLog,
     PublishedProject, exists_project_slug, DataAccess)
 from project.validators import validate_slug, MAX_PROJECT_SLUG_LENGTH
 from user.models import User, CredentialApplication
+from console.utility import create_doi_draft
 
 RESPONSE_CHOICES = (
     (1, 'Accept'),
@@ -72,7 +73,7 @@ class EditSubmissionForm(forms.ModelForm):
         model = EditLog
         fields = ('soundly_produced', 'well_described', 'open_format',
             'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable',
-            'editor_comments', 'decision')
+            'editor_comments', 'auto_doi', 'decision')
 
         labels = EditLog.COMMON_LABELS
 
@@ -95,6 +96,10 @@ class EditSubmissionForm(forms.ModelForm):
         """
         super().__init__(*args, **kwargs)
         self.resource_type = resource_type
+
+        if not settings.DATACITE_PREFIX:
+            self.fields['auto_doi'].disabled = True
+            self.initial['auto_doi'] = False
 
         # This will be used in clean
         self.quality_assurance_fields = EditLog.QUALITY_ASSURANCE_FIELDS[resource_type.id]
@@ -155,6 +160,11 @@ class EditSubmissionForm(forms.ModelForm):
                 project.submission_status = 40
                 project.editor_accept_datetime = now
                 project.latest_reminder = now
+                if self.cleaned_data['auto_doi'] and not project.doi:
+                    project.doi = create_doi_draft(project)
+                    if not project.core_project.doi:
+                        project.core_project.doi = create_doi_draft(project)
+                        project.core_project.save()
                 CopyeditLog.objects.create(project=project)
                 project.save()
             return edit_log
@@ -207,7 +217,6 @@ class PublishForm(forms.Form):
     """
     slug = forms.CharField(max_length=MAX_PROJECT_SLUG_LENGTH,
                            validators=[validate_slug])
-    doi = forms.CharField(max_length=50, label='DOI', required=False)
     make_zip = forms.ChoiceField(choices=YES_NO, label='Make zip of all files')
 
     def __init__(self, project, *args, **kwargs):
@@ -227,14 +236,6 @@ class PublishForm(forms.Form):
         if data != self.project.slug:
             if exists_project_slug(data):
                 raise forms.ValidationError('The slug is already taken by another project.')
-
-        return data
-
-    def clean_doi(self):
-        data = self.cleaned_data['doi']
-        # Temporary workaround
-        # if PublishedProject.objects.filter(doi=data):
-        #     raise forms.ValidationError('Published project with DOI already exists.')
         return data
 
 

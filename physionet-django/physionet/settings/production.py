@@ -8,7 +8,6 @@ DEBUG = False
 
 ALLOWED_HOSTS = ['alpha.physionet.org', 'physionet-production.ecg.mit.edu', 'physionet.org', 'www.physionet.org']
 SITE_ID = 3
-INSTALLED_APPS += ['django.contrib.sites']
 
 DATABASES = {
     'default': {
@@ -38,6 +37,11 @@ ADMINS = [('PhysioNet Technical', 'technical@physionet.org')]
 DEMO_FILE_ROOT = os.path.join(os.path.abspath(os.path.join(BASE_DIR, os.pardir)), 'demo-files')
 
 MEDIA_ROOT = '/data/pn-media'
+
+DATACITE_API_URL = 'https://api.datacite.org/dois'
+DATACITE_PREFIX = config('DATACITE_PREFIX', default=False)
+DATACITE_USER = config('DATACITE_USER', default=False)
+DATACITE_PASS = config('DATACITE_PASS', default=False)
 
 # If defined, MEDIA_X_ACCEL_ALIAS is the virtual URL path
 # corresponding to MEDIA_ROOT. If possible, when serving a file

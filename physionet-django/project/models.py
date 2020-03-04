@@ -268,6 +268,12 @@ class PublishedAuthor(BaseAuthor):
     def get_full_name(self):
         return ' '.join([self.first_names, self.last_name])
 
+    def get_full_name_srs(self):
+        """
+        Return the full name in SRS format
+        """
+        return ', '.join([self.last_name, self.first_names])
+
     def set_display_info(self):
         """
         Set the fields used to display the author
@@ -386,7 +392,7 @@ class CoreProject(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     creation_datetime = models.DateTimeField(auto_now_add=True)
     # doi pointing to the latest version of the published project
-    doi = models.CharField(max_length=50, default='')
+    doi = models.CharField(max_length=50, blank=True, null=True)
     # Maximum allowed storage capacity in bytes.
     # Default = 100Mb. Max = 10Tb
     storage_allowance = models.BigIntegerField(default=104857600,
@@ -523,6 +529,12 @@ class Metadata(models.Model):
                 return authors, author_emails
             else:
                 return authors
+
+    def abstract_text_content(self):
+        """
+        Returns abstract as plain text.
+        """
+        return html2text(self.abstract)
 
     def edit_log_history(self):
         """
@@ -688,7 +700,7 @@ class UnpublishedProject(models.Model):
     # Access url slug, also used as a submitting project id.
     slug = models.SlugField(max_length=MAX_PROJECT_SLUG_LENGTH, db_index=True)
     latest_reminder = models.DateTimeField(null=True, blank=True)
-
+    doi = models.CharField(max_length=50, blank=True, null=True)
     authors = GenericRelation('project.Author')
     references = GenericRelation('project.Reference')
     publications = GenericRelation('project.Publication')
@@ -1141,21 +1153,21 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         shutil.rmtree(self.file_root())
 
-    def publish(self, doi, slug=None, make_zip=True, title=None):
+    def publish(self, slug=None, make_zip=True, title=None):
         """
         Create a published version of this project and update the
         submission status.
 
         Parameters
         ----------
-        doi : the desired doi of the published project.
         slug : the desired custom slug of the published project.
         make_zip : whether to make a zip of all the files.
         """
         if not self.is_publishable():
             raise Exception('The project is not publishable')
 
-        published_project = PublishedProject(doi=doi, has_wfdb=self.has_wfdb())
+        published_project = PublishedProject(has_wfdb=self.has_wfdb())
+
         # Direct copy over fields
         for attr in [f.name for f in Metadata._meta.fields] + [f.name for f in SubmissionInfo._meta.fields]:
             setattr(published_project, attr, getattr(self, attr))
@@ -1185,6 +1197,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 # Set the slug if specified
                 published_project.slug = slug or self.slug
                 published_project.title = title or self.title
+                published_project.doi = self.doi
 
                 if self.core_project.publishedprojects.all() and len(previous_published_projects) > 0:
                     for project in previous_published_projects:
@@ -1264,7 +1277,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             os.rename(published_project.file_root(), self.file_root())
             raise
 
-    
+
 class PublishedProject(Metadata, SubmissionInfo):
     """
     A published project. Immutable snapshot.
@@ -1278,7 +1291,7 @@ class PublishedProject(Metadata, SubmissionInfo):
     deprecated_files = models.BooleanField(default=False)
     # doi = models.CharField(max_length=50, unique=True, validators=[validate_doi])
     # Temporary workaround
-    doi = models.CharField(max_length=50, default='')
+    doi = models.CharField(max_length=50, blank=True, null=True)
     slug = models.SlugField(max_length=MAX_PROJECT_SLUG_LENGTH, db_index=True,
         validators=[validate_slug])
     # Fields for legacy pb databases
@@ -1762,14 +1775,15 @@ class EditLog(models.Model):
          'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable'),
     )
     # The editor's free input fields
-    EDITOR_FIELDS = ('editor_comments', 'decision')
+    EDITOR_FIELDS = ('editor_comments', 'decision', 'auto_doi')
 
     COMMON_LABELS = {
         'reusable': 'Does the project include everything needed for reuse by the community?',
         'pn_suitable': 'Is the content suitable for PhysioNet?',
         'editor_comments': 'Comments to authors',
         'no_phi': 'Is the project free of protected health information?',
-        'data_machine_readable': 'Are all files machine-readable?'
+        'data_machine_readable': 'Are all files machine-readable?',
+        'auto_doi': 'Automatically assign a new DOI once it has been publish?',
     }
 
     LABELS = (
@@ -1828,6 +1842,7 @@ class EditLog(models.Model):
     decision_datetime = models.DateTimeField(null=True)
     # Comments for the decision
     editor_comments = models.CharField(max_length=10000)
+    auto_doi = models.BooleanField(default=True)
 
     def set_quality_assurance_results(self):
         """
