@@ -220,7 +220,7 @@ class TestAuth(TestMixin):
 
         # Test 1: set public email
         self.make_post_request('edit_emails',
-            data={'set_public_email':[''],'associated_email': 'admin3@mit.edu'})
+            data={'set_public_email': [''], 'associated_email': 'admin3@mit.edu'})
         self.tst_post_request(edit_emails)
         # order is admin2@mit.edu, admin3@mit.edu, admin@mit.edu
         public_status = [ae.is_public for ae in AssociatedEmail.objects.filter(user=self.user).order_by('email')]
@@ -228,7 +228,7 @@ class TestAuth(TestMixin):
 
         # Test 2: set primary email
         self.make_post_request('edit_emails',
-            data={'set_primary_email':[''],'associated_email': 'admin2@mit.edu'})
+            data={'set_primary_email': [''], 'associated_email': 'admin2@mit.edu'})
         self.tst_post_request(edit_emails)
         self.assertEqual(self.user.email, 'admin2@mit.edu')
 
@@ -240,7 +240,7 @@ class TestAuth(TestMixin):
         # Test 4: remove email
         remove_id = AssociatedEmail.objects.get(email='admin3@mit.edu').id
         self.make_post_request('edit_emails',
-            data={'remove_email':[str(remove_id)]})
+            data={'remove_email': [str(remove_id)]})
         self.tst_post_request(edit_emails)
         remaining_associated_emails = [ae.email for ae in AssociatedEmail.objects.filter(user=self.user)]
         self.assertNotIn('admin3@mit.edu', remaining_associated_emails)
@@ -265,9 +265,9 @@ class TestPublic(TestMixin):
         self.user = AnonymousUser()
 
     def test_public_profile(self):
-        self.make_get_request('public_profile', {'username':'admin'})
+        self.make_get_request('public_profile', {'username': 'admin'})
         self.tst_get_request(public_profile,
-            view_kwargs={'username':'admin'}, status_code=200)
+            view_kwargs={'username': 'admin'}, status_code=200)
 
     def test_register_activate(self):
         """
@@ -277,9 +277,9 @@ class TestPublic(TestMixin):
         self.make_get_request('register')
         self.tst_get_request(register, status_code=200)
         self.make_post_request('register',
-            data={'email':'jackreacher@mit.edu', 'username':'awesomeness',
+            data={'email': 'jackreacher@mit.edu', 'username': 'awesomeness',
             'first_names': 'Jack', 'last_name': 'Reacher',
-            'password1':'Very5trongt0t@11y', 'password2':'Very5trongt0t@11y'})
+            'password1': 'Very5trongt0t@11y', 'password2': 'Very5trongt0t@11y'})
         # Recall that register uses same view upon success, so not 302
         self.tst_post_request(register, status_code=200)
         # Check user object was created
@@ -296,8 +296,8 @@ class TestPublic(TestMixin):
 
         response = self.client.post(reverse('activate_user',
             args=(uidb64, 'user-activation')),
-            data={'email':'jackreacher@mit.edu', 'username':'awesomeness',
-            'password1': 'Very5trongt0t@11y', 'password2':'Very5trongt0t@11y'})
+            data={'email': 'jackreacher@mit.edu', 'username': 'awesomeness',
+            'password1': 'Very5trongt0t@11y', 'password2': 'Very5trongt0t@11y'})
         # Test that the user is active
         self.assertTrue(User.objects.get(email='jackreacher@mit.edu').is_active)
 
