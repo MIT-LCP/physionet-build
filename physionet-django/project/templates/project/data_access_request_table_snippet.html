@@ -17,7 +17,7 @@
             {% for req in older_requests %}
                 <tr>
                     <td>{{ req.request_datetime|date }}</td>
-                    <td>{{ req.status }}</td>
+                    <td>{{ req.status_text }}</td>
                     <td>{{ req.decision_datetime|date }}</td>
                     <td>{{ req.data_use_title }}</td>
                     <td>{{ req.data_use_purpose | safe }}</td>

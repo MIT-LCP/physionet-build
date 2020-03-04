@@ -5,7 +5,7 @@
 {% block title %}View Data Access Request{% endblock %}
 
 {% block content %}
-    <div class="container">
+    <div class="container col-md-8">
         <h1>Data Access Request</h1>
 
         <form action="" method="post">
@@ -14,135 +14,125 @@
                 <p>
                     The user
                     <a href="{% url 'public_profile' da_request.user.username %}">
-                    {{ da_request.user.username }}</a>
+                        {{ da_request.user.profile.first_names }}
+                        {{ da_request.user.profile.lastname }}</a>
                     requested access to {{ da_request.project.title }} on
                     {{ da_request.request_datetime|date }}.
                 </p>
                 <p>
                     {% if credentialing_data %}
-                        <div class="table-responsive">
-                            <table class="table table-bordered" width="100%"
-                                   cellspacing="0">
-                                <tbody>
-                                <tr>
-                                    <td>Organization Name</td>
-                                    <td>{{ credentialing_data.organization_name }}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Location</td>
-                                    <td>{{ credentialing_data.city }}
-                                        {{ credentialing_data.country }}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Job Title</td>
-                                    <td>{{ credentialing_data.job_title }}</td>
-                                </tr>
-
-                                {% if credentialing_data.webpage %}
-                                    <tr>
-                                        <td>Webpage</td>
-                                        <td>
-                                            <a href="{{ credentialing_data.webpage }}">Link</a>
-                                        </td>
-                                    </tr>
-                                {% endif %}
-                                </tr>
-                                </tbody>
-                            </table>
+                        <div>
+                        <p>
+                            Organization: {{ credentialing_data.organization_name }}
+                        </p>
+                        <p>
+                            Location: {{ credentialing_data.city }}
+                            {{ credentialing_data.country }}
+                        </p>
+                        <p>Job Title: {{ credentialing_data.job_title }}
+                        </p>
+                        {% if credentialing_data.webpage %}
+                            <p><a href="{{ credentialing_data.webpage }}">Webpage</a>
+                            </p>
+                        {% endif %}
                         </div>
                     {% else %}
                         {#  should not happen #}
                         No credentialing information found for this user.
                     {% endif %}
-                </p>
-                <p>
-                    The purpose of the data use was stated as
-                    follows:
-                </p>
+            </p>
+            <p>
+                The purpose of the data use was stated as
+                follows:
+            </p>
 
+            <div class="alert alert-secondary">
                 <h4>{{ da_request.data_use_title }}</h4>
                 <div style="height: 300px; overflow: scroll">
                     {{ da_request.data_use_purpose | safe }}
                 </div>
-
-                {% if is_pending %}
-                    {{  response_form.media }}
-                    {% include "descriptive_inline_form_snippet.html" with form=response_form %}
-
-                    <button class="btn btn-primary"
-                            name="data_access_response"
-                            type="button" data-toggle="modal"
-                            data-target="#check-modal"
-                            onclick="setCheckButtonText('{{ response_form.status.auto_id }}');">
-                        <i
-                                class="fa fa-reply"></i>
-                        Submit
-                        Decision
-                    </button>
-                {% elif is_accepted or is_rejected %}
-                    {{ da_request.responder }} decided
-                    {{ da_request.decision_datetime|date }}
-                    to {% if is_accepted %}
-                    accept{% else %}not grant{% endif %} this request.
-
-                     {% if da_request.responder_comments %}
-                        The response was:
-                        <hr/>
-                        <p>
-                            {{ da_request.responder_comments }}
-                        </p>
-                        <hr/>
-                    {% endif %}
-                {% elif is_withdrawn %}
-                    The requester withdrew the request on the
-                    {{ da_request.decision_datetime|date }}
-                {% endif %}
-
-
             </div>
-            <div class="modal fade" id="check-modal" tabindex="-1"
-                 role="dialog" aria-labelledby="check-modal"
-                 aria-hidden="true">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Are you sure?</h5>
-                            <button type="button" class="close"
-                                    data-dismiss="modal"
-                                    aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-footer">
-                            <button id="check-button-submit"
-                                    class="btn btn-danger"
-                                    name="data_access_response"
-                                    value="{{ da_request.id }}"
-                                    type="submit">Yes
-                            </button>
-                            <button type="button"
-                                    class="btn btn-secondary"
-                                    data-dismiss="modal">No
-                            </button>
-                        </div>
-                    </div>
+
+            {% if is_pending %}
+                {{ response_form.media }}
+                {% include "descriptive_inline_form_snippet.html" with form=response_form %}
+
+                <button class="btn btn-primary"
+                        name="data_access_response"
+                        type="button" data-toggle="modal"
+                        data-target="#check-modal"
+                        onclick="setCheckButtonText('{{ response_form.status.auto_id }}');">
+                    <i
+                            class="fa fa-reply"></i>
+                    Submit
+                    Decision
+                </button>
+            {% elif is_accepted or is_rejected %}
+                {{ da_request.responder }} decided
+                {{ da_request.decision_datetime|date }}
+                to {% if is_accepted %}
+                accept{% else %}not grant{% endif %} this request.
+
+                {% if da_request.responder_comments %}
+                    The response was:
+                    <hr/>
+                    <p>
+                        {{ da_request.responder_comments }}
+                    </p>
+                    <hr/>
+                {% endif %}
+            {% elif is_withdrawn %}
+                The requester withdrew the request on the
+                {{ da_request.decision_datetime|date }}
+            {% endif %}
+
+    </div>
+    <div class="modal fade" id="check-modal" tabindex="-1"
+         role="dialog" aria-labelledby="check-modal"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Are you sure?</h5>
+                    <button type="button" class="close"
+                            data-dismiss="modal"
+                            aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-footer">
+                    <button id="check-button-submit"
+                            class="btn btn-danger"
+                            name="data_access_response"
+                            value="{{ da_request.id }}"
+                            type="submit">Yes
+                    </button>
+                    <button type="button"
+                            class="btn btn-secondary"
+                            data-dismiss="modal">No
+                    </button>
                 </div>
             </div>
-            <script type="application/javascript">
-                function setCheckButtonText(selector_id) {
-                    var selector = document.querySelector("#" + selector_id);
-                    var buttonText = "Yes, " + selector.options[selector
-                            .selectedIndex]
-                            .text;
-
-                    document.querySelector('#check-button-submit').innerHTML =
-                            buttonText;
-                }
-            </script>
-        </form>
-        <hr/>
-        {% include "project/data_access_request_table_snippet.html" %}
+        </div>
     </div>
+    <script type="application/javascript">
+        function setCheckButtonText(selector_id) {
+            var selector = document.querySelector("#" + selector_id);
+            var buttonText = "Yes, " + selector.options[selector
+                    .selectedIndex]
+                    .text;
+
+            document.querySelector('#check-button-submit').innerHTML =
+                    buttonText;
+        }
+    </script>
+    </form>
+    <hr/>
+    {% include "project/data_access_request_table_snippet.html" %}
+    </div>
+{% endblock %}
+
+{% block local_js_bottom %}
+    <script src="{% static 'custom/js/enable-tooltip.js' %}"></script>
+    <script src="{% static 'custom/js/resize-ck.js' %}"></script>
 {% endblock %}

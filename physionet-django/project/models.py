@@ -1714,6 +1714,13 @@ class DataAccessRequest(models.Model):
         (ACCEPT_REQUEST_VALUE, 'Accept'),
     )
 
+    status_texts = {
+        PENDING_VALUE: "pending",
+        REJECT_REQUEST_VALUE: "rejected",
+        WITHDRAWN_VALUE: "withdrawn",
+        ACCEPT_REQUEST_VALUE: "accepted"
+    }
+
     request_datetime = models.DateTimeField(auto_now_add=True)
 
     user = models.ForeignKey('user.User', on_delete=models.CASCADE)
@@ -1746,6 +1753,9 @@ class DataAccessRequest(models.Model):
 
     def is_pending(self):
         return self.status == self.PENDING_VALUE
+
+    def status_text(self):
+        return self.status_texts.get(self.status, 'unknown')
 
 
 class BaseInvitation(models.Model):
