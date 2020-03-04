@@ -276,4 +276,4 @@ class TestState(TestMixin):
             self.assertEqual(project.doi, '10.0000/aaa')
             self.assertEqual(project.core_project.doi, '10.0000/bbb')
 
-        self.assertEqual(mocker.call_count, 6)
+        self.assertEqual(mocker.call_count, 4)
