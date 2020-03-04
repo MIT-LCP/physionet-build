@@ -331,40 +331,30 @@ def register_doi(payload):
     return doi
 
 
-def publish_doi(project):
+def update_doi(doi, payload):
     """
-    Upate a DOI from draft to publish.
+    Update metadata for a registered DOI via a PUT request.
 
-    The URL is made using the prefix and doi assigned to the project.
-
-    get_doi_status will raise an exception if the DOI does not exist.
-    """
-    publish = False
-    if project.doi:
-        if get_doi_status(project.doi) in ["draft", "registered"]:
-            publish = True
-        payload, url = generate_doi_info(project, publish=publish)
-        send_doi_update(url, payload)
-    if project.core_project.doi and project.is_latest_version:
-        if get_doi_status(project.core_project.doi) in ["draft", "registered"]:
-            publish = True
-        payload, url = generate_doi_info(project, core_project=True,
-            publish=publish)
-        send_doi_update(url, payload)
-
-
-def send_doi_update(url, payload):
-    """
-    Execute a DOI change. This can be used to update and/or publish the DOI.
-
-    A PUT request is done in order to update the information for the DOI.
+    Args:
+        doi (str): The doi to be updated.
+        payload (dict): The metadata to be sent to the DataCite API.
     """
     headers = {'Content-Type': 'application/vnd.api+json'}
-    response = put(url, data=json.dumps(payload), headers=headers,
-        auth=HTTPBasicAuth(settings.DATACITE_USER, settings.DATACITE_PASS))
+    request_url = '{0}/{1}'.format(settings.DATACITE_API_URL, doi)
+
+    response = put(request_url, data=json.dumps(payload), headers=headers,
+                   auth=HTTPBasicAuth(settings.DATACITE_USER,
+                   settings.DATACITE_PASS))
+
     if response.status_code < 200 or response.status_code >= 300:
-        raise Exception("There was an unknown error updating the DOI, \
-            here is the response text: {0}".format(response.text))
+        raise Exception("""There was an unknown error updating the DOI. Here
+            is the response text: {0}""".format(response.text))
+
+    event = payload['data']['attributes']['event']
+    title = payload['data']['attributes']['titles'][0]['title']
+
+    LOGGER.info("DOI ({0}) for project '{1}' updated: {2}.".format(event,
+                                                                   title, doi))
 
 
 def generate_doi_info(project, core_project=False, publish=False):
