@@ -66,7 +66,7 @@
           <br>
           {% if anonymous_url %}
             The URL for reviewer access is:
-            <a href="{% url 'anonymous_login' anonymous_url %}" target="_blank">{{ request.get_host }}{% url 'anonymous_login' anonymous_url %}</a>
+            <a href="{% url 'anonymous_login' anonymous_url %}" target="_blank">{{ url_prefix }}{% url 'anonymous_login' anonymous_url %}</a>
           {% endif %}
         </p>
         <div
