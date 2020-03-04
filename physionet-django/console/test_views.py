@@ -261,7 +261,7 @@ class TestState(TestMixin):
                 {'data': {'attributes': {'state': 'draft'}}})},
         ])
 
-        # Updating DOI state (console.utility.send_doi_update)
+        # Updating DOI state (console.utility.update_doi)
         mocker.put('https://api.datacite.example/dois/10.0000/aaa')
         mocker.put('https://api.datacite.example/dois/10.0000/bbb')
 
