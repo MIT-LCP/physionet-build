@@ -214,6 +214,10 @@ class TestAuth(TestMixin):
         self.make_get_request('edit_emails')
         self.tst_get_request(edit_emails)
 
+        # Test 0: login
+        self.client.login(username='admin@mit.edu', password='Tester11!')
+        self.assertEqual(int(self.client.session['_auth_user_id']), self.user.pk)
+
         # Test 1: set public email
         self.make_post_request('edit_emails',
             data={'set_public_email':[''],'associated_email': 'admin3@mit.edu'})
@@ -229,9 +233,8 @@ class TestAuth(TestMixin):
         self.assertEqual(self.user.email, 'admin2@mit.edu')
 
         # Test 3: add email
-        self.make_post_request('edit_emails',
-            data={'add_email':[''],'email': 'tester0@mit.edu'})
-        self.tst_post_request(edit_emails)
+        response = self.client.post(reverse('edit_emails'), data={
+            'add_email': [''], 'email': 'tester0@mit.edu'})
         self.assertIsNotNone(AssociatedEmail.objects.filter(email='tester0@mit.edu'))
 
         # Test 4: remove email
@@ -246,10 +249,9 @@ class TestAuth(TestMixin):
         # Get the activation info from the sent email
         uidb64, token = re.findall('http://testserver/verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
             mail.outbox[0].body)[0]
-        self.make_get_request('verify_email', {'uidb64':uidb64, 'token':token})
-        self.tst_get_request(verify_email,
-            view_kwargs={'uidb64':uidb64, 'token':token})
-        self.assertTrue(bool(AssociatedEmail.objects.get(email='tester0@mit.edu').verification_date))
+
+        request = self.client.get(reverse('verify_email', args=(uidb64, token)))
+        self.assertTrue(AssociatedEmail.objects.get(email='tester0@mit.edu').is_verified)
 
 
 class TestPublic(TestMixin):
