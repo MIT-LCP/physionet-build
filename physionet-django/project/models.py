@@ -265,14 +265,17 @@ class PublishedAuthor(BaseAuthor):
         unique_together = (('user', 'project'),
                            ('display_order', 'project'))
 
-    def get_full_name(self):
-        return ' '.join([self.first_names, self.last_name])
-
-    def get_full_name_srs(self):
+    def get_full_name(self, reverse=False):
         """
-        Return the full name in SRS format
+        Return the full name.
+        Args:
+            reverse: Format of the return string. If False (default) then
+                'firstnames lastname'. If True then 'lastname, firstnames'.
         """
-        return ', '.join([self.last_name, self.first_names])
+        if reverse:
+            return ', '.join([self.last_name, self.first_names])
+        else:
+            return ' '.join([self.first_names, self.last_name])
 
     def set_display_info(self):
         """
