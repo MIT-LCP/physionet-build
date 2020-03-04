@@ -288,8 +288,15 @@ class TestPublic(TestMixin):
         uidb64, token = re.findall('http://testserver/activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
             mail.outbox[0].body)[0]
         # Visit the activation link
-        self.make_get_request('activate_user', {'uidb64':uidb64, 'token':token})
-        self.tst_get_request(activate_user,
-            view_kwargs={'uidb64':uidb64, 'token':token})
+        response = self.client.get(reverse('activate_user', args=(uidb64, token)))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(self.client.session['_activation_reset_token'], token)
+
+        response = self.client.post(reverse('activate_user',
+            args=(uidb64, 'user-activation')),
+            data={'email':'jackreacher@mit.edu', 'username':'awesomeness',
+            'password1': 'Very5trongt0t@11y', 'password2':'Very5trongt0t@11y'})
         # Test that the user is active
         self.assertTrue(User.objects.get(email='jackreacher@mit.edu').is_active)
+
+        self.client.get(reverse('activate_user', args=(uidb64, token)))

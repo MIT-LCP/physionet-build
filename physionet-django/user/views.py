@@ -6,13 +6,14 @@ import pytz
 
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.forms import inlineformset_factory, HiddenInput, CheckboxInput
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.template import loader
 from django.urls import reverse
@@ -20,6 +21,7 @@ from django.utils import timezone
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.views.decorators.debug import sensitive_post_parameters
+from django.db import transaction
 
 from user import forms
 from user.models import AssociatedEmail, Profile, User, CredentialApplication, LegacyCredential, CloudInformation
@@ -32,34 +34,70 @@ from notification.utility import (process_credential_complete,
 
 logger = logging.getLogger(__name__)
 
+
+@sensitive_post_parameters('password1', 'password2')
 def activate_user(request, uidb64, token):
     """
     Page to active the account of a newly registered user.
+
+    The user will create the password at this stage and then logged in.
     """
+    activation_session_token = '_activation_reset_token'
+    activation_url_token = 'user-activation'
+    title = "Account activation"
+    context = {'title': 'Invalid Activation Link', 'isvalid': False}
+
     try:
         uid = force_text(urlsafe_base64_decode(uidb64))
         user = User.objects.get(pk=uid)
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
         user = None
 
-    if user is not None and not user.is_active and default_token_generator.check_token(user, token):
-        user.is_active = True
-        # Check legacy credentials
-        check_legacy_credentials(user, user.email)
-        user.save()
-        email = user.associated_emails.first()
-        email.verification_date = timezone.now()
-        email.is_verified = True
-        email.save()
-        logger.info('User activated - {0}'.format(user.email))
-        context = {'title':'Activation Successful', 'isvalid':True}
-    elif user is not None and user.is_active:
-        context = {'title':'Activation Successful', 'isvalid':True}
-    else:
-        logger.warning('Invalid Activation Link')
-        context = {'title':'Invalid Activation Link', 'isvalid':False}
+    if user.is_active:
+        messages.success(request, 'The account is active.')
+        return redirect('login')
 
-    return render(request, 'user/activate_user.html', context)
+    if request.method == 'GET':
+        if token == activation_url_token:
+            session_token = request.session.get(activation_session_token)
+            if default_token_generator.check_token(user, session_token):
+                # If the token is valid, display the password reset form.
+                form = forms.ActivationForm(user=user)
+                return render(request, 'user/activate_user.html', {
+                    'form': form, 'title': title})
+        else:
+            if default_token_generator.check_token(user, token):
+                # Store the token in the session and redirect to the
+                # password reset form at a URL without the token. That
+                # avoids the possibility of leaking the token in the
+                # HTTP Referer header.
+                request.session[activation_session_token] = token
+                redirect_url = request.path.replace(token, activation_url_token)
+                return HttpResponseRedirect(redirect_url)
+    else:
+        if token == activation_url_token:
+            session_token = request.session.get(activation_session_token)
+            form = forms.ActivationForm(user=user, data=request.POST)
+            if form.is_valid() and default_token_generator.check_token(user, session_token):
+                with transaction.atomic():
+                    user.set_password(form.cleaned_data['password1'])
+                    user.is_active = True
+                    # Check legacy credentials
+                    check_legacy_credentials(user, user.email)
+                    user.save()
+                    email = user.associated_emails.first()
+                    email.verification_date = timezone.now()
+                    email.is_verified = True
+                    email.save()
+                    request.session.pop(activation_session_token)
+                    logger.info('User activated - {0}'.format(user.email))
+                    messages.success(request, 'The account has been activated.')
+                    login(request, user)
+                    return redirect('project_home')
+            return render(request, 'user/activate_user.html', {'form': form,
+                'title': title})
+
+    return render(request, 'user/activate_user_complete.html', context)
 
 
 def check_legacy_credentials(user, email):
@@ -258,7 +296,7 @@ def profile_photo(request, username):
     user = User.objects.get(username__iexact=username)
     return utility.serve_file(user.profile.photo.path)
 
-@sensitive_post_parameters('password1', 'password2')
+
 def register(request):
     """
     User registration page
