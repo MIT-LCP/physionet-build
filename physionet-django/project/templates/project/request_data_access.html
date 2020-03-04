@@ -8,25 +8,67 @@ Requesting access for {{ project }}
 
 {% block local_css %}
 <link rel="stylesheet" type="text/css" href="{% static 'custom/css/form-control-input.css' %}"/>
+    <style>
+        #id_proj-agree_dua {
+            width: 13px;
+            height: 13px;
+            position: relative;
+            top: 20px;
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
     <div class="container">
         <p>This dataset requires special permission by the depositor on a
-            project by project basis. To proceed, please provide below a
+            project by project basis.</p>
+        <p>To proceed, please provide below a
             description of the research you aim to do with the data. The
-            request will then be reviewed within 14 days by the data
+            request will be reviewed within 14 days by the data
             depositor. You'll get notified via e-mail about their decision.</p>
 
         {% if not needs_credentialing %}
             <form action="" method="post" enctype="multipart/form-data"
                   class="form-signin no-pd" autocomplete="off">
                 {% csrf_token %}
-                {% include "descriptive_inline_form_snippet.html" with form=project_request_form %}
+
+                {% for field in project_request_form.inline_fields %}
+                    <div class="form-group row">
+                        <label class="col-md-3" for="{{ field.id_for_label }}">
+                            {{ field.label|capfirst }}
+                            {% if field.field.required %}
+                                <a style="color:red"> *</a>
+                            {% endif %}
+                            <i class="fas fa-question-circle"
+                               data-toggle="tooltip" data-placement="right"
+                               title="{{ field.help_text }}" data-html="true"
+                               style="cursor: pointer;"></i>
+                        </label>
+                        <div class='col-md-9'>
+                            {{ field }}
+                            {% for error in field.errors %}
+                                <div class="alert alert-danger">
+                                    <strong>{{ error|escape }}</strong>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+                {% for error in project_request_form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        <strong>{{ error|escape }}</strong>
+                    </div>
+                {% endfor %}
 
                 <p>TODO add DUA</p>
-                <p>By submitting this form, you agree to the data user agreement
-                    above.</p>
+
+                <div >
+                    {{ project_request_form.agree_dua }}
+                     <label for="id_proj-agree_dua" style="padding-left: 15px">
+                         By submitting this form, I, {{ full_user_name }},
+                         agree with the above terms.
+                     </label>
+                </div>
                 <button class="btn btn-primary btn-rsp" type="submit">Submit
                     Request
                 </button>

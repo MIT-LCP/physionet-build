@@ -1644,9 +1644,13 @@ def request_data_access(request, project_slug, version):
     needs_credentialing = proj.access_policy == 2 and not bool(
         CredentialApplication.objects.get(user_id=user))
 
+    full_user_name = f"{user.profile.first_names} {user.profile.last_name}"
+
     return render(request, 'project/request_data_access.html',
                   {'project_request_form': project_request_form,
-                   'needs_credentialing': needs_credentialing})
+                   'needs_credentialing': needs_credentialing,
+                   'full_user_name': full_user_name
+                   })
 
 
 @login_required

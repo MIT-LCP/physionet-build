@@ -911,19 +911,24 @@ class AnonymousAccessLoginForm(forms.ModelForm):
 class DataAccessRequestForm(forms.ModelForm):
     class Meta:
         model = DataAccessRequest
-        fields = ('data_use_title', 'data_use_purpose',)
+        fields = ('data_use_title', 'data_use_purpose', 'agree_dua')
         help_texts = {
             'data_use_title': """Title of the project you would like to use the data for""",
             'data_use_purpose': """Detailed description of the data use.""",
         }
         widgets = {
-            'data_use_purpose': forms.Textarea(attrs={'rows': 3}),
+            'data_use_purpose': forms.Textarea(attrs={'rows': 7}),
         }
 
         labels = {
             'data_use_title': 'Research Project Title',
             'data_use_purpose': 'Research Project Details'
         }
+
+    agree_dua = forms.BooleanField(required=True)
+
+    def inline_fields(self):
+        return [ f for f in self.visible_fields() if f.field != self.fields['agree_dua'] ]
 
     def save(self):
         proj_request = super().save(commit=False)
