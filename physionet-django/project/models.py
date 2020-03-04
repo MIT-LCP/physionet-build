@@ -1723,7 +1723,7 @@ class DataAccessRequest(models.Model):
                                 on_delete=models.CASCADE)
 
     data_use_title = models.CharField(max_length=200, default='')
-    data_use_purpose = models.CharField(max_length=2000)
+    data_use_purpose = SafeHTMLField(blank=False)
 
     status = models.PositiveSmallIntegerField(default=0, choices=REJECT_ACCEPT)
 
@@ -1733,7 +1733,7 @@ class DataAccessRequest(models.Model):
                                   related_name='data_access_request_user',
                                   on_delete=models.SET(1))
 
-    responder_comments = models.CharField(max_length=500, blank=True)
+    responder_comments = SafeHTMLField(blank=True)
 
     def is_accepted(self):
         return self.status == self.ACCEPT_REQUEST_VALUE

@@ -63,11 +63,12 @@
                 </p>
 
                 <h4>{{ da_request.data_use_title }}</h4>
-                <p style="height: 100px; overflow: scroll">
-                    {{ da_request.data_use_purpose }}
-                </p>
+                <div style="height: 300px; overflow: scroll">
+                    {{ da_request.data_use_purpose | safe }}
+                </div>
 
                 {% if is_pending %}
+                    {{  response_form.media }}
                     {% include "descriptive_inline_form_snippet.html" with form=response_form %}
 
                     <button class="btn btn-primary"

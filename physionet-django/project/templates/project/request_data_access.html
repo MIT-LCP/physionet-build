@@ -32,6 +32,7 @@ Requesting access for {{ project }}
                   class="form-signin no-pd" autocomplete="off">
                 {% csrf_token %}
 
+                {{  project_request_form.media }}
                 {% for field in project_request_form.inline_fields %}
                     <div class="form-group row">
                         <label class="col-md-3" for="{{ field.id_for_label }}">
@@ -82,4 +83,5 @@ Requesting access for {{ project }}
 
 {% block local_js_bottom %}
 <script src="{% static 'custom/js/enable-tooltip.js' %}"></script>
+<script src="{% static 'custom/js/resize-ck.js' %}"></script>
 {% endblock %}

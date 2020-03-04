@@ -20,8 +20,8 @@
                     <td>{{ req.status }}</td>
                     <td>{{ req.decision_datetime|date }}</td>
                     <td>{{ req.data_use_title }}</td>
-                    <td>{{ req.data_use_purpose }}</td>
-                    <td>{{ req.responder_comments }}</td>
+                    <td>{{ req.data_use_purpose | safe }}</td>
+                    <td>{{ req.responder_comments | safe }}</td>
                 </tr>
             {% endfor %}
             </tbody>
