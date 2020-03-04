@@ -710,6 +710,8 @@ def manage_published_project(request, project_slug, version):
     ro_tasks = [task for (task, read_only) in tasks if read_only]
     rw_tasks = [task for (task, read_only) in tasks if not read_only]
 
+    url_prefix = notification.get_url_prefix(request)
+
     return render(request, 'console/manage_published_project.html',
         {'project': project, 'authors': authors, 'author_emails': author_emails,
          'storage_info': storage_info, 'edit_logs': edit_logs,
@@ -719,7 +721,7 @@ def manage_published_project(request, project_slug, version):
          'data_access_form': data_access_form, 'data_access': data_access,
          'rw_tasks': rw_tasks, 'ro_tasks': ro_tasks,
          'anonymous_url': anonymous_url, 'passphrase': passphrase,
-         'published_projects_nav': True})
+         'published_projects_nav': True, 'url_prefix': url_prefix})
 
 
 @login_required
