@@ -242,7 +242,7 @@ class TestState(TestMixin):
         """
 
         # Initial creation of draft DOIs
-        # (console.utility.create_doi_draft)
+        # (console.utility.register_doi)
         mocker.post('https://api.datacite.example/dois', [
             {'text': json.dumps(
                 {'data': {'attributes': {'doi': '10.0000/aaa'}}})},

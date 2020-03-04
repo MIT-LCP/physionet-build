@@ -13,7 +13,7 @@ from project.models import (ActiveProject, EditLog, CopyeditLog,
     PublishedProject, exists_project_slug, DataAccess)
 from project.validators import validate_slug, MAX_PROJECT_SLUG_LENGTH
 from user.models import User, CredentialApplication
-from console.utility import create_doi_draft
+from console.utility import generate_doi_payload, register_doi
 
 RESPONSE_CHOICES = (
     (1, 'Accept'),
@@ -160,13 +160,24 @@ class EditSubmissionForm(forms.ModelForm):
                 project.submission_status = 40
                 project.editor_accept_datetime = now
                 project.latest_reminder = now
-                if self.cleaned_data['auto_doi'] and not project.doi:
-                    project.doi = create_doi_draft(project)
+
+                if self.cleaned_data['auto_doi']:
+                    # register draft DOIs
+                    if not project.doi:
+                        payload = generate_doi_payload(project,
+                                                               event="draft")
+                        project.doi = register_doi(payload)
+                        project.save()
                     if not project.core_project.doi:
-                        project.core_project.doi = create_doi_draft(project)
+                        payload = generate_doi_payload(project,
+                                                               core_project=True,
+                                                               event="draft")
+                        project.core_project.doi = register_doi(payload)
                         project.core_project.save()
+
                 CopyeditLog.objects.create(project=project)
                 project.save()
+
             return edit_log
 
 
