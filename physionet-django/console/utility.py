@@ -183,15 +183,15 @@ def paginate(request, to_paginate, maximun):
     return paginated
 
 
-def create_doi_draft(project):
+def register_doi(payload):
     """
-    Create a draft DOI with some basic information about the project.
+    Create a draft DOI with basic project information via a POST request.
 
-    A POST request is done to set the base information.
-    The assigned DOI is returned to be used in the template.
+    Args:
+        payload (dict): The metadata to be sent to the DataCite API.
 
-    On successfull creation returns the asigned DOI
-    On tests return empty leaving the DOI object the same
+    Returns:
+        doi (str): On success, returns the assigned DOI.
 
     Example of the API return response.
     {
@@ -308,42 +308,27 @@ def create_doi_draft(project):
        ]
     }
     """
-    url = settings.DATACITE_API_URL
-    current_site = Site.objects.get_current()
     headers = {'Content-Type': 'application/vnd.api+json'}
-    resource_type = 'Dataset'
-    if project.resource_type.name == 'Software':
-        resource_type = 'Software'
+    request_url = settings.DATACITE_API_URL
 
-    payload = {
-        "data": {
-            "type": "dois",
-            "attributes": {
-                "event": "draft",
-                "prefix": settings.DATACITE_PREFIX,
-                "titles": [{
-                    "title": project.title
-                }],
-                "publisher": current_site.name,
-                "publicationYear": timezone.now().year,
-                "types": {
-                    "resourceTypeGeneral": resource_type
-                },
-            }
-        }
-    }
+    response = post(request_url, data=json.dumps(payload), headers=headers,
+                    auth=HTTPBasicAuth(settings.DATACITE_USER,
+                    settings.DATACITE_PASS))
 
-    response = post(url, data=json.dumps(payload), headers=headers,
-        auth=HTTPBasicAuth(settings.DATACITE_USER, settings.DATACITE_PASS))
     if response.status_code < 200 or response.status_code >= 300:
-        raise Exception("There was an unknown error submitting the DOI, here \
-            is the response text: {}".format(response.text))
+        raise Exception("""There was an unknown error submitting the DOI. Here
+            is the response text: {}""".format(response.text))
 
     content = json.loads(response.text)
-    validate_doi(content['data']['attributes']['doi'])
-    LOGGER.info("DOI draft for project {0} was created with DOI: {1}.".format(
-        project.title, content['data']['attributes']['doi']))
-    return content['data']['attributes']['doi']
+    doi = content['data']['attributes']['doi']
+    validate_doi(doi)
+
+    event = payload['data']['attributes']['event']
+    title = payload['data']['attributes']['titles'][0]['title']
+
+    LOGGER.info("DOI ({0}) for project '{1}' created: {2}.".format(event,
+                                                                   title, doi))
+    return doi
 
 
 def publish_doi(project):
