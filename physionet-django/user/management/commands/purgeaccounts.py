@@ -21,7 +21,7 @@ class Command(BaseCommand):
         deleted = []
         for user in user_list:
             dates = today - user.join_date
-            deleted.append(" - Username: {0}\n   Email: {1}\n   Full Name: "
+            deleted.append("\n - Username: {0}\n   Email: {1}\n   Full Name: "
                            "{2}".format(user.username, user.email,
                                         user.get_full_name()))
             user.delete()
