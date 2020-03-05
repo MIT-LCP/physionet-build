@@ -364,8 +364,9 @@ def verify_email(request, uidb64, token):
             if not user.is_credentialed:
                 check_legacy_credentials(user, associated_email.email)
             logger.info('User {0} verified another email {1}'.format(user.id, associated_email))
-            messages.success(request, 'The email has been verified.')
-            return redirect('project_home')
+            messages.success(request, 'The email address {} has been verified.'.format(
+                associated_email))
+            return redirect('edit_emails')
 
     logger.warning('Invalid Verification Link')
     return render(request, 'user/verify_email.html',
