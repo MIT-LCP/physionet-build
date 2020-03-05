@@ -29,5 +29,5 @@ class Command(BaseCommand):
                 user.delete()
         LOGGER.info("The following accounts were removed:")
         for line in deleted:
-            print(line)
+            LOGGER.info(line)
         LOGGER.info("Total accounts removed {}".format(len(deleted)))
