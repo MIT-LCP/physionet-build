@@ -1821,7 +1821,7 @@ def data_access_request_view(request, project_slug, version, user_id):
 
 
 @login_required
-def project_request_access(request, project_slug, version, access_type):
+def published_project_request_access(request, project_slug, version, access_type):
     """
     Page to grant access to AWS storage, Google storage or Big Query
     to a specific user.
