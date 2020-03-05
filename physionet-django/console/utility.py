@@ -183,15 +183,15 @@ def paginate(request, to_paginate, maximun):
     return paginated
 
 
-def create_doi_draft(project):
+def register_doi(payload):
     """
-    Create a draft DOI with some basic information about the project.
+    Create a draft DOI with basic project information via a POST request.
 
-    A POST request is done to set the base information.
-    The assigned DOI is returned to be used in the template.
+    Args:
+        payload (dict): The metadata to be sent to the DataCite API.
 
-    On successfull creation returns the asigned DOI
-    On tests return empty leaving the DOI object the same
+    Returns:
+        doi (str): On success, returns the assigned DOI.
 
     Example of the API return response.
     {
@@ -308,9 +308,111 @@ def create_doi_draft(project):
        ]
     }
     """
-    url = settings.DATACITE_API_URL
-    current_site = Site.objects.get_current()
     headers = {'Content-Type': 'application/vnd.api+json'}
+    request_url = settings.DATACITE_API_URL
+
+    response = post(request_url, data=json.dumps(payload), headers=headers,
+                    auth=HTTPBasicAuth(settings.DATACITE_USER,
+                    settings.DATACITE_PASS))
+
+    if response.status_code < 200 or response.status_code >= 300:
+        raise Exception("""There was an unknown error submitting the DOI. Here
+            is the response text: {}""".format(response.text))
+
+    content = json.loads(response.text)
+    doi = content['data']['attributes']['doi']
+    validate_doi(doi)
+
+    event = payload['data']['attributes']['event']
+    title = payload['data']['attributes']['titles'][0]['title']
+
+    LOGGER.info("DOI ({0}) for project '{1}' created: {2}.".format(event,
+                                                                   title, doi))
+    return doi
+
+
+def update_doi(doi, payload):
+    """
+    Update metadata for a registered DOI via a PUT request.
+
+    Args:
+        doi (str): The doi to be updated.
+        payload (dict): The metadata to be sent to the DataCite API.
+    """
+    headers = {'Content-Type': 'application/vnd.api+json'}
+    request_url = '{0}/{1}'.format(settings.DATACITE_API_URL, doi)
+
+    response = put(request_url, data=json.dumps(payload), headers=headers,
+                   auth=HTTPBasicAuth(settings.DATACITE_USER,
+                   settings.DATACITE_PASS))
+
+    if response.status_code < 200 or response.status_code >= 300:
+        raise Exception("""There was an unknown error updating the DOI. Here
+            is the response text: {0}""".format(response.text))
+
+    event = payload['data']['attributes']['event']
+    title = payload['data']['attributes']['titles'][0]['title']
+
+    LOGGER.info("DOI ({0}) for project '{1}' updated: {2}.".format(event,
+                                                                   title, doi))
+
+
+def generate_doi_payload(project, core_project=False, event="draft"):
+    """
+    Generate a payload for registering or updating a DOI.
+
+    Args:
+        project (obj): Project object.
+        core_project (bool): If the metadata relates to the core project
+            then core_project=True, else core_project=False.
+        event (str): Either "draft" or "publish".
+
+    Returns:
+        payload (dict): The metadata to be sent to the DataCite API.
+    """
+    current_site = Site.objects.get_current()
+
+    if event == "publish" and core_project:
+        project_url = "https://{0}{1}".format(current_site, reverse(
+            'published_project_latest', args=(project.slug,)))
+    elif event == "publish":
+        project_url = "https://{0}{1}".format(current_site, reverse(
+            'published_project', args=(project.slug, project.version)))
+    else:
+        project_url = ""
+
+    if core_project:
+        version = "latest"
+    else:
+        version = project.version
+
+    authors = []
+    if event == "publish":
+        author_list = project.author_list().order_by('display_order')
+        for author in author_list:
+            authors.append({"givenName": author.first_names,
+                            "familyName": author.last_name,
+                            "name": author.get_full_name(reverse=True)})
+
+    # link to parent or child projects
+    if event == "publish" and core_project:
+        # add children if core project
+        versions = project.core_project.get_published_versions()
+        relation = []
+        for v in versions:
+            relation.append({"relationType": "HasVersion",
+                             "relatedIdentifier": v.doi,
+                             "relatedIdentifierType": "DOI"})
+    elif event == "publish":
+        # add parent if not core project
+        relation = [{
+          "relationType": "IsVersionOf",
+          "relatedIdentifier": project.core_project.doi,
+          "relatedIdentifierType": "DOI"
+        }]
+    else:
+        relation = []
+
     resource_type = 'Dataset'
     if project.resource_type.name == 'Software':
         resource_type = 'Software'
@@ -319,7 +421,7 @@ def create_doi_draft(project):
         "data": {
             "type": "dois",
             "attributes": {
-                "event": "draft",
+                "event": event,
                 "prefix": settings.DATACITE_PREFIX,
                 "titles": [{
                     "title": project.title
@@ -329,105 +431,19 @@ def create_doi_draft(project):
                 "types": {
                     "resourceTypeGeneral": resource_type
                 },
-            }
-        }
-    }
-
-    response = post(url, data=json.dumps(payload), headers=headers,
-        auth=HTTPBasicAuth(settings.DATACITE_USER, settings.DATACITE_PASS))
-    if response.status_code < 200 or response.status_code >= 300:
-        raise Exception("There was an unknown error submitting the DOI, here \
-            is the response text: {}".format(response.text))
-
-    content = json.loads(response.text)
-    validate_doi(content['data']['attributes']['doi'])
-    LOGGER.info("DOI draft for project {0} was created with DOI: {1}.".format(
-        project.title, content['data']['attributes']['doi']))
-    return content['data']['attributes']['doi']
-
-
-def publish_doi(project):
-    """
-    Upate a DOI from draft to publish.
-
-    The URL is made using the prefix and doi assigned to the project.
-
-    get_doi_status will raise an exception if the DOI does not exist.
-    """
-    publish = False
-    if project.doi:
-        if get_doi_status(project.doi) in ["draft", "registered"]:
-            publish = True
-        payload, url = generate_doi_info(project, publish=publish)
-        send_doi_update(url, payload)
-    if project.core_project.doi and project.is_latest_version:
-        if get_doi_status(project.core_project.doi) in ["draft", "registered"]:
-            publish = True
-        payload, url = generate_doi_info(project, core_project=True,
-            publish=publish)
-        send_doi_update(url, payload)
-
-
-def send_doi_update(url, payload):
-    """
-    Execute a DOI change. This can be used to update and/or publish the DOI.
-
-    A PUT request is done in order to update the information for the DOI.
-    """
-    headers = {'Content-Type': 'application/vnd.api+json'}
-    response = put(url, data=json.dumps(payload), headers=headers,
-        auth=HTTPBasicAuth(settings.DATACITE_USER, settings.DATACITE_PASS))
-    if response.status_code < 200 or response.status_code >= 300:
-        raise Exception("There was an unknown error updating the DOI, \
-            here is the response text: {0}".format(response.text))
-
-
-def generate_doi_info(project, core_project=False, publish=False):
-    """
-    Generate the payload and url to be used to update a DOI information.
-
-    Returns the payload that will publish or update the DOI and its URL
-    """
-    current_site = Site.objects.get_current()
-    #
-    url = '{0}/{1}'.format(settings.DATACITE_API_URL, project.doi)
-    project_url = "https://{0}{1}".format(current_site, reverse(
-        'published_project', args=(project.slug, project.version)))
-
-    if core_project:
-        url = '{0}/{1}'.format(settings.DATACITE_API_URL,
-            project.core_project.doi)
-        project_url = "https://{0}/{1}".format(current_site, reverse(
-            'published_project_latest', args=(project.slug,)))
-
-    author_list = project.author_list().order_by('display_order')
-    authors = []
-    for author in author_list:
-        authors.append({"givenName": author.first_names,
-                        "familyName": author.last_name,
-                        "name": author.get_full_name(reverse=True)})
-
-    description = project.abstract_text_content()
-    payload = {
-        "data": {
-            "type": "dois",
-            "attributes": {
-                "titles": [{
-                    "title": project.title
-                }],
-                "publicationYear": timezone.now().year,
                 "creators": authors,
+                "version": version,
                 "descriptions": [{
-                    "description": description,
+                    "description": project.abstract_text_content(),
                     "descriptionType": "Abstract"
                 }],
-                "url": project_url
+                "url": project_url,
+                "relatedIdentifiers": relation,
             }
         }
     }
-    if publish:
-        payload["data"]["attributes"]["event"] = "publish"
-    return payload, url
+
+    return payload
 
 
 def get_doi_status(project_doi):

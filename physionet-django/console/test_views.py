@@ -242,7 +242,7 @@ class TestState(TestMixin):
         """
 
         # Initial creation of draft DOIs
-        # (console.utility.create_doi_draft)
+        # (console.utility.register_doi)
         mocker.post('https://api.datacite.example/dois', [
             {'text': json.dumps(
                 {'data': {'attributes': {'doi': '10.0000/aaa'}}})},
@@ -261,7 +261,7 @@ class TestState(TestMixin):
                 {'data': {'attributes': {'state': 'draft'}}})},
         ])
 
-        # Updating DOI state (console.utility.send_doi_update)
+        # Updating DOI state (console.utility.update_doi)
         mocker.put('https://api.datacite.example/dois/10.0000/aaa')
         mocker.put('https://api.datacite.example/dois/10.0000/bbb')
 
@@ -276,4 +276,4 @@ class TestState(TestMixin):
             self.assertEqual(project.doi, '10.0000/aaa')
             self.assertEqual(project.core_project.doi, '10.0000/bbb')
 
-        self.assertEqual(mocker.call_count, 6)
+        self.assertEqual(mocker.call_count, 4)

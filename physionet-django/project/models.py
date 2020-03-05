@@ -406,6 +406,12 @@ class CoreProject(models.Model):
         "Whether there is a new version being worked on"
         return bool(self.activeprojects.filter())
 
+    def get_published_versions(self):
+        """
+        Return a queryset of PublishedProjects, sorted by version.
+        """
+        return self.publishedprojects.filter().order_by('version_order')
+
 
 class ProjectType(models.Model):
     """

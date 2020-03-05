@@ -490,9 +490,26 @@ def publish_submission(request, project_slug, *args, **kwargs):
             published_project = project.publish(slug=slug,
                 make_zip=int(publish_form.cleaned_data['make_zip']))
             notification.publish_notify(request, published_project)
-            utility.publish_doi(published_project)
+
+            # update the core and project DOIs with latest metadata
+            if published_project.core_project.doi:
+                core = published_project.core_project
+                latest = core.publishedprojects.get(is_latest_version=True)
+                payload_core = utility.generate_doi_payload(latest,
+                                                            core_project=True,
+                                                            event="publish")
+                utility.update_doi(published_project.core_project.doi,
+                                   payload_core)
+
+            if published_project.doi:
+                payload = utility.generate_doi_payload(published_project,
+                                                       core_project=False,
+                                                       event="publish")
+                utility.update_doi(published_project.doi, payload)
+
             return render(request, 'console/publish_complete.html',
                 {'published_project': published_project, 'editor_home': True})
+
     publishable = project.is_publishable()
     url_prefix = notification.get_url_prefix(request)
     publish_form = forms.PublishForm(project=project)
