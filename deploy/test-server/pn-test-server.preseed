@@ -1,0 +1,68 @@
+## debian-installer preseed file for physionet test server
+
+# Locale, keyboard layout, time zone
+d-i debian-installer/locale string en_US
+d-i keyboard-configuration/xkb-keymap select us
+d-i time/zone string US/Eastern
+
+# Unprivileged user name and password
+d-i passwd/user-fullname string PhysioNet Administrator
+d-i passwd/username string pnadmin
+d-i passwd/user-password password asdf
+d-i passwd/user-password-again password asdf
+
+# Superuser password
+d-i passwd/root-password password rootrootroot
+d-i passwd/root-password-again password rootrootroot
+
+# Debian mirror
+d-i mirror/country string US
+d-i mirror/http/mirror select deb.debian.org
+d-i mirror/http/proxy string
+
+# Hardware clock
+d-i clock-setup/utc boolean true
+d-i clock-setup/ntp boolean true
+
+# Networking
+d-i netcfg/choose_interface select auto
+d-i netcfg/get_hostname string test-server
+d-i netcfg/get_domain string physionet.org
+
+# Partitions and bootloader
+d-i partman-auto/method string regular
+d-i partman-auto/choose_recipe select physionet-test-server
+d-i partman-auto/expert_recipe string                   \
+      physionet-test-server ::                          \
+          5000 5000 5000 ext4                           \
+              $primary{ }                               \
+              $bootable{ }                              \
+              method{ format }                          \
+              format{ }                                 \
+              use_filesystem{ }                         \
+              filesystem{ ext4 }                        \
+              mountpoint{ / } .                         \
+          1000 1000 1000 linux-swap                     \
+              method{ swap }                            \
+              format{ } .                               \
+          5000 5000 -1 xfs                              \
+              method{ format }                          \
+              format{ }                                 \
+              use_filesystem{ }                         \
+              filesystem{ xfs }                         \
+              mountpoint{ /data }                       \
+              options/grpquota{ grpquota } .
+d-i partman/choose_partition select finish
+d-i partman/confirm_nooverwrite boolean true
+d-i grub-installer/bootdev string default
+
+# Packages
+tasksel tasksel/first multiselect standard
+d-i pkgsel/include string openssh-server build-essential git
+popularity-contest popularity-contest/participate boolean false
+d-i apt-setup/cdrom/set-first boolean false
+d-i apt-setup/use_mirror boolean true
+
+# Shut down when installation is complete
+d-i finish-install/reboot_in_progress note
+d-i debian-installer/exit/poweroff boolean true

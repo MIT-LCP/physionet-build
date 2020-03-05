@@ -1,0 +1,66 @@
+#!/bin/sh
+# Create disk image for a virtual machine, with a basic Debian system
+# suitable for installing the PhysioNet test server
+
+set -e
+
+IMAGE=physionet-test.img
+IMAGE_SIZE=20G
+IMAGE_FORMAT=qcow2
+
+INSTALLER_IMAGE=$(ls -v debian-10.*.*-amd64-netinst.iso | tail -1)
+INSTALLER_KERNEL=install.amd/vmlinuz
+INSTALLER_INITRD=install.amd/initrd.gz
+
+PRESEED_FILE=pn-test-server.preseed
+
+################################################################
+# Unpack kernel and initrd from the CD image, and add preseed file
+
+tdir=/tmp/kvm-pntest-install.tmp
+rm -rf $tdir
+mkdir $tdir
+
+7z x -so $INSTALLER_IMAGE $INSTALLER_KERNEL > $tdir/vmlinuz
+7z x -so $INSTALLER_IMAGE $INSTALLER_INITRD > $tdir/initrd.gz
+
+# Default user account will have the same username as the person
+# running this script.
+sed "s|^d-i passwd/username .*|d-i passwd/username string $USER|" \
+    < $PRESEED_FILE > $tdir/preseed.cfg
+(
+    cd $tdir
+    gunzip initrd.gz
+    echo preseed.cfg | cpio -o -A -H newc -O initrd
+)
+
+################################################################
+# Run the installer; with the preseed file, this should be fully
+# automated
+
+if [ -e $IMAGE ]; then
+    echo "$IMAGE already exists.  Not overwriting it."
+    exit 1
+fi
+
+qemu-img create -f $IMAGE_FORMAT $IMAGE $IMAGE_SIZE
+
+qemu-system-x86_64 \
+    -enable-kvm -smp 2 \
+    -m 2048 \
+    -vga vmware -device virtio-rng-pci \
+    -drive file=$IMAGE,cache=unsafe \
+    -cdrom $INSTALLER_IMAGE \
+    -kernel $tdir/vmlinuz \
+    -initrd $tdir/initrd
+
+################################################################
+
+USER_PASSWORD=$(grep "^d-i passwd/user-password password " $PRESEED_FILE |
+                    cut -d\  -f4-)
+ROOT_PASSWORD=$(grep "^d-i passwd/root-password password " $PRESEED_FILE |
+                    cut -d\  -f4-)
+echo
+echo "Base system is installed and can be launched using ./kvm-pntest"
+echo " - $USER's password is \"$USER_PASSWORD\""
+echo " - root's password is \"$ROOT_PASSWORD\""
