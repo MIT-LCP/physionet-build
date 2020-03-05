@@ -1,3 +1,4 @@
+import datetime
 import logging
 import os
 import pdb
@@ -8,10 +9,11 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core import mail
+from django.core.management import call_command
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
-from user.models import AssociatedEmail, User
+from user.models import AssociatedEmail, Profile, User
 from user.views import (activate_user, edit_emails, edit_profile,
     edit_password_complete, public_profile, register, user_settings,
     verify_email)
@@ -300,3 +302,58 @@ class TestPublic(TestMixin):
         self.assertTrue(User.objects.get(email='jackreacher@mit.edu').is_active)
 
         self.client.get(reverse('activate_user', args=(uidb64, token)))
+
+    def test_purgeaccounts(self):
+        """
+        Test automatic deletion of unactivated accounts.
+        """
+
+        num_active_accounts = User.objects.filter(is_active=True).count()
+
+        # Register two new user accounts without activating
+
+        self.make_post_request('register', data={
+            'email': 'jackreacher@mit.edu', 'username': 'awesomeness',
+            'first_names': 'Jack', 'last_name': 'Reacher'})
+        self.tst_post_request(register, status_code=200)
+
+        self.make_post_request('register', data={
+            'email': 'admin@upr.edu', 'username': 'adminupr',
+            'first_names': 'admin', 'last_name': 'upr'})
+        self.tst_post_request(register, status_code=200)
+
+        user1 = User.objects.get(email='jackreacher@mit.edu')
+        user2 = User.objects.get(email='admin@upr.edu')
+        self.assertFalse(user1.is_active)
+        self.assertFalse(user2.is_active)
+
+        user1_id = user1.id
+        profile1_id = user1.profile.id
+        email1_id = user1.associated_emails.get().id
+
+        user2_id = user2.id
+        profile2_id = user2.profile.id
+        email2_id = user2.associated_emails.get().id
+
+        # Assume the first account was registered 30 days ago
+        user1.join_date += datetime.timedelta(days=-30)
+        user1.save()
+
+        # Invoke the purgeaccounts command to remove old unactivated
+        # accounts
+        call_command('purgeaccounts')
+
+        # purgeaccounts should have deleted user1 and the associated
+        # Profile and AssociatedEmail objects
+        self.assertFalse(User.objects.filter(id=user1_id).exists())
+        self.assertFalse(Profile.objects.filter(id=profile1_id).exists())
+        self.assertFalse(AssociatedEmail.objects.filter(id=email1_id).exists())
+
+        # purgeaccounts should not have deleted user2
+        self.assertTrue(User.objects.filter(id=user2_id).exists())
+        self.assertTrue(Profile.objects.filter(id=profile2_id).exists())
+        self.assertTrue(AssociatedEmail.objects.filter(id=email2_id).exists())
+
+        # active accounts should be unaffected
+        self.assertEqual(num_active_accounts,
+                         User.objects.filter(is_active=True).count())

@@ -12,3 +12,4 @@
 
 # Remove expired Django sessions
 31 23 * * *  www-data  env DJANGO_SETTINGS_MODULE=physionet.settings.production /physionet/python-env/physionet/bin/python3 /physionet/physionet-build/physionet-django/manage.py clearsessions
+35 23 * * *  www-data  env DJANGO_SETTINGS_MODULE=physionet.settings.production /physionet/python-env/physionet/bin/python3 /physionet/physionet-build/physionet-django/manage.py purgeaccounts
