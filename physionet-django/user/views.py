@@ -343,19 +343,20 @@ def user_settings(request):
     return redirect('edit_profile')
 
 
+@login_required
 def verify_email(request, uidb64, token):
     """
     Page to verify an associated email
     """
+    user = request.user
     try:
         uid = force_text(urlsafe_base64_decode(uidb64))
         associated_email = AssociatedEmail.objects.get(pk=uid)
     except (TypeError, ValueError, OverflowError, AssociatedEmail.DoesNotExist):
         associated_email = None
 
-    if associated_email is not None:
+    if associated_email is not None and associated_email.user == user:
         # Test the token with the user
-        user = associated_email.user
         if default_token_generator.check_token(user, token):
             associated_email.verification_date = timezone.now()
             associated_email.is_verified = True
@@ -363,8 +364,9 @@ def verify_email(request, uidb64, token):
             if not user.is_credentialed:
                 check_legacy_credentials(user, associated_email.email)
             logger.info('User {0} verified another email {1}'.format(user.id, associated_email))
-            return render(request, 'user/verify_email.html',
-                {'title':'Verification Successful', 'isvalid':True})
+            messages.success(request, 'The email address {} has been verified.'.format(
+                associated_email))
+            return redirect('edit_emails')
 
     logger.warning('Invalid Verification Link')
     return render(request, 'user/verify_email.html',
