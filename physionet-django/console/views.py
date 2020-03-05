@@ -493,7 +493,9 @@ def publish_submission(request, project_slug, *args, **kwargs):
 
             # update the core and project DOIs with latest metadata
             if published_project.core_project.doi:
-                payload_core = utility.generate_doi_payload(published_project,
+                core = published_project.core_project
+                latest = core.publishedprojects.get(is_latest_version=True)
+                payload_core = utility.generate_doi_payload(latest,
                                                             core_project=True,
                                                             event="publish")
                 utility.update_doi(published_project.core_project.doi,
