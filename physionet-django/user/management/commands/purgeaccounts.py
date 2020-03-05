@@ -1,5 +1,5 @@
 import logging
-from datetime import date
+from datetime import date, timedelta
 
 from django.core.management.base import BaseCommand
 
@@ -12,10 +12,12 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         """
-        For each app, write the fixture data
+        Delete all user accounts after 7 days of creation if they were not
+        activated.
         """
-        user_list = User.objects.filter(is_active=False)
         today = date.today()
+        limit = today - timedelta(days=7)
+        user_list = User.objects.filter(is_active=False, join_date__lt=limit)
         deleted = []
         for user in user_list:
             dates = today - user.join_date
