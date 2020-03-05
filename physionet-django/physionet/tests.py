@@ -1,6 +1,6 @@
 import doctest
 
-from notification import utility
+from physionet import utility
 
 # Automatically run documentation tests in these modules.
 DOCTEST_MODULES = [
