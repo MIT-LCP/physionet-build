@@ -265,6 +265,7 @@ def get_form_errors(form):
         all_errors += form.errors[field]
     return all_errors
 
+
 def grant_aws_open_data_access(user, project):
     """
     Function to grant a AWS ID access to the bukets in the Open Data
@@ -278,11 +279,18 @@ def grant_aws_open_data_access(user, project):
         settings.AWS_HEADER_KEY2: settings.AWS_HEADER_VALUE2}
     # Do a request to AWS and try to add the user ID to the bucket
     response = requests.post(url, data=json.dumps(payload), headers=headers)
-    message = response.json()['message'].split(',')[0]
-    # The message can differ if the ID is already there, or non-existent
-    LOGGER.info("AWS message '{0}' for project {1}".format(
-        response.json()['message'], project))
-    return message
+    try:
+        message = response.json()['message'].split(',')[0]
+        # The message can differ if the ID is already there, or non-existent
+        LOGGER.info("AWS message '{0}' for project {1}".format(
+            response.json()['message'], project))
+        return message
+    except AttributeError:
+        LOGGER.info("Invalid AWS ID: {0} on user: {1} for the current bucket "
+            "policy.\nError: {2}".format(user.cloud_information.aws_id,
+                                         user, response.json()['error']))
+        message = "Access could not be granted."
+
 
 
 def grant_gcp_group_access(user, project, data_access):
