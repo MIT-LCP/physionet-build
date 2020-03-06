@@ -53,13 +53,26 @@
 
   <!-- Latest news and announcements -->
   {% if news %}
-  <div class="alert alert-primary" role="alert">
-    {% for new in news %}
-      <strong>{{ new.title|safe }}</strong>
-      <em>({{ new.publish_datetime }})</em>
-      {{ new.content|safe }}
-    {% endfor %}
-  </div>
+    <div class="alert alert-primary" role="alert">
+      {% for new in news %}
+        {% if news|length > 2 %}
+          {% if forloop.counter == 3 %}
+            <details><summary>More news</summary>
+          {% endif %}
+        {% endif %}
+        <p>  
+          <strong>{{ new.title|safe }}</strong>
+          <em>({{ new.publish_datetime }})</em>
+          {{ new.content|safe }}
+          {% if news|length > 2 %}
+            {% if forloop.counter == news|length %}</span>{% endif %}
+          {% endif %}
+        </p>
+      {% endfor %}
+      {% if news|length > 2 %}
+        </details>
+      {% endif %}
+    </div>
   {% endif %}
 
   <div class="row">
