@@ -938,7 +938,11 @@ class DataAccessRequestForm(forms.ModelForm):
         proj_request.save()
         return proj_request
 
-    def __init__(self, project, user, *args, **kwargs):
+    def __init__(self, project, user, template, *args, **kwargs):
+        kwargs.update(initial={
+            'data_use_purpose': template
+        })
+
         super().__init__(*args, **kwargs)
 
         self.project = project

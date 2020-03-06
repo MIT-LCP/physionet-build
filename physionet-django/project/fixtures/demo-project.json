@@ -1061,7 +1061,9 @@
     "doi": "",
     "programming_languages": [],
     "featured": 0,
-    "is_self_managed_access": 1
+    "is_self_managed_access": 1,
+    "self_managed_dua": "<strong>Example End User License</strong> <ol><li>The LICENSEE will not share access to HiRID data with anyone else.</li><li>...</li></ol>",
+    "self_managed_request_template": "<strong>Background</strong> <p>TODO</p> <p></p> <strong>Purpose</strong> <p>TODO</p>"
   }
 }
 ]

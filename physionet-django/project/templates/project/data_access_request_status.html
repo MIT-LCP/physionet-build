@@ -34,7 +34,8 @@
                 <hr/>
             {% endif %}
         {% elif is_pending %}
-            The request is currently pending with the authors.
+            The request is currently pending with the authors. They will
+            review your request within {{ max_review_days }} days.
             <br/>
             <button id="withdraw-button" type="button" class="btn
             btn-danger" data-toggle="modal"

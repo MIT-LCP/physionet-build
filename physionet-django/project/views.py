@@ -1619,6 +1619,7 @@ def request_data_access(request, project_slug, version):
         # process access request form
         project_request_form = forms.DataAccessRequestForm(project=proj,
                                                            user=user,
+                                                           template=None,
                                                            prefix="proj",
                                                            data=request.POST)
 
@@ -1639,6 +1640,7 @@ def request_data_access(request, project_slug, version):
     else:
         project_request_form = forms.DataAccessRequestForm(project=proj,
                                                            user=user,
+                                                           template=proj.self_managed_request_template,
                                                            prefix="proj")
 
     needs_credentialing = proj.access_policy == 2 and not bool(
@@ -1649,7 +1651,8 @@ def request_data_access(request, project_slug, version):
     return render(request, 'project/request_data_access.html',
                   {'project_request_form': project_request_form,
                    'needs_credentialing': needs_credentialing,
-                   'full_user_name': full_user_name
+                   'full_user_name': full_user_name,
+                   'project': proj
                    })
 
 
@@ -1686,7 +1689,8 @@ def data_access_request_status(request, project_slug, version):
                    'is_rejected': da_requests[0].is_rejected(),
                    'is_pending': da_requests[0].is_pending(),
                    'is_withdrawn': da_requests[0].is_withdrawn(),
-                   'older_requests': da_requests[1:]
+                   'older_requests': da_requests[1:],
+                   'max_review_days': DataAccessRequest.DATA_ACCESS_REQUESTS_DAY_LIMIT
                    })
 
 @login_required

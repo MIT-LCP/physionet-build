@@ -464,6 +464,9 @@ class Metadata(models.Model):
     access_policy = models.SmallIntegerField(choices=ACCESS_POLICIES,
                                              default=0)
     is_self_managed_access = models.BooleanField(default=False)
+    self_managed_dua = SafeHTMLField(blank=True, default='')
+    self_managed_request_template = SafeHTMLField(blank=True, default='')
+
     license = models.ForeignKey('project.License', null=True,
         on_delete=models.SET_NULL)
     project_home_page = models.URLField(default='', blank=True)

@@ -61,7 +61,13 @@ Requesting access for {{ project }}
                     </div>
                 {% endfor %}
 
-                <p>TODO add DUA</p>
+                <div>
+                    {% if project.self_managed_dua %}
+                        {{ project.self_managed_dua|safe }}
+                    {% else %}
+                        {{ project.license.html_content|safe }}
+                    {% endif %}
+                </div>
 
                 <div >
                     {{ project_request_form.agree_dua }}
