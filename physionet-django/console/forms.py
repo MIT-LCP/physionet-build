@@ -11,7 +11,7 @@ from django.conf import settings
 from notification.models import News
 from project.models import (ActiveProject, EditLog, CopyeditLog,
     PublishedProject, exists_project_slug, DataAccess)
-from project.validators import validate_slug, MAX_PROJECT_SLUG_LENGTH
+from project.validators import validate_slug, MAX_PROJECT_SLUG_LENGTH, validate_doi
 from user.models import User, CredentialApplication
 from console.utility import generate_doi_payload, register_doi
 
@@ -261,6 +261,7 @@ class DOIForm(forms.ModelForm):
 
     def clean_doi(self):
         data = self.cleaned_data['doi']
+        validate_doi(data)
         if PublishedProject.objects.filter(doi=data).exclude(id=self.instance.id):
             raise forms.ValidationError('Published project with DOI already exists.')
         return data
