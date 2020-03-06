@@ -42,15 +42,22 @@
         <p class="card-text">
           Description: {{ project.short_description }}
         </p>
-        <p>
-          <button class="btn btn-primary" onclick="copyToClipboard('{{ author_emails }}')">Copy Author Emails</button>
-        </p>
       </div>
       <div class="tab-pane fade" id="timeline" role="tabpanel" aria-labelledby="timeline-tab">
         {% include "project/static_submission_timeline.html" %}
       </div>
     </div>
   </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header">
+      Contact authors
+    </div>
+    <div class="card-body">
+      <p>Click the button below to copy the email addresses of the project authors to your clipboard.</p>
+      <button class="btn btn-primary" onclick="copyToClipboard('{{ author_emails }}')">Copy author emails</button>
+    </div>
 </div>
 
 <div class="card mb-3">
@@ -93,81 +100,120 @@
         </form>
     </div>
 </div>
+
 <div class="card mb-3">
-  <div class="card-header">
-    Manage Content
-  </div>
-  <div class="card-body">
+    <div class="card-header">
+      Manage DOIs
+    </div>
+    <div class="card-body">
     <form action="" method="post">
       {% csrf_token %}
       {% include "form_snippet.html" with form=doi_form %}
       <button class="btn btn-primary btn-fixed" name="set_doi" type="submit">Set DOI</button>
     </form>
-    <br>
+    </div>
+</div>
 
-    <h2>Manage Topics</h2>
+<div class="card mb-3">
+    <div class="card-header">
+      Manage topics
+    </div>
+    <div class="card-body">
     <form action="" method="post">
       {% csrf_token %}
       {% include "form_snippet.html" with form=topic_form %}
-      <button class="btn btn-primary btn-fixed" name="set_topics" type="submit">Set Topics</button>
+      <button class="btn btn-primary btn-fixed" name="set_topics" type="submit">Set topics</button>
     </form>
-    <br>
+    </div>
+</div>
 
-    <h2>Manage Files</h2>
-    <hr>
-    {% for task in rw_tasks %}
-    <div class="alert alert-warning">
-      <strong>Pending task:</strong> {{ task }}
-    </div>
-    {% endfor %}
-    {% for task in ro_tasks %}
-    <div class="alert alert-info">
-      <strong>Pending task:</strong> {{ task }} (read-only)
-    </div>
-    {% endfor %}
-    {% if project.deprecated_files %}
-      <p>This project's files are deprecated.</p>
-    {% else %}
-      <form action="" method="post">
-        {% csrf_token %}
-        <button class="btn btn-primary btn-fixed" name="make_checksum_file"
-                {% if rw_tasks or ro_tasks %} disabled="disabled" {% endif %}
-                type="submit">Make Checksum File</button>
-        <button class="btn btn-primary btn-fixed" name="make_zip"
-                {% if rw_tasks or ro_tasks %} disabled="disabled" {% endif %}
-                type="submit">Make Zip</button>
-        <button id="delete-items-button" type="button"
-                class="btn btn-primary btn-fixed" data-toggle="modal"
-                {% if rw_tasks or ro_tasks %} disabled="disabled" {% endif %}
-                data-target="#deprecate-files-modal">Deprecate Files</button>
-      </form>
-      {# Modal for deprecating files #}
-      <div class="modal fade" id="deprecate-files-modal" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="exampleModalLabel">Deprecate Project Files</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
+<div class="card mb-3">
+  <div class="card-header">
+    Manage files
+  </div>
+  <div class="card-body mb-2">
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item">
+      <h5 class="card-title mb-1">Generate special files</h5>
+      <p>Generate (or regenerate) the project checksum file and zip file. If you regenerate these files, they will need to be resent to the cloud servers.</p>
+
+      {% for task in rw_tasks %}
+      <div class="alert alert-warning">
+        <strong>Pending task:</strong> {{ task }}
+      </div>
+      {% endfor %}
+
+      {% for task in ro_tasks %}
+      <div class="alert alert-info">
+        <strong>Pending task:</strong> {{ task }} (read-only)
+      </div>
+      {% endfor %}
+
+      {% if project.deprecated_files %}
+        <p>This project's files are deprecated.</p>
+      {% else %}
+        <form action="" method="post">
+          {% csrf_token %}
+          <button class="btn btn-primary btn-fixed" name="make_checksum_file"
+                  {% if rw_tasks or ro_tasks %} disabled="disabled" {% endif %}
+                  type="submit">Make checksum</button>
+          <button class="btn btn-primary btn-fixed" name="make_zip"
+                  {% if rw_tasks or ro_tasks %} disabled="disabled" {% endif %}
+                  type="submit">Make zip</button>
+        </form>
+      {% endif %}
+      </li>
+      <li class="list-group-item">
+      <h5 class="card-title mb-1">Deprecate files</h5>
+      <p>If you deprecate the project files, they will no longer be available for people to download. A message will be displayed in the file section, explaining that the files have been removed.</p>
+      {% if project.deprecated_files %}
+        <p>This project's files are deprecated.</p>
+      {% else %}
+        <form action="" method="post">
+          {% csrf_token %}
+          <button id="delete-items-button" type="button"
+                  class="btn btn-primary btn-fixed" data-toggle="modal"
+                  {% if rw_tasks or ro_tasks %} disabled="disabled" {% endif %}
+                  data-target="#deprecate-files-modal">Deprecate files</button>
+        </form>
+        {# Modal for deprecating files #}
+        <div class="modal fade" id="deprecate-files-modal" tabindex="-1" role="dialog" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Deprecate Project Files</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <form action="" method="post">
+                <div class="modal-body">
+                  {% csrf_token %}
+                  {{ deprecate_form }}
+                </div>
+                <div class="modal-footer">
+                  <button class="btn btn-danger" name="deprecate_files" type="submit">Deprecate Files</button>
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+              </form>
             </div>
-            <form action="" method="post">
-              <div class="modal-body">
-                {% csrf_token %}
-                {{ deprecate_form }}
-              </div>
-              <div class="modal-footer">
-                <button class="btn btn-danger" name="deprecate_files" type="submit">Deprecate Files</button>
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-              </div>
-            </form>
           </div>
         </div>
-      </div>
-    {% endif %}
-    <br>
-    <h2>Accessing the data</h2>
-    <hr>
+      {% endif %}
+      </li>
+    </ul>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header">
+      Manage cloud integration
+    </div>
+    <div class="card-body">
+      <ul class="list-group list-group-flush">
+      <li class="list-group-item">
+        <h5 class="card-title mt-0 mb-1">Storage location</h5>
+        <p>Add and remove storage options.</p>
         <form action="" method="post">
           {% csrf_token %}
           {% include "project/content_inline_form_snippet.html" with form=data_access_form %}
@@ -195,35 +241,38 @@
           </tbody>
         </table>
         {% endif %}
-    <br>
-    <h2>Google Cloud</h2>
-    <hr>
-      {% if not has_credentials %}
-        <p>You are missing the Google Cloud credentials.</p>
-      {% elif not project.gcp.bucket_name %}
-        <p>Create the GCP bucket to store all of the information of this project.</p>
-        <form action="" method="post">
+      </li>
+      <li class="list-group-item">
+        <h5 class="card-title mt-3 mb-1">Google Cloud</h5>
+        {% if not has_credentials %}
+          <p>You are missing the Google Cloud credentials.</p>
+        {% elif not project.gcp.bucket_name %}
+          <p>Create a bucket on the Google Cloud Platform (GCP) to store the files associated with this project. Please create the special files before sending the files to GCP.</p>
+          <form action="" method="post">
           {% csrf_token %}
           <button class="btn btn-primary" name="bucket" value='{{project.slug}}'
                   {% if rw_tasks %} disabled="disabled" {% endif %}
-                  type="submit">Create GCP bucket and send files </button><br><br>
-        </form>
-        <p>Please make the special files before sending the files to GCP</p>
-      {% elif project.gcp.sent_files and project.gcp.bucket_name %}
-        <p>The files have been sent to GCP. The bucket name is: {{project.gcp.bucket_name}}.</p>
-        <form action="" method="post">
+                  type="submit">Create bucket and send files </button><br><br>
+          </form>
+        {% elif project.gcp.sent_files and project.gcp.bucket_name %}
+          <p>The files have been sent to GCP. The bucket name is: {{project.gcp.bucket_name}}.</p>
+          <form action="" method="post">
           {% csrf_token %}
           <button class="btn btn-primary" name="bucket" value='{{project.slug}}'
                   {% if rw_tasks %} disabled="disabled" {% endif %}
                   type="submit">Resend files </button><br><br>
         </form>
 
-      {% else %}
-        <p>The files are being sent to GCP. The bucket name is: {{project.gcp.bucket_name}}.</p>
-        <p>If this message is here for a long time check the Django "process_tasks"</p>
-      {% endif %}
+        {% else %}
+          <p>The files are being sent to GCP. The bucket name is: {{project.gcp.bucket_name}}.</p>
+          <p>If this message is here for a long time, check the Django "process_tasks"</p>
+        {% endif %}
+      </li>
+    </ul>
+
   </div>
 </div>
+
 {% endblock %}
 
 {% block local_js_bottom %}
