@@ -93,8 +93,19 @@
           project is being announced in a press release or cited in paper). DOIs will 
           become active when the project is published.</p>
         <div class="alert alert-success">
-          <strong>Core project (Latest version)</strong>: https://doi.org/{{ project.core_project.doi }}<br />
-          <strong>This version (version {{ project.version }})</strong>: https://doi.org/{{ project.doi }}
+          <strong>Core project (Latest version)</strong>: 
+          {% if project.core_project.doi %}
+          https://doi.org/{{ project.core_project.doi }}
+          {% else %}
+          The core project does not have a DOI.
+          {% endif %}
+          <br />
+          <strong>This version (version {{ project.version }})</strong>:
+          {% if project.doi %}
+          https://doi.org/{{ project.doi }}
+          {% else %}
+          The project version does not have a DOI.
+          {% endif %}
         </div>
       </form>
       </div>
