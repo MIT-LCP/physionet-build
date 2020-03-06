@@ -424,6 +424,11 @@ class AssociatedEmail(models.Model):
     is_primary_email = models.BooleanField(default=False)
     added_date = models.DateTimeField(auto_now_add=True, null=True)
     verification_date = models.DateTimeField(null=True)
+
+    # Secret token sent to the user, which they must supply to prove
+    # they control the email address
+    verification_token = models.CharField(max_length=32, blank=True, null=True)
+
     is_verified = models.BooleanField(default=False)
     is_public = models.BooleanField(default=False)
 
