@@ -11,6 +11,11 @@
       <li class="nav-item">
         <a class="nav-link {% if passphrase %} active {% endif %}" id="anonymous-tab" data-toggle="tab" href="#anonymous" role="tab" aria-controls="anonymous" aria-selected="false">Anonymous Access</a>
       </li>
+      {% if project.submission_status >= 40 %}
+      <li class="nav-item">
+        <a class="nav-link" id="doi-tab" data-toggle="tab" href="#doi" role="tab" aria-controls="timeline" aria-selected="false">DOIs</a>
+      </li>
+      {% endif %}
     </ul>
   </div>
   <div class="card-body">
@@ -79,8 +84,30 @@
             Revoke access
           </button>
           {% endif %}
-
         </form>
+      </div>
+      {# Draft DOI #}
+      <div class="tab-pane fade" id="doi" role="tabpanel" aria-labelledby="doi-tab">
+        <p>The following DOIs have been registered for the project. These may be useful 
+          if a formal citation is required in advance of publication (for example, if the 
+          project is being announced in a press release or cited in paper). DOIs will 
+          become active when the project is published.</p>
+        <div class="alert alert-success">
+          <strong>Core project (Latest version)</strong>: 
+          {% if project.core_project.doi %}
+          https://doi.org/{{ project.core_project.doi }}
+          {% else %}
+          The core project does not have a DOI.
+          {% endif %}
+          <br />
+          <strong>This version (version {{ project.version }})</strong>:
+          {% if project.doi %}
+          https://doi.org/{{ project.doi }}
+          {% else %}
+          The project version does not have a DOI.
+          {% endif %}
+        </div>
+      </form>
       </div>
     </div>
   </div>
