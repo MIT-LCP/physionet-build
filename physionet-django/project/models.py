@@ -1721,6 +1721,8 @@ class DataAccessRequest(models.Model):
         ACCEPT_REQUEST_VALUE: "accepted"
     }
 
+    DATA_ACCESS_REQUESTS_DAY_LIMIT = 14
+
     request_datetime = models.DateTimeField(auto_now_add=True)
 
     user = models.ForeignKey('user.User', on_delete=models.CASCADE)
