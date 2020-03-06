@@ -8,6 +8,7 @@ import pdb
 import pytz
 import stat
 import logging
+from distutils.version import StrictVersion
 
 import bleach
 import ckeditor.fields
@@ -1209,15 +1210,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 published_project.doi = self.doi
 
                 if self.core_project.publishedprojects.all() and len(previous_published_projects) > 0:
-                    for project in previous_published_projects:
-                        if project.version > published_project.version:
-                            project.is_latest_version = True
-                            published_project.is_latest_version = False
-                            project.save()
                     previous_published_projects.update(has_other_versions=True)
 
                 published_project.save()
-
+                published_project.set_version_order()
                 # Same content, different objects.
                 for reference in self.references.all():
                     published_reference = PublishedReference.objects.create(
@@ -1631,6 +1627,24 @@ class PublishedProject(Metadata, SubmissionInfo):
         # Remove these topics
         for td in set(existing_descriptions) - set(topic_descriptions):
             self.remove_topic(td)
+
+    def set_version_order(self):
+        """
+        Order the versions by number and set a correct version order.
+        """
+        published_projects = self.core_project.get_published_versions()
+        project_versions = []
+        for project in published_projects:
+            project_versions.append(project.version)
+        sorted_versions = sorted(project_versions, key=StrictVersion)
+
+        for indx, version in enumerate(sorted_versions):
+            tmp = published_projects.get(version=version)
+            tmp.version_order = indx
+            tmp.is_latest_version = False
+            if sorted_versions[-1] == version:
+                tmp.is_latest_version = True
+            tmp.save()
 
 
 def exists_project_slug(slug):
