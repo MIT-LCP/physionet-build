@@ -33,6 +33,16 @@
                 </p>
                 <hr/>
             {% endif %}
+
+            We remind you, that you agreed to the following license terms:
+
+            <div>
+                {% if data_access_request.project.self_managed_dua %}
+                    {{ data_access_request.project.self_managed_dua|safe }}
+                {% else %}
+                    {{ data_access_request.project.license.html_content|safe }}
+                {% endif %}
+            </div>
         {% elif is_pending %}
             The request is currently pending with the authors. They will
             review your request within {{ max_review_days }} days.
