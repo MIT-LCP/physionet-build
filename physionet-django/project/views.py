@@ -1685,10 +1685,6 @@ def data_access_request_status(request, project_slug, version):
 
     return render(request, 'project/data_access_request_status.html',
                   {'data_access_request': da_requests[0],
-                   'is_accepted': da_requests[0].is_accepted(),
-                   'is_rejected': da_requests[0].is_rejected(),
-                   'is_pending': da_requests[0].is_pending(),
-                   'is_withdrawn': da_requests[0].is_withdrawn(),
                    'older_requests': da_requests[1:],
                    'max_review_days': DataAccessRequest.DATA_ACCESS_REQUESTS_DAY_LIMIT
                    })
@@ -1735,10 +1731,6 @@ def data_access_request_view(request, project_id, user_id):
     return render(request, 'project/data_access_request_view.html',
                   {'da_request': da_requests[0],
                    'response_form': response_form,
-                   'is_accepted': da_requests[0].is_accepted(),
-                   'is_rejected': da_requests[0].is_rejected(),
-                   'is_pending': da_requests[0].is_pending(),
-                   'is_withdrawn': da_requests[0].is_withdrawn(),
                    'older_requests': da_requests[1:],
                    'credentialing_data': credentialing_data
                    })

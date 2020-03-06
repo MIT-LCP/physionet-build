@@ -20,9 +20,9 @@
         </p>
         <hr/>
 
-        {% if is_accepted or is_rejected %}
+        {% if data_access_request.is_accepted or data_access_requestis_rejected %}
             The authors decided
-            to {% if is_accepted %}
+            to {% if data_access_request.is_accepted %}
             accept{% else %}not grant{% endif %} this request.
 
             {% if data_access_request.responder_comments %}
@@ -43,7 +43,7 @@
                     {{ data_access_request.project.license.html_content|safe }}
                 {% endif %}
             </div>
-        {% elif is_pending %}
+        {% elif data_access_request.is_pending %}
             The request is currently pending with the authors. They will
             review your request within {{ max_review_days }} days.
             <br/>
@@ -83,11 +83,11 @@
                     </div>
                 </div>
             </div>
-        {%  elif is_withdrawn %}
+        {%  elif data_access_request.is_withdrawn %}
             You withdrew the request.
         {% endif %}
 
-        {% if is_rejected or is_withdrawn %}
+        {% if data_access_request.is_rejected or data_access_request.is_withdrawn %}
             <br/>
             <div class="btn-container-rsp">
                 <a class="btn btn-primary btn-rsp" href="{% url 'request_data_access' data_access_request.project.slug data_access_request.project.version %}"  role="button">Reapply</a>

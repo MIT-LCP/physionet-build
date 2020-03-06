@@ -638,7 +638,6 @@ def notify_user_data_access_request(data_access_request, request_protocol, reque
         'footer': email_footer(),
         'request_host': request_host,
         'request_protocol': request_protocol,
-        'is_accepted': data_access_request.is_accepted()
     })
 
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
