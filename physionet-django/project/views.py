@@ -401,13 +401,15 @@ def move_author(request, project_slug, **kwargs):
 
         # Min and max position for the authors in that group
         if author.shared:
-            group = author.get(shared=author.shared)
-            max_pos = group.aggregate(max=Max('shared'))['min']
-            min_pos = group.aggregate(max=Max('shared'))['max']
+            group = authors.filter(shared=author.shared)
+            max_pos = group.aggregate(max=Max('display_order'))['max']
+            min_pos = group.aggregate(min=Min('display_order'))['min']
 
-            # Do nothing if selected author is first or last
-            # in the group
-            if author.display_order in [max_pos, min_pos]:
+            # Do nothing if
+            #   selected author is first and move up
+            #   selected author is last and move down
+            if ((author.display_order == min_pos and direction == 'up') or
+                    (author.display_order == max_pos and direction == 'down')):
                 raise Http404()
 
         if n_authors > 1:
