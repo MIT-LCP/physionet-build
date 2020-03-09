@@ -1,6 +1,6 @@
 # PhysioNet Build
 
-The new PhysioNet platform built using Django. The new site is currently hosted at [https://alpha.physionet.org/](https://alpha.physionet.org/)
+The new PhysioNet platform built using Django. The new site is currently hosted at [https://physionet.org/](https://physionet.org/)
 
 Dev branch: [![Run Status](https://api.shippable.com/projects/59e7d1baaf0a170700d5b5b0/badge?branch=dev)](https://app.shippable.com/github/MIT-LCP/physionet-build) [![Coverage Badge](https://api.shippable.com/projects/59e7d1baaf0a170700d5b5b0/coverageBadge?branch=dev)](https://app.shippable.com/github/MIT-LCP/physionet-build)
 
