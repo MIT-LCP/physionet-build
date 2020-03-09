@@ -139,7 +139,7 @@ class TestCredentialing(TestCase):
         # Add and verify another email.
         self.client.login(username='admin@upr.edu', password='Very5trongt0t@11y')
         response = self.client.post(reverse('edit_emails'), data={'add_email':True, 'email': 'not_credentialed@upr.edu'})
-        uidb64, token = re.findall('verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
+        uidb64, token = re.findall('verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{20})/',
             mail.outbox[-1].body)[0]
         response = self.client.get(reverse('verify_email',
             kwargs={'uidb64':uidb64,'token':token}))
@@ -185,7 +185,7 @@ class TestCredentialing(TestCase):
         # Add and verify a credentialed email
         self.client.login(username='admin@mit.edu', password='Tester11!')
         response = self.client.post(reverse('edit_emails'), data={'add_email': True, 'email': 'admin@upr.edu'})
-        uidb64, token = re.findall('verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
+        uidb64, token = re.findall('verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{20})/',
             mail.outbox[-1].body)[0]
         response = self.client.get(reverse('verify_email',
             kwargs={'uidb64':uidb64,'token':token}))
@@ -200,7 +200,7 @@ class TestCredentialing(TestCase):
         # automatic credentialing
         self.client.login(username='aewj@mit.edu', password='Tester11!')
         response = self.client.post(reverse('edit_emails'), data={'add_email': True, 'email': 'admin@upr.edu'})
-        uidb64, token = re.findall('verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
+        uidb64, token = re.findall('verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{20})/',
             mail.outbox[-1].body)[0]
         response = self.client.get(reverse('verify_email',
             kwargs={'uidb64':uidb64,'token':token}))

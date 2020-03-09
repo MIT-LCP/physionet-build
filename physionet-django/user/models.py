@@ -1,3 +1,4 @@
+from datetime import timedelta
 import logging
 import os
 import pdb
@@ -12,6 +13,7 @@ from django.db import models, DatabaseError, transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
+from django.utils.crypto import constant_time_compare
 from django.core.validators import (EmailValidator, validate_integer,
     FileExtensionValidator, integer_validator)
 from django.utils.translation import ugettext as _
@@ -424,11 +426,35 @@ class AssociatedEmail(models.Model):
     is_primary_email = models.BooleanField(default=False)
     added_date = models.DateTimeField(auto_now_add=True, null=True)
     verification_date = models.DateTimeField(null=True)
+
+    # Secret token sent to the user, which they must supply to prove
+    # they control the email address
+    verification_token = models.CharField(max_length=32, blank=True, null=True)
+
     is_verified = models.BooleanField(default=False)
     is_public = models.BooleanField(default=False)
 
+    # Time limit for verification: maximum number of days after
+    # 'added_date' during which 'verification_token' may be used.
+    VERIFICATION_TIMEOUT_DAYS = 7
+
     def __str__(self):
         return self.email
+
+    def check_token(self, token):
+        """
+        Check whether the supplied verification token is valid.
+        """
+        if not token or not self.verification_token:
+            return False
+        if not constant_time_compare(token, self.verification_token):
+            return False
+        if self.is_verified:
+            return False
+        age = timezone.now() - self.added_date
+        if age >= timedelta(days=AssociatedEmail.VERIFICATION_TIMEOUT_DAYS):
+            return False
+        return True
 
 @receiver(post_save, sender=User)
 def create_associated_email(sender, **kwargs):

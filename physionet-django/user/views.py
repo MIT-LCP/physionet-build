@@ -18,6 +18,7 @@ from django.shortcuts import redirect, render
 from django.template import loader
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.views.decorators.debug import sensitive_post_parameters
@@ -173,11 +174,13 @@ def set_public_email(request, public_email_form):
 def add_email(request, add_email_form):
     user = request.user
     if add_email_form.is_valid():
+        token = get_random_string(20)
         associated_email = AssociatedEmail.objects.create(user=user,
-            email=add_email_form.cleaned_data['email'])
+            email=add_email_form.cleaned_data['email'],
+            verification_token=token)
+
         # Send an email to the newly added email with a verification link
         uidb64 = force_text(urlsafe_base64_encode(force_bytes(associated_email.pk)))
-        token = default_token_generator.make_token(user)
         subject = "PhysioNet Email Verification"
         context = {
             'name': user.get_full_name(),
@@ -356,8 +359,8 @@ def verify_email(request, uidb64, token):
         associated_email = None
 
     if associated_email is not None and associated_email.user == user:
-        # Test the token with the user
-        if default_token_generator.check_token(user, token):
+        # Test that the token is correct
+        if associated_email.check_token(token):
             associated_email.verification_date = timezone.now()
             associated_email.is_verified = True
             associated_email.save()

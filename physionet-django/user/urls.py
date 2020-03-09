@@ -54,7 +54,10 @@ urlpatterns = [
     path('settings/credentialing/', views.edit_credentialing, name='edit_credentialing'),
     path('settings/credentialing/applications/',
         views.user_credential_applications, name='user_credential_applications'),
-    re_path('^verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
+
+    # Current tokens are 20 characters long and consist of 0-9A-Za-z
+    # Obsolete tokens are 34 characters long and also include a hyphen
+    re_path('^verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[-0-9A-Za-z]{1,34})/$',
         views.verify_email, name='verify_email'),
 
     # Public user profile
