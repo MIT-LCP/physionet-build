@@ -1630,7 +1630,8 @@ class PublishedProject(Metadata, SubmissionInfo):
 
     def set_version_order(self):
         """
-        Order the versions by number and set a correct version order.
+        Order the versions by number.
+        Then it set a correct version order and a correct latest version
         """
         published_projects = self.core_project.get_published_versions()
         project_versions = []
