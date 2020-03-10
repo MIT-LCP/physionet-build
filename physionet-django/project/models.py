@@ -1196,7 +1196,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 # and slug needs to be carried over
                 if self.version_order:
                     previous_published_projects = self.core_project.publishedprojects.all()
-                    previous_published_projects.update(is_latest_version=False)
 
                     slug = previous_published_projects.first().slug
                     title = previous_published_projects.first().title
@@ -1209,11 +1208,12 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 published_project.title = title or self.title
                 published_project.doi = self.doi
 
-                if self.core_project.publishedprojects.all() and len(previous_published_projects) > 0:
-                    previous_published_projects.update(has_other_versions=True)
-
                 published_project.save()
-                published_project.set_version_order()
+
+                # If this is a new version, all version fields have to be updated
+                if self.version_order > 0:
+                    published_project.set_version_order()
+
                 # Same content, different objects.
                 for reference in self.references.all():
                     published_reference = PublishedReference.objects.create(
@@ -1642,6 +1642,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         for indx, version in enumerate(sorted_versions):
             tmp = published_projects.get(version=version)
             tmp.version_order = indx
+            tmp.has_other_versions = True
             tmp.is_latest_version = False
             if sorted_versions[-1] == version:
                 tmp.is_latest_version = True
