@@ -54,7 +54,7 @@ def activate_user(request, uidb64, token):
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
         user = None
 
-    if user.is_active:
+    if user and user.is_active:
         messages.success(request, 'The account is active.')
         return redirect('login')
 
