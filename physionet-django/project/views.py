@@ -1652,8 +1652,7 @@ def request_data_access(request, project_slug, version):
                                                            template=proj.self_managed_request_template,
                                                            prefix="proj")
 
-    needs_credentialing = proj.access_policy == 2 and not bool(
-        CredentialApplication.objects.get(user_id=user))
+    needs_credentialing = proj.access_policy == 2 and not user.is_credentialed
 
     full_user_name = f"{user.profile.first_names} {user.profile.last_name}"
 
