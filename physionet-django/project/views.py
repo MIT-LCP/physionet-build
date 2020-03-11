@@ -1603,9 +1603,10 @@ def sign_dua(request, project_slug, version):
 @login_required
 def request_data_access(request, project_slug, version):
     user = request.user
-    proj = PublishedProject.objects.get(slug=project_slug, version=version)
 
-    if not proj:
+    try:
+        proj = PublishedProject.objects.get(slug=project_slug, version=version)
+    except PublishedProject.DoesNotExist:
         raise Http404()
 
     if DataAccessRequest.objects.filter(requester=user, project=proj, status__in=[
@@ -1659,9 +1660,10 @@ def request_data_access(request, project_slug, version):
 @login_required
 def data_access_request_status(request, project_slug, version):
     user = request.user
-    proj = PublishedProject.objects.get(slug=project_slug, version=version)
 
-    if not proj:
+    try:
+        proj = PublishedProject.objects.get(slug=project_slug, version=version)
+    except PublishedProject.DoesNotExist:
         raise Http404()
 
     da_requests = DataAccessRequest.objects.filter(requester=user,
@@ -1692,14 +1694,18 @@ def data_access_request_status(request, project_slug, version):
 @login_required
 def data_access_request_view(request, project_id, user_id):
     user = request.user
-    requester = User.objects.get(id=user_id)
 
-    proj = PublishedProject.objects.get(id=project_id)
-
-    if not requester or not proj:
+    try:
+        requester = User.objects.get(id=user_id)
+    except User.DoesNotExist:
         raise Http404()
 
-    if not PublishedAuthor.objects.get(user_id=user.id, project_id=proj.id):
+    try:
+        proj = PublishedProject.objects.get(id=project_id)
+    except PublishedProject.DoesNotExist:
+        raise Http404()
+
+    if not PublishedAuthor.objects.filter(user_id=user.id, project_id=proj.id).exists():
         raise Http404()  # TODO better message
 
     da_requests = DataAccessRequest.objects.filter(requester=requester,
