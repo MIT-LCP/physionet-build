@@ -1602,6 +1602,9 @@ def sign_dua(request, project_slug, version):
 
 @login_required
 def request_data_access(request, project_slug, version):
+    """
+    Form for a user (requester) to request access to the data of a self managed project.
+    """
     user = request.user
 
     try:
@@ -1659,6 +1662,10 @@ def request_data_access(request, project_slug, version):
 
 @login_required
 def data_access_request_status(request, project_slug, version):
+    """
+    Requester can view the state of his/her data access request for a self managed
+    project
+    """
     user = request.user
 
     try:
@@ -1693,6 +1700,10 @@ def data_access_request_status(request, project_slug, version):
 
 @login_required
 def data_access_request_view(request, project_id, user_id):
+    """
+    Responder/reviewer can see the data associated with a specific access request
+    to his/her project
+    """
     user = request.user
 
     try:
