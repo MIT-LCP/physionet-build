@@ -1728,7 +1728,8 @@ def data_access_request_view(request, project_id, user_id):
         return redirect('published_project',
                          project_id=project_id)
 
-    if not PublishedAuthor.objects.filter(user_id=user.id, project_id=proj.id).exists():
+    # check whether user is indeed the submitting author of the project
+    if not PublishedAuthor.objects.filter(user_id=user.id, project_id=proj.id, is_submitting=True).exists():
         raise Http404()  # TODO better message
 
     da_requests = DataAccessRequest.objects.filter(requester=requester,
