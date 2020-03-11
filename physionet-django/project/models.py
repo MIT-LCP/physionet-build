@@ -1515,22 +1515,20 @@ class PublishedProject(Metadata, SubmissionInfo):
         if self.deprecated_files:
             return False
 
-        if self.access_policy:
-            if self.access_policy == 2 and (
-                not user.is_authenticated or not user.is_credentialed):
-                return False
+        if self.access_policy == 2 and (
+            not user.is_authenticated or not user.is_credentialed):
+            return False
 
-            if self.is_self_managed_access:
-                records = DataAccessRequest.objects.filter(project=self,
-                                                           requester_id=user.id)
-                return any(
-                    r.status == DataAccessRequest.ACCEPT_REQUEST_VALUE for r in
-                    records)
-            else:
-                return DUASignature.objects.filter(project=self,
-                                                   user__id=user.id)
-        else:
-            return True
+        if self.is_self_managed_access:
+            return DataAccessRequest.objects.filter(
+                project=self, requester=user,
+                status=DataAccessRequest.ACCEPT_REQUEST_VALUE).exists()
+        elif self.access_policy:
+            return DUASignature.objects.filter(
+                project=self, user=user).exists()
+
+        return True
+
 
     def get_storage_info(self, force_calculate=True):
         """
