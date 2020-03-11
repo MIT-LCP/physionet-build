@@ -1608,7 +1608,7 @@ def request_data_access(request, project_slug, version):
     if not proj:
         raise Http404()
 
-    if DataAccessRequest.objects.filter(user=user, project=proj, status__in=[
+    if DataAccessRequest.objects.filter(requester=user, project=proj, status__in=[
         DataAccessRequest.PENDING_VALUE,
         DataAccessRequest.ACCEPT_REQUEST_VALUE]):
         return redirect('data_access_request_status', project_slug=proj.slug,
@@ -1618,7 +1618,7 @@ def request_data_access(request, project_slug, version):
     if request.method == 'POST':
         # process access request form
         project_request_form = forms.DataAccessRequestForm(project=proj,
-                                                           user=user,
+                                                           requester=user,
                                                            template=None,
                                                            prefix="proj",
                                                            data=request.POST)
@@ -1639,7 +1639,7 @@ def request_data_access(request, project_slug, version):
                           {'project': proj})
     else:
         project_request_form = forms.DataAccessRequestForm(project=proj,
-                                                           user=user,
+                                                           requester=user,
                                                            template=proj.self_managed_request_template,
                                                            prefix="proj")
 
@@ -1664,7 +1664,7 @@ def data_access_request_status(request, project_slug, version):
     if not proj:
         raise Http404()
 
-    da_requests = DataAccessRequest.objects.filter(user=user,
+    da_requests = DataAccessRequest.objects.filter(requester=user,
                                                    project=proj).order_by(
         '-request_datetime')
 
@@ -1679,7 +1679,7 @@ def data_access_request_status(request, project_slug, version):
         withdraw_req.decision_datetime = timezone.now()
         withdraw_req.save()
 
-        da_requests = DataAccessRequest.objects.filter(user=user,
+        da_requests = DataAccessRequest.objects.filter(requester=user,
                                                        project=proj).order_by(
             '-request_datetime')
 
@@ -1702,7 +1702,7 @@ def data_access_request_view(request, project_id, user_id):
     if not PublishedAuthor.objects.get(user_id=user.id, project_id=proj.id):
         raise Http404()  # TODO better message
 
-    da_requests = DataAccessRequest.objects.filter(user_id=requester,
+    da_requests = DataAccessRequest.objects.filter(requester=requester,
                                                    project_id=proj).order_by(
         '-request_datetime')
 

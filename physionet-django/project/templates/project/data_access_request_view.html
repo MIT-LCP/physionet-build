@@ -13,9 +13,9 @@
             <div class="modal-body">
                 <p>
                     The user
-                    <a href="{% url 'public_profile' da_request.user.username %}">
-                        {{ da_request.user.profile.first_names }}
-                        {{ da_request.user.profile.lastname }}</a>
+                    <a href="{% url 'public_profile' da_request.requester.username %}">
+                        {{ da_request.requester.profile.first_names }}
+                        {{ da_request.requester.profile.lastname }}</a>
                     requested access to {{ da_request.project.title }} on
                     {{ da_request.request_datetime|date }}.
                 </p>

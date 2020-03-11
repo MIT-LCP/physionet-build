@@ -641,5 +641,5 @@ def notify_user_data_access_request(data_access_request, request_protocol, reque
     })
 
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-              [data_access_request.user.email],
+              [data_access_request.requester.email],
               fail_silently=False)

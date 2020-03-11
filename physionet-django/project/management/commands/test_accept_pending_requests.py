@@ -16,7 +16,7 @@ class TestAcceptPendingRequests(TestMixin):
             project = PublishedProject.objects.get(
                 title="Self Managed Access Database Demo")
             old_req.project = project
-            old_req.user = User.objects.get(username=user)
+            old_req.requester = User.objects.get(username=user)
             old_req.status = DataAccessRequest.PENDING_VALUE
 
             old_req.save()
@@ -34,10 +34,10 @@ class TestAcceptPendingRequests(TestMixin):
         accept_pending_requests.Command().handle()
 
         self.assertEqual(DataAccessRequest.objects.get(
-            user=User.objects.get(username='rgmark')).status,
+            requester=User.objects.get(username='rgmark')).status,
                          DataAccessRequest.PENDING_VALUE)
         self.assertEqual(DataAccessRequest.objects.get(
-            user=User.objects.get(username='aewj')).status,
+            requester=User.objects.get(username='aewj')).status,
                          DataAccessRequest.ACCEPT_REQUEST_VALUE)
 
         self.assertEqual(len(mail.outbox), 1)

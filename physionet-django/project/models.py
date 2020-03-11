@@ -1522,7 +1522,7 @@ class PublishedProject(Metadata, SubmissionInfo):
 
             if self.is_self_managed_access:
                 records = DataAccessRequest.objects.filter(project=self,
-                                                           user__id=user.id)
+                                                           requester_id=user.id)
                 return any(
                     r.status == DataAccessRequest.ACCEPT_REQUEST_VALUE for r in
                     records)
@@ -1727,7 +1727,7 @@ class DataAccessRequest(models.Model):
 
     request_datetime = models.DateTimeField(auto_now_add=True)
 
-    user = models.ForeignKey('user.User', on_delete=models.CASCADE)
+    requester = models.ForeignKey('user.User', on_delete=models.CASCADE)
 
     project = models.ForeignKey('project.PublishedProject',
                                 related_name='data_access_request_project',
@@ -1739,10 +1739,10 @@ class DataAccessRequest(models.Model):
     status = models.PositiveSmallIntegerField(default=0, choices=REJECT_ACCEPT)
 
     decision_datetime = models.DateTimeField(null=True)
-    # TODO: on delete: or no action?, assuming 1 is admin user
+
     responder = models.ForeignKey('user.User', null=True,
                                   related_name='data_access_request_user',
-                                  on_delete=models.SET(1))
+                                  on_delete=models.SET_NULL)
 
     responder_comments = SafeHTMLField(blank=True)
 

@@ -706,7 +706,7 @@ class TestSelfManagedProjectWorkflows(TestMixin):
                                'proj-agree_dua': ['on']})
 
         da_req = DataAccessRequest.objects.filter(
-            user_id=User.objects.get(username=self.REQUESTER),
+            requester_id=User.objects.get(username=self.REQUESTER),
             project_id=project.id)
         self.assertTrue(da_req)
         self.assertTrue(

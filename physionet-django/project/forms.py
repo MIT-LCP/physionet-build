@@ -933,12 +933,12 @@ class DataAccessRequestForm(forms.ModelForm):
     def save(self):
         proj_request = super().save(commit=False)
         proj_request.project = self.project
-        proj_request.user = self.user
+        proj_request.requester = self.requester
 
         proj_request.save()
         return proj_request
 
-    def __init__(self, project, user, template, *args, **kwargs):
+    def __init__(self, project, requester, template, *args, **kwargs):
         kwargs.update(initial={
             'data_use_purpose': template
         })
@@ -946,7 +946,7 @@ class DataAccessRequestForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         self.project = project
-        self.user = user
+        self.requester = requester
 
 
 class DataAccessResponseForm(forms.ModelForm):
