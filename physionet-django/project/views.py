@@ -1581,7 +1581,8 @@ def sign_dua(request, project_slug, version):
     else:
         raise Http404()
 
-    if project.deprecated_files or not project.access_policy or project.has_access(user):
+    if project.deprecated_files or not project.access_policy or project.has_access(user) \
+        or project.is_self_managed_access:
         return redirect('published_project',
                         project_slug=project_slug, version=version)
 
@@ -1611,6 +1612,10 @@ def request_data_access(request, project_slug, version):
         proj = PublishedProject.objects.get(slug=project_slug, version=version)
     except PublishedProject.DoesNotExist:
         raise Http404()
+
+    if not proj.is_self_managed_access:
+        return redirect('published_project',
+                         project_slug=project_slug, version=version)
 
     if DataAccessRequest.objects.filter(requester=user, project=proj, status__in=[
         DataAccessRequest.PENDING_VALUE,
@@ -1673,6 +1678,10 @@ def data_access_request_status(request, project_slug, version):
     except PublishedProject.DoesNotExist:
         raise Http404()
 
+    if not proj.is_self_managed_access:
+        return redirect('published_project',
+                         project_slug=project_slug, version=version)
+
     da_requests = DataAccessRequest.objects.filter(requester=user,
                                                    project=proj).order_by(
         '-request_datetime')
@@ -1715,6 +1724,10 @@ def data_access_request_view(request, project_id, user_id):
         proj = PublishedProject.objects.get(id=project_id)
     except PublishedProject.DoesNotExist:
         raise Http404()
+
+    if not proj.is_self_managed_access:
+        return redirect('published_project',
+                         project_id=project_id)
 
     if not PublishedAuthor.objects.filter(user_id=user.id, project_id=proj.id).exists():
         raise Http404()  # TODO better message
