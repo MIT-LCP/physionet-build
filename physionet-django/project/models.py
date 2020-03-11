@@ -18,7 +18,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth.hashers import check_password, make_password
-from django.contrib.auth import get_user_model
 from django.db import models, DatabaseError, transaction
 from django.forms.utils import ErrorList
 from django.urls import reverse
