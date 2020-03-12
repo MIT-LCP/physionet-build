@@ -31,7 +31,7 @@ def check_bucket_exists(project, version):
     Check if a bucket exists.
     """
     storage_client = storage.Client()
-    bucket_name = bucket_info(project, version)
+    bucket_name, email = bucket_info(project, version)
     if storage_client.lookup_bucket(bucket_name):
         return True
     return False
@@ -46,31 +46,34 @@ def create_bucket(project, version, title, protected=True):
      - Private which access is handled by an organizational email.
     """
     storage_client = storage.Client()
-    bucket_name = bucket_info(project, version)
+    bucket_name, email = bucket_info(project, version)
     storage_client.create_bucket(bucket_name)
     bucket = storage_client.bucket(bucket_name)
     bucket.iam_configuration.bucket_policy_only_enabled = True
     bucket.patch()
-    LOGGER.info("Created bucket {0} for project "
-                "{1}".format(bucket_name.lower(), project))
+    LOGGER.info("Created bucket {0} for project {1}".format(
+        bucket_name.lower(), project))
     if protected:
         remove_bucket_permissions(bucket)
         group = create_access_group(bucket, project, version, title)
-        LOGGER.info("Removed permissions from bucket {0} and granted {1} "
-                    "read access".format(bucket_name.lower(), group))
+        LOGGER.info("Removed permissions from bucket {0} and created {1} "
+                    "for read access".format(bucket_name.lower(), group))
     else:
         make_bucket_public(bucket)
         LOGGER.info("Made bucket {0} public".format(bucket_name.lower()))
 
 
-def bucket_info(project, version, email=False):
+def bucket_info(project, version):
     """
     Generate the bucket name or the email for managing access to the bucket.
+
+    Returns the bucketname and the email if the project is not public.
     """
     name = '{0}{1}-{2}'.format(settings.GCP_BUCKET_PREFIX, project, version)
-    if email:
-        return '{0}@{1}'.format(name, settings.GCP_DOMAIN)
-    return '{0}.{1}'.format(name, settings.GCP_DOMAIN)
+    email = '{0}@{1}'.format(name, settings.GCP_DOMAIN)
+    bucket = '{0}.{1}'.format(name, settings.GCP_DOMAIN)
+
+    return bucket, email
 
 
 def make_bucket_public(bucket):
@@ -113,7 +116,7 @@ def create_access_group(bucket, project, version, title):
     Returns:
         bool: False if there was an error or change to the API. True otherwise.
     """
-    email = bucket_info(project, version, email=True)
+    bucket_name, email = bucket_info(project, version)
     service = create_directory_service(settings.GCP_DELEGATION_EMAIL)
 
     # Get all the members of the Google group

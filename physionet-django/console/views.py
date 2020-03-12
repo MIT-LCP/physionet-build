@@ -729,11 +729,8 @@ def gcp_bucket_management(request, project, user):
 
     if project.access_policy == 0:
         is_private = False
-        group = None
-    else:
-        group = utility.bucket_info(project.slug, project.version, email=True)
 
-    bucket_name = utility.bucket_info(project.slug, project.version)
+    bucket_name, group = utility.bucket_info(project.slug, project.version)
 
     try:
         gcp_object = GCP.objects.get(bucket_name=bucket_name)
@@ -749,7 +746,7 @@ def gcp_bucket_management(request, project, user):
                 successfully created.".format(project))
         GCP.objects.create(project=project, bucket_name=bucket_name,
             managed_by=user, is_private=is_private, access_group=group)
-        if group:
+        if is_private:
             granted = utility.add_email_bucket_access(project, group, True)
             DataAccess.objects.create(project=project, platform=3, location=group)
             if not granted:
