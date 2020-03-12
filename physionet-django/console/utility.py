@@ -47,7 +47,7 @@ def create_bucket(project, version, title, protected=True):
     """
     storage_client = storage.Client()
     bucket_name = bucket_info(project, version)
-    bucket = storage_client.create_bucket(bucket_name)
+    storage_client.create_bucket(bucket_name)
     bucket = storage_client.bucket(bucket_name)
     bucket.iam_configuration.bucket_policy_only_enabled = True
     bucket.patch()
