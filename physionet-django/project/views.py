@@ -1622,8 +1622,9 @@ def project_request_access(request, project_slug, version, access_type):
             messages.success(request, message)
         elif access_type in [3, 4]:
             message = utility.grant_gcp_group_access(user, project, access)
-            notification.notify_gcp_access_request(access, user, project)
-            messages.success(request, message)
+            if message:
+                notification.notify_gcp_access_request(access, user, project)
+                messages.success(request, message)
 
     return redirect('published_project', project_slug=project_slug, version=version)
 
