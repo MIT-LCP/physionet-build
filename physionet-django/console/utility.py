@@ -121,7 +121,7 @@ def create_access_group(bucket, project, version, title):
 
     # Get all the members of the Google group
     try:
-        outcome = service.groups().list(settings.GCP_DOMAIN).execute()
+        outcome = service.groups().list(domain=settings.GCP_DOMAIN).execute()
         if not any(group['email'] in email for group in outcome['groups']):
             creation = service.groups().insert(body={
                 'email': email,
