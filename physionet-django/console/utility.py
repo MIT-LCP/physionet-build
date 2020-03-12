@@ -256,16 +256,6 @@ def create_directory_service(user_email, group=False):
     return build('admin', 'directory_v1', credentials=credentials)
 
 
-def paginate(request, to_paginate, maximun):
-    """
-    Paginate the request.
-    """
-    page = request.GET.get('page', 1)
-    paginator = Paginator(to_paginate, maximun)
-    paginated = paginator.get_page(page)
-    return paginated
-
-
 def register_doi(payload):
     """
     Create a draft DOI with basic project information via a POST request.
