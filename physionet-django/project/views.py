@@ -1600,12 +1600,14 @@ def project_request_access(request, project_slug, version, access_type):
     """
     user = request.user
     project = PublishedProject.objects.get(slug=project_slug, version=version)
+    data_access = DataAccess.objects.filter(project=project,
+                                            platform=access_type)
+
     # Check if the person has access to the project.
     if not project.has_access(request.user):
         return redirect('published_project', project_slug=project_slug,
             version=version)
-    data_access = DataAccess.objects.filter(project=project,
-        platform=access_type)
+
     try:
         # check user if user has GCP or AWS info in profile
         if (user.cloud_information.gcp_email is None and access_type in [3, 4]) or (
@@ -1615,16 +1617,17 @@ def project_request_access(request, project_slug, version, access_type):
     except CloudInformation.DoesNotExist:
         messages.error(request, 'Please set the user cloud information in your settings')
         return redirect('edit_cloud')
-            # Check if the request for access is for AWS Bucket
-    if access_type == 2:
-        message = utility.grant_aws_open_data_access(user, project)
-        notification.notify_aws_access_request(user, project, data_access.get())
-        messages.success(request, message)
-    elif access_type in [3, 4]:
-        for item in data_access:
-            # Checks if the request for access is either storage or BigQuery 
-            new_user = utility.grant_gcp_group_access(user, project, item, request)
-            notification.notify_gcp_access_request(item, user, project, new_user)
+
+    for access in data_access:
+        if access_type == 2 and user:
+            message = utility.grant_aws_open_data_access(user, project)
+            notification.notify_aws_access_request(user, project, access)
+            messages.success(request, message)
+        elif access_type in [3, 4]:
+            message = utility.grant_gcp_group_access(user, project, access)
+            if message:
+                notification.notify_gcp_access_request(access, user, project)
+                messages.success(request, message)
 
     return redirect('published_project', project_slug=project_slug, version=version)
 

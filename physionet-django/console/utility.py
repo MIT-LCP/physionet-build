@@ -6,11 +6,12 @@ import pdb
 
 from oauth2client.service_account import ServiceAccountCredentials
 from google.api_core.exceptions import BadRequest
-from django.contrib.sites.models import Site
+from googleapiclient.errors import HttpError
 from googleapiclient.discovery import build
 from django.utils.html import strip_tags
 from django.utils import timezone
 from google.cloud import storage
+from django.contrib.sites.models import Site
 from django.conf import settings
 from django.urls import reverse
 from html2text import html2text
@@ -20,162 +21,244 @@ from project.validators import validate_doi
 import logging
 
 LOGGER = logging.getLogger(__name__)
-Public_Roles = ['roles/storage.legacyBucketReader', 'roles/storage.legacyObjectReader',
-    'roles/storage.objectViewer']
+ROLES = ['roles/storage.legacyBucketReader',
+         'roles/storage.legacyObjectReader',
+         'roles/storage.objectViewer']
 
-def check_bucket(project, version):
+
+def check_bucket_exists(project, version):
     """
-    Function to check if a bucket already exists 
+    Check if a bucket exists.
     """
     storage_client = storage.Client()
-    domain = 'physionet.org'
-    if 'production' not in settings.SETTINGS_MODULE:
-        domain = 'testing-delete.' + domain
-    bucket_name = '{0}-{1}.{2}'.format(project, version, domain)
-    exists = storage_client.lookup_bucket(bucket_name)
-    if exists:
-        return bucket_name
+    bucket_name, email = bucket_info(project, version)
+    if storage_client.lookup_bucket(bucket_name):
+        return True
     return False
 
-def create_bucket(project, version, protected=False):
+
+def create_bucket(project, version, title, protected=True):
     """
-    Function to create a bucket and set its permissions
+    Create a bucket with either public or private permissions.
+
+    There are two different types of buckets:
+     - Public which are open to the world.
+     - Private which access is handled by an organizational email.
     """
     storage_client = storage.Client()
-    domain = 'physionet.org'
-    if 'production' not in settings.SETTINGS_MODULE:
-        domain = 'testing-delete.' + domain
-    bucket_name = '{0}-{1}.{2}'.format(project, version, domain)
-    bucket = storage_client.create_bucket(bucket_name)
+    bucket_name, email = bucket_info(project, version)
+    storage_client.create_bucket(bucket_name)
     bucket = storage_client.bucket(bucket_name)
     bucket.iam_configuration.bucket_policy_only_enabled = True
     bucket.patch()
-    LOGGER.info("Created bucket {0} for project {1}".format(bucket_name.lower(), project))
-    if not protected:
-        make_bucket_public(bucket)
-    else:
+    LOGGER.info("Created bucket {0} for project {1}".format(
+        bucket_name.lower(), project))
+    if protected:
         remove_bucket_permissions(bucket)
-    return bucket_name
+        group = create_access_group(bucket, project, version, title)
+        LOGGER.info("Removed permissions from bucket {0} and created {1} "
+                    "for read access".format(bucket_name.lower(), group))
+    else:
+        make_bucket_public(bucket)
+        LOGGER.info("Made bucket {0} public".format(bucket_name.lower()))
+
+
+def bucket_info(project, version):
+    """
+    Generate the bucket name or the email for managing access to the bucket.
+
+    Returns the bucketname and the email if the project is not public.
+    """
+    name = '{0}{1}-{2}'.format(settings.GCP_BUCKET_PREFIX, project, version)
+    email = '{0}@{1}'.format(name, settings.GCP_DOMAIN)
+    bucket = '{0}.{1}'.format(name, settings.GCP_DOMAIN)
+
+    return bucket, email
+
 
 def make_bucket_public(bucket):
     """
-    Function to make a bucket public to all users 
+    Make a bucket public to all users.
     """
     policy = bucket.get_iam_policy()
-    for role in Public_Roles:
+    for role in ROLES:
         policy[role].add('allUsers')
     bucket.set_iam_policy(policy)
     LOGGER.info("Made bucket {} public".format(bucket.name))
 
+
 def remove_bucket_permissions(bucket):
     """
-    Function to remove all permissions from bucket but owner 
+    Remove all permissions from a bucket for everyone except the owner.
     """
     policy = bucket.get_iam_policy()
     to_remove = []
+
     for role in policy:
         if role != 'roles/storage.legacyBucketOwner':
             for member in policy[role]:
                 to_remove.append([role, member])
+
     for item in to_remove:
         policy[item[0]].discard(item[1])
+
     if to_remove:
         bucket.set_iam_policy(policy)
-        LOGGER.info("Removed all read permissions from bucket {}".format(bucket.name))
+        LOGGER.info("Removed all read permissions from "
+                    "bucket {}".format(bucket.name))
 
-def add_email_bucket_access(project, email):
+
+def create_access_group(bucket, project, version, title):
     """
-    Function to add access to a bucket from a email 
-    If the email is elegible to be used in GCP the set iam policy will pass
-    If not, it will return a error as a bad requet.
+    Create an access group with appropriate permissions, if the group does not
+    already exist.
+
+    Returns:
+        bool: False if there was an error or change to the API. True otherwise.
+    """
+    bucket_name, email = bucket_info(project, version)
+    service = create_directory_service(settings.GCP_DELEGATION_EMAIL)
+
+    # Get all the members of the Google group
+    try:
+        outcome = service.groups().list(domain=settings.GCP_DOMAIN).execute()
+        if not any(group['email'] in email for group in outcome['groups']):
+            creation = service.groups().insert(body={
+                'email': email,
+                'name': '{0} v{1}'.format(title, version),
+                'description': "Access group for the project {0} version "
+                               "{1}.".format(title, version)}).execute()
+            if creation['kind'] != 'admin#directory#group':
+                LOGGER.info("Error {0} creating the "
+                            "group {1}.".format(creation, email))
+                return False
+            LOGGER.info("Access group {0} was created.".format(email))
+            if update_access_group(email):
+                LOGGER.info("Access group {0} was updated.".format(email))
+        else:
+            LOGGER.info("Access group {0} already exists.".format(email))
+    except HttpError as e:
+        if json.loads(e.content)['error']['message'] != 'Member already exists.':
+            LOGGER.info("Error {0} creating the access group {1} for "
+                        "{1}.".format(e.content, email, project))
+            raise e
+        else:
+            LOGGER.info("Access group {0} already exists.".format(email))
+
+    return email
+
+
+def update_access_group(email):
+    """
+    Set permissions for an access group.
+
+    Returns:
+        bool: False if there was an error or change to the API. True otherwise.
+    """
+    service = create_directory_service(settings.GCP_DELEGATION_EMAIL,
+                                       group=True)
+    update = service.groups().update(groupUniqueId=email, body={
+        'allowExternalMembers': 'true',
+        'whoCanPostMessage': 'ALL_OWNERS_CAN_POST',
+        'whoCanModerateMembers': 'OWNERS_AND_MANAGERS',
+        'whoCanJoin': 'INVITED_CAN_JOIN'}).execute()
+
+    if update['kind'] != 'groupsSettings#groups':
+        LOGGER.info("Error {0} setting the permissions for group "
+                    "{1}".format(update, email))
+        return False
+
+    return True
+
+
+def add_email_bucket_access(project, email, group=False):
+    """
+    Grant access to a bucket for the specified email address.
+
+    Returns:
+        bool: True is access is successfully granted. False otherwise.
     """
     storage_client = storage.Client()
     bucket = storage_client.get_bucket(project.gcp.bucket_name)
     policy = bucket.get_iam_policy()
-    for role in Public_Roles:
-        policy[role].add('user:'+email)
+
+    if group:
+        for role in ROLES:
+            policy[role].add('group:'+email)
+    else:
+        for role in ROLES:
+            policy[role].add('user:'+email)
+
     try:
         bucket.set_iam_policy(policy)
         LOGGER.info("Added email {0} to the project {1} access list".format(
             email, project))
         return True
-    except BadRequest: 
-        LOGGER.info("There was an error on the request. The email {} was ignored.".format(
-            email))
+    except BadRequest:
+        LOGGER.info("Error in the request. The email {} was "
+                    "ignored.".format(email))
         return False
+
 
 def upload_files(project):
     """
-    Function to send files to a bucket. Gets a list of all the 
-    files under the project root directory then it sends each file 
-    one by one. The only way to know if the zip file is created is to 
-    heck the compressed sotrage size. If the zip is created, then send it.
+    Upload files to a bucket. Gets a list of all the files under the project
+    root directory, then sends each file individually. Check storage size to
+    confirm that the zip file was created.
     """
     file_root = project.file_root()
     subfolders_fullpath = [x[0] for x in walk(file_root)]
     storage_client = storage.Client()
     bucket = storage_client.get_bucket(project.gcp.bucket_name)
+
     for indx, location in enumerate(subfolders_fullpath):
         chdir(location)
         files = [f for f in listdir('.') if path.isfile(f)]
         for file in files:
-            temp_dir = location.replace(file_root,'')
+            temp_dir = location.replace(file_root, '')
             if temp_dir != '':
                 blob = bucket.blob(path.join(temp_dir, file)[1:])
                 blob.upload_from_filename(file)
             else:
                 blob = bucket.blob(file)
                 blob.upload_from_filename(file)
+
     if project.compressed_storage_size:
         zip_name = project.zip_name()
         chdir(project.project_file_root())
         blob = bucket.blob(zip_name)
         blob.upload_from_filename(zip_name)
 
-############################################################
-## Unused functions below this line, but usefull to have.
-def set_bucket_permissions(bucket_name, email):
-    """
-    Function to set the permissions of a bucket to a specific group
-    if ACL are used. At the moment we deal with bucket level permissions. 
-    """
-    storage_client = storage.Client()
-    bucket = storage_client.bucket(bucket_name)
-    bucket.acl.group(email).grant_read()
-    bucket.acl.save()
 
-def list_bucket_permissions(bucket):
+def create_directory_service(user_email, group=False):
     """
-    Function to list all the permissions of a bucket.
-    """
-    policy = bucket.get_iam_policy()
-    for role in policy:
-        members = policy[role]
-        print('Role: {}, Members: {}'.format(role, members))
+    Create an Admin SDK Directory Service object authorized with the service
+    accounts that act on behalf of the given user.
 
-
-def create_directory_service(user_email):
-    """Build and returns an Admin SDK Directory service object authorized with the service accounts
-    that act on behalf of the given user.
     Args:
-      user_email: The email of the user. Needs permissions to access the Admin APIs.
+        user_email: The user's email address. Needs permission to access the
+                    Admin API.
     Returns:
-      Admin SDK directory service object.
+        Admin SDK Directory Service object.
     """
     logging.getLogger('googleapiclient.discovery_cache').setLevel(logging.ERROR)
     credentials = ServiceAccountCredentials.from_p12_keyfile(
         settings.SERVICE_ACCOUNT_EMAIL,
         settings.SERVICE_ACCOUNT_PKCS12_FILE_PATH,
         settings.GCP_SECRET_KEY,
-        scopes=['https://www.googleapis.com/auth/admin.directory.group'])
-    # This requires the email used to delegate the credentials to the serivce account
+        scopes=['https://www.googleapis.com/auth/admin.directory.group',
+                'https://www.googleapis.com/auth/apps.groups.settings'])
+
+    # The email for delegating credentials to the service account is required.
     credentials = credentials.create_delegated(user_email)
+    if group:
+        return build('groupssettings', 'v1', credentials=credentials)
     return build('admin', 'directory_v1', credentials=credentials)
 
 
 def paginate(request, to_paginate, maximun):
     """
-    Function to paginate the arguments. 
+    Paginate the request.
     """
     page = request.GET.get('page', 1)
     paginator = Paginator(to_paginate, maximun)
