@@ -66,13 +66,11 @@ def create_bucket(project, version, title, protected=True):
 def bucket_info(project, version, email=False):
     """
     Generate the bucket name or the email for managing access to the bucket.
-
     """
-    production_site = Site.objects.get(id=3)
     name = '{0}{1}-{2}'.format(settings.GCP_BUCKET_PREFIX, project, version)
     if email:
-        return '{0}@{1}'.format(name, production_site.domain)
-    return '{0}.{1}'.format(name, production_site.domain)
+        return '{0}@{1}'.format(name, settings.GCP_DOMAIN)
+    return '{0}.{1}'.format(name, settings.GCP_DOMAIN)
 
 
 def make_bucket_public(bucket):
@@ -117,11 +115,10 @@ def create_access_group(bucket, project, version, title):
     """
     email = bucket_info(project, version, email=True)
     service = create_directory_service(settings.GCP_DELEGATION_EMAIL)
-    production_domain = Site.objects.get(id=3)
 
     # Get all the members of the Google group
     try:
-        outcome = service.groups().list(domain=production_domain).execute()
+        outcome = service.groups().list(settings.GCP_DOMAIN).execute()
         if not any(group['email'] in email for group in outcome['groups']):
             creation = service.groups().insert(body={
                 'email': email,
