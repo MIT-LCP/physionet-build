@@ -1707,7 +1707,7 @@ def data_access_request_status(request, project_slug, version):
                    })
 
 @login_required
-def data_access_request_view(request, project_id, user_id):
+def data_access_request_view(request, project_slug, version, user_id):
     """
     Responder/reviewer can see the data associated with a specific access request
     to his/her project
@@ -1720,13 +1720,13 @@ def data_access_request_view(request, project_id, user_id):
         raise Http404()
 
     try:
-        proj = PublishedProject.objects.get(id=project_id)
+        proj = PublishedProject.objects.get(slug=project_slug, version=version)
     except PublishedProject.DoesNotExist:
         raise Http404()
 
     if not proj.is_self_managed_access:
         return redirect('published_project',
-                         project_id=project_id)
+                         project_slug=project_slug, version=version)
 
     # check whether user is indeed the submitting author of the project
     if not PublishedAuthor.objects.filter(user_id=user.id, project_id=proj.id, is_submitting=True).exists():

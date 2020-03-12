@@ -46,7 +46,7 @@ urlpatterns = [
     path('data-access-request-status/<project_slug>/<version>/',
          project_views.data_access_request_status,
          name='data_access_request_status'),
-    path('data-access-request-view/<project_id>/<user_id>',
+    path('access-requests/<project_slug>/<version>/<user_id>',
          project_views.data_access_request_view,
          name='data_access_request_view'),
 
