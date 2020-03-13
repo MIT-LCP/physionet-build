@@ -8,4 +8,9 @@ Are you {{ applicant_name }}'s supervisor for this project, and is the summary a
 
 Thanks,
 Ken
+
+{% if 'udacity' in application.reference_email %}
+    Applicant's e-mail address: {{ application.user.email }}
+{% endif %}
+
 {% endautoescape %}
