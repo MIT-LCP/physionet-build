@@ -754,6 +754,9 @@ class TestSelfManagedProjectWorkflows(TestMixin):
 
         accept_request(da_req)
 
+        response = self.client.get(reverse('data_access_requests_overview', args=(project.slug, project.version, )))
+        self.assertContains(response, "1 accepted requests")
+
         logged_in = self.client.login(username=self.REQUESTER,
                                       password=self.PASSWORD)
         self.assertTrue(logged_in)

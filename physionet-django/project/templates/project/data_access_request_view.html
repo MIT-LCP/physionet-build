@@ -77,7 +77,7 @@
                     The response was:
                     <hr/>
                     <p>
-                        {{ da_request.responder_comments }}
+                        {{ da_request.responder_comments|safe }}
                     </p>
                     <hr/>
                 {% endif %}
@@ -127,6 +127,8 @@
         </form>
         <hr/>
         {% include "project/data_access_request_table_snippet.html" %}
+
+        <a href="{% url 'data_access_requests_overview' da_request.project.slug da_request.project.version %}">Requests overview</a>
     </div>
 {% endblock %}
 

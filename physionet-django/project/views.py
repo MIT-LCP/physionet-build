@@ -1611,7 +1611,7 @@ def request_data_access(request, project_slug, version):
     try:
         proj = PublishedProject.objects.get(slug=project_slug, version=version)
     except PublishedProject.DoesNotExist:
-        raise Http404()
+        raise Http404(Exception("Project does not exist"))
 
     if not proj.is_self_managed_access:
         return redirect('published_project',
@@ -1680,7 +1680,7 @@ def data_access_request_status(request, project_slug, version):
     try:
         proj = PublishedProject.objects.get(slug=project_slug, version=version)
     except PublishedProject.DoesNotExist:
-        raise Http404()
+        raise Http404(Exception("Project doesn not exist"))
 
     if not proj.is_self_managed_access:
         return redirect('published_project',
@@ -1711,43 +1711,81 @@ def data_access_request_status(request, project_slug, version):
                    'max_review_days': DataAccessRequest.DATA_ACCESS_REQUESTS_DAY_LIMIT
                    })
 
+
+def _user_allowed_viewing_requests(user, project):
+    # check whether user is indeed the submitting author of the project
+    return not PublishedAuthor.objects.filter(user_id=user.id,
+                                              project_id=project.id,
+                                              is_submitting=True).exists()
+
+
+@login_required
+def data_access_requests_overview(request, project_slug, version):
+    """
+    Overview over all issued access requests for the request reviewer(s)
+    """
+    reviewer = request.user
+
+    try:
+        proj = PublishedProject.objects.get(slug=project_slug, version=version)
+    except PublishedProject.DoesNotExist:
+        raise Http404(Exception("The project doesn't exist"))
+
+    if not proj.is_self_managed_access:
+        return redirect('published_project',
+                         project_slug=project_slug, version=version)
+
+    if _user_allowed_viewing_requests(reviewer, proj):
+        raise Http404(Exception("You don't have access to the project requests overview"))
+
+    all_requests = DataAccessRequest.objects.filter(project_id=proj).order_by(
+        '-request_datetime')
+
+    accepted_requests = all_requests.filter(
+        status=DataAccessRequest.ACCEPT_REQUEST_VALUE).count()
+
+    return render(request, 'project/data_access_requests_overview.html',
+                  {'project': proj,
+                   'requests': all_requests,
+                   'accepted_requests': accepted_requests})
+
+
 @login_required
 def data_access_request_view(request, project_slug, version, user_id):
     """
     Responder/reviewer can see the data associated with a specific access request
     to his/her project
     """
-    user = request.user
+    reviewer = request.user
 
     try:
         requester = User.objects.get(id=user_id)
     except User.DoesNotExist:
-        raise Http404()
+        raise Http404(Exception("User doesn't exist"))
 
     try:
         proj = PublishedProject.objects.get(slug=project_slug, version=version)
     except PublishedProject.DoesNotExist:
-        raise Http404()
+        raise Http404(Exception("Project doesn't exist"))
 
     if not proj.is_self_managed_access:
         return redirect('published_project',
                          project_slug=project_slug, version=version)
 
-    # check whether user is indeed the submitting author of the project
-    if not PublishedAuthor.objects.filter(user_id=user.id, project_id=proj.id, is_submitting=True).exists():
-        raise Http404()  # TODO better message
+    if _user_allowed_viewing_requests(reviewer, proj):
+        raise Http404(Exception("You don't have access to the project requests overview"))
 
     da_requests = DataAccessRequest.objects.filter(requester=requester,
                                                    project_id=proj).order_by(
         '-request_datetime')
 
     if not da_requests:
-        raise Http404()
+        raise Http404(Exception("No requests found"))
 
     if request.method == 'POST' and 'data_access_response' in request.POST.keys():
         entry = DataAccessRequest.objects.get(
             id=request.POST['data_access_response'])
-        response_form = forms.DataAccessResponseForm(responder_id=user.id,
+        response_form = forms.DataAccessResponseForm(responder_id=reviewer.id,
                                                      prefix="proj",
                                                      data=request.POST,
                                                      instance=entry)
@@ -1758,7 +1796,7 @@ def data_access_request_view(request, project_slug, version, user_id):
                                                          request.get_host())
             return redirect('project_home')
     else:
-        response_form = forms.DataAccessResponseForm(responder_id=user.id,
+        response_form = forms.DataAccessResponseForm(responder_id=reviewer.id,
                                                      prefix="proj")
 
     credentialing_data = CredentialApplication.objects.get(user_id=requester.id)
