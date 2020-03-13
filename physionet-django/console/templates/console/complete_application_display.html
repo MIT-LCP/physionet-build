@@ -10,9 +10,15 @@
     <form action="" method="post" class="form-signin"> <!-- empty action generates error! -->
       <p>
 	{% csrf_token %}
-	<button name="contact_reference" value="{{ application.id }}" type="submit" style="margin-right: 1em;">
-	  Contact Reference
-	</button> 
+	{% if application.reference_email %}
+		<button name="contact_reference" value="{{ application.id }}" type="submit" style="margin-right: 1em;">
+			Contact Reference
+		</button> 
+	{% else %}
+		<button name="contact_reference" value="{{ application.id }}" type="submit" style="margin-right: 1em;" disabled>
+		Contact Reference
+		</button> 
+	{% endif %}
 	{{ application.reference_email }} 
 	{% if application.reference_contact_datetime %}
 		[The {{ application.reference_category|yesno:"reference,supervisor" }} was contacted on {{ application.reference_contact_datetime }}]
