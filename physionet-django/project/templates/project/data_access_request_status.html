@@ -20,7 +20,7 @@
         </p>
         <hr/>
 
-        {% if data_access_request.is_accepted or data_access_requestis_rejected %}
+        {% if data_access_request.is_accepted or data_access_request.is_rejected %}
             The authors decided
             to {% if data_access_request.is_accepted %}
             accept{% else %}not grant{% endif %} this request.
@@ -87,10 +87,16 @@
             You withdrew the request.
         {% endif %}
 
-        {% if data_access_request.is_rejected or data_access_request.is_withdrawn %}
+        {% if not data_access_request.is_pending %}
             <br/>
             <div class="btn-container-rsp">
-                <a class="btn btn-primary btn-rsp" href="{% url 'request_data_access' data_access_request.project.slug data_access_request.project.version %}"  role="button">Reapply</a>
+                <a class="btn btn-primary btn-rsp" href="{% url 'request_data_access' data_access_request.project.slug data_access_request.project.version %}"  role="button">
+                    {%  if is_rejected or data_access_request.is_withdrawn %}
+                    Reapply
+                    {% else %} {# in case of accepted request #}
+                    Additional Request
+                    {% endif %}
+                </a>
             </div>
         {% endif %}
 

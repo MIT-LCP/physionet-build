@@ -27,6 +27,15 @@ Requesting access for {{ project }}
             request will be reviewed within 14 days by the data
             depositor. You'll get notified via e-mail about their decision.</p>
 
+        {% if is_additional_request %}
+            <p>
+            A request from you for this project has already been
+            <a href="{% url 'data_access_request_status' project.slug project.version %}">accepted</a>.
+            </p>
+            <p>If you would like to use the data for an additional purpose than stated in the original request, please
+                resubmit the form below.</p>
+        {% endif %}
+
         {% if not needs_credentialing %}
             <form action="" method="post" enctype="multipart/form-data"
                   class="form-signin no-pd" autocomplete="off">

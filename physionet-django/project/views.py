@@ -1617,9 +1617,8 @@ def request_data_access(request, project_slug, version):
         return redirect('published_project',
                          project_slug=project_slug, version=version)
 
-    if DataAccessRequest.objects.filter(requester=user, project=proj, status__in=[
-        DataAccessRequest.PENDING_VALUE,
-        DataAccessRequest.ACCEPT_REQUEST_VALUE]):
+    if DataAccessRequest.objects.filter(requester=user, project=proj, status=
+        DataAccessRequest.PENDING_VALUE):
         return redirect('data_access_request_status', project_slug=proj.slug,
                         version=proj.version)
 
@@ -1652,6 +1651,11 @@ def request_data_access(request, project_slug, version):
                                                            template=proj.self_managed_request_template,
                                                            prefix="proj")
 
+    is_additional_request = DataAccessRequest.objects.filter(requester=user,
+                                                             project=proj,
+                                                             status=
+                                                             DataAccessRequest.ACCEPT_REQUEST_VALUE).exists()
+
     needs_credentialing = proj.access_policy == 2 and not user.is_credentialed
 
     full_user_name = f"{user.profile.first_names} {user.profile.last_name}"
@@ -1660,7 +1664,8 @@ def request_data_access(request, project_slug, version):
                   {'project_request_form': project_request_form,
                    'needs_credentialing': needs_credentialing,
                    'full_user_name': full_user_name,
-                   'project': proj
+                   'project': proj,
+                   'is_additional_request': is_additional_request
                    })
 
 
