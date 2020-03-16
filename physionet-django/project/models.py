@@ -1436,7 +1436,10 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         Make the license text file
         """
-        with open(os.path.join(self.file_root(), 'LICENSE.txt'), 'w') as outfile:
+        fname = os.path.join(self.file_root(), 'LICENSE.txt')
+        if os.path.isfile(fname):
+            os.remove(fname)
+        with open(fname, 'w') as outfile:
             outfile.write(self.license_content(fmt='text'))
 
         self.set_storage_info()
