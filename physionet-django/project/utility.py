@@ -304,12 +304,6 @@ def grant_gcp_group_access(user, project, data_access):
 
     try:
         group_members = service.members()
-        # Check is the access was granted and no action is needed
-        members = group_members.list(groupKey=data_access.location).execute()
-        if email in str(members):
-            return '{0} was previously awarded to {1} for project: {2}'.format(
-                access, email, project)
-
         outcome = group_members.insert(groupKey=data_access.location, body={
             "email": email, "delivery_settings": "NONE"}).execute()
         if outcome['role'] == "MEMBER":
@@ -320,6 +314,9 @@ def grant_gcp_group_access(user, project, data_access):
         raise Exception('Wrong access granted to {0} in GCP email {1}'.format(
             email, data_access.location))
     except HttpError as error:
+        if json.loads(error.content)['error']['message'] == 'Member already exists.':
+            return '{0} was previously awarded to {1} for project: {2}'.format(
+                access, email, project)
         raise error
 
 

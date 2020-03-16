@@ -1619,7 +1619,7 @@ def project_request_access(request, project_slug, version, access_type):
         return redirect('edit_cloud')
 
     for access in data_access:
-        if access_type == 2 and user and access.platform == access_type:
+        if access_type == 2 and access.platform == access_type:
             message = utility.grant_aws_open_data_access(user, project)
             notification.notify_aws_access_request(user, project, access)
             messages.success(request, message)
