@@ -1712,13 +1712,6 @@ def data_access_request_status(request, project_slug, version):
                    })
 
 
-def _user_allowed_viewing_requests(user, project):
-    # check whether user is indeed the submitting author of the project
-    return not PublishedAuthor.objects.filter(user_id=user.id,
-                                              project_id=project.id,
-                                              is_submitting=True).exists()
-
-
 @login_required
 def data_access_requests_overview(request, project_slug, version):
     """
@@ -1735,7 +1728,7 @@ def data_access_requests_overview(request, project_slug, version):
         return redirect('published_project',
                          project_slug=project_slug, version=version)
 
-    if _user_allowed_viewing_requests(reviewer, proj):
+    if not proj.is_allowed_handling_access_requests(reviewer):
         raise Http404(Exception("You don't have access to the project requests overview"))
 
     all_requests = DataAccessRequest.objects.filter(project_id=proj).order_by(
@@ -1772,7 +1765,7 @@ def data_access_request_view(request, project_slug, version, user_id):
         return redirect('published_project',
                          project_slug=project_slug, version=version)
 
-    if _user_allowed_viewing_requests(reviewer, proj):
+    if not proj.is_allowed_handling_access_requests(reviewer):
         raise Http404(Exception("You don't have access to the project requests overview"))
 
     da_requests = DataAccessRequest.objects.filter(requester=requester,

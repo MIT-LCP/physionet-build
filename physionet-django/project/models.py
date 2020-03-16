@@ -1529,6 +1529,15 @@ class PublishedProject(Metadata, SubmissionInfo):
 
         return True
 
+    def is_allowed_handling_access_requests(self, user):
+        """
+        Whether the user can view and respond to access requests to self managed
+        projects
+        """
+        # check whether user is indeed the corresponding author of the project
+        return PublishedAuthor.objects.filter(user_id=user.id,
+                                              project_id=self.id,
+                                              is_corresponding=True).exists()
 
     def get_storage_info(self, force_calculate=True):
         """
