@@ -916,10 +916,6 @@ class DataAccessRequestForm(forms.ModelForm):
             'data_use_title': """Title of the project you would like to use the data for""",
             'data_use_purpose': """Detailed description of the data use.""",
         }
-        widgets = {
-            'data_use_purpose': forms.Textarea(attrs={'rows': 7}),
-        }
-
         labels = {
             'data_use_title': 'Research Project Title',
             'data_use_purpose': 'Research Project Details'

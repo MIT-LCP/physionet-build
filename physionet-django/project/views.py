@@ -1658,7 +1658,7 @@ def request_data_access(request, project_slug, version):
 
     needs_credentialing = proj.access_policy == 2 and not user.is_credentialed
 
-    full_user_name = f"{user.profile.first_names} {user.profile.last_name}"
+    full_user_name = user.get_full_name()
 
     return render(request, 'project/request_data_access.html',
                   {'project_request_form': project_request_form,
@@ -1680,7 +1680,7 @@ def data_access_request_status(request, project_slug, version):
     try:
         proj = PublishedProject.objects.get(slug=project_slug, version=version)
     except PublishedProject.DoesNotExist:
-        raise Http404(Exception("Project doesn not exist"))
+        raise Http404(Exception("Project doesn't not exist"))
 
     if not proj.is_self_managed_access:
         return redirect('published_project',

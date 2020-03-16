@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block title %}
-Requesting access for {{ project }}
+Request Access
 {% endblock %}
 
 {% block local_css %}
@@ -19,18 +19,29 @@ Requesting access for {{ project }}
 {% endblock %}
 
 {% block content %}
+
     <div class="container">
-        <p>This dataset requires special permission by the depositor on a
-            project by project basis.</p>
-        <p>To proceed, please provide below a
-            description of the research you aim to do with the data. The
-            request will be reviewed within 14 days by the data
-            depositor. You'll get notified via e-mail about their decision.</p>
+        <h1>Request Access</h1>
+        <p>This resource is available only for use by approved
+            research projects. </p>
+        <p>Please provide a description of the
+            specific research project that you aim to complete using
+            the data. The data depositor will review your request
+            within 14 days. You will be notified by email
+            ({{ user.email }}) about their decision.
+        </p>
+
+        {% if not project.is_latest_version %}
+            <p>
+                <em>Warning:</em> This is not the latest version of this resource. Find the latest <a
+                    href="{% url 'published_project_latest' project.slug %}">here</a>.
+            </p>
+        {% endif %}
 
         {% if is_additional_request %}
             <p>
-            A request from you for this project has already been
-            <a href="{% url 'data_access_request_status' project.slug project.version %}">accepted</a>.
+                A request from you for this project has already been
+                <a href="{% url 'data_access_request_status' project.slug project.version %}">accepted</a>.
             </p>
             <p>If you would like to use the data for an additional purpose than stated in the original request, please
                 resubmit the form below.</p>
