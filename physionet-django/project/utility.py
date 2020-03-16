@@ -295,9 +295,9 @@ def grant_gcp_group_access(user, project, data_access):
     email = user.cloud_information.gcp_email.email
     service = create_directory_service(settings.GCP_DELEGATION_EMAIL)
     access = ""
-    if data_access == 3:
+    if data_access.platform == 3:
         access = "Access to the GCP bucket"
-    elif data_access == 4:
+    elif data_access.platform == 4:
         access = "Access to the GCP BigQuery"
     else:
         return False
