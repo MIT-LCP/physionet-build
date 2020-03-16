@@ -23,6 +23,9 @@
                     {% if credentialing_data %}
                         <div>
                         <p>
+                            Credentialing Application Date: {{ credentialing_data.application_datetime|date }}
+                        </p>
+                        <p>
                             Organization: {{ credentialing_data.organization_name }}
                         </p>
                         <p>

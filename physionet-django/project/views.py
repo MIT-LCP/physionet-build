@@ -1792,7 +1792,10 @@ def data_access_request_view(request, project_slug, version, user_id):
         response_form = forms.DataAccessResponseForm(responder_id=reviewer.id,
                                                      prefix="proj")
 
-    credentialing_data = CredentialApplication.objects.get(user_id=requester.id)
+    credentialing_data_lst = CredentialApplication.objects.filter(
+        user_id=requester.id).order_by("-application_datetime")
+
+    credentialing_data = credentialing_data_lst[0] if credentialing_data_lst else None
 
     return render(request, 'project/data_access_request_view.html',
                   {'da_request': da_requests[0],
