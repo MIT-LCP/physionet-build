@@ -67,6 +67,17 @@ class TestMixin(TestCase):
         shutil.copytree(os.path.abspath(os.path.join(settings.DEMO_FILE_ROOT, 'static')),
             self.test_static_root)
 
+        # Published project files should have been made read-only at
+        # the time of publication
+        for topdir in (settings.MEDIA_ROOT, self.test_static_root):
+            ppdir = os.path.join(topdir, 'published-projects')
+            for dirpath, subdirs, files in os.walk(ppdir):
+                if dirpath != ppdir:
+                    for f in files:
+                        os.chmod(os.path.join(dirpath, f), 0o444)
+                    for d in subdirs:
+                        os.chmod(os.path.join(dirpath, d), 0o555)
+
     def tearDown(self):
         """
         Remove the testing media root
