@@ -6,7 +6,7 @@ from email.utils import formataddr
 
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.mail import EmailMessage, send_mail
+from django.core.mail import EmailMessage, send_mail, mail_admins
 from django.template import loader
 
 from project.models import License
@@ -626,8 +626,7 @@ def task_failed_notify(name, attempts, last_error, date_time, task_name, task_pa
             'signature': email_signature()
         })
     subject = name + " has failed"
-    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-              [settings.CONTACT_EMAIL], fail_silently=False)
+    mail_admins(subject, body, settings.DEFAULT_FROM_EMAIL)
 
 
 def task_rescheduled_notify(name, attempts, last_error, date_time, task_name, task_params):
@@ -645,5 +644,4 @@ def task_rescheduled_notify(name, attempts, last_error, date_time, task_name, ta
             'signature': email_signature()
         })
     subject = name + " has been rescheduled"
-    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-              [settings.CONTACT_EMAIL], fail_silently=False)
+    mail_admins(subject, body, settings.DEFAULT_FROM_EMAIL)
