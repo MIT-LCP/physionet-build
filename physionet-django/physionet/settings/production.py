@@ -56,3 +56,5 @@ STATIC_ROOT = '/data/pn-static'
 if RUNNING_TEST_SUITE:
     MEDIA_ROOT = os.path.join(MEDIA_ROOT, 'test')
     STATIC_ROOT = os.path.join(STATIC_ROOT, 'test')
+
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
