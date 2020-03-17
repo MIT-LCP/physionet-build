@@ -1,0 +1,15 @@
+Dear admins,
+
+The task "{{ name }}" has made {{ attempts }} attempts and failed.
+
+The task has been marked as completed and it will not be rescheduled.
+
+The final attempt started at {{ date_time }}.
+
+The task name is: {{ task_name }} and was called with the following parameters: {{ task_params | safe}}.
+
+The last error for this task is:
+
+{{ last_error | safe }}
+
+{{ signature }}
