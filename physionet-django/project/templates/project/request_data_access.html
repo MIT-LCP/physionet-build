@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block title %}
-Request Access
+Request Access to {{ project.title }} {{ project.version }}
 {% endblock %}
 
 {% block local_css %}
@@ -21,8 +21,10 @@ Request Access
 {% block content %}
 
     <div class="container">
-        <h1>Request Access</h1>
-        <p>This resource is available only for use by approved
+        <h1>Request Access to {{ project.title }} {{ project.version }}</h1>
+        <p>
+            <a href="{% url 'published_project' project.slug project.version %}">{{ project.title }} {{ project.version }}</a>
+            is available only for use by approved
             research projects. </p>
         <p>Please provide a description of the
             specific research project that you aim to complete using
