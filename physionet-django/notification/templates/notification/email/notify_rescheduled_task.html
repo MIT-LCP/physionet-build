@@ -1,0 +1,15 @@
+Dear admins,
+
+The task "{{ name }}" has failed attempt #{{ attempts }}.
+
+The task is being rescheduled.
+
+The last attempt started at {{ date_time }}.
+
+The task name is: {{ task_name }} and it was called with the following parameters: {{ task_params | safe}}.
+
+The last error for this task is:
+
+{{ last_error | safe}}
+
+{{ signature }}

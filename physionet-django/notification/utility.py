@@ -609,3 +609,41 @@ def notify_aws_access_request(user, project, data_access):
 
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [user.email], fail_silently=False)
+
+
+def task_failed_notify(name, attempts, last_error, date_time, task_name, task_params):
+    """
+    Notify when a task has failed and not rescheduled
+    """
+    body = loader.render_to_string(
+        'notification/email/notify_failed_task.html', {
+            'name': name,
+            'attempts': attempts,
+            'last_error': last_error,
+            'date_time': date_time.strftime("%Y-%m-%d %H:%M:%S"),
+            'task_name': task_name,
+            'task_params': task_params,
+            'signature': email_signature()
+        })
+    subject = name + " has failed"
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+              [settings.CONTACT_EMAIL], fail_silently=False)
+
+
+def task_rescheduled_notify(name, attempts, last_error, date_time, task_name, task_params):
+    """
+    Notify when a task has been rescheduled
+    """
+    body = loader.render_to_string(
+        'notification/email/notify_rescheduled_task.html', {
+            'name': name,
+            'attempts': attempts,
+            'last_error': last_error,
+            'date_time': date_time.strftime("%Y-%m-%d %H:%M:%S"),
+            'task_name': task_name,
+            'task_params': task_params,
+            'signature': email_signature()
+        })
+    subject = name + " has been rescheduled"
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+              [settings.CONTACT_EMAIL], fail_silently=False)
