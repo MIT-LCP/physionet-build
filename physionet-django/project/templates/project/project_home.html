@@ -118,7 +118,7 @@
          <li class="list-group-item">
              <div class="row">
                  <div class="col-md-5"><a
-                         href="{% url 'project_overview' da_request.project.slug %}">{{ da_request.project.title }} </a>
+                         href="{% url 'published_project' da_request.project.slug da_request.project.version %}">{{ da_request.project.title }} </a>
                  </div>
                  <div class="col-md-3">Pending data use request</div>
                  <div class="col-md-2">{{ da_request.request_datetime|date }}</div>
