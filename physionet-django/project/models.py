@@ -1737,7 +1737,7 @@ class DataAccessRequest(models.Model):
     requester = models.ForeignKey('user.User', on_delete=models.CASCADE)
 
     project = models.ForeignKey('project.PublishedProject',
-                                related_name='data_access_request_project',
+                                related_name='data_access_requests',
                                 on_delete=models.CASCADE)
 
     data_use_title = models.CharField(max_length=200, default='')
