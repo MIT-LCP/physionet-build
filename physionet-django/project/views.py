@@ -37,7 +37,7 @@ from project.validators import validate_filename
 import notification.utility as notification
 from physionet.utility import serve_file
 from user.forms import ProfileForm, AssociatedEmailChoiceForm
-from user.models import User, CloudInformation, CredentialApplication
+from user.models import User, CloudInformation, CredentialApplication, LegacyCredential
 
 from dal import autocomplete
 
@@ -1797,11 +1797,19 @@ def data_access_request_view(request, project_slug, version, user_id):
 
     credentialing_data = credentialing_data_lst[0] if credentialing_data_lst else None
 
+    legacy_credentialing_data = None
+    if not credentialing_data:
+        legacy_credentialing_data_lst = LegacyCredential.objects.filter(
+            migrated_user_id=requester.id).order_by("-mimic_approval_date")
+        legacy_credentialing_data = legacy_credentialing_data_lst[
+            0] if legacy_credentialing_data_lst else None
+
     return render(request, 'project/data_access_request_view.html',
                   {'da_request': da_requests[0],
                    'response_form': response_form,
                    'older_requests': da_requests[1:],
-                   'credentialing_data': credentialing_data
+                   'credentialing_data': credentialing_data,
+                   'legacy_credentialing_data': legacy_credentialing_data
                    })
 
 
