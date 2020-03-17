@@ -1810,8 +1810,7 @@ class EditLog(models.Model):
         'pn_suitable': 'Is the content suitable for PhysioNet?',
         'editor_comments': 'Comments to authors',
         'no_phi': 'Is the project free of protected health information?',
-        'data_machine_readable': 'Are all files machine-readable?',
-        'auto_doi': 'Automatically assign a new DOI once it has been publish?',
+        'data_machine_readable': 'Are all files machine-readable?'
     }
 
     LABELS = (

@@ -77,6 +77,8 @@ class EditSubmissionForm(forms.ModelForm):
 
         labels = EditLog.COMMON_LABELS
 
+        auto_doi = forms.BooleanField(required=False, initial=True)
+
         widgets = {
             'soundly_produced': forms.Select(choices=YES_NO_UNDETERMINED),
             'well_described': forms.Select(choices=YES_NO_UNDETERMINED),
@@ -86,7 +88,8 @@ class EditSubmissionForm(forms.ModelForm):
             'no_phi': forms.Select(choices=YES_NO_UNDETERMINED),
             'pn_suitable': forms.Select(choices=YES_NO_UNDETERMINED),
             'editor_comments': forms.Textarea(),
-            'decision': forms.Select(choices=SUBMISSION_RESPONSE_CHOICES)
+            'decision': forms.Select(choices=SUBMISSION_RESPONSE_CHOICES),
+            'auto_doi': forms.HiddenInput()
         }
 
     def __init__(self, resource_type, *args, **kwargs):
@@ -97,8 +100,9 @@ class EditSubmissionForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.resource_type = resource_type
 
+        self.fields['auto_doi'].disabled = True
+
         if not settings.DATACITE_PREFIX:
-            self.fields['auto_doi'].disabled = True
             self.initial['auto_doi'] = False
 
         # This will be used in clean
