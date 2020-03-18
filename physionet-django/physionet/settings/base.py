@@ -125,6 +125,9 @@ USE_L10N = True
 
 USE_TZ = True
 
+# Django background tasks max attempts
+MAX_ATTEMPTS = 5
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 

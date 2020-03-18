@@ -297,6 +297,84 @@ class TestAccessPresubmission(TestMixin):
         self.assertEqual(response.status_code, 403)
 
 
+class TestProjectCreation(TestMixin):
+    """
+    Test that we can create new projects and new versions.
+    """
+
+    def test_new_project(self):
+        """
+        Test that we can create a new project from scratch.
+        """
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+
+        # Create project
+        response = self.client.post(
+            reverse('create_project'),
+            data={
+                'resource_type': 0,
+                'title': 'Neuro-Electric Widget Database',
+                'abstract': '<p>Test</p>',
+            })
+        self.assertEqual(response.status_code, 302)
+        project = ActiveProject.objects.get(
+            title='Neuro-Electric Widget Database')
+        self.assertEqual(response['Location'],
+                         reverse('project_overview', args=(project.slug,)))
+
+        # Load overview page
+        response = self.client.get(
+            reverse('project_overview', args=(project.slug,)))
+        self.assertEqual(response.status_code, 200)
+
+        # Upload a file
+        response = self.client.post(
+            reverse('project_files', args=(project.slug,)),
+            data={
+                'upload_files': '',
+                'subdir': '',
+                'file_field': SimpleUploadedFile('asdf', b'hello world'),
+            })
+        self.assertEqual(response.status_code, 200)
+        with open(os.path.join(project.file_root(), 'asdf')) as f:
+            self.assertEqual(f.read(), 'hello world')
+
+    def test_new_version(self):
+        """
+        Test that we can create a new version of a published project.
+        """
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+
+        oldproject = PublishedProject.objects.get(
+            title='Demo eICU Collaborative Research Database')
+        response = self.client.post(
+            reverse('new_project_version', args=(oldproject.slug,)),
+            data={
+                'version': '3.0.0',
+            })
+        self.assertEqual(response.status_code, 302)
+        newproject = ActiveProject.objects.get(
+            title='Demo eICU Collaborative Research Database')
+        self.assertEqual(response['Location'],
+                         reverse('project_overview', args=(newproject.slug,)))
+
+        # Check that attributes are copied correctly
+        self.assertEqual(newproject.abstract, oldproject.abstract)
+        self.assertEqual(newproject.core_project, oldproject.core_project)
+        self.assertEqual(newproject.access_policy, oldproject.access_policy)
+        self.assertEqual(newproject.version, '3.0.0')
+
+        # Load overview page
+        response = self.client.get(
+            reverse('project_overview', args=(newproject.slug,)))
+        self.assertEqual(response.status_code, 200)
+
+        # Existing files should be hard-linked
+        oldpath = os.path.join(oldproject.file_root(), 'admissions.csv')
+        newpath = os.path.join(newproject.file_root(), 'admissions.csv')
+        self.assertTrue(os.path.samefile(oldpath, newpath))
+
+
 class TestAccessPublished(TestMixin):
     """
     Test that certain views or content in their various states can only

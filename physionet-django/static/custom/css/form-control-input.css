@@ -1,6 +1,14 @@
 /* Styling of inputs to have the same bootstrap look as form-control elements */
 
-input, select, django-ckeditor-widget, textarea {
+input[type=email],
+input[type=file],
+input[type=password],
+input[type=search],
+input[type=text],
+input[type=url],
+select,
+django-ckeditor-widget,
+textarea {
   display: block;
   width: 100%;
   padding: 0.5rem 0.75rem;

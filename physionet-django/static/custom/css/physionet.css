@@ -249,12 +249,12 @@ a{
   color: white;
 }
 
-.search-input::-webkit-input-placeholder {
+.navbar .search-input::-webkit-input-placeholder {
   color: grey;
   opacity: unset;
 }
 
-.search-input{
+.navbar .search-input{
   border: unset;
   padding: 5px;
   border-radius: 0;

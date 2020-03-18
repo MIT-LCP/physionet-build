@@ -1,8 +1,10 @@
 import inspect
 import json
 
-from background_task.models import Task
+from background_task.models import Task, task_failed, task_rescheduled
+from django.dispatch import receiver
 
+import notification.utility as notification
 
 _model_tasks = {}
 
@@ -146,3 +148,33 @@ def get_associated_tasks(instance, *, read_only=None):
                         yield (task, ro_flag)
                 except KeyError:
                     pass
+
+
+@receiver(task_rescheduled, sender=Task)
+def task_rescheduled_handler(sender, **kwargs):
+    """
+    Notify the admins when a task has failed and rescheduled
+    """
+    name = kwargs['task'].verbose_name
+    attempts = kwargs['task'].attempts
+    last_error = kwargs['task'].last_error
+    date_time = kwargs['task'].run_at
+    task_name = kwargs['task'].task_name
+    task_params = kwargs['task'].task_params
+    notification.task_rescheduled_notify(name, attempts, last_error,
+                                         date_time, task_name, task_params)
+
+
+@receiver(task_failed, sender=Task)
+def task_failed_handler(sender, **kwargs):
+    """
+    Notify the admins when a task has failed and removed from queue
+    """
+    name = kwargs['completed_task'].verbose_name
+    attempts = kwargs['completed_task'].attempts
+    last_error = kwargs['completed_task'].last_error
+    date_time = kwargs['completed_task'].failed_at
+    task_name = kwargs['completed_task'].task_name
+    task_params = kwargs['completed_task'].task_params
+    notification.task_failed_notify(name, attempts, last_error, date_time,
+                                    task_name, task_params)

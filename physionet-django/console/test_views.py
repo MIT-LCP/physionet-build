@@ -23,6 +23,14 @@ class TestState(TestMixin):
 
     """
 
+    PROJECT_TITLE = 'MIT-BIH Arrhythmia Database'
+    PROJECT_SLUG = 'mitbih'
+    EXAMPLE_FILE = 'subject-100/100.atr'
+    AUTHOR = 'rgmark'
+    AUTHOR_PASSWORD = 'Tester11!'
+    EDITOR = 'admin'
+    EDITOR_PASSWORD = 'Tester11!'
+
     def test_assign_editor(self):
         """
         Assign an editor
@@ -200,11 +208,15 @@ class TestState(TestMixin):
         custom_slug = 'mitbih'
 
         # Try to publish with an already taken slug
-        taken_slug = PublishedProject.objects.all().first().slug
-        response = self.client.post(reverse(
-            'publish_submission', args=(project.slug,)),
-            data={'slug':taken_slug, 'doi': False, 'make_zip':1})
-        self.assertTrue(bool(ActiveProject.objects.filter(slug=project_slug)))
+        # (note that if the project is a new version,
+        # publish_submission ignores the slug parameter)
+        if not project.is_new_version:
+            taken_slug = PublishedProject.objects.all().first().slug
+            response = self.client.post(reverse(
+                'publish_submission', args=(project.slug,)),
+                data={'slug':taken_slug, 'doi': False, 'make_zip':1})
+            self.assertTrue(bool(ActiveProject.objects.filter(
+                slug=project_slug)))
 
         # Publish with a valid custom slug
         response = self.client.post(reverse(
@@ -218,7 +230,8 @@ class TestState(TestMixin):
         self.assertFalse(bool(PublishedProject.objects.filter(slug=project_slug)))
         self.assertFalse(bool(ActiveProject.objects.filter(slug=project_slug)))
 
-        project = PublishedProject.objects.get(slug=custom_slug)
+        project = PublishedProject.objects.get(slug=custom_slug,
+                                               version=project.version)
         # Access the published project's page and its (open) files
         response = self.client.get(reverse('published_project',
             args=(project.slug, project.version)))
@@ -234,6 +247,66 @@ class TestState(TestMixin):
         response = self.client.get(reverse('published_submission_history',
             args=(project.slug, project.version,)))
         self.assertEqual(response.status_code, 200)
+
+    def test_publish_with_versions(self):
+        """
+        Test publishing a project with multiple versions.
+        """
+
+        versions = ['1.0', '2.5', '2.10', '0.9']
+
+        # Publish the initial project version (from fixture data)
+        project = ActiveProject.objects.get(title=self.PROJECT_TITLE)
+        project.version = versions[0]
+        project.save()
+        self.test_publish()
+        project0 = PublishedProject.objects.get(slug=self.PROJECT_SLUG,
+                                                version=versions[0])
+        self.assertEqual(project0.version, versions[0])
+        self.assertEqual(project0.version_order, 0)
+        self.assertTrue(project0.is_latest_version)
+        self.assertFalse(project0.has_other_versions)
+
+        file_path0 = os.path.join(project0.file_root(), self.EXAMPLE_FILE)
+        license_path0 = os.path.join(project0.file_root(), 'LICENSE.txt')
+        sha256_path0 = os.path.join(project0.file_root(), 'SHA256SUMS.txt')
+        self.assertTrue(os.path.isfile(file_path0))
+        self.assertTrue(os.path.isfile(license_path0))
+        self.assertTrue(os.path.isfile(sha256_path0))
+
+        # Create new versions by copying the published version
+        for version in versions[1:]:
+            self.client.login(username=self.AUTHOR,
+                              password=self.AUTHOR_PASSWORD)
+            response = self.client.post(
+                reverse('new_project_version', args=(self.PROJECT_SLUG,)),
+                data={'version': version})
+            self.test_publish()
+
+        # Sort the list of version numbers
+        sorted_versions = []
+        for version in versions:
+            sorted_versions.append([int(n) for n in version.split('.')])
+        sorted_versions.sort()
+
+        for (index, vnum) in enumerate(sorted_versions):
+            version = '.'.join(str(n) for n in vnum)
+            project = PublishedProject.objects.get(slug=self.PROJECT_SLUG,
+                                                   version=version)
+            self.assertEqual(project.version_order, index)
+            if index == len(sorted_versions) - 1:
+                self.assertTrue(project.is_latest_version)
+            else:
+                self.assertFalse(project.is_latest_version)
+            self.assertTrue(project.has_other_versions)
+
+            file_path = os.path.join(project.file_root(), self.EXAMPLE_FILE)
+            license_path = os.path.join(project.file_root(), 'LICENSE.txt')
+            sha256_path = os.path.join(project.file_root(), 'SHA256SUMS.txt')
+            if version != versions[0]:
+                self.assertTrue(os.path.samefile(file_path, file_path0))
+                self.assertFalse(os.path.samefile(license_path, license_path0))
+                self.assertFalse(os.path.samefile(sha256_path, sha256_path0))
 
     @requests_mock.Mocker()
     def test_publish_with_doi(self, mocker):
