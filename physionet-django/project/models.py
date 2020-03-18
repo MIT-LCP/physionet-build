@@ -2049,7 +2049,7 @@ class LegacyProject(models.Model):
         """
         p = PublishedProject.objects.create(title=self.title,
             doi=self.doi, slug=self.slug,
-            resource_type_id=self.resource_type,
+            resource_type=ProjectType.objects.get(id=self.resource_type),
             core_project=CoreProject.objects.create(),
             abstract=self.abstract,
             is_legacy=True, full_description=self.full_description,
