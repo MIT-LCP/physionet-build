@@ -21,7 +21,8 @@ google-cloud-storage==1.14.0 \
 html2text==2018.1.9 \
  --hash=sha256:490db40fe5b2cd79c461cf56be4d39eb8ca68191ae41ba3ba79f6cb05b7dd662
 Pillow==7.0.0 \
- --hash=sha256:c5ed816632204a2fc9486d784d8e0d0ae754347aba99c811458d69fcdfd2a2f9
+ --hash=sha256:c5ed816632204a2fc9486d784d8e0d0ae754347aba99c811458d69fcdfd2a2f9\
+ --hash=sha256:5bfef0b1cdde9f33881c913af14e43db69815c7e8df429ceda4c70a5e529210f
 python-decouple==3.1 \
  --hash=sha256:1317df14b43efee4337a4aa02914bf004f010cd56d6c4bd894e6474ec8c4fe2d
 pytz==2017.2 \
@@ -36,6 +37,8 @@ pyOpenSSL==19.0.0 \
  --hash=sha256:c727930ad54b10fc157015014b666f2d8b41f70c0d03e83ab67624fd3dd5d1e6
 google-api-python-client==1.7.9 \
  --hash=sha256:5def5a485b1cbc998b8f869456c7bde0c0e6d3d0a5ea1f300b5ef57cb4b1ce8f
+bs4==0.0.1 \
+ --hash=sha256:36ecea1fd7cc5c0c6e4a1ff075df26d50da647b75376626cc186e2212886dd3a
 
 #### Required for postgresql database backend ####
 
@@ -143,3 +146,9 @@ google-auth-httplib2==0.0.3 \
 psycopg2-binary==2.8.3 \
  --hash=sha256:d305313c5a9695f40c46294d4315ed3a07c7d2b55e48a9010dad7db7a66c8b7f\
  --hash=sha256:19d013e7b0817087517a4b3cab39c084d78898369e5c46258aab7be4f233d6a1
+
+# required by bs4 0.0.1
+beautifulsoup4==4.8.2 \
+ --hash=sha256:9fbb4d6e48ecd30bcacc5b63b94088192dcda178513b2ae3c394229f8911b887
+soupsieve==2.0 \
+ --hash=sha256:fcd71e08c0aee99aca1b73f45478549ee7e7fc006d51b37bec9e9def7dc22b69

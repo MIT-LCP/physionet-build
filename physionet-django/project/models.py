@@ -13,8 +13,7 @@ import re
 
 import bleach
 import ckeditor.fields
-from bs4 import Comment
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Comment
 from html2text import html2text
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
