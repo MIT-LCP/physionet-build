@@ -2,7 +2,7 @@ import os
 
 from decouple import config
 
-from .base import *
+from physionet.settings.base import *
 
 DEBUG = False
 

@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
 
-from .serializers import PublishedProjectSerializer
+from export.serializers import PublishedProjectSerializer
 from project.models import PublishedProject
 
 

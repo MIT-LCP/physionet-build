@@ -4,7 +4,7 @@ from django.urls import path
 from django.http import HttpResponse
 from django.conf.urls import handler404, handler500
 
-from . import views
+from physionet import views
 import lightwave.views as lightwave_views
 import project.views as project_views
 

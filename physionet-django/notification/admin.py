@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from . import models
+from notification import models
 
 
 admin.site.register(models.News)
