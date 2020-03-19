@@ -224,7 +224,7 @@
             <tr>
               <th>Data Accessible By</th>
               <th>Location</th>
-              <th>Remove</th>
+              <th>Remove<div class="infolink"><i class="fa fa-question-circle"></i></div></th>
             </tr>
           </thead>
           <tbody>
@@ -234,7 +234,9 @@
               <td>{{item.location}}</td>
               <form action="" method="post">
                 {% csrf_token %}
-                <td><button class='btn btn-danger' name='data_access_removal' value='{{item.id}}'>Remove</button></td>
+                <td>
+                  <button class='btn btn-danger' name='data_access_removal' value='{{item.id}}'>Remove</button>
+                </td>
               </form>
             </tr>
             {% endfor %}
