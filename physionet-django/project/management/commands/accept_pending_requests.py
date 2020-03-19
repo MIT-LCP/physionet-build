@@ -3,6 +3,7 @@ Command to:
 - Accept pending requests of self managed projects
 """
 
+from django.contrib.sites.models import Site
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
@@ -27,5 +28,5 @@ class Command(BaseCommand):
             rq.responder_id = admin.id
             rq.save()
 
-            # TODO don't hardcode. how to get hostname to generate URL?
-            notification.notify_user_data_access_request(rq, "https", "physionet.org")
+            site = Site.objects.get_current()
+            notification.notify_user_data_access_request(rq, "https", str(site))
