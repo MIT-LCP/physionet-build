@@ -75,10 +75,13 @@ def handling_editor(base_view):
     @login_required
     def handling_view(request, *args, **kwargs):
         user = request.user
-        project = ActiveProject.objects.get(slug=kwargs['project_slug'])
-        if user.is_admin and user == project.editor:
-            kwargs['project'] = project
-            return base_view(request, *args, **kwargs)
+        try:
+            project = ActiveProject.objects.get(slug=kwargs['project_slug'])
+            if user.is_admin and user == project.editor:
+                kwargs['project'] = project
+                return base_view(request, *args, **kwargs)
+        except ActiveProject.DoesNotExist:
+            raise Http404()
         raise Http404('Unable to access page')
     return handling_view
 
@@ -215,7 +218,11 @@ def submission_info(request, project_slug):
     """
     View information about a project under submission
     """
-    project = ActiveProject.objects.get(slug=project_slug)
+    try:
+        project = ActiveProject.objects.get(slug=project_slug)
+    except ActiveProject.DoesNotExist:
+        raise Http404()
+
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
 
     passphrase = ''
@@ -627,8 +634,11 @@ def manage_published_project(request, project_slug, version):
     - Deprecate files
     - Create GCP bucket and send files
     """
+    try:
+        project = PublishedProject.objects.get(slug=project_slug, version=version)
+    except PublishedProject.DoesNotExist:
+        raise Http404()
     user = request.user
-    project = PublishedProject.objects.get(slug=project_slug, version=version)
     passphrase = ''
     anonymous_url = project.get_anonymous_url()
     doi_form = forms.DOIForm(instance=project)
@@ -990,7 +1000,11 @@ def view_credential_application(request, application_slug):
     """
     View a credential application in any status.
     """
-    application = CredentialApplication.objects.get(slug=application_slug)
+    try:
+        application = CredentialApplication.objects.get(slug=application_slug)
+    except CredentialApplication.DoesNotExist:
+        raise Http404()
+
     form = forms.AlterCommentsCredentialForm(initial={
         'responder_comments': application.responder_comments})
     if request.method == 'POST':
@@ -1115,8 +1129,11 @@ def search_credential_applications(request):
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def credentialed_user_info(request, username):
-    c_user = User.objects.get(username__iexact=username)
-    application = CredentialApplication.objects.get(user=c_user, status=2)
+    try:
+        c_user = User.objects.get(username__iexact=username)
+        application = CredentialApplication.objects.get(user=c_user, status=2)
+    except (User.DoesNotExist, CredentialApplication.DoesNotExist):
+        raise Http404()
     return render(request, 'console/credentialed_user_info.html',
         {'c_user':c_user, 'application':application})
 
@@ -1168,8 +1185,10 @@ def news_search(request):
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def news_edit(request, news_id):
-    news = News.objects.get(id=news_id)
-
+    try:
+        news = News.objects.get(id=news_id)
+    except News.DoesNotExist:
+        raise Http404()
     if request.method == 'POST':
         if 'update' in request.POST:
             form = forms.NewsForm(data=request.POST, instance=news)
