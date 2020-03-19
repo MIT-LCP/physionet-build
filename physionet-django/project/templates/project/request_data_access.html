@@ -10,10 +10,8 @@ Request Access to {{ project.title }} {{ project.version }}
 <link rel="stylesheet" type="text/css" href="{% static 'custom/css/form-control-input.css' %}"/>
     <style>
         #id_proj-agree_dua {
-            width: 13px;
-            height: 13px;
-            position: relative;
-            top: 20px;
+            display:unset;
+            width: 20px;
         }
     </style>
 {% endblock %}
@@ -93,7 +91,7 @@ Request Access to {{ project.title }} {{ project.version }}
 
                 <div >
                     {{ project_request_form.agree_dua }}
-                     <label for="id_proj-agree_dua" style="padding-left: 15px">
+                     <label for="id_proj-agree_dua">
                          By submitting this form, I, {{ full_user_name }},
                          agree with the above terms.
                      </label>
