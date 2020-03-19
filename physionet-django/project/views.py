@@ -1643,6 +1643,10 @@ def request_data_access(request, project_slug, version):
                                                           request.scheme,
                                                           request.get_host())
 
+            notification.confirm_user_data_access_request(data_access_req,
+                                                          request.scheme,
+                                                          request.get_host())
+
             return render(request, 'project/data_access_request_submitted.html',
                           {'project': proj})
     else:

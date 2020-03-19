@@ -784,9 +784,9 @@ class TestSelfManagedProjectWorkflows(TestMixin):
                 any(d.data_use_purpose == msg_purpose for d in da_req),
                 msg_purpose)
 
-            # submitter should receive an email
-            self.assertEqual(len(mail.outbox), mail_outbox_size + 1)
-            self.assertIn('New Data Access Request', mail.outbox[-1].subject)
+            # submitter should receive a notification, requester a confirmation
+            self.assertEqual(len(mail.outbox), mail_outbox_size + 2)
+            self.assertIn('New Data Access Request', mail.outbox[-2].subject)
 
             # submitter should see task in project home
             logged_in = self.client.login(username=self.SUBMITTER,
