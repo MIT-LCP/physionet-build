@@ -111,11 +111,11 @@ def validate_slug(value):
 
 def validate_title(value):
     """
-    Validate titles that start with an alphabetical character followed by
+    Validate titles that start with an alphanumeric character followed by
     characters marked as letters in Unicode along side with the following
     special characters: ' , * ? : ( ) -
     """
-    if not re.fullmatch(r'[a-zA-Z][\w\'*,?:( )-]+', value):
+    if not re.fullmatch(r'[a-zA-Z0-9][\w\'*,?:( )-]+', value):
         raise ValidationError("Enter a valid title. This value may contain only letters, numbers, spaces and [,-'*?:()]")
 
 
