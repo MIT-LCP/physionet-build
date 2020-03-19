@@ -234,9 +234,7 @@
               <td>{{item.location}}</td>
               <form action="" method="post">
                 {% csrf_token %}
-                <td>
-                  <button class='btn btn-danger' name='data_access_removal' value='{{item.id}}'>Remove</button>
-                </td>
+                <td><button class='btn btn-danger' name='data_access_removal' value='{{item.id}}'>Remove</button></td>
               </form>
             </tr>
             {% endfor %}
