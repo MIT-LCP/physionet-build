@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from lightwave import views
 
 urlpatterns = [
     path('', views.lightwave_home, name='lightwave_home'),

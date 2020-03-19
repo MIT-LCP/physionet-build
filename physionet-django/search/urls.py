@@ -1,6 +1,6 @@
 from django.urls import path, re_path
 
-from . import views
+from search import views
 import project.views as project_views
 
 

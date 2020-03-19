@@ -1,8 +1,8 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path, re_path, reverse_lazy
 
-from . import views
-from .forms import LoginForm
+from user import views
+from user.forms import LoginForm
 
 
 urlpatterns = [
