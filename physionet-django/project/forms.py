@@ -924,7 +924,8 @@ class DataAccessRequestForm(forms.ModelForm):
     agree_dua = forms.BooleanField(required=True)
 
     def inline_fields(self):
-        return [ f for f in self.visible_fields() if f.field != self.fields['agree_dua'] ]
+        return [f for f in self.visible_fields() if
+                f.field != self.fields['agree_dua']]
 
     def save(self):
         proj_request = super().save(commit=False)

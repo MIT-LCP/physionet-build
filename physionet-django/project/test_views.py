@@ -832,7 +832,9 @@ class TestSelfManagedProjectWorkflows(TestMixin):
 
         accept_request(da_req)
 
-        response = self.client.get(reverse('data_access_requests_overview', args=(project.slug, project.version, )))
+        response = self.client.get(reverse('data_access_requests_overview',
+                                           args=(
+                                           project.slug, project.version,)))
         self.assertContains(response, "1 accepted requests")
 
         logged_in = self.client.login(username=self.REQUESTER,
@@ -853,4 +855,5 @@ class TestSelfManagedProjectWorkflows(TestMixin):
         # should have two accepted requests now
         self.assertEqual(len(DataAccessRequest.objects.filter(
             requester_id=User.objects.get(username=self.REQUESTER),
-            project_id=project.id, status=DataAccessRequest.ACCEPT_REQUEST_VALUE)), 2)
+            project_id=project.id,
+            status=DataAccessRequest.ACCEPT_REQUEST_VALUE)), 2)

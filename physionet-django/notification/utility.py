@@ -612,54 +612,60 @@ def notify_aws_access_request(user, project, data_access):
               [user.email], fail_silently=False)
 
 
-def notify_owner_data_access_request(users, data_access_request, request_protocol, request_host):
+def notify_owner_data_access_request(users, data_access_request,
+                                     request_protocol, request_host):
     subject = "PhysioNet New Data Access Request"
 
     for user in users:
-        body = loader.render_to_string('notification/email/notify_owner_data_access_request.html', {
-            'user': user,
-            'data_access_request': data_access_request,
-            'signature': email_signature(),
-            'footer': email_footer(),
-            'request_host': request_host,
-            'request_protocol': request_protocol
-        })
+        body = loader.render_to_string(
+            'notification/email/notify_owner_data_access_request.html', {
+                'user': user,
+                'data_access_request': data_access_request,
+                'signature': email_signature(),
+                'footer': email_footer(),
+                'request_host': request_host,
+                'request_protocol': request_protocol
+            })
 
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [user.email],
                   fail_silently=False)
 
 
-def confirm_user_data_access_request(data_access_request, request_protocol, request_host):
+def confirm_user_data_access_request(data_access_request, request_protocol,
+                                     request_host):
     subject = "PhysioNet Data Access Request"
 
     due_date = timezone.now() + timezone.timedelta(
-                days=DataAccessRequest.DATA_ACCESS_REQUESTS_DAY_LIMIT)
+        days=DataAccessRequest.DATA_ACCESS_REQUESTS_DAY_LIMIT)
 
-    body = loader.render_to_string('notification/email/confirm_user_data_access_request.html', {
-        'data_access_request': data_access_request,
-        'signature': email_signature(),
-        'footer': email_footer(),
-        'request_host': request_host,
-        'request_protocol': request_protocol,
-        'due_date': due_date
-    })
+    body = loader.render_to_string(
+        'notification/email/confirm_user_data_access_request.html', {
+            'data_access_request': data_access_request,
+            'signature': email_signature(),
+            'footer': email_footer(),
+            'request_host': request_host,
+            'request_protocol': request_protocol,
+            'due_date': due_date
+        })
 
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [data_access_request.requester.email],
               fail_silently=False)
 
 
-def notify_user_data_access_request(data_access_request, request_protocol, request_host):
+def notify_user_data_access_request(data_access_request, request_protocol,
+                                    request_host):
     subject = "PhysioNet Data Access Request Decision"
 
-    body = loader.render_to_string('notification/email/notify_user_data_access_request.html', {
-        'data_access_request': data_access_request,
-        'signature': email_signature(),
-        'footer': email_footer(),
-        'request_host': request_host,
-        'request_protocol': request_protocol,
-    })
+    body = loader.render_to_string(
+        'notification/email/notify_user_data_access_request.html', {
+            'data_access_request': data_access_request,
+            'signature': email_signature(),
+            'footer': email_footer(),
+            'request_host': request_host,
+            'request_protocol': request_protocol,
+        })
 
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [data_access_request.requester.email],

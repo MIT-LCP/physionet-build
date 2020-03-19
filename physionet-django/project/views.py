@@ -1615,10 +1615,10 @@ def request_data_access(request, project_slug, version):
 
     if not proj.is_self_managed_access:
         return redirect('published_project',
-                         project_slug=project_slug, version=version)
+                        project_slug=project_slug, version=version)
 
     if DataAccessRequest.objects.filter(requester=user, project=proj, status=
-        DataAccessRequest.PENDING_VALUE):
+    DataAccessRequest.PENDING_VALUE):
         return redirect('data_access_request_status', project_slug=proj.slug,
                         version=proj.version)
 
@@ -1730,10 +1730,11 @@ def data_access_requests_overview(request, project_slug, version):
 
     if not proj.is_self_managed_access:
         return redirect('published_project',
-                         project_slug=project_slug, version=version)
+                        project_slug=project_slug, version=version)
 
     if not proj.is_allowed_handling_access_requests(reviewer):
-        raise Http404(Exception("You don't have access to the project requests overview"))
+        raise Http404(
+            Exception("You don't have access to the project requests overview"))
 
     all_requests = DataAccessRequest.objects.filter(project_id=proj).order_by(
         '-request_datetime')
@@ -1767,10 +1768,11 @@ def data_access_request_view(request, project_slug, version, user_id):
 
     if not proj.is_self_managed_access:
         return redirect('published_project',
-                         project_slug=project_slug, version=version)
+                        project_slug=project_slug, version=version)
 
     if not proj.is_allowed_handling_access_requests(reviewer):
-        raise Http404(Exception("You don't have access to the project requests overview"))
+        raise Http404(
+            Exception("You don't have access to the project requests overview"))
 
     da_requests = DataAccessRequest.objects.filter(requester=requester,
                                                    project_id=proj).order_by(
@@ -1799,7 +1801,8 @@ def data_access_request_view(request, project_slug, version, user_id):
     credentialing_data_lst = CredentialApplication.objects.filter(
         user_id=requester.id).order_by("-application_datetime")
 
-    credentialing_data = credentialing_data_lst[0] if credentialing_data_lst else None
+    credentialing_data = credentialing_data_lst[
+        0] if credentialing_data_lst else None
 
     legacy_credentialing_data = None
     if not credentialing_data:
