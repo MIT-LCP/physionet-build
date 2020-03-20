@@ -1,10 +1,9 @@
 {% load static %}
 
 <div id="forms-and-panel">
-  <form method="post" enctype="multipart/form-data">
+  <form method="post" enctype="multipart/form-data" onsubmit="check_upload_size_limit('submit')">
     {% csrf_token %}
     {% include "project/project_files_form.html" %}
-
     <div id="files-panel" class="card">
       <div class="card-header">
         Folder Navigation:
@@ -196,5 +195,41 @@
     setInputRequirements("")
     document.getElementById("delete-items-message").innerHTML = "Are you sure you wish to delete the "+ n_selected + " selected item(s)?"
   }
+
+  function check_upload_size_limit(stage){
+    // Check the size of the files to be uploaded and stop the form if the file
+    // size exceeds the maximum allowed.
+
+    // The size is calculated in bytes
+    files = $('#id_file_field').get(0).files;
+    size = 0;
+    // Add the size of all the files into a single variable
+    for (i = 0; i < files.length; i++)
+    {
+      size = size + files[i].size;
+    }
+    // Check against the remaining quota
+    if (size >= {{ storage_info.remaining }}){
+      // Disable the submit button on the form
+      $('#upload-files-button-submit').attr("disabled", true);
+      // Set the size in the message to be shwon
+      $('#data_size').text(readableBytes(size))
+      // Show the message
+      $('#error_data_size').show();
+    }
+    else{
+      // Hide the message
+      $('#error_data_size').hide();
+      // Enable the submit button on the form
+      $('#upload-files-button-submit').attr("disabled", false);
+    }
+  }
+
+function readableBytes(bytes) {
+    // Return the size of given bytes in a readable format
+    var i = Math.floor(Math.log(bytes) / Math.log(1024)),
+    sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    return (bytes / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + sizes[i];
+}
 
 </script>
