@@ -254,23 +254,6 @@ class PublishForm(forms.Form):
         return data
 
 
-class DOIForm(forms.ModelForm):
-    """
-    Form to edit the doi of a published project
-    """
-    class Meta:
-        model = PublishedProject
-        fields = ('doi',)
-        labels = {'doi':'DOI'}
-
-    def clean_doi(self):
-        data = self.cleaned_data['doi']
-        validate_doi(data)
-        if PublishedProject.objects.filter(doi=data).exclude(id=self.instance.id):
-            raise forms.ValidationError('Published project with DOI already exists.')
-        return data
-
-
 class TopicForm(forms.Form):
     """
     Form to set tags for a published project
