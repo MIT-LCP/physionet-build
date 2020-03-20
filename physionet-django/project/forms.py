@@ -86,7 +86,7 @@ class UploadFilesForm(ActiveProjectFilesForm):
     `subdir` is the project subdirectory relative to the file root.
     """
     file_field = forms.FileField(widget=forms.ClearableFileInput(
-        attrs={'multiple': True, 'onchange': "check_size('upload');"}), required=False,
+        attrs={'multiple': True, 'onchange': "check_upload_size_limit('upload');"}), required=False,
         allow_empty_file=True)
 
     def clean_file_field(self):

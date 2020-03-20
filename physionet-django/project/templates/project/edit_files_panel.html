@@ -1,10 +1,9 @@
 {% load static %}
 
 <div id="forms-and-panel">
-  <form method="post" enctype="multipart/form-data" onsubmit="check_size('submit')">
+  <form method="post" enctype="multipart/form-data" onsubmit="check_upload_size_limit('submit')">
     {% csrf_token %}
     {% include "project/project_files_form.html" %}
-
     <div id="files-panel" class="card">
       <div class="card-header">
         Folder Navigation:
@@ -197,7 +196,7 @@
     document.getElementById("delete-items-message").innerHTML = "Are you sure you wish to delete the "+ n_selected + " selected item(s)?"
   }
 
-  function check_size(stage){
+  function check_upload_size_limit(stage){
     // Check the size of the files to be uploaded and stop the form if the file
     // size exceeds the maximum allowed.
 
@@ -210,19 +209,19 @@
       size = size + files[i].size;
     }
     // Check against the remaining quota
-    if ({{ storage_info.remaining }} - size <= 0){
-      // Set the size in the message to be shown
+    if (size >= {{ storage_info.remaining }}){
+      // Disable the submit button on the form
+      $('#upload-files-button-submit').attr("disabled", true);
+      // Set the size in the message to be shwon
       $('#data_size').text(readableBytes(size))
-      // Minimize the current window
-      $('#upload-files-modal').modal('toggle');
       // Show the message
-      $('#upload_files_quota').modal('toggle');
-      if (stage == 'submit'){
-        // If the form is being submitted prevent the submission
-        $('form').submit(function (evt) {
-          evt.preventDefault();
-        });
-      }
+      $('#error_data_size').show();
+    }
+    else{
+      // Hide the message
+      $('#error_data_size').hide();
+      // Enable the submit button on the form
+      $('#upload-files-button-submit').attr("disabled", false);
     }
   }
 
