@@ -52,14 +52,18 @@ fi
 
 qemu-img create -f $IMAGE_FORMAT $IMAGE $IMAGE_SIZE
 
-qemu-system-x86_64 \
-    $kvm_arg -smp 2 \
-    -m 2000 \
-    -vga vmware -device virtio-rng-pci \
-    -drive file=$IMAGE,cache=unsafe \
-    -cdrom $INSTALLER_IMAGE \
-    -kernel $tdir/vmlinuz \
-    -initrd $tdir/initrd
+if ! qemu-system-x86_64 \
+     $kvm_arg -smp 2 \
+     -m 2000 \
+     -vga vmware -device virtio-rng-pci \
+     -drive file=$IMAGE,cache=unsafe \
+     -cdrom $INSTALLER_IMAGE \
+     -kernel $tdir/vmlinuz \
+     -initrd $tdir/initrd ; then
+    echo " *** Unable to launch qemu."
+    rm -f $IMAGE
+    exit 1
+fi
 
 ################################################################
 
