@@ -43,10 +43,17 @@ if [ -e $IMAGE ]; then
     exit 1
 fi
 
+if [ -w /dev/kvm ]; then
+    kvm_arg=-enable-kvm
+else
+    echo "Warning: KVM acceleration is unavailable.  Emulation may be slow."
+    kvm_arg=-no-kvm
+fi
+
 qemu-img create -f $IMAGE_FORMAT $IMAGE $IMAGE_SIZE
 
 qemu-system-x86_64 \
-    -enable-kvm -smp 2 \
+    $kvm_arg -smp 2 \
     -m 2048 \
     -vga vmware -device virtio-rng-pci \
     -drive file=$IMAGE,cache=unsafe \
