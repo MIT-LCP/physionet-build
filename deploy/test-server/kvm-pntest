@@ -19,7 +19,7 @@ IMAGE=${PHYSIONET_TEST_SERVER_IMAGE:-physionet-test.img}
 
 exec qemu-system-x86_64 \
      $kvm_arg -smp 2 \
-     -m 2048 \
+     -m 2000 \
      -vga vmware -device virtio-rng-pci \
      -snapshot \
      -drive file=$IMAGE,if=virtio \

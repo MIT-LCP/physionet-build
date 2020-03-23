@@ -54,7 +54,7 @@ qemu-img create -f $IMAGE_FORMAT $IMAGE $IMAGE_SIZE
 
 qemu-system-x86_64 \
     $kvm_arg -smp 2 \
-    -m 2048 \
+    -m 2000 \
     -vga vmware -device virtio-rng-pci \
     -drive file=$IMAGE,cache=unsafe \
     -cdrom $INSTALLER_IMAGE \
