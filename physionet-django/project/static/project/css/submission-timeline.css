@@ -4,22 +4,3 @@
   margin-left:2em;
   color:#4D4D4D!important;
 }
-
-.infolink {
-  position: relative;
-  display: inline-block;
-  left: 0.3em;
-}
-  
-.infolink:hover:after {
-  position: absolute;
-  content: "This will not (1) delete/deactivate the bucket or (2) remove access for users who are already using the bucket.";
-  display: inline-block;
-  left: 3em;
-  top: 1em;
-  padding: 3px;
-  background-color: black;
-  color: white;
-  font-size: 0.67rem;
-  width: 20em;
-}
