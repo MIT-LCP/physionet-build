@@ -5,7 +5,7 @@ set -e
 install_dir=/physionet/physionet-build
 working_dir=/physionet/physionet-build.new
 venv_dir=/physionet/python-env/physionet
-log_file=/physionet/update.log
+log_file=/data/log/pn/update.log
 branch=$(cat /physionet/deploy-branch) # production or staging
 
 while read -r old new refname; do
