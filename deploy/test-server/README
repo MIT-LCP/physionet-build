@@ -9,7 +9,7 @@ Quick start:
 
 2. Download the latest installer (amd64 netinst) CD image from
    https://www.debian.org/releases/buster/debian-installer/
-   to this directory.
+   (e.g., debian-10.3.0-amd64-netinst.iso) to this directory.
 
 3. Run ./kvm-pntest-create to create the virtual disk image.
 
