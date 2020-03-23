@@ -169,13 +169,11 @@ class EditSubmissionForm(forms.ModelForm):
                     # register draft DOIs
                     if not project.doi:
                         payload = generate_doi_payload(project, event="draft")
-                        project.doi = register_doi(payload)
-                        project.save()
+                        register_doi(payload, project)
                     if not project.core_project.doi:
                         payload = generate_doi_payload(project, event="draft",
                                                        core_project=True)
-                        project.core_project.doi = register_doi(payload)
-                        project.core_project.save()
+                        register_doi(payload, project.core_project)
 
                 CopyeditLog.objects.create(project=project)
                 project.save()

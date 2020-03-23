@@ -643,8 +643,7 @@ def manage_doi_request(request, project):
     if 'create_doi_core' in request.POST:
         payload = utility.generate_doi_payload(project, core_project=True,
                                                event="publish")
-        project.core_project.doi = utility.register_doi(payload)
-        project.core_project.save()
+        utility.register_doi(payload, project.core_project)
         message = "The DOI was created."
     elif 'update_doi_core' in request.POST:
         payload = utility.generate_doi_payload(project, core_project=True,
@@ -653,8 +652,7 @@ def manage_doi_request(request, project):
         message = "The DOI metadata was updated."
     elif 'create_doi_version' in request.POST:
         payload = utility.generate_doi_payload(project, event="publish")
-        project.doi = utility.register_doi(payload)
-        project.save()
+        utility.register_doi(payload, project)
         message = "The DOI was created."
     elif 'update_doi_version' in request.POST:
         payload = utility.generate_doi_payload(project, event="publish")
