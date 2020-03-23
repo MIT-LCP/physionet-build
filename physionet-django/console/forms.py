@@ -168,14 +168,12 @@ class EditSubmissionForm(forms.ModelForm):
                 if self.cleaned_data['auto_doi']:
                     # register draft DOIs
                     if not project.doi:
-                        payload = generate_doi_payload(project,
-                                                               event="draft")
+                        payload = generate_doi_payload(project, event="draft")
                         project.doi = register_doi(payload)
                         project.save()
                     if not project.core_project.doi:
-                        payload = generate_doi_payload(project,
-                                                               core_project=True,
-                                                               event="draft")
+                        payload = generate_doi_payload(project, event="draft",
+                                                       core_project=True)
                         project.core_project.doi = register_doi(payload)
                         project.core_project.save()
 
