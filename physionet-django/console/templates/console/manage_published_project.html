@@ -214,7 +214,9 @@
       <li class="list-group-item">
         <h5 class="card-title mt-0 mb-1">Storage location</h5>
         <p>Add and remove storage options.</p>
-        <p>Note: The remove button will remove the option for requesting cloud access that appears in the files section of a project. It will not (1) delete/deactivate the bucket or (2) remove access for users who are already using the bucket.</p>
+        <div class="alert alert-danger">
+          <p class='m-0'>Note: The remove button will remove the option for requesting cloud access that appears in the files section of a project. It will not (1) delete/deactivate the bucket or (2) remove access for users who are already using the bucket.</p>
+        </div>
         <form action="" method="post">
           {% csrf_token %}
           {% include "project/content_inline_form_snippet.html" with form=data_access_form %}
