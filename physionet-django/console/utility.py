@@ -274,9 +274,6 @@ def register_doi(payload, project):
         project (obj): The ActiveProject, PublishedProject, or CoreProject
             that is associated with the payload.
 
-    Returns:
-        doi (str): On success, returns the assigned DOI.
-
     Example of the API return response.
     {
        'data':{
@@ -427,8 +424,6 @@ def register_doi(payload, project):
         # Update the DOI field for the project
         queryset = type(project).objects.filter(id=project.id, doi='PENDING')
         queryset.update(doi=doi)
-
-    return doi
 
 
 def update_doi(doi, payload):

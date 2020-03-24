@@ -165,6 +165,9 @@ class EditSubmissionForm(forms.ModelForm):
                 project.editor_accept_datetime = now
                 project.latest_reminder = now
 
+                CopyeditLog.objects.create(project=project)
+                project.save()
+
                 if self.cleaned_data['auto_doi']:
                     # register draft DOIs
                     if not project.doi:
@@ -174,9 +177,6 @@ class EditSubmissionForm(forms.ModelForm):
                         payload = generate_doi_payload(project, event="draft",
                                                        core_project=True)
                         register_doi(payload, project.core_project)
-
-                CopyeditLog.objects.create(project=project)
-                project.save()
 
             return edit_log
 

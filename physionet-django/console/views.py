@@ -498,8 +498,7 @@ def publish_submission(request, project_slug, *args, **kwargs):
                 payload_core = utility.generate_doi_payload(latest,
                                                             core_project=True,
                                                             event="publish")
-                utility.update_doi(published_project.core_project.doi,
-                                   payload_core)
+                utility.update_doi(core.doi, payload_core)
 
             if published_project.doi:
                 payload = utility.generate_doi_payload(published_project,
