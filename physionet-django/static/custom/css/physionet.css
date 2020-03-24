@@ -41,6 +41,7 @@ table {
   border-top: 1px solid #dfdfdf;
   border-bottom: 1px solid #dfdfdf;
   margin: 1em auto;
+  max-width: 90%;
 }
 table > caption {
   caption-side: top;
