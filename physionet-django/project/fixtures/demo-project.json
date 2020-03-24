@@ -504,7 +504,7 @@
   "pk": "2e780890-644d-4166-b0ca-e3d31596405b",
   "fields": {
     "creation_datetime": "2017-10-30T14:30:30Z",
-    "doi": "",
+    "doi": null,
     "storage_allowance": 104857600
   }
 },
@@ -513,7 +513,7 @@
   "pk": "66951d55-e473-4a98-a24f-4fad05ed967b",
   "fields": {
     "creation_datetime": "2018-11-14T20:20:39.927Z",
-    "doi": "",
+    "doi": null,
     "storage_allowance": 104857600
   }
 },
@@ -522,7 +522,7 @@
   "pk": "950032c4-2d96-43d6-84d5-e1652f451a79",
   "fields": {
     "creation_datetime": "2017-10-30T14:30:30Z",
-    "doi": "",
+    "doi": null,
     "storage_allowance": 104857600
   }
 },
@@ -531,7 +531,7 @@
   "pk": "ba881793-f671-4215-9487-070c04bdb4e2",
   "fields": {
     "creation_datetime": "2017-10-30T14:30:30Z",
-    "doi": "",
+    "doi": null,
     "storage_allowance": 104857600
   }
 },
@@ -540,7 +540,7 @@
   "pk": "ff038b01-14a2-4af1-9a7d-9f9845c45219",
   "fields": {
     "creation_datetime": "2017-10-30T14:30:30Z",
-    "doi": "",
+    "doi": null,
     "storage_allowance": 104857600
   }
 },
@@ -549,7 +549,7 @@
   "pk": "85c5bad7-5f20-4194-8a20-0ff37ccee9a0",
   "fields": {
     "creation_datetime": "2019-03-01T14:30:30Z",
-    "doi": "",
+    "doi": null,
     "storage_allowance": 104857600
   }
 },
@@ -789,7 +789,7 @@
     "compressed_storage_size": 786,
     "publish_datetime": "2019-03-17T07:53:10.022Z",
     "is_latest_version": true,
-    "doi": "",
+    "doi": null,
     "is_legacy": false,
     "has_wfdb": true,
     "full_description": "",
