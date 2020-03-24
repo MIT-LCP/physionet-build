@@ -118,8 +118,9 @@ rm /etc/nginx/sites-enabled/default
 ln -s ../sites-available/physionet_nginx.conf \
    /etc/nginx/sites-enabled/physionet_nginx.conf
 
-mkdir /data/log /data/log/nginx /data/log/uwsgi
+mkdir /data/log /data/log/nginx /data/log/uwsgi /data/log/pn
 chown www-data.root /data/log/uwsgi
+chown pn.root /data/log/pn
 
 (
     cd /physionet/physionet-build/deploy/common
