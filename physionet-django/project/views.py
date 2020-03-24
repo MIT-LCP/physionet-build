@@ -17,7 +17,8 @@ from django.core.exceptions import (ObjectDoesNotExist, PermissionDenied,
 from django.db import transaction
 from django.forms import (formset_factory, inlineformset_factory,
     modelformset_factory)
-from django.http import HttpResponse, Http404, JsonResponse, HttpResponseRedirect
+from django.http import HttpResponse, Http404,JsonResponse, HttpResponseRedirect
+from django.http import HttpResponseForbidden
 from django.shortcuts import render, redirect
 from django.template import loader
 from django.urls import reverse
@@ -30,13 +31,13 @@ from project.models import (Affiliation, Author, AuthorInvitation,
     ActiveProject, PublishedProject, StorageRequest, Reference, DataAccess,
     ArchivedProject, ProgrammingLanguage, Topic, Contact, Publication,
     PublishedAuthor, EditLog, CopyeditLog, DUASignature, CoreProject, GCP,
-    AnonymousAccess)
+    AnonymousAccess, DataAccessRequest)
 from project import utility
 from project.validators import validate_filename
 import notification.utility as notification
 from physionet.utility import serve_file
 from user.forms import ProfileForm, AssociatedEmailChoiceForm
-from user.models import User, CloudInformation
+from user.models import User, CloudInformation, CredentialApplication, LegacyCredential
 
 from dal import autocomplete
 
@@ -162,7 +163,6 @@ def process_invitation_response(request, invitation_response_formset):
                 return False, False
 
 
-
 @login_required
 def project_home(request):
     """
@@ -176,15 +176,6 @@ def project_home(request):
     InvitationResponseFormSet = modelformset_factory(AuthorInvitation,
         form=forms.InvitationResponseForm, extra=0)
 
-    if request.method == 'POST':
-        invitation_response_formset = InvitationResponseFormSet(request.POST,
-            queryset=AuthorInvitation.get_user_invitations(user))
-        imported, project = process_invitation_response(request, invitation_response_formset)
-        if project:
-            if imported:
-                messages.info(request,'Please fill in the affiliation at the end of the page.')
-            return redirect('project_authors', project_slug=project.slug)
-
     active_authors = Author.objects.filter(user=user,
         content_type=ContentType.objects.get_for_model(ActiveProject))
     archived_authors = Author.objects.filter(user=user,
@@ -197,6 +188,18 @@ def project_home(request):
     published_projects = [a.project for a in published_authors]
     for p in published_projects:
         p.new_button = p.can_publish_new(user)
+
+    if request.method == 'POST' and 'invitation_response' in request.POST.keys():
+        author_qs = AuthorInvitation.get_user_invitations(user)
+        invitation_response_formset = InvitationResponseFormSet(request.POST,
+                                                                queryset=author_qs)
+        imported, project = process_invitation_response(request,
+                                                        invitation_response_formset)
+        if project:
+            if imported:
+                messages.info(request,
+                              'Please fill in the affiliation at the end of the page.')
+            return redirect('project_authors', project_slug=project.slug)
 
     pending_author_approvals = []
     missing_affiliations = []
@@ -213,12 +216,17 @@ def project_home(request):
     invitation_response_formset = InvitationResponseFormSet(
         queryset=AuthorInvitation.get_user_invitations(user))
 
+    data_access_requests = DataAccessRequest.objects.filter(
+        project__in=published_projects, status=0)
+
     return render(request, 'project/project_home.html', {
         'projects': projects, 'published_projects': published_projects,
         'rejected_projects': rejected_projects,
         'missing_affiliations': missing_affiliations,
         'pending_author_approvals': pending_author_approvals,
-        'invitation_response_formset': invitation_response_formset})
+        'invitation_response_formset': invitation_response_formset,
+        'data_access_requests': data_access_requests
+    })
 
 @login_required
 def create_project(request):
@@ -1084,7 +1092,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     languages = project.programming_languages.all()
 
     passes_checks = project.check_integrity()
-    
+
     if passes_checks:
         messages.success(request, 'The project has passed all automatic checks.')
     else:
@@ -1096,7 +1104,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     files_panel_url = reverse('preview_files_panel', args=(project.slug,))
     file_warning = get_project_file_warning(display_files, display_dirs,
                                               subdir)
-                                            
+
     # Flag for anonymous access
     has_passphrase = kwargs['has_passphrase']
 
@@ -1367,7 +1375,7 @@ def serve_published_project_file(request, project_slug, version,
             version=version)
     except ObjectDoesNotExist:
         raise Http404()
-        
+
     user = request.user
 
     # Anonymous access authentication
@@ -1410,7 +1418,7 @@ def display_published_project_file(request, project_slug, version,
                                                version=version)
     except ObjectDoesNotExist:
         raise Http404()
-        
+
     user = request.user
 
     # Anonymous access authentication
@@ -1443,7 +1451,7 @@ def serve_published_project_zip(request, project_slug, version):
             version=version)
     except ObjectDoesNotExist:
         raise Http404()
-        
+
     user = request.user
 
     # Anonymous access authentication
@@ -1573,7 +1581,8 @@ def sign_dua(request, project_slug, version):
     else:
         raise Http404()
 
-    if project.deprecated_files or not project.access_policy or project.has_access(user):
+    if project.deprecated_files or not project.access_policy or project.has_access(user) \
+        or project.is_self_managed_access:
         return redirect('published_project',
                         project_slug=project_slug, version=version)
 
@@ -1590,6 +1599,225 @@ def sign_dua(request, project_slug, version):
 
     return render(request, 'project/sign_dua.html', {'project':project,
         'license':license, 'license_content':license_content})
+
+
+@login_required
+def request_data_access(request, project_slug, version):
+    """
+    Form for a user (requester) to request access to the data of a self managed project.
+    """
+    user = request.user
+
+    try:
+        proj = PublishedProject.objects.get(slug=project_slug, version=version)
+    except PublishedProject.DoesNotExist:
+        raise Http404(Exception("Project does not exist"))
+
+    if not proj.is_self_managed_access:
+        return redirect('published_project',
+                        project_slug=project_slug, version=version)
+
+    if DataAccessRequest.objects.filter(requester=user, project=proj, status=
+    DataAccessRequest.PENDING_VALUE):
+        return redirect('data_access_request_status', project_slug=proj.slug,
+                        version=proj.version)
+
+    # not request pending for that user and that project.
+    if request.method == 'POST':
+        # process access request form
+        project_request_form = forms.DataAccessRequestForm(project=proj,
+                                                           requester=user,
+                                                           template=None,
+                                                           prefix="proj",
+                                                           data=request.POST)
+
+        if (project_request_form.is_valid()):
+            data_access_req = project_request_form.save()
+
+            # trigger e-mail notification to reviewers
+            users_notify = [p.user for p in
+                            PublishedAuthor.objects.filter(project=proj,
+                                                           is_corresponding=1)]
+            notification.notify_owner_data_access_request(users_notify,
+                                                          data_access_req,
+                                                          request.scheme,
+                                                          request.get_host())
+
+            notification.confirm_user_data_access_request(data_access_req,
+                                                          request.scheme,
+                                                          request.get_host())
+
+            return render(request, 'project/data_access_request_submitted.html',
+                          {'project': proj})
+    else:
+        project_request_form = forms.DataAccessRequestForm(project=proj,
+                                                           requester=user,
+                                                           template=proj.self_managed_request_template,
+                                                           prefix="proj")
+
+    is_additional_request = DataAccessRequest.objects.filter(requester=user,
+                                                             project=proj,
+                                                             status=
+                                                             DataAccessRequest.ACCEPT_REQUEST_VALUE).exists()
+
+    needs_credentialing = proj.access_policy == 2 and not user.is_credentialed
+
+    full_user_name = user.get_full_name()
+
+    return render(request, 'project/request_data_access.html',
+                  {'project_request_form': project_request_form,
+                   'needs_credentialing': needs_credentialing,
+                   'full_user_name': full_user_name,
+                   'project': proj,
+                   'is_additional_request': is_additional_request
+                   })
+
+
+@login_required
+def data_access_request_status(request, project_slug, version):
+    """
+    Requester can view the state of his/her data access request for a self managed
+    project
+    """
+    user = request.user
+
+    try:
+        proj = PublishedProject.objects.get(slug=project_slug, version=version)
+    except PublishedProject.DoesNotExist:
+        raise Http404(Exception("Project doesn't not exist"))
+
+    if not proj.is_self_managed_access:
+        return redirect('published_project',
+                         project_slug=project_slug, version=version)
+
+    da_requests = DataAccessRequest.objects.filter(requester=user,
+                                                   project=proj).order_by(
+        '-request_datetime')
+
+    if not da_requests:
+        return redirect('request_data_access', project_slug=proj.slug,
+                        version=proj.version)
+
+    if request.method == 'POST' and 'cancel_request' in request.POST.keys():
+        withdraw_req = DataAccessRequest.objects.get(
+            id=request.POST['cancel_request'])
+        withdraw_req.status = DataAccessRequest.WITHDRAWN_VALUE
+        withdraw_req.decision_datetime = timezone.now()
+        withdraw_req.save()
+
+        da_requests = DataAccessRequest.objects.filter(requester=user,
+                                                       project=proj).order_by(
+            '-request_datetime')
+
+    return render(request, 'project/data_access_request_status.html',
+                  {'data_access_request': da_requests[0],
+                   'older_requests': da_requests[1:],
+                   'max_review_days': DataAccessRequest.DATA_ACCESS_REQUESTS_DAY_LIMIT
+                   })
+
+
+@login_required
+def data_access_requests_overview(request, project_slug, version):
+    """
+    Overview over all issued access requests for the request reviewer(s)
+    """
+    reviewer = request.user
+
+    try:
+        proj = PublishedProject.objects.get(slug=project_slug, version=version)
+    except PublishedProject.DoesNotExist:
+        raise Http404(Exception("The project doesn't exist"))
+
+    if not proj.is_self_managed_access:
+        return redirect('published_project',
+                        project_slug=project_slug, version=version)
+
+    if not proj.is_allowed_handling_access_requests(reviewer):
+        raise Http404(
+            Exception("You don't have access to the project requests overview"))
+
+    all_requests = DataAccessRequest.objects.filter(project_id=proj).order_by(
+        '-request_datetime')
+
+    accepted_requests = all_requests.filter(
+        status=DataAccessRequest.ACCEPT_REQUEST_VALUE).count()
+
+    return render(request, 'project/data_access_requests_overview.html',
+                  {'project': proj,
+                   'requests': all_requests,
+                   'accepted_requests': accepted_requests})
+
+
+@login_required
+def data_access_request_view(request, project_slug, version, user_id):
+    """
+    Responder/reviewer can see the data associated with a specific access request
+    to his/her project
+    """
+    reviewer = request.user
+
+    try:
+        requester = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        raise Http404(Exception("User doesn't exist"))
+
+    try:
+        proj = PublishedProject.objects.get(slug=project_slug, version=version)
+    except PublishedProject.DoesNotExist:
+        raise Http404(Exception("Project doesn't exist"))
+
+    if not proj.is_self_managed_access:
+        return redirect('published_project',
+                        project_slug=project_slug, version=version)
+
+    if not proj.is_allowed_handling_access_requests(reviewer):
+        raise Http404(
+            Exception("You don't have access to the project requests overview"))
+
+    da_requests = DataAccessRequest.objects.filter(requester=requester,
+                                                   project_id=proj).order_by(
+        '-request_datetime')
+
+    if not da_requests:
+        raise Http404(Exception("No requests found"))
+
+    if request.method == 'POST' and 'data_access_response' in request.POST.keys():
+        entry = DataAccessRequest.objects.get(
+            id=request.POST['data_access_response'])
+        response_form = forms.DataAccessResponseForm(responder_id=reviewer.id,
+                                                     prefix="proj",
+                                                     data=request.POST,
+                                                     instance=entry)
+
+        if response_form.is_valid():
+            response_form.save()
+            notification.notify_user_data_access_request(entry, request.scheme,
+                                                         request.get_host())
+            return redirect('project_home')
+    else:
+        response_form = forms.DataAccessResponseForm(responder_id=reviewer.id,
+                                                     prefix="proj")
+
+    credentialing_data_lst = CredentialApplication.objects.filter(
+        user_id=requester.id).order_by("-application_datetime")
+
+    credentialing_data = credentialing_data_lst[
+        0] if credentialing_data_lst else None
+
+    legacy_credentialing_data = None
+    if not credentialing_data:
+        legacy_credentialing_data_lst = LegacyCredential.objects.filter(
+            migrated_user_id=requester.id).order_by("-mimic_approval_date")
+        legacy_credentialing_data = legacy_credentialing_data_lst[
+            0] if legacy_credentialing_data_lst else None
+
+    return render(request, 'project/data_access_request_view.html',
+                  {'da_request': da_requests[0],
+                   'response_form': response_form,
+                   'older_requests': da_requests[1:],
+                   'credentialing_data': credentialing_data,
+                   'legacy_credentialing_data': legacy_credentialing_data
+                   })
 
 
 @login_required
@@ -1661,7 +1889,7 @@ def anonymous_login(request, anonymous_url):
                                            secure=(not settings.DEBUG),
                                            samesite='Lax')
                 return response
-            
+
             # Did not find any valid passphrase
             messages.error(request, 'Invalid passphrase.')
         else:

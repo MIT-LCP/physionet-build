@@ -1,0 +1,30 @@
+{% if older_requests|length %}
+    <h2>Previous Requests</h2>
+    <div class="table-responsive">
+        <table class="table table-bordered" width="100%"
+               cellspacing="0">
+            <thead>
+            <tr>
+                <th>Request Time</th>
+                <th>Status</th>
+                <th>Last status update</th>
+                <th>Title</th>
+                <th>Data Use Purpose</th>
+                <th>Responder Comment</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for req in older_requests %}
+                <tr>
+                    <td>{{ req.request_datetime|date }}</td>
+                    <td>{{ req.status_text }}</td>
+                    <td>{{ req.decision_datetime|date }}</td>
+                    <td>{{ req.data_use_title }}</td>
+                    <td>{{ req.data_use_purpose | safe }}</td>
+                    <td>{{ req.responder_comments | safe }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endif %}

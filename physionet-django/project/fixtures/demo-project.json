@@ -231,6 +231,23 @@
   }
 },
 {
+  "model": "project.publishedauthor",
+  "pk": 4,
+  "fields": {
+    "user": [
+      "george"
+    ],
+    "display_order": 1,
+    "is_submitting": true,
+    "is_corresponding": true,
+    "approval_datetime": "2018-12-22T19:33:31.728Z",
+    "first_names": "George",
+    "last_name": "Moody",
+    "corresponding_email": "george@mit.edu",
+    "project": 4
+  }
+},
+{
   "model": "project.topic",
   "pk": 1,
   "fields": {
@@ -462,6 +479,16 @@
     "affiliations": "Massachusetts Institute of Technology",
     "email": "rgmark@mit.edu",
     "project": 3
+  }
+},
+{
+  "model": "project.contact",
+  "pk": 4,
+  "fields": {
+    "name": "Roger Mark",
+    "affiliations": "Massachusetts Institute of Technology",
+    "email": "rgmark@mit.edu",
+    "project": 4
   }
 },
 {
@@ -982,6 +1009,61 @@
     "made_changes": false,
     "changelog_summary": "",
     "complete_datetime": "2019-03-17T07:52:51.098Z"
+  }
+},
+{
+  "model": "project.coreproject",
+  "pk": "77951d15-e473-4a98-a24f-4fad05ed967b",
+  "fields": {
+    "creation_datetime": "2018-11-14T20:20:39.927Z",
+    "doi": "",
+    "storage_allowance": 104857600
+  }
+},
+{
+  "model": "project.publishedproject",
+  "pk": 4,
+  "fields": {
+    "resource_type": 0,
+    "title": "Self Managed Access Database Demo",
+    "abstract": "<p>A dummy project to demonstrate a database project with self managed access</p>",
+    "background": "",
+    "methods": "",
+    "content_description": "",
+    "usage_notes": "",
+    "installation": "",
+    "acknowledgements": "",
+    "conflicts_of_interest": "",
+    "version": "1.0.0",
+    "release_notes": "",
+    "access_policy": 2,
+    "license": 6,
+    "project_home_page": "",
+    "slug": "demoselfmanaged",
+    "core_project": "77951d15-e473-4a98-a24f-4fad05ed967b",
+    "creation_datetime": "2018-11-14T21:11:17.040Z",
+    "version_order": 0,
+    "editor": [
+      "admin"
+    ],
+    "submission_datetime": "2018-11-14T21:09:38.666Z",
+    "author_comments": "",
+    "editor_assignment_datetime": "2018-11-14T21:09:54.565Z",
+    "revision_request_datetime": "2018-11-14T21:10:19.855Z",
+    "resubmission_datetime": "2018-11-14T21:10:24.665Z",
+    "editor_accept_datetime": "2018-11-14T21:10:49.361Z",
+    "copyedit_completion_datetime": "2018-11-14T21:11:00.997Z",
+    "author_approval_datetime": "2018-11-14T21:11:11.781Z",
+    "main_storage_size": 0,
+    "compressed_storage_size": 0,
+    "publish_datetime": "2018-11-14T21:11:17.040Z",
+    "is_latest_version": true,
+    "doi": "",
+    "programming_languages": [],
+    "featured": 0,
+    "is_self_managed_access": 1,
+    "self_managed_dua": "<strong>Example End User License</strong> <ol><li>The LICENSEE will not share access to HiRID data with anyone else.</li><li>...</li></ol>",
+    "self_managed_request_template": "<strong>Background</strong> <p>TODO</p> <p></p> <strong>Purpose</strong> <p>TODO</p>"
   }
 }
 ]

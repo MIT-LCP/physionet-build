@@ -1,12 +1,14 @@
 import base64
 import os
-import pdb
 
+from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 
 from project.models import (ArchivedProject, ActiveProject, PublishedProject,
-    Author, AuthorInvitation, License, StorageRequest)
+                            Author, AuthorInvitation, License, StorageRequest,
+                            DataAccessRequest)
+from user.models import User
 from user.test_views import prevent_request_warnings, TestMixin
 
 PROJECT_VIEWS = [
@@ -748,3 +750,110 @@ class TestInteraction(TestMixin):
             'project_authors', args=(project.slug,)),
             data={'invite_author':'', 'email':'aewj@mit.edu'})
         self.assertMessage(response, 40)
+
+
+class TestSelfManagedProjectWorkflows(TestMixin):
+    """
+    Testing workflows around self-managed projects
+    """
+
+    SUBMITTER = 'george'
+    REQUESTER = 'rgmark'
+
+    PASSWORD = 'Tester11!'
+
+    PROJECT_NAME = "Self Managed Access Database Demo"
+
+    def test_basic_workflow(self):
+
+        def submit_request(msg_purpose):
+            mail_outbox_size = len(mail.outbox)
+            self.client.post(reverse('request_data_access',
+                                     args=(project.slug, project.version,)),
+                             data={
+                                 'proj-data_use_purpose': msg_purpose,
+                                 'proj-data_use_title': 'example title',
+                                 'proj-agree_dua': ['on']})
+
+            da_req = DataAccessRequest.objects.filter(
+                requester_id=User.objects.get(username=self.REQUESTER),
+                project_id=project.id).order_by('-request_datetime')
+
+            self.assertTrue(da_req)
+            self.assertTrue(
+                any(d.data_use_purpose == msg_purpose for d in da_req),
+                msg_purpose)
+
+            # submitter should receive a notification, requester a confirmation
+            self.assertEqual(len(mail.outbox), mail_outbox_size + 2)
+            self.assertIn('New Data Access Request', mail.outbox[-2].subject)
+
+            # submitter should see task in project home
+            logged_in = self.client.login(username=self.SUBMITTER,
+                                          password=self.PASSWORD)
+            self.assertTrue(logged_in)
+
+            response = self.client.get(reverse('project_home'))
+            self.assertContains(response, "Pending data use request", html=True)
+
+            return da_req
+
+        def accept_request(da_req):
+            mail_outbox_size = len(mail.outbox)
+
+            # submitter accepts with comment
+            self.client.post(reverse('data_access_request_view', args=(
+                project.slug, project.version,
+                User.objects.get(username=self.REQUESTER).id)),
+                             data={'proj-status': [
+                                 str(DataAccessRequest.ACCEPT_REQUEST_VALUE)],
+                                 'proj-responder_comments': ['great!'],
+                                 'data_access_response': [str(da_req[0].id)]}
+                             )
+
+            # requester should receive an email
+            self.assertEqual(len(mail.outbox), mail_outbox_size + 1)
+            self.assertIn('Data Access Request Decision',
+                          mail.outbox[-1].subject)
+
+
+        logged_in = self.client.login(username=self.REQUESTER,
+                                      password=self.PASSWORD)
+        self.assertTrue(logged_in)
+
+        project = PublishedProject.objects.get(title=self.PROJECT_NAME)
+        response = self.client.get(
+            reverse('published_project', args=(project.slug, project.version,)))
+        # requester shouldn't see files, but a link to form to request access
+        self.assertContains(response, "request to the authors")
+
+        # requester fills in form
+        da_req = submit_request('I would like ...')
+
+        accept_request(da_req)
+
+        response = self.client.get(reverse('data_access_requests_overview',
+                                           args=(
+                                           project.slug, project.version,)))
+        self.assertContains(response, "1 accepted requests")
+
+        logged_in = self.client.login(username=self.REQUESTER,
+                                      password=self.PASSWORD)
+        self.assertTrue(logged_in)
+
+        # requester should see the files now
+        project = PublishedProject.objects.get(title=self.PROJECT_NAME)
+        response = self.client.get(
+            reverse('published_project', args=(project.slug, project.version,)))
+        self.assertContains(response, "Access the files")
+
+        # additional requests
+        da_req_additional = submit_request('Furthermore, I would like to...')
+
+        accept_request(da_req_additional)
+
+        # should have two accepted requests now
+        self.assertEqual(len(DataAccessRequest.objects.filter(
+            requester_id=User.objects.get(username=self.REQUESTER),
+            project_id=project.id,
+            status=DataAccessRequest.ACCEPT_REQUEST_VALUE)), 2)

@@ -1,0 +1,9 @@
+Dear {{ user.get_full_name }},
+
+There is a new data access request for the project
+{{ data_access_request.project }}.
+
+You can view and reply to the request following this link:
+{{ request_protocol }}://{{ request_host}}{% url 'data_access_request_view' data_access_request.project.slug data_access_request.project.version data_access_request.requester.id %}
+
+{{ signature }}

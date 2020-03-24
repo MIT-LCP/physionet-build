@@ -463,6 +463,10 @@ class Metadata(models.Model):
     # Access information
     access_policy = models.SmallIntegerField(choices=ACCESS_POLICIES,
                                              default=0)
+    is_self_managed_access = models.BooleanField(default=False)
+    self_managed_dua = SafeHTMLField(blank=True, default='')
+    self_managed_request_template = SafeHTMLField(blank=True, default='')
+
     license = models.ForeignKey('project.License', null=True,
         on_delete=models.SET_NULL)
     project_home_page = models.URLField(default='', blank=True)
@@ -1510,13 +1514,29 @@ class PublishedProject(Metadata, SubmissionInfo):
         if self.deprecated_files:
             return False
 
-        if self.access_policy:
-            if DUASignature.objects.filter(project=self, user__id=user.id):
-                return True
-            else:
-                return False
-        else:
-            return True
+        if self.access_policy == 2 and (
+            not user.is_authenticated or not user.is_credentialed):
+            return False
+
+        if self.is_self_managed_access:
+            return DataAccessRequest.objects.filter(
+                project=self, requester=user,
+                status=DataAccessRequest.ACCEPT_REQUEST_VALUE).exists()
+        elif self.access_policy:
+            return DUASignature.objects.filter(
+                project=self, user=user).exists()
+
+        return True
+
+    def is_allowed_handling_access_requests(self, user):
+        """
+        Whether the user can view and respond to access requests to self managed
+        projects
+        """
+        # check whether user is indeed the corresponding author of the project
+        return PublishedAuthor.objects.filter(user_id=user.id,
+                                              project_id=self.id,
+                                              is_corresponding=True).exists()
 
     def get_storage_info(self, force_calculate=True):
         """
@@ -1711,6 +1731,63 @@ class DUASignature(models.Model):
     sign_datetime = models.DateTimeField(auto_now_add=True)
 
 
+class DataAccessRequest(models.Model):
+    PENDING_VALUE = 0
+    REJECT_REQUEST_VALUE = 1
+    WITHDRAWN_VALUE = 2
+    ACCEPT_REQUEST_VALUE = 3
+
+    REJECT_ACCEPT = (
+        (REJECT_REQUEST_VALUE, 'Reject'),
+        (ACCEPT_REQUEST_VALUE, 'Accept'),
+    )
+
+    status_texts = {
+        PENDING_VALUE: "pending",
+        REJECT_REQUEST_VALUE: "rejected",
+        WITHDRAWN_VALUE: "withdrawn",
+        ACCEPT_REQUEST_VALUE: "accepted"
+    }
+
+    DATA_ACCESS_REQUESTS_DAY_LIMIT = 14
+
+    request_datetime = models.DateTimeField(auto_now_add=True)
+
+    requester = models.ForeignKey('user.User', on_delete=models.CASCADE)
+
+    project = models.ForeignKey('project.PublishedProject',
+                                related_name='data_access_requests',
+                                on_delete=models.CASCADE)
+
+    data_use_title = models.CharField(max_length=200, default='')
+    data_use_purpose = SafeHTMLField(blank=False, max_length=10000)
+
+    status = models.PositiveSmallIntegerField(default=0, choices=REJECT_ACCEPT)
+
+    decision_datetime = models.DateTimeField(null=True)
+
+    responder = models.ForeignKey('user.User', null=True,
+                                  related_name='data_access_request_user',
+                                  on_delete=models.SET_NULL)
+
+    responder_comments = SafeHTMLField(blank=True, max_length=10000)
+
+    def is_accepted(self):
+        return self.status == self.ACCEPT_REQUEST_VALUE
+
+    def is_rejected(self):
+        return self.status == self.REJECT_REQUEST_VALUE
+
+    def is_withdrawn(self):
+        return self.status == self.WITHDRAWN_VALUE
+
+    def is_pending(self):
+        return self.status == self.PENDING_VALUE
+
+    def status_text(self):
+        return self.status_texts.get(self.status, 'unknown')
+
+
 class BaseInvitation(models.Model):
     """
     Base class for authorship invitations and storage requests
@@ -1881,10 +1958,10 @@ class EditLog(models.Model):
             return
 
         resource_type = self.project.resource_type
-        
+
         # See also YES_NO_UNDETERMINED in console/forms.py
         RESPONSE_LABEL = {True: 'Yes', False: 'No', None: 'Undetermined'}
-        
+
         # Retrieve their labels and results for our resource type
         quality_assurance_fields = self.__class__.QUALITY_ASSURANCE_FIELDS[resource_type.id]
 
@@ -2050,7 +2127,7 @@ class AnonymousAccess(models.Model):
         # Has to be unique
         while AnonymousAccess.objects.filter(url=url).first():
             url = get_random_string(64)
-        
+
         # Persist new url
         self.url = url
         self.save()

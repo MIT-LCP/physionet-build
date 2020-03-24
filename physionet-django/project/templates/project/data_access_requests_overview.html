@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}View Data Access Request{% endblock %}
+
+{% block content %}
+    <div class="container col-md-8">
+        <h1>Requests Overview for {{ project.title }} {{ project.version }}</h1>
+        {% if requests|length %}
+            <p>Total {{ requests|length }} requests, {{ accepted_requests }} accepted requests.</p>
+
+            <div class="table-responsive">
+                <table class="table table-bordered" width="100%"
+                       cellspacing="0">
+                    <thead>
+                    <tr>
+                        <th>Requester</th>
+                        <th>Status</th>
+                        <th>Details</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for req in requests %}
+                        <tr>
+                            <td>{{ req.requester.get_full_name }}</td>
+                            <td>{{ req.status_text }}</td>
+                            <td>
+                                <a href="{% url  'data_access_request_view' req.project.slug req.project.version req.requester.id %}">Details</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p>No requests yet.</p>
+        {% endif %}
+    </div>
+{% endblock %}

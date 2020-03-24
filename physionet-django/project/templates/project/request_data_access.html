@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+Request Access to {{ project.title }} {{ project.version }}
+{% endblock %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/form-control-input.css' %}"/>
+    <style>
+        #id_proj-agree_dua {
+            display:unset;
+            width: 20px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+
+    <div class="container">
+        <h1>Request Access to {{ project.title }} {{ project.version }}</h1>
+        <p>
+            <a href="{% url 'published_project' project.slug project.version %}">{{ project.title }} {{ project.version }}</a>
+            is available only for use by approved
+            research projects. </p>
+        <p>Please provide a description of the
+            specific research project that you aim to complete using
+            the data. The data depositor will review your request
+            within 14 days. You will be notified by email
+            ({{ user.email }}) about their decision.
+        </p>
+
+        {% if not project.is_latest_version %}
+            <p>
+                <em>Warning:</em> This is not the latest version of this resource. Find the latest <a
+                    href="{% url 'published_project_latest' project.slug %}">here</a>.
+            </p>
+        {% endif %}
+
+        {% if is_additional_request %}
+            <p>
+                A request from you for this project has already been
+                <a href="{% url 'data_access_request_status' project.slug project.version %}">accepted</a>.
+            </p>
+            <p>If you would like to use the data for an additional purpose than stated in the original request, please
+                resubmit the form below.</p>
+        {% endif %}
+
+        {% if not needs_credentialing %}
+            <form action="" method="post" enctype="multipart/form-data"
+                  class="form-signin no-pd" autocomplete="off">
+                {% csrf_token %}
+
+                {{  project_request_form.media }}
+                {% for field in project_request_form.inline_fields %}
+                    <div class="form-group row">
+                        <label class="col-md-3" for="{{ field.id_for_label }}">
+                            {{ field.label|capfirst }}
+                            {% if field.field.required %}
+                                <a style="color:red"> *</a>
+                            {% endif %}
+                            <i class="fas fa-question-circle"
+                               data-toggle="tooltip" data-placement="right"
+                               title="{{ field.help_text }}" data-html="true"
+                               style="cursor: pointer;"></i>
+                        </label>
+                        <div class='col-md-9'>
+                            {{ field }}
+                            {% for error in field.errors %}
+                                <div class="alert alert-danger">
+                                    <strong>{{ error|escape }}</strong>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+                {% for error in project_request_form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        <strong>{{ error|escape }}</strong>
+                    </div>
+                {% endfor %}
+
+                <div>
+                    {% if project.self_managed_dua %}
+                        {{ project.self_managed_dua|safe }}
+                    {% else %}
+                        {{ project.license.html_content|safe }}
+                    {% endif %}
+                </div>
+
+                <div >
+                    {{ project_request_form.agree_dua }}
+                     <label for="id_proj-agree_dua">
+                         By submitting this form, I, {{ full_user_name }},
+                         agree with the above terms.
+                     </label>
+                </div>
+                <button class="btn btn-primary btn-rsp" type="submit">Submit
+                    Request
+                </button>
+            </form>
+        {% else %}
+            <p>You need to be <a href="{% url 'edit_credentialing' %}">credentialed</a>
+                before you can request access to this resource.</p>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block local_js_bottom %}
+<script src="{% static 'custom/js/enable-tooltip.js' %}"></script>
+<script src="{% static 'custom/js/resize-ck.js' %}"></script>
+{% endblock %}

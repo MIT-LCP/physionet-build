@@ -24,7 +24,7 @@
   </div>
 
 <!-- Outstanding tasks -->
-{% if invitation_response_formset|length or pending_author_approvals|length or missing_affiliations|length %}
+{% if invitation_response_formset|length or pending_author_approvals|length or missing_affiliations|length or data_access_requests|length %}
   <div class="card" >
     <div class="card-header">
       <h2>Outstanding Tasks</h2>
@@ -113,6 +113,23 @@
         </li>
       {% endfor %}
     {% endif %}
+    {% if data_access_requests|length %}
+         {% for da_request in data_access_requests %}
+         <li class="list-group-item">
+             <div class="row">
+                 <div class="col-md-5"><a
+                         href="{% url 'published_project' da_request.project.slug da_request.project.version %}">{{ da_request.project.title }} </a>
+                 </div>
+                 <div class="col-md-3">Pending data use request</div>
+                 <div class="col-md-2">{{ da_request.request_datetime|date }}</div>
+                 <div class="col-md-2">
+                     <a class="btn btn-sm btn-primary" href=
+                             "{% url 'data_access_request_view' da_request.project.slug da_request.project.version da_request.requester.id %}"><i class="fa fa-reply"></i>Respond</a>
+                 </div>
+             </div>
+          </li>
+         {% endfor %}
+    {% endif %}
     </ul>
   </div>
   <br>
@@ -171,6 +188,9 @@
           </p>
           <h3>
             <a href="{% url 'published_project' project.slug project.version %}">{{ project.title }}</a>
+            {% if project.is_self_managed_access %}
+            <a href="{% url 'data_access_requests_overview' project.slug project.version %}" class="btn btn-primary ml-1" role="button" style="float:right">Requests</a>
+            {% endif %}
             <a href="{% url 'published_submission_history' project.slug project.version %}" class="btn btn-primary ml-1" role="button" style="float:right">Submission History</a>
             {% if project.new_button %}
               <a href="{% url 'new_project_version' project.slug %}" class="btn btn-success ml-1" role="button" style="float:right">New Version</a>
@@ -181,6 +201,7 @@
           <small>Created: {{ project.creation_datetime|date }}. Published: {{ project.publish_datetime|date }}.</small><br>
           <small>Version: {{ project.version }}.{% if project.version_order or project.has_other_versions %} <a href="{% url 'published_versions' project.slug %}">See all versions</a>{% endif %}</small>
           </p>
+
         </li>
       {% empty %}
         <div class="card-body text-center">

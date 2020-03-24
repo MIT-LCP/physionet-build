@@ -1,0 +1,10 @@
+Dear {{ data_access_request.requester.get_full_name }},
+
+You have requested access to the data of {{ data_access_request.project }}
+
+The authors decided to {% if data_access_request.is_accepted %}accept{%else%}not grant{% endif %} this request.
+
+More details following this link:
+{{ request_protocol}}://{{ request_host}}{% url 'data_access_request_status' data_access_request.project.slug data_access_request.project.version %}
+
+{{ signature }}
