@@ -9,9 +9,11 @@ import pytz
 import stat
 import logging
 from distutils.version import StrictVersion
+import re
 
 import bleach
 import ckeditor.fields
+from bs4 import BeautifulSoup, Comment
 from html2text import html2text
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
@@ -423,6 +425,62 @@ class ProjectType(models.Model):
     description = models.TextField()
 
 
+class ProjectSection(models.Model):
+    """
+    The content sections for each ProjectType
+    """
+    title = models.CharField(max_length=30)
+    html_id = models.SlugField(max_length=30)
+    description = models.TextField()
+    resource_type = models.ForeignKey(
+        'project.ProjectType', db_column='resource_type',
+        related_name='%(class)ss', on_delete=models.PROTECT)
+    default_order = models.PositiveSmallIntegerField()
+    required = models.BooleanField()
+
+    class Meta:
+        unique_together = (('resource_type', 'title'),
+            ('resource_type', 'default_order'),
+            (('resource_type', 'html_id')))
+
+
+class SectionContent(models.Model):
+    """
+    The content for each section of a project
+    """
+    project_section = models.ForeignKey(
+        'project.ProjectSection', db_column='project_section',
+        related_name='%(class)ss', on_delete=models.PROTECT,
+        null=True)
+
+    custom_title = models.CharField(max_length=30, null=True)
+    custom_order = models.PositiveSmallIntegerField(null=True)
+    section_content = SafeHTMLField(blank=True)
+
+    class Meta:
+        abstract = True
+        unique_together = (('project', 'project_section'),)
+
+    def is_valid(self):
+        text = unescape(strip_tags(self.section_content))
+        return text and not text.isspace()
+
+
+class PublishedSectionContent(SectionContent):
+    project = models.ForeignKey('project.PublishedProject',
+        related_name='project_content', on_delete=models.CASCADE)
+
+
+class ActiveSectionContent(SectionContent):
+    project = models.ForeignKey('project.ActiveProject',
+        related_name='project_content', on_delete=models.CASCADE)
+
+
+class ArchivedSectionContent(SectionContent):
+    project = models.ForeignKey('project.ArchivedProject',
+        related_name='project_content', on_delete=models.CASCADE)
+
+
 class Metadata(models.Model):
     """
     Metadata for all projects
@@ -446,16 +504,8 @@ class Metadata(models.Model):
     # Main body descriptive metadata
     title = models.CharField(max_length=200, validators=[validate_title])
     abstract = SafeHTMLField(max_length=10000, blank=True)
-    background = SafeHTMLField(blank=True)
-    methods = SafeHTMLField(blank=True)
-    content_description = SafeHTMLField(blank=True)
-    usage_notes = SafeHTMLField(blank=True)
-    installation = SafeHTMLField(blank=True)
-    acknowledgements = SafeHTMLField(blank=True)
-    conflicts_of_interest = SafeHTMLField(blank=True)
     version = models.CharField(max_length=15, default='', blank=True,
                                validators=[validate_version])
-    release_notes = SafeHTMLField(blank=True)
 
     # Short description used for search results, social media, etc
     short_description = models.CharField(max_length=250, blank=True)
@@ -838,44 +888,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     # Where all the active project files are kept
     FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'active-projects')
 
-    REQUIRED_FIELDS = (
-        # 0: Database
-        ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'conflicts_of_interest', 'version', 'license',
-         'short_description'),
-        # 1: Software
-        ('title', 'abstract', 'background', 'content_description',
-         'usage_notes', 'installation', 'conflicts_of_interest', 'version',
-         'license', 'short_description'),
-        # 2: Challenge
-        ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'conflicts_of_interest', 'version', 'license',
-         'short_description'),
-        # 3: Model
-        ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'installation', 'conflicts_of_interest', 'version',
-         'license', 'short_description'),
-    )
-
-    # Custom labels that don't match model field names
-    LABELS = (
-        # 0: Database
-        {'content_description': 'Data Description'},
-        # 1: Software
-        {'content_description': 'Software Description',
-         'methods': 'Technical Implementation',
-         'installation': 'Installation and Requirements'},
-        # 2: Challenge
-        {'background': 'Objective',
-         'methods': 'Participation',
-         'content_description': 'Data Description',
-         'usage_notes': 'Evaluation'},
-        # 3: Model
-        {'content_description': 'Model Description',
-         'methods': 'Technical Implementation',
-         'installation': 'Installation and Requirements'},
-    )
-
     SUBMISSION_STATUS_LABELS = {
         0: 'Not submitted.',
         10: 'Awaiting editor assignment.',
@@ -885,6 +897,9 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         50: 'Awaiting authors to approve publication.',
         60: 'Awaiting editor to publish.',
     }
+
+    REQUIRED_FIELDS = ['title', 'abstract', 'version', 'license',
+        'short_description']
 
     def storage_used(self):
         """
@@ -996,6 +1011,14 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             if languages:
                 archived_project.programming_languages.add(*list(languages))
 
+        # Copy content
+        content = self.project_content.all()
+        for c in content:
+            ArchivedSectionContent.objects.create(
+                project=archived_project,
+                section_content=c.section_content,
+                project_section=c.project_section)
+
         # Voluntary delete
         if archive_reason == 1:
             self.clear_files()
@@ -1035,12 +1058,22 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             if not author.affiliations.all():
                 self.integrity_errors.append('Author {0} has not filled in affiliations'.format(author.user.username))
 
+        # Content
+        sections = ProjectSection.objects.filter(resource_type=self.resource_type, required=True)
+        for attr in sections:
+            try:
+                section = self.project_content.get(project_section=attr)
+                if not section.is_valid():
+                    raise ActiveSectionContent.DoesNotExist
+            except ActiveSectionContent.DoesNotExist:
+                self.integrity_errors.append('Missing required field: {0}'.format(attr.title))
+
         # Metadata
-        for attr in ActiveProject.REQUIRED_FIELDS[self.resource_type.id]:
+        for attr in ActiveProject.REQUIRED_FIELDS:
             value = getattr(self, attr)
             text = unescape(strip_tags(str(value)))
             if value is None or not text or text.isspace():
-                l = self.LABELS[self.resource_type.id][attr] if attr in self.LABELS[self.resource_type.id] else attr.title().replace('_', ' ')
+                l = attr.replace('_', ' ').capitalize()
                 self.integrity_errors.append('Missing required field: {0}'.format(l))
 
         published_projects = self.core_project.publishedprojects.all()
@@ -1213,6 +1246,14 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 published_project.doi = self.doi
 
                 published_project.save()
+
+                # Copy content
+                content = self.project_content.all()
+                for c in content:
+                    PublishedSectionContent.objects.create(
+                        project=published_project,
+                        section_content=c.section_content,
+                        project_section=c.project_section)
 
                 # If this is a new version, all version fields have to be updated
                 if self.version_order > 0:
@@ -1672,6 +1713,65 @@ class PublishedProject(Metadata, SubmissionInfo):
             if sorted_versions[-1] == version:
                 tmp.is_latest_version = True
             tmp.save()
+
+    def parse_legacy_content(self):
+        """
+        Parse the concent from legacy projects
+        into project sections
+        """
+        if not self.is_legacy:
+            return
+
+        # Delete existing sections to deal
+        # with parsing multiple times
+        self.project_content.all().delete()
+
+        # Parse html description
+        full_description = BeautifulSoup(self.full_description,
+            features="html.parser")
+
+        # Find highest header
+        first_h = re.search(r'h(\d)', str(full_description))
+        hnum = first_h.group(1) if first_h else None
+
+        # Iterate through content
+        section = ""
+        content_itr = list(full_description)
+        content_len = len(content_itr)
+        for i, tag in enumerate(reversed(content_itr)):
+            tagstr = tag.string
+            # Skip html comment
+            if isinstance(tag, Comment):
+                continue
+
+            # If a header is found,
+            # finish this section
+            if hnum and tag.name == f'h{hnum}':
+                PublishedSectionContent.objects.create(
+                    project=self,
+                    custom_title=tag.text,
+                    custom_order=content_len-i,
+                    section_content=section)
+                section = ""
+            # In case last item is not a header
+            # or single section with no header
+            elif i == content_len-1 and tagstr.strip():
+                # If two words or less use
+                # as section header
+                if len(tagstr.split()) <= 2:
+                    title = tagstr 
+                else:
+                    title = "Description"
+                    section = str(tag) + section
+
+                PublishedSectionContent.objects.create(
+                    project=self,
+                    custom_title=title,
+                    custom_order=content_len-i,
+                    section_content=section)
+            else:
+                # Attach to section content
+                section = str(tag) + section
 
 
 def exists_project_slug(slug):

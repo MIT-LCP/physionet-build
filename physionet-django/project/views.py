@@ -24,6 +24,7 @@ from django.template import loader
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html, format_html_join
+from django.core.exceptions import ObjectDoesNotExist
 
 from project.fileviews import display_project_file
 from project import forms
@@ -31,7 +32,7 @@ from project.models import (Affiliation, Author, AuthorInvitation,
     ActiveProject, PublishedProject, StorageRequest, Reference, DataAccess,
     ArchivedProject, ProgrammingLanguage, Topic, Contact, Publication,
     PublishedAuthor, EditLog, CopyeditLog, DUASignature, CoreProject, GCP,
-    AnonymousAccess, DataAccessRequest)
+    AnonymousAccess, DataAccessRequest, ProjectSection)
 from project import utility
 from project.validators import validate_filename
 import notification.utility as notification
@@ -618,41 +619,57 @@ def project_content(request, project_slug, **kwargs):
     user, project, authors, is_submitting = (kwargs[k] for k in
         ('user', 'project', 'authors', 'is_submitting'))
 
-    if is_submitting and project.author_editable():
-        editable = True
-    else:
-        editable = False
+    editable = is_submitting and project.author_editable()
+
+    # If form was submitted then define data
+    # variable used to initialize the forms
+    data = request.POST or None
 
     # There are several forms for different types of content
     ReferenceFormSet = generic_inlineformset_factory(Reference,
         fields=('description',), extra=0,
         max_num=forms.ReferenceFormSet.max_forms, can_delete=False,
         formset=forms.ReferenceFormSet, validate_max=True)
+    reference_formset = ReferenceFormSet(instance=project, data=data)
+    description_form = forms.ContentForm(
+        resource_type=project.resource_type.id,
+        instance=project, data=data, editable=editable)
 
-    description_form = forms.ContentForm(resource_type=project.resource_type.id,
-                                         instance=project, editable=editable)
-    reference_formset = ReferenceFormSet(instance=project)
+    # Creates forms for each section of this project
+    # according to its content type
+    valid = True
+    section_forms = []
+    sections = ProjectSection.objects.filter(resource_type=project.resource_type).order_by('default_order')
+    for s in sections:
+        form = forms.SectionContentForm(project=project, 
+            project_section=s, data=data, editable=editable)
+        section_forms.append(form)
+        # Validation of all `section_content` forms
+        valid = valid and form.is_valid()
 
+    # Form submission
     if request.method == 'POST':
-        description_form = forms.ContentForm(
-            resource_type=project.resource_type.id, data=request.POST,
-            instance=project, editable=editable)
-        reference_formset = ReferenceFormSet(request.POST, instance=project)
-        if description_form.is_valid() and reference_formset.is_valid():
+        # Save if all forms are valid
+        if (description_form.is_valid()
+                and reference_formset.is_valid()
+                and valid):
+
             description_form.save()
             reference_formset.save()
+            for form in section_forms:
+                form.save()
             messages.success(request, 'Your project content has been updated.')
-            reference_formset = ReferenceFormSet(instance=project)
         else:
             messages.error(request,
                 'Invalid submission. See errors below.')
-    edit_url = reverse('edit_content_item', args=[project.slug])
 
+    edit_url = reverse('edit_content_item', args=[project.slug])
     return render(request, 'project/project_content.html', {'project':project,
         'description_form':description_form, 'reference_formset':reference_formset,
         'messages':messages.get_messages(request),
         'is_submitting':is_submitting,
-        'add_item_url':edit_url, 'remove_item_url':edit_url})
+        'add_item_url':edit_url, 'remove_item_url':edit_url,
+        'section_forms':section_forms})
 
 
 @project_auth(auth_mode=0, post_auth_mode=2)
@@ -1108,6 +1125,10 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     # Flag for anonymous access
     has_passphrase = kwargs['has_passphrase']
 
+    # Ordered project content
+    content = project.project_content.all().order_by(
+        "project_section__default_order")
+
     return render(request, 'project/project_preview.html', {'project':project,
         'display_files':display_files, 'display_dirs':display_dirs,
         'authors':authors, 'corresponding_author':corresponding_author,
@@ -1117,7 +1138,8 @@ def project_preview(request, project_slug, subdir='', **kwargs):
         'files_panel_url':files_panel_url,
         'subdir':subdir, 'parent_dir':parent_dir,
         'file_error':file_error, 'file_warning':file_warning,
-        'parent_projects':parent_projects, 'has_passphrase':has_passphrase})
+        'parent_projects':parent_projects, 'has_passphrase':has_passphrase,
+        'content':content})
 
 
 @project_auth(auth_mode=3)
@@ -1538,6 +1560,7 @@ def published_project(request, project_slug, version, subdir=''):
                'news': news, 'all_project_versions': all_project_versions,
                'parent_projects':parent_projects, 'data_access':data_access,
                'messages':messages.get_messages(request)}
+
     # The file and directory contents
     if has_access:
         (display_files, display_dirs, dir_breadcrumbs, parent_dir,
@@ -1563,6 +1586,10 @@ def published_project(request, project_slug, version, subdir=''):
         status = 403
     else:
         status = 200
+
+    # Ordered project content
+    context["content"] = project.project_content.all().order_by(
+        "project_section__default_order", "custom_order")
 
     return render(request, 'project/published_project.html', context,
                   status=status)

@@ -34,7 +34,6 @@
     </ul>
   </div>
   <div class="card-body">
-    {# Edit Content #}
     <div class="tab-content" id="tabContent">
       {# Edit Files #}
       <div class="tab-pane fade show active" id="files" role="tabpanel" aria-labelledby="files-tab">
@@ -51,11 +50,15 @@
         <br>
         {% include "project/edit_files_panel.html" %}
       </div>
+      {# Edit Content #}
       <div class="tab-pane fade" id="content" role="tabpanel" aria-labelledby="content-tab">
         <form action="" method="post">
           <h3>Description</h3>
           {{ description_form.media }}
           {% include "project/content_inline_form_snippet.html" with form=description_form %}
+          {% for section in section_forms %}
+            {% include "project/content_inline_form_snippet.html" with form=section %}
+          {% endfor %}
           {% include 'project/item_list.html' with item="reference" item_label=reference_formset.item_label formset=reference_formset form_name=reference_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}
           <h3>Access</h3>
           {% include "project/content_inline_form_snippet.html" with form=access_form %}
