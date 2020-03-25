@@ -1517,6 +1517,8 @@ class PublishedProject(Metadata, SubmissionInfo):
         if self.access_policy == 2 and (
             not user.is_authenticated or not user.is_credentialed):
             return False
+        elif self.access_policy == 1 and not user.is_authenticated:
+            return False
 
         if self.is_self_managed_access:
             return DataAccessRequest.objects.filter(
