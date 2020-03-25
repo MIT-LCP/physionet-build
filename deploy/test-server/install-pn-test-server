@@ -160,6 +160,7 @@ cat >>/physionet/physionet-build/physionet-django/physionet/settings/staging.py 
 ### added by $0 ###
 ALLOWED_HOSTS=["*"]
 EMAIL_HOST="localhost"
+SESSION_COOKIE_SECURE=False
 EOF
 
 # XXX Merge local changes when pushing
