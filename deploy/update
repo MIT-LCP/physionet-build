@@ -1,0 +1,101 @@
+#!/bin/bash
+
+set -e
+
+install_dir=/physionet/physionet-build
+working_dir=/physionet/physionet-build.new
+venv_dir=/physionet/python-env/physionet
+log_file=/data/log/pn/update.log
+branch=$(cat /physionet/deploy-branch) # production or staging
+
+refname=$1
+oldrev=$2
+newrev=$3
+
+if [ $# != 3 ]; then
+    echo "usage: $0 <ref> <oldrev> <newrev>" >&2
+    exit 1
+fi
+if [ "$refname" != "refs/heads/$branch" ]; then
+    exit
+fi
+
+################################################################
+
+for opt in $(env | grep '^GIT_PUSH_OPTION_[0-9]*=' |
+                 cut -d= -f2- | tr ',' ' '); do
+    case $opt in
+        no-pip)            no_pip=1 ;;
+        no-static)         no_static=1 ;;
+        no-install)        no_install=1 ;;
+        no-uwsgi)          no_uwsgi=1 ;;
+        no-bgtasks)        no_bgtasks=1 ;;
+        no-migrate)        no_migrate=1 ;;
+        no-early-migrate)  no_early_migrate=1 ;;
+        no-late-migrate)   no_late_migrate=1 ;;
+        *)
+            echo "unknown option --push-option=$opt"
+            echo
+            echo "supported push options:"
+            echo "  no-pip"
+            echo "  no-static"
+            echo "  no-install"
+            echo "  no-uwsgi"
+            echo "  no-bgtasks"
+            echo "  no-migrate"
+            echo "  no-early-migrate"
+            echo "  no-late-migrate"
+            exit 1
+            ;;
+    esac
+done
+
+################################################################
+
+# If the following commands fail, the push is aborted.  Try to check
+# for things that might cause problems!
+
+echo ============================================================ >> $log_file
+echo "$(date '+%F %T %z'): $branch: update started" >> $log_file
+echo "Updating $branch (see $log_file for details):"
+exec 3>&1
+exec &> >(tee -a $log_file)
+
+export DJANGO_SETTINGS_MODULE=physionet.settings.$branch
+
+# Display summary of commits added/removed
+echo "old: $oldrev" >> $log_file
+git log "$oldrev...$newrev" --reverse --topo-order \
+    --pretty=format:' %m %h %an: %s'; echo
+echo "new: $newrev" >> $log_file
+echo
+
+# Unpack files into $working_dir
+rm -rf $working_dir
+mkdir -p $working_dir
+git archive "$newrev" | tar -x -C $working_dir
+ln -s $install_dir/.env $working_dir/.env
+
+. $venv_dir/bin/activate
+
+# Install new dependencies from 'requirements.txt' into $venv_dir
+if [ -n "$no_pip" ]; then
+    echo "- SKIPPING requirements due to --push-option=no-pip"
+else
+    echo "* Installing new requirements..."
+    pip3 install -r $working_dir/requirements.txt \
+         --quiet --require-hashes --log $log_file
+    echo >> $log_file
+fi
+
+# Run 'getmigrationtargets' to check whether migrations make sense
+# (e.g. broken dependencies, ghost migrations)
+echo "* Checking migrations..."
+(
+    cd $working_dir/physionet-django
+    ./manage.py getmigrationtargets --current > /dev/null
+    ./manage.py getmigrationtargets --early > /dev/null
+    ./manage.py getmigrationtargets > /dev/null
+)
+
+echo "$(date '+%F %T %z'): $branch: update finished" >> $log_file

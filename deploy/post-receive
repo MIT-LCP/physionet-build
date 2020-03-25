@@ -2,36 +2,169 @@
 
 set -e
 
-destination=/physionet/physionet-build/
+install_dir=/physionet/physionet-build
+working_dir=/physionet/physionet-build.new
+venv_dir=/physionet/python-env/physionet
+log_file=/data/log/pn/update.log
 branch=$(cat /physionet/deploy-branch) # production or staging
 
-echo "Deploying $branch into $destination"
-GIT_WORK_TREE=$destination git checkout --force $branch
+while read -r old new refname; do
+    if [ "$refname" = "refs/heads/$branch" ]; then
+        oldrev=$old
+        newrev=$new
+    fi
+done
+if [ -z "$oldrev" ] || [ -z "$newrev" ]; then
+    exit
+fi
 
-echo "Updating content"
-export DJANGO_SETTINGS_MODULE=physionet.settings.$branch
-cd $destination
-source /physionet/python-env/physionet/bin/activate
-pip install -r requirements.txt
-cd physionet-django
-python manage.py collectstatic --noinput
+################################################################
 
-echo "Checking system configuration files"
+for opt in $(env | grep '^GIT_PUSH_OPTION_[0-9]*=' |
+                 cut -d= -f2- | tr ',' ' '); do
+    case $opt in
+        no-pip)            no_pip=1 ;;
+        no-static)         no_static=1 ;;
+        no-install)        no_install=1 ;;
+        no-uwsgi)          no_uwsgi=1 ;;
+        no-bgtasks)        no_bgtasks=1 ;;
+        no-migrate)        no_migrate=1 ;;
+        no-early-migrate)  no_early_migrate=1 ;;
+        no-late-migrate)   no_late_migrate=1 ;;
+        *) ;;
+    esac
+done
+
+################################################################
+
+# If the following commands fail, it is too late to abort the push.
+# Try to avoid doing things that might fail!
+
+echo "$(date '+%F %T %z'): $branch: post-receive started" >> $log_file
 exec 3>&1
+exec &> >(tee -a $log_file)
+
+export DJANGO_SETTINGS_MODULE=physionet.settings.$branch
+
+. $venv_dir/bin/activate
+
+# Unpack files into $working_dir
+rm -rf $working_dir
+mkdir -p $working_dir
+git archive "$newrev" | tar -x -C $working_dir
+ln -s $install_dir/.env $working_dir/.env
+
+# Check what migrations should be applied
+(
+    cd $working_dir/physionet-django
+    ./manage.py getmigrationtargets --current > OLD-TARGETS
+    ./manage.py getmigrationtargets --early -v2 > EARLY-TARGETS 2>> $log_file
+    ./manage.py getmigrationtargets > LATE-TARGETS
+)
+
+# Run early migrations
+(
+    cd $working_dir/physionet-django
+    if cmp -s OLD-TARGETS EARLY-TARGETS; then
+        echo "- No early migrations to apply."
+    elif [ -n "$no_migrate" ]; then
+        echo "- SKIPPING early migrations due to --push-option=no-migrate"
+    elif [ -n "$no_early_migrate" ]; then
+        echo "- SKIPPING early migrations due to" \
+             "--push-option=no-early-migrate"
+    else
+        echo "* Applying early migrations..."
+        ./manage.py migratetargets EARLY-TARGETS --no-input |
+            tee -a $log_file | grep 'Applying' >&3
+        echo >> $log_file
+    fi
+)
+
+# Copy new static files into /data/pn-static
+if [ -n "$no_static" ]; then
+    echo '- SKIPPING new static files due to --push-option=no-static'
+else
+    echo "* Installing new static files..."
+    (
+        cd $working_dir/physionet-django
+        ./manage.py collectstatic --no-input >> $log_file
+    )
+fi
+
+# Install into /physionet/physionet-build
+if [ -n "$no_install" ]; then
+    echo "- SKIPPING installation due to --push-option=no-install"
+else
+    echo "* Installing new server code..."
+    GIT_WORK_TREE=$install_dir git checkout --force "$branch" 2>> $log_file
+fi
+
+# Restart the uwsgi server
+if [ -n "$no_uwsgi" ]; then
+    echo "- SKIPPING reloading uwsgi server due to --push-option=no-uwsgi"
+elif [ -n "$no_install" ]; then
+    echo "- SKIPPING reloading uwsgi server due to --push-option=no-install"
+else
+    echo "* Reloading uwsgi server..."
+    sudo systemctl reload emperor.uwsgi.service
+fi
+
+# Restart the django-background-tasks server
+(
+    cd $working_dir/physionet-django
+    if cmp -s OLD-TARGETS LATE-TARGETS; then
+        # assume that if there are no migrations, no need to restart
+        # background tasks (and don't even bother showing a message)
+        :
+    elif [ -n "$no_bgtasks" ]; then
+        echo "- SKIPPING restarting django-background-tasks due to"
+        echo "  --push-option=no-bgtasks"
+    elif [ -n "$no_install" ]; then
+        echo "- SKIPPING restarting django-background-tasks due to"
+        echo "  --push-option=no-install"
+    else
+        echo "* Restarting django-background-tasks..."
+        sudo systemctl try-restart django-background-tasks.service
+    fi
+)
+
+# Run late migrations (as well as early migrations, if they were
+# skipped before)
+(
+    cd $working_dir/physionet-django
+    if cmp -s EARLY-TARGETS LATE-TARGETS; then
+        echo "- No late migrations to apply."
+    elif [ -n "$no_migrate" ]; then
+        echo "- SKIPPING late migrations due to --push-option=no-migrate"
+    elif [ -n "$no_late_migrate" ]; then
+        echo "- SKIPPING late migrations due to --push-option=no-late-migrate"
+    elif [ -n "$no_uwsgi" ]; then
+        echo "- SKIPPING late migrations due to --push-option=no-uwsgi"
+    elif [ -n "$no_install" ]; then
+        echo "- SKIPPING late migrations due to --push-option=no-install"
+    else
+        echo "* Applying late migrations..."
+        ./manage.py migrate --no-input |
+            tee -a $log_file | grep 'Applying' >&3
+    fi
+)
+
+# Check for updated configuration files
 confupdate=$(
-    cd $destination/deploy
+    cd $install_dir/deploy
     for subdir in common $branch; do
         ( cd $subdir; find * -type f ) | while read file; do
             if ! diff -Nu /$file $subdir/$file >&3; then
-                echo " * $subdir/$file"
+                echo "   $subdir/$file"
             fi
         done
     done
 )
 
-echo "Done. If there are any database changes, please make the migrations now."
 if [ -n "$confupdate" ]; then
-    echo "Install updated configuration files if needed (see above):"
+    echo "Note: configuration files are out of date (see above):"
     echo "$confupdate"
 fi
-echo "Then, run 'touch /etc/uwsgi/vassals/physionet_uwsgi.ini'."
+
+echo "$(date '+%F %T %z'): $branch: post-receive finished" >> $log_file
+echo >> $log_file
