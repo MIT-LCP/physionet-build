@@ -1,0 +1,30 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}PhysioNet Users{% endblock %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/pagination.css' %}">
+{% endblock %}
+
+{% block content %}
+<script src="{% static 'custom/js/cookie.js' %}"></script>
+<script src="{% static 'project/js/dynamic-formset.js' %}"></script>
+
+<div class="card mb-3">
+  <div class="card-header">
+    Merge PhysioNet Users
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <form method="post">
+        <spam>Accounts to be merged:</spam>
+        {% include "project/content_inline_form_snippet.html" %}
+        <button class="btn btn-primary btn-rsp" type="submit" name="merge_users">Merge accounts</button>
+
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

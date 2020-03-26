@@ -67,6 +67,10 @@ urlpatterns = [
 
     path('users/search/<group>/', views.users_search, name='users_list_search'),
     path('users/<group>/', views.users, name='users'),
+    path('users/merge', views.merge_users, name='merge_users'),
+
+    path('user-autocomplete/', views.UserAutocomplete.as_view(),
+        name='user-autocomplete'),
 
     path('news/', views.news_console, name='news_console'),
     path('news/add/', views.news_add, name='news_add'),
