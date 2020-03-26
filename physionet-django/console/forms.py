@@ -15,6 +15,8 @@ from project.validators import validate_slug, MAX_PROJECT_SLUG_LENGTH, validate_
 from user.models import User, CredentialApplication
 from console.utility import generate_doi_payload, register_doi
 
+from dal import autocomplete
+
 RESPONSE_CHOICES = (
     (1, 'Accept'),
     (0, 'Reject')
@@ -411,3 +413,20 @@ class DataAccessForm(forms.ModelForm):
         data_access.project = self.project
         data_access.save()
         return data_access
+
+
+class MergeUserForm(forms.Form):
+    """
+    Merge two user accounts
+    """
+    username1 = forms.ModelChoiceField(
+        queryset=User.objects.filter(is_active=True).order_by('username'),
+        widget=autocomplete.ModelSelect2(url='user-autocomplete'),
+        required=True,
+        label="Main account")
+
+    username2 = forms.ModelChoiceField(
+        queryset=User.objects.filter(is_active=True).order_by('username'),
+        widget=autocomplete.ModelSelect2(url='user-autocomplete'),
+        required=True,
+        label="Secondary account")

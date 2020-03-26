@@ -36,6 +36,7 @@ from console import forms, utility
 from console.tasks import associated_task, get_associated_tasks
 
 from django.conf import settings
+from dal import autocomplete
 
 LOGGER = logging.getLogger(__name__)
 
@@ -1424,3 +1425,45 @@ def project_access_manage(request, pid):
             'c_project': c_project, 'project_members': project_members,
             'project_access_nav': True})
 
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def merge_users(request):
+    """
+    Merge two users using their usernames.
+
+    The admin account doing the merge cannot be part of the merge.
+    """
+    group = 'merge'
+    data = request.POST if 'merge_users' in request.POST else None
+    form = forms.MergeUserForm(data=data)
+
+    if request.method == 'POST':
+        if form.is_valid():
+            main_user = form.cleaned_data['username1']
+            second_user = form.cleaned_data['username2']
+            
+            # LOGGER.info("Merging user {0} onto {1}".format(main_user,
+            #                                                second_user))
+            # main_user.merge(merge_from=second_user)
+            # messages.success(request, 'The accounts have been properly merged.')
+
+    return render(request, 'console/merge_users.html', {
+        'group': group, 'user_nav': True, 'form': form})
+
+
+class UserAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        """
+        Get all occurrances where a user is active and the username contains
+        the request string.
+
+        The person doing the search cannot be part of the search results.
+        """
+        qs = User.objects.filter(is_active=True).exclude(
+            username=self.request.user.username)
+
+        if self.q:
+            qs = qs.filter(username__icontains=self.q)
+
+        return qs
