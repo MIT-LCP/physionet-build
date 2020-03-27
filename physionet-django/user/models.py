@@ -2,6 +2,7 @@ from datetime import timedelta
 import logging
 import os
 import pdb
+from uuid import uuid1
 
 from django.conf import settings
 from django.contrib import messages
@@ -392,6 +393,188 @@ class User(AbstractBaseUser):
         "Where the user's files are stored"
         return os.path.join(User.FILE_ROOT, self.username)
 
+    def merge(self, second_user):
+        """
+        Merge two user accounts.
+         - Move all associated emails.
+           - If an associated email is primary set flag as False.
+         - Move all credentialed applications.
+           - If user is credentialed set the flags.
+         - Move legacy credentialed if any.
+         - Move cloud information if main user doesn’t have and second does.
+         - Move published authorships.
+         - Move active authorships.
+         - Move author invitations.
+           - If the main user is an author, delete authorship invitations.
+           - If the main user already had an invitation to the project, delete
+           newer ones.
+         - Disable second user.
+        """
+        if not self.is_active or not second_user.is_active:
+            raise Exception('One or both accounts is not activated.')
+
+        if self is second_user:
+            raise Exception('Cannot merge the account onto itself.')
+
+        with transaction.atomic():
+            # Move all the associated emails
+            all_emails = second_user.associated_emails.all()
+            logger.info('{0} email(s) were found in user {1}'.format(
+                len(all_emails), second_user))
+            for associated_emails in all_emails:
+                associated_emails.user = self
+                logger.info("The email {0} is being assigned to {1}".format(
+                    associated_emails.email, self))
+                if associated_emails.is_primary_email:
+                    associated_emails.is_primary_email = False
+                    logger.info("The email {0} is set to not primary".format(
+                        associated_emails.email))
+                associated_emails.save()
+
+            # Move all credential applications and withdraw any active application
+            credentialed_apps = second_user.credential_applications.all()
+            logger.info('{0} credential applications were found in user {1}'.format(
+                len(credentialed_apps), second_user))
+            for app in credentialed_apps:
+                app.user = self
+                if app.status == 0:
+                    logger.info("The credential application '{0}' was withdrawn.".format(
+                        app.id))
+                    app.status = 3
+                logger.info("The credential application '{0}' was moved to {1}".format(
+                    app.id, self))
+                app.save()
+
+            # merge credentialed access if any
+            if second_user.is_credentialed and not self.is_credentialed:
+                self.is_credentialed = True
+                self.credential_datetime = second_user.credential_datetime
+                self.save()
+                logger.info("User {0} has been credentialed because user {1} "
+                            "was credentialed.".format(self, second_user))
+
+            # Move the user object for migrated legacy users
+            try:
+                legacy = LegacyCredential.objects.get(migrated=True,
+                    migrated_user=second_user)
+                legacy.user = self
+                legacy.save()
+            except LegacyCredential.DoesNotExist:
+                logger.info("No legacy users found.")
+
+            # Merge the user cloud information
+            self_cloud = None
+            second_cloud = None
+
+            try:
+                self_cloud = self.cloud_information
+            except CloudInformation.DoesNotExist:
+                pass
+            try:
+                second_cloud = second_user.cloud_information
+            except CloudInformation.DoesNotExist:
+                pass
+
+            if self_cloud and second_cloud:
+                second_cloud.cloud_information.gcp_email = None
+                second_cloud.cloud_information.aws_id = None
+                second_cloud.cloud_information.save()
+                logger.info("Cloud information was found in both accounts. "
+                            "Removed cloud information from {}.".format(
+                                second_user))
+            elif second_cloud:
+                second_cloud.cloud_information.user = self
+                second_cloud.cloud_information.save()
+                logger.info("Cloud information was moved from {0} to {1}".format(
+                    second_user, self))
+            else:
+                logger.info("No cloud information was moved at this time.")
+
+            # Merge the published project authorships
+            published_authors = second_user.publishedauthors.all()
+            for authorship in published_authors:
+                if not authorship.project.authors.filter(user=self):
+                    authorship.user = self
+                    authorship.save()
+                    logger.info("Changed author in project {0} from {1} to {2}".format(
+                        authorship.project, second_user, self))
+                else:
+                    logger.info("The user {0} is already an author of {1} the"
+                                " user {2} has been ignored.".format(
+                                    self, authorship.project, second_user))
+
+            # Merge the active project authorships
+            authors = second_user.authors.all()
+            for authorship in authors:
+                if not authorship.project.authors.filter(user=self):
+                    authorship.user = self
+                    authorship.save()
+                    logger.info("Changed author in project {0} from {1} to {2}".format(
+                        authorship.project, second_user, self))
+                else:
+                    authorship.delete()
+                    logger.info("The user {0} is already an author of {1} the"
+                                " user {2} has been removed.".format(
+                                    self, authorship.project, second_user))
+
+            # Manage all the invitations the secound user sent
+            author_invitations = second_user.authorinvitation_set.all()
+            for invite in author_invitations:
+                main_user_is_author = invite.project.authors.filter(user=self)
+                main_user_is_receiver = self.associated_emails.filter(email=invite.email)
+                # If the main account is an author, remove the invitation
+                if main_user_is_author and main_user_is_receiver:
+                    invite.delete()
+                    logger.info("Deleting authorship invite on project {0} to"
+                                " {1} because he is already an author wile "
+                                "using {2}".format(invite.project, self,
+                                    invite.email))
+                # If the main account is not an author, but there is an invite
+                # to that account, remove any outstanding invites
+                elif not main_user_is_author and main_user_is_receiver:
+                    emails = self.associated_emails.all().exclude(email=invite.email)
+                    duplicate_invitation = False
+                    for email in emails:
+                        if invite.project.authorinvitations.filter(email=email):
+                            duplicate_invitation = True
+                    if duplicate_invitation:
+                        invite.delete()
+                        logger.info("Deleting authorship invite to the main "
+                                    "user's email '{}' because there is an "
+                                    "existing invitation him".format(
+                                        invite.email))
+                # There is no invite to the main user nor he is an author
+                else:
+                    invite.user = invite.inviter = self
+                    invite.save()
+                    logger.info("Set invitation user from {0} to {1}".format(second_user, self))
+
+            # Manage all the invitations the emails of the user has received
+            for email in self.associated_emails.all():
+                email_invitations = self.authorinvitation_set.model.objects.filter(email=email, is_active=True)
+                for invitation in email_invitations:
+                    # Check if the main user is not an author of the project
+                    if invitation.project.authors.filter(user=self):
+                        logger.info("Deleting authorship invitation for "
+                                    "project {0} because user {1} is already "
+                                    "an author".format(invitation.project, self))
+                        invitation.delete()
+
+            # Disable fields in the second user
+            # Disable second user login
+            second_user.set_unusable_password()
+            # Free the username
+            second_user.username = '{0}-{1}'.format(second_user.username,
+                uuid1())[:50]
+            # Set an email for the merged account
+            tmp_email = second_user.username + second_user.email
+            AssociatedEmail.objects.create(email=tmp_email, user=second_user,
+                                           is_verified=True)
+            second_user.email = tmp_email
+            # Remove credentialing in the second account
+            second_user.is_credentialed = False
+            second_user.save()
+
 
 class UserLogin(models.Model):
     """Represent users' logins, one per record"""
@@ -399,6 +582,7 @@ class UserLogin(models.Model):
         on_delete=models.CASCADE)
     login_date = models.DateTimeField(auto_now_add=True, null=True)
     ip = models.CharField(max_length=50,  blank=True, default='', null=True)
+
 
 def update_user_login(sender, **kwargs):
     user = kwargs.pop('user', None)

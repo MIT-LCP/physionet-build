@@ -1435,7 +1435,7 @@ def merge_users(request):
     The admin account doing the merge cannot be part of the merge.
     """
     group = 'merge'
-    data = request.POST if 'merge_users' in request.POST else None
+    data = request.POST if 'merge_users_submit' in request.POST else None
     form = forms.MergeUserForm(data=data)
 
     if request.method == 'POST':
@@ -1443,10 +1443,10 @@ def merge_users(request):
             main_user = form.cleaned_data['username1']
             second_user = form.cleaned_data['username2']
             
-            # LOGGER.info("Merging user {0} onto {1}".format(main_user,
-            #                                                second_user))
-            # main_user.merge(merge_from=second_user)
-            # messages.success(request, 'The accounts have been properly merged.')
+            LOGGER.info("Attempting to merging user {0} onto {1}".format(
+                main_user, second_user))
+            main_user.merge(second_user)
+            messages.success(request, 'The accounts have been properly merged.')
 
     return render(request, 'console/merge_users.html', {
         'group': group, 'user_nav': True, 'form': form})
