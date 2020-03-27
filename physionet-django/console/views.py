@@ -505,8 +505,7 @@ def publish_submission(request, project_slug, *args, **kwargs):
                 payload_core = utility.generate_doi_payload(latest,
                                                             core_project=True,
                                                             event="publish")
-                utility.update_doi(published_project.core_project.doi,
-                                   payload_core)
+                utility.update_doi(core.doi, payload_core)
 
             if published_project.doi:
                 payload = utility.generate_doi_payload(published_project,
@@ -624,6 +623,51 @@ def send_files_to_gcp(pid):
             project.gcp.sent_zip = True
         project.gcp.save()
 
+
+def manage_doi_request(request, project):
+    """
+    Manage a request to register or update a Digital Object Identifier (DOI).
+
+    Args:
+        request (obj): The request object.
+        project (obj): The project object.
+
+    Returns:
+        str: Message indicating outcome of the request.
+    """
+
+    # No action needed if (1) the user is trying to register a DOI when one
+    # already exists or (2) if there is no DATACITE_PREFIX
+    if not settings.DATACITE_PREFIX:
+        return """No action taken. To register or update a DOI, add your
+            DATACITE_PREFIX to the Django environment file."""
+    elif project.core_project.doi and 'create_doi_core' in request.POST:
+        return "The DOI was created."
+    elif project.doi and 'create_doi_version' in request.POST:
+        return "The DOI was created."
+
+    if 'create_doi_core' in request.POST:
+        payload = utility.generate_doi_payload(project, core_project=True,
+                                               event="publish")
+        utility.register_doi(payload, project.core_project)
+        message = "The DOI was created."
+    elif 'update_doi_core' in request.POST:
+        payload = utility.generate_doi_payload(project, core_project=True,
+                                               event="publish")
+        utility.update_doi(project.core_project.doi, payload)
+        message = "The DOI metadata was updated."
+    elif 'create_doi_version' in request.POST:
+        payload = utility.generate_doi_payload(project, event="publish")
+        utility.register_doi(payload, project)
+        message = "The DOI was created."
+    elif 'update_doi_version' in request.POST:
+        payload = utility.generate_doi_payload(project, event="publish")
+        utility.update_doi(project.doi, payload)
+        message = "The DOI metadata was updated."
+
+    return message
+
+
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def manage_published_project(request, project_slug, version):
@@ -641,20 +685,19 @@ def manage_published_project(request, project_slug, version):
     user = request.user
     passphrase = ''
     anonymous_url = project.get_anonymous_url()
-    doi_form = forms.DOIForm(instance=project)
     topic_form = forms.TopicForm(project=project)
     topic_form.set_initial()
     deprecate_form = None if project.deprecated_files else forms.DeprecateFilesForm()
     has_credentials = os.path.exists(os.environ["GOOGLE_APPLICATION_CREDENTIALS"])
     data_access_form = forms.DataAccessForm(project=project)
+
     if request.method == 'POST':
-        if 'set_doi' in request.POST:
-            doi_form = forms.DOIForm(data=request.POST, instance=project)
-            if doi_form.is_valid():
-                doi_form.save()
-                messages.success(request, 'The DOI has been set')
-            else:
-                messages.error(request, 'Invalid submission. See form below.')
+        if any(x in request.POST for x in ['create_doi_core',
+                                           'create_doi_version',
+                                           'update_doi_core',
+                                           'update_doi_version']):
+            message = manage_doi_request(request, project)
+            messages.success(request, message)
         elif 'set_topics' in request.POST:
             topic_form = forms.TopicForm(project=project, data=request.POST)
             if topic_form.is_valid():
@@ -709,7 +752,7 @@ def manage_published_project(request, project_slug, version):
         elif 'remove_passphrase' in request.POST:
             project.anonymous.all().delete()
             anonymous_url = ''
-                
+
     data_access = DataAccess.objects.filter(project=project)
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
 
@@ -723,7 +766,7 @@ def manage_published_project(request, project_slug, version):
         {'project': project, 'authors': authors, 'author_emails': author_emails,
          'storage_info': storage_info, 'edit_logs': edit_logs,
          'copyedit_logs': copyedit_logs, 'latest_version': latest_version,
-         'published': True, 'doi_form': doi_form, 'topic_form': topic_form,
+         'published': True, 'topic_form': topic_form,
          'deprecate_form': deprecate_form, 'has_credentials': has_credentials, 
          'data_access_form': data_access_form, 'data_access': data_access,
          'rw_tasks': rw_tasks, 'ro_tasks': ro_tasks,

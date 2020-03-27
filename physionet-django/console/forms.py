@@ -165,22 +165,18 @@ class EditSubmissionForm(forms.ModelForm):
                 project.editor_accept_datetime = now
                 project.latest_reminder = now
 
+                CopyeditLog.objects.create(project=project)
+                project.save()
+
                 if self.cleaned_data['auto_doi']:
                     # register draft DOIs
                     if not project.doi:
-                        payload = generate_doi_payload(project,
-                                                               event="draft")
-                        project.doi = register_doi(payload)
-                        project.save()
+                        payload = generate_doi_payload(project, event="draft")
+                        register_doi(payload, project)
                     if not project.core_project.doi:
-                        payload = generate_doi_payload(project,
-                                                               core_project=True,
-                                                               event="draft")
-                        project.core_project.doi = register_doi(payload)
-                        project.core_project.save()
-
-                CopyeditLog.objects.create(project=project)
-                project.save()
+                        payload = generate_doi_payload(project, event="draft",
+                                                       core_project=True)
+                        register_doi(payload, project.core_project)
 
             return edit_log
 
@@ -251,23 +247,6 @@ class PublishForm(forms.Form):
         if data != self.project.slug:
             if exists_project_slug(data):
                 raise forms.ValidationError('The slug is already taken by another project.')
-        return data
-
-
-class DOIForm(forms.ModelForm):
-    """
-    Form to edit the doi of a published project
-    """
-    class Meta:
-        model = PublishedProject
-        fields = ('doi',)
-        labels = {'doi':'DOI'}
-
-    def clean_doi(self):
-        data = self.cleaned_data['doi']
-        validate_doi(data)
-        if PublishedProject.objects.filter(doi=data).exclude(id=self.instance.id):
-            raise forms.ValidationError('Published project with DOI already exists.')
         return data
 
 

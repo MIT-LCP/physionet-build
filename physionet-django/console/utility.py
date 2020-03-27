@@ -26,6 +26,14 @@ ROLES = ['roles/storage.legacyBucketReader',
          'roles/storage.objectViewer']
 
 
+class DOIExistsError(Exception):
+    pass
+
+
+class DOICreationError(Exception):
+    pass
+
+
 def check_bucket_exists(project, version):
     """
     Check if a bucket exists.
@@ -256,15 +264,15 @@ def create_directory_service(user_email, group=False):
     return build('admin', 'directory_v1', credentials=credentials)
 
 
-def register_doi(payload):
+def register_doi(payload, project):
     """
-    Create a draft DOI with basic project information via a POST request.
+    Create a DOI with basic project information via a POST request. Saves
+    the DOI to the project.doi field.
 
     Args:
         payload (dict): The metadata to be sent to the DataCite API.
-
-    Returns:
-        doi (str): On success, returns the assigned DOI.
+        project (obj): The ActiveProject, PublishedProject, or CoreProject
+            that is associated with the payload.
 
     Example of the API return response.
     {
@@ -384,24 +392,38 @@ def register_doi(payload):
     headers = {'Content-Type': 'application/vnd.api+json'}
     request_url = settings.DATACITE_API_URL
 
-    response = post(request_url, data=json.dumps(payload), headers=headers,
-                    auth=HTTPBasicAuth(settings.DATACITE_USER,
-                    settings.DATACITE_PASS))
+    # Check whether the project already has a DOI assigned.
+    # type(project) returns CoreProject, ActiveProject, or PublishedProject
+    queryset = type(project).objects.filter(id=project.id, doi=None)
 
-    if response.status_code < 200 or response.status_code >= 300:
-        raise Exception("""There was an unknown error submitting the DOI. Here
-            is the response text: {}""".format(response.text))
+    # Hold DOI field to prevent multiple calls from registering multiple DOIs.
+    if queryset.update(doi='PENDING') != 1:
+        raise DOIExistsError('Project already has a DOI')
+    doi = None
 
-    content = json.loads(response.text)
-    doi = content['data']['attributes']['doi']
-    validate_doi(doi)
+    try:
+        response = post(request_url, data=json.dumps(payload), headers=headers,
+                        auth=HTTPBasicAuth(settings.DATACITE_USER,
+                        settings.DATACITE_PASS))
 
-    event = payload['data']['attributes']['event']
-    title = payload['data']['attributes']['titles'][0]['title']
+        if response.status_code < 200 or response.status_code >= 300:
+            # Remove the pending status
+            raise DOICreationError("""There was an unknown error creating the
+                DOI. Here is the response text: {}""".format(response.text))
 
-    LOGGER.info("DOI ({0}) for project '{1}' created: {2}.".format(event,
-                                                                   title, doi))
-    return doi
+        content = json.loads(response.text)
+        doi = content['data']['attributes']['doi']
+        validate_doi(doi)
+
+        event = payload['data']['attributes']['event']
+        title = payload['data']['attributes']['titles'][0]['title']
+        LOGGER.info("DOI ({0}) for project '{1}' created: {2}.".format(event,
+                                                                       title,
+                                                                       doi))
+    finally:
+        # Update the DOI field for the project
+        queryset = type(project).objects.filter(id=project.id, doi='PENDING')
+        queryset.update(doi=doi)
 
 
 def update_doi(doi, payload):
