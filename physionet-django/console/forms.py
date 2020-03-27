@@ -447,3 +447,27 @@ class MergeUserForm(forms.Form):
         widget=autocomplete.ModelSelect2(url='user-autocomplete'),
         required=True,
         label="Secondary account")
+
+    def clean_username1(self):
+        primary_user = self.cleaned_data['username1']
+
+        if not primary_user.is_active:
+            raise forms.ValidationError('Cannot merge unactivated users.')
+        return primary_user
+
+    def clean_username2(self):
+        secondary_user = self.cleaned_data['username2']
+
+        if not secondary_user.is_active:
+            raise forms.ValidationError('Cannot merge unactivated users.')
+        return secondary_user
+
+    def clean(self):
+        if self.errors:
+            return
+
+        primary_user = self.cleaned_data['username1']
+        secondary_user = self.cleaned_data['username2']
+
+        if primary_user == secondary_user:
+            raise forms.ValidationError('Cannot merge the same user.')
