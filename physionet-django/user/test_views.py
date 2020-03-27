@@ -266,6 +266,103 @@ class TestAuth(TestMixin):
         request = self.client.get(reverse('verify_email', args=(uidb64, token)))
         self.assertTrue(AssociatedEmail.objects.get(email='tester0@mit.edu').is_verified)
 
+    def test_merge(self):
+        """
+        Test user migrations
+
+        Checks:
+         - Active authorships
+         - Published authorships
+         - Author invitations
+         - Credentialing
+
+        """
+        main_user = User.objects.get(id=3)
+        second_user = User.objects.get(id=2)
+
+        # Check active authorship for both users
+        self.assertEqual(second_user.authors.count(), 3)
+        for authorship in second_user.authors.all():
+            self.assertEqual(authorship.user_id, second_user.id)
+
+        self.assertEqual(main_user.authors.count(), 0)
+
+        # Check published authorship for both users
+        self.assertEqual(second_user.publishedauthors.count(), 2)
+        for authorship in second_user.publishedauthors.all():
+            self.assertEqual(authorship.user_id, second_user.id)
+
+        self.assertEqual(main_user.publishedauthors.count(), 2)
+        for authorship in main_user.publishedauthors.all():
+            self.assertEqual(authorship.user_id, main_user.id)
+
+        # Verify credentialing
+        self.assertTrue(second_user.is_credentialed)
+        self.assertFalse(main_user.is_credentialed)
+
+        # Verify credential applications
+        self.assertEqual(main_user.credential_applications.count(), 0)
+        self.assertEqual(second_user.credential_applications.count(), 1)
+        self.assertEqual(second_user.credential_applications.first().user, second_user)
+
+        # attemt to merge the user accounts with inactive users
+        main_user.is_active = False
+        with self.assertRaises(Exception):
+            main_user.merge(second_user)
+        main_user.is_active = True
+        second_user.is_active = False
+        with self.assertRaises(Exception):
+            main_user.merge(second_user)
+        second_user.is_active = True
+
+        # Merge the same user
+        with self.assertRaises(Exception):
+            main_user.merge(main_user)
+
+        # Check project invitations
+        self.assertEqual(second_user.authorinvitation_set.count(), 2)
+        self.assertEqual(main_user.authorinvitation_set.count(), 0)
+
+        # Merge the user accounts
+        main_user.merge(second_user)
+
+        main_user = User.objects.get(id=3)
+        second_user = User.objects.get(id=2)
+
+        # Verify the authorships
+        self.assertEqual(second_user.authors.count(), 0)
+
+        self.assertEqual(main_user.authors.count(), 3)
+        for authorship in main_user.authors.all():
+            self.assertEqual(authorship.user_id, main_user.id)
+
+        # Check published authorship for both users
+        self.assertEqual(second_user.publishedauthors.count(), 0)
+
+        self.assertEqual(main_user.publishedauthors.count(), 4)
+        for authorship in main_user.publishedauthors.all():
+            self.assertEqual(authorship.user_id, main_user.id)
+
+        # Verify the emails
+        self.assertEqual(second_user.associated_emails.count(), 1)
+        self.assertNotEqual(second_user.username, 'rgmark')
+        self.assertNotEqual(second_user.email, 'rgmark@mit.edu')
+        self.assertNotEqual(second_user.associated_emails.first().email,
+                            'rgmark@mit.edu')
+
+        # Verify credentialing
+        self.assertFalse(second_user.is_credentialed)
+        self.assertTrue(main_user.is_credentialed)
+
+        # Verify credential applications
+        self.assertEqual(second_user.credential_applications.count(), 0)
+        self.assertEqual(main_user.credential_applications.count(), 1)
+        self.assertEqual(main_user.credential_applications.first().user, main_user)
+
+        # Check project invitations
+        self.assertEqual(second_user.authorinvitation_set.count(), 0)
+        self.assertEqual(main_user.authorinvitation_set.count(), 0)
+
 
 class TestPublic(TestMixin):
     """
