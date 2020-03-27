@@ -20,11 +20,49 @@
     <div class="table-responsive">
       <form method="post">
         <spam>Accounts to be merged:</spam>
-        {% include "project/content_inline_form_snippet.html" %}
-        <button class="btn btn-primary btn-rsp" type="submit" name="merge_users">Merge accounts</button>
 
+        {% include "project/content_inline_form_snippet.html" %}
+
+        <button class="btn btn-primary btn-rsp" type="button" name="merge_users" data-toggle="modal" data-target="#merge_users" onclick="set_merge_text()">
+          Merge accounts
+        </button>
+
+        <div class="modal fade" id="merge_users" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Merge user confirmation.</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <p>Are you sure you want to merge <span id='user2'></span> to <span id='user1'></span>?</p>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary" name="merge_users_submit" id='merge_users_submit'>Merge</button>
+              </div>
+            </div>
+          </div>
+        </div>
       </form>
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block local_js_bottom %}
+<script>
+  function set_merge_text(){
+    if ($('#select2-id_username1-container').text() != "" || $('#select2-id_username2-container').text() != ""){
+      $('#user1').text($('#select2-id_username1-container').text())
+      $('#user2').text($('#select2-id_username2-container').text())
+      $('#submit_merge').attr('disabled', true);
+    }
+    else{
+      $('#submit_merge').attr('disabled', false);
+    }
+  }
+</script>
 {% endblock %}
