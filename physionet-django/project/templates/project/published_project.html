@@ -83,7 +83,8 @@
         {% if not project.is_legacy %}
           <p>
             <strong>When using this resource, please cite: </strong>
-            <a href="#citationModal" data-toggle="modal">Show Citation Options</a>
+            <p>{{ project.citation_text.APA }}</p>
+            <a href="#citationModal" data-toggle="modal">Show More Citation Options</a>
           </p>
           <div class="modal fade" id="citationModal" tabindex="-1" role="dialog" aria-labelledby="citationModalLabel" aria-hidden="true">
             <div class="modal-dialog" role="document">
@@ -96,22 +97,12 @@
                 </div>
                 <div class="modal-body">
                   <table><tbody>
-                    <tr>
-                      <th>MLA</th>
-                      <td>{{ project.citation_text_MLA }}</td>
-                    </tr><tr>
-                      <th>APA</th>
-                      <td>{{ project.citation_text_APA }}</td>
-                    </tr><tr>
-                      <th>Chicago</th>
-                      <td>{{ project.citation_text_Chicago }}</td>
-                    </tr><tr>
-                      <th>Harvard</th>
-                      <td>{{ project.citation_text_Harvard }}</td>
-                    </tr><tr>
-                      <th>Vancouver</th>
-                      <td>{{ project.citation_text_Vancouver }}</td>
-                    </tr>
+                    {% for style, citation in project.citation_text.items %}
+                      <tr>
+                        <th>{{ style }}</th>
+                        <td>{{ citation }}</td>
+                      </tr>
+                    {% endfor %}
                   </tbody></table>
                 </div>
                 <div class="modal-footer">
