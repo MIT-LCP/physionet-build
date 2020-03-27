@@ -307,7 +307,7 @@ def grant_aws_open_data_access(user, project):
         return message.split(',')[0]
     LOGGER.info('Unknown response from AWS - {0}\nThe payload is {1}'.format(
         payload, response.content))
-
+    return "There was an error granting access."
 
 
 def grant_gcp_group_access(user, project, data_access):

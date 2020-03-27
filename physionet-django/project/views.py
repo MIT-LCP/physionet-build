@@ -1849,8 +1849,14 @@ def published_project_request_access(request, project_slug, version, access_type
     for access in data_access:
         if access_type == 2 and access.platform == access_type:
             message = utility.grant_aws_open_data_access(user, project)
-            notification.notify_aws_access_request(user, project, access)
-            messages.success(request, message)
+            error_messages = ["Access could not be granted.",
+                              "There was an error granting access."]
+            if message not in error_messages:
+                notification.notify_aws_access_request(user, project, access, True)
+                messages.success(request, message)
+            else:
+                notification.notify_aws_access_request(user, project, access, False)
+                messages.error(request, message)
         elif access_type in [3, 4] and access.platform == access_type:
             message = utility.grant_gcp_group_access(user, project, access)
             if message:

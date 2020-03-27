@@ -1,10 +1,25 @@
 Dear {{ user.get_full_name }},
 
-You have requested access to use {{ project }} in AWS S3 Storage.
+You are receiving this email because you applied for access to {{ project }} on Amazon Web Services.
+
+{% if successful %}
+We are pleased to confirm that you have been granted access to use {{ project }} in AWS S3 Storage.
 
 The name of the bucket is: {{ data_access.location }}
 
 You can use the following command to copy the content of the bucket to your computer:
 aws s3 sync {{ data_access.location }} DESTINATION
+{% else %}
+We are sorry to say that we were unable to grant access to use {{ project }} in AWS S3 Storage at this time.
+
+Reasons might include:
+ - The service is not available in your location.
+ - An incorrect AWS ID was used.
+ - The service requested is no longer available.
+
+Please reapply for access if you are able to address the issue.
+
+If you think this was an error please contact {{ contact_email }}.
+{% endif %}
 
 {{ signature }}
