@@ -206,12 +206,20 @@ class Author(BaseAuthor):
         unique_together = (('user', 'content_type', 'object_id',),
                            ('display_order', 'content_type', 'object_id'))
 
-    def get_full_name(self):
+    def get_full_name(self, reverse=False):
         """
         The name is tied to the profile. There is no form for authors
-        to change their names
+        to change their names. Return the full name.
+        Args:
+            reverse: Format of the return string. If False (default) then
+                'firstnames lastname'. If True then 'lastname, firstnames'.
         """
-        return self.user.profile.get_full_name()
+        last = self.user.profile.last_name
+        first = self.user.profile.first_names
+        if reverse:
+            return ', '.join([last, first])
+        else:
+            return ' '.join([first, last])
 
     def initialed_name(self):
         """
@@ -798,9 +806,9 @@ class UnpublishedProject(models.Model):
             if style == 'MLA':
 
                 if (len(authors) == 1):
-                    all_authors = authors[0].get_full_name()
+                    all_authors = authors[0].get_full_name(reverse=True)
                 elif (len(authors) == 2):
-                    first_author = authors[0].get_full_name()
+                    first_author = authors[0].get_full_name(reverse=True)
                     second_author = authors[1].get_full_name()
                     all_authors = first_author + ', and ' + second_author
                 else:
@@ -830,10 +838,10 @@ class UnpublishedProject(models.Model):
             elif style == 'Chicago':
 
                 if (len(authors) == 1):
-                    all_authors = authors[0].get_full_name()
+                    all_authors = authors[0].get_full_name(reverse=True)
                 else:
                     all_authors = ', '.join(
-                        a.get_full_name()
+                        a.get_full_name(reverse=True)
                         for a in authors[:(len(authors)-1)])
                     all_authors += ', and ' + \
                         authors[len(authors)-1].get_full_name()
