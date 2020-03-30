@@ -755,19 +755,112 @@ class UnpublishedProject(models.Model):
         publication year, and '*****' is used in place of the DOI
         suffix.
         """
+        styles = ['MLA', 'APA', 'Chicago', 'Harvard', 'Vancouver']
         authors = self.authors.all().order_by('display_order')
         year = timezone.now().year
         doi = '10.13026/*****'
+        citation_dict = {}
 
-        # TODO: Add other citation styles
-        return format_html(
-            '{authors} ({year}). {title} (version {version}). '
-            '<i>PhysioNet</i>. https://doi.org/{doi}',
-            authors=', '.join(a.initialed_name() for a in authors),
-            year=year,
-            title=self.title,
-            version=self.version,
-            doi=doi)
+        mla_style = ('{author}. "{title}" (version {version}). '
+                     '<i>PhysioNet</i> ({year}), '
+                     '<a href="https://doi.org/{doi}">'
+                     'https://doi.org/{doi}</a>.')
+
+        apa_style = ('{author} ({year}). {title} (version {version}). '
+                     '<i>PhysioNet</i>. <a href="https://doi.org/{doi}">'
+                     'https://doi.org/{doi}</a>.')
+
+        chicago_style = ('{author}. "{title}" (version {version}). '
+                         '<i>PhysioNet</i> ({year}). '
+                         '<a href="https://doi.org/{doi}">'
+                         'https://doi.org/{doi}</a>.')
+
+        harvard_style = ("{author} ({year}) '{title}' (version {version}), "
+                         "<i>PhysioNet</i>. Available at: "
+                         "<a href='https://doi.org/{doi}'>"
+                         "https://doi.org/{doi}</a>.")
+
+        vancouver_style = ('{author}. {title} (version {version}). '
+                           'PhysioNet. {year}. Available from: '
+                           '<a href="https://doi.org/{doi}">'
+                           'https://doi.org/{doi}</a>.')
+
+        style_list = [mla_style, apa_style, chicago_style, harvard_style,
+                      vancouver_style]
+
+        shared_content = {'year': year,
+                          'title': self.title,
+                          'version': self.version,
+                          'doi': doi}
+
+        for count, style in enumerate(styles):
+
+            if style == 'MLA':
+
+                if (len(authors) == 1):
+                    all_authors = authors[0].get_full_name()
+                elif (len(authors) == 2):
+                    first_author = authors[0].get_full_name()
+                    second_author = authors[1].get_full_name()
+                    all_authors = first_author + ', and ' + second_author
+                else:
+                    all_authors = ', '.join(
+                        authors[0].get_full_name().split())
+                    all_authors += ', et al'
+
+            elif style == 'APA':
+
+                if (len(authors) == 1):
+                    all_authors = authors[0].initialed_name()
+                elif (len(authors) == 2):
+                    first_author = authors[0].initialed_name()
+                    second_author = authors[1].initialed_name()
+                    all_authors = first_author + ', & ' + second_author
+                elif (len(authors) > 20):
+                    all_authors = ', '.join(
+                        a.initialed_name() for a in authors[0:19])
+                    all_authors += ', ... ' \
+                        + authors[len(authors)-1].initialed_name()
+                else:
+                    all_authors = ', '.join(a.initialed_name() for a in
+                                            authors[:(len(authors)-1)])
+                    all_authors += ', & ' + \
+                        authors[len(authors)-1].initialed_name()
+
+            elif style == 'Chicago':
+
+                if (len(authors) == 1):
+                    all_authors = authors[0].get_full_name()
+                else:
+                    all_authors = ', '.join(
+                        a.get_full_name()
+                        for a in authors[:(len(authors)-1)])
+                    all_authors += ', and ' + \
+                        authors[len(authors)-1].get_full_name()
+
+            elif style == 'Harvard':
+
+                if (len(authors) == 1):
+                    all_authors = authors[0].initialed_name()
+                else:
+                    all_authors = ', '.join(a.initialed_name() for a in
+                                            authors[:(len(authors)-1)])
+                    all_authors += ', and ' + \
+                        authors[len(authors)-1].initialed_name()
+
+            elif style == 'Vancouver':
+
+                all_authors = ', '.join(a.initialed_name()
+                                         .replace(',', '')
+                                         .replace('.', '') for a in authors)
+
+            citation_format = format_html(style_list[count],
+                                          author=all_authors,
+                                          **shared_content)
+
+            citation_dict[style] = citation_format
+
+        return citation_dict
 
     def get_previous_slug(self):
         """
@@ -1556,7 +1649,6 @@ class PublishedProject(Metadata, SubmissionInfo):
         authors = self.authors.all().order_by('display_order')
         citation_dict = {}
 
-        # Add comma and space if DOI, else add period
         mla_style = ('{author}. "{title}" (version {version}). '
                      '<i>PhysioNet</i> ({year})')
 
@@ -1595,7 +1687,7 @@ class PublishedProject(Metadata, SubmissionInfo):
                     all_authors += ', et al'
 
                 doi_format = (', <a href="https://doi.org/{doi}">'
-                                'https://doi.org/{doi}</a>.')
+                              'https://doi.org/{doi}</a>.')
 
             elif style == 'APA':
 
@@ -1612,7 +1704,7 @@ class PublishedProject(Metadata, SubmissionInfo):
                         + authors[len(authors)-1].initialed_name()
                 else:
                     all_authors = ', '.join(a.initialed_name() for a in
-                                             authors[:(len(authors)-1)])
+                                            authors[:(len(authors)-1)])
                     all_authors += ', & ' + \
                         authors[len(authors)-1].initialed_name()
 
@@ -1631,7 +1723,7 @@ class PublishedProject(Metadata, SubmissionInfo):
                         authors[len(authors)-1].get_full_name()
 
                 doi_format = ('. <a href="https://doi.org/{doi}">'
-                                'https://doi.org/{doi}</a>.')
+                              'https://doi.org/{doi}</a>.')
 
             elif style == 'Harvard':
 
@@ -1639,7 +1731,7 @@ class PublishedProject(Metadata, SubmissionInfo):
                     all_authors = authors[0].initialed_name()
                 else:
                     all_authors = ', '.join(a.initialed_name() for a in
-                                             authors[:(len(authors)-1)])
+                                            authors[:(len(authors)-1)])
                     all_authors += ', and ' + \
                         authors[len(authors)-1].initialed_name()
 
