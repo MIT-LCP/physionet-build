@@ -12,6 +12,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
+from django.db import IntegrityError
 from django.forms import inlineformset_factory, HiddenInput, CheckboxInput
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.shortcuts import redirect, render
@@ -310,27 +311,43 @@ def register(request):
 
     if request.method == 'POST':
         form = forms.RegistrationForm(request.POST)
+        saved = False
+        integrity_catch = False
         if form.is_valid():
             # Create the new user
-            user = form.save()
+            try:
+                user = form.save()
+                saved = True
+            except IntegrityError:
+                form.full_clean()
+                if form.is_valid():
+                    raise
+                integrity_catch = True
+            if saved or integrity_catch:
+                if user.is_anonymous and integrity_catch:
+                    user = User.objects.get(username=form.data['username'])
 
-            # Send an email with the activation link
-            uidb64 = force_text(urlsafe_base64_encode(force_bytes(user.pk)))
-            token = default_token_generator.make_token(user)
-            subject = "PhysioNet Account Activation"
-            context = {
-                'name': user.get_full_name(),
-                'domain': get_current_site(request),
-                'url_prefix': get_url_prefix(request),
-                'uidb64': uidb64,
-                'token': token
-            }
-            body = loader.render_to_string('user/email/register_email.html', context)
-            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                [form.cleaned_data['email']], fail_silently=False)
+                if not integrity_catch:
+                    # Send an email with the activation link
+                    uidb64 = force_text(urlsafe_base64_encode(force_bytes(
+                        user.pk)))
+                    token = default_token_generator.make_token(user)
+                    subject = "PhysioNet Account Activation"
+                    context = {
+                        'name': user.get_full_name(),
+                        'domain': get_current_site(request),
+                        'url_prefix': get_url_prefix(request),
+                        'uidb64': uidb64,
+                        'token': token
+                    }
+                    body = loader.render_to_string(
+                        'user/email/register_email.html', context)
+                    # Not resend the email if there was an integrity error
+                    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                        [user.email], fail_silently=False)
+            return render(request, 'user/register_done.html', {
+                'email': user.email})
 
-            # Registration successful
-            return render(request, 'user/register_done.html', {'email':user.email})
     else:
         form = forms.RegistrationForm()
 
