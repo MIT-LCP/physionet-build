@@ -758,6 +758,8 @@ class UnpublishedProject(models.Model):
         authors = self.authors.all().order_by('display_order')
         year = timezone.now().year
         doi = '10.13026/*****'
+
+        # TODO: Add other citation styles
         return format_html(
             '{authors} ({year}). {title} (version {version}). '
             '<i>PhysioNet</i>. https://doi.org/{doi}',
@@ -1536,172 +1538,137 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         Returns the citation of the project in the following styles.
 
-        Parameters
-        ----------
-        styles (list):
-            MLA : MLA (8th edition)
-            APA (default) : APA (7th edition)
-            Chicago : Chicago (17th edition)
-            Harvard : Harvard
-            Vancouver : Vancouver
+        1. MLA (8th edition)
+        2. APA (7th edition)
+        3. Chicago (17th edition)
+        4. Harvard
+        5. Vancouver
 
         Returns
         -------
         citation_dict (dictionary) : dictionary of each citation style and
             their respective citation for the requested project
         """
-        # For if there are no authors or valuable metadata
         if self.is_legacy:
-            return {'APA':''}
+            return {'APA': ''}
 
-        styles = ['APA','MLA','Chicago','Harvard','Vancouver']
+        styles = ['MLA', 'APA', 'Chicago', 'Harvard', 'Vancouver']
         authors = self.authors.all().order_by('display_order')
         citation_dict = {}
 
-        for style in styles:
+        # Add comma and space if DOI, else add period
+        mla_style = ('{author}. "{title}" (version {version}). '
+                     '<i>PhysioNet</i> ({year})')
 
-            if (style == 'MLA'):
+        apa_style = ('{author} ({year}). {title} (version {version}). '
+                     '<i>PhysioNet</i>')
+
+        chicago_style = ('{author}. "{title}" (version {version}). '
+                         '<i>PhysioNet</i> ({year})')
+
+        harvard_style = ("{author} ({year}) '{title}' (version {version}), "
+                         "<i>PhysioNet</i>")
+
+        vancouver_style = ('{author}. {title} (version {version}). '
+                           'PhysioNet. {year}')
+
+        style_list = [mla_style, apa_style, chicago_style, harvard_style,
+                      vancouver_style]
+
+        shared_content = {'year': self.publish_datetime.year,
+                          'title': self.title,
+                          'version': self.version}
+
+        for count, style in enumerate(styles):
+
+            if style == 'MLA':
 
                 if (len(authors) == 1):
-                    temp_authors = authors[0].get_full_name(reverse=True)
+                    all_authors = authors[0].get_full_name(reverse=True)
                 elif (len(authors) == 2):
                     first_author = authors[0].get_full_name(reverse=True)
                     second_author = authors[1].get_full_name()
-                    temp_authors = first_author + ', and ' + second_author
+                    all_authors = first_author + ', and ' + second_author
                 else:
-                    temp_authors = ', '.join(authors[0].get_full_name().split())
-                    temp_authors += ', et al'
+                    all_authors = ', '.join(
+                        authors[0].get_full_name().split())
+                    all_authors += ', et al'
 
-                if self.doi:
-                    citation_format = format_html(
-                        '{authors}. "{title} (version {version})." '
-                        '<i>PhysioNet</i> ({year}), doi:'
-                        '<a href="https://doi.org/{doi}">https://doi.org/{doi}</a>.',
-                        authors=temp_authors,
-                        title=self.title,
-                        version=self.version,
-                        year=self.publish_datetime.year,
-                        doi=self.doi)
-                else:
-                    citation_format = format_html(
-                        '{authors}. "{title} (version {version})." '
-                        '<i>PhysioNet</i> ({year}).',
-                        authors=temp_authors,
-                        title=self.title,
-                        version=self.version,
-                        year=self.publish_datetime.year)
+                doi_format = (', <a href="https://doi.org/{doi}">'
+                                'https://doi.org/{doi}</a>.')
 
-            elif (style == 'APA'):
+            elif style == 'APA':
 
                 if (len(authors) == 1):
-                    temp_authors = authors[0].initialed_name()
+                    all_authors = authors[0].initialed_name()
                 elif (len(authors) == 2):
                     first_author = authors[0].initialed_name()
                     second_author = authors[1].initialed_name()
-                    temp_authors = first_author + ', & ' + second_author
+                    all_authors = first_author + ', & ' + second_author
                 elif (len(authors) > 20):
-                    temp_authors = ', '.join(a.initialed_name() for a in authors[0:19])
-                    temp_authors += ',... ' + authors[len(authors)-1].initialed_name()
+                    all_authors = ', '.join(
+                        a.initialed_name() for a in authors[0:19])
+                    all_authors += ', ... ' \
+                        + authors[len(authors)-1].initialed_name()
                 else:
-                    temp_authors = ', '.join(a.initialed_name() for a in authors[:(len(authors)-1)])
-                    temp_authors += ', & ' + authors[len(authors)-1].initialed_name()
+                    all_authors = ', '.join(a.initialed_name() for a in
+                                             authors[:(len(authors)-1)])
+                    all_authors += ', & ' + \
+                        authors[len(authors)-1].initialed_name()
 
-                if self.doi:
-                    citation_format = format_html(
-                        '{authors} ({year}). {title} (version {version}). '
-                        '<i>PhysioNet</i>. '
-                        '<a href="https://doi.org/{doi}">https://doi.org/{doi}</a>.',
-                        authors=temp_authors,
-                        year=self.publish_datetime.year,
-                        title=self.title,
-                        version=self.version,
-                        doi=self.doi)
-                else:
-                    citation_format = format_html(
-                        '{authors} ({year}). {title} (version {version}). '
-                        '<i>PhysioNet</i>.',
-                        authors=temp_authors,
-                        year=self.publish_datetime.year,
-                        title=self.title,
-                        version=self.version)
+                doi_format = ('. <a href="https://doi.org/{doi}">'
+                              'https://doi.org/{doi}</a>.')
 
-            elif (style == 'Chicago'):
+            elif style == 'Chicago':
 
                 if (len(authors) == 1):
-                    temp_authors = authors[0].get_full_name(reverse=True) 
+                    all_authors = authors[0].get_full_name(reverse=True)
                 else:
-                    temp_authors = ', '.join(a.get_full_name(reverse=True) for a in authors[:(len(authors)-1)])
-                    temp_authors += ', and ' + authors[len(authors)-1].get_full_name()
+                    all_authors = ', '.join(
+                        a.get_full_name(reverse=True)
+                        for a in authors[:(len(authors)-1)])
+                    all_authors += ', and ' + \
+                        authors[len(authors)-1].get_full_name()
 
-                if self.doi:
-                    citation_format = format_html(
-                        '{authors}. "{title} (version {version})." '
-                        '<i>PhysioNet</i> ({year}). '
-                        '<a href="https://doi.org/{doi}">https://doi.org/{doi}</a>.',
-                        authors=temp_authors,
-                        title=self.title,
-                        version=self.version,
-                        year=self.publish_datetime.year,
-                        doi=self.doi)
-                else:
-                    citation_format = format_html(
-                        '{authors}. "{title} (version {version})." '
-                        '<i>PhysioNet</i> ({year}).',
-                        authors=temp_authors,
-                        title=self.title,
-                        version=self.version,
-                        year=self.publish_datetime.year)
+                doi_format = ('. <a href="https://doi.org/{doi}">'
+                                'https://doi.org/{doi}</a>.')
 
-            elif (style == 'Harvard'):
+            elif style == 'Harvard':
 
                 if (len(authors) == 1):
-                    temp_authors = authors[0].initialed_name() 
+                    all_authors = authors[0].initialed_name()
                 else:
-                    temp_authors = ', '.join(a.initialed_name() for a in authors[:(len(authors)-1)])
-                    temp_authors += ', and ' + authors[len(authors)-1].initialed_name()
+                    all_authors = ', '.join(a.initialed_name() for a in
+                                             authors[:(len(authors)-1)])
+                    all_authors += ', and ' + \
+                        authors[len(authors)-1].initialed_name()
 
-                if self.doi:
-                    citation_format = format_html(
-                        "{authors} ({year}) '{title} (version {version}).', "
-                        "<i>PhysioNet</i>, Available from: "
-                        "<a href='https://doi.org/{doi}'>https://doi.org/{doi}</a>.",
-                        authors=temp_authors,
-                        year=self.publish_datetime.year,
-                        title=self.title,
-                        version=self.version,
-                        doi=self.doi)
-                else:
-                    citation_format = format_html(
-                        "{authors} ({year}) '{title} (version {version}).', "
-                        "<i>PhysioNet</i>.",
-                        authors=temp_authors,
-                        year=self.publish_datetime.year,
-                        title=self.title,
-                        version=self.version)
+                doi_format = (". Available at: "
+                              "<a href='https://doi.org/{doi}'>"
+                              "https://doi.org/{doi}</a>.")
 
-            elif (style == 'Vancouver'):
+            elif style == 'Vancouver':
 
-                temp_authors = ', '.join(a.initialed_name().replace(',','').replace('.','') for a in authors)
+                all_authors = ', '.join(a.initialed_name()
+                                         .replace(',', '')
+                                         .replace('.', '') for a in authors)
 
-                if self.doi:
-                    citation_format = format_html(
-                        '{authors}. {title} (version {version}). '
-                        'PhysioNet. {year}; Available from: '
-                        '<a href="https://doi.org/{doi}">https://doi.org/{doi}</a>. '
-                        'doi: {doi}',
-                        authors=temp_authors,
-                        title=self.title,
-                        version=self.version,
-                        year=self.publish_datetime.year,
-                        doi=self.doi)
-                else:
-                    citation_format = format_html(
-                        '{authors}. {title} (version {version}). '
-                        'PhysioNet. {year}.',
-                        authors=temp_authors,
-                        title=self.title,
-                        version=self.version,
-                        year=self.publish_datetime.year)
+                doi_format = ('. Available from: '
+                              '<a href="https://doi.org/{doi}">'
+                              'https://doi.org/{doi}</a>.')
+
+            if self.doi:
+                final_style = style_list[count] + doi_format
+                citation_format = format_html(final_style,
+                                              author=all_authors,
+                                              doi=self.doi,
+                                              **shared_content)
+
+            else:
+                final_style = style_list[count] + '.'
+                citation_format = format_html(final_style,
+                                              author=all_authors,
+                                              **shared_content)
 
             citation_dict[style] = citation_format
 
