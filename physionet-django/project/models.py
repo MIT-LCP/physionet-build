@@ -425,11 +425,17 @@ class ProjectType(models.Model):
 
 class Metadata(models.Model):
     """
-    Metadata for all projects
+    Visible content of a published or unpublished project.
 
-    https://schema.datacite.org/
-    https://schema.datacite.org/meta/kernel-4.0/doc/DataCite-MetadataKernel_v4.1.pdf
-    https://www.nature.com/sdata/publish/for-authors#format
+    Every project (ActiveProject, PublishedProject, and
+    ArchivedProject) inherits from this class as well as
+    SubmissionInfo.  The difference is that the fields of this class
+    contain public information that will be shown on the published
+    project pages; SubmissionInfo contains internal information about
+    the publication process.
+
+    New fields should be added to this class only if they affect the
+    content of the project as it will be shown when published.
     """
 
     ACCESS_POLICIES = (
@@ -478,18 +484,6 @@ class Metadata(models.Model):
     core_project = models.ForeignKey('project.CoreProject',
                                      related_name='%(class)ss',
                                      on_delete=models.CASCADE)
-
-    # When the submitting project was created
-    creation_datetime = models.DateTimeField(auto_now_add=True)
-
-    edit_logs = GenericRelation('project.EditLog')
-    copyedit_logs = GenericRelation('project.CopyeditLog')
-
-    # For ordering projects with multiple versions
-    version_order = models.PositiveSmallIntegerField(default=0)
-
-    # Anonymous access
-    anonymous = GenericRelation('project.AnonymousAccess')
 
     class Meta:
         abstract = True
@@ -683,7 +677,19 @@ class Metadata(models.Model):
 class SubmissionInfo(models.Model):
     """
     Submission information, inherited by all projects.
+
+    Every project (ActiveProject, PublishedProject, and
+    ArchivedProject) inherits from this class as well as Metadata.
+    The difference is that the fields of this class contain internal
+    information about the publication process; Metadata contains the
+    public information that will be shown on the published project
+    pages.
+
+    New fields should be added to this class only if they do not
+    affect the content of the project as it will be shown when
+    published.
     """
+
     editor = models.ForeignKey('user.User',
         related_name='editing_%(class)ss', null=True,
         on_delete=models.SET_NULL, blank=True)
@@ -699,6 +705,18 @@ class SubmissionInfo(models.Model):
     # The last copyedit (if any)
     copyedit_completion_datetime = models.DateTimeField(null=True, blank=True)
     author_approval_datetime = models.DateTimeField(null=True, blank=True)
+
+    # When the submitting project was created
+    creation_datetime = models.DateTimeField(auto_now_add=True)
+
+    edit_logs = GenericRelation('project.EditLog')
+    copyedit_logs = GenericRelation('project.CopyeditLog')
+
+    # For ordering projects with multiple versions
+    version_order = models.PositiveSmallIntegerField(default=0)
+
+    # Anonymous access
+    anonymous = GenericRelation('project.AnonymousAccess')
 
     class Meta:
         abstract = True
