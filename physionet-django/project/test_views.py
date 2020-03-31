@@ -3,8 +3,10 @@ import os
 
 from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import TestCase
 from django.urls import reverse
 
+from project.forms import ContentForm
 from project.models import (ArchivedProject, ActiveProject, PublishedProject,
                             Author, AuthorInvitation, License, StorageRequest,
                             DataAccessRequest)
@@ -373,6 +375,84 @@ class TestProjectCreation(TestMixin):
         oldpath = os.path.join(oldproject.file_root(), 'admissions.csv')
         newpath = os.path.join(newproject.file_root(), 'admissions.csv')
         self.assertTrue(os.path.samefile(oldpath, newpath))
+
+
+class TestProjectEditing(TestCase):
+    """
+    Tests for the submitting author to edit the project information.
+    """
+
+    AUTHOR = 'rgmark@mit.edu'
+    PASSWORD = 'Tester11!'
+    PROJECT_TITLE = 'MIT-BIH Arrhythmia Database'
+
+    def test_content(self):
+        """
+        Test editing the project page content.
+        """
+        self.client.login(username=self.AUTHOR, password=self.PASSWORD)
+
+        project = ActiveProject.objects.get(title=self.PROJECT_TITLE)
+        self.assertTrue(project.is_submittable())
+
+        content_url = reverse('project_content', args=(project.slug,))
+        response = self.client.get(content_url)
+        self.assertEqual(response.status_code, 200)
+
+        # Test post with existing data
+        # (abstract, background, content_description, etc.)
+        data = {
+            'project-reference-content_type-object_id-TOTAL_FORMS': '0',
+            'project-reference-content_type-object_id-INITIAL_FORMS': '0',
+            'project-reference-content_type-object_id-MIN_NUM_FORMS': '0',
+            'project-reference-content_type-object_id-MAX_NUM_FORMS': '0',
+        }
+        for field in ContentForm.FIELDS[project.resource_type.id]:
+            data[field] = getattr(project, field)
+
+        response = self.client.post(content_url, data=data)
+        self.assertEqual(response.status_code, 200)
+
+        # Post some HTML, and verify that forbidden tags/attributes
+        # are removed
+        input_html = """
+        <p>
+        Example text with <em>emphasis</em>, <code>sample code</code>,
+        <a href="https://physionet.org">links</a>,
+        <math><mi>&#960;</mi><mo>=</mo>
+        <mfrac><mn>22</mn><mn>7</mn></mfrac></math>,
+        some ambiguous characters & < >,
+        <form>invalid tags</form>,
+        <span onclick="evil()">invalid attributes</span>
+        </p>
+        """
+
+        expected_html = """
+        <p>
+        Example text with <em>emphasis</em>, <code>sample code</code>,
+        <a href="https://physionet.org">links</a>,
+        <math><mi>&#960;</mi><mo>=</mo>
+        <mfrac><mn>22</mn><mn>7</mn></mfrac></math>,
+        some ambiguous characters &amp; &lt; &gt;,
+        &lt;form&gt;invalid tags&lt;/form&gt;,
+        <span>invalid attributes</span>
+        </p>
+        """
+
+        data['background'] = input_html
+        response = self.client.post(content_url, data=data)
+        self.assertEqual(response.status_code, 200)
+        project.refresh_from_db()
+        self.assertHTMLEqual(project.background, expected_html)
+
+        # Post some blank text in a required field and verify that the
+        # project cannot be submitted
+        self.assertTrue(project.is_submittable())
+        data['background'] = '<p>&nbsp;</p>'
+        response = self.client.post(content_url, data=data)
+        self.assertEqual(response.status_code, 200)
+        project.refresh_from_db()
+        self.assertFalse(project.is_submittable())
 
 
 class TestAccessPublished(TestMixin):
