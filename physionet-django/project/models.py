@@ -828,6 +828,24 @@ class UnpublishedProject(models.Model):
         """
         return os.path.isfile(os.path.join(self.file_root(), 'RECORDS'))
 
+    def content_modified(self):
+        """
+        Update the project's modification timestamp.
+
+        The modification timestamp (modified_datetime) is
+        automatically updated when the object is saved, if any of the
+        project's Metadata fields have been modified (see
+        UnpublishedProject.save).
+
+        This function should be called when saving or deleting
+        objects, other than the UnpublishedProject itself, that are
+        part of the project's visible content.
+        """
+
+        # Note: modified_datetime is an auto_now field, so it is
+        # automatically set to the current time whenever it is saved.
+        self.save(update_fields=['modified_datetime'])
+
     @classmethod
     def from_db(cls, *args, **kwargs):
         """
