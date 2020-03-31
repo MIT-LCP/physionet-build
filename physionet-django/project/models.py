@@ -1120,8 +1120,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         archived_project = ArchivedProject(archive_reason=archive_reason,
             slug=self.slug)
 
+        modified_datetime = self.modified_datetime
+
         # Direct copy over fields
-        for attr in [f.name for f in Metadata._meta.fields] + [f.name for f in SubmissionInfo._meta.fields] + ['modified_datetime']:
+        for attr in [f.name for f in Metadata._meta.fields] + [f.name for f in SubmissionInfo._meta.fields]:
             setattr(archived_project, attr, getattr(self, attr))
 
         archived_project.save()
@@ -1158,6 +1160,13 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         else:
             # Move over files
             os.rename(self.file_root(), archived_project.file_root())
+
+        # Copy the ActiveProject timestamp to the ArchivedProject.
+        # Since this is an auto_now field, save() doesn't allow
+        # setting an arbitrary value.
+        queryset = ArchivedProject.objects.filter(id=archived_project.id)
+        queryset.update(modified_datetime=modified_datetime)
+
         return self.delete()
 
     def fake_delete(self):
