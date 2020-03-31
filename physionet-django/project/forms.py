@@ -576,6 +576,11 @@ class DiscoveryForm(forms.ModelForm):
         data = self.cleaned_data['short_description']
         return ' '.join(data.split())
 
+    def save(self, *args, **kwargs):
+        result = super().save(*args, **kwargs)
+        self.instance.content_modified()
+        return result
+
 
 class AffiliationFormSet(forms.BaseInlineFormSet):
     """
