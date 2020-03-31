@@ -307,6 +307,14 @@ class Topic(models.Model):
     def __str__(self):
         return self.description
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.project.content_modified()
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        self.project.content_modified()
+
 
 class PublishedTopic(models.Model):
     """
@@ -336,6 +344,14 @@ class Reference(models.Model):
 
     def __str__(self):
         return self.description
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.project.content_modified()
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        self.project.content_modified()
 
 
 class PublishedReference(models.Model):
@@ -378,6 +394,14 @@ class Publication(BasePublication):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     project = GenericForeignKey('content_type', 'object_id')
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.project.content_modified()
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        self.project.content_modified()
 
 
 class PublishedPublication(BasePublication):
