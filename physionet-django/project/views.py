@@ -908,6 +908,7 @@ def process_items(request, form):
     """
     if form.is_valid():
         success_msg, errors = form.perform_action()
+        form.project.content_modified()
         if errors:
             messages.error(request, errors)
         else:
@@ -973,7 +974,6 @@ def project_files(request, project_slug, subdir='', **kwargs):
         else:
             # process the file manipulation post
             subdir = process_files_post(request, project)
-            project.modified_datetime = timezone.now()
 
     if is_submitting and project.author_editable():
         files_editable = True
