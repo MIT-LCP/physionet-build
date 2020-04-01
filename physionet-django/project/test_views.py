@@ -418,6 +418,9 @@ class TestProjectEditing(TestCase):
         response = self.client.post(content_url, data=data)
         self.assertEqual(response.status_code, 200)
 
+        project.refresh_from_db()
+        timestamp = project.modified_datetime
+
         # Post some HTML, and verify that forbidden tags/attributes
         # are removed
         input_html = """
@@ -449,6 +452,7 @@ class TestProjectEditing(TestCase):
         self.assertEqual(response.status_code, 200)
         project.refresh_from_db()
         self.assertHTMLEqual(project.background, expected_html)
+        self.assertGreater(project.modified_datetime, timestamp)
 
         # Post some blank text in a required field and verify that the
         # project cannot be submitted
