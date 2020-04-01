@@ -241,6 +241,9 @@ def submission_info(request, project_slug):
                               is_reassigned=True)
         notification.editor_notify_new_project(project, user, reassigned=True)
         messages.success(request, 'The editor has been reassigned')
+        LOGGER.info("The editor for the project {0} has been reassigned from "
+                    "{1} to {2}".format(project, user,
+                        reassign_editor_form.cleaned_data['editor']))
 
     url_prefix = notification.get_url_prefix(request)
     return render(request, 'console/submission_info.html',
