@@ -50,7 +50,7 @@ class TestState(TestMixin):
 
     def test_reassign_editor(self):
         """
-        Assign an editor, then re-asign it
+        Assign an editor, then reassign it
         """
         # Submit project
         project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
