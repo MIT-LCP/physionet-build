@@ -7,7 +7,7 @@
     "email": "admin@mit.edu",
     "username": "admin",
     "join_date": "2017-11-11",
-    "last_login": "2020-03-29T21:53:22.380Z",
+    "last_login": "2020-04-07T15:42:43.445Z",
     "is_active": true,
     "is_admin": true,
     "is_credentialed": false,
@@ -3060,6 +3060,36 @@
   }
 },
 {
+  "model": "user.user",
+  "pk": 205,
+  "fields": {
+    "password": "",
+    "email": "felipe1.torres.cs@gmail.com",
+    "username": "felipe1",
+    "join_date": "2020-04-07",
+    "last_login": null,
+    "is_active": false,
+    "is_admin": false,
+    "is_credentialed": false,
+    "credential_datetime": null
+  }
+},
+{
+  "model": "user.user",
+  "pk": 206,
+  "fields": {
+    "password": "pbkdf2_sha256$150000$JZYaK8Hpb5gx$pvZssTnlQ7MPxvbaK1ODb6h7KntEMKCFOBZM/ieBfHg=",
+    "email": "tpollard@mit.edu",
+    "username": "tompollard",
+    "join_date": "2020-04-07",
+    "last_login": "2020-04-07T15:42:48.087Z",
+    "is_active": true,
+    "is_admin": false,
+    "is_credentialed": false,
+    "credential_datetime": null
+  }
+},
+{
   "model": "user.userlogin",
   "pk": 1,
   "fields": {
@@ -3083,6 +3113,24 @@
   "fields": {
     "user": 9,
     "login_date": "2020-03-29T21:53:48.939Z",
+    "ip": "127.0.0.1"
+  }
+},
+{
+  "model": "user.userlogin",
+  "pk": 4,
+  "fields": {
+    "user": 1,
+    "login_date": "2020-04-07T15:42:43.444Z",
+    "ip": "127.0.0.1"
+  }
+},
+{
+  "model": "user.userlogin",
+  "pk": 5,
+  "fields": {
+    "user": 206,
+    "login_date": "2020-04-07T15:42:48.087Z",
     "ip": "127.0.0.1"
   }
 },
@@ -5985,6 +6033,34 @@
   }
 },
 {
+  "model": "user.associatedemail",
+  "pk": 208,
+  "fields": {
+    "user": 205,
+    "email": "felipe1.torres.cs@gmail.com",
+    "is_primary_email": true,
+    "added_date": "2020-04-07T14:44:47.295Z",
+    "verification_date": null,
+    "verification_token": null,
+    "is_verified": false,
+    "is_public": false
+  }
+},
+{
+  "model": "user.associatedemail",
+  "pk": 209,
+  "fields": {
+    "user": 206,
+    "email": "tpollard@mit.edu",
+    "is_primary_email": true,
+    "added_date": "2020-04-07T15:41:51.851Z",
+    "verification_date": "2020-04-07T15:42:48.084Z",
+    "verification_token": null,
+    "is_verified": true,
+    "is_public": false
+  }
+},
+{
   "model": "user.legacycredential",
   "pk": 1,
   "fields": {
@@ -8647,6 +8723,32 @@
     "user": 204,
     "first_names": "Pamela",
     "last_name": "Smith",
+    "affiliation": "",
+    "location": "",
+    "website": "",
+    "photo": ""
+  }
+},
+{
+  "model": "user.profile",
+  "pk": 205,
+  "fields": {
+    "user": 205,
+    "first_names": "Felipe",
+    "last_name": "F\u00e1bregas",
+    "affiliation": "",
+    "location": "",
+    "website": "",
+    "photo": ""
+  }
+},
+{
+  "model": "user.profile",
+  "pk": 206,
+  "fields": {
+    "user": 206,
+    "first_names": "Tom",
+    "last_name": "Pollard",
     "affiliation": "",
     "location": "",
     "website": "",
