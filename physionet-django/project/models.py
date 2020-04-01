@@ -1096,6 +1096,14 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         self.editor_assignment_datetime = timezone.now()
         self.save()
 
+    def reassign_editor(self, editor):
+        """
+        Assign another editor to the project
+        """
+        self.editor = editor
+        self.editor_assignment_datetime = timezone.now()
+        self.save()
+
     def reject(self):
         """
         Reject a project under submission
