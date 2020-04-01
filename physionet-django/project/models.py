@@ -498,6 +498,12 @@ class Metadata(models.Model):
     class Meta:
         abstract = True
 
+    def is_published(self):
+        if isinstance(self, PublishedProject):
+            return True
+        else:
+            return False
+
     def author_contact_info(self, only_submitting=False):
         """
         Get the names and emails of the project's authors.
@@ -683,6 +689,169 @@ class Metadata(models.Model):
 
         return anonymous.url
 
+    def citation_text(self, styles):
+        """
+        Citation information in multiple formats (MLA, APA, Chicago,
+        Harvard, and Vancouver).
+
+        1. MLA (8th edition) [https://owl.purdue.edu/owl/research_and_citation/
+                              mla_style/mla_formatting_and_style_guide/
+                              mla_formatting_and_style_guide.html]
+        2. APA (7th edition) [https://owl.purdue.edu/owl/research_and_citation/
+                              apa_style/apa_style_introduction.html]
+        3. Chicago (17th edition) [https://owl.purdue.edu/owl/
+                                   research_and_citation/
+                                   chicago_manual_17th_edition/
+                                   cmos_formatting_and_style_guide/
+                                   chicago_manual_of_style_17th_edition.html]
+        4. Harvard [https://www.mendeley.com/guides/harvard-citation-guide]
+        5. Vancouver [https://guides.lib.monash.edu/ld.php?content_id=14570618]
+
+        Parameters
+        ----------
+        styles [list]:
+            ['MLA', 'APA', 'Chicago', 'Harvard', 'Vancouver']
+
+        Returns
+        -------
+        citation_dict [dict]:
+            dictionary containing all desired citation styles
+        """
+        authors = self.authors.all().order_by('display_order')
+        citation_dict = {}
+
+        if self.is_published():
+
+            year = self.publish_datetime.year
+            doi = self.doi
+            is_legacy = models.BooleanField(default=False)
+
+            if self.is_legacy:
+                return {'APA': ''}
+
+        else:
+            """
+            Since the project is not yet published, the current year is used in
+            place of the publication year, and '*****' is used in place of the
+            DOI suffix.
+            """
+            year = timezone.now().year
+            doi = '10.13026/*****'
+
+        shared_content = {'year': year,
+                          'title': self.title,
+                          'version': self.version}
+
+        for style in styles:
+
+            if style == 'MLA':
+
+                style_format = ('{author}. "{title}" (version {version}). '
+                                '<i>PhysioNet</i> ({year})')
+
+                doi_format = (', <a href="https://doi.org/{doi}">'
+                              'https://doi.org/{doi}</a>.')
+
+                if (len(authors) == 1):
+                    all_authors = authors[0].get_full_name(reverse=True)
+                elif (len(authors) == 2):
+                    first_author = authors[0].get_full_name(reverse=True)
+                    second_author = authors[1].get_full_name()
+                    all_authors = first_author + ', and ' + second_author
+                else:
+                    all_authors = ', '.join(
+                        authors[0].get_full_name().split())
+                    all_authors += ', et al'
+
+            elif style == 'APA':
+
+                style_format = ('{author} ({year}). {title} (version '
+                                '{version}). <i>PhysioNet</i>')
+
+                doi_format = ('. <a href="https://doi.org/{doi}">'
+                              'https://doi.org/{doi}</a>.')
+
+                if (len(authors) == 1):
+                    all_authors = authors[0].initialed_name()
+                elif (len(authors) == 2):
+                    first_author = authors[0].initialed_name()
+                    second_author = authors[1].initialed_name()
+                    all_authors = first_author + ', & ' + second_author
+                elif (len(authors) > 20):
+                    all_authors = ', '.join(
+                        a.initialed_name() for a in authors[0:19])
+                    all_authors += ', ... ' \
+                        + authors[len(authors)-1].initialed_name()
+                else:
+                    all_authors = ', '.join(a.initialed_name() for a in
+                                            authors[:(len(authors)-1)])
+                    all_authors += ', & ' + \
+                        authors[len(authors)-1].initialed_name()
+
+            elif style == 'Chicago':
+
+                style_format = ('{author}. "{title}" (version {version}). '
+                                '<i>PhysioNet</i> ({year})')
+
+                doi_format = ('. <a href="https://doi.org/{doi}">'
+                              'https://doi.org/{doi}</a>.')
+
+                if (len(authors) == 1):
+                    all_authors = authors[0].get_full_name(reverse=True)
+                else:
+                    all_authors = ', '.join(
+                        a.get_full_name(reverse=True)
+                        for a in authors[:(len(authors)-1)])
+                    all_authors += ', and ' + \
+                        authors[len(authors)-1].get_full_name()
+
+            elif style == 'Harvard':
+
+                style_format = ("{author} ({year}) '{title}' (version "
+                                "{version}), <i>PhysioNet</i>")
+
+                doi_format = (". Available at: "
+                              "<a href='https://doi.org/{doi}'>"
+                              "https://doi.org/{doi}</a>.")
+
+                if (len(authors) == 1):
+                    all_authors = authors[0].initialed_name()
+                else:
+                    all_authors = ', '.join(a.initialed_name() for a in
+                                            authors[:(len(authors)-1)])
+                    all_authors += ', and ' + \
+                        authors[len(authors)-1].initialed_name()
+
+            elif style == 'Vancouver':
+
+                style_format = ('{author}. {title} (version {version}). '
+                                'PhysioNet. {year}')
+
+                doi_format = ('. Available from: '
+                              '<a href="https://doi.org/{doi}">'
+                              'https://doi.org/{doi}</a>.')
+
+                all_authors = ', '.join(a.initialed_name()
+                                        .replace(',', '')
+                                        .replace('.', '') for a in authors)
+
+            if doi:
+                final_style = style_format + doi_format
+                citation_format = format_html(final_style,
+                                              author=all_authors,
+                                              doi=doi,
+                                              **shared_content)
+
+            else:
+                final_style = style_format + '.'
+                citation_format = format_html(final_style,
+                                              author=all_authors,
+                                              **shared_content)
+
+            citation_dict[style] = citation_format
+
+        return citation_dict
+
 
 class SubmissionInfo(models.Model):
     """
@@ -752,123 +921,6 @@ class UnpublishedProject(models.Model):
             used = None
         return StorageInfo(allowance=self.core_project.storage_allowance,
                            used=used, include_remaining=True)
-
-    def citation_text(self):
-        """
-        Return template citation text.
-
-        This text resembles the final "citation text" as it will
-        appear once the project is published.  Since the project is
-        not yet published, the current year is used in place of the
-        publication year, and '*****' is used in place of the DOI
-        suffix.
-        """
-        styles = ['MLA', 'APA', 'Chicago', 'Harvard', 'Vancouver']
-        authors = self.authors.all().order_by('display_order')
-        year = timezone.now().year
-        doi = '10.13026/*****'
-        citation_dict = {}
-
-        mla_style = ('{author}. "{title}" (version {version}). '
-                     '<i>PhysioNet</i> ({year}), '
-                     '<a href="https://doi.org/{doi}">'
-                     'https://doi.org/{doi}</a>.')
-
-        apa_style = ('{author} ({year}). {title} (version {version}). '
-                     '<i>PhysioNet</i>. <a href="https://doi.org/{doi}">'
-                     'https://doi.org/{doi}</a>.')
-
-        chicago_style = ('{author}. "{title}" (version {version}). '
-                         '<i>PhysioNet</i> ({year}). '
-                         '<a href="https://doi.org/{doi}">'
-                         'https://doi.org/{doi}</a>.')
-
-        harvard_style = ("{author} ({year}) '{title}' (version {version}), "
-                         "<i>PhysioNet</i>. Available at: "
-                         "<a href='https://doi.org/{doi}'>"
-                         "https://doi.org/{doi}</a>.")
-
-        vancouver_style = ('{author}. {title} (version {version}). '
-                           'PhysioNet. {year}. Available from: '
-                           '<a href="https://doi.org/{doi}">'
-                           'https://doi.org/{doi}</a>.')
-
-        style_list = [mla_style, apa_style, chicago_style, harvard_style,
-                      vancouver_style]
-
-        shared_content = {'year': year,
-                          'title': self.title,
-                          'version': self.version,
-                          'doi': doi}
-
-        for count, style in enumerate(styles):
-
-            if style == 'MLA':
-
-                if (len(authors) == 1):
-                    all_authors = authors[0].get_full_name(reverse=True)
-                elif (len(authors) == 2):
-                    first_author = authors[0].get_full_name(reverse=True)
-                    second_author = authors[1].get_full_name()
-                    all_authors = first_author + ', and ' + second_author
-                else:
-                    all_authors = ', '.join(
-                        authors[0].get_full_name().split())
-                    all_authors += ', et al'
-
-            elif style == 'APA':
-
-                if (len(authors) == 1):
-                    all_authors = authors[0].initialed_name()
-                elif (len(authors) == 2):
-                    first_author = authors[0].initialed_name()
-                    second_author = authors[1].initialed_name()
-                    all_authors = first_author + ', & ' + second_author
-                elif (len(authors) > 20):
-                    all_authors = ', '.join(
-                        a.initialed_name() for a in authors[0:19])
-                    all_authors += ', ... ' \
-                        + authors[len(authors)-1].initialed_name()
-                else:
-                    all_authors = ', '.join(a.initialed_name() for a in
-                                            authors[:(len(authors)-1)])
-                    all_authors += ', & ' + \
-                        authors[len(authors)-1].initialed_name()
-
-            elif style == 'Chicago':
-
-                if (len(authors) == 1):
-                    all_authors = authors[0].get_full_name(reverse=True)
-                else:
-                    all_authors = ', '.join(
-                        a.get_full_name(reverse=True)
-                        for a in authors[:(len(authors)-1)])
-                    all_authors += ', and ' + \
-                        authors[len(authors)-1].get_full_name()
-
-            elif style == 'Harvard':
-
-                if (len(authors) == 1):
-                    all_authors = authors[0].initialed_name()
-                else:
-                    all_authors = ', '.join(a.initialed_name() for a in
-                                            authors[:(len(authors)-1)])
-                    all_authors += ', and ' + \
-                        authors[len(authors)-1].initialed_name()
-
-            elif style == 'Vancouver':
-
-                all_authors = ', '.join(a.initialed_name()
-                                         .replace(',', '')
-                                         .replace('.', '') for a in authors)
-
-            citation_format = format_html(style_list[count],
-                                          author=all_authors,
-                                          **shared_content)
-
-            citation_dict[style] = citation_format
-
-        return citation_dict
 
     def get_previous_slug(self):
         """
@@ -1634,145 +1686,6 @@ class PublishedProject(Metadata, SubmissionInfo):
         return StorageInfo(allowance=self.core_project.storage_allowance,
             used=main+compressed, include_remaining=False, main_used=main,
             compressed_used=compressed)
-
-    def citation_text(self):
-        """
-        Returns the citation of the project in the following styles.
-
-        1. MLA (8th edition)
-        2. APA (7th edition)
-        3. Chicago (17th edition)
-        4. Harvard
-        5. Vancouver
-
-        Returns
-        -------
-        citation_dict (dictionary) : dictionary of each citation style and
-            their respective citation for the requested project
-        """
-        if self.is_legacy:
-            return {'APA': ''}
-
-        styles = ['MLA', 'APA', 'Chicago', 'Harvard', 'Vancouver']
-        authors = self.authors.all().order_by('display_order')
-        citation_dict = {}
-
-        mla_style = ('{author}. "{title}" (version {version}). '
-                     '<i>PhysioNet</i> ({year})')
-
-        apa_style = ('{author} ({year}). {title} (version {version}). '
-                     '<i>PhysioNet</i>')
-
-        chicago_style = ('{author}. "{title}" (version {version}). '
-                         '<i>PhysioNet</i> ({year})')
-
-        harvard_style = ("{author} ({year}) '{title}' (version {version}), "
-                         "<i>PhysioNet</i>")
-
-        vancouver_style = ('{author}. {title} (version {version}). '
-                           'PhysioNet. {year}')
-
-        style_list = [mla_style, apa_style, chicago_style, harvard_style,
-                      vancouver_style]
-
-        shared_content = {'year': self.publish_datetime.year,
-                          'title': self.title,
-                          'version': self.version}
-
-        for count, style in enumerate(styles):
-
-            if style == 'MLA':
-
-                if (len(authors) == 1):
-                    all_authors = authors[0].get_full_name(reverse=True)
-                elif (len(authors) == 2):
-                    first_author = authors[0].get_full_name(reverse=True)
-                    second_author = authors[1].get_full_name()
-                    all_authors = first_author + ', and ' + second_author
-                else:
-                    all_authors = ', '.join(
-                        authors[0].get_full_name().split())
-                    all_authors += ', et al'
-
-                doi_format = (', <a href="https://doi.org/{doi}">'
-                              'https://doi.org/{doi}</a>.')
-
-            elif style == 'APA':
-
-                if (len(authors) == 1):
-                    all_authors = authors[0].initialed_name()
-                elif (len(authors) == 2):
-                    first_author = authors[0].initialed_name()
-                    second_author = authors[1].initialed_name()
-                    all_authors = first_author + ', & ' + second_author
-                elif (len(authors) > 20):
-                    all_authors = ', '.join(
-                        a.initialed_name() for a in authors[0:19])
-                    all_authors += ', ... ' \
-                        + authors[len(authors)-1].initialed_name()
-                else:
-                    all_authors = ', '.join(a.initialed_name() for a in
-                                            authors[:(len(authors)-1)])
-                    all_authors += ', & ' + \
-                        authors[len(authors)-1].initialed_name()
-
-                doi_format = ('. <a href="https://doi.org/{doi}">'
-                              'https://doi.org/{doi}</a>.')
-
-            elif style == 'Chicago':
-
-                if (len(authors) == 1):
-                    all_authors = authors[0].get_full_name(reverse=True)
-                else:
-                    all_authors = ', '.join(
-                        a.get_full_name(reverse=True)
-                        for a in authors[:(len(authors)-1)])
-                    all_authors += ', and ' + \
-                        authors[len(authors)-1].get_full_name()
-
-                doi_format = ('. <a href="https://doi.org/{doi}">'
-                              'https://doi.org/{doi}</a>.')
-
-            elif style == 'Harvard':
-
-                if (len(authors) == 1):
-                    all_authors = authors[0].initialed_name()
-                else:
-                    all_authors = ', '.join(a.initialed_name() for a in
-                                            authors[:(len(authors)-1)])
-                    all_authors += ', and ' + \
-                        authors[len(authors)-1].initialed_name()
-
-                doi_format = (". Available at: "
-                              "<a href='https://doi.org/{doi}'>"
-                              "https://doi.org/{doi}</a>.")
-
-            elif style == 'Vancouver':
-
-                all_authors = ', '.join(a.initialed_name()
-                                         .replace(',', '')
-                                         .replace('.', '') for a in authors)
-
-                doi_format = ('. Available from: '
-                              '<a href="https://doi.org/{doi}">'
-                              'https://doi.org/{doi}</a>.')
-
-            if self.doi:
-                final_style = style_list[count] + doi_format
-                citation_format = format_html(final_style,
-                                              author=all_authors,
-                                              doi=self.doi,
-                                              **shared_content)
-
-            else:
-                final_style = style_list[count] + '.'
-                citation_format = format_html(final_style,
-                                              author=all_authors,
-                                              **shared_content)
-
-            citation_dict[style] = citation_format
-
-        return citation_dict
 
     def remove(self, force=False):
         """

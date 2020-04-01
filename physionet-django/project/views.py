@@ -1082,6 +1082,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     topics = project.topics.all()
     parent_projects = project.parent_projects.all()
     languages = project.programming_languages.all()
+    citations = project.citation_text(['MLA','APA','Chicago','Harvard','Vancouver'])
 
     passes_checks = project.check_integrity()
     
@@ -1106,7 +1107,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
         'invitations':invitations, 'references':references,
         'publication':publication, 'topics':topics, 'languages':languages,
         'passes_checks':passes_checks, 'dir_breadcrumbs':dir_breadcrumbs,
-        'files_panel_url':files_panel_url,
+        'files_panel_url':files_panel_url, 'citations': citations,
         'subdir':subdir, 'parent_dir':parent_dir,
         'file_error':file_error, 'file_warning':file_warning,
         'parent_projects':parent_projects, 'has_passphrase':has_passphrase})
@@ -1512,6 +1513,7 @@ def published_project(request, project_slug, version, subdir=''):
     # derived_projects = project.derived_publishedprojects.all()
     data_access = DataAccess.objects.filter(project=project)
     user = request.user
+    citations = project.citation_text(['MLA','APA','Chicago','Harvard','Vancouver'])
 
     # Anonymous access authentication
     an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60*60)
@@ -1526,7 +1528,7 @@ def published_project(request, project_slug, version, subdir=''):
                'references': references, 'publication': publication,
                'topics': topics, 'languages': languages, 'contact': contact,
                'has_access': has_access, 'current_site': current_site,
-               'url_prefix': url_prefix,
+               'url_prefix': url_prefix, 'citations': citations,
                'news': news, 'all_project_versions': all_project_versions,
                'parent_projects':parent_projects, 'data_access':data_access,
                'messages':messages.get_messages(request)}
