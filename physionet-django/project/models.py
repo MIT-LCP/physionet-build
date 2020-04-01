@@ -1087,20 +1087,13 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         self.submitting_author = self.submitting_author()
 
-    def assign_editor(self, editor):
+    def assign_editor(self, editor, is_reassigned=False):
         """
         Assign an editor to the project
         """
         self.editor = editor
-        self.submission_status = 20
-        self.editor_assignment_datetime = timezone.now()
-        self.save()
-
-    def reassign_editor(self, editor):
-        """
-        Assign another editor to the project
-        """
-        self.editor = editor
+        if not is_reassigned:
+            self.submission_status = 20
         self.editor_assignment_datetime = timezone.now()
         self.save()
 
