@@ -48,6 +48,29 @@ class TestState(TestMixin):
         self.assertTrue(project.editor, editor)
         self.assertEqual(project.submission_status, 20)
 
+    def test_reassign_editor(self):
+        """
+        Assign an editor, then re-asign it
+        """
+        # Submit project
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        project.submit(author_comments='')
+        # Assign editor
+        self.client.login(username='admin', password='Tester11!')
+        editor = User.objects.get(username='tompollard')
+        response = self.client.post(reverse('submitted_projects'), data={
+            'project': project.id, 'editor': editor.id})
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        self.assertTrue(project.editor, editor)
+        self.assertEqual(project.submission_status, 20)
+
+        # Reassign editor
+        editor = User.objects.get(username='admin')
+        response = self.client.post(reverse('submission_info',
+            args=(project.slug,)), data={'editor': editor.id})
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        self.assertTrue(project.editor, editor)
+
     def test_edit_reject(self):
         """
         Edit a project, rejecting it.
