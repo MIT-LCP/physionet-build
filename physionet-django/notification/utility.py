@@ -234,7 +234,8 @@ def assign_editor_notify(project):
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)
 
-def editor_notify_new_project(project, assigner):
+
+def editor_notify_new_project(project, assigner, reassigned=False):
     """
     Notify authors when an editor is assigned
     """
@@ -244,15 +245,19 @@ def editor_notify_new_project(project, assigner):
     body = loader.render_to_string(
         'notification/email/editor_notify_new_project.html', {
             'project': project,
-            'editor': project.editor,
+            'editor': project.editor.get_full_name(),
             'signature': email_signature(),
             'user': assigner.get_full_name(),
             'project_info': email_project_info(project),
             'footer': email_footer()
         })
+    if reassigned:
+        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                  [project.editor.email, assigner.email], fail_silently=False)
+    else:
+        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                  [project.editor.email], fail_silently=False)
 
-    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-              [project.editor.email], fail_silently=False)
 
 def edit_decision_notify(request, project, edit_log, reminder=False):
     """
