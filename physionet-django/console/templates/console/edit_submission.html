@@ -32,4 +32,11 @@
 
 {% block local_js_bottom %}
 <script src="{% static 'custom/js/enable-popover.js' %}"></script>
+{% if project.editor == user %}
+<script>
+  function set_editor_text(){
+    $('#project_author').text($( "#id_editor option:selected" ).text());
+  }
+</script>
+{% endif %}
 {% endblock %}

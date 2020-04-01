@@ -97,4 +97,12 @@
 {% if project.has_other_versions or project.version_order %}
   <script src="{% static 'custom/js/disable-title.js' %}"></script>
 {% endif %}
+
+{% if project.editor == user %}
+<script>
+  function set_editor_text(){
+    $('#project_author').text($( "#id_editor option:selected" ).text());
+  }
+</script>
+{% endif %}
 {% endblock %}

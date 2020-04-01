@@ -223,8 +223,11 @@ def submission_info(request, project_slug):
     except ActiveProject.DoesNotExist:
         raise Http404()
 
+    user = request.user
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
 
+    data = request.POST or None
+    reassign_editor_form = forms.ReassignEditorForm(user, data=data)
     passphrase = ''
     anonymous_url = project.get_anonymous_url()
 
@@ -233,6 +236,10 @@ def submission_info(request, project_slug):
     elif 'remove_passphrase' in request.POST:
         project.anonymous.all().delete()
         anonymous_url, passphrase = '', 'revoked'
+    elif 'reassign_editor' in request.POST and reassign_editor_form.is_valid():
+        project.reassign_editor(reassign_editor_form.cleaned_data['editor'])
+        notification.editor_notify_new_project(project, user, reassigned=True)
+        messages.success(request, 'The editor has been reassigned')
 
     url_prefix = notification.get_url_prefix(request)
     return render(request, 'console/submission_info.html',
@@ -241,6 +248,7 @@ def submission_info(request, project_slug):
          'edit_logs': edit_logs, 'copyedit_logs': copyedit_logs,
          'latest_version': latest_version, 'passphrase': passphrase,
          'anonymous_url': anonymous_url, 'url_prefix': url_prefix,
+         'reassign_editor_form': reassign_editor_form,
          'project_info_nav': True})
 
 
@@ -251,6 +259,7 @@ def edit_submission(request, project_slug, *args, **kwargs):
     """
     project = kwargs['project']
     edit_log = project.edit_logs.get(decision_datetime__isnull=True)
+    reassign_editor_form = forms.ReassignEditorForm(request.user)
 
     # The user must be the editor
     if project.submission_status not in [20, 30]:
@@ -286,7 +295,7 @@ def edit_submission(request, project_slug, *args, **kwargs):
          'authors': authors, 'author_emails': author_emails,
          'storage_info': storage_info, 'edit_logs': edit_logs,
          'latest_version': latest_version, 'url_prefix': url_prefix,
-         'editor_home': True})
+         'editor_home': True, 'reassign_editor_form': reassign_editor_form})
 
 
 @handling_editor
@@ -299,6 +308,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
         return redirect('editor_home')
 
     copyedit_log = project.copyedit_logs.get(complete_datetime=None)
+    reassign_editor_form = forms.ReassignEditorForm(request.user)
 
     # Metadata forms and formsets
     ReferenceFormSet = generic_inlineformset_factory(Reference,
@@ -414,7 +424,8 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
         'storage_info': storage_info, 'edit_logs': edit_logs,
         'copyedit_logs': copyedit_logs, 'latest_version': latest_version,
         'add_item_url': edit_url, 'remove_item_url': edit_url,
-        'discovery_form': discovery_form, 'url_prefix': url_prefix})
+        'discovery_form': discovery_form, 'url_prefix': url_prefix,
+        'reassign_editor_form': reassign_editor_form})
 
 
 @handling_editor
@@ -433,6 +444,7 @@ def awaiting_authors(request, project_slug, *args, **kwargs):
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
     outstanding_emails = ';'.join([a.user.email for a in authors.filter(
         approval_datetime=None)])
+    reassign_editor_form = forms.ReassignEditorForm(request.user)
 
     if request.method == 'POST':
         if 'reopen_copyedit' in request.POST:
@@ -455,7 +467,8 @@ def awaiting_authors(request, project_slug, *args, **kwargs):
          'storage_info': storage_info, 'edit_logs': edit_logs,
          'copyedit_logs': copyedit_logs, 'latest_version': latest_version,
          'outstanding_emails': outstanding_emails, 'url_prefix': url_prefix,
-         'yesterday': yesterday, 'editor_home': True})
+         'yesterday': yesterday, 'editor_home': True,
+         'reassign_editor_form': reassign_editor_form})
 
 
 @handling_editor
@@ -486,6 +499,7 @@ def publish_submission(request, project_slug, *args, **kwargs):
     if project.submission_status != 60:
         return redirect('editor_home')
 
+    reassign_editor_form = forms.ReassignEditorForm(request.user)
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
     if request.method == 'POST':
         publish_form = forms.PublishForm(project=project, data=request.POST)
@@ -525,8 +539,8 @@ def publish_submission(request, project_slug, *args, **kwargs):
          'author_emails': author_emails, 'storage_info': storage_info,
          'edit_logs': edit_logs, 'copyedit_logs': copyedit_logs,
          'latest_version': latest_version, 'publish_form': publish_form,
-         'max_slug_length': MAX_PROJECT_SLUG_LENGTH, 'editor_home': True,
-         'url_prefix': url_prefix})
+         'max_slug_length': MAX_PROJECT_SLUG_LENGTH, 'url_prefix': url_prefix,
+         'reassign_editor_form': reassign_editor_form, 'editor_home': True})
 
 
 def process_storage_response(request, storage_response_formset):
