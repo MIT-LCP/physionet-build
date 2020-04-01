@@ -305,7 +305,14 @@ CKEDITOR_CONFIGS = {
         'removeDialogTabs': 'link:advanced',
         'disableNativeSpellChecker': False,
         'width': '100%',
-        'format_tags': 'p;h3',
+
+        # Show options "Heading 2" to "Heading 4" in the format menu,
+        # but map these to <h3>, <h4>, <h5> tags
+        'format_tags': 'p;h2;h3;h4',
+        'format_h2': {'element': 'h3'},
+        'format_h3': {'element': 'h4'},
+        'format_h4': {'element': 'h5'},
+
         'extraPlugins': 'codesnippet,pnmathml',
         'allowedContent': {
             **_inline_tags,
