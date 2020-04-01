@@ -1082,7 +1082,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     topics = project.topics.all()
     parent_projects = project.parent_projects.all()
     languages = project.programming_languages.all()
-    citations = project.citation_text(['MLA','APA','Chicago','Harvard','Vancouver'])
+    citations = project.citation_text_all()
 
     passes_checks = project.check_integrity()
     
@@ -1513,7 +1513,7 @@ def published_project(request, project_slug, version, subdir=''):
     # derived_projects = project.derived_publishedprojects.all()
     data_access = DataAccess.objects.filter(project=project)
     user = request.user
-    citations = project.citation_text(['MLA','APA','Chicago','Harvard','Vancouver'])
+    citations = project.citation_text_all()
 
     # Anonymous access authentication
     an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60*60)
