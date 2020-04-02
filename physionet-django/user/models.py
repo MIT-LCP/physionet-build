@@ -401,6 +401,7 @@ class UserLogin(models.Model):
     login_date = models.DateTimeField(auto_now_add=True, null=True)
     ip = models.CharField(max_length=50,  blank=True, default='', null=True)
 
+
 def update_user_login(sender, **kwargs):
     user = kwargs.pop('user', None)
     request = kwargs.pop('request', None)
@@ -412,6 +413,7 @@ def update_user_login(sender, **kwargs):
         ip = request.META.get('REMOTE_ADDR')
     UserLogin.objects.create(user=user, ip=ip)
     logger.info('User logged in {0}'.format(user.email))
+
 
 signals.user_logged_in.connect(update_user_login, sender=User)
 
@@ -535,6 +537,7 @@ def photo_path(instance, filename):
     Keep the original file extension only.
     """
     return 'users/{0}/{1}'.format(instance.user.username, '.'.join(['profile-photo', filename.split('.')[-1]]))
+
 
 def training_report_path(instance, filename):
     """
@@ -679,6 +682,7 @@ class DualAuthModelBackend():
             return get_user_model().objects.get(pk=user_id)
         except get_user_model().DoesNotExist:
             return None
+
 
 class CredentialApplication(models.Model):
     """
