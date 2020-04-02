@@ -220,6 +220,9 @@ def zip_dir(zip_name, target_dir, enclosing_folder=''):
             if proc.wait() != 0:
                 raise subprocess.CalledProcessError(proc.returncode, command)
 
+        # Fix up permission bits inside the zip file
+        normalize_zip_permissions(tmp_zip_name)
+
         # Rename the temporary file to the target filename
         os.rename(tmp_zip_name, zip_name)
 
