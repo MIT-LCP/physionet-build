@@ -563,8 +563,9 @@ class LegacyCredential(models.Model):
     # new site
     migrated = models.BooleanField(default=False)
     migration_date = models.DateTimeField(null=True)
-    migrated_user = models.ForeignKey('user.User', null=True, on_delete=models.CASCADE)
-    
+    migrated_user = models.ForeignKey('user.User', null=True,
+        related_name='legacy_application', on_delete=models.CASCADE)
+
     reference_email = models.CharField(max_length=255, blank=True, default='')
 
     def __str__(self):
@@ -572,6 +573,35 @@ class LegacyCredential(models.Model):
 
     def is_legacy(self):
         return True
+
+    @staticmethod
+    def merge_users(main_user, second_user):
+        """
+        Merge legacy credential applications from two users
+        """
+        if main_user == second_user:
+            raise Exception("The cloud information cannot be merged to the "
+                            "same user")
+
+        if main_user.__class__.__name__ != second_user.__class__.__name__ != 'User':
+            raise Exception("Incorrect arguments, please use User objets.")
+
+        logger.info("Attempting to migrate legacy credential aplications from "
+                    "{0} to {1} is complete".format(second_user, main_user))
+        try:
+            app = second_user.legacy_application.get()
+            app.migrated_user = main_user
+            app.save()
+            logger.info("The legacy application '{0}' was moved to {1}".format(
+                app.id, main_user))
+        except LegacyCredential.DoesNotExist:
+            logger.info("No legacy application found in user {0}".format(
+                second_user))
+        except LegacyCredential.MultipleObjectsReturned:
+            raise Exception("Multiple legacy applications found on {0}".format(
+                second_user))
+        logger.info("Legacy credential aplications migration from {0} to {1} "
+                    "is complete".format(second_user, main_user))
 
 
 class Profile(models.Model):
