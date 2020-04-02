@@ -2,6 +2,7 @@ from datetime import timedelta
 import logging
 import os
 import pdb
+from uuid import uuid1
 
 from django.conf import settings
 from django.contrib import messages
@@ -455,6 +456,47 @@ class AssociatedEmail(models.Model):
         if age >= timedelta(days=AssociatedEmail.VERIFICATION_TIMEOUT_DAYS):
             return False
         return True
+
+    @staticmethod
+    def merge_users(main_user, second_user):
+        """
+        Merge all emails from two users. Since the object of the second user
+        still exists, we need to create a new associated email for it.
+        """
+        if main_user == second_user:
+            raise Exception("The cloud information cannot be merged to the "
+                            "same user")
+
+        if main_user.__class__.__name__ != second_user.__class__.__name__ != 'User':
+            raise Exception("Incorrect arguments, please use User objets.")
+
+        logger.info("Attempting to migrate associated emails from {0} to {1} "
+                    "is complete".format(second_user, main_user))
+
+        all_emails = second_user.associated_emails.all()
+        logger.info("{0} email(s) were found in user {1}".format(
+            all_emails.count(), second_user))
+        for associated_emails in all_emails:
+            associated_emails.user = main_user
+            if associated_emails.is_primary_email:
+                associated_emails.is_primary_email = False
+                logger.info("The email {0} is set to not primary".format(
+                    associated_emails.email))
+            associated_emails.save()
+            logger.info("The email {0} is now owned by {1}".format(
+                associated_emails.email, main_user))
+        user_email = '{0}__{1}'.format(uuid1(), main_user.email)
+        AssociatedEmail.objects.create(user=second_user, email=user_email,
+                                       is_primary_email=True)
+        second_user.email = user_email
+        second_user.save()
+
+        logger.info("Created associated email {} for the second user.".format(
+            user_email))
+        logger.info("Setting the email of the second user to {}.".format(
+            user_email))
+        logger.info("Associated emails migration from {0} to {1} is complete".format(
+            second_user, main_user))
 
 @receiver(post_save, sender=User)
 def create_associated_email(sender, **kwargs):
