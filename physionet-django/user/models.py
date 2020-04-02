@@ -891,3 +891,65 @@ class CloudInformation(models.Model):
     gcp_email = models.OneToOneField('user.AssociatedEmail', related_name='gcp_email',
         on_delete=models.SET_NULL, null=True)
     aws_id = models.CharField(max_length=60, null=True,  blank=True, default=None)
+
+    @staticmethod
+    def merge_users(main_user, second_user):
+        """
+        Merge the cloud information from two users.
+        """
+        if main_user == second_user:
+            raise Exception("The cloud information cannot be merged to the "
+                            "same user")
+
+        if main_user.__class__.__name__ != second_user.__class__.__name__ != 'User':
+            raise Exception("Incorrect arguments, please use User objets.")
+
+        logger.info("Attempting merge the cloud information of {0} onto {1}".format(
+            second_user, main_user))
+
+        try:
+            main_cloud = main_user.cloud_information
+            logger.info("Cloud information exists on the main user.")
+        except CloudInformation.DoesNotExist:
+            main_cloud = CloudInformation.objects.create(user=main_user)
+            logger.info("No cloud information found on the main user")
+            logger.info("Created empty cloud information for the main user")
+
+        try:
+            second_cloud = second_user.cloud_information
+            logger.info("Cloud information exists on the second user.")
+        except CloudInformation.DoesNotExist:
+            second_cloud = None
+            logger.info("No cloud information found on the second user")
+
+        if second_cloud:
+            updated = False
+            if not main_cloud.aws_id:
+                main_cloud.aws_id = second_cloud.aws_id
+                updated = True
+                logger.info("AWS information found on the second user but not "
+                            "the main user. Merging AWS id to the main user")
+
+            if not main_cloud.gcp_email:
+                main_cloud.gcp_email = second_cloud.gcp_email
+                updated = True
+                logger.info("GCP information found on the second user but not "
+                            "the main user. Merging GCP id to the main user")
+
+            second_cloud.aws_id = None
+            second_cloud.gcp_email = None
+            with transaction.atomic:
+                if updated:
+                    main_cloud.save()
+                    logger.info("The cloud information for the main user has "
+                                "been updated.")
+                second_cloud.save()
+                logger.info("Reseting the cloud information of the second "
+                            "user to empty")
+
+        else:
+            logger.info("No cloud information found on the second user.")
+            logger.info("No cloud changes done.")
+
+        logger.info("Cloud iformation migration from {0} to {1} is complete".format(
+            second_user, main_user))
