@@ -843,6 +843,44 @@ class CredentialApplication(models.Model):
         """
         self._apply_decision(3, responder)
 
+    @staticmethod
+    def merge_users(main_user, second_user):
+        """
+        Merge the credential aplications from two users.
+        """
+        if main_user == second_user:
+            raise Exception("The cloud information cannot be merged to the "
+                            "same user")
+
+        if main_user.__class__.__name__ != second_user.__class__.__name__ != 'User':
+            raise Exception("Incorrect arguments, please use User objets.")
+
+        logger.info("Attempting to merge the credential aplications of {0} to {1}".format(
+            second_user, main_user))
+
+        # Move all credential applications and withdraw any active application
+        credentialed_apps = second_user.credential_applications.all()
+        logger.info('{0} credential application(s) were found in user {1}'.format(
+            credentialed_apps.count(), second_user))
+        for app in credentialed_apps:
+            app.user = main_user
+            if app.status == 0:
+                app.status = 3
+                logger.info("The credential application with ID #{0} was withdrawn.".format(
+                    app.id))
+            logger.info("The credential application with ID #{0} was moved to {1}".format(
+                app.id, main_user))
+            app.save()
+
+        if second_user.is_credentialed and not main_user.is_credentialed:
+            main_user.is_credentialed = True
+            main_user.credential_datetime = second_user.credential_datetime
+            main_user.save()
+            logger.info("User {0} has been credentialed because user {1} "
+                        "was credentialed.".format(main_user, second_user))
+
+        logger.info("Credential aplications migration from {0} to {1} is complete".format(
+            second_user, main_user))
 
 class CloudInformation(models.Model):
     """
