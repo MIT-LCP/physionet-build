@@ -95,6 +95,16 @@ def copy_demo_media():
             shutil.copytree(os.path.join(demo_subdir, item),
                             os.path.join(target_subdir, item))
 
+    # Published project files should have been made read-only at
+    # the time of publication
+    ppdir = os.path.join(settings.MEDIA_ROOT, 'published-projects')
+    for dirpath, subdirs, files in os.walk(ppdir):
+        if dirpath != ppdir:
+            for f in files:
+                os.chmod(os.path.join(dirpath, f), 0o444)
+            for d in subdirs:
+                os.chmod(os.path.join(dirpath, d), 0o555)
+
 
 def copy_demo_static():
     """
@@ -113,3 +123,13 @@ def copy_demo_static():
         for item in [i for i in os.listdir(demo_subdir) if i != '.gitkeep']:
             shutil.copytree(os.path.join(demo_subdir, item),
                             os.path.join(target_subdir, item))
+
+    # Published project files should have been made read-only at
+    # the time of publication
+    ppdir = os.path.join(effective_static_root, 'published-projects')
+    for dirpath, subdirs, files in os.walk(ppdir):
+        if dirpath != ppdir:
+            for f in files:
+                os.chmod(os.path.join(dirpath, f), 0o444)
+            for d in subdirs:
+                os.chmod(os.path.join(dirpath, d), 0o555)
