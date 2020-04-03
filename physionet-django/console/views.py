@@ -910,7 +910,7 @@ def complete_credential_applications(request):
     applications = CredentialApplication.objects.filter(status=0)
     # Do the proper sort
     applications = applications.order_by(F('reference_contact_datetime').asc(
-        nulls_first=True), 'application_datetime')
+        nulls_first=True), F('reference_name').asc(nulls_first=True), 'application_datetime')
 
     for application in applications:
         application.mailto = notification.mailto_process_credential_complete(
