@@ -379,6 +379,9 @@ def publish_notify(request, published_project):
 
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)
+    
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+          [settings.CONTACT_EMAIL], fail_silently=False)
 
 def storage_response_notify(storage_request):
     """
