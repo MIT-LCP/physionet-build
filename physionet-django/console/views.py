@@ -911,10 +911,12 @@ def complete_credential_applications(request):
     """
     Ongoing credential applications
     """
-    process_credential_form = forms.ProcessCredentialForm(responder=request.user)
+    process_credential_form = forms.ProcessCredentialForm(
+        responder=request.user)
 
     if request.method == 'POST':
-        if 'contact_reference' in request.POST and request.POST['contact_reference'].isdigit():
+        if 'contact_reference' in request.POST and \
+         request.POST['contact_reference'].isdigit():
             application_id = request.POST.get('contact_reference', '')
             application = CredentialApplication.objects.get(id=application_id)
             application.reference_contact_datetime = timezone.now()
@@ -924,51 +926,68 @@ def complete_credential_applications(request):
                 mailto = notification.mailto_supervisor(request, application)
             else:
                 mailto = notification.mailto_reference(request, application)
-            # messages.success(request, 'The reference contact email has been created.')
+            # messages.success(request, 'The reference contact email has
+            #                  been created.')
             return render(request, 'console/generate_reference_email.html',
-                {'application': application, 'mailto': mailto})
-        if 'process_application' in request.POST and request.POST['process_application'].isdigit():
+                          {'application': application, 'mailto': mailto})
+        if 'process_application' in request.POST and \
+         request.POST['process_application'].isdigit():
             application_id = request.POST.get('process_application', '')
             try:
-                application = CredentialApplication.objects.get(id=application_id,
-                    status=0)
+                application = CredentialApplication.objects.get(
+                    id=application_id, status=0)
             except CredentialApplication.DoesNotExist:
                 messages.error(request, """The application has already been
                     processed. It may have been withdrawn by the applicant or
                     handled by another administrator.""")
                 return redirect('complete_credential_applications')
             process_credential_form = forms.ProcessCredentialForm(
-                responder=request.user, data=request.POST, instance=application)
+                responder=request.user, data=request.POST,
+                instance=application)
 
             if process_credential_form.is_valid():
                 application = process_credential_form.save()
-                notification.process_credential_complete(request, application, comments=False)
+                notification.process_credential_complete(request, application,
+                                                         comments=False)
                 mailto = notification.mailto_process_credential_complete(
                     request, application)
                 return render(request, 'console/generate_response_email.html',
-                    {'application' : application, 'mailto': mailto})
+                              {'application': application, 'mailto': mailto})
             else:
                 messages.error(request, 'Invalid submission. See form below.')
 
     applications = CredentialApplication.objects.filter(status=0)
-    # Do the proper sort
     applications = applications.order_by(F('reference_contact_datetime').asc(
         nulls_first=True), 'application_datetime')
 
+    temp = []
+    # Do the proper sort
     for application in applications:
         application.mailto = notification.mailto_process_credential_complete(
             request, application, comments=False)
-        if CredentialApplication.objects.filter(reference_email__iexact=application.reference_email,
-            reference_contact_datetime__isnull=False).exclude(reference_email=''):
+        if CredentialApplication.objects.filter(
+            reference_email__iexact=application.reference_email,
+            reference_contact_datetime__isnull=False).exclude(
+                reference_email='') and \
+                application.reference_contact_datetime is None:
             # If the reference has been contacted before, mark it so
             application.known_ref = True
-        elif LegacyCredential.objects.filter(reference_email__iexact=application.reference_email).exclude(
-            reference_email=''):
+            temp.append([0, application])
+        elif LegacyCredential.objects.filter(
+            reference_email__iexact=application.reference_email).exclude(
+                reference_email=''):
             application.known_ref = True
+            temp.append([0, application])
+        else:
+            application.known_ref = False
+            temp.append([1, application])
+
+    applications = [item[1] for item in sorted(temp, key=lambda x: x[0])]
 
     return render(request, 'console/complete_credential_applications.html',
-        {'process_credential_form': process_credential_form, 
-        'applications': applications, 'complete_credentials_nav': True})
+                  {'process_credential_form': process_credential_form,
+                   'applications': applications,
+                   'complete_credentials_nav': True})
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
