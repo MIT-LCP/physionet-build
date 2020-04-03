@@ -49,7 +49,8 @@ def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
     """
 
     published_project = PublishedProject.objects.get(id=pid)
-    published_project.make_special_files(make_zip=make_zip)
+    published_project.make_license_file()
+    published_project.make_checksum_file()
 
     published_project.set_storage_info()
 
@@ -65,6 +66,9 @@ def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
 
         for d in dirs:
             os.chmod(os.path.join(root, d), 0o555)
+
+    if make_zip:
+        published_project.make_zip()
 
 
 class SafeHTMLField(ckeditor.fields.RichTextField):

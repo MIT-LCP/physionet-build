@@ -1,5 +1,8 @@
+import logging
 import os
+import re
 import shutil
+import struct
 import subprocess
 import tempfile
 
@@ -7,6 +10,8 @@ from django.conf import settings
 from django.http import HttpResponse, Http404
 from django.utils.html import format_html
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
+LOGGER = logging.getLogger(__name__)
 
 CONTENT_TYPE = {
     '.html': 'text/html',
@@ -215,6 +220,9 @@ def zip_dir(zip_name, target_dir, enclosing_folder=''):
             if proc.wait() != 0:
                 raise subprocess.CalledProcessError(proc.returncode, command)
 
+        # Fix up permission bits inside the zip file
+        normalize_zip_permissions(tmp_zip_name)
+
         # Rename the temporary file to the target filename
         os.rename(tmp_zip_name, zip_name)
 
@@ -226,6 +234,78 @@ def zip_dir(zip_name, target_dir, enclosing_folder=''):
             os.remove(tmp_zip_name)
         except FileNotFoundError:
             pass
+
+
+def normalize_zip_permissions(zip_name):
+    """
+    Normalize file permissions in a ZIP archive.
+
+    If the archive was created by a program that stores the original
+    Unix file permissions, then for each file in the archive, the
+    permissions are changed to a default value:
+
+    - If the file is executable, it is set to mode 0755 (readable and
+      executable by everyone, writable by the owner).
+
+    - Otherwise, it it set to mode 0644 (readable by everyone,
+      writable by the owner).
+
+    The "DOS read-only bit" is also cleared.
+
+    This can be used to clean a ZIP file, if the original files that
+    were copied into the archive had inconsistent permissions.
+    (Published project files are stored read-only to avoid accidental
+    modification, but when creating an archive for distribution, the
+    permissions should be read/write, as this is more convenient for
+    the user.)
+
+    This relies on the zipdetails program, which is part of the perl
+    package in Debian.
+    """
+
+    command = ('zipdetails', zip_name)
+    try:
+        proc = subprocess.Popen(command, stdin=subprocess.DEVNULL,
+                                stdout=subprocess.PIPE)
+    except FileNotFoundError as exc:
+        LOGGER.warning('cannot execute zipdetails: {}'.format(exc))
+        return
+
+    # Use the output of zipdetails to identify the start of each entry
+    # in the central directory.  Once we've found an entry, patch the
+    # "external file attributes" field.
+
+    # This is a kludge, but the Python zipfile library does not
+    # provide an API to manipulate these bits, nor do the Info-Zip
+    # command line tools.
+
+    with proc, open(zip_name, 'r+b') as zip_file:
+        pattern = re.compile(b'([0-9A-Fa-f]+) CENTRAL HEADER')
+        for line in proc.stdout:
+            m = pattern.match(line)
+            if m:
+                offset = int(m.group(1), 16)
+                zip_file.seek(offset)
+                header = zip_file.read(42)
+                # [0:4] = signature
+                # [5] = original OS (3 = Unix)
+                # [38] = DOS attributes
+                # [40:41] = Unix file mode
+                if len(header) == 42 and header[0:4] == b'\x50\x4B\x01\x02':
+                    if header[5] == 3:
+                        (attrs,) = struct.unpack('<I', header[38:42])
+                        if attrs & (0o111 << 16):
+                            attrs = (attrs & 0xf000fffe) | (0o755 << 16)
+                        else:
+                            attrs = (attrs & 0xf000fffe) | (0o644 << 16)
+                        header = header[0:38] + struct.pack('<I', attrs)
+                        zip_file.seek(offset)
+                        zip_file.write(header)
+                else:
+                    raise Exception('cannot find central directory entry'
+                                    ' at {}'.format(offset))
+        if proc.wait() != 0:
+            raise subprocess.CalledProcessError(proc.returncode, command)
 
 
 def paginate(request, to_paginate, maximum):
