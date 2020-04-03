@@ -975,7 +975,8 @@ def complete_credential_applications(request):
             temp.append([0, application])
         elif LegacyCredential.objects.filter(
             reference_email__iexact=application.reference_email).exclude(
-                reference_email=''):
+                reference_email='') and \
+                application.reference_contact_datetime is None:
             application.known_ref = True
             temp.append([0, application])
         else:
