@@ -908,20 +908,28 @@ def complete_credential_applications(request):
                 messages.error(request, 'Invalid submission. See form below.')
 
     applications = CredentialApplication.objects.filter(status=0)
-    # Do the proper sort
     applications = applications.order_by(F('reference_contact_datetime').asc(
-        nulls_first=True), F('reference_name').desc(nulls_first=True), 'application_datetime')
+        nulls_first=True), 'application_datetime')
 
+    temp = []
+    # Do the proper sort
     for application in applications:
         application.mailto = notification.mailto_process_credential_complete(
             request, application, comments=False)
         if CredentialApplication.objects.filter(reference_email__iexact=application.reference_email,
-            reference_contact_datetime__isnull=False).exclude(reference_email=''):
+            reference_contact_datetime__isnull=False).exclude(reference_email='') and application.reference_contact_datetime is None:
             # If the reference has been contacted before, mark it so
             application.known_ref = True
+            temp.append([0, application])
         elif LegacyCredential.objects.filter(reference_email__iexact=application.reference_email).exclude(
             reference_email=''):
             application.known_ref = True
+            temp.append([0, application])
+        else:
+            application.known_ref = False
+            temp.append([1, application])
+
+    applications = [item[1] for item in sorted(temp, key=lambda x: x[0])]
 
     return render(request, 'console/complete_credential_applications.html',
         {'process_credential_form': process_credential_form, 
