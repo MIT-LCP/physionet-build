@@ -49,7 +49,13 @@ def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
     """
 
     published_project = PublishedProject.objects.get(id=pid)
+
+    # The license file should have been generated earlier (by
+    # CopyeditForm).  The following line is kept for the benefit of
+    # older projects that are currently in the pipeline; once all such
+    # projects have been published, this line should be removed.
     published_project.make_license_file()
+
     published_project.make_checksum_file()
 
     published_project.set_storage_info()
