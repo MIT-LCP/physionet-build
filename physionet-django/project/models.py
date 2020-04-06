@@ -772,8 +772,7 @@ class Metadata(models.Model):
                 second_author = authors[1].get_full_name()
                 all_authors = first_author + ', and ' + second_author
             else:
-                all_authors = ', '.join(
-                    authors[0].get_full_name().split())
+                all_authors = authors[0].get_full_name(reverse=True)
                 all_authors += ', et al'
 
         elif style == 'APA':
