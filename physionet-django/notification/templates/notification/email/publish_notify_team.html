@@ -1,0 +1,11 @@
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
+{{ project_info }}
+
+Dear {{ name }},
+
+We are delighted to inform you that the project entitled "{{ published_project.title }}" (version {{ published_project.version }}) has been published on PhysioNet. The project is available at {{ url_prefix }}{% url 'published_project' published_project.slug published_project.version %}.
+
+{{ signature }}
+
+{{ footer }}
+{% endfilter %}{% endautoescape %}
