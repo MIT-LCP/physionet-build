@@ -611,6 +611,19 @@ class Metadata(models.Model):
 
         return content
 
+    def create_license_file(self):
+        """
+        Create a file containing the text of the project license.
+
+        A file 'LICENSE.txt' is created at the top level of the
+        project directory, replacing any existing file with that name.
+        """
+        fname = os.path.join(self.file_root(), 'LICENSE.txt')
+        if os.path.isfile(fname):
+            os.remove(fname)
+        with open(fname, 'x') as outfile:
+            outfile.write(self.license_content(fmt='text'))
+
     def get_directory_content(self, subdir=''):
         """
         Return information for displaying files and directories from
@@ -1443,13 +1456,13 @@ class PublishedProject(Metadata, SubmissionInfo):
     def make_license_file(self):
         """
         Make the license text file
-        """
-        fname = os.path.join(self.file_root(), 'LICENSE.txt')
-        if os.path.isfile(fname):
-            os.remove(fname)
-        with open(fname, 'w') as outfile:
-            outfile.write(self.license_content(fmt='text'))
 
+        This creates the LICENSE.txt file, and then recalculates and
+        saves the project storage size.
+
+        This function is deprecated; use create_license_file instead.
+        """
+        self.create_license_file()
         self.set_storage_info()
 
     def make_special_files(self, make_zip):
