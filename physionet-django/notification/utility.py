@@ -379,6 +379,8 @@ def publish_notify(request, published_project):
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)
 
+    subject = 'A new project has been published: {0}'.format(
+        published_project.title)
     content['name'] = "Colleague"
     body = loader.render_to_string(
         'notification/email/publish_notify_team.html', content)
