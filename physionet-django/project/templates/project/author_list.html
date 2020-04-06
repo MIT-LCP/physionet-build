@@ -1,73 +1,112 @@
 {% load project_templatetags %}
-<div id="author-list" class="card">
-  <div class="card card-header">
-    <h3>Project Authors</h3>
-    <em>Shown in display order</em>
-  </div>
+<div class="card card-header">
+  <h3>Project Authors</h3>
+  <em>Shown in display order</em>
+</div>
 
-  <ul class="list-group list-group-flush">
-    {% for author in authors %}
-      <li class="list-group-item">
-        <strong>User</strong>: {{ author.user }}
-        {% if author.is_submitting %}
-          <span class="badge badge-success">Submitting Author</span>
+<style type="text/css">
+  .contrib{
+    font-size: 0.8em;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    z-index: 1;
+    color: darkgreen;
+  }
+
+  .pointer{
+    cursor: pointer;
+  }
+
+  .list-group-item.equal{
+    border: 0;
+    border-right: 5px green solid;
+  }
+
+  .contrib.equal{
+    color: darkred;
+  }
+</style>
+
+<ul class="list-group list-group-flush">
+  {% for author in authors %}
+    {% ifchanged author.shared %}
+      {% if forloop.counter > 1 and is_submitting %}
+        <li class="list-group-item text-center contrib pointer" onclick="share({{ author.display_order }});">
+          <i class="fas fa-arrows-alt-v"></i>&nbsp;Add equal contribution
+        </li>
+      {% endif %}
+    {% else %}
+      {% if is_submitting %}
+        {% if author.shared %}
+          <li class="list-group-item text-center contrib equal pointer" onclick="unshare({{ author.display_order }});">
+            <i class="fas fa-arrows-alt-v"></i>&nbsp;Remove equal contribution
+          </li>
+        {% else %}
+          <li class="list-group-item text-center contrib pointer" onclick="share({{ author.display_order }});">
+            <i class="fas fa-arrows-alt-v"></i>&nbsp;Add equal contribution
+          </li>
         {% endif %}
-        {% if author.is_corresponding %}
-          <span class="badge badge-info">Corresponding Author</span>
-          <br>
-          <strong>Email</strong>: {{ author.corresponding_email }}
-        {% endif %}
-        {# Removing and reordering authors #}
-        {% if is_submitting %}
-          <a class="float-right">
-            {# Up button #}
-            {% if author.display_order > 1 %}
-              <button class="btn btn-sm" onclick="moveAuthor({{ author.id }}, 'up')" title="Move Author Up" style="background:none"><i class="fas fa-arrow-up"></i></button>
-            {% endif %}
-            {# Down button #}
-            {% if author.display_order < authors|length %}
-              <button class="btn btn-sm" onclick="moveAuthor({{ author.id }}, 'down')"type="button" title="Move Author Down" style="background:none"><i class="fas fa-arrow-down"></i></button>
-            {% else %}
-              <button class="btn btn-sm" type="button" style="background:none; color:white"><i class="fa-arrow-down"></i></button>
-            {% endif %}
-            {# Remove button. Leads to modal. #}
-            {% if not author.is_submitting %}
-              <button class="btn btn-sm" type="button" title="Remove Author" style="background:none; color:#cb2431" data-toggle="modal" data-target="#remove-{{ author.id }}-modal"><i class="fas fa-user-times"></i></button>
-            {% else %}
-              <button class="btn btn-sm" type="button" style="background:none; color:white"><i class="fas fa-user-times"></i></button>
-            {% endif %}
-          </a>
-        {% endif %}
+      {% endif %}
+    {% endifchanged %}
+    <li class="list-group-item {% if author.shared %} equal {% endif %}">
+      <strong>User</strong>: {{ author.user }}
+      {% if author.is_submitting %}
+        <span class="badge badge-success">Submitting Author</span>
+      {% endif %}
+      {% if author.is_corresponding %}
+        <span class="badge badge-info">Corresponding Author</span>
         <br>
-        <strong>Name</strong>: {{ author.name }}<br>
-        <strong>Affiliations</strong>: {{ author.text_affiliations|delimit }}
+        <strong>Email</strong>: {{ author.corresponding_email }}
+      {% endif %}
+      {# Removing and reordering authors #}
+      {% if is_submitting %}
+        <a class="float-right">
+          {# Up button #}
+          {% if author.can_move_up %}
+            <button class="btn btn-sm pointer" onclick="moveAuthor({{ author.id }}, 'up')" title="Move Author Up" style="background:none"><i class="fas fa-arrow-up"></i></button>
+          {% endif %}
+          {# Down button #}
+          {% if author.can_move_down %}
+            <button class="btn btn-sm pointer" onclick="moveAuthor({{ author.id }}, 'down')"type="button" title="Move Author Down" style="background:none"><i class="fas fa-arrow-down"></i></button>
+          {% else %}
+            <button class="btn btn-sm pointer" type="button" style="background:none; color:white"><i class="fa-arrow-down"></i></button>
+          {% endif %}
+          {# Remove button. Leads to modal. #}
+          {% if not author.is_submitting %}
+            <button class="btn btn-sm pointer" type="button" title="Remove Author" style="background:none; color:#cb2431" data-toggle="modal" data-target="#remove-{{ author.id }}-modal"><i class="fas fa-user-times"></i></button>
+          {% else %}
+            <button class="btn btn-sm" type="button" style="background:none; color:white"><i class="fas fa-user-times"></i></button>
+          {% endif %}
+        </a>
+      {% endif %}
+      <br>
+      <strong>Name</strong>: {{ author.name }}<br>
+      <strong>Affiliations</strong>: {{ author.text_affiliations|delimit }}
 
-        {% if is_submitting and not author.is_submitting %}
-          {# Remove author modal #}
-          <div class="modal fade" id="remove-{{ author.id }}-modal" role="dialog" aria-labelledby="remove-{{ author.id }}-modal" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h5 class="modal-title">Remove Author</h5>
-                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                  </button>
-                </div>
-                <div class="modal-body">
-                  Are you sure you want to remove <strong>{{ author }}</strong> from this project?
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                  <form action="{% url 'project_authors' project.slug %}" method="post">
-                    {% csrf_token %}
-                    <button class="btn btn-danger" name="remove_author" value="{{ author.id }}" type="submit">Remove Author</button>
-                  </form>
-                </div>
+      {% if is_submitting and not author.is_submitting %}
+        {# Remove author modal #}
+        <div class="modal fade" id="remove-{{ author.id }}-modal" role="dialog" aria-labelledby="remove-{{ author.id }}-modal" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Remove Author</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                Are you sure you want to remove <strong>{{ author }}</strong> from this project?
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <form action="{% url 'project_authors' project.slug %}" method="post">
+                  {% csrf_token %}
+                  <button class="btn btn-danger" name="remove_author" value="{{ author.id }}" type="submit">Remove Author</button>
+                </form>
               </div>
             </div>
           </div>
-        {% endif %}
-      </li>
-    {% endfor %}
-  </ul>
-</div>
+        </div>
+      {% endif %}
+    </li>
+  {% endfor %}
+</ul>

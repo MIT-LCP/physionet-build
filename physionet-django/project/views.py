@@ -15,6 +15,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import (ObjectDoesNotExist, PermissionDenied,
     ValidationError)
 from django.db import transaction
+from django.db.models import Q, F, Max, Min
 from django.forms import (formset_factory, inlineformset_factory,
     modelformset_factory)
 from django.http import HttpResponse, Http404,JsonResponse, HttpResponseRedirect
@@ -369,6 +370,28 @@ def cancel_invitation(request, invitation_id, project):
         messages.success(request, 'The invitation has been cancelled')
 
 
+def swap(authors, up_author, dw_author):
+    # Swap author positions
+    with transaction.atomic():
+        # We have constraints on unique author position
+        # so we have get offsets to shift all authors
+        # before swaping positions.
+        mx = authors.count()
+
+        # Shift all the authors by max display order
+        # to avoid the constraint violation
+        up_author.display_order = F('display_order')+mx
+        dw_author.display_order = F('display_order')+mx
+        up_author.save()
+        dw_author.save()
+
+        # Swap the display positions for the two groups
+        up_author.display_order = F('display_order')-1-mx
+        dw_author.display_order = F('display_order')+1-mx
+        up_author.save()
+        dw_author.save()
+
+
 @project_auth(auth_mode=1, post_auth_mode=2)
 def move_author(request, project_slug, **kwargs):
     """
@@ -379,29 +402,162 @@ def move_author(request, project_slug, **kwargs):
         ('project', 'authors', 'is_submitting'))
 
     if request.method == 'POST':
+        # Get author to be moved
         author = authors.get(id=int(request.POST['author_id']))
         direction = request.POST['direction']
         n_authors = authors.count()
+
+        # Min and max position for the authors in that group
+        if author.shared:
+            group = authors.filter(shared=author.shared)
+            max_pos = group.aggregate(max=Max('display_order'))['max']
+            min_pos = group.aggregate(min=Min('display_order'))['min']
+
+            # Do nothing if
+            #   selected author is first and move up
+            #   selected author is last and move down
+            if ((author.display_order == min_pos and direction == 'up') or
+                    (author.display_order == max_pos and direction == 'down')):
+                raise Http404()
+
         if n_authors > 1:
+            # Direction of action
+            display_order = author.display_order
             if direction == 'up' and 1 < author.display_order <= n_authors:
-                swap_author = authors.get(display_order=author.display_order - 1)
+                other = authors.get(display_order=display_order-1)
+                swap(authors, author, other)
             elif direction == 'down' and 1 <= author.display_order < n_authors:
-                swap_author = authors.get(display_order=author.display_order + 1)
+                other = authors.get(display_order=display_order+1)
+                swap(authors, other, author)
             else:
                 raise Http404()
-            with transaction.atomic():
-                orig_order = author.display_order
-                swap_order = swap_author.display_order
-                author.display_order = 0
-                author.save(update_fields=('display_order',))
-                swap_author.display_order = orig_order
-                swap_author.save(update_fields=('display_order',))
-                author.display_order = swap_order
-                author.save(update_fields=('display_order',))
+
             authors = project.get_author_info()
             return render(request, 'project/author_list.html',
                 {'project':project, 'authors':authors,
                 'is_submitting':is_submitting})
+    raise Http404()
+
+
+@project_auth(auth_mode=1, post_auth_mode=2)
+def share(request, project_slug, **kwargs):
+    """
+    Change shared authorship order. Return the updated authors list html
+    if successful. Called via ajax.
+    """
+    project, authors, is_submitting = (kwargs[k] for k in
+        ('project', 'authors', 'is_submitting'))
+
+    if request.method == 'POST':
+        display_order = int(request.POST['display_order'])
+
+        with transaction.atomic():
+            # Get author selected on share action
+            author = authors.get(display_order=display_order-1)
+            share = authors.get(display_order=display_order)
+
+            # Get the highest number of a shared group
+            shared = authors.aggregate(max=Max('shared'))['max']
+
+            # If there's no shared groups, we start at one
+            # otherwise, we set the new group to be max+1
+            if shared == None:
+                shared = 1
+            else:
+                shared = shared + 1
+
+            # If the selected author and the author listed right
+            # before him are already in a group, we merge them
+            if author.shared and share.shared:
+                authors.filter(shared=share.shared).update(shared=author.shared)
+            # If only the previous author is in a group, we
+            # add the selected author to that group
+            elif share.shared:
+                author.shared = share.shared
+                author.save(update_fields=('shared',))
+            # If they are both without a group
+            # We add them both to the new (max+1) group
+            elif author.shared == None:
+                author.shared = shared
+                share.shared = author.shared
+                author.save(update_fields=('shared',))
+                share.save(update_fields=('shared',))
+            # If only the selected author is in a group
+            # we add the previous author to that group
+            else:
+                share.shared = author.shared
+                share.save(update_fields=('shared',))
+
+            # The code above can cause the new group
+            # to be inconsistent with the display order
+            # e.g. group 1 has authors 5 and 6 and
+            #      group 2 has authors 1 and 2
+            # so we update the groups to ensure ordering
+            if share.display_order <= share.shared:
+                # Get all authors that come after the new group
+                after = authors.filter(display_order__gt=share.display_order)
+
+                # Shift new group number to be the mininum
+                # group number of the authors after that group
+                new_shared = after.aggregate(min=Min('shared'))['min']
+                authors.filter(shared=share.shared).update(shared=new_shared)
+
+                # Shift all the groups after it by 1
+                after.update(shared=F('shared')+1)
+
+        # Update page
+        authors = project.get_author_info()
+        return render(request, 'project/author_list.html',
+            {'project':project, 'authors':authors,
+            'is_submitting':is_submitting})
+    raise Http404()
+
+
+@project_auth(auth_mode=1, post_auth_mode=2)
+def unshare(request, project_slug, **kwargs):
+    """
+    Change shared authorship order. Return the updated authors list html
+    if successful. Called via ajax.
+    """
+    project, authors, is_submitting = (kwargs[k] for k in
+        ('project', 'authors', 'is_submitting'))
+
+    if request.method == 'POST':
+        display_order = int(request.POST['display_order'])
+
+        with transaction.atomic():
+            # Get author selected on unshare action
+            author = authors.get(display_order=display_order)
+            shared = author.shared
+
+            # The folowing sequence ensures that when an author
+            # is selected to be removed from a shared group
+            # the group he is currently part of is split in two
+            # for authors before and after him, respectively.
+            # 1. Get all authors displayed after the selected and
+            # 2. Exclude the ones without a shared group
+            # 3. Increase their shared group number by 1
+            remove = authors.filter(display_order__gte=display_order)
+            remove = remove.exclude(shared=None)
+            remove.update(shared=F('shared')+1)
+
+            # If any of the groups is left with a single
+            # author, we remove it
+            for s in [shared+1, shared]:
+                share = authors.filter(shared=s)
+                if(len(share) < 2):
+                    share.update(shared=None)
+
+                    # For each group removed we update
+                    # the remaining group numbers to ensure
+                    # that they are sequential
+                    authors.filter(shared__gt=s).update(shared=F('shared')-1)
+
+        # Update page
+        authors = project.get_author_info()
+        return render(request, 'project/author_list.html',
+            {'project':project, 'authors':authors,
+            'is_submitting':is_submitting})
     raise Http404()
 
 
@@ -1083,7 +1239,6 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     authors = project.get_author_info()
     invitations = project.authorinvitations.filter(is_active=True)
     corresponding_author = authors.get(is_corresponding=True)
-    corresponding_author.text_affiliations = ', '.join(a.name for a in corresponding_author.affiliations.all())
 
     references = project.references.all()
     publication = project.publications.all().first()
@@ -1108,6 +1263,8 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     # Flag for anonymous access
     has_passphrase = kwargs['has_passphrase']
 
+    shared = set(authors.values_list('shared', flat=True))
+
     return render(request, 'project/project_preview.html', {'project':project,
         'display_files':display_files, 'display_dirs':display_dirs,
         'authors':authors, 'corresponding_author':corresponding_author,
@@ -1117,7 +1274,8 @@ def project_preview(request, project_slug, subdir='', **kwargs):
         'files_panel_url':files_panel_url,
         'subdir':subdir, 'parent_dir':parent_dir,
         'file_error':file_error, 'file_warning':file_warning,
-        'parent_projects':parent_projects, 'has_passphrase':has_passphrase})
+        'parent_projects':parent_projects, 'has_passphrase':has_passphrase,
+        'shared':shared})
 
 
 @project_auth(auth_mode=3)
@@ -1218,7 +1376,6 @@ def project_submission(request, project_slug, **kwargs):
         if project.submission_status == 50:
             authors = authors.order_by('approval_datetime')
             for a in authors:
-                a.set_display_info()
                 if user == a.user and not a.approval_datetime:
                     awaiting_user_approval = True
     else:
@@ -1508,8 +1665,6 @@ def published_project(request, project_slug, version, subdir=''):
         raise Http404()
 
     authors = project.authors.all().order_by('display_order')
-    for a in authors:
-        a.set_display_info()
     references = project.references.all()
     publication = project.publications.all().first()
     topics = project.topics.all()
@@ -1530,6 +1685,9 @@ def published_project(request, project_slug, version, subdir=''):
     url_prefix = notification.get_url_prefix(request)
     all_project_versions = PublishedProject.objects.filter(
         slug=project_slug).order_by('version_order')
+
+    shared = set(authors.values_list('shared', flat=True))
+
     context = {'project': project, 'authors': authors,
                'references': references, 'publication': publication,
                'topics': topics, 'languages': languages, 'contact': contact,
@@ -1537,7 +1695,7 @@ def published_project(request, project_slug, version, subdir=''):
                'url_prefix': url_prefix,
                'news': news, 'all_project_versions': all_project_versions,
                'parent_projects':parent_projects, 'data_access':data_access,
-               'messages':messages.get_messages(request)}
+               'messages':messages.get_messages(request), 'shared':shared}
     # The file and directory contents
     if has_access:
         (display_files, display_dirs, dir_breadcrumbs, parent_dir,

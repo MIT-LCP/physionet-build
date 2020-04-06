@@ -183,6 +183,7 @@ class BaseAuthor(models.Model):
     display_order = models.PositiveSmallIntegerField()
     is_submitting = models.BooleanField(default=False)
     is_corresponding = models.BooleanField(default=False)
+    shared = models.PositiveSmallIntegerField(null=True)
     # When they approved the project for publication
     approval_datetime = models.DateTimeField(null=True)
 
@@ -209,6 +210,22 @@ class Author(BaseAuthor):
     class Meta:
         unique_together = (('user', 'content_type', 'object_id',),
                            ('display_order', 'content_type', 'object_id'))
+
+    @property
+    def name(self):
+        return self.user.profile.get_full_name()
+    
+    @property
+    def email(self):
+        return self.user.email
+    
+    @property
+    def username(self):
+        return self.user.username
+
+    @property
+    def text_affiliations(self):
+        return [a.name for a in self.affiliations.all()]
 
     def get_full_name(self):
         """
@@ -243,18 +260,6 @@ class Author(BaseAuthor):
             return True
         return False
 
-    def set_display_info(self, set_affiliations=True):
-        """
-        Set the fields used to display the author
-        """
-        user = self.user
-        self.name = user.profile.get_full_name()
-        self.email = user.email
-        self.username = user.username
-
-        if set_affiliations:
-            self.text_affiliations = [a.name for a in self.affiliations.all()]
-
 
 class PublishedAuthor(BaseAuthor):
     """
@@ -270,6 +275,22 @@ class PublishedAuthor(BaseAuthor):
         unique_together = (('user', 'project'),
                            ('display_order', 'project'))
 
+    @property
+    def name(self):
+        return self.user.profile.get_full_name()
+    
+    @property
+    def email(self):
+        return self.user.email
+    
+    @property
+    def username(self):
+        return self.user.username
+
+    @property
+    def text_affiliations(self):
+        return [a.name for a in self.affiliations.all()]
+
     def get_full_name(self, reverse=False):
         """
         Return the full name.
@@ -281,15 +302,6 @@ class PublishedAuthor(BaseAuthor):
             return ', '.join([self.last_name, self.first_names])
         else:
             return ' '.join([self.first_names, self.last_name])
-
-    def set_display_info(self):
-        """
-        Set the fields used to display the author
-        """
-        self.name = self.get_full_name()
-        self.username = self.user.username
-        self.email = self.user.email
-        self.text_affiliations = [a.name for a in self.affiliations.all()]
 
     def initialed_name(self):
         return '{}, {}'.format(self.last_name, ' '.join('{}.'.format(i[0]) for i in self.first_names.split()))
@@ -522,32 +534,6 @@ class Metadata(models.Model):
         """
         return self.authors.all().order_by('display_order')
 
-    def get_author_info(self, separate_submitting=False, include_emails=False):
-        """
-        Get the project's authors, setting information needed to display
-        their attributes.
-        """
-        authors = self.authors.all().order_by('display_order')
-        author_emails = ';'.join(a.user.email for a in authors)
-
-        if separate_submitting:
-            submitting_author = authors.get(is_submitting=True)
-            coauthors = authors.filter(is_submitting=False)
-            submitting_author.set_display_infprevious_versiono()
-            for a in coauthors:
-                a.set_display_info()
-            if include_emails:
-                return submitting_author, coauthors, author_emails
-            else:
-                return submitting_author, coauthors
-        else:
-            for a in authors:
-                a.set_display_info()
-            if include_emails:
-                return authors, author_emails
-            else:
-                return authors
-
     def abstract_text_content(self):
         """
         Returns abstract as plain text.
@@ -581,7 +567,8 @@ class Metadata(models.Model):
         Get all the information needed for the project info card
         seen by an admin
         """
-        authors, author_emails = self.get_author_info(include_emails=include_emails)
+        authors = self.authors.order_by('display_order')
+        author_emails = ';'.join(a.user.email for a in authors)
         storage_info = self.get_storage_info(force_calculate=force_calculate)
         edit_logs = self.edit_log_history()
         for e in edit_logs:
@@ -1289,6 +1276,35 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             # Move the files to the active project directory
             os.rename(published_project.file_root(), self.file_root())
             raise
+
+    def get_author_info(self):
+        authors = self.authors.all().order_by('display_order')
+
+        # If first author or first shared cannot go up
+        # If last author or last shared cannot go down
+        window = {'partition_by': models.F('shared')}
+        authors = authors.annotate(
+            can_move_up=models.Case(
+                models.When(display_order=1, 
+                    then=models.Value(False)),
+                models.When(display_order=models.Window(
+                        expression=models.Min('display_order'),
+                        **window),
+                    then=models.Value(False)),
+                default=models.Value(True),
+                output_field=models.BooleanField()),
+            can_move_down=models.Case(
+                models.When(display_order=models.Window(
+                    models.Max('display_order')),
+                    then=models.Value(False)),
+                models.When(display_order=models.Window(
+                    expression=models.Max('display_order'),
+                    **window), then=models.Value(False)),
+                default=models.Value(True),
+                output_field=models.BooleanField()),
+        )
+
+        return authors
 
 
 class PublishedProject(Metadata, SubmissionInfo):

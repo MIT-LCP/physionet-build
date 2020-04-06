@@ -108,8 +108,6 @@ def show_author_info(author):
     """
     Display the author's name, and a popover icon with their
     affiliation and profile info, for public view.
-
-    Requires set_display_info method to be called by author beforehand.
     """
     return author_popover(author)
 
@@ -118,8 +116,6 @@ def show_author_info(author):
 def show_all_author_info(author):
     """
     Display information about the author, for the editor panel.
-
-    Requires set_display_info method to be called by author beforehand.
     """
     return author_popover(author, show_submitting=True, show_email=True,
                           show_corresponding=True)

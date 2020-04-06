@@ -32,6 +32,10 @@ urlpatterns = [
         name='project_authors'),
     path('<project_slug>/authors/move/', views.move_author,
         name='move_author'),
+    path('<project_slug>/authors/share/', views.share,
+        name='share'),
+    path('<project_slug>/authors/unshare/', views.unshare,
+        name='unshare'),
     path('<project_slug>/authors/edit-affiliation/', views.edit_affiliation,
         name='edit_affiliation'),
 
