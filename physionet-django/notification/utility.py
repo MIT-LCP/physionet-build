@@ -10,6 +10,7 @@ from django.core.mail import EmailMessage, send_mail, mail_admins
 from django.template import loader
 from django.utils import timezone
 
+
 from project.models import DataAccessRequest, License
 
 RESPONSE_ACTIONS = {0:'rejected', 1:'accepted'}
@@ -706,3 +707,22 @@ def task_rescheduled_notify(name, attempts, last_error, date_time, task_name, ta
         })
     subject = name + " has been rescheduled"
     mail_admins(subject, body, settings.DEFAULT_FROM_EMAIL)
+
+
+def notify_account_registration(request, user, uidb64, token):
+    """
+    Send the registration email.
+    """
+    # Send an email with the activation link
+    subject = "PhysioNet Account Activation"
+    context = {
+        'name': user.get_full_name(),
+        'domain': get_current_site(request),
+        'url_prefix': get_url_prefix(request),
+        'uidb64': uidb64,
+        'token': token
+    }
+    body = loader.render_to_string('user/email/register_email.html', context)
+    # Not resend the email if there was an integrity error
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+              [user.email], fail_silently=False)

@@ -31,7 +31,7 @@ from physionet import utility
 from project.models import Author, License, PublishedProject
 from notification.utility import (process_credential_complete,
                                   credential_application_request,
-                                  get_url_prefix)
+                                  get_url_prefix, notify_account_registration)
 
 
 logger = logging.getLogger(__name__)
@@ -311,43 +311,22 @@ def register(request):
 
     if request.method == 'POST':
         form = forms.RegistrationForm(request.POST)
-        saved = False
-        integrity_catch = False
         if form.is_valid():
             # Create the new user
             try:
                 user = form.save()
-                saved = True
+                uidb64 = force_text(urlsafe_base64_encode(force_bytes(
+                    user.pk)))
+                token = default_token_generator.make_token(user)
+                notify_account_registration(request, user, uidb64, token)
             except IntegrityError:
                 form.full_clean()
                 if form.is_valid():
                     raise
-                integrity_catch = True
-            if saved or integrity_catch:
-                if user.is_anonymous and integrity_catch:
-                    user = User.objects.get(username=form.data['username'])
+                user = User.objects.get(username=form.data['username'])
 
-                if not integrity_catch:
-                    # Send an email with the activation link
-                    uidb64 = force_text(urlsafe_base64_encode(force_bytes(
-                        user.pk)))
-                    token = default_token_generator.make_token(user)
-                    subject = "PhysioNet Account Activation"
-                    context = {
-                        'name': user.get_full_name(),
-                        'domain': get_current_site(request),
-                        'url_prefix': get_url_prefix(request),
-                        'uidb64': uidb64,
-                        'token': token
-                    }
-                    body = loader.render_to_string(
-                        'user/email/register_email.html', context)
-                    # Not resend the email if there was an integrity error
-                    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                        [user.email], fail_silently=False)
             return render(request, 'user/register_done.html', {
                 'email': user.email})
-
     else:
         form = forms.RegistrationForm()
 
