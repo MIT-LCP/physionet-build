@@ -315,22 +315,23 @@ def register(request):
             # Create the new user
             try:
                 user = form.save()
-                uidb64 = force_text(urlsafe_base64_encode(force_bytes(
-                    user.pk)))
-                token = default_token_generator.make_token(user)
-                notify_account_registration(request, user, uidb64, token)
             except IntegrityError:
                 form.full_clean()
                 if form.is_valid():
                     raise
                 user = User.objects.get(username=form.data['username'])
+            else:
+                uidb64 = force_text(urlsafe_base64_encode(force_bytes(
+                    user.pk)))
+                token = default_token_generator.make_token(user)
+                notify_account_registration(request, user, uidb64, token)
 
             return render(request, 'user/register_done.html', {
                 'email': user.email})
     else:
         form = forms.RegistrationForm()
 
-    return render(request, 'user/register.html', {'form':form})
+    return render(request, 'user/register.html', {'form': form})
 
 
 @login_required
