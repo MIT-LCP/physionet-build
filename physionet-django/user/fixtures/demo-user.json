@@ -3084,7 +3084,7 @@
     "join_date": "2020-04-07",
     "last_login": "2020-04-07T15:42:48.087Z",
     "is_active": true,
-    "is_admin": false,
+    "is_admin": true,
     "is_credentialed": false,
     "credential_datetime": null
   }
