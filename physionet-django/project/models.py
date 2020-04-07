@@ -1094,7 +1094,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         self.editor = editor
         if not is_reassigned:
             self.submission_status = 20
-        self.editor_assignment_datetime = timezone.now()
+            self.editor_assignment_datetime = timezone.now()
         self.save()
 
     def reject(self):
