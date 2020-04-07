@@ -425,6 +425,11 @@ class NewProjectVersionForm(forms.ModelForm):
                 except FileExistsError:
                     pass
             for f in files:
+                # Skip linking files that are automatically generated
+                # during publication.
+                if (directory == older_file_root
+                        and f in ('SHA256SUMS.txt', 'LICENSE.txt')):
+                    continue
                 try:
                     os.link(os.path.join(directory, f),
                             os.path.join(destination, f))

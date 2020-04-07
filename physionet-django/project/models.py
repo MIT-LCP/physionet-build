@@ -49,7 +49,13 @@ def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
     """
 
     published_project = PublishedProject.objects.get(id=pid)
+
+    # The license file should have been generated earlier (by
+    # CopyeditForm).  The following line is kept for the benefit of
+    # older projects that are currently in the pipeline; once all such
+    # projects have been published, this line should be removed.
     published_project.make_license_file()
+
     published_project.make_checksum_file()
 
     published_project.set_storage_info()
@@ -610,6 +616,19 @@ class Metadata(models.Model):
             content = content.replace('&lt;YEAR&gt;', str(timezone.now().year), 1)
 
         return content
+
+    def create_license_file(self):
+        """
+        Create a file containing the text of the project license.
+
+        A file 'LICENSE.txt' is created at the top level of the
+        project directory, replacing any existing file with that name.
+        """
+        fname = os.path.join(self.file_root(), 'LICENSE.txt')
+        if os.path.isfile(fname):
+            os.remove(fname)
+        with open(fname, 'x') as outfile:
+            outfile.write(self.license_content(fmt='text'))
 
     def get_directory_content(self, subdir=''):
         """
@@ -1443,13 +1462,13 @@ class PublishedProject(Metadata, SubmissionInfo):
     def make_license_file(self):
         """
         Make the license text file
-        """
-        fname = os.path.join(self.file_root(), 'LICENSE.txt')
-        if os.path.isfile(fname):
-            os.remove(fname)
-        with open(fname, 'w') as outfile:
-            outfile.write(self.license_content(fmt='text'))
 
+        This creates the LICENSE.txt file, and then recalculates and
+        saves the project storage size.
+
+        This function is deprecated; use create_license_file instead.
+        """
+        self.create_license_file()
         self.set_storage_info()
 
     def make_special_files(self, make_zip):

@@ -219,6 +219,7 @@ class CopyeditForm(forms.ModelForm):
             project.latest_reminder = now
             copyedit_log.save()
             project.save()
+            project.create_license_file()
             return copyedit_log
 
 
