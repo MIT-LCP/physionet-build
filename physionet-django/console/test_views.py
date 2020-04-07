@@ -195,9 +195,22 @@ class TestState(TestMixin):
         Author approves publication
         """
         project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+
+        def get_project():
+            return ActiveProject.objects.get(id=project.id)
+
+        # The following steps should not alter the project timestamp,
+        # since project "Metadata" fields are not being changed (only
+        # "SubmissionInfo").
+        timestamp = project.modified_datetime
+
         project.submit(author_comments='')
+        self.assertEqual(get_project().modified_datetime, timestamp)
+
         editor = User.objects.get(username='admin')
         project.assign_editor(editor)
+        self.assertEqual(get_project().modified_datetime, timestamp)
+
         self.client.login(username='admin', password='Tester11!')
         # Accept submission
         response = self.client.post(reverse(
@@ -207,16 +220,22 @@ class TestState(TestMixin):
                 'pn_suitable': 1, 'editor_comments': 'Good.', 'decision': 2,
                 'auto_doi': 1
             })
+        self.assertEqual(get_project().modified_datetime, timestamp)
+
         # Complete copyedit
         response = self.client.post(reverse(
             'copyedit_submission', args=(project.slug,)),
             data={'complete_copyedit':'', 'made_changes':0})
+        self.assertEqual(get_project().modified_datetime, timestamp)
+
         # Approve publication
         self.assertFalse(ActiveProject.objects.get(id=project.id).is_publishable())
         self.client.login(username='rgmark', password='Tester11!')
         response = self.client.post(reverse(
             'project_submission', args=(project.slug,)),
             data={'approve_publication':''})
+        self.assertEqual(get_project().modified_datetime, timestamp)
+
         self.assertTrue(ActiveProject.objects.get(id=project.id).is_publishable())
 
     def test_publish(self):

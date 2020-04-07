@@ -317,6 +317,14 @@ class Topic(models.Model):
     def __str__(self):
         return self.description
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.project.content_modified()
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        self.project.content_modified()
+
 
 class PublishedTopic(models.Model):
     """
@@ -346,6 +354,14 @@ class Reference(models.Model):
 
     def __str__(self):
         return self.description
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.project.content_modified()
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        self.project.content_modified()
 
 
 class PublishedReference(models.Model):
@@ -388,6 +404,14 @@ class Publication(BasePublication):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     project = GenericForeignKey('content_type', 'object_id')
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.project.content_modified()
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        self.project.content_modified()
 
 
 class PublishedPublication(BasePublication):
@@ -435,11 +459,22 @@ class ProjectType(models.Model):
 
 class Metadata(models.Model):
     """
-    Metadata for all projects
+    Visible content of a published or unpublished project.
 
-    https://schema.datacite.org/
-    https://schema.datacite.org/meta/kernel-4.0/doc/DataCite-MetadataKernel_v4.1.pdf
-    https://www.nature.com/sdata/publish/for-authors#format
+    Every project (ActiveProject, PublishedProject, and
+    ArchivedProject) inherits from this class as well as
+    SubmissionInfo.  The difference is that the fields of this class
+    contain public information that will be shown on the published
+    project pages; SubmissionInfo contains internal information about
+    the publication process.
+
+    In particular, the UnpublishedProject modified_datetime will be
+    updated when any field of Metadata is altered (see
+    UnpublishedProject.save), but not when a field of SubmissionInfo
+    is modified.
+
+    New fields should be added to this class only if they affect the
+    content of the project as it will be shown when published.
     """
 
     ACCESS_POLICIES = (
@@ -488,18 +523,6 @@ class Metadata(models.Model):
     core_project = models.ForeignKey('project.CoreProject',
                                      related_name='%(class)ss',
                                      on_delete=models.CASCADE)
-
-    # When the submitting project was created
-    creation_datetime = models.DateTimeField(auto_now_add=True)
-
-    edit_logs = GenericRelation('project.EditLog')
-    copyedit_logs = GenericRelation('project.CopyeditLog')
-
-    # For ordering projects with multiple versions
-    version_order = models.PositiveSmallIntegerField(default=0)
-
-    # Anonymous access
-    anonymous = GenericRelation('project.AnonymousAccess')
 
     class Meta:
         abstract = True
@@ -706,7 +729,24 @@ class Metadata(models.Model):
 class SubmissionInfo(models.Model):
     """
     Submission information, inherited by all projects.
+
+    Every project (ActiveProject, PublishedProject, and
+    ArchivedProject) inherits from this class as well as Metadata.
+    The difference is that the fields of this class contain internal
+    information about the publication process; Metadata contains the
+    public information that will be shown on the published project
+    pages.
+
+    In particular, UnpublishedProject.modified_datetime will be
+    updated when any field of Metadata is altered (see
+    UnpublishedProject.save), but not when a field of SubmissionInfo
+    is modified.
+
+    New fields should be added to this class only if they do not
+    affect the content of the project as it will be shown when
+    published.
     """
+
     editor = models.ForeignKey('user.User',
         related_name='editing_%(class)ss', null=True,
         on_delete=models.SET_NULL, blank=True)
@@ -723,6 +763,18 @@ class SubmissionInfo(models.Model):
     copyedit_completion_datetime = models.DateTimeField(null=True, blank=True)
     author_approval_datetime = models.DateTimeField(null=True, blank=True)
 
+    # When the submitting project was created
+    creation_datetime = models.DateTimeField(auto_now_add=True)
+
+    edit_logs = GenericRelation('project.EditLog')
+    copyedit_logs = GenericRelation('project.CopyeditLog')
+
+    # For ordering projects with multiple versions
+    version_order = models.PositiveSmallIntegerField(default=0)
+
+    # Anonymous access
+    anonymous = GenericRelation('project.AnonymousAccess')
+
     class Meta:
         abstract = True
 
@@ -731,7 +783,11 @@ class UnpublishedProject(models.Model):
     """
     Abstract model inherited by ArchivedProject/ActiveProject
     """
+
+    # Date and time that the project's content was modified.
+    # See content_modified() and save().
     modified_datetime = models.DateTimeField(auto_now=True)
+
     # Whether this project is being worked on as a new version
     is_new_version = models.BooleanField(default=False)
     # Access url slug, also used as a submitting project id.
@@ -818,6 +874,106 @@ class UnpublishedProject(models.Model):
         Whether the project has wfdb files.
         """
         return os.path.isfile(os.path.join(self.file_root(), 'RECORDS'))
+
+    def content_modified(self):
+        """
+        Update the project's modification timestamp.
+
+        The modification timestamp (modified_datetime) is
+        automatically updated when the object is saved, if any of the
+        project's Metadata fields have been modified (see
+        UnpublishedProject.save).
+
+        This function should be called when saving or deleting
+        objects, other than the UnpublishedProject itself, that are
+        part of the project's visible content.
+        """
+
+        # Note: modified_datetime is an auto_now field, so it is
+        # automatically set to the current time whenever it is saved.
+        self.save(update_fields=['modified_datetime'])
+
+    @classmethod
+    def from_db(cls, *args, **kwargs):
+        """
+        Instantiate an object from the database.
+        """
+        instance = super(UnpublishedProject, cls).from_db(*args, **kwargs)
+
+        # Save the original field values so that we can later check if
+        # they have been modified.  Note that by using __dict__, this
+        # will omit any deferred fields.
+        instance.orig_fields = instance.__dict__.copy()
+        return instance
+
+    def save(self, *, content_modified=None,
+             force_insert=False, update_fields=None, **kwargs):
+        """
+        Save this object to the database.
+
+        In addition to the standard keyword arguments, this accepts an
+        optional content_modified argument: if true, modified_datetime
+        will be set to the current time; if false, neither
+        modified_datetime nor the Metadata fields will be saved.
+
+        If this object was loaded from the database, and none of the
+        Metadata fields have been changed from their original values,
+        then content_modified defaults to False.  Otherwise,
+        content_modified defaults to True.
+        """
+
+        # Note: modified_datetime is an auto_now field, so it is
+        # automatically set to the current time (unless we exclude it
+        # using update_fields.)
+
+        if force_insert or update_fields:
+            # If force_insert is specified, then we want to insert a
+            # new object, which means setting the timestamp.  If
+            # update_fields is specified, then we want to update
+            # precisely those fields.  In either case, use the default
+            # save method.
+            return super().save(force_insert=force_insert,
+                                update_fields=update_fields,
+                                **kwargs)
+
+        # If content_modified is not specified, then detect
+        # automatically.
+        if content_modified is None:
+            if hasattr(self, 'orig_fields'):
+                # Check whether any of the Metadata fields have been
+                # modified since the object was loaded from the database.
+                for f in Metadata._meta.fields:
+                    fname = f.attname
+                    if fname not in self.orig_fields:
+                        # If the field was initially deferred (and
+                        # thus its original value is unknown), assume
+                        # that it has been modified.  This is not
+                        # ideal, but in general, it should be possible
+                        # to avoid this by explicitly setting
+                        # update_fields or content_modified whenever
+                        # deferred fields are used.
+                        LOGGER.warning(
+                            'saving project with initially deferred fields')
+                        content_modified = True
+                        break
+                    if self.orig_fields[fname] != getattr(self, fname):
+                        content_modified = True
+                        break
+            else:
+                # If the object was not initially created by from_db,
+                # assume content has been modified.
+                content_modified = True
+
+        if content_modified:
+            # If content has been modified, then save normally.
+            return super().save(**kwargs)
+        else:
+            # If content has not been modified, then exclude all of the
+            # Metadata fields as well as modified_datetime.
+            fields = ({f.name for f in self._meta.fields}
+                      - {f.name for f in Metadata._meta.fields}
+                      - {'id', 'modified_datetime'})
+            return super().save(update_fields=fields, **kwargs)
 
 
 class ArchivedProject(Metadata, UnpublishedProject, SubmissionInfo):
@@ -987,8 +1143,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         archived_project = ArchivedProject(archive_reason=archive_reason,
             slug=self.slug)
 
+        modified_datetime = self.modified_datetime
+
         # Direct copy over fields
-        for attr in [f.name for f in Metadata._meta.fields] + [f.name for f in SubmissionInfo._meta.fields] + ['modified_datetime']:
+        for attr in [f.name for f in Metadata._meta.fields] + [f.name for f in SubmissionInfo._meta.fields]:
             setattr(archived_project, attr, getattr(self, attr))
 
         archived_project.save()
@@ -1025,6 +1183,13 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         else:
             # Move over files
             os.rename(self.file_root(), archived_project.file_root())
+
+        # Copy the ActiveProject timestamp to the ArchivedProject.
+        # Since this is an auto_now field, save() doesn't allow
+        # setting an arbitrary value.
+        queryset = ArchivedProject.objects.filter(id=archived_project.id)
+        queryset.update(modified_datetime=modified_datetime)
+
         return self.delete()
 
     def fake_delete(self):

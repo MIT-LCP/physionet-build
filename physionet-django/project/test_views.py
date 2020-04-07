@@ -274,6 +274,8 @@ class TestAccessPresubmission(TestMixin):
         self.assertFalse(os.path.isfile(os.path.join(project.file_root(), 'notes', 'PATIENTS.csv.gz')))
 
         # Upload file. Use same file content already existing.
+        project.refresh_from_db()
+        timestamp = project.modified_datetime
         with open(os.path.join(project.file_root(), 'D_ITEMS.csv.gz'), 'rb') as f:
             response = self.client.post(reverse(
                 'project_files', args=(project.slug,)),
@@ -283,6 +285,9 @@ class TestAccessPresubmission(TestMixin):
         self.assertEqual(
             open(os.path.join(project.file_root(), 'D_ITEMS.csv.gz'), 'rb').read(),
             open(os.path.join(project.file_root(), 'notes/D_ITEMS.csv.gz'), 'rb').read())
+        project.refresh_from_db()
+        self.assertGreater(project.modified_datetime, timestamp)
+
         # Invalid subdir
         response = self.client.post(
             reverse('project_files', args=(project.slug,)),
@@ -419,6 +424,9 @@ class TestProjectEditing(TestCase):
         response = self.client.post(content_url, data=data)
         self.assertEqual(response.status_code, 200)
 
+        project.refresh_from_db()
+        timestamp = project.modified_datetime
+
         # Post some HTML, and verify that forbidden tags/attributes
         # are removed
         input_html = """
@@ -450,6 +458,7 @@ class TestProjectEditing(TestCase):
         self.assertEqual(response.status_code, 200)
         project.refresh_from_db()
         self.assertHTMLEqual(project.background, expected_html)
+        self.assertGreater(project.modified_datetime, timestamp)
 
         # Post some blank text in a required field and verify that the
         # project cannot be submitted
