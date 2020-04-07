@@ -216,21 +216,36 @@ class Author(BaseAuthor):
         unique_together = (('user', 'content_type', 'object_id',),
                            ('display_order', 'content_type', 'object_id'))
 
-    def get_full_name(self):
+    def get_full_name(self, reverse=False):
         """
         The name is tied to the profile. There is no form for authors
-        to change their names
+        to change their names. Return the full name.
+        Args:
+            reverse: Format of the return string. If False (default) then
+                'firstnames lastname'. If True then 'lastname, firstnames'.
         """
-        return self.user.profile.get_full_name()
+        last = self.user.profile.last_name
+        first = self.user.profile.first_names
+        if reverse:
+            return ', '.join([last, first])
+        else:
+            return ' '.join([first, last])
 
-    def initialed_name(self):
+    def initialed_name(self, commas=True, periods=True):
         """
         Return author's name in citation style.
         """
         last = self.user.profile.last_name
         first = self.user.profile.first_names
-        return '{}, {}'.format(
+        final_string = '{}, {}'.format(
             last, ' '.join('{}.'.format(i[0]) for i in first.split()))
+
+        if not commas:
+            final_string = final_string.replace(',', '')
+        if not periods:
+            final_string = final_string.replace('.', '')
+
+        return final_string
 
     def disp_name_email(self):
         """
@@ -297,8 +312,18 @@ class PublishedAuthor(BaseAuthor):
         self.email = self.user.email
         self.text_affiliations = [a.name for a in self.affiliations.all()]
 
-    def initialed_name(self):
-        return '{}, {}'.format(self.last_name, ' '.join('{}.'.format(i[0]) for i in self.first_names.split()))
+    def initialed_name(self, commas=True, periods=True):
+
+        final_string = '{}, {}'.format(self.last_name, ' '.join('{}.'
+                                       .format(i[0]) for i in self.first_names
+                                       .split()))
+
+        if not commas:
+            final_string = final_string.replace(',', '')
+        if not periods:
+            final_string = final_string.replace('.', '')
+
+        return final_string
 
 
 class Topic(models.Model):
@@ -527,6 +552,12 @@ class Metadata(models.Model):
     class Meta:
         abstract = True
 
+    def is_published(self):
+        if isinstance(self, PublishedProject):
+            return True
+        else:
+            return False
+
     def author_contact_info(self, only_submitting=False):
         """
         Get the names and emails of the project's authors.
@@ -725,6 +756,170 @@ class Metadata(models.Model):
 
         return anonymous.url
 
+    def citation_text(self, style):
+        """
+        Citation information in multiple formats (MLA, APA, Chicago,
+        Harvard, and Vancouver).
+
+        1. MLA (8th edition) [https://owl.purdue.edu/owl/research_and_citation/
+                              mla_style/mla_formatting_and_style_guide/
+                              mla_formatting_and_style_guide.html]
+        2. APA (7th edition) [https://owl.purdue.edu/owl/research_and_citation/
+                              apa_style/apa_style_introduction.html]
+        3. Chicago (17th edition) [https://owl.purdue.edu/owl/
+                                   research_and_citation/
+                                   chicago_manual_17th_edition/
+                                   cmos_formatting_and_style_guide/
+                                   chicago_manual_of_style_17th_edition.html]
+        4. Harvard [https://www.mendeley.com/guides/harvard-citation-guide]
+        5. Vancouver [https://guides.lib.monash.edu/ld.php?content_id=14570618]
+
+        Parameters
+        ----------
+        style [string]:
+            ['MLA', 'APA', 'Chicago', 'Harvard', 'Vancouver']
+
+        Returns
+        -------
+        citation_format [string]:
+            string containing the desired citation style
+        """
+        authors = self.authors.all().order_by('display_order')
+
+        if self.is_published():
+
+            year = self.publish_datetime.year
+            doi = self.doi
+
+            if self.is_legacy:
+                return ''
+
+        else:
+            """
+            Since the project is not yet published, the current year is used in
+            place of the publication year, and '*****' is used in place of the
+            DOI suffix.
+            """
+            year = timezone.now().year
+            doi = '10.13026/*****'
+
+        shared_content = {'year': year,
+                          'title': self.title,
+                          'version': self.version}
+
+        if style == 'MLA':
+
+            style_format = ('{author}. "{title}" (version {version}). '
+                            '<i>PhysioNet</i> ({year})')
+
+            doi_format = (', <a href="https://doi.org/{doi}">'
+                          'https://doi.org/{doi}</a>.')
+
+            if (len(authors) == 1):
+                all_authors = authors[0].get_full_name(reverse=True)
+            elif (len(authors) == 2):
+                first_author = authors[0].get_full_name(reverse=True)
+                second_author = authors[1].get_full_name()
+                all_authors = first_author + ', and ' + second_author
+            else:
+                all_authors = authors[0].get_full_name(reverse=True)
+                all_authors += ', et al'
+
+        elif style == 'APA':
+
+            style_format = ('{author} ({year}). {title} (version '
+                            '{version}). <i>PhysioNet</i>')
+
+            doi_format = ('. <a href="https://doi.org/{doi}">'
+                          'https://doi.org/{doi}</a>.')
+
+            if (len(authors) == 1):
+                all_authors = authors[0].initialed_name()
+            elif (len(authors) == 2):
+                first_author = authors[0].initialed_name()
+                second_author = authors[1].initialed_name()
+                all_authors = first_author + ', & ' + second_author
+            elif (len(authors) > 20):
+                all_authors = ', '.join(
+                    a.initialed_name() for a in authors[0:19])
+                all_authors += ', ... ' \
+                    + authors[len(authors)-1].initialed_name()
+            else:
+                all_authors = ', '.join(a.initialed_name() for a in
+                                        authors[:(len(authors)-1)])
+                all_authors += ', & ' + \
+                    authors[len(authors)-1].initialed_name()
+
+        elif style == 'Chicago':
+
+            style_format = ('{author}. "{title}" (version {version}). '
+                            '<i>PhysioNet</i> ({year})')
+
+            doi_format = ('. <a href="https://doi.org/{doi}">'
+                          'https://doi.org/{doi}</a>.')
+
+            if (len(authors) == 1):
+                all_authors = authors[0].get_full_name(reverse=True)
+            else:
+                all_authors = ', '.join(
+                    a.get_full_name(reverse=True)
+                    for a in authors[:(len(authors)-1)])
+                all_authors += ', and ' + \
+                    authors[len(authors)-1].get_full_name()
+
+        elif style == 'Harvard':
+
+            style_format = ("{author} ({year}) '{title}' (version "
+                            "{version}), <i>PhysioNet</i>")
+
+            doi_format = (". Available at: "
+                          "<a href='https://doi.org/{doi}'>"
+                          "https://doi.org/{doi}</a>.")
+
+            if (len(authors) == 1):
+                all_authors = authors[0].initialed_name()
+            else:
+                all_authors = ', '.join(a.initialed_name() for a in
+                                        authors[:(len(authors)-1)])
+                all_authors += ', and ' + \
+                    authors[len(authors)-1].initialed_name()
+
+        elif style == 'Vancouver':
+
+            style_format = ('{author}. {title} (version {version}). '
+                            'PhysioNet. {year}')
+
+            doi_format = ('. Available from: '
+                          '<a href="https://doi.org/{doi}">'
+                          'https://doi.org/{doi}</a>.')
+
+            all_authors = ', '.join(a.initialed_name(commas=False,
+                                    periods=False) for a in authors)
+
+        if doi:
+            final_style = style_format + doi_format
+            citation_format = format_html(final_style,
+                                          author=all_authors,
+                                          doi=doi,
+                                          **shared_content)
+
+        else:
+            final_style = style_format + '.'
+            citation_format = format_html(final_style,
+                                          author=all_authors,
+                                          **shared_content)
+
+        return citation_format
+
+    def citation_text_all(self):
+        styles = ['MLA', 'APA', 'Chicago', 'Harvard', 'Vancouver']
+        citation_dict = {}
+
+        for style in styles:
+            citation_dict[style] = self.citation_text(style)
+
+        return citation_dict
+
 
 class SubmissionInfo(models.Model):
     """
@@ -827,28 +1022,6 @@ class UnpublishedProject(models.Model):
             used = None
         return StorageInfo(allowance=self.core_project.storage_allowance,
                            used=used, include_remaining=True)
-
-    def citation_text(self):
-        """
-        Return template citation text.
-
-        This text resembles the final "citation text" as it will
-        appear once the project is published.  Since the project is
-        not yet published, the current year is used in place of the
-        publication year, and '*****' is used in place of the DOI
-        suffix.
-        """
-        authors = self.authors.all().order_by('display_order')
-        year = timezone.now().year
-        doi = '10.13026/*****'
-        return format_html(
-            '{authors} ({year}). {title} (version {version}). '
-            '<i>PhysioNet</i>. https://doi.org/{doi}',
-            authors=', '.join(a.initialed_name() for a in authors),
-            year=year,
-            title=self.title,
-            version=self.version,
-            doi=doi)
 
     def get_previous_slug(self):
         """
@@ -1749,30 +1922,6 @@ class PublishedProject(Metadata, SubmissionInfo):
         return StorageInfo(allowance=self.core_project.storage_allowance,
             used=main+compressed, include_remaining=False, main_used=main,
             compressed_used=compressed)
-
-    def citation_text(self):
-        if self.is_legacy:
-            return ''
-
-        authors = self.authors.all().order_by('display_order')
-        if self.doi:
-            return format_html(
-                '{authors} ({year}). {title} (version {version}). '
-                '<i>PhysioNet</i>. '
-                '<a href="https://doi.org/{doi}">https://doi.org/{doi}</a>',
-                authors=', '.join(a.initialed_name() for a in authors),
-                year=self.publish_datetime.year,
-                title=self.title,
-                version=self.version,
-                doi=self.doi)
-        else:
-            return format_html(
-                '{authors} ({year}). {title} (version {version}). '
-                '<i>PhysioNet</i>.',
-                authors=', '.join(a.initialed_name() for a in authors),
-                year=self.publish_datetime.year,
-                title=self.title,
-                version=self.version)
 
     def remove(self, force=False):
         """

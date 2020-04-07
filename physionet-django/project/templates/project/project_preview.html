@@ -95,12 +95,37 @@
   <div class="row">
     <!-- Main column -->
     <div class="col-md-8" style="padding-left: 0;">
-
     <div class="alert alert-secondary">
-
-    <strong>When using this resource, please cite:</strong>
-      <p>{{ project.citation_text }}</p>
-
+    <p>
+      <strong>When using this resource, please cite: </strong>
+      <a href="#citationModal" data-toggle="modal">(show more options)</a>
+      <br><span>{{ citations.APA }}</span>
+    </p>
+    <div class="modal fade" id="citationModal" tabindex="-1" role="dialog" aria-labelledby="citationModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="citationModalLabel">Cite</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <table><tbody>
+              {% for style, citation in citations.items %}
+                <tr>
+                  <th>{{ style }}</th>
+                  <td>{{ citation }}</td>
+                </tr>
+              {% endfor %}
+            </tbody></table>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
     {% if publication %}
       <strong>In addition, please cite the original publication:</strong>
       <p><a href="{{ publication.url }}">{{ publication.citation }}</a></p>
