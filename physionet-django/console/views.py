@@ -237,8 +237,7 @@ def submission_info(request, project_slug):
         project.anonymous.all().delete()
         anonymous_url, passphrase = '', 'revoked'
     elif 'reassign_editor' in request.POST and reassign_editor_form.is_valid():
-        project.assign_editor(reassign_editor_form.cleaned_data['editor'],
-                              is_reassigned=True)
+        project.reassign_editor(reassign_editor_form.cleaned_data['editor'])
         notification.editor_notify_new_project(project, user, reassigned=True)
         messages.success(request, 'The editor has been reassigned')
         LOGGER.info("The editor for the project {0} has been reassigned from "
