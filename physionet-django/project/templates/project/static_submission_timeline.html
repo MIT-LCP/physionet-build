@@ -17,7 +17,7 @@
     <li class="list-group-item">
       <div class="row">
         <div class="col-md-2">{{ project.author_approval_datetime|date }}</div>
-        <div class="col-md-10">All authors approved the final project for publication.
+        <div class="col-md-10">All authors approved the final project for publication.</div>
       </div>
     </li>
 
@@ -64,6 +64,7 @@
               <p>The submitting author included the following comments:</p>
               <a class="editor-comments">{{ e.author_comments|linebreaks }}</a>
             {% endif %}
+          </div>
         </div>
       </li>
     {% endif %}
@@ -97,7 +98,7 @@
   <li class="list-group-item">
     <div class="row">
       <div class="col-md-2">{{ project.editor_assignment_datetime|date }}</div>
-      <div class="col-md-10">The project was assigned the editor: {{ project.editor.disp_name_email }}
+      <div class="col-md-10">The project was assigned an editor.</div>
     </div>
   </li>
 

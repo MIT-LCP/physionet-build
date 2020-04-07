@@ -58,6 +58,22 @@ class AssignEditorForm(forms.Form):
         return pid
 
 
+class ReassignEditorForm(forms.Form):
+    """
+    Assign an editor to a project under submission
+    """
+    editor = forms.ModelChoiceField(queryset=User.objects.filter(
+        is_admin=True), widget=forms.Select(attrs={'onchange': 'set_editor_text()'}))
+
+    def __init__(self, user, *args, **kwargs):
+        """
+        Set the appropriate queryset
+        """
+        super().__init__(*args, **kwargs)
+        self.fields['editor'].queryset = self.fields['editor'].queryset.exclude(
+            username=user.username)
+
+
 class EditSubmissionForm(forms.ModelForm):
     """
     For an editor to make a decision regarding a submission.

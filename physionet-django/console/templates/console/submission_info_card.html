@@ -11,6 +11,11 @@
       <li class="nav-item">
         <a class="nav-link {% if passphrase %} active {% endif %}" id="anonymous-tab" data-toggle="tab" href="#anonymous" role="tab" aria-controls="anonymous" aria-selected="false">Anonymous Access</a>
       </li>
+      {% if project.editor == user %}
+      <li class="nav-item">
+        <a class="nav-link {% if passphrase %} active {% endif %}" id="reassign-tab" data-toggle="tab" href="#reassign" role="tab" aria-controls="reassign" aria-selected="false">Assign new editor</a>
+      </li>
+      {% endif %}
       {% if project.submission_status >= 40 %}
       <li class="nav-item">
         <a class="nav-link" id="doi-tab" data-toggle="tab" href="#doi" role="tab" aria-controls="timeline" aria-selected="false">DOIs</a>
@@ -86,6 +91,39 @@
           {% endif %}
         </form>
       </div>
+
+      {# Permanent Reassign #}
+      {% if project.editor == user %}
+      <div class="tab-pane fade" id="reassign" role="tabpanel" aria-labelledby="reassign-tab">
+        <p>Permanently reassign the project to another editor.</p>
+        <form action="{% url 'submission_info' project.slug %}" method="POST" id="reassign_editor_form">
+          {% csrf_token %}
+          {% include "form_snippet.html" with form=reassign_editor_form %}
+          <br>
+          <button class="btn btn-primary btn-rsp" type="button" data-toggle="modal" data-target="#reassign_editor_modal">Reassign</button>
+
+          <!-- Start Modal -->
+          <div class="modal fade" id="reassign_editor_modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="exampleModalLongTitle">Editor Reassignment</h5>
+                </div>
+                <div class="modal-body">
+                  <p>Please confirm you want to assign '<span id="project_editor"></span>' as the new project editor of {{ project }}</p>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                  <button type="submit" class="btn btn-primary" name="reassign_editor">Save changes</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        <!-- End Modal -->
+        </form>
+      </div>
+      {% endif %}
+
       {# Draft DOI #}
       <div class="tab-pane fade" id="doi" role="tabpanel" aria-labelledby="doi-tab">
         <p>The following DOIs have been registered for the project. These may be useful 

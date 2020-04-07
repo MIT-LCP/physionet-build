@@ -1108,11 +1108,19 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
     def assign_editor(self, editor):
         """
-        Assign an editor to the project
+        Assign an editor to the project and set the submission status to the
+        edit stage.
         """
         self.editor = editor
         self.submission_status = 20
         self.editor_assignment_datetime = timezone.now()
+        self.save()
+
+    def reassign_editor(self, editor):
+        """
+        Reassign the current project editor with new editor
+        """
+        self.editor = editor
         self.save()
 
     def reject(self):
