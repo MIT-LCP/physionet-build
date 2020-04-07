@@ -361,25 +361,34 @@ def authors_approved_notify(request, project):
 
 def publish_notify(request, published_project):
     """
-    Notify authors when a project is published
+    Notify authors and administrators when a project is published
     """
     subject = 'Your project has been published: {0}'.format(
         published_project.title)
 
-    for email, name in published_project.author_contact_info():
-        body = loader.render_to_string(
-            'notification/email/publish_notify.html', {
-                'name': name,
-                'published_project': published_project,
-                'domain': get_current_site(request),
-                'url_prefix': get_url_prefix(request),
-                'signature': email_signature(),
-                'project_info': email_project_info(published_project),
-                'footer': email_footer()
-            })
+    content = {'published_project': published_project,
+               'domain': get_current_site(request),
+               'url_prefix': get_url_prefix(request),
+               'signature': email_signature(),
+               'project_info': email_project_info(published_project),
+               'footer': email_footer()}
 
+    for email, name in published_project.author_contact_info():
+        content['name'] = name
+        body = loader.render_to_string(
+            'notification/email/publish_notify.html', content)
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)
+
+    subject = 'A new project has been published: {0}'.format(
+        published_project.title)
+    content['name'] = "Colleague"
+    body = loader.render_to_string(
+        'notification/email/publish_notify_team.html', content)
+        
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+          [settings.CONTACT_EMAIL], fail_silently=False)
+          
 
 def storage_response_notify(storage_request):
     """
