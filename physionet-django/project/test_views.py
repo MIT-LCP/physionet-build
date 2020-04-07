@@ -376,6 +376,12 @@ class TestProjectCreation(TestMixin):
         newpath = os.path.join(newproject.file_root(), 'admissions.csv')
         self.assertTrue(os.path.samefile(oldpath, newpath))
 
+        # SHA256SUMS.txt should not be linked
+        oldpath = os.path.join(oldproject.file_root(), 'SHA256SUMS.txt')
+        newpath = os.path.join(newproject.file_root(), 'SHA256SUMS.txt')
+        self.assertTrue(os.path.exists(oldpath))
+        self.assertFalse(os.path.exists(newpath))
+
 
 class TestProjectEditing(TestCase):
     """
