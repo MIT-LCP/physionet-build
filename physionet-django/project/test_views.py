@@ -9,7 +9,8 @@ from django.urls import reverse
 from project.forms import ContentForm
 from project.models import (ArchivedProject, ActiveProject, PublishedProject,
                             Author, AuthorInvitation, License, StorageRequest,
-                            DataAccessRequest)
+                            DataAccessRequest, DataAccessRequestReviewer,
+                            PublishedAuthor)
 from user.models import User
 from user.test_views import prevent_request_warnings, TestMixin
 
@@ -1024,3 +1025,63 @@ class TestSelfManagedProjectWorkflows(TestMixin):
             requester_id=User.objects.get(username=self.REQUESTER),
             project_id=project.id,
             status=DataAccessRequest.ACCEPT_REQUEST_VALUE)), 2)
+
+
+class TestInviteDataAccessReviewer(TestMixin):
+    SUBMITTER = 'george'
+    ADDITIONAL_REVIEWER = 'admin'
+    ADDITIONAL_AUTHOR = 'aewj'
+
+    PASSWORD = 'Tester11!'
+
+    PROJECT_NAME = "Self Managed Access Database Demo"
+
+    def _add_additional_author(self, project):
+        author = PublishedAuthor()
+        author.project = project
+        author.display_order = 2
+        author.is_corresponding = False
+        author.is_submitting = False
+        author.user = User.objects.get(username=self.ADDITIONAL_AUTHOR)
+        author.save()
+
+    def _see_manage_requests_button(self, username):
+        self.client.login(username=username,
+                          password=self.PASSWORD)
+
+        response = self.client.get(reverse('project_home'))
+        return "Requests".encode('UTF-8') in response.content
+
+    def test_appointing(self):
+        self.assertFalse(self._see_manage_requests_button(self.ADDITIONAL_REVIEWER))
+
+        self.client.login(username=self.SUBMITTER, password=self.PASSWORD)
+        # corresponding author/submitter should see Manage Reviewers button in project home
+        self.assertContains(self.client.get(reverse('project_home')), "Manage Reviewers", html=True)
+
+        project = PublishedProject.objects.get(title=self.PROJECT_NAME)
+        self.client.post(reverse('manage_data_access_reviewers',
+                                 args=(project.slug, project.version,)),
+                         data={'reviewer': self.ADDITIONAL_REVIEWER,
+                               'invite_reviewer' : ['']})
+
+        reviewer = User.objects.get(username=self.ADDITIONAL_REVIEWER)
+
+        assert DataAccessRequestReviewer.objects.filter(
+            project_id=project.id, reviewer_id=reviewer.id).exists()
+
+        self.assertTrue(
+            self._see_manage_requests_button(self.ADDITIONAL_REVIEWER))
+        # reviewer shouldn't be able to manage other reviewers
+        self.assertNotContains(self.client.get(reverse('project_home')),
+                            "Manage Reviewers", html=True)
+
+        # check reviewer can access request view
+        self.assertContains(self.client.get(reverse('data_access_requests_overview',
+                                           args=(
+                                           project.slug, project.version,))), '')
+
+        # add published author
+        self._add_additional_author(project)
+        self.assertFalse(
+            self._see_manage_requests_button(self.ADDITIONAL_AUTHOR))

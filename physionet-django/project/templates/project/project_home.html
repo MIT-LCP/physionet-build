@@ -188,9 +188,16 @@
           </p>
           <h3>
             <a href="{% url 'published_project' project.slug project.version %}">{{ project.title }}</a>
-            {% if project.is_self_managed_access %}
-            <a href="{% url 'data_access_requests_overview' project.slug project.version %}" class="btn btn-primary ml-1" role="button" style="float:right">Requests</a>
-            {% endif %}
+              {% if project.is_self_managed_access %}
+                  {% if project.requests_button %}
+                      <a href="{% url 'data_access_requests_overview' project.slug project.version %}"
+                         class="btn btn-primary ml-1" role="button" style="float:right">Requests</a>
+                  {% endif %}
+                  {% if project.manage_reviewers_button %}
+                      <a href="{% url 'manage_data_access_reviewers' project.slug project.version %}" class="btn btn-primary ml-1"
+                         role="button" style="float:right">Manage Reviewers</a>
+                  {% endif %}
+              {% endif %}
             <a href="{% url 'published_submission_history' project.slug project.version %}" class="btn btn-primary ml-1" role="button" style="float:right">Submission History</a>
             {% if project.new_button %}
               <a href="{% url 'new_project_version' project.slug %}" class="btn btn-success ml-1" role="button" style="float:right">New Version</a>

@@ -703,6 +703,23 @@ def notify_user_data_access_request(data_access_request, request_protocol,
               fail_silently=False)
 
 
+def notify_user_invited_managing_requests(reviewer_invitation, request_protocol, request_host):
+    subject = "PhysioNet Invitation to Review Requests"
+
+    body = loader.render_to_string(
+        'notification/email/notify_user_invited_managing_requests.html', {
+            'invitation': reviewer_invitation,
+            'signature': email_signature(),
+            'footer': email_footer(),
+            'request_host': request_host,
+            'request_protocol': request_protocol,
+        })
+
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+              [reviewer_invitation.reviewer.email],
+              fail_silently=False)
+
+
 def task_failed_notify(name, attempts, last_error, date_time, task_name, task_params):
     """
     Notify when a task has failed and not rescheduled

@@ -16,9 +16,11 @@ from project.models import (Affiliation, Author, AuthorInvitation, ActiveProject
                             CoreProject, StorageRequest, ProgrammingLanguage,
                             License, Metadata, Reference, Publication, DataAccess,
                             PublishedProject, Topic, exists_project_slug,
-                            ProjectType, AnonymousAccess, DataAccessRequest)
+                            ProjectType, AnonymousAccess, DataAccessRequest,
+                            DataAccessRequestReviewer)
 from project import utility
 from project import validators
+from user.models import User
 
 from dal import autocomplete
 
@@ -986,3 +988,48 @@ class DataAccessResponseForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         self.responder_id = responder_id
+
+
+class InviteDataAccessReviewerForm(forms.Form):
+    def __init__(self, project, *args, **kwargs):
+        super(InviteDataAccessReviewerForm, self).__init__(*args, **kwargs)
+        self.project = project
+
+    # not using ModelForm, as by default we would get a dropdown containing all the
+    # physionet users. Instead doing it in a more pedestrian way, where a username
+    # needs to be entered manually
+    reviewer = forms.CharField(label='Physionet Username')
+
+    def clean_reviewer(self):
+        reviewer_uname = self.cleaned_data['reviewer']
+
+        if not User.objects.filter(username=reviewer_uname).exists():
+            raise forms.ValidationError(
+                f'No user {reviewer_uname} found!',
+                code='user_not_found')
+
+        reviewer = User.objects.get(username=reviewer_uname)
+
+        if self.project.is_data_access_reviewer(reviewer):
+            raise forms.ValidationError(
+                f'User {reviewer_uname} is already allowed to review requests!')
+
+        return reviewer
+
+    def save(self):
+        reviewer = self.cleaned_data['reviewer']
+
+        invitation = DataAccessRequestReviewer()
+        if DataAccessRequestReviewer.objects.filter(reviewer=reviewer,
+                                                    project=self.project).exists():
+            invitation = DataAccessRequestReviewer.objects.get(
+                reviewer=reviewer,
+                project=self.project)
+        else:
+            invitation.reviewer = reviewer
+            invitation.project = self.project
+
+        invitation.is_revoked = False
+        invitation.invitation_date = timezone.now()
+        invitation.save()
+        return invitation

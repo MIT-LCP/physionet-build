@@ -1922,15 +1922,18 @@ class PublishedProject(Metadata, SubmissionInfo):
 
         return True
 
-    def is_allowed_handling_access_requests(self, user):
+    def can_approve_requests(self, user):
         """
         Whether the user can view and respond to access requests to self managed
         projects
         """
-        # check whether user is indeed the corresponding author of the project
-        return PublishedAuthor.objects.filter(user_id=user.id,
-                                              project_id=self.id,
-                                              is_corresponding=True).exists()
+        # check whether user is the corresponding author of the project
+        is_corresponding = user == self.corresponding_author().user
+        return is_corresponding or self.is_data_access_reviewer(user)
+
+    def is_data_access_reviewer(self, user):
+        return DataAccessRequestReviewer.objects.filter(
+            reviewer=user, is_revoked=False, project=self).exists()
 
     def get_storage_info(self, force_calculate=True):
         """
@@ -1970,6 +1973,9 @@ class PublishedProject(Metadata, SubmissionInfo):
             return True
 
         return False
+
+    def can_manage_data_access_reviewers(self, user):
+        return user == self.corresponding_author().user
 
     def add_topic(self, topic_description):
         """
@@ -2156,6 +2162,24 @@ class DataAccessRequest(models.Model):
 
     def status_text(self):
         return self.status_texts.get(self.status, 'unknown')
+
+
+class DataAccessRequestReviewer(models.Model):
+    """
+    A user who is invited to review data access requests of self managed
+    credentialing projects.
+    """
+    project = models.ForeignKey('project.PublishedProject',
+                                related_name='data_access_request_reviewers',
+                                on_delete=models.CASCADE)
+
+    reviewer = models.ForeignKey('user.User', on_delete=models.CASCADE)
+
+    invitation_date = models.DateTimeField(auto_now_add=True)
+
+    is_revoked = models.BooleanField(default=False)
+
+    revocation_date = models.DateTimeField(null=True)
 
 
 class BaseInvitation(models.Model):
