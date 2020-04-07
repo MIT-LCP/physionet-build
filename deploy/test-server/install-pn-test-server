@@ -1,0 +1,203 @@
+#!/bin/bash
+# Install a test server for physionet-django
+
+set -e
+
+if [ $# = 3 ]; then
+    export REPOSITORY=$1
+    export REVISION_NAME=$2
+    export REVISION_ID=$3
+else
+    echo "Usage: $0 REPOSITORY REVISION-NAME REVISION-ID" >&2
+    exit 1
+fi
+
+if [ -d "$REPOSITORY" ]; then
+    REPOSITORY=$(readlink -f "$REPOSITORY")
+fi
+
+################################################################
+
+ADMIN=$(getent passwd 1000 | cut -d: -f1)
+export ADMIN
+
+/sbin/useradd -m -s /bin/bash pn
+/sbin/usermod -a -G www-data pn
+/sbin/usermod -p "$(getent shadow "$ADMIN" | cut -d: -f2)" pn
+
+################################################################
+
+export DEBIAN_FRONTEND=noninteractive
+
+apt-get update
+apt-get -y dist-upgrade
+
+apt-get install -y \
+        `# Web server` \
+        nginx-full certbot \
+        `# Database server` \
+        postgresql postgresql-contrib \
+        `# Python application server` \
+        virtualenv python3-dev libpq-dev \
+        `# Requirements for building LightWAVE` \
+        build-essential libseccomp-dev \
+        `# Other tools required by PhysioNet` \
+        zip unzip xfsprogs \
+        `# Development and administration tools` \
+        git sudo psmisc \
+        `# SMTP and IMAP servers, for testing email` \
+        postfix postfix-pcre dovecot-imapd
+
+################################################################
+
+cd /
+
+DBPASSWORD=$(dd if=/dev/urandom bs=1 count=24 | base64)
+SECRET_KEY=$(dd if=/dev/urandom bs=1 count=24 | base64)
+export DBPASSWORD SECRET_KEY
+
+printf '%s\n%s\n' "$DBPASSWORD" "$DBPASSWORD" |
+    su postgres -c 'createuser physionet -P'
+su postgres -c 'createdb physionet -O physionet'
+
+mkdir -p /physionet /data/pn-static /data/pn-media
+chown pn.pn /physionet /data/pn-static /data/pn-media
+su pn -c '
+   set -e
+   umask 0002
+
+   cd
+   export DJANGO_SETTINGS_MODULE=physionet.settings.staging
+   echo export DJANGO_SETTINGS_MODULE=$DJANGO_SETTINGS_MODULE >> .profile
+
+   cd /physionet
+   echo staging > deploy-branch
+   mkdir -p physionet-build python-env deploy
+
+   virtualenv --no-download -ppython3 /physionet/python-env/physionet
+   . /physionet/python-env/physionet/bin/activate
+
+   git clone --bare "$REPOSITORY" physionet-build.git
+   cd /physionet/physionet-build.git
+   GIT_WORK_TREE=/physionet/physionet-build git checkout --force "$REVISION_ID"
+   if [ "$REVISION_ID" != staging ]; then
+      GIT_WORK_TREE=/physionet/physionet-build git branch -f staging
+   fi
+
+   if [ -f /physionet/physionet-build/deploy/update ]; then
+      cp -p /physionet/physionet-build/deploy/update hooks/update
+   fi
+   cp -p /physionet/physionet-build/deploy/post-receive hooks/post-receive
+
+   cd /physionet/physionet-build
+   grep -v ^SECRET_KEY= < .env.example > .env
+   printf SECRET_KEY=%s\\n "$SECRET_KEY" >> .env
+   printf DATABASES_PASSWORD=%s\\n "$DBPASSWORD" >> .env
+
+   mkdir -p /data/pn-static/published-projects
+   mkdir -p /data/pn-media
+
+   #cd /physionet/physionet-build.git
+   #./hooks/post-receive
+
+   cd /physionet/physionet-build/physionet-django
+   pip3 install -r ../requirements.txt
+   python3 manage.py collectstatic --no-input
+
+   cd /physionet/physionet-build/physionet-django
+   python3 manage.py migrate
+
+   yes | python3 manage.py loaddemo
+'
+
+chown www-data.www-data -R /physionet/deploy
+chown www-data.www-data -R /data/pn-media
+chown www-data.www-data -R /data/pn-static/published-projects
+
+rm /etc/nginx/sites-enabled/default
+ln -s ../sites-available/physionet_nginx.conf \
+   /etc/nginx/sites-enabled/physionet_nginx.conf
+
+mkdir /data/log /data/log/nginx /data/log/uwsgi /data/log/pn
+chown www-data.root /data/log/uwsgi
+chown pn.root /data/log/pn
+
+(
+    cd /physionet/physionet-build/deploy/common
+    find . -type f | while read -r f; do install -D -m 644 "$f" "/$f"; done
+
+    cd /physionet/physionet-build/deploy/staging
+    find . -type f | while read -r f; do install -D -m 644 "$f" "/$f"; done
+
+    for f in /usr/local/bin/*; do
+        if [ -f "$f" ]; then
+            chmod a+x "$f"
+        fi
+    done
+)
+
+# Dummy keys for testing
+mkdir -p /etc/letsencrypt
+touch /etc/letsencrypt/options-ssl-nginx.conf
+install -D -m 644 /etc/ssl/certs/ssl-cert-snakeoil.pem \
+        /etc/letsencrypt/live/staging.physionet.org/fullchain.pem
+install -D -m 600 /etc/ssl/private/ssl-cert-snakeoil.key \
+        /etc/letsencrypt/live/staging.physionet.org/privkey.pem
+
+cat > /etc/letsencrypt/ssl-dhparams.pem <<EOF
+-----BEGIN DH PARAMETERS-----
+MIIBCAKCAQEA4abHMDzb/oOLnvTSYy2LCTeNZa+OIlKf0S/vcriMEps7+RfDX1Ia
+mnlM4ydWmLGAjw5SIEd/hxNqpoD49GUsU0TbCHrpzF7VzJtgUKz5W3DReJYIeNhe
+TYvBRbkMLQ4M5eUgzLUCoxbJrnc9wOH1YG7scBK/j02x01eR2JXPvi9+xuJ/i+ls
+CTZr9PbvA1sLh4jJ6iDcLKni/0b0A+/ubCYKSdVIx2sjfw4WYGdQQu6L1qbrA+Ss
+Aw4kp/Qm0WIdOmMaBaZN4a1HsrPx6hKoOJdkoSxjIg+G7ANUkcTD90RMQ227Hckt
+3EuTbm/GTT30zgVPVbt9n5fxpXZ/+YwB4wIBAg==
+-----END DH PARAMETERS-----
+EOF
+
+# XXX Django configuration overrides
+cat >>/physionet/physionet-build/physionet-django/physionet/settings/staging.py <<EOF
+### added by $0 ###
+ALLOWED_HOSTS=["*"]
+EMAIL_HOST="localhost"
+SESSION_COOKIE_SECURE=False
+EOF
+
+# XXX Merge local changes when pushing
+sed "s/git checkout --force/git checkout/" \
+    -i /physionet/physionet-build.git/hooks/post-receive
+
+################################################################
+
+# Deliver all mail to localhost regardless of destination, and deliver
+# all unknown users' mail to $ADMIN@localhost.  (Requires postfix-pcre)
+sed 's/^mydestination/#mydestination/' -i /etc/postfix/main.cf
+cat >> /etc/postfix/main.cf <<EOF
+luser_relay = $ADMIN@localhost
+local_recipient_maps =
+mydestination = pcre:/etc/postfix/anywhere
+EOF
+echo '/.*/ ACCEPT' > /etc/postfix/anywhere
+
+systemctl restart postfix
+
+################################################################
+
+# Disable network time so that we can play with the clock
+systemctl disable systemd-timesyncd
+systemctl stop systemd-timesyncd
+
+systemctl daemon-reload
+systemctl enable emperor.uwsgi
+systemctl restart emperor.uwsgi
+systemctl restart nginx
+systemctl enable django-background-tasks
+systemctl restart django-background-tasks
+
+su pn -c '
+   cd /physionet/physionet-build.git
+   echo
+   echo "Successfully installed $REVISION_NAME ($(git rev-parse HEAD))."
+   echo " - Note: pn'\''s password is the same as $ADMIN'\''s."
+   echo " - Outgoing mail will be delivered to <$ADMIN@localhost>."
+'

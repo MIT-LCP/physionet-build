@@ -1,0 +1,29 @@
+#!/bin/bash
+
+if [ -w /dev/kvm ]; then
+    kvm_arg=-enable-kvm
+else
+    echo "Warning: KVM acceleration is unavailable.  Emulation may be slow."
+    kvm_arg=-no-kvm
+fi
+
+echo "Launching test server:"
+echo "  ->  http://localhost:10080/"
+echo "  ->  https://localhost:10443/"
+echo "  ->  ssh -p 10022 localhost"
+echo "  ->  scp -P 10022 \$FILES localhost:"
+echo "  ->  IMAP: port 10143"
+echo "  ->  SMTP: port 10025"
+
+IMAGE=${PHYSIONET_TEST_SERVER_IMAGE:-physionet-test.img}
+
+exec qemu-system-x86_64 \
+     $kvm_arg -smp 2 \
+     -m 2000 \
+     -vga vmware -device virtio-rng-pci \
+     -snapshot \
+     -drive file=$IMAGE,if=virtio \
+     -net nic \
+     -net user,hostfwd=tcp::10022-:22,hostfwd=tcp::10080-:80,hostfwd=tcp::10443-:443,hostfwd=tcp::10025-:25,hostfwd=tcp::10143-:143,hostfwd=tcp::10993-:993 \
+     -name 'physionet-test-server' \
+     "$@"

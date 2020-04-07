@@ -1,0 +1,27 @@
+This directory contains scripts for configuring a demo PhysioNet
+server in a virtual machine.
+
+Quick start:
+
+1. You must have 'qemu-system-x86', 'qemu-utils', '7z', and maybe
+   other stuff.  As of this writing, about 1.9 GB of disk space is
+   required.
+
+2. Download the latest installer (amd64 netinst) CD image from
+   https://www.debian.org/releases/buster/debian-installer/
+   (e.g., debian-10.3.0-amd64-netinst.iso) to this directory.
+
+3. Run ./kvm-pntest-create to create the virtual disk image.
+
+4. Run ./kvm-pntest to launch the virtual machine.
+
+5. Once the virtual machine is running, run
+     ./ssh-install-pn-test-server HEAD
+   to install the current HEAD from your git repository.
+
+When that finishes, you will have a web server running at
+<https://localhost:10443/>.
+
+Changes to the virtual disk will not be saved, so you can kill the VM
+at any time and re-run steps 4-5 for a clean installation.  You
+shouldn't need to run steps 1-3 again.
