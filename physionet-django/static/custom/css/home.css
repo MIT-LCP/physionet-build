@@ -140,3 +140,7 @@ html{
 		border-radius: 10px;
 	}
 }
+
+.main-side h3, .main-side h4{
+       font-size: 1.25rem;
+}
