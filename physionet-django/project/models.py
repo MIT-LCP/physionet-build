@@ -276,6 +276,40 @@ class Author(BaseAuthor):
         if set_affiliations:
             self.text_affiliations = [a.name for a in self.affiliations.all()]
 
+    @staticmethod
+    def merge_users(main_user, second_user):
+        """
+        Merge author objects between two users
+        """
+        if main_user == second_user:
+            raise Exception("The project authorships cannot be merged to the "
+                            "same user")
+
+        if main_user.__class__.__name__ != second_user.__class__.__name__ != 'User':
+            raise Exception("Incorrect arguments, please use User objets.")
+
+        LOGGER.info("Attempting merge the active project authorship of {0} "
+                    "to {1}".format(second_user, main_user))
+
+        all_authorship = second_user.authors.all()
+        LOGGER.info("{0} authorship(s) were found in user {1}".format(
+            all_authorship.count(), second_user))
+
+        for authorship in all_authorship:
+            if not authorship.project.authors.filter(user=main_user):
+                authorship.user = main_user
+                authorship.save()
+                LOGGER.info("Changed author in project {0} from {1} to {2}".format(
+                    authorship.project, second_user, main_user))
+            else:
+                authorship.delete()
+                LOGGER.info("The user {0} is already an author of {1} the "
+                            "user {2} has been removed.".format(
+                                main_user, authorship.project, second_user))
+
+        LOGGER.info("Active project authorship migration from {0} to {1} is "
+                    "complete".format(second_user, main_user))
+
 
 class PublishedAuthor(BaseAuthor):
     """
@@ -324,6 +358,40 @@ class PublishedAuthor(BaseAuthor):
             final_string = final_string.replace('.', '')
 
         return final_string
+
+    @staticmethod
+    def merge_users(main_user, second_user):
+        """
+        Merge published authorships from two users
+        """
+        if main_user == second_user:
+            raise Exception("The project authorships cannot be merged to the "
+                            "same user")
+
+        if main_user.__class__.__name__ != second_user.__class__.__name__ != 'User':
+            raise Exception("Incorrect arguments, please use User objets.")
+
+        LOGGER.info("Attempting merge the published project authorship of {0} "
+                    "to {1}".format(second_user, main_user))
+
+        all_authorship = second_user.publishedauthors.all()
+        LOGGER.info("{0} authorship(s) were found in user {1}".format(
+            all_authorship.count(), second_user))
+
+        for authorship in all_authorship:
+            if not authorship.project.authors.filter(user=main_user):
+                authorship.user = main_user
+                authorship.save()
+                LOGGER.info("Changed author in project {0} from {1} to {2}".format(
+                    authorship.project, second_user, main_user))
+            else:
+                authorship.delete()
+                LOGGER.info("The user {0} is already an author of {1} the "
+                            "user {2} has been removed.".format(
+                                main_user, authorship.project, second_user))
+
+        LOGGER.info("Published project authorship migration from {0} to {1} is"
+                    " complete".format(second_user, main_user))
 
 
 class Topic(models.Model):
