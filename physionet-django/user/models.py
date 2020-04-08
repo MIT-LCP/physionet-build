@@ -879,12 +879,22 @@ class CredentialApplication(models.Model):
         if second_user.is_credentialed and not main_user.is_credentialed:
             main_user.is_credentialed = True
             main_user.credential_datetime = second_user.credential_datetime
+            try:
+                # Withdraw any ongoing applications on the main user.
+                ongoing_app = main_user.credential_applications.get(status=0)
+                ongoing_app.status = 3
+                ongoing_app.save()
+                logger.info("The credential application with ID #{0} was "
+                            "withdrawn.".format(ongoing_app.id))
+            except CredentialApplication.DoesNotExist:
+                pass
             main_user.save()
             logger.info("User {0} has been credentialed because user {1} "
                         "was credentialed.".format(main_user, second_user))
 
         logger.info("Credential aplications migration from {0} to {1} is complete".format(
             second_user, main_user))
+
 
 class CloudInformation(models.Model):
     """
