@@ -2194,6 +2194,43 @@ class DUASignature(models.Model):
         on_delete=models.CASCADE)
     sign_datetime = models.DateTimeField(auto_now_add=True)
 
+    @staticmethod
+    def merge_users(main_user, second_user):
+        """
+        Merge DUA signature information from two users
+        """
+        if main_user == second_user:
+            raise Exception("The project DUA signatures cannot be merged to "
+                            "the same user")
+
+        if main_user.__class__.__name__ != second_user.__class__.__name__ != 'User':
+            raise Exception("Incorrect arguments, please use User objets.")
+
+        LOGGER.info("Attempting merge the dua signatures from {0} to {1}".format(
+            second_user, main_user))
+
+        project_dua_signatures = second_user.dua_saignee.all()
+        LOGGER.info("{0} project signatures(s) were found in user {1}".format(
+            project_dua_signatures.count(), second_user))
+
+        for signature in project_dua_signatures:
+            if DUASignature.objects.filter(project=signature.project,
+                                           user=main_user):
+                LOGGER.info("Found a signature from the main user to the "
+                            "same project of this signature.")
+                LOGGER.info("Deleted project signature from the second user to"
+                            " {}".format(signature.project))
+                signature.delete()
+            else:
+                LOGGER.info("No signature found in the main user for project "
+                            "{}, reassiging the signature to the main user".format(
+                                signature.project))
+                signature.user = main_user
+                signature.save()
+
+        LOGGER.info("Project signature migration from {0} to {1} is complete".format(
+            second_user, main_user))
+
 
 class DataAccessRequest(models.Model):
     PENDING_VALUE = 0
