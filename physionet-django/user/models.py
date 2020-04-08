@@ -393,6 +393,39 @@ class User(AbstractBaseUser):
         "Where the user's files are stored"
         return os.path.join(User.FILE_ROOT, self.username)
 
+    @staticmethod
+    def merge_users(main_user, second_user):
+        """
+        Merge the infromation from all models in the user models.py
+        """
+        if main_user == second_user:
+            raise Exception("Cannot merge a user to itself.")
+
+        if main_user.__class__.__name__ != second_user.__class__.__name__ != 'User':
+            raise Exception("Incorrect arguments, please use User objets.")
+
+        logger.info("Attempting to migrate associated emails from {0} to {1} "
+                    "is complete".format(second_user, main_user))
+
+        # Merge all objects in the user/models.py
+        AssociatedEmail.merge_users(main_user, second_user)
+        CloudInformation.merge_users(main_user, second_user)
+        LegacyCredential.merge_users(main_user, second_user)
+        CredentialApplication.merge_users(main_user, second_user)
+
+        second_user_email = second_user.associated_emails.first().email
+        uuid = second_user_email.split("__")[0]
+
+        # Update the username with the same UUID of the email
+        second_user.username = uuid + second_user.username
+        # Update the user email with the associated email
+        second_user.email = second_user_email
+        # Remove credentialing in the second account
+        second_user.is_credentialed = False
+        # Set unusable password
+        second_user.set_unusable_password()
+        second_user.save()
+
 
 class UserLogin(models.Model):
     """Represent users' logins, one per record"""
@@ -952,17 +985,15 @@ class CloudInformation(models.Model):
 
             second_cloud.aws_id = None
             second_cloud.gcp_email = None
-            with transaction.atomic:
+            with transaction.atomic():
+                second_cloud.save()
+                logger.info("Reseting the cloud information of the second "
+                            "user to empty")
                 if updated:
                     main_cloud.save()
                     logger.info("The cloud information for the main user has "
                                 "been updated.")
-                second_cloud.save()
-                logger.info("Reseting the cloud information of the second "
-                            "user to empty")
-
         else:
-            logger.info("No cloud information found on the second user.")
             logger.info("No cloud changes done.")
 
         logger.info("Cloud iformation migration from {0} to {1} is complete".format(
