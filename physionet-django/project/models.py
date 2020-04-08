@@ -2405,6 +2405,31 @@ class StorageRequest(BaseInvitation):
         return '{0}GB for project: {1}'.format(self.request_allowance,
                                                self.project.__str__())
 
+    @staticmethod
+    def merge_users(main_user, second_user):
+        if main_user == second_user:
+            raise Exception("The project storage requests cannot be merged to "
+                            "the same user")
+
+        if main_user.__class__.__name__ != second_user.__class__.__name__ != 'User':
+            raise Exception("Incorrect arguments, please use User objets.")
+
+        LOGGER.info("Attempting merge storage requests responded from {0}"
+                    " to {1}".format(second_user, main_user))
+
+        storage_responses = second_user.storage_responder.all()
+        LOGGER.info("{0} storage responses were found in user {1}".format(
+            storage_responses.count(), second_user))
+        for request in storage_responses:
+            LOGGER.info("Storage response for project {0} made by {1} is "
+                        "migrated to {2}".format(request.project,
+                                                 request.responder, main_user))
+            request.responder = main_user
+            request.save()
+
+        LOGGER.info("Storage requests responses migration from {0} to {1} is "
+                    "complete".format(second_user, main_user))
+
 
 class EditLog(models.Model):
     """
