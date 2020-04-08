@@ -265,10 +265,21 @@ def get_form_errors(form):
         all_errors += form.errors[field]
     return all_errors
 
+
 def grant_aws_open_data_access(user, project):
     """
     Function to grant a AWS ID access to the bukets in the Open Data
     AWS platform.
+
+    Possible responses are:
+
+    b'{"error": "Unexpected error: An error occurred (MalformedPolicy) when
+        calling the PutBucketPolicy operation: Invalid principal in policy",
+        "message": null}'
+    b'{"error": "None", "message": "Accounts [\'XXXYYYZZZ\'] have been added,
+        accounts [] have been skipped since already exist, accounts [] have
+        been deleted since policy is too large"}'
+    b'{"error": "None", "message": "No new accounts to add"}'
     """
     url = settings.AWS_CLOUD_FORMATION
     # The payload has to be a string in an array
@@ -278,11 +289,25 @@ def grant_aws_open_data_access(user, project):
         settings.AWS_HEADER_KEY2: settings.AWS_HEADER_VALUE2}
     # Do a request to AWS and try to add the user ID to the bucket
     response = requests.post(url, data=json.dumps(payload), headers=headers)
-    message = response.json()['message'].split(',')[0]
-    # The message can differ if the ID is already there, or non-existent
-    LOGGER.info("AWS message '{0}' for project {1}".format(
-        response.json()['message'], project))
-    return message
+
+    if response.status_code < 200 or response.status_code >= 300:
+        LOGGER.info("Error sending adding the AWS ID to the Bucket Policy."
+                    "The request payload is {0}\nThe errror is the following: "
+                    "{1}\n".format(payload, response.content))
+        return "Access could not be granted."
+
+    message = response.json()['message']
+    if message == "No new accounts to add":
+        LOGGER.info("AWS response adding {0} to project {1}\n{2}".format(
+            user.cloud_information.aws_id, project, message))
+        return message
+    elif "Accounts ['{}'] have been added".format(user.cloud_information.aws_id) in message:
+        LOGGER.info("AWS response adding {0} to project {1}\n{2}".format(
+            user.cloud_information.aws_id, project, message))
+        return message.split(',')[0]
+    LOGGER.info('Unknown response from AWS - {0}\nThe payload is {1}'.format(
+        payload, response.content))
+    return "There was an error granting access."
 
 
 def grant_gcp_group_access(user, project, data_access):
