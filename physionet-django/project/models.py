@@ -2750,3 +2750,7 @@ class AnonymousAccess(models.Model):
 
         return isnot_expired and check_password(raw_passphrase, self.passphrase)
 
+    def merge_user(main_user, second_user):
+        """
+        """
+        pass
