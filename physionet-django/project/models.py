@@ -1041,6 +1041,54 @@ class SubmissionInfo(models.Model):
     class Meta:
         abstract = True
 
+    @staticmethod
+    def merge_users(main_user, second_user):
+        """
+        Merge submission information from one editor to another.
+        """
+        if main_user == second_user:
+            raise Exception("The submission logs cannot be merged to the same "
+                            "user")
+
+        if main_user.__class__.__name__ != second_user.__class__.__name__ != 'User':
+            raise Exception("Incorrect arguments, please use User objets.")
+
+        LOGGER.info("Attempting merge the project submission logs from {0} to "
+                    "{1}".format(second_user, main_user))
+
+        active_submission = main_user.editing_activeprojects.all()
+        archived_submission = main_user.editing_archivedprojects.all()
+        published_submission = main_user.editing_publishedprojects.all()
+
+        LOGGER.info("{0} editor submission logs were found in user {1}".format(
+            active_submission.count(), second_user))
+        LOGGER.info("{0} editor submission logs were found in user {1}".format(
+            archived_submission.count(), second_user))
+        LOGGER.info("{0} editor submission logs were found in user {1}".format(
+            published_submission.count(), second_user))
+
+        for submission in active_submission:
+            LOGGER.info("Replacing the editor of the active project '{0}' from"
+                        " {2} to {3}".format(submission.title,
+                                             submission.editor, main_user))
+            submission.editor = main_user
+            submission.save()
+        for submission in archived_submission:
+            LOGGER.info("Replacing the editor of the archived project '{0}' "
+                        "from {2} to {3}".format(submission.title,
+                                                 submission.editor, main_user))
+            submission.editor = main_user
+            submission.save()
+        for submission in published_submission:
+            LOGGER.info("Replacing the editor of the published project '{0}' "
+                        "from {2} to {3}".format(submission.title,
+                                                 submission.editor, main_user))
+            submission.editor = main_user
+            submission.save()
+
+        LOGGER.info("Project submission logs from {0} to {1} is complete".format(
+            second_user, main_user))
+
 
 class UnpublishedProject(models.Model):
     """
