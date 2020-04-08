@@ -2640,6 +2640,31 @@ class GCP(models.Model):
     creation_datetime = models.DateTimeField(auto_now_add=True)
     finished_datetime = models.DateTimeField(null=True)
 
+    @staticmethod
+    def merge_users(main_user, second_user):
+        if main_user == second_user:
+            raise Exception("The project GCP information cannot be merged to "
+                            "the same user")
+
+        if main_user.__class__.__name__ != second_user.__class__.__name__ != 'User':
+            raise Exception("Incorrect arguments, please use User objets.")
+
+        LOGGER.info("Attempting merge GCP project information made by {0} "
+                    "to {1}".format(second_user, main_user))
+
+        gcp_objects = second_user.gcp_manager.all()
+        LOGGER.info("{0} gcp objects created were made by {1}".format(
+            gcp_objects.count(), second_user))
+        for gcp in gcp_objects:
+            LOGGER.info("GCP project information from {0} managed by {1} is "
+                        "migrated to {2}".format(gcp.project, gcp.managed_by,
+                                                 main_user))
+            gcp.managed_by = main_user
+            gcp.save()
+
+        LOGGER.info("GCP project information migration from {0} to {1} is "
+                    "complete".format(second_user, main_user))
+
 
 class DataAccess(models.Model):
     """
