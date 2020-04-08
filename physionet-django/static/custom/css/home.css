@@ -139,6 +139,14 @@ html{
 		border: 1px silver solid;
 		border-radius: 10px;
 	}
+
+	.content-box, .main-side{
+		hyphens: auto;
+		-ms-hyphens: auto;
+		-webkit-hyphens: auto;
+                overflow-wrap: break-word;
+		word-wrap: break-word;
+	}
 }
 
 .main-side h3, .main-side h4{
