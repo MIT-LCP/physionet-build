@@ -13,7 +13,7 @@ from django.core.management import call_command
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
-from user.models import AssociatedEmail, Profile, User
+from user.models import AssociatedEmail, Profile, User, CredentialApplication, CloudInformation, LegacyCredential
 from user.views import (activate_user, edit_emails, edit_profile,
     edit_password_complete, public_profile, register, user_settings,
     verify_email)
@@ -265,6 +265,51 @@ class TestAuth(TestMixin):
 
         request = self.client.get(reverse('verify_email', args=(uidb64, token)))
         self.assertTrue(AssociatedEmail.objects.get(email='tester0@mit.edu').is_verified)
+
+    def test_merge(self):
+        main_user = User.objects.get(username='george')
+        second_user = User.objects.get(username='tompollard')
+
+        # Associated emails merge
+        self.assertEqual(main_user.associated_emails.count(), 2)
+        self.assertEqual(second_user.associated_emails.count(), 2)
+
+        # Credential applications merge
+        self.assertEqual(main_user.credential_applications.count(), 1)
+        self.assertEqual(second_user.credential_applications.count(), 2)
+
+        # Credential applications merge
+        self.assertEqual(main_user.legacy_application.count(), 0)
+        self.assertEqual(second_user.legacy_application.count(), 1)
+
+        # Cloud information merge
+        try:
+            self.assertIsNone(main_user.cloud_information)
+        except CloudInformation.DoesNotExist:
+            pass
+
+        self.assertIsNotNone(second_user.cloud_information.aws_id)
+        self.assertIsNotNone(second_user.cloud_information.gcp_email)
+
+        User.merge_users(main_user, second_user)
+
+        # Associated emails merge
+        self.assertEqual(main_user.associated_emails.count(), 4)
+        self.assertEqual(second_user.associated_emails.count(), 1)
+
+        # Credential applications merge
+        self.assertEqual(main_user.credential_applications.count(), 3)
+        self.assertEqual(second_user.credential_applications.count(), 0)
+
+        # Credential applications merge
+        self.assertEqual(main_user.legacy_application.count(), 1)
+        self.assertEqual(second_user.legacy_application.count(), 0)
+
+        # Cloud information merge
+        self.assertIsNotNone(main_user.cloud_information.aws_id)
+        self.assertIsNotNone(main_user.cloud_information.gcp_email)
+        self.assertIsNone(second_user.cloud_information.aws_id)
+        self.assertIsNone(second_user.cloud_information.gcp_email)
 
 
 class TestPublic(TestMixin):
