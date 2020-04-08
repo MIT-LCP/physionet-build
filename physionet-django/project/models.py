@@ -2389,6 +2389,57 @@ class AuthorInvitation(BaseInvitation):
 
         return bool(project in [inv.project for inv in invitations])
 
+    @staticmethod
+    def merge_users(main_user, second_user):
+        """
+        Merge the authorship invitations from two users
+
+        This function should only be called JUST after merging all active
+        authorships, or whenever project authorship is not going to be changed.
+        """
+        if main_user == second_user:
+            raise Exception("The project authorships invitations cannot be "
+                            "merged to the same user")
+
+        if main_user.__class__.__name__ != second_user.__class__.__name__ != 'User':
+            raise Exception("Incorrect arguments, please use User objets.")
+
+        LOGGER.info("Attempting merge the authorship inviations from {0}"
+                    " to {1}".format(second_user, main_user))
+
+        second_user_outgoing_invitations = second_user.author_invitations.all()
+        LOGGER.info("{0} authorship(s) invites were found in user {1}".format(
+            second_user_outgoing_invitations.count(), second_user))
+
+        for out_invite in second_user_outgoing_invitations:
+            # Check if there is an invitation to the same project and email
+            # from the main user
+            other_invite = AuthorInvitation.objects.filter(
+                email=out_invite.email, inviter=main_user,
+                project=out_invite.project)
+            # Check if the main user is already an author.
+            main_user_is_author = out_invite.project.authors.filter(user=main_user)
+            if other_invite:
+                LOGGER.info("Deleting authorship invite on project {0} to {1} "
+                            "because he has another invitation from the main "
+                            "user {2}.".format(out_invite.project,
+                                               out_invite.email, main_user))
+                out_invite.delete()
+
+            elif main_user_is_author:
+                LOGGER.info("Deleting authorship invite on project {0} to {1} "
+                            "because he is already an author.".format(
+                                out_invite.project, main_user))
+                out_invite.delete()
+            else:
+                LOGGER.info("Set authorship invitation '{0}' user from {1} to "
+                            "{2}".format(out_invite.id, second_user, main_user))
+                out_invite.inviter = main_user
+                out_invite.save()
+
+        LOGGER.info("Authorship invitation migration from {0} to {1} is "
+                    "complete".format(second_user, main_user))
+
 
 class StorageRequest(BaseInvitation):
     """
