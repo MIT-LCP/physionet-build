@@ -2074,7 +2074,8 @@ class DUASignature(models.Model):
     """
     project = models.ForeignKey('project.PublishedProject',
         on_delete=models.CASCADE)
-    user = models.ForeignKey('user.User', on_delete=models.CASCADE)
+    user = models.ForeignKey('user.User', related_name='dua_saignee',
+        on_delete=models.CASCADE)
     sign_datetime = models.DateTimeField(auto_now_add=True)
 
 
@@ -2100,7 +2101,9 @@ class DataAccessRequest(models.Model):
 
     request_datetime = models.DateTimeField(auto_now_add=True)
 
-    requester = models.ForeignKey('user.User', on_delete=models.CASCADE)
+    requester = models.ForeignKey('user.User',
+                                  related_name='data_access_requests_requester',
+                                  on_delete=models.CASCADE)
 
     project = models.ForeignKey('project.PublishedProject',
                                 related_name='data_access_requests',
@@ -2114,7 +2117,7 @@ class DataAccessRequest(models.Model):
     decision_datetime = models.DateTimeField(null=True)
 
     responder = models.ForeignKey('user.User', null=True,
-                                  related_name='data_access_request_user',
+                                  related_name='data_access_requests_responder',
                                   on_delete=models.SET_NULL)
 
     responder_comments = SafeHTMLField(blank=True, max_length=10000)
@@ -2157,7 +2160,8 @@ class AuthorInvitation(BaseInvitation):
     # The target email
     email = models.EmailField(max_length=255)
     # User who made the invitation
-    inviter = models.ForeignKey('user.User', on_delete=models.CASCADE)
+    inviter = models.ForeignKey('user.User', related_name='author_invitations',
+        on_delete=models.CASCADE)
 
     def __str__(self):
         return 'ActiveProject: {0} To: {1} By: {2}'.format(self.project, self.email,
@@ -2199,7 +2203,7 @@ class StorageRequest(BaseInvitation):
     request_allowance = models.SmallIntegerField(
         validators=[MaxValueValidator(10240), MinValueValidator(1)])
     responder = models.ForeignKey('user.User', null=True,
-        on_delete=models.SET_NULL)
+        related_name='storage_responder', on_delete=models.SET_NULL)
     response_message = models.CharField(max_length=10000, default='', blank=True)
 
     def __str__(self):
