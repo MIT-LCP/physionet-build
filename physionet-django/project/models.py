@@ -2290,6 +2290,48 @@ class DataAccessRequest(models.Model):
     def status_text(self):
         return self.status_texts.get(self.status, 'unknown')
 
+    @staticmethod
+    def merge_user(main_user, second_user):
+        """
+        Merge self managed access resquer and requestee from two users
+        """
+        if main_user == second_user:
+            raise Exception("The project self managed access cannot be merged "
+                            "to the same user")
+
+        if main_user.__class__.__name__ != second_user.__class__.__name__ != 'User':
+            raise Exception("Incorrect arguments, please use User objets.")
+
+        LOGGER.info("Attempting merge the self managed project access request "
+                    "from {0} to {1}".format(second_user, main_user))
+
+        access_requester = second_user.data_access_requests_requester.all()
+        LOGGER.info("{0} self managed project access request were done by user"
+                    " {1}".format(access_requester.count(),
+                                  second_user))
+        access_responder = second_user.data_access_requests_responder.all()
+        LOGGER.info("{0} self managed project access request were ressponded "
+                    "by user {1}".format(
+                        access_responder.count(), second_user))
+
+        for access_request in access_responder:
+            LOGGER.info("Self managed project request for project {0} is now "
+                        "reassigned from {1} to {2}".format(
+                            access_request.project, access_request.responder,
+                            main_user))
+            access_request.responder = main_user
+            access_request.save()
+        for access_request in access_requester:
+            LOGGER.info("Self managed project response for access in project "
+                        "{0} is now reassigned from {1} to {2}".format(
+                            access_request.project, access_request.requester,
+                            main_user))
+            access_request.requester = main_user
+            access_request.save()
+
+        LOGGER.info("Self managed project access request  migration from {0} "
+                    "to {1} is complete".format(second_user, main_user))
+
 
 class BaseInvitation(models.Model):
     """
