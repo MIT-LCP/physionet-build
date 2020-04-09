@@ -659,7 +659,7 @@ class CredentialApplication(models.Model):
     last_name = models.CharField(max_length=50, validators=[validators.validate_name])
     researcher_category = models.PositiveSmallIntegerField(choices=RESEARCHER_CATEGORIES)
     # Organization fields
-    organization_name = models.CharField(max_length=60,
+    organization_name = models.CharField(max_length=200,
         validators=[validators.validate_organization])
     job_title = models.CharField(max_length=60,
         validators=[validators.validate_job_title])
