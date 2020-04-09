@@ -204,6 +204,9 @@ echo "================================================================"
 # Set up working directory and useful variables
 
 workdir=$topdir/test-upgrade.tmp
+if [ -d "$workdir" ]; then
+    find "$workdir" -type d -exec chmod u+w '{}' ';'
+fi
 rm -rf "$workdir"
 
 olddir=$workdir/old
@@ -388,6 +391,9 @@ export PATH=$venvdir/bin:$PATH
 if fgrep ' *** FAILED: ' "$topdir/$logfile" >&3; then
     exit 1
 else
+    find "$workdir" -type d -exec chmod u+w '{}' ';'
+    rm -rf "$workdir"
+
     echo "Success" >&3
     exit 0
 fi
