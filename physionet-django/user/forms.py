@@ -218,9 +218,11 @@ class RegistrationForm(forms.ModelForm):
         return self.cleaned_data['username'].lower()
 
     def save(self):
-        # Save the provided password in hashed format
-
-        if self.errors: return
+        """
+        Process the registration form
+        """
+        if self.errors:
+            return
 
         user = super(RegistrationForm, self).save(commit=False)
         user.email = user.email.lower()
@@ -228,7 +230,7 @@ class RegistrationForm(forms.ModelForm):
         with transaction.atomic():
             user.save()
             # Save additional fields in Profile model
-            profile = Profile.objects.create(user=user,
+            Profile.objects.create(user=user,
                 first_names=self.cleaned_data['first_names'],
                 last_name=self.cleaned_data['last_name'])
             return user

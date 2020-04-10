@@ -12,6 +12,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
+from django.db import IntegrityError
 from django.forms import inlineformset_factory, HiddenInput, CheckboxInput
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.shortcuts import redirect, render
@@ -30,7 +31,7 @@ from physionet import utility
 from project.models import Author, License, PublishedProject
 from notification.utility import (process_credential_complete,
                                   credential_application_request,
-                                  get_url_prefix)
+                                  get_url_prefix, notify_account_registration)
 
 
 logger = logging.getLogger(__name__)
@@ -312,29 +313,25 @@ def register(request):
         form = forms.RegistrationForm(request.POST)
         if form.is_valid():
             # Create the new user
-            user = form.save()
+            try:
+                user = form.save()
+            except IntegrityError:
+                form.full_clean()
+                if form.is_valid():
+                    raise
+                user = User.objects.get(username=form.data['username'])
+            else:
+                uidb64 = force_text(urlsafe_base64_encode(force_bytes(
+                    user.pk)))
+                token = default_token_generator.make_token(user)
+                notify_account_registration(request, user, uidb64, token)
 
-            # Send an email with the activation link
-            uidb64 = force_text(urlsafe_base64_encode(force_bytes(user.pk)))
-            token = default_token_generator.make_token(user)
-            subject = "PhysioNet Account Activation"
-            context = {
-                'name': user.get_full_name(),
-                'domain': get_current_site(request),
-                'url_prefix': get_url_prefix(request),
-                'uidb64': uidb64,
-                'token': token
-            }
-            body = loader.render_to_string('user/email/register_email.html', context)
-            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                [form.cleaned_data['email']], fail_silently=False)
-
-            # Registration successful
-            return render(request, 'user/register_done.html', {'email':user.email})
+            return render(request, 'user/register_done.html', {
+                'email': user.email})
     else:
         form = forms.RegistrationForm()
 
-    return render(request, 'user/register.html', {'form':form})
+    return render(request, 'user/register.html', {'form': form})
 
 
 @login_required
