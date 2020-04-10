@@ -2420,8 +2420,10 @@ class AuthorInvitation(BaseInvitation):
             other_invite = AuthorInvitation.objects.filter(
                 email=out_invite.email, inviter=main_user,
                 project=out_invite.project)
-            # Check if the main user is already an author.
-            main_user_is_author = out_invite.project.authors.filter(user=main_user)
+
+            # Check if the main user the invitee.
+            main_user_is_invitee = main_user.associated_emails.filter(
+                email=out_invite.email)
             if other_invite:
                 LOGGER.info("Deleting authorship invite on project {0} to {1} "
                             "because he has another invitation from the main "
@@ -2429,7 +2431,7 @@ class AuthorInvitation(BaseInvitation):
                                                out_invite.email, main_user))
                 out_invite.delete()
 
-            elif main_user_is_author:
+            elif main_user_is_invitee:
                 LOGGER.info("Deleting authorship invite on project {0} to {1} "
                             "because he is already an author.".format(
                                 out_invite.project, main_user))
