@@ -277,7 +277,8 @@ class Author(BaseAuthor):
             self.text_affiliations = [a.name for a in self.affiliations.all()]
 
     @staticmethod
-    def merge_users(main_user, second_user):
+    def merge_users(main_user, second_user, model_object=None):
+
         """
         Merge author objects between two users
         """
@@ -360,7 +361,8 @@ class PublishedAuthor(BaseAuthor):
         return final_string
 
     @staticmethod
-    def merge_users(main_user, second_user):
+    def merge_users(main_user, second_user, model_object=None):
+
         """
         Merge published authorships from two users
         """
@@ -489,6 +491,7 @@ class BasePublication(models.Model):
 
     class Meta:
         abstract = True
+
 
 class Publication(BasePublication):
     """
@@ -1042,7 +1045,7 @@ class SubmissionInfo(models.Model):
         abstract = True
 
     @staticmethod
-    def merge_users(main_user, second_user):
+    def merge_users(main_user, second_user, model_object):
         """
         Merge submission information from one editor to another.
         """
@@ -1053,41 +1056,38 @@ class SubmissionInfo(models.Model):
         if main_user.__class__.__name__ != second_user.__class__.__name__ != 'User':
             raise Exception("Incorrect arguments, please use User objets.")
 
-        LOGGER.info("Attempting merge the project submission logs from {0} to "
-                    "{1}".format(second_user, main_user))
+        if model_object.__name__ == 'ArchivedProject':
+            LOGGER.info("Attempting merge the archived projects submission logs from {0} to {1}".format(second_user, main_user))
+            archived_submission = main_user.editing_archivedprojects.all()
+            LOGGER.info("{0} editor submission logs were found in user {1}".format(archived_submission.count(), second_user))
+            for submission in archived_submission:
+                LOGGER.info("Replacing the editor of the archived project '{0}' from {2} to {3}".format(submission.title, submission.editor, main_user))
+                submission.editor = main_user
+                submission.save()
+            LOGGER.info("Archived project submission logs from {0} to {1} is complete".format(second_user, main_user))
 
-        active_submission = main_user.editing_activeprojects.all()
-        archived_submission = main_user.editing_archivedprojects.all()
-        published_submission = main_user.editing_publishedprojects.all()
+        elif model_object.__name__ == 'ActiveProject':
+            LOGGER.info("Attempting merge the active projects submission logs from {0} to {1}".format(second_user, main_user))
+            active_submission = main_user.editing_activeprojects.all()
+            LOGGER.info("{0} editor submission logs were found in user {1}".format(active_submission.count(), second_user))
+            for submission in active_submission:
+                LOGGER.info("Replacing the editor of the active project '{0}' from {2} to {3}".format(submission.title, submission.editor, main_user))
+                submission.editor = main_user
+                submission.save()
+            LOGGER.info("Active project submission logs from {0} to {1} is complete".format(second_user, main_user))
 
-        LOGGER.info("{0} editor submission logs were found in user {1}".format(
-            active_submission.count(), second_user))
-        LOGGER.info("{0} editor submission logs were found in user {1}".format(
-            archived_submission.count(), second_user))
-        LOGGER.info("{0} editor submission logs were found in user {1}".format(
-            published_submission.count(), second_user))
+        elif model_object.__name__ == 'PublishedProject':
+            LOGGER.info("Attempting merge the published projects submission logs from {0} to {1}".format(second_user, main_user))
+            published_submission = main_user.editing_publishedprojects.all()
+            LOGGER.info("{0} editor submission logs were found in user {1}".format(published_submission.count(), second_user))
+            for submission in published_submission:
+                LOGGER.info("Replacing the editor of the published project '{0}' from {2} to {3}".format(submission.title, submission.editor, main_user))
+                submission.editor = main_user
+                submission.save()
+            LOGGER.info("Published project submission logs from {0} to {1} is complete".format(second_user, main_user))
 
-        for submission in active_submission:
-            LOGGER.info("Replacing the editor of the active project '{0}' from"
-                        " {2} to {3}".format(submission.title,
-                                             submission.editor, main_user))
-            submission.editor = main_user
-            submission.save()
-        for submission in archived_submission:
-            LOGGER.info("Replacing the editor of the archived project '{0}' "
-                        "from {2} to {3}".format(submission.title,
-                                                 submission.editor, main_user))
-            submission.editor = main_user
-            submission.save()
-        for submission in published_submission:
-            LOGGER.info("Replacing the editor of the published project '{0}' "
-                        "from {2} to {3}".format(submission.title,
-                                                 submission.editor, main_user))
-            submission.editor = main_user
-            submission.save()
-
-        LOGGER.info("Project submission logs from {0} to {1} is complete".format(
-            second_user, main_user))
+        else:
+            raise Exception("Incorrect model object used.")
 
 
 class UnpublishedProject(models.Model):
@@ -2195,7 +2195,8 @@ class DUASignature(models.Model):
     sign_datetime = models.DateTimeField(auto_now_add=True)
 
     @staticmethod
-    def merge_users(main_user, second_user):
+    def merge_users(main_user, second_user, model_object=None):
+
         """
         Merge DUA signature information from two users
         """
@@ -2291,7 +2292,8 @@ class DataAccessRequest(models.Model):
         return self.status_texts.get(self.status, 'unknown')
 
     @staticmethod
-    def merge_user(main_user, second_user):
+    def merge_users(main_user, second_user, model_object=None):
+
         """
         Merge self managed access resquer and requestee from two users
         """
@@ -2390,7 +2392,8 @@ class AuthorInvitation(BaseInvitation):
         return bool(project in [inv.project for inv in invitations])
 
     @staticmethod
-    def merge_users(main_user, second_user):
+    def merge_users(main_user, second_user, model_object=None):
+
         """
         Merge the authorship invitations from two users
 
@@ -2457,7 +2460,8 @@ class StorageRequest(BaseInvitation):
                                                self.project.__str__())
 
     @staticmethod
-    def merge_users(main_user, second_user):
+    def merge_users(main_user, second_user, model_object=None):
+
         if main_user == second_user:
             raise Exception("The project storage requests cannot be merged to "
                             "the same user")
@@ -2692,7 +2696,8 @@ class GCP(models.Model):
     finished_datetime = models.DateTimeField(null=True)
 
     @staticmethod
-    def merge_users(main_user, second_user):
+    def merge_users(main_user, second_user, model_object=None):
+
         if main_user == second_user:
             raise Exception("The project GCP information cannot be merged to "
                             "the same user")
@@ -2801,7 +2806,7 @@ class AnonymousAccess(models.Model):
 
         return isnot_expired and check_password(raw_passphrase, self.passphrase)
 
-    def merge_user(main_user, second_user):
+    def merge_users(main_user, second_user, model_object=None):
         """
         """
         pass

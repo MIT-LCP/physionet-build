@@ -394,7 +394,7 @@ class User(AbstractBaseUser):
         return os.path.join(User.FILE_ROOT, self.username)
 
     @staticmethod
-    def merge_users(main_user, second_user):
+    def merge_users(main_user, second_user, model_object=None):
         """
         Merge the infromation from all models in the user models.py
         """
@@ -520,7 +520,8 @@ class AssociatedEmail(models.Model):
         return True
 
     @staticmethod
-    def merge_users(main_user, second_user):
+    def merge_users(main_user, second_user, model_object=None):
+
         """
         Merge all emails from two users. Since the object of the second user
         still exists, we need to create a new associated email for it.
@@ -638,7 +639,8 @@ class LegacyCredential(models.Model):
         return True
 
     @staticmethod
-    def merge_users(main_user, second_user):
+    def merge_users(main_user, second_user, model_object=None):
+
         """
         Merge legacy credential applications from two users
         """
@@ -908,7 +910,8 @@ class CredentialApplication(models.Model):
         self._apply_decision(3, responder)
 
     @staticmethod
-    def merge_users(main_user, second_user):
+    def merge_users(main_user, second_user, model_object=None):
+
         """
         Merge the credential aplications from two users.
         """
@@ -967,7 +970,8 @@ class CloudInformation(models.Model):
     aws_id = models.CharField(max_length=60, null=True,  blank=True, default=None)
 
     @staticmethod
-    def merge_users(main_user, second_user):
+    def merge_users(main_user, second_user, model_object=None):
+
         """
         Merge the cloud information from two users.
         """
