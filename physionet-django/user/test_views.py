@@ -13,7 +13,7 @@ from django.core.management import call_command
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
-from user.models import AssociatedEmail, Profile, User, CredentialApplication, CloudInformation, LegacyCredential
+from user.models import AssociatedEmail, Profile, User, CloudInformation
 from user.views import (activate_user, edit_emails, edit_profile,
     edit_password_complete, public_profile, register, user_settings,
     verify_email)
@@ -270,6 +270,42 @@ class TestAuth(TestMixin):
         main_user = User.objects.get(username='george')
         second_user = User.objects.get(username='tompollard')
 
+        with self.assertRaises(Exception) as error:
+            User.merge_users(main_user, second_user)
+            self.assertEqual(error.exception.message, "Cannot merge an admin account.")
+
+        second_user = User.objects.get(username='aewj')
+
+        # START ADMIN required objects.
+        # For now this should all be 0
+        # Project anonymus access creator
+        self.assertEqual(main_user.anonymous_access_creator.count(), 0)
+        self.assertEqual(second_user.anonymous_access_creator.count(), 0)
+
+        # Active projects submission log editor
+        self.assertEqual(main_user.editing_activeprojects.count(), 0)
+        self.assertEqual(second_user.editing_activeprojects.count(), 0)
+
+        # Archived projects submission log editor
+        self.assertEqual(main_user.editing_archivedprojects.count(), 0)
+        self.assertEqual(second_user.editing_archivedprojects.count(), 0)
+
+        # Published projects submission log editor
+        self.assertEqual(main_user.editing_publishedprojects.count(), 0)
+        self.assertEqual(second_user.editing_publishedprojects.count(), 0)
+
+        # GCP project object creator
+        self.assertEqual(main_user.gcp_manager.count(), 0)
+        self.assertEqual(second_user.gcp_manager.count(), 0)
+
+        # Storage request responser
+        self.assertEqual(main_user.storage_responder.count(), 0)
+        self.assertEqual(second_user.storage_responder.count(), 0)
+        # END of ADMIN required objects
+
+        self.assertFalse(main_user.is_credentialed)
+        self.assertTrue(second_user.is_credentialed)
+
         # Associated emails merge
         self.assertEqual(main_user.associated_emails.count(), 2)
         self.assertEqual(second_user.associated_emails.count(), 2)
@@ -278,9 +314,39 @@ class TestAuth(TestMixin):
         self.assertEqual(main_user.credential_applications.count(), 1)
         self.assertEqual(second_user.credential_applications.count(), 2)
 
+        # Credentialed application responder (whidrawn caounts)
+        self.assertEqual(main_user.responded_applications.count(), 0)
+        self.assertEqual(second_user.responded_applications.count(), 1)
+
         # Credential applications merge
         self.assertEqual(main_user.legacy_application.count(), 0)
         self.assertEqual(second_user.legacy_application.count(), 1)
+
+        # Author invitations
+        self.assertEqual(main_user.author_invitations.count(), 0)
+        self.assertEqual(second_user.author_invitations.count(), 1)
+
+        # Active/Archived author
+        self.assertEqual(main_user.authors.count(), 1)
+        self.assertEqual(second_user.authors.count(), 4)
+
+        self.assertEqual(main_user.data_access_requests_requester.count(), 0)
+        self.assertEqual(second_user.data_access_requests_requester.count(), 0)
+
+        self.assertEqual(main_user.data_access_requests_responder.count(), 0)
+        self.assertEqual(second_user.data_access_requests_responder.count(), 0)
+
+        self.assertEqual(main_user.dua_saignee.count(), 0)
+        self.assertEqual(second_user.dua_saignee.count(), 1)
+
+        self.assertEqual(main_user.login_time.count(), 2)
+        self.assertEqual(second_user.login_time.count(), 5)
+
+        self.assertEqual(main_user.publishedauthors.count(), 3)
+        self.assertEqual(second_user.publishedauthors.count(), 1)
+
+        self.assertTrue(main_user.has_usable_password())
+        self.assertTrue(second_user.has_usable_password())
 
         # Cloud information merge
         try:
@@ -292,6 +358,33 @@ class TestAuth(TestMixin):
         self.assertIsNotNone(second_user.cloud_information.gcp_email)
 
         User.merge_users(main_user, second_user)
+
+        # START ADMIN required objects.
+        # For now this should all be 0
+        # Project anonymus access creator
+        self.assertEqual(main_user.anonymous_access_creator.count(), 0)
+        self.assertEqual(second_user.anonymous_access_creator.count(), 0)
+
+        # Active projects submission log editor
+        self.assertEqual(main_user.editing_activeprojects.count(), 0)
+        self.assertEqual(second_user.editing_activeprojects.count(), 0)
+
+        # Archived projects submission log editor
+        self.assertEqual(main_user.editing_archivedprojects.count(), 0)
+        self.assertEqual(second_user.editing_archivedprojects.count(), 0)
+
+        # Published projects submission log editor
+        self.assertEqual(main_user.editing_publishedprojects.count(), 0)
+        self.assertEqual(second_user.editing_publishedprojects.count(), 0)
+
+        # GCP project object creator
+        self.assertEqual(main_user.gcp_manager.count(), 0)
+        self.assertEqual(second_user.gcp_manager.count(), 0)
+
+        # Storage request responser
+        self.assertEqual(main_user.storage_responder.count(), 0)
+        self.assertEqual(second_user.storage_responder.count(), 0)
+        # END ADMIN required objects.
 
         # Associated emails merge
         self.assertEqual(main_user.associated_emails.count(), 4)
@@ -310,6 +403,40 @@ class TestAuth(TestMixin):
         self.assertIsNotNone(main_user.cloud_information.gcp_email)
         self.assertIsNone(second_user.cloud_information.aws_id)
         self.assertIsNone(second_user.cloud_information.gcp_email)
+
+        # Published author merge
+        self.assertEqual(main_user.publishedauthors.count(), 3)
+        self.assertEqual(second_user.publishedauthors.count(), 0)
+
+        self.assertTrue(main_user.is_credentialed)
+        self.assertFalse(second_user.is_credentialed)
+
+        # Credentialed application responder (whidrawn caounts)
+        self.assertEqual(main_user.responded_applications.count(), 1)
+        self.assertEqual(second_user.responded_applications.count(), 0)
+
+        # Author invitations
+        self.assertEqual(main_user.author_invitations.count(), 1)
+        self.assertEqual(second_user.author_invitations.count(), 0)
+
+        # Active/Archived author
+        self.assertEqual(main_user.authors.count(), 4)
+        self.assertEqual(second_user.authors.count(), 0)
+
+        self.assertEqual(main_user.data_access_requests_requester.count(), 0)
+        self.assertEqual(second_user.data_access_requests_requester.count(), 0)
+
+        self.assertEqual(main_user.data_access_requests_responder.count(), 0)
+        self.assertEqual(second_user.data_access_requests_responder.count(), 0)
+
+        self.assertEqual(main_user.dua_saignee.count(), 1)
+        self.assertEqual(second_user.dua_saignee.count(), 0)
+
+        self.assertEqual(main_user.login_time.count(), 7)
+        self.assertEqual(second_user.login_time.count(), 0)
+
+        self.assertTrue(main_user.has_usable_password())
+        self.assertFalse(second_user.has_usable_password())
 
 
 class TestPublic(TestMixin):
