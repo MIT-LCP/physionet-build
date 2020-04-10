@@ -13,6 +13,8 @@ media/credential-applications/*
 physionet-django/static/published-projects/*
 physionet-django/static/wfdbcal
 physionet-django/test.log
+test-upgrade.tmp
+test-upgrade.cache
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
