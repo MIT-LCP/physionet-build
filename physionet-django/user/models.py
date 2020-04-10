@@ -949,6 +949,8 @@ class CredentialApplication(models.Model):
             credentialed_apps.count(), second_user))
         for app in credentialed_apps:
             app.user = main_user
+            if app.responder == second_user:
+                app.responder = main_user
             if app.status == 0:
                 app.status = 3
                 logger.info("The credential application with ID #{0} was withdrawn.".format(
