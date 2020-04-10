@@ -7,7 +7,7 @@
     "email": "admin@mit.edu",
     "username": "admin",
     "join_date": "2017-11-11",
-    "last_login": "2020-04-07T15:42:43.445Z",
+    "last_login": "2020-04-10T15:51:15.446Z",
     "is_active": true,
     "is_admin": true,
     "is_credentialed": false,
@@ -33,11 +33,11 @@
   "model": "user.user",
   "pk": 3,
   "fields": {
-    "password": "pbkdf2_sha256$36000$SrZ88tJbYouX$W0Y3AyX3EYukvulqfrKz/aGFG3MM+0/RoYODl0a/e8Y=",
+    "password": "pbkdf2_sha256$150000$HQugQVRFOIps$n7KZAKNQWfQPI7s7XyYdAe5dfJSh5jSntfA7rPcg5Ms=",
     "email": "george@mit.edu",
     "username": "george",
     "join_date": "2017-11-11",
-    "last_login": "2018-11-01T17:40:35.971Z",
+    "last_login": "2020-04-10T16:58:31.876Z",
     "is_active": true,
     "is_admin": false,
     "is_credentialed": false,
@@ -48,15 +48,15 @@
   "model": "user.user",
   "pk": 4,
   "fields": {
-    "password": "pbkdf2_sha256$36000$RY8Xsxp0wl4Q$qkVqEpXM8wMFeq34wtt/uxRxrvrDQVqXOlSjjvmfcDY=",
+    "password": "pbkdf2_sha256$150000$1m13L9Q9dQee$dNHF4xm0xBuzqL3+/j4E7e8qVLmu2BoBqUxV3PJG3Ig=",
     "email": "aewj@mit.edu",
     "username": "aewj",
     "join_date": "2018-03-30",
-    "last_login": "2018-09-19T01:01:37.635Z",
+    "last_login": "2020-04-10T16:57:51.646Z",
     "is_active": true,
     "is_admin": false,
-    "is_credentialed": false,
-    "credential_datetime": null
+    "is_credentialed": true,
+    "credential_datetime": "2010-02-28T05:00:00Z"
   }
 },
 {
@@ -3082,11 +3082,11 @@
     "email": "tpollard@mit.edu",
     "username": "tompollard",
     "join_date": "2020-04-07",
-    "last_login": "2020-04-07T15:42:48.087Z",
+    "last_login": "2020-04-10T15:51:42.276Z",
     "is_active": true,
     "is_admin": true,
-    "is_credentialed": false,
-    "credential_datetime": null
+    "is_credentialed": true,
+    "credential_datetime": "2010-02-28T05:00:00Z"
   }
 },
 {
@@ -3129,8 +3129,98 @@
   "model": "user.userlogin",
   "pk": 5,
   "fields": {
-    "user": 206,
+    "user": 4,
     "login_date": "2020-04-07T15:42:48.087Z",
+    "ip": "127.0.0.1"
+  }
+},
+{
+  "model": "user.userlogin",
+  "pk": 6,
+  "fields": {
+    "user": 206,
+    "login_date": "2020-04-08T18:43:03.651Z",
+    "ip": "127.0.0.1"
+  }
+},
+{
+  "model": "user.userlogin",
+  "pk": 7,
+  "fields": {
+    "user": 1,
+    "login_date": "2020-04-08T18:46:11.832Z",
+    "ip": "127.0.0.1"
+  }
+},
+{
+  "model": "user.userlogin",
+  "pk": 8,
+  "fields": {
+    "user": 206,
+    "login_date": "2020-04-08T19:53:32.091Z",
+    "ip": "127.0.0.1"
+  }
+},
+{
+  "model": "user.userlogin",
+  "pk": 9,
+  "fields": {
+    "user": 1,
+    "login_date": "2020-04-10T15:51:15.445Z",
+    "ip": "127.0.0.1"
+  }
+},
+{
+  "model": "user.userlogin",
+  "pk": 10,
+  "fields": {
+    "user": 4,
+    "login_date": "2020-04-10T15:51:42.275Z",
+    "ip": "127.0.0.1"
+  }
+},
+{
+  "model": "user.userlogin",
+  "pk": 11,
+  "fields": {
+    "user": 3,
+    "login_date": "2020-04-10T15:54:32.819Z",
+    "ip": "127.0.0.1"
+  }
+},
+{
+  "model": "user.userlogin",
+  "pk": 12,
+  "fields": {
+    "user": 4,
+    "login_date": "2020-04-10T16:46:49.583Z",
+    "ip": "127.0.0.1"
+  }
+},
+{
+  "model": "user.userlogin",
+  "pk": 13,
+  "fields": {
+    "user": 4,
+    "login_date": "2020-04-10T16:49:37.629Z",
+    "ip": "127.0.0.1"
+  }
+},
+{
+  "model": "user.userlogin",
+  "pk": 14,
+  "fields": {
+    "user": 4,
+    "login_date": "2020-04-10T16:57:51.645Z",
+    "ip": "127.0.0.1"
+  }
+},
+{
+  "model": "user.userlogin",
+  "pk": 15,
+  "fields": {
+    "user": 3,
+    "login_date": "2020-04-10T16:58:31.875Z",
     "ip": "127.0.0.1"
   }
 },
@@ -6061,6 +6151,34 @@
   }
 },
 {
+  "model": "user.associatedemail",
+  "pk": 210,
+  "fields": {
+    "user": 206,
+    "email": "tpollard@fake-gmail.com",
+    "is_primary_email": false,
+    "added_date": "2020-04-08T19:53:46.881Z",
+    "verification_date": "2020-04-08T19:54:39.711Z",
+    "verification_token": "j8EPP1ju2aQRmnk9LWnv",
+    "is_verified": true,
+    "is_public": false
+  }
+},
+{
+  "model": "user.associatedemail",
+  "pk": 211,
+  "fields": {
+    "user": 4,
+    "email": "aewj@fake-gmail.com",
+    "is_primary_email": false,
+    "added_date": "2020-04-10T16:47:27.949Z",
+    "verification_date": "2020-04-10T16:47:34.922Z",
+    "verification_token": "oax3ZcG47GYUhAobbJyp",
+    "is_verified": true,
+    "is_public": false
+  }
+},
+{
   "model": "user.legacycredential",
   "pk": 1,
   "fields": {
@@ -6075,6 +6193,23 @@
     "migration_date": null,
     "migrated_user": null,
     "reference_email": "aewj@mit.edu"
+  }
+},
+{
+  "model": "user.legacycredential",
+  "pk": 2,
+  "fields": {
+    "first_names": "Alistair E",
+    "last_name": "Johnson",
+    "email": "aewj@fake-gmail.com",
+    "country": "United States of America",
+    "mimic_approval_date": "2/28/2010",
+    "eicu_approval_date": "2/28/2010",
+    "info": "mortality prediction",
+    "migrated": true,
+    "migration_date": "2020-04-08T19:54:39.714Z",
+    "migrated_user": 4,
+    "reference_email": "tpollard@mit.edu"
   }
 },
 {
@@ -12877,16 +13012,103 @@
     "reference_name": "Roman Brunner",
     "reference_email": "S.Luis@consectetuernulla.info",
     "reference_title": "Drywall Installer",
-    "status": 0,
+    "status": 3,
     "reference_contact_datetime": null,
     "reference_response_datetime": null,
     "reference_response": 0,
     "reference_response_text": "",
     "research_summary": "Nonummy illum at dolore ex. Vel nulla eum lorem invulputate iusto. Consequat hendrerit adipiscing ullamcorper iriuredolor eu. Qui luptatumzzril ut ex luptatum facilisi te Utwisi. Dolore vulputate delenit vulputate minim. Enim vel et velit aliquip. \n\n",
     "project_of_interest": null,
-    "decision_datetime": null,
-    "responder": null,
+    "decision_datetime": "2020-04-10T16:47:05.940Z",
+    "responder": 4,
     "responder_comments": ""
+  }
+},
+{
+  "model": "user.credentialapplication",
+  "pk": 107,
+  "fields": {
+    "slug": "C1ZwyxINWfh7T8Gk60an",
+    "application_datetime": "2020-04-08T18:47:41.508Z",
+    "user": 4,
+    "first_names": "Alistair",
+    "last_name": "Johnson",
+    "researcher_category": 1,
+    "organization_name": "Massachusetts Institute of Technology, Laboratory of Computa",
+    "job_title": "Researcher",
+    "city": "Cambridge",
+    "state_province": "MA",
+    "country": "US",
+    "webpage": "",
+    "zip_code": "02139",
+    "suffix": "",
+    "training_course_name": "",
+    "training_completion_date": null,
+    "training_completion_report": "credential-applications/C1ZwyxINWfh7T8Gk60an/training-report.pdf",
+    "course_category": null,
+    "course_info": "",
+    "reference_category": 0,
+    "reference_name": "Felipe Torres",
+    "reference_email": "ftorres@mit.edu",
+    "reference_title": "Software research engineer",
+    "status": 1,
+    "reference_contact_datetime": null,
+    "reference_response_datetime": null,
+    "reference_response": 0,
+    "reference_response_text": "",
+    "research_summary": "MIMIC stuff",
+    "project_of_interest": null,
+    "decision_datetime": "2020-04-08T18:48:57.273Z",
+    "responder": 1,
+    "responder_comments": "inadequate training report"
+  }
+},
+{
+  "model": "user.credentialapplication",
+  "pk": 108,
+  "fields": {
+    "slug": "eW2e7VDCst44ziWjaota",
+    "application_datetime": "2020-04-08T18:49:03.693Z",
+    "user": 206,
+    "first_names": "Alistair",
+    "last_name": "Johnson",
+    "researcher_category": 1,
+    "organization_name": "Massachusetts Institute of Technology, Laboratory of Computa",
+    "job_title": "Researcher",
+    "city": "Cambridge",
+    "state_province": "MA",
+    "country": "US",
+    "webpage": "",
+    "zip_code": "02139",
+    "suffix": "",
+    "training_course_name": "",
+    "training_completion_date": null,
+    "training_completion_report": "credential-applications/eW2e7VDCst44ziWjaota/training-report.pdf",
+    "course_category": null,
+    "course_info": "",
+    "reference_category": 0,
+    "reference_name": "Felipe Torres",
+    "reference_email": "ftorres@mit.edu",
+    "reference_title": "Software research engineer",
+    "status": 1,
+    "reference_contact_datetime": null,
+    "reference_response_datetime": null,
+    "reference_response": 0,
+    "reference_response_text": "",
+    "research_summary": "MIMIC stuff",
+    "project_of_interest": null,
+    "decision_datetime": "2020-04-08T18:49:33.506Z",
+    "responder": 1,
+    "responder_comments": "inadequate research summary"
+  }
+},
+{
+  "model": "user.cloudinformation",
+  "pk": 1,
+  "fields": {
+    "user": 4,
+    "gcp_email": 7,
+    "aws_id": "0123456789"
   }
 }
 ]

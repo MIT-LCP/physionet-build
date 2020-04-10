@@ -198,7 +198,7 @@ class TestCredentialing(TestCase):
 
         # Another person tries to add that same email hoping to get
         # automatic credentialing
-        self.client.login(username='aewj@mit.edu', password='Tester11!')
+        self.client.login(username='george@mit.edu', password='Tester11!')
         response = self.client.post(reverse('edit_emails'), data={'add_email': True, 'email': 'admin@upr.edu'})
         uidb64, token = re.findall('verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{20})/',
             mail.outbox[-1].body)[0]
@@ -207,5 +207,5 @@ class TestCredentialing(TestCase):
 
         # The user is not automatically credentialed because the email's
         # credentialing status was already migrated to the other account
-        self.assertEqual(User.objects.get(email='aewj@mit.edu'), AssociatedEmail.objects.get(email='admin@upr.edu').user)
-        self.assertFalse(User.objects.get(email='aewj@mit.edu').is_credentialed)
+        self.assertEqual(User.objects.get(email='george@mit.edu'), AssociatedEmail.objects.get(email='admin@upr.edu').user)
+        self.assertFalse(User.objects.get(email='george@mit.edu').is_credentialed)
