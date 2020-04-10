@@ -404,6 +404,9 @@ class User(AbstractBaseUser):
         if main_user.__class__.__name__ != second_user.__class__.__name__ != 'User':
             raise Exception("Incorrect arguments, please use User objets.")
 
+        if main_user.is_admin != second_user.is_admin or main_user.is_admin:
+            raise Exception("Cannot merge an admin account.")
+
         logger.info("Attempting to merge user {0} to {1}.".format(second_user,
                                                                   main_user))
         models_list = []
@@ -463,6 +466,9 @@ class UserLogin(models.Model):
 
         if main_user.__class__.__name__ != second_user.__class__.__name__ != 'User':
             raise Exception("Incorrect arguments, please use User objets.")
+
+        if main_user.is_admin != second_user.is_admin or main_user.is_admin:
+            raise Exception("Cannot merge an admin account.")
 
         logger.info("Attempting to merge the user login logs of {0} to {1}".format(
             second_user, main_user))
@@ -550,6 +556,9 @@ class AssociatedEmail(models.Model):
 
         if main_user.__class__.__name__ != second_user.__class__.__name__ != 'User':
             raise Exception("Incorrect arguments, please use User objets.")
+
+        if main_user.is_admin != second_user.is_admin or main_user.is_admin:
+            raise Exception("Cannot merge an admin account.")
 
         logger.info("Attempting to migrate associated emails from {0} to {1} "
                     "is complete".format(second_user, main_user))
@@ -668,6 +677,9 @@ class LegacyCredential(models.Model):
 
         if main_user.__class__.__name__ != second_user.__class__.__name__ != 'User':
             raise Exception("Incorrect arguments, please use User objets.")
+
+        if main_user.is_admin != second_user.is_admin or main_user.is_admin:
+            raise Exception("Cannot merge an admin account.")
 
         logger.info("Attempting to migrate legacy credential aplications from "
                     "{0} to {1} is complete".format(second_user, main_user))
@@ -940,6 +952,9 @@ class CredentialApplication(models.Model):
         if main_user.__class__.__name__ != second_user.__class__.__name__ != 'User':
             raise Exception("Incorrect arguments, please use User objets.")
 
+        if main_user.is_admin != second_user.is_admin or main_user.is_admin:
+            raise Exception("Cannot merge an admin account.")
+
         logger.info("Attempting to merge the credential aplications of {0} to {1}".format(
             second_user, main_user))
 
@@ -1001,6 +1016,9 @@ class CloudInformation(models.Model):
 
         if main_user.__class__.__name__ != second_user.__class__.__name__ != 'User':
             raise Exception("Incorrect arguments, please use User objets.")
+
+        if main_user.is_admin != second_user.is_admin or main_user.is_admin:
+            raise Exception("Cannot merge an admin account.")
 
         logger.info("Attempting merge the cloud information of {0} onto {1}".format(
             second_user, main_user))

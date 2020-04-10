@@ -278,7 +278,6 @@ class Author(BaseAuthor):
 
     @staticmethod
     def merge_users(main_user, second_user, model_object=None):
-
         """
         Merge author objects between two users
         """
@@ -288,6 +287,9 @@ class Author(BaseAuthor):
 
         if main_user.__class__.__name__ != second_user.__class__.__name__ != 'User':
             raise Exception("Incorrect arguments, please use User objets.")
+
+        if main_user.is_admin != second_user.is_admin or main_user.is_admin:
+            raise Exception("Cannot merge an admin account.")
 
         LOGGER.info("Attempting merge the active project authorship of {0} "
                     "to {1}".format(second_user, main_user))
@@ -362,7 +364,6 @@ class PublishedAuthor(BaseAuthor):
 
     @staticmethod
     def merge_users(main_user, second_user, model_object=None):
-
         """
         Merge published authorships from two users
         """
@@ -372,6 +373,9 @@ class PublishedAuthor(BaseAuthor):
 
         if main_user.__class__.__name__ != second_user.__class__.__name__ != 'User':
             raise Exception("Incorrect arguments, please use User objets.")
+
+        if main_user.is_admin != second_user.is_admin or main_user.is_admin:
+            raise Exception("Cannot merge an admin account.")
 
         LOGGER.info("Attempting merge the published project authorship of {0} "
                     "to {1}".format(second_user, main_user))
@@ -1045,7 +1049,7 @@ class SubmissionInfo(models.Model):
         abstract = True
 
     @staticmethod
-    def merge_users(main_user, second_user, model_object):
+    def merge_users(main_user, second_user, model_object=None):
         """
         Merge submission information from one editor to another.
         """
@@ -1056,7 +1060,10 @@ class SubmissionInfo(models.Model):
         if main_user.__class__.__name__ != second_user.__class__.__name__ != 'User':
             raise Exception("Incorrect arguments, please use User objets.")
 
-        if model_object.__name__ == 'ArchivedProject':
+        if main_user.is_admin != second_user.is_admin or main_user.is_admin:
+            raise Exception("Cannot merge an admin account.")
+
+        if model_object and model_object.__name__ == 'ArchivedProject':
             LOGGER.info("Attempting merge the archived projects submission logs from {0} to {1}".format(second_user, main_user))
             archived_submission = main_user.editing_archivedprojects.all()
             LOGGER.info("{0} editor submission logs were found in user {1}".format(archived_submission.count(), second_user))
@@ -1066,7 +1073,7 @@ class SubmissionInfo(models.Model):
                 submission.save()
             LOGGER.info("Archived project submission logs from {0} to {1} is complete".format(second_user, main_user))
 
-        elif model_object.__name__ == 'ActiveProject':
+        elif model_object and model_object.__name__ == 'ActiveProject':
             LOGGER.info("Attempting merge the active projects submission logs from {0} to {1}".format(second_user, main_user))
             active_submission = main_user.editing_activeprojects.all()
             LOGGER.info("{0} editor submission logs were found in user {1}".format(active_submission.count(), second_user))
@@ -1076,7 +1083,7 @@ class SubmissionInfo(models.Model):
                 submission.save()
             LOGGER.info("Active project submission logs from {0} to {1} is complete".format(second_user, main_user))
 
-        elif model_object.__name__ == 'PublishedProject':
+        elif model_object and model_object.__name__ == 'PublishedProject':
             LOGGER.info("Attempting merge the published projects submission logs from {0} to {1}".format(second_user, main_user))
             published_submission = main_user.editing_publishedprojects.all()
             LOGGER.info("{0} editor submission logs were found in user {1}".format(published_submission.count(), second_user))
@@ -2196,7 +2203,6 @@ class DUASignature(models.Model):
 
     @staticmethod
     def merge_users(main_user, second_user, model_object=None):
-
         """
         Merge DUA signature information from two users
         """
@@ -2206,6 +2212,9 @@ class DUASignature(models.Model):
 
         if main_user.__class__.__name__ != second_user.__class__.__name__ != 'User':
             raise Exception("Incorrect arguments, please use User objets.")
+
+        if main_user.is_admin != second_user.is_admin or main_user.is_admin:
+            raise Exception("Cannot merge an admin account.")
 
         LOGGER.info("Attempting merge the dua signatures from {0} to {1}".format(
             second_user, main_user))
@@ -2293,7 +2302,6 @@ class DataAccessRequest(models.Model):
 
     @staticmethod
     def merge_users(main_user, second_user, model_object=None):
-
         """
         Merge self managed access resquer and requestee from two users
         """
@@ -2303,6 +2311,9 @@ class DataAccessRequest(models.Model):
 
         if main_user.__class__.__name__ != second_user.__class__.__name__ != 'User':
             raise Exception("Incorrect arguments, please use User objets.")
+
+        if main_user.is_admin != second_user.is_admin or main_user.is_admin:
+            raise Exception("Cannot merge an admin account.")
 
         LOGGER.info("Attempting merge the self managed project access request "
                     "from {0} to {1}".format(second_user, main_user))
@@ -2393,7 +2404,6 @@ class AuthorInvitation(BaseInvitation):
 
     @staticmethod
     def merge_users(main_user, second_user, model_object=None):
-
         """
         Merge the authorship invitations from two users
 
@@ -2406,6 +2416,9 @@ class AuthorInvitation(BaseInvitation):
 
         if main_user.__class__.__name__ != second_user.__class__.__name__ != 'User':
             raise Exception("Incorrect arguments, please use User objets.")
+
+        if main_user.is_admin != second_user.is_admin or main_user.is_admin:
+            raise Exception("Cannot merge an admin account.")
 
         LOGGER.info("Attempting merge the authorship inviations from {0}"
                     " to {1}".format(second_user, main_user))
@@ -2463,13 +2476,18 @@ class StorageRequest(BaseInvitation):
 
     @staticmethod
     def merge_users(main_user, second_user, model_object=None):
-
+        """
+        Merge storage requests responded from two users
+        """
         if main_user == second_user:
             raise Exception("The project storage requests cannot be merged to "
                             "the same user")
 
         if main_user.__class__.__name__ != second_user.__class__.__name__ != 'User':
             raise Exception("Incorrect arguments, please use User objets.")
+
+        if main_user.is_admin != second_user.is_admin or main_user.is_admin:
+            raise Exception("Cannot merge an admin account.")
 
         LOGGER.info("Attempting merge storage requests responded from {0}"
                     " to {1}".format(second_user, main_user))
@@ -2699,13 +2717,18 @@ class GCP(models.Model):
 
     @staticmethod
     def merge_users(main_user, second_user, model_object=None):
-
+        """
+        Merge GCP manager ob jects from two users
+        """
         if main_user == second_user:
             raise Exception("The project GCP information cannot be merged to "
                             "the same user")
 
         if main_user.__class__.__name__ != second_user.__class__.__name__ != 'User':
             raise Exception("Incorrect arguments, please use User objets.")
+
+        if main_user.is_admin != second_user.is_admin or main_user.is_admin:
+            raise Exception("Cannot merge an admin account.")
 
         LOGGER.info("Attempting merge GCP project information made by {0} "
                     "to {1}".format(second_user, main_user))
@@ -2808,7 +2831,17 @@ class AnonymousAccess(models.Model):
 
         return isnot_expired and check_password(raw_passphrase, self.passphrase)
 
+    @staticmethod
     def merge_users(main_user, second_user, model_object=None):
         """
+        Merge anonymous access grantee from two users
         """
-        pass
+        if main_user == second_user:
+            raise Exception("The project GCP information cannot be merged to "
+                            "the same user")
+
+        if main_user.__class__.__name__ != second_user.__class__.__name__ != 'User':
+            raise Exception("Incorrect arguments, please use User objets.")
+
+        if main_user.is_admin != second_user.is_admin or main_user.is_admin:
+            raise Exception("Cannot merge an admin account.")
