@@ -404,27 +404,45 @@ class User(AbstractBaseUser):
         if main_user.__class__.__name__ != second_user.__class__.__name__ != 'User':
             raise Exception("Incorrect arguments, please use User objets.")
 
-        logger.info("Attempting to migrate associated emails from {0} to {1} "
-                    "is complete".format(second_user, main_user))
+        logger.info("Attempting to merge user {0} to {1}.".format(second_user,
+                                                                  main_user))
+        models_list = []
+        for field in User._meta.get_fields():
+            model = field.related_model
+            if model is not None and not field.many_to_one:
+                if hasattr(model, 'merge_users') and model not in models_list:
+                    logger.info("Calling merge function for model '{}'".format(
+                        model))
+                    model.merge_users(main_user, second_user, model)
+                    models_list.append(model)
 
-        # Merge all objects in the user/models.py
-        AssociatedEmail.merge_users(main_user, second_user)
-        CloudInformation.merge_users(main_user, second_user)
-        LegacyCredential.merge_users(main_user, second_user)
-        CredentialApplication.merge_users(main_user, second_user)
+        logger.info("All the models with User have been merge, now Attempting "
+                    "to merge the user object.")
 
         second_user_email = second_user.associated_emails.first().email
         uuid = second_user_email.split("__")[0]
 
         # Update the username with the same UUID of the email
+        logger.info("Setting the username with the same uuid as the email. "
+                    "From {0} to {1}".format(second_user.username,
+                                             uuid + second_user.username))
         second_user.username = uuid + second_user.username
+
         # Update the user email with the associated email
+        logger.info("Setting the email the same as the associated email. From "
+                    "{0} to {1}".format(second_user.email, second_user_email))
         second_user.email = second_user_email
+
         # Remove credentialing in the second account
+        logger.info("Removing credentials from {}".format(second_user))
         second_user.is_credentialed = False
+
         # Set unusable password
+        logger.info("Setting a unusable password on {}".format(second_user))
         second_user.set_unusable_password()
         second_user.save()
+        logger.info("The merge of user {0} to {1} is complete".format(
+            second_user, main_user))
 
 
 class UserLogin(models.Model):
