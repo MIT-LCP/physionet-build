@@ -434,6 +434,33 @@ class UserLogin(models.Model):
     login_date = models.DateTimeField(auto_now_add=True, null=True)
     ip = models.CharField(max_length=50,  blank=True, default='', null=True)
 
+    @staticmethod
+    def merge_users(main_user, second_user, model_object=None):
+        """
+        Merge login logs from two users
+        """
+        if main_user == second_user:
+            raise Exception("The user loging logs cannot be merged to the "
+                            "same user")
+
+        if main_user.__class__.__name__ != second_user.__class__.__name__ != 'User':
+            raise Exception("Incorrect arguments, please use User objets.")
+
+        logger.info("Attempting to merge the user login logs of {0} to {1}".format(
+            second_user, main_user))
+
+        user_logs = second_user.login_time.all()
+        logger.info('{0} login logs were found in user {1}'.format(
+            user_logs.count(), second_user))
+
+        for log in user_logs:
+            logger.info("Merging user login log {0}".format(log.id))
+            log.user = main_user
+            log.save()
+
+        logger.info("User login logs migration from {0} to {1} is complete".format(
+            second_user, main_user))
+
 
 def update_user_login(sender, **kwargs):
     user = kwargs.pop('user', None)
