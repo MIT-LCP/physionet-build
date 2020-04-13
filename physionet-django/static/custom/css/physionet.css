@@ -474,6 +474,26 @@ a{
     float: right;
   }
 }
+.progress-labels {
+  margin-bottom: 0.5em;
+}
+@media only screen and (min-width: 500px) {
+  .progress-label-left {
+    max-width: 50%;
+    padding-right: 1em;
+    float: left;
+  }
+  .progress-label-right {
+    max-width: 50%;
+    text-align: right;
+    float: right;
+  }
+  .progress-labels:after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+}
 
 .dir-breadcrumbs, .dir-breadcrumb-sep {
   padding-left: 0.25em;

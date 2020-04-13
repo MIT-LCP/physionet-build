@@ -9,6 +9,13 @@ from notification.utility import mailto_url
 register = template.Library()
 
 
+@register.filter(name='nbsp')
+def nbsp(text):
+    """
+    Replace spaces in the input text with non-breaking spaces.
+    """
+    return str(text).replace(' ', '\N{NO-BREAK SPACE}')
+
 @register.filter(name='resource_badge')
 def resource_badge(resource_type):
     badges = {

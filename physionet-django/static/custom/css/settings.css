@@ -76,7 +76,7 @@ input::placeholder {
     padding: 0;
   }
 
-  .row-offcanvas, .row-offcanvas div{
+  .row-offcanvas, .row-offcanvas > div{
     max-width: unset;
     flex: unset;
   }
