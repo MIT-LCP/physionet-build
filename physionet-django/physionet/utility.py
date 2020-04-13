@@ -90,7 +90,7 @@ def file_content_type(filename):
     return CONTENT_TYPE.get(ext, 'text/plain')
 
 def _file_x_accel_path(file_path):
-    static_root = settings.STATIC_ROOT
+    static_root = settings.STATIC_ROOT or settings.STATICFILES_DIRS[0]
     media_root = settings.MEDIA_ROOT
     media_alias = settings.MEDIA_X_ACCEL_ALIAS
     if media_alias:
