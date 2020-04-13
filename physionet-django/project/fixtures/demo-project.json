@@ -80,38 +80,6 @@
   }
 },
 {
-  "model": "project.affiliation",
-  "pk": 16,
-  "fields": {
-    "name": "MIT",
-    "author": 6
-  }
-},
-{
-  "model": "project.affiliation",
-  "pk": 17,
-  "fields": {
-    "name": "MIT",
-    "author": 11
-  }
-},
-{
-  "model": "project.affiliation",
-  "pk": 18,
-  "fields": {
-    "name": "MIT",
-    "author": 12
-  }
-},
-{
-  "model": "project.affiliation",
-  "pk": 19,
-  "fields": {
-    "name": "MIT",
-    "author": 13
-  }
-},
-{
   "model": "project.publishedaffiliation",
   "pk": 1,
   "fields": {
@@ -136,169 +104,88 @@
   }
 },
 {
-  "model": "project.publishedaffiliation",
-  "pk": 4,
-  "fields": {
-    "name": "MIT",
-    "author": 5
-  }
-},
-{
-  "model": "project.publishedaffiliation",
-  "pk": 5,
-  "fields": {
-    "name": "MIT",
-    "author": 6
-  }
-},
-{
-  "model": "project.publishedaffiliation",
-  "pk": 6,
-  "fields": {
-    "name": "MIT",
-    "author": 7
-  }
-},
-{
   "model": "project.author",
   "pk": 1,
   "fields": {
-    "user": 2,
+    "user": [
+      "rgmark"
+    ],
     "display_order": 1,
     "is_submitting": true,
     "is_corresponding": true,
     "approval_datetime": null,
-    "content_type": 16,
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
     "object_id": 1,
-    "corresponding_email": 2,
-    "creation_date": "2020-04-10T15:50:56.864Z"
+    "corresponding_email": 2
   }
 },
 {
   "model": "project.author",
   "pk": 2,
   "fields": {
-    "user": 2,
+    "user": [
+      "rgmark"
+    ],
     "display_order": 1,
     "is_submitting": true,
     "is_corresponding": false,
     "approval_datetime": null,
-    "content_type": 16,
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
     "object_id": 2,
-    "corresponding_email": 2,
-    "creation_date": "2020-04-10T15:50:56.866Z"
+    "corresponding_email": 2
   }
 },
 {
   "model": "project.author",
   "pk": 4,
   "fields": {
-    "user": 4,
+    "user": [
+      "aewj"
+    ],
     "display_order": 2,
     "is_submitting": false,
     "is_corresponding": true,
     "approval_datetime": null,
-    "content_type": 16,
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
     "object_id": 2,
-    "corresponding_email": 7,
-    "creation_date": "2020-04-10T15:50:56.867Z"
+    "corresponding_email": 7
   }
 },
 {
   "model": "project.author",
   "pk": 5,
   "fields": {
-    "user": 2,
+    "user": [
+      "rgmark"
+    ],
     "display_order": 1,
     "is_submitting": true,
     "is_corresponding": true,
     "approval_datetime": null,
-    "content_type": 16,
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
     "object_id": 4,
-    "corresponding_email": 2,
-    "creation_date": "2020-04-10T15:50:56.868Z"
-  }
-},
-{
-  "model": "project.author",
-  "pk": 6,
-  "fields": {
-    "user": 4,
-    "display_order": 1,
-    "is_submitting": true,
-    "is_corresponding": true,
-    "approval_datetime": null,
-    "content_type": 16,
-    "object_id": 5,
-    "corresponding_email": 7,
-    "creation_date": "2020-04-10T15:51:57.152Z"
-  }
-},
-{
-  "model": "project.author",
-  "pk": 10,
-  "fields": {
-    "user": 4,
-    "display_order": 1,
-    "is_submitting": true,
-    "is_corresponding": true,
-    "approval_datetime": null,
-    "content_type": 16,
-    "object_id": 7,
-    "corresponding_email": 7,
-    "creation_date": "2020-04-10T16:03:02.308Z"
-  }
-},
-{
-  "model": "project.author",
-  "pk": 11,
-  "fields": {
-    "user": 4,
-    "display_order": 1,
-    "is_submitting": true,
-    "is_corresponding": true,
-    "approval_datetime": null,
-    "content_type": 16,
-    "object_id": 8,
-    "corresponding_email": 7,
-    "creation_date": "2020-04-10T16:08:49.328Z"
-  }
-},
-{
-  "model": "project.author",
-  "pk": 12,
-  "fields": {
-    "user": 3,
-    "display_order": 3,
-    "is_submitting": false,
-    "is_corresponding": false,
-    "approval_datetime": null,
-    "content_type": 16,
-    "object_id": 8,
-    "corresponding_email": 209,
-    "creation_date": "2020-04-10T16:08:49.332Z"
-  }
-},
-{
-  "model": "project.author",
-  "pk": 13,
-  "fields": {
-    "user": 1,
-    "display_order": 2,
-    "is_submitting": false,
-    "is_corresponding": false,
-    "approval_datetime": null,
-    "content_type": 16,
-    "object_id": 8,
-    "corresponding_email": 209,
-    "creation_date": "2020-04-10T16:08:49.337Z"
+    "corresponding_email": 2
   }
 },
 {
   "model": "project.publishedauthor",
   "pk": 1,
   "fields": {
-    "user": 2,
+    "user": [
+      "rgmark"
+    ],
     "display_order": 1,
     "is_submitting": true,
     "is_corresponding": true,
@@ -313,7 +200,9 @@
   "model": "project.publishedauthor",
   "pk": 2,
   "fields": {
-    "user": 3,
+    "user": [
+      "george"
+    ],
     "display_order": 1,
     "is_submitting": true,
     "is_corresponding": true,
@@ -328,7 +217,9 @@
   "model": "project.publishedauthor",
   "pk": 3,
   "fields": {
-    "user": 2,
+    "user": [
+      "rgmark"
+    ],
     "display_order": 1,
     "is_submitting": true,
     "is_corresponding": true,
@@ -343,7 +234,9 @@
   "model": "project.publishedauthor",
   "pk": 4,
   "fields": {
-    "user": 3,
+    "user": [
+      "george"
+    ],
     "display_order": 1,
     "is_submitting": true,
     "is_corresponding": true,
@@ -355,55 +248,13 @@
   }
 },
 {
-  "model": "project.publishedauthor",
-  "pk": 5,
-  "fields": {
-    "user": 4,
-    "display_order": 1,
-    "is_submitting": true,
-    "is_corresponding": true,
-    "approval_datetime": "2020-04-10T16:07:51.982Z",
-    "first_names": "Alistair",
-    "last_name": "Johnson",
-    "corresponding_email": "aewj@mit.edu",
-    "project": 5
-  }
-},
-{
-  "model": "project.publishedauthor",
-  "pk": 6,
-  "fields": {
-    "user": 1,
-    "display_order": 2,
-    "is_submitting": false,
-    "is_corresponding": false,
-    "approval_datetime": "2020-04-10T16:07:59.150Z",
-    "first_names": "Admin",
-    "last_name": "Bot",
-    "corresponding_email": null,
-    "project": 5
-  }
-},
-{
-  "model": "project.publishedauthor",
-  "pk": 7,
-  "fields": {
-    "user": 3,
-    "display_order": 3,
-    "is_submitting": false,
-    "is_corresponding": false,
-    "approval_datetime": "2020-04-10T16:08:02Z",
-    "first_names": "George",
-    "last_name": "Moody",
-    "corresponding_email": null,
-    "project": 5
-  }
-},
-{
   "model": "project.topic",
   "pk": 1,
   "fields": {
-    "content_type": 16,
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
     "object_id": 1,
     "description": "ecg"
   }
@@ -412,7 +263,10 @@
   "model": "project.topic",
   "pk": 2,
   "fields": {
-    "content_type": 16,
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
     "object_id": 2,
     "description": "arrthythmia"
   }
@@ -421,7 +275,10 @@
   "model": "project.topic",
   "pk": 3,
   "fields": {
-    "content_type": 16,
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
     "object_id": 2,
     "description": "critical care"
   }
@@ -430,7 +287,10 @@
   "model": "project.topic",
   "pk": 4,
   "fields": {
-    "content_type": 16,
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
     "object_id": 2,
     "description": "intensive care unit"
   }
@@ -527,7 +387,10 @@
   "model": "project.reference",
   "pk": 1,
   "fields": {
-    "content_type": 16,
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
     "object_id": 2,
     "description": "Charles, D., King, J., Patel, V. & Furukawa, M. Adoption of Electronic Health record Systems among U.S. Non-federal Acute Care Hospitals. ONC Data Brief No. 9, 1\u20139 (2013)."
   }
@@ -536,7 +399,10 @@
   "model": "project.reference",
   "pk": 2,
   "fields": {
-    "content_type": 16,
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
     "object_id": 2,
     "description": "Collins, F. S. & Tabak, L. A. NIH plans to enhance reproducibility. Nature 505, 612\u2013613 (2014)."
   }
@@ -545,7 +411,10 @@
   "model": "project.reference",
   "pk": 3,
   "fields": {
-    "content_type": 16,
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
     "object_id": 2,
     "description": "Pollard, T. J., & Johnson, A. E. W. The MIMIC-III Clinical Database http://dx.doi.org/10.13026/C2XW26 (2016)"
   }
@@ -623,22 +492,15 @@
   }
 },
 {
-  "model": "project.contact",
-  "pk": 5,
-  "fields": {
-    "name": "Tom Pollard",
-    "affiliations": "MIT",
-    "email": "tpollard@mit.edu",
-    "project": 5
-  }
-},
-{
   "model": "project.publication",
   "pk": 1,
   "fields": {
     "citation": "Moody GB, Mark RG. The impact of the MIT-BIH Arrhythmia Database. IEEE Eng in Med and Biol 20(3):45-50 (May-June 2001). (PMID: 11446209)",
     "url": "https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=932724",
-    "content_type": 16,
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
     "object_id": 1
   }
 },
@@ -648,7 +510,10 @@
   "fields": {
     "citation": "Johnson, A. E. W. et al. MIMIC-III, a freely accessible critical care database. Sci. Data 3:160035 doi: 10.1038/sdata.2016.35 (2016).",
     "url": "https://www.nature.com/articles/sdata201635",
-    "content_type": 16,
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
     "object_id": 2
   }
 },
@@ -663,15 +528,6 @@
 },
 {
   "model": "project.coreproject",
-  "pk": "15ea417c-30b3-4931-9511-9eb4ef51f8a9",
-  "fields": {
-    "creation_datetime": "2020-04-10T15:53:13.736Z",
-    "doi": "10.7966/7n9x-cf76",
-    "storage_allowance": 104857600
-  }
-},
-{
-  "model": "project.coreproject",
   "pk": "2e780890-644d-4166-b0ca-e3d31596405b",
   "fields": {
     "creation_datetime": "2017-10-30T14:30:30Z",
@@ -681,45 +537,9 @@
 },
 {
   "model": "project.coreproject",
-  "pk": "387f8bf5-b2ce-4a75-aced-1a108e305307",
-  "fields": {
-    "creation_datetime": "2020-04-10T15:51:57.145Z",
-    "doi": null,
-    "storage_allowance": 104857600
-  }
-},
-{
-  "model": "project.coreproject",
   "pk": "66951d55-e473-4a98-a24f-4fad05ed967b",
   "fields": {
     "creation_datetime": "2018-11-14T20:20:39.927Z",
-    "doi": null,
-    "storage_allowance": 104857600
-  }
-},
-{
-  "model": "project.coreproject",
-  "pk": "773ac916-9733-4717-88e4-bd34dba604c4",
-  "fields": {
-    "creation_datetime": "2020-04-10T16:03:02.300Z",
-    "doi": null,
-    "storage_allowance": 104857600
-  }
-},
-{
-  "model": "project.coreproject",
-  "pk": "77951d15-e473-4a98-a24f-4fad05ed967b",
-  "fields": {
-    "creation_datetime": "2018-11-14T20:20:39.927Z",
-    "doi": "",
-    "storage_allowance": 104857600
-  }
-},
-{
-  "model": "project.coreproject",
-  "pk": "85c5bad7-5f20-4194-8a20-0ff37ccee9a0",
-  "fields": {
-    "creation_datetime": "2019-03-01T14:30:30Z",
     "doi": null,
     "storage_allowance": 104857600
   }
@@ -752,35 +572,12 @@
   }
 },
 {
-  "model": "project.projecttype",
-  "pk": 0,
+  "model": "project.coreproject",
+  "pk": "85c5bad7-5f20-4194-8a20-0ff37ccee9a0",
   "fields": {
-    "name": "Database",
-    "description": "Research data with significant potential for reuse by the research community. This may include data that enables published studies to be reproduced, data for benchmarking algorithms, and data that supports novel investigations."
-  }
-},
-{
-  "model": "project.projecttype",
-  "pk": 1,
-  "fields": {
-    "name": "Software",
-    "description": "Software that has been developed for research applications."
-  }
-},
-{
-  "model": "project.projecttype",
-  "pk": 2,
-  "fields": {
-    "name": "Challenge",
-    "description": "Description of a challenge for the research community. Files such as datasets and software may be included as part of the challenge."
-  }
-},
-{
-  "model": "project.projecttype",
-  "pk": 3,
-  "fields": {
-    "name": "Model",
-    "description": "An implementation of a statistical or machine learning model with potential for reuse by the research community. Typically models will be created by a training process and may have dependencies on specific computational frameworks."
+    "creation_datetime": "2019-03-01T14:30:30Z",
+    "doi": null,
+    "storage_allowance": 104857600
   }
 },
 {
@@ -801,12 +598,12 @@
     "release_notes": "",
     "short_description": "The MIT-BIH Arrhythmia Database contains 48 half-hour excerpts of ambulatory ECG recordings, fully annotated with beat and rhythm labels.",
     "access_policy": 0,
-    "is_self_managed_access": false,
-    "self_managed_dua": "",
-    "self_managed_request_template": "",
     "license": 1,
     "project_home_page": "https://physionet.org/physiobank/database/mitdb/",
+    "slug": "SHuKI1APLrwWCqxSQnSk",
     "core_project": "950032c4-2d96-43d6-84d5-e1652f451a79",
+    "creation_datetime": "2018-09-04T17:26:24.820Z",
+    "version_order": 0,
     "editor": null,
     "submission_datetime": null,
     "author_comments": "",
@@ -816,15 +613,8 @@
     "editor_accept_datetime": null,
     "copyedit_completion_datetime": null,
     "author_approval_datetime": null,
-    "creation_datetime": "2018-09-04T17:26:24.820Z",
-    "version_order": 0,
     "modified_datetime": "2018-09-04T17:26:24.820Z",
-    "is_new_version": false,
-    "slug": "SHuKI1APLrwWCqxSQnSk",
-    "latest_reminder": null,
-    "doi": null,
     "submission_status": 0,
-    "parent_projects": [],
     "programming_languages": []
   }
 },
@@ -844,14 +634,13 @@
     "conflicts_of_interest": "<p>The authors declare no conflicts of interest.</p>",
     "version": "1.3.0",
     "release_notes": "",
-    "short_description": "",
     "access_policy": 2,
-    "is_self_managed_access": false,
-    "self_managed_dua": "",
-    "self_managed_request_template": "",
     "license": 6,
     "project_home_page": "",
+    "slug": "T108xFtYkRAxiRiuOLEJ",
     "core_project": "ff038b01-14a2-4af1-9a7d-9f9845c45219",
+    "creation_datetime": "2018-11-04T17:26:24.820Z",
+    "version_order": 0,
     "editor": null,
     "submission_datetime": null,
     "author_comments": "",
@@ -861,15 +650,8 @@
     "editor_accept_datetime": null,
     "copyedit_completion_datetime": null,
     "author_approval_datetime": null,
-    "creation_datetime": "2018-11-04T17:26:24.820Z",
-    "version_order": 0,
     "modified_datetime": "2018-12-04T17:26:24.820Z",
-    "is_new_version": false,
-    "slug": "T108xFtYkRAxiRiuOLEJ",
-    "latest_reminder": null,
-    "doi": null,
     "submission_status": 0,
-    "parent_projects": [],
     "programming_languages": []
   }
 },
@@ -889,167 +671,24 @@
     "conflicts_of_interest": "",
     "version": "1.0.0",
     "release_notes": "",
-    "short_description": "",
     "access_policy": 1,
-    "is_self_managed_access": false,
-    "self_managed_dua": "",
-    "self_managed_request_template": "",
     "license": 1,
     "project_home_page": "",
+    "slug": "Revkx24XL77vUm2KTFYU",
     "core_project": "2e780890-644d-4166-b0ca-e3d31596405b",
-    "editor": null,
-    "submission_datetime": null,
-    "author_comments": "",
-    "editor_assignment_datetime": null,
-    "revision_request_datetime": null,
-    "resubmission_datetime": null,
-    "editor_accept_datetime": null,
-    "copyedit_completion_datetime": null,
-    "author_approval_datetime": null,
     "creation_datetime": "2018-11-05T17:26:24.820Z",
     "version_order": 0,
+    "editor": null,
+    "submission_datetime": null,
+    "author_comments": "",
+    "editor_assignment_datetime": null,
+    "revision_request_datetime": null,
+    "resubmission_datetime": null,
+    "editor_accept_datetime": null,
+    "copyedit_completion_datetime": null,
+    "author_approval_datetime": null,
     "modified_datetime": "2018-12-05T17:26:24.820Z",
-    "is_new_version": false,
-    "slug": "Revkx24XL77vUm2KTFYU",
-    "latest_reminder": null,
-    "doi": null,
     "submission_status": 0,
-    "parent_projects": [],
-    "programming_languages": []
-  }
-},
-{
-  "model": "project.activeproject",
-  "pk": 5,
-  "fields": {
-    "resource_type": 3,
-    "title": "Test model project",
-    "abstract": "<p>TEST</p>",
-    "background": "<p>TEST</p>",
-    "methods": "<p>TEST</p>",
-    "content_description": "<p>TEST</p>",
-    "usage_notes": "<p>TEST</p>",
-    "installation": "<p>TEST</p>",
-    "acknowledgements": "<p>TEST</p>",
-    "conflicts_of_interest": "<p>TEST</p>",
-    "version": "1.0",
-    "release_notes": "<p>TEST</p>",
-    "short_description": "TEST",
-    "access_policy": 0,
-    "is_self_managed_access": false,
-    "self_managed_dua": "",
-    "self_managed_request_template": "",
-    "license": 8,
-    "project_home_page": "",
-    "core_project": "387f8bf5-b2ce-4a75-aced-1a108e305307",
-    "editor": null,
-    "submission_datetime": null,
-    "author_comments": "",
-    "editor_assignment_datetime": null,
-    "revision_request_datetime": null,
-    "resubmission_datetime": null,
-    "editor_accept_datetime": null,
-    "copyedit_completion_datetime": null,
-    "author_approval_datetime": null,
-    "creation_datetime": "2020-04-10T15:51:57.150Z",
-    "version_order": 0,
-    "modified_datetime": "2020-04-10T15:52:40.413Z",
-    "is_new_version": false,
-    "slug": "AGlSZa5VTv5Dg09CSpoh",
-    "latest_reminder": null,
-    "doi": null,
-    "submission_status": 0,
-    "parent_projects": [],
-    "programming_languages": []
-  }
-},
-{
-  "model": "project.activeproject",
-  "pk": 7,
-  "fields": {
-    "resource_type": 0,
-    "title": "Test database project",
-    "abstract": "<p>TEST</p>",
-    "background": "",
-    "methods": "",
-    "content_description": "",
-    "usage_notes": "",
-    "installation": "",
-    "acknowledgements": "",
-    "conflicts_of_interest": "",
-    "version": "",
-    "release_notes": "",
-    "short_description": "",
-    "access_policy": 0,
-    "is_self_managed_access": false,
-    "self_managed_dua": "",
-    "self_managed_request_template": "",
-    "license": null,
-    "project_home_page": "",
-    "core_project": "773ac916-9733-4717-88e4-bd34dba604c4",
-    "editor": null,
-    "submission_datetime": null,
-    "author_comments": "",
-    "editor_assignment_datetime": null,
-    "revision_request_datetime": null,
-    "resubmission_datetime": null,
-    "editor_accept_datetime": null,
-    "copyedit_completion_datetime": null,
-    "author_approval_datetime": null,
-    "creation_datetime": "2020-04-10T16:03:02.306Z",
-    "version_order": 0,
-    "modified_datetime": "2020-04-10T16:03:02.306Z",
-    "is_new_version": false,
-    "slug": "omAiNz9yC3MXvZTRe9sF",
-    "latest_reminder": null,
-    "doi": null,
-    "submission_status": 0,
-    "parent_projects": [],
-    "programming_languages": []
-  }
-},
-{
-  "model": "project.activeproject",
-  "pk": 8,
-  "fields": {
-    "resource_type": 1,
-    "title": "Test software project",
-    "abstract": "<p>TEST</p>",
-    "background": "<p>TEST</p>",
-    "methods": "<p>TEST</p>",
-    "content_description": "<p>TEST</p>",
-    "usage_notes": "<p>TEST</p>",
-    "installation": "<p>TEST</p>",
-    "acknowledgements": "<p>TEST</p>",
-    "conflicts_of_interest": "<p>TEST</p>",
-    "version": "2.0",
-    "release_notes": "<p>TEST</p>",
-    "short_description": "TEST",
-    "access_policy": 0,
-    "is_self_managed_access": false,
-    "self_managed_dua": "",
-    "self_managed_request_template": "",
-    "license": 9,
-    "project_home_page": "",
-    "core_project": "15ea417c-30b3-4931-9511-9eb4ef51f8a9",
-    "editor": 206,
-    "submission_datetime": "2020-04-10T16:08:53.263Z",
-    "author_comments": "",
-    "editor_assignment_datetime": "2020-04-10T16:09:06.581Z",
-    "revision_request_datetime": null,
-    "resubmission_datetime": null,
-    "editor_accept_datetime": null,
-    "copyedit_completion_datetime": null,
-    "author_approval_datetime": null,
-    "creation_datetime": "2020-04-10T16:08:49.323Z",
-    "version_order": 1,
-    "modified_datetime": "2020-04-10T16:08:49.323Z",
-    "is_new_version": true,
-    "slug": "p7TCIMkltNswuOB9FZH1",
-    "latest_reminder": null,
-    "doi": null,
-    "submission_status": 20,
-    "parent_projects": [],
     "programming_languages": []
   }
 },
@@ -1069,15 +708,16 @@
     "conflicts_of_interest": "<p>None</p>",
     "version": "2.0.0",
     "release_notes": "",
-    "short_description": "",
     "access_policy": 2,
-    "is_self_managed_access": false,
-    "self_managed_dua": "",
-    "self_managed_request_template": "",
     "license": 6,
     "project_home_page": "https://eicu-crd.mit.edu/",
+    "slug": "demoeicu",
     "core_project": "66951d55-e473-4a98-a24f-4fad05ed967b",
-    "editor": 1,
+    "creation_datetime": "2018-11-14T21:11:17.040Z",
+    "version_order": 0,
+    "editor": [
+      "admin"
+    ],
     "submission_datetime": "2018-11-14T21:09:38.666Z",
     "author_comments": "",
     "editor_assignment_datetime": "2018-11-14T21:09:54.565Z",
@@ -1086,23 +726,13 @@
     "editor_accept_datetime": "2018-11-14T21:10:49.361Z",
     "copyedit_completion_datetime": "2018-11-14T21:11:00.997Z",
     "author_approval_datetime": "2018-11-14T21:11:11.781Z",
-    "creation_datetime": "2018-11-14T21:11:17.040Z",
-    "version_order": 0,
     "main_storage_size": 81,
     "compressed_storage_size": 3090,
     "publish_datetime": "2018-11-14T21:11:17.040Z",
-    "has_other_versions": false,
-    "deprecated_files": false,
-    "doi": "10.13026/G2F309",
-    "slug": "demoeicu",
-    "is_legacy": false,
-    "full_description": "",
     "is_latest_version": true,
-    "featured": 1,
-    "has_wfdb": false,
-    "display_publications": true,
-    "parent_projects": [],
-    "programming_languages": []
+    "doi": "10.13026/G2F309",
+    "programming_languages": [],
+    "featured": 1
   }
 },
 {
@@ -1121,15 +751,16 @@
     "conflicts_of_interest": "<p>None to declare.</p>",
     "version": "10.5.24",
     "release_notes": "<p>This is a stable version.</p>",
-    "short_description": "",
     "access_policy": 0,
-    "is_self_managed_access": false,
-    "self_managed_dua": "",
-    "self_managed_request_template": "",
     "license": 3,
     "project_home_page": "https://physionet.org/physiotools/ecg.shtml",
+    "slug": "demoecg",
     "core_project": "ba881793-f671-4215-9487-070c04bdb4e2",
-    "editor": 1,
+    "creation_datetime": "2018-12-22T19:34:36.678Z",
+    "version_order": 0,
+    "editor": [
+      "admin"
+    ],
     "submission_datetime": "2018-12-22T19:32:10.749Z",
     "author_comments": "Powers many applications.",
     "editor_assignment_datetime": "2018-12-22T19:32:22.273Z",
@@ -1138,25 +769,14 @@
     "editor_accept_datetime": "2018-12-22T19:32:56.969Z",
     "copyedit_completion_datetime": "2018-12-22T19:33:21.097Z",
     "author_approval_datetime": "2018-12-22T19:33:31.728Z",
-    "creation_datetime": "2018-12-22T19:34:36.678Z",
-    "version_order": 0,
     "main_storage_size": 3375376,
     "compressed_storage_size": 1600385,
     "publish_datetime": "2018-12-22T19:34:36.678Z",
-    "has_other_versions": false,
-    "deprecated_files": false,
-    "doi": "10.13026/X2K01X",
-    "slug": "demoecg",
-    "is_legacy": false,
-    "full_description": "",
     "is_latest_version": true,
-    "featured": null,
-    "has_wfdb": false,
-    "display_publications": true,
-    "parent_projects": [],
+    "doi": "10.13026/X2K01X",
     "programming_languages": [
-      4,
-      1
+      1,
+      4
     ]
   }
 },
@@ -1176,14 +796,13 @@
     "conflicts_of_interest": "<p>No conflicts of interest.</p>",
     "version": "1.0",
     "release_notes": "",
-    "short_description": "",
     "access_policy": 0,
-    "is_self_managed_access": false,
-    "self_managed_dua": "",
-    "self_managed_request_template": "",
     "license": 7,
     "project_home_page": "https://bhi-bsn.embs.org/2018/",
+    "slug": "demobsn",
     "core_project": "85c5bad7-5f20-4194-8a20-0ff37ccee9a0",
+    "creation_datetime": "2019-03-17T07:53:10.022Z",
+    "version_order": 0,
     "editor": 1,
     "submission_datetime": "2019-03-17T07:51:22.235Z",
     "author_comments": "Thanks for reviewing this submission.",
@@ -1193,23 +812,212 @@
     "editor_accept_datetime": "2019-03-17T07:52:34.096Z",
     "copyedit_completion_datetime": "2019-03-17T07:52:51.098Z",
     "author_approval_datetime": "2019-03-17T07:52:58.716Z",
-    "creation_datetime": "2019-03-17T07:53:10.022Z",
-    "version_order": 0,
     "main_storage_size": 32,
     "compressed_storage_size": 786,
     "publish_datetime": "2019-03-17T07:53:10.022Z",
-    "has_other_versions": false,
-    "deprecated_files": false,
-    "doi": null,
-    "slug": "demobsn",
-    "is_legacy": false,
-    "full_description": "",
     "is_latest_version": true,
-    "featured": null,
+    "doi": null,
+    "is_legacy": false,
     "has_wfdb": true,
-    "display_publications": true,
-    "parent_projects": [],
+    "full_description": "",
     "programming_languages": []
+  }
+},
+{
+  "model": "project.authorinvitation",
+  "pk": 1,
+  "fields": {
+    "project": 2,
+    "request_datetime": "2017-11-02T14:30:30Z",
+    "response_datetime": null,
+    "response": null,
+    "is_active": true,
+    "email": "george@mit.edu",
+    "inviter": [
+      "rgmark"
+    ]
+  }
+},
+{
+  "model": "project.authorinvitation",
+  "pk": 2,
+  "fields": {
+    "project": 2,
+    "request_datetime": "2018-03-28T14:30:30Z",
+    "response_datetime": null,
+    "response": null,
+    "is_active": true,
+    "email": "george@gmail.com",
+    "inviter": [
+      "rgmark"
+    ]
+  }
+},
+{
+  "model": "project.storagerequest",
+  "pk": 2,
+  "fields": {
+    "project": 2,
+    "request_datetime": "2018-05-07T20:27:01.572Z",
+    "response_datetime": null,
+    "response": null,
+    "is_active": true,
+    "request_allowance": 80,
+    "responder": null,
+    "response_message": ""
+  }
+},
+{
+  "model": "project.editlog",
+  "pk": 1,
+  "fields": {
+    "content_type": [
+      "project",
+      "publishedproject"
+    ],
+    "object_id": 1,
+    "submission_datetime": "2018-11-14T21:09:38.681Z",
+    "is_resubmission": false,
+    "author_comments": "",
+    "soundly_produced": true,
+    "well_described": true,
+    "open_format": true,
+    "data_machine_readable": true,
+    "reusable": false,
+    "no_phi": true,
+    "pn_suitable": true,
+    "decision": 1,
+    "decision_datetime": "2018-11-14T21:10:19.855Z",
+    "editor_comments": "You missed some data files. Please upload them all."
+  }
+},
+{
+  "model": "project.editlog",
+  "pk": 2,
+  "fields": {
+    "content_type": [
+      "project",
+      "publishedproject"
+    ],
+    "object_id": 1,
+    "submission_datetime": "2018-11-14T21:10:24.680Z",
+    "is_resubmission": true,
+    "author_comments": "",
+    "soundly_produced": true,
+    "well_described": true,
+    "open_format": true,
+    "data_machine_readable": true,
+    "reusable": true,
+    "no_phi": true,
+    "pn_suitable": true,
+    "decision": 2,
+    "decision_datetime": "2018-11-14T21:10:49.361Z",
+    "editor_comments": "Looks great. Thanks for your contribution."
+  }
+},
+{
+  "model": "project.editlog",
+  "pk": 3,
+  "fields": {
+    "content_type": [
+      "project",
+      "publishedproject"
+    ],
+    "object_id": 2,
+    "submission_datetime": "2018-12-22T19:32:10.766Z",
+    "is_resubmission": false,
+    "author_comments": "Powers many applications.",
+    "soundly_produced": null,
+    "well_described": true,
+    "open_format": true,
+    "data_machine_readable": null,
+    "reusable": true,
+    "no_phi": null,
+    "pn_suitable": true,
+    "decision": 2,
+    "decision_datetime": "2018-12-22T19:32:56.969Z",
+    "editor_comments": "Great contribution.\r\n\r\nHope you will contribute more in the future."
+  }
+},
+{
+  "model": "project.editlog",
+  "pk": 3,
+  "fields": {
+    "content_type": [
+      "project",
+      "publishedproject"
+    ],
+    "object_id": 3,
+    "submission_datetime": "2019-03-17T07:51:22.235Z",
+    "is_resubmission": false,
+    "author_comments": "Thanks for reviewing this submission.",
+    "soundly_produced": true,
+    "well_described": true,
+    "open_format": true,
+    "data_machine_readable": true,
+    "reusable": true,
+    "no_phi": true,
+    "pn_suitable": true,
+    "decision": 2,
+    "decision_datetime": "2019-03-17T07:52:34.096Z",
+    "editor_comments": "Great thanks."
+  }
+},
+{
+  "model": "project.copyeditlog",
+  "pk": 1,
+  "fields": {
+    "content_type": [
+      "project",
+      "publishedproject"
+    ],
+    "object_id": 1,
+    "start_datetime": "2018-11-14T21:10:49.367Z",
+    "is_reedit": false,
+    "made_changes": true,
+    "changelog_summary": "Fixed typos in the metadata.",
+    "complete_datetime": "2018-11-14T21:11:00.997Z"
+  }
+},
+{
+  "model": "project.copyeditlog",
+  "pk": 2,
+  "fields": {
+    "content_type": [
+      "project",
+      "publishedproject"
+    ],
+    "object_id": 2,
+    "start_datetime": "2018-12-22T19:32:56.982Z",
+    "is_reedit": false,
+    "made_changes": false,
+    "changelog_summary": "",
+    "complete_datetime": "2018-12-22T19:33:21.097Z"
+  }
+},
+{
+  "model": "project.copyeditlog",
+  "pk": 3,
+  "fields": {
+    "content_type": [
+      "project",
+      "publishedproject"
+    ],
+    "object_id": 3,
+    "start_datetime": "2019-03-17T07:52:34.096Z",
+    "is_reedit": false,
+    "made_changes": false,
+    "changelog_summary": "",
+    "complete_datetime": "2019-03-17T07:52:51.098Z"
+  }
+},
+{
+  "model": "project.coreproject",
+  "pk": "77951d15-e473-4a98-a24f-4fad05ed967b",
+  "fields": {
+    "creation_datetime": "2018-11-14T20:20:39.927Z",
+    "doi": "",
+    "storage_allowance": 104857600
   }
 },
 {
@@ -1228,15 +1036,16 @@
     "conflicts_of_interest": "",
     "version": "1.0.0",
     "release_notes": "",
-    "short_description": "",
     "access_policy": 2,
-    "is_self_managed_access": true,
-    "self_managed_dua": "<strong>Example End User License</strong> <ol><li>The LICENSEE will not share access to HiRID data with anyone else.</li><li>...</li></ol>",
-    "self_managed_request_template": "<strong>Background</strong> <p>TODO</p> <p></p> <strong>Purpose</strong> <p>TODO</p>",
     "license": 6,
     "project_home_page": "",
+    "slug": "demoselfmanaged",
     "core_project": "77951d15-e473-4a98-a24f-4fad05ed967b",
-    "editor": 1,
+    "creation_datetime": "2018-11-14T21:11:17.040Z",
+    "version_order": 0,
+    "editor": [
+      "admin"
+    ],
     "submission_datetime": "2018-11-14T21:09:38.666Z",
     "author_comments": "",
     "editor_assignment_datetime": "2018-11-14T21:09:54.565Z",
@@ -1245,459 +1054,16 @@
     "editor_accept_datetime": "2018-11-14T21:10:49.361Z",
     "copyedit_completion_datetime": "2018-11-14T21:11:00.997Z",
     "author_approval_datetime": "2018-11-14T21:11:11.781Z",
-    "creation_datetime": "2018-11-14T21:11:17.040Z",
-    "version_order": 0,
     "main_storage_size": 0,
     "compressed_storage_size": 0,
     "publish_datetime": "2018-11-14T21:11:17.040Z",
-    "has_other_versions": false,
-    "deprecated_files": false,
+    "is_latest_version": true,
     "doi": "",
-    "slug": "demoselfmanaged",
-    "is_legacy": false,
-    "full_description": "",
-    "is_latest_version": true,
+    "programming_languages": [],
     "featured": 0,
-    "has_wfdb": false,
-    "display_publications": true,
-    "parent_projects": [],
-    "programming_languages": []
-  }
-},
-{
-  "model": "project.publishedproject",
-  "pk": 5,
-  "fields": {
-    "resource_type": 1,
-    "title": "Test software project",
-    "abstract": "<p>TEST</p>",
-    "background": "<p>TEST</p>",
-    "methods": "<p>TEST</p>",
-    "content_description": "<p>TEST</p>",
-    "usage_notes": "<p>TEST</p>",
-    "installation": "<p>TEST</p>",
-    "acknowledgements": "<p>TEST</p>",
-    "conflicts_of_interest": "<p>TEST</p>",
-    "version": "1.0",
-    "release_notes": "<p>TEST</p>",
-    "short_description": "TEST",
-    "access_policy": 0,
-    "is_self_managed_access": false,
-    "self_managed_dua": "",
-    "self_managed_request_template": "",
-    "license": 9,
-    "project_home_page": "",
-    "core_project": "15ea417c-30b3-4931-9511-9eb4ef51f8a9",
-    "editor": 206,
-    "submission_datetime": "2020-04-10T15:54:54.860Z",
-    "author_comments": "",
-    "editor_assignment_datetime": "2020-04-10T16:06:22.892Z",
-    "revision_request_datetime": null,
-    "resubmission_datetime": null,
-    "editor_accept_datetime": "2020-04-10T16:06:55.526Z",
-    "copyedit_completion_datetime": "2020-04-10T16:07:36.681Z",
-    "author_approval_datetime": "2020-04-10T16:08:02Z",
-    "creation_datetime": "2020-04-10T16:08:38.705Z",
-    "version_order": 0,
-    "main_storage_size": 35855,
-    "compressed_storage_size": 12679,
-    "publish_datetime": "2020-04-10T16:08:38.705Z",
-    "has_other_versions": false,
-    "deprecated_files": false,
-    "doi": "10.7966/jadd-sy12",
-    "slug": "test",
-    "is_legacy": false,
-    "full_description": "",
-    "is_latest_version": true,
-    "featured": null,
-    "has_wfdb": false,
-    "display_publications": true,
-    "parent_projects": [],
-    "programming_languages": []
-  }
-},
-{
-  "model": "project.programminglanguage",
-  "pk": 1,
-  "fields": {
-    "name": "Bash"
-  }
-},
-{
-  "model": "project.programminglanguage",
-  "pk": 2,
-  "fields": {
-    "name": "BASIC"
-  }
-},
-{
-  "model": "project.programminglanguage",
-  "pk": 3,
-  "fields": {
-    "name": "Bourne Shell"
-  }
-},
-{
-  "model": "project.programminglanguage",
-  "pk": 4,
-  "fields": {
-    "name": "C"
-  }
-},
-{
-  "model": "project.programminglanguage",
-  "pk": 5,
-  "fields": {
-    "name": "C++"
-  }
-},
-{
-  "model": "project.programminglanguage",
-  "pk": 6,
-  "fields": {
-    "name": "C#"
-  }
-},
-{
-  "model": "project.programminglanguage",
-  "pk": 7,
-  "fields": {
-    "name": "Go"
-  }
-},
-{
-  "model": "project.programminglanguage",
-  "pk": 8,
-  "fields": {
-    "name": "Java"
-  }
-},
-{
-  "model": "project.programminglanguage",
-  "pk": 9,
-  "fields": {
-    "name": "Javascript"
-  }
-},
-{
-  "model": "project.programminglanguage",
-  "pk": 10,
-  "fields": {
-    "name": "Matlab"
-  }
-},
-{
-  "model": "project.programminglanguage",
-  "pk": 11,
-  "fields": {
-    "name": "Objective-C"
-  }
-},
-{
-  "model": "project.programminglanguage",
-  "pk": 12,
-  "fields": {
-    "name": "Pascal"
-  }
-},
-{
-  "model": "project.programminglanguage",
-  "pk": 13,
-  "fields": {
-    "name": "Perl"
-  }
-},
-{
-  "model": "project.programminglanguage",
-  "pk": 14,
-  "fields": {
-    "name": "PHP"
-  }
-},
-{
-  "model": "project.programminglanguage",
-  "pk": 15,
-  "fields": {
-    "name": "Python"
-  }
-},
-{
-  "model": "project.programminglanguage",
-  "pk": 16,
-  "fields": {
-    "name": "R"
-  }
-},
-{
-  "model": "project.programminglanguage",
-  "pk": 17,
-  "fields": {
-    "name": "Ruby"
-  }
-},
-{
-  "model": "project.programminglanguage",
-  "pk": 18,
-  "fields": {
-    "name": "SQL"
-  }
-},
-{
-  "model": "project.programminglanguage",
-  "pk": 19,
-  "fields": {
-    "name": "Swift"
-  }
-},
-{
-  "model": "project.duasignature",
-  "pk": 1,
-  "fields": {
-    "project": 1,
-    "user": 4,
-    "sign_datetime": "2020-04-10T16:58:13.494Z"
-  }
-},
-{
-  "model": "project.authorinvitation",
-  "pk": 1,
-  "fields": {
-    "project": 2,
-    "request_datetime": "2017-11-02T14:30:30Z",
-    "response_datetime": null,
-    "response": null,
-    "is_active": true,
-    "email": "george@mit.edu",
-    "inviter": 2
-  }
-},
-{
-  "model": "project.authorinvitation",
-  "pk": 2,
-  "fields": {
-    "project": 2,
-    "request_datetime": "2018-03-28T14:30:30Z",
-    "response_datetime": null,
-    "response": null,
-    "is_active": true,
-    "email": "george@gmail.com",
-    "inviter": 2
-  }
-},
-{
-  "model": "project.authorinvitation",
-  "pk": 3,
-  "fields": {
-    "project": 5,
-    "request_datetime": "2020-04-10T15:52:09.828Z",
-    "response_datetime": null,
-    "response": null,
-    "is_active": true,
-    "email": "admin@mit.edu",
-    "inviter": 4
-  }
-},
-{
-  "model": "project.storagerequest",
-  "pk": 2,
-  "fields": {
-    "project": 2,
-    "request_datetime": "2018-05-07T20:27:01.572Z",
-    "response_datetime": null,
-    "response": null,
-    "is_active": true,
-    "request_allowance": 80,
-    "responder": null,
-    "response_message": ""
-  }
-},
-{
-  "model": "project.storagerequest",
-  "pk": 3,
-  "fields": {
-    "project": 5,
-    "request_datetime": "2020-04-10T15:56:12.804Z",
-    "response_datetime": "2020-04-10T16:07:25.384Z",
-    "response": false,
-    "is_active": false,
-    "request_allowance": 1,
-    "responder": 206,
-    "response_message": ""
-  }
-},
-{
-  "model": "project.editlog",
-  "pk": 1,
-  "fields": {
-    "content_type": 31,
-    "object_id": 1,
-    "submission_datetime": "2018-11-14T21:09:38.681Z",
-    "is_resubmission": false,
-    "author_comments": "",
-    "soundly_produced": true,
-    "well_described": true,
-    "open_format": true,
-    "data_machine_readable": true,
-    "reusable": false,
-    "no_phi": true,
-    "pn_suitable": true,
-    "decision": 1,
-    "decision_datetime": "2018-11-14T21:10:19.855Z",
-    "editor_comments": "You missed some data files. Please upload them all.",
-    "auto_doi": true
-  }
-},
-{
-  "model": "project.editlog",
-  "pk": 2,
-  "fields": {
-    "content_type": 31,
-    "object_id": 1,
-    "submission_datetime": "2018-11-14T21:10:24.680Z",
-    "is_resubmission": true,
-    "author_comments": "",
-    "soundly_produced": true,
-    "well_described": true,
-    "open_format": true,
-    "data_machine_readable": true,
-    "reusable": true,
-    "no_phi": true,
-    "pn_suitable": true,
-    "decision": 2,
-    "decision_datetime": "2018-11-14T21:10:49.361Z",
-    "editor_comments": "Looks great. Thanks for your contribution.",
-    "auto_doi": true
-  }
-},
-{
-  "model": "project.editlog",
-  "pk": 3,
-  "fields": {
-    "content_type": 31,
-    "object_id": 3,
-    "submission_datetime": "2019-03-17T07:51:22.235Z",
-    "is_resubmission": false,
-    "author_comments": "Thanks for reviewing this submission.",
-    "soundly_produced": true,
-    "well_described": true,
-    "open_format": true,
-    "data_machine_readable": true,
-    "reusable": true,
-    "no_phi": true,
-    "pn_suitable": true,
-    "decision": 2,
-    "decision_datetime": "2019-03-17T07:52:34.096Z",
-    "editor_comments": "Great thanks.",
-    "auto_doi": true
-  }
-},
-{
-  "model": "project.editlog",
-  "pk": 4,
-  "fields": {
-    "content_type": 31,
-    "object_id": 5,
-    "submission_datetime": "2020-04-10T15:54:54.863Z",
-    "is_resubmission": false,
-    "author_comments": "",
-    "soundly_produced": true,
-    "well_described": true,
-    "open_format": true,
-    "data_machine_readable": null,
-    "reusable": true,
-    "no_phi": true,
-    "pn_suitable": true,
-    "decision": 2,
-    "decision_datetime": "2020-04-10T16:06:55.526Z",
-    "editor_comments": "sdf",
-    "auto_doi": true
-  }
-},
-{
-  "model": "project.editlog",
-  "pk": 5,
-  "fields": {
-    "content_type": 16,
-    "object_id": 8,
-    "submission_datetime": "2020-04-10T16:08:53.264Z",
-    "is_resubmission": false,
-    "author_comments": "",
-    "soundly_produced": null,
-    "well_described": null,
-    "open_format": null,
-    "data_machine_readable": null,
-    "reusable": null,
-    "no_phi": null,
-    "pn_suitable": null,
-    "decision": null,
-    "decision_datetime": null,
-    "editor_comments": "",
-    "auto_doi": true
-  }
-},
-{
-  "model": "project.copyeditlog",
-  "pk": 1,
-  "fields": {
-    "content_type": 31,
-    "object_id": 1,
-    "start_datetime": "2018-11-14T21:10:49.367Z",
-    "is_reedit": false,
-    "made_changes": true,
-    "changelog_summary": "Fixed typos in the metadata.",
-    "complete_datetime": "2018-11-14T21:11:00.997Z"
-  }
-},
-{
-  "model": "project.copyeditlog",
-  "pk": 2,
-  "fields": {
-    "content_type": 31,
-    "object_id": 2,
-    "start_datetime": "2018-12-22T19:32:56.982Z",
-    "is_reedit": false,
-    "made_changes": false,
-    "changelog_summary": "",
-    "complete_datetime": "2018-12-22T19:33:21.097Z"
-  }
-},
-{
-  "model": "project.copyeditlog",
-  "pk": 3,
-  "fields": {
-    "content_type": 31,
-    "object_id": 3,
-    "start_datetime": "2019-03-17T07:52:34.096Z",
-    "is_reedit": false,
-    "made_changes": false,
-    "changelog_summary": "",
-    "complete_datetime": "2019-03-17T07:52:51.098Z"
-  }
-},
-{
-  "model": "project.copyeditlog",
-  "pk": 4,
-  "fields": {
-    "content_type": 31,
-    "object_id": 5,
-    "start_datetime": "2020-04-10T16:06:55.527Z",
-    "is_reedit": false,
-    "made_changes": false,
-    "changelog_summary": "",
-    "complete_datetime": "2020-04-10T16:07:36.681Z"
-  }
-},
-{
-  "model": "project.anonymousaccess",
-  "pk": 2,
-  "fields": {
-    "content_type": 16,
-    "object_id": 8,
-    "passphrase": "pbkdf2_sha256$150000$project.AnonymousAccess$I98/l6SixXROa6MDLA5c/EU7XwsYXP2UNZYbkAmyN00=",
-    "url": "pjSJgS45PvCw1y5z8pHOTEJYH4s6nj37kMGQtJyOMC2RiuBdB0tIk9cx2NId8Thr",
-    "creation_datetime": "2020-04-10T16:09:11.548Z",
-    "expiration_datetime": null,
-    "creator": null
+    "is_self_managed_access": 1,
+    "self_managed_dua": "<strong>Example End User License</strong> <ol><li>The LICENSEE will not share access to HiRID data with anyone else.</li><li>...</li></ol>",
+    "self_managed_request_template": "<strong>Background</strong> <p>TODO</p> <p></p> <strong>Purpose</strong> <p>TODO</p>"
   }
 }
 ]

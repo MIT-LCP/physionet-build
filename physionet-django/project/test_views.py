@@ -508,7 +508,7 @@ class TestAccessPublished(TestMixin):
         self.assertEqual(response.status_code, 403)
 
         # Non-credentialed user
-        self.client.login(username='admin@mit.edu', password='Tester11!')
+        self.client.login(username='aewj@mit.edu', password='Tester11!')
         response = self.client.get(reverse(
             'serve_published_project_file',
             args=(project.slug, project.version, 'SHA256SUMS.txt')))
@@ -572,7 +572,7 @@ class TestAccessPublished(TestMixin):
                     args=(project.slug, project.version, 'SHA256SUMS.txt')),
             secure=True,
             HTTP_USER_AGENT='Wget/1.18',
-            HTTP_AUTHORIZATION=_basic_auth('admin@mit.edu', 'Tester11!'))
+            HTTP_AUTHORIZATION=_basic_auth('aewj@mit.edu', 'Tester11!'))
         self.assertEqual(response.status_code, 403)
         self.client.logout()
         response = self.client.get(
