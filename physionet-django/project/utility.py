@@ -87,7 +87,7 @@ class StorageInfo():
     Object for storing display information about a project's storage.
     """
     def __init__(self, allowance, used, include_remaining=True,
-        main_used=None, compressed_used=None):
+                 main_used=None, compressed_used=None, published=0):
         """
         Initialize fields with optional args for published and
         unpublished projects
@@ -97,6 +97,9 @@ class StorageInfo():
         """
         self.allowance = allowance
         self.readable_allowance = readable_size(allowance)
+        self.published = published
+        self.readable_published = readable_size(published)
+        self.p_used_old = round(published * 100 / allowance)
 
         # Total used
         self.used = used
@@ -106,12 +109,14 @@ class StorageInfo():
             self.readable_remaining = 'unknown'
             self.p_used = '?'
             self.p_remaining = '?'
+            self.p_used_new = '?'
         else:
             self.readable_used = readable_size(used)
             self.remaining = allowance - used
             self.readable_remaining = readable_size(self.remaining)
             self.p_used = round(used * 100 / allowance)
             self.p_remaining = round(self.remaining * 100 / allowance)
+            self.p_used_new = self.p_used - self.p_used_old
 
         if main_used is not None:
             self.main_used = main_used
