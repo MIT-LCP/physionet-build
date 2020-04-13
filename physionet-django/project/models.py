@@ -59,6 +59,10 @@ def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
 
     published_project.make_checksum_file()
 
+    quota = published_project.quota_manager()
+    published_project.incremental_storage_size = quota.bytes_used
+    published_project.save(update_fields=['incremental_storage_size'])
+
     published_project.set_storage_info()
 
     # Make the files read only
