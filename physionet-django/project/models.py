@@ -994,7 +994,6 @@ class UnpublishedProject(models.Model):
     publications = GenericRelation('project.Publication')
     topics = GenericRelation('project.Topic')
 
-    authors = GenericRelation('project.Author')
 
     class Meta:
         abstract = True
