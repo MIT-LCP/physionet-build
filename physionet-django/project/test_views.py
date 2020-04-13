@@ -688,6 +688,59 @@ class TestAccessPublished(TestMixin):
             'serve_published_project_file', args=('fnord', '1.0', 'Makefile')))
         self.assertEqual(response.status_code, 404)
 
+    def test_serve_file(self):
+        """
+        Test serving files via X-Accel-Redirect.
+        """
+        with self.settings(MEDIA_X_ACCEL_ALIAS='/protected'):
+            # Open project
+            project = PublishedProject.objects.get(
+                title='Demo ECG Signal Toolbox')
+
+            # Requests for this public URL:
+            url = '/files/{}/{}/'.format(project.slug, project.version)
+            # should be redirected to this internal path:
+            path = '/static/published-projects/{}/{}/'.format(
+                project.slug, project.version)
+
+            response = self.client.get(url + 'foo/')
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response['X-Accel-Redirect'], path + 'foo/')
+            response = self.client.get(url + 'asdf/%')
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response['X-Accel-Redirect'], path + 'asdf/%25')
+            response = self.client.get(url + '%C3%80')
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response['X-Accel-Redirect'], path + '%C3%80')
+
+            # Credentialed project
+            project = PublishedProject.objects.get(
+                title='Demo eICU Collaborative Research Database')
+
+            # Authorized requests for this public URL:
+            url = '/files/{}/{}/'.format(project.slug, project.version)
+            # should be redirected to this internal path:
+            path = '/protected/published-projects/{}/{}/'.format(
+                project.slug, project.version)
+
+            response = self.client.get(url + 'foo/')
+            self.assertEqual(response.status_code, 403)
+
+            self.client.login(username='rgmark@mit.edu', password='Tester11!')
+            response = self.client.post(
+                reverse('sign_dua', args=(project.slug, project.version,)),
+                data={'agree': ''})
+
+            response = self.client.get(url + 'foo/')
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response['X-Accel-Redirect'], path + 'foo/')
+            response = self.client.get(url + 'asdf/%')
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response['X-Accel-Redirect'], path + 'asdf/%25')
+            response = self.client.get(url + '%C3%80')
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response['X-Accel-Redirect'], path + '%C3%80')
+
 
 class TestState(TestMixin):
     """
