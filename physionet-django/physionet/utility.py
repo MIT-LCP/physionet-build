@@ -5,6 +5,7 @@ import shutil
 import struct
 import subprocess
 import tempfile
+import urllib.parse
 
 from django.conf import settings
 from django.http import HttpResponse, Http404
@@ -109,7 +110,7 @@ def serve_file(file_path, attach=True, allow_directory=False, sandbox=True):
     accel_path = _file_x_accel_path(file_path)
     if accel_path:
         response = HttpResponse()
-        response['X-Accel-Redirect'] = accel_path
+        response['X-Accel-Redirect'] = urllib.parse.quote(accel_path)
         response['Content-Type'] = ''
     else:
         if file_path.endswith('/') and allow_directory:
