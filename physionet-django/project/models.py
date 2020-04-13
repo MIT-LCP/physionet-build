@@ -28,6 +28,7 @@ from django.utils.text import slugify
 from background_task import background
 from django.utils.crypto import get_random_string
 
+from project.quota import DemoQuotaManager
 from project.utility import (get_tree_size, get_file_info, get_directory_info,
                              list_items, StorageInfo, list_files,
                              clear_directory)
@@ -972,6 +973,28 @@ class SubmissionInfo(models.Model):
 
     class Meta:
         abstract = True
+
+    def quota_manager(self):
+        """
+        Return a QuotaManager for this project.
+
+        This can be used to calculate the project's disk usage
+        (represented by the bytes_used and inodes_used properties of
+        the QuotaManager object.)
+        """
+        allowance = self.core_project.storage_allowance
+        published = self.core_project.total_published_size
+        limit = allowance - published
+
+        # DemoQuotaManager needs to know the project's toplevel
+        # directory as well as its creation time (so that files
+        # present in multiple versions can be correctly attributed to
+        # the version where they first appeared.)
+        quota_manager = DemoQuotaManager(
+            project_path=self.file_root(),
+            creation_time=self.creation_datetime)
+        quota_manager.set_limits(bytes_hard=limit, bytes_soft=limit)
+        return quota_manager
 
 
 class UnpublishedProject(models.Model):
