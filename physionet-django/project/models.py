@@ -473,6 +473,23 @@ class CoreProject(models.Model):
         """
         return self.publishedprojects.filter().order_by('version_order')
 
+    @property
+    def total_published_size(self):
+        """
+        Total storage size of the published projects.
+
+        This is the sum of the PublishedProjects'
+        incremental_storage_size values (which will be less than the
+        sum of the main_storage_size values if there are files that
+        are shared between versions) and reflects the actual size of
+        the data on disk.
+        """
+        result = self.publishedprojects \
+                     .aggregate(total=models.Sum('incremental_storage_size'))
+        # The sum will be None if there are no publishedprojects.  It will
+        # also be None if any projects have incremental_storage_size=None.
+        return result['total'] or 0
+
 
 class ProjectType(models.Model):
     """
