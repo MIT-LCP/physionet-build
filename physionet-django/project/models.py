@@ -1284,9 +1284,16 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
     def storage_used(self):
         """
-        Total storage used in bytes
+        Total storage used in bytes.
+
+        This includes the total size of new files uploaded to this
+        project, as well as the total size of files published in past
+        versions of this CoreProject.  (The QuotaManager should ensure
+        that the same file is not counted twice in this total.)
         """
-        return get_tree_size(self.file_root())
+        current = self.quota_manager().bytes_used
+        published = self.core_project.total_published_size
+        return current + published
 
     def storage_allowance(self):
         """
