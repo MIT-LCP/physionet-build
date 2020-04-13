@@ -1687,7 +1687,7 @@ class PublishedProject(Metadata, SubmissionInfo):
     # File storage sizes in bytes
     main_storage_size = models.BigIntegerField(default=0)
     compressed_storage_size = models.BigIntegerField(default=0)
-    incremental_storage_size = models.BigIntegerField(default=0, null=True)
+    incremental_storage_size = models.BigIntegerField(default=0)
     publish_datetime = models.DateTimeField(auto_now_add=True)
     has_other_versions = models.BooleanField(default=False)
     deprecated_files = models.BooleanField(default=False)
