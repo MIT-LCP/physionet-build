@@ -1064,8 +1064,9 @@ class UnpublishedProject(models.Model):
             used = self.storage_used()
         else:
             used = None
-        return StorageInfo(allowance=self.core_project.storage_allowance,
-                           used=used, include_remaining=True)
+        allowance = self.core_project.storage_allowance
+        published = self.core_project.total_published_size
+        return StorageInfo(allowance=allowance, published=published, used=used)
 
     def get_previous_slug(self):
         """
