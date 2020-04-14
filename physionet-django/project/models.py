@@ -608,6 +608,87 @@ class Metadata(models.Model):
             else:
                 return authors
 
+    def get_physionet_citation(self, style):
+        """
+        Returns the information needed to generate the standard Phyionet
+        citation in multiple formats (MLA, APA, Chicago, Harvard, and
+        Vancouver).
+
+        1. MLA (8th edition) [https://owl.purdue.edu/owl/research_and_citation/
+                              mla_style/mla_formatting_and_style_guide/
+                              mla_formatting_and_style_guide.html]
+        2. APA (7th edition) [https://owl.purdue.edu/owl/research_and_citation/
+                              apa_style/apa_style_introduction.html]
+        3. Chicago (17th edition) [https://owl.purdue.edu/owl/
+                                   research_and_citation/
+                                   chicago_manual_17th_edition/
+                                   cmos_formatting_and_style_guide/
+                                   chicago_manual_of_style_17th_edition.html]
+        4. Harvard [https://www.mendeley.com/guides/harvard-citation-guide]
+        5. Vancouver [https://guides.lib.monash.edu/ld.php?content_id=14570618]
+
+        Parameters
+        ----------
+        style [string]:
+            ['MLA', 'APA', 'Chicago', 'Harvard', 'Vancouver']
+
+        Returns
+        -------
+        citation_format [string]:
+            string containing the desired citation style
+        """
+        if style == 'MLA':
+
+            citation_format = ('Goldberger, A., et al. "PhysioBank, '
+                               'PhysioToolkit, and PhysioNet: Components of a '
+                               'new research resource for complex physiologic '
+                               'signals. Circulation [Online]. 101 (23), pp. '
+                               'e215–e220." (2000).')
+
+        elif style == 'APA':
+
+            citation_format = ('Goldberger, A., Amaral, L., Glass, L., '
+                               'Hausdorff, J., Ivanov, P. C., Mark, R., ... & '
+                               'Stanley, H. E. (2000). PhysioBank, '
+                               'PhysioToolkit, and PhysioNet: Components of a '
+                               'new research resource for complex physiologic '
+                               'signals. Circulation [Online]. 101 (23), pp. '
+                               'e215–e220.')
+
+        elif style == 'Chicago':
+
+            citation_format = ('Goldberger, A., L. Amaral, L. Glass, J. '
+                               'Hausdorff, P. C. Ivanov, R. Mark, J. E. '
+                               'Mietus, G. B. Moody, C. K. Peng, and H. E. '
+                               'Stanley. "PhysioBank, PhysioToolkit, and '
+                               'PhysioNet: Components of a new research '
+                               'resource for complex physiologic signals. '
+                               'Circulation [Online]. 101 (23), pp. '
+                               'e215–e220." (2000).')
+
+        elif style == 'Harvard':
+
+            citation_format = ('Goldberger, A., Amaral, L., Glass, L., '
+                               'Hausdorff, J., Ivanov, P.C., Mark, R., '
+                               'Mietus, J.E., Moody, G.B., Peng, C.K. and '
+                               'Stanley, H.E., 2000. PhysioBank, '
+                               'PhysioToolkit, and PhysioNet: Components of a '
+                               'new research resource for complex physiologic '
+                               'signals. Circulation [Online]. 101 (23), pp. '
+                               'e215–e220.')
+
+        elif style == 'Vancouver':
+
+            citation_format = ('Goldberger A, Amaral L, Glass L, Hausdorff J, '
+                               'Ivanov PC, Mark R, Mietus JE, Moody GB, Peng '
+                               'CK, Stanley HE. PhysioBank, PhysioToolkit, '
+                               'and PhysioNet: Components of a new research '
+                               'resource for complex physiologic signals. '
+                               'Circulation [Online]. 101 (23), pp. '
+                               'e215–e220.')
+
+        return citation_format
+
     def abstract_text_content(self):
         """
         Returns abstract as plain text.
@@ -911,12 +992,15 @@ class Metadata(models.Model):
 
         return citation_format
 
-    def citation_text_all(self):
+    def citation_text_all(self, physionet=False):
         styles = ['MLA', 'APA', 'Chicago', 'Harvard', 'Vancouver']
         citation_dict = {}
 
         for style in styles:
-            citation_dict[style] = self.citation_text(style)
+            if physionet:
+                citation_dict[style] = self.get_physionet_citation(style)
+            else:
+                citation_dict[style] = self.citation_text(style)
 
         return citation_dict
 
