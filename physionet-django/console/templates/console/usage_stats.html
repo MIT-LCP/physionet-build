@@ -1,0 +1,36 @@
+{% extends "console/base_console.html" %}
+
+{% block content %}
+<div class="card mb-3">
+  <div class="card-header">
+    Usage stats for reviewers
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+
+      <!-- Insert content here -->
+      <p>List of time taken to review project<p>
+
+      <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+        <tr>
+          <th>Publish Date</th>
+          <th>Author Approval Date</th> 
+          <th>Editor Assignment Date</th>
+          <th>Submission Date</th>
+        </tr>
+        {% for project in projects %}
+          <tr>
+            <td>{{ project.publish_datetime|date }}</td>
+            <td>{{ project.author_approval_datetime|date }}</td>
+            <td>{{ project.editor_assignment_datetime|date }}</td>
+            <td>{{ project.submission_datetime|date }}</td>
+          </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+</div>
+
+{% include "console/charts.html" %}
+
+{% endblock %}

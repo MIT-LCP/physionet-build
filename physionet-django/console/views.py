@@ -1374,6 +1374,41 @@ def guidelines_review(request):
         {'guidelines_review_nav': True})
 
 
+def charts(request):
+    """
+    Chart statistics about published projects
+    """
+    resource_type = None
+
+    if ('resource_type' in request.GET and
+            request.GET['resource_type'] in ['0', '1', '2', '3']):
+        resource_type = int(request.GET['resource_type'])
+
+    LABELS = {None: ['Content', 'Projects'],
+              0: ['Database', 'Databases'],
+              1: ['Software', 'Software Projects'],
+              2: ['Challenge', 'Challenges'],
+              3: ['Model', 'Models']}
+
+    main_label, plural_label = LABELS[resource_type]
+    return render(request, 'console/charts.html', {
+                           'resource_type': resource_type,
+                           'main_label': main_label,
+                           'plural_label': plural_label})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def usage_stats(request):
+    """
+    Usage stats for reviewers.
+    """
+    projects = PublishedProject.objects.all().order_by('-publish_datetime')
+    # projects = paginate(request, projects, 50)
+    return render(request, 'console/usage_stats.html',
+        {'projects': projects})
+
+
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def download_credentialed_users(request):

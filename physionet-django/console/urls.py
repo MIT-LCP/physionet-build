@@ -78,4 +78,8 @@ urlpatterns = [
 
     # guidelines
     path('guidelines/review/', views.guidelines_review, name='guidelines_review'),
+    # usage stats
+    path('usage/stats/', views.usage_stats, name='usage_stats'),
+    # charts
+    path('charts/', views.charts, name='charts'),
 ]

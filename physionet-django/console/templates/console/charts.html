@@ -1,9 +1,4 @@
-{% extends "base.html" %}
 {% load static %}
-
-{% block title %}
-PhysioNet {{ main_label }} Statistics
-{% endblock %}
 
 {% block local_css %}
 <link rel="stylesheet" type="text/css" href="{% static 'search/css/stats.css' %}">
@@ -15,19 +10,22 @@ PhysioNet {{ main_label }} Statistics
 {% endblock %}
 
 {% block content %}
-<div class="container">
-  <h1>PhysioNet {{ main_label }} Statistics</h1>
-  <hr>
-  <br>
-  <div id="newprojects">
-    {# Yearly number and volume of projects #}
+<div class="card mb-3">
+  <div class="card-header">
+    PhysioNet {{ main_label }} Statistics
   </div>
-  <br><br>
-  <div id="totalprojects">
-    {# Cumulative number and volume of projects #}
+  <div class="card-body">
+    <br>
+    <div id="newprojects">
+      {# Yearly number and volume of projects #}
+    </div>
+    <br><br>
+    <div id="totalprojects">
+      {# Cumulative number and volume of projects #}
+    </div>
+    <br>
   </div>
-  <br>
-  <hr>
+</div>
 <script>
 
 // Display human readable size of byte number
@@ -216,7 +214,5 @@ xhr.open("GET", "/rest/published-stats-list/?resource_type={{ resource_type.id }
 xhr.send();
 
 </script>
-
-</div>
 
 {% endblock %}

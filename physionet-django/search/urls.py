@@ -53,8 +53,6 @@ urlpatterns = [
          project_views.data_access_requests_overview,
          name='data_access_requests_overview'),
 
-    path('charts/', views.charts, name='charts'),
-
     # Redirect from legacy
     path('physiobank/', views.physiobank),
     path('physiobank/database/', views.physiobank),
