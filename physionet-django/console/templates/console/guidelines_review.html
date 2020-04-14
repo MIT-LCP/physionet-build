@@ -15,28 +15,31 @@
     <ul>
         <li>A README file is included alongside the files. At minimum, this file should include a title and a brief description of the package content.</li>
         <li>Sensitive data and protected health information have been removed.</li>
-        <li>Filenames are clear and do not include spaces or special characters (e.g. "/","\,".").</li>
+        <li>All files should be clearly named and must not include spaces (use underscores instead for increased readability) or special characters (e.g. "/","\,"."). Further, filenames should generally be lowercase (exceptions are "special files”, such as the RECORDS and ANNOTATORS files used for waveforms). Please use brevity when naming files (e.g. 1001abp.dat is better than subject_1001_ABP_wave_100Hz.dat).</li>
+        <li>All files must be in open-source format and machine readable. Files in proprietary format, such as MatLab, Excel spreadsheet or Microsoft Word document, will not be supported, and must be converted to open-source format. For example, MatLab data, Excel spreadsheets, or Microsoft Word documents can be converted to CSV format.</li>
     </ul>
 
     <h4>Data (general)</h4>
     <ul>
-        <li>All files are in non-proprietary formats (for example, CSV).</li>
+        <li>Large datasets: High resolution data/waveforms such as ECG and EEG recordings should be stored in WFDB compatible (or other open-source) format - either MIT or EDF format. There must also be information to obtain the physical values from these digital files, eg. the gain and baseline fields of MIT format header files.</li>
+        <li>Small datasets: Open source formats such as text and CSV are permitted for small contributions, low resolution data and time series, and tabular information/relational databases.</li>
         <li>Tabulated data is arranged such that each variable is a column and each observation (or case) is a row ("tidy data").</li>
     </ul>
 
     <h4>Data (waveforms)</h4>
     <ul>
+        <li>The submitted project includes sufficient information to visualize waveforms in LightWave (i.e. RECORDS, *.hea, etc. files).</li>
         <li>The shape of waveforms is as expected when plotted as a timeseries.</li>
+        <li>The *.hea files should contain descriptive signal names (no repeated signal names inside of the the same *.hea file, especially for large numbers of signals).</li>
     </ul>
 
     <h4>Software</h4>
     <ul>
-        <li>Instructions for installation and usage are clearly documented.</li>
-        <li>Dependencies are clearly indicated, preferably in a requirements file.</li>
-        <li>The software is provided in a non-proprietary language, except where there is a clear reason not to do so (for example, when sharing a Matlab package). </li>
-        <li>Tests are provided to demonstrate correct functioning of major features of the software.</li>
-        <li>The software follows standard style guidelines (for example, PEP8 for Python).</li>
-        <li>The software is logically structured and packaged according to standard practice.</li> 
+        <li>Instructions for installation and usage should be clearly documented. This should be adequate enough to reproduce project results.</li>
+        <li>Dependencies should be clearly indicated, for example in a requirements file.</li>
+        <li>A testing framework should be used to demonstrate correct functioning of major features of the software.</li>
+        <li>Standard style guidelines should be followed where appropriate (for example, PEP8 for Python).</li>
+        <li>The software should follow recommended software development practices. Further, the software should be logically structured and packaged according to standard practice.</li>
     </ul>
 
     <h4>Challenges</h4>
