@@ -1085,3 +1085,15 @@ class TestInviteDataAccessReviewer(TestMixin):
         self._add_additional_author(project)
         self.assertFalse(
             self._see_manage_requests_button(self.ADDITIONAL_AUTHOR))
+
+
+    def test_self_appointing_not_possible(self):
+        project = PublishedProject.objects.get(title=self.PROJECT_NAME)
+
+        self.client.login(username=self.SUBMITTER, password=self.PASSWORD)
+        response = self.client.post(reverse('manage_data_access_reviewers',
+                                 args=(project.slug, project.version,)),
+                         data={'reviewer': self.SUBMITTER,
+                               'invite_reviewer' : ['']})
+
+        self.assertContains(response, "is already allowed to review requests!")

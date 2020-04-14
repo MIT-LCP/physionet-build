@@ -1010,7 +1010,7 @@ class InviteDataAccessReviewerForm(forms.Form):
 
         reviewer = User.objects.get(username=reviewer_uname)
 
-        if self.project.is_data_access_reviewer(reviewer):
+        if self.project.can_approve_requests(reviewer):
             raise forms.ValidationError(
                 f'User {reviewer_uname} is already allowed to review requests!')
 
