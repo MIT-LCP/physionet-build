@@ -122,6 +122,8 @@ def content_index(request, resource_type=None):
         form_type = forms.ProjectTypeForm(request.GET)
         if form_type.is_valid():
             resource_type = [int(t) for t in form_type.cleaned_data['types']]
+        else:
+            resource_type = list(LABELS.keys())
     elif resource_type is None:
         resource_type = list(LABELS.keys())
         form_type = forms.ProjectTypeForm({'types': resource_type})
