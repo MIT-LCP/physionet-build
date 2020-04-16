@@ -70,10 +70,7 @@ def get_content(resource_type, orderby, direction, search_term):
             item)) for item in search_term))
         query = query | reduce(operator.or_, (Q(title__iregex=r'{0}{1}{0}'.format(wb,
             item)) for item in search_term))
-
-        if resource_type:
-            query = query & Q(resource_type__in=resource_type)
-
+        query = query & Q(resource_type__in=resource_type)
     published_projects = (PublishedProject.objects
         .filter(query, is_latest_version=True)
         .annotate(relevance=Count('core_project_id'))
