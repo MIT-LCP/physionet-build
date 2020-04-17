@@ -2,7 +2,9 @@
 {% load static %}
 
 {% block local_css %}
-<link rel="stylesheet" type="text/css" href="{% static 'search/css/stats.css' %}">
+<!-- <link rel="stylesheet" type="text/css" href="{% static 'console/css/stats.css' %}"> -->
+<!-- To reload changes, add the Unix timestamp -->
+<link rel="stylesheet" type="text/css" href="/static/console/css/stats.css?{% now 'U' %}"/>
 {% endblock %}
 
 {% block local_js_top %}
@@ -63,7 +65,7 @@
 <script>
 
 // Common parameters for all charts
-// set the dimensions of the canvas. Leave left and right margins for
+// Set the dimensions of the canvas. Leave left and right margins for
 // y axis scale numbers
 var margin = {top: 40, right: 100, bottom: 70, left: 100},
   width = document.getElementById("timeSE").offsetWidth - margin.left - margin.right,
@@ -77,15 +79,21 @@ var tip = d3.tip()
     return d3.time.format("%m-%d-%Y")(new Date(d.time_start));
   });
 
-// Generate the two column chart from data
-// data : array of json data to plot
-// addId : id of element to add the chart to
+/**
+ * Generate the two column chart from data.
+ * @param  {JSON}   data        An array of json data to plot.
+ * @param  {String} addId       Id of element to add the chart to.
+ * @param  {String} chartTitle  The title of the chart.
+ * @param  {String} xLabel      The title for the x-axis.
+ * @param  {String} yLabel      The title for the y-axis.
+ */
 function generateChart(data, addId, chartTitle, xLabel, yLabel) {
 
+  // Get the range of dates (dates should already be sorted)
   var minDate = new Date(data[0].time_start);
   var maxDate = new Date(data[data.length-1].time_start);
 
-  // set the axis sizes
+  // Set the axis sizes
   var x = d3.time.scale()
     .domain([minDate, maxDate])
     .range([0, width])
@@ -96,7 +104,7 @@ function generateChart(data, addId, chartTitle, xLabel, yLabel) {
     .range([height, 0])
     .nice();
 
-  // define the axes
+  // Define the axes
   var xAxis = d3.svg.axis()
     .scale(x)
     .orient("bottom")
@@ -107,7 +115,8 @@ function generateChart(data, addId, chartTitle, xLabel, yLabel) {
     .orient("left")
     .ticks(10);
 
-  var svg = d3.select("#" + addId).append("svg")
+  var svg = d3.select("#" + addId)
+    .append("svg")
       .attr("width", width + margin.left + margin.right)
       .attr("height", height + margin.top + margin.bottom)
     .append("g")
@@ -117,7 +126,7 @@ function generateChart(data, addId, chartTitle, xLabel, yLabel) {
   // Add the tooltips to the svg
   svg.call(tip);
 
-  // add title
+  // Add title
   svg.append("text")
     .attr("class", "graph-title")
     .attr("x", width/2)
@@ -125,7 +134,7 @@ function generateChart(data, addId, chartTitle, xLabel, yLabel) {
     .attr("text-anchor", "middle")
     .text(chartTitle);
 
-  // text label for the x axis
+  // Text label for the x axis
   svg.append("text")             
     .attr("transform",
           "translate(" + (width/2) + " ," + 
@@ -133,22 +142,22 @@ function generateChart(data, addId, chartTitle, xLabel, yLabel) {
     .style("text-anchor", "middle")
     .text(xLabel);
 
-  // text label for the y axis
+  // Text label for the y axis
   svg.append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("y", 0 - margin.left)
-      .attr("x",0 - (height / 2))
-      .attr("dy", "1em")
-      .style("text-anchor", "middle")
-      .text(yLabel); 
+    .attr("transform", "rotate(-90)")
+    .attr("y", 0 - margin.left)
+    .attr("x",0 - (height / 2))
+    .attr("dy", "1em")
+    .style("text-anchor", "middle")
+    .text(yLabel); 
 
-  // add x axis
+  // Add x axis
   svg.append("g")
     .attr("class", "x axis")
     .attr("transform", "translate(0," + height + ")")
     .call(xAxis);
 
-  // add left y axis
+  // Add left y axis
   svg.append("g")
       .attr("class", "y axis axisLeft")
       .attr("transform", "translate(0,0)")
@@ -158,16 +167,18 @@ function generateChart(data, addId, chartTitle, xLabel, yLabel) {
       .attr("dy", "-2em")
       .style("text-anchor", "start")
 
-  var bars = svg.selectAll(".bar").data(data).enter();
-
-  bars.append("rect")
-    .attr("class", "bar")
-    .on("mouseover", tip.show)
-    .on("mouseout", tip.hide)
-    .attr("x", function(d) { return x(new Date(d.time_start)); })
-    .attr("width", (width) / (10*data.length))
-    .attr("y", function(d) { return y(d.time_elapsed); })
-    .attr("height", function(d) { return height - y(d.time_elapsed);});
+  // Add the bars for the barchart
+  var bars = svg.selectAll(".bar")
+      .data(data)
+      .enter()
+    .append("rect")
+      .attr("class", "bar")
+      .on("mouseover", tip.show)
+      .on("mouseout", tip.hide)
+      .attr("x", function(d) { return x(new Date(d.time_start)); })
+      .attr("width", (width) / (10*data.length))
+      .attr("y", function(d) { return y(d.time_elapsed); })
+      .attr("height", function(d) { return height - y(d.time_elapsed);});
 }
 
 // Generate the chart - time taken for projects
