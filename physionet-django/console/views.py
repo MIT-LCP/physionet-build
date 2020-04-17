@@ -5,6 +5,7 @@ import os
 import csv
 from datetime import datetime
 from itertools import chain
+import json
 
 from django.core.validators  import validate_email
 from django.contrib import messages
@@ -1403,10 +1404,53 @@ def usage_stats(request):
     """
     Usage stats for reviewers.
     """
-    projects = PublishedProject.objects.all().order_by('-publish_datetime')
-    # projects = paginate(request, projects, 50)
+    projects = PublishedProject.objects.all().order_by('-publish_datetime').reverse()
+
+    # Start times
+    time_sub = []
+    time_ed= []
+    time_ap = []
+    # Elapsed times
+    time_sub_ed = []
+    time_ed_auth = []
+    time_auth_pub = []
+    for project in projects:
+        # Start times
+        time_sub.append(project.submission_datetime)
+        time_ed.append(project.editor_assignment_datetime)
+        time_ap.append(project.author_approval_datetime)
+        # Elapsed times
+        time_sub_ed.append((project.editor_assignment_datetime - \
+            project.submission_datetime).total_seconds())
+        time_ed_auth.append((project.author_approval_datetime - \
+            project.editor_assignment_datetime).total_seconds())
+        time_auth_pub.append((project.publish_datetime - \
+            project.author_approval_datetime).total_seconds())
+
+    time_SE = []
+    time_EA = []
+    time_AP = []
+    for i,ts in enumerate(time_sub):  
+        time_SE.append({
+            'time_start': ts.isoformat(),
+            'time_elapsed': time_sub_ed[i]
+        })
+        time_EA.append({
+            'time_start': time_ed[i].isoformat(),
+            'time_elapsed': time_ed_auth[i]
+        })
+        time_AP.append({
+            'time_start': time_ap[i].isoformat(),
+            'time_elapsed': time_auth_pub[i]
+        })
+
     return render(request, 'console/usage_stats.html',
-        {'projects': projects})
+        {'projects': projects, 
+         'time_SE': json.dumps(time_SE),
+         'time_EA': json.dumps(time_EA),
+         'time_AP': json.dumps(time_AP),
+         'time_ed_auth': time_ed_auth, 
+         'time_auth_pub': time_auth_pub})
 
 
 @login_required

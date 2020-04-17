@@ -4,10 +4,10 @@
 <link rel="stylesheet" type="text/css" href="{% static 'search/css/stats.css' %}">
 {% endblock %}
 
-{% block local_js_top %}
+<!-- {% block local_js_top %}
 <script src="{% static 'd3/d3.v3.min.js' %}"></script>
 <script src="{% static 'd3/d3.tip.v0.6.3.js' %}"></script>
-{% endblock %}
+{% endblock %} -->
 
 {% block content %}
 <div class="card mb-3">
@@ -51,7 +51,7 @@ function readableSize(num, suffix='B') {
 
 // set the dimensions of the canvas. Leave left and right margins for
 // y axis scale numbers
-var margin = {top: 40, right: 40, bottom: 30, left: 40},
+var margin = {top: 40, right: 60, bottom: 30, left: 60},
     width = document.getElementById('newprojects').offsetWidth - margin.left - margin.right,
     height = width * 0.5 - margin.top - margin.bottom;
 
