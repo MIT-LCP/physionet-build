@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'notification',
     'search',
     'lightwave',
+    'logger',
 ]
 
 MIDDLEWARE = [
@@ -380,6 +381,12 @@ logging.config.dictConfig({
             'filters': ['require_debug_false'],
             'class': 'physionet.log.SaferAdminEmailHandler',
         },
+        'custom_db_logging': {
+            'level': 'INFO',
+            'class': 'logger.handlers.DBHandler',
+            'model': 'logger.models.DBLogEntry',
+            'formatter': 'simple',
+            },
     },
     'loggers': {
         '': {
@@ -388,7 +395,27 @@ logging.config.dictConfig({
         },
         'user': {
             'level': 'INFO',
-            'handlers': ['Custom_Logging'],
+            'handlers': ['Custom_Logging', 'custom_db_logging'],
+            'propagate': False,
+        },
+        'project': {
+            'level': 'INFO',
+            'handlers': ['Custom_Logging', 'custom_db_logging'],
+            'propagate': False,
+        },
+        'physionet': {
+            'level': 'INFO',
+            'handlers': ['Custom_Logging', 'custom_db_logging'],
+            'propagate': False,
+        },
+        'notification': {
+            'level': 'INFO',
+            'handlers': ['Custom_Logging', 'custom_db_logging'],
+            'propagate': False,
+        },
+        'console': {
+            'level': 'INFO',
+            'handlers': ['Custom_Logging', 'custom_db_logging'],
             'propagate': False,
         },
         'django.security.DisallowedHost': {
@@ -396,7 +423,7 @@ logging.config.dictConfig({
             'level': 'CRITICAL',
             'propagate': False,
         },
-       'django.request': {
+        'django.request': {
             'handlers': ['verbose_console', 'mail_admins'],
             'level': 'ERROR',
             'propagate': False,
