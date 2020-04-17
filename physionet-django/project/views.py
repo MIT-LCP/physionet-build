@@ -1192,7 +1192,9 @@ def project_submission(request, project_slug, **kwargs):
                 try:
                     author = authors.get(id=request.POST['approve_publication'])
                     LOGGER.info('Submitting author {0} for project {1} is approving\
-                     on behalf of {2}'.format(user, project, author.user))
+                     on behalf of {2}'.format(user, project, author.user),
+                                extra={'core_project': project.core_project,
+                                       'user': user})
                 except Author.DoesNotExist:
                     pass
             # Register the approval if valid

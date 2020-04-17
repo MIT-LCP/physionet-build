@@ -20,7 +20,7 @@ from django.utils.translation import ugettext as _
 
 from user import validators
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 COUNTRIES = (
     ("AF", _("Afghanistan")),
@@ -410,7 +410,7 @@ def update_user_login(sender, **kwargs):
     else:
         ip = request.META.get('REMOTE_ADDR')
     UserLogin.objects.create(user=user, ip=ip)
-    logger.info('User logged in {0}'.format(user.email))
+    LOGGER.info('User logged in {0}'.format(user.email), extra={'user': user})
 
 signals.user_logged_in.connect(update_user_login, sender=User)
 
@@ -599,7 +599,7 @@ class DualAuthModelBackend():
             if user.check_password(password):
                 return user
         except User.DoesNotExist:
-            logger.error('Unsuccessful authentication {0}'.format(username.lower()))
+            LOGGER.error('Unsuccessful authentication {0}'.format(username.lower()))
             return None
 
     def get_user(self, user_id):
@@ -607,6 +607,7 @@ class DualAuthModelBackend():
             return get_user_model().objects.get(pk=user_id)
         except get_user_model().DoesNotExist:
             return None
+
 
 class CredentialApplication(models.Model):
     """

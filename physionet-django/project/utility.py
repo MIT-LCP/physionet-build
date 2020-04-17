@@ -23,6 +23,7 @@ from user.models import User
 
 LOGGER = logging.getLogger(__name__)
 
+
 class FileInfo():
     """
     For displaying lists of files in project pages
@@ -293,20 +294,23 @@ def grant_aws_open_data_access(user, project):
     if response.status_code < 200 or response.status_code >= 300:
         LOGGER.info("Error sending adding the AWS ID to the Bucket Policy."
                     "The request payload is {0}\nThe errror is the following: "
-                    "{1}\n".format(payload, response.content))
+                    "{1}\n".format(payload, response.content),
+                    extra={'core_project': project.core_project})
         return "Access could not be granted."
 
     message = response.json()['message']
     if message == "No new accounts to add":
         LOGGER.info("AWS response adding {0} to project {1}\n{2}".format(
-            user.cloud_information.aws_id, project, message))
+            user.cloud_information.aws_id, project, message),
+                    extra={'core_project': project.core_project})
         return message
     elif "Accounts ['{}'] have been added".format(user.cloud_information.aws_id) in message:
         LOGGER.info("AWS response adding {0} to project {1}\n{2}".format(
-            user.cloud_information.aws_id, project, message))
+            user.cloud_information.aws_id, project, message),
+                    extra={'core_project': project.core_project})
         return message.split(',')[0]
     LOGGER.info('Unknown response from AWS - {0}\nThe payload is {1}'.format(
-        payload, response.content))
+        payload, response.content), extra={'core_project': project.core_project})
     return "There was an error granting access."
 
 
@@ -334,7 +338,8 @@ def grant_gcp_group_access(user, project, data_access):
         if outcome['role'] == "MEMBER":
             message = '{0} has been granted to {1} for project: {2}'.format(
                 access, email, project)
-            LOGGER.info("{0} email {1}".format(message, data_access.location))
+            LOGGER.info("{0} email {1}".format(message, data_access.location),
+                        extra={'core_project': project.core_project})
             return message
         raise Exception('Wrong access granted to {0} in GCP email {1}'.format(
             email, data_access.location))

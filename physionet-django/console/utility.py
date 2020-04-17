@@ -60,15 +60,18 @@ def create_bucket(project, version, title, protected=True):
     bucket.iam_configuration.bucket_policy_only_enabled = True
     bucket.patch()
     LOGGER.info("Created bucket {0} for project {1}".format(
-        bucket_name.lower(), project))
+        bucket_name.lower(), project),
+                extra={'core_project': project.core_project})
     if protected:
         remove_bucket_permissions(bucket)
         group = create_access_group(bucket, project, version, title)
         LOGGER.info("Removed permissions from bucket {0} and created {1} "
-                    "for read access".format(bucket_name.lower(), group))
+                    "for read access".format(bucket_name.lower(), group),
+                    extra={'core_project': project.core_project})
     else:
         make_bucket_public(bucket)
-        LOGGER.info("Made bucket {0} public".format(bucket_name.lower()))
+        LOGGER.info("Made bucket {0} public".format(bucket_name.lower()),
+                    extra={'core_project': project.core_project})
 
 
 def bucket_info(project, version):
@@ -138,20 +141,25 @@ def create_access_group(bucket, project, version, title):
                                "{1}.".format(title, version)}).execute()
             if creation['kind'] != 'admin#directory#group':
                 LOGGER.info("Error {0} creating the "
-                            "group {1}.".format(creation, email))
+                            "group {1}.".format(creation, email),
+                            extra={'core_project': project.core_project})
                 return False
-            LOGGER.info("Access group {0} was created.".format(email))
+            LOGGER.info("Access group {0} was created.".format(email),
+                        extra={'core_project': project.core_project})
             if update_access_group(email):
-                LOGGER.info("Access group {0} was updated.".format(email))
+                LOGGER.info("Access group {0} was updated.".format(email),
+                            extra={'core_project': project.core_project})
         else:
-            LOGGER.info("Access group {0} already exists.".format(email))
+            LOGGER.info("Access group {0} already exists.".format(email),
+                        extra={'core_project': project.core_project})
     except HttpError as e:
         if json.loads(e.content)['error']['message'] != 'Member already exists.':
             LOGGER.info("Error {0} creating the access group {1} for "
-                        "{1}.".format(e.content, email, project))
+                        "{2}.".format(e.content, email, project),
+                        extra={'core_project': project.core_project})
             raise e
-        else:
-            LOGGER.info("Access group {0} already exists.".format(email))
+        LOGGER.info("Access group {0} already exists.".format(email),
+                    extra={'core_project': project.core_project})
 
     return email
 
@@ -200,11 +208,12 @@ def add_email_bucket_access(project, email, group=False):
     try:
         bucket.set_iam_policy(policy)
         LOGGER.info("Added email {0} to the project {1} access list".format(
-            email, project))
+            email, project), extra={'core_project': project.core_project})
         return True
     except BadRequest:
         LOGGER.info("Error in the request. The email {} was "
-                    "ignored.".format(email))
+                    "ignored.".format(email),
+                    extra={'core_project': project.core_project})
         return False
 
 

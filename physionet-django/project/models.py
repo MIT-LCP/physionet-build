@@ -1125,7 +1125,8 @@ class UnpublishedProject(models.Model):
                         # update_fields or content_modified whenever
                         # deferred fields are used.
                         LOGGER.warning(
-                            'saving project with initially deferred fields')
+                            'saving project with initially deferred fields',
+                            extra={'core_project': self.core_project})
                         content_modified = True
                         break
                     if self.orig_fields[fname] != getattr(self, fname):

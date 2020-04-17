@@ -34,7 +34,7 @@ from notification.utility import (process_credential_complete,
                                   get_url_prefix, notify_account_registration)
 
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 @sensitive_post_parameters('password1', 'password2')
@@ -92,7 +92,8 @@ def activate_user(request, uidb64, token):
                     email.is_verified = True
                     email.save()
                     request.session.pop(activation_session_token)
-                    logger.info('User activated - {0}'.format(user.email))
+                    LOGGER.info('User activated - {0}'.format(user.email),
+                                extra={'user': user})
                     messages.success(request, 'The account has been activated.')
                     login(request, user)
                     return redirect('project_home')
@@ -123,6 +124,7 @@ def check_legacy_credentials(user, email):
         legacy_credential.save()
         user.save()
 
+
 def remove_email(request, email_id):
     "Remove a non-primary email associated with a user"
     user = request.user
@@ -130,8 +132,10 @@ def remove_email(request, email_id):
     if associated_email.user == user and not associated_email.is_primary_email:
         email = associated_email.email
         associated_email.delete()
-        logger.info('Removed email {0} from user {1}'.format(email, user.id))
+        LOGGER.info('Removed email {0} from user {1}'.format(email, user.id),
+                    extra={'user': user})
         messages.success(request, 'Your email: {0} has been removed from your account.'.format(email))
+
 
 def set_primary_email(request, primary_email_form):
     "Set the selected email as the primary email"
@@ -140,7 +144,8 @@ def set_primary_email(request, primary_email_form):
         associated_email = primary_email_form.cleaned_data['associated_email']
         # Only do something if they selected a different email
         if associated_email.email != user.email:
-            logger.info('Primary email changed from: {0} to {1}'.format(user.email, associated_email.email))
+            LOGGER.info('Primary email changed from: {0} to {1}'.format(
+                user.email, associated_email.email), extra={'user': user})
             user.email = associated_email.email
             user.save(update_fields=['email'])
             # Change the email field of author objects belonging to
@@ -363,12 +368,13 @@ def verify_email(request, uidb64, token):
             associated_email.save()
             if not user.is_credentialed:
                 check_legacy_credentials(user, associated_email.email)
-            logger.info('User {0} verified another email {1}'.format(user.id, associated_email))
+            LOGGER.info('User {0} verified another email {1}'.format(
+                user.id, associated_email), extra={'user': user})
             messages.success(request, 'The email address {} has been verified.'.format(
                 associated_email))
             return redirect('edit_emails')
 
-    logger.warning('Invalid Verification Link')
+    LOGGER.warning('Invalid Verification Link')
     return render(request, 'user/verify_email.html',
         {'title':'Invalid Verification Link', 'isvalid':False})
 
