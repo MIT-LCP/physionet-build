@@ -1798,29 +1798,6 @@ class PublishedProject(Metadata, SubmissionInfo):
 
         self.set_storage_info()
 
-    def make_license_file(self):
-        """
-        Make the license text file
-
-        This creates the LICENSE.txt file, and then recalculates and
-        saves the project storage size.
-
-        This function is deprecated; use create_license_file instead.
-        """
-        self.create_license_file()
-        self.set_storage_info()
-
-    def make_special_files(self, make_zip):
-        """
-        Make the special files for the database. zip file, files list,
-        checksum.
-        """
-        self.make_license_file()
-        self.make_checksum_file()
-        # This should come last since it also zips the special files
-        if make_zip:
-            self.make_zip()
-
     def remove_files(self):
         """
         Remove files of this project
