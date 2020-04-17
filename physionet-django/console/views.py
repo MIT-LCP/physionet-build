@@ -1444,20 +1444,19 @@ def editorial_stats(request):
         except:
             end_dict[project.title]['time_auth_pub'] = 0
 
-    temp_dict = {}
-    temp_dict['mean'] = {}
-    temp_dict['median'] = {}
+    temp_dict = {
+        'Mean': {},
+        'Median': {}
+    }
     for prop in prop_list:
-        temp_dict['mean'][prop] = statistics.mean([j[prop] for i,j in end_dict.items()])
-        temp_dict['median'][prop] = statistics.median([j[prop] for i,j in end_dict.items()])
-
-    end_dict.update(temp_dict)
+        temp_dict['Mean'][prop] = statistics.mean([j[prop] for i,j in end_dict.items()])
+        temp_dict['Median'][prop] = statistics.median([j[prop] for i,j in end_dict.items()])
 
     return render(request, 'console/editorial.html',
         {'approved_projects': approved_projects, 
          'rejected_projects': rejected_projects,
          'acceptance_rate': acceptance_rate, 
-         'end_dict': end_dict
+         'end_dict': temp_dict
         })
 
 @login_required

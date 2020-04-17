@@ -22,9 +22,9 @@
           <th>Copyedit Complete to Author Approval</th>
           <th>Author Approval to Published</th>
         </tr>
-        {% for project,info in end_dict.items %}
-          <tr>            
-            <td></td>
+        {% for stat,info in end_dict.items %}
+          <tr>         
+            <th>{{ stat }}</th>
             <td>{{ info.time_sub_ed }}</td>
             <td>{{ info.time_ed_rev }}</td>
             <td>{{ info.time_rev_res }}</td>
@@ -34,26 +34,6 @@
             <td>{{ info.time_auth_pub }}</td>
           </tr>
         {% endfor %}
-          <tr>
-            <th>Mean</th>
-            <td>{{ end_dict.mean.time_sub_ed }}</td>
-            <td>{{ end_dict.mean.time_ed_rev }}</td>
-            <td>{{ end_dict.mean.time_rev_res }}</td>
-            <td>{{ end_dict.mean.time_res_ed }}</td>
-            <td>{{ end_dict.mean.time_ed_copy }}</td>
-            <td>{{ end_dict.mean.time_copy_auth }}</td>
-            <td>{{ end_dict.mean.time_auth_pub }}</td>
-          </tr>
-          <tr>
-            <th>Median</th>
-            <td>{{ end_dict.median.time_sub_ed }}</td>
-            <td>{{ end_dict.median.time_ed_rev }}</td>
-            <td>{{ end_dict.median.time_rev_res }}</td>
-            <td>{{ end_dict.median.time_res_ed }}</td>
-            <td>{{ end_dict.median.time_ed_copy }}</td>
-            <td>{{ end_dict.median.time_copy_auth }}</td>
-            <td>{{ end_dict.median.time_auth_pub }}</td>
-          </tr>
       </table>
 
     </div>
