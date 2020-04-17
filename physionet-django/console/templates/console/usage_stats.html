@@ -99,7 +99,7 @@ function generateChart(data, addId, chartTitle, xLabel, yLabel) {
     .range([0, width])
     .nice();
 
-  var y = d3.scale.log()
+  var y = d3.scale.linear()
     .domain([1, d3.max(data.map(function(d) { return d.time_elapsed; }))])
     .range([height, 0])
     .nice();
@@ -186,9 +186,9 @@ function generateChart(data, addId, chartTitle, xLabel, yLabel) {
 data_SE = {{ time_SE|safe }};
 data_EA = {{ time_EA|safe }};
 data_AP = {{ time_AP|safe }};
-generateChart(data_SE, "timeSE", "Time Taken from Submission to Editor Assigned", "Submission Date", "Total Seconds");
-generateChart(data_EA, "timeEA", "Time Taken from Editor Assigned to Author Approval", "Editor Assigned Date", "Total Seconds");
-generateChart(data_AP, "timeAP", "Time Taken from Author Approval to Publication", "Author Approval Date", "Total Seconds");
+generateChart(data_SE, "timeSE", "Time Taken from Submission to Editor Assigned", "Submission Date", "Total Days");
+generateChart(data_EA, "timeEA", "Time Taken from Editor Assigned to Author Approval", "Editor Assigned Date", "Total Days");
+generateChart(data_AP, "timeAP", "Time Taken from Author Approval to Publication", "Author Approval Date", "Total Days");
 </script>
 
 {% include "console/charts.html" %}

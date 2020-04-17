@@ -1421,11 +1421,11 @@ def usage_stats(request):
         time_ap.append(project.author_approval_datetime)
         # Elapsed times
         time_sub_ed.append((project.editor_assignment_datetime - \
-            project.submission_datetime).total_seconds())
+            project.submission_datetime).days)
         time_ed_auth.append((project.author_approval_datetime - \
-            project.editor_assignment_datetime).total_seconds())
+            project.editor_assignment_datetime).days)
         time_auth_pub.append((project.publish_datetime - \
-            project.author_approval_datetime).total_seconds())
+            project.author_approval_datetime).days)
 
     time_SE = []
     time_EA = []
