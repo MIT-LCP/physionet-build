@@ -172,7 +172,7 @@ function generateChart(data, addId, chartTitle, xLabel, yLabel) {
       .data(data)
       .enter()
     .append("rect")
-      .attr("class", "bar")
+      .attr("class", "bar1")
       .on("mouseover", tip.show)
       .on("mouseout", tip.hide)
       .attr("x", function(d) { return x(new Date(d.time_start)); })

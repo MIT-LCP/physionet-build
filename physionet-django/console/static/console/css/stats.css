@@ -4,14 +4,6 @@
   shape-rendering: crispEdges;
 }
 
-.bar {
-  fill: steelblue;
-}
-
-.bar:hover {
-  fill: #c7d9e8;
-}
-
 .bar1 {
   fill: steelblue;
 }
