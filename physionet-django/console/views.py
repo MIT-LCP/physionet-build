@@ -5,6 +5,7 @@ import os
 import csv
 from datetime import datetime
 from itertools import chain
+import statistics
 
 from django.core.validators  import validate_email
 from django.contrib import messages
@@ -1373,6 +1374,91 @@ def guidelines_review(request):
     return render(request, 'console/guidelines_review.html',
         {'guidelines_review_nav': True})
 
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def editorial_stats(request):
+    """
+    Editorial stats for reviewers.
+    """
+    approved_projects = PublishedProject.objects.all().order_by('-publish_datetime').reverse()
+    rejected_projects = ArchivedProject.objects.filter(archive_reason=3).order_by('archive_datetime').reverse()
+
+    acceptance_rate = 100.0*len(approved_projects)/(len(approved_projects)+len(rejected_projects))
+
+    # Elapsed times
+    end_dict = {}
+
+    prop_list = [
+        'time_sub_ed', 
+        'time_ed_rev',
+        'time_rev_res',
+        'time_res_ed',
+        'time_ed_copy',
+        'time_copy_auth',
+        'time_auth_pub'
+    ] 
+
+    for project in approved_projects:
+        # Elapsed times
+        end_dict[project.title] = {}
+        try:
+            end_dict[project.title]['time_sub_ed'] = \
+                abs((project.editor_assignment_datetime - \
+                project.submission_datetime).days)
+        except:
+            end_dict[project.title]['time_sub_ed'] = 0
+        try:
+            end_dict[project.title]['time_ed_rev'] = \
+                abs((project.revision_request_datetime - \
+                project.editor_assignment_datetime).days)   
+        except:
+            end_dict[project.title]['time_ed_rev'] = 0
+        try:
+            end_dict[project.title]['time_rev_res'] = \
+                abs((project.resubmission_datetime - \
+                project.revision_request_datetime).days)  
+        except:
+            end_dict[project.title]['time_rev_res'] = 0
+        try:
+            end_dict[project.title]['time_res_ed'] = \
+                abs((project.editor_accept_datetime - \
+                project.resubmission_datetime).days)
+        except:
+            end_dict[project.title]['time_res_ed'] = 0
+        try:
+            end_dict[project.title]['time_ed_copy'] = \
+                abs((project.copyedit_completion_datetime - \
+                project.editor_accept_datetime).days)
+        except:
+            end_dict[project.title]['time_ed_copy'] = 0
+        try:
+            end_dict[project.title]['time_copy_auth'] = \
+                abs((project.author_approval_datetime - \
+                project.copyedit_completion_datetime).days)
+        except:
+            end_dict[project.title]['time_copy_auth'] = 0
+        try:
+            end_dict[project.title]['time_auth_pub'] = \
+                abs((project.publish_datetime - \
+                project.author_approval_datetime).days)
+        except:
+            end_dict[project.title]['time_auth_pub'] = 0
+
+    temp_dict = {}
+    temp_dict['mean'] = {}
+    temp_dict['median'] = {}
+    for prop in prop_list:
+        temp_dict['mean'][prop] = statistics.mean([j[prop] for i,j in end_dict.items()])
+        temp_dict['median'][prop] = statistics.median([j[prop] for i,j in end_dict.items()])
+
+    end_dict.update(temp_dict)
+
+    return render(request, 'console/editorial.html',
+        {'approved_projects': approved_projects, 
+         'rejected_projects': rejected_projects,
+         'acceptance_rate': acceptance_rate, 
+         'end_dict': end_dict
+        })
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')

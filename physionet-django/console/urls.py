@@ -78,4 +78,6 @@ urlpatterns = [
 
     # guidelines
     path('guidelines/review/', views.guidelines_review, name='guidelines_review'),
+    # editorial stats
+    path('usage/editorial/stats/', views.editorial_stats, name='editorial_stats'),
 ]

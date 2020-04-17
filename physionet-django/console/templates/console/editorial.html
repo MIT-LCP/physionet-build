@@ -1,0 +1,63 @@
+{% extends "console/base_console.html" %}
+{% load static %}
+
+{% block content %}
+<div class="card mb-3">
+  <div class="card-header">
+    Usage stats for reviewers
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+
+      <p><strong>Acceptance Rate</strong>: <span>{{ acceptance_rate }}</span>%</p>
+
+      <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+        <tr>
+          <th></th>
+          <th>Submission to Editor Assigned</th>
+          <th>Editor Assigned to Revision Request</th>
+          <th>Revision Request to Resubmission</th>
+          <th>Resubmission to Editor Accepted</th>
+          <th>Editor Accepted to Copyedit Complete</th>
+          <th>Copyedit Complete to Author Approval</th>
+          <th>Author Approval to Published</th>
+        </tr>
+        {% for project,info in end_dict.items %}
+          <tr>            
+            <td></td>
+            <td>{{ info.time_sub_ed }}</td>
+            <td>{{ info.time_ed_rev }}</td>
+            <td>{{ info.time_rev_res }}</td>
+            <td>{{ info.time_res_ed }}</td>
+            <td>{{ info.time_ed_copy }}</td>
+            <td>{{ info.time_copy_auth }}</td>
+            <td>{{ info.time_auth_pub }}</td>
+          </tr>
+        {% endfor %}
+          <tr>
+            <th>Mean</th>
+            <td>{{ end_dict.mean.time_sub_ed }}</td>
+            <td>{{ end_dict.mean.time_ed_rev }}</td>
+            <td>{{ end_dict.mean.time_rev_res }}</td>
+            <td>{{ end_dict.mean.time_res_ed }}</td>
+            <td>{{ end_dict.mean.time_ed_copy }}</td>
+            <td>{{ end_dict.mean.time_copy_auth }}</td>
+            <td>{{ end_dict.mean.time_auth_pub }}</td>
+          </tr>
+          <tr>
+            <th>Median</th>
+            <td>{{ end_dict.median.time_sub_ed }}</td>
+            <td>{{ end_dict.median.time_ed_rev }}</td>
+            <td>{{ end_dict.median.time_rev_res }}</td>
+            <td>{{ end_dict.median.time_res_ed }}</td>
+            <td>{{ end_dict.median.time_ed_copy }}</td>
+            <td>{{ end_dict.median.time_copy_auth }}</td>
+            <td>{{ end_dict.median.time_auth_pub }}</td>
+          </tr>
+      </table>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}
