@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}
+Temporarily Unavailable
+{% endblock %}
+
+{% block content %}
+<div class="container" align='center'>
+  <h1>Temporarily Unavailable</h1>
+  <div class="alert alert-warning">
+  {% if maintenance_message %}
+  {{ maintenance_message|safe }}
+  {% else %}
+  The site is currently undergoing maintenance.  Please try again later.
+  {% endif %}
+  </div>
+</div>
+{% endblock %}
