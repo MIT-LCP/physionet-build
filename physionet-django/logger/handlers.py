@@ -11,8 +11,8 @@ import logger
 class DBHandler(logging.Handler, object):
     """
     This handler will add logs to a database model defined in settings.py
-    If log message (pre-format) is a json string, it will try to apply the
-    array onto the log event object
+    
+    The model has to be set on the emit function and set to None at init.
     """
 
     def __init__(self, model=None):
