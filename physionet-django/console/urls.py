@@ -81,4 +81,7 @@ urlpatterns = [
 
     path('user-autocomplete/', views.UserAutocomplete.as_view(),
     name='user-autocomplete'),
+
+    # editorial stats
+    path('usage/editorial/stats/', views.editorial_stats, name='editorial_stats'),
 ]

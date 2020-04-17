@@ -3,8 +3,10 @@ import pdb
 import logging
 import os
 import csv
-from datetime import datetime
+from datetime import datetime, timedelta
 from itertools import chain
+from statistics import median, StatisticsError
+from collections import OrderedDict
 
 from django.core.validators  import validate_email
 from django.contrib import messages
@@ -16,7 +18,9 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.db import DatabaseError, transaction
-from django.db.models import Q, CharField, Value, IntegerField, F, functions
+from django.db.models import (Q, CharField, Value, IntegerField, F, functions,
+    DurationField)
+from django.db.models.functions import Cast
 from background_task import background
 from django.contrib.sites.models import Site
 from dal import autocomplete
@@ -1400,6 +1404,50 @@ def guidelines_review(request):
     """
     return render(request, 'console/guidelines_review.html',
         {'guidelines_review_nav': True})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def editorial_stats(request):
+    """
+    Editorial stats for reviewers.
+    """
+    # We only want the non-legacy projects since they contain the required
+    # dates (editor assignment, submission date, etc.)
+    projects = PublishedProject.objects.filter(is_legacy=False)
+    years = [i.publish_datetime.year for i in projects]
+    stats = OrderedDict()
+
+    # Number published
+    for y in sorted(set(years)):
+        stats[y] = [years.count(y)]
+
+    # Submission to editor assigned
+    sub_ed = projects.annotate(tm=Cast(F('editor_assignment_datetime')-F('submission_datetime'),
+                               DurationField())).values_list('tm', flat=True)
+
+    for y in stats:
+        y_durations = sub_ed.filter(publish_datetime__year=y)
+        days = [d.days for d in y_durations if d.days >= 0]
+        try:
+            stats[y].append(median(days))
+        except StatisticsError:
+            stats[y].append(None)
+
+    # Submission to publication
+    sub_pub = projects.annotate(tm=Cast(F('publish_datetime')-F('submission_datetime'),
+                                DurationField())).values_list('tm', flat=True)
+
+    for y in stats:
+        y_durations = sub_pub.filter(publish_datetime__year=y)
+        days = [d.days for d in y_durations if d.days >= 0]
+        try:
+            stats[y].append(median(days))
+        except StatisticsError:
+            stats[y].append(None)
+
+    return render(request, 'console/editorial_stats.html',
+        {'stats': stats})
 
 
 @login_required
