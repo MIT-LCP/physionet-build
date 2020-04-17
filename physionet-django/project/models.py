@@ -50,12 +50,6 @@ def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
 
     published_project = PublishedProject.objects.get(id=pid)
 
-    # The license file should have been generated earlier (by
-    # CopyeditForm).  The following line is kept for the benefit of
-    # older projects that are currently in the pipeline; once all such
-    # projects have been published, this line should be removed.
-    published_project.make_license_file()
-
     published_project.make_checksum_file()
 
     published_project.set_storage_info()
@@ -1803,29 +1797,6 @@ class PublishedProject(Metadata, SubmissionInfo):
                     outfile.write('{} {}\n'.format(h.hexdigest(), f))
 
         self.set_storage_info()
-
-    def make_license_file(self):
-        """
-        Make the license text file
-
-        This creates the LICENSE.txt file, and then recalculates and
-        saves the project storage size.
-
-        This function is deprecated; use create_license_file instead.
-        """
-        self.create_license_file()
-        self.set_storage_info()
-
-    def make_special_files(self, make_zip):
-        """
-        Make the special files for the database. zip file, files list,
-        checksum.
-        """
-        self.make_license_file()
-        self.make_checksum_file()
-        # This should come last since it also zips the special files
-        if make_zip:
-            self.make_zip()
 
     def remove_files(self):
         """
