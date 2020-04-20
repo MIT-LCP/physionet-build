@@ -176,10 +176,82 @@ class TestPublic(TestCase):
             password='Very5trongt0t@11y'))
 
 
-class TestCredentialing(TestCase):
+class TestCredentialing(TestMixin):
     """
     Test credentialing logic
     """
+
+    def test_credential_application(self):
+        """
+        Test submission of a credential application.
+        """
+
+        # User who has no application pending
+        u = User.objects.get(username='eulaeasley')
+        self.assertFalse(u.credential_applications.exists())
+
+        self.client.login(username='eulaeasley', password='Tester11!')
+
+        # (Incomplete) PDF file with a "certificate" verification link
+        cert_pdf = (
+            '%PDF-1.4\n'
+            '1 0 obj\n'
+            '<</Type /Annot /Subtype /Link /Rect [0 0 10 10]\n'
+            '/A <</S /URI /URI (https://www.citiprogram.org/verify/'
+            '?waaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa-11111111)'
+            '>> >>\n'
+            'endobj\n')
+        cert_file = SimpleUploadedFile('cert.pdf', cert_pdf.encode())
+
+        # (Incomplete) PDF file with a "report" verification link
+        report_pdf = (
+            '%PDF-1.4\n'
+            '1 0 obj\n'
+            '<</Type /Annot /Subtype /Link /Rect [0 0 10 10]\n'
+            '/A <</S /URI /URI (https://www.citiprogram.org/verify/'
+            '?kaaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa-11111111)'
+            '>> >>\n'
+            'endobj\n')
+        report_file = SimpleUploadedFile('report.pdf', report_pdf.encode())
+
+        data = {
+            'application-first_names': 'Eula',
+            'application-last_name': 'Easley',
+            'application-suffix': '',
+            'application-researcher_category': '2',
+            'application-organization_name': 'MIT',
+            'application-job_title': 'Debugger',
+            'application-city': 'Cambridge',
+            'application-state_province': 'MA',
+            'application-zip_code': '02139',
+            'application-country': 'US',
+            'application-webpage': '',
+            'application-reference_category': '1',
+            'application-reference_name': 'Charlie Root',
+            'application-reference_email': 'root@example.com',
+            'application-reference_title': 'Administrator',
+            'application-research_summary': 'Effects of asdfghjk on zxcvbnm',
+        }
+
+        # Application with a completion certificate should be rejected
+        data['application-training_completion_report'] = cert_file
+        response = self.client.post(reverse('credential_application'),
+                                    data=data)
+        self.assertMessage(response, 40)
+        self.assertFalse(u.credential_applications.exists())
+
+        # Application with a completion report should be accepted
+        data['application-training_completion_report'] = report_file
+        response = self.client.post(reverse('credential_application'),
+                                    data=data)
+        # no message upon successful submission
+        self.assertTrue(u.credential_applications.exists())
+
+        # URL should be detected and saved
+        appl = u.credential_applications.first()
+        self.assertEqual(appl.training_completion_report_url,
+                         'https://www.citiprogram.org/verify/'
+                         '?kaaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa-11111111')
 
     def test_registration_credential(self):
         """
