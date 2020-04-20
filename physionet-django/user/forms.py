@@ -410,6 +410,14 @@ class TrainingCAF(forms.ModelForm):
                 the CITI 'Data or Specimens Only Research' training program.""",
         }
 
+    def clean_training_completion_report(self):
+        reportfile = self.cleaned_data['training_completion_report']
+        if reportfile and isinstance(reportfile, UploadedFile):
+            if reportfile.size > CredentialApplication.MAX_REPORT_SIZE:
+                raise forms.ValidationError(
+                    'Completion report exceeds size limit')
+        return reportfile
+
 
 class ReferenceCAF(forms.ModelForm):
     """
