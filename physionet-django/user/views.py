@@ -561,7 +561,8 @@ def training_report(request, application_slug):
 
     if request.user == application.user or request.user.is_admin:
         try:
-            return utility.serve_file(application.training_completion_report.path, False)
+            return utility.serve_file(
+                application.training_completion_report.path, True)
         except FileNotFoundError:
             raise Http404()
 
