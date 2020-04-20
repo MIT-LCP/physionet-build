@@ -1,5 +1,13 @@
 {# Status section #}
-<p><a href="{% url 'training_report' application.slug %}" target="_blank">Training Completion Report</a><br></p>
+<p>
+{% if application.training_completion_report_url %}
+<a href="{{ application.training_completion_report_url }}"
+   target="_blank">Training Completion Report: CITI</a>
+{% else %}
+  <strong>Training Completion Report: Unknown</strong>
+{% endif %}
+(<a href="{% url 'training_report' application.slug %}">download</a>)
+<br></p>
 
 {# Personal details #}
 

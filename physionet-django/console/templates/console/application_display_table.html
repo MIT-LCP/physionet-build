@@ -52,7 +52,14 @@ Webpage: {% if application.webpage %}<a href="{{ application.webpage }}" target=
 
 <p><strong>CITI completion report:</strong><br>
 
-Training report: <a href="{% url 'training_report' application.slug %}" target="_blank">View file</a><br></p>
+Training report:
+{% if application.training_completion_report_url %}
+  <a href="{{ application.training_completion_report_url }}" target="_blank">CITI</a>
+{% else %}
+  <strong>Unknown</strong>
+{% endif %}
+<small>(<a href="{% url 'training_report' application.slug %}">download</a>)</small>
+</p>
 
 {# Reference #}
 
