@@ -701,6 +701,7 @@ class CredentialApplication(models.Model):
     training_completion_report = models.FileField(
         upload_to=training_report_path, validators=[FileExtensionValidator(
             ['pdf'], 'File must be a pdf.')])
+    training_completion_report_url = models.URLField(blank=True, null=True)
     # Course info
     course_category = models.PositiveSmallIntegerField(choices=COURSE_CATEGORIES,
         null=True, blank=True)
