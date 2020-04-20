@@ -1,0 +1,11 @@
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
+{{ project_info }}
+
+Dear {{ name }},
+
+The project entitled "{{ project.title }}" has been submitted to PhysioNet.
+
+{{ signature }}
+
+{{ footer }}
+{% endfilter %}{% endautoescape %}
