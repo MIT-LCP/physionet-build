@@ -608,9 +608,9 @@ class Metadata(models.Model):
             else:
                 return authors
 
-    def get_physionet_citation(self):
+    def get_platform_citation(self):
         """
-        Returns the information needed to generate the standard Phyionet
+        Returns the information needed to generate the standard platform
         citation in multiple formats (MLA, APA, Chicago, Harvard, and
         Vancouver).
 

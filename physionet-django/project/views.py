@@ -1089,7 +1089,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     parent_projects = project.parent_projects.all()
     languages = project.programming_languages.all()
     citations = project.citation_text_all()
-    physionet_citations = project.get_physionet_citation()
+    platform_citations = project.get_platform_citation()
 
     passes_checks = project.check_integrity()
 
@@ -1116,7 +1116,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
         'passes_checks':passes_checks, 'dir_breadcrumbs':dir_breadcrumbs,
         'files_panel_url':files_panel_url, 'citations': citations,
         'subdir':subdir, 'parent_dir':parent_dir, 'file_error':file_error, 
-        'file_warning':file_warning, 'physionet_citations': physionet_citations,
+        'file_warning':file_warning, 'platform_citations': platform_citations,
         'parent_projects':parent_projects, 'has_passphrase':has_passphrase})
 
 
@@ -1521,7 +1521,7 @@ def published_project(request, project_slug, version, subdir=''):
     data_access = DataAccess.objects.filter(project=project)
     user = request.user
     citations = project.citation_text_all()
-    physionet_citations = project.get_physionet_citation()
+    platform_citations = project.get_platform_citation()
 
     # Anonymous access authentication
     an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60*60)
@@ -1540,7 +1540,7 @@ def published_project(request, project_slug, version, subdir=''):
                'all_project_versions': all_project_versions,
                'parent_projects':parent_projects, 'data_access':data_access,
                'messages':messages.get_messages(request), 
-               'physionet_citations': physionet_citations}
+               'platform_citations': platform_citations}
     # The file and directory contents
     if has_access:
         (display_files, display_dirs, dir_breadcrumbs, parent_dir,
