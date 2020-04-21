@@ -1089,7 +1089,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     parent_projects = project.parent_projects.all()
     languages = project.programming_languages.all()
     citations = project.citation_text_all()
-    physionet_citations = project.citation_text_all(physionet=True)
+    physionet_citations = project.get_physionet_citation()
 
     passes_checks = project.check_integrity()
 
@@ -1521,7 +1521,7 @@ def published_project(request, project_slug, version, subdir=''):
     data_access = DataAccess.objects.filter(project=project)
     user = request.user
     citations = project.citation_text_all()
-    physionet_citations = project.citation_text_all(physionet=True)
+    physionet_citations = project.get_physionet_citation()
 
     # Anonymous access authentication
     an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60*60)
