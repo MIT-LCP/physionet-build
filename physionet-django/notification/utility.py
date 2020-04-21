@@ -184,6 +184,14 @@ def submit_notify(project):
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)
 
+    subject = 'A new project has been submitted: {0}'.format(project.title)
+    email_context['name'] = "Colleague"
+    body = loader.render_to_string(
+        'notification/email/submit_notify_team.html', email_context)
+        
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+          [settings.CONTACT_EMAIL], fail_silently=False)
+
 
 def resubmit_notify(project):
     """
