@@ -23,12 +23,14 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.decorators import method_decorator
 from django.views.decorators.debug import sensitive_post_parameters
 from django.db import transaction
 
 from user import forms
 from user.models import AssociatedEmail, Profile, User, CredentialApplication, LegacyCredential, CloudInformation
 from physionet import utility
+from physionet.middleware.maintenance import allow_post_during_maintenance
 from project.models import Author, License, PublishedProject
 from notification.utility import (process_credential_complete,
                                   credential_application_request,
@@ -38,6 +40,7 @@ from notification.utility import (process_credential_complete,
 logger = logging.getLogger(__name__)
 
 
+@method_decorator(allow_post_during_maintenance, 'dispatch')
 class LoginView(auth_views.LoginView):
     template_name = 'user/login.html'
     authentication_form = forms.LoginForm
