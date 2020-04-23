@@ -14,11 +14,8 @@ urlpatterns = [
         views.activate_user, name='activate_user'),
 
     # Request password reset
-    path('reset-password/', auth_views.PasswordResetView.as_view(
-        template_name='user/reset_password_request.html',
-        success_url=reverse_lazy('reset_password_sent'),
-        email_template_name='user/email/reset_password_email.html'),
-        name='reset_password_request'),
+    path('reset-password/', views.reset_password_request,
+         name='reset_password_request'),
     # Page shown after reset email has been sent
     path('reset-password/sent/', auth_views.PasswordResetDoneView.as_view(
         template_name='user/reset_password_sent.html'),

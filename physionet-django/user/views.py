@@ -18,7 +18,7 @@ from django.forms import inlineformset_factory, HiddenInput, CheckboxInput
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.template import loader
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.encoding import force_bytes, force_text
@@ -48,8 +48,16 @@ class LogoutView(auth_views.LogoutView):
     pass
 
 
+# Request password reset
+class PasswordResetView(auth_views.PasswordResetView):
+    template_name = 'user/reset_password_request.html'
+    success_url = reverse_lazy('reset_password_sent')
+    email_template_name = 'user/email/reset_password_email.html'
+
+
 login = LoginView.as_view()
 logout = LogoutView.as_view()
+reset_password_request = PasswordResetView.as_view()
 
 
 @sensitive_post_parameters('password1', 'password2')
