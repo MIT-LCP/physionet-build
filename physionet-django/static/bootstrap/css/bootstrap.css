@@ -4707,9 +4707,6 @@ button.close {
     max-width: 500px;
     margin: 30px auto;
   }
-  .modal-dialog.citation {
-    max-width: 800px;
-  }
   .modal-sm {
     max-width: 300px;
   }

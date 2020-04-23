@@ -48,4 +48,8 @@ blockquote {
   }
 }
 
-
+@media (min-width: 576px) {
+  .modal-dialog.citation {
+    max-width: 800px;
+  }
+}
