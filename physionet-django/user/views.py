@@ -30,7 +30,8 @@ from django.db import transaction
 from user import forms
 from user.models import AssociatedEmail, Profile, User, CredentialApplication, LegacyCredential, CloudInformation
 from physionet import utility
-from physionet.middleware.maintenance import allow_post_during_maintenance
+from physionet.middleware.maintenance import (allow_post_during_maintenance,
+                                              disallow_during_maintenance)
 from project.models import Author, License, PublishedProject
 from notification.utility import (process_credential_complete,
                                   credential_application_request,
@@ -65,6 +66,7 @@ class PasswordResetDoneView(auth_views.PasswordResetDoneView):
 
 # Prompt user to enter new password and carry out password reset (if
 # url is valid)
+@method_decorator(disallow_during_maintenance, 'dispatch')
 class PasswordResetConfirmView(auth_views.PasswordResetConfirmView):
     template_name = 'user/reset_password_confirm.html'
     success_url = reverse_lazy('reset_password_complete')
@@ -90,6 +92,7 @@ edit_password = PasswordChangeView.as_view()
 
 
 @sensitive_post_parameters('password1', 'password2')
+@disallow_during_maintenance
 def activate_user(request, uidb64, token):
     """
     Page to active the account of a newly registered user.
@@ -396,6 +399,7 @@ def user_settings(request):
 
 
 @login_required
+@disallow_during_maintenance
 def verify_email(request, uidb64, token):
     """
     Page to verify an associated email
