@@ -1,5 +1,4 @@
-from django.contrib.auth import views as auth_views
-from django.urls import path, re_path, reverse_lazy
+from django.urls import path, re_path
 
 from user import views
 
@@ -29,11 +28,7 @@ urlpatterns = [
     # Settings
     path('settings/', views.user_settings, name='user_settings'),
     path('settings/profile/', views.edit_profile, name='edit_profile'),
-    path('settings/password/', auth_views.PasswordChangeView.as_view(
-        success_url = reverse_lazy('edit_password_complete'),
-        template_name='user/edit_password.html',
-        ),
-        name='edit_password'),
+    path('settings/password/', views.edit_password, name='edit_password'),
     path('settings/password/changed/', views.edit_password_complete, name='edit_password_complete'),
     path('settings/emails/', views.edit_emails, name='edit_emails'),
     path('settings/username/', views.edit_username, name='edit_username'),
