@@ -35,6 +35,7 @@ from project.models import (Affiliation, Author, AuthorInvitation,
 from project import utility
 from project.validators import validate_filename
 import notification.utility as notification
+from physionet.middleware.maintenance import ServiceUnavailable
 from physionet.utility import serve_file
 from user.forms import ProfileForm, AssociatedEmailChoiceForm
 from user.models import User, CloudInformation, CredentialApplication, LegacyCredential
@@ -926,6 +927,9 @@ def process_files_post(request, project):
     """
     Helper function for `project_files`
     """
+    if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
+        raise ServiceUnavailable()
+
     if 'upload_files' in request.POST:
         form = forms.UploadFilesForm(project=project, data=request.POST,
             files=request.FILES)
@@ -980,6 +984,15 @@ def project_files(request, project_slug, subdir='', **kwargs):
     else:
         files_editable = False
 
+    if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
+        maintenance_message = settings.SYSTEM_MAINTENANCE_MESSAGE or (
+            "The site is currently undergoing maintenance, and project "
+            "files cannot be edited.  Please try again later."
+        )
+        files_editable = False
+    else:
+        maintenance_message = None
+
     storage_info = project.get_storage_info()
     storage_request = StorageRequest.objects.filter(project=project,
                                                     is_active=True).first()
@@ -1008,7 +1021,8 @@ def project_files(request, project_slug, subdir='', **kwargs):
         'rename_item_form':rename_item_form, 'move_items_form':move_items_form,
         'delete_items_form':delete_items_form, 'is_submitting':is_submitting,
         'dir_breadcrumbs':dir_breadcrumbs, 'file_error':file_error,
-        'file_warning':file_warning, 'files_editable':files_editable})
+        'file_warning':file_warning, 'files_editable':files_editable,
+        'maintenance_message':maintenance_message})
 
 
 @project_auth(auth_mode=3)

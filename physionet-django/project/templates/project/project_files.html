@@ -24,6 +24,10 @@
   <div class="alert alert-form alert-warning alert-dismissible">
     <strong>Only the submitting author may upload or edit files.</strong>
   </div>
+{% elif maintenance_message %}
+  <div class="alert alert-form alert-warning alert-dismissible">
+    {{ maintenance_message }}
+  </div>
 {% endif %}
 
 <div class="card">
