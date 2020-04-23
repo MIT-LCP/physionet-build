@@ -67,11 +67,17 @@ class PasswordResetConfirmView(auth_views.PasswordResetConfirmView):
     success_url = reverse_lazy('reset_password_complete')
 
 
+# Password reset successfully carried out
+class PasswordResetCompleteView(auth_views.PasswordResetCompleteView):
+    template_name = 'user/reset_password_complete.html'
+
+
 login = LoginView.as_view()
 logout = LogoutView.as_view()
 reset_password_request = PasswordResetView.as_view()
 reset_password_sent = PasswordResetDoneView.as_view()
 reset_password_confirm = PasswordResetConfirmView.as_view()
+reset_password_complete = PasswordResetCompleteView.as_view()
 
 
 @sensitive_post_parameters('password1', 'password2')

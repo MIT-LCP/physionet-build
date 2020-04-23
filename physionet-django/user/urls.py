@@ -23,10 +23,8 @@ urlpatterns = [
     re_path('^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
             views.reset_password_confirm, name='reset_password_confirm'),
     # Password reset successfully carried out
-    path('reset/complete/',
-        auth_views.PasswordResetCompleteView.as_view(
-        template_name='user/reset_password_complete.html'),
-        name='reset_password_complete'),
+    path('reset/complete/', views.reset_password_complete,
+         name='reset_password_complete'),
 
     # Settings
     path('settings/', views.user_settings, name='user_settings'),
