@@ -15,28 +15,28 @@
     <ul>
         <li>A README file is included alongside the files. At minimum, this file should include a title and a brief description of the package content.</li>
         <li>Sensitive data and protected health information have been removed.</li>
-        <li>Filenames are clear and do not include spaces or special characters (e.g. "/","\,".").</li>
+        <li>Files should be clearly named and must not include spaces (use underscores instead for increased readability) or special characters (e.g. "/","\,"."). Further, filenames should generally be lowercase (exceptions are "special files”, such as the RECORDS and ANNOTATORS files used for waveforms). Please use brevity when naming files (e.g. 1001_abp.dat is preferable to subject_1001_ABP_wave_100Hz.dat).</li>
+        <li>Files should be in open-source format and machine readable. Proprietary formats such as MatLab (*.mat), Excel (*.xls) or Microsoft Word (*.doc) should be converted to an open-source format.</li>
     </ul>
 
     <h4>Data (general)</h4>
     <ul>
-        <li>All files are in non-proprietary formats (for example, CSV).</li>
+        <li>Comma-Separated Value (CSV) formatted files are a good option for small datasets. CSVs should be formatted according to the <a href="https://tools.ietf.org/html/rfc4180#section-1">RFC 4180 specification</a>.</li>
         <li>Tabulated data is arranged such that each variable is a column and each observation (or case) is a row ("tidy data").</li>
     </ul>
 
     <h4>Data (waveforms)</h4>
     <ul>
-        <li>The shape of waveforms is as expected when plotted as a timeseries.</li>
+        <li>In general, high time-resolution data such as ECG and EEG recordings should be stored in a WFDB compatible (or other open-source) format where possible. Details such as gain and baseline should be included in the file headers.</li>
+        <li>The submitted project should include sufficient information to visualize waveforms in LightWave (i.e. RECORDS, *.hea, etc. files). The *.hea files should contain descriptive signal names (i.e. no repeated signal names inside of the the same *.hea file).</li>
     </ul>
 
     <h4>Software</h4>
     <ul>
-        <li>Instructions for installation and usage are clearly documented.</li>
-        <li>Dependencies are clearly indicated, preferably in a requirements file.</li>
-        <li>The software is provided in a non-proprietary language, except where there is a clear reason not to do so (for example, when sharing a Matlab package). </li>
-        <li>Tests are provided to demonstrate correct functioning of major features of the software.</li>
-        <li>The software follows standard style guidelines (for example, PEP8 for Python).</li>
-        <li>The software is logically structured and packaged according to standard practice.</li> 
+        <li>Instructions for installation and usage should be clearly documented.</li>
+        <li>Dependencies should be indicated in a requirements file or similar.</li>
+        <li>Unit tests should be used to demonstrate correct functioning of major features of the software.</li>
+        <li>Standard style guidelines should be followed where appropriate (for example, PEP8 for Python).</li>
     </ul>
 
     <h4>Challenges</h4>
