@@ -44,7 +44,12 @@ class LoginView(auth_views.LoginView):
     redirect_authenticated_user = True
 
 
+class LogoutView(auth_views.LogoutView):
+    pass
+
+
 login = LoginView.as_view()
+logout = LogoutView.as_view()
 
 
 @sensitive_post_parameters('password1', 'password2')

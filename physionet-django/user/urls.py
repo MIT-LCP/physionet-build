@@ -7,7 +7,7 @@ from user import views
 urlpatterns = [
     path('login/', views.login, name='login'),
 
-    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('logout/', views.logout, name='logout'),
 
     path('register/', views.register, name='register'),
     re_path('^activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
