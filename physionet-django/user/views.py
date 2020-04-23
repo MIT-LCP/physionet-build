@@ -55,9 +55,15 @@ class PasswordResetView(auth_views.PasswordResetView):
     email_template_name = 'user/email/reset_password_email.html'
 
 
+# Page shown after reset email has been sent
+class PasswordResetDoneView(auth_views.PasswordResetDoneView):
+    template_name = 'user/reset_password_sent.html'
+
+
 login = LoginView.as_view()
 logout = LogoutView.as_view()
 reset_password_request = PasswordResetView.as_view()
+reset_password_sent = PasswordResetDoneView.as_view()
 
 
 @sensitive_post_parameters('password1', 'password2')

@@ -17,9 +17,8 @@ urlpatterns = [
     path('reset-password/', views.reset_password_request,
          name='reset_password_request'),
     # Page shown after reset email has been sent
-    path('reset-password/sent/', auth_views.PasswordResetDoneView.as_view(
-        template_name='user/reset_password_sent.html'),
-        name='reset_password_sent'),
+    path('reset-password/sent/', views.reset_password_sent,
+         name='reset_password_sent'),
     # Prompt user to enter new password and carry out password reset (if url is valid)
     re_path('^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
         auth_views.PasswordResetConfirmView.as_view(
