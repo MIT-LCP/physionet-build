@@ -9,6 +9,7 @@ from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
+import django.contrib.auth.views as auth_views
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
@@ -35,6 +36,15 @@ from notification.utility import (process_credential_complete,
 
 
 logger = logging.getLogger(__name__)
+
+
+class LoginView(auth_views.LoginView):
+    template_name = 'user/login.html'
+    authentication_form = forms.LoginForm
+    redirect_authenticated_user = True
+
+
+login = LoginView.as_view()
 
 
 @sensitive_post_parameters('password1', 'password2')
