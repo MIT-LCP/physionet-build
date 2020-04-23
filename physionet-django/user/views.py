@@ -60,10 +60,18 @@ class PasswordResetDoneView(auth_views.PasswordResetDoneView):
     template_name = 'user/reset_password_sent.html'
 
 
+# Prompt user to enter new password and carry out password reset (if
+# url is valid)
+class PasswordResetConfirmView(auth_views.PasswordResetConfirmView):
+    template_name = 'user/reset_password_confirm.html'
+    success_url = reverse_lazy('reset_password_complete')
+
+
 login = LoginView.as_view()
 logout = LogoutView.as_view()
 reset_password_request = PasswordResetView.as_view()
 reset_password_sent = PasswordResetDoneView.as_view()
+reset_password_confirm = PasswordResetConfirmView.as_view()
 
 
 @sensitive_post_parameters('password1', 'password2')

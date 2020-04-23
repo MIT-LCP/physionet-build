@@ -21,10 +21,7 @@ urlpatterns = [
          name='reset_password_sent'),
     # Prompt user to enter new password and carry out password reset (if url is valid)
     re_path('^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
-        auth_views.PasswordResetConfirmView.as_view(
-        template_name='user/reset_password_confirm.html',
-        success_url=reverse_lazy('reset_password_complete')),
-        name='reset_password_confirm'),
+            views.reset_password_confirm, name='reset_password_confirm'),
     # Password reset successfully carried out
     path('reset/complete/',
         auth_views.PasswordResetCompleteView.as_view(
