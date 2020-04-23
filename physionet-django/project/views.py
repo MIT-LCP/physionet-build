@@ -231,6 +231,9 @@ def project_home(request):
 
 @login_required
 def create_project(request):
+    if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
+        raise ServiceUnavailable()
+
     user = request.user
 
     n_submitting = Author.objects.filter(user=user, is_submitting=True,
@@ -255,6 +258,9 @@ def new_project_version(request, project_slug):
     Publish a new version of a project
 
     """
+    if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
+        raise ServiceUnavailable()
+
     user = request.user
 
     n_submitting = Author.objects.filter(user=user, is_submitting=True,
