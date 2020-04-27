@@ -9,6 +9,7 @@ from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
+import django.contrib.auth.views as auth_views
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
@@ -17,7 +18,7 @@ from django.forms import inlineformset_factory, HiddenInput, CheckboxInput
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.template import loader
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.encoding import force_bytes, force_text
@@ -35,6 +36,54 @@ from notification.utility import (process_credential_complete,
 
 
 logger = logging.getLogger(__name__)
+
+
+class LoginView(auth_views.LoginView):
+    template_name = 'user/login.html'
+    authentication_form = forms.LoginForm
+    redirect_authenticated_user = True
+
+
+class LogoutView(auth_views.LogoutView):
+    pass
+
+
+# Request password reset
+class PasswordResetView(auth_views.PasswordResetView):
+    template_name = 'user/reset_password_request.html'
+    success_url = reverse_lazy('reset_password_sent')
+    email_template_name = 'user/email/reset_password_email.html'
+
+
+# Page shown after reset email has been sent
+class PasswordResetDoneView(auth_views.PasswordResetDoneView):
+    template_name = 'user/reset_password_sent.html'
+
+
+# Prompt user to enter new password and carry out password reset (if
+# url is valid)
+class PasswordResetConfirmView(auth_views.PasswordResetConfirmView):
+    template_name = 'user/reset_password_confirm.html'
+    success_url = reverse_lazy('reset_password_complete')
+
+
+# Password reset successfully carried out
+class PasswordResetCompleteView(auth_views.PasswordResetCompleteView):
+    template_name = 'user/reset_password_complete.html'
+
+
+class PasswordChangeView(auth_views.PasswordChangeView):
+    success_url = reverse_lazy('edit_password_complete')
+    template_name = 'user/edit_password.html'
+
+
+login = LoginView.as_view()
+logout = LogoutView.as_view()
+reset_password_request = PasswordResetView.as_view()
+reset_password_sent = PasswordResetDoneView.as_view()
+reset_password_confirm = PasswordResetConfirmView.as_view()
+reset_password_complete = PasswordResetCompleteView.as_view()
+edit_password = PasswordChangeView.as_view()
 
 
 @sensitive_post_parameters('password1', 'password2')

@@ -1,52 +1,34 @@
-from django.contrib.auth import views as auth_views
-from django.urls import path, re_path, reverse_lazy
+from django.urls import path, re_path
 
 from user import views
-from user.forms import LoginForm
 
 
 urlpatterns = [
-    path('login/', auth_views.LoginView.as_view(
-        template_name='user/login.html',
-        authentication_form=LoginForm,
-        redirect_authenticated_user=True), name='login'),
+    path('login/', views.login, name='login'),
 
-    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('logout/', views.logout, name='logout'),
 
     path('register/', views.register, name='register'),
     re_path('^activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
         views.activate_user, name='activate_user'),
 
     # Request password reset
-    path('reset-password/', auth_views.PasswordResetView.as_view(
-        template_name='user/reset_password_request.html',
-        success_url=reverse_lazy('reset_password_sent'),
-        email_template_name='user/email/reset_password_email.html'),
-        name='reset_password_request'),
+    path('reset-password/', views.reset_password_request,
+         name='reset_password_request'),
     # Page shown after reset email has been sent
-    path('reset-password/sent/', auth_views.PasswordResetDoneView.as_view(
-        template_name='user/reset_password_sent.html'),
-        name='reset_password_sent'),
+    path('reset-password/sent/', views.reset_password_sent,
+         name='reset_password_sent'),
     # Prompt user to enter new password and carry out password reset (if url is valid)
     re_path('^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
-        auth_views.PasswordResetConfirmView.as_view(
-        template_name='user/reset_password_confirm.html',
-        success_url=reverse_lazy('reset_password_complete')),
-        name='reset_password_confirm'),
+            views.reset_password_confirm, name='reset_password_confirm'),
     # Password reset successfully carried out
-    path('reset/complete/',
-        auth_views.PasswordResetCompleteView.as_view(
-        template_name='user/reset_password_complete.html'),
-        name='reset_password_complete'),
+    path('reset/complete/', views.reset_password_complete,
+         name='reset_password_complete'),
 
     # Settings
     path('settings/', views.user_settings, name='user_settings'),
     path('settings/profile/', views.edit_profile, name='edit_profile'),
-    path('settings/password/', auth_views.PasswordChangeView.as_view(
-        success_url = reverse_lazy('edit_password_complete'),
-        template_name='user/edit_password.html',
-        ),
-        name='edit_password'),
+    path('settings/password/', views.edit_password, name='edit_password'),
     path('settings/password/changed/', views.edit_password_complete, name='edit_password_complete'),
     path('settings/emails/', views.edit_emails, name='edit_emails'),
     path('settings/username/', views.edit_username, name='edit_username'),
