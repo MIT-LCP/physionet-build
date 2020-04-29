@@ -1030,6 +1030,6 @@ class InviteDataAccessReviewerForm(forms.Form):
             invitation.project = self.project
 
         invitation.is_revoked = False
-        invitation.invitation_date = timezone.now()
+        invitation.added_date = timezone.now()
         invitation.save()
         return invitation

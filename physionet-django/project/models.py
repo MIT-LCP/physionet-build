@@ -2169,13 +2169,19 @@ class DataAccessRequestReviewer(models.Model):
     A user who is invited to review data access requests of self managed
     credentialing projects.
     """
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['project', 'reviewer'],
+                                              name='unique project reviewer')]
+
     project = models.ForeignKey('project.PublishedProject',
                                 related_name='data_access_request_reviewers',
                                 on_delete=models.CASCADE)
 
-    reviewer = models.ForeignKey('user.User', on_delete=models.CASCADE)
+    reviewer = models.ForeignKey('user.User', on_delete=models.CASCADE,
+                                 related_name='data_access_request_reviewers')
 
-    invitation_date = models.DateTimeField(auto_now_add=True)
+    added_date = models.DateTimeField(auto_now_add=True)
 
     is_revoked = models.BooleanField(default=False)
 

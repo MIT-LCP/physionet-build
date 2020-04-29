@@ -41,7 +41,7 @@
                                 <td>{{ entry.reviewer.get_full_name }} ( <a
                                         href="{% url 'public_profile' entry.reviewer.username %}">{{ entry.reviewer.username }}</a>)
                                 </td>
-                                <td>{{ entry.invitation_date|date }}</td>
+                                <td>{{ entry.added_date|date }}</td>
                                 <td>
                                     {% csrf_token %}
                                     <button id="revoke-button" type="button" class="btn
