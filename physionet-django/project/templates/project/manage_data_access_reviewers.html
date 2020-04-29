@@ -20,7 +20,7 @@
 
         <hr>
 
-        <h3>Current Reviewers</h3>
+        <h3>Reviewers</h3>
 
         {% if reviewers_list|length %}
             <div class="table-responsive">
@@ -30,7 +30,7 @@
                     <tr>
                         <th>User</th>
                         <th>Since</th>
-                        <th>Revoke</th>
+                        <th>Revoked</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -43,43 +43,47 @@
                                 </td>
                                 <td>{{ entry.added_date|date }}</td>
                                 <td>
-                                    {% csrf_token %}
-                                    <button id="revoke-button" type="button" class="btn
+                                    {% if not entry.is_revoked %}
+                                        {% csrf_token %}
+                                        <button id="revoke-button" type="button" class="btn
             btn-danger" data-toggle="modal"
-                                            data-target="#revoke-modal">Revoke
-                                    </button>
-                                    <div class="modal fade" id="revoke-modal" tabindex="-1"
-                                         role="dialog" aria-labelledby="revoke-modal"
-                                         aria-hidden="true">
-                                        <div class="modal-dialog" role="document">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title">Revoke Rights</h5>
-                                                    <button type="button" class="close"
-                                                            data-dismiss="modal" aria-label="Close">
-                                                        <span aria-hidden="true">&times;</span>
-                                                    </button>
+                                                data-target="#revoke-modal">Revoke
+                                        </button>
+                                        <div class="modal fade" id="revoke-modal" tabindex="-1"
+                                             role="dialog" aria-labelledby="revoke-modal"
+                                             aria-hidden="true">
+                                            <div class="modal-dialog" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Revoke Rights</h5>
+                                                        <button type="button" class="close"
+                                                                data-dismiss="modal" aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <form action="" method="post">
+                                                        <div class="modal-body">
+                                                            {% csrf_token %}
+                                                            <p>Are you sure you wish to revoke the rights
+                                                                of {{ entry.reviewer.username }} to approve access
+                                                                requests?</p>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button class="btn btn-danger" name="revoke_reviewer"
+                                                                    value="{{ entry.reviewer_id }}" type="submit">
+                                                                Yes, revoke
+                                                            </button>
+                                                            <button type="button" class="btn btn-secondary"
+                                                                    data-dismiss="modal">No
+                                                            </button>
+                                                        </div>
+                                                    </form>
                                                 </div>
-                                                <form action="" method="post">
-                                                    <div class="modal-body">
-                                                        {% csrf_token %}
-                                                        <p>Are you sure you wish to revoke the rights
-                                                            of {{ entry.reviewer.username }} to approve access
-                                                            requests?</p>
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <button class="btn btn-danger" name="revoke_reviewer"
-                                                                value="{{ entry.reviewer_id }}" type="submit">
-                                                            Yes, revoke
-                                                        </button>
-                                                        <button type="button" class="btn btn-secondary"
-                                                                data-dismiss="modal">No
-                                                        </button>
-                                                    </div>
-                                                </form>
                                             </div>
                                         </div>
-                                    </div>
+                                    {% else %}
+                                        {{ entry.revocation_date | date }}
+                                    {% endif %}
                                 </td>
                             </tr>
                         {% endfor %}

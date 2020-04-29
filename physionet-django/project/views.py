@@ -1871,8 +1871,8 @@ def manage_data_access_reviewers(request, project_slug, version):
             e.save()
 
     reviewers_list = DataAccessRequestReviewer.objects.filter(
-        project=project, is_revoked=False).order_by(
-        "reviewer__profile__first_names")
+        project=project).order_by("is_revoked", "-revocation_date",
+                                  "reviewer__profile__first_names")
 
     return render(request, 'project/manage_data_access_reviewers.html',
                   {'project': project,
