@@ -485,7 +485,7 @@ def mailto_reference(request, application):
             'footer': email_footer()
         })
 
-    to = formataddr((application.reference_name,
+    to = formataddr((application.reference_name.replace(',', ''),
                      application.reference_email))
     bcc = 'credential-reference+{0}@{1}'.format(
         application.id, get_current_site(request))
@@ -509,7 +509,7 @@ def mailto_supervisor(request, application):
             'footer': email_footer()
         })
 
-    to = formataddr((application.reference_name,
+    to = formataddr((application.reference_name.replace(',', ''),
                      application.reference_email))
     bcc = 'credential-reference+{0}@{1}'.format(
         application.id, get_current_site(request))
@@ -535,7 +535,7 @@ def mailto_process_credential_complete(request, application, comments=True):
     else:
         body = 'Dear {0},\n\n{1}'.format(application.first_names, body)
 
-    to = formataddr((application.get_full_name(),
+    to = formataddr((application.get_full_name().replace(',', ''),
                      application.user.email))
     bcc = 'credential-reference+{0}@{1}'.format(
         application.id, get_current_site(request))
