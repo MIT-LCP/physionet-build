@@ -587,7 +587,7 @@ class Metadata(models.Model):
         if separate_submitting:
             submitting_author = authors.get(is_submitting=True)
             coauthors = authors.filter(is_submitting=False)
-            submitting_author.set_display_infprevious_versiono()
+            submitting_author.set_display_info()
             for a in coauthors:
                 a.set_display_info()
             if include_emails:
