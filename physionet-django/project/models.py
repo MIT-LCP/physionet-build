@@ -28,6 +28,7 @@ from django.utils.text import slugify
 from background_task import background
 from django.utils.crypto import get_random_string
 
+from project.quota import DemoQuotaManager
 from project.utility import (get_tree_size, get_file_info, get_directory_info,
                              list_items, StorageInfo, list_files,
                              clear_directory)
@@ -51,6 +52,10 @@ def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
     published_project = PublishedProject.objects.get(id=pid)
 
     published_project.make_checksum_file()
+
+    quota = published_project.quota_manager()
+    published_project.incremental_storage_size = quota.bytes_used
+    published_project.save(update_fields=['incremental_storage_size'])
 
     published_project.set_storage_info()
 
@@ -465,6 +470,23 @@ class CoreProject(models.Model):
         Return a queryset of PublishedProjects, sorted by version.
         """
         return self.publishedprojects.filter().order_by('version_order')
+
+    @property
+    def total_published_size(self):
+        """
+        Total storage size of the published projects.
+
+        This is the sum of the PublishedProjects'
+        incremental_storage_size values (which will be less than the
+        sum of the main_storage_size values if there are files that
+        are shared between versions) and reflects the actual size of
+        the data on disk.
+        """
+        result = self.publishedprojects \
+                     .aggregate(total=models.Sum('incremental_storage_size'))
+        # The sum will be None if there are no publishedprojects.  It will
+        # also be None if any projects have incremental_storage_size=None.
+        return result['total'] or 0
 
 
 class ProjectType(models.Model):
@@ -967,6 +989,28 @@ class SubmissionInfo(models.Model):
     class Meta:
         abstract = True
 
+    def quota_manager(self):
+        """
+        Return a QuotaManager for this project.
+
+        This can be used to calculate the project's disk usage
+        (represented by the bytes_used and inodes_used properties of
+        the QuotaManager object.)
+        """
+        allowance = self.core_project.storage_allowance
+        published = self.core_project.total_published_size
+        limit = allowance - published
+
+        # DemoQuotaManager needs to know the project's toplevel
+        # directory as well as its creation time (so that files
+        # present in multiple versions can be correctly attributed to
+        # the version where they first appeared.)
+        quota_manager = DemoQuotaManager(
+            project_path=self.file_root(),
+            creation_time=self.creation_datetime)
+        quota_manager.set_limits(bytes_hard=limit, bytes_soft=limit)
+        return quota_manager
+
 
 class UnpublishedProject(models.Model):
     """
@@ -1013,8 +1057,9 @@ class UnpublishedProject(models.Model):
             used = self.storage_used()
         else:
             used = None
-        return StorageInfo(allowance=self.core_project.storage_allowance,
-                           used=used, include_remaining=True)
+        allowance = self.core_project.storage_allowance
+        published = self.core_project.total_published_size
+        return StorageInfo(allowance=allowance, published=published, used=used)
 
     def get_previous_slug(self):
         """
@@ -1233,9 +1278,16 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
     def storage_used(self):
         """
-        Total storage used in bytes
+        Total storage used in bytes.
+
+        This includes the total size of new files uploaded to this
+        project, as well as the total size of files published in past
+        versions of this CoreProject.  (The QuotaManager should ensure
+        that the same file is not counted twice in this total.)
         """
-        return get_tree_size(self.file_root())
+        current = self.quota_manager().bytes_used
+        published = self.core_project.total_published_size
+        return current + published
 
     def storage_allowance(self):
         """
@@ -1657,6 +1709,7 @@ class PublishedProject(Metadata, SubmissionInfo):
     # File storage sizes in bytes
     main_storage_size = models.BigIntegerField(default=0)
     compressed_storage_size = models.BigIntegerField(default=0)
+    incremental_storage_size = models.BigIntegerField(default=0)
     publish_datetime = models.DateTimeField(auto_now_add=True)
     has_other_versions = models.BooleanField(default=False)
     deprecated_files = models.BooleanField(default=False)

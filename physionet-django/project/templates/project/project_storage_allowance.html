@@ -1,0 +1,30 @@
+{% load project_templatetags %}
+<h4 class="card-title">Storage Allowance: {{ storage_info.readable_allowance|nbsp }}</h4>
+<div class="card-text progress-labels">
+  <div class="progress-label-left">
+    Used: {{ storage_info.readable_used|nbsp }}
+    ({{ storage_info.p_used }}%)
+    {% if storage_info.published %}
+      <br>
+      <span class="text-muted">
+        Published: {{ storage_info.readable_published|nbsp }}
+      </span>
+    {% endif %}
+  </div>
+  <div class="progress-label-right">
+    Remaining: {{ storage_info.readable_remaining|nbsp }}
+    ({{ storage_info.p_remaining }}%)
+  </div>
+</div>
+<div class="progress">
+  <div class="progress-bar bg-secondary" role="progressbar"
+       style="width: {{ storage_info.p_used_old }}%;"
+       aria-valuenow="{{ storage_info.p_used_old }}"
+       aria-valuemin="0" aria-valuemax="100">
+  </div>
+  <div class="progress-bar progress-bar-striped" role="progressbar"
+       style="width: {{ storage_info.p_used_new }}%;"
+       aria-valuenow="{{ storage_info.p_used_new }}"
+       aria-valuemin="0" aria-valuemax="100">
+  </div>
+</div>

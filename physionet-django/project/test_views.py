@@ -387,6 +387,25 @@ class TestProjectCreation(TestMixin):
         self.assertTrue(os.path.exists(oldpath))
         self.assertFalse(os.path.exists(newpath))
 
+        # Test quota functions: published files should not be counted
+        # by active project quota - so deleting a file shouldn't
+        # affect inodes_used
+        quota = newproject.quota_manager()
+        num_inodes = quota.inodes_used
+        newpath = os.path.join(newproject.file_root(), 'admissions.csv')
+        os.unlink(newpath)
+        quota.refresh()
+        self.assertEqual(quota.inodes_used, num_inodes)
+
+        # Uploading a new file should be counted by active project quota
+        num_inodes = quota.inodes_used
+        num_bytes = quota.bytes_used
+        with open(newpath, 'w') as f:
+            f.write('hello world')
+        quota.refresh()
+        self.assertEqual(quota.inodes_used, num_inodes + 1)
+        self.assertGreater(quota.bytes_used, num_bytes)
+
 
 class TestProjectEditing(TestCase):
     """
