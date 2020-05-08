@@ -247,9 +247,9 @@ class PersonalCAF(forms.ModelForm):
             'organization_name', 'job_title', 'city', 'state_province',
             'zip_code', 'country', 'webpage')
         help_texts = {
-            'first_names': """First name(s). Your Physionet first name by default. This 
+            'first_names': """First name(s). Your profile first name by default. This 
                 can be edited in your profile settings.""",
-            'last_name': """Last (family) name. Your Physionet last name by default. This 
+            'last_name': """Last (family) name. Your profile last name by default. This 
                 can be edited in your profile settings.""",
             'suffix': """Please leave the suffix blank if your name does not 
                 include a suffix like "Jr." or "III". Do not list degrees. 
