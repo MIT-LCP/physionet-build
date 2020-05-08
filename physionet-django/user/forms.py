@@ -247,8 +247,10 @@ class PersonalCAF(forms.ModelForm):
             'organization_name', 'job_title', 'city', 'state_province',
             'zip_code', 'country', 'webpage')
         help_texts = {
-            'first_names': "First name(s).",
-            'last_name': "Last (family) name.",
+            'first_names': """First name(s). Your Physionet first name by default. This 
+                can be edited in your profile settings.""",
+            'last_name': """Last (family) name. Your Physionet last name by default. This 
+                can be edited in your profile settings.""",
             'suffix': """Please leave the suffix blank if your name does not 
                 include a suffix like "Jr." or "III". Do not list degrees. 
                 Do not put a prefix like "Mr" or "Ms". Do not put "not 
@@ -272,6 +274,8 @@ class PersonalCAF(forms.ModelForm):
         widgets = {
            'research_summary': forms.Textarea(attrs={'rows': 3}),
            'suffix': forms.TextInput(attrs={'autocomplete': 'off'}),
+           'first_names': forms.TextInput(attrs={'readonly':'readonly'}),
+           'last_name': forms.TextInput(attrs={'readonly':'readonly'}),
         }
         labels = {
             'state_province': 'State/Province',
