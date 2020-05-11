@@ -394,6 +394,10 @@ class CredentialApplicationForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.user = user
         self.profile = user.profile
+        self.fields['first_names'].disabled = True
+        self.fields['last_name'].disabled = True
+        self.initial = {'first_names': self.profile.first_names,
+                        'last_name': self.profile.last_name}
 
     def clean(self):
         data = self.cleaned_data
