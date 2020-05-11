@@ -1,6 +1,4 @@
 {# Status section #}
-<p>Date of this agreement: {{ application.application_datetime }}<br></p>
-
 <p><a href="{% url 'training_report' application.slug %}" target="_blank">Training Completion Report</a><br></p>
 
 {# Personal details #}
@@ -44,6 +42,8 @@ Reference's job title or position: {{ application.reference_title }}</p>
 {# Research #}
 
 <p>Research Topic: {{ application.research_summary }}</p>
+
+<p>Date of this agreement: {{ application.application_datetime }}<br></p>
 
 {% if application.reference_contact_datetime and request.user.is_admin %}
   Reference Contact Date: {{ application.reference_contact_datetime|date }}<br>
