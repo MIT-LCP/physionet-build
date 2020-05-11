@@ -12,6 +12,7 @@ from django.core import mail
 from django.core.management import call_command
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from user.models import AssociatedEmail, Profile, User
 from user.views import (activate_user, edit_emails, edit_profile,
@@ -265,6 +266,34 @@ class TestAuth(TestMixin):
 
         request = self.client.get(reverse('verify_email', args=(uidb64, token)))
         self.assertTrue(AssociatedEmail.objects.get(email='tester0@mit.edu').is_verified)
+
+    def test_purgeaccounts(self):
+        # Test 0: login
+        self.client.login(username='admin@mit.edu', password='Tester11!')
+        self.assertEqual(int(self.client.session['_auth_user_id']), self.user.pk)
+
+        # Test 1: add email
+        self.client.post(reverse('edit_emails'), data={
+            'add_email': [''], 'email': 'tester2@mit.edu'})
+        self.assertIsNotNone(AssociatedEmail.objects.filter(email='tester2@mit.edu'))
+
+        # Test 2: add email to be removed
+        self.client.post(reverse('edit_emails'), data={
+            'add_email': [''], 'email': 'tester1@mit.edu'})
+        self.assertIsNotNone(AssociatedEmail.objects.filter(email='tester1@mit.edu'))
+
+        email1 = AssociatedEmail.objects.get(email='tester1@mit.edu')
+        email1.added_date -= timezone.timedelta(days=30)
+        email1.save()
+        email1_id = email1.id
+
+        email2 = AssociatedEmail.objects.get(email='tester2@mit.edu')
+        email2_id = email2.id
+
+        call_command('purgeaccounts')
+
+        self.assertFalse(AssociatedEmail.objects.filter(id=email1_id).exists())
+        self.assertTrue(AssociatedEmail.objects.filter(id=email2_id).exists())
 
 
 class TestPublic(TestMixin):
