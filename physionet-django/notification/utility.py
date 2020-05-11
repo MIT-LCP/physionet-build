@@ -485,6 +485,8 @@ def mailto_reference(request, application):
             'footer': email_footer()
         })
 
+    # rm comma to handle mailto issue with comma and special char.
+    # ref https://github.com/MIT-LCP/physionet-build/issues/1028
     to = formataddr((application.reference_name.replace(',', ''),
                      application.reference_email))
     bcc = 'credential-reference+{0}@{1}'.format(
@@ -509,6 +511,8 @@ def mailto_supervisor(request, application):
             'footer': email_footer()
         })
 
+    # rm comma to handle mailto issue with comma and special char.
+    # ref https://github.com/MIT-LCP/physionet-build/issues/1028
     to = formataddr((application.reference_name.replace(',', ''),
                      application.reference_email))
     bcc = 'credential-reference+{0}@{1}'.format(
@@ -535,6 +539,8 @@ def mailto_process_credential_complete(request, application, comments=True):
     else:
         body = 'Dear {0},\n\n{1}'.format(application.first_names, body)
 
+    # rm comma to handle mailto issue with comma and special char.
+    # Ref https://github.com/MIT-LCP/physionet-build/issues/1028
     to = formataddr((application.get_full_name().replace(',', ''),
                      application.user.email))
     bcc = 'credential-reference+{0}@{1}'.format(
