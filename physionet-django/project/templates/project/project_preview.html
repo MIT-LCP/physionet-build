@@ -101,31 +101,9 @@
       <a href="#citationModal" data-toggle="modal">(show more options)</a>
       <br><span>{{ citations.APA }}</span>
     </p>
-    <div class="modal fade" id="citationModal">
-      <div class="modal-dialog citation" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="citationModalLabel">Cite</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            <table><tbody>
-              {% for style, citation in citations.items %}
-                <tr>
-                  <th>{{ style }}</th>
-                  <td>{{ citation }}</td>
-                </tr>
-              {% endfor %}
-            </tbody></table>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-          </div>
-        </div>
-      </div>
-    </div>
+
+    {% include 'project/modal_outline.html' with id_name='citationModal' title='Cite' body=modal_body %}
+
     {% if publication %}
       <strong>In addition, please cite the original publication:</strong>
       <p><a href="{{ publication.url }}">{{ publication.citation }}</a></p>
@@ -133,34 +111,12 @@
 
     <p>
       <strong>Please include the standard citation for PhysioNet:</strong>
-      <a href="#citationModalPhysionet" data-toggle="modal">(show more options)</a>
+      <a href="#citationModalPlatform" data-toggle="modal">(show more options)</a>
       <br><span>{{ platform_citations.APA }}</span>
     </p>
-    <div class="modal fade" id="citationModalPhysionet">
-      <div class="modal-dialog citation" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="citationModalLabel">Cite</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            <table><tbody>
-              {% for style, citation in platform_citations.items %}
-                <tr>
-                  <th>{{ style }}</th>
-                  <td>{{ citation }}</td>
-                </tr>
-              {% endfor %}
-            </tbody></table>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-          </div>
-        </div>
-      </div>
-    </div>
+
+    {% include 'project/modal_outline.html' with id_name='citationModalPlatform' title='Cite' body=platform_modal_body %}
+
     </div>
 
       {# 0: Database #}

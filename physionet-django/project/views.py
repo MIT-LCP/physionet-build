@@ -1091,6 +1091,16 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     citations = project.citation_text_all()
     platform_citations = project.get_platform_citation()
 
+    modal_body = '<table><tbody>'
+    for style, citation in citations.items():
+        modal_body += '<tr><th>{}</th><td>{}</td></tr>'.format(style, citation)
+    modal_body += '</tbody></table>'
+
+    platform_modal_body = '<table><tbody>'
+    for style, citation in platform_citations.items():
+        platform_modal_body += '<tr><th>{}</th><td>{}</td></tr>'.format(style, citation)
+    platform_modal_body += '</tbody></table>'
+
     passes_checks = project.check_integrity()
 
     if passes_checks:
@@ -1117,7 +1127,8 @@ def project_preview(request, project_slug, subdir='', **kwargs):
         'files_panel_url':files_panel_url, 'citations': citations,
         'subdir':subdir, 'parent_dir':parent_dir, 'file_error':file_error, 
         'file_warning':file_warning, 'platform_citations': platform_citations,
-        'parent_projects':parent_projects, 'has_passphrase':has_passphrase})
+        'parent_projects':parent_projects, 'has_passphrase':has_passphrase,
+        'modal_body':modal_body, 'platform_modal_body':platform_modal_body})
 
 
 @project_auth(auth_mode=3)
@@ -1523,6 +1534,16 @@ def published_project(request, project_slug, version, subdir=''):
     citations = project.citation_text_all()
     platform_citations = project.get_platform_citation()
 
+    modal_body = '<table><tbody>'
+    for style, citation in citations.items():
+        modal_body += '<tr><th>{}</th><td>{}</td></tr>'.format(style, citation)
+    modal_body += '</tbody></table>'
+
+    platform_modal_body = '<table><tbody>'
+    for style, citation in platform_citations.items():
+        platform_modal_body += '<tr><th>{}</th><td>{}</td></tr>'.format(style, citation)
+    platform_modal_body += '</tbody></table>'
+
     # Anonymous access authentication
     an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60*60)
     has_passphrase = project.get_anonymous_url() == an_url
@@ -1540,7 +1561,9 @@ def published_project(request, project_slug, version, subdir=''):
                'all_project_versions': all_project_versions,
                'parent_projects':parent_projects, 'data_access':data_access,
                'messages':messages.get_messages(request), 
-               'platform_citations': platform_citations}
+               'platform_citations': platform_citations,
+               'modal_body':modal_body,
+               'platform_modal_body':platform_modal_body}
     # The file and directory contents
     if has_access:
         (display_files, display_dirs, dir_breadcrumbs, parent_dir,
