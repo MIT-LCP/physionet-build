@@ -247,8 +247,10 @@ class PersonalCAF(forms.ModelForm):
             'organization_name', 'job_title', 'city', 'state_province',
             'zip_code', 'country', 'webpage')
         help_texts = {
-            'first_names': "First name(s).",
-            'last_name': "Last (family) name.",
+            'first_names': """You first name(s). This can be edited in your 
+                profile settings.""",
+            'last_name': """Your last (family) name. This can be edited in 
+                your profile settings.""",
             'suffix': """Please leave the suffix blank if your name does not 
                 include a suffix like "Jr." or "III". Do not list degrees. 
                 Do not put a prefix like "Mr" or "Ms". Do not put "not 
@@ -286,6 +288,8 @@ class PersonalCAF(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.user = user
         self.profile = user.profile
+        self.fields['first_names'].disabled = True
+        self.fields['last_name'].disabled = True
 
         self.initial = {'first_names':self.profile.first_names,
             'last_name':self.profile.last_name,
