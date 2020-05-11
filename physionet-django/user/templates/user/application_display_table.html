@@ -1,141 +1,70 @@
-{% if request.user.is_admin and application.status != 0 and form %}
-<form action="" method="post">
+{# Status section #}
+<p>Date of this agreement: {{ application.application_datetime }}<br></p>
+
+<p><a href="{% url 'training_report' application.slug %}" target="_blank">Training Completion Report</a><br></p>
+
+{# Personal details #}
+
+<p>User: <a href="{% url 'public_profile' application.user.username %}">{{ application.user.username }}</a><br>
+
+My first (given) name(s): {{ application.first_names }}<br>
+
+My last (family) name(s): {{ application.last_name }}<br>
+
+Suffix (e.g., Jr.), if applicable: {{ application.suffix }}<br>
+
+PhysioNet e-mail: {{ application.user.email }}<br>
+
+Researcher's Category: {{ application.get_researcher_category_display }}<br>
+
+Organization Name: {{ application.organization_name }}<br>
+
+Job title or position: {{ application.job_title }}<br>
+
+City: {{ application.city }}<br>
+
+State/Province: {{ application.state_province }}<br>
+
+ZIP/postal code: {{ application.zip_code }}<br>
+
+Country: {{ application.get_country_display }}<br>
+
+Webpage: {{ application.webpage }}<br></p>
+
+{# Reference #}
+
+<p>Reference Category: {{ application.get_reference_category_display }}<br>
+
+Reference's Name: {{ application.reference_name }}<br>
+
+Reference's Email: {{ application.reference_email }}<br>
+
+Reference's job title or position: {{ application.reference_title }}</p>
+
+{# Research #}
+
+<p>Research Topic: {{ application.research_summary }}</p>
+
+{% if application.reference_contact_datetime %}
+  Reference Contact Date: {{ application.reference_contact_datetime|date }}<br>
+  {% if application.reference_response_datetime %}
+    Reference Response Date: {{ application.reference_response_datetime|date }}<br>
+  {% endif %}
 {% endif %}
 
-<table class="table table-bordered table-hover">
-  <tbody>
-    <tr>
-      <th colspan='2' class="bg-light">Application Details</th>
-    </tr>
-    <tr>
-      <td>Application Date</td>
-      <td>{{ application.application_datetime|date }}</td>
-    </tr>
-    <tr>
-      <td>User</td>
-      <td><a href="{% url 'public_profile' user.username %}">{{ user }}</a></td>
-    </tr>
-    <tr>
-      <th colspan='2' class="bg-light">Personal Details</th>
-    </tr>
-    <tr>
-      <td>First Names</td>
-      <td>{{ application.first_names }}</td>
-    </tr>
-    <tr>
-      <td>Last Name</td>
-      <td>{{ application.last_name }}</td>
-    </tr>
-    <tr>
-      <td>Suffix</td>
-      <td>{{ application.suffix }}</td>
-    </tr>
-    <tr>
-      <td>Researcher Category</td>
-      <td>{{ application.get_researcher_category_display }}</td>
-    </tr>
-    <tr>
-      <td>Organization Name</td>
-      <td>{{ application.organization_name }}</td>
-    </tr>
-    <tr>
-      <td>Job Title Or Position</td>
-      <td>{{ application.job_title }}</td>
-    </tr>
-    <tr>
-      <td>City</td>
-      <td>{{ application.city }}</td>
-    </tr>
-    <tr>
-      <td>State/Province</td>
-      <td>{{ application.state_province }}</td>
-    </tr>
-    <tr>
-      <td>Zip code</td>
-      <td>{{ application.zip_code }}</td>
-    </tr>
-    <tr>
-      <td>Country</td>
-      <td>{{ application.get_country_display }}</td>
-    </tr>
-    <tr>
-      <td>Webpage</td>
-      <td>{% if application.webpage|length > 0 %}<a href="{{ application.webpage }}" target="_blank">{{ application.webpage }}{% endif %}</a></td>
-    </tr>
-    <tr>
-      <th colspan='2' class="bg-light">CITI Completion Report</th>
-    </tr>
-    <tr>
-      <td>Training Completion Report</td>
-      <td><a href="{% url 'training_report' application.slug %}" target="_blank">File</a></td>
-    </tr>
-    <tr>
-      <th colspan='2' class="bg-light">Reference</th>
-    </tr>
-    <tr>
-      <td>Reference Category</td>
-      <td>{{ application.get_reference_category_display }}</td>
-    </tr>
-    <tr>
-      <td>Reference Name</td>
-      <td>{{ application.reference_name }}</td>
-    </tr>
-    <tr>
-      <td>Reference Email</td>
-      <td>{{ application.reference_email }}</td>
-    </tr>
-    <tr>
-      <td>Reference Title</td>
-      <td>{{ application.reference_title }}</td>
-    </tr>
-    <tr>
-      <th colspan='2' class="bg-light">Research</th>
-    </tr>
-    <tr>
-      <td>Research Topic</td>
-      <td>{{ application.research_summary }}</td>
-    </tr>
-
-    <tr>
-      <th colspan='2' class="bg-light">Response</th>
-    </tr>
-    {% if application.reference_contact_datetime %}
-      <tr>
-        <td>Reference Contact Date</td>
-        <td>{{ application.reference_contact_datetime|date }}</td>
-      </tr>
-      {% if application.reference_response_datetime %}
-        <tr>
-          <td>Reference Response Date</td>
-          <td>{{ application.reference_response_datetime|date }}</td>
-        </tr>
-        {# <tr> <td>Reference Verified</td> <td>{{ application.get_reference_response_display }}</td> </tr> #}
-      {% endif %}
-    {% endif %}
-    {% if application.decision_datetime %}
-      <tr>
-        <td>Decision Date</td>
-        <td>{{ application.decision_datetime|date }}</td>
-      </tr>
-    {% endif %}
-    {% if application.status != 0 %}
-      <tr>
-        <td>Decision</td>
-        <td>{{ application.get_status_display }}</td>
-      </tr>
-      {% if request.user.is_admin and form %}
-          {% csrf_token %}
-          {{ form }}
-      {% endif %}
-    {% else %}
-      <tr>
-        <td>Decision</td>
-        <td><i class="fas fa-clock"></i> Pending</td>
-      </tr>
-    {% endif %}
-  </tbody>
-</table>
-{% if request.user.is_admin and application.status != 0 and form %}
-  <button class="btn btn-success pull-right" name="manage_credentialing" value="{{ application.id }}" type="submit">Submit</button>
-</form>
+{% if application.decision_datetime %}
+  Decision Date: {{ application.decision_datetime|date }}<br>
+{% endif %}
+{% if application.status != 0 %}
+  Decision: {{ application.get_status_display }}<br>
+  {% if request.user.is_admin and form %}
+    <form action="" method="post">
+      {% csrf_token %}
+      {{ form }}
+      <br>
+      <button class="btn btn-success pull-right" name="manage_credentialing" value="{{ application.id }}" type="submit">Submit</button>
+    </form>
+  {% endif %}
+{% else %}
+  Decision: Pending<br>
 {% endif %}
