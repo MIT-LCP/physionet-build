@@ -274,8 +274,6 @@ class PersonalCAF(forms.ModelForm):
         widgets = {
            'research_summary': forms.Textarea(attrs={'rows': 3}),
            'suffix': forms.TextInput(attrs={'autocomplete': 'off'}),
-           'first_names': forms.TextInput(attrs={'readonly':'readonly'}),
-           'last_name': forms.TextInput(attrs={'readonly':'readonly'}),
         }
         labels = {
             'state_province': 'State/Province',
@@ -290,6 +288,8 @@ class PersonalCAF(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.user = user
         self.profile = user.profile
+        self.fields['first_names'].disabled = True
+        self.fields['last_name'].disabled = True
 
         self.initial = {'first_names':self.profile.first_names,
             'last_name':self.profile.last_name,
