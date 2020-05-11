@@ -45,9 +45,9 @@ Reference's job title or position: {{ application.reference_title }}</p>
 
 <p>Research Topic: {{ application.research_summary }}</p>
 
-{% if application.reference_contact_datetime %}
+{% if application.reference_contact_datetime and request.user.is_admin %}
   Reference Contact Date: {{ application.reference_contact_datetime|date }}<br>
-  {% if application.reference_response_datetime %}
+  {% if application.reference_response_datetime and request.user.is_admin %}
     Reference Response Date: {{ application.reference_response_datetime|date }}<br>
   {% endif %}
 {% endif %}
