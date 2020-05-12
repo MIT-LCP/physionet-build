@@ -87,7 +87,16 @@
             <br><span>{{ citations.APA }}</span>
           </p>
 
-          {% include 'project/modal_outline.html' with id_name='citationModal' title='Cite' body=modal_body %}
+          {% include 'modal_start.html' with id_name='citationModal' title='Cite' %}
+          <table><tbody>
+            {% for style, citation in citations.items %}
+              <tr>
+                <th>{{ style }}</th>
+                <td>{{ citation }}</td>
+              </tr>
+            {% endfor %}
+          </tbody></table>
+          {% include 'modal_end.html' %}
 
         {% endif %}
 
@@ -102,7 +111,16 @@
           <br><span>{{ platform_citations.APA }}</span>
         </p>
 
-        {% include 'project/modal_outline.html' with id_name='citationModalPlatform' title='Cite' body=platform_modal_body %}
+        {% include 'modal_start.html' with id_name='citationModalPlatform' title='Cite' %}
+        <table><tbody>
+          {% for style, citation in platform_citations.items %}
+            <tr>
+              <th>{{ style }}</th>
+              <td>{{ citation }}</td>
+            </tr>
+          {% endfor %}
+        </tbody></table>
+        {% include 'modal_end.html' %}
 
       </div>
     {% endif %}
