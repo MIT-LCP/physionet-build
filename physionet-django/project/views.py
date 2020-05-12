@@ -1862,13 +1862,12 @@ def manage_data_access_reviewers(request, project_slug, version):
     elif request.method == 'POST' and 'revoke_reviewer' in request.POST.keys():
         reviewer_id = request.POST['revoke_reviewer']
 
-        entries = DataAccessRequestReviewer.objects.filter(
-            project=project, reviewer_id=reviewer_id)
-
-        for e in entries:
-            e.revocation_date = timezone.now()
-            e.is_revoked = True
-            e.save()
+        try:
+            entry = DataAccessRequestReviewer.objects.get(
+                project=project, reviewer_id=reviewer_id, is_revoked=False)
+            entry.revoke()
+        except DataAccessRequestReviewer.DoesNotExist:
+            pass
 
     reviewers_list = DataAccessRequestReviewer.objects.filter(
         project=project).order_by("is_revoked", "-revocation_date",

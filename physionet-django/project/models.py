@@ -2187,6 +2187,11 @@ class DataAccessRequestReviewer(models.Model):
 
     revocation_date = models.DateTimeField(null=True)
 
+    def revoke(self):
+        self.revocation_date = timezone.now()
+        self.is_revoked = True
+        self.save()
+
 
 class BaseInvitation(models.Model):
     """
