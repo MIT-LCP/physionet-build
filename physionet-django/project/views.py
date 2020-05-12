@@ -1745,6 +1745,17 @@ def data_access_requests_overview(request, project_slug, version):
         raise Http404(
             Exception("You don't have access to the project requests overview"))
 
+    if request.method == 'POST' and 'stop_review' in request.POST.keys():
+        try:
+            entry = DataAccessRequestReviewer.objects.get(
+                project=proj, reviewer_id=reviewer.id, is_revoked=False)
+            entry.revoke()
+
+            notification.notify_owner_data_access_review_withdrawal(entry)
+            return redirect('project_home')
+        except DataAccessRequestReviewer.DoesNotExist:
+            pass
+
     all_requests = DataAccessRequest.objects.filter(project_id=proj).order_by(
         '-request_datetime')
 
@@ -1754,7 +1765,8 @@ def data_access_requests_overview(request, project_slug, version):
     return render(request, 'project/data_access_requests_overview.html',
                   {'project': proj,
                    'requests': all_requests,
-                   'accepted_requests': accepted_requests})
+                   'accepted_requests': accepted_requests,
+                   'is_additional_reviewer': proj.is_data_access_reviewer(reviewer)})
 
 
 @login_required

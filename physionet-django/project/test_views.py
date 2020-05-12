@@ -1072,6 +1072,7 @@ class TestInviteDataAccessReviewer(TestMixin):
 
         self.assertTrue(
             self._see_manage_requests_button(self.ADDITIONAL_REVIEWER))
+
         # reviewer shouldn't be able to manage other reviewers
         self.assertNotContains(self.client.get(reverse('project_home')),
                             "Manage Reviewers", html=True)
@@ -1081,11 +1082,18 @@ class TestInviteDataAccessReviewer(TestMixin):
                                            args=(
                                            project.slug, project.version,))), '')
 
+        # test self-revocation
+        self.client.post(reverse('data_access_requests_overview',
+                                 args=(project.slug, project.version,)),
+                         data={'stop_review': ['']})
+
+        self.assertFalse(
+            self._see_manage_requests_button(self.ADDITIONAL_REVIEWER))
+
         # add published author
         self._add_additional_author(project)
         self.assertFalse(
             self._see_manage_requests_button(self.ADDITIONAL_AUTHOR))
-
 
     def test_self_appointing_not_possible(self):
         project = PublishedProject.objects.get(title=self.PROJECT_NAME)
