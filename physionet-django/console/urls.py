@@ -76,6 +76,8 @@ urlpatterns = [
     path('featured/', views.featured_content, name='featured_content'),
     path('featured/add', views.add_featured, name='add_featured'),
 
+    # list of all projects
+    path('usage/all/projects/', views.all_projects, name='all_projects'),
     # guidelines
     path('guidelines/review/', views.guidelines_review, name='guidelines_review'),
 ]

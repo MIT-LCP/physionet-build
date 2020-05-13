@@ -1430,6 +1430,18 @@ def download_credentialed_users(request):
 
     return response
 
+def all_projects(request):
+    """
+    List of all published projects on the platform.
+    """
+    set_projects = PublishedProject.objects.all().order_by('slug')
+
+    all_projects = {}
+    for p in set_projects:
+        all_projects[p.slug] =  p.title
+
+    return render(request, 'console/all_projects.html',
+        {'all_projects': all_projects})
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
