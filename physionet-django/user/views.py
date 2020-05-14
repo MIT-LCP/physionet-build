@@ -31,7 +31,8 @@ from user import forms
 from user.models import AssociatedEmail, Profile, User, CredentialApplication, LegacyCredential, CloudInformation
 from physionet import utility
 from physionet.middleware.maintenance import (allow_post_during_maintenance,
-                                              disallow_during_maintenance)
+                                              disallow_during_maintenance,
+                                              ServiceUnavailable)
 from project.models import Author, License, PublishedProject
 from notification.utility import (process_credential_complete,
                                   credential_application_request,
@@ -492,6 +493,9 @@ def credential_application(request):
     if user.is_credentialed or CredentialApplication.objects.filter(
             user=user, status=0):
         return redirect('edit_credentialing')
+
+    if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
+        raise ServiceUnavailable()
 
     if request.method == 'POST':
         # We use the individual forms to render the errors in the template
