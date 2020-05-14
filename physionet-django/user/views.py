@@ -303,6 +303,12 @@ def edit_profile(request):
     form = forms.ProfileForm(instance=profile)
 
     if request.method == 'POST':
+        if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
+            # Allow submitting the form, but do not allow the photo to
+            # be modified.
+            if 'delete_photo' in request.POST or request.FILES:
+                raise ServiceUnavailable()
+
         if 'edit_profile' in request.POST:
             # Update the profile and return to the same page. Place a message
             # at the top of the page: 'your profile has been updated'
