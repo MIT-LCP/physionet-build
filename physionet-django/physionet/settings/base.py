@@ -56,6 +56,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'physionet.middleware.maintenance.SystemMaintenanceMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -135,6 +136,19 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR,'static')]
 # Google Storge service account credentials
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(BASE_DIR, 'PhysioNet-Data-credentials.json')
+
+# Maintenance mode
+
+# If true, disable all POSTs and other requests to make changes
+SYSTEM_MAINTENANCE_NO_CHANGES = config('SYSTEM_MAINTENANCE_NO_CHANGES',
+                                       cast=bool, default=False)
+# If true, disable upload functions
+SYSTEM_MAINTENANCE_NO_UPLOAD = config('SYSTEM_MAINTENANCE_NO_UPLOAD',
+                                      cast=bool, default=False)
+# HTML error message displayed during maintenance
+SYSTEM_MAINTENANCE_MESSAGE = config('SYSTEM_MAINTENANCE_MESSAGE',
+                                    default=None)
+
 
 # Google G suite Groups service account and Private Key file
 SERVICE_ACCOUNT_EMAIL = 'gcp-physionet-groups@physionet-data.iam.gserviceaccount.com'

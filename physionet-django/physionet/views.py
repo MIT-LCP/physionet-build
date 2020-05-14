@@ -9,6 +9,7 @@ from django.contrib.contenttypes.models import ContentType
 
 from notification.models import News
 import notification.utility as notification
+from physionet.middleware.maintenance import allow_post_during_maintenance
 from project.models import (License, PublishedProject, Author, ActiveProject,
                             Metadata, ProjectType)
 from user.forms import ContactForm
@@ -57,6 +58,7 @@ def license_content(request, license_slug):
     return render(request, 'about/license_content.html', {'license': license})
 
 
+@allow_post_during_maintenance
 def about(request):
     """
     About the site content.

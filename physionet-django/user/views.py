@@ -23,12 +23,16 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.decorators import method_decorator
 from django.views.decorators.debug import sensitive_post_parameters
 from django.db import transaction
 
 from user import forms
 from user.models import AssociatedEmail, Profile, User, CredentialApplication, LegacyCredential, CloudInformation
 from physionet import utility
+from physionet.middleware.maintenance import (allow_post_during_maintenance,
+                                              disallow_during_maintenance,
+                                              ServiceUnavailable)
 from project.models import Author, License, PublishedProject
 from notification.utility import (process_credential_complete,
                                   credential_application_request,
@@ -38,6 +42,7 @@ from notification.utility import (process_credential_complete,
 logger = logging.getLogger(__name__)
 
 
+@method_decorator(allow_post_during_maintenance, 'dispatch')
 class LoginView(auth_views.LoginView):
     template_name = 'user/login.html'
     authentication_form = forms.LoginForm
@@ -62,6 +67,7 @@ class PasswordResetDoneView(auth_views.PasswordResetDoneView):
 
 # Prompt user to enter new password and carry out password reset (if
 # url is valid)
+@method_decorator(disallow_during_maintenance, 'dispatch')
 class PasswordResetConfirmView(auth_views.PasswordResetConfirmView):
     template_name = 'user/reset_password_confirm.html'
     success_url = reverse_lazy('reset_password_complete')
@@ -87,6 +93,7 @@ edit_password = PasswordChangeView.as_view()
 
 
 @sensitive_post_parameters('password1', 'password2')
+@disallow_during_maintenance
 def activate_user(request, uidb64, token):
     """
     Page to active the account of a newly registered user.
@@ -296,6 +303,12 @@ def edit_profile(request):
     form = forms.ProfileForm(instance=profile)
 
     if request.method == 'POST':
+        if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
+            # Allow submitting the form, but do not allow the photo to
+            # be modified.
+            if 'delete_photo' in request.POST or request.FILES:
+                raise ServiceUnavailable()
+
         if 'edit_profile' in request.POST:
             # Update the profile and return to the same page. Place a message
             # at the top of the page: 'your profile has been updated'
@@ -393,6 +406,7 @@ def user_settings(request):
 
 
 @login_required
+@disallow_during_maintenance
 def verify_email(request, uidb64, token):
     """
     Page to verify an associated email
@@ -485,6 +499,9 @@ def credential_application(request):
     if user.is_credentialed or CredentialApplication.objects.filter(
             user=user, status=0):
         return redirect('edit_credentialing')
+
+    if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
+        raise ServiceUnavailable()
 
     if request.method == 'POST':
         # We use the individual forms to render the errors in the template

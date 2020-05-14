@@ -22,6 +22,7 @@ from django.contrib.sites.models import Site
 
 from notification.models import News
 import notification.utility as notification
+from physionet.middleware.maintenance import ServiceUnavailable
 from physionet.utility import paginate
 import project.forms as project_forms
 from project.models import (ActiveProject, ArchivedProject, StorageRequest,
@@ -501,6 +502,8 @@ def publish_submission(request, project_slug, *args, **kwargs):
 
     if project.submission_status != 60:
         return redirect('editor_home')
+    if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
+        raise ServiceUnavailable()
 
     reassign_editor_form = forms.ReassignEditorForm(request.user)
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
@@ -726,6 +729,8 @@ def manage_published_project(request, project_slug, version):
         elif 'make_checksum_file' in request.POST:
             if any(get_associated_tasks(project)):
                 messages.error(request, 'Project has tasks pending.')
+            elif settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
+                raise ServiceUnavailable()
             else:
                 make_checksum_background(
                     pid=project.id,
@@ -735,6 +740,8 @@ def manage_published_project(request, project_slug, version):
         elif 'make_zip' in request.POST:
             if any(get_associated_tasks(project)):
                 messages.error(request, 'Project has tasks pending.')
+            elif settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
+                raise ServiceUnavailable()
             else:
                 make_zip_background(
                     pid=project.id,
@@ -743,7 +750,9 @@ def manage_published_project(request, project_slug, version):
                     request, 'The zip of the main files has been scheduled.')
         elif 'deprecate_files' in request.POST and not project.deprecated_files:
             deprecate_form = forms.DeprecateFilesForm(data=request.POST)
-            if deprecate_form.is_valid():
+            if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
+                raise ServiceUnavailable()
+            elif deprecate_form.is_valid():
                 project.deprecate_files(
                     delete_files=int(deprecate_form.cleaned_data['delete_files']))
                 messages.success(request, 'The project files have been deprecated.')
