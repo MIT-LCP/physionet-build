@@ -5,6 +5,7 @@ import os
 import csv
 from datetime import datetime
 from itertools import chain
+import json
 
 from django.core.validators  import validate_email
 from django.contrib import messages
@@ -1436,12 +1437,13 @@ def all_projects(request):
     """
     set_projects = PublishedProject.objects.all().order_by('slug')
 
-    all_projects = {}
+    database_list = {}
     for p in set_projects:
-        all_projects[p.slug] =  p.title
+        database_list[p.slug] =  p.title
 
-    return render(request, 'console/all_projects.html',
-        {'all_projects': all_projects})
+    database_list = json.dumps(database_list, indent=4)
+
+    return HttpResponse(database_list, content_type='application/json')
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
