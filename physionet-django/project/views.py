@@ -1417,7 +1417,10 @@ def serve_published_project_file(request, project_slug, version,
             else:
                 sandbox = True
 
-            file_path = file_path.replace('%0D','')
+            if '%0D' in file_path:
+                raise Exception("Newline character in URL",
+                                "Either remove from file_path directly or "
+                                "use.. | tr -d '\r' in bash")
 
             return serve_file(file_path, attach=attach, allow_directory=True,
                               sandbox=sandbox)
