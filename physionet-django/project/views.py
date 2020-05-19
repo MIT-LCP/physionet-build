@@ -1417,6 +1417,8 @@ def serve_published_project_file(request, project_slug, version,
             else:
                 sandbox = True
 
+            file_path = file_path.replace('%0D','')
+
             return serve_file(file_path, attach=attach, allow_directory=True,
                               sandbox=sandbox)
         except IsADirectoryError:
