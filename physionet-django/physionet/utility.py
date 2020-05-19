@@ -8,7 +8,7 @@ import tempfile
 import urllib.parse
 
 from django.conf import settings
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, BadHeaderError
 from django.utils.html import format_html
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
@@ -99,6 +99,7 @@ def _file_x_accel_path(file_path):
         elif file_path.startswith(media_root + '/'):
             return media_alias + file_path[len(media_root):]
 
+
 def serve_file(file_path, attach=True, allow_directory=False, sandbox=True):
     """
     Serve a file to download. file_path is the real path of the file on
@@ -124,12 +125,15 @@ def serve_file(file_path, attach=True, allow_directory=False, sandbox=True):
                 response = HttpResponse(f.read())
                 response['Content-Type'] = file_content_type(file_path)
     base = os.path.basename(file_path)
-    if sandbox:
-        response['Content-Security-Policy'] = "sandbox; default-src 'self'"
-    if attach:
-        response['Content-Disposition'] = 'attachment; filename=' + base
-    else:
-        response['Content-Disposition'] = 'inline; filename=' + base
+    try:
+        if sandbox:
+            response['Content-Security-Policy'] = "sandbox; default-src 'self'"
+        if attach:
+            response['Content-Disposition'] = 'attachment; filename=' + base
+        else:
+            response['Content-Disposition'] = 'inline; filename=' + base
+    except BadHeaderError:
+        raise Http404()
     return response
 
 
