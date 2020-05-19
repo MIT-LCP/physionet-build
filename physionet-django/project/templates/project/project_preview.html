@@ -101,41 +101,40 @@
       <a href="#citationModal" data-toggle="modal">(show more options)</a>
       <br><span>{{ citations.APA }}</span>
     </p>
-    <div class="modal fade" id="citationModal" tabindex="-1" role="dialog" aria-labelledby="citationModalLabel" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="citationModalLabel">Cite</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            <table><tbody>
-              {% for style, citation in citations.items %}
-                <tr>
-                  <th>{{ style }}</th>
-                  <td>{{ citation }}</td>
-                </tr>
-              {% endfor %}
-            </tbody></table>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-          </div>
-        </div>
-      </div>
-    </div>
+
+    {% include 'modal_start.html' with id_name='citationModal' title='Cite' %}
+    <table><tbody>
+      {% for style, citation in citations.items %}
+        <tr>
+          <th>{{ style }}</th>
+          <td>{{ citation }}</td>
+        </tr>
+      {% endfor %}
+    </tbody></table>
+    {% include 'modal_end.html' %}
+
     {% if publication %}
       <strong>In addition, please cite the original publication:</strong>
       <p><a href="{{ publication.url }}">{{ publication.citation }}</a></p>
     {% endif %}
 
-    <strong>Please also include the standard citation for PhysioNet:</strong>
-      <p>Goldberger AL, Amaral LAN, Glass L, Hausdorff JM, Ivanov PCh, Mark RG,
-      Mietus JE, Moody GB, Peng C-K, Stanley HE. PhysioBank, PhysioToolkit, and
-      PhysioNet: Components of a New Research Resource for Complex Physiologic
-      Signals (2003). Circulation. 101(23):e215-e220.</p>
+    <p>
+      <strong>Please include the standard citation for PhysioNet:</strong>
+      <a href="#citationModalPlatform" data-toggle="modal">(show more options)</a>
+      <br><span>{{ platform_citations.APA }}</span>
+    </p>
+
+    {% include 'modal_start.html' with id_name='citationModalPlatform' title='Cite' %}
+    <table><tbody>
+      {% for style, citation in platform_citations.items %}
+        <tr>
+          <th>{{ style }}</th>
+          <td>{{ citation }}</td>
+        </tr>
+      {% endfor %}
+    </tbody></table>
+    {% include 'modal_end.html' %}
+
     </div>
 
       {# 0: Database #}

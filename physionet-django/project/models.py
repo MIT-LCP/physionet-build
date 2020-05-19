@@ -624,6 +624,74 @@ class Metadata(models.Model):
             else:
                 return authors
 
+    def get_platform_citation(self):
+        """
+        Returns the information needed to generate the standard platform
+        citation in multiple formats (MLA, APA, Chicago, Harvard, and
+        Vancouver).
+
+        1. MLA (8th edition) [https://owl.purdue.edu/owl/research_and_citation/
+                              mla_style/mla_formatting_and_style_guide/
+                              mla_formatting_and_style_guide.html]
+        2. APA (7th edition) [https://owl.purdue.edu/owl/research_and_citation/
+                              apa_style/apa_style_introduction.html]
+        3. Chicago (17th edition) [https://owl.purdue.edu/owl/
+                                   research_and_citation/
+                                   chicago_manual_17th_edition/
+                                   cmos_formatting_and_style_guide/
+                                   chicago_manual_of_style_17th_edition.html]
+        4. Harvard [https://www.mendeley.com/guides/harvard-citation-guide]
+        5. Vancouver [https://guides.lib.monash.edu/ld.php?content_id=14570618]
+
+        Parameters
+        ----------
+        N/A
+
+        Returns
+        -------
+        citation_styles [dict]:
+            dictionary containing the desired citation style
+        """
+        citation_styles = {
+            'MLA': ('Goldberger, A., et al. "PhysioBank, '
+                    'PhysioToolkit, and PhysioNet: Components of a '
+                    'new research resource for complex physiologic '
+                    'signals. Circulation [Online]. 101 (23), pp. '
+                    'e215–e220." (2000).'),
+            'APA': ('Goldberger, A., Amaral, L., Glass, L., '
+                    'Hausdorff, J., Ivanov, P. C., Mark, R., ... & '
+                    'Stanley, H. E. (2000). PhysioBank, '
+                    'PhysioToolkit, and PhysioNet: Components of a '
+                    'new research resource for complex physiologic '
+                    'signals. Circulation [Online]. 101 (23), pp. '
+                    'e215–e220.'),
+            'Chicago': ('Goldberger, A., L. Amaral, L. Glass, J. '
+                        'Hausdorff, P. C. Ivanov, R. Mark, J. E. '
+                        'Mietus, G. B. Moody, C. K. Peng, and H. E. '
+                        'Stanley. "PhysioBank, PhysioToolkit, and '
+                        'PhysioNet: Components of a new research '
+                        'resource for complex physiologic signals. '
+                        'Circulation [Online]. 101 (23), pp. '
+                        'e215–e220." (2000).'),
+            'Harvard': ('Goldberger, A., Amaral, L., Glass, L., '
+                        'Hausdorff, J., Ivanov, P.C., Mark, R., '
+                        'Mietus, J.E., Moody, G.B., Peng, C.K. and '
+                        'Stanley, H.E., 2000. PhysioBank, '
+                        'PhysioToolkit, and PhysioNet: Components of a '
+                        'new research resource for complex physiologic '
+                        'signals. Circulation [Online]. 101 (23), pp. '
+                        'e215–e220.'),
+            'Vancouver': ('Goldberger A, Amaral L, Glass L, Hausdorff J, '
+                          'Ivanov PC, Mark R, Mietus JE, Moody GB, Peng '
+                          'CK, Stanley HE. PhysioBank, PhysioToolkit, '
+                          'and PhysioNet: Components of a new research '
+                          'resource for complex physiologic signals. '
+                          'Circulation [Online]. 101 (23), pp. '
+                          'e215–e220.')
+        }
+
+        return citation_styles
+
     def abstract_text_content(self):
         """
         Returns abstract as plain text.
