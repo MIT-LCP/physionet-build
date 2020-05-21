@@ -710,6 +710,8 @@ def manage_published_project(request, project_slug, version):
     deprecate_form = None if project.deprecated_files else forms.DeprecateFilesForm()
     has_credentials = os.path.exists(os.environ["GOOGLE_APPLICATION_CREDENTIALS"])
     data_access_form = forms.DataAccessForm(project=project)
+    contact_form = forms.PublishedProjectContactForm(project=project,
+                                                     instance=project.contact)
 
     if request.method == 'POST':
         if any(x in request.POST for x in ['create_doi_core',
@@ -778,6 +780,12 @@ def manage_published_project(request, project_slug, version):
         elif 'remove_passphrase' in request.POST:
             project.anonymous.all().delete()
             anonymous_url = ''
+        elif 'set_contact' in request.POST:
+            contact_form = forms.PublishedProjectContactForm(
+                instance=project.contact, project=project, data=request.POST)
+            if contact_form.is_valid():
+                contact_form.save()
+                messages.success(request, 'The contact information has been updated')
 
     data_access = DataAccess.objects.filter(project=project)
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
@@ -797,7 +805,9 @@ def manage_published_project(request, project_slug, version):
          'data_access_form': data_access_form, 'data_access': data_access,
          'rw_tasks': rw_tasks, 'ro_tasks': ro_tasks,
          'anonymous_url': anonymous_url, 'passphrase': passphrase,
-         'published_projects_nav': True, 'url_prefix': url_prefix})
+         'published_projects_nav': True, 'url_prefix': url_prefix,
+         'contact_form': contact_form})
+
 
 def gcp_bucket_management(request, project, user):
     """
