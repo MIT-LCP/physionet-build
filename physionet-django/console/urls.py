@@ -78,4 +78,7 @@ urlpatterns = [
 
     # guidelines
     path('guidelines/review/', views.guidelines_review, name='guidelines_review'),
+
+    path('user-autocomplete/', views.UserAutocomplete.as_view(),
+    name='user-autocomplete'),
 ]
