@@ -1701,7 +1701,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                     published_project.set_version_order()
 
                 # Same content, different objects.
-                for reference in self.references.all():
+                for reference in self.references.all().order_by('id'):
                     published_reference = PublishedReference.objects.create(
                         description=reference.description,
                         project=published_project)
