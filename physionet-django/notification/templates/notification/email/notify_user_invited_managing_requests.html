@@ -2,7 +2,7 @@ Dear {{ invitation.reviewer.get_full_name }},
 
 You have been invited to review access requests for the project "{{ invitation.project }}".
 
-You can view and respond to requests following this link:
+You can view and respond to requests using the following link:
 
 {{ request_protocol}}://{{ request_host}}{% url 'data_access_requests_overview' invitation.project.slug invitation.project.version %}
 
