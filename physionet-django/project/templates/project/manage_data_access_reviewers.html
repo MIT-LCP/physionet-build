@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}Manage Reviewers{% endblock %}
+
+{% block content %}
+    <div class="container col-md-8">
+
+        <h1>Manage Reviewers</h1>
+
+        <br>
+        <h3>Invite Reviewers</h3>
+        <form action="{% url 'manage_data_access_reviewers' project.slug project.version %}" method="post"
+              class="form-signin no-pd">
+            {% csrf_token %}
+            {% include "inline_form_snippet.html" with form=invite_reviewer_form %}
+            <button class="btn btn-success btn-rsp" name="invite_reviewer" type="submit">Invite Reviewer</button>
+        </form>
+
+        <hr>
+
+        <h3>Reviewers</h3>
+
+        {% if reviewers_list|length %}
+            <div class="table-responsive">
+                <table class="table table-bordered" width="100%"
+                       cellspacing="0">
+                    <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Since</th>
+                        <th>Revoked</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <form action="{% url 'manage_data_access_reviewers' project.slug project.version %}" method="post"
+                          class="form-signin no-pd">
+                        {% for entry in reviewers_list %}
+                            <tr>
+                                <td>{{ entry.reviewer.get_full_name }} ( <a
+                                        href="{% url 'public_profile' entry.reviewer.username %}">{{ entry.reviewer.username }}</a>)
+                                </td>
+                                <td>{{ entry.added_date|date }}</td>
+                                <td>
+                                    {% if not entry.is_revoked %}
+                                        {% csrf_token %}
+                                        <button id="revoke-button" type="button" class="btn
+            btn-danger" data-toggle="modal"
+                                                data-target="#revoke-modal">Revoke
+                                        </button>
+                                        <div class="modal fade" id="revoke-modal" tabindex="-1"
+                                             role="dialog" aria-labelledby="revoke-modal"
+                                             aria-hidden="true">
+                                            <div class="modal-dialog" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Revoke Rights</h5>
+                                                        <button type="button" class="close"
+                                                                data-dismiss="modal" aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <form action="" method="post">
+                                                        <div class="modal-body">
+                                                            {% csrf_token %}
+                                                            <p>Are you sure you wish to revoke the rights
+                                                                of {{ entry.reviewer.username }} to approve access
+                                                                requests?</p>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button class="btn btn-danger" name="revoke_reviewer"
+                                                                    value="{{ entry.reviewer_id }}" type="submit">
+                                                                Yes, revoke
+                                                            </button>
+                                                            <button type="button" class="btn btn-secondary"
+                                                                    data-dismiss="modal">No
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        {{ entry.revocation_date | date }}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </form>
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p>No reviewers yet</p>
+        {% endif %}
+        <p><a href="{% url 'project_home' %}">Return to Project Home</a></p>
+    </div>
+{% endblock %}
+
+{% block local_js_bottom %}
+    <script src="{% static 'custom/js/enable-tooltip.js' %}"></script>
+    <script src="{% static 'custom/js/resize-ck.js' %}"></script>
+{% endblock %}

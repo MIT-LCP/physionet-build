@@ -188,7 +188,7 @@ def submit_notify(project):
     email_context['name'] = "Colleague"
     body = loader.render_to_string(
         'notification/email/submit_notify_team.html', email_context)
-        
+
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
           [settings.CONTACT_EMAIL], fail_silently=False)
 
@@ -399,10 +399,10 @@ def publish_notify(request, published_project):
     content['name'] = "Colleague"
     body = loader.render_to_string(
         'notification/email/publish_notify_team.html', content)
-        
+
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
           [settings.CONTACT_EMAIL], fail_silently=False)
-          
+
 
 def storage_response_notify(storage_request):
     """
@@ -701,6 +701,42 @@ def notify_user_data_access_request(data_access_request, request_protocol,
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [data_access_request.requester.email],
               fail_silently=False)
+
+
+def notify_user_invited_managing_requests(reviewer_invitation, request_protocol, request_host):
+    subject = "PhysioNet Invitation to Review Requests"
+
+    body = loader.render_to_string(
+        'notification/email/notify_user_invited_managing_requests.html', {
+            'invitation': reviewer_invitation,
+            'signature': email_signature(),
+            'footer': email_footer(),
+            'request_host': request_host,
+            'request_protocol': request_protocol,
+        })
+
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+              [reviewer_invitation.reviewer.email],
+              fail_silently=False)
+
+
+def notify_owner_data_access_review_withdrawal(reviewer_invitation):
+    subject = "PhysioNet Data Request Reviewer Withdrawal"
+
+    project = reviewer_invitation.project
+    for user in set([project.submitting_author().user, project.corresponding_author().user]):
+        body = loader.render_to_string(
+            'notification/email/notify_owner_data_access_review_withdrawal.html', {
+                'owner': user,
+                'user': reviewer_invitation.reviewer,
+                'project': project,
+                'signature': email_signature(),
+                'footer': email_footer(),
+            })
+
+        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                  [user.email],
+                  fail_silently=False)
 
 
 def task_failed_notify(name, attempts, last_error, date_time, task_name, task_params):

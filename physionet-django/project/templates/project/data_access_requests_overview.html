@@ -36,5 +36,46 @@
         {% else %}
             <p>No requests yet.</p>
         {% endif %}
+
+        {% if is_additional_reviewer %}
+            <div>
+                <button id="revoke-button" type="button" class="btn btn-danger"
+                        data-toggle="modal" data-target="#revoke-modal">Stop Reviewing Requests
+                </button>
+            </div>
+            <div class="modal fade" id="revoke-modal" tabindex="-1"
+                 role="dialog" aria-labelledby="revoke-modal"
+                 aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Stop Reviewing Requests</h5>
+                            <button type="button" class="close"
+                                    data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <form action="" method="post">
+                            <div class="modal-body">
+                                {% csrf_token %}
+                                <p>Are you sure you'd like to stop reviewing requests for this project?</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="btn btn-danger" name="stop_review" type="submit">
+                                    Yes
+                                </button>
+                                <button type="button" class="btn btn-secondary"
+                                        data-dismiss="modal">No
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        <div>
+            <br/>
+            <p><a href="{% url 'project_home' %}">Return to Project Home</a></p>
+        </div>
     </div>
 {% endblock %}

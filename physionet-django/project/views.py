@@ -28,10 +28,10 @@ from django.utils.html import format_html, format_html_join
 from project.fileviews import display_project_file
 from project import forms
 from project.models import (Affiliation, Author, AuthorInvitation,
-    ActiveProject, PublishedProject, StorageRequest, Reference, DataAccess,
-    ArchivedProject, ProgrammingLanguage, Topic, Contact, Publication,
-    PublishedAuthor, EditLog, CopyeditLog, DUASignature, CoreProject, GCP,
-    AnonymousAccess, DataAccessRequest)
+                            ActiveProject, PublishedProject, StorageRequest, Reference, DataAccess,
+                            ArchivedProject, ProgrammingLanguage, Topic, Contact, Publication,
+                            PublishedAuthor, EditLog, CopyeditLog, DUASignature, CoreProject, GCP,
+                            AnonymousAccess, DataAccessRequest, DataAccessRequestReviewer)
 from project import utility
 from project.validators import validate_filename
 import notification.utility as notification
@@ -183,12 +183,17 @@ def project_home(request):
         content_type=ContentType.objects.get_for_model(ArchivedProject))
     published_authors = PublishedAuthor.objects.filter(user=user,
         project__is_latest_version=True)
+    request_reviewers = DataAccessRequestReviewer.objects.filter(reviewer=user,
+                                                                 is_revoked=False,
+                                                                 project__is_latest_version=True)
 
     # Get the various projects.
     projects = [a.project for a in active_authors]
-    published_projects = [a.project for a in published_authors]
+    published_projects = [a.project for a in published_authors] + [ a.project for a in request_reviewers]
     for p in published_projects:
         p.new_button = p.can_publish_new(user)
+        p.requests_button = p.can_approve_requests(user)
+        p.manage_reviewers_button = p.can_manage_data_access_reviewers(user)
 
     if request.method == 'POST' and 'invitation_response' in request.POST.keys():
         author_qs = AuthorInvitation.get_user_invitations(user)
@@ -218,7 +223,8 @@ def project_home(request):
         queryset=AuthorInvitation.get_user_invitations(user))
 
     data_access_requests = DataAccessRequest.objects.filter(
-        project__in=published_projects, status=0)
+        project__in=[p for p in published_projects if p.can_approve_requests(user)],
+        status=0)
 
     return render(request, 'project/project_home.html', {
         'projects': projects, 'published_projects': published_projects,
@@ -1658,10 +1664,13 @@ def request_data_access(request, project_slug, version):
             data_access_req = project_request_form.save()
 
             # trigger e-mail notification to reviewers
-            users_notify = [p.user for p in
-                            PublishedAuthor.objects.filter(project=proj,
-                                                           is_corresponding=1)]
-            notification.notify_owner_data_access_request(users_notify,
+            corresponding_author = proj.corresponding_author().user
+
+            reviewers = [p.reviewer for p in
+                         DataAccessRequestReviewer.objects.filter(
+                             project=proj, reviewer=user, is_revoked=False)]
+
+            notification.notify_owner_data_access_request(reviewers + [corresponding_author],
                                                           data_access_req,
                                                           request.scheme,
                                                           request.get_host())
@@ -1755,9 +1764,20 @@ def data_access_requests_overview(request, project_slug, version):
         return redirect('published_project',
                         project_slug=project_slug, version=version)
 
-    if not proj.is_allowed_handling_access_requests(reviewer):
+    if not proj.can_approve_requests(reviewer):
         raise Http404(
             Exception("You don't have access to the project requests overview"))
+
+    if request.method == 'POST' and 'stop_review' in request.POST.keys():
+        try:
+            entry = DataAccessRequestReviewer.objects.get(
+                project=proj, reviewer_id=reviewer.id, is_revoked=False)
+            entry.revoke()
+
+            notification.notify_owner_data_access_review_withdrawal(entry)
+            return redirect('project_home')
+        except DataAccessRequestReviewer.DoesNotExist:
+            pass
 
     all_requests = DataAccessRequest.objects.filter(project_id=proj).order_by(
         '-request_datetime')
@@ -1768,7 +1788,8 @@ def data_access_requests_overview(request, project_slug, version):
     return render(request, 'project/data_access_requests_overview.html',
                   {'project': proj,
                    'requests': all_requests,
-                   'accepted_requests': accepted_requests})
+                   'accepted_requests': accepted_requests,
+                   'is_additional_reviewer': proj.is_data_access_reviewer(reviewer)})
 
 
 @login_required
@@ -1793,7 +1814,7 @@ def data_access_request_view(request, project_slug, version, user_id):
         return redirect('published_project',
                         project_slug=project_slug, version=version)
 
-    if not proj.is_allowed_handling_access_requests(reviewer):
+    if not proj.can_approve_requests(reviewer):
         raise Http404(
             Exception("You don't have access to the project requests overview"))
 
@@ -1841,6 +1862,56 @@ def data_access_request_view(request, project_slug, version, user_id):
                    'credentialing_data': credentialing_data,
                    'legacy_credentialing_data': legacy_credentialing_data
                    })
+
+@login_required
+def manage_data_access_reviewers(request, project_slug, version):
+    """
+    Corresponding author of a self managed credentialing project can invite additional
+    physionet users to help review incoming data access requests.
+    The invitation can also be revoked
+    """
+
+    try:
+        project = PublishedProject.objects.get(slug=project_slug, version=version)
+    except:
+        raise Http404(Exception("The project doesn't exist"))
+
+    if not project.is_self_managed_access:
+        return redirect('project_home')
+
+    reviewer_manager = request.user
+
+    if not project.can_manage_data_access_reviewers(reviewer_manager):
+        raise Http404(
+            Exception("You don't have access to this view"))
+
+    form = forms.InviteDataAccessReviewerForm(project=project)
+    if request.method == 'POST' and 'invite_reviewer' in request.POST.keys():
+        form = forms.InviteDataAccessReviewerForm(data=request.POST, project=project)
+
+        if form.is_valid():
+            invitation = form.save()
+            notification.notify_user_invited_managing_requests(invitation,
+                                                               request.scheme,
+                                                               request.get_host())
+    elif request.method == 'POST' and 'revoke_reviewer' in request.POST.keys():
+        reviewer_id = request.POST['revoke_reviewer']
+
+        try:
+            entry = DataAccessRequestReviewer.objects.get(
+                project=project, reviewer_id=reviewer_id, is_revoked=False)
+            entry.revoke()
+        except DataAccessRequestReviewer.DoesNotExist:
+            pass
+
+    reviewers_list = DataAccessRequestReviewer.objects.filter(
+        project=project).order_by("is_revoked", "-revocation_date",
+                                  "reviewer__profile__first_names")
+
+    return render(request, 'project/manage_data_access_reviewers.html',
+                  {'project': project,
+                   'invite_reviewer_form': form,
+                   'reviewers_list': reviewers_list})
 
 
 @login_required

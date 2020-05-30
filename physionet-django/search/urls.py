@@ -52,6 +52,9 @@ urlpatterns = [
     path('access-requests/<project_slug>/<version>/',
          project_views.data_access_requests_overview,
          name='data_access_requests_overview'),
+    path('manage-reviewers/<project_slug>/<version>/',
+         project_views.manage_data_access_reviewers,
+         name='manage_data_access_reviewers'),
 
     path('charts/', views.charts, name='charts'),
 

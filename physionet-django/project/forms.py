@@ -16,9 +16,11 @@ from project.models import (Affiliation, Author, AuthorInvitation, ActiveProject
                             CoreProject, StorageRequest, ProgrammingLanguage,
                             License, Metadata, Reference, Publication, DataAccess,
                             PublishedProject, Topic, exists_project_slug,
-                            ProjectType, AnonymousAccess, DataAccessRequest)
+                            ProjectType, AnonymousAccess, DataAccessRequest,
+                            DataAccessRequestReviewer)
 from project import utility
 from project import validators
+from user.models import User
 
 from dal import autocomplete
 
@@ -986,3 +988,52 @@ class DataAccessResponseForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         self.responder_id = responder_id
+
+
+class InviteDataAccessReviewerForm(forms.ModelForm):
+    reviewer = forms.CharField(widget=forms.TextInput(
+        attrs={'class': 'form-control'}),
+        required=True, label='Physionet Username')
+
+    class Meta:
+        model = DataAccessRequestReviewer
+        fields = ('reviewer',)
+
+    def __init__(self, project, *args, **kwargs):
+        super(InviteDataAccessReviewerForm, self).__init__(*args, **kwargs)
+        self.project = project
+
+    def clean_reviewer(self):
+        reviewer_uname = self.cleaned_data['reviewer']
+        try:
+            reviewer = User.objects.get(username=reviewer_uname)
+            if self.project.can_approve_requests(reviewer):
+                raise forms.ValidationError(
+                    f'User {reviewer_uname} is already allowed to review requests!')
+        except User.DoesNotExist:
+            raise forms.ValidationError(
+                f'No user {reviewer_uname} found!', code='user_not_found')
+
+        return reviewer
+
+    def save(self):
+        if self.errors:
+            return
+
+        reviewer = self.cleaned_data['reviewer']
+
+        invitation = DataAccessRequestReviewer()
+        if DataAccessRequestReviewer.objects.filter(reviewer=reviewer,
+                                                    project=self.project).exists():
+            # updating existing row in case a revoked user gets readded again
+            invitation = DataAccessRequestReviewer.objects.get(
+                reviewer=reviewer,
+                project=self.project)
+        else:
+            invitation.reviewer = reviewer
+            invitation.project = self.project
+
+        invitation.is_revoked = False
+        invitation.added_date = timezone.now()
+        invitation.save()
+        return invitation
