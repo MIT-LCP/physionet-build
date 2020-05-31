@@ -1,9 +1,9 @@
 Dear {{ data_access_request.requester.get_full_name }},
 
-You have requested access for the project {{ data_access_request.project.title }} {{ data_access_request.project.version }}.
-You will receive a decision by {{ due_date | date }}.
+Thank you for requesting access to the project "{{ data_access_request.project.title }} {{ data_access_request.project.version }}".
+You will receive a decision from the project owners by {{ due_date | date }}.
 
-You can check the status of your request at
+You can check the status of your request at:
 {{ request_protocol}}://{{ request_host}}{% url 'data_access_request_status' data_access_request.project.slug data_access_request.project.version %}
 
 {{ signature }}
