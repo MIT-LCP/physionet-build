@@ -19,6 +19,7 @@ from django.db import DatabaseError, transaction
 from django.db.models import Q, CharField, Value, IntegerField, F, functions
 from background_task import background
 from django.contrib.sites.models import Site
+from dal import autocomplete
 
 from notification.models import News
 import notification.utility as notification
@@ -712,6 +713,7 @@ def manage_published_project(request, project_slug, version):
     data_access_form = forms.DataAccessForm(project=project)
     contact_form = forms.PublishedProjectContactForm(project=project,
                                                      instance=project.contact)
+    legacy_author_form = forms.CreateLegacyAuthorForm(project=project)
 
     if request.method == 'POST':
         if any(x in request.POST for x in ['create_doi_core',
@@ -786,6 +788,12 @@ def manage_published_project(request, project_slug, version):
             if contact_form.is_valid():
                 contact_form.save()
                 messages.success(request, 'The contact information has been updated')
+        elif 'set_legacy_author' in request.POST:
+            legacy_author_form = forms.CreateLegacyAuthorForm(project=project,
+                                                              data=request.POST)
+            if legacy_author_form.is_valid():
+                legacy_author_form.save()
+                legacy_author_form = forms.CreateLegacyAuthorForm(project=project)
 
     data_access = DataAccess.objects.filter(project=project)
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
@@ -806,7 +814,8 @@ def manage_published_project(request, project_slug, version):
          'rw_tasks': rw_tasks, 'ro_tasks': ro_tasks,
          'anonymous_url': anonymous_url, 'passphrase': passphrase,
          'published_projects_nav': True, 'url_prefix': url_prefix,
-         'contact_form': contact_form})
+         'contact_form': contact_form,
+         'legacy_author_form': legacy_author_form})
 
 
 def gcp_bucket_management(request, project, user):
@@ -1480,3 +1489,16 @@ def project_access_manage(request, pid):
             'c_project': c_project, 'project_members': project_members,
             'project_access_nav': True})
 
+
+class UserAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        """
+        Get all active users with usernames that match the request string,
+        excluding the user who is doing the search.
+        """
+        qs = User.objects.filter(is_active=True)
+
+        if self.q:
+            qs = qs.filter(username__icontains=self.q)
+
+        return qs

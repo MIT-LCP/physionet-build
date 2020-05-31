@@ -1,3 +1,4 @@
+{% csrf_token %}
 {% for field in form.visible_fields %}
   <div class="form-group row">
     <label class="col-md-2" for="{{ field.id_for_label }}" title="{{ field.help_text }}">{{ field.label }}
@@ -20,3 +21,4 @@
 {% for field in form.hidden_fields %}
   {{ field }}
 {% endfor %}
+{{ form.media }}

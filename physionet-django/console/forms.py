@@ -7,11 +7,12 @@ from django.core.validators import validate_integer, validate_email, URLValidato
 from google.cloud import storage
 from django.db import transaction
 from django.conf import settings
+from dal import autocomplete
 
 from notification.models import News
 from project.models import (ActiveProject, EditLog, CopyeditLog, Contact,
-    PublishedProject, exists_project_slug, DataAccess)
-
+                            PublishedProject, exists_project_slug, DataAccess,
+                            PublishedAffiliation, PublishedAuthor)
 from project.validators import validate_slug, MAX_PROJECT_SLUG_LENGTH, validate_doi
 from user.models import User, CredentialApplication
 from console.utility import generate_doi_payload, register_doi
@@ -445,3 +446,49 @@ class PublishedProjectContactForm(forms.ModelForm):
         contact.project = self.project
         contact.save()
         return contact
+
+
+class CreateLegacyAuthorForm(forms.ModelForm):
+    """
+    Merge two user accounts
+    """
+    author = forms.ModelChoiceField(
+        queryset=User.objects.filter(is_active=True).order_by('username'),
+        widget=autocomplete.ModelSelect2(url='user-autocomplete'),
+        required=True,
+        label="Author's username")
+
+    class Meta:
+        model = PublishedAffiliation
+        fields = ('name',)
+        labels = {'name': 'Affiliation', }
+
+    def __init__(self, project, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.project = project
+
+    def clean_author(self):
+        author = self.cleaned_data['author']
+
+        if self.project.authors.filter(user=author):
+            raise forms.ValidationError('The person is already an author.')
+        return author
+
+    def save(self):
+        if self.errors:
+            return
+
+        author = self.cleaned_data['author']
+        affiliation = super().save(commit=False)
+        display_order = self.project.authors.count() + 1
+        submitting = False
+        if display_order == 1:
+            submitting = True
+
+        affiliation.author = PublishedAuthor.objects.create(
+            first_names=author.profile.first_names, project=self.project,
+            last_name=author.profile.last_name, user=author,
+            display_order=display_order, is_submitting=submitting)
+
+        affiliation.save()
+        return affiliation
