@@ -461,7 +461,7 @@ class CreateLegacyAuthorForm(forms.ModelForm):
     class Meta:
         model = PublishedAffiliation
         fields = ('name',)
-        labels = {'name': 'Afiliation', }
+        labels = {'name': 'Affiliation', }
 
     def __init__(self, project, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -479,16 +479,16 @@ class CreateLegacyAuthorForm(forms.ModelForm):
             return
 
         author = self.cleaned_data['author']
-        afiliation = super().save(commit=False)
+        affiliation = super().save(commit=False)
         display_order = self.project.authors.count() + 1
         submitting = False
         if display_order == 1:
             submitting = True
 
-        afiliation.author = PublishedAuthor.objects.create(
+        affiliation.author = PublishedAuthor.objects.create(
             first_names=author.profile.first_names, project=self.project,
             last_name=author.profile.last_name, user=author,
             display_order=display_order, is_submitting=submitting)
 
-        afiliation.save()
-        return afiliation
+        affiliation.save()
+        return affiliation

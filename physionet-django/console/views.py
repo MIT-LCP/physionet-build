@@ -1493,9 +1493,8 @@ def project_access_manage(request, pid):
 class UserAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         """
-        Get all occurrances where a user is active and the username contains
-        the request string.
-        The person doing the search cannot be part of the search results.
+        Get all active users with usernames that match the request string,
+        excluding the user who is doing the search.
         """
         qs = User.objects.filter(is_active=True)
 
