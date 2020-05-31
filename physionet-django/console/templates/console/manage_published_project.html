@@ -52,6 +52,20 @@
 
 <div class="card mb-3">
     <div class="card-header">
+      Contact information
+    </div>
+    <div class="card-body">
+      <h3>Project contact information</h3>
+      <form method="POST" id="contact_form">
+        {% csrf_token %}
+        {% include "inline_form_snippet.html" with form=contact_form %}
+        <button class="btn btn-primary btn-fixed" name="set_contact" type="submit">Set contact</button>
+      </form>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header">
       Contact authors
     </div>
     <div class="card-body">

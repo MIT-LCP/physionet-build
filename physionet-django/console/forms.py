@@ -9,8 +9,9 @@ from django.db import transaction
 from django.conf import settings
 
 from notification.models import News
-from project.models import (ActiveProject, EditLog, CopyeditLog,
+from project.models import (ActiveProject, EditLog, CopyeditLog, Contact,
     PublishedProject, exists_project_slug, DataAccess)
+
 from project.validators import validate_slug, MAX_PROJECT_SLUG_LENGTH, validate_doi
 from user.models import User, CredentialApplication
 from console.utility import generate_doi_payload, register_doi
@@ -428,3 +429,19 @@ class DataAccessForm(forms.ModelForm):
         data_access.project = self.project
         data_access.save()
         return data_access
+
+
+class PublishedProjectContactForm(forms.ModelForm):
+    class Meta:
+        model = Contact
+        fields = ('name', 'affiliations', 'email')
+
+    def __init__(self, project, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.project = project
+
+    def save(self):
+        contact = super().save(commit=False)
+        contact.project = self.project
+        contact.save()
+        return contact
