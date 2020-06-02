@@ -309,14 +309,6 @@
     <!-- /.sidebar -->
   </div>
 
-  {% if has_access and project.is_self_managed_access %}
-      <h2>Data Access</h2>
-      <div>
-          <p>Data access has been granted to you, <a href="{% url 'data_access_request_status' project.slug project.version %}">see details.</a></p>
-      <p><a href="{% url 'request_data_access' project.slug project.version %}">Request access </a>for an additional data use.</p>
-      </div>
-  {% endif %}
-
   <h2 id="files">Files</h2>
   {% if project.deprecated_files %}
     <div class="alert alert-danger col-md-8" role="alert">
@@ -326,6 +318,11 @@
     {% if project.access_policy %}
       {% if has_access %}
         <p>Total uncompressed size: {{ main_size }}.
+        {% if project.is_self_managed_access %}
+          <br>
+          You have been granted access to this dataset for a  <a href="{% url 'data_access_request_status' project.slug project.version %}">specific project</a>. If you require access for an additional project, please submit a <a href="{% url 'request_data_access' project.slug project.version %}">*new request*</a>.
+        {% endif %}
+
 {# ZIP START #}
           <h5>Access the files</h5>
           <ul>
