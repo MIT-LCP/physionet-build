@@ -318,13 +318,12 @@
     {% if project.access_policy %}
       {% if has_access %}
         <p>Total uncompressed size: {{ main_size }}.
-        {% if project.is_self_managed_access %}
-          <br>
-          You have been granted access to this dataset for a  <a href="{% url 'data_access_request_status' project.slug project.version %}">specific project</a>. If you require access for an additional project, please submit a <a href="{% url 'request_data_access' project.slug project.version %}">*new request*</a>.
-        {% endif %}
 
 {# ZIP START #}
           <h5>Access the files</h5>
+          {% if project.is_self_managed_access %}
+            You have been granted access for a  <a href="{% url 'data_access_request_status' project.slug project.version %}">specific project</a>. If you require access for an additional project, please submit a <a href="{% url 'request_data_access' project.slug project.version %}">new request</a>
+          {% endif %}
           <ul>
           {% if project.compressed_storage_size %}
             <li><a href="{% url 'serve_published_project_zip' project.slug project.version %}">Download the ZIP file</a> ({{ compressed_size }})</li>
