@@ -317,12 +317,12 @@
   {% else %}
     {% if project.access_policy %}
       {% if has_access %}
-        <p>Total uncompressed size: {{ main_size }}.
+        <p>Total uncompressed size: {{ main_size }}.</p>
 
 {# ZIP START #}
           <h5>Access the files</h5>
           {% if project.is_self_managed_access %}
-            You have been granted access for a  <a href="{% url 'data_access_request_status' project.slug project.version %}">specific project</a>. If you require access for an additional project, please submit a <a href="{% url 'request_data_access' project.slug project.version %}">new request</a>
+            <p>You have been granted access for a  <a href="{% url 'data_access_request_status' project.slug project.version %}">specific project</a>. If you require access for an additional project, please submit a <a href="{% url 'request_data_access' project.slug project.version %}">new request.</a></p>
           {% endif %}
           <ul>
           {% if project.compressed_storage_size %}
@@ -347,7 +347,6 @@
           <li>Download the files using your terminal: <pre class="shell-command">wget -r -N -c -np --user {{ user }} --ask-password {{ url_prefix }}{% url 'serve_published_project_file' project.slug project.version '' %}</pre></li>
           </ul>
 {# ZIP END #}
-        </p>
         <div id="files-panel" class="card">
           {% include "project/files_panel.html" %}
         </div>
