@@ -1,8 +1,8 @@
 import graphene
-import pdb
 from graphene_django.types import DjangoObjectType
 
-from project.models import PublishedProject, PublishedAuthor, PublishedReference
+from project.models import (PublishedProject, PublishedAuthor,
+                            PublishedReference)
 
 
 class PublishedProjectType(DjangoObjectType):
