@@ -1,7 +1,6 @@
 from collections import OrderedDict
 from os import path
 from re import fullmatch
-import pdb
 
 from django.contrib import messages
 from django.http import Http404
@@ -128,9 +127,12 @@ def database_overview(request):
     """
     Temporary content overview
     """
-    open_projects = PublishedProject.objects.filter(access_policy=0).order_by(Lower('title'))
-    restricted_projects = PublishedProject.objects.filter(access_policy=1).order_by(Lower('title'))
-    credentialed_projects = PublishedProject.objects.filter(access_policy=2).order_by(Lower('title'))
+    open_projects = PublishedProject.objects.filter(
+        resource_type=0, access_policy=0).order_by(Lower('title'))
+    restricted_projects = PublishedProject.objects.filter(
+        resource_type=0, access_policy=1).order_by(Lower('title'))
+    credentialed_projects = PublishedProject.objects.filter(
+        resource_type=0, access_policy=2).order_by(Lower('title'))
     return render(request, 'about/database_index.html',
                   {'open_projects': open_projects,
                    'restricted_projects': restricted_projects,
