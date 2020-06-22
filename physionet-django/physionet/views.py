@@ -1,11 +1,13 @@
 from collections import OrderedDict
 from os import path
 from re import fullmatch
+import pdb
 
 from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import render, redirect
 from django.contrib.contenttypes.models import ContentType
+from django.db.models.functions import Lower
 
 from notification.models import News
 import notification.utility as notification
@@ -126,7 +128,13 @@ def database_overview(request):
     """
     Temporary content overview
     """
-    return render(request, 'about/database_index.html')
+    open_projects = PublishedProject.objects.filter(access_policy=0).order_by(Lower('title'))
+    restricted_projects = PublishedProject.objects.filter(access_policy=1).order_by(Lower('title'))
+    credentialed_projects = PublishedProject.objects.filter(access_policy=2).order_by(Lower('title'))
+    return render(request, 'about/database_index.html',
+                  {'open_projects': open_projects,
+                   'restricted_projects': restricted_projects,
+                   'credentialed_projects': credentialed_projects})
 
 
 def software_overview(request):
