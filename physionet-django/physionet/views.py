@@ -127,13 +127,20 @@ def database_overview(request):
     """
     Temporary content overview
     """
+    return render(request, 'about/database_index.html')
+
+
+def database_overview_test(request):
+    """
+    Temporary content overview
+    """
     open_projects = PublishedProject.objects.filter(
         resource_type=0, access_policy=0).order_by(Lower('title'))
     restricted_projects = PublishedProject.objects.filter(
         resource_type=0, access_policy=1).order_by(Lower('title'))
     credentialed_projects = PublishedProject.objects.filter(
         resource_type=0, access_policy=2).order_by(Lower('title'))
-    return render(request, 'about/database_index.html',
+    return render(request, 'about/database_index_test.html',
                   {'open_projects': open_projects,
                    'restricted_projects': restricted_projects,
                    'credentialed_projects': credentialed_projects})
