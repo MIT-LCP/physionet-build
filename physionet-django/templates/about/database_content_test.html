@@ -1,0 +1,58 @@
+<section id="citation">
+  <h2>Suggested Citation</h2>
+  <p>If you use resources from PhysioNet in a publication, please credit
+  the author(s) using the citation displayed at the top of the published content. Please also include the standard citation for PhysioNet:</p>
+
+  <p class="alert alert-primary" role="alert">Goldberger AL, Amaral LAN, Glass L,
+    Hausdorff JM, Ivanov PCh, Mark RG,
+  Mietus JE, Moody GB, Peng C-K, Stanley HE.  PhysioBank, PhysioToolkit, and
+  PhysioNet: Components of a New Research Resource for Complex Physiologic
+  Signals.
+  <i>Circulation</i> <b>101</b>(23):e215-e220 [Circulation Electronic Pages;
+  <a href="http://circ.ahajournals.org/content/101/23/e215.full"
+  target="other">http://circ.ahajournals.org/content/101/23/e215.full</a>];
+  2000 (June 13).</p>
+</section>
+
+<br>
+<hr>
+
+
+<section id="summary">
+  <h2>Overview</h2>
+<p>
+This page displays an alphabetical list of databases in the PhysioNet archives grouped by access policy. To find more databases on PhysioNet, <a href="{% url 'content_index' %}">search our resources</a>.</p>
+<ul>
+<li> <a href="#open">Open Access</a>: The content is shared under an open access license (e.g. MIT License; Creative Commons licenses).</li>
+<li> <a href="#restricted">Restricted Access</a>: Users must (1) have a PhysioNet account and (2) sign a Data Use Agreement (DUA).</li>
+<li> <a href="#credentialed">Credentialed Access</a>: Users must (1) have a PhysioNet account, (2) sign a DUA, and (3) complete the online Collaborative Institutional Training Initiative (CITI) training.</li>
+</li>
+</ul>
+</section>
+
+<br>
+<hr>
+
+<h2 id="open">Open Access</h2>
+<ul>
+  {% for project in open_projects %}
+  <li><a href="{% url 'published_project_latest' project.slug %}">{{ project.title }}</a>: {% if project.short_description %}{{ project.short_description }}{% else %}{{ project.abstract_text_content|truncatechars_html:200 }}{% endif %}</li>
+{% endfor %}
+</ul>
+
+<br>
+<hr>
+
+<h2 id="restricted">Restricted Access</h2>
+<ul>
+{% for project in restricted_projects %}
+  <li><a href="{% url 'published_project_latest' project.slug %}">{{ project.title }}</a>: {% if project.short_description %}{{ project.short_description }}{% else %}{{ project.abstract_text_content|truncatechars_html:200 }}{% endif %}</li>
+{% endfor %}
+</ul>
+
+<h2 id="credentialed">Credentialed Access</h2>
+<ul>
+  {% for project in credentialed_projects %}
+  <li><a href="{% url 'published_project_latest' project.slug %}">{{ project.title }}</a>: {% if project.short_description %}{{ project.short_description }}{% else %}{{ project.abstract_text_content|truncatechars_html:200 }}{% endif %}</li>
+{% endfor %}
+</ul>

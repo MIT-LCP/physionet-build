@@ -55,6 +55,8 @@ urlpatterns = [
         name='content_overview'),
     path('about/database/', views.database_overview,
         name='database_overview'),
+    path('about/database_test/', views.database_overview_test,
+        name='database_overview_test'),
     path('about/software/', views.software_overview,
         name='software_overview'),
     path('about/challenge/', views.challenge_overview,
