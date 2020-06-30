@@ -33,7 +33,7 @@ This page displays an alphabetical list of databases in the PhysioNet archives g
 <br>
 <hr>
 
-<h1 id="open">Open Access</h1>
+<h2 id="open">Open Access</h2>
 <ul>
   {% for project in open_projects %}
   <li><a href="{% url 'published_project_latest' project.slug %}">{{ project.title }}</a>: {% if project.short_description %}{{ project.short_description }}{% else %}{{ project.abstract_text_content|truncatechars_html:200 }}{% endif %}</li>
@@ -43,14 +43,14 @@ This page displays an alphabetical list of databases in the PhysioNet archives g
 <br>
 <hr>
 
-<h1 id="restricted">Restricted Access</h1>
+<h2 id="restricted">Restricted Access</h2>
 <ul>
 {% for project in restricted_projects %}
   <li><a href="{% url 'published_project_latest' project.slug %}">{{ project.title }}</a>: {% if project.short_description %}{{ project.short_description }}{% else %}{{ project.abstract_text_content|truncatechars_html:200 }}{% endif %}</li>
 {% endfor %}
 </ul>
 
-<h1 id="credentialed">Credentialed Access</h1>
+<h2 id="credentialed">Credentialed Access</h2>
 <ul>
   {% for project in credentialed_projects %}
   <li><a href="{% url 'published_project_latest' project.slug %}">{{ project.title }}</a>: {% if project.short_description %}{{ project.short_description }}{% else %}{{ project.abstract_text_content|truncatechars_html:200 }}{% endif %}</li>
