@@ -135,7 +135,7 @@ def database_overview_test(request):
     Temporary content overview
     """
     all_projects = PublishedProject.objects.filter(
-        is_latest_version=True).order_by(Lower('title'))
+        resource_type=0, is_latest_version=True).order_by(Lower('title'))
     return render(request, 'about/database_index_test.html',
                   {'all_projects': all_projects})
 
