@@ -1,0 +1,11 @@
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
+{{ project_info }}
+
+Dear {{ name }},
+
+The authors of a project entitled "{{ project.title }}" have requested more storage. Please grant or deny this request at: {{ url_prefix }}{% url 'storage_requests' %}
+
+{{ signature }}
+
+{{ footer }}
+{% endfilter %}{% endautoescape %}

@@ -404,6 +404,28 @@ def publish_notify(request, published_project):
           [settings.CONTACT_EMAIL], fail_silently=False)
 
 
+def storage_request_notify(request, project):
+    """
+    Notify administrators when a storage request is received
+    """
+    subject = 'Storage request received: {0}'.format(
+        project.title)
+
+    content = {'project': project,
+               'domain': get_current_site(request),
+               'url_prefix': get_url_prefix(request),
+               'signature': email_signature(),
+               'project_info': email_project_info(project),
+               'footer': email_footer()}
+
+    content['name'] = "Colleague"
+    body = loader.render_to_string(
+        'notification/email/storage_request_notify_team.html', content)
+
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+              [settings.CONTACT_EMAIL], fail_silently=False)
+
+
 def storage_response_notify(storage_request):
     """
     Notify submitting author when storage request is processed
@@ -427,6 +449,7 @@ def storage_response_notify(storage_request):
 
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [email], fail_silently=False)
+
 
 def contact_reference(request, application):
     """
