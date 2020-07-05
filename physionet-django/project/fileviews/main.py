@@ -1,3 +1,4 @@
+from errno import ENAMETOOLONG
 import os
 
 from django.http import Http404
@@ -38,6 +39,9 @@ def display_project_file(request, project, file_path):
         return redirect(request.path + '/')
     except (FileNotFoundError, NotADirectoryError):
         raise Http404()
+    except OSError as err:
+        if err.errno == ENAMETOOLONG:
+            raise Http404()
 
     with infile:
         if file_path.endswith('.csv.gz'):
