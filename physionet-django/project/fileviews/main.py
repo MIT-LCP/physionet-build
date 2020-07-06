@@ -39,12 +39,7 @@ def display_project_file(request, project, file_path):
         return redirect(request.path + '/')
     except (FileNotFoundError, NotADirectoryError):
         raise Http404()
-    except OSError as err:
-        if err.errno == ENAMETOOLONG:
-            raise Http404()
-        else:
-            raise err
-    except IOError as err:
+    except (IOError, OSError) as err:
         if err.errno == ENAMETOOLONG:
             raise Http404()
         else:
