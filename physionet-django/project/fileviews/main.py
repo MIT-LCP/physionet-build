@@ -42,6 +42,8 @@ def display_project_file(request, project, file_path):
     except OSError as err:
         if err.errno == ENAMETOOLONG:
             raise Http404()
+        else:
+            raise err
 
     with infile:
         if file_path.endswith('.csv.gz'):
