@@ -670,6 +670,7 @@ class TestAccessPublished(TestMixin):
         Test access to an open project.
         """
         project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+
         # Public user. Anyone can access files and landing page
         response = self.client.get(reverse('published_project',
             args=(project.slug, project.version,)))
@@ -688,6 +689,12 @@ class TestAccessPublished(TestMixin):
         self.assertEqual(response.status_code, 404)
         response = self.client.get(reverse('display_published_project_file',
             args=(project.slug, project.version, 'Makefile/fnord')))
+        self.assertEqual(response.status_code, 404)
+
+        # Raise a 404 if the requested filename is too long
+        long_fn = 'Makefile/fnord'*1000
+        response = self.client.get(reverse('display_published_project_file',
+            args=(project.slug, project.version, long_fn)))
         self.assertEqual(response.status_code, 404)
 
     @prevent_request_warnings
