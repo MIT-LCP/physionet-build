@@ -57,8 +57,6 @@ urlpatterns = [
         name='database_overview'),
     path('about/software/', views.software_overview,
         name='software_overview'),
-    path('about/software_test/', views.software_overview_test,
-        name='software_overview_test'),
     path('about/challenge/', views.challenge_overview,
         name='challenge_overview'),
     path('about/tutorial/', views.tutorial_overview,
