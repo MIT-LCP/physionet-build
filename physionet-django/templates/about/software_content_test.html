@@ -1,0 +1,15 @@
+<section id="overview">
+    <h2>Overview</h2>
+  <p>This page displays an alphabetical list of all software projects on PhysioNet. To search content on PhysioNet, <a href="{% url 'content_index' %}">visit the search page</a>. Enter the search terms, add a filter for resource type if needed, and select how you would like the results to be ordered (for example, by relevance, by date, or by title).</p>
+  <p>Many of the time series datasets on PhysioNet (for example, ECGs) are shared in waveform-database (WFDB) compatible file formats.  For more information on these formats, see the <a href="https://www.physionet.org/physiotools/wag" />WFDB Applications Guide</a>. WFDB-formatted datasets can also be viewed online with <a href="{% url 'lightwave_home' %}">LightWAVE</a>.</p>
+</section>
+
+<hr>
+<br>
+
+<h2 id="software">All Software</h2>
+<ul>
+  {% for project in all_projects %}
+  <li><a href="{% url 'published_project_latest' project.slug %}">{{ project.title }}</a>: {% if project.short_description %}{{ project.short_description }}{% else %}{{ project.abstract_text_content|truncatechars_html:200 }}{% endif %}</li>
+{% endfor %}
+</ul>

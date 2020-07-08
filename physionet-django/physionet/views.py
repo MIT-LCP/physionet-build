@@ -140,6 +140,16 @@ def software_overview(request):
     return render(request, 'about/software_index.html')
 
 
+def software_overview_test(request):
+    """
+    Temporary content overview
+    """
+    all_projects = PublishedProject.objects.filter(
+        resource_type=1, is_latest_version=True).order_by(Lower('title'))
+    return render(request, 'about/software_index_test.html',
+                  {'all_projects': all_projects})
+
+
 def challenge_overview(request):
     """
     Temporary content overview
