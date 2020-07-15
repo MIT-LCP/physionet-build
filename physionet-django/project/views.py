@@ -978,6 +978,7 @@ def project_files(request, project_slug, subdir='', **kwargs):
             if storage_request_form.is_valid():
                 storage_request_form.instance.project = project
                 storage_request_form.save()
+                notification.storage_request_notify(request, project)
                 messages.success(request, 'Your storage request has been received.')
             else:
                 messages.error(request, utility.get_form_errors(storage_request_form))
