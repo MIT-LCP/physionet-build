@@ -3,31 +3,28 @@ Command to:
 - Parse NGINX log files and write their metrics data to the database
 """
 
+import os
+import time
 import datetime
-from distutils.util import strtobool
+import hashlib
+import warnings
 
 from django.core.management.base import BaseCommand
 from django.core.exceptions import ObjectDoesNotExist
-from django.utils import timezone
+from django.utils.timezone import make_aware
 
-from project.models import CoreProject, PublishedProject, Metrics
+from project.models import CoreProject, PublishedProject, Metrics, MetricsLogData
 
 
 class Command(BaseCommand):
     """
-    Command to parse a log file and load data to the Metrics table.
+    Command to parse one or more log files and load data to the Metrics table.
     """
-    help = "Parses a log file and loads data to the Metrics table."
+    help = "Parses one or more log files and loads data to the Metrics table."
 
     def add_arguments(self, parser):
         parser.add_argument('files', nargs='+', type=str,
                             help='Specify log file(s) to parse')
-        parser.add_argument('-c', '--check_date', type=strtobool,
-                            default=False,
-                            help='If True, checks if log date is day before '
-                            'current date')
-        parser.add_argument('-n', '--now', type=str, default=None,
-                            help='Use given date as "now" (format DD/MM/YYYY)')
 
     def handle(self, *args, **options):
         """Retrieves metrics data from the latest log file, or as specified.
@@ -38,9 +35,6 @@ class Command(BaseCommand):
         Args:
             **options:
                 files [filename(s)]: One or more NGINX log file(s) to parse.
-                -c [bool]: If True, runs update from log as cron job.
-                -n [date]: If running a cron job, treats the given date as
-                    "now". Format: DD/MM/YYYY.
 
         Returns:
             None
@@ -48,76 +42,88 @@ class Command(BaseCommand):
         Raises:
             InvalidLogError: An error occurred obtaining metrics data from the
                 log file.
-            DateError: The date in the log file does not match the expected
-                date (if run as a cron job, the log file date should be the day
-                before).
         """
         files = options['files']
-        check_date = options['check_date']
-        now = options['now']
-
-        if now is not None:
-            now = datetime.datetime.strptime(now, "%d/%m/%Y")
 
         for filename in files:
+            if check_log_hash(filename) is True:
+                warnings.warn(f'Log file {filename} has already been parsed',
+                              UserWarning)
+                continue
             try:
-                validate_log_file(filename, check_date, now)
-                update_metrics(filename)
+                validate_log_file(filename)
+                unparsed_lines = update_metrics(filename)
+                if unparsed_lines > 0:
+                    warnings.warn(f'This file has {unparsed_lines} line(s) that could not be parsed', UserWarning)
             except InvalidLogError:
                 raise InvalidLogError(
                     f'Log file {filename} is not a valid NGINX log')
-            except DateError:
-                raise DateError('Log file has incorrect date')
 
 
-def log_parser(filename):
-    """Parses an NGINX log file to extract metrics data.
+def check_log_hash(filename):
+    """Checks if a given file has been parsed before.
 
-    Generates view counts per project based on log data.
+    Hashes the given file to check if it has already been parsed before.
 
     Args:
         filename: An NGINX log file to parse.
 
     Returns:
-        A dict mapping project slugs to their respective project view date,
-        count, and set of IP addresses. For example:
+        bool: True if the file has been parsed before, False otherwise.
+    """
+    BLOCK_SIZE = 65536
 
-        {'demoecg': [datetime.datetime(2020, 7, 4, 0, 0), 2,
-            {'62.83.94.91', '133.229.30.163'}],
-        'demoeicu': [datetime.datetime(2020, 7, 4, 0, 0), 1,
-            {'154.158.105.50'}],
-        'demopsn': [datetime.datetime(2020, 7, 4, 0, 0), 1,
-            {'110.148.237.169'}]}
+    file_hash = hashlib.sha256()
+    with open(filename, 'rb') as f:
+        fb = f.read(BLOCK_SIZE)
+        while len(fb) > 0:
+            file_hash.update(fb)
+            fb = f.read(BLOCK_SIZE)
+
+    current_hash = file_hash.hexdigest()
+    if MetricsLogData.objects.filter(log_hash=current_hash).exists():
+        return True
+
+    else:
+        creation_datetime = make_aware(datetime.datetime.strptime(time.ctime(
+            os.path.getctime(filename)), "%a %b %d %H:%M:%S %Y"))
+        new_log = MetricsLogData.objects.create(filename=filename,
+                                                creation_datetime=creation_datetime,
+                                                log_hash=current_hash)
+        new_log.save()
+        return False
+
+
+def validate_log_file(filename):
+    """Checks if a log file is a valid NGINX log.
+
+    Checks if the given file has slug, date, and IP address in the correct
+        location.
+
+    Args:
+        filename: An NGINX log file to parse.
+
+    Returns:
+        None
 
     Raises:
-        InvalidLogError: An error occurred obtaining metrics data from the log
+        InvalidLogError: An error occurred obtaining date data from the log
             file.
-        DateError: The date in the log file does not match the expected date
-            (if run as a cron job, the log file date should be the day before).
     """
-    my_file = open(filename).read()
-    file_lines = my_file.split('\n')
-
-    data = {}
-
-    for line in file_lines:
-        parts = line.split()
+    with open(filename) as f:
+        first_line = f.readline()
+        split_line = first_line.split()
         try:
-            if '?' not in parts[6] and 'GET' in parts[5] and (
-                    '/files' in parts[6] or '/content' in parts[6]):
-                split_slash = parts[6].split('/')
-                slug = split_slash[2]
-                date = datetime.datetime.strptime(parts[3][1:12], "%d/%b/%Y")
-                ip = parts[0]
-                if slug not in data:
-                    data[slug] = [date, 0, set()]
-                if ip not in data[slug][2]:
-                    data[slug][1] += 1
-                    data[slug][2].add(ip)
+            if 'GET' in split_line[5] and (
+                    '/files/' in split_line[6]
+                    or '/content/' in split_line[6]):
+                path = split_line[6].split('?')[0]
+                slug = path.split('/')[2]
+                date = datetime.datetime.strptime(split_line[3][1:12],
+                                                  "%d/%b/%Y")
+                ip = split_line[0]
         except IndexError:
-            if line:
-                print("Invalid line in log:", line)
-    return data
+            raise InvalidLogError
 
 
 def update_metrics(filename):
@@ -130,69 +136,81 @@ def update_metrics(filename):
         filename: An NGINX log file to parse.
 
     Returns:
-        None
+        An int representing the number of lines in the file that could not
+            be parsed.
     """
-    log_data = log_parser(filename)
+    log_data, unparsed_lines = log_parser(filename)
 
     for p in PublishedProject.objects.filter(is_latest_version=True):
         if p.slug in log_data:
+            update_count = 0
+            update_date = datetime.datetime.min
+            for date in log_data[p.slug]:
+                update_count += log_data[p.slug][date][0]
+                if update_date < date:
+                    update_date = date
             try:
                 last_entry = Metrics.objects.filter(
                     core_project=p.core_project).latest('date')
-                # Do not update if log file is older than latest entry
-                if last_entry.date >= log_data[p.slug][0].date():
-                    continue
             except ObjectDoesNotExist:
                 last_entry = None
             project = Metrics.objects.create(
                 core_project=p.core_project,
-                date=log_data[p.slug][0])
+                date=update_date)
             if last_entry:
                 project.running_viewcount = last_entry.running_viewcount
-            project.viewcount = log_data[p.slug][1]
-            project.running_viewcount += log_data[p.slug][1]
+            project.viewcount = update_count
+            project.running_viewcount += update_count
             project.save()
+    return unparsed_lines
 
 
-def validate_log_file(filename, check_date=False, now=None):
-    """Checks if a log file is a valid NGINX log and has correct date
+def log_parser(filename):
+    """Parses an NGINX log file to extract metrics data.
 
-    Checks if the given file has a date in the right place and format. If
-        called during a cron job, checks if the log file's date is the day
-        before the current date.
+    Generates view counts per project per date based on log data.
 
     Args:
         filename: An NGINX log file to parse.
-        check_date: Optional; If True, checks if date is correct for cron job.
-        now: Optional; If running cron job, treats this date as the currrent
-            date instead of timezone.now().
 
     Returns:
-        None
+        A dict mapping project slugs to their respective project view date,
+        count, and set of IP addresses. For example:
 
-    Raises:
-        InvalidLogError: An error occurred obtaining date data from the log
-            file.
-        DateError: The date in the log file does not match the expected date
-            (if run as a cron job, the log file date should be the day before).
+        {'demoecg': {datetime.datetime(2020, 7, 3, 0, 0): [1,
+            {'133.229.30.163'}], datetime.datetime(2020, 7, 4, 0, 0): [2,
+            {'62.83.94.91', '133.229.30.163'}]},
+        'demoeicu': {datetime.datetime(2020, 7, 4, 0, 0): 1,
+            {'154.158.105.50'}]},
+        'demopsn': {datetime.datetime(2020, 7, 4, 0, 0): 1,
+            {'110.148.237.169'}]}}
+
+        An int representing the number of lines in the file that could not
+            be parsed.
     """
-    if now is None:
-        now = timezone.now()
+    data = {}
+    unparsed_lines = 0
 
-    with open(filename) as f:
-        first_line = f.readline()
-        split_line = first_line.split()
-        try:
-            str_date = split_line[3][1:12]
-            log_date = datetime.datetime.strptime(str_date, "%d/%b/%Y")
-        except LookupError:
-            raise InvalidLogError
-
-    if check_date:
-        if not (now.day - 1 == log_date.day and now.month ==
-                log_date.month and now.year == log_date.year):
-            raise DateError
-    return
+    with open(filename) as file:
+        for line in file:
+            parts = line.split()
+            try:
+                if 'GET' in parts[5] and (
+                        '/files/' in parts[6] or '/content/' in parts[6]):
+                    path = parts[6].split('?')[0]
+                    slug = path.split('/')[2]
+                    date = datetime.datetime.strptime(parts[3][1:12], "%d/%b/%Y")
+                    ip = parts[0]
+                    if slug not in data:
+                        data[slug] = {date: [0, set()]}
+                    elif date not in data[slug]:
+                        data[slug][date] = [0, set()]
+                    if ip not in data[slug][date][1]:
+                        data[slug][date][0] += 1
+                        data[slug][date][1].add(ip)
+            except IndexError:
+                unparsed_lines += 1
+        return data, unparsed_lines
 
 
 class Error(Exception):
@@ -201,10 +219,4 @@ class Error(Exception):
 
 class InvalidLogError(Error):
     """Exception raised for invalid NGINX log file"""
-    pass
-
-
-class DateError(Error):
-    """Exception raised during cron job when a log file's date is not the
-        previous day's date"""
     pass
