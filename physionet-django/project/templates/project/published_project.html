@@ -40,6 +40,7 @@
   </p>
 
   <p>Published: {{ project.publish_datetime|date }}. Version: {{ project.version }}{% if not project.is_latest_version %} <a href="{% url 'published_project_latest' project.slug %}">&lt;View latest version&gt;</a>{% endif %}</p>
+  {% if metrics.running_viewcount %} <p>{{ metrics.running_viewcount }} views</p> {% else %} <p>No metrics available</p> {% endif %}
 
   {% if not project.is_latest_version %}
     <div class="alert alert-warning alert-dismissible fade show" role="alert">
