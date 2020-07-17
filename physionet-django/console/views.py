@@ -964,8 +964,9 @@ def complete_credential_applications(request):
          request.POST['contact_reference'].isdigit():
             application_id = request.POST.get('contact_reference', '')
             application = CredentialApplication.objects.get(id=application_id)
-            application.reference_contact_datetime = timezone.now()
-            application.save()
+            if not application.reference_contact_datetime:
+                application.reference_contact_datetime = timezone.now()
+                application.save()
             # notification.contact_reference(request, application)
             if application.reference_category == 0:
                 mailto = notification.mailto_supervisor(request, application)
