@@ -12,22 +12,36 @@ from project.management.commands.get_metrics_data import (InvalidLogError,
 
 class TestGetMetricsData(TestCase):
 
+    def get_projects(self):
+        demoeicu = PublishedProject.objects.get(slug='demoeicu',
+                                                is_latest_version=True).core_project
+        demoecg = PublishedProject.objects.get(slug='demoecg',
+                                               is_latest_version=True).core_project
+        demobsn = PublishedProject.objects.get(slug='demobsn',
+                                               is_latest_version=True).core_project
+        demoselfmanaged = PublishedProject.objects.get(slug='demoselfmanaged',
+                                                       is_latest_version=True).core_project
+        demopsn = PublishedProject.objects.get(slug='demopsn',
+                                               is_latest_version=True).core_project
+        return demoeicu, demoecg, demobsn, demoselfmanaged, demopsn
+
     def test_update_metrics(self):
         """
         Test if view counts get updated in database.
         """
         path = os.path.join('project', 'fixtures', 'physionet_access.log.3')
         call_command('get_metrics_data', str(path))
-        self.assertEqual(Metrics.objects.get(
-            slug='demoeicu').running_viewcount, 20)
-        self.assertEqual(Metrics.objects.get(
-            slug='demoecg').running_viewcount, 20)
-        self.assertEqual(Metrics.objects.get(
-            slug='demobsn').running_viewcount, 22)
-        self.assertEqual(Metrics.objects.get(
-            slug='demoselfmanaged').running_viewcount, 18)
-        self.assertEqual(Metrics.objects.get(
-            slug='demopsn').running_viewcount, 19)
+        demoeicu, demoecg, demobsn, demoselfmanaged, demopsn = self.get_projects()
+        self.assertEqual(Metrics.objects.filter(
+            core_project=demoeicu).latest('date').running_viewcount, 20)
+        self.assertEqual(Metrics.objects.filter(
+            core_project=demoecg).latest('date').running_viewcount, 20)
+        self.assertEqual(Metrics.objects.filter(
+            core_project=demobsn).latest('date').running_viewcount, 22)
+        self.assertEqual(Metrics.objects.filter(
+            core_project=demoselfmanaged).latest('date').running_viewcount, 18)
+        self.assertEqual(Metrics.objects.filter(
+            core_project=demopsn).latest('date').running_viewcount, 19)
 
     def test_multiple_logs(self):
         """
@@ -37,16 +51,17 @@ class TestGetMetricsData(TestCase):
         path_1 = os.path.join('project', 'fixtures', 'physionet_access.log.1')
         path_2 = os.path.join('project', 'fixtures', 'physionet_access.log.2')
         call_command('get_metrics_data', str(path_2), str(path_1))
+        demoeicu, demoecg, demobsn, demoselfmanaged, demopsn = self.get_projects()
         self.assertEqual(Metrics.objects.filter(
-            slug='demoeicu').latest('date').running_viewcount, 43)
+            core_project=demoeicu).latest('date').running_viewcount, 43)
         self.assertEqual(Metrics.objects.filter(
-            slug='demoecg').latest('date').running_viewcount, 43)
+            core_project=demoecg).latest('date').running_viewcount, 43)
         self.assertEqual(Metrics.objects.filter(
-            slug='demobsn').latest('date').running_viewcount, 32)
+            core_project=demobsn).latest('date').running_viewcount, 32)
         self.assertEqual(Metrics.objects.filter(
-            slug='demoselfmanaged').latest('date').running_viewcount, 38)
+            core_project=demoselfmanaged).latest('date').running_viewcount, 38)
         self.assertEqual(Metrics.objects.filter(
-            slug='demopsn').latest('date').running_viewcount, 41)
+            core_project=demopsn).latest('date').running_viewcount, 41)
 
     def test_old_log(self):
         """
@@ -56,34 +71,36 @@ class TestGetMetricsData(TestCase):
         path_1 = os.path.join('project', 'fixtures', 'physionet_access.log.1')
         path_2 = os.path.join('project', 'fixtures', 'physionet_access.log.2')
         call_command('get_metrics_data', str(path_1), str(path_2))
-        self.assertEqual(Metrics.objects.get(
-            slug='demoeicu').running_viewcount, 21)
-        self.assertEqual(Metrics.objects.get(
-            slug='demoecg').running_viewcount, 16)
-        self.assertEqual(Metrics.objects.get(
-            slug='demobsn').running_viewcount, 16)
-        self.assertEqual(Metrics.objects.get(
-            slug='demoselfmanaged').running_viewcount, 24)
-        self.assertEqual(Metrics.objects.get(
-            slug='demopsn').running_viewcount, 20)
+        demoeicu, demoecg, demobsn, demoselfmanaged, demopsn = self.get_projects()
+        self.assertEqual(Metrics.objects.filter(
+            core_project=demoeicu).latest('date').running_viewcount, 21)
+        self.assertEqual(Metrics.objects.filter(
+            core_project=demoecg).latest('date').running_viewcount, 16)
+        self.assertEqual(Metrics.objects.filter(
+            core_project=demobsn).latest('date').running_viewcount, 16)
+        self.assertEqual(Metrics.objects.filter(
+            core_project=demoselfmanaged).latest('date').running_viewcount, 24)
+        self.assertEqual(Metrics.objects.filter(
+            core_project=demopsn).latest('date').running_viewcount, 20)
 
     def test_cron_job(self):
         """
         Test if cron job is run as expected.
         """
         path = os.path.join('project', 'fixtures', 'physionet_access.log.1')
-        call_command('get_metrics_data', str(path), is_cron=True, 
+        call_command('get_metrics_data', str(path), check_date=True,
                      now='05/07/2020')
-        self.assertEqual(Metrics.objects.get(
-            slug='demoeicu').running_viewcount, 21)
-        self.assertEqual(Metrics.objects.get(
-            slug='demoecg').running_viewcount, 16)
-        self.assertEqual(Metrics.objects.get(
-            slug='demobsn').running_viewcount, 16)
-        self.assertEqual(Metrics.objects.get(
-            slug='demoselfmanaged').running_viewcount, 24)
-        self.assertEqual(Metrics.objects.get(
-            slug='demopsn').running_viewcount, 20)
+        demoeicu, demoecg, demobsn, demoselfmanaged, demopsn = self.get_projects()
+        self.assertEqual(Metrics.objects.filter(
+            core_project=demoeicu).latest('date').running_viewcount, 21)
+        self.assertEqual(Metrics.objects.filter(
+            core_project=demoecg).latest('date').running_viewcount, 16)
+        self.assertEqual(Metrics.objects.filter(
+            core_project=demobsn).latest('date').running_viewcount, 16)
+        self.assertEqual(Metrics.objects.filter(
+            core_project=demoselfmanaged).latest('date').running_viewcount, 24)
+        self.assertEqual(Metrics.objects.filter(
+            core_project=demopsn).latest('date').running_viewcount, 20)
 
     def test_invalid_log(self):
         """
@@ -101,5 +118,5 @@ class TestGetMetricsData(TestCase):
         """
         path = os.path.join('project', 'fixtures', 'physionet_access.log.1')
         with self.assertRaises(DateError):
-            call_command('get_metrics_data', str(path), is_cron='True',
+            call_command('get_metrics_data', str(path), check_date='True',
                          now='10/07/2020')
