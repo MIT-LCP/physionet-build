@@ -71,6 +71,7 @@ class TestGetMetricsData(TestCase):
         with self.assertWarns(UserWarning):
             call_command('get_metrics_data', str(path_1))
             call_command('get_metrics_data', str(path_1))
+        call_command('get_metrics_data', str(path_1), str(path_2))
         demoeicu, demoecg, demobsn, demoselfmanaged, demopsn = self.get_projects()
         self.assertEqual(Metrics.objects.filter(
             core_project=demoeicu).latest('date').running_viewcount, 21)
