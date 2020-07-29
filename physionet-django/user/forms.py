@@ -5,6 +5,7 @@ from django import forms
 from django.contrib.auth import forms as auth_forms
 from django.contrib.auth import password_validation
 from django.core.files.uploadedfile import UploadedFile
+from django.forms.widgets import FileInput
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.translation import ugettext_lazy
@@ -156,6 +157,82 @@ class UsernameChangeForm(forms.ModelForm):
                     profile.save()
                 if os.path.exists(self.old_file_root):
                     os.rename(self.old_file_root, self.instance.file_root())
+
+
+class SaferImageField(forms.ImageField):
+    """
+    A field for uploaded image files.
+
+    This wraps Django's django.forms.fields.ImageField (not to be
+    confused with django.db.models.fields.files.ImageField!)
+
+    When a file is uploaded, it is required to be a valid JPEG or PNG
+    image file.  The filename specified by the client is ignored; the
+    file is renamed to either 'image.png' or 'image.jpg' according to
+    the detected type.
+
+    The type is enforced both by checking the magic number before
+    passing the file to ImageField.to_python (which invokes
+    PIL.Image.open), and by checking the content type that Pillow
+    reports.
+
+    Since we check the magic number before calling PIL.Image.open,
+    this means we avoid calling many of the possible image format
+    parsers, which are historically sources of countless security
+    bugs.
+
+    Note, however, that this does not avoid calling *all* undesired
+    parsers.  If one parser fails, then Pillow will try again with the
+    next one in the list.  Most of the Pillow parsers will immediately
+    reject files that don't start with an appropriate magic number,
+    but some parsers may not.
+    """
+
+    ACCEPT_TYPES = ['image/jpeg', 'image/png']
+
+    TYPE_SUFFIX = {
+        'image/jpeg': '.jpg',
+        'image/png': '.png',
+    }
+
+    TYPE_SIGNATURE = {
+        'image/jpeg': b'\xff\xd8',
+        'image/png': b'\x89PNG\x0d\x0a\x1a\x0a',
+    }
+
+    def to_python(self, data):
+        if data in self.empty_values:
+            return None
+
+        if hasattr(data, 'temporary_file_path'):
+            path = data.temporary_file_path()
+            with open(path, 'rb') as f:
+                signature = f.read(16)
+        else:
+            signature = data.read(16)
+            data.seek(0)
+
+        for content_type in self.ACCEPT_TYPES:
+            if signature.startswith(self.TYPE_SIGNATURE[content_type]):
+                break
+        else:
+            raise forms.ValidationError('Not a valid JPEG or PNG image file.')
+
+        result = super().to_python(data)
+
+        # check that the content type is what we expected
+        if result.content_type != content_type:
+            raise forms.ValidationError('Not a valid JPEG or PNG image file.')
+
+        # set the name according to the content type
+        result.name = 'image' + self.TYPE_SUFFIX[content_type]
+        return result
+
+    def widget_attrs(self, widget):
+        attrs = super().widget_attrs(widget)
+        if isinstance(widget, FileInput):
+            attrs['accept'] = ','.join(self.ACCEPT_TYPES)
+        return attrs
 
 
 class ProfileForm(forms.ModelForm):
