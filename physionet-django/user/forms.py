@@ -239,7 +239,7 @@ class ProfileForm(forms.ModelForm):
     """
     For editing the profile
     """
-    photo = forms.ImageField(required=False, widget=ProfilePhotoInput(
+    photo = SaferImageField(required=False, widget=ProfilePhotoInput(
         attrs={'template_name': 'user/profile_photo_input.html'}))
 
     class Meta:
