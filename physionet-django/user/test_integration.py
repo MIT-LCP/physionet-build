@@ -1,11 +1,15 @@
+import base64
+
 from django.contrib.auth.views import LoginView
 from django.core import mail
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 import re
 import pdb
 
 from user.models import User, AssociatedEmail
+from user.test_views import TestMixin
 
 
 class TestAuth(TestCase):
@@ -52,6 +56,76 @@ class TestAuth(TestCase):
     def test_user_settings(self):
         response = self.client.get(reverse('user_settings'))
         self.assertRedirects(response, reverse('edit_profile'))
+
+
+class TestPhoto(TestMixin):
+    """
+    Test adding/removing profile photo.
+    """
+    def test_edit_photo(self):
+        text_data = b'blah blah'
+
+        pbm_data = b'P4\n1 1\n\x00'
+
+        png_data = base64.b64decode('''
+            iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQAAAAA3bvkkAAAACklEQVQIHWNoAAAA
+            ggCB8KrjIgAAAABJRU5ErkJggg==
+        ''')
+
+        jpeg_data = base64.b64decode('''
+            /9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAP//////////////////////////////
+            ////////////////////////////////////////////////////////wAALCAAB
+            AAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAAA//EABQQAQAAAAAAAAAAAAAAAAAA
+            AAD/2gAIAQEAAD8AR//Z
+        ''')
+
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+
+        # upload a PNG image (allowed)
+        response = self.client.post(reverse('edit_profile'), data={
+            'edit_profile': '', 'first_names': 'Roger', 'last_name': 'Mark',
+            'photo': SimpleUploadedFile('photo.jpg', png_data),
+        })
+        self.assertEqual(response.status_code, 200)
+        profile = User.objects.get(email='rgmark@mit.edu').profile
+        self.assertTrue(profile.photo)
+        self.assertTrue(profile.photo.path.endswith('.png'))
+
+        # delete the image
+        response = self.client.post(reverse('edit_profile'), data={
+            'delete_photo': '',
+        })
+        self.assertEqual(response.status_code, 200)
+        profile = User.objects.get(email='rgmark@mit.edu').profile
+        self.assertFalse(profile.photo)
+
+        # upload some junk
+        response = self.client.post(reverse('edit_profile'), data={
+            'edit_profile': '', 'first_names': 'Roger', 'last_name': 'Mark',
+            'photo': SimpleUploadedFile('photo.png', b'\xff\xd8'),
+        })
+        self.assertEqual(response.status_code, 200)
+        profile = User.objects.get(email='rgmark@mit.edu').profile
+        self.assertFalse(profile.photo)
+
+        # upload a PBM image (not allowed)
+        response = self.client.post(reverse('edit_profile'), data={
+            'edit_profile': '', 'first_names': 'Roger', 'last_name': 'Mark',
+            'photo': SimpleUploadedFile('photo.jpg', pbm_data),
+        })
+        self.assertEqual(response.status_code, 200)
+        profile = User.objects.get(email='rgmark@mit.edu').profile
+        self.assertFalse(profile.photo)
+
+        # upload a JPEG image (allowed)
+        response = self.client.post(reverse('edit_profile'), data={
+            'edit_profile': '', 'first_names': 'Roger', 'last_name': 'Mark',
+            'photo': SimpleUploadedFile('asdfghjk', jpeg_data),
+        })
+        self.assertEqual(response.status_code, 200)
+        profile = User.objects.get(email='rgmark@mit.edu').profile
+        self.assertTrue(profile.photo)
+        self.assertTrue(profile.photo.path.endswith('.jpg'))
 
 
 class TestPublic(TestCase):
