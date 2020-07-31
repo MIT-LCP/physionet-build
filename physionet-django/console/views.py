@@ -1006,40 +1006,26 @@ def complete_credential_applications(request):
     applications = applications.order_by(F('reference_contact_datetime').asc(
         nulls_first=True), 'application_datetime')
 
-    # Here we sort in 3 diferent ways:
+    # Group applications and sort by application date:
     # 1. reference not contacted, but with reference known
-    # 2. reference not contacted, but with reference unknown
-    # 3. reference contacted
-    # All 3 are sorted by application date
     known_ref_apps_not_contacted = []
+
+    # 2. reference not contacted, but with reference unknown
     unknown_ref_apps_not_contacted = []
+
+    # 3. reference contacted
     contacted_apps = []
-    # Do the proper sort
+
     for application in applications:
         application.mailto = notification.mailto_process_credential_complete(
             request, application, comments=False)
-        if CredentialApplication.objects.filter(
-            reference_email__iexact=application.reference_email,
-            reference_contact_datetime__isnull=False).exclude(
-                reference_email='') and \
-                application.reference_contact_datetime is None:
-            # If the reference has been contacted before, mark it so
-            application.known_ref = True
+        if application.ref_known_flag() and application.reference_contact_datetime is None:
             known_ref_apps_not_contacted.append(
                 [application.application_datetime, application])
-        elif LegacyCredential.objects.filter(
-            reference_email__iexact=application.reference_email).exclude(
-                reference_email='') and \
-                application.reference_contact_datetime is None:
-            application.known_ref = True
-            known_ref_apps_not_contacted.append(
-                [application.application_datetime, application])
-        elif application.reference_contact_datetime is None:
-            application.known_ref = False
+        elif not application.ref_known_flag() and application.reference_contact_datetime is None:
             unknown_ref_apps_not_contacted.append(
                 [application.application_datetime, application])
         else:
-            application.known_ref = False
             contacted_apps.append(
                 [application.application_datetime, application])
 

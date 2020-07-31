@@ -771,6 +771,22 @@ class CredentialApplication(models.Model):
         """
         self._apply_decision(3, responder)
 
+    def ref_known_flag(self):
+        """
+        Returns True if the reference is known, else False.
+        """
+        if CredentialApplication.objects.filter(
+            reference_email__iexact=self.reference_email,
+            reference_contact_datetime__isnull=False).exclude(
+            reference_email=''):
+            return True
+        elif LegacyCredential.objects.filter(
+            reference_email__iexact=self.reference_email).exclude(
+            reference_email=''):
+            return True
+        else:
+            return False
+
 
 class CloudInformation(models.Model):
     """
