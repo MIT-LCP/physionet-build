@@ -1016,23 +1016,24 @@ def complete_credential_applications(request):
     # 3. reference contacted
     contacted_apps = []
 
-    for application in applications:
-        application.mailto = notification.mailto_process_credential_complete(
-            request, application, comments=False)
-        if application.ref_known_flag() and application.reference_contact_datetime is None:
-            known_ref_apps_not_contacted.append(
-                [application.application_datetime, application])
-        elif not application.ref_known_flag() and application.reference_contact_datetime is None:
-            unknown_ref_apps_not_contacted.append(
-                [application.application_datetime, application])
+    for a in applications:
+        a.mailto = notification.mailto_process_credential_complete(
+            request, a, comments=False)
+
+        if a.ref_known_flag() and a.reference_contact_datetime is None:
+            known_ref_apps_not_contacted.append([a.application_datetime, a])
+        elif not a.ref_known_flag() and a.reference_contact_datetime is None:
+            unknown_ref_apps_not_contacted.append([a.application_datetime, a])
         else:
-            contacted_apps.append(
-                [application.application_datetime, application])
+            contacted_apps.append([a.application_datetime, a])
 
     # Sorting by application date
-    t0 = [item[1] for item in sorted(known_ref_apps_not_contacted, key=lambda x: x[0])]
-    t1 = [item[1] for item in sorted(unknown_ref_apps_not_contacted, key=lambda x: x[0])]
-    t2 = [item[1] for item in sorted(contacted_apps, key=lambda x: x[0])]
+    t0 = [item[1] for item in sorted(known_ref_apps_not_contacted,
+                                     key=lambda x: x[0])]
+    t1 = [item[1] for item in sorted(unknown_ref_apps_not_contacted,
+                                     key=lambda x: x[0])]
+    t2 = [item[1] for item in sorted(contacted_apps,
+                                     key=lambda x: x[0])]
     applications = t0 + t1 + t2
 
     return render(request, 'console/complete_credential_applications.html',
