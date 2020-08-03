@@ -964,8 +964,9 @@ def complete_credential_applications(request):
          request.POST['contact_reference'].isdigit():
             application_id = request.POST.get('contact_reference', '')
             application = CredentialApplication.objects.get(id=application_id)
-            application.reference_contact_datetime = timezone.now()
-            application.save()
+            if not application.reference_contact_datetime:
+                application.reference_contact_datetime = timezone.now()
+                application.save()
             # notification.contact_reference(request, application)
             if application.reference_category == 0:
                 mailto = notification.mailto_supervisor(request, application)
@@ -1005,30 +1006,35 @@ def complete_credential_applications(request):
     applications = applications.order_by(F('reference_contact_datetime').asc(
         nulls_first=True), 'application_datetime')
 
-    temp = []
-    # Do the proper sort
-    for application in applications:
-        application.mailto = notification.mailto_process_credential_complete(
-            request, application, comments=False)
-        if CredentialApplication.objects.filter(
-            reference_email__iexact=application.reference_email,
-            reference_contact_datetime__isnull=False).exclude(
-                reference_email='') and \
-                application.reference_contact_datetime is None:
-            # If the reference has been contacted before, mark it so
-            application.known_ref = True
-            temp.append([0, application])
-        elif LegacyCredential.objects.filter(
-            reference_email__iexact=application.reference_email).exclude(
-                reference_email='') and \
-                application.reference_contact_datetime is None:
-            application.known_ref = True
-            temp.append([0, application])
-        else:
-            application.known_ref = False
-            temp.append([1, application])
+    # Group applications and sort by application date:
+    # 1. reference not contacted, but with reference known
+    known_ref_apps_not_contacted = []
 
-    applications = [item[1] for item in sorted(temp, key=lambda x: x[0])]
+    # 2. reference not contacted, but with reference unknown
+    unknown_ref_apps_not_contacted = []
+
+    # 3. reference contacted
+    contacted_apps = []
+
+    for a in applications:
+        a.mailto = notification.mailto_process_credential_complete(
+            request, a, comments=False)
+
+        if a.ref_known_flag() and a.reference_contact_datetime is None:
+            known_ref_apps_not_contacted.append([a.application_datetime, a])
+        elif not a.ref_known_flag() and a.reference_contact_datetime is None:
+            unknown_ref_apps_not_contacted.append([a.application_datetime, a])
+        else:
+            contacted_apps.append([a.application_datetime, a])
+
+    # Sorting by application date
+    t0 = [item[1] for item in sorted(known_ref_apps_not_contacted,
+                                     key=lambda x: x[0])]
+    t1 = [item[1] for item in sorted(unknown_ref_apps_not_contacted,
+                                     key=lambda x: x[0])]
+    t2 = [item[1] for item in sorted(contacted_apps,
+                                     key=lambda x: x[0])]
+    applications = t0 + t1 + t2
 
     return render(request, 'console/complete_credential_applications.html',
                   {'process_credential_form': process_credential_form,
