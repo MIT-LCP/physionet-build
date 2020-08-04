@@ -3,9 +3,10 @@
 
 Dear {{ name }},
 
-The project you have requested revisions for, "{{ project.title }}", has been resubmitted for review.
+The project "{{ project.title }}" was resubmitted for review.
 
-We would be grateful if you could review the revised submission within 7 days.
+We would be grateful if you could review the revised submission within 7 days. {% if author_comments %}The author included the following comment with the submission: 
+{{ author_comments }}{% endif %}
 
 {{ signature }}
 
