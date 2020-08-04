@@ -2,12 +2,24 @@ from django import template
 from django.shortcuts import reverse
 from django.utils.html import format_html, escape
 from django.utils.http import urlencode
+import html2text
 
 from notification.utility import mailto_url
 
 
 register = template.Library()
 
+
+@register.filter(name='html_to_text')
+def html_to_text(html):
+    """
+    Convert HTML to plain text.
+    """
+    parser = html2text.HTML2Text()
+    parser.ignore_links = True
+    parser.ignore_emphasis = True
+
+    return parser.handle(html).replace('\n', '')
 
 @register.filter(name='nbsp')
 def nbsp(text):
