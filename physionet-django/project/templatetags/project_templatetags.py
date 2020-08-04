@@ -19,7 +19,7 @@ def html_to_text(html):
     parser.ignore_links = True
     parser.ignore_emphasis = True
 
-    return parser.handle(html).replace('\n','')
+    return parser.handle(html).replace('\n', '')
 
 @register.filter(name='nbsp')
 def nbsp(text):
