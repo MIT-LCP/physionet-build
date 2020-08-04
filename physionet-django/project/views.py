@@ -1198,7 +1198,8 @@ def project_submission(request, project_slug, **kwargs):
         if 'submit_project' in request.POST and is_submitting:
             author_comments_form = forms.AuthorCommentsForm(data=request.POST)
             if project.is_submittable() and author_comments_form.is_valid():
-                project.submit(author_comments=author_comments_form.cleaned_data['author_comments'])
+                comments = author_comments_form.cleaned_data['author_comments']
+                project.submit(author_comments=comments)
                 notification.submit_notify(project)
                 messages.success(request, 'Your project has been submitted. You will be notified when an editor is assigned.')
             elif project.integrity_errors:
@@ -1208,8 +1209,9 @@ def project_submission(request, project_slug, **kwargs):
         elif 'resubmit_project' in request.POST and is_submitting:
             author_comments_form = forms.AuthorCommentsForm(data=request.POST)
             if project.is_resubmittable() and author_comments_form.is_valid():
-                project.resubmit(author_comments=author_comments_form.cleaned_data['author_comments'])
-                notification.resubmit_notify(project)
+                comments = author_comments_form.cleaned_data['author_comments']
+                project.resubmit(author_comments=comments)
+                notification.resubmit_notify(project, comments)
                 messages.success(request, 'Your project has been resubmitted. You will be notified when the editor makes their decision.')
         # Author approves publication
         elif 'approve_publication' in request.POST:
@@ -1225,10 +1227,10 @@ def project_submission(request, project_slug, **kwargs):
             # Register the approval if valid
             if project.approve_author(author):
                 if project.submission_status == 60:
-                    messages.success(request, 'You have approved the publication of your project. The editor will publish it shortly')
+                    messages.success(request, 'You have approved the project for publication. The editor will publish it shortly')
                     notification.authors_approved_notify(request, project)
                 else:
-                    messages.success(request, 'You have approved the publication of your project.')
+                    messages.success(request, 'You have approved the project for publication.')
                 authors = project.authors.all().order_by('display_order')
             else:
                 messages.error(request, 'Invalid')

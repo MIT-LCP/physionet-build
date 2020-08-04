@@ -184,6 +184,7 @@ def submit_notify(project):
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)
 
+    # notify editorial team
     subject = 'A new project has been submitted: {0}'.format(project.title)
     email_context['name'] = "Colleague"
     body = loader.render_to_string(
@@ -193,7 +194,7 @@ def submit_notify(project):
           [settings.CONTACT_EMAIL], fail_silently=False)
 
 
-def resubmit_notify(project):
+def resubmit_notify(project, comments):
     """
     Notify authors and the editor when a project is resubmitted
     """
@@ -213,7 +214,9 @@ def resubmit_notify(project):
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                           [email], fail_silently=False)
 
+    # notify editorial team
     email_context['name'] = project.editor.get_full_name()
+    email_context['author_comments'] = comments
     body = loader.render_to_string(
         'notification/email/resubmit_notify_editor.html', email_context)
 
