@@ -536,12 +536,12 @@ class LegacyCredential(models.Model):
         Revokes a legacy application.
         """
         # Removes credentialing from the user
-        self.user.is_credentialed = False
-        self.user.credential_datetime = None
-        self.user.save()
+        self.migrated_user.is_credentialed = False
+        self.migrated_user.credential_datetime = None
+        self.migrated_user.save()
 
         logger.info('Credentialing for user {0} has been removed.'.format(
-            self.user.email))
+            self.migrated_user.email))
 
 
 class Profile(models.Model):
