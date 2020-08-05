@@ -538,15 +538,7 @@ class LegacyCredential(models.Model):
         # Removes credentialing from the user
         self.user.is_credentialed = False
         self.user.credential_datetime = None
-
-        # Removes all DUA signatures
-        with transaction.atomic():
-            for dua in self.user.dua_signatures.all():
-                logger.info('Removing DUA signature for project {0} and user \
-                            {1}, this DUA was signed at {2}'.format(
-                                dua.project, dua.user, dua.sign_datetime))
-                dua.delete()
-            self.user.save()
+        self.user.save()
 
         logger.info('Credentialing for user {0} has been removed.'.format(
             self.user.email))
@@ -820,13 +812,7 @@ class CredentialApplication(models.Model):
         self.user.is_credentialed = False
         self.user.credential_datetime = None
 
-        # Removes all DUA signatures
         with transaction.atomic():
-            for dua in self.user.dua_signatures.all():
-                logger.info('Removing DUA signature for project {0} and user \
-                            {1}, this DUA was signed at {2}'.format(
-                                dua.project, dua.user, dua.sign_datetime))
-                dua.delete()
             self.user.save()
             self.save()
 
