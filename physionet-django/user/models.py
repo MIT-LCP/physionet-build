@@ -525,11 +525,30 @@ class LegacyCredential(models.Model):
     
     reference_email = models.CharField(max_length=255, blank=True, default='')
 
+    revoked_datetime = models.DateTimeField(null=True)
+
     def __str__(self):
         return self.email
 
     def is_legacy(self):
         return True
+
+    def revoke(self):
+        """
+        Revokes a legacy application.
+        """
+        # Removes credentialing from the user
+        with transaction.atomic():
+            self.revoked_datetime = timezone.now()
+
+            self.migrated_user.is_credentialed = False
+            self.migrated_user.credential_datetime = None
+
+            self.migrated_user.save()
+            self.save()
+
+        logger.info('Credentialing for user {0} has been removed.'.format(
+            self.migrated_user.email))
 
 
 class Profile(models.Model):
@@ -644,7 +663,8 @@ class CredentialApplication(models.Model):
         ('', '-----------'),
         (1, 'Reject'),
         (2, 'Accept'),
-        (3, 'Withdrawn')
+        (3, 'Withdrawn'),
+        (4, 'Revoked')
     )
 
     # Location for storing files associated with the application
@@ -711,6 +731,7 @@ class CredentialApplication(models.Model):
         related_name='responded_applications', on_delete=models.SET_NULL)
     responder_comments = models.CharField(max_length=500, default='',
         blank=True)
+    revoked_datetime = models.DateTimeField(null=True)
 
     def file_root(self):
         """Location for storing files associated with the application"""
@@ -786,6 +807,25 @@ class CredentialApplication(models.Model):
             return True
         else:
             return False
+
+    def revoke(self):
+        """
+        Revokes an approved application.
+        """
+        # Set the application as unsucessful with the current datetime
+        self.status = 4
+        self.revoked_datetime = timezone.now()
+
+        # Removes credentialing from the user
+        self.user.is_credentialed = False
+        self.user.credential_datetime = None
+
+        with transaction.atomic():
+            self.user.save()
+            self.save()
+
+        logger.info('Credentialing for user {0} has been removed.'.format(
+            self.user.email))
 
 
 class CloudInformation(models.Model):

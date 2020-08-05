@@ -1146,27 +1146,12 @@ def past_credential_applications(request, status):
                 c_application = CredentialApplication.objects.filter(id=cid)
                 if c_application:
                     c_application = c_application.get()
-                    c_application.user.is_credentialed = False
-                    c_application.user.credential_datetime = None
-                    c_application.decision_datetime = None
-                    c_application.status = 1
-                    dua_list = DUASignature.objects.filter(user = c_application.user,
-                        project__access_policy = 2)
-                    try:
-                        with transaction.atomic():
-                            for dua in dua_list:
-                                dua.delete()
-                            c_application.user.save()
-                            c_application.save()
-                    except DatabaseError:
-                        messages.error(request, 'There was a database error. Please try again.')
+                    c_application.revoke()
             else:
                 l_application = LegacyCredential.objects.filter(email=request.POST['remove_credentialing'])
                 if l_application:
                     l_application = l_application.get()
-                    l_application.migrated_user.credential_datetime = None
-                    l_application.migrated_user.is_credentialed = False
-                    l_application.migrated_user.save()
+                    l_application.revoke()
         elif 'manage_credentialing' in request.POST and request.POST['manage_credentialing'].isdigit():
             cid = request.POST['manage_credentialing']
             c_application = CredentialApplication.objects.filter(id=cid)
@@ -1190,8 +1175,8 @@ def past_credential_applications(request, status):
 
     successful_apps = CredentialApplication.objects.filter(status=2
         ).order_by('-decision_datetime')
-    unsuccessful_apps = CredentialApplication.objects.filter(status__in=[1, 3]
-        ).order_by('-decision_datetime')
+    unsuccessful_apps = CredentialApplication.objects.filter(
+        status__in=[1, 3, 4]).order_by('-decision_datetime')
 
     # Merge legacy applications and new applications
     all_successful_apps = list(chain(successful_apps, legacy_apps))
