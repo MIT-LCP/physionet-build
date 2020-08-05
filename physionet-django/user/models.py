@@ -531,6 +531,18 @@ class LegacyCredential(models.Model):
     def is_legacy(self):
         return True
 
+    def revoke(self):
+        """
+        Revokes a legacy application.
+        """
+        # Removes credentialing from the user
+        self.migrated_user.is_credentialed = False
+        self.migrated_user.credential_datetime = None
+        self.migrated_user.save()
+
+        logger.info('Credentialing for user {0} has been removed.'.format(
+            self.migrated_user.email))
+
 
 class Profile(models.Model):
     """
@@ -644,7 +656,8 @@ class CredentialApplication(models.Model):
         ('', '-----------'),
         (1, 'Reject'),
         (2, 'Accept'),
-        (3, 'Withdrawn')
+        (3, 'Withdrawn'),
+        (4, 'Revoked')
     )
 
     # Location for storing files associated with the application
@@ -786,6 +799,25 @@ class CredentialApplication(models.Model):
             return True
         else:
             return False
+
+    def revoke(self):
+        """
+        Revokes an approved application.
+        """
+        # Set the application as unsucessful with the current datetime
+        self.decision_datetime = timezone.now()
+        self.status = 4
+
+        # Removes credentialing from the user
+        self.user.is_credentialed = False
+        self.user.credential_datetime = None
+
+        with transaction.atomic():
+            self.user.save()
+            self.save()
+
+        logger.info('Credentialing for user {0} has been removed.'.format(
+            self.user.email))
 
 
 class CloudInformation(models.Model):

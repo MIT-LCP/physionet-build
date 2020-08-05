@@ -2171,7 +2171,8 @@ class DUASignature(models.Model):
     """
     project = models.ForeignKey('project.PublishedProject',
         on_delete=models.CASCADE)
-    user = models.ForeignKey('user.User', on_delete=models.CASCADE)
+    user = models.ForeignKey('user.User', on_delete=models.CASCADE,
+                             related_name='dua_signatures')
     sign_datetime = models.DateTimeField(auto_now_add=True)
 
 
