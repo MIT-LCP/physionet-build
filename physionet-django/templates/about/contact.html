@@ -8,7 +8,11 @@
         <div class="col-md-12">
           <div class="form-group">
             {{ field }}
-            <p class="help-block text-danger"></p>
+            {% for error in field.errors %}
+            <div class="alert alert-danger">
+              <strong>{{ error|escape }}</strong>
+            </div>
+            {% endfor %}
           </div>
         </div>
       </div>
