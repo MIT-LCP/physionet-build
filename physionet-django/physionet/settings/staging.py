@@ -28,6 +28,7 @@ EMAIL_HOST_USER = ''
 EMAIL_HOST_PASSWORD = ''
 EMAIL_USE_TLS = False
 
+EMAIL_FROM_DOMAINS = ['physionet.org']
 DEFAULT_FROM_EMAIL = 'PhysioNet Automated System <noreply@staging.physionet.org>'
 CONTACT_EMAIL = 'PhysioNet Contact <contact@staging.physionet.org>'
 SERVER_EMAIL = 'PhysioNet System <root@staging.physionet.org>'
