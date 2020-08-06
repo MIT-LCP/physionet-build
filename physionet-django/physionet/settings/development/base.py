@@ -16,6 +16,7 @@ MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware', ]
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+EMAIL_FROM_DOMAINS = ['physionet.org']
 DEFAULT_FROM_EMAIL = 'PhysioNet Automated System <noreply@dev.physionet.org>'
 CONTACT_EMAIL = 'PhysioNet Contact <contact@dev.physionet.org>'
 SERVER_EMAIL = 'PhysioNet System <root@dev.physionet.org>'

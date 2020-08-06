@@ -2,6 +2,7 @@ import os
 import pdb
 
 from django import forms
+from django.conf import settings
 from django.contrib.auth import forms as auth_forms
 from django.contrib.auth import password_validation
 from django.core.files.uploadedfile import UploadedFile
@@ -568,6 +569,14 @@ class ContactForm(forms.Form):
         attrs={'class': 'form-control', 'placeholder': 'Subject *'}))
     message = forms.CharField(max_length=2000, widget=forms.Textarea(
         attrs={'class': 'form-control', 'placeholder': 'Message *'}))
+
+    def clean_email(self):
+        # Disallow addresses that look like they come from this machine.
+        addr = self.cleaned_data['email'].lower()
+        for domain in settings.EMAIL_FROM_DOMAINS:
+            if addr.endswith('@' + domain) or addr.endswith('.' + domain):
+                raise forms.ValidationError('Please enter your email address.')
+        return self.cleaned_data['email']
 
 class CloudForm(forms.ModelForm):
     """
