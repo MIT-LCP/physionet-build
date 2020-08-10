@@ -2635,8 +2635,17 @@ class Metrics(models.Model):
     as date recorded.
     '''
     core_project = models.ForeignKey('project.CoreProject', 
-                                     on_delete=models.DO_NOTHING, 
-                                     default=None)
+                                     on_delete=models.CASCADE)
     viewcount = models.PositiveIntegerField(default=0)
     running_viewcount = models.PositiveIntegerField(default=0)
-    date = models.DateField(default=None)
+    date = models.DateField()
+
+    unique_together = (('core_project', 'date'),)
+
+class MetricsLogData(models.Model):
+    '''
+    Stores the filenames, creation timestamps, and hashes of each log file that is parsed.
+    '''
+    filename = models.CharField(max_length=128)
+    creation_datetime = models.DateTimeField()
+    log_hash = models.CharField(max_length=128)
