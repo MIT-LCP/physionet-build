@@ -2640,7 +2640,9 @@ class Metrics(models.Model):
     running_viewcount = models.PositiveIntegerField(default=0)
     date = models.DateField()
 
-    unique_together = (('core_project', 'date'),)
+    class Meta:
+        unique_together = (('core_project', 'date'),)
+
 
 class MetricsLogData(models.Model):
     '''
