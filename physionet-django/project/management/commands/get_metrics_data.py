@@ -12,8 +12,10 @@ import warnings
 from django.core.management.base import BaseCommand
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.timezone import make_aware
+from django.db import transaction
 
-from project.models import CoreProject, PublishedProject, Metrics, MetricsLogData
+from project.models import (CoreProject, PublishedProject, Metrics,
+                            MetricsLogData)
 
 
 class Command(BaseCommand):
@@ -30,7 +32,7 @@ class Command(BaseCommand):
         """Retrieves metrics data from the latest log file, or as specified.
 
         Retrieves view count from most recent log file, or from the log file(s)
-            specified in **options.
+            specified in **options, and updates database accordingly.
 
         Args:
             **options:
@@ -46,21 +48,34 @@ class Command(BaseCommand):
         files = options['files']
 
         for filename in files:
-            if check_log_hash(filename) is True:
-                warnings.warn(f'Log file {filename} has already been parsed',
-                              UserWarning)
-                continue
             try:
                 validate_log_file(filename)
-                unparsed_lines = update_metrics(filename)
-                if unparsed_lines > 0:
-                    warnings.warn(f'This file has {unparsed_lines} line(s) that could not be parsed', UserWarning)
+                log_data, unparsed_lines = log_parser(filename)
             except InvalidLogError:
                 raise InvalidLogError(
                     f'Log file {filename} is not a valid NGINX log')
 
+            curr_hash = hash_generator(filename)
+            with transaction.atomic():
+                if MetricsLogData.objects.filter(log_hash=curr_hash).exists():
+                    warnings.warn(f'Log file {filename} has already been parsed',
+                                  UserWarning)
+                else:
+                    creation_datetime = make_aware(datetime.datetime.strptime(
+                        time.ctime(os.path.getctime(filename)),
+                        "%a %b %d %H:%M:%S %Y"))
+                    new_log = MetricsLogData.objects.create(filename=filename,
+                                                            creation_datetime=creation_datetime,
+                                                            log_hash=curr_hash)
+                    new_log.save()
 
-def check_log_hash(filename):
+                    update_metrics(log_data)
+                    if unparsed_lines > 0:
+                        warnings.warn(f'This file has {unparsed_lines} line(s) that could not be parsed',
+                                      UserWarning)
+
+
+def hash_generator(filename):
     """Checks if a given file has been parsed before.
 
     Hashes the given file to check if it has already been parsed before.
@@ -69,7 +84,8 @@ def check_log_hash(filename):
         filename: An NGINX log file to parse.
 
     Returns:
-        bool: True if the file has been parsed before, False otherwise.
+        file_hash.hexdigest(): The unique hash of a particular file in str
+            form, containing only hexadecimal digits.
     """
     BLOCK_SIZE = 65536
 
@@ -79,19 +95,7 @@ def check_log_hash(filename):
         while len(fb) > 0:
             file_hash.update(fb)
             fb = f.read(BLOCK_SIZE)
-
-    current_hash = file_hash.hexdigest()
-    if MetricsLogData.objects.filter(log_hash=current_hash).exists():
-        return True
-
-    else:
-        creation_datetime = make_aware(datetime.datetime.strptime(time.ctime(
-            os.path.getctime(filename)), "%a %b %d %H:%M:%S %Y"))
-        new_log = MetricsLogData.objects.create(filename=filename,
-                                                creation_datetime=creation_datetime,
-                                                log_hash=current_hash)
-        new_log.save()
-        return False
+    return file_hash.hexdigest()
 
 
 def validate_log_file(filename):
@@ -126,21 +130,18 @@ def validate_log_file(filename):
             raise InvalidLogError
 
 
-def update_metrics(filename):
+def update_metrics(log_data):
     """Updates project metrics in the database.
 
-    Obtains metrics data from log_parser and then updates each core project
-    with new data.
+    Updates each core project with new data in log_data.
 
     Args:
-        filename: An NGINX log file to parse.
+        log_data: A dict mapping project slugs to their respective project
+            view date, count, and set of IP addresses.
 
     Returns:
-        An int representing the number of lines in the file that could not
-            be parsed.
+        None
     """
-    log_data, unparsed_lines = log_parser(filename)
-
     for p in PublishedProject.objects.filter(is_latest_version=True):
         if p.slug in log_data:
             update_count = 0
@@ -154,15 +155,14 @@ def update_metrics(filename):
                     core_project=p.core_project).latest('date')
             except ObjectDoesNotExist:
                 last_entry = None
-            project = Metrics.objects.create(
+            project = Metrics.objects.get_or_create(
                 core_project=p.core_project,
-                date=update_date)
+                date=update_date)[0]
             if last_entry:
                 project.running_viewcount = last_entry.running_viewcount
             project.viewcount = update_count
             project.running_viewcount += update_count
             project.save()
-    return unparsed_lines
 
 
 def log_parser(filename):
@@ -199,7 +199,8 @@ def log_parser(filename):
                         '/files/' in parts[6] or '/content/' in parts[6]):
                     path = parts[6].split('?')[0]
                     slug = path.split('/')[2]
-                    date = datetime.datetime.strptime(parts[3][1:12], "%d/%b/%Y")
+                    date = datetime.datetime.strptime(parts[3][1:12],
+                                                      "%d/%b/%Y")
                     ip = parts[0]
                     if slug not in data:
                         data[slug] = {date: [0, set()]}
