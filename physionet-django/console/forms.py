@@ -450,7 +450,7 @@ class PublishedProjectContactForm(forms.ModelForm):
 
 class CreateLegacyAuthorForm(forms.ModelForm):
     """
-    Merge two user accounts
+    Create an author for a legacy project.
     """
     author = forms.ModelChoiceField(
         queryset=User.objects.filter(is_active=True).order_by('username'),
@@ -481,14 +481,20 @@ class CreateLegacyAuthorForm(forms.ModelForm):
         author = self.cleaned_data['author']
         affiliation = super().save(commit=False)
         display_order = self.project.authors.count() + 1
-        submitting = False
+        is_submitting = False
+        is_corresponding = False
+        corresponding_email = None
         if display_order == 1:
-            submitting = True
+            is_submitting = True
+            is_corresponding = True
+            corresponding_email = author.email
 
         affiliation.author = PublishedAuthor.objects.create(
             first_names=author.profile.first_names, project=self.project,
             last_name=author.profile.last_name, user=author,
-            display_order=display_order, is_submitting=submitting)
+            display_order=display_order, is_submitting=is_submitting,
+            is_corresponding=is_corresponding,
+            corresponding_email=corresponding_email)
 
         affiliation.save()
         return affiliation
