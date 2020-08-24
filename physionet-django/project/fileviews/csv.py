@@ -53,12 +53,16 @@ class CSVFileView(FileView):
                 limit -= len(ntext)
                 if limit < 0:
                     raise SizeLimitExceeded()
+                if not ntext and text:
+                    yield text
+                    raise MissingNewline()
                 detector.feed(ntext)
                 text += ntext.decode('ISO-8859-1')
 
         # Read data and parse at most MAX_ROWS
         truncated_rows = None
         truncated_columns = None
+        missing_newline = False
         rows = []
         try:
             reader = csv.reader(wrapper(self.file, text), dialect=dialect)
@@ -71,6 +75,8 @@ class CSVFileView(FileView):
                 rows.append(row)
         except SizeLimitExceeded:
             truncated_rows = len(rows)
+        except MissingNewline:
+            missing_newline = True
 
         # Try to guess encoding
         detector.close()
@@ -92,6 +98,7 @@ class CSVFileView(FileView):
         return super().render(request, 'project/file_view_csv.html',
                               header_row=header_row,
                               data_rows=rows,
+                              missing_newline=missing_newline,
                               truncated_rows=truncated_rows,
                               truncated_columns=truncated_columns)
 
@@ -101,4 +108,8 @@ class GzippedCSVFileView(GzippedFileView, CSVFileView):
 
 
 class SizeLimitExceeded(Exception):
+    pass
+
+
+class MissingNewline(Exception):
     pass

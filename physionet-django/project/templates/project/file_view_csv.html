@@ -31,6 +31,10 @@
   <a href="{{ file.download_url }}">Click here to download the
     complete file.</a>
 </div>
+{% elif missing_newline %}
+<div class="card-footer text-center missing-newline-warning">
+  Warning: missing newline at end of file
+</div>
 {% endif %}
 {% endblock %}
 
@@ -40,6 +44,9 @@
     margin: 0px;
     background-color: #fff;
     border: 1px solid #dfdfdf;
+  }
+  .missing-newline-warning {
+    color: #f00;
   }
 </style>
 {% endblock %}
