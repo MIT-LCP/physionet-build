@@ -952,8 +952,8 @@ def known_references_search(request):
         if len(applications) == 0:
             all_known_ref = paginate(request, applications, 50)
 
-        return render(request, 'console/application_list.html', {
-            'all_known_ref':all_known_ref})
+        return render(request, 'console/known_references_list.html', {
+            'all_known_ref': all_known_ref})
 
     raise Http404()
 
@@ -1525,14 +1525,14 @@ class UserAutocomplete(autocomplete.Select2QuerySetView):
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
-def known_referencess(request):
+def known_references(request):
     """
     List all known references witht he option of removing the contact date
     """
     user = request.user
 
     if 'remove_known_ref' in request.POST and \
-     request.POST['remove_known_ref'].isdigit():
+       request.POST['remove_known_ref'].isdigit():
         try:
             application = CredentialApplication.objects.get(
                 id=request.POST['remove_known_ref'])
@@ -1549,5 +1549,5 @@ def known_referencess(request):
 
     all_known_ref = paginate(request, all_known_ref, 50)
 
-    return render(request, 'console/known_referencess.html', {
+    return render(request, 'console/known_references.html', {
         'all_known_ref': all_known_ref, 'known_ref_nav': True})
