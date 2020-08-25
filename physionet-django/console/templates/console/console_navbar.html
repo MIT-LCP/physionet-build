@@ -59,7 +59,7 @@
 
       <!-- credentialing -->
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
-      {% if credentials_nav or complete_credentials_nav or past_credentials_nav %}
+      {% if credentials_nav or complete_credentials_nav or past_credentials_nav or known_ref_nav %}
         <a id="nav_credentialing_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#credentialComponents" data-parent="#sideAccordion" aria-expanded="true">
       {% else %}
         <a id="nav_credentialing_dropdown" class="nav-link nav-link-collapse drop collapsed" data-toggle="collapse" href="#credentialComponents" data-parent="#sideAccordion" aria-expanded="false">
@@ -68,7 +68,7 @@
           <span class="nav-link-text">Credentialing</span>
         </a>
         <!-- submenu -->
-      {% if credentials_nav or complete_credentials_nav or past_credentials_nav %}
+      {% if credentials_nav or complete_credentials_nav or past_credentials_nav or known_ref_nav %}
         <ul class="sidenav-second-level collapse show" id="credentialComponents">
       {% else %}
         <ul class="sidenav-second-level collapse" id="credentialComponents">
@@ -81,6 +81,9 @@
           </li>
           <li class="nav-item {% if past_credentials_nav %}active{% endif %} ">
             <a id="nav_past_credential_applications" href="{% url 'past_credential_applications' 'successful' %}">Past Applications</a>
+          </li>
+          <li class="nav-item {% if known_ref_nav %}active{% endif %} ">
+            <a id="nav_known_ref" href="{% url 'known_referencess' %}">Known references</a>
           </li>
         </ul>
       </li>

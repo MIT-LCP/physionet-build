@@ -1,0 +1,34 @@
+<div id="searchitems">
+  <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+    <thead>
+      <tr>
+        <th>Contact Date</th>
+        <th>Reference Email</th>
+        <th>Reference Name</th>
+        <th>From application</th>
+        <th>Options</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for application in all_known_ref %}
+      <tr>
+        <td>{{ application.reference_contact_datetime | date }}</td>
+        <td>{{ application.reference_email }}</td>
+        <td>{{ application.reference_name }}</td>
+        <td>
+            <a href="{% url 'view_credential_application' application.slug %}" target="_blank">{{ application.id }} -- {{ application.user.get_full_name }}</a>
+        </td>
+        <td>
+            <form action="" method="post">
+            {% csrf_token %}
+              <button  name="remove_known_ref" value="{{ application.id }}" type="submit">
+                Remove
+              </button>
+            </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% include "console/pagination.html" with pagination=application %}
+</div>

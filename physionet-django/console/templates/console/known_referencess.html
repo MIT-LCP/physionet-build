@@ -1,0 +1,27 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}PhysioNet Users{% endblock %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/pagination.css' %}">
+{% endblock %}
+
+{% block content %}
+<script src="{% static 'custom/js/cookie.js' %}"></script>
+<script src="{% static 'project/js/dynamic-formset.js' %}"></script>
+<script src="{% static 'console/js/search-console.js' %}"></script>
+
+<div class="card mb-3">
+  <div class="card-header">
+    Known references <span class="badge badge-pill badge-info">{{ all_known_ref.paginator.count }}</span>
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <input type="search" oninput="search('{% url "known_references_search" %}', value);" placeholder="Search...">
+      {% include 'console/application_list.html' %}
+    </div>
+  </div>
+</div>
+{% endblock %}
