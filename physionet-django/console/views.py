@@ -949,8 +949,8 @@ def known_references_search(request):
             reference_contact_datetime__isnull=True).order_by(
             '-reference_contact_datetime')
 
-        if len(applications) == 0:
-            all_known_ref = paginate(request, applications, 50)
+        if len(search_field) == 0:
+            all_known_ref = paginate(request, all_known_ref, 50)
 
         return render(request, 'console/known_references_list.html', {
             'all_known_ref': all_known_ref})
