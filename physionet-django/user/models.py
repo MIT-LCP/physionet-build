@@ -827,6 +827,13 @@ class CredentialApplication(models.Model):
         logger.info('Credentialing for user {0} has been removed.'.format(
             self.user.email))
 
+    def remove_contact_reference(self):
+        """
+        Mark a reference as not contacted making the reference for this instance
+        not known.
+        """
+        self.reference_contact_datetime = None
+        self.save()
 
 class CloudInformation(models.Model):
     """
