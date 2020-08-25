@@ -829,11 +829,12 @@ class CredentialApplication(models.Model):
 
     def remove_contact_reference(self):
         """
-        Mark a reference as not contacted making the reference for this instance
-        not known.
+        Remove the date that indicates when the reference was contacted.
+        Note that this may also affect the "known" status of the reference.
         """
         self.reference_contact_datetime = None
         self.save()
+
 
 class CloudInformation(models.Model):
     """
