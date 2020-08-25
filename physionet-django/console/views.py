@@ -931,6 +931,35 @@ def users_search(request, group):
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
+def known_references_search(request):
+    """
+    Search credential applications and user list.
+    """
+
+    if request.method == 'POST':
+        search_field = request.POST['search']
+
+        applications = CredentialApplication.objects.filter(
+            Q(reference_email__icontains=search_field) |
+            Q(reference_name__icontains=search_field) |
+            Q(user__profile__last_name__icontains=search_field) |
+            Q(user__profile__first_names__icontains=search_field))
+
+        all_known_ref = applications.exclude(
+            reference_contact_datetime__isnull=True).order_by(
+            '-reference_contact_datetime')
+
+        if len(applications) == 0:
+            all_known_ref = paginate(request, applications, 50)
+
+        return render(request, 'console/known_references_list.html', {
+            'all_known_ref': all_known_ref})
+
+    raise Http404()
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
 def credential_applications(request):
     """
     Ongoing credential applications
@@ -1493,3 +1522,32 @@ class UserAutocomplete(autocomplete.Select2QuerySetView):
             qs = qs.filter(username__icontains=self.q)
 
         return qs
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def known_references(request):
+    """
+    List all known references witht he option of removing the contact date
+    """
+    user = request.user
+
+    if 'remove_known_ref' in request.POST and \
+       request.POST['remove_known_ref'].isdigit():
+        try:
+            application = CredentialApplication.objects.get(
+                id=request.POST['remove_known_ref'])
+            application.remove_contact_reference()
+            LOGGER.info('User {0} removed reference contacted for application \
+                {1}'.format(user, application.id))
+            messages.success(request, 'The reference contacted has been removed.')
+        except CredentialApplication.DoesNotExist:
+            pass
+
+    all_known_ref = CredentialApplication.objects.filter(
+        reference_contact_datetime__isnull=False).order_by(
+        '-reference_contact_datetime')
+
+    all_known_ref = paginate(request, all_known_ref, 50)
+
+    return render(request, 'console/known_references.html', {
+        'all_known_ref': all_known_ref, 'known_ref_nav': True})

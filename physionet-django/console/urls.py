@@ -50,6 +50,10 @@ urlpatterns = [
         name='complete_list_credentialed_people'),
     path('past-credential-applications/<status>', views.past_credential_applications,
         name='past_credential_applications'),
+    path('known-references/', views.known_references,
+        name='known_references'),
+    path('known-references/search/', views.known_references_search,
+        name='known_references_search'),
 
     path('credentialed-users/<username>/',
         views.credentialed_user_info, name='credentialed_user_info'),

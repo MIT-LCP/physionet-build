@@ -827,6 +827,14 @@ class CredentialApplication(models.Model):
         logger.info('Credentialing for user {0} has been removed.'.format(
             self.user.email))
 
+    def remove_contact_reference(self):
+        """
+        Remove the date that indicates when the reference was contacted.
+        Note that this may also affect the "known" status of the reference.
+        """
+        self.reference_contact_datetime = None
+        self.save()
+
 
 class CloudInformation(models.Model):
     """
