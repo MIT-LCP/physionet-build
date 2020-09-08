@@ -100,7 +100,7 @@ def validate_slug(value):
         raise ValidationError(
             'Invalid file name "%(slug)s". '
             'Slug may be at most %(limit)s characters long.',
-            params={'filename': value, 'limit': MAX_PROJECT_SLUG_LENGTH})
+            params={'slug': value, 'limit': MAX_PROJECT_SLUG_LENGTH})
     if (not re.fullmatch(r'[a-z0-9](?:[a-z0-9-]*[a-z0-9])?', value) or '--' in value):
         raise ValidationError("""
             Slug must only contain lowercase alphanumerics and hyphens, and
