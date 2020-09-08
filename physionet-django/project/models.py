@@ -404,7 +404,7 @@ class Contact(models.Model):
     Contact for a PublishedProject
     """
     name = models.CharField(max_length=120)
-    affiliations = models.CharField(max_length=150)
+    affiliations = models.CharField(max_length=250)
     email = models.EmailField(max_length=255)
     project = models.OneToOneField('project.PublishedProject',
         related_name='contact', on_delete=models.CASCADE)
