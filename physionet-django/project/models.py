@@ -36,7 +36,8 @@ from project.validators import (validate_doi, validate_subdir,
                                 validate_version, validate_slug,
                                 MAX_PROJECT_SLUG_LENGTH,
                                 validate_title, validate_topic)
-from user.validators import validate_affiliation
+from user.validators import (validate_affiliation, validate_name,
+                             MAX_AFFILIATION_LENGTH, MAX_NAME_LENGTH)
 
 from physionet.utility import (sorted_tree_files, zip_dir)
 
@@ -155,7 +156,8 @@ class Affiliation(models.Model):
     """
     Affiliations belonging to an author
     """
-    name = models.CharField(max_length=202, validators=[validate_affiliation])
+    name = models.CharField(max_length=MAX_AFFILIATION_LENGTH,
+                            validators=[validate_affiliation])
     author = models.ForeignKey('project.Author', related_name='affiliations',
         on_delete=models.CASCADE)
 
@@ -167,7 +169,8 @@ class PublishedAffiliation(models.Model):
     """
     Affiliations belonging to a published author
     """
-    name = models.CharField(max_length=202, validators=[validate_affiliation])
+    name = models.CharField(max_length=MAX_AFFILIATION_LENGTH,
+                            validators=[validate_affiliation])
     author = models.ForeignKey('project.PublishedAuthor',
         related_name='affiliations', on_delete=models.CASCADE)
 
@@ -403,8 +406,10 @@ class Contact(models.Model):
     """
     Contact for a PublishedProject
     """
-    name = models.CharField(max_length=120)
-    affiliations = models.CharField(max_length=150)
+    name = models.CharField(max_length=MAX_NAME_LENGTH,
+                            validators=[validate_name])
+    affiliations = models.CharField(max_length=MAX_AFFILIATION_LENGTH,
+                                    validators=[validate_affiliation])
     email = models.EmailField(max_length=255)
     project = models.OneToOneField('project.PublishedProject',
         related_name='contact', on_delete=models.CASCADE)

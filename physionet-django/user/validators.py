@@ -6,6 +6,8 @@ from django.core.validators import RegexValidator
 from django.utils.translation import ugettext as _
 from zxcvbn import zxcvbn
 
+MAX_AFFILIATION_LENGTH = 250
+MAX_NAME_LENGTH = 250
 
 _subword = re.compile(r'\d+|[^\W\d_]+')
 
@@ -60,6 +62,9 @@ def validate_name(value):
     Only accept words that start with an alphabetical character followed by
     alphanumeric characters incluiding spaces, underscores, hyphens, and apostrophes.
     """
+    if len(value) > MAX_NAME_LENGTH:
+        raise ValidationError(f"Maximum affiliation length is "
+                              f"{MAX_NAME_LENGTH} characters.")
     if not re.fullmatch(r'[^\W_0-9]([\w\' -])+', value):
         raise ValidationError('Letters, numbers, spaces, underscores, hyphens, and apostrophes only. Must begin with a letter.')
 
@@ -70,6 +75,9 @@ def validate_affiliation(value):
     followed by alphanumeric, spaces, underscores, hyphens, and apostrophes
     and the following special characters: ,()/&.
     """
+    if len(value) > MAX_AFFILIATION_LENGTH:
+        raise ValidationError(f"Maximum affiliation length is "
+                              f"{MAX_AFFILIATION_LENGTH} characters.")
     if not re.fullmatch(r'[a-zA-Z][\w\',()/&. -]+', value) or '..' in value:
         raise ValidationError('Letters, numbers, spaces, apostrophes, underscores and [,()/&.-] characters only. Must begin with a letter.')
 
