@@ -1,0 +1,8 @@
+ge272_15m 4 250 150000
+ge272_15m.mat 16+24 6879.6344/mV 0 0 -189 -18944 0 II
+ge272_15m.mat 16+24 8082.5575/mV 0 0 554 2214 0 V
+ge272_15m.mat 16+24 2262.3421/% 0 0 6146 18944 0 PLETH
+ge272_15m.mat 16+24 63.9068/mmHg 0 0 3512 8136 0 ABP
+#Asystole
+#Creator: wfdb2mat
+#Source: record ge272_15

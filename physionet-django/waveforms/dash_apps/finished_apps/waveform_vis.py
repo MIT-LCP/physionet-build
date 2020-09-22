@@ -16,7 +16,8 @@ from plotly.subplots import make_subplots
 # Specify the record file locations
 BASE_DIR = base.BASE_DIR
 FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
-FILE_LOCAL = os.path.join('demo-files', 'static', 'published-projects')
+FILE_LOCAL = os.path.join('demo-files', 'static', 'published-projects', 'demoann')
+project_path = os.path.join(FILE_ROOT, FILE_LOCAL)
 # Formatting settings
 dropdown_width = "300px"
 
@@ -37,12 +38,12 @@ app.layout = html.Div([
             persistence = True,
             persistence_type = 'session',
         ),
-    ]),
+    ], style={'display': 'inline-block'}),
     # The signal dropdown
     html.Div([
-        html.Label(['Select Signal to Plot']),
+        html.Label(['Select Event to Plot']),
         dcc.Dropdown(
-            id = 'dropdown_sig',
+            id = 'dropdown_event',
             multi = False,
             clearable = False,
             searchable = True,
@@ -51,25 +52,23 @@ app.layout = html.Div([
             persistence = True,
             persistence_type = 'session',
         ),
-    ]),
+    ], style={'display': 'inline-block'}),
     # The plot itself
     html.Div([
         dcc.Graph(id = 'the_graph'),
     ]),
-    # Hidden div inside the app that stores the project slug and version
+    # Hidden div inside the app that stores the project record and event
     dcc.Input(id = 'target_id', type = 'hidden', value = ''),
 ])
 
+
 # Dynamically update the record dropdown settings using the project 
-# slug and version
+# record and event
 @app.callback(
     dash.dependencies.Output('dropdown_rec', 'options'),
     [dash.dependencies.Input('target_id', 'value')])
 def get_records_options(target_id):
     # Get the record file
-    project_slug = target_id['project_slug']
-    version = target_id['version']
-    project_path = os.path.join(FILE_ROOT, FILE_LOCAL, project_slug, version)
     records_path = os.path.join(project_path, 'RECORDS')
     with open(records_path, 'r') as f:
         all_records = f.read().splitlines()
@@ -83,104 +82,137 @@ def get_records_options(target_id):
 # Dynamically update the signal dropdown settings using the record name, project 
 # slug, and version
 @app.callback(
-    dash.dependencies.Output('dropdown_sig', 'options'),
+    dash.dependencies.Output('dropdown_event', 'options'),
     [dash.dependencies.Input('dropdown_rec', 'value'),
      dash.dependencies.Input('target_id', 'value')])
 def get_signal_options(dropdown_rec, target_id):
-    # Get the record file
-    project_slug = target_id['project_slug']
-    version = target_id['version']
-    record_path = os.path.join(FILE_ROOT, FILE_LOCAL, project_slug,
-                               version, dropdown_rec)
-    record = wfdb.rdrecord(record_path)
+    # Get the header file
+    header_path = os.path.join(project_path, dropdown_rec, dropdown_rec)
+    temp_rec = wfdb.rdheader(header_path).seg_name
+    temp_rec = [s for s in temp_rec if s != (dropdown_rec+'_layout') and s != '~']
 
-    # Set the options based on the signal names of the chosen record 
-    options_sig = [{'label': sig, 'value': sig} for sig in record.sig_name]
+    # Set the options based on the annotated event times of the chosen record 
+    options_rec = [{'label': t, 'value': t} for t in temp_rec]
 
-    return options_sig
+    return options_rec
 
 
 # Run the app using the chosen initial conditions
 @app.callback(
     dash.dependencies.Output('the_graph', 'figure'),
     [dash.dependencies.Input('dropdown_rec', 'value'),
-     dash.dependencies.Input('dropdown_sig', 'value'),
+     dash.dependencies.Input('dropdown_event', 'value'),
      dash.dependencies.Input('target_id', 'value')])
-def update_graph(dropdown_rec, dropdown_sig, target_id):
+def update_graph(dropdown_rec, dropdown_event, target_id):
+    # Get the annotation information
+    # ann_path = os.path.join(project_path, dropdown_rec, dropdown_rec)
+    # ann = wfdb.rdann(ann_path, 'cba')
+    # record_chosen = ann.sample.index(dropdown_event)
     # Set some initial conditions
-    project_slug = target_id['project_slug']
-    version = target_id['version']
-    record_path = os.path.join(FILE_ROOT, FILE_LOCAL, project_slug,
-                               version, dropdown_rec)
-    record = wfdb.rdrecord(record_path, channel_names=[dropdown_sig])
+    record_path = os.path.join(project_path, dropdown_rec, dropdown_event)
+    record = wfdb.rdrecord(record_path)
 
-    # TODO: dynamically determine down_sample based on record.sig_len
-    down_sample = 3
+    # Maybe down-sample signal if too slow?
+    down_sample = 1
+    # Determine the time of the event (seconds)
+    event_time = 300 #dropdown_event
+    # How much signal should be displayed before and after event (seconds)
+    time_range = 60
+    time_start = record.fs * (event_time - time_range)
+    time_stop = record.fs * (event_time + time_range)
+    # Determine how much signal to display before and after event (seconds)
+    window_size = 15
     # Grid and zero-line color
     gridzero_color = 'rgb(255, 60, 60)'
     # ECG gridlines parameters
     grid_delta_major = 0.2
 
     # Set the initial layout of the figure
-    fig = make_subplots(rows=1, cols=1)
+    fig = make_subplots(
+        rows = 4,
+        cols = 1,
+        shared_xaxes = True,
+        vertical_spacing = 0
+    )
     fig.update_layout({
-        'height': 600,
-        'title': 'Waveform of Record {} and Signal {}'.format(dropdown_rec, dropdown_sig),
+        'height': 750,
         'grid': {
-            'rows': 1,
+            'rows': record.n_sig,
             'columns': 1,
             'pattern': 'independent'
         },
-        'showlegend': False
+        'showlegend': False,
     })
 
     # Name the axes to create the subplots
-    x_string = 'x1'
-    y_string = 'y1'
-    # Generate the waveform x-values and y-values
-    x_vals = [(i / record.fs) for i in range(record.sig_len)][::down_sample]
-    y_vals = record.p_signal[:,0][::down_sample]
+    for r in range(record.n_sig):
+        x_string = 'x' + str(r+1)
+        y_string = 'y' + str(r+1)
+        # Generate the waveform x-values and y-values
+        x_vals = [(i / record.fs) for i in range(record.sig_len)][time_start:time_stop:down_sample]
+        y_vals = record.p_signal[:,r][time_start:time_stop:down_sample]
 
-    # Create the signal to plot
-    fig.add_trace(go.Scatter({
-        'x': x_vals,
-        'y': y_vals,
-        'xaxis': x_string,
-        'yaxis': y_string,
-        'type': 'scatter',
-        'line': {
-            'color': 'black',
-            'width': 3
-        },
-        'name': record.sig_name[0]
-    }), row = 1, col = 1)
+        # Create the signal to plot
+        fig.add_trace(go.Scatter({
+            'x': x_vals,
+            'y': y_vals,
+            'xaxis': x_string,
+            'yaxis': y_string,
+            'type': 'scatter',
+            'line': {
+                'color': 'black',
+                'width': 3
+            },
+            'name': record.sig_name[r]
+        }), row = r+1, col = 1)
 
-    # Set the initial x-axis parameters
-    fig.update_xaxes({
-        'title': 'Time (s)',
-        'dtick': grid_delta_major,
-        'showticklabels': False,
-        'gridcolor': gridzero_color,
-        'zeroline': True,
-        'zerolinewidth': 1,
-        'zerolinecolor': gridzero_color,
-        'gridwidth': 1,
-        'range': [0,60],
-        'rangeslider': {
-            'visible': True
-        }
-    })
+        # Set the initial y-axis parameters
+        fig.update_yaxes({
+            'title': record.sig_name[r] + ' (' + record.units[r] + ')',
+            'fixedrange': False, #True,
+            'showgrid': False,
+            #'dtick': grid_delta_major,
+            'showticklabels': False,
+            #'gridcolor': gridzero_color,
+            'zeroline': False,
+            #'zerolinewidth': 1,
+            #'zerolinecolor': gridzero_color,
+            #'gridwidth': 1
+        }, row = r+1, col = 1)
 
-    # Set the initial y-axis parameters
-    fig.update_yaxes({
-        'title': record.sig_name[0] + ' (' + record.units[0] + ')',
-        'fixedrange': True,
-        'dtick': grid_delta_major,
-        'gridcolor': gridzero_color,
-        'zeroline': True,
-        'zerolinewidth': 1,
-        'zerolinecolor': gridzero_color,
-        'gridwidth': 1
-    })
+        # Set the initial x-axis parameters
+        if r == record.n_sig-1:
+            fig.update_xaxes({
+                'title': 'Time (s)',
+                'showgrid': False,
+                #'dtick': grid_delta_major,
+                #'showticklabels': False,
+                #'gridcolor': gridzero_color,
+                'zeroline': False,
+                #'zerolinewidth': 1,
+                #'zerolinecolor': gridzero_color,
+                #'gridwidth': 1,
+                'range': [event_time - window_size, event_time + window_size],
+                'rangeslider': {
+                    'visible': False#True
+                }
+            }, row = r+1, col = 1)
+
+        else:
+            fig.update_xaxes({
+                #'title': 'Time (s)',
+                'showgrid': False,
+                #'dtick': grid_delta_major,
+                #'showticklabels': False,
+                #'gridcolor': gridzero_color,
+                'zeroline': False,
+                #'zerolinewidth': 1,
+                #'zerolinecolor': gridzero_color,
+                #'gridwidth': 1,
+                'range': [event_time - window_size, event_time + window_size],
+                'rangeslider': {
+                    'visible': False#True
+                }
+            }, row = r+1, col = 1)
 
     return (fig)

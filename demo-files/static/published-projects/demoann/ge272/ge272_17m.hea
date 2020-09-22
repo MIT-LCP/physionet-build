@@ -1,0 +1,8 @@
+ge272_17m 4 250 150000
+ge272_17m.mat 16+24 6600.8418/mV 0 0 2162 23690 0 II
+ge272_17m.mat 16+24 7877.7785/mV 0 0 -1835 -32530 0 V
+ge272_17m.mat 16+24 2374.8429/% 0 0 3152 28951 0 PLETH
+ge272_17m.mat 16+24 67.2789/mmHg 0 0 4010 28567 0 ABP
+#VFib/VFlutter
+#Creator: wfdb2mat
+#Source: record ge272_17

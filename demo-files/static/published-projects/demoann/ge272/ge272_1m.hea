@@ -1,0 +1,8 @@
+ge272_1m 4 250 150000
+ge272_1m.mat 16+24 4165.1609/mV 0 0 465 -17415 0 II
+ge272_1m.mat 16+24 3568.1919/mV 0 0 -93 32597 0 V
+ge272_1m.mat 16+24 4671.7984/% 0 0 9798 -23109 0 PLETH
+ge272_1m.mat 16+24 266.8342/mmHg 0 0 14262 -31118 0 ABP
+#VTach
+#Creator: wfdb2mat
+#Source: record ge272_1
