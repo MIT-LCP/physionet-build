@@ -17,7 +17,7 @@ from plotly.subplots import make_subplots
 BASE_DIR = base.BASE_DIR
 FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
 FILE_LOCAL = os.path.join('demo-files', 'static', 'published-projects', 'demoann')
-project_path = os.path.join(FILE_ROOT, FILE_LOCAL)
+PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
 # Formatting settings
 dropdown_width = "300px"
 
@@ -39,7 +39,7 @@ app.layout = html.Div([
             persistence_type = 'session',
         ),
     ], style={'display': 'inline-block'}),
-    # The signal dropdown
+    # The event dropdown
     html.Div([
         html.Label(['Select Event to Plot']),
         dcc.Dropdown(
@@ -52,6 +52,10 @@ app.layout = html.Div([
             persistence = True,
             persistence_type = 'session',
         ),
+    ], style={'display': 'inline-block'}),
+    # The event display
+    html.Div([
+        html.Div(id = 'event_text')
     ], style={'display': 'inline-block'}),
     # The plot itself
     html.Div([
@@ -69,7 +73,7 @@ app.layout = html.Div([
     [dash.dependencies.Input('target_id', 'value')])
 def get_records_options(target_id):
     # Get the record file
-    records_path = os.path.join(project_path, 'RECORDS')
+    records_path = os.path.join(PROJECT_PATH, 'RECORDS')
     with open(records_path, 'r') as f:
         all_records = f.read().splitlines()
 
@@ -87,7 +91,7 @@ def get_records_options(target_id):
      dash.dependencies.Input('target_id', 'value')])
 def get_signal_options(dropdown_rec, target_id):
     # Get the header file
-    header_path = os.path.join(project_path, dropdown_rec, dropdown_rec)
+    header_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_rec)
     temp_rec = wfdb.rdheader(header_path).seg_name
     temp_rec = [s for s in temp_rec if s != (dropdown_rec+'_layout') and s != '~']
 
@@ -97,6 +101,25 @@ def get_signal_options(dropdown_rec, target_id):
     return options_rec
 
 
+# Update the event text
+@app.callback(
+    dash.dependencies.Output('event_text', 'children'),
+    [dash.dependencies.Input('dropdown_rec', 'value'),
+     dash.dependencies.Input('dropdown_event', 'value')])
+def update_text(dropdown_rec, dropdown_event):
+    # Get the header file
+    header_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_rec)
+    temp_rec = wfdb.rdheader(header_path).seg_name
+    temp_rec = [s for s in temp_rec if s != (dropdown_rec+'_layout') and s != '~']
+    # Get the annotation information
+    ann_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_rec)
+    ann = wfdb.rdann(ann_path, 'cba')
+    ann_event = ann.aux_note[temp_rec.index(dropdown_event)]
+
+    return [
+        html.Span('Event: {}'.format(ann_event), style={'fontSize': '36px'})
+    ]
+
 # Run the app using the chosen initial conditions
 @app.callback(
     dash.dependencies.Output('the_graph', 'figure'),
@@ -104,12 +127,8 @@ def get_signal_options(dropdown_rec, target_id):
      dash.dependencies.Input('dropdown_event', 'value'),
      dash.dependencies.Input('target_id', 'value')])
 def update_graph(dropdown_rec, dropdown_event, target_id):
-    # Get the annotation information
-    # ann_path = os.path.join(project_path, dropdown_rec, dropdown_rec)
-    # ann = wfdb.rdann(ann_path, 'cba')
-    # record_chosen = ann.sample.index(dropdown_event)
     # Set some initial conditions
-    record_path = os.path.join(project_path, dropdown_rec, dropdown_event)
+    record_path = os.path.join(PROJECT_PATH, dropdown_rec, dropdown_event)
     record = wfdb.rdrecord(record_path)
 
     # Maybe down-sample signal if too slow?
