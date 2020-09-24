@@ -184,6 +184,20 @@ def update_graph(dropdown_rec, dropdown_event, target_id):
             },
             'name': record.sig_name[r]
         }), row = r+1, col = 1)
+        # Display where the event is
+        fig.add_shape({
+            'type': 'line',
+            'x0': event_time,
+            'y0': min(y_vals) - 0.5 * (max(y_vals) - min(y_vals)),
+            'x1': event_time,
+            'y1': max(y_vals) + 0.5 * (max(y_vals) - min(y_vals)),
+            'xref': x_string,
+            'yref': y_string,
+            'line': {
+                'color': 'Red',
+                'width': 3
+            }
+        })
 
         # Set the initial y-axis parameters
         fig.update_yaxes({
