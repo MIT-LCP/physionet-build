@@ -170,6 +170,12 @@ def update_graph(dropdown_rec, dropdown_event, target_id):
         # Generate the waveform x-values and y-values
         x_vals = [(i / record.fs) for i in range(record.sig_len)][time_start:time_stop:down_sample]
         y_vals = record.p_signal[:,r][time_start:time_stop:down_sample]
+        # Set the initial display range of y-values based on values in
+        # initial range of x-values
+        index_start = record.fs * (event_time - window_size)
+        index_stop = record.fs * (event_time + window_size)
+        min_y_vals = min(record.p_signal[:,r][index_start:index_stop])
+        max_y_vals = max(record.p_signal[:,r][index_start:index_stop])
 
         # Create the signal to plot
         fig.add_trace(go.Scatter({
@@ -210,7 +216,8 @@ def update_graph(dropdown_rec, dropdown_event, target_id):
             'zeroline': False,
             #'zerolinewidth': 1,
             #'zerolinecolor': gridzero_color,
-            #'gridwidth': 1
+            #'gridwidth': 1,
+            'range': [min_y_vals, max_y_vals],
         }, row = r+1, col = 1)
 
         # Set the initial x-axis parameters
