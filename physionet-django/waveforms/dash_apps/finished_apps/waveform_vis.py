@@ -4,6 +4,7 @@ from physionet.settings import base
 import pandas as pd
 import django.core.cache
 import math
+import datetime
 # Data analysis and visualization
 import dash
 from django_plotly_dash import DjangoDash
@@ -63,7 +64,48 @@ app.layout = html.Div([
     ]),
     # Hidden div inside the app that stores the project record and event
     dcc.Input(id = 'target_id', type = 'hidden', value = ''),
+    # The reviewer decision and comment section
+    html.Label(['Enter decision here:']),
+    dcc.Dropdown(
+        id = 'reviewer_decision',
+        options = [
+            {'label': 'Agree', 'value': 'Agree'},
+            {'label': 'Disagree', 'value': 'Disagree'},
+            {'label': 'Uncertain', 'value': 'Uncertain'}
+        ],
+        multi = False,
+        clearable = False,
+        searchable = True,
+        placeholder = 'Please Select...',
+        style = {"width": dropdown_width},
+        persistence = True,
+        persistence_type = 'session',
+    ),
+    html.Label(['Enter comments here:']),
+    html.Div(
+        dcc.Textarea(id = 'reviewer_comments',
+                     style = {
+                         'width': '1000px',
+                         'height': '100px'
+                     })
+    ),
+    html.Button('Submit', id = 'submit_time'),
+    html.Div(id = 'container-button-basic',
+             children = 'Enter a value and press submit')
 ])
+
+
+# The reviewer decision and comment section
+@app.callback(
+    dash.dependencies.Output('container-button-basic', 'children'),
+    [dash.dependencies.Input('submit_time', 'n_clicks_timestamp')],
+    [dash.dependencies.State('reviewer_decision', 'value'),
+     dash.dependencies.State('reviewer_comments', 'value')])
+def reviewer_comment(submit_time, reviewer_decision, reviewer_comments):
+    input_time = datetime.datetime.fromtimestamp(submit_time / 1000.0)
+    return 'The input value was {} at {} with comments "{}"'.format(reviewer_decision,
+                                                         input_time,
+                                                         reviewer_comments)
 
 
 # Dynamically update the record dropdown settings using the project 
@@ -119,6 +161,7 @@ def update_text(dropdown_rec, dropdown_event):
     return [
         html.Span('Event: {}'.format(ann_event), style={'fontSize': '36px'})
     ]
+
 
 # Run the app using the chosen initial conditions
 @app.callback(
