@@ -54,13 +54,13 @@ app.layout = html.Div([
             persistence_type = 'session',
         ),
     ], style={'display': 'inline-block'}),
-    # The event display
-    html.Div([
-        html.Div(id = 'event_text')
-    ], style={'display': 'inline-block'}),
     # The plot itself
     html.Div([
         dcc.Graph(id = 'the_graph'),
+    ]),
+    # The event display
+    html.Div([
+        html.Div(id = 'event_text')
     ]),
     # Hidden div inside the app that stores the project record and event
     dcc.Input(id = 'target_id', type = 'hidden', value = ''),

@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% load static %}
 {% load plotly_dash %}
+{% block local_css %}
+<link rel="stylesheet" href="{% static 'css/waveform_vis.css' %}">
+{% endblock %}
 
 {% block content %}
 <!-- Plotly-based waveform viewer -->
