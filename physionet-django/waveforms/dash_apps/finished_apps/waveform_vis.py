@@ -76,11 +76,10 @@ app.layout = html.Div([
         ],
         multi = False,
         clearable = False,
-        searchable = True,
+        searchable = False,
         placeholder = 'Please Select...',
         style = {"width": dropdown_width},
-        persistence = True,
-        persistence_type = 'session',
+        persistence = False
     ),
     html.Label(['Enter comments here:']),
     html.Div(
