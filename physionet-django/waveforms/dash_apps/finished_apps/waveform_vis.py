@@ -90,14 +90,14 @@ app.layout = html.Div([
                      })
     ),
     html.Button('Submit', id = 'submit_time'),
-    html.Div(id = 'container-button-basic',
+    html.Div(id = 'reviewer_display',
              children = 'Enter a value and press submit')
 ])
 
 
 # The reviewer decision and comment section
 @app.callback(
-    dash.dependencies.Output('container-button-basic', 'children'),
+    dash.dependencies.Output('reviewer_display', 'children'),
     [dash.dependencies.Input('submit_time', 'n_clicks_timestamp')],
     [dash.dependencies.State('reviewer_decision', 'value'),
      dash.dependencies.State('reviewer_comments', 'value')])
@@ -106,6 +106,14 @@ def reviewer_comment(submit_time, reviewer_decision, reviewer_comments):
     return 'The input value was {} at {} with comments "{}"'.format(reviewer_decision,
                                                          input_time,
                                                          reviewer_comments)
+
+
+# Clear reviewer comments
+@app.callback(
+    dash.dependencies.Output('reviewer_comments', 'value'),
+    [dash.dependencies.Input('dropdown_event', 'value')])
+def clear_text(dropdown_event):
+    return ''
 
 
 # Dynamically update the record dropdown settings using the project 
