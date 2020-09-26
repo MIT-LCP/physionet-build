@@ -27,7 +27,7 @@ from django.utils.html import format_html, format_html_join
 
 from project.fileviews import display_project_file
 from project import forms
-from project.models import (Affiliation, Author, AuthorInvitation,
+from project.models import (Affiliation, Author, AuthorInvitation, License,
                             ActiveProject, PublishedProject, StorageRequest, Reference, DataAccess,
                             ArchivedProject, ProgrammingLanguage, Topic, Contact, Publication,
                             PublishedAuthor, EditLog, CopyeditLog, DUASignature, CoreProject, GCP,
@@ -1999,5 +1999,9 @@ def anonymous_login(request, anonymous_url):
             # Invalid form error
             messages.error(request, 'Submission unsuccessful. See form for errors.')
 
+    # For anonymous access, use the "restricted" license/DUA
+    license_slug = 'physionet-restricted-health-data-license-150'
+    license = License.objects.get(slug=license_slug)
+
     return render(request, 'project/anonymous_login.html', {'anonymous_url': anonymous_url,
-                  'form': form, 'license':project.license})
+                  'form': form, 'license': license})
