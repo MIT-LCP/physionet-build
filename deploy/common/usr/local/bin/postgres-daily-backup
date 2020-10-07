@@ -1,0 +1,12 @@
+#!/bin/sh
+
+pg_dumpall > /data/db_dumps/Postgres-full-backup-$(date +\%Y\%m\%d).dump
+pg_dumpall --data-only --column-inserts \
+           > /data/db_dumps/Postgres-data-backup-$(date +\%Y\%m\%d).dump
+pg_dumpall --schema-only \
+           > /data/db_dumps/Postgres-schema-backup-$(date +\%Y\%m\%d).dump
+
+zip -q -Zb -9 /data/db_dumps/PG-Backup-$(date +\%Y\%m\%d).zip \
+    /data/db_dumps/Postgres-*-backup-$(date +\%Y\%m\%d).dump
+
+rm -f /data/db_dumps/Postgres-*-backup-$(date +\%Y\%m\%d).dump
