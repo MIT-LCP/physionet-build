@@ -1,0 +1,33 @@
+{% extends "console/base_console.html" %}
+{% load static %}
+
+{% block content %}
+<div class="card mb-3">
+  <div class="card-header">
+    Usage stats for reviewers
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+
+      <table class="table table-bordered">
+        <tr>
+          <th>Year</th>
+          <th>Total publications</th>
+          <th>Submission to assignment of editor (median days)</th>
+          <th>Submission to final publication (median days)</th>
+        </tr>
+        {% for year, values in stats.items %}
+          <tr>
+            <td>{{ year }}</td>
+            <td>{{ values.0 }}</td>
+            <td>{{ values.1 }}</td>
+            <td>{{ values.2 }}</td>
+          </tr>
+        {% endfor %}
+      </table>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}
