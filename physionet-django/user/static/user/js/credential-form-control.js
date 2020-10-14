@@ -6,7 +6,7 @@ function controlReference() {
   // Make the reference category 'supervisor' if the
   // 'researcher_category' is student/postdoc
   reference_category_input = document.getElementById("id_application-reference_category");
-  if (["0", "1"].includes(researcher_category_input.value)){
+  if (["0", "1", "7"].includes(researcher_category_input.value)){
     reference_category_input.selectedIndex = 1;
   }
 }
