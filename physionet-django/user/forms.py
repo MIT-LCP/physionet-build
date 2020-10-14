@@ -488,8 +488,8 @@ class CredentialApplicationForm(forms.ModelForm):
                        data['reference_email'],
                        data['reference_title']]
 
-        ref_required = data['researcher_category'] in [0, 1, 6]
-        supervisor_required = data['researcher_category'] in [0, 1]
+        ref_required = data['researcher_category'] in [0, 1, 6, 7]
+        supervisor_required = data['researcher_category'] in [0, 1, 7]
         state_required = data['country'] in ['US', 'CA']
 
         # Students and postdocs must provide their supervisor as a reference

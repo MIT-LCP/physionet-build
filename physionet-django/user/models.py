@@ -633,12 +633,13 @@ class CredentialApplication(models.Model):
     """
     RESEARCHER_CATEGORIES = (
         (0, 'Student'),
+        (7, 'Graduate Student'),
         (1, 'Postdoc'),
         (2, 'Academic Researcher'),
         (3, 'Hospital Researcher'),
         (4, 'Industry Researcher'),
         (5, 'Government Researcher'),
-        (6, 'Independent Researcher')
+        (6, 'Independent Researcher'),
     )
 
     REFERENCE_CATEGORIES = (
