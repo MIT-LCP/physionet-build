@@ -13,9 +13,19 @@ This page displays an alphabetical list of all the databases on PhysioNet. To se
 <br>
 <hr>
 
-<h2 id="databases">All Databases</h2>
-<ul>
-  {% for project in all_projects %}
-  <li><a href="{% url 'published_project_latest' project.slug %}">{{ project.title }}</a>: {% if project.short_description %}{{ project.short_description }}{% else %}{{ project.abstract_text_content|truncatechars_html:200 }}{% endif %}</li>
+{% for i, group in projects.items %}
+  <h2 id="{{ group.policy|lower }}">{{ group.policy }} databases</h2>
+    <ul>
+      {% for p in group.projects %}
+        <li><a href="{% url 'published_project_latest' p.slug %}">{{ p.title }}</a>:
+          {% if p.short_description %}
+            {{ p.short_description }}
+        {% else %}
+          {{ p.abstract_text_content|truncatechars_html:200 }}
+          {% endif %}
+        </li>
+      {% empty %}
+        <li>No databases available.</li>
+      {% endfor %}
+    </ul>
 {% endfor %}
-</ul>
