@@ -25,9 +25,11 @@ PhysioNet Databases
             <!-- Databases -->
             <ul>
               <li><a href="#overview">Overview</a></li>
-              <li><a href="#databases">All databases</a></li>
-            </li>
+              {% for i, group in projects.items %}
+                <li><a href="#{{ group.policy|lower }}">{{ group.policy }} access</a></li>
+              {% endfor %}
           </ul>
+
         </div>
       </div>
     </div>
