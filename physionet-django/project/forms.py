@@ -817,7 +817,8 @@ class InviteAuthorForm(forms.ModelForm):
 
     def clean_email(self):
         "Ensure it is a fresh invite to a non-author"
-        data = self.cleaned_data['email']
+
+        data = self.cleaned_data['email'].lower()
 
         for author in self.project.authors.all():
             if data in author.user.get_emails():
