@@ -102,7 +102,11 @@
 
         {% if publication %}
           <strong>{% if project.is_legacy %}When using this resource{% else %}Additionally{% endif %}, please cite the original publication:</strong>
-          <p><a href="{{ publication.url }}">{{ publication.citation }}</a></p>
+          {% if publication.url %}
+            <p><a href="{{ publication.url }}">{{ publication.citation }}</a></p>
+          {% else %}
+            <p>{{ publication.citation }}</p>
+          {% endif %}
         {% endif %}
 
         <p>
