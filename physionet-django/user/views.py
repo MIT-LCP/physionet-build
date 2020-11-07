@@ -340,7 +340,7 @@ def public_profile(request, username):
     """
     A user's public profile
     """
-    if User.objects.filter(username__iexact=username).exists():
+    if User.objects.filter(username__iexact=username, is_active=True).exists():
         public_user = User.objects.get(username__iexact=username)
         public_email = public_user.associated_emails.filter(is_public=True).first()
     else:
