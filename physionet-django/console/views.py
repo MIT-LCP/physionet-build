@@ -1472,6 +1472,71 @@ def editorial_stats(request):
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
+def credentialing_stats(request):
+    """
+    Credentialing metrics.
+    """
+    apps = CredentialApplication.objects.all()
+    years = [a.application_datetime.year for a in apps]
+    stats = OrderedDict()
+
+    # Application count by year
+    for y in sorted(set(years)):
+        stats[y] = {}
+        stats[y]['count'] = years.count(y)
+
+    # Number processed (accepted or rejected) and proportion approved
+    for y in stats:
+        # accepted = 2. rejected = 1.
+        acc_and_rej = apps.filter(application_datetime__year=y)
+        a = acc_and_rej.filter(status=2).count()
+        r = acc_and_rej.filter(status=1).count()
+        stats[y]['processed'] = a + r
+        stats[y]['approved'] = round((100 * a) / (a + r))
+
+    # Time taken to contact the reference
+    time_to_ref = apps.annotate(tm=Cast(F('reference_contact_datetime') -
+                                F('application_datetime'),
+                                DurationField())).values_list('tm', flat=True)
+    for y in stats:
+        durations = time_to_ref.filter(application_datetime__year=y)
+        try:
+            days = [d.days for d in durations if d and d.days >= 0]
+            stats[y]['time_to_ref'] = median(days)
+        except (AttributeError, StatisticsError):
+            stats[y]['time_to_ref'] = None
+
+    # Time taken for the reference to respond
+    time_to_reply = apps.annotate(tm=Cast(F('reference_response_datetime') -
+                                  F('reference_contact_datetime'),
+                                  DurationField())).values_list('tm', flat=True)
+    for y in stats:
+        durations = time_to_reply.filter(application_datetime__year=y)
+        try:
+            days = [d.days for d in durations if d and d.days >= 0]
+            stats[y]['time_to_reply'] = median(days)
+        except (AttributeError, StatisticsError):
+            stats[y]['time_to_reply'] = None
+
+    # Time taken to process the application
+    time_to_decision = apps.annotate(tm=Cast(F('decision_datetime') -
+                                     F('application_datetime'),
+                                     DurationField())).values_list('tm', flat=True)
+    for y in stats:
+        durations = time_to_decision.filter(application_datetime__year=y)
+        try:
+            days = [d.days for d in durations if d and d.days >= 0]
+            stats[y]['time_to_decision'] = median(days)
+        except (AttributeError, StatisticsError):
+            stats[y]['time_to_decision'] = None
+
+    return render(request, 'console/credentialing_stats.html',
+                  {'stats_nav': True, 'submenu': 'credential',
+                   'stats': stats})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
 def download_credentialed_users(request):
     """
     CSV create and download for database access.

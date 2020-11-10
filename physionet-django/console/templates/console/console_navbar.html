@@ -167,17 +167,25 @@
 
       <!-- usage stats -->
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
-        <a id="nav_usage_dropdown" class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#statsComponents" data-parent="#sideAccordion">
+      {% if stats_nav %}
+        <a id="nav_usage_dropdown" class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#statsComponents" data-parent="#sideAccordion" aria-expanded="true">
+      {% else %}
+        <a id="nav_usage_dropdown" class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#statsComponents" data-parent="#sideAccordion" aria-expanded="False">
+      {% endif %}
           <i class="fa fa-fw fa-chart-area"></i>
           <span class="nav-link-text">Usage Stats</span>
         </a>
         <!-- submenu -->
+        {% if stats_nav %}
+        <ul class="sidenav-second-level collapse show" id="statsComponents">
+        {% else  %}
         <ul class="sidenav-second-level collapse" id="statsComponents">
+        {% endif %}
           <li>
             <a href="{% url 'editorial_stats' %}">Editorial</a>
           </li>
-          <li>
-            <a href="#">Not Implemented</a>
+          <li class="nav-item {% if submenu == 'credential' %}active{% endif %}">
+            <a href="{% url 'credentialing_stats' %}">Credentialing</a>
           </li>
         </ul>
       </li>
