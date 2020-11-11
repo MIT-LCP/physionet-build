@@ -1,0 +1,95 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}User management{% endblock %}
+
+{% block content %}
+
+<div class="col-md-9 no-pd">
+  <h1>{{ subject.username }}</h1>
+  <hr>
+  <h3>Profile</h3>
+  <div class="row mb-1">
+    <div class="col-md-3">
+      Name:
+    </div>
+    <div class="col-md-9">
+      {{ subject.get_full_name }}
+    </div>
+  </div>
+
+  {% if profile.affiliation %}
+    <div class="row mb-1">
+      <div class="col-md-3">
+        Affiliation:
+      </div>
+      <div class="col-md-9">
+        {{ profile.affiliation }}
+      </div>
+    </div>
+  {% endif %}
+
+  {% if profile.location %}
+    <div class="row mb-1">
+      <div class="col-md-3">
+        Location:
+      </div>
+      <div class="col-md-9">
+        {{ profile.location }}
+      </div>
+    </div>
+  {% endif %}
+
+  {% for status, group in emails.items %}
+    <div class="row mb-1">
+        <div class="col-md-3">
+          Email ({{ status }}):
+        </div>
+        <div class="col-md-9">
+          {% for email in group %}
+            {{ email|join:", " }}
+          {% empty %}
+            N/A
+          {% endfor %}
+        </div>
+    </div>
+  {% endfor %}
+
+  {% if profile.website %}
+    <div class="row mb-1">
+      <div class="col-md-3">
+        Website:
+      </div>
+      <div class="col-md-9">
+        <a href="{{ profile.website }}" rel="nofollow">{{ profile.website }}</a>
+      </div>
+    </div>
+  {% endif %}
+
+  <br />
+  {% for status, group in projects.items %}
+  <h3>{{ status }} projects</h3>
+    <ul>
+      {% for project in group %}
+        {% if status == "Unsubmitted" %}
+          <li><a href="{% url 'submission_info' project.slug %}">{{ project.title }}
+            </a> ({% if project.version %}v{{ project.version }}{% else %}version TBC{% endif %})</li>
+        {% elif status == "Submitted" %}
+          <li><a href="{% url 'submission_info' project.slug %}">{{ project.title }}
+            </a> (v{{ project.version }})</li>
+        {% elif status == "Archived" %}
+          <li><a href="{% url 'rejected_submission_history' project.slug %}">{{ project.title }}
+            </a> (v{{ project.version }})</li>
+        {% elif status == "Published" %}
+          <li><a href="{% url 'manage_published_project' project.slug project.version %}">{{ project.title }}
+            </a> (v{{ project.version }})</li>
+        {% endif %}
+      {% empty %}
+        <li>None.</li>
+      {% endfor %}
+    </ul>
+  {% endfor %}
+
+</div>
+{% endblock %}
