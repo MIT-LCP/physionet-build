@@ -1036,40 +1036,42 @@ def complete_credential_applications(request):
                 messages.error(request, 'Invalid submission. See form below.')
 
     applications = CredentialApplication.objects.filter(status=0)
-    applications = applications.order_by(F('reference_contact_datetime').asc(
-        nulls_first=True), 'application_datetime')
 
-    # Group applications and sort by application date:
+    # Get list of references who have been contacted before
+    # These are "known_refs" but using the ref_known_flag() method is slow
+    known_refs_new = CredentialApplication.objects.filter(
+        reference_contact_datetime__isnull=False).values_list(
+        'reference_email', flat=True)
+    known_refs_legacy = LegacyCredential.objects.exclude(
+        reference_email='').values_list('reference_email', flat=True)
+
+    known_refs = set(known_refs_new).union(set(known_refs_legacy))
+    known_refs = [x.lower() for x in known_refs]
+
+    # Group applications and sort by application date
     # 1. reference not contacted, but with reference known
-    known_ref_apps_not_contacted = []
+    known_ref_no_contact = applications.filter(
+        reference_contact_datetime__isnull=True,
+        reference_email__in=known_refs).order_by('application_datetime')
 
     # 2. reference not contacted, but with reference unknown
-    unknown_ref_apps_not_contacted = []
+    unknown_refs = [x.reference_email for x in applications
+                    if x.reference_email not in known_refs]
+    unknown_ref_no_contact = applications.filter(
+        reference_contact_datetime__isnull=True,
+        reference_email__in=unknown_refs).order_by('application_datetime')
 
     # 3. reference contacted
-    contacted_apps = []
+    contacted = applications.filter(
+        reference_contact_datetime__isnull=False).order_by(
+        F('reference_contact_datetime').asc(nulls_first=True),
+        'application_datetime')
 
-    for a in applications:
-        
-        if a.ref_known_flag() and a.reference_contact_datetime is None:
-            known_ref_apps_not_contacted.append([a.application_datetime, a])
-        elif not a.ref_known_flag() and a.reference_contact_datetime is None:
-            unknown_ref_apps_not_contacted.append([a.application_datetime, a])
-        else:
-            contacted_apps.append([a.application_datetime, a])
-
-    # Sorting by application date
-    t0 = [item[1] for item in sorted(known_ref_apps_not_contacted,
-                                     key=lambda x: x[0])]
-    t1 = [item[1] for item in sorted(unknown_ref_apps_not_contacted,
-                                     key=lambda x: x[0])]
-    t2 = [item[1] for item in sorted(contacted_apps,
-                                     key=lambda x: x[0])]
-    applications = t0 + t1 + t2
+    applications = known_ref_no_contact | unknown_ref_no_contact | contacted
 
     return render(request, 'console/complete_credential_applications.html',
                   {'process_credential_form': process_credential_form,
-                   'applications': applications,
+                   'applications': applications, 'known_refs': known_refs,
                    'complete_credentials_nav': True})
 
 @login_required

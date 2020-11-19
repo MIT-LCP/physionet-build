@@ -795,7 +795,8 @@ class CredentialApplication(models.Model):
 
     def ref_known_flag(self):
         """
-        Returns True if the reference is known, else False.
+        Returns True if the reference is known, else False. By "Known" we mean
+        that the reference has been previously contacted.
         """
         if CredentialApplication.objects.filter(
             reference_email__iexact=self.reference_email,
