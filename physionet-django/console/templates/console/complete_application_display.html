@@ -1,8 +1,10 @@
+{% load console_templatetags %}
+
 <div class="card mb-4" style="color: {{ color }}">
   <div class="card-header" id="application_{{ application.id }}">
     <h2 style="font-size: 1.2rem;">{{ application.get_full_name }}</h2>
     <p>
-      <a href='{{ application.mailto }}' style="padding-right: 1.5rem;">
+      <a href='{% mail_credential_applicant application %}' style="padding-right: 1.5rem;">
 	Send e-mail to applicant
       </a>  {{ application.user.email }} <br>
       Researcher's Category: {{ application.get_researcher_category_display }}<br>

@@ -1050,9 +1050,7 @@ def complete_credential_applications(request):
     contacted_apps = []
 
     for a in applications:
-        a.mailto = notification.mailto_process_credential_complete(
-            request, a, comments=False)
-
+        
         if a.ref_known_flag() and a.reference_contact_datetime is None:
             known_ref_apps_not_contacted.append([a.application_datetime, a])
         elif not a.ref_known_flag() and a.reference_contact_datetime is None:
