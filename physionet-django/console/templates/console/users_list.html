@@ -16,7 +16,7 @@
       {% for user in users %}
       <tr>
         {% if group == 'all' %}<td>{% if user.is_active %}<span class="fa fa-check"><span class="visually-hidden">&#10004;</span></span>{% endif %}</td>{% endif %}
-        <td><a href="{% url 'public_profile' user.username %}">{{ user.username }}</td>
+        <td><a href="{% url 'user_management' user.username %}">{{ user.username }}</td>
         <td>{{ user.get_full_name }}</td>
         <td>{{ user.email }}</td>
         <td>{{ user.join_date }}</td>

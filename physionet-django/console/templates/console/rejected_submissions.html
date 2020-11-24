@@ -33,7 +33,11 @@
             <td>{{ project.title }}</td>
             <td><a href="{% url 'rejected_submission_history' project.slug %}">View History</a></td>
             <td>{{ project.version }}</td>
-            <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</td>
+            <td>{% if project.submitting_author %}
+              <a href="{% url 'user_management' project.submitting_author.user.username %}">{{ project.submitting_author }}</a>
+                {% else %}
+                  {{ project.submitting_author }}
+                {% endif %}</td>
             <td>{{ project.editor }}</td>
             <td>{{ project.creation_datetime|date }}</td>
             <td>{{ project.archive_datetime|date }}</td>

@@ -8,13 +8,13 @@ from itertools import chain
 from statistics import median, StatisticsError
 from collections import OrderedDict
 
-from django.core.validators  import validate_email
+from django.core.validators import validate_email
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.forms import modelformset_factory, Select, Textarea
 from django.http import Http404, JsonResponse, HttpResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
 from django.db import DatabaseError, transaction
@@ -37,7 +37,8 @@ from project.utility import readable_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH
 from project.views import (get_file_forms, get_project_file_info,
     process_files_post)
-from user.models import User, CredentialApplication, LegacyCredential
+from user.models import (User, CredentialApplication, LegacyCredential,
+                         AssociatedEmail)
 from console import forms, utility
 from console.tasks import associated_task, get_associated_tasks
 
@@ -897,6 +898,39 @@ def users(request, group='all'):
 
     return render(request, 'console/users.html', {'users': users,
         'show_inactive': show_inactive, 'group': group, 'user_nav': True})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def user_management(request, username):
+    """
+    Admin page for managing an individual user account.
+    """
+    user = get_object_or_404(User, username__iexact=username)
+
+    emails = {}
+    emails['primary'] = AssociatedEmail.objects.filter(user=user,
+                                                       is_primary_email=True,
+                                                       is_verified=True)
+    emails['other'] = AssociatedEmail.objects.filter(user=user,
+                                                     is_primary_email=False,
+                                                     is_verified=True)
+    emails['unverified'] = AssociatedEmail.objects.filter(user=user,
+                                                          is_verified=False)
+
+    projects = {}
+    projects['Unsubmitted'] = ActiveProject.objects.filter(authors__user=user,
+                                submission_status=0).order_by('-creation_datetime')
+    projects['Submitted'] = ActiveProject.objects.filter(authors__user=user,
+                                submission_status__gt=0).order_by('-submission_datetime')
+    projects['Archived'] = ArchivedProject.objects.filter(authors__user=user).order_by('-archive_datetime')
+    projects['Published'] = PublishedProject.objects.filter(authors__user=user).order_by('-publish_datetime')
+
+
+    return render(request, 'console/user_management.html', {'subject': user,
+                                                            'profile': user.profile,
+                                                            'emails': emails,
+                                                            'projects': projects})
 
 
 @login_required

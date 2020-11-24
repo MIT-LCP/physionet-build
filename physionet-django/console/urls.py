@@ -74,6 +74,8 @@ urlpatterns = [
 
     path('users/search/<group>/', views.users_search, name='users_list_search'),
     path('users/<group>/', views.users, name='users'),
+    path('user/manage/<username>/', views.user_management,
+        name='user_management'),
 
     path('news/', views.news_console, name='news_console'),
     path('news/add/', views.news_add, name='news_add'),
