@@ -1500,8 +1500,8 @@ def editorial_stats(request):
         except StatisticsError:
             stats[y].append(None)
 
-    return render(request, 'console/editorial_stats.html',
-        {'stats': stats})
+    return render(request, 'console/editorial_stats.html', {'stats_nav': True,
+                  'submenu': 'editorial', 'stats': stats})
 
 
 @login_required
