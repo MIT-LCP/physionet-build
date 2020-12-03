@@ -1,5 +1,3 @@
-{% load console_templatetags %}
-
 <div class="card mb-4" style="color: {{ color }}">
   <div class="card-header" id="application_{{ application.id }}">
     <h2 style="font-size: 1.2rem;">{{ application.get_full_name }}</h2>
@@ -24,7 +22,7 @@
 	{{ application.reference_email }} 
 	{% if application.reference_contact_datetime %}
 		[The {{ application.reference_category|yesno:"reference,supervisor" }} was contacted on {{ application.reference_contact_datetime }}]
-	{% elif application.reference_email and application.reference_email|lower in known_refs %}
+	{% elif application.ref_known_flag %}
         	[Reference is known]
 	{% endif %}
       </p>
