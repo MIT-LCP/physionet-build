@@ -1101,7 +1101,9 @@ def complete_credential_applications(request):
         F('reference_contact_datetime').asc(nulls_first=True),
         'application_datetime')
 
-    applications = known_ref_no_contact | unknown_ref_no_contact | contacted
+    applications = (list(known_ref_no_contact) +
+                    list(unknown_ref_no_contact) +
+                    list(contacted))
 
     return render(request, 'console/complete_credential_applications.html',
                   {'process_credential_form': process_credential_form,
