@@ -1080,7 +1080,7 @@ def complete_credential_applications(request):
         reference_email='').values_list('reference_email', flat=True)
 
     known_refs = set(known_refs_new).union(set(known_refs_legacy))
-    known_refs = [x.lower() for x in known_refs]
+    known_refs = [x.lower() for x in known_refs if x]
 
     # Group applications and sort by application date
     # 1. reference not contacted, but with reference known
@@ -1097,11 +1097,11 @@ def complete_credential_applications(request):
 
     # 3. reference contacted
     contacted = applications.filter(
-        reference_contact_datetime__isnull=False).order_by(
-        F('reference_contact_datetime').asc(nulls_first=True),
-        'application_datetime')
+        reference_contact_datetime__isnull=False).order_by('application_datetime')
 
-    applications = known_ref_no_contact | unknown_ref_no_contact | contacted
+    applications = (list(known_ref_no_contact) +
+                    list(unknown_ref_no_contact) +
+                    list(contacted))
 
     return render(request, 'console/complete_credential_applications.html',
                   {'process_credential_form': process_credential_form,
