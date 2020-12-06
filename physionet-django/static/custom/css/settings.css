@@ -102,3 +102,47 @@ input::placeholder {
     margin-top: -25px;
   }
 }
+
+/*
+ * Data Use Agreement
+ * --------------------------------------------------
+ */
+
+#agreement {
+  margin: 10px 10px 10px 10px;
+  font-family: Georgia, serif;
+  text-align: center;
+}
+
+#agreement p, #agreement ol {
+  text-align: left;
+}
+
+#outer-border {
+  width: 850px;
+  height: 950px;
+  padding: 20px;
+  border-width: 8px;
+  border-style: solid;
+  border-color: #515151;
+}
+
+#inner-border {
+  width: 800px;
+  height: 900px;
+  padding: 30px;
+  border-width: 4px;
+  border-style: solid;
+  border-color: #515151;
+}
+
+@media print {
+  .printbutton {
+    visibility: hidden;
+    display: none;
+  }
+}
+
+.printbutton {
+  border: 0px;
+}

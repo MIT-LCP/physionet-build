@@ -1,0 +1,38 @@
+{% extends "base_blank.html" %}
+
+{% load static %}
+
+{% block title %}
+Signed Data Use Agreement
+{% endblock %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/settings.css' %}"/>
+{% endblock %}
+
+{% block body %}
+<div id="container">
+
+  <div id="print-button-div">
+    <input type="button" onClick="window.print()" class="printbutton" value="Print Agreement"/>
+  </div>
+
+  <div id="agreement">
+    <div id="outer-border">
+      <div id="inner-border">
+        <h1>{{ signed.project.license.dua_name|wordwrap:30|linebreaksbr }}</h1>
+        <h2>Data Use Agreement for the<br />
+            {{ signed.project.title }} (v{{ signed.project.version }})</h2>
+        <br />
+        {{ signed.project.license.dua_html_content|safe }}
+        <br />
+        <p>SIGNED: <b>{{ signed.user.get_full_name }}</b></p>
+        <br />
+        <p>DATED: <b>{{ signed.sign_datetime|date }}</b></p>
+      </div>
+    </div>  
+  </div>
+
+</div>
+
+{% endblock %}
