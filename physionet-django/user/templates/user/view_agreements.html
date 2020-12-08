@@ -1,0 +1,37 @@
+{% extends "user/settings.html" %}
+
+{% block title %} Agreements {% endblock %}
+
+{% block main_content %}
+<h1>Data Use Agreements</h1>
+
+{% if signed %} 
+<p>You have signed the following Data Use Agreements:</p>
+  <div class="table-responsive">
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Date of Agreement</th>
+          <th>Agreement</th>
+          <th>Project</th>
+          <th>View Agreement</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for agreement in signed %}  
+        <tr>
+          <td>{{ agreement.sign_datetime|date }}</td>
+          <td>{{ agreement.project.license.dua_name }}</td>
+          <td>{{ agreement.project.title }} (v{{ agreement.project.version }})</td>
+          <td><a href="{% url 'view_signed_agreement' agreement.id %}" target="_blank">View</a></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+<p>No agreements found.</p>
+{% endif %} 
+
+
+{% endblock %}

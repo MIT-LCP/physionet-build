@@ -36,6 +36,9 @@ urlpatterns = [
     path('settings/credentialing/', views.edit_credentialing, name='edit_credentialing'),
     path('settings/credentialing/applications/',
         views.user_credential_applications, name='user_credential_applications'),
+    path('settings/agreements/', views.view_agreements, name='edit_agreements'),
+    path('settings/agreements/<id>/',
+        views.view_signed_agreement, name='view_signed_agreement'),
 
     # Current tokens are 20 characters long and consist of 0-9A-Za-z
     # Obsolete tokens are 34 characters long and also include a hyphen
