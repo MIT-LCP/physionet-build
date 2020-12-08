@@ -33,7 +33,7 @@ from physionet import utility
 from physionet.middleware.maintenance import (allow_post_during_maintenance,
                                               disallow_during_maintenance,
                                               ServiceUnavailable)
-from project.models import Author, License, PublishedProject
+from project.models import Author, License, PublishedProject, DUASignature
 from notification.utility import (process_credential_complete,
                                   credential_application_request,
                                   get_url_prefix, notify_account_registration)
@@ -609,3 +609,24 @@ def edit_cloud(request):
 
     return render(request, 'user/edit_cloud.html', {'form':form, 'user':user})
 
+@login_required
+def view_agreements(request):
+    """
+    View signed agreements in the user profile
+    """
+    user = request.user
+    signed = DUASignature.objects.filter(user=user).order_by('sign_datetime')
+
+    return render(request, 'user/view_agreements.html', {'user': user,
+                                                         'signed': signed})
+
+@login_required
+def view_signed_agreement(request, id):
+    """
+    View signed agreements in the user profile
+    """
+    user = request.user
+    signed = DUASignature.objects.get(user=user, id=id)
+
+    return render(request, 'user/view_signed_agreement.html',
+                  {'user': user, 'signed': signed})
