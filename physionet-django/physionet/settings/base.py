@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
+    'django_plotly_dash.apps.DjangoPlotlyDashConfig',
 
     'ckeditor',
     # 'django_cron',
@@ -52,6 +53,7 @@ INSTALLED_APPS = [
     'notification',
     'search',
     'lightwave',
+    'waveforms',
 ]
 
 MIDDLEWARE = [
@@ -63,6 +65,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_plotly_dash.middleware.BaseMiddleware',
 ]
 
 CRON_CLASSES = [
@@ -86,6 +89,15 @@ TEMPLATES = [
             ],
         },
     },
+]
+
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+
+PLOTLY_COMPONENTS = [
+    'dash_core_components',
+    'dash_html_components',
+    'dash_renderer',
+    'dpd_components'
 ]
 
 WSGI_APPLICATION = 'physionet.wsgi.application'
@@ -134,6 +146,12 @@ MAX_ATTEMPTS = 5
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR,'static')]
+STATICFILE_FINDERS = [
+    'django.contrib.staticfiles.finder.FileSystemFinder',
+    'django.contrib.staticfiles.finder.AppDirectoriesFinder',
+    'django_plotly_dash.finders.DashAssetFinder',
+    'django_plotly_dash.finders.DashComponentFinder',
+]
 # Google Storge service account credentials
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(BASE_DIR, 'PhysioNet-Data-credentials.json')
 

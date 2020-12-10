@@ -247,6 +247,7 @@
   <h2>Files</h2>
   {% if project.has_wfdb %}
     <p><a href="{% url 'lightwave_project_home' project.slug %}?db={{ project.slug }}"><i class="fas fa-chart-line"></i> Visualize waveforms</a></p>
+    <p><a href="{% url 'waveform_published_home' published_project.slug published_project.version %}"><i class="fas fa-chart-line"></i> Visualize waveforms (demo)</a></p>
   {% endif %}
   <div id="files-panel" class="card">
     {% include "project/files_panel.html" %}

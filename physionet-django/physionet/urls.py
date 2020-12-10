@@ -34,6 +34,8 @@ urlpatterns = [
     # backward compatibility for LightWAVE
     path('cgi-bin/lightwave', lightwave_views.lightwave_server),
 
+    path('waveforms/', include('waveforms.urls')),
+
     path('', views.home, name='home'),
 
     # about pages
