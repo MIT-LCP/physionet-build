@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load static %}
+{% load plotly_dash %}
+
+{% block content %}
+<style>
+.embed-responsive {
+    width: 1200px;
+    /* height: 9000px; */
+}
+</style>
+<!-- Plotly-based waveform viewer -->
+<div class="container">
+  <!-- The title header of the webpage -->
+  <h1>
+    Waveform Viewer (Demo) for {{ dash_context.target_id.value.project_slug }}
+    version {{ dash_context.target_id.value.version }}
+  </h1>
+  <!-- Explanation regarding the usage of the waveform viewer -->
+  <div class="card-header">
+    <h7>
+      This is a demo waveform visualization built with Plotly/Dash. Select your desired
+      record file and signal. The first 60 seconds are always displayed initially. You
+      can zoom by clicking and dragging which range of times you would like to view. You
+      can pan (move left and right) with the pan button on the graph figure as seen as a
+      cross with arrows on each end in the top right corner upon hover. While you're there,
+      you can generate a screenshot to be automatically downloaded, zoom in and out, and
+      view the entire signal with the home button. You can also view the time and value of
+      a waveform by hovering your mouse over a desired location. Another way to do this 
+      would be to utilize the range-slider at the bottom of the figure; zooming can be done
+      using the same technique as in the figure (click and drag). *Note: it may take a few
+      seconds for the waveform to load depending on its size but this is a work in progress
+      and there's much more optimization still left to do. :)
+    </h7>
+  </div>
+  <!-- The plot goes here -->
+  {% plotly_app_bootstrap name='waveform_graph' initial_arguments=dash_context %}
+</div>
+<!-- <script>
+    // Make the height of the page equal to the height of the graph
+    // Only works if there is a single SVG container
+    var iframe = document.getElementsByTagName("iframe")[0];
+    var iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+
+    // window.onload = function() {
+        iframeDocument.getElementsByClassName("svg-container")[0].onload = function() {
+            $(".embed-responsive")[0].style.height = iframeDocument.getElementsByClassName("svg-container")[0].style['height'];
+        };
+    // };
+    // $(document).ready(function() {
+    //     $(".embed-responsive").css("height", $(".svg-container").style['height']);
+    // });
+</script> -->
+{% endblock %}
