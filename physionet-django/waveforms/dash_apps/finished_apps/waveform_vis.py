@@ -212,7 +212,9 @@ def update_graph(dropdown_rec, slug_value, version_value):
     margin_right = 0
     margin_bottom = 0
     # Grid and zero-line color
-    gridzero_color = 'rgb(255, 60, 60)'
+    gridzero_color = 'rgb(200, 100, 100)'
+    # The thickness of the signal
+    signal_thickness = 1.5
     # ECG gridlines parameters
     grid_delta_major = 0.2
     # Set the maximum samples per second to increase speed
@@ -431,6 +433,7 @@ def update_graph(dropdown_rec, slug_value, version_value):
             all_y_vals.append(current_y_vals)
 
     # Attempt to load in annotations if available
+    ann = None
     try:
         ann_path = os.path.join(PROJECT_PATH, slug_value, version_value,
                                 dropdown_rec)
@@ -512,7 +515,7 @@ def update_graph(dropdown_rec, slug_value, version_value):
             'type': 'scatter',
             'line': {
                 'color': 'black',
-                'width': 3
+                'width': signal_thickness
             },
             'name': sig_name[r]
         }), row = idx+1, col = 1)
