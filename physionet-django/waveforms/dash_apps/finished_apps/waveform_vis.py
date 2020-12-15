@@ -1,6 +1,7 @@
 # Project path configuration
 from physionet.settings import base
 # General package functionality
+import re
 import os
 import wfdb
 import math
@@ -211,10 +212,15 @@ def update_rec(fig, dropdown_rec, dropdown_dat):
     dash.dependencies.Output('the_graph', 'figure'),
     [dash.dependencies.Input('dropdown_rec', 'value'),
      dash.dependencies.Input('start_time', 'value')],
-    [dash.dependencies.State('dropdown_dat', 'value'),
+    [dash.dependencies.State('start_time', 'pattern'),
+     dash.dependencies.State('dropdown_dat', 'value'),
      dash.dependencies.State('set_version', 'value')])
-def update_graph(dropdown_rec, start_time, slug_value, version_value):
+def update_graph(dropdown_rec, start_time, start_time_pattern, slug_value, version_value):
     print('HERE')
+    # Check if valid input start time
+    if re.compile(start_time_pattern).match(start_time) == None:
+        # If not, plot the default graph
+        dropdown_rec = None
     # The figure height and width
     max_plot_height = 750
     fig_width = 1103
@@ -252,8 +258,7 @@ def update_graph(dropdown_rec, start_time, slug_value, version_value):
 
     # Set a blank plot if none is loaded
     if not dropdown_rec:
-        # Create baseline figure with 4 subplots
-        # TODO: dynamic based on available signals
+        # Create baseline figure with 1 subplot
         fig = make_subplots(
             rows = 1,
             cols = 1,
@@ -262,7 +267,7 @@ def update_graph(dropdown_rec, start_time, slug_value, version_value):
         )
         # Update the layout to match the loaded state
         fig.update_layout({
-            'height': 250,
+            'height': max_plot_height / 2,
             'width': fig_width,
             'margin': {
                 'l': margin_left,
@@ -350,7 +355,10 @@ def update_graph(dropdown_rec, start_time, slug_value, version_value):
     down_sample = int(fs / max_fs)
 
     # Determine the subplot graph height
-    fig_height = max_plot_height / n_sig
+    if n_sig == 1:
+        fig_height = max_plot_height / 2
+    else:
+        fig_height = max_plot_height / n_sig
     if fig_height < 87.5:
         large_plot = True
     else:
