@@ -77,7 +77,8 @@ app.layout = html.Div([
                 id = 'start_time',
                 placeholder = '00:00:00',
                 pattern = '^((?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$)',
-                value = '00:00:00'
+                value = '00:00:00',
+                debounce = True
             ),
             # Select previous or next annotation
             html.Button('Previous Record', id = 'previous_annotation'),
