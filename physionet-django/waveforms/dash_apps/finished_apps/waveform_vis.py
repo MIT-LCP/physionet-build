@@ -52,7 +52,7 @@ app.layout = html.Div([
     html.Div([
         # The record dropdown
         html.Div([
-            html.Label(['Select Record to Plot']),
+            html.Label(['Select project to plot']),
             dcc.Dropdown(
                 id = 'dropdown_dat',
                 multi = False,
@@ -62,6 +62,7 @@ app.layout = html.Div([
                 placeholder = 'Please Select...',
                 style = {'width': dropdown_width},
             ),
+            html.Label(['Select record to plot']),
             dcc.Dropdown(
                 id = 'dropdown_rec',
                 multi = False,
@@ -71,18 +72,27 @@ app.layout = html.Div([
                 placeholder = 'Please Select...',
                 style = {'width': dropdown_width},
             ),
+            html.Label(['Go to time (HH:MM:SS)']),
+            dcc.Input(
+                id = 'start_time',
+                placeholder = '00:00:00',
+                pattern = '^((?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$)',
+                value = '00:00:00'
+            ),
             # Select previous or next annotation
             html.Button('Previous Record', id = 'previous_annotation'),
             html.Button('Next Record', id = 'next_annotation'),
         ], style = {'display': 'inline-block'}),
     ], style = {'display': 'inline-block', 'vertical-align': '0px'}),
     # The plot itself
-    html.Div([
-        dcc.Graph(
-            id = 'the_graph',
-            config = plot_config
-        ),
-    ], style = {'display': 'inline-block'}),
+    dcc.Loading(id = 'loading-1', children = [
+        html.Div([
+            dcc.Graph(
+                id = 'the_graph',
+                config = plot_config
+            ),
+        ], style = {'display': 'inline-block'})
+    ], type = 'default'),
     # Hidden div inside the app that stores the project slug, version, and record
     dcc.Input(id = 'set_slug', type = 'hidden', value = ''),
     dcc.Input(id = 'set_version', type = 'hidden', value = ''),
@@ -198,13 +208,14 @@ def update_rec(fig, dropdown_rec, dropdown_dat):
 # Run the app using the chosen initial conditions
 @app.callback(
     dash.dependencies.Output('the_graph', 'figure'),
-    [dash.dependencies.Input('dropdown_rec', 'value')],
+    [dash.dependencies.Input('dropdown_rec', 'value'),
+     dash.dependencies.Input('start_time', 'value')],
     [dash.dependencies.State('dropdown_dat', 'value'),
      dash.dependencies.State('set_version', 'value')])
-def update_graph(dropdown_rec, slug_value, version_value):
+def update_graph(dropdown_rec, start_time, slug_value, version_value):
     print('HERE')
     # The figure height and width
-    max_plot_height = 750 #700
+    max_plot_height = 750
     fig_width = 1103
     # The figure margins
     margin_left = 0
@@ -213,15 +224,19 @@ def update_graph(dropdown_rec, slug_value, version_value):
     margin_bottom = 0
     # Grid and zero-line color
     gridzero_color = 'rgb(200, 100, 100)'
-    # The thickness of the signal
-    signal_thickness = 1.5
+    # The color and thickness of the signal
+    sig_color = 'rgb(0, 0, 0)'
+    sig_thickness = 1.5
+    # The thickness of the annotation
+    ann_color = 'rgb(0, 0, 255)'
+    ann_thickness = 0.67 * sig_thickness
     # ECG gridlines parameters
     grid_delta_major = 0.2
     # Set the maximum samples per second to increase speed
     max_fs = 100
-    # Determine the time of the event (seconds)
-    # Should always start at the beginning
-    start_time = 0
+    # Determine the start time of the record to plot (seconds)
+    # Should always start at the beginning (default input is 00:00:00)
+    start_time = sum(int(x) * 60 ** i for i, x in enumerate(reversed(start_time.split(':'))))
     # How much signal should be displayed after event (seconds)
     time_range = 60
     # Determine how much signal to display after event (seconds)
@@ -435,15 +450,22 @@ def update_graph(dropdown_rec, slug_value, version_value):
     # Attempt to load in annotations if available
     ann = None
     try:
-        ann_path = os.path.join(PROJECT_PATH, slug_value, version_value,
-                                dropdown_rec)
-        ann = wfdb.rdann(ann_path, 'atr')
-        ann_idx = list(filter(lambda x: (ann.sample[x] > time_start) and (ann.sample[x] < time_stop), range(len(ann.sample))))
+        folder_path = os.path.join(PROJECT_PATH, slug_value, version_value)
+        with open(os.path.join(folder_path, 'ANNOTATORS'), 'r') as f:
+            ann_ext = [l.split('\t')[0] for l in f.readlines()]
+
+        ann_path = os.path.join(folder_path, dropdown_rec)
+        # ann_ext = [r.split('.')[1] for r in os.listdir('demo-files/static/published-projects/slpdb/1.0.0/') if ('slp01a' in r) and (r.split('.')[1] not in ['dat','hea'])]
+        anns = []
+        anns_idx = []
+        for ext in ann_ext:
+            anns.append(wfdb.rdann(ann_path, ext))
+            anns_idx.append(list(filter(lambda x: (ann.sample[x] > time_start) and (ann.sample[x] < time_stop), range(len(ann.sample)))))
     except:
         pass
 
     # Name the axes to create the subplots
-    x_vals = [(i / fs) for i in range(sig_len)][::down_sample]
+    x_vals = [start_time + (i / fs) for i in range(sig_len)][::down_sample]
     for idx,r in enumerate(sig_order):
         # Create the tags for each plot
         x_string = 'x' + str(idx+1)
@@ -461,7 +483,7 @@ def update_graph(dropdown_rec, slug_value, version_value):
                 y_tick_vals = [(min_ekg_tick + max_ekg_tick) / 2]
                 y_tick_text = ['{} ({})'.format(sig_name[r], units[r])]
             else:
-                y_tick_vals = [round(n,1) for n in np.arange(min_ekg_tick, max_ekg_tick, grid_delta_major).tolist()]
+                y_tick_vals = [round(n,1) for n in np.arange(min_ekg_tick, max_ekg_tick, grid_delta_major).tolist()][1:-1]
                 # Max text length to fit should be ~8
                 # Multiply by (1/grid_delta_major) to account for fractions
                 while len(y_tick_vals) > (1/grid_delta_major)*8:
@@ -498,7 +520,7 @@ def update_graph(dropdown_rec, slug_value, version_value):
                 y_tick_vals = [(min_y_vals + max_y_vals) / 2]
                 y_tick_text = ['{} ({})'.format(sig_name[r], units[r])]
             else:
-                y_tick_vals = [round(n,1) for n in np.linspace(min_y_vals, max_y_vals, 8).tolist()]
+                y_tick_vals = [round(n,1) for n in np.linspace(min_y_vals, max_y_vals, 8).tolist()][1:-1]
                 y_tick_text = [str(n) for n in y_tick_vals]
 
         if large_plot:
@@ -514,8 +536,8 @@ def update_graph(dropdown_rec, slug_value, version_value):
             'yaxis': y_string,
             'type': 'scatter',
             'line': {
-                'color': 'black',
-                'width': signal_thickness
+                'color': sig_color,
+                'width': sig_thickness
             },
             'name': sig_name[r]
         }), row = idx+1, col = 1)
@@ -533,8 +555,8 @@ def update_graph(dropdown_rec, slug_value, version_value):
                     'xref': x_string,
                     'yref': y_string,
                     'line': {
-                        'color': 'Blue',
-                        'width': 2
+                        'color': ann_color,
+                        'width': ann_thickness
                     }
                 })
                 fig.add_annotation({
