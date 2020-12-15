@@ -27,6 +27,8 @@ PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
 # Formatting settings
 dropdown_width = '500px'
 event_fontsize = '24px'
+# Maximum number of signals to display on the page
+max_display_sigs = 8
 # Set the default configuration of the plot top buttons
 plot_config = {
     'displayModeBar': True,
@@ -53,6 +55,9 @@ app.layout = html.Div([
     html.Div([
         # The record dropdown
         html.Div([
+            dcc.ConfirmDialog(
+                id = 'error_message'
+            ),
             html.Label(['Select project to plot']),
             dcc.Dropdown(
                 id = 'dropdown_dat',
@@ -73,11 +78,18 @@ app.layout = html.Div([
                 placeholder = 'Please Select...',
                 style = {'width': dropdown_width},
             ),
+            html.Label(['Input signals (8 maximum)']),
+            dcc.Checklist(
+                id = 'input_signals',
+                options = [],
+                value = [],
+                labelStyle = {'display': 'inline-block'}
+            ),
             html.Label(['Go to time (HH:MM:SS)']),
             dcc.Input(
                 id = 'start_time',
                 placeholder = '00:00:00',
-                pattern = '^((?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$)',
+                pattern = r'^((?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$)',
                 value = '00:00:00',
                 debounce = True
             ),
@@ -187,6 +199,25 @@ def get_records_options(click_previous, click_next, slug_value, record_value, ve
     return options_rec, return_record
 
 
+# Update the input_signals value
+@app.callback(
+    [dash.dependencies.Output('input_signals', 'options'),
+     dash.dependencies.Output('input_signals', 'value')],
+    [dash.dependencies.Input('dropdown_rec', 'value')],
+    [dash.dependencies.State('dropdown_dat', 'value'),
+     dash.dependencies.State('set_version', 'value')])
+def update_sig(dropdown_rec, slug_value, version_value):
+    # Read the header file to get the signal names
+    header_path = os.path.join(PROJECT_PATH, slug_value, version_value,
+                               dropdown_rec)
+    header = wfdb.rdheader(header_path)
+    # Set the options and values (only the first `max_display_sigs` signals)
+    options_sig = [{'label': sig, 'value': sig} for sig in header.sig_name]
+    return_sigs = header.sig_name[:max_display_sigs]
+
+    return options_sig, return_sigs
+
+
 # Update the set_record value
 @app.callback(
     [dash.dependencies.Output('set_record', 'value'),
@@ -210,15 +241,16 @@ def update_rec(fig, dropdown_rec, dropdown_dat):
 # Run the app using the chosen initial conditions
 @app.callback(
     dash.dependencies.Output('the_graph', 'figure'),
-    [dash.dependencies.Input('dropdown_rec', 'value'),
+    [dash.dependencies.Input('input_signals', 'value'),
      dash.dependencies.Input('start_time', 'value')],
-    [dash.dependencies.State('start_time', 'pattern'),
+    [dash.dependencies.State('dropdown_rec', 'value'),
+     dash.dependencies.State('start_time', 'pattern'),
      dash.dependencies.State('dropdown_dat', 'value'),
      dash.dependencies.State('set_version', 'value')])
-def update_graph(dropdown_rec, start_time, start_time_pattern, slug_value, version_value):
+def update_graph(input_signals, start_time, dropdown_rec, start_time_pattern, slug_value, version_value):
     print('HERE')
-    # Check if valid input start time
-    if re.compile(start_time_pattern).match(start_time) == None:
+    # Check if valid number of input signals or input start time
+    if (len(input_signals) == 0) or (len(input_signals) > max_display_sigs) or (re.compile(start_time_pattern).match(start_time) == None):
         # If not, plot the default graph
         dropdown_rec = None
     # The figure height and width
@@ -336,11 +368,14 @@ def update_graph(dropdown_rec, start_time, start_time_pattern, slug_value, versi
     record = wfdb.rdsamp(record_path)
     # channel_names = ['EEG C3', 'EEG C4', 'EEG Cp1'])#, 'EEG Cp2', 'EEG Cp5', 'EEG Cp6', '1', '2'])#, 'EEG Fp1'])
     fs = record[1]['fs']
-    n_sig = record[1]['n_sig']
-    sig_name = record[1]['sig_name']
-    units = record[1]['units']
+    # n_sig = record[1]['n_sig']
+    sig_name = input_signals
+    n_sig = len(sig_name)
+    # sig_name = record[1]['sig_name']
+    # TODO: fix this!
+    units = record[1]['units'][:n_sig]
     # Sort the list of signal names for better default grouping
-    temp_zip = sorted(list(zip(record[1]['sig_name'], record[1]['units'])),
+    temp_zip = sorted(list(zip(sig_name, record[1]['units'])),
                       key = lambda x: x[0])
     sig_name = [t[0] for t in temp_zip]
     units = [t[1] for t in temp_zip]
