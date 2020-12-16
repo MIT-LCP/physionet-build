@@ -62,12 +62,18 @@ app.layout = html.Div([
             html.Div(
                 id = 'error_text_sig',
                 children = html.Span(''),
-                style = {'fontSize': error_fontsize, 'color': error_color}
+                style = {
+                    'fontSize': error_fontsize,
+                    'color': error_color
+                }
             ),
             html.Div(
                 id = 'error_text_graph',
                 children = html.Span(''),
-                style = {'fontSize': error_fontsize, 'color': error_color}
+                style = {
+                    'fontSize': error_fontsize,
+                    'color': error_color
+                }
             ),
             html.Label(['Select project to plot']),
             dcc.Dropdown(
@@ -91,7 +97,7 @@ app.layout = html.Div([
             ),
             html.Label(['Input signals ({} maximum)'.format(max_display_sigs)]),
             dcc.Checklist(
-                id = 'input_signals',
+                id = 'sig_name',
                 options = [],
                 value = [],
                 labelStyle = {'display': 'inline-block'}
@@ -155,6 +161,12 @@ def get_dat_options(click_previous, click_next, dat_value):
     [dash.dependencies.State('set_record', 'value'),
      dash.dependencies.State('set_version', 'value')])
 def get_records_options(click_previous, click_next, slug_value, record_value, version_value):
+    # Return default values if called without all the information
+    options_rec = []
+    return_record = None
+    if not slug_value or not version_value:
+        return options_rec, return_record
+
     # Get the record file
     records_path = os.path.join(PROJECT_PATH, slug_value, version_value, 'RECORDS')
     with open(records_path, 'r') as f:
@@ -210,17 +222,17 @@ def get_records_options(click_previous, click_next, slug_value, record_value, ve
     return options_rec, return_record
 
 
-# Update the input_signals value
+# Update the sig_name value
 @app.callback(
-    [dash.dependencies.Output('input_signals', 'options'),
-     dash.dependencies.Output('input_signals', 'value'),
+    [dash.dependencies.Output('sig_name', 'options'),
+     dash.dependencies.Output('sig_name', 'value'),
      dash.dependencies.Output('error_text_sig', 'children')],
     [dash.dependencies.Input('dropdown_rec', 'value')],
     [dash.dependencies.State('dropdown_dat', 'value'),
      dash.dependencies.State('set_version', 'value')])
 def update_sig(dropdown_rec, slug_value, version_value):
     # Set the default error text
-    error_text = ''
+    error_text = ['']
     options_sig = []
     return_sigs = []
     # Read the header file to get the signal names
@@ -241,15 +253,15 @@ def update_sig(dropdown_rec, slug_value, version_value):
         #       be updated? Might have to leave it like this...
         # Set the options and values (only the first `max_display_sigs` signals)
         try:
-            sig_names = wfdb.rdsamp(header_path)[1]['sig_name']
-            options_sig = [{'label': sig, 'value': sig} for sig in sig_names]
-            return_sigs = sig_names[:max_display_sigs]
+            sig_name = wfdb.rdsamp(header_path)[1]['sig_name']
+            options_sig = [{'label': sig, 'value': sig} for sig in sig_name]
+            return_sigs = sig_name[:max_display_sigs]
         except FileNotFoundError:
-            error_text = 'ERROR_SIG: Header file (.hea) not provided'
+            error_text.extend(['ERROR_SIG: Header file (.hea) not provided', html.Br()])
         except:
-            error_text = 'ERROR_SIG: Header file incorrectly formatted'
+            error_text.extend(['ERROR_SIG: Header file incorrectly formatted', html.Br()])
     except:
-        error_text = 'ERROR_SIG: Header file (.hea) not provided'
+        error_text.extend(['ERROR_SIG: Header file (.hea) not provided', html.Br()])
     return_error = html.Span(error_text)
 
     return options_sig, return_sigs, return_error
@@ -279,26 +291,26 @@ def update_rec(fig, dropdown_rec, dropdown_dat):
 @app.callback(
     [dash.dependencies.Output('the_graph', 'figure'),
      dash.dependencies.Output('error_text_graph', 'children')],
-    [dash.dependencies.Input('input_signals', 'value'),
+    [dash.dependencies.Input('sig_name', 'value'),
      dash.dependencies.Input('start_time', 'value')],
     [dash.dependencies.State('dropdown_rec', 'value'),
      dash.dependencies.State('start_time', 'pattern'),
      dash.dependencies.State('dropdown_dat', 'value'),
      dash.dependencies.State('set_version', 'value')])
-def update_graph(input_signals, start_time, dropdown_rec, start_time_pattern, slug_value, version_value):
+def update_graph(sig_name, start_time, dropdown_rec, start_time_pattern, slug_value, version_value):
     print('HERE')
     # Preset the error text
-    error_text = ''
+    error_text = ['']
     # Check if valid number of input signals or input start time
-    if dropdown_rec and (len(input_signals) == 0) or (len(input_signals) > max_display_sigs) or (re.compile(start_time_pattern).match(start_time) == None):
+    if dropdown_rec and (len(sig_name) == 0) or (len(sig_name) > max_display_sigs) or (re.compile(start_time_pattern).match(start_time) == None):
         # If not, plot the default graph
         dropdown_rec = None
-        if (len(input_signals) == 0):
-            error_text = 'ERROR_GRAPH: No input signals provided'
-        elif (len(input_signals) > max_display_sigs):
-            error_text = 'ERROR_GRAPH: Exceeded maximum input signals ({} maximum)'.format(max_display_sigs)
+        if (len(sig_name) == 0):
+            error_text.extend(['ERROR_GRAPH: No input signals provided', html.Br()])
+        elif (len(sig_name) > max_display_sigs):
+            error_text.extend(['ERROR_GRAPH: Exceeded maximum input signals ({} maximum)'.format(max_display_sigs), html.Br()])
         elif (re.compile(start_time_pattern).match(start_time) == None):
-            error_text = 'ERROR_GRAPH: Invalid start time provided'
+            error_text.extend(['ERROR_GRAPH: Invalid start time provided', html.Br()])
     # The figure height and width
     max_plot_height = 750
     fig_width = 1103
@@ -409,17 +421,16 @@ def update_graph(input_signals, start_time, dropdown_rec, start_time_pattern, sl
     record_path = os.path.join(PROJECT_PATH, slug_value, version_value,
                                dropdown_rec)
 
-    # Finally read only the required signal portion if possible, then try
-    # to read from the requested start time, else read in the entire signal
+    # Read the requested record and extract relevent properties
     record = wfdb.rdsamp(record_path)
-    # channel_names = ['EEG C3', 'EEG C4', 'EEG Cp1'])#, 'EEG Cp2', 'EEG Cp5', 'EEG Cp6', '1', '2'])#, 'EEG Fp1'])
     fs = record[1]['fs']
-    sig_name = input_signals
     n_sig = len(sig_name)
-    # TODO: fix this!
-    units = record[1]['units'][:n_sig]
+    units = [None] * n_sig
+    for i,s in enumerate(record[1]['sig_name']):
+        if s in set(sig_name):
+            units[sig_name.index(s)] = record[1]['units'][i]
     # Sort the list of signal names for better default grouping
-    temp_zip = sorted(list(zip(sig_name, record[1]['units'])),
+    temp_zip = sorted(list(zip(sig_name, units)),
                       key = lambda x: x[0])
     sig_name = [t[0] for t in temp_zip]
     units = [t[1] for t in temp_zip]
@@ -429,7 +440,7 @@ def update_graph(input_signals, start_time, dropdown_rec, start_time_pattern, sl
     time_start = int(fs * start_time)
     if time_start > record[1]['sig_len']:
         max_time = str(datetime.timedelta(seconds=record[1]['sig_len'] / fs))
-        error_text = 'ERROR_GRAPH: Start time exceeds signal length ({:0>8})'.format(max_time)
+        error_text.extend(['ERROR_GRAPH: Start time exceeds signal length ({:0>8})'.format(max_time), html.Br()])
     time_stop = int(fs * (start_time + time_range))
     sig_len = time_stop - time_start
 
@@ -553,7 +564,7 @@ def update_graph(input_signals, start_time, dropdown_rec, start_time_pattern, sl
             anns.append(wfdb.rdann(ann_path, ext))
             anns_idx.append(list(filter(lambda x: (ann.sample[x] > time_start) and (ann.sample[x] < time_stop), range(len(ann.sample)))))
     except Exception as e:
-        error_text = 'ERROR_GRAPH: {}'.format(e)
+        error_text.extend(['ERROR_GRAPH: {}'.format(e), html.Br()])
 
     # Name the axes to create the subplots
     x_vals = [start_time + (i / fs) for i in range(sig_len)][::down_sample]
@@ -617,7 +628,7 @@ def update_graph(input_signals, start_time, dropdown_rec, start_time_pattern, sl
         if large_plot:
             y_title = None
         else:
-            y_title = '{}<br>({})'.format(sig_name[r], units[r])
+            y_title = '{}({})'.format(sig_name[r], units[r])
 
         # Create the signal to plot
         fig.add_trace(go.Scatter({
