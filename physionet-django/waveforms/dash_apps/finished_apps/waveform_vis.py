@@ -32,6 +32,9 @@ max_display_sigs = 8
 # Set the error text font size and color
 error_fontsize = 18
 error_color = 'rgb(255, 0, 0)'
+# The list of annotation file extensions the system will check for
+ann_classes = {'alh', 'alm', 'atr', 'aux','blh', 'blm', 'bph', 'bpm', 'ecg',
+               'qrs', 'qrsc', 'st'}
 # Set the default configuration of the plot top buttons
 plot_config = {
     'displayModeBar': True,
@@ -325,8 +328,8 @@ def update_graph(sig_name, start_time, dropdown_rec, start_time_pattern, slug_va
     sig_color = 'rgb(0, 0, 0)'
     sig_thickness = 1.5
     # The thickness of the annotation
-    ann_color = 'rgb(0, 0, 255)'
-    ann_thickness = 0.67 * sig_thickness
+    ann_color = 'rgb(0, 0, 200)'
+    # ann_thickness = 0.67 * sig_thickness
     # ECG gridlines parameters
     grid_delta_major = 0.2
     # Set the maximum samples per second to increase speed
@@ -550,19 +553,37 @@ def update_graph(sig_name, start_time, dropdown_rec, start_time_pattern, slug_va
             all_y_vals.append(current_y_vals)
 
     # Attempt to load in annotations if available
-    ann = None
+    anns = []
+    anns_idx = []
+    folder_path = os.path.join(PROJECT_PATH, slug_value, version_value)
+    ann_path = os.path.join(folder_path, dropdown_rec)
     try:
-        folder_path = os.path.join(PROJECT_PATH, slug_value, version_value)
+        # Read the annotation metadata (ANNOTATORS) if any
         with open(os.path.join(folder_path, 'ANNOTATORS'), 'r') as f:
             ann_ext = [l.split('\t')[0] for l in f.readlines()]
-
-        ann_path = os.path.join(folder_path, dropdown_rec)
-        # ann_ext = [r.split('.')[1] for r in os.listdir('demo-files/static/published-projects/slpdb/1.0.0/') if ('slp01a' in r) and (r.split('.')[1] not in ['dat','hea'])]
-        anns = []
-        anns_idx = []
         for ext in ann_ext:
-            anns.append(wfdb.rdann(ann_path, ext))
-            anns_idx.append(list(filter(lambda x: (ann.sample[x] > time_start) and (ann.sample[x] < time_stop), range(len(ann.sample)))))
+            try:
+                current_ann = wfdb.rdann(ann_path, ext)
+                anns.append(current_ann)
+                anns_idx.append(list(filter(lambda x: (current_ann.sample[x] > time_start) and (current_ann.sample[x] < time_stop), range(len(current_ann.sample)))))
+            except Exception as e:
+                error_text.extend(['ERROR_GRAPH: Annotation file ({}.{}) can not be read... {}'.format(ann_path,ext,e), html.Br()])
+    except IOError:
+        # Can't find ANNOTATORS file, guess what annotation files are and
+        # show warning in case annotation was expected (known extension
+        # found in directory)
+        possible_files = [d for d in os.listdir(folder_path) if len(d.split('.')) == 2]
+        if any(x.split('.')[1] in ann_classes for x in possible_files):
+            # Annotation file found
+            error_text.extend(['WARNING_GRAPH: Annotation files found, but ANNOTATORS file not found', html.Br()])
+            for i,f in enumerate(possible_files):
+                if f.split('.')[1] in ann_classes:
+                    try:
+                        current_ann = wfdb.rdann(ann_path, f.split('.')[1])
+                        anns.append(current_ann)
+                        anns_idx.append(list(filter(lambda x: (current_ann.sample[x] > time_start) and (current_ann.sample[x] < time_stop), range(len(current_ann.sample)))))
+                    except Exception as e:
+                        error_text.extend(['ERROR_GRAPH: Annotation file ({}) can not be read... {}'.format(f,e), html.Br()])
     except Exception as e:
         error_text.extend(['ERROR_GRAPH: {}'.format(e), html.Br()])
 
@@ -645,31 +666,34 @@ def update_graph(sig_name, start_time, dropdown_rec, start_time_pattern, slug_va
         }), row = idx+1, col = 1)
 
         # Display where the events are if any
-        if ann: 
-            for a in ann_idx:
-                # Not sure why setting 'x0' and 'x1' as a variable breaks things
-                fig.add_shape({
-                    'type': 'line',
-                    'x0': float(ann.sample[a] / fs),
-                    'y0': min_y_vals - 0.5 * (max_y_vals - min_y_vals),
-                    'x1': float(ann.sample[a] / fs),
-                    'y1': max_y_vals + 0.5 * (max_y_vals - min_y_vals),
-                    'xref': x_string,
-                    'yref': y_string,
-                    'line': {
-                        'color': ann_color,
-                        'width': ann_thickness
-                    }
-                })
-                fig.add_annotation({
-                    'x': float(ann.sample[a] / fs) + 0.1,
-                    'y': max_y_vals,
-                    'text': ann.symbol[a],
-                    'showarrow': False,
-                    'font': {
-                        'size': 18
-                    }
-                })
+        if anns != [] and idx == 0:
+            for i,ann in enumerate(anns):
+                for a in anns_idx[i]:
+                    # Add only the label due to the hover feature... add
+                    # the lines later though much slower? 
+                    # fig.add_shape({
+                    #     'type': 'line',
+                    #     'x0': float(ann.sample[a] / fs),
+                    #     'y0': min_y_vals - 0.5 * (max_y_vals - min_y_vals),
+                    #     'x1': float(ann.sample[a] / fs),
+                    #     'y1': max_y_vals + 0.5 * (max_y_vals - min_y_vals),
+                    #     'xref': x_string,
+                    #     'yref': y_string,
+                    #     'line': {
+                    #         'color': ann_color,
+                    #         'width': ann_thickness
+                    #     }
+                    # })
+                    fig.add_annotation({
+                        'x': float(ann.sample[a] / fs),# + 0.1, <-- add if line
+                        'y': max_y_vals,
+                        'text': ann.symbol[a],
+                        'showarrow': False,
+                        'font': {
+                            'size': 18,
+                            'color': ann_color
+                        }
+                    })
 
         # Set the initial x-axis parameters
         x_tick_vals = [round(n,1) for n in np.arange(start_time, start_time + time_range, grid_delta_major).tolist()]
