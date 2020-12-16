@@ -33,8 +33,10 @@ max_display_sigs = 8
 error_fontsize = 18
 error_color = 'rgb(255, 0, 0)'
 # The list of annotation file extensions the system will check for
-ann_classes = {'alh', 'alm', 'atr', 'aux','blh', 'blm', 'bph', 'bpm', 'ecg',
-               'qrs', 'qrsc', 'st'}
+ann_classes = {'alh', 'alm', 'atr', 'atr_avf', 'atr_avl', 'atr_avr', 'atr_i',
+               'atr_ii', 'atr_iii', 'atr_1', 'atr_2', 'atr_3', 'atr_4',
+               'atr_5', 'atr_6','aux', 'blh', 'blm', 'bph', 'bpm', 'ecg',
+               'marker', 'pwave', 'qrs', 'qrsc', 'st'}
 # Set the default configuration of the plot top buttons
 plot_config = {
     'displayModeBar': True,
@@ -260,11 +262,11 @@ def update_sig(dropdown_rec, slug_value, version_value):
             options_sig = [{'label': sig, 'value': sig} for sig in sig_name]
             return_sigs = sig_name[:max_display_sigs]
         except FileNotFoundError:
-            error_text.extend(['ERROR_SIG: Header file (.hea) not provided', html.Br()])
-        except:
-            error_text.extend(['ERROR_SIG: Header file incorrectly formatted', html.Br()])
-    except:
-        error_text.extend(['ERROR_SIG: Header file (.hea) not provided', html.Br()])
+            error_text.extend(['ERROR_SIG: Record file not provided', html.Br()])
+        except Exception as e:
+            error_text.extend(['ERROR_SIG: Record/Header file incorrectly formatted... {}'.format(e), html.Br()])
+    except Exception as e:
+        error_text.extend(['ERROR_SIG: Header file (.hea) incorrectly formatted... {}'.format(e), html.Br()])
     return_error = html.Span(error_text)
 
     return options_sig, return_sigs, return_error
@@ -449,6 +451,8 @@ def update_graph(sig_name, start_time, dropdown_rec, start_time_pattern, slug_va
 
     # Down-sample signal to increase performance
     down_sample = int(fs / max_fs)
+    if down_sample == 0:
+        down_sample = 1
 
     # Determine the subplot graph height
     if n_sig == 1:
@@ -547,10 +551,13 @@ def update_graph(sig_name, start_time, dropdown_rec, start_time_pattern, slug_va
         # Collect all the signals
         all_y_vals = []
         for r in sig_order:
-            sig_name_index = record[1]['sig_name'].index(sig_name[r])
-            current_y_vals = record[0][:,sig_name_index][time_start:time_stop:down_sample]
-            current_y_vals = np.nan_to_num(current_y_vals).astype('float64')
-            all_y_vals.append(current_y_vals)
+            try:
+                sig_name_index = record[1]['sig_name'].index(sig_name[r])
+                current_y_vals = record[0][:,sig_name_index][time_start:time_stop:down_sample]
+                current_y_vals = np.nan_to_num(current_y_vals).astype('float64')
+                all_y_vals.append(current_y_vals)
+            except Exception as e:
+                error_text.extend(['ERROR_GRAPH: Record file (.dat) can not be read... {}'.format(e), html.Br()])
 
     # Attempt to load in annotations if available
     anns = []
@@ -572,14 +579,16 @@ def update_graph(sig_name, start_time, dropdown_rec, start_time_pattern, slug_va
         # Can't find ANNOTATORS file, guess what annotation files are and
         # show warning in case annotation was expected (known extension
         # found in directory)
-        possible_files = [d for d in os.listdir(folder_path) if len(d.split('.')) == 2]
-        if any(x.split('.')[1] in ann_classes for x in possible_files):
+        os_path = str(os.sep).join(ann_path.split(os.sep)[:-1])
+        possible_files = [d for d in os.listdir(os_path) if len(d.split('.')) > 1]
+        if any(x.split('.')[-1] in ann_classes for x in set(possible_files)):
             # Annotation file found
             error_text.extend(['WARNING_GRAPH: Annotation files found, but ANNOTATORS file not found', html.Br()])
             for i,f in enumerate(possible_files):
-                if f.split('.')[1] in ann_classes:
+                ext = f.split('.')[-1]
+                if ext in ann_classes:
                     try:
-                        current_ann = wfdb.rdann(ann_path, f.split('.')[1])
+                        current_ann = wfdb.rdann(ann_path, ext)
                         anns.append(current_ann)
                         anns_idx.append(list(filter(lambda x: (current_ann.sample[x] > time_start) and (current_ann.sample[x] < time_stop), range(len(current_ann.sample)))))
                     except Exception as e:
