@@ -149,6 +149,10 @@ SYSTEM_MAINTENANCE_NO_UPLOAD = config('SYSTEM_MAINTENANCE_NO_UPLOAD',
 SYSTEM_MAINTENANCE_MESSAGE = config('SYSTEM_MAINTENANCE_MESSAGE',
                                     default=None)
 
+# Prevent new applications for credentialed access
+PAUSE_CREDENTIALING = config('PAUSE_CREDENTIALING', cast=bool, default=False)
+PAUSE_CREDENTIALING_MESSAGE = config('PAUSE_CREDENTIALING_MESSAGE',
+                                     default=None)
 
 # Google G suite Groups service account and Private Key file
 SERVICE_ACCOUNT_EMAIL = 'gcp-physionet-groups@physionet-data.iam.gserviceaccount.com'
