@@ -115,6 +115,16 @@ app.layout = html.Div([
                 value = '00:00:00',
                 debounce = True
             ),
+            html.Br(),
+            html.Label(['Display annotations']),
+            dcc.RadioItems(
+                id = 'annotation_status',
+                options = [
+                    {'label': 'On', 'value': 'On'},
+                    {'label': 'Off', 'value': 'Off'}
+                ],
+                value = 'On'
+            ),
             # Select previous or next annotation
             html.Button('Previous Record', id = 'previous_annotation'),
             html.Button('Next Record', id = 'next_annotation'),
@@ -297,12 +307,14 @@ def update_rec(fig, dropdown_rec, dropdown_dat):
     [dash.dependencies.Output('the_graph', 'figure'),
      dash.dependencies.Output('error_text_graph', 'children')],
     [dash.dependencies.Input('sig_name', 'value'),
-     dash.dependencies.Input('start_time', 'value')],
+     dash.dependencies.Input('start_time', 'value'),
+     dash.dependencies.Input('annotation_status', 'value')],
     [dash.dependencies.State('dropdown_rec', 'value'),
      dash.dependencies.State('start_time', 'pattern'),
      dash.dependencies.State('dropdown_dat', 'value'),
      dash.dependencies.State('set_version', 'value')])
-def update_graph(sig_name, start_time, dropdown_rec, start_time_pattern, slug_value, version_value):
+def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
+                 start_time_pattern, slug_value, version_value):
     print('HERE')
     # Preset the error text
     error_text = ['']
@@ -564,37 +576,38 @@ def update_graph(sig_name, start_time, dropdown_rec, start_time_pattern, slug_va
     anns_idx = []
     folder_path = os.path.join(PROJECT_PATH, slug_value, version_value)
     ann_path = os.path.join(folder_path, dropdown_rec)
-    try:
-        # Read the annotation metadata (ANNOTATORS) if any
-        with open(os.path.join(folder_path, 'ANNOTATORS'), 'r') as f:
-            ann_ext = [l.split('\t')[0] for l in f.readlines()]
-        for ext in ann_ext:
-            try:
-                current_ann = wfdb.rdann(ann_path, ext)
-                anns.append(current_ann)
-                anns_idx.append(list(filter(lambda x: (current_ann.sample[x] > time_start) and (current_ann.sample[x] < time_stop), range(len(current_ann.sample)))))
-            except Exception as e:
-                error_text.extend(['ERROR_GRAPH: Annotation file ({}.{}) can not be read... {}'.format(ann_path,ext,e), html.Br()])
-    except IOError:
-        # Can't find ANNOTATORS file, guess what annotation files are and
-        # show warning in case annotation was expected (known extension
-        # found in directory)
-        os_path = str(os.sep).join(ann_path.split(os.sep)[:-1])
-        possible_files = [d for d in os.listdir(os_path) if len(d.split('.')) > 1]
-        if any(x.split('.')[-1] in ann_classes for x in set(possible_files)):
-            # Annotation file found
-            error_text.extend(['WARNING_GRAPH: Annotation files found, but ANNOTATORS file not found', html.Br()])
-            for i,f in enumerate(possible_files):
-                ext = f.split('.')[-1]
-                if ext in ann_classes:
-                    try:
-                        current_ann = wfdb.rdann(ann_path, ext)
-                        anns.append(current_ann)
-                        anns_idx.append(list(filter(lambda x: (current_ann.sample[x] > time_start) and (current_ann.sample[x] < time_stop), range(len(current_ann.sample)))))
-                    except Exception as e:
-                        error_text.extend(['ERROR_GRAPH: Annotation file ({}) can not be read... {}'.format(f,e), html.Br()])
-    except Exception as e:
-        error_text.extend(['ERROR_GRAPH: {}'.format(e), html.Br()])
+    if annotation_status == 'On':
+        try:
+            # Read the annotation metadata (ANNOTATORS) if any
+            with open(os.path.join(folder_path, 'ANNOTATORS'), 'r') as f:
+                ann_ext = [l.split('\t')[0] for l in f.readlines()]
+            for ext in ann_ext:
+                try:
+                    current_ann = wfdb.rdann(ann_path, ext)
+                    anns.append(current_ann)
+                    anns_idx.append(list(filter(lambda x: (current_ann.sample[x] > time_start) and (current_ann.sample[x] < time_stop), range(len(current_ann.sample)))))
+                except Exception as e:
+                    error_text.extend(['ERROR_GRAPH: Annotation file ({}.{}) can not be read... {}'.format(ann_path,ext,e), html.Br()])
+        except IOError:
+            # Can't find ANNOTATORS file, guess what annotation files are and
+            # show warning in case annotation was expected (known extension
+            # found in directory)
+            os_path = str(os.sep).join(ann_path.split(os.sep)[:-1])
+            possible_files = [d for d in os.listdir(os_path) if len(d.split('.')) > 1]
+            if any(x.split('.')[-1] in ann_classes for x in set(possible_files)):
+                # Annotation file found
+                error_text.extend(['WARNING_GRAPH: Annotation files found, but ANNOTATORS file not found', html.Br()])
+                for i,f in enumerate(possible_files):
+                    ext = f.split('.')[-1]
+                    if ext in ann_classes:
+                        try:
+                            current_ann = wfdb.rdann(ann_path, ext)
+                            anns.append(current_ann)
+                            anns_idx.append(list(filter(lambda x: (current_ann.sample[x] > time_start) and (current_ann.sample[x] < time_stop), range(len(current_ann.sample)))))
+                        except Exception as e:
+                            error_text.extend(['ERROR_GRAPH: Annotation file ({}) can not be read... {}'.format(f,e), html.Br()])
+        except Exception as e:
+            error_text.extend(['ERROR_GRAPH: {}'.format(e), html.Br()])
 
     # Name the axes to create the subplots
     x_vals = [start_time + (i / fs) for i in range(sig_len)][::down_sample]
