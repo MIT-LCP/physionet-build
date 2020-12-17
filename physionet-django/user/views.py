@@ -624,10 +624,10 @@ def edit_cloud(request):
 @login_required
 def view_agreements(request):
     """
-    View signed agreements in the user profile
+    View a list of signed agreements in the user profile.
     """
     user = request.user
-    signed = DUASignature.objects.filter(user=user).order_by('sign_datetime')
+    signed = DUASignature.objects.filter(user=user).order_by('-sign_datetime')
 
     return render(request, 'user/view_agreements.html', {'user': user,
                                                          'signed': signed})
@@ -635,7 +635,7 @@ def view_agreements(request):
 @login_required
 def view_signed_agreement(request, id):
     """
-    View signed agreements in the user profile
+    View a printable agreement in the user profile.
     """
     user = request.user
     signed = DUASignature.objects.get(user=user, id=id)
