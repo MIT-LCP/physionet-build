@@ -462,6 +462,16 @@ def edit_credentialing(request):
     """
     Credentials settings page.
     """
+    if settings.PAUSE_CREDENTIALING:
+        pause_applications = True
+        pause_message = settings.PAUSE_CREDENTIALING_MESSAGE or (
+            "We are not currently accepting new applications "
+            "for credentialed access."
+        )
+    else:
+        pause_applications = False
+        pause_message = None
+
     applications = CredentialApplication.objects.filter(user=request.user)
     current_application = applications.filter(status=0).first()
 
@@ -474,6 +484,8 @@ def edit_credentialing(request):
 
     return render(request, 'user/edit_credentialing.html', {
         'applications': applications,
+        'pause_applications': pause_applications,
+        'pause_message': pause_message,
         'current_application': current_application})
 
 
