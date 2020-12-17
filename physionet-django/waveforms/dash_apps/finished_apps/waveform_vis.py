@@ -668,10 +668,19 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
                 y_tick_vals = [round(n,1) for n in np.linspace(min_y_vals, max_y_vals, 8).tolist()][1:-1]
                 y_tick_text = [str(n) for n in y_tick_vals]
 
+        # Add line breaks for long titles
         if large_plot:
             y_title = None
+            if len(y_tick_text[0]) > 12:
+                temp_title = ''.join(y_tick_text[0].split('(')[:-1]).strip()
+                temp_units = '(' + y_tick_text[0].split('(')[-1]
+                y_tick_text = ['<br>'.join(temp_title[z:z+12] for z in range(0, len(temp_title), 12)) + '<br>' + temp_units]
         else:
-            y_title = '{}({})'.format(sig_name[r], units[r])
+            y_title = '{} ({})'.format(sig_name[r], units[r])
+            if len(y_title) > 12:
+                temp_title = ''.join(y_title.split('(')[:-1]).strip()
+                temp_units = '(' + y_title.split('(')[-1]
+                y_title = '<br>'.join(temp_title[z:z+12] for z in range(0, len(temp_title), 12)) + '<br>' + temp_units
 
         # Create the signal to plot
         fig.add_trace(go.Scatter({
