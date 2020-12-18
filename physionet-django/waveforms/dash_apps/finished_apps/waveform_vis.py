@@ -33,10 +33,16 @@ max_display_sigs = 8
 error_fontsize = 18
 error_color = 'rgb(255, 0, 0)'
 # The list of annotation file extensions the system will check for
-ann_classes = {'alh', 'alm', 'atr', 'atr_avf', 'atr_avl', 'atr_avr', 'atr_i',
-               'atr_ii', 'atr_iii', 'atr_1', 'atr_2', 'atr_3', 'atr_4',
-               'atr_5', 'atr_6','aux', 'blh', 'blm', 'bph', 'bpm', 'ecg',
-               'marker', 'pwave', 'qrs', 'qrsc', 'st'}
+# Maybe in the future look for any files which aren't .dat for .hea though
+# this could cause problems with CSV and other random files
+ann_classes = {'abp', 'al', 'alh', 'anI', 'all', 'alm', 'apn', 'ari', 'arou',
+               'atr', 'atr_avf', 'atr_avl', 'atr_avr', 'atr_i', 'atr_ii',
+               'atr_iii', 'atr_1', 'atr_2', 'atr_3', 'atr_4', 'atr_5', 'atr_6',
+               'aux', 'blh', 'blm', 'bph', 'bpm', 'comp', 'cvp', 'ecg',
+               'event', 'flash', 'hypn', 'in', 'log', 'man', 'marker', 'not',
+               'oart', 'pap', 'ple', 'pwave', 'pu', 'pu0', 'pu1', 'qrs',
+               'qrsc', 'qt1', 'qt2', 'q1c', 'q2c', 'resp', 'st', 'sta', 'stb',
+               'stc', 'trigger', 'trg', 'wabp', 'wqrs', 'win', '16a'}
 # Set the default configuration of the plot top buttons
 plot_config = {
     'displayModeBar': True,
@@ -51,7 +57,6 @@ plot_config = {
         'resetViews'
     ]
 }
-
 
 # Initialize the Dash App
 app = DjangoDash(name = 'waveform_graph',
@@ -182,11 +187,27 @@ def get_records_options(click_previous, click_next, slug_value, record_value, ve
     if not slug_value or not version_value:
         return options_rec, return_record
 
-    # Get the record file
-    records_path = os.path.join(PROJECT_PATH, slug_value, version_value, 'RECORDS')
-    with open(records_path, 'r') as f:
+    # Get the record file(s)
+    # TODO: Make this work for more than two layers
+    records_path = os.path.join(PROJECT_PATH, slug_value, version_value)
+    records_file = os.path.join(records_path, 'RECORDS')
+    with open(records_file, 'r') as f:
         all_records = f.read().splitlines()
 
+    # TODO: Probably should refactor this
+    temp_all_records = []
+    for i,rec in enumerate(all_records):
+        temp_path = os.path.join(records_path, rec)
+        if 'RECORDS' in set(os.listdir(temp_path)):
+            temp_file = os.path.join(temp_path, 'RECORDS')
+            with open(temp_file, 'r') as f:
+                # Directory RECORDS values should always have a `/` at the end
+                temp_records = [rec + line.rstrip('\n') for line in f]
+        temp_all_records.extend(temp_records)
+    if temp_all_records != []:
+        all_records = temp_all_records
+
+    print(all_records)
     # Set the record options based on the current project
     options_rec = [{'label': rec, 'value': rec} for rec in all_records]
 
@@ -272,7 +293,7 @@ def update_sig(dropdown_rec, slug_value, version_value):
             options_sig = [{'label': sig, 'value': sig} for sig in sig_name]
             return_sigs = sig_name[:max_display_sigs]
         except FileNotFoundError:
-            error_text.extend(['ERROR_SIG: Record file not provided', html.Br()])
+            error_text.extend(['ERROR_SIG: Record file not provided... {}'.format(header_path), html.Br()])
         except Exception as e:
             error_text.extend(['ERROR_SIG: Record/Header file incorrectly formatted... {}'.format(e), html.Br()])
     except Exception as e:
@@ -440,10 +461,14 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
 
     # Read the requested record and extract relevent properties
     record = wfdb.rdsamp(record_path)
+    record_sigs = record[1]['sig_name']
+    # Sometimes multiple signals are named the same; this causes problems later
+    if len(record_sigs) != len(set(record_sigs)):
+        error_text.extend(['ERROR_GRAPH: Multiple signals are named the same; not all will be plotted', html.Br()])
     fs = record[1]['fs']
     n_sig = len(sig_name)
     units = [None] * n_sig
-    for i,s in enumerate(record[1]['sig_name']):
+    for i,s in enumerate(record_sigs):
         if s in set(sig_name):
             units[sig_name.index(s)] = record[1]['units'][i]
     # Sort the list of signal names for better default grouping
@@ -525,7 +550,7 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
         all_y_vals = []
         ekg_y_vals = []
         for r in sig_order:
-            sig_name_index = record[1]['sig_name'].index(sig_name[r])
+            sig_name_index = record_sigs.index(sig_name[r])
             current_y_vals = record[0][:,sig_name_index][time_start:time_stop:down_sample]
             current_y_vals = np.nan_to_num(current_y_vals).astype('float64')
             all_y_vals.append(current_y_vals)
@@ -564,7 +589,7 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
         all_y_vals = []
         for r in sig_order:
             try:
-                sig_name_index = record[1]['sig_name'].index(sig_name[r])
+                sig_name_index = record_sigs.index(sig_name[r])
                 current_y_vals = record[0][:,sig_name_index][time_start:time_stop:down_sample]
                 current_y_vals = np.nan_to_num(current_y_vals).astype('float64')
                 all_y_vals.append(current_y_vals)
@@ -576,23 +601,26 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
     anns_idx = []
     folder_path = os.path.join(PROJECT_PATH, slug_value, version_value)
     ann_path = os.path.join(folder_path, dropdown_rec)
+    os_path = str(os.sep).join(ann_path.split(os.sep)[:-1])
     if annotation_status == 'On':
         try:
             # Read the annotation metadata (ANNOTATORS) if any
             with open(os.path.join(folder_path, 'ANNOTATORS'), 'r') as f:
                 ann_ext = [l.split('\t')[0] for l in f.readlines()]
             for ext in ann_ext:
-                try:
-                    current_ann = wfdb.rdann(ann_path, ext)
-                    anns.append(current_ann)
-                    anns_idx.append(list(filter(lambda x: (current_ann.sample[x] > time_start) and (current_ann.sample[x] < time_stop), range(len(current_ann.sample)))))
-                except Exception as e:
-                    error_text.extend(['ERROR_GRAPH: Annotation file ({}.{}) can not be read... {}'.format(ann_path,ext,e), html.Br()])
+                # Check if file exists first (some extensions are only for a
+                # subset of all the records)
+                if '.'.join([dropdown_rec, ext]).split(os.sep)[-1] in set(os.listdir(os_path)):
+                    try:
+                        current_ann = wfdb.rdann(ann_path, ext)
+                        anns.append(current_ann)
+                        anns_idx.append(list(filter(lambda x: (current_ann.sample[x] > time_start) and (current_ann.sample[x] < time_stop), range(len(current_ann.sample)))))
+                    except Exception as e:
+                        error_text.extend(['ERROR_GRAPH: Annotation file ({}.{}) can not be read... {}'.format(ann_path,ext,e), html.Br()])
         except IOError:
             # Can't find ANNOTATORS file, guess what annotation files are and
             # show warning in case annotation was expected (known extension
             # found in directory)
-            os_path = str(os.sep).join(ann_path.split(os.sep)[:-1])
             possible_files = [d for d in os.listdir(os_path) if len(d.split('.')) > 1]
             if any(x.split('.')[-1] in ann_classes for x in set(possible_files)):
                 # Annotation file found
@@ -669,18 +697,21 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
                 y_tick_text = [str(n) for n in y_tick_vals]
 
         # Add line breaks for long titles
+        # TODO: Make this cleaner (break at whitespaces if available)
+        # Maximum length of title before wrapping
+        max_title_length = 20 - n_sig
         if large_plot:
             y_title = None
-            if len(y_tick_text[0]) > 12:
+            if len(y_tick_text[0]) > max_title_length:
                 temp_title = ''.join(y_tick_text[0].split('(')[:-1]).strip()
                 temp_units = '(' + y_tick_text[0].split('(')[-1]
-                y_tick_text = ['<br>'.join(temp_title[z:z+12] for z in range(0, len(temp_title), 12)) + '<br>' + temp_units]
+                y_tick_text = ['<br>'.join(temp_title[z:z+max_title_length] for z in range(0, len(temp_title), max_title_length)) + '<br>' + temp_units]
         else:
             y_title = '{} ({})'.format(sig_name[r], units[r])
-            if len(y_title) > 12:
+            if len(y_title) > max_title_length:
                 temp_title = ''.join(y_title.split('(')[:-1]).strip()
                 temp_units = '(' + y_title.split('(')[-1]
-                y_title = '<br>'.join(temp_title[z:z+12] for z in range(0, len(temp_title), 12)) + '<br>' + temp_units
+                y_title = '<br>'.join(temp_title[z:z+max_title_length] for z in range(0, len(temp_title), max_title_length)) + '<br>' + temp_units
 
         # Create the signal to plot
         fig.add_trace(go.Scatter({
@@ -715,6 +746,10 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
                     #         'width': ann_thickness
                     #     }
                     # })
+                    # TODO: Use ann.symbol for now, but use ann.aux_note if
+                    # it's possible (some are long and take up the whole
+                    # screen and get really crowded... also some are empty...
+                    # so maybe don't use it?)
                     fig.add_annotation({
                         'x': float(ann.sample[a] / fs),# + 0.1, <-- add if line
                         'y': max_y_vals,
