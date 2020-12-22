@@ -1,5 +1,5 @@
 # Project path configuration
-from physionet.settings import base
+from django.conf import settings
 # General package functionality
 import re
 import os
@@ -18,12 +18,16 @@ from django_plotly_dash import DjangoDash
 from plotly.subplots import make_subplots
 
 
-# TODO: Include exceptions - https://dash.plotly.com/advanced-callbacks
 # Specify the record file locations
-BASE_DIR = base.BASE_DIR
-FILE_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
-FILE_LOCAL = os.path.join('demo-files', 'static', 'published-projects')
-PROJECT_PATH = os.path.join(FILE_ROOT, FILE_LOCAL)
+# PUBLIC_DBPATH: path to main database directory within PUBLIC_ROOT
+PUBLIC_DBPATH = 'published-projects'
+# PUBLIC_ROOT: chroot directory for public databases
+if settings.STATIC_ROOT:
+    PUBLIC_ROOT = settings.STATIC_ROOT
+else:
+    PUBLIC_ROOT = os.path.join(settings.DEMO_FILE_ROOT, 'static')
+# All the project slug directories live here
+PROJECT_PATH = os.path.join(PUBLIC_ROOT, PUBLIC_DBPATH)
 # Formatting settings
 dropdown_width = '500px'
 event_fontsize = '24px'
@@ -70,6 +74,14 @@ app.layout = html.Div([
         html.Div([
             # The error display
             html.Div(
+                id = 'error_text_rec',
+                children = html.Span(''),
+                style = {
+                    'fontSize': error_fontsize,
+                    'color': error_color
+                }
+            ),
+            html.Div(
                 id = 'error_text_sig',
                 children = html.Span(''),
                 style = {
@@ -84,16 +96,6 @@ app.layout = html.Div([
                     'fontSize': error_fontsize,
                     'color': error_color
                 }
-            ),
-            html.Label(['Select project to plot']),
-            dcc.Dropdown(
-                id = 'dropdown_dat',
-                multi = False,
-                clearable = False,
-                searchable = True,
-                persistence = False,
-                placeholder = 'Please Select...',
-                style = {'width': dropdown_width},
             ),
             html.Label(['Select record to plot']),
             dcc.Dropdown(
@@ -154,33 +156,17 @@ app.layout = html.Div([
 # Dynamically update the record dropdown settings using the project 
 # record and event
 @app.callback(
-    [dash.dependencies.Output('dropdown_dat', 'options'),
-     dash.dependencies.Output('dropdown_dat', 'value')],
-    [dash.dependencies.Input('previous_annotation', 'n_clicks_timestamp'),
-     dash.dependencies.Input('next_annotation', 'n_clicks_timestamp'),
-     dash.dependencies.Input('set_record', 'value')])
-def get_dat_options(click_previous, click_next, dat_value):
-    all_dirs = os.listdir(PROJECT_PATH)
-    options_dat = [{'label': dir, 'value': dir} for dir in all_dirs]
-    if dat_value == '':
-        # Keep blank if loading main page (no presets)
-        return_dat = None
-    else:
-        return_dat = dat_value
-    return options_dat, return_dat
-
-
-# Dynamically update the record dropdown settings using the project 
-# record and event
-@app.callback(
     [dash.dependencies.Output('dropdown_rec', 'options'),
-     dash.dependencies.Output('dropdown_rec', 'value')],
+     dash.dependencies.Output('dropdown_rec', 'value'),
+     dash.dependencies.Output('error_text_rec', 'children')],
     [dash.dependencies.Input('previous_annotation', 'n_clicks_timestamp'),
      dash.dependencies.Input('next_annotation', 'n_clicks_timestamp'),
-     dash.dependencies.Input('dropdown_dat', 'value')],
+     dash.dependencies.Input('set_slug', 'value')],
     [dash.dependencies.State('set_record', 'value'),
      dash.dependencies.State('set_version', 'value')])
 def get_records_options(click_previous, click_next, slug_value, record_value, version_value):
+    # Set the default error text
+    error_text = ['']
     # Return default values if called without all the information
     options_rec = []
     return_record = None
@@ -188,26 +174,40 @@ def get_records_options(click_previous, click_next, slug_value, record_value, ve
         return options_rec, return_record
 
     # Get the record file(s)
-    # TODO: Make this work for more than two layers
     records_path = os.path.join(PROJECT_PATH, slug_value, version_value)
     records_file = os.path.join(records_path, 'RECORDS')
-    with open(records_file, 'r') as f:
-        all_records = f.read().splitlines()
-
-    # TODO: Probably should refactor this
+    try:
+        with open(records_file, 'r') as f:
+            all_records = f.read().splitlines()
+    except FileNotFoundError:
+        error_text.extend(['ERROR_REC: Record file not provided... {}'.format(records_file), html.Br()])
+        return options_rec, return_record, error_text
+    except Exception as e:
+        error_text.extend(['ERROR_REC: Record file incorrectly formatted... {}'.format(e), html.Br()])
+        return options_rec, return_record, error_text
+    # # TODO: Probably should refactor this
     temp_all_records = []
     for i,rec in enumerate(all_records):
         temp_path = os.path.join(records_path, rec)
-        if 'RECORDS' in set(os.listdir(temp_path)):
-            temp_file = os.path.join(temp_path, 'RECORDS')
-            with open(temp_file, 'r') as f:
-                # Directory RECORDS values should always have a `/` at the end
-                temp_records = [rec + line.rstrip('\n') for line in f]
-        temp_all_records.extend(temp_records)
+        try:
+            if 'RECORDS' in set(os.listdir(temp_path)):
+                temp_file = os.path.join(temp_path, 'RECORDS')
+                with open(temp_file, 'r') as f:
+                    # Directory RECORDS values should always have a `/` at the end
+                    temp_records = [rec + line.rstrip('\n') for line in f]
+            temp_all_records.extend(temp_records)
+        except FileNotFoundError:
+            # No nested RECORDS files
+            pass
+        except NotADirectoryError:
+            # No nested RECORDS files
+            pass
+        except Exception as e:
+            error_text.extend(['ERROR_REC: Unable to read RECORDS file.. {}'.format(e), html.Br()])
+            return options_rec, return_record, error_text
     if temp_all_records != []:
         all_records = temp_all_records
 
-    print(all_records)
     # Set the record options based on the current project
     options_rec = [{'label': rec, 'value': rec} for rec in all_records]
 
@@ -255,7 +255,7 @@ def get_records_options(click_previous, click_next, slug_value, record_value, ve
         else:
             return_record = record_value
 
-    return options_rec, return_record
+    return options_rec, return_record, error_text
 
 
 # Update the sig_name value
@@ -264,7 +264,7 @@ def get_records_options(click_previous, click_next, slug_value, record_value, ve
      dash.dependencies.Output('sig_name', 'value'),
      dash.dependencies.Output('error_text_sig', 'children')],
     [dash.dependencies.Input('dropdown_rec', 'value')],
-    [dash.dependencies.State('dropdown_dat', 'value'),
+    [dash.dependencies.State('set_slug', 'value'),
      dash.dependencies.State('set_version', 'value')])
 def update_sig(dropdown_rec, slug_value, version_value):
     # Set the default error text
@@ -289,7 +289,10 @@ def update_sig(dropdown_rec, slug_value, version_value):
         #       be updated? Might have to leave it like this...
         # Set the options and values (only the first `max_display_sigs` signals)
         try:
-            sig_name = wfdb.rdsamp(header_path)[1]['sig_name']
+            if '.edf' in header_path:
+                sig_name = wfdb.edf2mit(header_path, header_only=True)['sig_name']
+            else:
+                sig_name = wfdb.rdsamp(header_path)[1]['sig_name']
             options_sig = [{'label': sig, 'value': sig} for sig in sig_name]
             return_sigs = sig_name[:max_display_sigs]
         except FileNotFoundError:
@@ -305,22 +308,16 @@ def update_sig(dropdown_rec, slug_value, version_value):
 
 # Update the set_record value
 @app.callback(
-    [dash.dependencies.Output('set_record', 'value'),
-     dash.dependencies.Output('set_dat', 'value')],
+    dash.dependencies.Output('set_record', 'value'),
     [dash.dependencies.Input('the_graph', 'figure')],
-    [dash.dependencies.State('dropdown_rec', 'value'),
-     dash.dependencies.State('dropdown_dat', 'value')])
-def update_rec(fig, dropdown_rec, dropdown_dat):
+    [dash.dependencies.State('dropdown_rec', 'value')])
+def update_rec(fig, dropdown_rec):
     if dropdown_rec:
         return_dropdown = dropdown_rec
     else:
         return_dropdown = ''
-    if dropdown_dat:
-        return_dat = dropdown_dat
-    else:
-        return_dat = ''
-    
-    return return_dropdown, return_dat
+
+    return return_dropdown
 
 
 # Run the app using the chosen initial conditions
@@ -332,7 +329,7 @@ def update_rec(fig, dropdown_rec, dropdown_dat):
      dash.dependencies.Input('annotation_status', 'value')],
     [dash.dependencies.State('dropdown_rec', 'value'),
      dash.dependencies.State('start_time', 'pattern'),
-     dash.dependencies.State('dropdown_dat', 'value'),
+     dash.dependencies.State('set_slug', 'value'),
      dash.dependencies.State('set_version', 'value')])
 def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
                  start_time_pattern, slug_value, version_value):
@@ -340,7 +337,7 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
     # Preset the error text
     error_text = ['']
     # Check if valid number of input signals or input start time
-    if dropdown_rec and (len(sig_name) == 0) or (len(sig_name) > max_display_sigs) or (re.compile(start_time_pattern).match(start_time) == None):
+    if dropdown_rec and ((len(sig_name) == 0) or (len(sig_name) > max_display_sigs) or (re.compile(start_time_pattern).match(start_time) == None)):
         # If not, plot the default graph
         dropdown_rec = None
         if (len(sig_name) == 0):
@@ -460,7 +457,14 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
                                dropdown_rec)
 
     # Read the requested record and extract relevent properties
-    record = wfdb.rdsamp(record_path)
+    try:
+        record = wfdb.rdsamp(record_path)
+    except FileNotFoundError:
+        error_text.extend(['ERROR_SIG: Record file not provided... {}'.format(header_path), html.Br()])
+        return make_subplots(rows = 1, cols = 1, shared_xaxes = True, vertical_spacing = 0), html.Span(error_text)
+    except Exception as e:
+        error_text.extend(['ERROR_SIG: Record/Header file incorrectly formatted... {}'.format(e), html.Br()])
+        return make_subplots(rows = 1, cols = 1, shared_xaxes = True, vertical_spacing = 0), html.Span(error_text)
     record_sigs = record[1]['sig_name']
     # Sometimes multiple signals are named the same; this causes problems later
     if len(record_sigs) != len(set(record_sigs)):
@@ -480,10 +484,16 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
     # Set the initial display range of y-values based on values in
     # initial range of x-values
     time_start = int(fs * start_time)
-    if time_start > record[1]['sig_len']:
-        max_time = str(datetime.timedelta(seconds=record[1]['sig_len'] / fs))
+    rec_len = record[1]['sig_len']
+    if time_start >= rec_len:
+        max_time = str(datetime.timedelta(seconds = rec_len/fs))
         error_text.extend(['ERROR_GRAPH: Start time exceeds signal length ({:0>8})'.format(max_time), html.Br()])
-    time_stop = int(fs * (start_time + time_range))
+    if start_time + time_range > rec_len/fs:
+        time_stop = rec_len
+        range_stop = rec_len/fs
+    else:
+        time_stop = int(fs * (start_time + time_range))
+        range_stop = start_time + window_size
     sig_len = time_stop - time_start
 
     # Down-sample signal to increase performance
@@ -775,11 +785,11 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
                 'zeroline': zeroline_state,
                 'zerolinewidth': 1,
                 'zerolinecolor': gridzero_color,
-                'range': [start_time, start_time + window_size],
+                'range': [start_time, range_stop],
                 'showspikes': True,
                 'spikemode': 'across',
                 'spikesnap': 'cursor',
-                'showline': True,
+                'showline': True
             }, row = idx+1, col = 1)
         else:
             # Add the x-axis title to the bottom figure
@@ -795,7 +805,7 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
                 'zeroline': zeroline_state,
                 'zerolinewidth': 1,
                 'zerolinecolor': gridzero_color,
-                'range': [start_time, start_time + window_size],
+                'range': [start_time, range_stop],
                 'showspikes': True,
                 'spikemode': 'across',
                 'spikesnap': 'cursor',

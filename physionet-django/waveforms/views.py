@@ -3,7 +3,7 @@ from django.shortcuts import render
 from physionet.settings import base
 
 
-def waveform_published_home(request, project_slug, version):
+def waveform_published_home(request, project_slug, project_version):
     """
     Render waveform main page for published databases. Also pass in
     some initial values to create the dropdown options.
@@ -12,7 +12,7 @@ def waveform_published_home(request, project_slug, version):
     ----------
     project_slug : str
         The slug of the current project.
-    version : str
+    project_version : str
         The version of the current project.
 
     Returns
@@ -23,13 +23,10 @@ def waveform_published_home(request, project_slug, version):
         the template and the waveform app.
 
     """
-    # 'ninfea' 'siena-scalp-eeg' 'butqdb' 'cded' 'simultaneous-measurements'
-    project_slug = None #'simultaneous-measurements'
-    version = '1.0.0'
     dash_context = {
         'set_slug': {'value': project_slug},
-        'set_version': {'value': version},
-        'set_record': {'value': ''}
+        'set_version': {'value': project_version},
+        'set_record': {'value': ''},
     }
 
     return render(request, 'waveforms/home.html',

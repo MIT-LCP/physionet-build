@@ -13,8 +13,8 @@
 <div class="container">
   <!-- The title header of the webpage -->
   <h1>
-    Waveform Viewer (Demo) for {{ dash_context.target_id.value.project_slug }}
-    version {{ dash_context.target_id.value.version }}
+    Waveform Viewer (Demo) for {{ dash_context.set_slug.value }}
+    version {{ dash_context.set_version.value }}
   </h1>
   <!-- The plot goes here -->
   {% plotly_app_bootstrap name='waveform_graph' initial_arguments=dash_context %}

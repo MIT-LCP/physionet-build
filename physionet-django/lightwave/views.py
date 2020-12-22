@@ -27,11 +27,13 @@ ORIGINAL_DBCAL_FILE = '/usr/local/database/wfdbcal'
 DBCAL_FILE = os.path.join(PUBLIC_ROOT, 'wfdbcal')
 
 
-def lightwave_home(request):
+def lightwave_home(request, project_slug, project_version):
     """
     Render LightWAVE main page for published databases.
     """
     return render(request, 'lightwave/home.html', {
+        'project_slug': project_slug,
+        'project_version': project_version,
         'lightwave_server_url': reverse('lightwave_server'),
 
         # FIXME: Scribe should be updated to save annotations to
@@ -51,6 +53,8 @@ def lightwave_project_home(request, project_slug, project, **kwargs):
     """
     # FIXME: Show an error message if no RECORDS file is present.
     return render(request, 'lightwave/home.html', {
+        'project_slug': project_slug,
+        'project_version': '',
         'lightwave_server_url': reverse('lightwave_project_server',
                                         args=(project_slug,)),
 
