@@ -13,8 +13,10 @@
 <div class="container">
   <!-- The title header of the webpage -->
   <h1>
-    Waveform Viewer (Demo) for {{ dash_context.set_slug.value }}
-    version {{ dash_context.set_version.value }}
+    New Waveform Viewer (demo) for {{ dash_context.set_slug.value }}
+    {% if dash_context.set_version.value != '' %}
+      version {{ dash_context.set_version.value }}
+    {% endif %}
   </h1>
   <!-- The plot goes here -->
   {% plotly_app_bootstrap name='waveform_graph' initial_arguments=dash_context %}
@@ -26,12 +28,12 @@
     var iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
 
     // window.onload = function() {
-        iframeDocument.getElementsByClassName("svg-container")[0].onload = function() {
-            $(".embed-responsive")[0].style.height = iframeDocument.getElementsByClassName("svg-container")[0].style['height'];
-        };
+      iframeDocument.getElementsByClassName("svg-container")[0].onload = function() {
+        $(".embed-responsive")[0].style.height = iframeDocument.getElementsByClassName("svg-container")[0].style['height'];
+      };
     // };
     // $(document).ready(function() {
-    //     $(".embed-responsive").css("height", $(".svg-container").style['height']);
+    //   $(".embed-responsive").css("height", $(".svg-container").style['height']);
     // });
 </script> -->
 {% endblock %}

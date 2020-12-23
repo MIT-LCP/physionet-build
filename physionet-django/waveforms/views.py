@@ -3,10 +3,10 @@ from django.shortcuts import render
 from physionet.settings import base
 
 
-def waveform_published_home(request, project_slug, project_version):
+def waveform_home(request, project_slug, project_version=''):
     """
-    Render waveform main page for published databases. Also pass in
-    some initial values to create the dropdown options.
+    Render waveform main page for active and published databases. Also pass
+    in some initial values to create the dropdown options.
 
     Parameters
     ----------

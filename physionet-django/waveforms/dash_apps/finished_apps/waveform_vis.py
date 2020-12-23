@@ -19,6 +19,8 @@ from plotly.subplots import make_subplots
 
 
 # Specify the record file locations
+# PRIVATE_DBPATH: path to activate database directory within PUBLIC_ROOT
+PRIVATE_DBPATH = 'active-projects'
 # PUBLIC_DBPATH: path to main database directory within PUBLIC_ROOT
 PUBLIC_DBPATH = 'published-projects'
 # PUBLIC_ROOT: chroot directory for public databases
@@ -170,12 +172,19 @@ def get_records_options(click_previous, click_next, slug_value, record_value, ve
     # Return default values if called without all the information
     options_rec = []
     return_record = None
-    if not slug_value or not version_value:
-        return options_rec, return_record
+    if not slug_value and not version_value:
+        return options_rec, return_record, error_text
 
     # Get the record file(s)
-    records_path = os.path.join(PROJECT_PATH, slug_value, version_value)
+    # TODO: Maybe make this more concrete
+    if slug_value.startswith('active_'):
+        temp_path = os.path.join(settings.MEDIA_ROOT, PRIVATE_DBPATH)
+        slug_value = '_'.join(slug_value.split('_')[1:])
+        records_path = os.path.join(temp_path, slug_value, version_value)
+    else:
+        records_path = os.path.join(PROJECT_PATH, slug_value, version_value)
     records_file = os.path.join(records_path, 'RECORDS')
+
     try:
         with open(records_file, 'r') as f:
             all_records = f.read().splitlines()
@@ -274,8 +283,15 @@ def update_sig(dropdown_rec, slug_value, version_value):
     # Read the header file to get the signal names
     # TODO: Doesn't work on non-WFDB files
     if dropdown_rec and slug_value:
-        header_path = os.path.join(PROJECT_PATH, slug_value, version_value,
-                                   dropdown_rec)
+        # TODO: Maybe make this more concrete
+        if slug_value.startswith('active_'):
+            temp_path = os.path.join(settings.MEDIA_ROOT, PRIVATE_DBPATH)
+            slug_value = '_'.join(slug_value.split('_')[1:])
+            header_path = os.path.join(temp_path, slug_value, version_value,
+                                       dropdown_rec)
+        else:
+            header_path = os.path.join(PROJECT_PATH, slug_value, version_value,
+                                       dropdown_rec)
     else:
         return options_sig, return_sigs, html.Span(error_text)
     try:
@@ -453,7 +469,13 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
         return (fig), html.Span(error_text)
 
     # Set some initial conditions
-    record_path = os.path.join(PROJECT_PATH, slug_value, version_value,
+    # TODO: Maybe make this more concrete
+    if slug_value.startswith('active_'):
+        project_path = os.path.join(settings.MEDIA_ROOT, PRIVATE_DBPATH)
+        slug_value = '_'.join(slug_value.split('_')[1:])
+    else:
+        project_path = PROJECT_PATH
+    record_path = os.path.join(project_path, slug_value, version_value,
                                dropdown_rec)
 
     # Read the requested record and extract relevent properties
@@ -609,7 +631,7 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
     # Attempt to load in annotations if available
     anns = []
     anns_idx = []
-    folder_path = os.path.join(PROJECT_PATH, slug_value, version_value)
+    folder_path = os.path.join(project_path, slug_value, version_value)
     ann_path = os.path.join(folder_path, dropdown_rec)
     os_path = str(os.sep).join(ann_path.split(os.sep)[:-1])
     if annotation_status == 'On':
