@@ -349,7 +349,6 @@ def update_rec(fig, dropdown_rec):
      dash.dependencies.State('set_version', 'value')])
 def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
                  start_time_pattern, slug_value, version_value):
-    print('HERE')
     # Preset the error text
     error_text = ['']
     # Check if valid number of input signals or input start time
@@ -397,76 +396,76 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
     x_zoom_fixed = False
     y_zoom_fixed = True
 
+    # Create baseline figure with 1 subplot
+    base_fig = make_subplots(
+        rows = 1,
+        cols = 1,
+        shared_xaxes = True,
+        vertical_spacing = 0
+    )
+    # Update the layout to match the loaded state
+    base_fig.update_layout({
+        'height': max_plot_height / 2,
+        'width': fig_width,
+        'margin': {
+            'l': margin_left,
+            't': margin_top,
+            'r': margin_right,
+            'b': margin_bottom
+        },
+        'grid': {
+            'rows': 1,
+            'columns': 1,
+            'pattern': 'independent'
+        },
+        'showlegend': False,
+        'hovermode': 'x',
+        'dragmode': drag_mode
+    })
+    # Update the Null signal and axes
+    base_fig.add_trace(go.Scatter({
+        'x': [None],
+        'y': [None]
+    }), row = 1, col = 1)
+    # Update axes based on signal type
+    x_tick_vals = [round(n,1) for n in np.arange(0, 10.1, grid_delta_major).tolist()]
+    x_tick_text = [str(round(n)) if n%1 == 0 else '' for n in x_tick_vals]
+    y_tick_vals = [round(n,1) for n in np.arange(0, 2.25, grid_delta_major).tolist()]
+    y_tick_text = [str(n) if n%1 == 0 else ' ' for n in y_tick_vals]
+    # Create the empty chart
+    base_fig.update_xaxes({
+        'title': 'Time (s)',
+        'fixedrange': x_zoom_fixed,
+        'showgrid': True,
+        'tickvals': x_tick_vals,
+        'ticktext': x_tick_text,
+        'showticklabels': True,
+        'gridcolor': gridzero_color,
+        'zeroline': False,
+        'zerolinewidth': 1,
+        'zerolinecolor': gridzero_color,
+        'gridwidth': 1,
+        'range': [0, 10],
+        'rangeslider': {
+            'visible': False
+        }
+    }, row = 1, col = 1)
+    base_fig.update_yaxes({
+        'fixedrange': y_zoom_fixed,
+        'showgrid': True,
+        'dtick': None,
+        'showticklabels': True,
+        'gridcolor': gridzero_color,
+        'zeroline': False,
+        'zerolinewidth': 1,
+        'zerolinecolor': gridzero_color,
+        'gridwidth': 1,
+        'range': [0, 2.25],
+    }, row = 1, col = 1)
+
     # Set a blank plot if none is loaded
     if not dropdown_rec:
-        # Create baseline figure with 1 subplot
-        fig = make_subplots(
-            rows = 1,
-            cols = 1,
-            shared_xaxes = True,
-            vertical_spacing = 0
-        )
-        # Update the layout to match the loaded state
-        fig.update_layout({
-            'height': max_plot_height / 2,
-            'width': fig_width,
-            'margin': {
-                'l': margin_left,
-                't': margin_top,
-                'r': margin_right,
-                'b': margin_bottom
-            },
-            'grid': {
-                'rows': 1,
-                'columns': 1,
-                'pattern': 'independent'
-            },
-            'showlegend': False,
-            'hovermode': 'x',
-            'dragmode': drag_mode
-        })
-        # Update the Null signal and axes
-        fig.add_trace(go.Scatter({
-            'x': [None],
-            'y': [None]
-        }), row = 1, col = 1)
-        # Update axes based on signal type
-        x_tick_vals = [round(n,1) for n in np.arange(0, 10.1, grid_delta_major).tolist()]
-        x_tick_text = [str(round(n)) if n%1 == 0 else '' for n in x_tick_vals]
-        y_tick_vals = [round(n,1) for n in np.arange(0, 2.25, grid_delta_major).tolist()]
-        y_tick_text = [str(n) if n%1 == 0 else ' ' for n in y_tick_vals]
-        # Create the empty chart
-        fig.update_xaxes({
-            'title': 'Time (s)',
-            'fixedrange': x_zoom_fixed,
-            'showgrid': True,
-            'tickvals': x_tick_vals,
-            'ticktext': x_tick_text,
-            'showticklabels': True,
-            'gridcolor': gridzero_color,
-            'zeroline': False,
-            'zerolinewidth': 1,
-            'zerolinecolor': gridzero_color,
-            'gridwidth': 1,
-            'range': [0, 10],
-            'rangeslider': {
-                'visible': False
-            }
-        }, row = 1, col = 1)
-        fig.update_yaxes({
-            'fixedrange': y_zoom_fixed,
-            'showgrid': True,
-            'dtick': None,
-            'showticklabels': True,
-            'gridcolor': gridzero_color,
-            'zeroline': False,
-            'zerolinewidth': 1,
-            'zerolinecolor': gridzero_color,
-            'gridwidth': 1,
-            'range': [0, 2.25],
-        }, row = 1, col = 1)
-
-        return (fig), html.Span(error_text)
+        return (base_fig), html.Span(error_text)
 
     # Set some initial conditions
     # TODO: Maybe make this more concrete
@@ -482,11 +481,11 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
     try:
         record = wfdb.rdsamp(record_path)
     except FileNotFoundError:
-        error_text.extend(['ERROR_SIG: Record file not provided... {}'.format(header_path), html.Br()])
-        return make_subplots(rows = 1, cols = 1, shared_xaxes = True, vertical_spacing = 0), html.Span(error_text)
+        error_text.extend(['ERROR_SIG: Record file not provided... {}'.format(record_path), html.Br()])
+        return (base_fig), html.Span(error_text)
     except Exception as e:
         error_text.extend(['ERROR_SIG: Record/Header file incorrectly formatted... {}'.format(e), html.Br()])
-        return make_subplots(rows = 1, cols = 1, shared_xaxes = True, vertical_spacing = 0), html.Span(error_text)
+        return (base_fig), html.Span(error_text)
     record_sigs = record[1]['sig_name']
     # Sometimes multiple signals are named the same; this causes problems later
     if len(record_sigs) != len(set(record_sigs)):
@@ -512,7 +511,10 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
         error_text.extend(['ERROR_GRAPH: Start time exceeds signal length ({:0>8})'.format(max_time), html.Br()])
     if start_time + time_range > rec_len/fs:
         time_stop = rec_len
-        range_stop = rec_len/fs
+        if (rec_len/fs - start_time) < window_size:
+            range_stop = rec_len/fs
+        else:
+            range_stop = start_time  + window_size
     else:
         time_stop = int(fs * (start_time + time_range))
         range_stop = start_time + window_size
@@ -528,10 +530,6 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
         fig_height = max_plot_height / 2
     else:
         fig_height = max_plot_height / n_sig
-    if fig_height < 87.5:
-        large_plot = True
-    else:
-        large_plot = False
 
     # Set the initial layout of the figure
     fig = make_subplots(
@@ -684,16 +682,12 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
             grid_state = True
             dtick_state = grid_delta_major
             zeroline_state = True
-            if large_plot:
-                y_tick_vals = [(min_ekg_tick + max_ekg_tick) / 2]
-                y_tick_text = ['{} ({})'.format(sig_name[r], units[r])]
-            else:
-                y_tick_vals = [round(n,1) for n in np.arange(min_ekg_tick, max_ekg_tick, grid_delta_major).tolist()][1:-1]
-                # Max text length to fit should be ~8
-                # Multiply by (1/grid_delta_major) to account for fractions
-                while len(y_tick_vals) > (1/grid_delta_major)*8:
-                    y_tick_vals = y_tick_vals[::2]
-                y_tick_text = [str(n) if n%1 == 0 else ' ' for n in y_tick_vals]
+            y_tick_vals = [round(n,1) for n in np.arange(min_ekg_tick, max_ekg_tick, grid_delta_major).tolist()][1:-1]
+            # Max text length to fit should be ~8
+            # Multiply by (1/grid_delta_major) to account for fractions
+            while len(y_tick_vals) > (1/grid_delta_major)*8:
+                y_tick_vals = y_tick_vals[::2]
+            y_tick_text = [str(n) if n%1 == 0 else ' ' for n in y_tick_vals]
         else:
             # Remove outliers to prevent weird axes scaling if possible
             # TODO: Refactor this!
@@ -721,29 +715,18 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
             zeroline_state = False
             x_tick_vals = []
             x_tick_text = []
-            if large_plot:
-                y_tick_vals = [(min_y_vals + max_y_vals) / 2]
-                y_tick_text = ['{} ({})'.format(sig_name[r], units[r])]
-            else:
-                y_tick_vals = [round(n,1) for n in np.linspace(min_y_vals, max_y_vals, 8).tolist()][1:-1]
-                y_tick_text = [str(n) for n in y_tick_vals]
+            y_tick_vals = [round(n,1) for n in np.linspace(min_y_vals, max_y_vals, 8).tolist()][1:-1]
+            y_tick_text = [str(n) for n in y_tick_vals]
 
         # Add line breaks for long titles
         # TODO: Make this cleaner (break at whitespaces if available)
         # Maximum length of title before wrapping
         max_title_length = 20 - n_sig
-        if large_plot:
-            y_title = None
-            if len(y_tick_text[0]) > max_title_length:
-                temp_title = ''.join(y_tick_text[0].split('(')[:-1]).strip()
-                temp_units = '(' + y_tick_text[0].split('(')[-1]
-                y_tick_text = ['<br>'.join(temp_title[z:z+max_title_length] for z in range(0, len(temp_title), max_title_length)) + '<br>' + temp_units]
-        else:
-            y_title = '{} ({})'.format(sig_name[r], units[r])
-            if len(y_title) > max_title_length:
-                temp_title = ''.join(y_title.split('(')[:-1]).strip()
-                temp_units = '(' + y_title.split('(')[-1]
-                y_title = '<br>'.join(temp_title[z:z+max_title_length] for z in range(0, len(temp_title), max_title_length)) + '<br>' + temp_units
+        y_title = '{} ({})'.format(sig_name[r], units[r])
+        if len(y_title) > max_title_length:
+            temp_title = ''.join(y_title.split('(')[:-1]).strip()
+            temp_units = '(' + y_title.split('(')[-1]
+            y_title = '<br>'.join(temp_title[z:z+max_title_length] for z in range(0, len(temp_title), max_title_length)) + '<br>' + temp_units
 
         # Create the signal to plot
         fig.add_trace(go.Scatter({
@@ -852,14 +835,13 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
 
         fig.update_traces(xaxis = x_string)
 
-        # Adjust the font size based on the number
-        # of signals
-        if n_sig <= 8:
-            font_size = 16 - n_sig
-            fig.update_layout({
-                'font': {
-                    'size': font_size
-                }
-            })
+        # Adjust the font size based on the number of signals (should never
+        # get too small due to the maximum allowed to be displayed)
+        font_size = 16 - n_sig
+        fig.update_layout({
+            'font': {
+                'size': font_size
+            }
+        })
 
     return (fig), html.Span(error_text)

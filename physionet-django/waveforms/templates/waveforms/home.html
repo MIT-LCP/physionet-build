@@ -21,19 +21,4 @@
   <!-- The plot goes here -->
   {% plotly_app_bootstrap name='waveform_graph' initial_arguments=dash_context %}
 </div>
-<!-- <script>
-    // Make the height of the page equal to the height of the graph
-    // Only works if there is a single SVG container
-    var iframe = document.getElementsByTagName("iframe")[0];
-    var iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
-
-    // window.onload = function() {
-      iframeDocument.getElementsByClassName("svg-container")[0].onload = function() {
-        $(".embed-responsive")[0].style.height = iframeDocument.getElementsByClassName("svg-container")[0].style['height'];
-      };
-    // };
-    // $(document).ready(function() {
-    //   $(".embed-responsive").css("height", $(".svg-container").style['height']);
-    // });
-</script> -->
 {% endblock %}
