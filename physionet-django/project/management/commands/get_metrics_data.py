@@ -61,9 +61,8 @@ class Command(BaseCommand):
                     warnings.warn(f'Log file {filename} has already been parsed',
                                   UserWarning)
                 else:
-                    creation_datetime = make_aware(datetime.datetime.strptime(
-                        time.ctime(os.path.getctime(filename)),
-                        "%a %b %d %H:%M:%S %Y"))
+                    creation_datetime = datetime.datetime.fromtimestamp(
+                        os.path.getctime(filename), datetime.timezone.utc)
                     new_log = MetricsLogData.objects.create(filename=filename,
                                                             creation_datetime=creation_datetime,
                                                             log_hash=curr_hash)
@@ -76,9 +75,9 @@ class Command(BaseCommand):
 
 
 def hash_generator(filename):
-    """Checks if a given file has been parsed before.
+    """Generates file hash to check for previous usage.
 
-    Hashes the given file to check if it has already been parsed before.
+    Hashes the given file for checking if a given file has been parsed before.
 
     Args:
         filename: An NGINX log file to parse.
@@ -111,8 +110,7 @@ def validate_log_file(filename):
         None
 
     Raises:
-        InvalidLogError: An error occurred obtaining date data from the log
-            file.
+        InvalidLogError: An error occurred obtaining data from the log file.
     """
     with open(filename) as f:
         first_line = f.readline()
@@ -144,12 +142,6 @@ def update_metrics(log_data):
     """
     for p in PublishedProject.objects.filter(is_latest_version=True):
         if p.slug in log_data:
-            update_count = 0
-            update_date = datetime.datetime.min
-            for date in log_data[p.slug]:
-                update_count += log_data[p.slug][date][0]
-                if update_date < date:
-                    update_date = date
             try:
                 last_entry = Metrics.objects.filter(
                     core_project=p.core_project).latest('date')
@@ -157,11 +149,11 @@ def update_metrics(log_data):
                 last_entry = None
             project = Metrics.objects.get_or_create(
                 core_project=p.core_project,
-                date=update_date)[0]
+                date=log_data[p.slug][0])[0]
             if last_entry:
                 project.running_viewcount = last_entry.running_viewcount
-            project.viewcount = update_count
-            project.running_viewcount += update_count
+            project.viewcount += log_data[p.slug][1]
+            project.running_viewcount += log_data[p.slug][1]
             project.save()
 
 
@@ -177,13 +169,12 @@ def log_parser(filename):
         A dict mapping project slugs to their respective project view date,
         count, and set of IP addresses. For example:
 
-        {'demoecg': {datetime.datetime(2020, 7, 3, 0, 0): [1,
-            {'133.229.30.163'}], datetime.datetime(2020, 7, 4, 0, 0): [2,
-            {'62.83.94.91', '133.229.30.163'}]},
-        'demoeicu': {datetime.datetime(2020, 7, 4, 0, 0): 1,
-            {'154.158.105.50'}]},
-        'demopsn': {datetime.datetime(2020, 7, 4, 0, 0): 1,
-            {'110.148.237.169'}]}}
+        {'demoecg': [datetime.datetime(2020, 7, 4, 0, 0), 2, {'62.83.94.91',
+            133.229.30.163'}],
+        'demoeicu': [datetime.datetime(2020, 7, 4, 0, 0), 1,
+            {'154.158.105.50'}],
+        'demopsn': [datetime.datetime(2020, 7, 4, 0, 0), 1,
+            {'110.148.237.169'}]}
 
         An int representing the number of lines in the file that could not
             be parsed.
@@ -203,12 +194,10 @@ def log_parser(filename):
                                                       "%d/%b/%Y")
                     ip = parts[0]
                     if slug not in data:
-                        data[slug] = {date: [0, set()]}
-                    elif date not in data[slug]:
-                        data[slug][date] = [0, set()]
-                    if ip not in data[slug][date][1]:
-                        data[slug][date][0] += 1
-                        data[slug][date][1].add(ip)
+                        data[slug] = [date, 0, set()]
+                    if ip not in data[slug][2]:
+                        data[slug][1] += 1
+                        data[slug][2].add(ip)
             except IndexError:
                 unparsed_lines += 1
         return data, unparsed_lines
