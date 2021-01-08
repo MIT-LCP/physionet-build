@@ -305,8 +305,8 @@ def update_sig(dropdown_rec, slug_value, version_value):
         #       be updated? Might have to leave it like this...
         # Set the options and values (only the first `max_display_sigs` signals)
         try:
-            if '.edf' in header_path:
-                sig_name = wfdb.edf2mit(header_path, header_only=True)['sig_name']
+            if header_path.endswith('.edf'):
+                sig_name = wfdb.edf2mit(header_path).sig_name
             else:
                 sig_name = wfdb.rdsamp(header_path)[1]['sig_name']
             options_sig = [{'label': sig, 'value': sig} for sig in sig_name]
@@ -478,24 +478,46 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
                                dropdown_rec)
 
     # Read the requested record and extract relevent properties
+    if record_path.endswith('.edf'):
+        try:
+            record = wfdb.edf2mit(record_path)
+        except FileNotFoundError:
+            error_text.extend(['ERROR_SIG: EDF file not provided... {}'.format(record_path), html.Br()])
+            return (base_fig), html.Span(error_text)
+        except Exception as e:
+            error_text.extend(['ERROR_SIG: EDF file incorrectly formatted... {}'.format(e), html.Br()])
+            return (base_fig), html.Span(error_text)
+    else:
+        try:
+            record = wfdb.rdsamp(record_path)
+        except FileNotFoundError:
+            error_text.extend(['ERROR_SIG: Record file not provided... {}'.format(record_path), html.Br()])
+            return (base_fig), html.Span(error_text)
+        except Exception as e:
+            error_text.extend(['ERROR_SIG: Record/Header file incorrectly formatted... {}'.format(e), html.Br()])
+            return (base_fig), html.Span(error_text)
+    # Read in the record information depending on its format
     try:
-        record = wfdb.rdsamp(record_path)
-    except FileNotFoundError:
-        error_text.extend(['ERROR_SIG: Record file not provided... {}'.format(record_path), html.Br()])
-        return (base_fig), html.Span(error_text)
-    except Exception as e:
-        error_text.extend(['ERROR_SIG: Record/Header file incorrectly formatted... {}'.format(e), html.Br()])
-        return (base_fig), html.Span(error_text)
-    record_sigs = record[1]['sig_name']
+        record_sigs = record[1]['sig_name']
+        fs = record[1]['fs']
+        rec_len = record[1]['sig_len']
+        rec_units = record[1]['units']
+        rec_sig = record[0]
+    except TypeError:
+        record_sigs = record.sig_name
+        fs = record.fs
+        rec_len = record.sig_len
+        rec_units = record.units
+        rec_sig = record.p_signal
     # Sometimes multiple signals are named the same; this causes problems later
     if len(record_sigs) != len(set(record_sigs)):
         error_text.extend(['ERROR_GRAPH: Multiple signals are named the same; not all will be plotted', html.Br()])
-    fs = record[1]['fs']
+    # Re-order the units
     n_sig = len(sig_name)
     units = [None] * n_sig
     for i,s in enumerate(record_sigs):
         if s in set(sig_name):
-            units[sig_name.index(s)] = record[1]['units'][i]
+            units[sig_name.index(s)] = rec_units[i]
     # Sort the list of signal names for better default grouping
     temp_zip = sorted(list(zip(sig_name, units)),
                       key = lambda x: x[0])
@@ -505,7 +527,6 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
     # Set the initial display range of y-values based on values in
     # initial range of x-values
     time_start = int(fs * start_time)
-    rec_len = record[1]['sig_len']
     if time_start >= rec_len:
         max_time = str(datetime.timedelta(seconds = rec_len/fs))
         error_text.extend(['ERROR_GRAPH: Start time exceeds signal length ({:0>8})'.format(max_time), html.Br()])
@@ -581,7 +602,7 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
         ekg_y_vals = []
         for r in sig_order:
             sig_name_index = record_sigs.index(sig_name[r])
-            current_y_vals = record[0][:,sig_name_index][time_start:time_stop:down_sample]
+            current_y_vals = rec_sig[:,sig_name_index][time_start:time_stop:down_sample]
             current_y_vals = np.nan_to_num(current_y_vals).astype('float64')
             all_y_vals.append(current_y_vals)
             # Find unified range for all EKG signals
@@ -620,7 +641,7 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
         for r in sig_order:
             try:
                 sig_name_index = record_sigs.index(sig_name[r])
-                current_y_vals = record[0][:,sig_name_index][time_start:time_stop:down_sample]
+                current_y_vals = rec_sig[:,sig_name_index][time_start:time_stop:down_sample]
                 current_y_vals = np.nan_to_num(current_y_vals).astype('float64')
                 all_y_vals.append(current_y_vals)
             except Exception as e:
