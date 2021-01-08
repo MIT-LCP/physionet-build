@@ -668,6 +668,9 @@ class CredentialApplication(models.Model):
         (4, 'Revoked')
     )
 
+    # Maximum size for training_completion_report
+    MAX_REPORT_SIZE = 2 * 1024 * 1024
+
     # Location for storing files associated with the application
     FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'credential-applications')
 
@@ -701,6 +704,7 @@ class CredentialApplication(models.Model):
     training_completion_report = models.FileField(
         upload_to=training_report_path, validators=[FileExtensionValidator(
             ['pdf'], 'File must be a pdf.')])
+    training_completion_report_url = models.URLField(blank=True, null=True)
     # Course info
     course_category = models.PositiveSmallIntegerField(choices=COURSE_CATEGORIES,
         null=True, blank=True)

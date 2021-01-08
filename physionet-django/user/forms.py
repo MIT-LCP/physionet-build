@@ -14,6 +14,8 @@ from django.db import transaction
 
 from project.models import PublishedProject
 from user.models import AssociatedEmail, User, Profile, CredentialApplication, CloudInformation
+from user.trainingreport import (find_training_report_url,
+                                 TrainingCertificateError)
 from user.widgets import ProfilePhotoInput
 from user.validators import UsernameValidator, validate_name
 
@@ -408,6 +410,14 @@ class TrainingCAF(forms.ModelForm):
                 the CITI 'Data or Specimens Only Research' training program.""",
         }
 
+    def clean_training_completion_report(self):
+        reportfile = self.cleaned_data['training_completion_report']
+        if reportfile and isinstance(reportfile, UploadedFile):
+            if reportfile.size > CredentialApplication.MAX_REPORT_SIZE:
+                raise forms.ValidationError(
+                    'Completion report exceeds size limit')
+        return reportfile
+
 
 class ReferenceCAF(forms.ModelForm):
     """
@@ -515,6 +525,15 @@ class CredentialApplicationForm(forms.ModelForm):
         if not self.instance and CredentialApplication.objects.filter(user=self.user, status=0):
             raise forms.ValidationError('Outstanding application exists.')
 
+        # Check for a recognized CITI verification link.
+        try:
+            reportfile = data['training_completion_report']
+            self.report_url = find_training_report_url(reportfile)
+        except TrainingCertificateError:
+            raise forms.ValidationError(
+                'Please upload the "Completion Report" file, '
+                'not the "Completion Certificate".')
+
     def save(self):
         credential_application = super().save(commit=False)
         slug = get_random_string(20)
@@ -522,6 +541,7 @@ class CredentialApplicationForm(forms.ModelForm):
             slug = get_random_string(20)
         credential_application.user = self.user
         credential_application.slug = slug
+        credential_application.training_completion_report_url = self.report_url
         credential_application.save()
         return credential_application
 
