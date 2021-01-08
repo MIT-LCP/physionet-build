@@ -400,6 +400,21 @@
   }
 },
 {
+  "model": "project.publishedauthor",
+  "pk": 8,
+  "fields": {
+    "user": 1,
+    "display_order": 1,
+    "is_submitting": true,
+    "is_corresponding": true,
+    "approval_datetime": "2020-12-23T16:17:33.992Z",
+    "first_names": "Admin",
+    "last_name": "Bot",
+    "corresponding_email": "admin@mit.edu",
+    "project": 20
+  }
+},
+{
   "model": "project.topic",
   "pk": 1,
   "fields": {
@@ -633,6 +648,16 @@
   }
 },
 {
+  "model": "project.contact",
+  "pk": 20,
+  "fields": {
+    "name": "Admin Bot",
+    "affiliations": "MIT - LCP",
+    "email": "admin@mit.edu",
+    "project": 20
+  }
+},
+{
   "model": "project.publication",
   "pk": 1,
   "fields": {
@@ -756,6 +781,15 @@
   "pk": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
   "fields": {
     "creation_datetime": "2020-04-10T15:54:54.860Z",
+    "doi": null,
+    "storage_allowance": 104857600
+  }
+},
+{
+  "model": "project.coreproject",
+  "pk": "45ac3560-c2de-4c9d-9f93-baef36f86084",
+  "fields": {
+    "creation_datetime": "2020-12-22T22:54:48.472Z",
     "doi": null,
     "storage_allowance": 104857600
   }
@@ -1330,6 +1364,59 @@
   }
 },
 {
+  "model": "project.publishedproject",
+  "pk": 20,
+  "fields": {
+    "resource_type": 0,
+    "title": "Demo for visualizing waveforms",
+    "abstract": "<p>Here we add multiple different waveform files to test visualizers.</p>",
+    "background": "<p>These waveforms have been extracted from multiple sources and de-identified.&nbsp;</p>",
+    "methods": "<p>Conversion to WFDB format was done for most of the waveforms though some are also in EDF and WAV format.</p>",
+    "content_description": "<p>wave_1: WAV (15 channels)</p>\n\n<p>wave_2: WFDB (2 channels)</p>\n\n<p>wave_3: WFDB (10 channels)</p>\n\n<p>wave_4: EDF (12 channels)</p>",
+    "usage_notes": "<p>Visualize the waveforms with any of the available waveforms viewers.</p>",
+    "installation": "",
+    "acknowledgements": "",
+    "conflicts_of_interest": "<p>None.</p>",
+    "version": "1.0.0",
+    "release_notes": "",
+    "short_description": "Initial Release",
+    "access_policy": 0,
+    "is_self_managed_access": false,
+    "self_managed_dua": "",
+    "self_managed_request_template": "",
+    "license": 1,
+    "project_home_page": "",
+    "core_project": "45ac3560-c2de-4c9d-9f93-baef36f86084",
+    "editor": 1,
+    "submission_datetime": "2020-12-23T16:15:54.613Z",
+    "author_comments": "",
+    "editor_assignment_datetime": "2020-12-23T16:16:09.878Z",
+    "revision_request_datetime": null,
+    "resubmission_datetime": null,
+    "editor_accept_datetime": "2020-12-23T16:16:38.861Z",
+    "copyedit_completion_datetime": "2020-12-23T16:17:17.490Z",
+    "author_approval_datetime": "2020-12-23T16:17:33.992Z",
+    "creation_datetime": "2020-12-23T16:18:00.509Z",
+    "version_order": 0,
+    "main_storage_size": 0,
+    "compressed_storage_size": 0,
+    "incremental_storage_size": 0,
+    "publish_datetime": "2020-12-23T16:18:00.509Z",
+    "has_other_versions": false,
+    "deprecated_files": false,
+    "doi": null,
+    "slug": "demowave",
+    "is_legacy": false,
+    "full_description": "",
+    "is_latest_version": true,
+    "featured": null,
+    "has_wfdb": true,
+    "display_publications": true,
+    "parent_projects": [],
+    "programming_languages": []
+  }
+},
+{
   "model": "project.archivedproject",
   "pk": 6,
   "fields": {
@@ -1684,6 +1771,28 @@
   }
 },
 {
+  "model": "project.editlog",
+  "pk": 6,
+  "fields": {
+    "content_type": 31,
+    "object_id": 20,
+    "submission_datetime": "2020-12-23T16:15:54.616Z",
+    "is_resubmission": false,
+    "author_comments": "",
+    "soundly_produced": true,
+    "well_described": true,
+    "open_format": true,
+    "data_machine_readable": true,
+    "reusable": true,
+    "no_phi": true,
+    "pn_suitable": true,
+    "decision": 2,
+    "decision_datetime": "2020-12-23T16:16:38.861Z",
+    "editor_comments": "N/A",
+    "auto_doi": true
+  }
+},
+{
   "model": "project.copyeditlog",
   "pk": 1,
   "fields": {
@@ -1733,6 +1842,19 @@
     "made_changes": false,
     "changelog_summary": "",
     "complete_datetime": "2020-04-10T16:07:36.681Z"
+  }
+},
+{
+  "model": "project.copyeditlog",
+  "pk": 5,
+  "fields": {
+    "content_type": 31,
+    "object_id": 20,
+    "start_datetime": "2020-12-23T16:16:38.864Z",
+    "is_reedit": false,
+    "made_changes": false,
+    "changelog_summary": "",
+    "complete_datetime": "2020-12-23T16:17:17.490Z"
   }
 },
 {
