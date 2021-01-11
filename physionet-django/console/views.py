@@ -1177,6 +1177,16 @@ def process_credential_application(request, application_slug):
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
+def credential_processing(request):
+    """
+    List of active credentialing applications.
+    """
+    return render(request, 'console/credential_processing.html',
+        {'processing_credentials_nav': True})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
 def view_credential_application(request, application_slug):
     """
     View a credential application in any status.
