@@ -711,6 +711,18 @@ class CredentialApplication(models.Model):
         (4, 'Revoked')
     )
 
+    SUBMISSION_STATUS_LABELS = {
+        0: 'Not submitted.',
+        10: 'Initial review.',
+        20: 'Training check.',
+        30: 'Personal ID check.',
+        40: 'Reference check.',
+        50: 'Awaiting reference response.',
+        60: 'Final review.',
+        70: 'Rejected.',
+        80: 'Accepted.'
+    }
+
     # Maximum size for training_completion_report
     MAX_REPORT_SIZE = 2 * 1024 * 1024
 
@@ -765,6 +777,9 @@ class CredentialApplication(models.Model):
         validators=[validators.validate_reference_title])
     # 0 1 2 3 = pending, rejected, accepted, withdrawn
     status = models.PositiveSmallIntegerField(default=0, choices=REJECT_ACCEPT_WITHDRAW)
+    # 0 10 20 30 40 50 60 70 80 = not submitted, initial, training,
+    # personal ID, reference, reference response, final, rejected, accepted
+    submission_status = models.PositiveSmallIntegerField(default=10)
     reference_contact_datetime = models.DateTimeField(null=True)
     reference_response_datetime = models.DateTimeField(null=True)
     # Whether reference verifies the applicant. 0 1 2 = null, no, yes
@@ -804,6 +819,9 @@ class CredentialApplication(models.Model):
 
     def time_elapsed(self):
         return (timezone.now() - self.application_datetime).days
+
+    def submission_status_label(self):
+        return ActiveProject.SUBMISSION_STATUS_LABELS[self.submission_status]
 
     def _apply_decision(self, decision, responder):
         """
