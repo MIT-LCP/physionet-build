@@ -1154,6 +1154,26 @@ def process_credential_application(request, application_slug):
         instance=application)
 
     if request.method == 'POST':
+        if 'approve_initial' in request.POST and \
+         request.POST['approve_initial'].isdigit():
+            application.submission_status = 20
+            application.save()
+        if 'approve_training' in request.POST and \
+         request.POST['approve_training'].isdigit():
+            application.submission_status = 30
+            application.save()
+        if 'approve_personal' in request.POST and \
+         request.POST['approve_personal'].isdigit():
+            application.submission_status = 40
+            application.save()
+        if 'approve_reference' in request.POST and \
+         request.POST['approve_reference'].isdigit():
+            application.submission_status = 50
+            application.save()
+        if 'approve_response' in request.POST and \
+         request.POST['approve_response'].isdigit():
+            application.submission_status = 60
+            application.save()
         if 'contact_reference' in request.POST:
             application.reference_contact_datetime = timezone.now()
             application.save()
@@ -1181,8 +1201,38 @@ def credential_processing(request):
     """
     List of active credentialing applications.
     """
+    applications = CredentialApplication.objects.filter(status=0)
+    # Set first_date as the first occurrence of the following three
+    applications = applications.annotate(first_date=functions.Coalesce(
+            'reference_response_datetime', 'reference_contact_datetime',
+            'application_datetime'))
+    # Do the propper sort
+    applications = applications.order_by(F('reference_contact_datetime').asc(
+        nulls_first=True), 'application_datetime')
+
+    # Separate applications by submission status
+    # Awaiting initial review
+    initial_applications = applications.filter(submission_status=10)
+    # Awaiting training check
+    training_applications = applications.filter(submission_status=20)
+    # Awaiting ID check
+    personal_applications = applications.filter(submission_status=30)
+    # Awaiting reference check
+    reference_applications = applications.filter(submission_status=40)
+    # Awaiting reference response
+    response_applications = applications.filter(submission_status=50)
+    # Awaiting final review
+    final_applications = applications.filter(submission_status=60)
+
     return render(request, 'console/credential_processing.html',
-        {'processing_credentials_nav': True})
+        {'applications': applications, 
+        'initial_applications': initial_applications, 
+        'training_applications': training_applications, 
+        'personal_applications': personal_applications, 
+        'reference_applications': reference_applications, 
+        'response_applications': response_applications, 
+        'final_applications': final_applications, 
+        'processing_credentials_nav': True})
 
 
 @login_required
