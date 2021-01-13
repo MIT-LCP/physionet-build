@@ -317,6 +317,13 @@ class DeprecateFilesForm(forms.Form):
     delete_files = forms.ChoiceField(choices=YES_NO)
 
 
+class DeactivateUserForm(forms.Form):
+    """
+    Deactivate a user profile from the management console.
+    """
+    deactivate_user_btn = forms.BooleanField()
+
+
 class ProcessCredentialForm(forms.ModelForm):
     """
     Form to respond to a credential application
