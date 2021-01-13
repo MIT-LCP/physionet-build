@@ -1209,9 +1209,6 @@ def credential_processing(request):
     # Do the propper sort
     applications = applications.order_by(F('reference_contact_datetime').asc(
         nulls_first=True), 'application_datetime')
-    # Set the days that have passed since the last action was taken
-    for application in applications:
-        application.time_elapsed = (timezone.now() - application.first_date).days
 
     # Separate applications by submission status
     # Awaiting initial review
