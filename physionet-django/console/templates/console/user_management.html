@@ -68,6 +68,16 @@
   {% endif %}
 
   <br />
+  <form action="" method="POST">
+    {% csrf_token %}
+    {% if subject.is_active %}
+    <button class="btn btn-danger" onclick="return confirm('Are you sure that you would like to deactivate this user? The action cannot be undone!')" name="deactivate_user_btn" type="submit" value="True">Deactivate user</button>
+    {% else %}
+    <button class="btn btn-danger" onclick="return confirm('Are you sure that you would like to deactivate this user? The action cannot be undone!')" name="deactivate_user_btn" type="submit" value="True" disabled>User is not active</button>
+    {% endif %}
+  </form>
+
+  <br />
   {% for status, group in projects.items %}
   <h3>{{ status }} projects</h3>
     <ul>

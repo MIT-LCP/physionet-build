@@ -906,7 +906,19 @@ def user_management(request, username):
     """
     Admin page for managing an individual user account.
     """
+
     user = get_object_or_404(User, username__iexact=username)
+
+    if request.method == 'POST':
+        if 'deactivate_user_btn' in request.POST:
+            deactivate_user_form = forms.DeactivateUserForm(request.POST)
+
+            if deactivate_user_form.is_valid():
+                user.deactivate_profile()
+                messages.success(request, 'The user has been deactivated.')
+
+    deactivate_user_form = forms.DeactivateUserForm()
+
 
     emails = {}
     emails['primary'] = AssociatedEmail.objects.filter(user=user,
@@ -927,10 +939,12 @@ def user_management(request, username):
     projects['Published'] = PublishedProject.objects.filter(authors__user=user).order_by('-publish_datetime')
 
 
-    return render(request, 'console/user_management.html', {'subject': user,
-                                                            'profile': user.profile,
-                                                            'emails': emails,
-                                                            'projects': projects})
+    return render(request, 'console/user_management.html',
+                  {'subject': user,
+                   'profile': user.profile,
+                   'emails': emails,
+                   'projects': projects,
+                   'deactivate_user_form': deactivate_user_form})
 
 
 @login_required
