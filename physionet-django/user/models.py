@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 # from django.contrib.auth. import user_logged_in
 from django.contrib.auth import get_user_model, signals
+from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.db import models, DatabaseError, transaction
 from django.db.models.signals import post_save
@@ -391,6 +392,39 @@ class User(AbstractBaseUser):
     def file_root(self):
         "Where the user's files are stored"
         return os.path.join(User.FILE_ROOT, self.username)
+
+    def deactivate_profile(self):
+        """
+        Deactivate a user's profile. This prevents the user from logging
+        on to the website and removes the public profile.
+        """
+        with transaction.atomic():
+            # set emails to <ORIGINAL_EMAIL>@deactivated.DOMAIN
+            current_site = Site.objects.get_current()
+            email_suffix = "@deactivated." + current_site.domain
+
+            # update the primary email
+            original_email = self.email
+            self.email = original_email.replace("@", "_AT_")[:100] + email_suffix
+
+            # set the user as inactive
+            self.is_active = False
+            self.save()
+
+            # update associated emails
+            associated_emails = AssociatedEmail.objects.filter(user=self)
+            for a in associated_emails:
+                a.email = a.email.replace("@", "_AT_")[:100] + email_suffix
+                a.is_public = False
+                a.save()
+
+            # remove profile information
+            self.profile.delete_photo()
+            self.profile.website = None
+            self.profile.save()
+
+            log_msg = f"User {original_email} was deactivated at {timezone.now()}"
+            logger.info(log_msg)
 
 
 class UserLogin(models.Model):
