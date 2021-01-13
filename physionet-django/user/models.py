@@ -823,6 +823,9 @@ class CredentialApplication(models.Model):
     def submission_status_label(self):
         return ActiveProject.SUBMISSION_STATUS_LABELS[self.submission_status]
 
+    def time_elapsed(self):
+        return (timezone.now() - self.first_date).days
+
     def _apply_decision(self, decision, responder):
         """
         Reject, accept, or withdraw a credentialing application.
