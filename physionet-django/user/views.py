@@ -556,7 +556,25 @@ def edit_training(request):
     if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
         raise ServiceUnavailable()
 
+    if request.method == 'POST':
+        # We use the individual forms to render the errors in the template
+        # if not all valid
+        training_form = forms.TrainingCAF(data=request.POST,
+            files=request.FILES, prefix="application")
+        # Check that it isn't a certificate first
+        training_form.clean_training_completion_report()
+        if training_form.is_valid():
+            # If valid, update the user's training status
+            training_form.update_training(user=user)
+            # Update the application with the submitted data
+            training_form.save(user=user)
+        else:
+            messages.error(request, 'Invalid submission. See errors below.')
+    else:
+        training_form = forms.TrainingCAF(prefix="application")
+
     return render(request, 'user/edit_training.html', {
+        'training_form':training_form,
         'current_application': current_application})
 
 

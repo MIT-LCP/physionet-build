@@ -22,6 +22,16 @@
 
 <h1>Training Report Submission</h1>
 <hr>
+<p>Upload the completion report (PDF file) from the CITI "Data or Specimens Only Research" training program. The completion report lists all modules completed, with dates and scores. Do <strong><em>NOT</em></strong> upload the completion certificate.</p>
+<form action="" method="post" enctype="multipart/form-data" class="form-signin no-pd" autocomplete="off">
+  {% csrf_token %}
+  {% include "descriptive_inline_form_snippet.html" with form=training_form %}
+  {% if user.is_credentialed or current_application %}
+    <button class="btn btn-primary btn-rsp" type="submit" disabled>Submit Training Report</button>
+  {% else %}
+    <button class="btn btn-primary btn-rsp" type="submit">Submit Training Report</button>
+  {% endif %}
+</form>
 <br>
 
 <h1>CITI Program Course Instructions</h1>
