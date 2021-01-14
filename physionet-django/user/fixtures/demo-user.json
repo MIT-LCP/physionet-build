@@ -10,6 +10,7 @@
     "last_login": "2020-04-10T15:51:15.446Z",
     "is_active": true,
     "is_admin": true,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -25,6 +26,7 @@
     "last_login": "2018-11-14T21:08:43.620Z",
     "is_active": true,
     "is_admin": false,
+    "completed_training": true,
     "is_credentialed": true,
     "credential_datetime": "2018-11-14T20:45:53.071Z"
   }
@@ -40,6 +42,7 @@
     "last_login": "2020-04-10T16:58:31.876Z",
     "is_active": true,
     "is_admin": false,
+    "completed_training": true,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -55,6 +58,7 @@
     "last_login": "2020-04-10T16:57:51.646Z",
     "is_active": true,
     "is_admin": false,
+    "completed_training": true,
     "is_credentialed": true,
     "credential_datetime": "2010-02-28T05:00:00Z"
   }
@@ -70,6 +74,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -85,6 +90,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -100,6 +106,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -115,6 +122,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -130,6 +138,7 @@
     "last_login": "2020-03-29T21:53:48.940Z",
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -145,6 +154,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -160,6 +170,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -175,6 +186,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -190,6 +202,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -205,6 +218,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -220,6 +234,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -235,6 +250,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -250,6 +266,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -265,6 +282,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -280,6 +298,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -295,6 +314,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -310,6 +330,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -325,6 +346,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -340,6 +362,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -355,6 +378,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -370,6 +394,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -385,6 +410,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -400,6 +426,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -415,6 +442,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -430,6 +458,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -445,6 +474,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -460,6 +490,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -475,6 +506,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -490,6 +522,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -505,6 +538,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -520,6 +554,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -535,6 +570,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -550,6 +586,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -565,6 +602,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -580,6 +618,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -595,6 +634,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -610,6 +650,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -625,6 +666,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -640,6 +682,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -655,6 +698,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -670,6 +714,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -685,6 +730,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -700,6 +746,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -715,6 +762,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -730,6 +778,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -745,6 +794,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -760,6 +810,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -775,6 +826,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -790,6 +842,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -805,6 +858,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -820,6 +874,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -835,6 +890,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -850,6 +906,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -865,6 +922,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -880,6 +938,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -895,6 +954,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -910,6 +970,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -925,6 +986,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -940,6 +1002,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -955,6 +1018,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -970,6 +1034,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -985,6 +1050,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1000,6 +1066,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1015,6 +1082,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1030,6 +1098,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1045,6 +1114,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1060,6 +1130,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1075,6 +1146,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1090,6 +1162,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1105,6 +1178,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1120,6 +1194,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1135,6 +1210,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1150,6 +1226,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1165,6 +1242,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1180,6 +1258,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1195,6 +1274,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1210,6 +1290,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1225,6 +1306,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1240,6 +1322,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1255,6 +1338,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1270,6 +1354,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1285,6 +1370,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1300,6 +1386,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1315,6 +1402,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1330,6 +1418,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1345,6 +1434,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1360,6 +1450,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1375,6 +1466,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1390,6 +1482,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1405,6 +1498,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1420,6 +1514,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1435,6 +1530,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1450,6 +1546,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1465,6 +1562,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1480,6 +1578,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1495,6 +1594,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1510,6 +1610,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1525,6 +1626,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1540,6 +1642,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1555,6 +1658,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1570,6 +1674,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1585,6 +1690,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1600,6 +1706,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1615,6 +1722,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1630,6 +1738,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1645,6 +1754,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1660,6 +1770,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1675,6 +1786,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1690,6 +1802,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1705,6 +1818,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1720,6 +1834,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1735,6 +1850,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1750,6 +1866,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1765,6 +1882,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1780,6 +1898,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1795,6 +1914,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1810,6 +1930,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1825,6 +1946,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1840,6 +1962,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1855,6 +1978,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1870,6 +1994,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1885,6 +2010,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1900,6 +2026,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1915,6 +2042,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1930,6 +2058,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1945,6 +2074,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1960,6 +2090,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1975,6 +2106,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1990,6 +2122,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2005,6 +2138,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2020,6 +2154,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2035,6 +2170,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2050,6 +2186,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2065,6 +2202,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2080,6 +2218,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2095,6 +2234,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2110,6 +2250,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2125,6 +2266,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2140,6 +2282,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2155,6 +2298,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2170,6 +2314,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2185,6 +2330,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2200,6 +2346,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2215,6 +2362,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2230,6 +2378,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2245,6 +2394,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2260,6 +2410,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2275,6 +2426,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2290,6 +2442,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2305,6 +2458,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2320,6 +2474,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2335,6 +2490,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2350,6 +2506,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2365,6 +2522,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2380,6 +2538,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2395,6 +2554,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2410,6 +2570,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2425,6 +2586,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2440,6 +2602,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2455,6 +2618,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2470,6 +2634,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2485,6 +2650,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2500,6 +2666,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2515,6 +2682,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2530,6 +2698,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2545,6 +2714,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2560,6 +2730,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2575,6 +2746,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2590,6 +2762,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2605,6 +2778,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2620,6 +2794,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2635,6 +2810,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2650,6 +2826,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2665,6 +2842,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2680,6 +2858,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2695,6 +2874,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2710,6 +2890,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2725,6 +2906,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2740,6 +2922,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2755,6 +2938,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2770,6 +2954,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2785,6 +2970,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2800,6 +2986,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2815,6 +3002,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2830,6 +3018,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2845,6 +3034,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2860,6 +3050,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2875,6 +3066,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2890,6 +3082,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2905,6 +3098,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2920,6 +3114,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2935,6 +3130,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2950,6 +3146,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2965,6 +3162,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2980,6 +3178,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2995,6 +3194,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -3010,6 +3210,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -3025,6 +3226,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -3040,6 +3242,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -3055,6 +3258,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -3070,6 +3274,7 @@
     "last_login": null,
     "is_active": false,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -3085,6 +3290,7 @@
     "last_login": "2020-04-10T15:51:42.276Z",
     "is_active": true,
     "is_admin": true,
+    "completed_training": true,
     "is_credentialed": true,
     "credential_datetime": "2010-02-28T05:00:00Z"
   }
@@ -14310,7 +14516,7 @@
 },
 {
   "model": "user.credentialapplication",
-  "pk": 104,
+  "pk": 103,
   "fields": {
     "slug": "TP8zifOAtpK8w7jWaAzr",
     "application_datetime": "2020-03-29T21:51:18.566Z",
@@ -14354,7 +14560,7 @@
 },
 {
   "model": "user.credentialapplication",
-  "pk": 105,
+  "pk": 104,
   "fields": {
     "slug": "JzHlnTM1qnKXTWmfpjad",
     "application_datetime": "2020-03-29T21:51:18.566Z",
@@ -14398,7 +14604,7 @@
 },
 {
   "model": "user.credentialapplication",
-  "pk": 106,
+  "pk": 105,
   "fields": {
     "slug": "Osm0FMaavviixpsL26v2",
     "application_datetime": "2020-03-29T21:51:18.566Z",
@@ -14444,7 +14650,7 @@
 },
 {
   "model": "user.credentialapplication",
-  "pk": 107,
+  "pk": 106,
   "fields": {
     "slug": "C1ZwyxINWfh7T8Gk60an",
     "application_datetime": "2020-04-08T18:47:41.508Z",
@@ -14490,7 +14696,7 @@
 },
 {
   "model": "user.credentialapplication",
-  "pk": 108,
+  "pk": 107,
   "fields": {
     "slug": "eW2e7VDCst44ziWjaota",
     "application_datetime": "2019-04-08T18:49:03.693Z",

@@ -169,6 +169,7 @@ def check_legacy_credentials(user, email):
         migrated=False)
     if legacy_credential:
         legacy_credential = legacy_credential.get()
+        user.completed_training = True
         user.is_credentialed = True
         # All of them are mimic credentialed
         month, day, year = legacy_credential.mimic_approval_date.split('/')

@@ -337,6 +337,7 @@ class User(AbstractBaseUser):
     is_active = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
 
+    completed_training = models.BooleanField(default=False)
     is_credentialed = models.BooleanField(default=False)
     credential_datetime = models.DateTimeField(blank=True, null=True)
 
@@ -558,6 +559,7 @@ class LegacyCredential(models.Model):
         with transaction.atomic():
             self.revoked_datetime = timezone.now()
 
+            self.migrated_user.completed_training = False
             self.migrated_user.is_credentialed = False
             self.migrated_user.credential_datetime = None
 
@@ -932,6 +934,8 @@ class CredentialApplication(models.Model):
         # Removes credentialing from the user
         self.user.is_credentialed = False
         self.user.credential_datetime = None
+        # The user should have to re-complete training if revoked
+        self.user.completed_training = False
 
         with transaction.atomic():
             self.user.save()
