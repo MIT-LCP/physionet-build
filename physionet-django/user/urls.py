@@ -35,6 +35,7 @@ urlpatterns = [
     path('settings/cloud/', views.edit_cloud, name='edit_cloud'),
     path('settings/orcid/', views.edit_orcid, name='edit_orcid'),
     path('authorcid/', views.auth_orcid, name='auth_orcid'),
+    path('settings/training/', views.edit_training, name='edit_training'),
     path('settings/credentialing/', views.edit_credentialing, name='edit_credentialing'),
     path('settings/credentialing/applications/',
         views.user_credential_applications, name='user_credential_applications'),

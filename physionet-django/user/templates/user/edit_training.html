@@ -1,0 +1,70 @@
+{% extends "user/settings.html" %}
+{% load static %}
+
+
+{% block title %}PhysioNet Credentialing Training{% endblock %}
+
+{% block main_content %}
+
+<h1>Training Courses</h1>
+<hr>
+<p>In order to become a <a href="{% url 'edit_credentialing' %}">credentialed</a> PhysioNet user and access the restricted-access clinical databases, you must complete a suitable training program in human research subject protections and HIPAA regulations. We recommend the Collaborative Institutional Training Initiative (CITI) Program's “Data or Specimens Only Research” course. Follow the instructions below to access and complete the training course:</p>
+
+<h1>Training Report Submission</h1>
+<hr>
+<br>
+
+<h1>CITI Program Course Instructions</h1>
+<hr>
+
+<ol>
+  <li>If your institution is affiliated with the CITI program, please log in to the CITI site using your institutional portal. Otherwise, visit the CITI program site: <a href="https://www.citiprogram.org/">https://www.citiprogram.org/</a>, create an account if you don’t already have one, and log in.</li>
+  <li>Once you are logged in to the CITI site, open the tab “Click here to affiliate with another institution” and click on the link <em>(fig 1)</em>). Select your organizational affiliation as “Massachusetts Institute of Technology Affiliates”.</li>
+  <li>After affiliating with MIT, follow the links to add a Massachusetts Institute of Technology Affiliates course <em>(fig 2)</em>. In the Human Subjects training category, select the “Data or Specimens Only Research” course <em>(fig 3)</em>. Answer the other questions as appropriate and submit the form.</li>
+  <li>Complete the course. This may take a few hours.</li>
+  <li>When you have completed the course, generate a pdf of the completion report <em>(fig 4)</em> which you will need to <a href="{% url 'credential_application' %}">apply</a> for PhysioNet credentialing. The CITI completion report lists all modules completed, with dates and scores. Do <em>NOT</em> upload the completion certificate.</li>
+</ol>
+
+<hr>
+<div class="row">
+<div class="col-md-6">
+    <div class="thumbnail">
+    <img src="{% static 'images/about/citi-instructions-1.png' %}" alt="Citi course instructions 1" style="width:100%">
+    <div class="caption mt-1">
+        <p><em>Figure 1</em></p>
+    </div>
+    </div>
+</div>
+<div class="col-md-6">
+    <div class="thumbnail">
+    <img src="{% static 'images/about/citi-instructions-2.png' %}" alt="Citi course instructions 2" style="width:100%">
+    <div class="caption mt-1">
+        <p><em>Figure 2</em></p>
+    </div>
+    </div>
+</div>
+</div>
+<br>
+<div class="row">
+<div class="col-md-6">
+    <div class="thumbnail">
+    <img src="{% static 'images/about/citi-instructions-3.png' %}" alt="Citi course instructions 3" style="width:100%">
+    <div class="caption mt-1">
+        <p><em>Figure 3</em></p>
+    </div>
+    </div>
+</div>
+<div class="col-md-6">
+    <div class="thumbnail">
+    <img src="{% static 'images/about/citi-instructions-4.png' %}" alt="Citi course instructions 4" style="width:100%">
+    <div class="caption mt-1">
+        <p><em>Figure 4</em></p>
+    </div>
+    </div>
+</div>
+</div>
+{% endblock %}
+
+{% block local_js_bottom %}
+<script src="{% static 'custom/js/enable-popover.js' %}"></script>
+{% endblock %}

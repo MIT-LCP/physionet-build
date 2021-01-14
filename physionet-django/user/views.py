@@ -544,6 +544,14 @@ def edit_username(request):
 
 
 @login_required
+def edit_training(request):
+    """
+    Credentials training page.
+    """
+    return render(request, 'user/edit_training.html', {})
+
+
+@login_required
 def edit_credentialing(request):
     """
     Credentials settings page.
