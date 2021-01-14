@@ -622,16 +622,13 @@ def credential_application(request):
         # We use the individual forms to render the errors in the template
         # if not all valid
         personal_form = forms.PersonalCAF(user=user, data=request.POST, prefix="application")
-        training_form = forms.TrainingCAF(data=request.POST,
-            files=request.FILES, prefix="application")
         research_form = forms.ResearchCAF(data=request.POST, prefix="application")
         reference_form = forms.ReferenceCAF(data=request.POST, prefix="application", user=user)
 
         form = forms.CredentialApplicationForm(user=user, data=request.POST,
             files=request.FILES,  prefix="application")
 
-        if (personal_form.is_valid() and training_form.is_valid()
-                and reference_form.is_valid()
+        if (personal_form.is_valid() and reference_form.is_valid()
                 and form.is_valid()) and research_form.is_valid():
             application = form.save()
             credential_application_request(request, application)
@@ -647,9 +644,8 @@ def credential_application(request):
         form = None
 
     return render(request, 'user/credential_application.html', {'form':form,
-        'personal_form':personal_form, 'training_form':training_form,
-        'reference_form':reference_form, 'license':license, 
-        'research_form':research_form})
+        'personal_form':personal_form, 'reference_form':reference_form,
+        'license':license, 'research_form':research_form})
 
 
 @login_required
