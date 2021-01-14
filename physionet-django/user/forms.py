@@ -444,6 +444,7 @@ class TrainingCAF(forms.ModelForm):
         credential_application.user = user
         credential_application.slug = slug
         credential_application.training_completion_report_url = self.report_url
+        credential_application.has_training = True
         credential_application.save()
         return credential_application
 
@@ -512,9 +513,6 @@ class CredentialApplicationForm(forms.ModelForm):
             'first_names', 'last_name', 'suffix', 'researcher_category',
             'organization_name', 'job_title', 'city', 'state_province',
             'zip_code', 'country', 'webpage',
-            # Training course
-            'training_course_name', 'training_completion_date',
-            'training_completion_report',
             # Reference
             'reference_category', 'reference_name', 'reference_email',
             'reference_organization', 'reference_title',
@@ -572,23 +570,19 @@ class CredentialApplicationForm(forms.ModelForm):
         if not self.instance and CredentialApplication.objects.filter(user=self.user, status=0):
             raise forms.ValidationError('Outstanding application exists.')
 
-        # Check for a recognized CITI verification link.
-        try:
-            reportfile = data['training_completion_report']
-            self.report_url = find_training_report_url(reportfile)
-        except TrainingCertificateError:
-            raise forms.ValidationError(
-                'Please upload the "Completion Report" file, '
-                'not the "Completion Certificate".')
-
     def save(self):
-        credential_application = super().save(commit=False)
-        slug = get_random_string(20)
+        # Get the most recent training submission
+        credential_application = CredentialApplication.objects.filter(
+            user=self.user, has_training=True).order_by('-application_datetime')[0]
+        # Update the credential application
+        for k,v in self.cleaned_data.items():
+            credential_application.__dict__[k] = v
+        # Fix the slugs
+        slug = credential_application.slug
         while CredentialApplication.objects.filter(slug=slug):
             slug = get_random_string(20)
-        credential_application.user = self.user
-        credential_application.slug = slug
-        credential_application.training_completion_report_url = self.report_url
+        # Update the credential application status and save
+        credential_application.status = 0
         credential_application.save()
         return credential_application
 
