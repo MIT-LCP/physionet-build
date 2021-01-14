@@ -414,12 +414,38 @@ class TrainingCAF(forms.ModelForm):
         }
 
     def clean_training_completion_report(self):
-        reportfile = self.cleaned_data['training_completion_report']
-        if reportfile and isinstance(reportfile, UploadedFile):
-            if reportfile.size > CredentialApplication.MAX_REPORT_SIZE:
+        report_file = self.files.get('application-training_completion_report')
+        # Check for a recognized CITI completion report verification link
+        try:
+            self.report_url = find_training_report_url(report_file)
+        except TrainingCertificateError:
+            raise forms.ValidationError(
+                'Please upload the "Completion Report" file, '
+                'not the "Completion Certificate".')
+        # Make sure it is a valid size
+        if report_file and isinstance(report_file, UploadedFile):
+            if report_file.size > CredentialApplication.MAX_REPORT_SIZE:
                 raise forms.ValidationError(
                     'Completion report exceeds size limit')
-        return reportfile
+        # TODO: Extract training course name and completion date
+        # self.training_course_name = ''
+        # self.training_completion_date = ''
+        return report_file
+
+    def update_training(self, user):
+        user.completed_training = True
+        user.save()
+
+    def save(self, user):
+        credential_application = super().save(commit=False)
+        slug = get_random_string(20)
+        while CredentialApplication.objects.filter(slug=slug):
+            slug = get_random_string(20)
+        credential_application.user = user
+        credential_application.slug = slug
+        credential_application.training_completion_report_url = self.report_url
+        credential_application.save()
+        return credential_application
 
 
 class ReferenceCAF(forms.ModelForm):
