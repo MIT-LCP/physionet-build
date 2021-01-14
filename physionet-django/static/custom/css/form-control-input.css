@@ -71,3 +71,8 @@ input::placeholder {
   color: #868e96;
   opacity: 1;
 }
+
+.field-label{
+  position: absolute;
+  bottom: 0;
+}
