@@ -10,6 +10,16 @@
 <hr>
 <p>In order to become a <a href="{% url 'edit_credentialing' %}">credentialed</a> PhysioNet user and access the restricted-access clinical databases, you must complete a suitable training program in human research subject protections and HIPAA regulations. We recommend the Collaborative Institutional Training Initiative (CITI) Program's “Data or Specimens Only Research” course. Follow the instructions below to access and complete the training course:</p>
 
+{% if user.is_credentialed %}
+  <p><i class="fas fa-check" style="color:green"></i> You are already a credentialed user. No further training is needed.</p>
+{% elif current_application %}
+  <p><i class="fas fa-question" style="color:yellow"></i> You have a pending application. No further training is needed.</p>
+{% elif user.completed_training %}
+  <p><i class="fas fa-check" style="color:green"></i> You have already submitted a training completion report. No further training is needed. If you would like to change your submitted completion report, please do so in the form below:</p>
+{% else %}
+  <p><i class="fas fa-times" style="color:red"></i> You have not submitted a training completion report yet. Please complete the training described below and submit your completion report.</p>
+{% endif %}
+
 <h1>Training Report Submission</h1>
 <hr>
 <br>

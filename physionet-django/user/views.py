@@ -549,7 +549,15 @@ def edit_training(request):
     """
     Credentials training page.
     """
-    return render(request, 'user/edit_training.html', {})
+    user = request.user
+    applications = CredentialApplication.objects.filter(user=request.user)
+    current_application = applications.filter(status=0).first()
+
+    if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
+        raise ServiceUnavailable()
+
+    return render(request, 'user/edit_training.html', {
+        'current_application': current_application})
 
 
 @login_required
