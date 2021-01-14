@@ -849,7 +849,7 @@ class CredentialApplication(models.Model):
 
     def accept(self, responder):
         """
-        Reject a credentialing application.
+        Accept a credentialing application.
         """
         try:
             with transaction.atomic():
