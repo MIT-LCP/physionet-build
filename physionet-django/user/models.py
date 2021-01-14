@@ -738,7 +738,8 @@ class CredentialApplication(models.Model):
     # Personal fields
     first_names = models.CharField(max_length=100, validators=[validators.validate_name])
     last_name = models.CharField(max_length=50, validators=[validators.validate_name])
-    researcher_category = models.PositiveSmallIntegerField(choices=RESEARCHER_CATEGORIES)
+    researcher_category = models.PositiveSmallIntegerField(choices=RESEARCHER_CATEGORIES,
+        null=True)
     # Organization fields
     organization_name = models.CharField(max_length=200,
         validators=[validators.validate_organization])
@@ -755,6 +756,7 @@ class CredentialApplication(models.Model):
     suffix = models.CharField(max_length=60,
         validators=[validators.validate_suffix], default='', blank=True)
     # Human resources training
+    has_training = models.BooleanField(default=False)
     training_course_name = models.CharField(max_length=100, default='',
         blank=True, validators=[validators.validate_training_course])
     training_completion_date = models.DateField(null=True, blank=True)
