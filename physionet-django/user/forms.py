@@ -434,8 +434,9 @@ class ReferenceCAF(forms.ModelForm):
             'reference_category': """Your reference's relationship to you. If 
                 you are a student or postdoc, this must be your supervisor. 
                 Otherwise, you may list a colleague. Do not list yourself 
-                or another student as reference. Remind your reference to respond 
-                promptly as long response times will prevent application approval.""",
+                or another student as reference. Remind your reference to 
+                respond promptly, as long response times will prevent approval 
+                of your application.""",
             'reference_name': 'The full name of your reference.',
             'reference_email': 'The email address of your reference.',
             'reference_title': "Your reference's professional title or position."
