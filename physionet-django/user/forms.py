@@ -323,9 +323,10 @@ class PersonalCAF(forms.ModelForm):
     """
     class Meta:
         model = CredentialApplication
-        fields = ('first_names', 'last_name', 'suffix', 'researcher_category',
-            'organization_name', 'job_title', 'city', 'state_province',
-            'zip_code', 'country', 'webpage')
+        fields = ('first_names', 'last_name', 'suffix',
+            'researcher_category', 'organization_name', 'organization_email',
+            'job_title', 'city', 'state_province', 'zip_code', 'country',
+            'webpage')
         help_texts = {
             'first_names': """Your first name(s). This can be edited in your 
                 profile settings.""",
@@ -338,6 +339,7 @@ class PersonalCAF(forms.ModelForm):
             'researcher_category': "Your research status.",
             'organization_name': """Your employer or primary affiliation. 
                 Put "None" if you are an independent researcher.""",
+            'organization_email': "Your institutional e-mail address (i.e. @example.edu). Required for students and postdocs.",
             'job_title': """Your job title or position (e.g., student) within 
                 your institution or organization.""",
             'city': "The city where you live.",
@@ -360,6 +362,7 @@ class PersonalCAF(forms.ModelForm):
             'first_names': 'First (given) name(s)',
             'last_name': 'Last (family) name(s)',
             'suffix': 'Suffix, if applicable:',
+            'organization_email': 'Institutional e-mail',
             'job_title': 'Job title or position',
             'zip_code': 'ZIP/postal code'
         }
@@ -471,8 +474,8 @@ class CredentialApplicationForm(forms.ModelForm):
         fields = (
             # Personal
             'first_names', 'last_name', 'suffix', 'researcher_category',
-            'organization_name', 'job_title', 'city', 'state_province',
-            'zip_code', 'country', 'webpage',
+            'organization_name', 'organization_email', 'job_title', 'city',
+            'state_province', 'zip_code', 'country', 'webpage',
             # Training course
             'training_course_name', 'training_completion_date',
             'training_completion_report',
@@ -508,6 +511,11 @@ class CredentialApplicationForm(forms.ModelForm):
         ref_required = data['researcher_category'] in [0, 1, 6, 7]
         supervisor_required = data['researcher_category'] in [0, 1, 7]
         state_required = data['country'] in ['US', 'CA']
+
+        # Students and postdocs must provide an institutional email
+        if supervisor_required and not data['organization_email']:
+            raise forms.ValidationError("""If you are a student or postdoc,
+                you must provide your institutional email.""")
 
         # Students and postdocs must provide their supervisor as a reference
         if supervisor_required and data['reference_category'] != 0:
