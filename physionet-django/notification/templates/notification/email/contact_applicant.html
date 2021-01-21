@@ -1,0 +1,15 @@
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
+Dear {{ applicant_name }},
+
+Thank you for applying for credentialed access to PhysioNet. We have reviewed your application and have the following feedback:
+
+{{ comments }}
+
+You may respond directly to this e-mail to address the comments/suggestions.
+
+You may also view your application here for reference:
+
+{{ url_prefix }}{% url 'user_credential_applications' %}
+
+{{ signature }}
+{% endfilter %}{% endautoescape %}

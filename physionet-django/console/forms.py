@@ -331,6 +331,37 @@ class DeprecateFilesForm(forms.Form):
     delete_files = forms.ChoiceField(choices=YES_NO)
 
 
+class ContactApplicantCredentialForm(forms.ModelForm):
+    """
+    Form to contact the applicant of a credential application
+    """
+
+    class Meta:
+        model = CredentialApplication
+        fields = ('app_contact_comments',)
+        labels = {
+            'app_contact_comments':'Comments (required to contact applicant)'
+        }
+        widgets = {
+            'app_contact_comments':forms.Textarea(attrs={'rows': 3}),
+        }
+
+    def __init__(self, responder, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.responder = responder
+
+    def clean(self):
+        if self.errors:
+            return
+
+        if not self.cleaned_data['app_contact_comments']:
+            raise forms.ValidationError('If you contact the applicant, you explain why.')
+
+    def save(self):
+        application = super().save()
+        return application
+
+
 class ProcessCredentialForm(forms.ModelForm):
     """
     Form to respond to a credential application
