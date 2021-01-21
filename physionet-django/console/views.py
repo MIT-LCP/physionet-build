@@ -1146,6 +1146,8 @@ def process_credential_application(request, application_slug):
 
     process_credential_form = forms.ProcessCredentialForm(responder=request.user,
         instance=application)
+    contact_applicant_credential_form = forms.ContactApplicantCredentialForm(
+        responder=request.user, instance=application)
     if application.credential_review.status == 10:
         intermediate_credential_form = forms.InitialCredentialForm(responder=request.user, instance=application)
     if application.credential_review.status == 20:
@@ -1240,9 +1242,18 @@ def process_credential_application(request, application_slug):
                     {'application':application})
             else:
                 messages.error(request, 'Invalid submission. See form below.')
+        elif 'contact_applicant' in request.POST:
+            contact_applicant_credential_form = forms.ContactApplicantCredentialForm(
+                responder=request.user, data=request.POST, instance=application)
+            if contact_applicant_credential_form.is_valid():
+                application = contact_applicant_credential_form.save()
+                comments = application.app_contact_comments
+                notification.contact_applicant(request, application, comments)
+                messages.success(request, 'The applicant has been contacted.')
     return render(request, 'console/process_credential_application.html',
         {'application': application, 'app_user': application.user,
          'intermediate_credential_form': intermediate_credential_form,
+         'contact_applicant_credential_form': contact_applicant_credential_form,
          'process_credential_form': process_credential_form,
          'processing_credentials_nav': True})
 

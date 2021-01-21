@@ -454,6 +454,26 @@ def storage_response_notify(storage_request):
               [email], fail_silently=False)
 
 
+def contact_applicant(request, application, comments):
+    """
+    Request applicant feedback regarding their credentialing application
+    """
+    applicant_name = ' '.join([application.first_names, application.last_name])
+    subject = 'Feedback regarding your PhysioNet credentialing application'
+    respond_email = settings.CREDENTIAL_EMAIL
+    body = loader.render_to_string(
+        'notification/email/contact_applicant.html', {
+            'application': application,
+            'applicant_name': applicant_name,
+            'comments': comments,
+            'url_prefix': get_url_prefix(request),
+            'signature': email_signature()
+        })
+
+    send_mail(subject, body, respond_email, [application.user.email],
+              fail_silently=False)
+
+
 def contact_reference(request, application):
     """
     Request verification from a credentialing applicant's reference

@@ -737,6 +737,9 @@ class CredentialApplication(models.Model):
     responder_comments = models.CharField(max_length=500, default='',
         blank=True)
     revoked_datetime = models.DateTimeField(null=True)
+    # Credentialing comments to applicant
+    app_contact_comments = models.CharField(max_length=5000, default='',
+        blank=True)
 
     def file_root(self):
         """Location for storing files associated with the application"""
