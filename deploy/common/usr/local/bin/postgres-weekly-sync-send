@@ -1,0 +1,10 @@
+#!/bin/sh
+
+sudo -u postgres pg_dumpall -U postgres -l physionet > /data/db_dumps/Postgres-full-backup-$(date +\%Y\%m\%d).dump
+
+scp /data/db_dumps/Postgres-full-backup-$(date +\%Y\%m\%d).dump \
+    physionet-staging.ecg.mit.edu:/data/db_dumps/
+
+ssh pn@physionet-staging.ecg.mit.edu /usr/local/bin/postgres-weekly-recv
+
+rm -f /data/db_dumps/Postgres-full-backup-$(date +\%Y\%m\%d).dump

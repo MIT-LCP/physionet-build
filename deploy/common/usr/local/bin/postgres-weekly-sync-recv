@@ -1,0 +1,20 @@
+#!/bin/sh
+
+FILE=/data/db_dumps/Postgres-full-backup-$(date +\%Y\%m\%d).dump
+if [ -f "$FILE" ]; then
+    psql -U physionet -d physionet -h localhost  << EOF
+	    \c physionet;
+
+	    DROP SCHEMA public CASCADE;
+	    CREATE SCHEMA public;
+	    GRANT ALL ON SCHEMA public TO postgres;
+	    GRANT ALL ON SCHEMA public TO public;
+	    alter schema public owner to physionet;
+EOF
+
+	psql -U physionet -d physionet -h localhost -f $FILE -L /data/db_dumps/db_dump.log
+
+	rm /$FILE
+else
+  echo "The DB file is missing for the weekly sync."
+fi
