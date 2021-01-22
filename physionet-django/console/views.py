@@ -1244,7 +1244,7 @@ def process_credential_application(request, application_slug):
         {'application': application, 'app_user': application.user,
          'intermediate_credential_form': intermediate_credential_form,
          'process_credential_form': process_credential_form,
-         'credentials_nav': True})
+         'processing_credentials_nav': True})
 
 
 @login_required
