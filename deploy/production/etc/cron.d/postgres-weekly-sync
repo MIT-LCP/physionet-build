@@ -6,4 +6,4 @@
 # |  |  |  |  |
 # *  *  *  *  * user-name command to be executed
 
-0 0 * * 0  pn  /usr/local/bin/postgres-weekly-send > /dev/null 2>&1
+0 8 * * 0  pn  /usr/local/bin/postgres-weekly-send > /dev/null 2>&1
