@@ -758,7 +758,7 @@ class CredentialApplication(models.Model):
         return False
 
     def time_elapsed(self):
-        return (timezone.now() - self.first_date).days
+        return (timezone.now() - self.application_datetime).days
 
     def _apply_decision(self, decision, responder):
         """
@@ -843,6 +843,76 @@ class CredentialApplication(models.Model):
         """
         self.reference_contact_datetime = None
         self.save()
+
+    def update_review_status(self, review_status):
+        """
+        Update the review status of a credentialing application.
+
+        Args:
+
+        """
+        self.credential_review.status = review_status
+        self.credential_review.save()
+
+
+class CredentialReview(models.Model):
+    """
+    Reviews for the CredentialApplications.
+    """
+    REVIEW_STATUS_LABELS = (
+        ('', '-----------'),
+        (0,  'Not in review'),
+        (10, 'Initial review'),
+        (20, 'Training'),
+        (30, 'ID check'),
+        (40, 'Reference'),
+        (50, 'Reference response'),
+        (60, 'Final review')
+    )
+
+    application = models.OneToOneField('user.CredentialApplication',
+                                       related_name='credential_review',
+                                       on_delete=models.CASCADE)
+
+    status = models.PositiveSmallIntegerField(default=10,
+        choices=REVIEW_STATUS_LABELS)
+
+    # Initial review questions
+    fields_complete = models.NullBooleanField(null=True)
+    appears_correct = models.NullBooleanField(null=True)
+    lang_understandable = models.NullBooleanField(null=True)
+
+    # Training check questions
+    citi_report_attached = models.NullBooleanField(null=True)
+    training_current = models.NullBooleanField(null=True)
+    training_all_modules = models.NullBooleanField(null=True)
+    training_privacy_complete = models.NullBooleanField(null=True)
+    training_name_match = models.NullBooleanField(null=True)
+
+    # ID check questions
+    user_searchable = models.NullBooleanField(null=True)
+    user_has_papers = models.NullBooleanField(null=True)
+    research_summary_clear = models.NullBooleanField(null=True)
+    course_name_provided = models.NullBooleanField(null=True)
+    user_understands_privacy = models.NullBooleanField(null=True)
+    user_org_known = models.NullBooleanField(null=True)
+    user_details_consistent = models.NullBooleanField(null=True)
+
+    # Reference check questions
+    ref_appropriate = models.NullBooleanField(null=True)
+    ref_searchable = models.NullBooleanField(null=True)
+    ref_has_papers = models.NullBooleanField(null=True)
+    ref_is_supervisor = models.NullBooleanField(null=True)
+    ref_course_list = models.NullBooleanField(null=True)
+    ref_skipped = models.NullBooleanField(null=True)
+
+    # Reference response check questions
+    ref_knows_applicant = models.NullBooleanField(null=True)
+    ref_approves = models.NullBooleanField(null=True)
+    ref_understands_privacy = models.NullBooleanField(null=True)
+
+    responder_comments = models.CharField(max_length=500, default='',
+                                          blank=True)
 
 
 class CloudInformation(models.Model):
