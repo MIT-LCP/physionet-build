@@ -38,7 +38,7 @@ from project.validators import MAX_PROJECT_SLUG_LENGTH
 from project.views import (get_file_forms, get_project_file_info,
     process_files_post)
 from user.models import (User, CredentialApplication, LegacyCredential,
-                         AssociatedEmail)
+                         AssociatedEmail, CredentialReview)
 from console import forms, utility
 from console.tasks import associated_task, get_associated_tasks
 
@@ -1003,16 +1003,8 @@ def credential_applications(request):
     Ongoing credential applications
     """
     applications = CredentialApplication.objects.filter(status=0)
-    # Set first_date as the first occurrence of the following three
-    applications = applications.annotate(first_date=functions.Coalesce(
-            'reference_response_datetime', 'reference_contact_datetime',
-            'application_datetime'))
-    # Do the propper sort
-    applications = applications.order_by(F('reference_contact_datetime').asc(
-        nulls_first=True), 'application_datetime')
-    # Set the days that have passed since the last action was taken
-    for application in applications:
-        application.time_elapsed = (timezone.now() - application.first_date).days
+    # Do the proper sort
+    applications = applications.order_by('application_datetime')
 
     return render(request, 'console/credential_applications.html',
         {'applications': applications, 'credentials_nav': True})
@@ -1138,12 +1130,14 @@ def complete_list_credentialed_people(request):
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def process_credential_application(request, application_slug):
     """
-    Process a credential application. View details, contact reference,
-    and make final decision.
+    Process a credential application. View details, advance to next stage,
+    contact reference, and make final decision.
     """
     try:
         application = CredentialApplication.objects.get(slug=application_slug,
             status=0)
+        # create the review object if it does not exist
+        CredentialReview.objects.get_or_create(application=application)
     except CredentialApplication.DoesNotExist:
         messages.error(request, """The application has already been
             processed. It may have been withdrawn by the applicant or
@@ -1152,29 +1146,86 @@ def process_credential_application(request, application_slug):
 
     process_credential_form = forms.ProcessCredentialForm(responder=request.user,
         instance=application)
+    if application.credential_review.status == 10:
+        intermediate_credential_form = forms.InitialCredentialForm(responder=request.user, instance=application)
+    if application.credential_review.status == 20:
+        intermediate_credential_form = forms.TrainingCredentialForm(responder=request.user, instance=application)
+    if application.credential_review.status == 30:
+        intermediate_credential_form = forms.PersonalCredentialForm(responder=request.user, instance=application)
+    if application.credential_review.status == 40:
+        intermediate_credential_form = forms.ReferenceCredentialForm(responder=request.user, instance=application)
+    if application.credential_review.status == 50:
+        intermediate_credential_form = forms.ResponseCredentialForm(responder=request.user, instance=application)
+    if application.credential_review.status == 60:
+        intermediate_credential_form = forms.ProcessCredentialForm(responder=request.user, instance=application)
 
     if request.method == 'POST':
-        if 'approve_initial' in request.POST and \
-         request.POST['approve_initial'].isdigit():
-            application.submission_status = 20
-            application.save()
-        if 'approve_training' in request.POST and \
-         request.POST['approve_training'].isdigit():
-            application.submission_status = 30
-            application.save()
-        if 'approve_personal' in request.POST and \
-         request.POST['approve_personal'].isdigit():
-            application.submission_status = 40
-            application.save()
-        if 'approve_reference' in request.POST and \
-         request.POST['approve_reference'].isdigit():
-            application.submission_status = 50
-            application.save()
-        if 'approve_response' in request.POST and \
-         request.POST['approve_response'].isdigit():
-            application.submission_status = 60
-            application.save()
-        if 'contact_reference' in request.POST:
+        if 'approve_initial' in request.POST:
+            intermediate_credential_form = forms.InitialCredentialForm(
+                responder=request.user, data=request.POST, instance=application)
+            if intermediate_credential_form.is_valid():
+                intermediate_credential_form.save()
+                if application.status == 1:
+                    notification.process_credential_complete(request, application)
+                    return render(request, 'console/process_credential_complete.html',
+                            {'application':application})
+                intermediate_credential_form = forms.TrainingCredentialForm(
+                responder=request.user, instance=application)
+            else:
+                messages.error(request, 'Invalid review. See form below.')
+        elif 'approve_training' in request.POST:
+            intermediate_credential_form = forms.TrainingCredentialForm(
+                responder=request.user, data=request.POST, instance=application)
+            if intermediate_credential_form.is_valid():
+                intermediate_credential_form.save()
+                if application.status == 1:
+                    notification.process_credential_complete(request, application)
+                    return render(request, 'console/process_credential_complete.html',
+                            {'application':application})
+                intermediate_credential_form = forms.PersonalCredentialForm(
+                responder=request.user, instance=application)
+            else:
+                messages.error(request, 'Invalid review. See form below.')
+        elif 'approve_personal' in request.POST:
+            intermediate_credential_form = forms.PersonalCredentialForm(
+                responder=request.user, data=request.POST, instance=application)
+            if intermediate_credential_form.is_valid():
+                intermediate_credential_form.save()
+                if application.status == 1:
+                    notification.process_credential_complete(request, application)
+                    return render(request, 'console/process_credential_complete.html',
+                            {'application':application})
+                intermediate_credential_form = forms.ReferenceCredentialForm(
+                    responder=request.user, instance=application)
+            else:
+                messages.error(request, 'Invalid review. See form below.')
+        elif 'approve_reference' in request.POST:
+            intermediate_credential_form = forms.ReferenceCredentialForm(
+                responder=request.user, data=request.POST, instance=application)
+            if intermediate_credential_form.is_valid():
+                intermediate_credential_form.save()
+                if application.status == 1:
+                    notification.process_credential_complete(request, application)
+                    return render(request, 'console/process_credential_complete.html',
+                            {'application':application})
+                intermediate_credential_form = forms.ResponseCredentialForm(
+                responder=request.user, instance=application)
+            else:
+                messages.error(request, 'Invalid review. See form below.')
+        elif 'approve_response' in request.POST:
+            intermediate_credential_form = forms.ResponseCredentialForm(
+                responder=request.user, data=request.POST, instance=application)
+            if intermediate_credential_form.is_valid():
+                intermediate_credential_form.save()
+                if application.status == 1:
+                    notification.process_credential_complete(request, application)
+                    return render(request, 'console/process_credential_complete.html',
+                            {'application':application})
+                intermediate_credential_form = forms.ProcessCredentialForm(
+                responder=request.user, instance=application)
+            else:
+                messages.error(request, 'Invalid review. See form below.')
+        elif 'contact_reference' in request.POST:
             application.reference_contact_datetime = timezone.now()
             application.save()
             notification.contact_reference(request, application)
@@ -1191,6 +1242,7 @@ def process_credential_application(request, application_slug):
                 messages.error(request, 'Invalid submission. See form below.')
     return render(request, 'console/process_credential_application.html',
         {'application': application, 'app_user': application.user,
+         'intermediate_credential_form': intermediate_credential_form,
          'process_credential_form': process_credential_form,
          'credentials_nav': True})
 
@@ -1202,36 +1254,29 @@ def credential_processing(request):
     List of active credentialing applications.
     """
     applications = CredentialApplication.objects.filter(status=0)
-    # Set first_date as the first occurrence of the following three
-    applications = applications.annotate(first_date=functions.Coalesce(
-            'reference_response_datetime', 'reference_contact_datetime',
-            'application_datetime'))
-    # Do the propper sort
-    applications = applications.order_by(F('reference_contact_datetime').asc(
-        nulls_first=True), 'application_datetime')
+    applications = applications.order_by('application_datetime')
 
-    # Separate applications by submission status
     # Awaiting initial review
-    initial_applications = applications.filter(submission_status=10)
+    initial_applications = applications.filter(credential_review__isnull=True)
     # Awaiting training check
-    training_applications = applications.filter(submission_status=20)
+    training_applications = applications.filter(credential_review__status=20)
     # Awaiting ID check
-    personal_applications = applications.filter(submission_status=30)
+    personal_applications = applications.filter(credential_review__status=30)
     # Awaiting reference check
-    reference_applications = applications.filter(submission_status=40)
+    reference_applications = applications.filter(credential_review__status=40)
     # Awaiting reference response
-    response_applications = applications.filter(submission_status=50)
+    response_applications = applications.filter(credential_review__status=50)
     # Awaiting final review
-    final_applications = applications.filter(submission_status=60)
+    final_applications = applications.filter(credential_review__status=60)
 
     return render(request, 'console/credential_processing.html',
-        {'applications': applications, 
-        'initial_applications': initial_applications, 
-        'training_applications': training_applications, 
-        'personal_applications': personal_applications, 
-        'reference_applications': reference_applications, 
-        'response_applications': response_applications, 
-        'final_applications': final_applications, 
+        {'applications': applications,
+        'initial_applications': initial_applications,
+        'training_applications': training_applications,
+        'personal_applications': personal_applications,
+        'reference_applications': reference_applications,
+        'response_applications': response_applications,
+        'final_applications': final_applications,
         'processing_credentials_nav': True})
 
 

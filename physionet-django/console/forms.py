@@ -14,7 +14,7 @@ from project.models import (ActiveProject, EditLog, CopyeditLog, Contact,
                             PublishedProject, exists_project_slug, DataAccess,
                             PublishedAffiliation, PublishedAuthor)
 from project.validators import validate_slug, MAX_PROJECT_SLUG_LENGTH, validate_doi
-from user.models import User, CredentialApplication
+from user.models import User, CredentialApplication, CredentialReview
 from console.utility import generate_doi_payload, register_doi
 
 RESPONSE_CHOICES = (
@@ -29,6 +29,12 @@ SUBMISSION_RESPONSE_CHOICES = (
     (0, 'Reject'),
 )
 
+REVIEW_RESPONSE_CHOICES = (
+    ('', '-----------'),
+    (1, 'Approve'),
+    (0, 'Reject'),
+)
+
 YES_NO = (
     ('', '-----------'),
     (1, 'Yes'),
@@ -40,6 +46,14 @@ YES_NO_UNDETERMINED = (
     ('', '-----------'),
     (1, 'Yes'),
     (0, 'No'),
+    (None, 'Undetermined')
+)
+
+YES_NO_NA_UNDETERMINED = (
+    ('', '-----------'),
+    (1, 'Yes'),
+    (0, 'No'),
+    (2, 'N/A'),
     (None, 'Undetermined')
 )
 
@@ -326,7 +340,7 @@ class ProcessCredentialForm(forms.ModelForm):
         model = CredentialApplication
         fields = ('responder_comments', 'status')
         labels = {
-            'responder_comments':'Comments (required for rejected applications)',
+            'responder_comments':'Comments (required for rejected applications). This will be sent to the applicant.',
             'status':'Decision',
         }
         # widgets = {
@@ -360,12 +374,368 @@ class ProcessCredentialForm(forms.ModelForm):
         return application
 
 
+class InitialCredentialForm(forms.ModelForm):
+    """
+    Form to respond to a credential application in the initial review stage
+    """
+
+    decision = forms.ChoiceField()
+
+    class Meta:
+        model = CredentialReview
+        fields = ('fields_complete', 'appears_correct', 'lang_understandable',
+                  'responder_comments', 'decision')
+
+        labels = {
+            'fields_complete': 'Are all of the required fields complete?',
+            'appears_correct': 'Does the application clearly avoid frivolous text such as "aa"?',
+            'lang_understandable': 'Is any non-English text (e.g. job titles) easily translated?',
+            'responder_comments': 'Comments (required for rejected applications). This will be sent to the applicant.',
+            'decision': 'Decision',
+        }
+
+        widgets = {
+            'fields_complete': forms.Select(choices=YES_NO_UNDETERMINED),
+            'appears_correct': forms.Select(choices=YES_NO_UNDETERMINED),
+            'lang_understandable': forms.Select(choices=YES_NO_UNDETERMINED),
+            'decision': forms.Select(choices=REVIEW_RESPONSE_CHOICES)
+        }
+
+    def __init__(self, responder, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # This will be used in clean
+        self.quality_assurance_fields = ('fields_complete', 'appears_correct',
+                                         'lang_understandable')
+
+        # Enforce the requirement of quality assurance fields
+        for f in self.quality_assurance_fields:
+            self.fields[f].required = True
+
+        self.responder = responder
+        self.fields['decision'].choices = REVIEW_RESPONSE_CHOICES
+
+    def clean(self):
+        if self.errors:
+            return
+
+        if self.cleaned_data['decision'] == '1':
+            for field in self.quality_assurance_fields:
+                if not self.cleaned_data[field]:
+                    raise forms.ValidationError(
+                        '(The quality assurance fields must all pass '
+                          'before you accept the project')
+
+        if self.cleaned_data['decision'] == '0' and not self.cleaned_data['responder_comments']:
+            raise forms.ValidationError('If you reject, you must explain why.')
+
+    def save(self):
+        application = super().save()
+        if self.cleaned_data['decision'] == '0':
+            application.reject(self.responder)
+        elif self.cleaned_data['decision'] == '1':
+            application.update_review_status(20)
+        else:
+            raise forms.ValidationError('Application status not valid.')
+
+        return application
+
+
+class TrainingCredentialForm(forms.ModelForm):
+    """
+    Form to respond to a credential application in the training check stage
+    """
+
+    decision = forms.ChoiceField()
+
+    class Meta:
+        model = CredentialReview
+        fields = ('citi_report_attached', 'training_current', 'training_all_modules',
+                  'training_privacy_complete', 'training_name_match',
+                  'responder_comments', 'decision')
+
+        labels = {
+            'citi_report_attached': 'Is the CITI Completion Report attached?',
+            'training_current': 'Is the report up to date (i.e. not expired)?',
+            'training_all_modules': 'Are all of the required modules complete?',
+            'training_privacy_complete': 'Has the "Research and HIPAA Privacy Protections" module been completed?',
+            'training_name_match': 'Does the name on the training form match the name listed in the user profile?',
+            'responder_comments': 'Comments (required for rejected applications). This will be sent to the applicant.',
+            'decision': 'Decision',
+        }
+
+        widgets = {
+            'citi_report_attached': forms.Select(choices=YES_NO_UNDETERMINED),
+            'training_current': forms.Select(choices=YES_NO_UNDETERMINED),
+            'training_all_modules': forms.Select(choices=YES_NO_UNDETERMINED),
+            'training_privacy_complete': forms.Select(choices=YES_NO_UNDETERMINED),
+            'training_name_match': forms.Select(choices=YES_NO_UNDETERMINED),
+            'decision': forms.Select(choices=REVIEW_RESPONSE_CHOICES)
+        }
+
+    def __init__(self, responder, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # This will be used in clean
+        self.quality_assurance_fields = ('citi_report_attached', 'training_current',
+                                         'training_all_modules', 'training_privacy_complete',
+                                         'training_name_match')
+
+        # Enforce the requirement of quality assurance fields
+        for f in self.quality_assurance_fields:
+            self.fields[f].required = True
+
+        self.responder = responder
+        self.fields['decision'].choices = REVIEW_RESPONSE_CHOICES
+
+    def clean(self):
+        if self.errors:
+            return
+
+        if self.cleaned_data['decision'] == '1':
+            for field in self.quality_assurance_fields:
+                if not self.cleaned_data[field]:
+                    raise forms.ValidationError(
+                        '(The quality assurance fields must all pass '
+                          'before you accept the project')
+
+        if self.cleaned_data['decision'] == '0' and not self.cleaned_data['responder_comments']:
+            raise forms.ValidationError('If you reject, you must explain why.')
+
+    def save(self):
+        application = super().save()
+        if self.cleaned_data['decision'] == '0':
+            application.reject(self.responder)
+        elif self.cleaned_data['decision'] == '1':
+            application.update_review_status(30)
+        else:
+            raise forms.ValidationError('Application status not valid.')
+
+        return application
+
+
+class PersonalCredentialForm(forms.ModelForm):
+    """
+    Form to respond to a credential application in the ID check stage
+    """
+
+    decision = forms.ChoiceField()
+
+    class Meta:
+        model = CredentialReview
+        fields = ('user_searchable', 'user_has_papers',
+                  'research_summary_clear', 'course_name_provided', 'user_understands_privacy',
+                  'user_org_known', 'user_details_consistent',
+                  'responder_comments', 'decision')
+
+        labels = {
+            'user_searchable': 'Do you find search results for the applicant\'s name (possibly include their organization in the search query)?',
+            'user_has_papers': 'Can you find publications linked to the applicant (possibly include the reference in the search query)?',
+            'research_summary_clear': 'Is the research summary sufficiently descriptive?',
+            'course_name_provided': 'If applicable, does the research summary include course name and number?',
+            'user_understands_privacy': 'Does the research summary indicate an understanding that data must not be shared (e.g. no plural pronouns such as "we", "us", etc.)?',
+            'user_org_known': 'Does the organization have a website or other online presence (*not* "MIT Affiliates")?',
+            'user_details_consistent': 'Is the information consistent (independent researcher should not list and organization, obvious students should be listed as either "student" or "postdoc", MD\'s with a hospital as their organization should be "hospital researcher", the county and state mismatches, etc.)?',
+            'responder_comments': 'Comments (required for rejected applications). This will be sent to the applicant.',
+            'decision': 'Decision',
+        }
+
+        widgets = {
+            'user_searchable': forms.Select(choices=YES_NO_UNDETERMINED),
+            'user_has_papers': forms.Select(choices=YES_NO_UNDETERMINED),
+            'research_summary_clear': forms.Select(choices=YES_NO_UNDETERMINED),
+            'course_name_provided': forms.Select(choices=YES_NO_NA_UNDETERMINED),
+            'user_understands_privacy': forms.Select(choices=YES_NO_UNDETERMINED),
+            'user_org_known': forms.Select(choices=YES_NO_UNDETERMINED),
+            'user_details_consistent': forms.Select(choices=YES_NO_UNDETERMINED),
+            'decision': forms.Select(choices=REVIEW_RESPONSE_CHOICES)
+        }
+
+    def __init__(self, responder, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # This will be used in clean
+        self.quality_assurance_fields = ('user_searchable', 'user_has_papers', 'research_summary_clear', 'course_name_provided', 'user_understands_privacy', 'user_org_known', 'user_details_consistent')
+
+        # Enforce the requirement of quality assurance fields
+        for f in self.quality_assurance_fields:
+            self.fields[f].required = True
+
+        self.responder = responder
+        self.fields['decision'].choices = REVIEW_RESPONSE_CHOICES
+
+    def clean(self):
+        if self.errors:
+            return
+
+        if self.cleaned_data['decision'] == '1':
+            for field in self.quality_assurance_fields:
+                if not self.cleaned_data[field]:
+                    raise forms.ValidationError(
+                        '(The quality assurance fields must all pass '
+                          'before you accept the project')
+
+        if self.cleaned_data['decision'] == '0' and not self.cleaned_data['responder_comments']:
+            raise forms.ValidationError('If you reject, you must explain why.')
+
+    def save(self):
+        application = super().save()
+        if self.cleaned_data['decision'] == '0':
+            application.reject(self.responder)
+        elif self.cleaned_data['decision'] == '1':
+            application.update_review_status(40)
+        else:
+            raise forms.ValidationError('Application status not valid.')
+
+        return application
+
+
+class ReferenceCredentialForm(forms.ModelForm):
+    """
+    Form to respond to a credential application in the reference check stage
+    """
+
+    decision = forms.ChoiceField()
+
+    class Meta:
+        model = CredentialReview
+        fields = ('ref_appropriate', 'ref_searchable', 'ref_has_papers',
+                  'ref_is_supervisor', 'ref_course_list',
+                  'responder_comments', 'decision')
+
+        labels = {
+            'ref_appropriate': 'Is the reference appropriate?',
+            'ref_searchable': 'Is the reference easily searchable?',
+            'ref_has_papers': 'Can you find publications linked to the reference?',
+            'ref_is_supervisor': 'If applicable (for students and postdocs only), is the reference in a supervisory position?',
+            'ref_course_list': 'If applicable (for students and postdocs only), is the applicant included in a list of course participants?',
+            'responder_comments': 'Comments (required for rejected applications). This will be sent to the applicant.',
+            'decision': 'Decision',
+        }
+
+        widgets = {
+            'ref_appropriate': forms.Select(choices=YES_NO_UNDETERMINED),
+            'ref_searchable': forms.Select(choices=YES_NO_UNDETERMINED),
+            'ref_has_papers': forms.Select(choices=YES_NO_UNDETERMINED),
+            'ref_is_supervisor': forms.Select(choices=YES_NO_NA_UNDETERMINED),
+            'ref_course_list': forms.Select(choices=YES_NO_NA_UNDETERMINED),
+            'decision': forms.Select(choices=REVIEW_RESPONSE_CHOICES)
+        }
+
+    def __init__(self, responder, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # This will be used in clean
+        self.quality_assurance_fields = ('ref_appropriate', 'ref_searchable', 'ref_has_papers', 'ref_is_supervisor', 'ref_course_list')
+
+        # Enforce the requirement of quality assurance fields
+        for f in self.quality_assurance_fields:
+            self.fields[f].required = True
+
+        self.responder = responder
+        self.fields['decision'].choices = REVIEW_RESPONSE_CHOICES
+
+    def clean(self):
+        if self.errors:
+            return
+
+        if self.cleaned_data['decision'] == '1':
+            for field in self.quality_assurance_fields:
+                if not self.cleaned_data[field]:
+                    raise forms.ValidationError(
+                        '(The quality assurance fields must all pass '
+                          'before you accept the project')
+
+        if self.cleaned_data['decision'] == '0' and not self.cleaned_data['responder_comments']:
+            raise forms.ValidationError('If you reject, you must explain why.')
+
+    def save(self):
+        application = super().save()
+        if self.cleaned_data['decision'] == '0':
+            application.reject(self.responder)
+        elif self.cleaned_data['decision'] == '1':
+            application.update_review_status(50)
+        else:
+            raise forms.ValidationError('Application status not valid.')
+
+        return application
+
+
+class ResponseCredentialForm(forms.ModelForm):
+    """
+    Form to respond to a credential application in the reference response
+    check stage
+    """
+
+    decision = forms.ChoiceField()
+
+    class Meta:
+        model = CredentialReview
+        fields = ('ref_knows_applicant', 'ref_approves',
+                  'ref_understands_privacy', 'responder_comments', 'decision')
+
+        labels = {
+            'ref_knows_applicant': 'Does the reference know the applicant?',
+            'ref_approves': 'Does the reference approve the applicant for use of restricted data?',
+            'ref_understands_privacy': 'Does the response indicate an understanding that data must not be shared (e.g. no plural pronouns such as "we", "us", etc.)?',
+            'responder_comments': 'Comments (required for rejected applications). This will be sent to the applicant.',
+            'decision': 'Decision',
+        }
+
+        widgets = {
+            'ref_knows_applicant': forms.Select(choices=YES_NO_UNDETERMINED),
+            'ref_approves': forms.Select(choices=YES_NO_UNDETERMINED),
+            'ref_understands_privacy': forms.Select(choices=YES_NO_UNDETERMINED),
+            'decision': forms.Select(choices=REVIEW_RESPONSE_CHOICES)
+        }
+
+    def __init__(self, responder, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # This will be used in clean
+        self.quality_assurance_fields = ('ref_knows_applicant',
+                                         'ref_approves',
+                                         'ref_understands_privacy')
+
+        # Enforce the requirement of quality assurance fields
+        for f in self.quality_assurance_fields:
+            self.fields[f].required = True
+
+        self.responder = responder
+        self.fields['decision'].choices = REVIEW_RESPONSE_CHOICES
+
+    def clean(self):
+        if self.errors:
+            return
+
+        if self.cleaned_data['decision'] == '1':
+            for field in self.quality_assurance_fields:
+                if not self.cleaned_data[field]:
+                    raise forms.ValidationError(
+                        '(The quality assurance fields must all pass '
+                          'before you accept the project')
+
+        if self.cleaned_data['decision'] == '0' and not self.cleaned_data['responder_comments']:
+            raise forms.ValidationError('If you reject, you must explain why.')
+
+    def save(self):
+        application = super().save()
+        if self.cleaned_data['decision'] == '0':
+            application.reject(self.responder)
+        elif self.cleaned_data['decision'] == '1':
+            application.update_review_status(60)
+        else:
+            raise forms.ValidationError('Application status not valid.')
+
+        return application
+
+
 class AlterCommentsCredentialForm(forms.ModelForm):
     """
     Change the response comments on a processed application
     """
     class Meta:
-        model = CredentialApplication
+        model = CredentialReview
         fields = ('responder_comments',)
         labels = {
             'responder_comments': 'Comments',
