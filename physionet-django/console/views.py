@@ -1063,6 +1063,14 @@ def complete_credential_applications(request):
 
     applications = CredentialApplication.objects.filter(status=0)
 
+    # TODO: Remove this temporary step. Filter applications that are being
+    # handled in the credential processing workflow.
+    no_review = Q(credential_review__isnull=True)
+    not_underway_list = [x[0] for x in CredentialReview.REVIEW_STATUS_LABELS
+                         if x[0] and x[0] <= 10]
+    not_underway = Q(credential_review__status__in=not_underway_list)
+    applications = applications.filter(no_review or not_underway)
+
     # Get list of references who have been contacted before
     # These are "known_refs" but using the ref_known_flag() method is slow
     known_refs_new = CredentialApplication.objects.filter(
@@ -1254,6 +1262,13 @@ def credential_processing(request):
     List of active credentialing applications.
     """
     applications = CredentialApplication.objects.filter(status=0)
+
+    # TODO: remove this filter. If KP has contacted the reference, remove
+    # the application from our list. Temporary step to avoid overlapping efforts.
+    no_review = Q(credential_review__isnull=True)
+    ref_contacted = Q(reference_contact_datetime__isnull=True)
+    applications = applications.filter(no_review and ref_contacted)
+
     applications = applications.order_by('application_datetime')
 
     # Awaiting initial review
