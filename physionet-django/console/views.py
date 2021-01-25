@@ -1177,13 +1177,9 @@ def process_credential_application(request, application_slug):
                 responder=request.user, data=request.POST, instance=application)
             if intermediate_credential_form.is_valid():
                 intermediate_credential_form.save()
-                if application.status == 1:
-                    notification.process_credential_complete(request, application)
-                    return render(request, 'console/process_credential_complete.html',
-                            {'application':application})
                 page_title = title_dict[application.credential_review.status]
                 intermediate_credential_form = forms.TrainingCredentialForm(
-                responder=request.user, instance=application)
+                    responder=request.user, instance=application)
             else:
                 messages.error(request, 'Invalid review. See form below.')
         elif 'approve_training' in request.POST:
@@ -1191,13 +1187,9 @@ def process_credential_application(request, application_slug):
                 responder=request.user, data=request.POST, instance=application)
             if intermediate_credential_form.is_valid():
                 intermediate_credential_form.save()
-                if application.status == 1:
-                    notification.process_credential_complete(request, application)
-                    return render(request, 'console/process_credential_complete.html',
-                            {'application':application})
                 page_title = title_dict[application.credential_review.status]
                 intermediate_credential_form = forms.PersonalCredentialForm(
-                responder=request.user, instance=application)
+                    responder=request.user, instance=application)
             else:
                 messages.error(request, 'Invalid review. See form below.')
         elif 'approve_personal' in request.POST:
@@ -1205,10 +1197,6 @@ def process_credential_application(request, application_slug):
                 responder=request.user, data=request.POST, instance=application)
             if intermediate_credential_form.is_valid():
                 intermediate_credential_form.save()
-                if application.status == 1:
-                    notification.process_credential_complete(request, application)
-                    return render(request, 'console/process_credential_complete.html',
-                            {'application':application})
                 page_title = title_dict[application.credential_review.status]
                 intermediate_credential_form = forms.ReferenceCredentialForm(
                     responder=request.user, instance=application)
@@ -1219,13 +1207,9 @@ def process_credential_application(request, application_slug):
                 responder=request.user, data=request.POST, instance=application)
             if intermediate_credential_form.is_valid():
                 intermediate_credential_form.save()
-                if application.status == 1:
-                    notification.process_credential_complete(request, application)
-                    return render(request, 'console/process_credential_complete.html',
-                            {'application':application})
                 page_title = title_dict[application.credential_review.status]
                 intermediate_credential_form = forms.ResponseCredentialForm(
-                responder=request.user, instance=application)
+                    responder=request.user, instance=application)
             else:
                 messages.error(request, 'Invalid review. See form below.')
         elif 'approve_response' in request.POST:
@@ -1233,13 +1217,9 @@ def process_credential_application(request, application_slug):
                 responder=request.user, data=request.POST, instance=application)
             if intermediate_credential_form.is_valid():
                 intermediate_credential_form.save()
-                if application.status == 1:
-                    notification.process_credential_complete(request, application)
-                    return render(request, 'console/process_credential_complete.html',
-                            {'application':application})
                 page_title = title_dict[application.credential_review.status]
                 intermediate_credential_form = forms.ProcessCredentialForm(
-                responder=request.user, instance=application)
+                    responder=request.user, instance=application)
             else:
                 messages.error(request, 'Invalid review. See form below.')
         elif 'contact_reference' in request.POST:
