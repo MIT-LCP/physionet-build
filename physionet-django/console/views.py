@@ -1257,7 +1257,9 @@ def credential_processing(request):
     applications = applications.order_by('application_datetime')
 
     # Awaiting initial review
-    initial_applications = applications.filter(credential_review__isnull=True)
+    initial_1 = Q(credential_review__isnull=True)
+    initial_2 = Q(credential_review__status=10)
+    initial_applications = applications.filter(initial_1 or initial_2)
     # Awaiting training check
     training_applications = applications.filter(credential_review__status=20)
     # Awaiting ID check
