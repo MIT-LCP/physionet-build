@@ -1262,6 +1262,13 @@ def credential_processing(request):
     List of active credentialing applications.
     """
     applications = CredentialApplication.objects.filter(status=0)
+
+    # TODO: remove this filter. If KP has contacted the reference, remove
+    # the application from our list. Temporary step to avoid overlapping efforts.
+    no_review = Q(credential_review__isnull=True)
+    ref_contacted = Q(reference_contact_datetime__isnull=True)
+    applications = applications.filter(no_review and ref_contacted)
+
     applications = applications.order_by('application_datetime')
 
     # Awaiting initial review
