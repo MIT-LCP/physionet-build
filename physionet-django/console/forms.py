@@ -331,6 +331,14 @@ class DeprecateFilesForm(forms.Form):
     delete_files = forms.ChoiceField(choices=YES_NO)
 
 
+class ContactCredentialRefForm(forms.Form):
+    """
+    Contact the reference for a credentialing application.
+    """
+    subject = forms.CharField(required=True)
+    body = forms.CharField(widget=forms.Textarea)
+
+
 class ProcessCredentialForm(forms.ModelForm):
     """
     Form to respond to a credential application

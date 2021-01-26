@@ -154,6 +154,9 @@ PAUSE_CREDENTIALING = config('PAUSE_CREDENTIALING', cast=bool, default=False)
 PAUSE_CREDENTIALING_MESSAGE = config('PAUSE_CREDENTIALING_MESSAGE',
                                      default=None)
 
+# Set the credentialing email address
+CREDENTIAL_EMAIL = 'PhysioNet Credentialing <credentialing@physionet.org>'
+
 # Google G suite Groups service account and Private Key file
 SERVICE_ACCOUNT_EMAIL = 'gcp-physionet-groups@physionet-data.iam.gserviceaccount.com'
 

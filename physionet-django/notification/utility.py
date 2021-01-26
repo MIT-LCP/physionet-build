@@ -7,7 +7,7 @@ from email.utils import formataddr
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import EmailMessage, send_mail, mail_admins
-from django.template import loader
+from django.template import loader, defaultfilters
 from django.utils import timezone
 
 
@@ -454,25 +454,66 @@ def storage_response_notify(storage_request):
               [email], fail_silently=False)
 
 
-def contact_reference(request, application):
+def contact_applicant(request, application, comments):
     """
-    Request verification from a credentialing applicant's reference
+    Request applicant feedback regarding their credentialing application
     """
     applicant_name = ' '.join([application.first_names, application.last_name])
-    subject = 'Please verify {} for PhysioNet credentialing'.format(
-        applicant_name)
+    subject = 'Feedback regarding your PhysioNet credentialing application'
+    respond_email = settings.CREDENTIAL_EMAIL
     body = loader.render_to_string(
-        'notification/email/contact_reference.html', {
+        'notification/email/contact_applicant.html', {
             'application': application,
             'applicant_name': applicant_name,
-            'domain': get_current_site(request),
+            'comments': comments,
             'url_prefix': get_url_prefix(request),
-            'signature': email_signature(),
-            'footer': email_footer()
+            'signature': email_signature()
         })
 
-    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-              [application.reference_email], fail_silently=False)
+    send_mail(subject, body, respond_email, [application.user.email],
+              fail_silently=False)
+
+
+def contact_reference(request, application, send=True, wordwrap=True,
+                      subject="", body=""):
+    """
+    Request verification from a credentialing applicant's reference.
+
+    Args:
+        application : CredentialApplication object.
+        send : If True, send the email.
+        wordwrap : If True, wraps body at 70 characters.
+        subject : Subject line.
+        body : Body text.
+
+    Returns:
+        dict : email name, subject, body
+    """
+    applicant_name = ' '.join([application.first_names, application.last_name])
+
+    if not subject:
+        subject = 'Reference requested for {}'.format(
+            applicant_name)
+    if not body:
+        body = loader.render_to_string(
+            'notification/email/contact_reference.html', {
+                'application': application,
+                'applicant_name': applicant_name,
+                'domain': get_current_site(request),
+                'url_prefix': get_url_prefix(request),
+                'signature': email_signature(),
+                'footer': email_footer()
+            })
+
+    if wordwrap:
+        body = defaultfilters.wordwrap(body, 70)
+
+    if send:
+        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                  [application.reference_email], fail_silently=False)
+
+    return {"subject": subject, "body": body}
+
 
 def contact_supervisor(request, application):
     """

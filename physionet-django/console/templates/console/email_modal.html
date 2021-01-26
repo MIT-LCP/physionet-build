@@ -1,0 +1,24 @@
+<!-- pop-up modal for email -->
+
+<div class="modal fade" id={{ modal_id }} tabindex="-1" role="dialog" aria-labelledby={{ modal_id }} aria-hidden="true">
+<div class="modal-dialog" role="document">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title">{{ modal_title }}</h5>
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <form action="" method="post">
+      <div class="modal-body">
+        {% csrf_token %}
+        {% include "form_snippet.html" with form=form %}
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary btn-fixed" name="{{ submit_name }}" value="{{ submit_value }}" type="submit">{{ submit_text }}</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </form>
+  </div>
+</div>
+</div>
