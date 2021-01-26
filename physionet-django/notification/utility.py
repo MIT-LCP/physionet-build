@@ -649,8 +649,14 @@ def process_credential_complete(request, application, comments=True):
             'footer': email_footer()
         })
 
-    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-              [application.user.email], fail_silently=False)
+    message = EmailMessage(
+        subject=subject,
+        body=body,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[application.user.email],
+        bcc=[settings.CREDENTIAL_EMAIL]
+        )
+    message.send(fail_silently=False)
 
 def credential_application_request(request, application):
     """
