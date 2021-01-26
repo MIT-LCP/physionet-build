@@ -1179,6 +1179,8 @@ def process_credential_application(request, application_slug):
                 responder=request.user, data=request.POST, instance=application)
             if intermediate_credential_form.is_valid():
                 intermediate_credential_form.save()
+                if intermediate_credential_form.cleaned_data['decision'] == '0':
+                    return redirect(credential_processing)
                 page_title = title_dict[application.credential_review.status]
                 intermediate_credential_form = forms.TrainingCredentialForm(
                     responder=request.user, instance=application)
@@ -1189,6 +1191,8 @@ def process_credential_application(request, application_slug):
                 responder=request.user, data=request.POST, instance=application)
             if intermediate_credential_form.is_valid():
                 intermediate_credential_form.save()
+                if intermediate_credential_form.cleaned_data['decision'] == '0':
+                    return redirect(credential_processing)
                 page_title = title_dict[application.credential_review.status]
                 intermediate_credential_form = forms.PersonalCredentialForm(
                     responder=request.user, instance=application)
@@ -1199,6 +1203,8 @@ def process_credential_application(request, application_slug):
                 responder=request.user, data=request.POST, instance=application)
             if intermediate_credential_form.is_valid():
                 intermediate_credential_form.save()
+                if intermediate_credential_form.cleaned_data['decision'] == '0':
+                    return redirect(credential_processing)
                 page_title = title_dict[application.credential_review.status]
                 intermediate_credential_form = forms.ReferenceCredentialForm(
                     responder=request.user, instance=application)
@@ -1209,6 +1215,8 @@ def process_credential_application(request, application_slug):
                 responder=request.user, data=request.POST, instance=application)
             if intermediate_credential_form.is_valid():
                 intermediate_credential_form.save()
+                if intermediate_credential_form.cleaned_data['decision'] == '0':
+                    return redirect(credential_processing)
                 page_title = title_dict[application.credential_review.status]
                 intermediate_credential_form = forms.ResponseCredentialForm(
                     responder=request.user, instance=application)
@@ -1219,6 +1227,8 @@ def process_credential_application(request, application_slug):
                 responder=request.user, data=request.POST, instance=application)
             if intermediate_credential_form.is_valid():
                 intermediate_credential_form.save()
+                if intermediate_credential_form.cleaned_data['decision'] == '0':
+                    return redirect(credential_processing)
                 page_title = title_dict[application.credential_review.status]
                 intermediate_credential_form = forms.ProcessCredentialForm(
                     responder=request.user, instance=application)
