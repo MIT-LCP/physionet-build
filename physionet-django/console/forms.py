@@ -431,8 +431,8 @@ class InitialCredentialForm(forms.ModelForm):
             for field in self.quality_assurance_fields:
                 if not self.cleaned_data[field]:
                     raise forms.ValidationError(
-                        '(The quality assurance fields must all pass '
-                          'before you accept the project')
+                        'The quality assurance fields must all pass '
+                          'before you approve the application')
 
         if self.cleaned_data['decision'] == '0' and not self.cleaned_data['responder_comments']:
             raise forms.ValidationError('If you reject, you must explain why.')
@@ -504,8 +504,8 @@ class TrainingCredentialForm(forms.ModelForm):
             for field in self.quality_assurance_fields:
                 if not self.cleaned_data[field]:
                     raise forms.ValidationError(
-                        '(The quality assurance fields must all pass '
-                          'before you accept the project')
+                        'The quality assurance fields must all pass '
+                          'before you approve the application')
 
         if self.cleaned_data['decision'] == '0' and not self.cleaned_data['responder_comments']:
             raise forms.ValidationError('If you reject, you must explain why.')
@@ -580,8 +580,8 @@ class PersonalCredentialForm(forms.ModelForm):
             for field in self.quality_assurance_fields:
                 if not self.cleaned_data[field]:
                     raise forms.ValidationError(
-                        '(The quality assurance fields must all pass '
-                          'before you accept the project')
+                        'The quality assurance fields must all pass '
+                          'before you approve the application')
 
         if self.cleaned_data['decision'] == '0' and not self.cleaned_data['responder_comments']:
             raise forms.ValidationError('If you reject, you must explain why.')
@@ -651,8 +651,8 @@ class ReferenceCredentialForm(forms.ModelForm):
             for field in self.quality_assurance_fields:
                 if not self.cleaned_data[field]:
                     raise forms.ValidationError(
-                        '(The quality assurance fields must all pass '
-                          'before you accept the project')
+                        'The quality assurance fields must all pass '
+                          'before you approve the application')
 
         if self.cleaned_data['decision'] == '0' and not self.cleaned_data['responder_comments']:
             raise forms.ValidationError('If you reject, you must explain why.')
@@ -720,8 +720,8 @@ class ResponseCredentialForm(forms.ModelForm):
             for field in self.quality_assurance_fields:
                 if not self.cleaned_data[field]:
                     raise forms.ValidationError(
-                        '(The quality assurance fields must all pass '
-                          'before you accept the project')
+                        'The quality assurance fields must all pass '
+                          'before you approve the application')
 
         if self.cleaned_data['decision'] == '0' and not self.cleaned_data['responder_comments']:
             raise forms.ValidationError('If you reject, you must explain why.')
