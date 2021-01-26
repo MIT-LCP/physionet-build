@@ -1,72 +1,63 @@
 {# Status section #}
 
-<p><strong>Status:</strong><br>
-Application date: {{ application.application_datetime|date }}<br>
+<p>Username: <a href="{% url 'public_profile' application.user.username %}">{{ application.user.username }}</a></br>
+Applied: {{ application.application_datetime|date }}</p>
 
 {% if application.reference_contact_datetime %}
-  Reference contact date: {{ application.reference_contact_datetime|date }}<br>
+  Reference contact date: {{ application.reference_contact_datetime|date }}<br />
   {% if application.reference_response_datetime %}
-    Reference response date: {{ application.reference_response_datetime|date }}<br>
-    Reference verified: {{ application.get_reference_response_display }}<br>
+    Reference response date: {{ application.reference_response_datetime|date }}<br />
+    Reference verified: {{ application.get_reference_response_display }}<br />
   {% endif %}
 {% endif %}
 
 {% if application.decision_datetime %}
-  Decision date: {{ application.decision_datetime|date }}<br>
+  Decision date: {{ application.decision_datetime|date }}<br />
 {% endif %}
 
-Decision: {% if application.status %}{{ application.get_status_display }}{% else %}<i class="fas fa-clock"></i> Pending{% endif %}<br>
-
 {% if application.responder_comments %}
-  Admin Comments:<br> {{ application.responder_comments|linebreaks }}<br>
-{% endif %}</p>
+  Admin Comments: {{ application.responder_comments|linebreaks }}
+{% endif %}
 
-{# Personal details #}
+<h5>Personal</h5>
 
-<p><strong>Personal details:</strong><br>
-User: <a href="{% url 'public_profile' application.user.username %}">{{ application.user.username }}</a><br>
+<ul>
+  <li>First name: <mark>{{ application.first_names }}</mark></mark></li>
+  <li>Last name: <mark>{{ application.last_name }}</mark></li>
+  {% if application.suffix %}<li>Suffix: {{ application.suffix }}</mark></li>{% endif %}
+  <li>Email: <mark>{{ application.user.email }}</mark></li>
+  <li>Position: <mark>{{ application.job_title }}</mark></li>
+  <li>Research category: <mark>{{ application.get_researcher_category_display }}</mark></li>
+</ul>
 
-First name(s): {{ application.first_names }}<br>
+<h5>Location</h5>
 
-Family name(s): {{ application.last_name }}<br>
+<ul>
+  <li>Institution: <mark>{{ application.organization_name }}</mark></li>
+  <li>Address: <mark>{{ application.city }}, {{ application.state_province }},  {{ application.zip_code }}</mark></li>
+  <li>Country: <mark>{{ application.get_country_display }}</mark></li>
+  <li>Webpage: <mark>{% if application.webpage %}<a href="{{ application.webpage }}" target="_blank">
+      {{ application.webpage }}</a>{% else %}N/A{% endif %}</mark></li>
+</ul>
 
-Suffix (e.g., Jr.), if applicable: {{ application.suffix }}<br>
+<h5>Training</h5>
 
-My PhysioNet email: {{ application.user.email }}<br>
+<ul>
+  <li>CITI report: <mark><a href="{% url 'training_report' application.slug %}" target="_blank">View file</a></mark></li>
+</ul>
 
-Organization name: {{ application.organization_name }}<br>
+<h5>Reference</h5>
 
-Job title or position: {{ application.job_title }}<br>
+<ul>
+  <li>Name: <mark>{{ application.reference_name }}</mark></li>
+  <li>Email: <mark>{{ application.reference_email }}</mark></li>
+  <li>Position: <mark>{{ application.reference_title }}</mark></li>
+  <li>Relationship: <mark>{{ application.get_reference_category_display }}</mark></li>
+</ul>
 
-City: {{ application.city }}<br>
+<h5>Research</h5>
 
-State/Province: {{ application.state_province }}<br>
+<ul>
+  <li>Topic: <mark>{{ application.research_summary }}</mark></li>
+</ul>
 
-ZIP/postal code: {{ application.zip_code }}<br>
-
-Country: {{ application.get_country_display }}<br>
-
-Webpage: {% if application.webpage %}<a href="{{ application.webpage }}" target="_blank">{{ application.webpage }}</a>{% endif %}<br></p>
-
-{# Training #}
-
-<p><strong>CITI completion report:</strong><br>
-
-Training report: <a href="{% url 'training_report' application.slug %}" target="_blank">View file</a><br></p>
-
-{# Reference #}
-
-<p><strong>Reference:</strong><br>
-
-Reference category: {{ application.get_reference_category_display }}<br>
-
-Reference name: {{ application.reference_name }}<br>
-
-Reference email: {{ application.reference_email }}<br>
-
-Reference job title or position: {{ application.reference_title }}</p>
-
-
-Researcher category: {{ application.get_researcher_category_display }}<br>
-
-Research topic: {{ application.research_summary }}<br></p>
