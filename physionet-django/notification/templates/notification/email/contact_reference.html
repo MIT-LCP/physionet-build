@@ -1,15 +1,13 @@
-{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
-Dear {{ application.reference_name }},
+{% load i18n %}{% autoescape off %}Dear {{ application.reference_name }},
 
-{{ applicant_name }} is applying for credentialed access to PhysioNet, the website for sharing biomedical data. He/she has listed you as a reference for the application and has summarized the research project as follows:
+{{ applicant_name }} has applied for access to protected data on PhysioNet and listed you as a reference. Are you familiar with {{ applicant_name }}'s research, and in your view would it be reasonable to grant this request?
 
-{{application.research_summary}}
-
-Are you familiar with {{ applicant_name }}'s research, and in your view would it be reasonable to grant this request?
-
-If you support this application for credentialed access, please indicate your approval using the link below. If you do not support the application, please ignore this email or update us directly via the link.
+If you support their application, please indicate your approval using the link below or reply to this email. If you do not support their application, you may ignore this email or update us directly via the link.
 
 {{ url_prefix }}{% url 'credential_reference' application.slug %}
 
-{{ signature }}
-{% endfilter %}{% endautoescape %}
+For your reference, {{ applicant_name }} provided the following reason for requesting access: 
+
+{{ application.research_summary.strip }}
+
+{{ signature }}{% endautoescape %}
