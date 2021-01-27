@@ -53,10 +53,8 @@ YES_NO_NA_UNDETERMINED = (
     ('', '-----------'),
     (1, 'Yes'),
     (0, 'No'),
-    (2, 'N/A'),
-    (None, 'Undetermined')
+    (None, 'N/A or Undetermined')
 )
-
 
 class AssignEditorForm(forms.Form):
     """
@@ -558,7 +556,8 @@ class PersonalCredentialForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         # This will be used in clean
-        self.quality_assurance_fields = ('user_searchable', 'user_has_papers', 'research_summary_clear', 'course_name_provided', 'user_understands_privacy', 'user_org_known', 'user_details_consistent')
+        self.quality_assurance_fields = ('user_searchable', 'user_has_papers', 'research_summary_clear', 'user_understands_privacy', 'user_org_known', 'user_details_consistent')
+        self.categorical_fields = ('course_name_provided',)
 
         self.responder = responder
         self.fields['decision'].choices = REVIEW_RESPONSE_CHOICES
@@ -570,6 +569,11 @@ class PersonalCredentialForm(forms.ModelForm):
         if self.cleaned_data['decision'] == '1':
             for field in self.quality_assurance_fields:
                 if not self.cleaned_data[field]:
+                    raise forms.ValidationError(
+                        'The quality assurance fields must all pass '
+                          'before you approve the application')
+            for field in self.categorical_fields:
+                if self.cleaned_data[field] is False:
                     raise forms.ValidationError(
                         'The quality assurance fields must all pass '
                           'before you approve the application')
@@ -626,7 +630,8 @@ class ReferenceCredentialForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         # This will be used in clean
-        self.quality_assurance_fields = ('ref_appropriate', 'ref_searchable', 'ref_has_papers', 'ref_is_supervisor', 'ref_course_list')
+        self.quality_assurance_fields = ('ref_appropriate', 'ref_searchable', 'ref_has_papers')
+        self.categorical_fields = ('ref_is_supervisor', 'ref_course_list')
 
         self.responder = responder
         self.fields['decision'].choices = REVIEW_RESPONSE_CHOICES
@@ -638,6 +643,11 @@ class ReferenceCredentialForm(forms.ModelForm):
         if self.cleaned_data['decision'] == '1':
             for field in self.quality_assurance_fields:
                 if not self.cleaned_data[field]:
+                    raise forms.ValidationError(
+                        'The quality assurance fields must all pass '
+                          'before you approve the application')
+            for field in self.categorical_fields:
+                if self.cleaned_data[field] is False:
                     raise forms.ValidationError(
                         'The quality assurance fields must all pass '
                           'before you approve the application')
