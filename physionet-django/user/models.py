@@ -736,6 +736,8 @@ class CredentialApplication(models.Model):
         related_name='responded_applications', on_delete=models.SET_NULL)
     responder_comments = models.CharField(max_length=500, default='',
         blank=True)
+    internal_comments = models.CharField(max_length=500, default='',
+        blank=True)
     revoked_datetime = models.DateTimeField(null=True)
 
     def file_root(self):
@@ -911,8 +913,12 @@ class CredentialReview(models.Model):
     ref_approves = models.NullBooleanField(null=True)
     ref_understands_privacy = models.NullBooleanField(null=True)
 
+    # Comments to be sent to the applicant
     responder_comments = models.CharField(max_length=500, default='',
                                           blank=True)
+    # Comments internal to the reviewer (not sent to the applicant)
+    internal_comments = models.CharField(max_length=500, default='',
+                                         null=True, blank=True)
 
 
 class CloudInformation(models.Model):
