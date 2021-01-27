@@ -417,10 +417,6 @@ class InitialCredentialForm(forms.ModelForm):
         self.quality_assurance_fields = ('fields_complete', 'appears_correct',
                                          'lang_understandable')
 
-        # Enforce the requirement of quality assurance fields
-        for f in self.quality_assurance_fields:
-            self.fields[f].required = True
-
         self.responder = responder
         self.fields['decision'].choices = REVIEW_RESPONSE_CHOICES
 
@@ -490,10 +486,6 @@ class TrainingCredentialForm(forms.ModelForm):
         self.quality_assurance_fields = ('citi_report_attached', 'training_current',
                                          'training_all_modules', 'training_privacy_complete',
                                          'training_name_match')
-
-        # Enforce the requirement of quality assurance fields
-        for f in self.quality_assurance_fields:
-            self.fields[f].required = True
 
         self.responder = responder
         self.fields['decision'].choices = REVIEW_RESPONSE_CHOICES
@@ -568,10 +560,6 @@ class PersonalCredentialForm(forms.ModelForm):
         # This will be used in clean
         self.quality_assurance_fields = ('user_searchable', 'user_has_papers', 'research_summary_clear', 'course_name_provided', 'user_understands_privacy', 'user_org_known', 'user_details_consistent')
 
-        # Enforce the requirement of quality assurance fields
-        for f in self.quality_assurance_fields:
-            self.fields[f].required = True
-
         self.responder = responder
         self.fields['decision'].choices = REVIEW_RESPONSE_CHOICES
 
@@ -640,10 +628,6 @@ class ReferenceCredentialForm(forms.ModelForm):
         # This will be used in clean
         self.quality_assurance_fields = ('ref_appropriate', 'ref_searchable', 'ref_has_papers', 'ref_is_supervisor', 'ref_course_list')
 
-        # Enforce the requirement of quality assurance fields
-        for f in self.quality_assurance_fields:
-            self.fields[f].required = True
-
         self.responder = responder
         self.fields['decision'].choices = REVIEW_RESPONSE_CHOICES
 
@@ -709,10 +693,6 @@ class ResponseCredentialForm(forms.ModelForm):
         self.quality_assurance_fields = ('ref_knows_applicant',
                                          'ref_approves',
                                          'ref_understands_privacy')
-
-        # Enforce the requirement of quality assurance fields
-        for f in self.quality_assurance_fields:
-            self.fields[f].required = True
 
         self.responder = responder
         self.fields['decision'].choices = REVIEW_RESPONSE_CHOICES
