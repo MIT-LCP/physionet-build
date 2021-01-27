@@ -351,9 +351,9 @@ class ProcessCredentialForm(forms.ModelForm):
             'responder_comments':'Comments (required for rejected applications). This will be sent to the applicant.',
             'status':'Decision',
         }
-        widgets = {
-            'responder_comments': forms.Textarea(attrs={'rows': 5}),
-        }
+        # widgets = {
+        #     'responder_comments': forms.Textarea(attrs={'rows': 5}),
+        # }
 
     def __init__(self, responder, *args, **kwargs):
         super().__init__(*args, **kwargs)
