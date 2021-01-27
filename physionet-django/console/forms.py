@@ -351,9 +351,9 @@ class ProcessCredentialForm(forms.ModelForm):
             'responder_comments':'Comments (required for rejected applications). This will be sent to the applicant.',
             'status':'Decision',
         }
-        # widgets = {
-        #     'responder_comments':forms.Textarea(attrs={'rows': 3}),
-        # }
+        widgets = {
+            'responder_comments': forms.Textarea(attrs={'rows': 5}),
+        }
 
     def __init__(self, responder, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -406,6 +406,7 @@ class InitialCredentialForm(forms.ModelForm):
             'fields_complete': forms.Select(choices=YES_NO_UNDETERMINED),
             'appears_correct': forms.Select(choices=YES_NO_UNDETERMINED),
             'lang_understandable': forms.Select(choices=YES_NO_UNDETERMINED),
+            'responder_comments': forms.Textarea(attrs={'rows': 5}),
             'decision': forms.Select(choices=REVIEW_RESPONSE_CHOICES)
         }
 
@@ -478,6 +479,7 @@ class TrainingCredentialForm(forms.ModelForm):
             'training_all_modules': forms.Select(choices=YES_NO_UNDETERMINED),
             'training_privacy_complete': forms.Select(choices=YES_NO_UNDETERMINED),
             'training_name_match': forms.Select(choices=YES_NO_UNDETERMINED),
+            'responder_comments': forms.Textarea(attrs={'rows': 5}),
             'decision': forms.Select(choices=REVIEW_RESPONSE_CHOICES)
         }
 
@@ -556,6 +558,7 @@ class PersonalCredentialForm(forms.ModelForm):
             'user_understands_privacy': forms.Select(choices=YES_NO_UNDETERMINED),
             'user_org_known': forms.Select(choices=YES_NO_UNDETERMINED),
             'user_details_consistent': forms.Select(choices=YES_NO_UNDETERMINED),
+            'responder_comments': forms.Textarea(attrs={'rows': 5}),
             'decision': forms.Select(choices=REVIEW_RESPONSE_CHOICES)
         }
 
@@ -627,6 +630,7 @@ class ReferenceCredentialForm(forms.ModelForm):
             'ref_has_papers': forms.Select(choices=YES_NO_UNDETERMINED),
             'ref_is_supervisor': forms.Select(choices=YES_NO_NA_UNDETERMINED),
             'ref_course_list': forms.Select(choices=YES_NO_NA_UNDETERMINED),
+            'responder_comments': forms.Textarea(attrs={'rows': 5}),
             'decision': forms.Select(choices=REVIEW_RESPONSE_CHOICES)
         }
 
@@ -694,6 +698,7 @@ class ResponseCredentialForm(forms.ModelForm):
             'ref_knows_applicant': forms.Select(choices=YES_NO_UNDETERMINED),
             'ref_approves': forms.Select(choices=YES_NO_UNDETERMINED),
             'ref_understands_privacy': forms.Select(choices=YES_NO_UNDETERMINED),
+            'responder_comments': forms.Textarea(attrs={'rows': 5}),
             'decision': forms.Select(choices=REVIEW_RESPONSE_CHOICES)
         }
 
