@@ -382,6 +382,49 @@ class ProcessCredentialForm(forms.ModelForm):
         return application
 
 
+class ProcessCredentialReviewForm(forms.ModelForm):
+    """
+    Form to respond to a credential application review
+    """
+
+    class Meta:
+        model = CredentialApplication
+        fields = ('responder_comments', 'status')
+        labels = {
+            'responder_comments':'Comments (required for rejected applications). This will be sent to the applicant.',
+            'status':'Decision',
+        }
+        widgets = {
+            'responder_comments': forms.Textarea(attrs={'rows': 5}),
+        }
+
+    def __init__(self, responder, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.responder = responder
+        self.fields['status'].choices = CredentialApplication.REJECT_ACCEPT_WITHDRAW[:3]
+
+    def clean(self):
+        if self.errors:
+            return
+
+        if self.cleaned_data['status'] == 1 and not self.cleaned_data['responder_comments']:
+            raise forms.ValidationError('If you reject, you must explain why.')
+
+    def save(self):
+        application = super().save()
+
+        if application.status == 1:
+            application.reject(self.responder)
+        elif application.status == 2:
+            application.accept(self.responder)
+        elif application.status == 3:
+            application.withdraw(self.responder)
+        else:
+            raise forms.ValidationError('Application status not valid.')
+
+        return application
+
+
 class InitialCredentialForm(forms.ModelForm):
     """
     Form to respond to a credential application in the initial review stage
