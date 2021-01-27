@@ -1182,7 +1182,8 @@ def process_credential_application(request, application_slug):
                 if intermediate_credential_form.cleaned_data['decision'] == '0':
                     notification.process_credential_complete(request,
                                                              application)
-                    return redirect(credential_processing)
+                    return render(request, 'console/process_credential_complete.html',
+                        {'application':application})
                 page_title = title_dict[application.credential_review.status]
                 intermediate_credential_form = forms.TrainingCredentialForm(
                     responder=request.user, instance=application)
@@ -1196,7 +1197,8 @@ def process_credential_application(request, application_slug):
                 if intermediate_credential_form.cleaned_data['decision'] == '0':
                     notification.process_credential_complete(request,
                                                              application)
-                    return redirect(credential_processing)
+                    return render(request, 'console/process_credential_complete.html',
+                        {'application':application})
                 page_title = title_dict[application.credential_review.status]
                 intermediate_credential_form = forms.PersonalCredentialForm(
                     responder=request.user, instance=application)
@@ -1210,7 +1212,8 @@ def process_credential_application(request, application_slug):
                 if intermediate_credential_form.cleaned_data['decision'] == '0':
                     notification.process_credential_complete(request,
                                                              application)
-                    return redirect(credential_processing)
+                    return render(request, 'console/process_credential_complete.html',
+                        {'application':application})
                 page_title = title_dict[application.credential_review.status]
                 intermediate_credential_form = forms.ReferenceCredentialForm(
                     responder=request.user, instance=application)
@@ -1224,7 +1227,8 @@ def process_credential_application(request, application_slug):
                 if intermediate_credential_form.cleaned_data['decision'] == '0':
                     notification.process_credential_complete(request,
                                                              application)
-                    return redirect(credential_processing)
+                    return render(request, 'console/process_credential_complete.html',
+                        {'application':application})
                 page_title = title_dict[application.credential_review.status]
                 intermediate_credential_form = forms.ResponseCredentialForm(
                     responder=request.user, instance=application)
@@ -1238,7 +1242,8 @@ def process_credential_application(request, application_slug):
                 if intermediate_credential_form.cleaned_data['decision'] == '0':
                     notification.process_credential_complete(request,
                                                              application)
-                    return redirect(credential_processing)
+                    return render(request, 'console/process_credential_complete.html',
+                        {'application':application})
                 page_title = title_dict[application.credential_review.status]
                 intermediate_credential_form = forms.ProcessCredentialForm(
                     responder=request.user, instance=application)
