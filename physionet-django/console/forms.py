@@ -31,7 +31,7 @@ SUBMISSION_RESPONSE_CHOICES = (
 
 REVIEW_RESPONSE_CHOICES = (
     ('', '-----------'),
-    (1, 'Approve'),
+    (1, 'Pass to Next Stage'),
     (0, 'Reject'),
 )
 
