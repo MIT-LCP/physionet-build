@@ -1258,8 +1258,7 @@ def process_credential_application(request, application_slug):
                 subject = contact_cred_ref_form.cleaned_data['subject']
                 body = contact_cred_ref_form.cleaned_data['body']
                 notification.contact_reference(request, application,
-                                               subject=subject, body=body,
-                                               cc=settings.CREDENTIAL_EMAIL)
+                                               subject=subject, body=body)
                 messages.success(request, 'The reference has been contacted.')
         elif 'skip_reference' in request.POST:
             application.update_review_status(60)

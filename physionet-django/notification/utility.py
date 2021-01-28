@@ -475,7 +475,7 @@ def contact_applicant(request, application, comments):
 
 
 def contact_reference(request, application, send=True, wordwrap=True,
-                      subject="", body="", cc=None):
+                      subject="", body=""):
     """
     Request verification from a credentialing applicant's reference.
 
@@ -485,7 +485,6 @@ def contact_reference(request, application, send=True, wordwrap=True,
         wordwrap : If True, wraps body at 70 characters.
         subject : Subject line.
         body : Body text.
-        cc : The address to be CC'd to the email.
 
     Returns:
         dict : email name, subject, body
@@ -510,14 +509,8 @@ def contact_reference(request, application, send=True, wordwrap=True,
         body = defaultfilters.wordwrap(body, 70)
 
     if send:
-        message = EmailMessage(
-            subject=subject,
-            body=body,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[application.reference_email],
-            cc=[cc]
-        )
-        message.send(fail_silently=False)
+        send_mail(subject, body, settings.CREDENTIAL_EMAIL,
+                  [application.reference_email], fail_silently=False)
 
     return {"subject": subject, "body": body}
 
