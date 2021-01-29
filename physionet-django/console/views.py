@@ -1150,7 +1150,7 @@ def process_credential_application(request, application_slug):
             handled by another administrator.""")
         return redirect('credential_applications')
 
-    process_credential_form = forms.ProcessCredentialForm(responder=request.user,
+    process_credential_form = forms.ProcessCredentialReviewForm(responder=request.user,
         instance=application)
 
     ref_email = notification.contact_reference(request, application,
@@ -1171,7 +1171,7 @@ def process_credential_application(request, application_slug):
     if application.credential_review.status == 50:
         intermediate_credential_form = forms.ResponseCredentialForm(responder=request.user, instance=application)
     if application.credential_review.status == 60:
-        intermediate_credential_form = forms.ProcessCredentialForm(responder=request.user, instance=application)
+        intermediate_credential_form = forms.ProcessCredentialReviewForm(responder=request.user, instance=application)
 
     if request.method == 'POST':
         if 'approve_initial' in request.POST:
@@ -1245,7 +1245,7 @@ def process_credential_application(request, application_slug):
                     return render(request, 'console/process_credential_complete.html',
                         {'application':application})
                 page_title = title_dict[application.credential_review.status]
-                intermediate_credential_form = forms.ProcessCredentialForm(
+                intermediate_credential_form = forms.ProcessCredentialReviewForm(
                     responder=request.user, instance=application)
             else:
                 messages.error(request, 'Invalid review. See form below.')
@@ -1264,7 +1264,7 @@ def process_credential_application(request, application_slug):
             application.update_review_status(60)
             application.save()
         elif 'process_application' in request.POST:
-            process_credential_form = forms.ProcessCredentialForm(
+            process_credential_form = forms.ProcessCredentialReviewForm(
                 responder=request.user, data=request.POST, instance=application)
             if process_credential_form.is_valid():
                 application = process_credential_form.save()
