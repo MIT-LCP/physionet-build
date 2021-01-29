@@ -30,7 +30,6 @@ SUBMISSION_RESPONSE_CHOICES = (
 )
 
 REVIEW_RESPONSE_CHOICES = (
-    ('', '-----------'),
     (1, 'Pass to Next Stage'),
     (0, 'Reject'),
 )
@@ -49,8 +48,13 @@ YES_NO_UNDETERMINED = (
     (None, 'Undetermined')
 )
 
+YES_NO_UNDETERMINED_REVIEW = (
+    (1, 'Yes'),
+    (0, 'No'),
+    (None, 'Undetermined')
+)
+
 YES_NO_NA_UNDETERMINED = (
-    ('', '-----------'),
     (1, 'Yes'),
     (0, 'No'),
     (None, 'N/A or Undetermined')
@@ -385,7 +389,8 @@ class InitialCredentialForm(forms.ModelForm):
     Form to respond to a credential application in the initial review stage
     """
 
-    decision = forms.ChoiceField()
+    decision = forms.ChoiceField(choices=REVIEW_RESPONSE_CHOICES,
+            widget=forms.RadioSelect)
 
     class Meta:
         model = CredentialReview
@@ -401,11 +406,11 @@ class InitialCredentialForm(forms.ModelForm):
         }
 
         widgets = {
-            'fields_complete': forms.Select(choices=YES_NO_UNDETERMINED),
-            'appears_correct': forms.Select(choices=YES_NO_UNDETERMINED),
-            'lang_understandable': forms.Select(choices=YES_NO_UNDETERMINED),
+            'fields_complete': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
+            'appears_correct': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
+            'lang_understandable': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
             'responder_comments': forms.Textarea(attrs={'rows': 5}),
-            'decision': forms.Select(choices=REVIEW_RESPONSE_CHOICES)
+            'decision': forms.RadioSelect(choices=REVIEW_RESPONSE_CHOICES)
         }
 
     def __init__(self, responder, *args, **kwargs):
@@ -449,7 +454,8 @@ class TrainingCredentialForm(forms.ModelForm):
     Form to respond to a credential application in the training check stage
     """
 
-    decision = forms.ChoiceField()
+    decision = forms.ChoiceField(choices=REVIEW_RESPONSE_CHOICES,
+            widget=forms.RadioSelect)
 
     class Meta:
         model = CredentialReview
@@ -468,13 +474,13 @@ class TrainingCredentialForm(forms.ModelForm):
         }
 
         widgets = {
-            'citi_report_attached': forms.Select(choices=YES_NO_UNDETERMINED),
-            'training_current': forms.Select(choices=YES_NO_UNDETERMINED),
-            'training_all_modules': forms.Select(choices=YES_NO_UNDETERMINED),
-            'training_privacy_complete': forms.Select(choices=YES_NO_UNDETERMINED),
-            'training_name_match': forms.Select(choices=YES_NO_UNDETERMINED),
+            'citi_report_attached': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
+            'training_current': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
+            'training_all_modules': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
+            'training_privacy_complete': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
+            'training_name_match': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
             'responder_comments': forms.Textarea(attrs={'rows': 5}),
-            'decision': forms.Select(choices=REVIEW_RESPONSE_CHOICES)
+            'decision': forms.RadioSelect(choices=REVIEW_RESPONSE_CHOICES)
         }
 
     def __init__(self, responder, *args, **kwargs):
@@ -519,7 +525,8 @@ class PersonalCredentialForm(forms.ModelForm):
     Form to respond to a credential application in the ID check stage
     """
 
-    decision = forms.ChoiceField()
+    decision = forms.ChoiceField(choices=REVIEW_RESPONSE_CHOICES,
+            widget=forms.RadioSelect)
 
     class Meta:
         model = CredentialReview
@@ -541,15 +548,15 @@ class PersonalCredentialForm(forms.ModelForm):
         }
 
         widgets = {
-            'user_searchable': forms.Select(choices=YES_NO_UNDETERMINED),
-            'user_has_papers': forms.Select(choices=YES_NO_UNDETERMINED),
-            'research_summary_clear': forms.Select(choices=YES_NO_UNDETERMINED),
-            'course_name_provided': forms.Select(choices=YES_NO_NA_UNDETERMINED),
-            'user_understands_privacy': forms.Select(choices=YES_NO_UNDETERMINED),
-            'user_org_known': forms.Select(choices=YES_NO_UNDETERMINED),
-            'user_details_consistent': forms.Select(choices=YES_NO_UNDETERMINED),
+            'user_searchable': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
+            'user_has_papers': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
+            'research_summary_clear': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
+            'course_name_provided': forms.RadioSelect(choices=YES_NO_NA_UNDETERMINED),
+            'user_understands_privacy': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
+            'user_org_known': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
+            'user_details_consistent': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
             'responder_comments': forms.Textarea(attrs={'rows': 5}),
-            'decision': forms.Select(choices=REVIEW_RESPONSE_CHOICES)
+            'decision': forms.RadioSelect(choices=REVIEW_RESPONSE_CHOICES)
         }
 
     def __init__(self, responder, *args, **kwargs):
@@ -598,7 +605,8 @@ class ReferenceCredentialForm(forms.ModelForm):
     Form to respond to a credential application in the reference check stage
     """
 
-    decision = forms.ChoiceField()
+    decision = forms.ChoiceField(choices=REVIEW_RESPONSE_CHOICES,
+            widget=forms.RadioSelect)
 
     class Meta:
         model = CredentialReview
@@ -617,13 +625,13 @@ class ReferenceCredentialForm(forms.ModelForm):
         }
 
         widgets = {
-            'ref_appropriate': forms.Select(choices=YES_NO_UNDETERMINED),
-            'ref_searchable': forms.Select(choices=YES_NO_UNDETERMINED),
-            'ref_has_papers': forms.Select(choices=YES_NO_UNDETERMINED),
-            'ref_is_supervisor': forms.Select(choices=YES_NO_NA_UNDETERMINED),
-            'ref_course_list': forms.Select(choices=YES_NO_NA_UNDETERMINED),
+            'ref_appropriate': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
+            'ref_searchable': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
+            'ref_has_papers': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
+            'ref_is_supervisor': forms.RadioSelect(choices=YES_NO_NA_UNDETERMINED),
+            'ref_course_list': forms.RadioSelect(choices=YES_NO_NA_UNDETERMINED),
             'responder_comments': forms.Textarea(attrs={'rows': 5}),
-            'decision': forms.Select(choices=REVIEW_RESPONSE_CHOICES)
+            'decision': forms.RadioSelect(choices=REVIEW_RESPONSE_CHOICES)
         }
 
     def __init__(self, responder, *args, **kwargs):
@@ -673,7 +681,8 @@ class ResponseCredentialForm(forms.ModelForm):
     check stage
     """
 
-    decision = forms.ChoiceField()
+    decision = forms.ChoiceField(choices=REVIEW_RESPONSE_CHOICES,
+            widget=forms.RadioSelect)
 
     class Meta:
         model = CredentialReview
@@ -689,11 +698,11 @@ class ResponseCredentialForm(forms.ModelForm):
         }
 
         widgets = {
-            'ref_knows_applicant': forms.Select(choices=YES_NO_UNDETERMINED),
-            'ref_approves': forms.Select(choices=YES_NO_UNDETERMINED),
-            'ref_understands_privacy': forms.Select(choices=YES_NO_UNDETERMINED),
+            'ref_knows_applicant': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
+            'ref_approves': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
+            'ref_understands_privacy': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
             'responder_comments': forms.Textarea(attrs={'rows': 5}),
-            'decision': forms.Select(choices=REVIEW_RESPONSE_CHOICES)
+            'decision': forms.RadioSelect(choices=REVIEW_RESPONSE_CHOICES)
         }
 
     def __init__(self, responder, *args, **kwargs):
