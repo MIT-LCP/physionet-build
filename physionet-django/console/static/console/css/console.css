@@ -514,3 +514,14 @@ footer.sticky-footer {
     width: 1.25em;
     margin-right: .25rem;
 }
+
+.form-group ul {
+  display: block;
+  padding-left: 0;
+}
+
+.form-group li {
+  display: inline-flex;
+  list-style-type: none;
+  margin: 1rem;
+}
