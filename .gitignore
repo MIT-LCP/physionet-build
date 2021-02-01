@@ -139,3 +139,6 @@ physionet-django/*credentials*
 # Disk images
 *.img
 *.iso
+
+# Pycharm / JetBrains / IntelliJ project specific settings folder
+.idea/
