@@ -26,7 +26,7 @@ build:
     - "sudo service postgresql start"
     - "virtualenv -p python3.7 env3"
     - "source env3/bin/activate"
-    - "cp .env.example .env"
+    - "ln -sT .env.example .env"
     - "pip install -r requirements.txt"
     - "sudo apt-get install libseccomp-dev"
     - sudo -u postgres psql -c "create user physionet with superuser password 'password';" -U postgres
