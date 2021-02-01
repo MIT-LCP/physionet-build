@@ -181,6 +181,14 @@ DATACITE_PREFIX = config('DATACITE_TEST_PREFIX', default=False)
 DATACITE_USER = config('DATACITE_TEST_USER', default=False)
 DATACITE_PASS = config('DATACITE_TEST_PASS', default=False)
 
+# Tags for the ORCID API
+ORCID_DOMAIN = 'https://sandbox.orcid.org'
+ORCID_REDIRECT_URI = 'http://127.0.0.1:8000/authorcid'
+ORCID_AUTH_URL = 'https://sandbox.orcid.org/oauth/authorize'
+ORCID_TOKEN_URL = 'https://sandbox.orcid.org/oauth/token'
+ORCID_CLIENT_ID = config('ORCID_LOCAL_CLIENT_ID', default=False)
+ORCID_CLIENT_SECRET = config('ORCID_LOCAL_CLIENT_SECRET', default=False)
+
 # Used to verify if we are running in the production environment
 PRODUCTION = False
 
