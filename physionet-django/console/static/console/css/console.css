@@ -518,6 +518,7 @@ footer.sticky-footer {
 .form-group ul {
   display: block;
   padding-left: 0;
+  height: 3rem;
 }
 
 .form-group li {
