@@ -243,3 +243,42 @@ AWS_CLOUD_FORMATION=URL
 This functionality will send the AWS ID to a Lambda function in the AWS Cloud Formation.
 That ID will be then added to the storage bucket and databases.
 
+## ORCID account integration
+
+Obtaining a client_id / client_secret for interacting with the ORCID API:
+
+These variables are required in your .env file to request / exchange a token from ORCID in a effort to get a users ORCID iD, etc. The \_LOCAL_ variables are used by base.py while the \_PHYSIO_ variables are used by staging.py and production.py. To obtain valid CLIENT_ID and CLIENT_SECRET values you must register an account or use an account from your institution to obtain valid codes.  When doing development work off of base.py, register an account at sandbox.orcid.org and when using staging.py or production.py register at orcid.org.  After registering you can go to developer tools under your name (when logged in) to get the CLIENT_ID and CLIENT_SECRET.  You will also need to enter the redirect URI under developer tools. Use the value as provided in the settings (ORCID_REDIRECT_URI in base / staging / production.py)
+```
+ORCID_LOCAL_CLIENT_ID=SECRET
+ORCID_LOCAL_CLIENT_SECRET=SECRET
+ORCID_PHYSIO_CLIENT_ID=SECRET
+ORCID_PHYSIO_CLIENT_SECRET=SECRET
+```
+
+ORCID token exchange guide:
+
+A tutorial can be found here: https://orcid.github.io/orcid-api-tutorial/ . Token exchanges on the public API can be made at: pub.sandbox.orcid.org and on the member API at api.sandbox.orcid.org. Here is a an example using the public API:
+
+```
+orcid_object = Orcid.objects.get(user=request.user)
+orcid_rec_id = orcid_object.orcid_id
+orcid_rec_access_token = orcid_object.access_token
+token_sent = {'access_token': orcid_rec_access_token}
+client = OAuth2Session(client_id, token=token_sent)
+protected_url = f'https://pub.sandbox.orcid.org/v3.0/{orcid_rec_id}/record'
+r = client.get(protected_url)
+```
+
+The response should be 200 and contain an xml document which has a put-code for each item in the users record. For example the xml contains: `<work:work-summary put-code="1184745" path="/0000-0002-8983-9907/work/1184745" visibility="public" display-index="1">\n`. This put-code can then be used to retrieve more information about a given record item (i.e. work in this example).
+
+```
+work_url = f'https://pub.sandbox.orcid.org/v3.0/{orcid_rec_id}/work/1184745'
+wr = client.get(work_url)
+```
+
+This will also return 200 and the xml document will contain detailed information about the users work
+(i.e. publication details, etc).
+
+If we have access to the ORCID member API (instead of just the public API) we should also be able to update a users
+profile with PhysioNet project information.  In that case the \_PHYSIO_ codes need to be associated with the ORCID MIT
+institution account.
