@@ -276,9 +276,6 @@ work_url = f'https://pub.sandbox.orcid.org/v3.0/{orcid_rec_id}/work/1184745'
 wr = client.get(work_url)
 ```
 
-This will also return 200 and the xml document will contain detailed information about the users work
-(i.e. publication details, etc).
+This will also return 200 and the xml document will contain detailed information about the users work (i.e. publication details, etc).
 
-If we have access to the ORCID member API (instead of just the public API) we should also be able to update a users
-profile with PhysioNet project information.  In that case the \_PHYSIO_ codes need to be associated with the ORCID MIT
-institution account.
+If we have access to the ORCID member API (instead of just the public API) we should also be able to update a users profile with PhysioNet project information.  In that case the \_PHYSIO_ codes need to be associated with the ORCID MIT institution account.
