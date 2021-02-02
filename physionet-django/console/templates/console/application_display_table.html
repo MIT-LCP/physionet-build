@@ -1,6 +1,6 @@
 {# Status section #}
 
-<p>Username: <a href="{% url 'public_profile' application.user.username %}">{{ application.user.username }}</a></br>
+<p>Username: <a href="{% url 'user_management' application.user.username %}">{{ application.user.username }}</a></br>
 Applied: {{ application.application_datetime|date }}</br>
 [<a href="https://www.google.com/search?q={{ application.first_names }} {{ application.last_name }} {{ application.organization_name }}" target="_blank">Search for name and affiliation.</a>]</p>
 

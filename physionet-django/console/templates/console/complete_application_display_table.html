@@ -3,7 +3,7 @@
 
 {# Personal details #}
 
-<p>User: <a href="{% url 'public_profile' application.user.username %}">{{ application.user.username }}</a>
+<p>User: <a href="{% url 'user_management' application.user.username %}">{{ application.user.username }}</a>
 
 PhysioNet e-mail: {{ application.user.email }}<br>
 

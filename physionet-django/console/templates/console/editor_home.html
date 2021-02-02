@@ -33,7 +33,7 @@
           {% for project in decision_projects %}
             <tr>
               <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
-              <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
+              <td><a href="{% url 'user_management' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
               <td>{{ project.submission_datetime|date }}</td>
               <td>
                 {% if project.resubmission_datetime %}
@@ -77,7 +77,7 @@
           {% for project in revision_projects %}
             <tr>
               <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
-              <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
+              <td><a href="{% url 'user_management' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
               <td>{{ project.submission_datetime|date }}</td>
               <td>{{ project.revision_request_datetime|date }}</td>
               <td>{{ project.latest_reminder|date }}</td>
