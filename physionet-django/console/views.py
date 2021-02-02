@@ -1189,6 +1189,23 @@ def process_credential_application(request, application_slug):
                     responder=request.user, instance=application)
             else:
                 messages.error(request, 'Invalid review. See form below.')
+        elif 'approve_initial_all' in request.POST:
+            if request.POST['decision'] == '0':
+                messages.error(request, 'You selected Reject. Did you mean to Approve All?')
+            else:
+                data_copy = request.POST.copy()
+                valid_fields = set(request.POST.keys())
+                valid_fields.difference_update({'csrfmiddlewaretoken',
+                                                'responder_comments',
+                                                'approve_initial_all'})
+                for field in valid_fields:
+                    data_copy[field] = '1'
+                intermediate_credential_form = forms.InitialCredentialForm(
+                    responder=request.user, data=data_copy, instance=application)
+                intermediate_credential_form.save()
+                page_title = title_dict[application.credential_review.status]
+                intermediate_credential_form = forms.TrainingCredentialForm(
+                    responder=request.user, instance=application)
         elif 'approve_training' in request.POST:
             intermediate_credential_form = forms.TrainingCredentialForm(
                 responder=request.user, data=request.POST, instance=application)
@@ -1204,6 +1221,23 @@ def process_credential_application(request, application_slug):
                     responder=request.user, instance=application)
             else:
                 messages.error(request, 'Invalid review. See form below.')
+        elif 'approve_training_all' in request.POST:
+            if request.POST['decision'] == '0':
+                messages.error(request, 'You selected Reject. Did you mean to Approve All?')
+            else:
+                data_copy = request.POST.copy()
+                valid_fields = set(request.POST.keys())
+                valid_fields.difference_update({'csrfmiddlewaretoken',
+                                                'responder_comments',
+                                                'approve_training_all'})
+                for field in valid_fields:
+                    data_copy[field] = '1'
+                intermediate_credential_form = forms.TrainingCredentialForm(
+                    responder=request.user, data=data_copy, instance=application)
+                intermediate_credential_form.save()
+                page_title = title_dict[application.credential_review.status]
+                intermediate_credential_form = forms.PersonalCredentialForm(
+                    responder=request.user, instance=application)
         elif 'approve_personal' in request.POST:
             intermediate_credential_form = forms.PersonalCredentialForm(
                 responder=request.user, data=request.POST, instance=application)
@@ -1219,6 +1253,23 @@ def process_credential_application(request, application_slug):
                     responder=request.user, instance=application)
             else:
                 messages.error(request, 'Invalid review. See form below.')
+        elif 'approve_personal_all' in request.POST:
+            if request.POST['decision'] == '0':
+                messages.error(request, 'You selected Reject. Did you mean to Approve All?')
+            else:
+                data_copy = request.POST.copy()
+                valid_fields = set(request.POST.keys())
+                valid_fields.difference_update({'csrfmiddlewaretoken',
+                                                'responder_comments',
+                                                'approve_personal_all'})
+                for field in valid_fields:
+                    data_copy[field] = '1'
+                intermediate_credential_form = forms.PersonalCredentialForm(
+                    responder=request.user, data=data_copy, instance=application)
+                intermediate_credential_form.save()
+                page_title = title_dict[application.credential_review.status]
+                intermediate_credential_form = forms.ReferenceCredentialForm(
+                    responder=request.user, instance=application)
         elif 'approve_reference' in request.POST:
             intermediate_credential_form = forms.ReferenceCredentialForm(
                 responder=request.user, data=request.POST, instance=application)
@@ -1234,6 +1285,23 @@ def process_credential_application(request, application_slug):
                     responder=request.user, instance=application)
             else:
                 messages.error(request, 'Invalid review. See form below.')
+        elif 'approve_reference_all' in request.POST:
+            if request.POST['decision'] == '0':
+                messages.error(request, 'You selected Reject. Did you mean to Approve All?')
+            else:
+                data_copy = request.POST.copy()
+                valid_fields = set(request.POST.keys())
+                valid_fields.difference_update({'csrfmiddlewaretoken',
+                                                'responder_comments',
+                                                'approve_reference_all'})
+                for field in valid_fields:
+                    data_copy[field] = '1'
+                intermediate_credential_form = forms.ReferenceCredentialForm(
+                    responder=request.user, data=data_copy, instance=application)
+                intermediate_credential_form.save()
+                page_title = title_dict[application.credential_review.status]
+                intermediate_credential_form = forms.ResponseCredentialForm(
+                    responder=request.user, instance=application)
         elif 'approve_response' in request.POST:
             intermediate_credential_form = forms.ResponseCredentialForm(
                 responder=request.user, data=request.POST, instance=application)
@@ -1249,6 +1317,23 @@ def process_credential_application(request, application_slug):
                     responder=request.user, instance=application)
             else:
                 messages.error(request, 'Invalid review. See form below.')
+        elif 'approve_response_all' in request.POST:
+            if request.POST['decision'] == '0':
+                messages.error(request, 'You selected Reject. Did you mean to Approve All?')
+            else:
+                data_copy = request.POST.copy()
+                valid_fields = set(request.POST.keys())
+                valid_fields.difference_update({'csrfmiddlewaretoken',
+                                                'responder_comments',
+                                                'approve_response_all'})
+                for field in valid_fields:
+                    data_copy[field] = '1'
+                intermediate_credential_form = forms.ResponseCredentialForm(
+                    responder=request.user, data=data_copy, instance=application)
+                intermediate_credential_form.save()
+                page_title = title_dict[application.credential_review.status]
+                intermediate_credential_form = forms.ProcessCredentialReviewForm(
+                    responder=request.user, instance=application)
         elif 'contact_reference' in request.POST:
             contact_cred_ref_form = forms.ContactCredentialRefForm(
                 data=request.POST)
