@@ -591,8 +591,8 @@ class PersonalCredentialForm(forms.ModelForm):
         }
 
         widgets = {
-            'user_searchable': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
-            'user_has_papers': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
+            'user_searchable': forms.RadioSelect(choices=YES_NO_NA_UNDETERMINED),
+            'user_has_papers': forms.RadioSelect(choices=YES_NO_NA_UNDETERMINED),
             'research_summary_clear': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
             'course_name_provided': forms.RadioSelect(choices=YES_NO_NA_UNDETERMINED),
             'user_understands_privacy': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
@@ -606,8 +606,8 @@ class PersonalCredentialForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         # This will be used in clean
-        self.quality_assurance_fields = ('user_searchable', 'user_has_papers', 'research_summary_clear', 'user_understands_privacy', 'user_org_known', 'user_details_consistent')
-        self.categorical_fields = ('course_name_provided',)
+        self.quality_assurance_fields = ('research_summary_clear', 'user_understands_privacy', 'user_org_known', 'user_details_consistent')
+        self.categorical_fields = ('user_searchable', 'user_has_papers', 'course_name_provided')
 
         self.responder = responder
         self.fields['decision'].choices = REVIEW_RESPONSE_CHOICES
@@ -669,8 +669,8 @@ class ReferenceCredentialForm(forms.ModelForm):
 
         widgets = {
             'ref_appropriate': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
-            'ref_searchable': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
-            'ref_has_papers': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
+            'ref_searchable': forms.RadioSelect(choices=YES_NO_NA_UNDETERMINED),
+            'ref_has_papers': forms.RadioSelect(choices=YES_NO_NA_UNDETERMINED),
             'ref_is_supervisor': forms.RadioSelect(choices=YES_NO_NA_UNDETERMINED),
             'ref_course_list': forms.RadioSelect(choices=YES_NO_NA_UNDETERMINED),
             'responder_comments': forms.Textarea(attrs={'rows': 5}),
@@ -681,8 +681,8 @@ class ReferenceCredentialForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         # This will be used in clean
-        self.quality_assurance_fields = ('ref_appropriate', 'ref_searchable', 'ref_has_papers')
-        self.categorical_fields = ('ref_is_supervisor', 'ref_course_list')
+        self.quality_assurance_fields = ('ref_appropriate',)
+        self.categorical_fields = ('ref_searchable', 'ref_has_papers', 'ref_is_supervisor', 'ref_course_list')
 
         self.responder = responder
         self.fields['decision'].choices = REVIEW_RESPONSE_CHOICES
