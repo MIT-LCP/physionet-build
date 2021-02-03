@@ -1,8 +1,8 @@
 #### Requirements for running the server ####
 
-bleach==3.1.4 \
- --hash=sha256:cc8da25076a1fe56c3ac63671e2194458e0c4d9c7becfd52ca251650d517903c \
- --hash=sha256:e78e426105ac07026ba098f04de8abe9b6e3e98b5befbf89b51a5ef0a4292b03
+bleach==3.3.0 \
+ --hash=sha256:6123ddc1052673e52bab52cdc955bcb57a015264a1c57d37bea2f6b817af0125 \
+ --hash=sha256:98b3170739e5e83dd9dc19633f074727ad848cbedb6026708c8ac2d3b697a433
 chardet==3.0.4 \
  --hash=sha256:fc323ffcaeaed0e0a02bf4d117757b98aed530d9ed4531e3e15460124c106691
 Django==2.2.13 \
@@ -61,11 +61,17 @@ selenium==3.141.0 \
 
 #### Indirect requirements ####
 
-# required by bleach 3.1.0
+# required by bleach 3.3.0
 webencodings==0.5.1 \
  --hash=sha256:a0af1213f3c2226497a97e2b3aa01a7e4bee4f403f95be16fc9acd2947514a78
 six==1.12.0 \
  --hash=sha256:3350809f0555b11f552448330d0b52d5f24c91a322ea4a15ef22629740f3761c
+packaging==20.9 \
+ --hash=sha256:67714da7f7bc052e064859c05c595155bd1ee9f69f76557e21f051443c20947a
+
+# required by packaging 20.9
+pyparsing==2.4.7 \
+ --hash=sha256:ef9d7589ef3c200abe66653d3f1ab1033c3c419ae9b9bdb1240a85b024efc88b
 
 # required by Django 2.2.3
 sqlparse==0.2.4 \
