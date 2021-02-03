@@ -531,17 +531,22 @@ footer.sticky-footer {
   table-layout: fixed;
   width: 100%;
 }
+
 .table-index {
   width: 5%;
 }
+
 .table-user {
   width: 10%;
 }
+
 .table-elapsed {
   width: 9%;
 }
+
 .table-process {
   width: 11%;
+}
 
 .axis path,
 .axis line {
