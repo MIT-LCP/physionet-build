@@ -57,4 +57,6 @@ urlpatterns = [
         views.credential_reference, name='credential_reference'),
     path('credential-applications/<application_slug>/training-report/',
         views.training_report, name='training_report'),
+    path('credential-applications/<application_slug>/training-report/view/',
+        views.training_report_view, name='training_report_view'),
 ]

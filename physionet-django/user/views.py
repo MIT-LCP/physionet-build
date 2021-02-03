@@ -550,7 +550,7 @@ def credential_application(request):
 
 
 @login_required
-def training_report(request, application_slug):
+def training_report(request, application_slug, attach=True):
     """
     Serve a training report file
     """
@@ -561,11 +561,21 @@ def training_report(request, application_slug):
 
     if request.user == application.user or request.user.is_admin:
         try:
-            return utility.serve_file(application.training_completion_report.path, False)
+            return utility.serve_file(application.training_completion_report.path,
+                                      attach=attach)
         except FileNotFoundError:
             raise Http404()
 
     raise PermissionDenied()
+
+
+@login_required
+def training_report_view(request, application_slug):
+    """
+    Wrapper for training_report. Serves the training report in the browser
+    for KP's custom pages.
+    """
+    return training_report(request, application_slug, attach=False)
 
 
 # @login_required
