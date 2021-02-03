@@ -1,0 +1,36 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}Graphs{% endblock %}
+
+{% block local_js_top %}
+<script type="text/javascript">
+  // Define the data
+  var data = [{
+    x: "{{ timeline }}".split(','),
+    y: {{ net_apps }}
+  }];
+</script>
+<script src="{% static 'd3/d3.v3.min.js' %}"></script>
+<script src="{% static 'd3/d3.tip.v0.6.3.js' %}"></script>
+<script src="{% static 'console/js/console.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+
+<div class="card mb-3">
+  <div class="card-header">
+    Graph metrics
+  </div>
+  <div id="cred_tracker">
+    <div class="card-body">
+      <h1>Previous Credentialing Applications</h1>
+      <section class="indented-box">
+        <p>This graph displays the number of pending credentialing applications over time. Pending applications are determined by taking the number of submitted applications and subtracting the number of fully processed applications (accept, reject, etc.).</p>
+      </section>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
