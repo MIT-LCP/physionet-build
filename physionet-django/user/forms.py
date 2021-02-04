@@ -445,6 +445,12 @@ class ReferenceCAF(forms.ModelForm):
             'reference_title': 'Reference job title or position'
         }
 
+    def __init__(self, user, *args, **kwargs):
+        """
+        This form is only for processing post requests.
+        """
+        super().__init__(*args, **kwargs)
+        self.user = user
 
     def clean_reference_name(self):
         reference_name = self.cleaned_data.get('reference_name')
@@ -454,7 +460,11 @@ class ReferenceCAF(forms.ModelForm):
     def clean_reference_email(self):
         reference_email = self.cleaned_data.get('reference_email')
         if reference_email:
-            return reference_email.strip()
+            if reference_email in self.user.get_emails():
+                raise forms.ValidationError("""You can not put yourself
+                    as a reference.""")
+            else:
+                return reference_email.strip()
 
     def clean_reference_title(self):
         reference_title = self.cleaned_data.get('reference_title')
