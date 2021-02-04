@@ -516,9 +516,9 @@ footer.sticky-footer {
 }
 
 .form-group ul {
-  display: block;
+  display: inline-flex;
   padding-left: 0;
-  height: 3rem;
+  height: 2rem;
 }
 
 .form-group li {
