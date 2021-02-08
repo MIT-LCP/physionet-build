@@ -429,7 +429,7 @@ class ReferenceCAF(forms.ModelForm):
     class Meta:
         model = CredentialApplication
         fields = ('reference_category', 'reference_name',
-            'reference_email', 'reference_title')
+            'reference_email', 'reference_organization', 'reference_title')
         help_texts = {
             'reference_category': """Your reference's relationship to you. If 
                 you are a student or postdoc, this must be your supervisor. 
@@ -438,7 +438,10 @@ class ReferenceCAF(forms.ModelForm):
                 respond promptly, as long response times will prevent approval 
                 of your application.""",
             'reference_name': 'The full name of your reference.',
-            'reference_email': 'The email address of your reference. It is strongly recommended that this be an institutional email address.',
+            'reference_email': """The email address of your reference. It is
+                strongly recommended that this be an institutional email address.""",
+            'reference_organization': """Your reference's employer or primary
+                affiliation.""",
             'reference_title': "Your reference's professional title or position."
         }
         labels = {
@@ -487,8 +490,8 @@ class CredentialApplicationForm(forms.ModelForm):
             'training_course_name', 'training_completion_date',
             'training_completion_report',
             # Reference
-            'reference_category', 'reference_name',
-            'reference_email', 'reference_title',
+            'reference_category', 'reference_name', 'reference_email',
+            'reference_organization', 'reference_title',
             # Research area
             'research_summary')
 
@@ -513,6 +516,7 @@ class CredentialApplicationForm(forms.ModelForm):
         ref_details = [data['reference_category'] is not None,
                        data['reference_name'],
                        data['reference_email'],
+                       data['reference_organization'],
                        data['reference_title']]
 
         ref_required = data['researcher_category'] in [0, 1, 6, 7]

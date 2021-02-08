@@ -742,6 +742,8 @@ class CredentialApplication(models.Model):
     reference_name = models.CharField(max_length=202, default='', blank=True,
                                       validators=[validators.validate_reference_name])
     reference_email = models.EmailField(default='', blank=True)
+    reference_organization = models.CharField(max_length=200,
+        validators=[validators.validate_organization], blank=True)
     reference_title = models.CharField(max_length=60, default='', blank=True,
         validators=[validators.validate_reference_title])
     # 0 1 2 3 = pending, rejected, accepted, withdrawn
