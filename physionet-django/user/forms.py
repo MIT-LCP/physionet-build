@@ -438,7 +438,7 @@ class ReferenceCAF(forms.ModelForm):
                 respond promptly, as long response times will prevent approval 
                 of your application.""",
             'reference_name': 'The full name of your reference.',
-            'reference_email': 'The email address of your reference.',
+            'reference_email': 'The email address of your reference. It is strongly recommended that this be an institutional email address.',
             'reference_title': "Your reference's professional title or position."
         }
         labels = {
