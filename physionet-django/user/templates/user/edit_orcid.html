@@ -1,4 +1,5 @@
 {% extends "user/settings.html" %}
+{% load static %}
 
 {% block title %}Edit ORCID{% endblock %}
 
@@ -7,14 +8,18 @@
 	<h1>Edit ORCID</h1>
     <hr>
     {% csrf_token %}
-    <p>Use the button below to link or unlink your ORCID iD to your Physionet account.</p>
+    <p>Use the button below to link or unlink your ORCID iD to your account.</p>
     {% include "inline_form_snippet.html" %}
     {% if orcid %}
-         <ul><li>ORCID iD: <a href="{{orcid.get_orcid_url}}/{{orcid.orcid_id}}" rel="noopener">{{orcid.orcid_id}}</a></li></ul>
-        <button class="btn btn-primary btn-rsp" type="submit" name="remove_orcid" value="make_request">Unlink ORCID</button>
+        <p><img src="{% static "images/ORCIDiD_icon24x24.png" %}" />
+           <a href="{{ orcid.get_orcid_url }}/{{ orcid.orcid_id }}" rel="noopener">
+               {{ orcid.get_orcid_url }}/{{ orcid.orcid_id }}</a></p>
+        <button class="btn btn-primary btn-rsp" type="submit" name="remove_orcid" value="make_request">
+            <img src="{% static "images/ORCIDiD_icon24x24.png" %}" /> Unlink ORCID</button>
     {% else %}
-        <ul><li>ORCID iD: no iD linked.</li></ul>
-        <button class="btn btn-primary btn-rsp" type="submit" name="request_orcid" value="make_request">Link ORCID</button>
+        <ul><li>No ORCID iD linked.</li></ul>
+        <button class="btn btn-primary btn-rsp" type="submit" name="request_orcid" value="make_request">
+            <img src="{% static "images/ORCIDiD_icon24x24.png" %}" /> Link ORCID</button>
     {% endif %}
 </form>
 {% endblock %}
