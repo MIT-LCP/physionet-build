@@ -344,9 +344,9 @@ class PersonalCAF(forms.ModelForm):
             'state_province': "The state or province where you live. (Required for residents of Canada or the US.)",
             'zip_code': "The zip code of the city where you live.",
             'country': "The country where you live.",
-            'webpage': """Your organization's webpage. If possible, please 
-                include a link to a webpage with your biography or other 
-                personal details.""",
+            'webpage': """Please include a link to a webpage with your
+                biography or other personal details (ORCID, LinkedIn,
+                Github, etc.).""",
             'research_summary': """Brief description of your proposed research. 
                 If you will be using the data for a class, please include 
                 course name and number in your description.""",
