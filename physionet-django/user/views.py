@@ -576,12 +576,16 @@ def edit_credentialing(request):
 
 
 @login_required
-def user_credential_applications(request):
+def user_credential_applications(request, user=None):
     """
     All the credential applications made by a user
     """
+    if user:
+        request_user = User.objects.filter(username=user)[0]
+    else:
+        request_user = request.user
     applications = CredentialApplication.objects.filter(
-        user=request.user).order_by('-application_datetime')
+        user=request_user).order_by('-application_datetime')
 
     return render(request, 'user/user_credential_applications.html',
         {'applications':applications})

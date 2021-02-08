@@ -927,7 +927,6 @@ def user_management(request, username):
     projects['Archived'] = ArchivedProject.objects.filter(authors__user=user).order_by('-archive_datetime')
     projects['Published'] = PublishedProject.objects.filter(authors__user=user).order_by('-publish_datetime')
 
-
     return render(request, 'console/user_management.html', {'subject': user,
                                                             'profile': user.profile,
                                                             'emails': emails,
