@@ -247,12 +247,14 @@ That ID will be then added to the storage bucket and databases.
 
 Obtaining a client_id / client_secret for interacting with the ORCID API:
 
-These variables are required in your .env file to request / exchange a token from ORCID in a effort to get a users ORCID iD, etc. The \_LOCAL_ variables are used by base.py while the \_PHYSIO_ variables are used by staging.py and production.py. To obtain valid CLIENT_ID and CLIENT_SECRET values you must register an account or use an account from your institution to obtain valid codes.  When doing development work off of base.py, register an account at sandbox.orcid.org and when using staging.py or production.py register at orcid.org.  After registering you can go to developer tools under your name (when logged in) to get the CLIENT_ID and CLIENT_SECRET.  You will also need to enter the redirect URI under developer tools. Use the value as provided in the settings (ORCID_REDIRECT_URI in base / staging / production.py)
+These variables are required in your .env file to request / exchange a token from ORCID in a effort to get a users ORCID iD, etc. The \_TEST_ variables are used by base.py while the variables without \_TEST_ are used by staging.py and production.py. To obtain valid CLIENT_ID and CLIENT_SECRET values you must register an account or use an account from your institution to obtain valid codes.  When doing development work off of base.py, register an account at sandbox.orcid.org and when using staging.py or production.py register at orcid.org.  After registering you can go to developer tools under your name (when logged in) to get the CLIENT_ID and CLIENT_SECRET.  The scopes of the request can be altered with the \_SCOPE variable.  These scopes control what you are allowed to do during your interaction with the ORCID API.  Scopes such as read-limited and activities/update require member API credentials. Multiple scope requests should be separated by a comma: '/read-limited,/activities/update' .  All scopes except 'openid' must start with a forward slash.  See: https://info.orcid.org/faq/what-is-an-oauth-scope-and-which-scopes-does-orcid-support/ for more details.  You will also need to enter the redirect URI under developer tools. Use the value as provided in the settings (ORCID_REDIRECT_URI in base / staging / production.py)
 ```
-ORCID_LOCAL_CLIENT_ID=SECRET
-ORCID_LOCAL_CLIENT_SECRET=SECRET
-ORCID_PHYSIO_CLIENT_ID=SECRET
-ORCID_PHYSIO_CLIENT_SECRET=SECRET
+ORCID_CLIENT_ID=SECRET
+ORCID_CLIENT_SECRET=SECRET
+ORCID_SCOPE='/read-limited,/activities/update'
+ORCID_TEST_CLIENT_ID=SECRET
+ORCID_TEST_CLIENT_SECRET=SECRET
+ORCID_TEST_SCOPE='/authenticate'
 ```
 
 ORCID token exchange guide:
