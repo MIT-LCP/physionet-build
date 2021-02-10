@@ -340,7 +340,7 @@ def edit_orcid(request):
         if 'request_orcid' in request.POST:
             client_id = settings.ORCID_CLIENT_ID
             redirect_uri = settings.ORCID_REDIRECT_URI
-            scope = r'/authenticate'
+            scope = list(settings.ORCID_SCOPE.split(","))
             oauth = OAuth2Session(client_id, redirect_uri=redirect_uri, scope=scope)
             authorization_url, state = oauth.authorization_url(settings.ORCID_AUTH_URL)
 
@@ -377,7 +377,7 @@ def auth_orcid(request):
     client_id = settings.ORCID_CLIENT_ID
     client_secret = settings.ORCID_CLIENT_SECRET
     redirect_uri = settings.ORCID_REDIRECT_URI
-    scope = r'/authenticate'
+    scope = list(settings.ORCID_SCOPE.split(","))
     oauth = OAuth2Session(client_id, redirect_uri=redirect_uri,
                           scope=scope)
     params = request.GET.copy()

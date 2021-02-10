@@ -188,6 +188,7 @@ ORCID_AUTH_URL = 'https://sandbox.orcid.org/oauth/authorize'
 ORCID_TOKEN_URL = 'https://sandbox.orcid.org/oauth/token'
 ORCID_CLIENT_ID = config('ORCID_LOCAL_CLIENT_ID', default=False)
 ORCID_CLIENT_SECRET = config('ORCID_LOCAL_CLIENT_SECRET', default=False)
+ORCID_SCOPE = config('ORCID_LOCAL_SCOPE', default=False)
 
 # Used to verify if we are running in the production environment
 PRODUCTION = False

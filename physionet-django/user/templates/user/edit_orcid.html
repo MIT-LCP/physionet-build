@@ -8,7 +8,14 @@
 	<h1>Edit ORCID</h1>
     <hr>
     {% csrf_token %}
-    <p>Use the button below to link or unlink your ORCID iD to your account.</p>
+    <p>ORCID provides a unique identifier to distinguish researchers and bolster digital identity. Learn more at
+        <a href="https://info.orcid.org/benefits-for-researchers/" rel="noopener">
+            https://info.orcid.org/benefits-for-researchers/</a>.  You can create an account for free if you don't
+        already have one.</p>
+    <p>If you already have an ORCID account, you can use the button below to link or unlink it.
+        Should you make a request to become a "credentialed user", connecting to your ORCID account may help to
+        expedite the application process.  In the future, we hope to add an option for sending information about
+        published project(s) to your ORCID profile.</p>
     {% include "inline_form_snippet.html" %}
     {% if orcid %}
         <p><img src="{% static "images/ORCIDiD_icon24x24.png" %}" />
