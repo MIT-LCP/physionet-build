@@ -51,9 +51,9 @@ ORCID_DOMAIN = 'https://orcid.org'
 ORCID_REDIRECT_URI = 'https://physionet.org/authorcid'
 ORCID_AUTH_URL = 'https://orcid.org/oauth/authorize'
 ORCID_TOKEN_URL = 'https://orcid.org/oauth/token'
-ORCID_CLIENT_ID = config('ORCID_PHYSIO_CLIENT_ID', default=False)
-ORCID_CLIENT_SECRET = config('ORCID_PHYSIO_CLIENT_SECRET', default=False)
-ORCID_SCOPE = config('ORCID_PHYSIO_SCOPE', default=False)
+ORCID_CLIENT_ID = config('ORCID_CLIENT_ID', default=False)
+ORCID_CLIENT_SECRET = config('ORCID_CLIENT_SECRET', default=False)
+ORCID_SCOPE = config('ORCID_SCOPE', default=False)
 
 # If defined, MEDIA_X_ACCEL_ALIAS is the virtual URL path
 # corresponding to MEDIA_ROOT. If possible, when serving a file
