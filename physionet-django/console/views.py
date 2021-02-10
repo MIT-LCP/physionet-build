@@ -1159,7 +1159,7 @@ def process_credential_application(request, application_slug):
     contact_cred_ref_form = forms.ContactCredentialRefForm(initial=ref_email)
 
     try:
-        ref = User.objects.get(associated_emails__email=application.reference_email.lower(),
+        ref = User.objects.get(associated_emails__email__iexact=application.reference_email,
                                associated_emails__is_verified=True)
         known_active = True
         known_cred = ref.is_credentialed
