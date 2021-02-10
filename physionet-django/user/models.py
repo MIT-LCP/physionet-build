@@ -602,6 +602,32 @@ class Profile(models.Model):
         "Where the profile's files are stored"
         return os.path.join(Profile.FILE_ROOT, self.username)
 
+class Orcid(models.Model):
+    """
+    Class for storing ORCID account information.
+    Here are examples of expected formats from a sandbox account:
+    orcid_id: 0000-0002-8983-9907
+    access_token: c4548597-e368-4acb-bd06-1d8bcf13de46
+    refresh_token: 3c68e7a9-7418-4d8d-bf31-1afcd2b7c742
+    token_expiration: 2242899965.166591
+    where the token_expiration is in unix timestamp format (seconds since Jan 1st 1970)
+    """
+    user = models.OneToOneField('user.User', related_name='orcid',
+                                on_delete=models.CASCADE)
+    orcid_id = models.CharField(max_length=50, default='', blank=True,
+                          validators=[validators.validate_orcid_id])
+    name = models.CharField(max_length=50, default='', blank=True)
+    access_token = models.CharField(max_length=50, default='', blank=True,
+                                    validators=[validators.validate_orcid_token])
+    refresh_token = models.CharField(max_length=50, default='', blank=True,
+                                     validators=[validators.validate_orcid_token])
+    token_type = models.CharField(max_length=50, default='', blank=True)
+    token_scope = models.CharField(max_length=50, default='', blank=True)
+    token_expiration = models.DecimalField(max_digits=50, decimal_places=40, default=0)
+
+    @staticmethod
+    def get_orcid_url():
+        return settings.ORCID_DOMAIN
 
 class DualAuthModelBackend():
     """

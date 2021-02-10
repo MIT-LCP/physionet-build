@@ -214,6 +214,21 @@ def validate_nan(value):
     if re.fullmatch(r'[0-9\-+()]*', value):
         raise ValidationError('Cannot be a number.')
 
+def validate_orcid_token(value):
+    """
+    Validation to verify the token returned during
+    views/auth_orcid is in the expected format
+    """
+    if not re.fullmatch(r'^[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}$', value):
+        raise ValidationError('ORCID token is not in expected format.')
+
+def validate_orcid_id(value):
+    """
+    Validation to verify the ID returned during
+    views/auth_orcid is in the expected format
+    """
+    if not re.fullmatch(r'^[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$', value):
+        raise ValidationError('ORCID ID is not in expected format.')
 
 # DEPRECATED VALIDATIONS KEPT FOR MIGRATIONS
 def validate_alphaplus(value):

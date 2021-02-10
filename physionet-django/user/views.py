@@ -26,9 +26,12 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.decorators import method_decorator
 from django.views.decorators.debug import sensitive_post_parameters
 from django.db import transaction
+from django.core.exceptions import ValidationError
+from requests_oauthlib import OAuth2Session
+from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
 
-from user import forms
-from user.models import AssociatedEmail, Profile, User, CredentialApplication, LegacyCredential, CloudInformation
+from user import forms, validators
+from user.models import AssociatedEmail, Profile, Orcid, User, CredentialApplication, LegacyCredential, CloudInformation
 from physionet import utility
 from physionet.middleware.maintenance import (allow_post_during_maintenance,
                                               disallow_during_maintenance,
@@ -37,7 +40,6 @@ from project.models import Author, License, PublishedProject, DUASignature
 from notification.utility import (process_credential_complete,
                                   credential_application_request,
                                   get_url_prefix, notify_account_registration)
-
 
 logger = logging.getLogger(__name__)
 
@@ -326,6 +328,87 @@ def edit_profile(request):
 
     return render(request, 'user/edit_profile.html', {'form':form})
 
+@login_required
+def edit_orcid(request):
+    """
+    Send a user to orcid.org for authorization to link to their ORCID account, then redirect them to
+    views/auth_orcid to save their iD and other token information.  Also provide the option to unlink their
+    ORCID account from their PhysioNet account.
+    """
+
+    if request.method == 'POST':
+        if 'request_orcid' in request.POST:
+            client_id = settings.ORCID_CLIENT_ID
+            redirect_uri = settings.ORCID_REDIRECT_URI
+            scope = list(settings.ORCID_SCOPE.split(","))
+            oauth = OAuth2Session(client_id, redirect_uri=redirect_uri, scope=scope)
+            authorization_url, state = oauth.authorization_url(settings.ORCID_AUTH_URL)
+
+            return redirect(authorization_url)
+
+        if 'remove_orcid' in request.POST:
+            try:
+                Orcid.objects.get(user=request.user).delete()
+                orcid_html = None
+            except ObjectDoesNotExist:
+                messages.error(request, 'Object Does Not Exist Error: tried to unlink an object which does not exist.')
+                orcid_html = None
+
+    else:
+        try:
+            orcid_html = Orcid.objects.get(user=request.user)
+        except ObjectDoesNotExist:
+            orcid_html = None
+
+    return render(request, 'user/edit_orcid.html', {'orcid': orcid_html})
+
+@login_required
+@disallow_during_maintenance
+def auth_orcid(request):
+    """
+    Gets a users iD and token information from an ORCID redirect URI after their authorization. Saves the iD and other
+    token information. The access_token / refresh_token can be used to make token exchanges for additional
+    information in the users account.  Public information can be read without access to the member API at ORCID. Limited
+    access information requires an institution account with ORCID for access to the member API. The member API can also
+    be used to add new information to a users ORCID profile (ex: a PhysioNet dataset project).  See the .env file for
+    an example of how to do token exchanges.
+    """
+
+    client_id = settings.ORCID_CLIENT_ID
+    client_secret = settings.ORCID_CLIENT_SECRET
+    redirect_uri = settings.ORCID_REDIRECT_URI
+    scope = list(settings.ORCID_SCOPE.split(","))
+    oauth = OAuth2Session(client_id, redirect_uri=redirect_uri,
+                          scope=scope)
+    params = request.GET.copy()
+    code = params['code']
+
+    try:
+        token = oauth.fetch_token(settings.ORCID_TOKEN_URL, code=code,
+                                  include_client_id=True, client_secret=client_secret)
+        try:
+            validators.validate_orcid_token(token['access_token'])
+            token_valid = True
+        except ValidationError:
+            messages.error(request, 'Validation Error: ORCID token validation failed.')
+            token_valid = False
+    except InvalidGrantError:
+        messages.error(request, 'Invalid Grant Error: authorization code may be expired or invalid.')
+        token_valid = False
+
+    if token_valid:
+        orcid_profile, _ = Orcid.objects.get_or_create(user=request.user)
+        orcid_profile.orcid_id = token.get('orcid')
+        orcid_profile.name = token.get('name')
+        orcid_profile.access_token = token.get('access_token')
+        orcid_profile.refresh_token = token.get('refresh_token')
+        orcid_profile.token_type = token.get('token_type')
+        orcid_profile.token_scope = token.get('scope')
+        orcid_profile.token_expiration = token.get('expires_at')
+        orcid_profile.full_clean()
+        orcid_profile.save()
+
+    return redirect('edit_orcid')
 
 @login_required
 def edit_password_complete(request):

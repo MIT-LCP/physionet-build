@@ -33,6 +33,8 @@ urlpatterns = [
     path('settings/emails/', views.edit_emails, name='edit_emails'),
     path('settings/username/', views.edit_username, name='edit_username'),
     path('settings/cloud/', views.edit_cloud, name='edit_cloud'),
+    path('settings/orcid/', views.edit_orcid, name='edit_orcid'),
+    path('authorcid/', views.auth_orcid, name='auth_orcid'),
     path('settings/credentialing/', views.edit_credentialing, name='edit_credentialing'),
     path('settings/credentialing/applications/',
         views.user_credential_applications, name='user_credential_applications'),
@@ -44,6 +46,7 @@ urlpatterns = [
     # Obsolete tokens are 34 characters long and also include a hyphen
     re_path('^verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[-0-9A-Za-z]{1,34})/$',
         views.verify_email, name='verify_email'),
+
 
     # Public user profile
     path('users/<username>/', views.public_profile,

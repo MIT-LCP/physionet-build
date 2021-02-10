@@ -1,0 +1,32 @@
+{% extends "user/settings.html" %}
+{% load static %}
+
+{% block title %}Edit ORCID{% endblock %}
+
+{% block main_content %}
+<form action="{% url 'edit_orcid' %}" method="post" enctype="multipart/form-data" class="form-signin no-pd">
+	<h1>Edit ORCID</h1>
+    <hr>
+    {% csrf_token %}
+    <p>ORCID provides a unique identifier to distinguish researchers and bolster digital identity. Learn more at
+        <a href="https://info.orcid.org/benefits-for-researchers/" rel="noopener">
+            https://info.orcid.org/benefits-for-researchers/</a>.  You can create an account for free if you don't
+        already have one.</p>
+    <p>If you already have an ORCID account, you can use the button below to link or unlink it.
+        Should you make a request to become a "credentialed user", connecting to your ORCID account may help to
+        expedite the application process.  In the future, we hope to add an option for sending information about
+        published project(s) to your ORCID profile.</p>
+    {% include "inline_form_snippet.html" %}
+    {% if orcid %}
+        <p><img src="{% static "images/ORCIDiD_icon24x24.png" %}" />
+           <a href="{{ orcid.get_orcid_url }}/{{ orcid.orcid_id }}" rel="noopener">
+               {{ orcid.get_orcid_url }}/{{ orcid.orcid_id }}</a></p>
+        <button class="btn btn-primary btn-rsp" type="submit" name="remove_orcid" value="make_request">
+            <img src="{% static "images/ORCIDiD_icon24x24.png" %}" /> Unlink ORCID</button>
+    {% else %}
+        <ul><li>No ORCID iD linked.</li></ul>
+        <button class="btn btn-primary btn-rsp" type="submit" name="request_orcid" value="make_request">
+            <img src="{% static "images/ORCIDiD_icon24x24.png" %}" /> Link ORCID</button>
+    {% endif %}
+</form>
+{% endblock %}
