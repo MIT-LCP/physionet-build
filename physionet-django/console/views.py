@@ -1139,6 +1139,7 @@ def process_credential_application(request, application_slug):
 
     process_credential_form = forms.ProcessCredentialReviewForm(responder=request.user,
         instance=application)
+    reject_credential_form = forms.CredentialRejectForm()
 
     ref_email = notification.contact_reference(request, application,
                                                send=False,  wordwrap=False)
@@ -1304,6 +1305,30 @@ def process_credential_application(request, application_slug):
                     responder=request.user, instance=application)
             else:
                 messages.error(request, 'Invalid review. See form below.')
+        elif 'reject_template' in request.POST:
+            cred_reject_form = forms.CredentialRejectForm(
+                data=request.POST)
+            if cred_reject_form.is_valid():
+                template_choice = int(cred_reject_form.cleaned_data['reason'])
+                reject_email = notification.process_credential_complete(
+                    request, application, send=False, response_choice=template_choice)
+                form = forms.ContactCredentialRefForm(initial=reject_email)
+                app_user = application.user
+                modal_id = 'reject-template-modal'
+                modal_title = 'Reject with a template'
+                submit_name = 'reject_applicant'
+                submit_value = application.user.id
+                submit_text = 'Reject with a template'
+                return render(request, 'console/process_credential_application.html',
+                    {'application': application, 'app_user': application.user,
+                    'intermediate_credential_form': intermediate_credential_form,
+                    'process_credential_form': process_credential_form,
+                    'processing_credentials_nav': True, 'page_title': page_title,
+                    'contact_cred_ref_form': contact_cred_ref_form,
+                    'reject_credential_form': reject_credential_form,
+                    'form':form, 'app_user':app_user, 'modal_id':modal_id,
+                    'modal_title':modal_title, 'submit_name':submit_name,
+                    'submit_value':submit_value, 'submit_text':submit_text})
         elif 'approve_response_all' in request.POST:
             if request.POST['decision'] == '0':
                 messages.error(request, 'You selected Reject. Did you mean to Approve All?')
@@ -1321,6 +1346,20 @@ def process_credential_application(request, application_slug):
                 page_title = title_dict[application.credential_review.status]
                 intermediate_credential_form = forms.ProcessCredentialReviewForm(
                     responder=request.user, instance=application)
+        elif 'reject_applicant' in request.POST:
+            contact_cred_ref_form = forms.ContactCredentialRefForm(
+                data=request.POST)
+            if contact_cred_ref_form.is_valid():
+                application.status = 1
+                application.responder = request.user
+                application.reject(application.responder)
+                application.save()
+                subject = contact_cred_ref_form.cleaned_data['subject']
+                body = contact_cred_ref_form.cleaned_data['body']
+                notification.process_credential_complete(request, application,
+                                                         subject=subject, body=body)
+                return render(request, 'console/process_credential_complete.html',
+                    {'application':application})
         elif 'contact_reference' in request.POST:
             contact_cred_ref_form = forms.ContactCredentialRefForm(
                 data=request.POST)
@@ -1350,7 +1389,9 @@ def process_credential_application(request, application_slug):
          'intermediate_credential_form': intermediate_credential_form,
          'process_credential_form': process_credential_form,
          'processing_credentials_nav': True, 'page_title': page_title,
-         'contact_cred_ref_form': contact_cred_ref_form})
+         'contact_cred_ref_form': contact_cred_ref_form,
+         'known_active': known_active, 'known_cred': known_cred,
+         'reject_credential_form': reject_credential_form})
 
 
 @login_required
