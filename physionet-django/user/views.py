@@ -442,8 +442,11 @@ def profile_photo(request, username):
     """
     Serve a user's profile photo
     """
-    user = User.objects.get(username__iexact=username)
-    return utility.serve_file(user.profile.photo.path)
+    try:
+        user = User.objects.get(username__iexact=username)
+        return utility.serve_file(user.profile.photo.path)
+    except ObjectDoesNotExist:
+        raise Http404()
 
 
 def register(request):
