@@ -1475,15 +1475,23 @@ def past_credential_applications(request, status):
                 c_application.status = 0
                 c_application.save()
         elif "search" in request.POST:
-            all_successful_apps, unsuccessful_apps = search_credential_applications(request)
+            (all_successful_apps, unsuccessful_apps,
+                processing_apps) = search_credential_applications(request)
             if status == 'successful':
                 return render(request, 'console/past_credential_successful_user_list.html',
                     {'applications': all_successful_apps,
-                     'u_applications': unsuccessful_apps})
+                     'u_applications': unsuccessful_apps,
+                     'p_applications': processing_apps})
             elif status == 'unsuccessful':
                 return render(request, 'console/past_credential_unsuccessful_user_list.html',
                     {'applications': all_successful_apps,
-                     'u_applications': unsuccessful_apps})
+                     'u_applications': unsuccessful_apps,
+                     'p_applications': processing_apps})
+            elif status == 'processing':
+                return render(request, 'console/past_credential_processing_user_list.html',
+                    {'applications': all_successful_apps,
+                     'u_applications': unsuccessful_apps,
+                     'p_applications': processing_apps})
 
     legacy_apps = LegacyCredential.objects.filter(migrated=True,
         migrated_user__is_credentialed=True).order_by('-migration_date')
@@ -1492,16 +1500,20 @@ def past_credential_applications(request, status):
         ).order_by('-decision_datetime')
     unsuccessful_apps = CredentialApplication.objects.filter(
         status__in=[1, 3, 4]).order_by('-decision_datetime')
+    processing_apps = CredentialApplication.objects.filter(status=0
+        ).order_by('-application_datetime')
 
     # Merge legacy applications and new applications
     all_successful_apps = list(chain(successful_apps, legacy_apps))
 
     all_successful_apps = paginate(request, all_successful_apps, 50)
     unsuccessful_apps = paginate(request, unsuccessful_apps, 50)
+    processing_apps = paginate(request, processing_apps, 50)
 
     return render(request, 'console/past_credential_applications.html',
         {'applications': all_successful_apps, 'past_credentials_nav': True,
-         'u_applications': unsuccessful_apps})
+         'u_applications': unsuccessful_apps,
+         'p_applications': processing_apps})
 
 
 def search_credential_applications(request):
@@ -1530,14 +1542,20 @@ def search_credential_applications(request):
             Q(user__profile__first_names__icontains=search_field) |
             Q(user__email__icontains=search_field))).order_by('-application_datetime')
 
+        processing_apps = CredentialApplication.objects.filter(
+            Q(status=0) & (Q(user__username__icontains=search_field) |
+            Q(user__profile__first_names__icontains=search_field) |
+            Q(user__email__icontains=search_field))).order_by('-application_datetime')
+
         # Merge legacy applications with new applications
         all_successful_apps = list(chain(successful_apps, legacy_apps))
 
         if len(search_field) == 0:
             all_successful_apps = paginate(request, all_successful_apps, 50)
             unsuccessful_apps = paginate(request, unsuccessful_apps, 50)
+            processing_apps = paginate(request, processing_apps, 50)
 
-        return all_successful_apps, unsuccessful_apps
+        return all_successful_apps, unsuccessful_apps, processing_apps
 
 
 @login_required
