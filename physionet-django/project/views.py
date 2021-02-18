@@ -1260,6 +1260,7 @@ def project_submission(request, project_slug, **kwargs):
         'awaiting_user_approval':awaiting_user_approval})
 
 
+@login_required
 def rejected_submission_history(request, project_slug):
     """
     Submission history for a rejected project
@@ -1302,6 +1303,7 @@ def published_versions(request, project_slug):
          'current_site':get_current_site(request)})
 
 
+@login_required
 def published_submission_history(request, project_slug, version):
     """
     Submission history for a published project
