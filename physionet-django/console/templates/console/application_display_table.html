@@ -63,6 +63,7 @@ Applied: {{ application.application_datetime|date }}</br>
 <ul>
   <li>Name: <mark>{{ application.reference_name }}</mark></li>
   <li>Email: <mark>{{ application.reference_email }}</mark></li>
+  <li>Organization: <mark>{{ application.reference_organization }}</mark></li>
   <li>Position: <mark>{{ application.reference_title }}</mark></li>
   <li>Relationship: <mark>{{ application.get_reference_category_display }}</mark></li>
   {% if known_active %}
