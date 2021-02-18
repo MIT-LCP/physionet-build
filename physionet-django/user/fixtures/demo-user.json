@@ -9759,6 +9759,22 @@
   }
 },
 {
+  "model": "user.orcid",
+  "pk": 1,
+  "fields": {
+    "user": [
+      "george"
+    ],
+    "orcid_id": "12345",
+    "name": "",
+    "access_token": "",
+    "refresh_token": "",
+    "token_type": "",
+    "token_scope": "",
+    "token_expiration": "0E-40"
+  }
+},
+{
   "model": "user.credentialapplication",
   "pk": 1,
   "fields": {
