@@ -1,4 +1,5 @@
 {# Status section #}
+{% load static %}
 
 <p>Username: <a href="{% url 'user_management' application.user.username %}">{{ application.user.username }}</a></br>
 Applied: {{ application.application_datetime|date }}</br>
@@ -29,6 +30,11 @@ Applied: {{ application.application_datetime|date }}</br>
   <li>Email: <mark>{{ application.user.email }}</mark></li>
   <li>Position: <mark>{{ application.job_title }}</mark></li>
   <li>Research category: <mark>{{ application.get_researcher_category_display }}</mark></li>
+  <li>ORCID: <mark>
+    {% if application.user.orcid %}<img src='{% static "images/ORCIDiD_icon24x24.png" %}' />
+      <a href="{{ application.user.orcid.get_orcid_url }}/{{ application.user.orcid.orcid_id }}" rel="noopener">{{ application.user.orcid.get_orcid_url }}/{{ application.user.orcid.orcid_id }}</a>
+    {% else %}No ORCID iD linked{% endif %}
+  </mark></li>
 </ul>
 
 <h5>Location</h5>
