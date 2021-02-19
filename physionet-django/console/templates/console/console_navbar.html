@@ -79,11 +79,8 @@
           <li class="nav-item {% if processing_credentials_nav %}active{% endif %}">
             <a id="nav_credential_applications" href="{% url 'credential_processing' %}">Processing</a>
           </li>
-          <li class="nav-item {% if credentials_nav %}active{% endif %}">
-            <a id="nav_credential_applications" href="{% url 'credential_applications' %}">Ongoing Applications</a>
-          </li>
           <li class="nav-item {% if past_credentials_nav %}active{% endif %} ">
-            <a id="nav_past_credential_applications" href="{% url 'past_credential_applications' 'successful' %}">Past Applications</a>
+            <a id="nav_all_credential_applications" href="{% url 'credential_applications' 'successful' %}">All Applications</a>
           </li>
           <li class="nav-item {% if known_ref_nav %}active{% endif %} ">
             <a id="nav_known_ref" href="{% url 'known_references' %}">Known References</a>
