@@ -38,7 +38,7 @@ urlpatterns = [
     path('settings/credentialing/', views.edit_credentialing, name='edit_credentialing'),
     path('settings/credentialing/applications/',
         views.user_credential_applications, name='user_credential_applications'),
-    path('settings/credentialing/applications/<user>/',
+    path('settings/credentialing/applications/<username>/',
         views.user_credential_applications, name='user_credential_applications'),
     path('settings/agreements/', views.view_agreements, name='edit_agreements'),
     path('settings/agreements/<id>/',
