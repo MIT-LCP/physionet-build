@@ -76,6 +76,11 @@ Applied: {{ application.application_datetime|date }}</br>
   {% else %}
     <li><mark>Credentialed User?: No</mark></li>
   {% endif %}
+  <li>ORCID: <mark>
+    {% if application.get_reference_user.orcid %}<img src='{% static "images/ORCIDiD_icon24x24.png" %}' />
+      <a href="{{ application.get_reference_user.orcid.get_orcid_url }}/{{ application.get_reference_user.orcid.orcid_id }}" rel="noopener">{{ application.get_reference_user.orcid.get_orcid_url }}/{{ application.get_reference_user.orcid.orcid_id }}</a>
+    {% else %}No ORCID iD linked{% endif %}
+  </mark></li>
 </ul>
 
 <h5>Research</h5>

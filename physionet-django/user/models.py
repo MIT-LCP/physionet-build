@@ -857,6 +857,19 @@ class CredentialApplication(models.Model):
         except ObjectDoesNotExist:
             return False
 
+    def get_reference_user(self):
+        """
+        Returns reference User if the reference is a registered user,
+        else None.
+        """
+        try:
+            ref = User.objects.get(
+                    associated_emails__email__iexact=self.reference_email,
+                    associated_emails__is_verified=True)
+            return ref
+        except ObjectDoesNotExist:
+            return None
+
     def ref_credentialed_flag(self):
         """
         Returns True if the reference is a credentialed registered user,
