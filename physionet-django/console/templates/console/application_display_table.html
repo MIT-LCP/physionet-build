@@ -66,16 +66,8 @@ Applied: {{ application.application_datetime|date }}</br>
   <li>Organization: <mark>{{ application.reference_organization }}</mark></li>
   <li>Position: <mark>{{ application.reference_title }}</mark></li>
   <li>Relationship: <mark>{{ application.get_reference_category_display }}</mark></li>
-  {% if application.ref_user_flag %}
-    <li><mark>Active User?: Yes</mark></li>
-  {% else %}
-    <li><mark>Active User?: No</mark></li>
-  {% endif %}
-  {% if application.ref_credentialed_flag %}
-    <li><mark>Credentialed User?: Yes</mark></li>
-  {% else %}
-    <li><mark>Credentialed User?: No</mark></li>
-  {% endif %}
+  <li>Active User: <mark>{{ application.ref_user_flag|yesno:"Yes,No" }}</mark></li>
+  <li>Credentialed User: <mark>{{ application.ref_credentialed_flag|yesno:"Yes,No" }}</mark></li>
   <li>ORCID: <mark>
     {% if application.get_reference_user.orcid %}<img src='{% static "images/ORCIDiD_icon24x24.png" %}' />
       <a href="{{ application.get_reference_user.orcid.get_orcid_url }}/{{ application.get_reference_user.orcid.orcid_id }}" rel="noopener">{{ application.get_reference_user.orcid.get_orcid_url }}/{{ application.get_reference_user.orcid.orcid_id }}</a>
