@@ -2,8 +2,7 @@
 {% load static %}
 
 <p>Username: <a href="{% url 'user_management' application.user.username %}">{{ application.user.username }}</a></br>
-Applied: {{ application.application_datetime|date }}</br>
-[<a href="https://www.google.com/search?q={{ application.first_names }} {{ application.last_name }} {{ application.organization_name }}" target="_blank">Search for name and affiliation.</a>]</p>
+Applied: {{ application.application_datetime|date }}</p>
 
 {% if application.reference_contact_datetime %}
   Reference contact date: {{ application.reference_contact_datetime|date }}<br />
@@ -22,7 +21,7 @@ Applied: {{ application.application_datetime|date }}</br>
 {% endif %}
 
 <h5>Personal</h5>
-
+<p>[<a href="https://www.google.com/search?q={{ application.first_names }} {{ application.last_name }} {{ application.organization_name }}" target="_blank">Search for name and affiliation.</a>]</p>
 <ul>
   <li>First name: <mark>{{ application.first_names }}</mark></mark></li>
   <li>Last name: <mark>{{ application.last_name }}</mark></li>
@@ -60,7 +59,7 @@ Applied: {{ application.application_datetime|date }}</br>
 <h5>Reference</h5>
 
 {% if application.reference_email %}
-  [<a href="https://www.google.com/search?q={{ application.reference_name }} {{ application.reference_email }}" target="_blank">Search for reference name and email.</a>]</p>
+  <p>[<a href="https://www.google.com/search?q={{ application.reference_name }} {{ application.reference_email }}" target="_blank">Search for reference name and email.</a>]</p>
   <ul>
     <li>Name: <mark>{{ application.reference_name }}</mark></li>
     <li>Email: <mark>{{ application.reference_email }}</mark></li>
