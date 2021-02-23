@@ -59,21 +59,25 @@ Applied: {{ application.application_datetime|date }}</br>
 
 <h5>Reference</h5>
 
-[<a href="https://www.google.com/search?q={{ application.reference_name }} {{ application.reference_email }}" target="_blank">Search for reference name and email.</a>]</p>
-<ul>
-  <li>Name: <mark>{{ application.reference_name }}</mark></li>
-  <li>Email: <mark>{{ application.reference_email }}</mark></li>
-  <li>Organization: <mark>{{ application.reference_organization }}</mark></li>
-  <li>Position: <mark>{{ application.reference_title }}</mark></li>
-  <li>Relationship: <mark>{{ application.get_reference_category_display }}</mark></li>
-  <li>Active User: <mark>{{ application.ref_user_flag|yesno:"Yes,No" }}</mark></li>
-  <li>Credentialed User: <mark>{{ application.ref_credentialed_flag|yesno:"Yes,No" }}</mark></li>
-  <li>ORCID: <mark>
-    {% if application.get_reference_user.orcid %}<img src='{% static "images/ORCIDiD_icon24x24.png" %}' />
-      <a href="{{ application.get_reference_user.orcid.get_orcid_url }}/{{ application.get_reference_user.orcid.orcid_id }}" rel="noopener">{{ application.get_reference_user.orcid.get_orcid_url }}/{{ application.get_reference_user.orcid.orcid_id }}</a>
-    {% else %}No ORCID iD linked{% endif %}
-  </mark></li>
-</ul>
+{% if application.reference_email %}
+  [<a href="https://www.google.com/search?q={{ application.reference_name }} {{ application.reference_email }}" target="_blank">Search for reference name and email.</a>]</p>
+  <ul>
+    <li>Name: <mark>{{ application.reference_name }}</mark></li>
+    <li>Email: <mark>{{ application.reference_email }}</mark></li>
+    <li>Organization: <mark>{{ application.reference_organization }}</mark></li>
+    <li>Position: <mark>{{ application.reference_title }}</mark></li>
+    <li>Relationship: <mark>{{ application.get_reference_category_display }}</mark></li>
+    <li>Active User: <mark>{{ application.ref_user_flag|yesno:"Yes,No" }}</mark></li>
+    <li>Credentialed User: <mark>{{ application.ref_credentialed_flag|yesno:"Yes,No" }}</mark></li>
+    <li>ORCID: <mark>
+      {% if application.get_reference_user.orcid %}<img src='{% static "images/ORCIDiD_icon24x24.png" %}' />
+        <a href="{{ application.get_reference_user.orcid.get_orcid_url }}/{{ application.get_reference_user.orcid.orcid_id }}" rel="noopener">{{ application.get_reference_user.orcid.get_orcid_url }}/{{ application.get_reference_user.orcid.orcid_id }}</a>
+      {% else %}No ORCID iD linked{% endif %}
+    </mark></li>
+  </ul>
+{% else %}
+<ul><li>No reference provided</li></ul>
+{% endif %}
 
 <h5>Research</h5>
 
