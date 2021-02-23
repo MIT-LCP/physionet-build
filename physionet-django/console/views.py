@@ -1146,15 +1146,6 @@ def process_credential_application(request, application_slug):
                                                send=False,  wordwrap=False)
     contact_cred_ref_form = forms.ContactCredentialRefForm(initial=ref_email)
 
-    try:
-        ref = User.objects.get(associated_emails__email__iexact=application.reference_email,
-                               associated_emails__is_verified=True)
-        known_active = True
-        known_cred = ref.is_credentialed
-    except ObjectDoesNotExist:
-        known_active = False
-        known_cred = False
-
     page_title = None
     title_dict = {a: k for a, k in CredentialReview.REVIEW_STATUS_LABELS}
     page_title = title_dict[application.credential_review.status]
@@ -1361,8 +1352,7 @@ def process_credential_application(request, application_slug):
          'intermediate_credential_form': intermediate_credential_form,
          'process_credential_form': process_credential_form,
          'processing_credentials_nav': True, 'page_title': page_title,
-         'contact_cred_ref_form': contact_cred_ref_form,
-         'known_active': known_active, 'known_cred': known_cred})
+         'contact_cred_ref_form': contact_cred_ref_form})
 
 
 @login_required

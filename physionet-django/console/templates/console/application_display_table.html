@@ -66,12 +66,12 @@ Applied: {{ application.application_datetime|date }}</br>
   <li>Organization: <mark>{{ application.reference_organization }}</mark></li>
   <li>Position: <mark>{{ application.reference_title }}</mark></li>
   <li>Relationship: <mark>{{ application.get_reference_category_display }}</mark></li>
-  {% if known_active %}
+  {% if application.ref_user_flag %}
     <li><mark>Active User?: Yes</mark></li>
   {% else %}
     <li><mark>Active User?: No</mark></li>
   {% endif %}
-  {% if known_cred %}
+  {% if application.ref_credentialed_flag %}
     <li><mark>Credentialed User?: Yes</mark></li>
   {% else %}
     <li><mark>Credentialed User?: No</mark></li>
