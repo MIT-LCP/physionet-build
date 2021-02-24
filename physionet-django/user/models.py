@@ -8,7 +8,7 @@ from django.contrib import messages
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 # from django.contrib.auth. import user_logged_in
 from django.contrib.auth import get_user_model, signals
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.db import models, DatabaseError, transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -843,6 +843,44 @@ class CredentialApplication(models.Model):
             reference_email=''):
             return True
         else:
+            return False
+
+    def ref_user_flag(self):
+        """
+        Returns True if the reference is a registered user, else False.
+        """
+        try:
+            ref = User.objects.get(
+                    associated_emails__email__iexact=self.reference_email,
+                    associated_emails__is_verified=True)
+            return True
+        except ObjectDoesNotExist:
+            return False
+
+    def get_reference_user(self):
+        """
+        Returns reference User if the reference is a registered user,
+        else None.
+        """
+        try:
+            ref = User.objects.get(
+                    associated_emails__email__iexact=self.reference_email,
+                    associated_emails__is_verified=True)
+            return ref
+        except ObjectDoesNotExist:
+            return None
+
+    def ref_credentialed_flag(self):
+        """
+        Returns True if the reference is a credentialed registered user,
+        else False.
+        """
+        try:
+            ref = User.objects.get(
+                    associated_emails__email__iexact=self.reference_email,
+                    associated_emails__is_verified=True)
+            return ref.is_credentialed
+        except ObjectDoesNotExist:
             return False
 
     def revoke(self):
