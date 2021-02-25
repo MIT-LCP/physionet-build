@@ -1322,7 +1322,7 @@ def published_submission_history(request, project_slug, version):
         if not user.is_admin:
             raise Http404()
         project = get_object_or_404(PublishedProject, slug=project_slug,
-                                    archive_reason=3)
+                                    version=version)
 
     edit_logs = project.edit_log_history()
     for e in edit_logs:
