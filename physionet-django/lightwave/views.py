@@ -27,7 +27,7 @@ ORIGINAL_DBCAL_FILE = '/usr/local/database/wfdbcal'
 DBCAL_FILE = os.path.join(PUBLIC_ROOT, 'wfdbcal')
 
 
-def lightwave_home(request, project_slug, project_version):
+def lightwave_home(request, project_slug='', project_version=''):
     """
     Render LightWAVE main page for published databases.
     """

@@ -45,10 +45,12 @@ provides some of the functions of LightWAVE without Javascript.
 
 <div id="top" style='display: none'>
   <div class="ui-tabs ui-corner-all ui-widget">
-    {% if project_version == '' %}
-      <a href="{% url 'waveform_active_home' project_slug %}"><i class="fas fa-chart-line"></i> New Waveform Viewer (demo)</a>
-    {% else %}
-      <a href="{% url 'waveform_published_home' project_slug project_version %}"><i class="fas fa-chart-line"></i> New Waveform Viewer (demo)</a>
+    {% if project_slug != '' %}
+      {% if project_version == '' %}
+        <a href="{% url 'waveform_active_home' project_slug %}"><i class="fas fa-chart-line"></i> New Waveform Viewer (demo)</a>
+      {% else %}
+        <a href="{% url 'waveform_published_home' project_slug project_version %}"><i class="fas fa-chart-line"></i> New Waveform Viewer (demo)</a>
+      {% endif %}
     {% endif %}
   </div>
 <div class="js">
