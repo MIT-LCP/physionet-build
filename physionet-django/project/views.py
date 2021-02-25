@@ -1272,10 +1272,11 @@ def rejected_submission_history(request, project_slug):
                                               archive_reason=3,
                                               authors__user=user)
     except ArchivedProject.DoesNotExist:
-        if not user.is_admin:
+        if user.is_admin:
+            project = get_object_or_404(ArchivedProject, slug=project_slug,
+                                        archive_reason=3)
+        else:
             raise Http404()
-        project = get_object_or_404(ArchivedProject, slug=project_slug,
-                                    archive_reason=3)
 
     edit_logs = project.edit_log_history()
     for e in edit_logs:
@@ -1319,10 +1320,11 @@ def published_submission_history(request, project_slug, version):
                                                version=version,
                                                authors__user=user)
     except PublishedProject.DoesNotExist:
-        if not user.is_admin:
+        if user.is_admin:
+            project = get_object_or_404(PublishedProject, slug=project_slug,
+                                        version=version)
+        else:
             raise Http404()
-        project = get_object_or_404(PublishedProject, slug=project_slug,
-                                    version=version)
 
     edit_logs = project.edit_log_history()
     for e in edit_logs:
