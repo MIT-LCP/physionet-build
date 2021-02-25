@@ -19,7 +19,7 @@ from django.forms import (formset_factory, inlineformset_factory,
     modelformset_factory)
 from django.http import HttpResponse, Http404,JsonResponse, HttpResponseRedirect
 from django.http import HttpResponseForbidden
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.template import loader
 from django.urls import reverse
 from django.utils import timezone
@@ -1266,20 +1266,25 @@ def rejected_submission_history(request, project_slug):
     Submission history for a rejected project
     """
     user = request.user
-    project = ArchivedProject.objects.filter(slug=project_slug, archive_reason=3)
-    if project:
-        project = project.get()
-    else:
-        raise Http404()
-    if user.is_admin or project.authors.filter(user=user):
-        edit_logs = project.edit_log_history()
-        for e in edit_logs:
-            e.set_quality_assurance_results()
-        copyedit_logs = project.copyedit_log_history()
+    try:
+        # Checks if the user is an author
+        project = ArchivedProject.objects.get(slug=project_slug,
+                                              archive_reason=3,
+                                              authors__user=user)
+    except ArchivedProject.DoesNotExist:
+        if not user.is_admin:
+            raise Http404()
+        project = get_object_or_404(ArchivedProject, slug=project_slug,
+                                    archive_reason=3)
 
-        return render(request, 'project/rejected_submission_history.html',
-            {'project':project, 'edit_logs':edit_logs,
-             'copyedit_logs':copyedit_logs})
+    edit_logs = project.edit_log_history()
+    for e in edit_logs:
+        e.set_quality_assurance_results()
+    copyedit_logs = project.copyedit_log_history()
+
+    return render(request, 'project/rejected_submission_history.html',
+                  {'project': project, 'edit_logs': edit_logs,
+                   'copyedit_logs': copyedit_logs})
 
 
 def published_versions(request, project_slug):
@@ -1309,20 +1314,24 @@ def published_submission_history(request, project_slug, version):
     Submission history for a published project
     """
     user = request.user
-    project = PublishedProject.objects.filter(slug=project_slug, version=version)
-    if project:
-        project = project.get()
-    else:
-        raise Http404()
-    if user.is_admin or project.authors.filter(user=user):
-        edit_logs = project.edit_log_history()
-        for e in edit_logs:
-            e.set_quality_assurance_results()
-        copyedit_logs = project.copyedit_log_history()
+    try:
+        project = PublishedProject.objects.get(slug=project_slug,
+                                               version=version,
+                                               authors__user=user)
+    except PublishedProject.DoesNotExist:
+        if not user.is_admin:
+            raise Http404()
+        project = get_object_or_404(PublishedProject, slug=project_slug,
+                                    archive_reason=3)
 
-        return render(request, 'project/published_submission_history.html',
-            {'project':project, 'edit_logs':edit_logs,
-             'copyedit_logs':copyedit_logs, 'published':True})
+    edit_logs = project.edit_log_history()
+    for e in edit_logs:
+        e.set_quality_assurance_results()
+    copyedit_logs = project.copyedit_log_history()
+
+    return render(request, 'project/published_submission_history.html',
+                  {'project': project, 'edit_logs': edit_logs,
+                   'copyedit_logs': copyedit_logs, 'published': True})
 
 
 def published_files_panel(request, project_slug, version):
