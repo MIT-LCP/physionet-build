@@ -1,5 +1,6 @@
 {# Status section #}
 {% load static %}
+{% load console_templatetags %}
 
 <p>Username: <a href="{% url 'user_management' application.user.username %}">{{ application.user.username }}</a></br>
 Applied: {{ application.application_datetime|date }}</p>
@@ -26,7 +27,15 @@ Applied: {{ application.application_datetime|date }}</p>
   <li>First name: <mark>{{ application.first_names }}</mark></mark></li>
   <li>Last name: <mark>{{ application.last_name }}</mark></li>
   {% if application.suffix %}<li>Suffix: {{ application.suffix }}</mark></li>{% endif %}
-  <li>Email: <mark>{{ application.user.email }}</mark></li>
+  <li>Email (primary): <mark>{{ application.user.email }}</mark></li>
+  <li>Emails (other): 
+    {% with associated_emails=application.user|get_verified_emails %}
+    {% for email in associated_emails %}
+      <mark>{{ email }}</mark>{% if not forloop.last %}, {% endif %}
+    {% empty %}N/A
+    {% endfor %}
+    {% endwith %}
+  </li>
   <li>Position: <mark>{{ application.job_title }}</mark></li>
   <li>Research category: <mark>{{ application.get_researcher_category_display }}</mark></li>
   <li>ORCID: <mark>

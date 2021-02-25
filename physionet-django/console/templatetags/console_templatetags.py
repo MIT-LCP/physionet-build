@@ -17,3 +17,11 @@ def task_count_badge(item):
         context_class = 'success'
     return '<span class="badge badge-pill badge-{}">{}</span>'.format(
         context_class, len(item))
+
+
+@register.filter(name='get_verified_emails')
+def get_verified_emails(user):
+    """
+    Get a list of non-primary, verified email addresses.
+    """
+    return user.get_emails(is_verified=True, include_primary=False)
