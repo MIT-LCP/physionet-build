@@ -8,6 +8,7 @@ import math
 import datetime
 import numpy as np
 import pandas as pd
+from scipy import stats
 import django.core.cache
 # Data analysis and visualization
 import dash
@@ -155,6 +156,45 @@ app.layout = html.Div([
 ])
 
 
+def window_signal(y_vals):
+    """
+    This uses the Coefficient of Variation (CV) approach to determine
+    significant changes in the signal then return the adjusted minimum
+    and maximum range... If a significant variation is signal is found
+    then filter out extrema using normal distribution
+    """
+    # Standard deviation signal range to window
+    std_range = 4
+    # Get parameters of the signal
+    temp_std = stats.median_absolute_deviation(y_vals, nan_policy='omit')
+    temp_std = np.nanstd(y_vals)
+    temp_mean = np.mean(y_vals[np.isfinite(y_vals)])
+    temp_nan = np.all(np.isnan(y_vals))
+    temp_zero = np.all(y_vals==0)
+    if not temp_nan and not temp_zero:
+        # Prevent `RuntimeWarning: invalid value encountered in double_scalars`
+        # TODO: Lazy fix but need to think about this more
+        if (abs(temp_std / temp_mean) > 0.1) and (temp_std > 0.1):
+            y_vals = y_vals[abs(y_vals - temp_mean) < std_range * temp_std]
+            min_y_vals = np.nanmin(y_vals)
+            max_y_vals = np.nanmax(y_vals)
+        else:
+            min_y_vals = np.nanmin(y_vals) - 1
+            max_y_vals = np.nanmax(y_vals) + 1
+    else:
+        # Set default min and max values if all NaN or 0
+        min_y_vals = -1
+        max_y_vals = 1
+    return min_y_vals, max_y_vals
+
+
+def extract_signal(record_sigs, sig_name, rec_sig, time_start, time_stop, down_sample):
+    sig_name_index = record_sigs.index(sig_name)
+    y_vals = rec_sig[:,sig_name_index][time_start:time_stop:down_sample]
+    y_vals = np.nan_to_num(y_vals).astype('float64')
+    return y_vals
+
+
 # Dynamically update the record dropdown settings using the project 
 # record and event
 @app.callback(
@@ -194,7 +234,7 @@ def get_records_options(click_previous, click_next, slug_value, record_value, ve
     except Exception as e:
         error_text.extend(['ERROR_REC: Record file incorrectly formatted... {}'.format(e), html.Br()])
         return options_rec, return_record, error_text
-    # # TODO: Probably should refactor this
+    # TODO: Probably should refactor this
     temp_all_records = []
     for i,rec in enumerate(all_records):
         temp_path = os.path.join(records_path, rec)
@@ -224,7 +264,8 @@ def get_records_options(click_previous, click_next, slug_value, record_value, ve
     if click_previous or click_next:
         # Determine which button was clicked
         ctx = dash.callback_context
-        if ctx.triggered[0]['prop_id'].split('.')[0] == 'previous_annotation':
+        click_id = ctx.triggered[0]['prop_id'].split('.')[0]
+        if click_id == 'previous_annotation':
             click_time = click_previous
         else:
             click_time = click_next
@@ -236,14 +277,13 @@ def get_records_options(click_previous, click_next, slug_value, record_value, ve
         # last 1 second... change this?
         # TODO: make this better
         if (time_now - click_time).total_seconds() < 1:
-            if ctx.triggered[0]['prop_id'].split('.')[0] == 'previous_annotation':
+            if click_id == 'previous_annotation':
                 idx = all_records.index(record_value)
                 if idx == 0:
                     # At the beginning of the list, go to the end
                     return_record = all_records[-1]
                 else:
                     # Decrement the record if not the beginning of the list
-                    # TODO: Decrement to the next non-annotated waveform instead?
                     return_record = all_records[idx-1]
             else:
                 idx = all_records.index(record_value)
@@ -252,7 +292,6 @@ def get_records_options(click_previous, click_next, slug_value, record_value, ve
                     return_record = all_records[0]
                 else:
                     # Increment the record if not the end of the list
-                    # TODO: Increment to the next non-annotated waveform instead?
                     return_record = all_records[idx+1]
         else:
             # Should theoretically never happen but here just in case
@@ -303,6 +342,8 @@ def update_sig(dropdown_rec, slug_value, version_value):
         # TODO: Make this faster by preventing double record load; return
         #       nothing and move it to the main callback though this wouldn't
         #       be updated? Might have to leave it like this...
+        #       The best way may be to just add a submit button instead of
+        #       dynamically updating.
         # Set the options and values (only the first `max_display_sigs` signals)
         try:
             if header_path.endswith('.edf'):
@@ -581,58 +622,41 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
 
     # Put all EKG signals before BP, then all others following
     sig_order = []
-    ekg_sigs = {'II', 'V', 'ecg'}
-    bp_sigs = {'ABP', 'abp'}
-    if any(x not in ekg_sigs or 'ecg' not in x.lower() or 'ekg' not in x.lower() for x in sig_name):
+    bp_order = []
+    ekg_sigs = {
+        'ecg', 'ekg',
+        'avf', 'avl', 'avr',
+        'i', 'ii', 'iii', 'iv', 'v',
+        'v1', 'v2', 'v3', 'v4', 'v5'
+    }
+    bp_sigs = {'abp', 'pressure'}
+    if any(x.lower() in ekg_sigs for x in sig_name):
         for i,s in enumerate(sig_name):
-            if s in ekg_sigs or 'ecg' in s.lower() or 'ekg' in s.lower():
+            if s.lower() in ekg_sigs:
                 sig_order.append(i)
-        # TODO: Could maybe do this faster using sets
-        for bps in bp_sigs:
-            if bps in sig_name:
-                sig_order.append(sig_name.index(bps))
+            elif s.lower() in bp_sigs:
+                bp_order.append(i)
+        sig_order.extend(bp_order)
         for s in [y for x,y in enumerate(sig_name) if x not in set(sig_order)]:
             sig_order.append(sig_name.index(s))
     else:
         sig_order = range(n_sig)
 
-    if any(x in ekg_sigs for x in sig_name):
+    if any(x.lower() in ekg_sigs for x in sig_name):
         # Collect all the signals
         all_y_vals = []
         ekg_y_vals = []
         for r in sig_order:
-            sig_name_index = record_sigs.index(sig_name[r])
-            current_y_vals = rec_sig[:,sig_name_index][time_start:time_stop:down_sample]
-            current_y_vals = np.nan_to_num(current_y_vals).astype('float64')
+            current_y_vals = extract_signal(record_sigs, sig_name[r], rec_sig,
+                                            time_start, time_stop, down_sample)
             all_y_vals.append(current_y_vals)
             # Find unified range for all EKG signals
-            if sig_name[r] in ekg_sigs:
+            if sig_name[r].lower() in ekg_sigs:
                 ekg_y_vals.append(current_y_vals)
-
         # Flatten and change data type to prevent overflow
         ekg_y_vals = np.stack(ekg_y_vals).flatten()
         # Filter out extreme values from being shown on graph range
-        # This uses the Coefficient of Variation (CV) approach to determine
-        # significant changes in the signal... If a significant variation in
-        # signal is found then filter out extrema using normal distribution
-        # TODO: Prevent repeat code for non-EKG signals
-        temp_std = np.nanstd(ekg_y_vals)
-        temp_mean = np.mean(ekg_y_vals[np.isfinite(ekg_y_vals)])
-        temp_nan = np.all(np.isnan(ekg_y_vals))
-        small_var_criteria = abs(temp_std / temp_mean) > 0.1
-        if small_var_criteria and not temp_nan:
-            ekg_y_vals = ekg_y_vals[abs(ekg_y_vals - temp_mean) < std_range * temp_std]
-        # Set default min and max values if all NaN
-        if temp_nan:
-            min_ekg_y_vals = -1
-            max_ekg_y_vals = 1
-        else:
-            if small_var_criteria:
-                min_ekg_y_vals = np.nanmin(ekg_y_vals)
-                max_ekg_y_vals = np.nanmax(ekg_y_vals)
-            else:
-                min_ekg_y_vals = np.nanmin(ekg_y_vals) - 1
-                max_ekg_y_vals = np.nanmax(ekg_y_vals) + 1
+        min_ekg_y_vals, max_ekg_y_vals = window_signal(ekg_y_vals)
         min_ekg_tick = (round(min_ekg_y_vals / grid_delta_major) * grid_delta_major) - grid_delta_major
         max_ekg_tick = (round(max_ekg_y_vals / grid_delta_major) * grid_delta_major) + grid_delta_major
     else:
@@ -640,9 +664,8 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
         all_y_vals = []
         for r in sig_order:
             try:
-                sig_name_index = record_sigs.index(sig_name[r])
-                current_y_vals = rec_sig[:,sig_name_index][time_start:time_stop:down_sample]
-                current_y_vals = np.nan_to_num(current_y_vals).astype('float64')
+                current_y_vals = extract_signal(record_sigs, sig_name[r], rec_sig,
+                                                time_start, time_stop, down_sample)
                 all_y_vals.append(current_y_vals)
             except Exception as e:
                 error_text.extend(['ERROR_GRAPH: Record file (.dat) can not be read... {}'.format(e), html.Br()])
@@ -711,26 +734,7 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
             y_tick_text = [str(n) if n%1 == 0 else ' ' for n in y_tick_vals]
         else:
             # Remove outliers to prevent weird axes scaling if possible
-            # TODO: Refactor this!
-            temp_std = np.nanstd(y_vals)
-            temp_mean = np.mean(y_vals[np.isfinite(y_vals)])
-            temp_nan = np.all(np.isnan(y_vals))
-            small_var_criteria = (temp_std / temp_mean) > 0.1
-            if small_var_criteria and not temp_nan:
-                extreme_y_vals = y_vals[abs(y_vals - temp_mean) < std_range * temp_std]
-            else:
-                extreme_y_vals = y_vals
-            # Set default min and max values if all NaN
-            if temp_nan:
-                min_y_vals = -1
-                max_y_vals = 1
-            else:
-                if small_var_criteria:
-                    min_y_vals = np.nanmin(extreme_y_vals)
-                    max_y_vals = np.nanmax(extreme_y_vals)
-                else:
-                    min_y_vals = np.nanmin(extreme_y_vals) - 1
-                    max_y_vals = np.nanmax(extreme_y_vals) + 1
+            min_y_vals, max_y_vals = window_signal(y_vals)
             grid_state = True
             dtick_state = None
             zeroline_state = False
