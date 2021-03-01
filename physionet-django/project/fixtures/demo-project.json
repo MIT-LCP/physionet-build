@@ -1519,7 +1519,7 @@
     "abstract": "<p>Here we add multiple different waveform files to test visualizers.</p>",
     "background": "<p>These waveforms have been extracted from multiple sources and de-identified.&nbsp;</p>",
     "methods": "<p>Conversion to WFDB format was done for most of the waveforms though some are also in EDF and WAV format.</p>",
-    "content_description": "<p>wave_1: WAV (15 channels)</p>\n\n<p>wave_2: WFDB (2 channels)</p>\n\n<p>wave_3: WFDB (10 channels)</p>\n\n<p>wave_4: EDF (12 channels)</p>",
+    "content_description": "<p>wave_1: WAV (15 channels)</p>\n\n<p>wave_2: WFDB (2 channels with annotations)</p>\n\n<p>wave_3: WFDB (10 channels)</p>\n\n<p>wave_4: EDF (5 channels)</p>",
     "usage_notes": "<p>Visualize the waveforms with any of the available waveforms viewers.</p>",
     "installation": "",
     "acknowledgements": "",
