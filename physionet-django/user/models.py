@@ -372,9 +372,21 @@ class User(AbstractBaseUser):
         return self.is_admin
 
     # Custom fields and methods
-    def get_emails(self):
-        "Get list of all email strings"
-        return [ae.email for ae in self.associated_emails.filter(is_verified=True)]
+    def get_emails(self, is_verified=True, include_primary=True):
+        """
+        Get list of email address strings.
+
+        Args:
+            is_verified (bool): If True, return verified email addresses only.
+            include_primary (bool): If True, include the primary email address
+                in the list.
+        """
+        if include_primary:
+            emails = self.associated_emails.filter(is_verified=is_verified)
+        else:
+            emails = self.associated_emails.filter(is_verified=is_verified,
+                                                   is_primary_email=False)
+        return [ae.email for ae in emails]
 
     def get_primary_email(self):
         """
