@@ -343,7 +343,7 @@ CKEDITOR_CONFIGS = {
         'format_h3': {'element': 'h4'},
         'format_h4': {'element': 'h5'},
 
-        'extraPlugins': 'codesnippet,pnmathml',
+        'extraPlugins': 'codesnippet,pnmathml,autosave',
         'allowedContent': {
             **_inline_tags,
             **_block_tags,
