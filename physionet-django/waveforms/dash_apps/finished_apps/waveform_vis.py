@@ -156,6 +156,77 @@ app.layout = html.Div([
 ])
 
 
+def get_base_fig(max_plot_height, fig_width, margin_left, margin_top,
+                 margin_right, margin_bottom, drag_mode, grid_delta_major,
+                 x_zoom_fixed, gridzero_color, y_zoom_fixed):
+    # Create baseline figure with 1 subplot
+    base_fig = make_subplots(
+        rows = 1,
+        cols = 1,
+        shared_xaxes = True,
+        vertical_spacing = 0
+    )
+    # Update the layout to match the loaded state
+    base_fig.update_layout({
+        'height': max_plot_height / 2,
+        'width': fig_width,
+        'margin': {
+            'l': margin_left,
+            't': margin_top,
+            'r': margin_right,
+            'b': margin_bottom
+        },
+        'grid': {
+            'rows': 1,
+            'columns': 1,
+            'pattern': 'independent'
+        },
+        'showlegend': False,
+        'hovermode': 'x',
+        'dragmode': drag_mode
+    })
+    # Update the Null signal and axes
+    base_fig.add_trace(go.Scatter({
+        'x': [None],
+        'y': [None]
+    }), row = 1, col = 1)
+    # Update axes based on signal type
+    x_tick_vals = [round(n,1) for n in np.arange(0, 10.1, grid_delta_major).tolist()]
+    x_tick_text = [str(round(n)) if n%1 == 0 else '' for n in x_tick_vals]
+    y_tick_vals = [round(n,1) for n in np.arange(0, 2.25, grid_delta_major).tolist()]
+    y_tick_text = [str(n) if n%1 == 0 else ' ' for n in y_tick_vals]
+    # Create the empty chart
+    base_fig.update_xaxes({
+        'title': 'Time (s)',
+        'fixedrange': x_zoom_fixed,
+        'showgrid': True,
+        'tickvals': x_tick_vals,
+        'ticktext': x_tick_text,
+        'showticklabels': True,
+        'gridcolor': gridzero_color,
+        'zeroline': False,
+        'zerolinewidth': 1,
+        'zerolinecolor': gridzero_color,
+        'gridwidth': 1,
+        'range': [0, 10],
+        'rangeslider': {
+            'visible': False
+        }
+    }, row = 1, col = 1)
+    base_fig.update_yaxes({
+        'fixedrange': y_zoom_fixed,
+        'showgrid': True,
+        'dtick': None,
+        'showticklabels': True,
+        'gridcolor': gridzero_color,
+        'zeroline': False,
+        'zerolinewidth': 1,
+        'zerolinecolor': gridzero_color,
+        'gridwidth': 1,
+        'range': [0, 2.25],
+    }, row = 1, col = 1)
+    return (base_fig)
+
 def window_signal(y_vals):
     """
     This uses the Coefficient of Variation (CV) approach to determine
@@ -437,76 +508,13 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
     x_zoom_fixed = False
     y_zoom_fixed = True
 
-    # Create baseline figure with 1 subplot
-    base_fig = make_subplots(
-        rows = 1,
-        cols = 1,
-        shared_xaxes = True,
-        vertical_spacing = 0
-    )
-    # Update the layout to match the loaded state
-    base_fig.update_layout({
-        'height': max_plot_height / 2,
-        'width': fig_width,
-        'margin': {
-            'l': margin_left,
-            't': margin_top,
-            'r': margin_right,
-            'b': margin_bottom
-        },
-        'grid': {
-            'rows': 1,
-            'columns': 1,
-            'pattern': 'independent'
-        },
-        'showlegend': False,
-        'hovermode': 'x',
-        'dragmode': drag_mode
-    })
-    # Update the Null signal and axes
-    base_fig.add_trace(go.Scatter({
-        'x': [None],
-        'y': [None]
-    }), row = 1, col = 1)
-    # Update axes based on signal type
-    x_tick_vals = [round(n,1) for n in np.arange(0, 10.1, grid_delta_major).tolist()]
-    x_tick_text = [str(round(n)) if n%1 == 0 else '' for n in x_tick_vals]
-    y_tick_vals = [round(n,1) for n in np.arange(0, 2.25, grid_delta_major).tolist()]
-    y_tick_text = [str(n) if n%1 == 0 else ' ' for n in y_tick_vals]
-    # Create the empty chart
-    base_fig.update_xaxes({
-        'title': 'Time (s)',
-        'fixedrange': x_zoom_fixed,
-        'showgrid': True,
-        'tickvals': x_tick_vals,
-        'ticktext': x_tick_text,
-        'showticklabels': True,
-        'gridcolor': gridzero_color,
-        'zeroline': False,
-        'zerolinewidth': 1,
-        'zerolinecolor': gridzero_color,
-        'gridwidth': 1,
-        'range': [0, 10],
-        'rangeslider': {
-            'visible': False
-        }
-    }, row = 1, col = 1)
-    base_fig.update_yaxes({
-        'fixedrange': y_zoom_fixed,
-        'showgrid': True,
-        'dtick': None,
-        'showticklabels': True,
-        'gridcolor': gridzero_color,
-        'zeroline': False,
-        'zerolinewidth': 1,
-        'zerolinecolor': gridzero_color,
-        'gridwidth': 1,
-        'range': [0, 2.25],
-    }, row = 1, col = 1)
-
     # Set a blank plot if none is loaded
     if not dropdown_rec:
-        return (base_fig), html.Span(error_text)
+        base_fig = get_base_fig(max_plot_height, fig_width, margin_left,
+                                margin_top, margin_right, margin_bottom,
+                                drag_mode, grid_delta_major, x_zoom_fixed,
+                                gridzero_color, y_zoom_fixed)
+        return base_fig, html.Span(error_text)
 
     # Set some initial conditions
     # TODO: Maybe make this more concrete
@@ -523,20 +531,36 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
         try:
             record = wfdb.edf2mit(record_path)
         except FileNotFoundError:
+            base_fig = get_base_fig(max_plot_height, fig_width, margin_left,
+                                    margin_top, margin_right, margin_bottom,
+                                    drag_mode, grid_delta_major, x_zoom_fixed,
+                                    gridzero_color, y_zoom_fixed)
             error_text.extend(['ERROR_SIG: EDF file not provided... {}'.format(record_path), html.Br()])
-            return (base_fig), html.Span(error_text)
+            return base_fig, html.Span(error_text)
         except Exception as e:
+            base_fig = get_base_fig(max_plot_height, fig_width, margin_left,
+                                    margin_top, margin_right, margin_bottom,
+                                    drag_mode, grid_delta_major, x_zoom_fixed,
+                                    gridzero_color, y_zoom_fixed)
             error_text.extend(['ERROR_SIG: EDF file incorrectly formatted... {}'.format(e), html.Br()])
-            return (base_fig), html.Span(error_text)
+            return base_fig, html.Span(error_text)
     else:
         try:
             record = wfdb.rdsamp(record_path)
         except FileNotFoundError:
+            base_fig = get_base_fig(max_plot_height, fig_width, margin_left,
+                                    margin_top, margin_right, margin_bottom,
+                                    drag_mode, grid_delta_major, x_zoom_fixed,
+                                    gridzero_color, y_zoom_fixed)
             error_text.extend(['ERROR_SIG: Record file not provided... {}'.format(record_path), html.Br()])
-            return (base_fig), html.Span(error_text)
+            return base_fig, html.Span(error_text)
         except Exception as e:
+            base_fig = get_base_fig(max_plot_height, fig_width, margin_left,
+                                    margin_top, margin_right, margin_bottom,
+                                    drag_mode, grid_delta_major, x_zoom_fixed,
+                                    gridzero_color, y_zoom_fixed)
             error_text.extend(['ERROR_SIG: Record/Header file incorrectly formatted... {}'.format(e), html.Br()])
-            return (base_fig), html.Span(error_text)
+            return base_fig, html.Span(error_text)
     # Read in the record information depending on its format
     try:
         record_sigs = record[1]['sig_name']
