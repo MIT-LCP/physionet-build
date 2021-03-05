@@ -220,12 +220,29 @@ def get_base_fig(max_plot_height, fig_width, margin_left, margin_top,
         'showticklabels': True,
         'gridcolor': gridzero_color,
         'zeroline': False,
-        'zerolinewidth': 1,
-        'zerolinecolor': gridzero_color,
         'gridwidth': 1,
         'range': [0, 2.25],
     }, row = 1, col = 1)
     return (base_fig)
+
+def get_xaxis(title, x_zoom_fixed, tick_labels, tick_vals, tick_text,
+              gridzero_color, start_time, range_stop):
+    return {
+        'title': title,
+        'fixedrange': x_zoom_fixed,
+        'dtick': 0.2,
+        'showticklabels': tick_labels,
+        'tickvals': tick_vals,
+        'ticktext': tick_text,
+        'gridcolor': gridzero_color,
+        'gridwidth': 1,
+        'zeroline': False,
+        'range': [start_time, range_stop],
+        'showspikes': True,
+        'spikemode': 'across',
+        'spikesnap': 'cursor',
+        'showline': True
+    }
 
 def window_signal(y_vals):
     """
@@ -726,21 +743,6 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
         if anns != [] and s == 0:
             for i,ann in enumerate(anns):
                 for a in anns_idx[i]:
-                    # Add only the label due to the hover feature... add
-                    # the lines later though much slower? 
-                    # fig.add_shape({
-                    #     'type': 'line',
-                    #     'x0': float(ann.sample[a] / fs),
-                    #     'y0': min_y_vals - 0.5 * (max_y_vals - min_y_vals),
-                    #     'x1': float(ann.sample[a] / fs),
-                    #     'y1': max_y_vals + 0.5 * (max_y_vals - min_y_vals),
-                    #     'xref': x_string,
-                    #     'yref': y_string,
-                    #     'line': {
-                    #         'color': ann_color,
-                    #         'width': ann_thickness
-                    #     }
-                    # })
                     # TODO: Use ann.symbol for now, but use ann.aux_note if
                     # it's possible (some are long and take up the whole
                     # screen and get really crowded... also some are empty...
@@ -760,42 +762,14 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
         x_tick_vals = [round(n,1) for n in np.arange(start_time, start_time + time_range, grid_delta_major).tolist()]
         x_tick_text = [str(round(n)) if n%1 == 0 else '' for n in x_tick_vals]
         if s != (n_sig - 1):
-            fig.update_xaxes({
-                'title': None,
-                'fixedrange': x_zoom_fixed,
-                'dtick': 0.2,
-                'showticklabels': False,
-                'gridcolor': gridzero_color,
-                'gridwidth': 1,
-                'zeroline': False,
-                'zerolinewidth': 1,
-                'zerolinecolor': gridzero_color,
-                'range': [start_time, range_stop],
-                'showspikes': True,
-                'spikemode': 'across',
-                'spikesnap': 'cursor',
-                'showline': True
-            }, row = s+1, col = 1)
+            fig.update_xaxes(get_xaxis(None, x_zoom_fixed, False, None, None,
+                                       gridzero_color, start_time, range_stop),
+                             row = s+1, col = 1)
         else:
-            # Add the x-axis title to the bottom figure
-            fig.update_xaxes({
-                'title': 'Time (s)',
-                'fixedrange': x_zoom_fixed,
-                'dtick': 0.2,
-                'showticklabels': True,
-                'tickvals': x_tick_vals,
-                'ticktext': x_tick_text,
-                'gridcolor': gridzero_color,
-                'gridwidth': 1,
-                'zeroline': False,
-                'zerolinewidth': 1,
-                'zerolinecolor': gridzero_color,
-                'range': [start_time, range_stop],
-                'showspikes': True,
-                'spikemode': 'across',
-                'spikesnap': 'cursor',
-                'showline': True,
-            }, row = s+1, col = 1)
+            fig.update_xaxes(get_xaxis('Time (s)', x_zoom_fixed, True,
+                                       x_tick_vals, x_tick_text,
+                                       gridzero_color, start_time, range_stop),
+                             row = s+1, col = 1)
 
         # Set the initial y-axis parameters
         fig.update_yaxes({
