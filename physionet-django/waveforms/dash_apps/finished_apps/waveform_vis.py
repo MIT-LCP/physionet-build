@@ -559,11 +559,6 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
     for i,s in enumerate(record_sigs):
         if s in set(sig_name):
             units[sig_name.index(s)] = rec_units[i]
-    # Sort the list of signal names for better default grouping
-    temp_zip = sorted(list(zip(sig_name, units)),
-                      key = lambda x: x[0])
-    sig_name = [t[0] for t in temp_zip]
-    units = [t[1] for t in temp_zip]
 
     # Set the initial display range of y-values based on values in
     # initial range of x-values
@@ -620,56 +615,6 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
         'paper_bgcolor': '#ffffff'
     })
 
-    # Put all EKG signals before BP, then all others following
-    sig_order = []
-    bp_order = []
-    ekg_sigs = {
-        'ecg', 'ekg',
-        'avf', 'avl', 'avr',
-        'i', 'ii', 'iii', 'iv', 'v',
-        'v1', 'v2', 'v3', 'v4', 'v5'
-    }
-    bp_sigs = {'abp', 'pressure'}
-    if any(x.lower() in ekg_sigs for x in sig_name):
-        for i,s in enumerate(sig_name):
-            if s.lower() in ekg_sigs:
-                sig_order.append(i)
-            elif s.lower() in bp_sigs:
-                bp_order.append(i)
-        sig_order.extend(bp_order)
-        for s in [y for x,y in enumerate(sig_name) if x not in set(sig_order)]:
-            sig_order.append(sig_name.index(s))
-    else:
-        sig_order = range(n_sig)
-
-    if any(x.lower() in ekg_sigs for x in sig_name):
-        # Collect all the signals
-        all_y_vals = []
-        ekg_y_vals = []
-        for r in sig_order:
-            current_y_vals = extract_signal(record_sigs, sig_name[r], rec_sig,
-                                            time_start, time_stop, down_sample)
-            all_y_vals.append(current_y_vals)
-            # Find unified range for all EKG signals
-            if sig_name[r].lower() in ekg_sigs:
-                ekg_y_vals.append(current_y_vals)
-        # Flatten and change data type to prevent overflow
-        ekg_y_vals = np.stack(ekg_y_vals).flatten()
-        # Filter out extreme values from being shown on graph range
-        min_ekg_y_vals, max_ekg_y_vals = window_signal(ekg_y_vals)
-        min_ekg_tick = (round(min_ekg_y_vals / grid_delta_major) * grid_delta_major) - grid_delta_major
-        max_ekg_tick = (round(max_ekg_y_vals / grid_delta_major) * grid_delta_major) + grid_delta_major
-    else:
-        # Collect all the signals
-        all_y_vals = []
-        for r in sig_order:
-            try:
-                current_y_vals = extract_signal(record_sigs, sig_name[r], rec_sig,
-                                                time_start, time_stop, down_sample)
-                all_y_vals.append(current_y_vals)
-            except Exception as e:
-                error_text.extend(['ERROR_GRAPH: Record file (.dat) can not be read... {}'.format(e), html.Br()])
-
     # Attempt to load in annotations if available
     anns = []
     anns_idx = []
@@ -713,41 +658,27 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
 
     # Name the axes to create the subplots
     x_vals = [start_time + (i / fs) for i in range(sig_len)][::down_sample]
-    for idx,r in enumerate(sig_order):
+    for s in range(n_sig):
         # Create the tags for each plot
-        x_string = 'x' + str(idx+1)
-        y_string = 'y' + str(idx+1)
-        # Generate the waveform x-values and y-values
-        y_vals = all_y_vals[idx]
+        x_string = 'x' + str(s+1)
+        y_string = 'y' + str(s+1)
+        # Generate the waveform y-values
+        try:
+            y_vals = extract_signal(record_sigs, sig_name[s], rec_sig,
+                                    time_start, time_stop, down_sample)
+        except Exception as e:
+            error_text.extend(['ERROR_GRAPH: Record file (.dat) can not be read... {}'.format(e), html.Br()])
+        # Remove outliers to prevent weird axes scaling if possible
+        min_y_vals, max_y_vals = window_signal(y_vals)
         # Set the initial y-axis parameters
-        if sig_name[r] in ekg_sigs:
-            min_y_vals = min_ekg_y_vals
-            max_y_vals = max_ekg_y_vals
-            grid_state = True
-            dtick_state = grid_delta_major
-            zeroline_state = True
-            y_tick_vals = [round(n,1) for n in np.arange(min_ekg_tick, max_ekg_tick, grid_delta_major).tolist()][1:-1]
-            # Max text length to fit should be ~8
-            # Multiply by (1/grid_delta_major) to account for fractions
-            while len(y_tick_vals) > (1/grid_delta_major)*8:
-                y_tick_vals = y_tick_vals[::2]
-            y_tick_text = [str(n) if n%1 == 0 else ' ' for n in y_tick_vals]
-        else:
-            # Remove outliers to prevent weird axes scaling if possible
-            min_y_vals, max_y_vals = window_signal(y_vals)
-            grid_state = True
-            dtick_state = None
-            zeroline_state = False
-            x_tick_vals = []
-            x_tick_text = []
-            y_tick_vals = [round(n,1) for n in np.linspace(min_y_vals, max_y_vals, 8).tolist()][1:-1]
-            y_tick_text = [str(n) for n in y_tick_vals]
+        y_tick_vals = [round(n,1) for n in np.linspace(min_y_vals, max_y_vals, 8).tolist()][1:-1]
+        y_tick_text = [str(n) for n in y_tick_vals]
 
         # Add line breaks for long titles
         # TODO: Make this cleaner (break at whitespaces if available)
         # Maximum length of title before wrapping
         max_title_length = 20 - n_sig
-        y_title = '{} ({})'.format(sig_name[r], units[r])
+        y_title = '{} ({})'.format(sig_name[s], units[s])
         if len(y_title) > max_title_length:
             temp_title = ''.join(y_title.split('(')[:-1]).strip()
             temp_units = '(' + y_title.split('(')[-1]
@@ -764,11 +695,11 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
                 'color': sig_color,
                 'width': sig_thickness
             },
-            'name': sig_name[r]
-        }), row = idx+1, col = 1)
+            'name': sig_name[s]
+        }), row = s+1, col = 1)
 
         # Display where the events are if any
-        if anns != [] and idx == 0:
+        if anns != [] and s == 0:
             for i,ann in enumerate(anns):
                 for a in anns_idx[i]:
                     # Add only the label due to the hover feature... add
@@ -804,7 +735,7 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
         # Set the initial x-axis parameters
         x_tick_vals = [round(n,1) for n in np.arange(start_time, start_time + time_range, grid_delta_major).tolist()]
         x_tick_text = [str(round(n)) if n%1 == 0 else '' for n in x_tick_vals]
-        if idx != (n_sig - 1):
+        if s != (n_sig - 1):
             fig.update_xaxes({
                 'title': None,
                 'fixedrange': x_zoom_fixed,
@@ -812,7 +743,7 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
                 'showticklabels': False,
                 'gridcolor': gridzero_color,
                 'gridwidth': 1,
-                'zeroline': zeroline_state,
+                'zeroline': False,
                 'zerolinewidth': 1,
                 'zerolinecolor': gridzero_color,
                 'range': [start_time, range_stop],
@@ -820,7 +751,7 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
                 'spikemode': 'across',
                 'spikesnap': 'cursor',
                 'showline': True
-            }, row = idx+1, col = 1)
+            }, row = s+1, col = 1)
         else:
             # Add the x-axis title to the bottom figure
             fig.update_xaxes({
@@ -832,7 +763,7 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
                 'ticktext': x_tick_text,
                 'gridcolor': gridzero_color,
                 'gridwidth': 1,
-                'zeroline': zeroline_state,
+                'zeroline': False,
                 'zerolinewidth': 1,
                 'zerolinecolor': gridzero_color,
                 'range': [start_time, range_stop],
@@ -840,23 +771,23 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
                 'spikemode': 'across',
                 'spikesnap': 'cursor',
                 'showline': True,
-            }, row = idx+1, col = 1)
+            }, row = s+1, col = 1)
 
         # Set the initial y-axis parameters
         fig.update_yaxes({
             'title': y_title,
             'fixedrange': y_zoom_fixed,
-            'showgrid': grid_state,
+            'showgrid': True,
             'showticklabels': True,
             'tickvals': y_tick_vals,
             'ticktext': y_tick_text,
             'gridcolor': gridzero_color,
-            'zeroline': zeroline_state,
+            'zeroline': False,
             'zerolinewidth': 1,
             'zerolinecolor': gridzero_color,
             'gridwidth': 1,
             'range': [min_y_vals, max_y_vals],
-        }, row = idx+1, col = 1)
+        }, row = s+1, col = 1)
 
         fig.update_traces(xaxis = x_string)
 
