@@ -282,6 +282,13 @@ def extract_signal(record_sigs, sig_name, rec_sig, time_start, time_stop, down_s
     y_vals = np.nan_to_num(y_vals).astype('float64')
     return y_vals
 
+def get_ann_info(ann_path, ext, time_start, time_stop):
+    current_ann = wfdb.rdann(ann_path, ext)
+    current_ann_idx = list(filter(
+        lambda x: (current_ann.sample[x] > time_start) and (current_ann.sample[x] < time_stop),
+                   range(len(current_ann.sample))
+    ))
+    return current_ann, current_ann_idx
 
 # Dynamically update the record dropdown settings using the project 
 # record and event
@@ -672,9 +679,10 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
                 # subset of all the records)
                 if '.'.join([dropdown_rec, ext]).split(os.sep)[-1] in set(os.listdir(os_path)):
                     try:
-                        current_ann = wfdb.rdann(ann_path, ext)
+                        current_ann, ann_idx = get_ann_info(ann_path, ext,
+                                                            time_start, time_stop)
                         anns.append(current_ann)
-                        anns_idx.append(list(filter(lambda x: (current_ann.sample[x] > time_start) and (current_ann.sample[x] < time_stop), range(len(current_ann.sample)))))
+                        anns_idx.append(ann_idx)
                     except Exception as e:
                         error_text.extend(['ERROR_GRAPH: Annotation file ({}.{}) can not be read... {}'.format(ann_path,ext,e), html.Br()])
         except IOError:
@@ -689,9 +697,11 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
                     ext = f.split('.')[-1]
                     if ext in ann_classes:
                         try:
-                            current_ann = wfdb.rdann(ann_path, ext)
+                            current_ann, ann_idx = get_ann_info(ann_path, ext,
+                                                                time_start, time_stop)
                             anns.append(current_ann)
-                            anns_idx.append(list(filter(lambda x: (current_ann.sample[x] > time_start) and (current_ann.sample[x] < time_stop), range(len(current_ann.sample)))))
+                            anns_idx.append(ann_idx)
+                            error_text.extend(['WARNING_GRAPH: Annotation file worked: {}'.format(f), html.Br()])
                         except Exception as e:
                             error_text.extend(['ERROR_GRAPH: Annotation file ({}) can not be read... {}'.format(f,e), html.Br()])
         except Exception as e:
