@@ -62,7 +62,11 @@ plot_config = {
         'sendDataToCloud',
         'editInChartStudio',
         'resetViews'
-    ]
+    ],
+    'toImageButtonOptions': {
+        'width': 1103,
+        'height': 750
+    }
 }
 
 # Initialize the Dash App
@@ -183,7 +187,13 @@ def get_base_fig(max_plot_height, fig_width, margin_left, margin_top,
         },
         'showlegend': False,
         'hovermode': 'x',
-        'dragmode': drag_mode
+        'dragmode': drag_mode,
+        'font': {
+            'size': 16
+        },
+        'plot_bgcolor': '#ffffff',
+        'paper_bgcolor': '#ffffff',
+        'font_color': '#000000'
     })
     # Update the Null signal and axes
     base_fig.add_trace(go.Scatter({
@@ -234,6 +244,9 @@ def get_xaxis(title, x_zoom_fixed, tick_labels, tick_vals, tick_text,
         'showticklabels': tick_labels,
         'tickvals': tick_vals,
         'ticktext': tick_text,
+        'tickfont': {
+            'size': 16
+        },
         'gridcolor': gridzero_color,
         'gridwidth': 1,
         'zeroline': False,
@@ -248,21 +261,19 @@ def window_signal(y_vals):
     """
     This uses the Coefficient of Variation (CV) approach to determine
     significant changes in the signal then return the adjusted minimum
-    and maximum range... If a significant variation is signal is found
-    then filter out extrema using normal distribution
+    and maximum range. If a significant variation is signal is found
+    then filter out extrema using normal distribution. This method uses
+    the Median Absolute Deviation in place of the typical Standard Deviation.
     """
-    # Standard deviation signal range to window
-    std_range = 4
     # Get parameters of the signal
     temp_std = stats.median_absolute_deviation(y_vals, nan_policy='omit')
-    temp_std = np.nanstd(y_vals)
     temp_mean = np.mean(y_vals[np.isfinite(y_vals)])
     temp_nan = np.all(np.isnan(y_vals))
     temp_zero = np.all(y_vals==0)
     if not temp_nan and not temp_zero:
-        # Prevent `RuntimeWarning: invalid value encountered in double_scalars`
-        # TODO: Lazy fix but need to think about this more
         if (abs(temp_std / temp_mean) > 0.1) and (temp_std > 0.1):
+            # Standard deviation signal range to window
+            std_range = 10
             y_vals = y_vals[abs(y_vals - temp_mean) < std_range * temp_std]
             min_y_vals = np.nanmin(y_vals)
             max_y_vals = np.nanmax(y_vals)
@@ -270,7 +281,6 @@ def window_signal(y_vals):
             min_y_vals = np.nanmin(y_vals) - 1
             max_y_vals = np.nanmax(y_vals) + 1
     else:
-        # Set default min and max values if all NaN or 0
         min_y_vals = -1
         max_y_vals = 1
     return min_y_vals, max_y_vals
@@ -660,7 +670,8 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
         'dragmode': drag_mode,
         'spikedistance':  -1,
         'plot_bgcolor': '#ffffff',
-        'paper_bgcolor': '#ffffff'
+        'paper_bgcolor': '#ffffff',
+        'font_color': '#000000'
     })
 
     # Attempt to load in annotations if available
