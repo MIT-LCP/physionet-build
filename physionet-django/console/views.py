@@ -1076,11 +1076,9 @@ def complete_credential_applications(request):
         reference_email__in=known_refs).order_by('application_datetime')
 
     # 2. reference not contacted, but with reference unknown
-    unknown_refs = [x.reference_email for x in applications
-                    if x.reference_email not in known_refs]
     unknown_ref_no_contact = applications.filter(
-        reference_contact_datetime__isnull=True,
-        reference_email__in=unknown_refs).order_by('application_datetime')
+        reference_contact_datetime__isnull=True).exclude(
+        reference_email__in=known_refs).order_by('application_datetime')
 
     # 3. reference contacted
     contacted = applications.filter(
