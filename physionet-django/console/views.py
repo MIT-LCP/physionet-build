@@ -1073,12 +1073,12 @@ def complete_credential_applications(request):
     # 1. reference not contacted, but with reference known
     known_ref_no_contact = applications.filter(
         reference_contact_datetime__isnull=True,
-        reference_email__in=known_refs).order_by('application_datetime')
+        reference_email__lower__in=known_refs).order_by('application_datetime')
 
     # 2. reference not contacted, but with reference unknown
     unknown_ref_no_contact = applications.filter(
         reference_contact_datetime__isnull=True).exclude(
-        reference_email__in=known_refs).order_by('application_datetime')
+        reference_email__lower__in=known_refs).order_by('application_datetime')
 
     # 3. reference contacted
     contacted = applications.filter(
