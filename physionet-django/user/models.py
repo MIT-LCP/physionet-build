@@ -12,6 +12,8 @@ from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.db import models, DatabaseError, transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.db.models import CharField
+from django.db.models.functions import Lower
 from django.utils import timezone
 from django.utils.crypto import constant_time_compare
 from django.core.validators import (EmailValidator, validate_integer,
@@ -21,6 +23,9 @@ from django.utils.translation import ugettext as _
 from user import validators
 
 logger = logging.getLogger(__name__)
+
+# Support the LOWER() keyword in querysets (e.g. 'Q(email__lower__in)')
+CharField.register_lookup(Lower, "lower")
 
 COUNTRIES = (
     ("AF", _("Afghanistan")),
