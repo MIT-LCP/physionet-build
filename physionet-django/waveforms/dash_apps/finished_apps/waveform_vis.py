@@ -164,89 +164,105 @@ def get_base_fig(max_plot_height, fig_width, margin_left, margin_top,
                  margin_right, margin_bottom, drag_mode, grid_delta_major,
                  x_zoom_fixed, gridzero_color, y_zoom_fixed):
     # Create baseline figure with 1 subplot
-    base_fig = make_subplots(
-        rows = 1,
-        cols = 1,
-        shared_xaxes = True,
-        vertical_spacing = 0
-    )
+    base_fig = get_subplot(1)
     # Update the layout to match the loaded state
-    base_fig.update_layout({
-        'height': max_plot_height / 2,
-        'width': fig_width,
-        'margin': {
-            'l': margin_left,
-            't': margin_top,
-            'r': margin_right,
-            'b': margin_bottom
-        },
-        'grid': {
-            'rows': 1,
-            'columns': 1,
-            'pattern': 'independent'
-        },
-        'showlegend': False,
-        'hovermode': 'x',
-        'dragmode': drag_mode,
-        'font': {
-            'size': 16
-        },
-        'plot_bgcolor': '#ffffff',
-        'paper_bgcolor': '#ffffff',
-        'font_color': '#000000'
-    })
+    base_fig.update_layout(
+        get_layout(max_plot_height/2, fig_width, margin_left, margin_top,
+                   margin_right, margin_bottom, 1, drag_mode, 16)
+    )
     # Update the Null signal and axes
-    base_fig.add_trace(go.Scatter({
-        'x': [None],
-        'y': [None]
-    }), row = 1, col = 1)
+    base_fig.add_trace(
+        get_trace([None], [None], None, None, None, None, None),
+        row = 1, col = 1)
     # Update axes based on signal type
     x_tick_vals = [round(n,1) for n in np.arange(0, 10.1, grid_delta_major).tolist()]
     x_tick_text = [str(round(n)) if n%1 == 0 else '' for n in x_tick_vals]
     y_tick_vals = [round(n,1) for n in np.arange(0, 2.25, grid_delta_major).tolist()]
     y_tick_text = [str(n) if n%1 == 0 else ' ' for n in y_tick_vals]
     # Create the empty chart
-    base_fig.update_xaxes({
-        'title': 'Time (s)',
-        'fixedrange': x_zoom_fixed,
-        'showgrid': True,
-        'tickvals': x_tick_vals,
-        'ticktext': x_tick_text,
-        'showticklabels': True,
-        'gridcolor': gridzero_color,
-        'zeroline': False,
-        'zerolinewidth': 1,
-        'zerolinecolor': gridzero_color,
-        'gridwidth': 1,
-        'range': [0, 10],
-        'rangeslider': {
-            'visible': False
-        }
-    }, row = 1, col = 1)
-    base_fig.update_yaxes({
-        'fixedrange': y_zoom_fixed,
-        'showgrid': True,
-        'dtick': None,
-        'showticklabels': True,
-        'gridcolor': gridzero_color,
-        'zeroline': False,
-        'gridwidth': 1,
-        'range': [0, 2.25],
-    }, row = 1, col = 1)
+    base_fig.update_xaxes(
+        get_xaxis('Time (s)', x_zoom_fixed, grid_delta_major, True, x_tick_vals,
+                  x_tick_text, gridzero_color, 0, 10.1),
+        row = 1, col = 1)
+    base_fig.update_yaxes(
+        get_yaxis(None, y_zoom_fixed, y_tick_vals, y_tick_text, gridzero_color,
+                  0, 2.25),
+        row = 1, col = 1)
     return (base_fig)
 
-def get_xaxis(title, x_zoom_fixed, tick_labels, tick_vals, tick_text,
-              gridzero_color, start_time, range_stop):
+def get_subplot(rows):
+    return make_subplots(
+        rows = rows,
+        cols = 1,
+        shared_xaxes = True,
+        vertical_spacing = 0
+    )
+
+def get_layout(fig_height, fig_width, margin_left, margin_top, margin_right,
+               margin_bottom, rows, drag_mode, font_size):
+    return {
+        'height': fig_height,
+        'width': fig_width,
+        'margin': {'l': margin_left,
+                   't': margin_top,
+                   'r': margin_right,
+                   'b': margin_bottom},
+        'grid': {
+            'rows': rows,
+            'columns': 1,
+            'pattern': 'independent'
+        },
+        'showlegend': False,
+        'hovermode': 'x',
+        'dragmode': drag_mode,
+        'spikedistance':  -1,
+        'plot_bgcolor': '#ffffff',
+        'paper_bgcolor': '#ffffff',
+        'font_color': '#000000',
+        'font': {
+            'size': font_size
+        }
+    }
+
+def get_trace(x_vals, y_vals, x_string, y_string, sig_color, sig_thickness, name):
+    return go.Scatter({
+        'x': x_vals,
+        'y': y_vals,
+        'xaxis': x_string,
+        'yaxis': y_string,
+        'type': 'scatter',
+        'line': {
+            'color': sig_color,
+            'width': sig_thickness
+        },
+        'name': name
+    })
+
+def get_annotation(x_vals, y_vals, text, color):
+    return {
+        'x': x_vals,
+        'y': y_vals,
+        'text': text,
+        'showarrow': False,
+        'font': {
+            'size': 18,
+            'color': color
+        }
+    }
+
+def get_xaxis(title, x_zoom_fixed, grid_delta_major, tick_labels, tick_vals,
+              tick_text, gridzero_color, start_time, range_stop):
     return {
         'title': title,
         'fixedrange': x_zoom_fixed,
-        'dtick': 0.2,
+        'dtick': grid_delta_major,
         'showticklabels': tick_labels,
         'tickvals': tick_vals,
         'ticktext': tick_text,
         'tickfont': {
             'size': 16
         },
+        'tickangle': 0,
         'gridcolor': gridzero_color,
         'gridwidth': 1,
         'zeroline': False,
@@ -255,6 +271,23 @@ def get_xaxis(title, x_zoom_fixed, tick_labels, tick_vals, tick_text,
         'spikemode': 'across',
         'spikesnap': 'cursor',
         'showline': True
+    }
+
+def get_yaxis(y_title, y_zoom_fixed, y_tick_vals, y_tick_text, gridzero_color,
+              min_y_vals, max_y_vals):
+    return {
+        'title': y_title,
+        'fixedrange': y_zoom_fixed,
+        'showgrid': True,
+        'showticklabels': True,
+        'tickvals': y_tick_vals,
+        'ticktext': y_tick_text,
+        'gridcolor': gridzero_color,
+        'zeroline': False,
+        'zerolinewidth': 1,
+        'zerolinecolor': gridzero_color,
+        'gridwidth': 1,
+        'range': [min_y_vals, max_y_vals],
     }
 
 def window_signal(y_vals):
@@ -284,7 +317,6 @@ def window_signal(y_vals):
         min_y_vals = -1
         max_y_vals = 1
     return min_y_vals, max_y_vals
-
 
 def extract_signal(record_sigs, sig_name, rec_sig, time_start, time_stop, down_sample):
     sig_name_index = record_sigs.index(sig_name)
@@ -410,7 +442,6 @@ def get_records_options(click_previous, click_next, slug_value, record_value, ve
 
     return options_rec, return_record, error_text
 
-
 # Update the sig_name value
 @app.callback(
     [dash.dependencies.Output('sig_name', 'options'),
@@ -467,7 +498,6 @@ def update_sig(dropdown_rec, slug_value, version_value):
 
     return options_sig, return_sigs, return_error
 
-
 # Update the set_record value
 @app.callback(
     dash.dependencies.Output('set_record', 'value'),
@@ -480,7 +510,6 @@ def update_rec(fig, dropdown_rec):
         return_dropdown = ''
 
     return return_dropdown
-
 
 # Run the app using the chosen initial conditions
 @app.callback(
@@ -523,8 +552,8 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
     # The thickness of the annotation
     ann_color = 'rgb(0, 0, 200)'
     # ann_thickness = 0.67 * sig_thickness
-    # ECG gridlines parameters
-    grid_delta_major = 0.2
+    # Gridlines tick differential
+    grid_delta_major = 0.1
     # Set the maximum samples per second to increase speed
     max_fs = 100
     # Determine the start time of the record to plot (seconds)
@@ -646,33 +675,17 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
     else:
         fig_height = max_plot_height / n_sig
 
+    # Adjust the font size based on the number of signals (should never
+    # get too small due to the maximum allowed to be displayed)
+    font_size = 16 - n_sig
+
     # Set the initial layout of the figure
-    fig = make_subplots(
-        rows = n_sig,
-        cols = 1,
-        shared_xaxes = True,
-        vertical_spacing = 0
+    fig = get_subplot(n_sig)
+
+    fig.update_layout(
+        get_layout(fig_height*n_sig, fig_width, margin_left, margin_top,
+                   margin_right, margin_bottom, n_sig, drag_mode, font_size)
     )
-    fig.update_layout({
-        'height': fig_height * n_sig,
-        'width': fig_width,
-        'margin': {'l': margin_left,
-                   't': margin_top,
-                   'r': margin_right,
-                   'b': margin_bottom},
-        'grid': {
-            'rows': n_sig,
-            'columns': 1,
-            'pattern': 'independent'
-        },
-        'showlegend': False,
-        'hovermode': 'x',
-        'dragmode': drag_mode,
-        'spikedistance':  -1,
-        'plot_bgcolor': '#ffffff',
-        'paper_bgcolor': '#ffffff',
-        'font_color': '#000000'
-    })
 
     # Attempt to load in annotations if available
     anns = []
@@ -747,18 +760,10 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
             y_title = '<br>'.join(temp_title[z:z+max_title_length] for z in range(0, len(temp_title), max_title_length)) + '<br>' + temp_units
 
         # Create the signal to plot
-        fig.add_trace(go.Scatter({
-            'x': x_vals,
-            'y': y_vals,
-            'xaxis': x_string,
-            'yaxis': y_string,
-            'type': 'scatter',
-            'line': {
-                'color': sig_color,
-                'width': sig_thickness
-            },
-            'name': sig_name[s]
-        }), row = s+1, col = 1)
+        fig.add_trace(
+            get_trace(x_vals, y_vals, x_string, y_string, sig_color,
+                      sig_thickness, sig_name[s]),
+            row = s+1, col = 1)
 
         # Display where the events are if any
         if anns != [] and s == 0:
@@ -768,55 +773,32 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
                     # it's possible (some are long and take up the whole
                     # screen and get really crowded... also some are empty...
                     # so maybe don't use it?)
-                    fig.add_annotation({
-                        'x': float(ann.sample[a] / fs),# + 0.1, <-- add if line
-                        'y': max_y_vals,
-                        'text': ann.symbol[a],
-                        'showarrow': False,
-                        'font': {
-                            'size': 18,
-                            'color': ann_color
-                        }
-                    })
+                    fig.add_annotation(
+                        get_annotation(float(ann.sample[a]/fs), max_y_vals,
+                                       ann.symbol[a], ann_color)
+                    )
 
         # Set the initial x-axis parameters
         x_tick_vals = [round(n,1) for n in np.arange(start_time, start_time + time_range, grid_delta_major).tolist()]
         x_tick_text = [str(round(n)) if n%1 == 0 else '' for n in x_tick_vals]
         if s != (n_sig - 1):
-            fig.update_xaxes(get_xaxis(None, x_zoom_fixed, False, None, None,
-                                       gridzero_color, start_time, range_stop),
-                             row = s+1, col = 1)
+            fig.update_xaxes(
+                get_xaxis(None, x_zoom_fixed, grid_delta_major, False, None,
+                          None, gridzero_color, start_time, range_stop),
+                row = s+1, col = 1)
         else:
-            fig.update_xaxes(get_xaxis('Time (s)', x_zoom_fixed, True,
-                                       x_tick_vals, x_tick_text,
-                                       gridzero_color, start_time, range_stop),
-                             row = s+1, col = 1)
+            fig.update_xaxes(
+                get_xaxis('Time (s)', x_zoom_fixed, grid_delta_major, True,
+                          x_tick_vals, x_tick_text, gridzero_color, start_time,
+                          range_stop),
+                row = s+1, col = 1)
 
         # Set the initial y-axis parameters
-        fig.update_yaxes({
-            'title': y_title,
-            'fixedrange': y_zoom_fixed,
-            'showgrid': True,
-            'showticklabels': True,
-            'tickvals': y_tick_vals,
-            'ticktext': y_tick_text,
-            'gridcolor': gridzero_color,
-            'zeroline': False,
-            'zerolinewidth': 1,
-            'zerolinecolor': gridzero_color,
-            'gridwidth': 1,
-            'range': [min_y_vals, max_y_vals],
-        }, row = s+1, col = 1)
+        fig.update_yaxes(
+            get_yaxis(y_title, y_zoom_fixed, y_tick_vals, y_tick_text,
+                      gridzero_color, min_y_vals, max_y_vals),
+            row = s+1, col = 1)
 
         fig.update_traces(xaxis = x_string)
-
-        # Adjust the font size based on the number of signals (should never
-        # get too small due to the maximum allowed to be displayed)
-        font_size = 16 - n_sig
-        fig.update_layout({
-            'font': {
-                'size': font_size
-            }
-        })
 
     return (fig), html.Span(error_text)
