@@ -352,6 +352,7 @@ CKEDITOR_CONFIGS = {
             'h4': True,
             'h5': True,
             'h6': True,
+            'img': {'attributes': ['src', 'alt', 'width', 'height']},
             '*': {'attributes': _generic_attributes,
                   'classes': _math_classes},
         },
