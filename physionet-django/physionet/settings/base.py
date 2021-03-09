@@ -326,7 +326,7 @@ CKEDITOR_CONFIGS = {
         'toolbar': 'Custom',
         'toolbar_Custom': [
             ['Format'],
-            ['Bold', 'Italic', 'Underline','Blockquote'],
+            ['Bold', 'Italic', 'Underline', 'Blockquote'],
             ['NumberedList', 'BulletedList'],
             ['InlineEquation', 'BlockEquation', 'CodeSnippet', 'Table'],
             ['Link', 'Unlink'],
@@ -335,6 +335,7 @@ CKEDITOR_CONFIGS = {
         'removeDialogTabs': 'link:advanced',
         'disableNativeSpellChecker': False,
         'width': '100%',
+        'autosave': {'messageType': 'no'},
 
         # Show options "Heading 2" to "Heading 4" in the format menu,
         # but map these to <h3>, <h4>, <h5> tags
