@@ -1768,6 +1768,11 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 published_project.title = title or self.title
                 published_project.doi = self.doi
 
+                # Change internal links (that point to files within
+                # the active project) to point to their new locations
+                # in the published project
+                published_project.update_internal_links(old_project=self)
+
                 published_project.save()
 
                 # If this is a new version, all version fields have to be updated
