@@ -31,7 +31,7 @@ from django.utils.crypto import get_random_string
 from project.quota import DemoQuotaManager
 from project.utility import (get_tree_size, get_file_info, get_directory_info,
                              list_items, StorageInfo, list_files,
-                             clear_directory)
+                             clear_directory, LinkFilter)
 from project.validators import (validate_doi, validate_subdir,
                                 validate_version, validate_slug,
                                 MAX_PROJECT_SLUG_LENGTH,
@@ -148,6 +148,12 @@ class SafeHTMLField(ckeditor.fields.RichTextField):
 
     def clean(self, value, model_instance):
         value = self._cleaner.clean(value)
+
+        # Remove scheme/hostname from internal links, and forbid
+        # external subresources
+        lf = LinkFilter()
+        value = lf.convert(value)
+
         return super().clean(value, model_instance)
 
 
