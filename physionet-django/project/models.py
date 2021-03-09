@@ -704,6 +704,74 @@ class Metadata(models.Model):
         """
         return html2text(self.abstract)
 
+    def update_internal_links(self, old_project):
+        """
+        Update internal links after the project is moved to a new URL.
+
+        Internal links and subresources ("href" and "src" attributes)
+        within the project description field may point to particular
+        files in the project.  When an active project becomes
+        published, or a published project is cloned as a new active
+        project, these links should be updated to point to the new
+        project location.
+
+        For example, if self is a PublishedProject with slug='mitbih'
+        and version='1.0.0', and old_project is an ActiveProject with
+        slug='SHuKI1APLrwWCqxSQnSk', then:
+
+        - <a href="/project/SHuKI1APLrwWCqxSQnSk/files/RECORDS">
+          becomes <a href="/files/mitbih/1.0.0/RECORDS">
+
+        - <a href="/project/SHuKI1APLrwWCqxSQnSk/preview/RECORDS">
+          becomes <a href="/content/mitbih/1.0.0/RECORDS">
+
+        (and vice versa if self and old_project are swapped.)
+
+        Internal links are also changed to be relative to the server
+        root:
+
+        - <a href="RECORDS"> becomes
+          <a href="/content/mitbih/1.0.0/RECORDS">
+
+        - <a href="https://physionet.org/files/mitbih/1.0.0/RECORDS"> becomes
+          <a href="/files/mitbih/1.0.0/RECORDS">
+        """
+
+        old_file_url = old_project.file_base_url()
+        old_display_url = old_project.file_display_base_url()
+        new_file_url = self.file_base_url()
+        new_display_url = self.file_display_base_url()
+
+        lf = LinkFilter(base_url=old_display_url,
+                        prefix_map={old_display_url: new_display_url,
+                                    old_file_url: new_file_url})
+
+        for field in ('abstract', 'background', 'methods',
+                      'content_description', 'usage_notes',
+                      'installation', 'acknowledgements',
+                      'conflicts_of_interest', 'release_notes'):
+            text = getattr(self, field)
+            text = lf.convert(text)
+            setattr(self, field, text)
+
+    def file_base_url(self):
+        """
+        Return the base URL for downloading files from this project.
+        """
+        # file_url requires a non-empty path
+        url = self.file_url('', 'x')
+        assert url.endswith('/x')
+        return url[:-1]
+
+    def file_display_base_url(self):
+        """
+        Return the base URL for displaying files in this project.
+        """
+        # file_display_url requires a non-empty path
+        url = self.file_display_url('', 'x')
+        assert url.endswith('/x')
+        return url[:-1]
+
     def edit_log_history(self):
         """
         Get a list of EditLog objects in submission order.
