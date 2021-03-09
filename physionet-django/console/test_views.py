@@ -249,6 +249,16 @@ class TestState(TestMixin):
         project_slug = project.slug
         custom_slug = 'mitbih'
 
+        # The project description includes links to internal files
+        active_file_url = reverse('serve_active_project_file',
+                                  args=(project.slug, 'RECORDS'))
+        active_preview_url = reverse('display_active_project_file',
+                                     args=(project.slug, 'RECORDS'))
+        self.assertIn('href="{}"'.format(active_file_url),
+                      project.usage_notes)
+        self.assertIn('href="{}"'.format(active_preview_url),
+                      project.usage_notes)
+
         # Try to publish with an already taken slug
         # (note that if the project is a new version,
         # publish_submission ignores the slug parameter)
@@ -289,6 +299,22 @@ class TestState(TestMixin):
         response = self.client.get(reverse('published_submission_history',
             args=(project.slug, project.version,)))
         self.assertEqual(response.status_code, 200)
+
+        # The internal links should now point to published files
+        self.assertNotIn('href="{}"'.format(active_file_url),
+                         project.usage_notes)
+        self.assertNotIn('href="{}"'.format(active_preview_url),
+                         project.usage_notes)
+        published_file_url = reverse('serve_published_project_file',
+                                     args=(project.slug, project.version,
+                                           'RECORDS'))
+        published_preview_url = reverse('display_published_project_file',
+                                        args=(project.slug, project.version,
+                                              'RECORDS'))
+        self.assertIn('href="{}"'.format(published_file_url),
+                      project.usage_notes)
+        self.assertIn('href="{}"'.format(published_preview_url),
+                      project.usage_notes)
 
     def test_publish_with_versions(self):
         """
