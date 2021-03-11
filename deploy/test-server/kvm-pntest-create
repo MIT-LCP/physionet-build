@@ -56,7 +56,7 @@ if ! qemu-system-x86_64 \
      $kvm_arg -smp 2 \
      -m 2000 \
      -vga vmware -device virtio-rng-pci \
-     -drive file=$IMAGE,cache=unsafe \
+     -drive file=$IMAGE,if=virtio,cache=unsafe \
      -cdrom $INSTALLER_IMAGE \
      -kernel $tdir/vmlinuz \
      -initrd $tdir/initrd ; then
