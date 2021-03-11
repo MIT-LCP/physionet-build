@@ -59,7 +59,7 @@ if ! qemu-system-x86_64 \
      -drive file=$IMAGE,if=virtio,cache=unsafe \
      -cdrom $INSTALLER_IMAGE \
      -kernel $tdir/vmlinuz \
-     -initrd $tdir/initrd ; then
+     -initrd $tdir/initrd "$@" ; then
     echo " *** Unable to launch qemu."
     rm -f $IMAGE
     exit 1
