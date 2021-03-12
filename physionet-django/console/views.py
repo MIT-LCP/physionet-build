@@ -39,7 +39,7 @@ from project.validators import MAX_PROJECT_SLUG_LENGTH
 from project.views import (get_file_forms, get_project_file_info,
     process_files_post)
 from user.models import (User, CredentialApplication, LegacyCredential,
-                         AssociatedEmail, CredentialReview)
+                         AssociatedEmail, CredentialReview, ClassList)
 from console import forms, utility
 from console.tasks import associated_task, get_associated_tasks
 
@@ -996,6 +996,32 @@ def known_references_search(request):
 
     raise Http404()
 
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def class_references_search(request):
+    """
+    Search credential applications and user list.
+    """
+
+    if request.method == 'POST':
+        search_field = request.POST['search']
+
+        classes = ClassList.objects.filter(
+            Q(reference_email__icontains=search_field) |
+            Q(reference_name__icontains=search_field) |
+            Q(reference_organization=search_field) |
+            Q(class_name__icontains=search_field))
+
+        all_class_ref = classes.exclude(
+            active=False).order_by('-creation_datetime')
+
+        if len(search_field) == 0:
+            all_class_ref = paginate(request, all_class_ref, 50)
+
+        return render(request, 'console/class_references_list.html', {
+            'all_class_ref': all_class_ref})
+
+    raise Http404()
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
@@ -1143,6 +1169,12 @@ def process_credential_application(request, application_slug):
     ref_email = notification.contact_reference(request, application,
                                                send=False,  wordwrap=False)
     contact_cred_ref_form = forms.ContactCredentialRefForm(initial=ref_email)
+    # Assume the reference can only enroll a single class at a time
+    try:
+        ref_class = ClassList.objects.filter(active=True).get(
+            reference_email=application.reference_email)
+    except ClassList.DoesNotExist:
+        ref_class = None
 
     page_title = None
     title_dict = {a: k for a, k in CredentialReview.REVIEW_STATUS_LABELS}
@@ -1350,7 +1382,8 @@ def process_credential_application(request, application_slug):
          'intermediate_credential_form': intermediate_credential_form,
          'process_credential_form': process_credential_form,
          'processing_credentials_nav': True, 'page_title': page_title,
-         'contact_cred_ref_form': contact_cred_ref_form})
+         'contact_cred_ref_form': contact_cred_ref_form,
+         'ref_class': ref_class})
 
 
 @login_required
@@ -1941,6 +1974,42 @@ def known_references(request):
     return render(request, 'console/known_references.html', {
         'all_known_ref': all_known_ref, 'known_ref_nav': True})
 
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def class_references(request):
+    """
+    Create a list of courses. For now, this will just be a list of references
+    which are offering a course. If on this list, the reference will be
+    flagged in the system so that they can be processed differently.
+    """
+    user = request.user
+    add_class_form = forms.AddClassReferenceForm()
+
+    if 'add_class_ref' in request.POST:
+        add_class_form = forms.AddClassReferenceForm(request.POST)
+        if add_class_form.is_valid():
+            add_class_form.save()
+            messages.success(request, 'The new class has been added')
+
+    if 'remove_class_ref' in request.POST:
+        try:
+            class_name = ClassList.objects.get(
+                id=request.POST['remove_class_ref'])
+            class_name.deactivate()
+            LOGGER.info('User {0} removed reference for class \
+                {1}'.format(user, class_name.id))
+            messages.success(request, 'The reference for class has been \
+                removed.')
+        except ClassList.DoesNotExist:
+            pass
+
+    all_class_ref = ClassList.objects.filter(
+        active=True).order_by('-creation_datetime')
+    all_class_ref = paginate(request, all_class_ref, 50)
+
+    return render(request, 'console/class_references.html', {
+        'add_class_form': add_class_form, 'all_class_ref': all_class_ref,
+        'class_ref_nav': True})
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')

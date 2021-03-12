@@ -1,0 +1,32 @@
+<div id="searchitems">
+    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+      <thead>
+        <tr>
+          <th>Creation Date</th>
+          <th>Class Name</th>
+          <th>Reference Email</th>
+          <th>Reference Name</th>
+          <th>Options</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for course in all_class_ref %}
+        <tr>
+          <td>{{ course.creation_datetime | date }}</td>
+          <td>{{ course.class_name }}</td>
+          <td>{{ course.reference_email }}</td>
+          <td>{{ course.reference_name }}</td>
+          <td>
+              <form action="" method="post">
+              {% csrf_token %}
+                <button  name="remove_class_ref" value="{{ course.id }}" type="submit">
+                  Remove
+                </button>
+              </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% include "console/pagination.html" with pagination=all_class_ref %}
+  </div>

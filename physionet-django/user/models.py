@@ -998,6 +998,31 @@ class CredentialReview(models.Model):
                                           blank=True)
 
 
+class ClassList(models.Model):
+    """
+    A list of classes along with its respective reference.
+    """
+    reference_name = models.CharField(max_length=202, default='', blank=True,
+                                      validators=[validators.validate_reference_name])
+    reference_email = models.EmailField(default='', blank=True)
+    reference_organization = models.CharField(max_length=200,
+        validators=[validators.validate_organization], blank=True)
+    class_name = models.CharField(max_length=200, blank=True)
+    active = models.BooleanField(default=True)
+    creation_datetime = models.DateTimeField(null=True)
+    deactivate_date_time = models.DateTimeField(null=True)
+
+    def activate(self):
+        self.active = True
+        self.creation_datetime = timezone.now()
+        self.save()
+
+    def deactivate(self):
+        self.active = False
+        self.deactivate_datetime = timezone.now()
+        self.save()
+
+
 class CloudInformation(models.Model):
     """
     Location where the cloud accounts for the user will be stored

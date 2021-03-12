@@ -14,7 +14,7 @@ from project.models import (ActiveProject, EditLog, CopyeditLog, Contact,
                             PublishedProject, exists_project_slug, DataAccess,
                             PublishedAffiliation, PublishedAuthor)
 from project.validators import validate_slug, MAX_PROJECT_SLUG_LENGTH, validate_doi
-from user.models import User, CredentialApplication, CredentialReview
+from user.models import User, CredentialApplication, CredentialReview, ClassList
 from console.utility import generate_doi_payload, register_doi
 
 RESPONSE_CHOICES = (
@@ -795,6 +795,46 @@ class AlterCommentsCredentialForm(forms.ModelForm):
         labels = {
             'responder_comments': 'Comments',
         }
+
+
+class AddClassReferenceForm(forms.ModelForm):
+    """
+    Form to apply for adding a class and its respective reference.
+    """
+    class Meta:
+        model = ClassList
+        fields = (
+            'reference_name', 'reference_email', 'reference_organization',
+            'class_name'
+        )
+
+    def __init__(self, *args, **kwargs):
+        """
+        This form is only for processing post requests.
+        """
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        data = self.cleaned_data
+
+        if any(self.errors):
+            return
+
+        ref_details = [data['reference_name'],
+                       data['reference_email'],
+                       data['reference_organization'],
+                       data['class_name']]
+
+        # All of the information must be submitted
+        if not all(ref_details):
+            raise forms.ValidationError("""Please complete all of the listed
+                fields.""")
+
+    def save(self):
+        class_name = super().save(commit=False)
+        class_name.activate()
+        class_name.save()
+        return class_name
 
 
 class NewsForm(forms.ModelForm):
