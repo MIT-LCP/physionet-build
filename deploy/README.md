@@ -247,7 +247,7 @@ That ID will be then added to the storage bucket and databases.
 
 Obtaining a client_id / client_secret for interacting with the ORCID API:
 
-These variables are required in your .env file to request / exchange a token from ORCID in a effort to get a users ORCID iD, etc. The \_TEST_ variables are used by base.py while the variables without \_TEST_ are used by staging.py and production.py. To obtain valid CLIENT_ID and CLIENT_SECRET values you must register an account or use an account from your institution to obtain valid codes.  When doing development work off of base.py, register an account at sandbox.orcid.org and when using staging.py or production.py register at orcid.org.  After registering you can go to developer tools under your name (when logged in) to get the CLIENT_ID and CLIENT_SECRET.  The scopes of the request can be altered with the \_SCOPE variable.  These scopes control what you are allowed to do during your interaction with the ORCID API.  Scopes such as read-limited and activities/update require member API credentials. Multiple scope requests should be separated by a comma: '/read-limited,/activities/update' .  All scopes except 'openid' must start with a forward slash.  See: https://info.orcid.org/faq/what-is-an-oauth-scope-and-which-scopes-does-orcid-support/ for more details.  You will also need to enter the redirect URI under developer tools. Use the value as provided in the settings (ORCID_REDIRECT_URI in base / staging / production.py)
+These variables are required in your .env file to request / exchange a token from ORCID in a effort to get a users ORCID iD, etc. The \_TEST_ variables are used by base.py while the variables without \_TEST_ are used by staging.py and production.py. 
 ```
 ORCID_CLIENT_ID=SECRET
 ORCID_CLIENT_SECRET=SECRET
@@ -256,12 +256,23 @@ ORCID_TEST_CLIENT_ID=SECRET
 ORCID_TEST_CLIENT_SECRET=SECRET
 ORCID_TEST_SCOPE='/authenticate'
 ```
+To obtain valid CLIENT_ID and CLIENT_SECRET values you must register an account or use an account from your institution to obtain valid codes.  When doing development work off of base.py, register an account at sandbox.orcid.org and when using staging.py or production.py register at orcid.org.  
+
+To register an account on sandbox.orcid.org you must use an username<span>@<span>mailinator.com address.  Mailinator hosts public inboxes.  Since this is the only domain that sandbox.orcid.org will send emails to, it is your only choice for registering an account.  You can use any username you like but it's good to use something unique so you don't have to sift through the public inbox looking for your email amoung lots of others.  To retireve your email go to mailinator.com and at the top type in your username in the box that says "Enter Public Mailinator Inbox".  You should see your email for validation from sandbox.orcid.org (it will be automatically deleted sooner than later).  
+ 
+Registration on orcid.org is more straight forward.  Simply go to orcid.org/register and follow the instructions.
+ 
+After registering you can go to developer tools under your name (when logged in) to get the CLIENT_ID and CLIENT_SECRET.  The scopes of the request can be altered with the \_SCOPE variable.  These scopes control what you are allowed to do during your interaction with the ORCID API.  Scopes such as read-limited and activities/update require member API credentials. Multiple scope requests should be separated by a comma: '/read-limited,/activities/update' .  All scopes except 'openid' must start with a forward slash.  See: https://info.orcid.org/faq/what-is-an-oauth-scope-and-which-scopes-does-orcid-support/ for more details.  You will also need to enter the redirect URI under developer tools. Use the value as provided in the settings (ORCID_REDIRECT_URI in base / staging / production.py)
+
 
 ORCID token exchange guide:
 
-A tutorial can be found here: https://orcid.github.io/orcid-api-tutorial/ . Token exchanges on the public API can be made at: pub.sandbox.orcid.org and on the member API at api.sandbox.orcid.org. Here is a an example using the public API:
+A tutorial can be found here: https://orcid.github.io/orcid-api-tutorial/ . Token exchanges on the public API can be made at: pub.sandbox.orcid.org and on the member API at api.sandbox.orcid.org. Here is a an example using the public API which uses the requests-oauthlib python package:
 
 ```
+from requests_oauthlib import OAuth2Session
+from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
+
 orcid_object = Orcid.objects.get(user=request.user)
 orcid_rec_id = orcid_object.orcid_id
 orcid_rec_access_token = orcid_object.access_token
