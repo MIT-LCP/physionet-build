@@ -272,7 +272,6 @@ A tutorial can be found here: https://orcid.github.io/orcid-api-tutorial/ . Toke
 ```
 from user.models import Orcid
 from requests_oauthlib import OAuth2Session
-from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
 
 orcid_object = Orcid.objects.get(user=request.user)
 orcid_rec_id = orcid_object.orcid_id
