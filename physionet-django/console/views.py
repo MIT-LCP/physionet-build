@@ -1363,9 +1363,12 @@ def credential_processing(request):
 
     # TODO: Remove this step. If KP has contacted the reference, exclude the
     # application from our list. Avoid toes.
-    no_review = Q(credential_review__isnull=True)
+    review_not_underway = (Q(credential_review__status__lte=10) |
+                           Q(credential_review__isnull=True))
+
     ref_contacted = Q(reference_contact_datetime__isnull=False)
-    applications = applications.exclude(no_review, ref_contacted)
+
+    applications = applications.exclude(review_not_underway, ref_contacted)
 
     # Awaiting initial review
     initial_1 = Q(credential_review__isnull=True)
