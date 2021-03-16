@@ -256,9 +256,9 @@ ORCID_TEST_CLIENT_ID=SECRET
 ORCID_TEST_CLIENT_SECRET=SECRET
 ORCID_TEST_SCOPE='/authenticate'
 ```
-To obtain valid CLIENT_ID and CLIENT_SECRET values you must register an account or use an account from your institution to obtain valid codes.  When doing development work off of base.py, register an account at sandbox.orcid.org and when using staging.py or production.py register at orcid.org.  
+To obtain valid CLIENT_ID and CLIENT_SECRET values you must register an account or use an account from your institution to obtain valid codes.  When doing development work off of base.py, register an account at https://sandbox.orcid.org/ and when using staging.py or production.py register at https://orcid.org/.  
 
-To register an account on sandbox.orcid.org you must use an username<span>@<span>mailinator.com address.  Mailinator hosts public inboxes.  Since this is the only domain that sandbox.orcid.org will send emails to, it is your only choice for registering an account.  You can use any username you like but it's good to use something unique so you don't have to sift through the public inbox looking for your email amoung lots of others.  To retireve your email go to mailinator.com and at the top type in your username in the box that says "Enter Public Mailinator Inbox".  You should see your email for validation from sandbox.orcid.org (it will be automatically deleted sooner than later).  
+To register an account on sandbox.orcid.org you must use an username<span>@<span>mailinator.com address.  Mailinator hosts public inboxes.  Since this is the only domain that sandbox.orcid.org will send emails to, it is your only choice for registering an account.  You can use any username you like but it's good to use something unique so you don't have to sift through the public inbox looking for your email amoung lots of others.  To retireve your email go to https://www.mailinator.com/ and at the top type in your username in the box that says "Enter Public Mailinator Inbox".  You should see your email for validation from sandbox.orcid.org (it will be automatically deleted sooner than later).  
  
 Registration on orcid.org is more straight forward.  Simply go to orcid.org/register and follow the instructions.
  
@@ -270,6 +270,7 @@ ORCID token exchange guide:
 A tutorial can be found here: https://orcid.github.io/orcid-api-tutorial/ . Token exchanges on the public API can be made at: pub.sandbox.orcid.org and on the member API at api.sandbox.orcid.org. Here is a an example using the public API which uses the requests-oauthlib python package:
 
 ```
+from user.models import Orcid
 from requests_oauthlib import OAuth2Session
 from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
 
