@@ -23,7 +23,7 @@ will have been sent a message saying something like:
 and of course this link will not work anymore.
 
 This command will identify those AssociatedEmails which did not have a
-verification token set, which were created in the past 7 days, and
+verification token set, which were created in the past 3 days, and
 which have not yet been verified, and will send a second email saying:
 
     Subject: PhysioNet Email Verification (CORRECTION)
