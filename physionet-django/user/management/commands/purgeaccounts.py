@@ -12,11 +12,11 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         """
-        Delete all user accounts and associated emails after 7 days of
+        Delete all user accounts and associated emails after 3 days of
         creation if they were not activated.
         """
         today = timezone.now()
-        limit = today - timezone.timedelta(days=7)
+        limit = today - timezone.timedelta(days=3)
         user_list = User.objects.filter(is_active=False, join_date__lt=limit)
         deleted = []
         for user in user_list:
