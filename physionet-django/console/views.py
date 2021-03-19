@@ -1386,7 +1386,8 @@ def credential_processing(request):
         credential_review__status=40).order_by('application_datetime')
     # Awaiting reference response
     response_applications = applications.filter(
-        credential_review__status=50).order_by('application_datetime')
+        credential_review__status=50).order_by('-reference_response',
+                                               'application_datetime')
     # Awaiting final review
     final_applications = applications.filter(
         credential_review__status=60).order_by('application_datetime')
