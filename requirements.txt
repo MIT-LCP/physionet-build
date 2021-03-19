@@ -14,8 +14,9 @@ django-background-tasks==1.2.0 \
  --hash=sha256:35a9a54961f3e4486ab2f9482d1e8ac63ab4f47e5e0b7e654a22f7002299ffae
 django-ckeditor==5.7.1 \
  --hash=sha256:0147f8905dc64747e45157a185feedee4e39973fa4b571c9c82ad10d9d4b8974
-djangorestframework==3.9.1 \
- --hash=sha256:a4138613b67e3a223be6c97f53b13d759c5b90d2b433bad670b8ebf95402075f
+djangorestframework==3.11.2 \
+ --hash=sha256:5cc724dc4b076463497837269107e1995b1fbc917468d1b92d188fd1af9ea789 \
+ --hash=sha256:a5967b68a04e0d97d10f4df228e30f5a2d82ba63b9d03e1759f84993b7bf1b53
 google-cloud-storage==1.14.0 \
  --hash=sha256:a3115c22a71e2f172fade72c7b7b797a071f3ac9b66043191fc84c214ba0c671
 html2text==2018.1.9 \
