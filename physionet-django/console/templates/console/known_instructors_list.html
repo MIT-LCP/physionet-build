@@ -1,0 +1,33 @@
+<div id="searchitems">
+  <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+    <thead>
+      <tr>
+        <th>First Name</th>
+        <th>Last Name</th>
+        <th>Email</th>
+        <th>Courses</th>
+        <th>Options</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for instructor in all_known_instr %}
+      <tr>
+        <td>{{ instructor.get_names.0 }}</td>
+        <td>{{ instructor.get_names.1 }}</td>
+        <td>{{ instructor.email }}</td>
+        <td><a href="{% url "known_instructor_courses" instructor.username %}">View</a></td>
+        <td>
+            <form action="" method="post">
+            {% csrf_token %}
+              <button  name="remove_known_instr" value="{{ instructor.id }}" type="submit">
+                Remove
+              </button>
+            </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% include "console/pagination.html" with pagination=all_known_instr %}
+</div>
+  

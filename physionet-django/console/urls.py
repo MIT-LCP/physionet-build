@@ -56,6 +56,12 @@ urlpatterns = [
         name='known_references'),
     path('known-references/search/', views.known_references_search,
         name='known_references_search'),
+    path('known-instructors/', views.known_instructors,
+        name='known_instructors'),
+    path('known-instructors/search/', views.known_instructors_search,
+        name='known_instructors_search'),
+    path('known-instructors/<username>/courses/',
+        views.known_instructor_courses, name='known_instructor_courses'),
     path('credential_processing/', views.credential_processing,
         name='credential_processing'),
 

@@ -1,0 +1,67 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}View Courses - {{ user.username }}{% endblock %}
+
+{% block local_js_top %}
+<script src="{% static 'custom/js/cookie.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<h2 class="form-signin-heading">View Courses - {{ user.username }}</h2>
+<div class="table-responsive">
+  {% if courses %}
+    {% for course in courses %}
+      <h3>{{ course.course_name }}</h3>
+      <div class="table-responsive">
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th style="width: 10%">Number of students</th>
+              <th style="width: 10%">Active</th>
+              <th style="width: 10%">Date activated</th>
+              <th style="width: 10%">Date deactivated</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{{ course.num_students }}</td>
+              <td>{{ course.course_active }}</td>
+              <td>{{ course.activate_datetime }}</td>
+              <td>{{ course.deactivate_datetime }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      {% if course.get_students %}
+        <div class="table-responsive">
+          <table class="table table-bordered">
+            <thead><tr>
+              <th>Student profile</th>
+              <th>Full name</th>
+              <th>Email</th>
+              <th>Credentialed</th>
+            </tr></thead>
+            <tbody>
+            {% for student in course.get_students %}
+              <tr>
+                <td><a href="{% url 'public_profile' student.username %}">{{ student.username }}</a></td>
+                <td>{{ student.get_full_name }}</td>
+                <td>{{ student.email }}</td>
+                <td>{{ student.is_credentialed }}</td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p>No students enrolled in this course.</p>
+      {% endif %}
+    {% endfor %}
+  {% else %}
+    <p>The requested user currently doesn't have any courses registered.</p>
+  {% endif %}
+</div>
+
+{% endblock %}

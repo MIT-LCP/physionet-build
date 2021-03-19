@@ -352,6 +352,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_credentialed = models.BooleanField(default=False)
     credential_datetime = models.DateTimeField(blank=True, null=True)
 
+    is_instructor = models.BooleanField(default=False)
+
     USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'email'
 
@@ -1127,6 +1129,86 @@ class TrainingQuestion(models.Model):
 
     class Meta:
         default_permissions = ()
+
+
+class Instructor(models.Model):
+    """
+    An instructor of a course.
+    """
+    user = models.ForeignKey(
+        'user.User', related_name='instructor',
+        on_delete=models.CASCADE
+    )
+    creation_datetime = models.DateTimeField(null=True)
+
+    def activate(self, user):
+        user.is_instructor = True
+        user.save()
+        self.user = user
+        self.creation_datetime = timezone.now()
+        self.save()
+
+    def deactivate(self):
+        self.user.is_instructor = False
+        self.user.save()
+        self.delete()
+
+
+class Course(models.Model):
+    """
+    A list of students enrolled in an instructor's course.
+    """
+    instructor = models.ForeignKey(
+        'user.Instructor', related_name='course',
+        on_delete=models.CASCADE
+    )
+    activate_datetime = models.DateTimeField(null=True)
+    deactivate_datetime = models.DateTimeField(null=True)
+    course_name = models.CharField(max_length=100, blank=True)
+    course_active = models.BooleanField(default=False)
+
+    def get_students(self):
+        students = Student.objects.filter(course=self.id)
+        return [User.objects.get(id=s.user_id) for s in students]
+
+    def num_students(self):
+        return len(Student.objects.filter(course=self.id))
+
+    def add_course(self, course_name):
+        self.course_name = course_name
+        self.activate_course()
+
+    def activate_course(self):
+        self.course_active = True
+        self.activate_datetime = timezone.now()
+        self.deactivate_datetime = None
+        self.save()
+
+    def deactivate_course(self):
+        self.course_active = False
+        self.deactivate_datetime = timezone.now()
+        self.save()
+
+
+class Student(models.Model):
+    """
+    A student listed in an instructor's course.
+    """
+    user = models.ForeignKey(
+        'user.User', related_name='student',
+        on_delete=models.CASCADE
+    )
+    course = models.ForeignKey(
+        'user.Course', related_name='student_course',
+        on_delete=models.CASCADE
+    )
+
+    def add_student(self, user):
+        self.user = user
+        self.save()
+
+    def remove_student(self):
+        self.delete()
 
 
 class CloudInformation(models.Model):

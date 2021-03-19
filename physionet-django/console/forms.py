@@ -31,7 +31,8 @@ from project.models import (
 )
 from project.projectfiles import ProjectFiles
 from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_doi, validate_slug
-from user.models import CodeOfConduct, CredentialApplication, CredentialReview, User, TrainingQuestion
+from user.models import CodeOfConduct, CredentialApplication, CredentialReview, User, TrainingQuestion, Instructor, Course
+sfrom console.utility import generate_doi_payload, register_doi
 
 RESPONSE_CHOICES = (
     (1, 'Accept'),
@@ -612,6 +613,45 @@ class AlterCommentsCredentialForm(forms.ModelForm):
         labels = {
             'responder_comments': 'Comments',
         }
+
+
+class AddInstrForm(forms.Form):
+    """
+    Form for adding an instructor.
+    """
+    email = forms.CharField(label='', widget=forms.TextInput(
+        attrs={'class': 'form-control', 'placeholder': 'Instructor email *'}))
+
+    def __init__(self, user, *args, **kwargs):
+        """
+        This form is only for processing post requests.
+        """
+        super().__init__(*args, **kwargs)
+        self.user = user
+
+    def clean(self):
+        data = self.cleaned_data
+
+        if any(self.errors):
+            return
+
+        try:
+            user = User.objects.get(email=data['email'])
+            if user.is_instructor:
+                raise forms.ValidationError("""The requested user is already
+                    an instructor.""")
+        except User.DoesNotExist:
+            raise forms.ValidationError("""The requested user is not
+                registered in the system.""")
+
+        if not data['email']:
+            raise forms.ValidationError("""Please complete all of the listed
+                fields.""")
+
+    def save(self):
+        instructor = Instructor()
+        user = User.objects.get(email=self.data['email'])
+        instructor.activate(user=user)
 
 
 class NewsForm(forms.ModelForm):

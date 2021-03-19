@@ -39,7 +39,7 @@ from physionet.middleware.maintenance import (
     allow_post_during_maintenance,
     disallow_during_maintenance,
 )
-from physionet.models import Section
+from physionet.models import Section,StaticPage
 from physionet.settings.base import StorageTypes
 from project.models import Author, DUASignature, DUA, PublishedProject
 from requests_oauthlib import OAuth2Session
@@ -54,10 +54,12 @@ from user.models import (
     Orcid,
     User,
     Training,
-    TrainingType,
-)
+    TrainingType, 
+    Instructor,
+    Course,
+    Student)
 from user.userfiles import UserFiles
-from physionet.models import StaticPage
+
 
 
 logger = logging.getLogger(__name__)
@@ -594,6 +596,90 @@ def edit_username(request):
 
     return render(request, 'user/edit_username.html', {'form':form,
         'user':user})
+
+
+@login_required
+def edit_courses(request):
+    """
+    Allow the user to edit their classes and add students if they are listed
+    as an instructor (`is_instructor` in the `User` class) in the admin
+    console.
+    """
+    user = request.user
+    instructor = Instructor.objects.get(user=user)
+
+    add_course_form = forms.AddCourseForm()
+    if request.method == 'POST':
+        if 'add_course' in request.POST:
+            add_course_form = forms.AddCourseForm(data=request.POST)
+            if add_course_form.is_valid():
+                add_course_form.save(user=instructor)
+                messages.success(request, 'You have added a new course.')
+            else:
+                messages.error(request, 'Failed to add a new course.')
+        if 'deactivate_course' in request.POST:
+            try:
+                course_name = Course.objects.get(
+                    id=request.POST['deactivate_course'])
+                course_name.deactivate_course()
+                logger.info('User {0} deactivated course \
+                    {1}'.format(user, course_name.id))
+                messages.success(request, 'The course has been deactivated.')
+            except Course.DoesNotExist:
+                messages.error(request, 'Failed to deactivate the course.')
+        if 'reactivate_course' in request.POST:
+            try:
+                course_name = Course.objects.get(
+                    id=request.POST['reactivate_course'])
+                course_name.activate_course()
+                logger.info('User {0} reactivated course \
+                    {1}'.format(user, course_name.id))
+                messages.success(request, 'The course has been reactivated.')
+            except Course.DoesNotExist:
+                messages.error(request, 'Failed to reactivate the course.')
+
+    courses = Course.objects.filter(instructor=instructor).order_by('-activate_datetime')
+
+    return render(request, 'user/edit_courses.html', {
+        'add_course_form': add_course_form, 'courses': courses})
+
+
+@login_required
+def view_course(request, id):
+    """
+    View and edit the students in a course.
+    """
+    user = request.user
+    instructor = Instructor.objects.get(user=request.user)
+    course = Course.objects.get(instructor=instructor, id=id)
+
+    add_student_form = forms.AddStudentForm(user=user, course=course)
+    if request.method == 'POST':
+        if 'add_student' in request.POST:
+            add_student_form = forms.AddStudentForm(user=user, course=course,
+                                                    data=request.POST)
+            if add_student_form.is_valid():
+                add_student_form.save(course=course)
+                messages.success(request, 'You have added new students.')
+            else:
+                messages.error(request, 'Failed to add new students.')
+        if 'remove_student' in request.POST:
+            try:
+                student = Student.objects.get(course=course,
+                    user_id=request.POST['remove_student'])
+                student.remove_student()
+                logger.info('User {0} removed student \
+                    {1}'.format(user, student.id))
+                messages.success(request, 'The student has been removed.')
+            except Course.DoesNotExist:
+                messages.error(request, 'Failed to remove the student.')
+
+    students = Student.objects.filter(course=course)
+    students = [User.objects.get(id=s.user_id) for s in students]
+
+    return render(request, 'user/view_course.html', {'user': user,
+        'course': course, 'students': students,
+        'add_student_form': add_student_form})
 
 
 @login_required

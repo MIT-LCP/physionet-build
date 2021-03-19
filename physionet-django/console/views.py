@@ -63,10 +63,13 @@ from user.models import (
     Training,
     TrainingQuestion,
     CodeOfConduct,
-)
+    Instructor, 
+    Course, 
+    Student)
 from physionet.enums import LogCategory
 from console import forms, utility, services
 from console.forms import ProjectFilterForm, UserFilterForm
+from console.tasks import associated_task, get_associated_tasks
 
 
 LOGGER = logging.getLogger(__name__)
@@ -1112,7 +1115,55 @@ def known_references_search(request):
     raise Http404()
 
 
+<<<<<<< HEAD
 @permission_required('user.change_credentialapplication', raise_exception=True)
+=======
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def known_instructors_search(request):
+    """
+    Search credential applications and user list.
+    """
+
+    if request.method == 'POST':
+        search_field = request.POST['search']
+
+        applications = CredentialApplication.objects.filter(
+            Q(reference_email__icontains=search_field) |
+            Q(reference_name__icontains=search_field) |
+            Q(user__profile__last_name__icontains=search_field) |
+            Q(user__profile__first_names__icontains=search_field))
+
+        all_known_ref = applications.exclude(
+            reference_contact_datetime__isnull=True).order_by(
+            '-reference_contact_datetime')
+
+        if len(search_field) == 0:
+            all_known_ref = paginate(request, all_known_ref, 50)
+
+        return render(request, 'console/known_instructors_list.html', {
+            'all_known_ref': all_known_ref})
+
+    raise Http404()
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def known_instructor_courses(request, username):
+    """
+    View the courses of an instructor.
+    """
+    user = get_object_or_404(User, username__iexact=username)
+    instructor = Instructor.objects.get(user=user)
+    courses = Course.objects.filter(instructor=instructor).order_by('-activate_datetime')
+
+    return render(request, 'console/known_instructor_courses.html', {'user': user,
+        'courses': courses})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+>>>>>>> Allows users to create a course and add students
 def complete_credential_applications(request):
     """
     Legacy page for processing credentialing applications.
@@ -2339,6 +2390,42 @@ def known_references(request):
     return render(request, 'console/known_references.html', {
         'all_known_ref': all_known_ref, 'known_ref_nav': True})
 
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def known_instructors(request):
+    """
+    List all known instructors with the option of removing them
+    """
+    user = request.user
+    add_instr_form = forms.AddInstrForm(user=user)
+
+    if 'add_known_instr' in request.POST:
+        add_instr_form = forms.AddInstrForm(user=user,data=request.POST)
+        if add_instr_form.is_valid():
+            add_instr_form.save()
+            messages.success(request, 'The new instructor has been added')
+    if 'remove_known_instr' in request.POST:
+        try:
+            instructor = Instructor.objects.get(
+                user_id=request.POST['remove_known_instr'])
+            instructor.deactivate()
+            instructor_user = User.objects.get(
+                id=request.POST['remove_known_instr'])
+            instructor_user.is_instructor = False
+            instructor_user.save()
+            LOGGER.info('User {0} removed instructor \
+                {1}'.format(user, instructor_user.id))
+            messages.success(request, 'The instructor has been removed.')
+        except User.DoesNotExist:
+            pass
+
+    all_known_instr = User.objects.filter(is_instructor=True)
+    all_known_instr = sorted(all_known_instr, key= lambda u: u.get_names()[1])
+    all_known_instr = paginate(request, all_known_instr, 50)
+
+    return render(request, 'console/known_instructors.html', {
+        'all_known_instr': all_known_instr, 'add_instr_form': add_instr_form,
+        'known_instr_nav': True})
 
 @permission_required('physionet.change_staticpage', raise_exception=True)
 def static_pages(request):

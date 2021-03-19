@@ -8,11 +8,30 @@
 <link rel="stylesheet" type="text/css" href="{% static 'custom/css/settings.css' %}"/>
 {% endblock %}
 
-
 {% block content %}
 <div class="container">
   <div class="row row-offcanvas row-offcanvas-right">
     {% settings_tabs sso_enabled %}
+    <div class="col-6 col-md-3 sidebar-offcanvas sett-side" id="sidebar">
+      <div class="list-group">
+        {% if user.is_instructor %}
+          {% with 'Profile Password Emails Username Courses Cloud ORCID Credentialing Agreements' as setting_options %}
+            {% for setting in setting_options.split %}
+              {% url 'edit_'|add:setting|lower as settings_url %}
+              <a href={{ settings_url }} class="list-group-item list-group-item-action{% if settings_url == request.path %} active{% endif %}">{{ setting }}</a>
+            {% endfor %}
+          {% endwith %}
+        {% else %}
+          {% with 'Profile Password Emails Username Cloud ORCID Credentialing Agreements' as setting_options %}
+              {% for setting in setting_options.split %}
+              {% url 'edit_'|add:setting|lower as settings_url %}
+              <a href={{ settings_url }} class="list-group-item list-group-item-action{% if settings_url == request.path %} active{% endif %}">{{ setting }}</a>
+            {% endfor %}
+          {% endwith %}
+        {% endif %}
+      </div>
+    </div><!--/span-->
+
     <div class="col-10 col-md-9 sett-side">
       {% include "message_snippet.html" %}
       {% block main_content %}

@@ -458,7 +458,7 @@ a{
 }
 
 /* project files form */
-.big-toolbar-left, .big-toolbar-right {
+.big-toolbar-left, .big-toolbar-center, .big-toolbar-right {
   display: block;
   text-align: center;
 }
@@ -473,6 +473,9 @@ a{
 @media only screen and (min-width: 992px) {
   .big-toolbar-left {
     float: left;
+  }
+  .big-toolbar-center {
+    float: center;
   }
   .big-toolbar-right {
     float: right;
