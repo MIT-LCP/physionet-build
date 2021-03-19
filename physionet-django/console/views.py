@@ -1410,7 +1410,7 @@ def credential_processing(request):
             except CredentialApplication.DoesNotExist:
                 raise Http404()
             application.credential_review.delete()
-            application.reference_contact_datetime = None
+            new_review = CredentialReview.objects.create(application=application)
             application.save()
 
     return render(request, 'console/credential_processing.html',
