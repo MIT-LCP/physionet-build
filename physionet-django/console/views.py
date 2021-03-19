@@ -1403,6 +1403,16 @@ def credential_processing(request):
     final_applications = applications.filter(
         credential_review__status=60).order_by('application_datetime')
 
+    if request.method == 'POST':
+        if 'reset_application' in request.POST:
+            try:
+                application = CredentialApplication.objects.get(slug=request.POST['reset_application'])
+            except CredentialApplication.DoesNotExist:
+                raise Http404()
+            application.credential_review.delete()
+            application.reference_contact_datetime = None
+            application.save()
+
     return render(request, 'console/credential_processing.html',
         {'applications': applications,
         'initial_applications': initial_applications,
