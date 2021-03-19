@@ -67,6 +67,18 @@ Profile for {{ public_user.username }}
         </div>
       {% endif %}
 
+      {% if public_user.orcid.orcid_id %}
+        <div class="row mb-1">
+          <div class="col-md-2">
+            Orcid:
+          </div>
+          <div class="col-md-10">
+            <a href="{{ public_user.orcid.get_orcid_url }}/{{ public_user.orcid.orcid_id }}" rel="noopener">
+              {{ public_user.orcid.get_orcid_url }}/{{ public_user.orcid.orcid_id }}</a>
+          </div>
+        </div>
+      {% endif %}
+
       {% if profile.website %}
         <div class="row mb-1">
           <div class="col-md-2">

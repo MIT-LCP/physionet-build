@@ -432,7 +432,6 @@ def public_profile(request, username):
     # get list of projects
     projects = PublishedProject.objects.filter(authors__user=public_user).order_by('-publish_datetime')
 
-
     return render(request, 'user/public_profile.html', {
         'public_user':public_user, 'profile':public_user.profile,
         'public_email':public_email, 'projects':projects})
