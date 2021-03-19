@@ -543,3 +543,8 @@ footer.sticky-footer {
 .table-process {
   width: 11%;
 }
+
+.nopadding {
+  padding: 0 !important;
+  margin: 0 !important;
+}
