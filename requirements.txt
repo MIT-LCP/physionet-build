@@ -110,8 +110,9 @@ cachetools==3.1.1 \
  --hash=sha256:428266a1c0d36dc5aca63a2d7c5942e88c2c898d72139fca0e97fdd2380517ae
 pyasn1-modules==0.2.5 \
  --hash=sha256:f309b6c94724aeaf7ca583feb1cc70430e10d7551de5e36edfc1ae6909bcfb3c
-rsa==4.0 \
- --hash=sha256:14ba45700ff1ec9eeb206a2ce76b32814958a98e372006c8fb76ba820211be66
+rsa==4.1 \
+ --hash=sha256:2c7c8624ef9b55bacc3be8bdcec5cefc381ddc156e968d6437fe0fd08af00eb0 \
+ --hash=sha256:6fa6a54eb72bfc0abca7f27880b978b14a643ba2a6ad9f4a56a95be82129ca1b
 
 # required by pyasn1-modules 0.2.5
 pyasn1==0.4.5 \
