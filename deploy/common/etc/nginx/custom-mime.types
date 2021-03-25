@@ -1,5 +1,8 @@
 include mime.types;
 types {
+    application/gzip gz;
+    application/pgp-signature sig;
+
     application/octet-stream 16a;
     application/octet-stream abp;
     application/octet-stream al;
