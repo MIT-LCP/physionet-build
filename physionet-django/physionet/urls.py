@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.conf.urls import include
 from django.contrib import admin
 from django.urls import path
@@ -66,3 +67,8 @@ urlpatterns = [
     path('robots.txt', lambda x: HttpResponse("User-Agent: *\Allow: /", 
         content_type="text/plain"), name="robots_file"),
 ]
+
+if settings.DEBUG:
+    import debug_toolbar
+    # debug toolbar
+    urlpatterns.append(path('__debug__/', include(debug_toolbar.urls)))
