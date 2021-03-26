@@ -32,7 +32,7 @@ from physionet.middleware.maintenance import ServiceUnavailable
 from physionet.utility import paginate
 import project.forms as project_forms
 from project.models import (ActiveProject, ArchivedProject, StorageRequest,
-    Reference, Topic, Publication, PublishedProject,
+    Reference, Topic, Publication, PublishedProject, EditLog,
     exists_project_slug, GCP, DUASignature, DataAccess)
 from project.utility import readable_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH
@@ -269,7 +269,12 @@ def edit_submission(request, project_slug, *args, **kwargs):
     Page to respond to a particular submission, as an editor
     """
     project = kwargs['project']
-    edit_log = project.edit_logs.get(decision_datetime__isnull=True)
+
+    try:
+        edit_log = project.edit_logs.get(decision_datetime__isnull=True)
+    except EditLog.DoesNotExist:
+        return redirect('editor_home')
+
     reassign_editor_form = forms.ReassignEditorForm(request.user)
 
     # The user must be the editor
