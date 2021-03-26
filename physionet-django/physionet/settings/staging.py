@@ -4,7 +4,7 @@ from decouple import config
 
 from physionet.settings.base import *
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['staging.physionet.org', 'physionet-staging.ecg.mit.edu', 'physionet.org', 'www.physionet.org']
 SITE_ID = 2
