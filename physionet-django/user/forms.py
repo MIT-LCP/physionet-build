@@ -13,7 +13,9 @@ from django.utils.translation import ugettext_lazy
 from django.db import transaction
 
 from project.models import PublishedProject
-from user.models import AssociatedEmail, User, Profile, CredentialApplication, CloudInformation
+from user.models import (AssociatedEmail, User, Profile,
+                         CredentialApplication, CloudInformation, Course,
+                         Student)
 from user.trainingreport import (find_training_report_url,
                                  TrainingCertificateError)
 from user.widgets import ProfilePhotoInput
@@ -596,6 +598,97 @@ class CredentialReferenceForm(forms.ModelForm):
         application.reference_response_text = self.cleaned_data['reference_response_text']
         application.save()
         return application
+
+
+class AddCourseForm(forms.ModelForm):
+    """
+    Form to apply for adding a course and its respective reference.
+    """
+    course_name = forms.CharField(max_length=100, label='',
+        widget=forms.TextInput(attrs={'class': 'form-control',
+                                      'placeholder': 'Course name *'}))
+
+    class Meta:
+        model = Course
+        fields = ()
+
+    def __init__(self, *args, **kwargs):
+        """
+        This form is only for processing post requests.
+        """
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        data = self.cleaned_data
+
+        if any(self.errors):
+            return
+
+        if not data['course_name']:
+            raise forms.ValidationError("""Please complete all of the listed
+                fields.""")
+
+    def save(self, user):
+        course_name = super().save(commit=False)
+        course_name.instructor = user
+        course_name.add_course(self.data['course_name'])
+        course_name.save()
+
+
+class AddStudentForm(forms.Form):
+    """
+    Form to add a student to a course.
+    """
+    emails = forms.CharField(label='Single email or comma-separated list of emails.',
+        widget=forms.TextInput(attrs={'class': 'form-control',
+                                      'placeholder': 'Student email(s) *'}))
+
+    def __init__(self, user, course, *args, **kwargs):
+        """
+        This form is only for processing post requests.
+        """
+        super().__init__(*args, **kwargs)
+        self.user = user
+        self.course = course
+        self.emails = []
+
+    def clean(self):
+        data = self.cleaned_data
+        self.emails = self.get_emails(data['emails'])
+
+        if any(self.errors):
+            return
+
+        if not data['emails']:
+            raise forms.ValidationError("""Please complete all of the listed
+                fields.""")
+
+        for email in self.emails:
+            try:
+                user = User.objects.get(email=email)
+                try:
+                    Student.objects.get(user_id=user.id, course=self.course)
+                    raise forms.ValidationError("""You can not add the same
+                        student multiple times.""")
+                except Student.DoesNotExist:
+                    pass
+                if self.user.email == user.email:
+                    raise forms.ValidationError("""You can not add yourself to the
+                        course as a student.""")
+            except User.DoesNotExist:
+                raise forms.ValidationError("""The requested student is not a
+                    registered PhysioNet user.""")
+
+    def get_emails(self, emails):
+        return [e.strip() for e in emails.split(',')]
+
+    def save(self, course):
+        for email in self.emails:
+            student = Student()
+            student.course = course
+            user = User.objects.get(email=email)
+            student.add_student(user=user)
+            student.save()
 
 
 class ContactForm(forms.Form):

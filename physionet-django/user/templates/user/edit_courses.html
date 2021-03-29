@@ -1,0 +1,89 @@
+{% extends "user/settings.html" %}
+
+{% load static %}
+
+{% load project_templatetags %}
+
+{% block title %}Edit Courses{% endblock %}
+
+{% block local_js_top %}
+<script src="{% static 'custom/js/cookie.js' %}"></script>
+{% endblock %}
+
+{% block main_content %}
+
+<h2 class="form-signin-heading">My Courses</h2>
+<div class="table-responsive">
+  <div class="d-flex">
+    <div class="flex-shrink-1 nopadding">
+      <button type="button" class="btn btn-primary btn-rsp" data-toggle="modal" data-target="#add-course-modal">Add Course</button>
+    </div>
+  </div>
+  <br />
+  {% if courses %}
+    <p>You have added the following courses:</p>
+    <div class="table-responsive">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th style="width: 10%">Course name</th>
+            <th style="width: 10%">Number of students</th>
+            <th style="width: 10%">Active</th>
+            <th style="width: 10%">Date activated</th>
+            <th style="width: 10%">Date deactivated</th>
+            <th style="width: 10%"></th>
+            <th style="width: 10%"></th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for course in courses %}
+          <tr>
+            <td>{{ course.course_name }}</td>
+            <td>{{ course.num_students }}</td>
+            <td>{{ course.course_active }}</td>
+            <td>{{ course.activate_datetime }}</td>
+            <td>{{ course.deactivate_datetime }}</td>
+            <td><a href="{% url 'view_course' course.id %}">Manage</a></td>
+            <td>
+              {% if course.course_active %}
+                <form action="" method="post">
+                  {% csrf_token %}
+                  <button class="btn btn-danger" name="deactivate_course" value="{{ course.id }}" type="submit">Remove Course</button>
+                </form>
+              {% else %}
+                <form action="" method="post">
+                  {% csrf_token %}
+                  <button class="btn btn-danger" name="reactivate_course" value="{{ course.id }}" type="submit">Reactivate Course</button>
+                </form>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p>You currently don't have any courses registered.</p>
+  {% endif %}
+</div>
+
+<div class="modal fade" id="add-course-modal" tabindex="-1" role="dialog" aria-labelledby="add-course-modal" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Course</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="container">
+        <form action="" method="post" class="form-signin">
+          {% csrf_token %}
+          {% include "form_snippet.html" with form=add_course_form %}
+          <button class="btn btn-primary btn-fixed" name="add_course" type="submit">Add Course</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

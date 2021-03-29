@@ -1,0 +1,55 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}Known instructors with courses{% endblock %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/pagination.css' %}">
+{% endblock %}
+
+{% block content %}
+<script src="{% static 'custom/js/cookie.js' %}"></script>
+<script src="{% static 'console/js/search-console.js' %}"></script>
+
+<div class="card mb-3">
+  <div class="card-header">
+    Known instructors <span class="badge badge-pill badge-info">{{ all_known_instr.paginator.count }}</span>
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <div class="d-flex">
+        <div class="flex-shrink-1 nopadding">
+          <button type="button" class="btn btn-primary btn-rsp" data-toggle="modal" data-target="#add-instructor-modal">Add Instructor</button>
+        </div>
+        <div class="p-1"></div>
+        <div class="w-100">
+          <input type="search" oninput="search('{% url "known_instructors_search" %}', value);" placeholder="Search...">
+        </div>
+      </div>
+      {% include 'console/known_instructors_list.html' %}
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="add-instructor-modal" tabindex="-1" role="dialog" aria-labelledby="add-instructor-modal" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Instructor</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="container">
+        <form action="" method="post" class="form-signin">
+          {% csrf_token %}
+          {% include "form_snippet.html" with form=add_instr_form %}
+          <button class="btn btn-primary btn-fixed" name="add_known_instr" type="submit">Add Instructor</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -526,3 +526,8 @@ footer.sticky-footer {
   list-style-type: none;
   margin: 1rem;
 }
+
+.nopadding {
+  padding: 0 !important;
+  margin: 0 !important;
+}
