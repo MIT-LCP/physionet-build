@@ -35,6 +35,7 @@ from project.models import (Affiliation, Author, AuthorInvitation, License,
 from project import utility
 from project.validators import validate_filename
 import notification.utility as notification
+from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
 from physionet.utility import serve_file
 from user.forms import ProfileForm, AssociatedEmailChoiceForm
@@ -252,7 +253,9 @@ def create_project(request):
         form = forms.CreateProjectForm(user=user, data=request.POST)
         if form.is_valid():
             project = form.save()
-            return redirect('project_overview', project_slug=project.slug)
+            response = redirect('project_overview', project_slug=project.slug)
+            set_saved_fields_cookie(form, request.path, response)
+            return response
     else:
         form = forms.CreateProjectForm(user=user)
 

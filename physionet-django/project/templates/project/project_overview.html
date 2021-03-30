@@ -2,7 +2,13 @@
 
 {% block title %}Project Overview - {{ project }}"{% endblock %}
 
+{% load static %}
 {% load project_templatetags %}
+
+{% block local_js_top %}
+<script src="{% static 'custom/js/cookie.js' %}"></script>
+<script src="{% static 'custom/js/clear-autosave.js' %}"></script>
+{% endblock %}
 
 {% block main_content %}
 <h2 class="form-signin-heading">Project Overview</h2>
