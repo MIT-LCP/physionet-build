@@ -1608,10 +1608,12 @@ def news_edit(request, news_id):
         news = News.objects.get(id=news_id)
     except News.DoesNotExist:
         raise Http404()
+    saved = False
     if request.method == 'POST':
         if 'update' in request.POST:
             form = forms.NewsForm(data=request.POST, instance=news)
             if form.is_valid():
+                saved = True
                 form.save()
                 messages.success(request, 'The news item has been updated')
         elif 'delete' in request.POST:
@@ -1621,8 +1623,11 @@ def news_edit(request, news_id):
     else:
         form = forms.NewsForm(instance=news)
 
-    return render(request, 'console/news_edit.html', {'news': news,
+    response = render(request, 'console/news_edit.html', {'news': news,
         'form': form, 'news_nav': True})
+    if saved:
+        set_saved_fields_cookie(form, request.path, response)
+    return response
 
 
 @login_required
