@@ -4,6 +4,11 @@
 
 {% block title %}Data Access Request Submitted{% endblock %}
 
+{% block local_js_top %}
+<script src="{% static 'custom/js/cookie.js' %}"></script>
+<script src="{% static 'custom/js/clear-autosave.js' %}"></script>
+{% endblock %}
+
 {% block content %}
 <div class="container">
   <h1>Data Access Request Submitted</h1>

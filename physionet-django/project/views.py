@@ -1703,8 +1703,12 @@ def request_data_access(request, project_slug, version):
                                                           request.scheme,
                                                           request.get_host())
 
-            return render(request, 'project/data_access_request_submitted.html',
-                          {'project': proj})
+            response = render(
+                request, 'project/data_access_request_submitted.html',
+                {'project': proj})
+            set_saved_fields_cookie(project_request_form,
+                                    request.path, response)
+            return response
     else:
         project_request_form = forms.DataAccessRequestForm(project=proj,
                                                            requester=user,
