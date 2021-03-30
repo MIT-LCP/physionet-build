@@ -648,6 +648,7 @@ def project_content(request, project_slug, **kwargs):
     description_form = forms.ContentForm(resource_type=project.resource_type.id,
                                          instance=project, editable=editable)
     reference_formset = ReferenceFormSet(instance=project)
+    saved = False
 
     if request.method == 'POST':
         description_form = forms.ContentForm(
@@ -655,6 +656,7 @@ def project_content(request, project_slug, **kwargs):
             instance=project, editable=editable)
         reference_formset = ReferenceFormSet(request.POST, instance=project)
         if description_form.is_valid() and reference_formset.is_valid():
+            saved = True
             description_form.save()
             reference_formset.save()
             messages.success(request, 'Your project content has been updated.')
@@ -664,11 +666,14 @@ def project_content(request, project_slug, **kwargs):
                 'Invalid submission. See errors below.')
     edit_url = reverse('edit_content_item', args=[project.slug])
 
-    return render(request, 'project/project_content.html', {'project':project,
+    response = render(request, 'project/project_content.html', {'project':project,
         'description_form':description_form, 'reference_formset':reference_formset,
         'messages':messages.get_messages(request),
         'is_submitting':is_submitting,
         'add_item_url':edit_url, 'remove_item_url':edit_url})
+    if saved:
+        set_saved_fields_cookie(description_form, request.path, response)
+    return response
 
 
 @project_auth(auth_mode=0, post_auth_mode=2)
