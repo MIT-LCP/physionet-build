@@ -28,6 +28,7 @@ from dal import autocomplete
 
 from notification.models import News
 import notification.utility as notification
+from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
 from physionet.utility import paginate
 import project.forms as project_forms
@@ -1575,7 +1576,8 @@ def news_add(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'The news item has been added')
-            return redirect('news_console')
+            return set_saved_fields_cookie(form, request.path,
+                                           redirect('news_console'))
     else:
         form = forms.NewsForm()
 
