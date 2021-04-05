@@ -49,7 +49,7 @@
                   <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
                   <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
                   <td>{{ project.submission_datetime|date }}</td>
-                  <td><a href='#' data-toggle="modal" data-target="#assignModal" onclick="set_project_id('{{ project.id }}','{{ project }}')" class="btn btn-primary btn-sm" role="button">Assign Editor</a></td>
+                  <td><a href='#' data-toggle="modal" data-target="#assignModal" onclick="set_project_id('{{ project.id }}','{{ project|escapejs }}')" class="btn btn-primary btn-sm" role="button">Assign Editor</a></td>
                 </tr>
               {% endfor %}
               </tbody>
