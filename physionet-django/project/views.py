@@ -35,6 +35,7 @@ from project.models import (Affiliation, Author, AuthorInvitation, License,
 from project import utility
 from project.validators import validate_filename
 import notification.utility as notification
+from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
 from physionet.utility import serve_file
 from user.forms import ProfileForm, AssociatedEmailChoiceForm
@@ -252,7 +253,9 @@ def create_project(request):
         form = forms.CreateProjectForm(user=user, data=request.POST)
         if form.is_valid():
             project = form.save()
-            return redirect('project_overview', project_slug=project.slug)
+            response = redirect('project_overview', project_slug=project.slug)
+            set_saved_fields_cookie(form, request.path, response)
+            return response
     else:
         form = forms.CreateProjectForm(user=user)
 
@@ -645,6 +648,7 @@ def project_content(request, project_slug, **kwargs):
     description_form = forms.ContentForm(resource_type=project.resource_type.id,
                                          instance=project, editable=editable)
     reference_formset = ReferenceFormSet(instance=project)
+    saved = False
 
     if request.method == 'POST':
         description_form = forms.ContentForm(
@@ -652,6 +656,7 @@ def project_content(request, project_slug, **kwargs):
             instance=project, editable=editable)
         reference_formset = ReferenceFormSet(request.POST, instance=project)
         if description_form.is_valid() and reference_formset.is_valid():
+            saved = True
             description_form.save()
             reference_formset.save()
             messages.success(request, 'Your project content has been updated.')
@@ -661,11 +666,14 @@ def project_content(request, project_slug, **kwargs):
                 'Invalid submission. See errors below.')
     edit_url = reverse('edit_content_item', args=[project.slug])
 
-    return render(request, 'project/project_content.html', {'project':project,
+    response = render(request, 'project/project_content.html', {'project':project,
         'description_form':description_form, 'reference_formset':reference_formset,
         'messages':messages.get_messages(request),
         'is_submitting':is_submitting,
         'add_item_url':edit_url, 'remove_item_url':edit_url})
+    if saved:
+        set_saved_fields_cookie(description_form, request.path, response)
+    return response
 
 
 @project_auth(auth_mode=0, post_auth_mode=2)
@@ -1695,8 +1703,12 @@ def request_data_access(request, project_slug, version):
                                                           request.scheme,
                                                           request.get_host())
 
-            return render(request, 'project/data_access_request_submitted.html',
-                          {'project': proj})
+            response = render(
+                request, 'project/data_access_request_submitted.html',
+                {'project': proj})
+            set_saved_fields_cookie(project_request_form,
+                                    request.path, response)
+            return response
     else:
         project_request_form = forms.DataAccessRequestForm(project=proj,
                                                            requester=user,

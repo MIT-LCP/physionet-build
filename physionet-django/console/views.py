@@ -28,6 +28,7 @@ from dal import autocomplete
 
 from notification.models import News
 import notification.utility as notification
+from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
 from physionet.utility import paginate
 import project.forms as project_forms
@@ -345,6 +346,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
     access_form = project_forms.AccessMetadataForm(instance=project)
     discovery_form = project_forms.DiscoveryForm(resource_type=project.resource_type.id,
         instance=project)
+    description_form_saved = False
 
     access_form.set_license_queryset(access_policy=project.access_policy)
     reference_formset = ReferenceFormSet(instance=project)
@@ -381,6 +383,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
                 topic_formset.save()
                 messages.success(request,
                     'The project metadata has been updated.')
+                description_form_saved = True
                 # Reload formsets
                 reference_formset = ReferenceFormSet(instance=project)
                 publication_formset = PublicationFormSet(instance=project)
@@ -420,7 +423,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
     edit_url = reverse('edit_content_item', args=[project.slug])
     url_prefix = notification.get_url_prefix(request)
 
-    return render(request, 'console/copyedit_submission.html', {
+    response = render(request, 'console/copyedit_submission.html', {
         'project': project, 'description_form': description_form,
         'individual_size_limit': readable_size(ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT),
         'access_form': access_form, 'reference_formset':reference_formset,
@@ -442,6 +445,9 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
         'add_item_url': edit_url, 'remove_item_url': edit_url,
         'discovery_form': discovery_form, 'url_prefix': url_prefix,
         'reassign_editor_form': reassign_editor_form})
+    if description_form_saved:
+        set_saved_fields_cookie(description_form, request.path, response)
+    return response
 
 
 @handling_editor
@@ -1575,7 +1581,8 @@ def news_add(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'The news item has been added')
-            return redirect('news_console')
+            return set_saved_fields_cookie(form, request.path,
+                                           redirect('news_console'))
     else:
         form = forms.NewsForm()
 
@@ -1606,10 +1613,12 @@ def news_edit(request, news_id):
         news = News.objects.get(id=news_id)
     except News.DoesNotExist:
         raise Http404()
+    saved = False
     if request.method == 'POST':
         if 'update' in request.POST:
             form = forms.NewsForm(data=request.POST, instance=news)
             if form.is_valid():
+                saved = True
                 form.save()
                 messages.success(request, 'The news item has been updated')
         elif 'delete' in request.POST:
@@ -1619,8 +1628,11 @@ def news_edit(request, news_id):
     else:
         form = forms.NewsForm(instance=news)
 
-    return render(request, 'console/news_edit.html', {'news': news,
+    response = render(request, 'console/news_edit.html', {'news': news,
         'form': form, 'news_nav': True})
+    if saved:
+        set_saved_fields_cookie(form, request.path, response)
+    return response
 
 
 @login_required

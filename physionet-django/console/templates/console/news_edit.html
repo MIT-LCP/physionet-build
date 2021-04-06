@@ -4,6 +4,11 @@
 
 {% block title %}Edit News Item{% endblock %}
 
+{% block local_js_top %}
+<script src="{% static 'custom/js/cookie.js' %}"></script>
+<script src="{% static 'custom/js/clear-autosave.js' %}"></script>
+{% endblock %}
+
 {% block content %}
 <div class="card mb-3">
   <div class="card-header">
