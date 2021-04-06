@@ -1521,21 +1521,25 @@ def search_credential_applications(request):
             Q(migrated_user__is_credentialed=True) &
             (Q(migrated_user__username__icontains=search_field) |
             Q(migrated_user__profile__first_names__icontains=search_field) |
+            Q(migrated_user__profile__last_name__icontains=search_field) |
             Q(migrated_user__email__icontains=search_field))).order_by('-migration_date')
 
         successful_apps = CredentialApplication.objects.filter(
             Q(status=2) & (Q(user__username__icontains=search_field) |
             Q(user__profile__first_names__icontains=search_field) |
+            Q(user__profile__last_name__icontains=search_field) |
             Q(user__email__icontains=search_field))).order_by('-application_datetime')
 
         unsuccessful_apps = CredentialApplication.objects.filter(
             Q(status__in=[1, 3]) & (Q(user__username__icontains=search_field) |
             Q(user__profile__first_names__icontains=search_field) |
+            Q(user__profile__last_name__icontains=search_field) |
             Q(user__email__icontains=search_field))).order_by('-application_datetime')
 
         pending_apps = CredentialApplication.objects.filter(
             Q(status=0) & (Q(user__username__icontains=search_field) |
             Q(user__profile__first_names__icontains=search_field) |
+            Q(user__profile__last_name__icontains=search_field) |
             Q(user__email__icontains=search_field))).order_by('-application_datetime')
 
         # Merge legacy applications with new applications
