@@ -5,7 +5,7 @@ on:
   push:
     branches: 
       - dev
-	  
+
 jobs:
   container:
     runs-on: ubuntu-latest
@@ -63,4 +63,3 @@ jobs:
         run: |
           coverage run --source='.' manage.py test --keepdb
           coverage report -m
-        
