@@ -1119,9 +1119,14 @@ def update_graph(plot_selection, dropdown_rec, sig_name, start_time,
     down_sample = 1 if int(fs/max_fs) == 0 else int(fs/max_fs)
     x_vals = [start_time + (i / fs) for i in range(sig_len)][::down_sample]
 
-    for s in range(n_sig):
+    # Sort the input signals by how they are organized in the record /
+    # check-boxes
+    sig_sort = [record_sigs.index(a) for a in sig_name]
+    sig_sort.sort()
+    sig_name = [record_sigs[i] for i in sig_sort]
+    for s,name in enumerate(sig_name):
         try:
-            y_vals = extract_signal(record_sigs, sig_name[s], rec_sig,
+            y_vals = extract_signal(record_sigs, name, rec_sig,
                                     time_start, time_stop, down_sample)
         except Exception as e:
             error_text.extend(
@@ -1131,7 +1136,7 @@ def update_graph(plot_selection, dropdown_rec, sig_name, start_time,
         x_string = 'x' + str(s+1)
         y_string = 'y' + str(s+1)
         fig.add_trace(
-            get_trace(x_vals, y_vals, x_string, y_string, sig_name[s]),
+            get_trace(x_vals, y_vals, x_string, y_string, name),
             row = s+1, col = 1)
 
         # Remove outliers to prevent weird axes scaling if possible
@@ -1162,7 +1167,7 @@ def update_graph(plot_selection, dropdown_rec, sig_name, start_time,
 
         # Add line breaks for long titles
         max_title_length = 20 - n_sig
-        y_title = get_y_title(sig_name[s], units[s], max_title_length)
+        y_title = get_y_title(name, units[s], max_title_length)
         fig.update_yaxes(
             get_yaxis(y_title, min_y_vals, max_y_vals),
             row = s+1, col = 1)
