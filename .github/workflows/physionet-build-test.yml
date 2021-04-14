@@ -13,6 +13,9 @@ jobs:
   container:
     runs-on: ubuntu-latest
     container: debian:10
+    defaults:
+      run:
+        shell: bash
     steps:
       - name: checkout physionet-build repo
         uses: actions/checkout@v2
