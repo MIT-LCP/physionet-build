@@ -101,8 +101,7 @@ app.layout = html.Div([
                 ],
                 value = 'On'
             ),
-            html.Button('Previous Record', id = 'previous_annotation'),
-            html.Button('Next Record', id = 'next_annotation'),
+            html.Button('Plot Selection', id = 'plot_selection'),
         ], style = {'display': 'inline-block'}),
     ], style = {'display': 'inline-block', 'vertical-align': '0px'}),
     dcc.Loading(id = 'loading-1', children = [
@@ -159,6 +158,7 @@ def return_error(error, inputs=[]):
     """
     return [error.format(*inputs), html.Br()]
 
+
 def get_base_fig():
     """
     Generate the default figure to be used upon initial load, or when an error
@@ -192,6 +192,7 @@ def get_base_fig():
         row = 1, col = 1)
     return (base_fig)
 
+
 def get_subplot(rows):
     """
     Create a graph layout based on the number of input signals (rows).
@@ -214,6 +215,7 @@ def get_subplot(rows):
         shared_xaxes = True,
         vertical_spacing = 0
     )
+
 
 def get_layout(rows, max_plot_height=750, fig_width=1103, margin_left=0,
                margin_top=25, margin_right=0, margin_bottom=0,
@@ -277,6 +279,7 @@ def get_layout(rows, max_plot_height=750, fig_width=1103, margin_left=0,
         }
     }
 
+
 def get_trace(x_vals, y_vals, x_string, y_string, name,
               sig_color='rgb(0, 0, 0)', sig_thickness=1.5):
     """
@@ -320,6 +323,7 @@ def get_trace(x_vals, y_vals, x_string, y_string, name,
         'name': name
     })
 
+
 def get_record_path(slug, version, rec):
     """
     Get the correct file path of the record based on whether it's and active
@@ -350,6 +354,7 @@ def get_record_path(slug, version, rec):
         project_path = PROJECT_PATH
     rec_path = os.path.join(project_path, slug, version, rec)
     return rec_path, project_path
+
 
 def get_annotation(folder_path, dropdown_rec, os_path, ann_path, time_start,
                    time_stop):
@@ -445,6 +450,7 @@ def get_annotation(folder_path, dropdown_rec, os_path, ann_path, time_start,
         temp_error.extend(return_error('ERROR_GRAPH: {}', [e]))
     return anns, anns_idx, temp_error
 
+
 def plot_annotation(x_vals, y_vals, text, color='rgb(0, 0, 200)'):
     """
     Generate a dictionary that is used to generate and format the annotations
@@ -479,6 +485,7 @@ def plot_annotation(x_vals, y_vals, text, color='rgb(0, 0, 200)'):
             'color': color
         }
     }
+
 
 def get_xaxis(title, tick_labels, start_time, range_stop, tick_stop,
               zoom_fixed=False, grid_delta_major=0.1,
@@ -539,6 +546,7 @@ def get_xaxis(title, tick_labels, start_time, range_stop, tick_stop,
         'showline': True
     }
 
+
 def get_yaxis(title, min_val, max_val, zoom_fixed=True,
               grid_color='rgb(200, 100, 100)', max_labels=8):
     """
@@ -587,6 +595,7 @@ def get_yaxis(title, min_val, max_val, zoom_fixed=True,
         'range': [min_val, max_val],
     }
 
+
 def window_signal(y_vals):
     """
     This uses the Coefficient of Variation (CV) approach to determine
@@ -626,7 +635,9 @@ def window_signal(y_vals):
         max_y_vals = 1
     return min_y_vals, max_y_vals
 
-def extract_signal(record_sigs, sig_name, rec_sig, time_start, time_stop, down_sample):
+
+def extract_signal(record_sigs, sig_name, rec_sig, time_start, time_stop,
+                   down_sample):
     """
     Get the desired signal which is windowed from a specified start to stop
     time, downsampled to a desired degree, all NaN values replaced with 0, and
@@ -661,6 +672,7 @@ def extract_signal(record_sigs, sig_name, rec_sig, time_start, time_stop, down_s
     y_vals = np.nan_to_num(y_vals).astype('float64')
     return y_vals
 
+
 def get_ann_info(ann_path, ext, time_start, time_stop):
     """
     Read the desired annotation from an input file path into WFDB format and
@@ -694,6 +706,7 @@ def get_ann_info(ann_path, ext, time_start, time_stop):
     ))
     return ann, ann_idx
 
+
 def get_y_title(sig_name, units, max_title_length):
     """
     Create and format long titles based on a given signal name, its units, and
@@ -726,26 +739,20 @@ def get_y_title(sig_name, units, max_title_length):
         title = '<br>'.join(temp_title) + '<br>' + temp_units
     return title
 
+
 @app.callback(
     [dash.dependencies.Output('dropdown_rec', 'options'),
      dash.dependencies.Output('dropdown_rec', 'value'),
      dash.dependencies.Output('error_text_rec', 'children')],
-    [dash.dependencies.Input('previous_annotation', 'n_clicks_timestamp'),
-     dash.dependencies.Input('next_annotation', 'n_clicks_timestamp'),
-     dash.dependencies.Input('set_slug', 'value')],
+    [dash.dependencies.Input('set_slug', 'value')],
     [dash.dependencies.State('set_record', 'value'),
      dash.dependencies.State('set_version', 'value')])
-def get_record_options(click_previous, click_next, slug_value, record_value,
-                        version_value):
+def get_record_options(slug_value, record_value, version_value):
     """
     Get all of the record options and update the current record.
 
     Parameters
     ----------
-    click_previous : int
-        The timestamp if the previous button was clicked in ms from epoch.
-    click_next : int
-        The if the next button was clicked in ms from epoch.
     slug_value : str
         The slug of the project.
     record_value : str
@@ -787,7 +794,7 @@ def get_record_options(click_previous, click_next, slug_value, record_value,
             return_error('ERROR_REC: Record file incorrectly formatted... {}',
                          [e]))
         return options_rec, return_record, error_text
-    # TODO: Probably should refactor this
+
     temp_all_records = []
     for i,rec in enumerate(all_records):
         temp_path = os.path.join(records_path, rec)
@@ -814,48 +821,15 @@ def get_record_options(click_previous, click_next, slug_value, record_value,
         all_records = temp_all_records
 
     # Set the value if provided
-    if click_previous or click_next:
-        # Determine which button was clicked
-        ctx = dash.callback_context
-        click_id = ctx.triggered[0]['prop_id'].split('.')[0]
-        if click_id == 'previous_annotation':
-            click_time = click_previous
-        else:
-            click_time = click_next
-
-        time_now = datetime.datetime.now()
-        click_time = datetime.datetime.fromtimestamp(click_time / 1000.0)
-        # Consider next annotation desired if button was pressed in the
-        # last second
-        if (time_now - click_time).total_seconds() < 1:
-            if click_id == 'previous_annotation':
-                idx = all_records.index(record_value)
-                if idx == 0:
-                    # At the beginning of the list, go to the end
-                    return_record = all_records[-1]
-                else:
-                    # Decrement the record if not the beginning of the list
-                    return_record = all_records[idx-1]
-            else:
-                idx = all_records.index(record_value)
-                if idx == (len(all_records) - 1):
-                    # Reached the end of the list, go back to the beginning
-                    return_record = all_records[0]
-                else:
-                    # Increment the record if not the end of the list
-                    return_record = all_records[idx+1]
-        else:
-            # Should theoretically never happen but here just in case
-            return_record = record_value
+    if record_value == '':
+        # Keep blank if loading main page (no presets)
+        return_record = None
     else:
-        if record_value == '':
-            # Keep blank if loading main page (no presets)
-            return_record = None
-        else:
-            return_record = record_value
+        return_record = record_value
 
     options_rec = [{'label': rec, 'value': rec} for rec in all_records]
     return options_rec, return_record, error_text
+
 
 @app.callback(
     [dash.dependencies.Output('sig_name', 'options'),
@@ -925,6 +899,7 @@ def update_sig(dropdown_rec, slug_value, version_value):
     return_error = html.Span(error_text)
     return options_sig, return_sigs, return_error
 
+
 @app.callback(
     dash.dependencies.Output('set_record', 'value'),
     [dash.dependencies.Input('the_graph', 'figure')],
@@ -954,31 +929,36 @@ def update_rec(fig, dropdown_rec):
         return_dropdown = ''
     return return_dropdown
 
+
 @app.callback(
     [dash.dependencies.Output('the_graph', 'figure'),
      dash.dependencies.Output('error_text_graph', 'children')],
-    [dash.dependencies.Input('sig_name', 'value'),
-     dash.dependencies.Input('start_time', 'value'),
-     dash.dependencies.Input('annotation_status', 'value')],
-    [dash.dependencies.State('dropdown_rec', 'value'),
+    [dash.dependencies.Input('plot_selection', 'n_clicks_timestamp'),
+     dash.dependencies.Input('dropdown_rec', 'value')],
+    [dash.dependencies.State('sig_name', 'value'),
+     dash.dependencies.State('start_time', 'value'),
+     dash.dependencies.State('annotation_status', 'value'),
      dash.dependencies.State('start_time', 'pattern'),
      dash.dependencies.State('set_slug', 'value'),
      dash.dependencies.State('set_version', 'value')])
-def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
-                 start_time_pattern, slug_value, version_value):
+def update_graph(plot_selection, dropdown_rec, sig_name, start_time,
+                 annotation_status, start_time_pattern, slug_value,
+                 version_value):
     """
     Take all of the selected information and generate the figure.
 
     Parameters
     ----------
+    plot_selection : int
+        The timestamp if the plot selection was clicked in ms from epoch.
+    dropdown_rec : str
+        The current record.
     sig_name : list[str]
         The desired signals to plot.
     start_time : str
         The desired start time for the signal on the figure.
     annotation_status : str
         If 'On', add annotations to the figure. The other option is 'Off'.
-    dropdown_rec : str
-        The current record.
     start_time_pattern : str
         The regex pattern expected for the `start_time`.
     slug_value : str
@@ -996,6 +976,15 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
     """
     # Preset the error text
     error_text = ['']
+
+    # Determine which button was clicked and return blank a plot if
+    # switching records
+    ctx = dash.callback_context
+    click_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    if click_id == 'dropdown_rec':
+        base_fig = get_base_fig()
+        return base_fig, html.Span(error_text)
+
     # Check if valid number of input signals or input start time
     if (dropdown_rec and ((len(sig_name) == 0) or (len(sig_name) > max_display_sigs) or
             (re.compile(start_time_pattern).match(start_time) == None))):
@@ -1122,6 +1111,8 @@ def update_graph(sig_name, start_time, annotation_status, dropdown_rec,
                                                     os_path, ann_path,
                                                     time_start, time_stop)
         error_text.extend(temp_error)
+    else:
+        anns = []
 
     # Down-sample signal to increase performance
     max_fs = 100
