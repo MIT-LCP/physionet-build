@@ -40,7 +40,8 @@ jobs:
       - name: install repo dependencies
         run: |
           virtualenv -p python3.7 env3
-          (source env3/bin/activate && pip3 install -r requirements.txt)
+          source env3/bin/activate
+          pip3 install -r requirements.txt
       - name: install libseccomp-dev for syscall filtering
         run: |
           apt-get install libseccomp-dev
@@ -65,11 +66,14 @@ jobs:
           echo "$PWD/geckodriver" >> $GITHUB_PATH
       - name: setup and test physionet 
         run: |
-          python physionet-django/manage.py makemigrations --dry-run --no-input --check
-          python physionet-django/manage.py resetdb
-          python physionet-django/manage.py loaddemo
-          python physionet-django/manage.py test --verbosity=3 --keepdb
+          cd physionet-django
+          DJANGO_DIR="$echo(pip show Django | grep 'Location:' | cut -d ' ' -f2)"
+          echo "$DJANGO_DIR" >> $GITHUB_PATH
+          python manage.py makemigrations --dry-run --no-input --check
+          python manage.py resetdb
+          python manage.py loaddemo
+          python manage.py test --verbosity=3 --keepdb
       - name: check the amount of code being tested and print/report the result
         run: |
-          coverage run --source='.' physionet-django/manage.py test --keepdb
+          coverage run --source='.' manage.py test --keepdb
           coverage report -m
