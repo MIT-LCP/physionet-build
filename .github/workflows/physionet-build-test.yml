@@ -24,7 +24,7 @@ jobs:
           apt-get update --yes
       - name: install and configure needed software
         run: |
-          apt-get install python3-dev build-essential postgresql zip wget python-virtualenv --yes
+          apt-get install python3-dev python3-pip build-essential postgresql zip wget python-virtualenv --yes
           service postgresql start
           virtualenv -p python3.7 env3
           source env3/bin/activate
