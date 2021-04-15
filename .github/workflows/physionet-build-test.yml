@@ -41,17 +41,10 @@ jobs:
           ln -sT .env.example .env
       - name: install repo dependencies
         run: |
-          which pip3
           pip3 install -r requirements.txt
       - name: install libseccomp-dev for syscall filtering
         run: |
           apt-get install libseccomp-dev
-      - name: setup postgres
-        run: |
-          psql -c "create database physionet;"
-          env:
-            POSTGRES_HOST: postgres
-            POSTGRES_PORT: 5432
       - name: install and setup wfdb
         run: |
           wget https://github.com/bemoody/wfdb/archive/10.6.2.tar.gz -O wfdb.tar.gz
