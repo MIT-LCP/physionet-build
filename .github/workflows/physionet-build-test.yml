@@ -36,12 +36,11 @@ jobs:
       - name: install and configure needed software
         run: |
           apt-get install sudo python3-dev python3-pip build-essential postgresql zip wget python-virtualenv --yes
-          virtualenv -p python3.7 env3
-          source env3/bin/activate
           ln -sT .env.example .env
       - name: install repo dependencies
         run: |
-          pip3 install -r requirements.txt
+          virtualenv -p python3.7 env3
+          (source env3/bin/activate && pip3 install -r requirements.txt)
       - name: install libseccomp-dev for syscall filtering
         run: |
           apt-get install libseccomp-dev
