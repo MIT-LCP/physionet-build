@@ -13,6 +13,17 @@ jobs:
   container:
     runs-on: ubuntu-latest
     container: debian:10
+    services:
+      postgres:
+        image: postgres:11.9
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: github_actions
+        ports:
+          - 5432:5432
+        # needed because the postgres container does not provide a healthcheck
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     defaults:
       run:
         shell: bash
@@ -25,7 +36,6 @@ jobs:
       - name: install and configure needed software
         run: |
           apt-get install python3-dev python3-pip build-essential postgresql zip wget python-virtualenv --yes
-          service postgresql start
           virtualenv -p python3.7 env3
           source env3/bin/activate
           ln -sT .env.example .env
@@ -38,8 +48,10 @@ jobs:
           apt-get install libseccomp-dev
       - name: setup postgres
         run: |
-          psql -c "create user physionet with superuser password 'password';" -U postgres
-          psql -c "create database physionet;" -U postgres
+          psql -c "create database physionet;"
+          env:
+            POSTGRES_HOST: postgres
+            POSTGRES_PORT: 5432
       - name: install and setup wfdb
         run: |
           wget https://github.com/bemoody/wfdb/archive/10.6.2.tar.gz -O wfdb.tar.gz
@@ -58,15 +70,14 @@ jobs:
         run: |
           mkdir geckodriver
           tar -xf geckodriver-v0.23.0-linux64.tar.gz -C geckodriver
-          export PATH=$PATH:$PWD/geckodriver
+          echo "$PWD/geckodriver" >> $GITHUB_PATH
       - name: setup and test physionet 
         run: |
-          cd physionet-django
-          python manage.py makemigrations --dry-run --no-input --check
-          python manage.py resetdb
-          python manage.py loaddemo
-          python manage.py test --verbosity=3 --keepdb
+          python physionet-django/manage.py makemigrations --dry-run --no-input --check
+          python physionet-django/manage.py resetdb
+          python physionet-django/manage.py loaddemo
+          python physionet-django/manage.py test --verbosity=3 --keepdb
       - name: check the amount of code being tested and print/report the result
         run: |
-          coverage run --source='.' manage.py test --keepdb
+          coverage run --source='.' physionet-django/manage.py test --keepdb
           coverage report -m
