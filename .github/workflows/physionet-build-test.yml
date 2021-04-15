@@ -31,7 +31,8 @@ jobs:
           ln -sT .env.example .env
       - name: install repo dependencies
         run: |
-          pip install -r requirements.txt
+          which pip3
+          pip3 install -r requirements.txt
       - name: install libseccomp-dev for syscall filtering
         run: |
           apt-get install libseccomp-dev
