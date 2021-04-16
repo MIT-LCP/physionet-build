@@ -570,6 +570,7 @@ class Profile(models.Model):
         validators=[validators.validate_affiliation])
     location = models.CharField(max_length=100, blank=True, default='',
         validators=[validators.validate_location])
+    favorite_color = models.CharField(max_length=100, blank=True, null=True)
     website = models.URLField(default='', blank=True, null=True)
     photo = models.ImageField(upload_to=photo_path, blank=True, null=True,
         validators=[FileExtensionValidator(['png', 'jpg', 'jpeg'],
