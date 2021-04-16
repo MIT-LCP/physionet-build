@@ -51,8 +51,9 @@ psycopg2-binary==2.8.3 \
 coverage==4.4.2 \
  --hash=sha256:9721f1b7275d3112dc7ccf63f0553c769f09b5c25a26ee45872c7f5c09edf6c1\
  --hash=sha256:309d91bd7a35063ec7a0e4d75645488bfab3f0b66373e7722f23da7f5b0f34cc
-django-debug-toolbar==1.9.1 \
- --hash=sha256:4af2a4e1e932dadbda197b18585962d4fc20172b4e5a479490bc659fe998864d
+django-debug-toolbar==1.11.1 \
+ --hash=sha256:2d240517dac3b02b7d78c9109ee88546f99171a2ec2a3efa70450771cb55735e \
+ --hash=sha256:10f5ef59c97fad34b803b02e5850b6422082e2e44544c2ec03feb4eeee0f9158
 requests==2.21.0 \
  --hash=sha256:7bf2a778576d825600030a110f3c0e3e8edc51dfaafe1c146e39a2027784957b
 requests-mock==1.7.0 \
