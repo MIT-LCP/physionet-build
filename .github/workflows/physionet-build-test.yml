@@ -12,8 +12,7 @@ on:
 jobs:
   container:
     runs-on: ubuntu-latest
-    container:
-      image: debian:10
+    container: debian:10
     defaults:
       run:
         shell: bash
