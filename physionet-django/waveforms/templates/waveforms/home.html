@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load static %}
+{% load plotly_dash %}
+
+{% block content %}
+<style>
+.embed-responsive {
+    width: 1200px;
+    height: 1400px;
+}
+</style>
+<!-- Plotly-based waveform viewer -->
+<div class="container">
+  <!-- The title header of the webpage -->
+  <h1>
+    New Waveform Viewer (demo) for {{ dash_context.set_slug.value }}
+    {% if dash_context.set_version.value != '' %}
+      version {{ dash_context.set_version.value }}
+    {% endif %}
+  </h1>
+  <!-- The plot goes here -->
+  {% plotly_app_bootstrap name='waveform_graph' initial_arguments=dash_context %}
+</div>
+{% endblock %}
