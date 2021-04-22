@@ -1,9 +1,11 @@
 import base64
 import datetime
 import errno
+import html.parser
 import os
 import shutil
 import pdb
+import urllib.parse
 import uuid
 import logging
 import re
@@ -483,3 +485,170 @@ def require_http_auth(request):
         return response
     else:
         raise PermissionDenied()
+
+
+class LinkFilter:
+    """
+    Class for transforming links in an HTML document.
+
+    To filter an HTML document (or fragment), create an instance of
+    LinkFilter and call convert().  The input should be valid HTML to
+    begin with (e.g., preprocessed using bleach.)
+
+    Several transformations can be performed.  First, if base_url is
+    specified, all relative URLs in the input are converted to
+    absolute URLs:
+
+    >>> f = LinkFilter(base_url='https://example.com/foo/')
+    >>> f.convert('<a href="123">')
+    '<a href="https://example.com/foo/123">'
+
+    >>> f = LinkFilter(base_url='/foo/')
+    >>> f.convert('<a href="../bar">')
+    '<a href="/bar">'
+
+    If my_hostnames is specified, any HTTP or HTTPS link that points
+    to one of the specified hostnames is converted into a
+    host-relative URL:
+
+    >>> f = LinkFilter(my_hostnames=['example.com'])
+    >>> f.convert('<a href="https://example.com/foo/123">')
+    '<a href="/foo/123">'
+
+    >>> f = LinkFilter(my_hostnames=['example.com'],
+    ...                base_url='http://example.com:8080/foo/')
+    >>> f.convert('<a href="123">')
+    '<a href="/foo/123">'
+
+    Any 'src' attributes that do not point to one of my_hostnames are
+    deleted:
+
+    >>> f = LinkFilter(my_hostnames=['example.com'])
+    >>> f.convert('<img src="https://example.com/foo.jpg">')
+    '<img src="/foo.jpg">'
+    >>> f.convert('<img src="https://unsafe.example.org/bar.jpg">')
+    '<img>'
+
+    If prefix_map is specified, it can be used to remap URLs within
+    the given prefixes:
+
+    >>> f = LinkFilter(my_hostnames=['example.com'],
+    ...                prefix_map={'/foo/': '/bar/'})
+    >>> f.convert('<a href="http://example.com/foo/123">')
+    '<a href="/bar/123">'
+
+    Other links are not affected:
+
+    >>> f.convert('<a href="https://example.org/foo/">')
+    '<a href="https://example.org/foo/">'
+
+    Other input text is not affected:
+
+    >>> f.convert('x &amp; y & z < <a b c> &#65;')
+    'x &amp; y & z < <a b c> &#65;'
+    """
+
+    def __init__(self, base_url=None, my_hostnames=None, prefix_map=None):
+        # If my_hostnames is not specified, default to the value of
+        # settings.ALLOWED_HOSTS.  If that is set to '*' (development
+        # server), default to localhost.
+        if my_hostnames is None:
+            my_hostnames = settings.ALLOWED_HOSTS
+            if my_hostnames == ['*']:
+                my_hostnames = ['localhost', '127.0.0.1']
+
+        # Set my_netloc_re to a regular expression that matches either
+        # the empty string, or any of the specified hostnames with an
+        # optional port
+        if my_hostnames:
+            hostname_patterns = [re.escape(h) for h in my_hostnames]
+            hostname_pattern = '(?:' + '|'.join(hostname_patterns) + ')'
+            netloc_pattern = '(?:' + hostname_pattern + '(?::[0-9]+)?)?'
+            self.my_netloc_re = re.compile(netloc_pattern, re.A | re.I)
+        else:
+            # Only match the empty string
+            self.my_netloc_re = re.compile('')
+
+        self.base_url = base_url
+
+        self.path_subs = []
+        if prefix_map:
+            for (oldpath, newpath) in reversed(sorted(prefix_map.items())):
+                # Ignore trailing slashes
+                oldpath = oldpath.rstrip('/')
+                newpath = newpath.rstrip('/')
+                # Match either oldpath exactly, or a string starting
+                # with oldpath followed by a slash, question mark, or
+                # number sign
+                oldpath_pattern = '^' + re.escape(oldpath) + '(?![^/?#])'
+                oldpath_re = re.compile(oldpath_pattern)
+                self.path_subs.append((oldpath_re, newpath))
+
+    def convert(self, document):
+        parser = self.Parser(self)
+        parser.feed(document)
+        return ''.join(parser.result)
+
+    class Parser(html.parser.HTMLParser):
+        def __init__(self, converter):
+            super().__init__(convert_charrefs=False)
+            self.result = []
+            self.converter = converter
+
+        def handle_starttag(self, tag, attrs):
+            self.result.append('<' + tag)
+            self._handle_attrs(attrs)
+            self.result.append('>')
+
+        def handle_startendtag(self, tag, attrs):
+            self.result.append('<' + tag)
+            self._handle_attrs(attrs)
+            self.result.append('/>')
+
+        def handle_endtag(self, tag):
+            self.result.append('</' + tag + '>')
+
+        def handle_data(self, data):
+            self.result.append(data)
+
+        def handle_entityref(self, name):
+            self.result.append('&' + name + ';')
+
+        def handle_charref(self, name):
+            self.result.append('&#' + name + ';')
+
+        def handle_comment(self, data):
+            self.result.append('<!--' + data + '-->')
+
+        def _handle_attrs(self, attrs):
+            for (name, value) in attrs:
+                if value is None:
+                    self.result.append(' {}'.format(name))
+                else:
+                    if name in ('href', 'src'):
+                        value = self.converter.convert_url(name, value)
+                    if value is not None:
+                        self.result.append(' {}="{}"'.format(
+                            name, html.escape(value)))
+
+    def convert_url(self, attr_name, url):
+        # Join to base_url
+        if self.base_url:
+            url = urllib.parse.urljoin(self.base_url, url)
+
+        # Remove scheme/netloc if netloc matches my_netloc_re
+        (scheme, netloc, path, params, query, fragment) = \
+            urllib.parse.urlparse(url)
+        if scheme in ('http', 'https') and self.my_netloc_re.fullmatch(netloc):
+            url = urllib.parse.urlunparse(('', '', path, params,
+                                           query, fragment))
+        elif attr_name == 'src':
+            # Discard cross-domain subresources
+            return None
+
+        # Apply path substitutions
+        for (pattern, replacement) in self.path_subs:
+            newurl = pattern.sub(replacement, url)
+            if newurl != url:
+                return newurl
+        return url
