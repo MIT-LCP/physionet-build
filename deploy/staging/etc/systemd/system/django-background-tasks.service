@@ -5,10 +5,11 @@ After=emperor.uwsgi.service
 [Service]
 Environment=DJANGO_SETTINGS_MODULE=physionet.settings.staging
 ExecStart=/physionet/python-env/physionet/bin/python /physionet/physionet-build/physionet-django/manage.py process_tasks --log-std
+StandardError=syslog
+SyslogIdentifier=django-background-tasks
 Restart=always
 KillSignal=SIGINT
 Type=simple
-StandardError=syslog
 NotifyAccess=all
 User=www-data
 Group=www-data
