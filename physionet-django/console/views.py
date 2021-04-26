@@ -1412,6 +1412,7 @@ def credential_processing(request):
             application.credential_review.delete()
             new_review = CredentialReview.objects.create(application=application)
             application.save()
+            messages.success(request, 'The application has been reset')
 
     return render(request, 'console/credential_processing.html',
         {'applications': applications,
