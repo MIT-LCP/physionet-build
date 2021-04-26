@@ -514,12 +514,17 @@ table.files-panel {
   align-items: center;
 }
 .files-panel-button-container { padding-right: 0.25em; }
+.files-panel-button-all {
+  float: right;
+  padding-right: 1em;
+}
 .files-panel-button {
+  display: none;
   float: right;
   padding-right: 1em;
 }
 .files-panel-select { width: 2em; }
-.files-panel-name { width: 100%; }
+.files-panel-name { width: 100%; text-align: left; }
 .files-panel-size { width: 6em; }
 .files-panel-date { width: 8em; }
 .files-panel-checkbox { width: 2em; }

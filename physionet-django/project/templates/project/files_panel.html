@@ -1,6 +1,9 @@
 <div class="card-header">
   <div class="files-panel-text">
     <div class="files-panel-button-container">
+      <button class="btn btn-primary files-panel-button-all" onclick="downloadAll()">Download All Items</button>
+    </div>
+    <div class="files-panel-button-container">
       <button class="btn btn-primary files-panel-button" onclick="downloadMultiple()">Download Selected Items</button>
     </div>
     Folder Navigation:
@@ -66,7 +69,7 @@
   {% endfor %}
   {% for file in display_files %}
     <tr>
-      <td><input class="file-check-input" type="checkbox" value="{{ file.download_url }}"></td>
+      <td><input class="file-check-input" type="checkbox" value="{{ file.download_url }}" onclick="showButton()"></td>
       <td><a href="{{ file.url }}">{{ file.name }}</a>
         <a class="download" href="{{ file.download_url }}"
            title="Download {{ file.name }}">
@@ -96,7 +99,26 @@
     });
     return false
   }
+  // Only display the "Download Selected Items" button if boxes are checked
+  function showButton(){
+    var all_files = document.getElementsByClassName("file-check-input");
+    var any_checked = [];
+    for (var i = 0; i < all_files.length; i++) {
+      any_checked.push(all_files[i].checked);
+    }
+    if (any_checked.includes(true)) {
+      document.getElementsByClassName("files-panel-button")[0].style.display = "inline";
+    } else {
+      document.getElementsByClassName("files-panel-button")[0].style.display = "none";
+    }
+  }
   // Download multiple files at once
+  function downloadAll(){
+    var all_files = document.getElementsByClassName("file-check-input");
+    for (var i = 0; i < all_files.length; i++) {
+      window.open(all_files[i].value);
+    }
+  }
   function downloadMultiple(){
     var all_files = document.getElementsByClassName("file-check-input");
     for (var i = 0; i < all_files.length; i++) {
