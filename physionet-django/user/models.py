@@ -941,6 +941,13 @@ class CredentialApplication(models.Model):
 class CredentialReview(models.Model):
     """
     Reviews for the CredentialApplications.
+
+    NOTES
+    -----
+    This relational model will be deleted in the case that a credential
+    reviewer decides to "reset" the application, meaning reset it back to the
+    "initial review" stage.
+
     """
     REVIEW_STATUS_LABELS = (
         ('', '-----------'),
