@@ -828,7 +828,7 @@ class CredentialApplication(models.Model):
         return ActiveProject.SUBMISSION_STATUS_LABELS[self.submission_status]
 
     def time_elapsed(self):
-        return (timezone.now() - self.first_date).days
+        return (timezone.now() - self.application_datetime).days
 
     def _apply_decision(self, decision, responder):
         """

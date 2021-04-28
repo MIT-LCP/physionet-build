@@ -445,6 +445,7 @@ class TrainingCAF(forms.ModelForm):
         credential_application.slug = slug
         credential_application.training_completion_report_url = self.report_url
         credential_application.has_training = True
+        credential_application.submission_status = 0
         credential_application.save()
         return credential_application
 
@@ -573,7 +574,7 @@ class CredentialApplicationForm(forms.ModelForm):
     def save(self):
         # Get the most recent training submission
         credential_application = CredentialApplication.objects.filter(
-            user=self.user, has_training=True).order_by('-application_datetime')[0]
+            user=self.user, has_training=True).order_by('-application_datetime').first()
         # Update the credential application
         for k,v in self.cleaned_data.items():
             credential_application.__dict__[k] = v
@@ -583,6 +584,8 @@ class CredentialApplicationForm(forms.ModelForm):
             slug = get_random_string(20)
         # Update the credential application status and save
         credential_application.status = 0
+        credential_application.submission_status = 10
+        credential_application.application_datetime = timezone.now()
         credential_application.save()
         return credential_application
 

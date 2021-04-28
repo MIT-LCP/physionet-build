@@ -551,7 +551,8 @@ def edit_training(request):
     """
     user = request.user
     applications = CredentialApplication.objects.filter(user=request.user)
-    current_application = applications.filter(status=0).first()
+    current_application = applications.filter(
+        status=0, submission_status__gte=10).first()
 
     if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
         raise ServiceUnavailable()
@@ -594,7 +595,8 @@ def edit_credentialing(request):
         pause_message = None
 
     applications = CredentialApplication.objects.filter(user=request.user)
-    current_application = applications.filter(status=0).first()
+    current_application = applications.filter(
+        status=0, submission_status__gte=10).first()
 
     if request.method == 'POST' and 'withdraw_credentialing' in request.POST:
         if current_application:
@@ -616,7 +618,8 @@ def user_credential_applications(request):
     All the credential applications made by a user
     """
     applications = CredentialApplication.objects.filter(
-        user=request.user).order_by('-application_datetime')
+        user=request.user,
+        submission_status__gte=10).order_by('-application_datetime')
 
     return render(request, 'user/user_credential_applications.html',
         {'applications':applications})
@@ -630,7 +633,7 @@ def credential_application(request):
     user = request.user
     license = License.objects.get(id='6')
     if user.is_credentialed or CredentialApplication.objects.filter(
-            user=user, status=0):
+            user=user, status=0, submission_status__gte=10):
         return redirect('edit_credentialing')
 
     if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
