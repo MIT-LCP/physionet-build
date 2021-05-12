@@ -7,7 +7,7 @@ The URL for the storage bucket in GCP is:
 https://console.cloud.google.com/storage/browser/{{ project.gcp.bucket_name }}
 
 You can use the following command to copy the content of the bucket to your computer:
-gsutil -m cp -r gs://{{ project.gcp.bucket_name }} DESTINATION
+gsutil -m -u YOUR_PROJECT_ID cp -r gs://{{ project.gcp.bucket_name }} DESTINATION
 
 {% else %}
 You have requested access to use {{ project }} in GCP BigQuery.

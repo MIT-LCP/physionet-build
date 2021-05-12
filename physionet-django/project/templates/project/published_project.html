@@ -375,7 +375,7 @@
             {% endif %}
             {% if project.gcp.sent_files %}
               <li>Access the files using the Google Cloud Storage Browser <a href="https://console.cloud.google.com/storage/browser/{{ project.gcp.bucket_name }}/">here</a>. Login with a Google account is required.
-              <li>Access the data using Google Cloud "gsutil": <pre class="shell-command">gsutil -m cp -r gs://{{ project.gcp.bucket_name }} DESTINATION</pre></li>
+              <li>Access the data using Google Cloud "gsutil": <pre class="shell-command">gsutil -m -u YOUR_PROJECT_ID cp -r gs://{{ project.gcp.bucket_name }} DESTINATION</pre></li>
             {% endif %}
           {% elif project.compressed_storage_size %}
             <li><a href="{% static project.zip_url %}">Download the ZIP file</a> ({{ compressed_size }})</li>
