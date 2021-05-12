@@ -364,7 +364,12 @@
         <ul>
           {% if project.gcp %}
             {% if project.gcp.sent_zip %}
-              <li><a href="https://storage.googleapis.com/{{ project.gcp.bucket_name }}/{{ project.zip_name }}">Download the ZIP file</a> ({{ compressed_size }}).</a>
+            <!-- Temporary fix: Change default location to local servers -->
+            <!-- 
+              <li><a href="https://storage.googleapis.com/{{ project.gcp.bucket_name }}/{{ project.zip_name }}">
+                  Download the ZIP file</a> ({{ compressed_size }}).</a></li>
+             -->
+              <li><a href="{% static project.zip_url %}">Download the ZIP file</a> ({{ compressed_size }})</li>
             {% elif project.compressed_storage_size %}
               <li><a href="{% static project.zip_url %}">Download the ZIP file</a> ({{ compressed_size }})</li>
             {% endif %}
