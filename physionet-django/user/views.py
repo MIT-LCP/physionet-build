@@ -169,6 +169,7 @@ def check_legacy_credentials(user, email):
         migrated=False)
     if legacy_credential:
         legacy_credential = legacy_credential.get()
+        user.completed_training = True
         user.is_credentialed = True
         # All of them are mimic credentialed
         month, day, year = legacy_credential.mimic_approval_date.split('/')
@@ -544,6 +545,41 @@ def edit_username(request):
 
 
 @login_required
+def edit_training(request):
+    """
+    Credentials training page.
+    """
+    user = request.user
+    applications = CredentialApplication.objects.filter(user=request.user)
+    current_application = applications.filter(
+        status=0, submission_status__gte=10).first()
+
+    if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
+        raise ServiceUnavailable()
+
+    if request.method == 'POST':
+        # We use the individual forms to render the errors in the template
+        # if not all valid
+        training_form = forms.TrainingCAF(data=request.POST,
+            files=request.FILES, prefix="application")
+        # Check that it isn't a certificate first
+        training_form.clean_training_completion_report()
+        if training_form.is_valid():
+            # If valid, update the user's training status
+            training_form.update_training(user=user)
+            # Update the application with the submitted data
+            training_form.save(user=user)
+        else:
+            messages.error(request, 'Invalid submission. See errors below.')
+    else:
+        training_form = forms.TrainingCAF(prefix="application")
+
+    return render(request, 'user/edit_training.html', {
+        'training_form':training_form,
+        'current_application': current_application})
+
+
+@login_required
 def edit_credentialing(request):
     """
     Credentials settings page.
@@ -559,7 +595,8 @@ def edit_credentialing(request):
         pause_message = None
 
     applications = CredentialApplication.objects.filter(user=request.user)
-    current_application = applications.filter(status=0).first()
+    current_application = applications.filter(
+        status=0, submission_status__gte=10).first()
 
     if request.method == 'POST' and 'withdraw_credentialing' in request.POST:
         if current_application:
@@ -581,7 +618,8 @@ def user_credential_applications(request):
     All the credential applications made by a user
     """
     applications = CredentialApplication.objects.filter(
-        user=request.user).order_by('-application_datetime')
+        user=request.user,
+        submission_status__gte=10).order_by('-application_datetime')
 
     return render(request, 'user/user_credential_applications.html',
         {'applications':applications})
@@ -595,7 +633,7 @@ def credential_application(request):
     user = request.user
     license = License.objects.get(id='6')
     if user.is_credentialed or CredentialApplication.objects.filter(
-            user=user, status=0):
+            user=user, status=0, submission_status__gte=10):
         return redirect('edit_credentialing')
 
     if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
@@ -605,16 +643,13 @@ def credential_application(request):
         # We use the individual forms to render the errors in the template
         # if not all valid
         personal_form = forms.PersonalCAF(user=user, data=request.POST, prefix="application")
-        training_form = forms.TrainingCAF(data=request.POST,
-            files=request.FILES, prefix="application")
         research_form = forms.ResearchCAF(data=request.POST, prefix="application")
         reference_form = forms.ReferenceCAF(data=request.POST, prefix="application", user=user)
 
         form = forms.CredentialApplicationForm(user=user, data=request.POST,
             files=request.FILES,  prefix="application")
 
-        if (personal_form.is_valid() and training_form.is_valid()
-                and reference_form.is_valid()
+        if (personal_form.is_valid() and reference_form.is_valid()
                 and form.is_valid()) and research_form.is_valid():
             application = form.save()
             credential_application_request(request, application)
@@ -630,9 +665,8 @@ def credential_application(request):
         form = None
 
     return render(request, 'user/credential_application.html', {'form':form,
-        'personal_form':personal_form, 'training_form':training_form,
-        'reference_form':reference_form, 'license':license, 
-        'research_form':research_form})
+        'personal_form':personal_form, 'reference_form':reference_form,
+        'license':license, 'research_form':research_form})
 
 
 @login_required

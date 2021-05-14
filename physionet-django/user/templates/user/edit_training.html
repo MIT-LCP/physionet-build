@@ -1,0 +1,35 @@
+{% extends "user/settings.html" %}
+{% load static %}
+
+
+{% block title %}PhysioNet Credentialing Training{% endblock %}
+
+{% block main_content %}
+
+<h1>Training Courses</h1>
+<hr>
+<p>You must complete the Collaborative Institutional Training Initiative (CITI) Program's “Data or Specimens Only Research” course to become a <a href="{% url 'edit_credentialing' %}">credentialed</a> user. The course provides important guidance on human research and patient privacy. Instructions are provided <a href="{% url 'citi_course' %}">here</a>.</p>
+
+{% if user.is_credentialed %}
+  <p><i class="fas fa-check" style="color:green"></i> We have received your training report and your application for credentialed access has been approved.</p>
+{% elif current_application %}
+  <p><i class="fas fa-clock" style="color:black"></i> We have received your training report and your application for credentialed access is under review.</p>
+{% elif user.completed_training %}
+  <p><i class="fas fa-check" style="color:green"></i> We have received your training report. You may now submit an application for credentialed access or replace the training report if necessary.</p>
+{% else %}
+  <p><i class="fas fa-times" style="color:red"></i> Please complete the CITI training and upload your completion report.</p>
+{% endif %}
+
+{% if not user.is_credentialed and not current_application %}
+  <form action="" method="post" enctype="multipart/form-data" class="form-signin no-pd" autocomplete="off">
+    {% csrf_token %}
+    {% include "descriptive_inline_form_snippet.html" with form=training_form %}
+    <button class="btn btn-primary btn-rsp" type="submit">Submit Training Report</button>
+  </form>
+{% endif %}
+
+{% endblock %}
+
+{% block local_js_bottom %}
+<script src="{% static 'custom/js/enable-popover.js' %}"></script>
+{% endblock %}

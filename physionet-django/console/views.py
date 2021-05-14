@@ -1060,7 +1060,8 @@ def complete_credential_applications(request):
             else:
                 messages.error(request, 'Invalid submission. See form below.')
 
-    applications = CredentialApplication.objects.filter(status=0)
+    applications = CredentialApplication.objects.filter(
+        status=0, submission_status__gte=10)
 
     # TODO: Remove this step. Exclude applications that are being handled in
     # the credential processing workflow. Avoid toes.
@@ -1370,7 +1371,8 @@ def credential_processing(request):
     """
     Process applications for credentialed access.
     """
-    applications = CredentialApplication.objects.filter(status=0)
+    applications = CredentialApplication.objects.filter(
+        status=0, submission_status__gte=10)
 
     # TODO: Remove this step. If KP has contacted the reference, exclude the
     # application from our list. Avoid toes.
@@ -1500,8 +1502,8 @@ def credential_applications(request, status):
         ).order_by('-decision_datetime')
     unsuccessful_apps = CredentialApplication.objects.filter(
         status__in=[1, 3, 4]).order_by('-decision_datetime')
-    pending_apps = CredentialApplication.objects.filter(status=0
-        ).order_by('-application_datetime')
+    pending_apps = CredentialApplication.objects.filter(status=0,
+        submission_status__gte=10).order_by('-application_datetime')
 
     # Merge legacy applications and new applications
     all_successful_apps = list(chain(successful_apps, legacy_apps))

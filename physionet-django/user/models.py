@@ -337,6 +337,7 @@ class User(AbstractBaseUser):
     is_active = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
 
+    completed_training = models.BooleanField(default=False)
     is_credentialed = models.BooleanField(default=False)
     credential_datetime = models.DateTimeField(blank=True, null=True)
 
@@ -558,6 +559,7 @@ class LegacyCredential(models.Model):
         with transaction.atomic():
             self.revoked_datetime = timezone.now()
 
+            self.migrated_user.completed_training = False
             self.migrated_user.is_credentialed = False
             self.migrated_user.credential_datetime = None
 
@@ -711,6 +713,18 @@ class CredentialApplication(models.Model):
         (4, 'Revoked')
     )
 
+    SUBMISSION_STATUS_LABELS = {
+        0: 'Not submitted.',
+        10: 'Initial review.',
+        20: 'Training check.',
+        30: 'Personal ID check.',
+        40: 'Reference check.',
+        50: 'Awaiting reference response.',
+        60: 'Final review.',
+        70: 'Rejected.',
+        80: 'Accepted.'
+    }
+
     # Maximum size for training_completion_report
     MAX_REPORT_SIZE = 2 * 1024 * 1024
 
@@ -724,7 +738,8 @@ class CredentialApplication(models.Model):
     # Personal fields
     first_names = models.CharField(max_length=100, validators=[validators.validate_name])
     last_name = models.CharField(max_length=50, validators=[validators.validate_name])
-    researcher_category = models.PositiveSmallIntegerField(choices=RESEARCHER_CATEGORIES)
+    researcher_category = models.PositiveSmallIntegerField(choices=RESEARCHER_CATEGORIES,
+        null=True)
     # Organization fields
     organization_name = models.CharField(max_length=200,
         validators=[validators.validate_organization])
@@ -741,6 +756,7 @@ class CredentialApplication(models.Model):
     suffix = models.CharField(max_length=60,
         validators=[validators.validate_suffix], default='', blank=True)
     # Human resources training
+    has_training = models.BooleanField(default=False)
     training_course_name = models.CharField(max_length=100, default='',
         blank=True, validators=[validators.validate_training_course])
     training_completion_date = models.DateField(null=True, blank=True)
@@ -765,6 +781,9 @@ class CredentialApplication(models.Model):
         validators=[validators.validate_reference_title])
     # 0 1 2 3 = pending, rejected, accepted, withdrawn
     status = models.PositiveSmallIntegerField(default=0, choices=REJECT_ACCEPT_WITHDRAW)
+    # 0 10 20 30 40 50 60 70 80 = not submitted, initial, training,
+    # personal ID, reference, reference response, final, rejected, accepted
+    submission_status = models.PositiveSmallIntegerField(default=10)
     reference_contact_datetime = models.DateTimeField(null=True)
     reference_response_datetime = models.DateTimeField(null=True)
     # Whether reference verifies the applicant. 0 1 2 = null, no, yes
@@ -805,6 +824,12 @@ class CredentialApplication(models.Model):
     def time_elapsed(self):
         return (timezone.now() - self.application_datetime).days
 
+    def submission_status_label(self):
+        return ActiveProject.SUBMISSION_STATUS_LABELS[self.submission_status]
+
+    def time_elapsed(self):
+        return (timezone.now() - self.application_datetime).days
+
     def _apply_decision(self, decision, responder):
         """
         Reject, accept, or withdraw a credentialing application.
@@ -826,7 +851,7 @@ class CredentialApplication(models.Model):
 
     def accept(self, responder):
         """
-        Reject a credentialing application.
+        Accept a credentialing application.
         """
         try:
             with transaction.atomic():
@@ -911,6 +936,8 @@ class CredentialApplication(models.Model):
         # Removes credentialing from the user
         self.user.is_credentialed = False
         self.user.credential_datetime = None
+        # The user should have to re-complete training if revoked
+        self.user.completed_training = False
 
         with transaction.atomic():
             self.user.save()

@@ -1,5 +1,6 @@
 import base64
 
+from django import forms
 from django.contrib.auth.views import LoginView
 from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -214,7 +215,26 @@ class TestCredentialing(TestMixin):
             'endobj\n')
         report_file = SimpleUploadedFile('report.pdf', report_pdf.encode())
 
+        # First, submit the training certificate report: should be rejected
         data = {
+            'application-training_completion_report': cert_file
+        }
+        with self.assertRaises(forms.ValidationError):
+            response = self.client.post(reverse('edit_training'),
+                                        data=data)
+        self.assertFalse(u.credential_applications.exists())
+
+        # Next, submit the training completion report: should be accepted
+        data = {
+            'application-training_completion_report': report_file
+        }
+        response = self.client.post(reverse('edit_training'),
+                                    data=data)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(u.credential_applications.exists())
+
+        # Add some valid credentialing form data
+        cred_data = {
             'application-first_names': 'Eula',
             'application-last_name': 'Easley',
             'application-suffix': '',
@@ -234,18 +254,10 @@ class TestCredentialing(TestMixin):
             'application-research_summary': 'Effects of asdfghjk on zxcvbnm',
         }
 
-        # Application with a completion certificate should be rejected
-        data['application-training_completion_report'] = cert_file
-        response = self.client.post(reverse('credential_application'),
-                                    data=data)
-        self.assertMessage(response, 40)
-        self.assertFalse(u.credential_applications.exists())
-
         # Application with a completion report should be accepted
-        data['application-training_completion_report'] = report_file
         response = self.client.post(reverse('credential_application'),
-                                    data=data)
-        # no message upon successful submission
+                                    data=cred_data)
+        # No message upon successful submission
         self.assertTrue(u.credential_applications.exists())
 
         # URL should be detected and saved

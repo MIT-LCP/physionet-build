@@ -10,6 +10,7 @@
     "last_login": "2020-04-10T15:51:15.446Z",
     "is_active": true,
     "is_admin": true,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -25,6 +26,7 @@
     "last_login": "2018-11-14T21:08:43.620Z",
     "is_active": true,
     "is_admin": false,
+    "completed_training": true,
     "is_credentialed": true,
     "credential_datetime": "2018-11-14T20:45:53.071Z"
   }
@@ -40,6 +42,7 @@
     "last_login": "2020-04-10T16:58:31.876Z",
     "is_active": true,
     "is_admin": false,
+    "completed_training": true,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -55,6 +58,7 @@
     "last_login": "2020-04-10T16:57:51.646Z",
     "is_active": true,
     "is_admin": false,
+    "completed_training": true,
     "is_credentialed": true,
     "credential_datetime": "2010-02-28T05:00:00Z"
   }
@@ -70,6 +74,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -85,6 +90,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -100,6 +106,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -115,6 +122,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -130,6 +138,7 @@
     "last_login": "2020-03-29T21:53:48.940Z",
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -145,6 +154,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -160,6 +170,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -175,6 +186,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -190,6 +202,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -205,6 +218,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -220,6 +234,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -235,6 +250,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -250,6 +266,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -265,6 +282,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -280,6 +298,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -295,6 +314,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -310,6 +330,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -325,6 +346,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -340,6 +362,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -355,6 +378,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -370,6 +394,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -385,6 +410,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -400,6 +426,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -415,6 +442,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -430,6 +458,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -445,6 +474,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -460,6 +490,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -475,6 +506,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -490,6 +522,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -505,6 +538,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -520,6 +554,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -535,6 +570,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -550,6 +586,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -565,6 +602,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -580,6 +618,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -595,6 +634,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -610,6 +650,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -625,6 +666,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -640,6 +682,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -655,6 +698,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -670,6 +714,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -685,6 +730,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -700,6 +746,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -715,6 +762,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -730,6 +778,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -745,6 +794,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -760,6 +810,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -775,6 +826,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -790,6 +842,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -805,6 +858,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -820,6 +874,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -835,6 +890,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -850,6 +906,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -865,6 +922,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -880,6 +938,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -895,6 +954,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -910,6 +970,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -925,6 +986,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -940,6 +1002,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -955,6 +1018,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -970,6 +1034,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -985,6 +1050,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1000,6 +1066,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1015,6 +1082,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1030,6 +1098,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1045,6 +1114,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1060,6 +1130,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1075,6 +1146,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1090,6 +1162,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1105,6 +1178,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1120,6 +1194,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1135,6 +1210,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1150,6 +1226,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1165,6 +1242,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1180,6 +1258,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1195,6 +1274,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1210,6 +1290,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1225,6 +1306,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1240,6 +1322,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1255,6 +1338,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1270,6 +1354,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1285,6 +1370,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1300,6 +1386,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1315,6 +1402,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1330,6 +1418,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1345,6 +1434,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1360,6 +1450,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1375,6 +1466,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1390,6 +1482,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1405,6 +1498,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1420,6 +1514,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1435,6 +1530,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1450,6 +1546,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1465,6 +1562,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1480,6 +1578,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1495,6 +1594,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1510,6 +1610,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1525,6 +1626,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1540,6 +1642,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1555,6 +1658,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1570,6 +1674,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1585,6 +1690,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1600,6 +1706,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1615,6 +1722,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1630,6 +1738,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1645,6 +1754,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1660,6 +1770,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1675,6 +1786,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1690,6 +1802,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1705,6 +1818,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1720,6 +1834,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1735,6 +1850,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1750,6 +1866,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1765,6 +1882,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1780,6 +1898,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1795,6 +1914,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1810,6 +1930,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1825,6 +1946,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1840,6 +1962,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1855,6 +1978,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1870,6 +1994,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1885,6 +2010,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1900,6 +2026,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1915,6 +2042,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1930,6 +2058,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1945,6 +2074,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1960,6 +2090,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1975,6 +2106,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -1990,6 +2122,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2005,6 +2138,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2020,6 +2154,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2035,6 +2170,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2050,6 +2186,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2065,6 +2202,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2080,6 +2218,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2095,6 +2234,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2110,6 +2250,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2125,6 +2266,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2140,6 +2282,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2155,6 +2298,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2170,6 +2314,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2185,6 +2330,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2200,6 +2346,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2215,6 +2362,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2230,6 +2378,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2245,6 +2394,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2260,6 +2410,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2275,6 +2426,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2290,6 +2442,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2305,6 +2458,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2320,6 +2474,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2335,6 +2490,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2350,6 +2506,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2365,6 +2522,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2380,6 +2538,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2395,6 +2554,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2410,6 +2570,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2425,6 +2586,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2440,6 +2602,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2455,6 +2618,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2470,6 +2634,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2485,6 +2650,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2500,6 +2666,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2515,6 +2682,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2530,6 +2698,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2545,6 +2714,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2560,6 +2730,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2575,6 +2746,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2590,6 +2762,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2605,6 +2778,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2620,6 +2794,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2635,6 +2810,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2650,6 +2826,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2665,6 +2842,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2680,6 +2858,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2695,6 +2874,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2710,6 +2890,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2725,6 +2906,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2740,6 +2922,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2755,6 +2938,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2770,6 +2954,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2785,6 +2970,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2800,6 +2986,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2815,6 +3002,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2830,6 +3018,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2845,6 +3034,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2860,6 +3050,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2875,6 +3066,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2890,6 +3082,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2905,6 +3098,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2920,6 +3114,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2935,6 +3130,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2950,6 +3146,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2965,6 +3162,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2980,6 +3178,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -2995,6 +3194,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -3010,6 +3210,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -3025,6 +3226,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -3040,6 +3242,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -3055,6 +3258,7 @@
     "last_login": null,
     "is_active": true,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -3070,6 +3274,7 @@
     "last_login": null,
     "is_active": false,
     "is_admin": false,
+    "completed_training": false,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -3085,6 +3290,7 @@
     "last_login": "2020-04-10T15:51:42.276Z",
     "is_active": true,
     "is_admin": true,
+    "completed_training": true,
     "is_credentialed": true,
     "credential_datetime": "2010-02-28T05:00:00Z"
   }
@@ -9794,6 +10000,7 @@
     "webpage": "http://imes.mit.edu/people/faculty/mark-roger/",
     "zip_code": "02139",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Data or Specimens Only Research Course",
     "training_completion_date": "2015-01-01",
     "training_completion_report": "credential-applications/YgqTQmcerj0gLx4MAaZV/training-report.pdf",
@@ -9840,6 +10047,7 @@
     "webpage": "",
     "zip_code": "79539",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-06-25",
     "training_completion_report": "credential-applications/5rDeC8Om9dBJTeJN91y2/training-report.pdf",
@@ -9884,6 +10092,7 @@
     "webpage": "",
     "zip_code": "76470",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-06-15",
     "training_completion_report": "credential-applications/qdOWz3Bn0k8FkqtcLpdu/training-report.pdf",
@@ -9928,6 +10137,7 @@
     "webpage": "",
     "zip_code": "67656",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-10-21",
     "training_completion_report": "credential-applications/Ux4L7uDoi2R9BxEVX8HL/training-report.pdf",
@@ -9972,6 +10182,7 @@
     "webpage": "",
     "zip_code": "92805",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-03-02",
     "training_completion_report": "credential-applications/E4jB0FC6hlrDHsumsPYb/training-report.pdf",
@@ -10016,6 +10227,7 @@
     "webpage": "",
     "zip_code": "66426",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-12-10",
     "training_completion_report": "credential-applications/INNoIkyrtrHCVXbxTHz6/training-report.pdf",
@@ -10060,6 +10272,7 @@
     "webpage": "",
     "zip_code": "43008",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-10-12",
     "training_completion_report": "credential-applications/xXZ6YtHyeIs2347vIwbN/training-report.pdf",
@@ -10104,6 +10317,7 @@
     "webpage": "",
     "zip_code": "50605",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-07-25",
     "training_completion_report": "credential-applications/LRQwyqTRzhi9WKhDW861/training-report.pdf",
@@ -10148,6 +10362,7 @@
     "webpage": "",
     "zip_code": "25922",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-10-06",
     "training_completion_report": "credential-applications/CGEln47LBdyVUkswCBng/training-report.pdf",
@@ -10192,6 +10407,7 @@
     "webpage": "",
     "zip_code": "65444",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-07-23",
     "training_completion_report": "credential-applications/8jQ4hNcnGq4KleBIEbiH/training-report.pdf",
@@ -10236,6 +10452,7 @@
     "webpage": "",
     "zip_code": "28146",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-03-08",
     "training_completion_report": "credential-applications/pYeh1H1mEUeuAiRExfEq/training-report.pdf",
@@ -10280,6 +10497,7 @@
     "webpage": "",
     "zip_code": "31057",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-11-26",
     "training_completion_report": "credential-applications/92D60e53t3lE9lwORvsE/training-report.pdf",
@@ -10324,6 +10542,7 @@
     "webpage": "",
     "zip_code": "41333",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-09-05",
     "training_completion_report": "credential-applications/YvYeoyUxOjMBvRYdMUru/training-report.pdf",
@@ -10368,6 +10587,7 @@
     "webpage": "",
     "zip_code": "52765",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-10-13",
     "training_completion_report": "credential-applications/kSkH3svkQyCE1RpI5bZa/training-report.pdf",
@@ -10412,6 +10632,7 @@
     "webpage": "",
     "zip_code": "11530",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-11-13",
     "training_completion_report": "credential-applications/3niq5ZuHnhhdtSX2qHlU/training-report.pdf",
@@ -10456,6 +10677,7 @@
     "webpage": "",
     "zip_code": "36783",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-01-20",
     "training_completion_report": "credential-applications/qgRhw3V6PGBH7m5Qp5on/training-report.pdf",
@@ -10500,6 +10722,7 @@
     "webpage": "",
     "zip_code": "13651",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-08-16",
     "training_completion_report": "credential-applications/E15Myv2ScWRXsw9Cyqsv/training-report.pdf",
@@ -10544,6 +10767,7 @@
     "webpage": "",
     "zip_code": "14267",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-03-11",
     "training_completion_report": "credential-applications/LrfZMZJQOMrmgJr6jkgV/training-report.pdf",
@@ -10588,6 +10812,7 @@
     "webpage": "",
     "zip_code": "28781",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-08-10",
     "training_completion_report": "credential-applications/mkW92RlgIMMIVyYaC2eX/training-report.pdf",
@@ -10632,6 +10857,7 @@
     "webpage": "",
     "zip_code": "43338",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-08-09",
     "training_completion_report": "credential-applications/PIyJnDmF1KvoO1GO8aOs/training-report.pdf",
@@ -10676,6 +10902,7 @@
     "webpage": "",
     "zip_code": "71133",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-11-05",
     "training_completion_report": "credential-applications/WqSIR1ol9FfbMC0h0IFt/training-report.pdf",
@@ -10720,6 +10947,7 @@
     "webpage": "",
     "zip_code": "55439",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-08-03",
     "training_completion_report": "credential-applications/3Pr7MQTftV4j9yhjbYUH/training-report.pdf",
@@ -10764,6 +10992,7 @@
     "webpage": "",
     "zip_code": "36467",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-05-09",
     "training_completion_report": "credential-applications/fQ9wSvLXQFvXAPzTVqDL/training-report.pdf",
@@ -10808,6 +11037,7 @@
     "webpage": "",
     "zip_code": "65529",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-10-07",
     "training_completion_report": "credential-applications/3SEjpDcdwryxt3Li5QWS/training-report.pdf",
@@ -10852,6 +11082,7 @@
     "webpage": "",
     "zip_code": "50660",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-02-11",
     "training_completion_report": "credential-applications/XFcMZ6KytaAEOfC0VGFt/training-report.pdf",
@@ -10896,6 +11127,7 @@
     "webpage": "",
     "zip_code": "64048",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-11-20",
     "training_completion_report": "credential-applications/E52ROdo3hYnPEldQewI6/training-report.pdf",
@@ -10940,6 +11172,7 @@
     "webpage": "",
     "zip_code": "98904",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-10-25",
     "training_completion_report": "credential-applications/F2rZzkhKOBMnZ2UTWMk4/training-report.pdf",
@@ -10984,6 +11217,7 @@
     "webpage": "",
     "zip_code": "49676",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-03-19",
     "training_completion_report": "credential-applications/EQnspRxBm6QlPpd86Sm9/training-report.pdf",
@@ -11028,6 +11262,7 @@
     "webpage": "",
     "zip_code": "79937",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-11-04",
     "training_completion_report": "credential-applications/vYxll4yYIwQTm1fOPSXI/training-report.pdf",
@@ -11072,6 +11307,7 @@
     "webpage": "",
     "zip_code": "54653",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-06-07",
     "training_completion_report": "credential-applications/yyHJkwUuEH2MBlhVMmaZ/training-report.pdf",
@@ -11116,6 +11352,7 @@
     "webpage": "",
     "zip_code": "17835",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-09-11",
     "training_completion_report": "credential-applications/4OxnRrQpnqSeFJync4g6/training-report.pdf",
@@ -11160,6 +11397,7 @@
     "webpage": "",
     "zip_code": "40253",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-05-15",
     "training_completion_report": "credential-applications/fLSfjR5ZL8InHEwikPMk/training-report.pdf",
@@ -11204,6 +11442,7 @@
     "webpage": "",
     "zip_code": "48758",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-04-12",
     "training_completion_report": "credential-applications/mhnQcQdOlRpkERtmKQjm/training-report.pdf",
@@ -11248,6 +11487,7 @@
     "webpage": "",
     "zip_code": "04055",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-10-28",
     "training_completion_report": "credential-applications/9B8JbnKvpoT42guHqOCx/training-report.pdf",
@@ -11292,6 +11532,7 @@
     "webpage": "",
     "zip_code": "64507",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-12-18",
     "training_completion_report": "credential-applications/5gcPm8e4OmQwlX9UwXGm/training-report.pdf",
@@ -11336,6 +11577,7 @@
     "webpage": "",
     "zip_code": "27359",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-11-06",
     "training_completion_report": "credential-applications/9Rqt6gvxaJq3Z6ej9eTs/training-report.pdf",
@@ -11380,6 +11622,7 @@
     "webpage": "",
     "zip_code": "16733",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-04-12",
     "training_completion_report": "credential-applications/YaV1iPlZjNN0fRG3lIaz/training-report.pdf",
@@ -11424,6 +11667,7 @@
     "webpage": "",
     "zip_code": "27049",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-12-03",
     "training_completion_report": "credential-applications/X9rLCOxcVd1VNzU8dxiy/training-report.pdf",
@@ -11468,6 +11712,7 @@
     "webpage": "",
     "zip_code": "46546",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-10-11",
     "training_completion_report": "credential-applications/3oMF0BTmJnV8HnvIWTox/training-report.pdf",
@@ -11512,6 +11757,7 @@
     "webpage": "",
     "zip_code": "74702",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-07-28",
     "training_completion_report": "credential-applications/xra730Gfcd7VsMeySREs/training-report.pdf",
@@ -11556,6 +11802,7 @@
     "webpage": "",
     "zip_code": "98811",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-12-17",
     "training_completion_report": "credential-applications/wJLogxwj4JvoGh90BzXU/training-report.pdf",
@@ -11600,6 +11847,7 @@
     "webpage": "",
     "zip_code": "62786",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-04-08",
     "training_completion_report": "credential-applications/1wQDIy2bEJREh7JvHTHk/training-report.pdf",
@@ -11644,6 +11892,7 @@
     "webpage": "",
     "zip_code": "80511",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-09-11",
     "training_completion_report": "credential-applications/RYLxwFpFNAmfwaGmlw42/training-report.pdf",
@@ -11688,6 +11937,7 @@
     "webpage": "",
     "zip_code": "60045",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-09-10",
     "training_completion_report": "credential-applications/0oq4LtvuSZs2hjRyuQCo/training-report.pdf",
@@ -11732,6 +11982,7 @@
     "webpage": "",
     "zip_code": "27292",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-09-02",
     "training_completion_report": "credential-applications/SUALs4nv4kNQVMZIPPVI/training-report.pdf",
@@ -11776,6 +12027,7 @@
     "webpage": "",
     "zip_code": "65079",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-11-28",
     "training_completion_report": "credential-applications/SQOwinxBHyvsJPN8iNGf/training-report.pdf",
@@ -11820,6 +12072,7 @@
     "webpage": "",
     "zip_code": "25243",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-06-21",
     "training_completion_report": "credential-applications/WK5bC1v8q2B8P2W5eGnM/training-report.pdf",
@@ -11864,6 +12117,7 @@
     "webpage": "",
     "zip_code": "75706",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-06-25",
     "training_completion_report": "credential-applications/Qr3IFFF4pvlIzdPOKK9h/training-report.pdf",
@@ -11908,6 +12162,7 @@
     "webpage": "",
     "zip_code": "62820",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-06-09",
     "training_completion_report": "credential-applications/8ccUikzIroiDtw5TawwF/training-report.pdf",
@@ -11952,6 +12207,7 @@
     "webpage": "",
     "zip_code": "46057",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-09-13",
     "training_completion_report": "credential-applications/0ZtcSrCEk0QmCh4JTAec/training-report.pdf",
@@ -11996,6 +12252,7 @@
     "webpage": "",
     "zip_code": "19183",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-12-15",
     "training_completion_report": "credential-applications/Nij37q1qUa0AXDoQ6Nyw/training-report.pdf",
@@ -12040,6 +12297,7 @@
     "webpage": "",
     "zip_code": "16037",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-10-10",
     "training_completion_report": "credential-applications/nG9rGGsjI25tyLC0mXXf/training-report.pdf",
@@ -12084,6 +12342,7 @@
     "webpage": "",
     "zip_code": "13642",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-11-16",
     "training_completion_report": "credential-applications/9uIhOJDq0W547pnMZfyy/training-report.pdf",
@@ -12128,6 +12387,7 @@
     "webpage": "",
     "zip_code": "17109",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-11-02",
     "training_completion_report": "credential-applications/QMUe1jhLlxVaOuwZ21PX/training-report.pdf",
@@ -12172,6 +12432,7 @@
     "webpage": "",
     "zip_code": "20748",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-10-27",
     "training_completion_report": "credential-applications/juqFFolEjdCKfxgV85o6/training-report.pdf",
@@ -12216,6 +12477,7 @@
     "webpage": "",
     "zip_code": "89164",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-12-25",
     "training_completion_report": "credential-applications/moAWK0ga0tI5bIlOQD7i/training-report.pdf",
@@ -12260,6 +12522,7 @@
     "webpage": "",
     "zip_code": "48833",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-01-16",
     "training_completion_report": "credential-applications/rwA281Kxju46Q85Mpp6j/training-report.pdf",
@@ -12304,6 +12567,7 @@
     "webpage": "",
     "zip_code": "75606",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-07-23",
     "training_completion_report": "credential-applications/10VWDXrxSsbEdTANdafv/training-report.pdf",
@@ -12348,6 +12612,7 @@
     "webpage": "",
     "zip_code": "39218",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-06-13",
     "training_completion_report": "credential-applications/4fLiMA5Gq1pQH6kYaQyA/training-report.pdf",
@@ -12392,6 +12657,7 @@
     "webpage": "",
     "zip_code": "37660",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-11-09",
     "training_completion_report": "credential-applications/nr0Z6xKGo3qp2dYVW8i0/training-report.pdf",
@@ -12436,6 +12702,7 @@
     "webpage": "",
     "zip_code": "52630",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-12-14",
     "training_completion_report": "credential-applications/8J0fsVbl6POmRNLaMNDc/training-report.pdf",
@@ -12480,6 +12747,7 @@
     "webpage": "",
     "zip_code": "11355",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-04-05",
     "training_completion_report": "credential-applications/5U5sjoUd3b0QmHMGZm5C/training-report.pdf",
@@ -12524,6 +12792,7 @@
     "webpage": "",
     "zip_code": "21797",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-09-11",
     "training_completion_report": "credential-applications/4ePplKTGmrKWVw8bCTSv/training-report.pdf",
@@ -12568,6 +12837,7 @@
     "webpage": "",
     "zip_code": "71740",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-09-26",
     "training_completion_report": "credential-applications/eNCkUpOjGKXImyc1kAJl/training-report.pdf",
@@ -12612,6 +12882,7 @@
     "webpage": "",
     "zip_code": "15055",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-03-14",
     "training_completion_report": "credential-applications/9yDXnqdBckaVk6pr7Nrx/training-report.pdf",
@@ -12656,6 +12927,7 @@
     "webpage": "",
     "zip_code": "70554",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-10-02",
     "training_completion_report": "credential-applications/bYue9DZlNxcl2xkhmMoh/training-report.pdf",
@@ -12700,6 +12972,7 @@
     "webpage": "",
     "zip_code": "48848",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-08-04",
     "training_completion_report": "credential-applications/D4xFyf0h1rxXjHb8d5eb/training-report.pdf",
@@ -12744,6 +13017,7 @@
     "webpage": "",
     "zip_code": "05455",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-12-23",
     "training_completion_report": "credential-applications/7bDZekhoKURxQK80NQkG/training-report.pdf",
@@ -12788,6 +13062,7 @@
     "webpage": "",
     "zip_code": "59077",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-07-06",
     "training_completion_report": "credential-applications/uypZAy2zW9FQiciqugYX/training-report.pdf",
@@ -12832,6 +13107,7 @@
     "webpage": "",
     "zip_code": "19369",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-01-12",
     "training_completion_report": "credential-applications/zIOFRoLWvu9Tat82tPRR/training-report.pdf",
@@ -12876,6 +13152,7 @@
     "webpage": "",
     "zip_code": "28129",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-09-01",
     "training_completion_report": "credential-applications/GnYtwucVb69d5ErokhbO/training-report.pdf",
@@ -12920,6 +13197,7 @@
     "webpage": "",
     "zip_code": "62938",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-11-03",
     "training_completion_report": "credential-applications/SwYkqtaUnBT3NfiuqZzt/training-report.pdf",
@@ -12964,6 +13242,7 @@
     "webpage": "",
     "zip_code": "99682",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-08-11",
     "training_completion_report": "credential-applications/lA55IrRI81eN8FeoA8iY/training-report.pdf",
@@ -13008,6 +13287,7 @@
     "webpage": "",
     "zip_code": "30099",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-10-23",
     "training_completion_report": "credential-applications/mi3rLMMNSmEcLR1YY00o/training-report.pdf",
@@ -13052,6 +13332,7 @@
     "webpage": "",
     "zip_code": "48649",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-07-05",
     "training_completion_report": "credential-applications/a4uguQYxKzufMtuiDvic/training-report.pdf",
@@ -13096,6 +13377,7 @@
     "webpage": "",
     "zip_code": "69343",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-02-17",
     "training_completion_report": "credential-applications/A9U87riokdg0BdahhLZv/training-report.pdf",
@@ -13140,6 +13422,7 @@
     "webpage": "",
     "zip_code": "78069",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-06-19",
     "training_completion_report": "credential-applications/7GOVLnOTQrDVz3ipxTra/training-report.pdf",
@@ -13184,6 +13467,7 @@
     "webpage": "",
     "zip_code": "67480",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-08-26",
     "training_completion_report": "credential-applications/aW2I6CI1L187qGsuzLKv/training-report.pdf",
@@ -13228,6 +13512,7 @@
     "webpage": "",
     "zip_code": "46060",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-11-19",
     "training_completion_report": "credential-applications/B6VbwzLSICkzAnzZUhhL/training-report.pdf",
@@ -13272,6 +13557,7 @@
     "webpage": "",
     "zip_code": "21557",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-04-08",
     "training_completion_report": "credential-applications/prw6SjswyrbmPfuHWcFq/training-report.pdf",
@@ -13316,6 +13602,7 @@
     "webpage": "",
     "zip_code": "24450",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-10-19",
     "training_completion_report": "credential-applications/qMNskHKOcrsnpNHJwGKx/training-report.pdf",
@@ -13360,6 +13647,7 @@
     "webpage": "",
     "zip_code": "29453",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-11-25",
     "training_completion_report": "credential-applications/3Ccf0w3ovNEXa7FqvgEO/training-report.pdf",
@@ -13404,6 +13692,7 @@
     "webpage": "",
     "zip_code": "38859",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-05-23",
     "training_completion_report": "credential-applications/jUKV3yqHbtKOqRUhh4gZ/training-report.pdf",
@@ -13448,6 +13737,7 @@
     "webpage": "",
     "zip_code": "38388",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-03-18",
     "training_completion_report": "credential-applications/8fzAZgUGaqYLeUYm2sJg/training-report.pdf",
@@ -13492,6 +13782,7 @@
     "webpage": "",
     "zip_code": "52635",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-10-06",
     "training_completion_report": "credential-applications/XL7Soat8V3dPofXZuoWH/training-report.pdf",
@@ -13536,6 +13827,7 @@
     "webpage": "",
     "zip_code": "54855",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-12-12",
     "training_completion_report": "credential-applications/TCGrClB1z9VjNPc9i5uV/training-report.pdf",
@@ -13580,6 +13872,7 @@
     "webpage": "",
     "zip_code": "56017",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-05-12",
     "training_completion_report": "credential-applications/wIRQ8PebBEfEu5UZUOwK/training-report.pdf",
@@ -13624,6 +13917,7 @@
     "webpage": "",
     "zip_code": "30339",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-12-03",
     "training_completion_report": "credential-applications/iUaRIqXqH6SHKTIn8Fmw/training-report.pdf",
@@ -13668,6 +13962,7 @@
     "webpage": "",
     "zip_code": "32886",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-11-15",
     "training_completion_report": "credential-applications/dpEA3gMU5ktnLihIowBz/training-report.pdf",
@@ -13712,6 +14007,7 @@
     "webpage": "",
     "zip_code": "48401",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-04-20",
     "training_completion_report": "credential-applications/YQkJBf3T2iOv6EloQlat/training-report.pdf",
@@ -13756,6 +14052,7 @@
     "webpage": "",
     "zip_code": "86520",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-07-18",
     "training_completion_report": "credential-applications/V28yIzkaNFvOPs91cn6J/training-report.pdf",
@@ -13800,6 +14097,7 @@
     "webpage": "",
     "zip_code": "19734",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-03-05",
     "training_completion_report": "credential-applications/vbvXrK5PdJWLVsPOBbBy/training-report.pdf",
@@ -13844,6 +14142,7 @@
     "webpage": "",
     "zip_code": "24435",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-06-05",
     "training_completion_report": "credential-applications/iOO51OwLj97ipR2QWnd6/training-report.pdf",
@@ -13888,6 +14187,7 @@
     "webpage": "",
     "zip_code": "45826",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-04-16",
     "training_completion_report": "credential-applications/1ii4HireqADVNJN1NsuE/training-report.pdf",
@@ -13932,6 +14232,7 @@
     "webpage": "",
     "zip_code": "94157",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-10-07",
     "training_completion_report": "credential-applications/CRMWdEFiy7pwg7P9Ign9/training-report.pdf",
@@ -13976,6 +14277,7 @@
     "webpage": "",
     "zip_code": "82631",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-02-14",
     "training_completion_report": "credential-applications/2CH46xn5wlKBJO8latRY/training-report.pdf",
@@ -14020,6 +14322,7 @@
     "webpage": "",
     "zip_code": "84605",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-06-19",
     "training_completion_report": "credential-applications/XTTfrerqfxICQHJG0KWR/training-report.pdf",
@@ -14064,6 +14367,7 @@
     "webpage": "",
     "zip_code": "78712",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-06-26",
     "training_completion_report": "credential-applications/tKoY8VSB3Sq1kxW19gcc/training-report.pdf",
@@ -14108,6 +14412,7 @@
     "webpage": "",
     "zip_code": "26734",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-01-08",
     "training_completion_report": "credential-applications/ouUgmP8kDL47dAZEPKgi/training-report.pdf",
@@ -14152,6 +14457,7 @@
     "webpage": "",
     "zip_code": "70720",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-11-25",
     "training_completion_report": "credential-applications/eZlWVcEevRdEkZzLEb5Y/training-report.pdf",
@@ -14196,6 +14502,7 @@
     "webpage": "",
     "zip_code": "60138",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-09-03",
     "training_completion_report": "credential-applications/bSIt9ZRmM0HZKseUuCL8/training-report.pdf",
@@ -14284,6 +14591,7 @@
     "webpage": "",
     "zip_code": "47860",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-12-02",
     "training_completion_report": "credential-applications/XIyUvACorGLZnL4jMOHw/training-report.pdf",
@@ -14310,7 +14618,7 @@
 },
 {
   "model": "user.credentialapplication",
-  "pk": 104,
+  "pk": 103,
   "fields": {
     "slug": "TP8zifOAtpK8w7jWaAzr",
     "application_datetime": "2020-03-29T21:51:18.566Z",
@@ -14328,6 +14636,7 @@
     "webpage": "",
     "zip_code": "75972",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-02-05",
     "training_completion_report": "credential-applications/TP8zifOAtpK8w7jWaAzr/training-report.pdf",
@@ -14354,7 +14663,7 @@
 },
 {
   "model": "user.credentialapplication",
-  "pk": 105,
+  "pk": 104,
   "fields": {
     "slug": "JzHlnTM1qnKXTWmfpjad",
     "application_datetime": "2020-03-29T21:51:18.566Z",
@@ -14372,6 +14681,7 @@
     "webpage": "",
     "zip_code": "60431",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-11-28",
     "training_completion_report": "credential-applications/JzHlnTM1qnKXTWmfpjad/training-report.pdf",
@@ -14398,7 +14708,7 @@
 },
 {
   "model": "user.credentialapplication",
-  "pk": 106,
+  "pk": 105,
   "fields": {
     "slug": "Osm0FMaavviixpsL26v2",
     "application_datetime": "2020-03-29T21:51:18.566Z",
@@ -14416,6 +14726,7 @@
     "webpage": "",
     "zip_code": "42022",
     "suffix": "",
+    "has_training": true,
     "training_course_name": "CITI Course",
     "training_completion_date": "2020-11-22",
     "training_completion_report": "credential-applications/Osm0FMaavviixpsL26v2/training-report.pdf",
@@ -14444,7 +14755,7 @@
 },
 {
   "model": "user.credentialapplication",
-  "pk": 107,
+  "pk": 106,
   "fields": {
     "slug": "C1ZwyxINWfh7T8Gk60an",
     "application_datetime": "2020-04-08T18:47:41.508Z",
@@ -14462,6 +14773,7 @@
     "webpage": "",
     "zip_code": "02139",
     "suffix": "",
+    "has_training": false,
     "training_course_name": "",
     "training_completion_date": null,
     "training_completion_report": "credential-applications/C1ZwyxINWfh7T8Gk60an/training-report.pdf",
@@ -14490,7 +14802,7 @@
 },
 {
   "model": "user.credentialapplication",
-  "pk": 108,
+  "pk": 107,
   "fields": {
     "slug": "eW2e7VDCst44ziWjaota",
     "application_datetime": "2019-04-08T18:49:03.693Z",
@@ -14508,6 +14820,7 @@
     "webpage": "",
     "zip_code": "02139",
     "suffix": "",
+    "has_training": false,
     "training_course_name": "",
     "training_completion_date": null,
     "training_completion_report": "credential-applications/eW2e7VDCst44ziWjaota/training-report.pdf",
