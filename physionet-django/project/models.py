@@ -1105,7 +1105,7 @@ class SubmissionInfo(models.Model):
         on_delete=models.SET_NULL, blank=True)
     # The very first submission
     submission_datetime = models.DateTimeField(null=True, blank=True)
-    author_comments = models.CharField(max_length=10000, default='', blank=True)
+    author_comments = models.CharField(max_length=20000, default='', blank=True)
     editor_assignment_datetime = models.DateTimeField(null=True, blank=True)
     # The last revision request (if any)
     revision_request_datetime = models.DateTimeField(null=True, blank=True)
@@ -2485,7 +2485,7 @@ class EditLog(models.Model):
     # When the submitting author submits/resubmits
     submission_datetime = models.DateTimeField(auto_now_add=True)
     is_resubmission = models.BooleanField(default=False)
-    author_comments = models.CharField(max_length=10000, default='')
+    author_comments = models.CharField(max_length=20000, default='')
     # Quality assurance fields
     soundly_produced = models.NullBooleanField(null=True)
     well_described = models.NullBooleanField(null=True)
@@ -2498,7 +2498,7 @@ class EditLog(models.Model):
     decision = models.SmallIntegerField(null=True)
     decision_datetime = models.DateTimeField(null=True)
     # Comments for the decision
-    editor_comments = models.CharField(max_length=10000)
+    editor_comments = models.CharField(max_length=20000)
     auto_doi = models.BooleanField(default=True)
 
     def set_quality_assurance_results(self):
