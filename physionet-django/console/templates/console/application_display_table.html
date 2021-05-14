@@ -17,8 +17,8 @@ Applied: {{ application.application_datetime|date }}</p>
   Decision date: {{ application.decision_datetime|date }}<br />
 {% endif %}
 
-{% if application.responder_comments %}
-  Admin Comments: {{ application.responder_comments|linebreaks }}
+{% if application.internal_comments %}
+  Internal Comments: {{ application.internal_comments|linebreaks }}
 {% endif %}
 
 <h5>Personal</h5>
