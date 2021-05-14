@@ -82,6 +82,10 @@ Applied: {{ application.application_datetime|date }}</p>
         <a href="{{ application.get_reference_user.orcid.get_orcid_url }}/{{ application.get_reference_user.orcid.orcid_id }}" rel="noopener">{{ application.get_reference_user.orcid.get_orcid_url }}/{{ application.get_reference_user.orcid.orcid_id }}</a>
       {% else %}No ORCID iD linked{% endif %}
     </mark></li>
+    <li>Class: <mark>
+      {% if ref_class %}{{ ref_class.class_name }}
+      {% else %}No class provided{% endif %}
+    </mark></li>
   </ul>
 {% else %}
 <ul><li>No reference provided</li></ul>

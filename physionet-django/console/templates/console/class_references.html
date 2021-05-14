@@ -1,0 +1,32 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}PhysioNet Users{% endblock %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/pagination.css' %}">
+{% endblock %}
+
+{% block content %}
+<script src="{% static 'custom/js/cookie.js' %}"></script>
+<script src="{% static 'console/js/search-console.js' %}"></script>
+
+<div class="card mb-3">
+  <div class="card-header">
+    Class List <span class="badge badge-pill badge-info">{{ all_known_ref.paginator.count }}</span>
+  </div>
+  <div class="card-body">
+    <form action="" method="post" class="form-signin">
+      {% csrf_token %}
+      {% include "form_snippet.html" with form=add_class_form %}
+      <button class="btn btn-primary btn-fixed" name="add_class_ref" type="submit">Add Class</button>
+    </form>
+    <br />
+    <div class="table-responsive">
+      <input type="search" oninput="search('{% url "class_references_search" %}', value);" placeholder="Search...">
+      {% include 'console/class_references_list.html' %}
+    </div>
+  </div>
+</div>
+{% endblock %}

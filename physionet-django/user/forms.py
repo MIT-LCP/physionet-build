@@ -13,7 +13,8 @@ from django.utils.translation import ugettext_lazy
 from django.db import transaction
 
 from project.models import PublishedProject
-from user.models import AssociatedEmail, User, Profile, CredentialApplication, CloudInformation
+from user.models import (AssociatedEmail, User, Profile, CredentialApplication,
+                         CloudInformation, ClassList)
 from user.trainingreport import (find_training_report_url,
                                  TrainingCertificateError)
 from user.widgets import ProfilePhotoInput
