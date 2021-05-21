@@ -1895,7 +1895,7 @@ def data_access_request_view(request, project_slug, version, user_id):
 def manage_data_access_reviewers(request, project_slug, version):
     """
     Corresponding author of a self managed credentialing project can invite additional
-    physionet users to help review incoming data access requests.
+    users to help review incoming data access requests.
     The invitation can also be revoked
     """
 
