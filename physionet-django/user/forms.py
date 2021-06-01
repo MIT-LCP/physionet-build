@@ -477,7 +477,7 @@ class ReferenceCAF(forms.ModelForm):
 
 class CredentialApplicationForm(forms.ModelForm):
     """
-    Form to apply for PhysioNet credentialling
+    Form to apply for credentialling
     """
     class Meta:
         model = CredentialApplication
@@ -569,7 +569,7 @@ class CredentialApplicationForm(forms.ModelForm):
 
 class CredentialReferenceForm(forms.ModelForm):
     """
-    Form to apply for PhysioNet credentialling. The name must match.
+    Form to apply for credentialling. The name must match.
     """
     class Meta:
         model = CredentialApplication
@@ -600,7 +600,7 @@ class CredentialReferenceForm(forms.ModelForm):
 
 class ContactForm(forms.Form):
     """
-    For contacting PhysioNet support
+    For contacting support
     """
     name = forms.CharField(max_length=100, widget=forms.TextInput(
         attrs={'class': 'form-control', 'placeholder': 'Name *'}))

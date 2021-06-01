@@ -672,7 +672,7 @@ class DualAuthModelBackend():
 
 class CredentialApplication(models.Model):
     """
-    An application to become PhysioNet credentialed
+    An application to become credentialed
     """
     RESEARCHER_CATEGORIES = (
         (0, 'Student'),
