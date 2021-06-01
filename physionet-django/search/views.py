@@ -40,7 +40,7 @@ def topic_search(request):
 
 def all_topics(request):
     """
-    Show all topics contained in PhysioNet
+    Show all topics
 
     """
     topics = PublishedTopic.objects.all().order_by('-project_count')

@@ -333,7 +333,7 @@ def edit_orcid(request):
     """
     Send a user to orcid.org for authorization to link to their ORCID account, then redirect them to
     views/auth_orcid to save their iD and other token information.  Also provide the option to unlink their
-    ORCID account from their PhysioNet account.
+    ORCID account from their account.
     """
 
     if request.method == 'POST':
