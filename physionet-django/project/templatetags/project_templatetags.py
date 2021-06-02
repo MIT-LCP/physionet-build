@@ -71,7 +71,7 @@ def access_description(access_policy):
     descriptions = {
         0: 'Anyone can access the files, as long as they conform to the terms of the specified license.',
         1: 'Only logged in users who sign the specified data use agreement can access the files.',
-        2: 'Only PhysioNet credentialed users who sign the specified DUA can access the files.',
+        2: 'Only credentialed users who sign the specified DUA can access the files.',
     }
     return descriptions[access_policy]
 
@@ -106,7 +106,7 @@ def author_popover(author, show_submitting=False, show_email=False,
     show_all_author_info
     """
     affiliation_info = escape('<b>Affiliations</b><p>{}</p>'.format('<br>'.join(escape(a) for a in author.text_affiliations)))
-    profile_info = '<p><b>PhysioNet Profile</b><br><a href=/users/{} target=_blank>{}</a></p>'.format(author.username, author.username)
+    profile_info = '<p><b>Profile</b><br><a href=/users/{} target=_blank>{}</a></p>'.format(author.username, author.username)
     popover_body = ''.join((affiliation_info, profile_info))
 
     if show_submitting and author.is_submitting:
