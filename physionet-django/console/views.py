@@ -1851,7 +1851,8 @@ def credentialing_stats(request):
 def submission_stats(request):
     stats = OrderedDict()
     todays_date = datetime.today()
-    all_projects = [PublishedProject.objects.filter(is_legacy=False), ActiveProject.objects.all()]
+    all_projects = [PublishedProject.objects.filter(is_legacy=False), ActiveProject.objects.all(),
+                    ArchivedProject.objects.all()]
     cur_year = todays_date.year
     cur_month = todays_date.month
 
@@ -1888,33 +1889,8 @@ def submission_stats(request):
                 pub_mo = project.publish_datetime.strftime("%B")
                 if pub_yr in stats:
                     stats[pub_yr][pub_mo][3] += 1
-            except:
+            except AttributeError:
                 pass
-
-    for project_set in all_projects:
-        for project in project_set:
-            edit_logs = project.edit_log_history()
-            for log in edit_logs:
-                if log.is_resubmission:
-                    print("{0:<5} {1}".format(log.submission_datetime.strftime("%d %b %Y"), log.project))
-
-    for year, monthlist in stats.items():
-        for month, value in monthlist.items():
-            print("{0} {1} {2} {3}".format(value[0], value[1], value[2], value[3]))
-
-
-    # Get submissions per month per year
-    # for i in published_projects:
-    #     edit_logs = i.edit_log_history()
-    #     for e in edit_logs:
-    #         print("Title: {0}\t Resubmission Datetime: {1}\t Is resubmission: {2}".\
-    #               format(e.project, e.resubmission_datetime.strftime("%d %B %Y"), e.is_resubmission))
-    #
-    #     proj_year = i.publish_datetime.year
-    #     proj_month = i.publish_datetime.month
-    #     date = datetime(proj_year, proj_month, 1).strftime("%B")
-    #     if proj_year in stats:
-    #        stats[proj_year][date] += 1
 
     return render(request, 'console/submission_stats.html',
                   {'stats_nav': True, 'submenu': 'submission', 'stats': stats})
