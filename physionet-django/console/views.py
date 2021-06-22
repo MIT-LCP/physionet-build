@@ -1847,6 +1847,41 @@ def credentialing_stats(request):
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
+def graph_stats(request):
+    """
+    Graphs.
+    """
+    apps = CredentialApplication.objects.all()
+
+    now = datetime.now()
+    # Get the times of each application submission
+    app_times = [a.application_datetime for a in apps]
+    app_times.sort()
+    # Get the times of each application decision
+    des_times = [a.decision_datetime for a in apps if a.decision_datetime]
+    des_times.sort()
+    # Keep track of running total of applications in queue
+    all_times = app_times + des_times
+    all_times.sort()
+    net_apps = [0] * (len(all_times))
+    for i,t in enumerate(all_times):
+        if i > 0:
+            net_apps[i] = net_apps[i-1]
+        if t in app_times:
+            net_apps[i] += 1
+        if t in des_times:
+            net_apps[i] -= 1
+    # Convert datetime objects to readable form
+    timeline = [t.strftime("%d-%b-%y") for t in all_times]
+    timeline = ','.join(timeline)
+
+    return render(request, 'console/graph_stats.html',
+                  {'stats_nav': True, 'submenu': 'graph',
+                   'timeline': timeline, 'net_apps': net_apps})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
 def download_credentialed_users(request):
     """
     CSV create and download for database access.
