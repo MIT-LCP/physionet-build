@@ -1,19 +1,27 @@
 <div class="card-header">
-  Folder Navigation:
-  {% spaceless %}
-    <span class="dir-breadcrumbs">
-      {% for breadcrumb in dir_breadcrumbs %}
-        {% if forloop.counter == dir_breadcrumbs|length %}
-          <span class="dir-breadcrumb-self">{{ breadcrumb.name }}</span>
-        {% else %}
-          <a href="{{ breadcrumb.rel_path }}#files-panel"
-             onclick="return navigateDir('{{ breadcrumb.full_subdir }}')"
-             class="dir-breadcrumb-up">{{ breadcrumb.name }}</a>
-          <span class="dir-breadcrumb-sep">/</span>
-        {% endif %}
-      {% endfor %}
-    </span>
-  {% endspaceless %}
+  <div class="files-panel-text">
+    <div class="files-panel-button-container">
+      <button class="btn btn-primary files-panel-button-all" onclick="downloadAll()">Download All Items</button>
+    </div>
+    <div class="files-panel-button-container">
+      <button class="btn btn-primary files-panel-button" onclick="downloadMultiple()">Download Selected Items</button>
+    </div>
+    Folder Navigation:
+    {% spaceless %}
+      <span class="dir-breadcrumbs">
+        {% for breadcrumb in dir_breadcrumbs %}
+          {% if forloop.counter == dir_breadcrumbs|length %}
+            <span class="dir-breadcrumb-self">{{ breadcrumb.name }}</span>
+          {% else %}
+            <a href="{{ breadcrumb.rel_path }}#files-panel"
+              onclick="return navigateDir('{{ breadcrumb.full_subdir }}')"
+              class="dir-breadcrumb-up">{{ breadcrumb.name }}</a>
+            <span class="dir-breadcrumb-sep">/</span>
+          {% endif %}
+        {% endfor %}
+      </span>
+    {% endspaceless %}
+  </div>
 </div>
 {% if file_error %}
 <div class="card-body">
@@ -30,11 +38,13 @@
     </div>
   {% endif %}
 <table class="files-panel">
+  <col class="files-panel-select"></col>
   <col class="files-panel-name"></col>
   <col class="files-panel-size"></col>
   <col class="files-panel-date"></col>
   <thead>
     <tr>
+      <th></th>
       <th>Name</th>
       <th>Size</th>
       <th>Modified</th>
@@ -43,6 +53,7 @@
   <tbody>
   {% if subdir %}
     <tr class="parentdir">
+      <td></td>
       <td><a href="../#files-panel" onclick="return navigateDir('{{ parent_dir }}')">Parent Directory</a></td>
       <td></td>
       <td></td>
@@ -50,6 +61,7 @@
   {% endif %}
   {% for dir in display_dirs %}
     <tr class="subdir">
+      <td></td>
       <td><a href="{{ dir.name }}/#files-panel" onclick="return navigateDir('{{ dir.full_subdir }}')">{{ dir.name }}</a></td>
       <td></td>
       <td></td>
@@ -57,6 +69,7 @@
   {% endfor %}
   {% for file in display_files %}
     <tr>
+      <td><input class="file-check-input" type="checkbox" value="{{ file.download_url }}" onclick="showButton()"></td>
       <td><a href="{{ file.url }}">{{ file.name }}</a>
         <a class="download" href="{{ file.download_url }}"
            title="Download {{ file.name }}">
@@ -85,5 +98,33 @@
             },
     });
     return false
+  }
+  // Only display the "Download Selected Items" button if boxes are checked
+  function showButton(){
+    var all_files = document.getElementsByClassName("file-check-input");
+    var any_checked = [];
+    for (var i = 0; i < all_files.length; i++) {
+      any_checked.push(all_files[i].checked);
+    }
+    if (any_checked.includes(true)) {
+      document.getElementsByClassName("files-panel-button")[0].style.display = "inline";
+    } else {
+      document.getElementsByClassName("files-panel-button")[0].style.display = "none";
+    }
+  }
+  // Download multiple files at once
+  function downloadAll(){
+    var all_files = document.getElementsByClassName("file-check-input");
+    for (var i = 0; i < all_files.length; i++) {
+      window.open(all_files[i].value);
+    }
+  }
+  function downloadMultiple(){
+    var all_files = document.getElementsByClassName("file-check-input");
+    for (var i = 0; i < all_files.length; i++) {
+      if (all_files[i].checked) {
+        window.open(all_files[i].value);
+      }
+    }
   }
 </script>
