@@ -1,0 +1,42 @@
+{% extends "console/base_console.html" %}
+{% load static %}
+
+{% block content %}
+<div class="card mb-3">
+  <div class="card-header">
+    Project statistics over previous 18 months
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+
+      <table class="table table-bordered">
+        <tr>
+          <th>Year</th>
+          <th>Month</th>
+          <th>Projects Created</th>
+          <th>New Submissions</th>
+          <th>Resubmissions</th>
+          <th>Publications</th>
+        </tr>
+        {% for year, month_list in stats.items%}
+          {% for month, val in month_list.items%}
+          <tr>
+            {% if forloop.first %}
+              <td style="font-weight:bold">{{ year }}</td>
+            {% else %}
+              <td> </td>
+            {% endif %}
+            <td>{{ month }}</td>
+            <td>{{ val.0 }}</td>
+            <td>{{ val.1 }}</td>
+            <td>{{ val.2 }}</td>
+            <td>{{ val.3 }}</td>
+          </tr>
+          {% endfor %}
+        {% endfor %}
+      </table>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
