@@ -485,7 +485,6 @@ STORAGE_TYPE = config('STORAGE_TYPE', default='LOCAL')
 
 if STORAGE_TYPE == 'LOCAL':
     STATIC_URL = '/static/'
-    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html
 # TODO: Sync with existing AWS settings
 elif STORAGE_TYPE == 'S3':

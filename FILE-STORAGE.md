@@ -14,3 +14,5 @@ Setup requird to use S3:
 - Create an IAM user with programmatic access, and attach the `AmazonS3FullAccess` policy.
 - Set the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables from the user.
 - Create a bucket for non-published project files. Set the `AWS_STORAGE_BUCKET_NAME` environment variable to match. Each published project will have its own bucket.
+
+Note about psycopg2-binary installation for M1 Mac which is required for `django-storages`: https://github.com/psycopg/psycopg2/issues/1286
