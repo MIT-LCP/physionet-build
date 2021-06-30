@@ -479,3 +479,21 @@ if os.getenv('PHYSIONET_LOCK_FILE'):
     # contrast, fcntl.lockf uses fcntl(2) and os.lockf uses lockf(3),
     # both of which are tied to the PID.
     fcntl.flock(_lockfd, fcntl.LOCK_SH)
+
+
+STORAGE_TYPE = config('STORAGE_TYPE', default='LOCAL')
+
+if STORAGE_TYPE == 'LOCAL':
+    STATIC_URL = '/static/'
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html
+# TODO: Sync with existing AWS settings
+elif STORAGE_TYPE == 'S3':
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    STATICFILES_STORAGE = 'storages.backends.s3boto3.S3StaticStorage'
+    AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
+    # Published projects have their own buckets.
+    # This bucket stores all other static and media files.
+    AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME')
+    STATIC_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/static/'
