@@ -51,3 +51,8 @@ Media files are not inherently public. For media assets that require access cont
 eg. See `def profile_photo`.
 
 With GCS uploads, it is possible to link directly to the GCS location in the template with: `<a src="{{ <model>.<fieldname>.url}}">`. Django automatically generates a signed URL for the GCS location. Only do this if the media asset should be publicly accessible.
+- Create an IAM user with programmatic access, and attach the `AmazonS3FullAccess` policy.
+- Set the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables from the user.
+- Create a bucket for non-published project files. Set the `AWS_STORAGE_BUCKET_NAME` environment variable to match. Each published project will have its own bucket.
+
+Note about psycopg2-binary installation for M1 Mac which is required for `django-storages`: https://github.com/psycopg/psycopg2/issues/1286
