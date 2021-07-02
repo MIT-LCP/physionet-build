@@ -719,6 +719,9 @@ class TestAccessPublished(TestMixin):
         """
         Test serving files via X-Accel-Redirect.
         """
+        if self.settings.STORAGE_TYPE == 'S3':
+            return
+
         with self.settings(MEDIA_X_ACCEL_ALIAS='/protected'):
             # Open project
             project = PublishedProject.objects.get(

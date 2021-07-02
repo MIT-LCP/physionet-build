@@ -438,12 +438,14 @@ def public_profile(request, username):
         'public_email':public_email, 'projects':projects})
 
 
-def profile_photo(request, username):
+def profile_photo(_request, username):
     """
     Serve a user's profile photo
     """
     try:
         user = User.objects.get(username__iexact=username)
+        if settings.STORAGE_TYPE == 'S3':
+            return redirect(user.profile.photo.url)
         return utility.serve_file(user.profile.photo.path)
     except ObjectDoesNotExist:
         raise Http404()
