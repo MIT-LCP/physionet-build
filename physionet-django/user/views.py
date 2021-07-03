@@ -649,6 +649,8 @@ def training_report(request, application_slug, attach=True):
 
     if request.user == application.user or request.user.is_admin:
         try:
+            if settings.STORAGE_TYPE == 'S3':
+                return redirect(application.training_completion_report.url)
             return utility.serve_file(application.training_completion_report.path,
                                       attach=attach)
         except FileNotFoundError:
