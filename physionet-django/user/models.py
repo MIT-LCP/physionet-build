@@ -345,7 +345,8 @@ class User(AbstractBaseUser):
 
     REQUIRED_FIELDS = ['email']
     # Where all the users' files are kept
-    FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'users')
+    RELATIVE_FILE_ROOT = 'users'
+    FILE_ROOT = os.path.join(settings.MEDIA_ROOT, RELATIVE_FILE_ROOT)
 
     def is_superuser(self):
         return (self.is_admin,)
@@ -405,8 +406,10 @@ class User(AbstractBaseUser):
     def disp_name_email(self):
         return '{} --- {}'.format(self.get_full_name(), self.email)
 
-    def file_root(self):
+    def file_root(self, relative=False):
         "Where the user's files are stored"
+        if relative:
+            return os.path.join(User.RELATIVE_FILE_ROOT, self.username)
         return os.path.join(User.FILE_ROOT, self.username)
 
 
@@ -594,9 +597,6 @@ class Profile(models.Model):
 
     MAX_PHOTO_SIZE = 2 * 1024 ** 2
 
-    # Where all the users' files are kept
-    FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'users')
-
     def __str__(self):
         return self.get_full_name()
 
@@ -615,9 +615,6 @@ class Profile(models.Model):
             self.photo = None
             self.save()
 
-    def file_root(self):
-        "Where the profile's files are stored"
-        return os.path.join(Profile.FILE_ROOT, self.username)
 
 class Orcid(models.Model):
     """
