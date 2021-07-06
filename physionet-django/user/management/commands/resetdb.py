@@ -46,8 +46,18 @@ class Command(BaseCommand):
                     os.remove(db_file)
             elif db_type == 'postgresql':
                 # Drop the database that holds all the tables and recreate it
-                os.system('sudo -u postgres dropdb --if-exists physionet')
-                os.system('sudo -u postgres createdb physionet -O physionet')
+                db = settings.DATABASES['default']
+                sudo = shutil.which('sudo')
+
+                if sudo is not None:
+                    drop_command = 'sudo -u postgres dropdb --if-exists {name}'
+                    create_command = 'sudo -u postgres createdb -O {user} {name}'
+                else:
+                    drop_command = 'PGPASSWORD=$DB_PASSWORD dropdb -h {host} -U {user} --if-exists {name}'
+                    create_command = 'PGPASSWORD=$DB_PASSWORD createdb -h {host} -U {user} -O {user} {name}'
+
+                os.system(drop_command.format(host=db['HOST'], user=db['USER'], name=db['NAME']))
+                os.system(create_command.format(host=db['HOST'], user=db['USER'], name=db['NAME']))
             else:
                 sys.exit('Unable to reset database of type: {}'.format(db_type))
 

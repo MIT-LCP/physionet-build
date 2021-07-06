@@ -1,0 +1,66 @@
+version: '3.9'
+
+x-backend: &default-backend
+  image: physionet:latest
+  depends_on:
+    - db
+  stdin_open: true
+  tty: true
+  entrypoint: ./docker/dev-entrypoint.sh
+
+volumes:
+  dev_data:
+  test_data:
+  db_data:
+
+networks:
+  dev:
+  test:
+
+x-env: &default-env
+  DJANGO_SETTINGS_MODULE: physionet.settings.settings
+  DB_HOST: db
+  MEDIA_ROOT: /data/pn-media
+  STATIC_ROOT: /data/pn-static
+
+services:
+  dev:
+    <<: *default-backend
+    build: .
+    ports:
+      - '8000:8000'
+    environment:
+      <<: *default-env
+      DB_NAME: physionet_dev
+    env_file: .env
+    command: ['python', '/code/physionet-django/manage.py', 'runserver', '0.0.0.0:8000']
+    volumes:
+      - ./physionet-django:/code/physionet-django:rw
+      - dev_data:/data:rw
+    networks:
+      - dev
+  test:
+    <<: *default-backend
+    environment:
+      <<: *default-env
+      DB_NAME: physionet_test
+    env_file: .env.example
+    command: ['sleep']
+    volumes:
+      - ./physionet-django:/code/physionet-django:rw
+      - test_data:/data:rw
+    networks:
+      - test
+  db:
+    image: postgres:13-alpine
+    environment:
+      POSTGRES_USER: physionet
+      POSTGRES_PASSWORD: password
+      DEV_DB: physionet_dev
+      TEST_DB: physionet_test
+    volumes:
+      - db_data:/var/lib/postgres/data:rw
+      - ./docker/init.sh:/docker-entrypoint-initdb.d/init.sh
+    networks:
+      - dev
+      - test
