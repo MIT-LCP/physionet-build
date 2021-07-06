@@ -23,7 +23,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # If not in development, prompt warning messages twice
-        if 'development' not in os.environ['DJANGO_SETTINGS_MODULE']:
+        if 'development' not in settings.ENVIRONMENT:
             warning_messages = ['You are NOT in the development environment. Are you sure you want to insert demo data? [y/n]',
                                 'The demo data will be mixed with existing data. Are you sure? [y/n]',
                                 'Final warning. Are you ABSOLUTELY SURE? [y/n]']

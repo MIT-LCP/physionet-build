@@ -25,6 +25,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
+ENVIRONMENT = config('ENVIRONMENT', default='production')
+DEBUG = config('DEBUG', default=False, cast=bool)
 SECRET_KEY = config('SECRET_KEY')
 
 
@@ -176,22 +178,19 @@ AWS_HEADER_VALUE2 = config('AWS_VALUE2', default=False)
 AWS_CLOUD_FORMATION = config('AWS_CLOUD_FORMATION', default=False)
 
 # Tags for the DataCite API used for DOI
-DATACITE_API_URL = 'https://api.test.datacite.org/dois'
-DATACITE_PREFIX = config('DATACITE_TEST_PREFIX', default=False)
-DATACITE_USER = config('DATACITE_TEST_USER', default=False)
-DATACITE_PASS = config('DATACITE_TEST_PASS', default=False)
+DATACITE_API_URL = config('DATACITE_API_URL', default='https://api.test.datacite.org/dois')
+DATACITE_PREFIX = config('DATACITE_PREFIX', default='')
+DATACITE_USER = config('DATACITE_USER', default='')
+DATACITE_PASS = config('DATACITE_PASS', default='')
 
 # Tags for the ORCID API
-ORCID_DOMAIN = 'https://sandbox.orcid.org'
-ORCID_REDIRECT_URI = 'http://127.0.0.1:8000/authorcid'
-ORCID_AUTH_URL = 'https://sandbox.orcid.org/oauth/authorize'
-ORCID_TOKEN_URL = 'https://sandbox.orcid.org/oauth/token'
-ORCID_CLIENT_ID = config('ORCID_TEST_CLIENT_ID', default=False)
-ORCID_CLIENT_SECRET = config('ORCID_TEST_CLIENT_SECRET', default=False)
-ORCID_SCOPE = config('ORCID_TEST_SCOPE', default=False)
-
-# Used to verify if we are running in the production environment
-PRODUCTION = False
+ORCID_DOMAIN = config('ORCID_DOMAIN', default='https://sandbox.orcid.org')
+ORCID_REDIRECT_URI = config('ORCID_REDIRECT_URI', default='http://127.0.0.1:8000/authorcid')
+ORCID_AUTH_URL = config('ORCID_AUTH_URL', default='https://sandbox.orcid.org/oauth/authorize')
+ORCID_TOKEN_URL = config('ORCID_TOKEN_URL', default='https://sandbox.orcid.org/oauth/token')
+ORCID_CLIENT_ID = config('ORCID_CLIENT_ID', default=False)
+ORCID_CLIENT_SECRET = config('ORCID_CLIENT_SECRET', default=False)
+ORCID_SCOPE = config('ORCID_SCOPE', default=False)
 
 # List of permitted HTML tags and attributes for rich text fields.
 # The 'default' configuration permits all of the tags below.  Other

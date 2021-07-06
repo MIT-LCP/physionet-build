@@ -1,6 +1,7 @@
 import os
 from physionet.settings.base import *
 
+ENVIRONMENT = 'development'
 DEBUG = True
 SESSION_COOKIE_SECURE = False
 

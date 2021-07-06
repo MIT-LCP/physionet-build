@@ -247,14 +247,11 @@ That ID will be then added to the storage bucket and databases.
 
 Obtaining a client_id / client_secret for interacting with the ORCID API:
 
-These variables are required in your .env file to request / exchange a token from ORCID in a effort to get a users ORCID iD, etc. The \_TEST_ variables are used by base.py while the variables without \_TEST_ are used by staging.py and production.py. 
+These variables are required in your .env file to request / exchange a token from ORCID in a effort to get a users ORCID iD, etc.
 ```
 ORCID_CLIENT_ID=SECRET
 ORCID_CLIENT_SECRET=SECRET
 ORCID_SCOPE='/read-limited,/activities/update'
-ORCID_TEST_CLIENT_ID=SECRET
-ORCID_TEST_CLIENT_SECRET=SECRET
-ORCID_TEST_SCOPE='/authenticate'
 ```
 To obtain valid CLIENT_ID and CLIENT_SECRET values you must register an account or use an account from your institution to obtain valid codes.  When doing development work off of base.py, register an account at https://sandbox.orcid.org/ and when using staging.py or production.py register at https://orcid.org/.  
 
