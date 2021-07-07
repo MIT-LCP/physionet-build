@@ -1,5 +1,6 @@
-# a github action on the dev branch that performs a build - test in a docker container
-name: physionet-build-test
+# Installs PhysioNet dependencies on Debian 10 and runs tests on the `dev` branch and PRs against the `dev` branch.
+
+name: Debian / Build and Test
 
 on:
   push:
@@ -10,7 +11,8 @@ on:
       - dev
 
 jobs:
-  container:
+  test:
+    name: Test
     runs-on: ubuntu-latest
     container: debian:10
     env:
@@ -23,16 +25,18 @@ jobs:
       matrix:
         pip3: ['poetry', 'requirements.txt']
     steps:
-      - name: checkout physionet-build repo
+      - name: Checkout physionet-build repo
         uses: actions/checkout@v2
-      - name: update packages
-        run: |
-          apt-get update --yes
-      - name: install and configure needed software
+
+      - name: Update packages
+        run: apt-get update --yes
+
+      - name: Install and configure needed software
         run: |
           apt-get install sudo python3-dev python3-pip build-essential libpq-dev postgresql zip wget python-virtualenv --yes
           ln -sT .env.example .env
-      - name: install repo dependencies
+
+      - name: Install repo dependencies
         # add virtual env path to github_path so each run: process will see it
         run: |
           export VIRTUAL_ENV=/env3
@@ -46,39 +50,36 @@ jobs:
           else
             pip3 install -r requirements.txt
           fi
-      - name: install libseccomp-dev for syscall filtering
-        run: |
-          apt-get install libseccomp-dev
-      - name: setup postgres
+
+      - name: Install libseccomp-dev for syscall filtering
+        run: apt-get install libseccomp-dev
+
+      - name: Setup postgres
         run: |
           service postgresql start
           sudo -u postgres psql -c "create user physionet with superuser password 'password';" -U postgres
           sudo -u postgres psql -c "create database physionet;" -U postgres
-      - name: install and setup wfdb
+
+      - name: Install and setup wfdb
         run: |
           wget https://github.com/bemoody/wfdb/archive/10.6.2.tar.gz -O wfdb.tar.gz
           tar -xf wfdb.tar.gz
           (cd wfdb-* && ./configure --without-netfiles && make -C lib install && make -C data install)
-      - name: run linker for newly installed software
-        run: |
-          ldconfig
-      - name: install and setup lightwave
+
+      - name: Run linker for newly installed software
+        run: ldconfig
+
+      - name: Install and setup lightwave
         run: |
           wget https://github.com/bemoody/lightwave/archive/bfe908a7f53434df61fd2444bf8c235e3e6226fc.tar.gz -O lightwave.tar.gz
           tar -xf lightwave.tar.gz
           (cd lightwave-* && make CGIDIR=/usr/local/bin sandboxed-server)
-      - name: install web driver - geckodriver
-        run: |
-          wget https://github.com/mozilla/geckodriver/releases/download/v0.23.0/geckodriver-v0.23.0-linux64.tar.gz
-          mkdir geckodriver
-          tar -xf geckodriver-v0.23.0-linux64.tar.gz -C geckodriver
-          echo "$PWD/geckodriver" >> $GITHUB_PATH
-      - name: setup and test physionet, check amount of code tested
+
+      - name: Setup and test physionet, check amount of code tested
         run: |
           cd physionet-django
           python manage.py makemigrations --dry-run --no-input --check
           python manage.py resetdb
           python manage.py loaddemo
-          python manage.py test --verbosity=3 --keepdb
-          coverage run --source='.' manage.py test --keepdb
+          coverage run --source='.' manage.py test --verbosity=3 --keepdb
           coverage report -m

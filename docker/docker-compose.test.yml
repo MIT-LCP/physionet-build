@@ -1,0 +1,22 @@
+version: '3.9'
+
+services:
+  test:
+    image: physionet:latest
+    build: ..
+    depends_on:
+      - db
+    environment:
+      DJANGO_SETTINGS_MODULE: physionet.settings.settings
+      DB_HOST: db
+      DB_NAME: physionet_test
+      MEDIA_ROOT: /data/pn-media
+      STATIC_ROOT: /data/pn-static
+    env_file: ../.env.example
+    entrypoint: ./docker/test-entrypoint.sh
+  db:
+    image: postgres:13-alpine
+    environment:
+      POSTGRES_USER: physionet
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: physionet_test
