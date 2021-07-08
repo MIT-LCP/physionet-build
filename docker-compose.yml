@@ -35,6 +35,9 @@ services:
     env_file: .env
     command: ['python', '/code/physionet-django/manage.py', 'runserver', '0.0.0.0:8000']
     volumes:
+      - ./pyproject.toml:/code/pyproject.toml:rw
+      - ./poetry.lock:/code/poetry.lock:rw
+      - ./docker:/code/docker:rw
       - ./physionet-django:/code/physionet-django:rw
       - dev_data:/data:rw
     networks:
@@ -47,6 +50,9 @@ services:
     env_file: .env.example
     command: ['sleep']
     volumes:
+      - ./pyproject.toml:/code/pyproject.toml:rw
+      - ./poetry.lock:/code/poetry.lock:rw
+      - ./docker:/code/docker:rw
       - ./physionet-django:/code/physionet-django:rw
       - test_data:/data:rw
     networks:

@@ -30,7 +30,7 @@ jobs:
           apt-get update --yes
       - name: install and configure needed software
         run: |
-          apt-get install sudo python3-dev python3-pip build-essential postgresql zip wget python-virtualenv --yes
+          apt-get install sudo python3-dev python3-pip build-essential libpq-dev postgresql zip wget python-virtualenv --yes
           ln -sT .env.example .env
       - name: install repo dependencies
         # add virtual env path to github_path so each run: process will see it
