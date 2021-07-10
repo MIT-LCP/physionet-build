@@ -1869,25 +1869,30 @@ def submission_stats(request):
 
     # Get all active and published projects and store their milestone datetimes
     for project_set in all_projects:
+
+        # Get times when projects were created
         for project in project_set:
             create_yr = project.creation_datetime.year
             create_mo = project.creation_datetime.strftime("%B")
-            if create_yr in stats:
+            if create_yr in stats and create_mo in stats[create_yr]:
                 stats[create_yr][create_mo][0] += 1
 
+            # Get times when projects were submitted and count unique submissions vs. resubmissions
             edit_logs = project.edit_log_history()
             for log in edit_logs:
                 sub_date_yr = log.submission_datetime.year
                 sub_date_mo = log.submission_datetime.strftime("%B")
-                if not log.is_resubmission and sub_date_yr in stats:
-                    stats[sub_date_yr][sub_date_mo][1] += 1
-                elif log.is_resubmission and sub_date_yr in stats:
-                    stats[sub_date_yr][sub_date_mo][2] += 1
+                if sub_date_yr in stats and sub_date_mo in stats[sub_date_yr]:
+                    if log.is_resubmission:
+                        stats[sub_date_yr][sub_date_mo][2] += 1
+                    else:
+                        stats[sub_date_yr][sub_date_mo][1] += 1
 
+            # Get times when projects were published, if applicable
             try:
                 pub_yr = project.publish_datetime.year
                 pub_mo = project.publish_datetime.strftime("%B")
-                if pub_yr in stats:
+                if pub_yr in stats and pub_mo in stats[pub_yr]:
                     stats[pub_yr][pub_mo][3] += 1
             except AttributeError:
                 pass
