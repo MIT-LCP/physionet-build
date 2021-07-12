@@ -719,10 +719,7 @@ class TestAccessPublished(TestMixin):
         """
         Test serving files via X-Accel-Redirect.
         """
-        if self.settings.STORAGE_TYPE == 'S3':
-            return
-
-        with self.settings(MEDIA_X_ACCEL_ALIAS='/protected'):
+        with self.settings(STORAGE_TYPE='LOCAL', MEDIA_X_ACCEL_ALIAS='/protected'):
             # Open project
             project = PublishedProject.objects.get(
                 title='Demo ECG Signal Toolbox')
