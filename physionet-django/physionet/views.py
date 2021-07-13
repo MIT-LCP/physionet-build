@@ -4,17 +4,14 @@ from re import fullmatch
 
 from django.contrib import messages
 from django.http import Http404
-from django.shortcuts import render, redirect
-from django.contrib.contenttypes.models import ContentType
+from django.shortcuts import render
 from django.db.models.functions import Lower
 
 from notification.models import News
 import notification.utility as notification
 from physionet.middleware.maintenance import allow_post_during_maintenance
-from project.models import (License, PublishedProject, Author, ActiveProject,
-                            Metadata, ProjectType)
+from project.models import License, PublishedProject, ProjectType, ACCESS_POLICIES
 from user.forms import ContactForm
-from project import forms
 
 
 def home(request):
@@ -128,7 +125,7 @@ def database_overview(request):
     Temporary content overview
     """
     projects = {}
-    for i, policy in Metadata.ACCESS_POLICIES:
+    for i, policy in ACCESS_POLICIES:
         projects[i] = {}
         projects[i]['policy'] = policy
         projects[i]['projects'] = PublishedProject.objects.filter(
