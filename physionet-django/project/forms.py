@@ -770,8 +770,8 @@ class AccessMetadataForm(forms.ModelForm):
         licenses = License.objects.filter(
             resource_types__icontains=str(self.instance.resource_type.id))
         # Set allowed access policies based on license policies
-        available_policies = [a for a in range(len(ACCESS_POLICIES)) if licenses.filter(access_policy=a)]
-        self.fields['access_policy'].choices = tuple(ACCESS_POLICIES[p] for p in available_policies)
+        available_policies = ((val, label) for (val, label) in ACCESS_POLICIES if licenses.filter(access_policy=val).exists())
+        self.fields['access_policy'].choices = available_policies
 
         if not editable:
             for f in self.fields.values():
