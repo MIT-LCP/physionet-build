@@ -2707,3 +2707,26 @@ class AnonymousAccess(models.Model):
 
         return isnot_expired and check_password(raw_passphrase, self.passphrase)
 
+
+class Metrics(models.Model):
+    '''
+    Stores the daily and running total view counts for each project, as well
+    as date recorded.
+    '''
+    core_project = models.ForeignKey('project.CoreProject', 
+                                     on_delete=models.CASCADE)
+    viewcount = models.PositiveIntegerField(default=0)
+    running_viewcount = models.PositiveIntegerField(default=0)
+    date = models.DateField()
+
+    class Meta:
+        unique_together = (('core_project', 'date'),)
+
+
+class MetricsLogData(models.Model):
+    '''
+    Stores the filenames, creation timestamps, and hashes of each log file that is parsed.
+    '''
+    filename = models.CharField(max_length=128)
+    creation_datetime = models.DateTimeField()
+    log_hash = models.CharField(max_length=128)
