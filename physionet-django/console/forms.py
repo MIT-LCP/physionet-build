@@ -60,6 +60,26 @@ YES_NO_NA_UNDETERMINED = (
     (None, 'N/A or Undetermined')
 )
 
+REJECT_REASONS = (
+    (15, 'CITI: Incorrect CITI course / wrong PDF'),
+    (14, 'CITI: CITI Certificate'),
+    (13, 'CITI: No HIPAA section'),
+    (12, 'CITI: Failed HIPAA section'),
+    (11, 'CITI: Inconsistent CITI report email'),
+    (10, 'Concerns: DUA violation'),
+    (9, 'Identity: Inconsistent information'),
+    (8, 'Identity: Can not verify identity'),
+    (7, 'Institution: Industry Researcher without institution'),
+    (6, 'Institution: Hospital Researcher without institution'),
+    (5, 'Institution: Student without institution'),
+    (4, 'Institution: MIT Affiliates as institution'),
+    (3, 'Reference: Incorrect reference name'),
+    (2, 'Reference: Listed self as reference'),
+    (1, 'Reference: Inactive reference email'),
+    (0, 'Other'),
+)
+
+
 class AssignEditorForm(forms.Form):
     """
     Assign an editor to a project under submission
@@ -339,6 +359,13 @@ class ContactCredentialRefForm(forms.Form):
     """
     subject = forms.CharField(required=True)
     body = forms.CharField(widget=forms.Textarea)
+
+
+class CredentialRejectForm(forms.Form):
+    """
+    Decide the reason for rejecting a credentialing application.
+    """
+    reason = forms.ChoiceField(choices=REJECT_REASONS)
 
 
 class ProcessCredentialForm(forms.ModelForm):
