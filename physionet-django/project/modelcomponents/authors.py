@@ -20,6 +20,7 @@ class AuthorInvitation(BaseInvitation):
         return 'ActiveProject: {0} To: {1} By: {2}'.format(self.project, self.email,
                                                      self.inviter)
 
+    @classmethod
     def get_user_invitations(user, exclude_duplicates=True):
         """
         Get all active author invitations to a user
