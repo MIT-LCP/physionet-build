@@ -1,7 +1,5 @@
 from collections import OrderedDict
 import os
-import pdb
-import re
 
 from django import forms
 from django.forms.utils import ErrorList
@@ -14,9 +12,9 @@ from django.utils.html import format_html
 
 from project.models import (Affiliation, Author, AuthorInvitation, ActiveProject,
                             CoreProject, StorageRequest, ProgrammingLanguage,
-                            License, Metadata, Reference, Publication, DataAccess,
+                            License, Metadata, Reference, Publication, ACCESS_POLICIES,
                             PublishedProject, Topic, exists_project_slug,
-                            ProjectType, AnonymousAccess, DataAccessRequest,
+                            AnonymousAccess, DataAccessRequest,
                             DataAccessRequestReviewer)
 from project import utility
 from project import validators
@@ -772,8 +770,8 @@ class AccessMetadataForm(forms.ModelForm):
         licenses = License.objects.filter(
             resource_types__icontains=str(self.instance.resource_type.id))
         # Set allowed access policies based on license policies
-        available_policies = [a for a in range(len(Metadata.ACCESS_POLICIES)) if licenses.filter(access_policy=a)]
-        self.fields['access_policy'].choices = tuple(Metadata.ACCESS_POLICIES[p] for p in available_policies)
+        available_policies = ((val, label) for (val, label) in ACCESS_POLICIES if licenses.filter(access_policy=val).exists())
+        self.fields['access_policy'].choices = available_policies
 
         if not editable:
             for f in self.fields.values():
