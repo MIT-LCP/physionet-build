@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from html2text import html2text
 
-from project.modelcomponents.generic import SafeHTMLField
+from project.modelcomponents.fields import SafeHTMLField
 
 
 ACCESS_POLICIES = (

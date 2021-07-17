@@ -21,11 +21,10 @@ from django.utils.html import format_html, strip_tags
 from django.utils.text import slugify
 from background_task import background
 
-from project.modelcomponents.authors import (AuthorInvitation, Affiliation, PublishedAffiliation,
-    BaseAuthor, Author, PublishedAuthor, )
-from project.modelcomponents.access import (ACCESS_POLICIES, DUASignature, DataAccessRequest,
-    DataAccessRequestReviewer, DataAccess, AnonymousAccess, License)
-from project.modelcomponents.generic import SafeHTMLField, BaseInvitation
+from project.modelcomponents.authors import *
+from project.modelcomponents.access import *
+from project.modelcomponents.fields import *
+from project.modelcomponents.generic import *
 from project.quota import DemoQuotaManager
 from project.utility import (get_tree_size, get_file_info, get_directory_info,
                              list_items, StorageInfo,
