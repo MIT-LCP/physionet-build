@@ -8,12 +8,12 @@ from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
 
-from physionet.utility import sorted_tree_files, zip_dir, StorageInfo
+from physionet.utility import sorted_tree_files, zip_dir
 from project.modelcomponents.access import DataAccessRequest, DataAccessRequestReviewer, DUASignature
 from project.modelcomponents.fields import SafeHTMLField
-from project.modelcomponents.metadata import Metadata
+from project.modelcomponents.metadata import Metadata, PublishedTopic
 from project.modelcomponents.submission import SubmissionInfo
-from project.utility import clear_directory, get_tree_size
+from project.utility import clear_directory, get_tree_size, StorageInfo
 from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_slug, validate_subdir
 
 
