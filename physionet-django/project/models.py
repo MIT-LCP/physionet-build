@@ -89,6 +89,9 @@ class UnpublishedProject(models.Model):
     def __str__(self):
         return self.title
 
+    def is_published(self):
+        return False
+
     def file_root(self):
         """
         Root directory containing the project's files

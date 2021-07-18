@@ -65,6 +65,9 @@ class PublishedProject(Metadata, SubmissionInfo):
     def __str__(self):
         return ('{0} v{1}'.format(self.title, self.version))
 
+    def is_published(self):
+        return True
+
     def project_file_root(self):
         """
         Root directory containing the published project's files.

@@ -79,11 +79,6 @@ class Metadata(models.Model):
         abstract = True
 
     # TODO: Add abstractmethod is_published
-    def is_published(self):
-        if isinstance(self, PublishedProject):
-            return True
-        else:
-            return False
 
     def author_contact_info(self, only_submitting=False):
         """
