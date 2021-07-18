@@ -1,3 +1,4 @@
+import logging
 import os
 import shutil
 
@@ -7,6 +8,9 @@ from django.db import models
 from project.modelcomponents.metadata import Metadata
 from project.utility import StorageInfo
 from project.validators import MAX_PROJECT_SLUG_LENGTH
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class UnpublishedProject(models.Model):
