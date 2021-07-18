@@ -19,6 +19,7 @@ class StorageRequest(BaseInvitation):
         return '{0}GB for project: {1}'.format(self.request_allowance,
                                                self.project.__str__())
 
+
 class GCP(models.Model):
     """
     Store all of the Google Cloud information with a relation to a project.
