@@ -545,8 +545,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                     copyedit_log.save()
 
                 # Set files read only and make zip file if requested
-                move_files_as_readonly(published_project.id, self.file_root(),
-                    published_project.file_root(), make_zip,
+                move_files_as_readonly(published_project.id, make_zip,
                     verbose_name='Read Only Files - {}'.format(published_project))
 
                 # Remove the ActiveProject
