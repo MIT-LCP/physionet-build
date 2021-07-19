@@ -3,6 +3,7 @@ from html import unescape
 import logging
 import os
 import shutil
+from physionet import aws
 
 from background_task import background
 from django.conf import settings
@@ -139,9 +140,14 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         versions of this CoreProject.  (The QuotaManager should ensure
         that the same file is not counted twice in this total.)
         """
-        current = self.quota_manager().bytes_used
-        published = self.core_project.total_published_size
-        return current + published
+        if settings.STORAGE_TYPE == 'LOCAL':
+            current = self.quota_manager().bytes_used
+            published = self.core_project.total_published_size
+            return current + published
+        else:
+            # TODO: S3
+            return 0
+
 
     def storage_allowance(self):
         """

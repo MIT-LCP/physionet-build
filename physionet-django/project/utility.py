@@ -33,7 +33,7 @@ class FileInfo():
     def __init__(self, name, size, last_modified):
         self.name = name
         self.size = size
-        self.last_modified= last_modified
+        self.last_modified = last_modified
 
 
 class DirectoryInfo():
@@ -127,24 +127,6 @@ class StorageInfo():
         if compressed_used is not None:
             self.compressed_used = compressed_used
             self.readable_compressed_used = readable_size(compressed_used)
-
-
-def list_files(directory):
-    "List files in a directory"
-    files = []
-    for ent in os.scandir(directory):
-        if not ent.is_dir():
-            files.append(ent.name)
-    return sorted(files)
-
-
-def list_directories(directory):
-    "List directories in a directory"
-    dirs = []
-    for ent in os.scandir(directory):
-        if ent.is_dir():
-            dirs.append(ent.name)
-    return sorted(dirs)
 
 
 def list_items(directory, return_separate=True):

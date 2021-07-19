@@ -1,7 +1,11 @@
 from collections import OrderedDict
 import os
+from physionet.aws import get_s3_resource, s3_directory_exists, s3_file_exists, s3_rm, s3_mv_items
+from botocore.exceptions import ClientError
+
 
 from django import forms
+from django.conf import settings
 from django.forms.utils import ErrorList
 from django.contrib.contenttypes.forms import BaseGenericInlineFormSet
 from django.db.models.functions import Lower
@@ -71,9 +75,13 @@ class ActiveProjectFilesForm(forms.Form):
         Check that the subdirectory exists
         """
         data = self.cleaned_data['subdir']
-        file_dir = os.path.join(self.project.file_root(), data)
+        if settings.STORAGE_TYPE == 'LOCAL':
+            file_dir = os.path.join(self.project.file_root(), data)
+        else:
+            file_dir = os.path.join('active-projects', self.project.slug, data)
 
-        if not os.path.isdir(file_dir):
+        # TODO: S3
+        if settings.STORAGE_TYPE == 'LOCAL' and not os.path.isdir(file_dir):
             raise forms.ValidationError('Invalid directory')
         self.file_dir = file_dir
 
@@ -126,13 +134,19 @@ class UploadFilesForm(ActiveProjectFilesForm):
         errors = ErrorList()
         for file in self.files.getlist('file_field'):
             try:
-                utility.write_uploaded_file(
-                    file=file, overwrite=False,
-                    write_file_path=os.path.join(self.file_dir, file.name))
+                if settings.STORAGE_TYPE == 'LOCAL':
+                    utility.write_uploaded_file(
+                        file=file, overwrite=False,
+                        write_file_path=os.path.join(self.file_dir, file.name))
+                else:
+                    if s3_directory_exists('hdn-data-platform-media', os.path.join(self.file_dir, file.name)) or s3_file_exists('hdn-data-platform-media', os.path.join(self.file_dir, file.name)):
+                        raise FileExistsError
+                    s3 = get_s3_resource().meta.client
+                    s3.upload_fileobj(file, 'hdn-data-platform-media', os.path.join(self.file_dir, file.name))
             except FileExistsError:
                 errors.append(format_html(
                     'Item named <i>{}</i> already exists', file.name))
-            except OSError:
+            except (OSError, ClientError):
                 errors.append(format_html(
                     'Unable to upload <i>{}</i>', file.name))
         return 'Your files have been uploaded', errors
@@ -152,11 +166,18 @@ class CreateFolderForm(ActiveProjectFilesForm):
         errors = ErrorList()
         name = self.cleaned_data['folder_name']
         try:
-            os.mkdir(os.path.join(self.file_dir, name))
+            if settings.STORAGE_TYPE == 'LOCAL':
+                os.mkdir(os.path.join(self.file_dir, name))
+            else:
+                if s3_directory_exists('hdn-data-platform-media', os.path.join(self.file_dir, name)) or s3_file_exists('hdn-data-platform-media', os.path.join(self.file_dir, name)):
+                    raise FileExistsError
+                print("Creating dir:", os.path.join(self.file_dir, name, ''))
+                s3 = get_s3_resource().meta.client
+                s3.put_object(Bucket='hdn-data-platform-media', Body='', Key=os.path.join(self.file_dir, name, ''))
         except FileExistsError:
             errors.append(format_html(
                 'Item named <i>{}</i> already exists', name))
-        except OSError:
+        except (OSError, ClientError):
             errors.append(format_html(
                 'Unable to create <i>{}</i>', name))
         return 'Your folder has been created', errors
@@ -188,7 +209,11 @@ class DeleteItemsForm(EditItemsForm):
         for item in self.cleaned_data['items']:
             path = os.path.join(self.file_dir, item)
             try:
-                utility.remove_items([path], ignore_missing=False)
+                if settings.STORAGE_TYPE == 'LOCAL':
+                    utility.remove_items([path], ignore_missing=False)
+                else:
+                    print('Deleting:', path)
+                    s3_rm('hdn-data-platform-media', path)
             except OSError as e:
                 if not os.path.exists(path):
                     errors.append(format_html(
@@ -197,6 +222,10 @@ class DeleteItemsForm(EditItemsForm):
                     errors.append(format_html(
                         'Unable to delete <i>{}</i>',
                         os.path.relpath(e.filename or path, self.file_dir)))
+            except ClientError as e:
+                errors.append(format_html(
+                    'Unable to delete <i>{}</i>',
+                    os.path.relpath(path, self.file_dir)))
         return 'Your items have been deleted', errors
 
 
@@ -221,15 +250,20 @@ class RenameItemForm(EditItemsForm):
         old_name = self.cleaned_data['items'][0]
         new_name = self.cleaned_data['new_name']
         try:
-            utility.rename_file(os.path.join(self.file_dir, old_name),
-                                os.path.join(self.file_dir, new_name))
+            old_path = os.path.join(self.file_dir, old_name)
+            new_path = os.path.join(self.file_dir, new_name)
+            if settings.STORAGE_TYPE == 'LOCAL':
+                utility.rename_file(old_path, new_path)
+            else:
+                print('Rename:', old_path, '->', new_path)
+                s3_mv_items('hdn-data-platform-media', old_path, new_path)
         except FileExistsError:
             errors.append(format_html(
                 'Item named <i>{}</i> already exists', new_name))
         except FileNotFoundError:
             errors.append(format_html(
                 'Item named <i>{}</i> does not exist', old_name))
-        except OSError:
+        except (OSError, ClientError):
             errors.append(format_html(
                 'Unable to rename <i>{}</i> to <i>{}</i>',
                 old_name, new_name))
@@ -277,8 +311,8 @@ class MoveItemsForm(EditItemsForm):
                 'Cannot move folder <i>{}</i> into itself',
                 destination_folder))
 
-        self.dest_dir = os.path.join(self.file_dir, destination_folder)
-        if not os.path.isdir(self.dest_dir):
+        self.dest_dir = os.path.normpath(os.path.join(self.file_dir, destination_folder))
+        if settings.STORAGE_TYPE == 'LOCAL' and not os.path.isdir(self.dest_dir):
             raise forms.ValidationError(format_html(
                 'Destination folder <i>{}</i> does not exist',
                 destination_folder))
@@ -294,12 +328,20 @@ class MoveItemsForm(EditItemsForm):
         for item in self.cleaned_data['items']:
             path = os.path.join(self.file_dir, item)
             try:
-                utility.move_items([path], self.dest_dir)
+                if settings.STORAGE_TYPE == 'LOCAL':
+                    utility.move_items([path], self.dest_dir)
+                else:
+                    basename = os.path.basename(path)
+                    dst_path = os.path.join(self.dest_dir, basename)
+                    # common = os.path.commonpath([path, self.dest_dir])
+                    # dst_path = path.replace(common, self.dest_dir, 1)
+                    print('Move', path, '->', dst_path)
+                    s3_mv_items('hdn-data-platform-media', path, dst_path)
             except FileExistsError:
                 errors.append(format_html(
                     'Item named <i>{}</i> already exists in <i>{}</i>',
                     item, dest))
-            except OSError:
+            except (OSError, ClientError):
                 if not os.path.exists(path):
                     errors.append(format_html(
                         'Item named <i>{}</i> does not exist', item))

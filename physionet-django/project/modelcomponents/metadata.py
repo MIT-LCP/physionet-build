@@ -1,5 +1,7 @@
 import os
+from physionet import aws
 
+from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
@@ -347,26 +349,43 @@ class Metadata(models.Model):
         Return information for displaying files and directories from
         the project's file root.
         """
-        # Get folder to inspect if valid
-        inspect_dir = self.get_inspect_dir(subdir)
-        file_names, dir_names = list_items(inspect_dir)
-        display_files, display_dirs = [], []
+        if settings.STORAGE_TYPE == 'LOCAL':
+            # Get folder to inspect if valid
+            inspect_dir = self.get_inspect_dir(subdir)
+            file_names, dir_names = list_items(inspect_dir)
+            display_files, display_dirs = [], []
 
-        # Files require desciptive info and download links
-        for file in file_names:
-            file_info = get_file_info(os.path.join(inspect_dir, file))
-            file_info.url = self.file_display_url(subdir=subdir, file=file)
-            file_info.raw_url = self.file_url(subdir=subdir, file=file)
-            file_info.download_url = file_info.raw_url + '?download'
-            display_files.append(file_info)
+            # Files require desciptive info and download links
+            print(inspect_dir, file_names)
+            for file in file_names:
+                file_info = get_file_info(os.path.join(inspect_dir, file))
+                file_info.url = self.file_display_url(subdir=subdir, file=file)
+                file_info.raw_url = self.file_url(subdir=subdir, file=file)
+                file_info.download_url = file_info.raw_url + '?download'
+                print(file_info.url, file_info.raw_url, file_info.download_url)
+                display_files.append(file_info)
 
-        # Directories require links
-        for dir_name in dir_names:
-            dir_info = get_directory_info(os.path.join(inspect_dir, dir_name))
-            dir_info.full_subdir = os.path.join(subdir, dir_name)
-            display_dirs.append(dir_info)
+            # Directories require links
+            for dir_name in dir_names:
+                dir_info = get_directory_info(os.path.join(inspect_dir, dir_name))
+                dir_info.full_subdir = os.path.join(subdir, dir_name)
+                display_dirs.append(dir_info)
 
-        return display_files, display_dirs
+            return display_files, display_dirs
+
+        else:
+            dir = os.path.join('active-projects', self.slug, subdir)
+            display_files, display_dirs = aws.s3_list_directory('hdn-data-platform-media', dir)
+            for file in display_files:
+                file.url = self.file_display_url(subdir=subdir, file=file.name)
+                file.raw_url = self.file_url(subdir=subdir, file=file.name)
+                file.download_url = file.raw_url + '?download'
+
+            for dir in display_dirs:
+                dir.full_subdir = os.path.join(subdir, dir.name)
+
+            return display_files, display_dirs
+
 
     def schema_org_resource_type(self):
         """

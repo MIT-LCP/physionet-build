@@ -1,8 +1,11 @@
 import gzip
 import os
 
+from physionet.aws import s3_signed_url
+
 from django.shortcuts import render, redirect
 from django.urls import reverse
+from django.conf import settings
 
 from physionet.utility import file_content_type
 from project.utility import get_dir_breadcrumbs
@@ -22,12 +25,12 @@ class FileView:
     display something more useful.
     """
 
-    def __init__(self, project, path, file):
+    def __init__(self, project, path, file, size=0):
         self.project = project
         self.path = path
         self.file = file
         self._basename = os.path.basename(path)
-        self._stat = os.stat(file.fileno())
+        self._size = size
         self._url = project.file_url('', path)
 
     def render(self, request, template='project/file_view.html',
@@ -36,11 +39,11 @@ class FileView:
         Render the file to an HttpResponse.
         """
 
-        if self._stat.st_size == 0:
+        if self.size() == 0:
             template = 'project/file_view_empty.html'
             show_plain = False
         elif show_plain is None:
-            if self._stat.st_size <= MAX_PLAIN_SIZE:
+            if self.size() <= MAX_PLAIN_SIZE:
                 ctype = file_content_type(self.path)
                 show_plain = ctype.startswith('text/')
 
@@ -79,7 +82,7 @@ class FileView:
         """
         Return a human-readable file size.
         """
-        return '{:,} bytes'.format(self._stat.st_size)
+        return '{:,} bytes'.format(self.size())
 
     def download_url(self):
         """
@@ -89,7 +92,10 @@ class FileView:
         parameter indicating that we should try to force the browser
         to save the file rather than displaying it.
         """
-        return self._url + '?download'
+        if settings.STORAGE_TYPE == 'LOCAL':
+            return self._url + '?download'
+        else:
+            return self.raw_url()
 
     def raw_url(self):
         """
@@ -99,13 +105,17 @@ class FileView:
         according to the browser's default settings for the
         corresponding content type.
         """
-        return self._url
+        if settings.STORAGE_TYPE == 'LOCAL':
+            return self._url
+        else:
+            abs_path = os.path.join('active-projects', self.project.slug, self.path)
+            return s3_signed_url('hdn-data-platform-media', abs_path)
 
     def size(self):
         """
         Return the size of the file in bytes.
         """
-        return self._stat.st_size
+        return self._size
 
 
 class RawFileView(FileView):
