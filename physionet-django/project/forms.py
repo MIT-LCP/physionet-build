@@ -90,7 +90,10 @@ class ActiveProjectFilesForm(forms.Form):
         Check that the subdirectory exists
         """
         data = self.cleaned_data['subdir']
-        file_dir = os.path.join(self.project.file_root(), data)
+        if settings.STORAGE_TYPE == 'LOCAL':
+            file_dir = os.path.join(self.project.file_root(), data)
+        else:
+            file_dir = os.path.join('active-projects', self.project.slug, data)
 
         if settings.STORAGE_TYPE == StorageTypes.LOCAL and not os.path.isdir(file_dir):
             raise forms.ValidationError('Invalid directory')
