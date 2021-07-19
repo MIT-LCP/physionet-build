@@ -90,7 +90,10 @@ class ActiveProjectFilesForm(forms.Form):
         Check that the subdirectory exists
         """
         data = self.cleaned_data['subdir']
-        file_dir = os.path.join(self.project.file_root(), data)
+        if settings.STORAGE_TYPE == 'LOCAL':
+            file_dir = os.path.join(self.project.file_root(), data)
+        else:
+            file_dir = os.path.join('active-projects', self.project.slug, data)
 
         if settings.STORAGE_TYPE == StorageTypes.LOCAL and not os.path.isdir(file_dir):
             raise forms.ValidationError('Invalid directory')
@@ -149,7 +152,7 @@ class UploadFilesForm(ActiveProjectFilesForm):
             except FileExistsError:
                 errors.append(format_html(
                     'Item named <i>{}</i> already exists', file.name))
-            except OSError:
+            except (OSError, ClientError):
                 errors.append(format_html(
                     'Unable to upload <i>{}</i>', file.name))
         return 'Your files have been uploaded', errors
@@ -175,7 +178,7 @@ class CreateFolderForm(ActiveProjectFilesForm):
         except FileExistsError:
             errors.append(format_html(
                 'Item named <i>{}</i> already exists', name))
-        except OSError:
+        except (OSError, ClientError):
             errors.append(format_html(
                 'Unable to create <i>{}</i>', name))
         return 'Your folder has been created', errors
@@ -216,6 +219,10 @@ class DeleteItemsForm(EditItemsForm):
                     errors.append(format_html(
                         'Unable to delete <i>{}</i>',
                         os.path.relpath(e.filename or path, self.file_dir)))
+            except ClientError as e:
+                errors.append(format_html(
+                    'Unable to delete <i>{}</i>',
+                    os.path.relpath(path, self.file_dir)))
         return 'Your items have been deleted', errors
 
 
@@ -250,7 +257,7 @@ class RenameItemForm(EditItemsForm):
         except FileNotFoundError:
             errors.append(format_html(
                 'Item named <i>{}</i> does not exist', old_name))
-        except OSError:
+        except (OSError, ClientError):
             errors.append(format_html(
                 'Unable to rename <i>{}</i> to <i>{}</i>',
                 old_name, new_name))
@@ -323,7 +330,7 @@ class MoveItemsForm(EditItemsForm):
                 errors.append(format_html(
                     'Item named <i>{}</i> already exists in <i>{}</i>',
                     item, dest))
-            except OSError:
+            except (OSError, ClientError):
                 if not os.path.exists(path):
                     errors.append(format_html(
                         'Item named <i>{}</i> does not exist', item))

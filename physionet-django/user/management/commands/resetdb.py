@@ -74,6 +74,7 @@ class Command(BaseCommand):
         call_command('migrate')
 
 
+# TODO: S3
 def clear_media_files():
     """
     Remove all media files.
@@ -93,6 +94,7 @@ def clear_media_files():
 
             shutil.rmtree(item)
 
+# TODO: S3
 def clear_created_static_files():
     """
     Clear all the static files created.
