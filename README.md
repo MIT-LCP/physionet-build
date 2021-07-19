@@ -5,7 +5,7 @@ The new PhysioNet platform built using Django. The new site is currently hosted 
 ## Running Local Instance Using Django Server
 
 - Install sqlite3: `sudo apt-get install sqlite3`.
-- Create python environment with python 3.6.
+- Create python environment with python 3.7.
 - Activate virtual python environment.
 - Install python packages in `requirements.txt`.
 - Copy `.env.example` file to `.env`.
@@ -13,6 +13,33 @@ The new PhysioNet platform built using Django. The new site is currently hosted 
   - Run: `python manage.py resetdb` to reset the database.
   - Run: `python manage.py loaddemo` to load the demo fixtures set up example files.
   - Run: `python manage.py runserver` to run the server.
+
+The local development server will be available at [http://localhost:8000](http://localhost:8000).
+
+## Running Local Instance Using Docker
+
+- Install docker: [https://docs.docker.com/engine/install/](https://docs.docker.com/engine/install/).
+- Copy the example config: `cp .env.example .env`.
+- Build the physionet image: `docker-compose build`.
+- Run `docker-compose up` to run the postgres database, development and test containers.
+- In a separate shell:
+  - Run: `docker-compose exec dev /bin/bash` to enter the development container shell.
+  - Within the `physionet-django` directory:
+    - Run: `python manage.py resetdb` to reset the database.
+    - Run: `python manage.py loaddemo` to load the demo fixtures set up example files.
+  - Run: `docker-compose exec test /bin/bash` to enter the test container shell.
+  - Within the `physionet-django` directory:
+    - Run: `python manage.py resetdb` to reset the database.
+    - Run: `python manage.py loaddemo` to load the demo fixtures set up example files.
+    - Run: `python manage.py test` to run the tests.
+
+The local development server will be available at [http://localhost:8000](http://localhost:8000).
+
+All the management commands should be executed inside the desired container (with `docker-compose exec dev /bin/bash/` or `docker-compose exec test /bin/bash`).
+
+The code should dynamically reload in development, however, if there are any issues you can stop the `docker-compose up` command and run `docker-compose up --build` which will rebuild the physionet image.
+
+Docker-compose uses volumes to persist the database contents and data directories (media and static files). To clean up the created containers, networks and volumes stop `docker-compose up` and run `docker-compose down -v`. Do not run `docker-compose down -v` if you want to retain current database contents.
 
 ## Contribution Guidelines
 
@@ -24,18 +51,22 @@ The new PhysioNet platform built using Django. The new site is currently hosted 
 
 ## Testing
 
+If using docker, all of the commands should run inside the test container (`docker-compose exec test /bin/bash`). You may need to `pip install coverage` beforehand if not using docker.
+
 - Unit tests for each app are kept in their `test*.py` files.
 - To run the unit tests, change to the `physionet-django` directory and run `python manage.py test`.
-- To check test coverage, change to the `physionet-django` directory and run `coverage run --source='.' manage.py test`. Next run `coverage html` to generate an html output of the coverage results. You may need to `pip install coverage` beforehand.
+- To check test coverage, change to the `physionet-django` directory and run `coverage run --source='.' manage.py test`. Next run `coverage html` to generate an html output of the coverage results.
 - To run the browser tests in the `test_browser.py` files, selenium and the [firefox driver](https://github.com/mozilla/geckodriver/releases) are required. If you want to see the test run in your browser, remove the `options.set_headless(True)` lines in the `setUpClass` of the browser testing modules.
 
 ## Database Content During Development
 
 During development, the following workflow is applied for convenience:
-- The database engine is sqlite3. The db.sqlite3 file will not be tracked by git, and hence will not be uploaded and shared between developers
+- The database engine is sqlite3 if not using docker. The db.sqlite3 file will not be tracked by git, and hence will not be uploaded and shared between developers
 - Demo model instances will be specified in json files in the `fixtures` subdirectory of each app. Example file: `<BASE_DIR>/<appname>/fixtures/demo-<appname>.json`
 
 To conveniently obtain a clean database with the latest applied migrations, run:`python manage.py resetdb`. This does not populate the database with any data.
+
+When using docker, the migrated and empty database will be the default state and only `python manage.py loaddemo` has to be called in both `dev` and `test` containers.
 
 ### Creating a branch with migrations
 

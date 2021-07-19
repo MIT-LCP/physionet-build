@@ -1,0 +1,95 @@
+# Git repository
+.git/
+.github/
+.gitignore
+.gitattributes
+
+# Bare metal deployment and configuration
+deploy/
+config/
+
+# Media uploads
+media/
+
+# Private tests
+physionet-django/private-tests.py
+
+# Django database
+db.sqlite3
+
+# Media content created during testing
+physionet-django/static/published-projects/*
+physionet-django/static/wfdbcal
+physionet-django/test.log
+test-upgrade.tmp
+test-upgrade.cache
+
+# Byte-compiled / optimized / DLL files
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+**/htmlcov/
+**/.tox/
+**/.coverage
+**/.coverage.*
+**/.cache
+**/nosetests.xml
+**/coverage.xml
+**/*,cover
+**/.hypothesis/
+
+# Django stuff:
+**/*.log
+**/local_settings.py
+
+# pyenv
+.python-version
+
+# dotenv
+.env
+.env.example
+
+# virtualenv
+.venv
+venv/
+ENV/
+
+# Spyder project settings
+.spyderproject
+
+# Rope project settings
+.ropeproject
+
+# OSX .DS_Store
+**/.DS_Store
+
+# Patches and related stuff
+**/*.patch
+**/*.orig
+**/*.rej
+
+# Emacs backup and autosave
+**/*~
+**/*#*
+
+# etags
+TAGS
+
+# Credential file
+physionet-django/*credentials*
+
+# VSCode temp file
+.vscode/
+
+# Disk images
+**/*.img
+**/*.iso
+
+# Pycharm / JetBrains / IntelliJ project specific settings folder
+.idea/

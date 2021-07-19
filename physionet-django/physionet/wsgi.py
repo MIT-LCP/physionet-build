@@ -12,7 +12,7 @@ import os
 from django.core.signals import request_started, request_finished
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "physionet.settings.development")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "physionet.settings.development.sqlite")
 
 application = get_wsgi_application()
 

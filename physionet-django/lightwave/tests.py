@@ -10,9 +10,9 @@ from user.test_views import prevent_request_warnings, TestMixin
 
 test_queries = (
     'action=dblist',
-    'action=rlist;db={db}',
-    'action=alist;db={db}',
-    'action=info;db={db};record={record}',
+    'action=rlist&db={db}',
+    'action=alist&db={db}',
+    'action=info&db={db}&record={record}',
 )
 
 server = shutil.which('sandboxed-lightwave')
@@ -38,7 +38,7 @@ class TestPublished(TestMixin):
             data = json.loads(response.content.decode())
             self.assertEqual(data['success'], True)
 
-            response = self.client.get(server + '?' + qstr + ';callback=X')
+            response = self.client.get(server + '?' + qstr + '&callback=X')
             self.assertEqual(response.status_code, 200)
             data = json.loads(response.content.decode()[2:-1])
             self.assertEqual(data['success'], True)
