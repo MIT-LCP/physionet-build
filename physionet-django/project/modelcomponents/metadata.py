@@ -1,4 +1,5 @@
 import os
+from physionet import aws
 
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
