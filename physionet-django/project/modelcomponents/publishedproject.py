@@ -46,7 +46,7 @@ class PublishedProject(Metadata, SubmissionInfo):
     # Where all the published project files are kept, depending on access.
     PROTECTED_FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'published-projects')
     # Workaround for development
-    if 'development' in os.environ['DJANGO_SETTINGS_MODULE']:
+    if settings.STATIC_ROOT is None:
         PUBLIC_FILE_ROOT = os.path.join(settings.STATICFILES_DIRS[0], 'published-projects')
     else:
         PUBLIC_FILE_ROOT = os.path.join(settings.STATIC_ROOT, 'published-projects')

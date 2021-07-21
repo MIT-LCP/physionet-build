@@ -6,6 +6,7 @@ import re
 import shutil
 
 from django.conf import settings
+from lightwave.views import DBCAL_FILE, ORIGINAL_DBCAL_FILE
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core import mail
@@ -55,6 +56,7 @@ class TestMixin(TestCase):
         """
         Copy demo media files to the testing media root.
         Copy demo static files to the testing effective static root.
+        Symlink dbcal file to the testing effective static root.
 
         Does not run collectstatic. The StaticLiveServerTestCase should
         do that automatically for tests that need it.
@@ -67,6 +69,9 @@ class TestMixin(TestCase):
         shutil.rmtree(self.test_static_root, ignore_errors=True)
         shutil.copytree(os.path.abspath(os.path.join(settings.DEMO_FILE_ROOT, 'static')),
             self.test_static_root)
+
+        if os.path.exists(ORIGINAL_DBCAL_FILE):
+            os.symlink(ORIGINAL_DBCAL_FILE, DBCAL_FILE)
 
         # Published project files should have been made read-only at
         # the time of publication
