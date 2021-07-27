@@ -378,8 +378,10 @@ class Metadata(models.Model):
             display_files, display_dirs = aws.s3_list_directory('hdn-data-platform-media', dir)
             for file in display_files:
                 file.url = self.file_display_url(subdir=subdir, file=file.name)
-                file.raw_url = self.file_url(subdir=subdir, file=file.name)
-                file.download_url = file.raw_url + '?download'
+                obj_path = os.path.join(dir, file.name)
+                file.raw_url = aws.s3_signed_url('hdn-data-platform-media', obj_path)
+                file.download_url = file.raw_url
+
 
             for dir in display_dirs:
                 dir.full_subdir = os.path.join(subdir, dir.name)

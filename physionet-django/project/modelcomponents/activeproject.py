@@ -146,7 +146,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             return current + published
         else:
             # TODO: S3
-            return 0
+            dir = os.path.join('active-projects', self.slug)
+            return aws.s3_directory_size('hdn-data-platform-media', dir)
 
 
     def storage_allowance(self):

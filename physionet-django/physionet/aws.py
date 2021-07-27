@@ -13,6 +13,19 @@ if settings.STORAGE_TYPE == 'S3':
         aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
     )
 
+class OpenS3Object(object):
+    def __init__(self, streaming_body):
+        self._streaming_body = streaming_body
+
+    def __enter__(self):
+        return self._streaming_body
+
+    def __exit__(self, _exc_type, _exc_val, _exc_tb):
+        self._streaming_body.close()
+
+    def read(self, *args):
+        return self._streaming_body.read(*args)
+
 def get_s3_resource():
     config = botocore.config.Config(signature_version='s3v4', region_name='us-east-2')
     return session.resource('s3', config=config)

@@ -3,7 +3,7 @@ import os
 
 from physionet import aws
 from django.conf import settings
-import botocore
+from botocore.exceptions import ClientError
 
 from django.http import Http404
 from django.shortcuts import redirect
@@ -40,28 +40,24 @@ def display_project_file(request, project, file_path):
         if settings.STORAGE_TYPE == 'LOCAL':
             abs_path = os.path.join(project.file_root(), file_path)
             infile = open(abs_path, 'rb')
-            size = os.stat(file.fileno()).st_size
+            size = os.stat(infile.fileno()).st_size
         else:
             abs_path = os.path.join('active-projects', project.slug, file_path)
-            print('Display:', abs_path)
             obj = aws.get_s3_resource().meta.client.get_object(Bucket='hdn-data-platform-media', Key=abs_path)
-            infile = obj['Body']
+            infile = aws.OpenS3Object(obj['Body'])
             size = obj['ContentLength']
     except IsADirectoryError:
         return redirect(request.path + '/')
-    except (FileNotFoundError, NotADirectoryError, botocore.exceptions.ClientError):
+    except (FileNotFoundError, NotADirectoryError, ClientError):
         raise Http404()
     except (IOError, OSError) as err:
-        if err.errno == ENAMETOOLONG:
-            raise Http404()
-        else:
-            raise err
+        raise (Http404() if err.errno == ENAMETOOLONG else err)
 
-    # with infile:
-    if file_path.endswith('.csv.gz'):
-        cls = GzippedCSVFileView
-    else:
-        (_, suffix) = os.path.splitext(file_path)
-        cls = _suffixes.get(suffix, TextFileView)
-    view = cls(project, file_path, infile, size)
-    return view.render(request)
+    with infile:
+        if file_path.endswith('.csv.gz'):
+            cls = GzippedCSVFileView
+        else:
+            (_, suffix) = os.path.splitext(file_path)
+            cls = _suffixes.get(suffix, TextFileView)
+        view = cls(project, file_path, infile, size)
+        return view.render(request)
