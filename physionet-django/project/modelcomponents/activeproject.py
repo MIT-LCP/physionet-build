@@ -25,7 +25,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 @background()
-def move_files_as_readonly(pid, make_zip):
+def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
     """
     Schedule a background task to set the files as read only.
     If a file starts with a Shebang, then it will be set as executable.
@@ -545,7 +545,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                     copyedit_log.save()
 
                 # Set files read only and make zip file if requested
-                move_files_as_readonly(published_project.id, make_zip,
+                move_files_as_readonly(published_project.id, self.file_root(),
+                    published_project.file_root(), make_zip,
                     verbose_name='Read Only Files - {}'.format(published_project))
 
                 # Remove the ActiveProject
