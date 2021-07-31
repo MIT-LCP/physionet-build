@@ -20,6 +20,7 @@ class AuthorInvitation(BaseInvitation):
         return 'ActiveProject: {0} To: {1} By: {2}'.format(self.project, self.email,
                                                      self.inviter)
 
+    @staticmethod
     def get_user_invitations(user, exclude_duplicates=True):
         """
         Get all active author invitations to a user
@@ -40,12 +41,6 @@ class AuthorInvitation(BaseInvitation):
             invitations = invitations.exclude(id__in=remove_ids)
 
         return invitations
-
-    def is_invited(user, project):
-        "Whether a user is invited to author a project"
-        invitations = get_user_invitations(user=user)
-
-        return bool(project in [inv.project for inv in invitations])
 
 
 class Affiliation(models.Model):
