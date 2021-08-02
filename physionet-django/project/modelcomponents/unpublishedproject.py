@@ -54,6 +54,12 @@ class UnpublishedProject(models.Model):
         """
         return os.path.join(self.__class__.FILE_ROOT, self.slug)
 
+    def bucket(self):
+        """
+        Object storage bucket name
+        """
+        return self.__class__.FILE_ROOT
+
     def get_storage_info(self, force_calculate=True):
         """
         Return an object containing information about the project's
@@ -89,6 +95,7 @@ class UnpublishedProject(models.Model):
         shutil.rmtree(self.file_root())
         return self.delete()
 
+    # TODO: S3 - Add support for lightwave ?
     def has_wfdb(self):
         """
         Whether the project has wfdb files.
