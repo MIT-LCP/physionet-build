@@ -1,10 +1,8 @@
 import os
 from errno import ENAMETOOLONG
 
-from physionet import aws
-from django.conf import settings
 import botocore
-
+from django.conf import settings
 from django.http import Http404
 from django.shortcuts import redirect
 from project.fileviews.base import RawFileView
