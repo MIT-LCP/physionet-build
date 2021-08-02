@@ -85,6 +85,7 @@ class UnpublishedProject(models.Model):
         shutil.rmtree(self.file_root())
         return self.delete()
 
+    # TODO: S3 - Add support for lightwave ?
     def has_wfdb(self):
         """
         Whether the project has wfdb files.
