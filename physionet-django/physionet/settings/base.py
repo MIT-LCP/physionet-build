@@ -490,7 +490,6 @@ class StorageTypes:
     LOCAL = 'LOCAL'
     GCP = 'GCP'
 
-
 STORAGE_TYPE = config('STORAGE_TYPE', default=StorageTypes.LOCAL)
 
 if STORAGE_TYPE == StorageTypes.GCP:
