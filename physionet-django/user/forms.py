@@ -12,7 +12,7 @@ from django.utils.crypto import get_random_string
 from django.utils.translation import ugettext_lazy
 from django.db import transaction
 
-from physionet.aws import s3_mv_object, s3_mv_folder
+from physionet.gcp import ObjectPath
 from user.models import AssociatedEmail, User, Profile, CredentialApplication, CloudInformation
 from user.trainingreport import (find_training_report_url,
                                  TrainingCertificateError)
@@ -137,7 +137,7 @@ class UsernameChangeForm(forms.ModelForm):
     def clean_username(self):
         "Record the original username in case it is needed"
         self.old_username = self.instance.username
-        self.old_file_root = self.instance.file_root(relative=(settings.STORAGE_TYPE == 'S3'))
+        self.old_file_root = self.instance.file_root(relative=(settings.STORAGE_TYPE == 'GCP'))
 
         if User.objects.filter(username__iexact=self.cleaned_data['username']):
             raise forms.ValidationError("A user with that username already exists.")
@@ -160,12 +160,12 @@ class UsernameChangeForm(forms.ModelForm):
                     profile.photo.name = '/'.join(name_components)
                     profile.save()
 
-                if settings.STORAGE_TYPE == 'S3':
-                    s3_mv_folder(settings.AWS_STORAGE_BUCKET_NAME,
-                        self.old_file_root, self.instance.file_root(relative=True))
-                    return
+                if settings.STORAGE_TYPE == 'GCP':
+                    src = ObjectPath(os.path.join(settings.GCP_STORAGE_BUCKET_NAME, self.old_file_root))
+                    dst = ObjectPath(os.path.join(settings.GCP_STORAGE_BUCKET_NAME, self.instance.file_root(relative=True)))
+                    src.mv(dst)
 
-                if os.path.exists(self.old_file_root):
+                elif os.path.exists(self.old_file_root):
                     os.rename(self.old_file_root, self.instance.file_root(relative=False))
 
 

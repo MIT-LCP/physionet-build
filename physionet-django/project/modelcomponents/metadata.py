@@ -1,5 +1,4 @@
 import os
-from physionet import aws
 
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -9,6 +8,7 @@ from django.utils import timezone
 from django.utils.html import format_html
 from html2text import html2text
 
+from physionet.gcp import ObjectPath
 from project.modelcomponents.access import ACCESS_POLICIES, AnonymousAccess
 from project.modelcomponents.fields import SafeHTMLField
 from project.utility import LinkFilter, get_file_info, get_directory_info, list_items
@@ -339,19 +339,21 @@ class Metadata(models.Model):
         project directory, replacing any existing file with that name.
         """
         fname = os.path.join(self.file_root(), 'LICENSE.txt')
-        if os.path.isfile(fname):
-            os.remove(fname)
-        with open(fname, 'x') as outfile:
-            outfile.write(self.license_content(fmt='text'))
+        if settings.STORAGE_TYPE == 'LOCAL':
+            with open(fname, 'w') as outfile:
+                outfile.write(self.license_content(fmt='text'))
+        if settings.STORAGE_TYPE == 'GCP':
+            ObjectPath(fname).put(self.license_content(fmt='text'))
 
     def get_directory_content(self, subdir=''):
         """
         Return information for displaying files and directories from
         the project's file root.
         """
+        inspect_dir = self.get_inspect_dir(subdir)
+
         if settings.STORAGE_TYPE == 'LOCAL':
             # Get folder to inspect if valid
-            inspect_dir = self.get_inspect_dir(subdir)
             file_names, dir_names = list_items(inspect_dir)
             display_files, display_dirs = [], []
 
@@ -374,14 +376,13 @@ class Metadata(models.Model):
             return display_files, display_dirs
 
         else:
-            dir = os.path.join('active-projects', self.slug, subdir)
-            display_files, display_dirs = aws.s3_list_directory('hdn-data-platform-media', dir)
+            display_files, display_dirs = ObjectPath(inspect_dir).list_dir()
             for file in display_files:
                 file.url = self.file_display_url(subdir=subdir, file=file.name)
-                obj_path = os.path.join(dir, file.name)
-                file.raw_url = aws.s3_signed_url('hdn-data-platform-media', obj_path)
+                obj_path = os.path.join(inspect_dir, file.name)
+                file.raw_url = ObjectPath(obj_path).url()
                 file.download_url = file.raw_url
-
+                print(file.download_url)
 
             for dir in display_dirs:
                 dir.full_subdir = os.path.join(subdir, dir.name)

@@ -444,7 +444,7 @@ def profile_photo(_request, username):
     """
     try:
         user = User.objects.get(username__iexact=username)
-        if settings.STORAGE_TYPE == 'S3':
+        if settings.STORAGE_TYPE == 'GCP':
             return redirect(user.profile.photo.url)
         return utility.serve_file(user.profile.photo.path)
     except ObjectDoesNotExist:
@@ -649,7 +649,7 @@ def training_report(request, application_slug, attach=True):
 
     if request.user == application.user or request.user.is_admin:
         try:
-            if settings.STORAGE_TYPE == 'S3':
+            if settings.STORAGE_TYPE == 'GCS':
                 return redirect(application.training_completion_report.url)
             return utility.serve_file(application.training_completion_report.path,
                                       attach=attach)

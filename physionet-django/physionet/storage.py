@@ -1,11 +1,12 @@
 from django.conf import settings
-from storages.backends.s3boto3 import S3Boto3Storage, S3StaticStorage
+from storages.backends.gcloud import GoogleCloudStorage
 
 
-class MediaStorage(S3Boto3Storage):
-    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+class MediaStorage(GoogleCloudStorage):
+    bucket_name = settings.GCP_STORAGE_BUCKET_NAME
     location = ''
 
-class StaticStorage(S3StaticStorage):
-    bucket_name = settings.AWS_STATIC_BUCKET_NAME
+class StaticStorage(GoogleCloudStorage):
+    bucket_name = settings.GCP_STATIC_BUCKET_NAME
+    default_acl = 'publicRead'
     location = ''

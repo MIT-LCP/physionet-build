@@ -1,7 +1,7 @@
 import gzip
 import os
 
-from physionet.aws import s3_signed_url
+from physionet.gcp import ObjectPath
 
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -92,6 +92,7 @@ class FileView:
         parameter indicating that we should try to force the browser
         to save the file rather than displaying it.
         """
+        print(settings.STORAGE_TYPE)
         if settings.STORAGE_TYPE == 'LOCAL':
             return self._url + '?download'
         else:
@@ -107,9 +108,8 @@ class FileView:
         """
         if settings.STORAGE_TYPE == 'LOCAL':
             return self._url
-        else:
-            abs_path = os.path.join('active-projects', self.project.slug, self.path)
-            return s3_signed_url('hdn-data-platform-media', abs_path)
+        elif settings.STORAGE_TYPE == 'GCP':
+            return ObjectPath(os.path.join(self.project.file_root(), self.path)).url()
 
     def size(self):
         """

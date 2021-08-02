@@ -35,10 +35,16 @@ class FileInfo():
         self.size = size
         self.last_modified = last_modified
 
+    def __lt__(self, other):
+        return self.name < other.name
+
 
 class DirectoryInfo():
     def __init__(self, name):
         self.name = name
+
+    def __lt__(self, other):
+        return self.name < other.name
 
 
 class DirectoryBreadcrumb():

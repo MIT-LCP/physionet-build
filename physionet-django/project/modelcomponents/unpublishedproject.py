@@ -2,6 +2,7 @@ import logging
 import os
 import shutil
 
+from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 
@@ -49,6 +50,12 @@ class UnpublishedProject(models.Model):
         """
         return os.path.join(self.__class__.FILE_ROOT, self.slug)
 
+    def bucket(self):
+        """
+        Object storage bucket name
+        """
+        return self.__class__.FILE_ROOT
+
     def get_storage_info(self, force_calculate=True):
         """
         Return an object containing information about the project's
@@ -84,11 +91,17 @@ class UnpublishedProject(models.Model):
         shutil.rmtree(self.file_root())
         return self.delete()
 
+    # TODO: S3 - Add support for lightwave ?
     def has_wfdb(self):
         """
         Whether the project has wfdb files.
         """
-        return os.path.isfile(os.path.join(self.file_root(), 'RECORDS'))
+        path = os.path.join(self.file_root(), 'RECORDS')
+        if settings.STORAGE_TYPE == 'LOCAL':
+            return os.path.isfile(path)
+        else:
+            # return aws.s3_file_exists('hdn-data-platform-media', path)
+            return False
 
     def content_modified(self):
         """
