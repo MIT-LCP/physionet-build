@@ -8,6 +8,7 @@ from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
 
+from physionet.gcp import ObjectPath
 from physionet.utility import sorted_tree_files, zip_dir
 from project.modelcomponents.access import DataAccessRequest, DataAccessRequestReviewer, DUASignature
 from project.modelcomponents.fields import SafeHTMLField
@@ -78,10 +79,21 @@ class PublishedProject(Metadata, SubmissionInfo):
         This is the parent directory of the main and special file
         directories.
         """
-        if self.access_policy:
-            return os.path.join(PublishedProject.PROTECTED_FILE_ROOT, self.slug)
-        else:
-            return os.path.join(PublishedProject.PUBLIC_FILE_ROOT, self.slug)
+        if settings.STORAGE_TYPE == 'LOCAL':
+            if self.access_policy:
+                return os.path.join(PublishedProject.PROTECTED_FILE_ROOT, self.slug)
+            else:
+                return os.path.join(PublishedProject.PUBLIC_FILE_ROOT, self.slug)
+        elif settings.STORAGE_TYPE == 'GCP':
+            return self.gcp_bucket_name()
+
+    # TODO: other bucket naming scheme?
+    # Theoretically using something like {slug}.healthdatanexus.ai
+    # should be unique enough
+    # The name should be shorter than 63 characters
+    # (each componenent separated by a dot is counted separately)
+    def gcp_bucket_name(self):
+        return f'hdn-{self.core_project_id}'
 
     def file_root(self):
         """
@@ -93,9 +105,12 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         Bytes of storage used by main files and compressed file if any
         """
-        main = get_tree_size(self.file_root())
-        compressed = os.path.getsize(self.zip_name(full=True)) if os.path.isfile(self.zip_name(full=True)) else 0
-        return main, compressed
+        if settings.STORAGE_TYPE == 'LOCAL':
+            main = get_tree_size(self.file_root())
+            compressed = os.path.getsize(self.zip_name(full=True)) if os.path.isfile(self.zip_name(full=True)) else 0
+            return main, compressed
+        elif settings.STORAGE_TYPE == 'GCP':
+            return ObjectPath(self.file_root()).dir_size(), 0
 
     def set_storage_info(self):
         """
@@ -177,8 +192,11 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         Remove files of this project
         """
-        clear_directory(self.file_root())
-        self.remove_zip()
+        if settings.STORAGE_TYPE == 'LOCAL':
+            clear_directory(self.file_root())
+            self.remove_zip()
+        elif settings.STORAGE_TYPE == 'GCP':
+            ObjectPath(self.file_root()).rm_dir()
         self.set_storage_info()
 
     def deprecate_files(self, delete_files):

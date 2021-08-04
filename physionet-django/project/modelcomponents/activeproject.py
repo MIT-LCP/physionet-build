@@ -4,8 +4,6 @@ import logging
 import os
 import shutil
 
-from physionet import gcp
-
 from background_task import background
 from django.conf import settings
 from django.db import models, transaction
@@ -14,6 +12,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import strip_tags
 
+from physionet.gcp import ObjectPath
 from project.modelcomponents.archivedproject import ArchivedProject
 from project.modelcomponents.authors import PublishedAffiliation, PublishedAuthor
 from project.modelcomponents.metadata import Contact, Metadata, PublishedPublication, PublishedReference
@@ -38,9 +37,10 @@ def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
 
     published_project.make_checksum_file()
 
-    quota = published_project.quota_manager()
-    published_project.incremental_storage_size = quota.bytes_used
-    published_project.save(update_fields=['incremental_storage_size'])
+    if settings.STORAGE_TYPE == 'LOCAL':
+        quota = published_project.quota_manager()
+        published_project.incremental_storage_size = quota.bytes_used
+        published_project.save(update_fields=['incremental_storage_size'])
 
     published_project.set_storage_info()
 
@@ -145,7 +145,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         if settings.STORAGE_TYPE == 'LOCAL':
             current = self.quota_manager().bytes_used
         else:
-            current = gcp.ObjectPath(self.file_root()).dir_size()
+            current = ObjectPath(self.file_root()).dir_size()
 
         published = self.core_project.total_published_size
         return current + published
@@ -440,7 +440,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         Delete the project file directory
         """
-        shutil.rmtree(self.file_root())
+        if settings.STORAGE_TYPE == 'LOCAL':
+            shutil.rmtree(self.file_root())
+        elif settings.STORAGE_TYPE == 'GCP':
+            ObjectPath(self.file_root()).rm_dir()
 
     def publish(self, slug=None, make_zip=True, title=None):
         """
@@ -465,9 +468,15 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
         # Create project file root if this is first version or the first
         # version with a different access policy
-        if not os.path.isdir(published_project.project_file_root()):
-            os.mkdir(published_project.project_file_root())
-        os.rename(self.file_root(), published_project.file_root())
+        if settings.STORAGE_TYPE == 'LOCAL':
+            if not os.path.isdir(published_project.project_file_root()):
+                os.mkdir(published_project.project_file_root())
+            os.rename(self.file_root(), published_project.file_root())
+        elif settings.STORAGE_TYPE == 'GCP':
+            src = ObjectPath(self.file_root())
+            dst = ObjectPath(published_project.file_root())
+            dst.create_bucket_if_needed()
+            src.cp_dir(dst)
 
         try:
             with transaction.atomic():
@@ -556,6 +565,9 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                     published_project.file_root(), make_zip,
                     verbose_name='Read Only Files - {}'.format(published_project))
 
+                if settings.STORAGE_TYPE == 'GCP':
+                    ObjectPath(self.file_root()).rm_dir()
+
                 # Remove the ActiveProject
                 self.delete()
 
@@ -563,5 +575,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
         except:
             # Move the files to the active project directory
-            os.rename(published_project.file_root(), self.file_root())
+            if settings.STORAGE_TYPE == 'LOCAL':
+                os.rename(published_project.file_root(), self.file_root())
+            elif settings.STORAGE_TYPE == 'GCP':
+                ObjectPath(published_project.file_root()).rm_dir()
             raise

@@ -371,7 +371,8 @@ class CreateProjectForm(forms.ModelForm):
             is_submitting=True, is_corresponding=True)
         author.import_profile_info()
         # Create file directory
-        os.mkdir(project.file_root())
+        if settings.STORAGE_TYPE == 'LOCAL':
+            os.mkdir(project.file_root())
         return project
 
 
@@ -451,30 +452,34 @@ class NewProjectVersionForm(forms.ModelForm):
             topic = Topic.objects.create(project=project,
                 description=p_topic.description)
 
-        # TODO: S3
-        # Create file directory
-        os.mkdir(project.file_root())
         current_file_root = project.file_root()
         older_file_root = self.latest_project.file_root()
-        for (directory, subdirs, files) in os.walk(older_file_root):
-            rel_dir = os.path.relpath(directory, older_file_root)
-            destination = os.path.join(current_file_root, rel_dir)
-            for d in subdirs:
-                try:
-                    os.mkdir(os.path.join(destination, d))
-                except FileExistsError:
-                    pass
-            for f in files:
-                # Skip linking files that are automatically generated
-                # during publication.
-                if (directory == older_file_root
-                        and f in ('SHA256SUMS.txt', 'LICENSE.txt')):
-                    continue
-                try:
-                    os.link(os.path.join(directory, f),
-                            os.path.join(destination, f))
-                except FileExistsError:
-                    pass
+
+        ignored_files = ('SHA256SUMS.txt', 'LICENSE.txt')
+
+        if settings.STORAGE_TYPE == 'LOCAL':
+            os.mkdir(project.file_root())
+            for (directory, subdirs, files) in os.walk(older_file_root):
+                rel_dir = os.path.relpath(directory, older_file_root)
+                destination = os.path.join(current_file_root, rel_dir)
+                for d in subdirs:
+                    try:
+                        os.mkdir(os.path.join(destination, d))
+                    except FileExistsError:
+                        pass
+                for f in files:
+                    # Skip linking files that are automatically generated
+                    # during publication.
+                    if (directory == older_file_root and f in ignored_files):
+                        continue
+                    try:
+                        os.link(os.path.join(directory, f),
+                                os.path.join(destination, f))
+                    except FileExistsError:
+                        pass
+        elif settings.STORAGE_TYPE == 'GCP':
+            ObjectPath(older_file_root).cp_dir(
+                ObjectPath(current_file_root), ignored_files=ignored_files)
 
         return project
 

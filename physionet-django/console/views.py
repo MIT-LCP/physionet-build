@@ -54,6 +54,10 @@ def make_zip_background(pid):
     """
     Schedule a background task to make the zip file
     """
+    if settings.STORAGE_TYPE != 'LOCAL':
+        # creating a zip on GCP is currently not supported
+        return
+
     project = PublishedProject.objects.get(id=pid)
     # Create zip file if there are files. Should always be the case.
     project.make_zip()
@@ -66,6 +70,10 @@ def make_checksum_background(pid):
     """
     Schedule a background task to make the checksum file
     """
+    if settings.STORAGE_TYPE != 'LOCAL':
+        # creating checksums on GCP is currently not supported
+        return
+
     project = PublishedProject.objects.get(id=pid)
     # Create checksum file if there are files. Should always be the case.
     project.make_checksum_file()
