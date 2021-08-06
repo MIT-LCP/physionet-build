@@ -988,7 +988,6 @@ def process_items(request, form):
         else:
             return ''
 
-# TODO: S3
 def process_files_post(request, project):
     """
     Helper function for `project_files`
@@ -996,27 +995,20 @@ def process_files_post(request, project):
     if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
         raise ServiceUnavailable()
 
-    print(request.POST)
-
     if 'upload_files' in request.POST:
-        print('upload_files')
         form = forms.UploadFilesForm(project=project, data=request.POST,
             files=request.FILES)
         subdir = process_items(request, form)
     elif 'create_folder' in request.POST:
-        print('create_folder')
         form = forms.CreateFolderForm(project=project, data=request.POST)
         subdir = process_items(request, form)
     elif 'rename_item' in request.POST:
-        print('rename_item')
         form = forms.RenameItemForm(project=project, data=request.POST)
         subdir = process_items(request, form)
     elif 'move_items' in request.POST:
-        print('move_items')
         form = forms.MoveItemsForm(project=project, data=request.POST)
         subdir = process_items(request, form)
     elif 'delete_items' in request.POST:
-        print('delete_items')
         form = forms.DeleteItemsForm(project=project, data=request.POST)
         subdir = process_items(request, form)
 
