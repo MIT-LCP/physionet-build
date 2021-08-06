@@ -1,12 +1,11 @@
 from errno import ENAMETOOLONG
 import os
 
-from physionet.gcp import ObjectPath
-
 from django.conf import settings
 from django.http import Http404
 from django.shortcuts import redirect
 
+from physionet.gcp import ObjectPath
 from project.fileviews.base import RawFileView
 from project.fileviews.csv import CSVFileView, GzippedCSVFileView
 from project.fileviews.image import ImageFileView

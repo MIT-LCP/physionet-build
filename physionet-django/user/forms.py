@@ -160,13 +160,14 @@ class UsernameChangeForm(forms.ModelForm):
                     profile.photo.name = '/'.join(name_components)
                     profile.save()
 
-                if settings.STORAGE_TYPE == 'GCP':
+                if settings.STORAGE_TYPE == 'LOCAL':
+                    if os.path.exists(self.old_file_root):
+                        os.rename(self.old_file_root, self.instance.file_root(relative=False))
+
+                elif settings.STORAGE_TYPE == 'GCP':
                     src = ObjectPath(os.path.join(settings.GCP_STORAGE_BUCKET_NAME, self.old_file_root))
                     dst = ObjectPath(os.path.join(settings.GCP_STORAGE_BUCKET_NAME, self.instance.file_root(relative=True)))
                     src.mv(dst)
-
-                elif os.path.exists(self.old_file_root):
-                    os.rename(self.old_file_root, self.instance.file_root(relative=False))
 
 
 class SaferImageField(forms.ImageField):

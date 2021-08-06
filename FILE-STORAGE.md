@@ -3,7 +3,7 @@
 This project aims to support multiple file storage options which can be configured using the `STORAGE_TYPE` environment variable as shown in the settings file. Options are:
 
 - LOCAL (files are stored on the same filesystem as the hosting server)
-- S3
+- GCP
 
 ## Local Filesystem
 
@@ -11,51 +11,31 @@ This project aims to support multiple file storage options which can be configur
 - User-uploaded media files are stored in the `MEDIA_ROOT` folder. Authorization is done by Django views and then an `X-Accel-Redirect` to nginx if approved.
 - When projects get published, if it is a public project, files get moved to a `published_projects` subdirectory within `STATIC_ROOT`. Otherwise they get moved into a `published_projects` subdirectory within `MEDIA_ROOT`.
 
-## S3 File Storage
+## GCS File Storage
 
-Ref: https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html
+Ref: https://django-storages.readthedocs.io/en/latest/backends/gcloud.html
 
-Setup requird to use S3:
+Setup required to use GCS:
 
-- Create an IAM user with programmatic access, and attach the `AmazonS3FullAccess` policy.
-- Set the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables from the user.
-- Create a bucket for static files.
+- Create an IAM user (service account), and attach the Storage Admin (roles/storage.admin) role.
+- Create a bucket for static files. Choose uniform access control. Add public access (https://cloud.google.com/storage/docs/access-control/making-data-public). Set the `GCP_STATIC_BUCKET_NAME` environment variable to match.
 
-Bucket policy:
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "PublicRead",
-      "Effect": "Allow",
-      "Principal": "*",
-      "Action": ["s3:GetObject"],
-      "Resource": "arn:aws:s3:::hdn-data-platform-static/*"
-    }
-  ]
-}
-```
-
-CORS configuration (needed for font-awsome):
+CORS configuration (needed for font-awesome):
 
 ```json
 [
-  {
-    "AllowedHeaders": [],
-    "AllowedMethods": ["GET"],
-    "AllowedOrigins": ["*"],
-    "ExposeHeaders": []
-  }
+    {
+        "origin": ["*"],
+        "method": ["GET"],
+        "responseHeader": [],
+        "maxAgeSeconds": 3600
+    }
 ]
 ```
 
-- Create a bucket all user-uploaded media files. Set the `AWS_STORAGE_BUCKET_NAME` environment variable to match. No public access.
+- Create a bucket all user-uploaded media files. Choose uniform access control. Set the `GCP_STORAGE_BUCKET_NAME` environment variable to match. No public access.
 
-- Each published project will have its own bucket. Note that this differs from local storage where public project files are written to the `published_projects` directory within the static root. One reason for the separation is to more easily set requester pays per bucket and view analytics. 
-
-Note about psycopg2-binary installation for M1 Mac which is required for `django-storages`: https://github.com/psycopg/psycopg2/issues/1286
+- Each published project will have its own bucket. Note that this differs from local storage where public project files are written to the `published_projects` directory within the static root. One reason for the separation is to more easily set requester pays per bucket and view analytics. Set the `GCP_BUCKET_LOCATION` environment variable to the location where new buckets should be created.
 
 ## Serving Files and URLs
 
@@ -67,6 +47,6 @@ Media files are not inherently public. For media assets that require access cont
 
 eg. See `def profile_photo`.
 
-With S3 uploads, it is possible to link directly to the S3 location in the template with: `<a src="{{ <model>.<fieldname>.url}}">`. Django automatically generates a signed URL for the S3 location. Only do this if the media asset should be publically accessible.
+With GCS uploads, it is possible to link directly to the GCS location in the template with: `<a src="{{ <model>.<fieldname>.url}}">`. Django automatically generates a signed URL for the GCS location. Only do this if the media asset should be publicly accessible.
 
 Ref: https://testdriven.io/blog/storing-django-static-and-media-files-on-amazon-s3/

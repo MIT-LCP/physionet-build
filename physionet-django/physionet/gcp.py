@@ -1,9 +1,10 @@
-import os
+from os import path
+
 from django.conf import settings
+
 from google.cloud.exceptions import Conflict, NotFound
-from google.cloud.storage import Client
-from storages.backends.gcloud import GoogleCloudStorage
 from project.utility import FileInfo, DirectoryInfo, readable_size
+from storages.backends.gcloud import GoogleCloudStorage
 
 
 class ObjectPath(object):
@@ -12,7 +13,7 @@ class ObjectPath(object):
         self._bucket = None
 
         try:
-            normalized_path = os.path.normpath(path)
+            normalized_path = path.normpath(path)
             self._bucket_name, self._key = normalized_path.split('/', 1)
         except ValueError:
             raise ValueError('path should specify the bucket and object key/prefix')
@@ -59,9 +60,9 @@ class ObjectPath(object):
     def batch(self):
         return self.client.batch()
 
-    def create_bucket(self):
+    def create_bucket(self, location=None):
         bucket = self.client.bucket(self.bucket_name)
-        bucket.location = 'us-west1'
+        bucket.location = location or settings.GCP_BUCKET_LOCATION
         bucket.iam_configuration.uniform_bucket_level_access_enabled = True
         self.client.create_bucket(bucket)
 
@@ -152,7 +153,7 @@ class ObjectPath(object):
         self.bucket.copy_blob(self.blob, other.bucket, new_name=other.key)
 
     def cp_dir(self, other, ignored_files=[]):
-        ignored_files = [os.path.join(self.dir_key, f) for f in ignored_files]
+        ignored_files = [path.join(self.dir_key, f) for f in ignored_files]
 
         iterator = self.client.list_blobs(self.bucket_name, prefix=self.dir_key)
         try:

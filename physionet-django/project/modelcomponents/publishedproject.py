@@ -140,6 +140,10 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         Make a (new) zip file of the main files.
         """
+        if settings.STORAGE_TYPE != 'LOCAL':
+            # creating a non-local zip is currently not supported
+            return
+
         fname = self.zip_name(full=True)
         if os.path.isfile(fname):
             os.remove(fname)
@@ -171,6 +175,10 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         Make the checksums file for the main files
         """
+        if settings.STORAGE_TYPE != 'LOCAL':
+            # creating non-local checksums is currently not supported
+            return
+
         fname = os.path.join(self.file_root(), 'SHA256SUMS.txt')
         if os.path.isfile(fname):
             os.remove(fname)

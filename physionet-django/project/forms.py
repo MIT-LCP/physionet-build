@@ -75,7 +75,6 @@ class ActiveProjectFilesForm(forms.Form):
         data = self.cleaned_data['subdir']
         file_dir = os.path.join(self.project.file_root(), data)
 
-        # TODO: S3
         if settings.STORAGE_TYPE == 'LOCAL' and not os.path.isdir(file_dir):
             raise forms.ValidationError('Invalid directory')
         self.file_dir = file_dir
@@ -134,7 +133,7 @@ class UploadFilesForm(ActiveProjectFilesForm):
                     utility.write_uploaded_file(
                         file=file, overwrite=False,
                         write_file_path=file_path)
-                else:
+                elif settings.STORAGE_TYPE == 'GCP':
                     obj = ObjectPath(file_path)
                     if obj.exists():
                         raise FileExistsError
@@ -165,7 +164,7 @@ class CreateFolderForm(ActiveProjectFilesForm):
             file_path = os.path.join(self.file_dir, name)
             if settings.STORAGE_TYPE == 'LOCAL':
                 os.mkdir(file_path)
-            else:
+            elif settings.STORAGE_TYPE == 'GCP':
                 obj = ObjectPath(file_path)
                 if obj.exists():
                     raise FileExistsError
@@ -207,7 +206,7 @@ class DeleteItemsForm(EditItemsForm):
             try:
                 if settings.STORAGE_TYPE == 'LOCAL':
                     utility.remove_items([path], ignore_missing=False)
-                else:
+                elif settings.STORAGE_TYPE == 'GCP':
                     ObjectPath(path).rm()
             except OSError as e:
                 if not os.path.exists(path):
@@ -245,8 +244,7 @@ class RenameItemForm(EditItemsForm):
             new_path = os.path.join(self.file_dir, new_name)
             if settings.STORAGE_TYPE == 'LOCAL':
                 utility.rename_file(old_path, new_path)
-            else:
-                print('Rename:', old_path, '->', new_path)
+            elif settings.STORAGE_TYPE == 'GCP':
                 ObjectPath(old_path).mv(ObjectPath(new_path))
         except FileExistsError:
             errors.append(format_html(
@@ -321,12 +319,9 @@ class MoveItemsForm(EditItemsForm):
             try:
                 if settings.STORAGE_TYPE == 'LOCAL':
                     utility.move_items([path], self.dest_dir)
-                else:
+                elif settings.STORAGE_TYPE == 'GCP':
                     basename = os.path.basename(path)
                     dst_path = os.path.join(self.dest_dir, basename)
-                    # common = os.path.commonpath([path, self.dest_dir])
-                    # dst_path = path.replace(common, self.dest_dir, 1)
-                    print('Move', path, '->', dst_path)
                     ObjectPath(path).mv(ObjectPath(dst_path))
             except FileExistsError:
                 errors.append(format_html(

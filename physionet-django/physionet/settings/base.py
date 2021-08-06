@@ -485,21 +485,12 @@ STORAGE_TYPE = config('STORAGE_TYPE', default='LOCAL')
 
 if STORAGE_TYPE == 'LOCAL':
     STATIC_URL = '/static/'
-# https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html
-# TODO: Sync with existing AWS settings
+
 elif STORAGE_TYPE == 'GCP':
     from google.oauth2 import service_account
     DEFAULT_FILE_STORAGE = 'physionet.storage.MediaStorage'
     STATICFILES_STORAGE = 'physionet.storage.StaticStorage'
-    # AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
-    # AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
-    # Published projects have their own buckets.
-    # This bucket stores all other static and media files.
     GCP_STORAGE_BUCKET_NAME = config('GCP_MEDIA_BUCKET_NAME')
     GCP_STATIC_BUCKET_NAME = config('GCP_STATIC_BUCKET_NAME')
-    GS_PROJECT_ID = 'upside-tcairem-test'
-    # GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
-    #     "physionet-django/PhysioNet-Data-credentials.json"
-    # )
-    # AWS_S3_ADDRESSING_STYLE = 'virtual'
-    # AWS_QUERYSTRING_AUTH = True
+    GCP_BUCKET_LOCATION = config('GCP_BUCKET_LOCATION')
+    GS_PROJECT_ID = config('GCP_PROJECT_ID')
