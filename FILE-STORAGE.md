@@ -18,6 +18,7 @@ Ref: https://django-storages.readthedocs.io/en/latest/backends/gcloud.html
 Setup required to use GCS:
 
 - Create an IAM user (service account), and attach the Storage Admin (roles/storage.admin) role.
+- Create a JSON key for the account and save it as `physionet-django/physionet-django/PhysioNet-Data-credentials.json`
 - Create a bucket for static files. Choose uniform access control. Add public access (https://cloud.google.com/storage/docs/access-control/making-data-public). Set the `GCP_STATIC_BUCKET_NAME` environment variable to match.
 
 CORS configuration (needed for font-awesome):
