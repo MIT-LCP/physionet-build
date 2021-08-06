@@ -15,6 +15,8 @@ This project aims to support multiple file storage options which can be configur
 
 Ref: https://django-storages.readthedocs.io/en/latest/backends/gcloud.html
 
+Ref: https://googleapis.dev/python/storage/latest/
+
 Setup required to use GCS:
 
 - Create an IAM user (service account), and attach the Storage Admin (roles/storage.admin) role.
@@ -49,5 +51,3 @@ Media files are not inherently public. For media assets that require access cont
 eg. See `def profile_photo`.
 
 With GCS uploads, it is possible to link directly to the GCS location in the template with: `<a src="{{ <model>.<fieldname>.url}}">`. Django automatically generates a signed URL for the GCS location. Only do this if the media asset should be publicly accessible.
-
-Ref: https://testdriven.io/blog/storing-django-static-and-media-files-on-amazon-s3/
