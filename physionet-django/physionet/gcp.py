@@ -1,9 +1,11 @@
-import os
+from os import path
+
 from django.conf import settings
 from google.cloud.exceptions import NotFound
 from google.cloud.storage import Client
 from storages.backends.gcloud import GoogleCloudStorage
 from project.utility import FileInfo, DirectoryInfo, readable_size
+from storages.backends.gcloud import GoogleCloudStorage
 
 # One session per main django process.
 # One resource per thread. https://boto3.amazonaws.com/v1/documentation/api/latest/guide/resources.html?highlight=multithreading#multithreading-or-multiprocessing-with-resources
@@ -21,7 +23,7 @@ class ObjectPath(object):
         self._bucket = None
 
         try:
-            normalized_path = os.path.normpath(path)
+            normalized_path = path.normpath(path)
             self._bucket_name, self._key = normalized_path.split('/', 1)
         except ValueError:
             raise ValueError('path should specify the bucket an object key/prefix')
