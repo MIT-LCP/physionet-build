@@ -481,13 +481,17 @@ if os.getenv('PHYSIONET_LOCK_FILE'):
     fcntl.flock(_lockfd, fcntl.LOCK_SH)
 
 
-STORAGE_TYPE = config('STORAGE_TYPE', default='LOCAL')
+class StorageTypes:
+    LOCAL = 'LOCAL'
+    GCP = 'GCP'
 
-if STORAGE_TYPE == 'LOCAL':
+
+STORAGE_TYPE = config('STORAGE_TYPE', default=StorageTypes.LOCAL)
+
+if STORAGE_TYPE == StorageTypes.LOCAL:
     STATIC_URL = '/static/'
 
-elif STORAGE_TYPE == 'GCP':
-    from google.oauth2 import service_account
+elif STORAGE_TYPE == StorageTypes.GCP:
     DEFAULT_FILE_STORAGE = 'physionet.storage.MediaStorage'
     STATICFILES_STORAGE = 'physionet.storage.StaticStorage'
     GCP_STORAGE_BUCKET_NAME = config('GCP_MEDIA_BUCKET_NAME')
