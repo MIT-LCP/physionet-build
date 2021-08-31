@@ -18,6 +18,14 @@
       {{ subject.get_full_name }}
     </div>
   </div>
+  <div class="row mb-1">
+    <div class="col-md-3">
+      Activation status:
+    </div>
+    <div class="col-md-9">
+      {{ subject.is_active }}
+    </div>
+  </div>
 
   {% if profile.affiliation %}
     <div class="row mb-1">
