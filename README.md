@@ -41,6 +41,16 @@ The code should dynamically reload in development, however, if there are any iss
 
 Docker-compose uses volumes to persist the database contents and data directories (media and static files). To clean up the created containers, networks and volumes stop `docker-compose up` and run `docker-compose down -v`. Do not run `docker-compose down -v` if you want to retain current database contents.
 
+## Using a debugger with Docker
+
+To access a debug prompt raised using `breakpoint()`:
+
+- Run `docker container ls` to get a list of active containers
+- Find the "CONTAINER_ID" for the dev_1 container
+- In a new shell, attach to the container with `docker attach CONTAINER_ID`
+
+The debugger should now be available in the new shell.
+
 ## Contribution Guidelines
 
 - Familiarise yourself with the [PEP8 style guidelines](https://www.python.org/dev/peps/pep-0008/).
