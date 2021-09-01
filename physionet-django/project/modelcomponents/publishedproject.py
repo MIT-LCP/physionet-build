@@ -14,6 +14,7 @@ from project.modelcomponents.access import DataAccessRequest, DataAccessRequestR
 from project.modelcomponents.fields import SafeHTMLField
 from project.modelcomponents.metadata import Metadata, PublishedTopic
 from project.modelcomponents.submission import SubmissionInfo
+from project.projectfiles import ProjectFiles
 from project.utility import clear_directory, get_tree_size, StorageInfo
 from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_slug, validate_subdir
 
@@ -79,6 +80,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         This is the parent directory of the main and special file
         directories.
         """
+        # ProjectFiles(self.file_root()).get_project_file_root(access_policy, file_root, slug)
         if settings.STORAGE_TYPE == 'LOCAL':
             if self.access_policy:
                 return os.path.join(PublishedProject.PROTECTED_FILE_ROOT, self.slug)

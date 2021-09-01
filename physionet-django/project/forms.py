@@ -20,6 +20,7 @@ from project.models import (Affiliation, Author, AuthorInvitation, ActiveProject
                             DataAccessRequestReviewer)
 from project import utility
 from project import validators
+from project.projectfiles import ProjectFiles
 from user.models import User
 
 from dal import autocomplete
@@ -75,6 +76,7 @@ class ActiveProjectFilesForm(forms.Form):
         data = self.cleaned_data['subdir']
         file_dir = os.path.join(self.project.file_root(), data)
 
+        # TODO: check if we can remove that if case later
         if settings.STORAGE_TYPE == 'LOCAL' and not os.path.isdir(file_dir):
             raise forms.ValidationError('Invalid directory')
         self.file_dir = file_dir
@@ -128,16 +130,7 @@ class UploadFilesForm(ActiveProjectFilesForm):
         errors = ErrorList()
         for file in self.files.getlist('file_field'):
             try:
-                file_path = os.path.join(self.file_dir, file.name)
-                if settings.STORAGE_TYPE == 'LOCAL':
-                    utility.write_uploaded_file(
-                        file=file, overwrite=False,
-                        write_file_path=file_path)
-                elif settings.STORAGE_TYPE == 'GCP':
-                    obj = ObjectPath(file_path)
-                    if obj.exists():
-                        raise FileExistsError
-                    obj.put_fileobj(file)
+                ProjectFiles(self.project.file_root()).fput(self.file_dir, file)
             except FileExistsError:
                 errors.append(format_html(
                     'Item named <i>{}</i> already exists', file.name))
@@ -160,15 +153,10 @@ class CreateFolderForm(ActiveProjectFilesForm):
         """
         errors = ErrorList()
         name = self.cleaned_data['folder_name']
+
+        file_path = os.path.join(self.file_dir, name)
         try:
-            file_path = os.path.join(self.file_dir, name)
-            if settings.STORAGE_TYPE == 'LOCAL':
-                os.mkdir(file_path)
-            elif settings.STORAGE_TYPE == 'GCP':
-                obj = ObjectPath(file_path)
-                if obj.exists():
-                    raise FileExistsError
-                obj.mkdir()
+            ProjectFiles(self.project.file_root()).mkdir(file_path)
         except FileExistsError:
             errors.append(format_html(
                 'Item named <i>{}</i> already exists', name))
@@ -204,10 +192,7 @@ class DeleteItemsForm(EditItemsForm):
         for item in self.cleaned_data['items']:
             path = os.path.join(self.file_dir, item)
             try:
-                if settings.STORAGE_TYPE == 'LOCAL':
-                    utility.remove_items([path], ignore_missing=False)
-                elif settings.STORAGE_TYPE == 'GCP':
-                    ObjectPath(path).rm()
+                ProjectFiles(self.project.file_root()).rm(path)
             except OSError as e:
                 if not os.path.exists(path):
                     errors.append(format_html(
@@ -239,13 +224,11 @@ class RenameItemForm(EditItemsForm):
         errors = ErrorList()
         old_name = self.cleaned_data['items'][0]
         new_name = self.cleaned_data['new_name']
+
+        old_path = os.path.join(self.file_dir, old_name)
+        new_path = os.path.join(self.file_dir, new_name)
         try:
-            old_path = os.path.join(self.file_dir, old_name)
-            new_path = os.path.join(self.file_dir, new_name)
-            if settings.STORAGE_TYPE == 'LOCAL':
-                utility.rename_file(old_path, new_path)
-            elif settings.STORAGE_TYPE == 'GCP':
-                ObjectPath(old_path).mv(ObjectPath(new_path))
+            ProjectFiles(self.project.file_root()).rename(old_path, new_path)
         except FileExistsError:
             errors.append(format_html(
                 'Item named <i>{}</i> already exists', new_name))
@@ -316,13 +299,10 @@ class MoveItemsForm(EditItemsForm):
         dest = self.cleaned_data['destination_folder']
         for item in self.cleaned_data['items']:
             path = os.path.join(self.file_dir, item)
+            basename = os.path.basename(path)
+            dst_path = os.path.join(self.dest_dir, basename)
             try:
-                if settings.STORAGE_TYPE == 'LOCAL':
-                    utility.move_items([path], self.dest_dir)
-                elif settings.STORAGE_TYPE == 'GCP':
-                    basename = os.path.basename(path)
-                    dst_path = os.path.join(self.dest_dir, basename)
-                    ObjectPath(path).mv(ObjectPath(dst_path))
+                ProjectFiles(self.project.file_root()).mv(path, dst_path)
             except FileExistsError:
                 errors.append(format_html(
                     'Item named <i>{}</i> already exists in <i>{}</i>',
@@ -452,30 +432,7 @@ class NewProjectVersionForm(forms.ModelForm):
 
         ignored_files = ('SHA256SUMS.txt', 'LICENSE.txt')
 
-        if settings.STORAGE_TYPE == 'LOCAL':
-            os.mkdir(project.file_root())
-            for (directory, subdirs, files) in os.walk(older_file_root):
-                rel_dir = os.path.relpath(directory, older_file_root)
-                destination = os.path.join(current_file_root, rel_dir)
-                for d in subdirs:
-                    try:
-                        os.mkdir(os.path.join(destination, d))
-                    except FileExistsError:
-                        pass
-                for f in files:
-                    # Skip linking files that are automatically generated
-                    # during publication.
-                    if (directory == older_file_root and f in ignored_files):
-                        continue
-                    try:
-                        os.link(os.path.join(directory, f),
-                                os.path.join(destination, f))
-                    except FileExistsError:
-                        pass
-        elif settings.STORAGE_TYPE == 'GCP':
-            ObjectPath(older_file_root).cp_dir(
-                ObjectPath(current_file_root), ignored_files=ignored_files)
-
+        ProjectFiles(project.file_root()).cp_dir(older_file_root, current_file_root, ignored_files=ignored_files)
         return project
 
 

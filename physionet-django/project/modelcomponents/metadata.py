@@ -11,6 +11,7 @@ from html2text import html2text
 from physionet.gcp import ObjectPath
 from project.modelcomponents.access import ACCESS_POLICIES, AnonymousAccess
 from project.modelcomponents.fields import SafeHTMLField
+from project.projectfiles import ProjectFiles
 from project.utility import LinkFilter, get_file_info, get_directory_info, list_items
 from project.validators import validate_version, validate_title, validate_topic
 
@@ -339,11 +340,7 @@ class Metadata(models.Model):
         project directory, replacing any existing file with that name.
         """
         fname = os.path.join(self.file_root(), 'LICENSE.txt')
-        if settings.STORAGE_TYPE == 'LOCAL':
-            with open(fname, 'w') as outfile:
-                outfile.write(self.license_content(fmt='text'))
-        elif settings.STORAGE_TYPE == 'GCP':
-            ObjectPath(fname).put(self.license_content(fmt='text'))
+        ProjectFiles(self.file_root()).fwrite(fname, self.license_content(fmt='text'))
 
     def get_directory_content(self, subdir=''):
         """
@@ -351,40 +348,7 @@ class Metadata(models.Model):
         the project's file root.
         """
         inspect_dir = self.get_inspect_dir(subdir)
-
-        if settings.STORAGE_TYPE == 'LOCAL':
-            # Get folder to inspect if valid
-            file_names, dir_names = list_items(inspect_dir)
-            display_files, display_dirs = [], []
-
-            # Files require desciptive info and download links
-            for file in file_names:
-                file_info = get_file_info(os.path.join(inspect_dir, file))
-                file_info.url = self.file_display_url(subdir=subdir, file=file)
-                file_info.raw_url = self.file_url(subdir=subdir, file=file)
-                file_info.download_url = file_info.raw_url + '?download'
-                display_files.append(file_info)
-
-            # Directories require links
-            for dir_name in dir_names:
-                dir_info = get_directory_info(os.path.join(inspect_dir, dir_name))
-                dir_info.full_subdir = os.path.join(subdir, dir_name)
-                display_dirs.append(dir_info)
-
-            return display_files, display_dirs
-
-        elif settings.STORAGE_TYPE == 'GCP':
-            display_files, display_dirs = ObjectPath(inspect_dir).list_dir()
-            for file in display_files:
-                file.url = self.file_display_url(subdir=subdir, file=file.name)
-                obj_path = os.path.join(inspect_dir, file.name)
-                file.raw_url = ObjectPath(obj_path).url()
-                file.download_url = file.raw_url
-
-            for dir in display_dirs:
-                dir.full_subdir = os.path.join(subdir, dir.name)
-
-            return display_files, display_dirs
+        return ProjectFiles(self.file_root()).get_project_directory_content(inspect_dir, subdir, self.file_display_url, self.file_url)
 
 
     def schema_org_resource_type(self):

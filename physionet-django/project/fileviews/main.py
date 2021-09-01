@@ -1,16 +1,15 @@
-from errno import ENAMETOOLONG
 import os
+from errno import ENAMETOOLONG
 
-from django.conf import settings
 from django.http import Http404
 from django.shortcuts import redirect
 
-from physionet.gcp import ObjectPath
 from project.fileviews.base import RawFileView
 from project.fileviews.csv import CSVFileView, GzippedCSVFileView
 from project.fileviews.image import ImageFileView
 from project.fileviews.inline import InlineFileView
 from project.fileviews.text import TextFileView
+from project.projectfiles import ProjectFiles
 
 _suffixes = {
     '.bmp': ImageFileView,
@@ -37,12 +36,7 @@ def display_project_file(request, project, file_path):
     try:
         abs_path = os.path.join(project.file_root(), file_path)
 
-        if settings.STORAGE_TYPE == 'LOCAL':
-            infile = open(abs_path, 'rb')
-            size = os.stat(infile.fileno()).st_size
-        elif settings.STORAGE_TYPE == 'GCP':
-            infile = ObjectPath(abs_path).open('rb')
-            size = infile.size
+        infile, size = ProjectFiles(project.file_root()).open(abs_path)
     except IsADirectoryError:
         return redirect(request.path + '/')
     except (FileNotFoundError, NotADirectoryError):
