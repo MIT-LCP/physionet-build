@@ -202,11 +202,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         Remove files of this project
         """
-        if settings.STORAGE_TYPE == 'LOCAL':
-            clear_directory(self.file_root())
-            self.remove_zip()
-        elif settings.STORAGE_TYPE == 'GCP':
-            ObjectPath(self.file_root()).rm_dir()
+        ProjectFiles(self.file_root()).rm_dir(self.file_root(), remove_zip=self.remove_zip)
         self.set_storage_info()
 
     def deprecate_files(self, delete_files):

@@ -7,7 +7,7 @@ from storages.backends.gcloud import GoogleCloudStorage
 
 from physionet.settings.base import StorageTypes
 from project.utility import remove_items, write_uploaded_file, rename_file, move_items, list_items, get_file_info, \
-    get_directory_info, readable_size, FileInfo, DirectoryInfo
+    get_directory_info, readable_size, FileInfo, DirectoryInfo, clear_directory
 
 
 class BaseProjectFiles(abc.ABC):
@@ -55,6 +55,10 @@ class BaseProjectFiles(abc.ABC):
 
     @abc.abstractmethod
     def download_url(self, project, path):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def rm_dir(self, path, remove_zip):
         raise NotImplementedError
 
 
@@ -138,6 +142,10 @@ class LocalProjectFiles(BaseProjectFiles):
     def download_url(self, project, path):
         return self.raw_url(project, path) + '?download'
 
+    def rm_dir(self, path, remove_zip):
+        clear_directory(path)
+        remove_zip()
+
 
 class GCSProjectFiles(BaseProjectFiles):
     def __init__(self, project_path):
@@ -160,11 +168,15 @@ class GCSProjectFiles(BaseProjectFiles):
         self._gcs.bucket.blob(path).upload_from_string('')
 
     def rm(self, path):
-        path = self._local_filesystem_path_to_gcs_path(path)
         try:
-            self._gcs.bucket.blob(path).delete()
+            self._gcs.bucket.blob(self._local_filesystem_path_to_gcs_path(path)).delete()
         except NotFound:
             pass
+
+        self.rm_dir(path, None)
+
+    def rm_dir(self, path, remove_zip):
+        path = self._local_filesystem_path_to_gcs_path(path)
 
         blobs = list(self._gcs.bucket.list_blobs(prefix=path))
         self._gcs.bucket.delete_blobs(blobs=blobs)
