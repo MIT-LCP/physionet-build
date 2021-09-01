@@ -92,12 +92,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         Bytes of storage used by main files and compressed file if any
         """
-        if settings.STORAGE_TYPE == 'LOCAL':
-            main = get_tree_size(self.file_root())
-            compressed = os.path.getsize(self.zip_name(full=True)) if os.path.isfile(self.zip_name(full=True)) else 0
-            return main, compressed
-        elif settings.STORAGE_TYPE == 'GCP':
-            return ObjectPath(self.file_root()).dir_size(), 0
+        return ProjectFiles('').storage_used(self.file_root(), self.zip_name(full=True))
 
     def set_storage_info(self):
         """

@@ -8,7 +8,7 @@ from storages.backends.gcloud import GoogleCloudStorage
 
 from physionet.settings.base import StorageTypes
 from project.utility import remove_items, write_uploaded_file, rename_file, move_items, list_items, get_file_info, \
-    get_directory_info, readable_size, FileInfo, DirectoryInfo, clear_directory
+    get_directory_info, readable_size, FileInfo, DirectoryInfo, clear_directory, get_tree_size
 
 
 class BaseProjectFiles(abc.ABC):
@@ -78,6 +78,10 @@ class BaseProjectFiles(abc.ABC):
         This is the parent directory of the main and special file
         directories.
         """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def storage_used(self, path, zip_name):
         raise NotImplementedError
 
 
@@ -178,6 +182,11 @@ class LocalProjectFiles(BaseProjectFiles):
             return os.path.join(klass.PROTECTED_FILE_ROOT, slug)
         else:
             return os.path.join(klass.PUBLIC_FILE_ROOT, slug)
+
+    def storage_used(self, path, zip_name):
+        main = get_tree_size(path)
+        compressed = os.path.getsize(zip_name) if os.path.isfile(zip_name) else 0
+        return main, compressed
 
 
 class GCSProjectFiles(BaseProjectFiles):
@@ -311,11 +320,15 @@ class GCSProjectFiles(BaseProjectFiles):
         # Copy ...
         self.cp_dir(active_project_path, published_project_path)
 
-
-
     def get_project_file_root(self, slug, access_policy, klass):
         # the bucket name should be shorter than 63 characters
         return f'hdn-{slug}'[:63]
+
+    def storage_used(self, path, zip_name):
+        path = self._dir_path(self._local_filesystem_path_to_gcs_path(path))
+        iterator = self._gcs.bucket.list_blobs(prefix=path)
+
+        return sum([obj.size for obj in iterator]), 0
 
     def _url(self, path):
         return self._gcs.url(path)
