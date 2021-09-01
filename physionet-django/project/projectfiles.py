@@ -1,5 +1,6 @@
 import abc
 import os
+import shutil
 
 from django.conf import settings
 from google.cloud.exceptions import NotFound
@@ -59,6 +60,24 @@ class BaseProjectFiles(abc.ABC):
 
     @abc.abstractmethod
     def rm_dir(self, path, remove_zip):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def rmtree(self, path):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def publish(self, active_project_path, published_project_path):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_project_file_root(self, slug, access_policy, klass):
+        """
+        Root directory containing the published project's files.
+
+        This is the parent directory of the main and special file
+        directories.
+        """
         raise NotImplementedError
 
 
@@ -145,6 +164,20 @@ class LocalProjectFiles(BaseProjectFiles):
     def rm_dir(self, path, remove_zip):
         clear_directory(path)
         remove_zip()
+
+    def rmtree(self, path):
+        shutil.rmtree(path)
+
+    def publish(self, active_project_path, published_project_path):
+        if not os.path.isdir(published_project_path):
+            os.mkdir(published_project_path)
+        os.rename(active_project_path, published_project_path)
+
+    def get_project_file_root(self, slug, access_policy, klass):
+        if access_policy:
+            return os.path.join(klass.PROTECTED_FILE_ROOT, slug)
+        else:
+            return os.path.join(klass.PUBLIC_FILE_ROOT, slug)
 
 
 class GCSProjectFiles(BaseProjectFiles):
@@ -234,6 +267,7 @@ class GCSProjectFiles(BaseProjectFiles):
         self._gcs.bucket.delete_blob(source_path)
 
     def cp_dir(self, source_path, target_path, ignored_files=None):
+        bucket_path = target_path
         source_path = self._dir_path(self._local_filesystem_path_to_gcs_path(source_path))
         target_path = self._dir_path(self._local_filesystem_path_to_gcs_path(target_path))
 
@@ -249,7 +283,10 @@ class GCSProjectFiles(BaseProjectFiles):
                     if blob.name in ignored_files:
                         continue
                     new_name = blob.name.replace(source_path, target_path, 1)
-                    self._gcs.bucket.copy_blob(blob, self._gcs.bucket, new_name=new_name)
+                    other_bucket = GoogleCloudStorage(
+                        bucket_name=os.path.normpath(bucket_path.split('/', 1)[0])
+                    ).bucket
+                    self._gcs.bucket.copy_blob(blob, other_bucket, new_name=new_name)
         except ValueError:
             pass
 
@@ -257,8 +294,28 @@ class GCSProjectFiles(BaseProjectFiles):
         path_to_file = self._local_filesystem_path_to_gcs_path(os.path.join(project.file_root(), path))
         return self._url(path_to_file)
 
+    def rmtree(self, path):
+        self.rm_dir(path, remove_zip=None)
+
     def download_url(self, project, path):
         return self.raw_url(project, path)
+
+    def publish(self, active_project_path, published_project_path):
+        # Create bucket here...
+        bucket_name = published_project_path.split('/', 1)[0]
+        bucket = self._gcs.client.bucket(bucket_name)
+        bucket.location = settings.GCP_BUCKET_LOCATION
+        bucket.iam_configuration.uniform_bucket_level_access_enabled = True
+        self._gcs.client.create_bucket(bucket)
+
+        # Copy ...
+        self.cp_dir(active_project_path, published_project_path)
+
+
+
+    def get_project_file_root(self, slug, access_policy, klass):
+        # the bucket name should be shorter than 63 characters
+        return f'hdn-{slug}'[:63]
 
     def _url(self, path):
         return self._gcs.url(path)

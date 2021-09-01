@@ -19,6 +19,7 @@ from project.modelcomponents.metadata import Contact, Metadata, PublishedPublica
 from project.modelcomponents.publishedproject import PublishedProject
 from project.modelcomponents.submission import CopyeditLog, EditLog, SubmissionInfo
 from project.modelcomponents.unpublishedproject import UnpublishedProject
+from project.projectfiles import ProjectFiles
 from project.validators import validate_subdir
 
 
@@ -145,6 +146,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         versions of this CoreProject.  (The QuotaManager should ensure
         that the same file is not counted twice in this total.)
         """
+        # TODO:
         if settings.STORAGE_TYPE == 'LOCAL':
             current = self.quota_manager().bytes_used
         elif settings.STORAGE_TYPE == 'GCP':
@@ -443,10 +445,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         Delete the project file directory
         """
-        if settings.STORAGE_TYPE == 'LOCAL':
-            shutil.rmtree(self.file_root())
-        elif settings.STORAGE_TYPE == 'GCP':
-            ObjectPath(self.file_root()).rm_dir()
+        ProjectFiles(self.file_root()).rmtree(self.file_root())
 
     def publish(self, slug=None, make_zip=True, title=None):
         """
@@ -471,15 +470,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
         # Create project file root if this is first version or the first
         # version with a different access policy
-        if settings.STORAGE_TYPE == 'LOCAL':
-            if not os.path.isdir(published_project.project_file_root()):
-                os.mkdir(published_project.project_file_root())
-            os.rename(self.file_root(), published_project.file_root())
-        elif settings.STORAGE_TYPE == 'GCP':
-            src = ObjectPath(self.file_root())
-            dst = ObjectPath(published_project.file_root())
-            dst.create_bucket_if_needed()
-            src.cp_dir(dst)
+
+        active_project_path = self.file_root()
+        published_project_path = published_project.file_root()
+        ProjectFiles(self.file_root()).publish(active_project_path, published_project_path)
 
         try:
             with transaction.atomic():
