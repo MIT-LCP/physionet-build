@@ -49,6 +49,14 @@ class BaseProjectFiles(abc.ABC):
     def cp_dir(self, source_path, target_path, ignored_files=None):
         raise NotImplementedError
 
+    @abc.abstractmethod
+    def raw_url(self, project, path):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def download_url(self, project, path):
+        raise NotImplementedError
+
 
 class LocalProjectFiles(BaseProjectFiles):
     def __init__(self, project_path):
@@ -123,6 +131,12 @@ class LocalProjectFiles(BaseProjectFiles):
                             os.path.join(destination, f))
                 except FileExistsError:
                     pass
+
+    def raw_url(self, project, path):
+        return project.file_url('', path)
+
+    def download_url(self, project, path):
+        return self.raw_url(project, path) + '?download'
 
 
 class GCSProjectFiles(BaseProjectFiles):
@@ -226,6 +240,13 @@ class GCSProjectFiles(BaseProjectFiles):
                     self._gcs.bucket.copy_blob(blob, self._gcs.bucket, new_name=new_name)
         except ValueError:
             pass
+
+    def raw_url(self, project, path):
+        path_to_file = self._local_filesystem_path_to_gcs_path(os.path.join(project.file_root(), path))
+        return self._url(path_to_file)
+
+    def download_url(self, project, path):
+        return self.raw_url(project, path)
 
     def _url(self, path):
         return self._gcs.url(path)

@@ -7,6 +7,7 @@ from django.urls import reverse
 
 from physionet.gcp import ObjectPath
 from physionet.utility import file_content_type
+from project.projectfiles import ProjectFiles
 from project.utility import get_dir_breadcrumbs
 
 MAX_PLAIN_SIZE = 5 * 1024 * 1024
@@ -91,10 +92,7 @@ class FileView:
         parameter indicating that we should try to force the browser
         to save the file rather than displaying it.
         """
-        if settings.STORAGE_TYPE == 'LOCAL':
-            return self._url + '?download'
-        elif settings.STORAGE_TYPE == 'GCP':
-            return self.raw_url()
+        return ProjectFiles(self.project.file_root()).download_url(self.project, self.path)
 
     def raw_url(self):
         """
@@ -104,10 +102,7 @@ class FileView:
         according to the browser's default settings for the
         corresponding content type.
         """
-        if settings.STORAGE_TYPE == 'LOCAL':
-            return self._url
-        elif settings.STORAGE_TYPE == 'GCP':
-            return ObjectPath(os.path.join(self.project.file_root(), self.path)).url()
+        return ProjectFiles(self.project.file_root()).raw_url(self.project, self.path)
 
     def size(self):
         """
