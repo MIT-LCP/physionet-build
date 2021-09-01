@@ -16,6 +16,7 @@ from physionet.gcp import ObjectPath
 from user.models import AssociatedEmail, User, Profile, CredentialApplication, CloudInformation
 from user.trainingreport import (find_training_report_url,
                                  TrainingCertificateError)
+from user.userfiles import UserFiles
 from user.widgets import ProfilePhotoInput
 from user.validators import UsernameValidator, validate_name
 
@@ -267,7 +268,7 @@ class ProfileForm(forms.ModelForm):
         # Save the existing file path in case it needs to be deleted.
         # After is_valid runs, the instance photo is already updated.
         if self.instance.photo:
-            self.old_photo_path = self.instance.photo.path
+            self.old_photo_path = UserFiles().get_photo_path(self.instance)
 
         return data
 
@@ -275,7 +276,7 @@ class ProfileForm(forms.ModelForm):
         # Delete the old photo if the user is uploading a new photo, and
         # they already had one (before saving the new photo)
         if 'photo' in self.changed_data and hasattr(self, 'old_photo_path'):
-            os.remove(self.old_photo_path)
+            UserFiles().remove_photo(self.old_photo_path)
         super(ProfileForm, self).save()
 
 

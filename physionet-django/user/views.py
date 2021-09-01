@@ -40,6 +40,7 @@ from project.models import Author, License, PublishedProject, DUASignature
 from notification.utility import (process_credential_complete,
                                   credential_application_request,
                                   get_url_prefix, notify_account_registration)
+from user.userfiles import UserFiles
 
 logger = logging.getLogger(__name__)
 
@@ -444,11 +445,10 @@ def profile_photo(_request, username):
     """
     try:
         user = User.objects.get(username__iexact=username)
-        if settings.STORAGE_TYPE == 'GCP':
-            return redirect(user.profile.photo.url)
-        return utility.serve_file(user.profile.photo.path)
     except ObjectDoesNotExist:
         raise Http404()
+
+    return UserFiles().serve_photo(user)
 
 
 def register(request):
