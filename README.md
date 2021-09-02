@@ -49,7 +49,9 @@ To access a debug prompt raised using `breakpoint()`:
 - Find the "CONTAINER_ID" for the dev_1 container
 - In a new shell, attach to the container with `docker attach CONTAINER_ID`
 
-The debugger should now be available in the new shell.
+The debugger should now be available in the new shell. 
+
+- To detach from the container, press "Control+p, "Control+q" in a sequence. Note: "Control+c" will stop the container dev_1. 
 
 ## Contribution Guidelines
 
