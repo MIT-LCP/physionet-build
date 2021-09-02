@@ -90,7 +90,7 @@ class FileView:
         parameter indicating that we should try to force the browser
         to save the file rather than displaying it.
         """
-        return ProjectFiles(self.project.file_root()).download_url(self.project, self.path)
+        return ProjectFiles().download_url(self.project, self.path)
 
     def raw_url(self):
         """
@@ -100,7 +100,7 @@ class FileView:
         according to the browser's default settings for the
         corresponding content type.
         """
-        return ProjectFiles(self.project.file_root()).raw_url(self.project, self.path)
+        return ProjectFiles().raw_url(self.project, self.path)
 
     def size(self):
         """

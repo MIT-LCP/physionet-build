@@ -1,6 +1,5 @@
 import os
 
-from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
@@ -8,11 +7,10 @@ from django.utils import timezone
 from django.utils.html import format_html
 from html2text import html2text
 
-from physionet.gcp import ObjectPath
 from project.modelcomponents.access import ACCESS_POLICIES, AnonymousAccess
 from project.modelcomponents.fields import SafeHTMLField
 from project.projectfiles import ProjectFiles
-from project.utility import LinkFilter, get_file_info, get_directory_info, list_items
+from project.utility import LinkFilter
 from project.validators import validate_version, validate_title, validate_topic
 
 
@@ -340,7 +338,7 @@ class Metadata(models.Model):
         project directory, replacing any existing file with that name.
         """
         fname = os.path.join(self.file_root(), 'LICENSE.txt')
-        ProjectFiles(self.file_root()).fwrite(fname, self.license_content(fmt='text'))
+        ProjectFiles().fwrite(fname, self.license_content(fmt='text'))
 
     def get_directory_content(self, subdir=''):
         """
@@ -348,8 +346,7 @@ class Metadata(models.Model):
         the project's file root.
         """
         inspect_dir = self.get_inspect_dir(subdir)
-        return ProjectFiles(self.file_root()).get_project_directory_content(inspect_dir, subdir, self.file_display_url, self.file_url)
-
+        return ProjectFiles().get_project_directory_content(inspect_dir, subdir, self.file_display_url, self.file_url)
 
     def schema_org_resource_type(self):
         """

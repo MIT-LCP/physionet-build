@@ -46,7 +46,7 @@ Static files are all public, so just use the `{% static %}` tag in the django te
 
 Media files are not inherently public. For media assets that require access control, create a url endpoint for each asset, and process the authorization in the view (or middleware). After validating:
 - If using local FS, redirect to nginx.
-- If using S3, get the signed url from the backend and place it into the template.
+- If using GCS, get the signed url from the backend and place it into the template.
 
 eg. See `def profile_photo`.
 

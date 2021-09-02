@@ -47,6 +47,7 @@ services:
     environment:
       <<: *default-env
       DB_NAME: physionet_test
+      GCS_HOST: gcs
     env_file: .env.example
     command: ['sleep']
     volumes:
@@ -70,3 +71,14 @@ services:
     networks:
       - dev
       - test
+    ports:
+      - 5432:5432
+
+  gcs:
+    image: fsouza/fake-gcs-server
+    command: ["-scheme", "http", "-port", "4443", "-external-url", "http://0.0.0.0:4443", "-backend", "memory"]
+    networks:
+      - dev
+      - test
+    ports:
+      - 4443:4443

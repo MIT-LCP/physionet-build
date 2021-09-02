@@ -12,7 +12,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import strip_tags
 
-from physionet.gcp import ObjectPath
+from physionet.settings.base import StorageTypes
 from project.modelcomponents.archivedproject import ArchivedProject
 from project.modelcomponents.authors import PublishedAffiliation, PublishedAuthor
 from project.modelcomponents.metadata import Contact, Metadata, PublishedPublication, PublishedReference
@@ -37,7 +37,7 @@ def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
 
     published_project.make_checksum_file()
 
-    if settings.STORAGE_TYPE == 'LOCAL':
+    if settings.STORAGE_TYPE == StorageTypes.LOCAL:
         quota = published_project.quota_manager()
         published_project.incremental_storage_size = quota.bytes_used
         published_project.save(update_fields=['incremental_storage_size'])
@@ -45,7 +45,7 @@ def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
     published_project.set_storage_info()
 
     # Make the files read only
-    if settings.STORAGE_TYPE == 'LOCAL':
+    if settings.STORAGE_TYPE == StorageTypes.LOCAL:
         file_root = published_project.project_file_root()
         for root, dirs, files in os.walk(file_root):
             for f in files:
@@ -84,8 +84,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     MAX_SUBMITTING_PROJECTS = 10
     INDIVIDUAL_FILE_SIZE_LIMIT = 10 * 1024**3
     # Where all the active project files are kept
+
+    # TODO: move to projectfiles
     FILE_ROOT = os.path.join(
-        (settings.MEDIA_ROOT if settings.STORAGE_TYPE == 'LOCAL' else settings.GCP_STORAGE_BUCKET_NAME),
+        (settings.MEDIA_ROOT if settings.STORAGE_TYPE == StorageTypes.LOCAL else settings.GCP_STORAGE_BUCKET_NAME),
         'active-projects'
     )
 
@@ -146,11 +148,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         versions of this CoreProject.  (The QuotaManager should ensure
         that the same file is not counted twice in this total.)
         """
-        # TODO:
-        if settings.STORAGE_TYPE == 'LOCAL':
+        if settings.STORAGE_TYPE == StorageTypes.LOCAL:
             current = self.quota_manager().bytes_used
-        elif settings.STORAGE_TYPE == 'GCP':
-            current = ObjectPath(self.file_root()).dir_size()
+        elif settings.STORAGE_TYPE == StorageTypes.GCP:
+            current = ProjectFiles().storage_used(self.file_root(), None)[0]
 
         published = self.core_project.total_published_size
         return current + published
@@ -445,7 +446,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         Delete the project file directory
         """
-        ProjectFiles(self.file_root()).rmtree(self.file_root())
+        ProjectFiles().rmtree(self.file_root())
 
     def publish(self, slug=None, make_zip=True, title=None):
         """
@@ -471,9 +472,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         # Create project file root if this is first version or the first
         # version with a different access policy
 
-        active_project_path = self.file_root()
-        published_project_path = published_project.file_root()
-        ProjectFiles(self.file_root()).publish(active_project_path, published_project_path)
+        ProjectFiles().publish(self, published_project)
 
         try:
             with transaction.atomic():
@@ -562,8 +561,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                     published_project.file_root(), make_zip,
                     verbose_name='Read Only Files - {}'.format(published_project))
 
-                if settings.STORAGE_TYPE == 'GCP':
-                    ObjectPath(self.file_root()).rm_dir()
+                if settings.STORAGE_TYPE == StorageTypes.GCP:
+                    ProjectFiles().rm_dir(self.file_root())
 
                 # Remove the ActiveProject
                 self.delete()
@@ -572,8 +571,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
         except:
             # Move the files to the active project directory
-            if settings.STORAGE_TYPE == 'LOCAL':
+            if settings.STORAGE_TYPE == StorageTypes.LOCAL:
                 os.rename(published_project.file_root(), self.file_root())
-            elif settings.STORAGE_TYPE == 'GCP':
-                ObjectPath(published_project.file_root()).rm_dir()
+            elif settings.STORAGE_TYPE == StorageTypes.GCP:
+                ProjectFiles().rm_dir(published_project.file_root())
             raise

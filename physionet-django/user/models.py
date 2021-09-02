@@ -21,6 +21,7 @@ from django.core.validators import (EmailValidator, validate_integer,
 from django.utils.translation import ugettext as _
 
 from user import validators
+from user.userfiles import UserFiles
 
 logger = logging.getLogger(__name__)
 
@@ -611,7 +612,7 @@ class Profile(models.Model):
         Delete the photo
         """
         if self.photo:
-            os.remove(self.photo.path)
+            UserFiles().remove_photo(UserFiles().get_photo_path(self))
             self.photo = None
             self.save()
 

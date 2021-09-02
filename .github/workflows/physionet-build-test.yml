@@ -17,6 +17,7 @@ jobs:
     container: debian:10
     env:
       DJANGO_SETTINGS_MODULE: physionet.settings.settings
+      TEST_GCS_ENDPOINT: http://localhost:4443
     defaults:
       run:
         shell: bash
@@ -66,6 +67,9 @@ jobs:
           service postgresql start
           sudo -u postgres psql -c "create user physionet with superuser password 'password';" -U postgres
           sudo -u postgres psql -c "create database physionet;" -U postgres
+
+      - name: Install and setup GCS fake server
+        run: docker run -d --name gcs -p 4443:4443 fsouza/fake-gcs-server
 
       - name: Install and setup wfdb
         run: |

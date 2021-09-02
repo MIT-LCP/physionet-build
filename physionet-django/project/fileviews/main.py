@@ -36,7 +36,7 @@ def display_project_file(request, project, file_path):
     try:
         abs_path = os.path.join(project.file_root(), file_path)
 
-        infile, size = ProjectFiles(project.file_root()).open(abs_path)
+        infile, size = ProjectFiles().open(abs_path)
     except IsADirectoryError:
         return redirect(request.path + '/')
     except (FileNotFoundError, NotADirectoryError):
