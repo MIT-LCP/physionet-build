@@ -69,7 +69,10 @@ jobs:
           sudo -u postgres psql -c "create database physionet;" -U postgres
 
       - name: Install and setup GCS fake server
-        run: docker run -d --name gcs -p 4443:4443 fsouza/fake-gcs-server
+        run: |
+          wget https://github.com/fsouza/fake-gcs-server/releases/download/v1.30.1/fake-gcs-server_1.30.1_Linux_amd64.tar.gz
+          tar -xf fake-gcs-server_1.30.1_Linux_amd64.tar.gz
+          ./fake-gcs-server -scheme http -port 4443 -external-url http://0.0.0.0:4443 -backend memory &
 
       - name: Install and setup wfdb
         run: |
