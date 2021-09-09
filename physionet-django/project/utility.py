@@ -189,7 +189,8 @@ def clear_directory(directory):
     """
     Delete all files and folders in a directory.
     """
-    remove_items(os.path.join(directory, i) for i in os.listdir(directory))
+    for i in os.listdir(directory):
+        remove_items([os.path.join(directory, i)])
 
 def rename_file(old_path, new_path):
     """
