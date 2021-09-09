@@ -135,11 +135,11 @@ class GCSObject:
         if self.is_dir():
             self._cp_dir(gcs_obj, ignored_files=None)
         else:
-            self._cp_file(gcs_obj)
+            self.bucket.copy_blob(self.blob, gcs_obj.bucket, new_name=gcs_obj.name)
         self.rm()
 
     def _cp_file(self, gcs_obj):
-        self.bucket.copy_blob(self.blob, gcs_obj.bucket, new_name=self.blob.name.replace(self.name, gcs_obj.name, 1))
+        self.bucket.copy_blob(self.blob, gcs_obj.bucket, new_name=gcs_obj.name + self.blob.name.split('/')[-1])
 
     def _cp_dir(self, gcs_obj, ignored_files):
         if ignored_files is None:
@@ -154,7 +154,7 @@ class GCSObject:
                 self.bucket.copy_blob(
                     blob,
                     gcs_obj.bucket,
-                    new_name=blob.name.replace(self.name, gcs_obj.name, 1),
+                    new_name=gcs_obj.name + ''.join(blob.name.split('/', 2)[2:]),
                 )
         except ValueError:
             pass

@@ -49,10 +49,13 @@ class GCSProjectFiles(BaseProjectFiles):
         gcs_obj.rename(GCSObject(target_path))
 
     def mv(self, source_path, target_path):
-        source_path = self._dir_path(source_path)
+        source_path = source_path
         target_path = self._dir_path(target_path)
 
-        GCSObject(source_path).mv(target_path)
+        try:
+            GCSObject(source_path).mv(GCSObject(target_path))
+        except:
+            GCSObject(self._dir_path(source_path)).mv(GCSObject(target_path))
 
     def open(self, path, mode='rb'):
         infile = GCSObject(path).open(mode)
