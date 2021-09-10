@@ -1,6 +1,8 @@
+import hashlib
 import os
 import shutil
 
+from physionet.utility import zip_dir, sorted_tree_files
 from project.projectfiles.base import BaseProjectFiles
 from project.utility import remove_items, write_uploaded_file, rename_file, move_items, list_items, get_file_info, \
     get_directory_info, clear_directory, get_tree_size
@@ -105,3 +107,31 @@ class LocalProjectFiles(BaseProjectFiles):
         main = get_tree_size(path)
         compressed = os.path.getsize(zip_name) if os.path.isfile(zip_name) else 0
         return main, compressed
+
+    def make_zip(self, project):
+        fname = project.zip_name(full=True)
+        if os.path.isfile(fname):
+            os.remove(fname)
+
+        zip_dir(zip_name=fname, target_dir=project.file_root(), enclosing_folder=project.slugged_label())
+
+        project.compressed_storage_size = os.path.getsize(fname)
+        project.save()
+
+    def make_checksum_file(self, project):
+        fname = os.path.join(project.file_root(), 'SHA256SUMS.txt')
+        if os.path.isfile(fname):
+            os.remove(fname)
+
+        with open(fname, 'w') as outfile:
+            for f in sorted_tree_files(project.file_root()):
+                if f != 'SHA256SUMS.txt':
+                    h = hashlib.sha256()
+                    with open(os.path.join(project.file_root(), f), 'rb') as fp:
+                        block = fp.read(h.block_size)
+                        while block:
+                            h.update(block)
+                            block = fp.read(h.block_size)
+                    outfile.write('{} {}\n'.format(h.hexdigest(), f))
+
+        project.set_storage_info()

@@ -86,3 +86,13 @@ class BaseProjectFiles(abc.ABC):
     def storage_used(self, path, zip_name):
         """Total storage used in bytes."""
         raise NotImplementedError
+
+    @abc.abstractmethod
+    def make_zip(self, project):
+        """Make a (new) zip file of the main files."""
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def make_checksum_file(self, project):
+        """Make the checksums file for the main files."""
+        raise NotImplementedError

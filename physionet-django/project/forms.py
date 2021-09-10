@@ -11,6 +11,7 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.html import format_html
 
+from physionet.gcs import GCSObject
 from physionet.settings.base import StorageTypes
 from project import utility
 from project import validators
@@ -340,9 +341,7 @@ class CreateProjectForm(forms.ModelForm):
             is_submitting=True, is_corresponding=True)
         author.import_profile_info()
         # Create file directory
-        # TODO: move to projectfiles
-        if settings.STORAGE_TYPE == StorageTypes.LOCAL:
-            os.mkdir(project.file_root())
+        ProjectFiles().mkdir(project.file_root())
         return project
 
 

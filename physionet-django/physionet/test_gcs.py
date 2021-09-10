@@ -184,3 +184,19 @@ class TestGCSObject(TestCase):
         # THEN
         self.assertEqual(gcs_object_2.size(), len('content'))
         self.assertEqual(gcs_object.exists(), False)
+
+    def test_rename_file(self):
+        # GIVEN
+        gcs_object = self._monkeypatch_gcsobject(GCSObject('test/file.jpg'))
+        gcs_object.client.create_bucket('test')
+        gcs_object.upload_from_string('content')
+
+        gcs_object_renamed = self._monkeypatch_gcsobject(GCSObject('test/renamed.jpg'))
+
+        # WHEN
+        gcs_object.rename(gcs_object_renamed)
+
+        # THEN
+        self.assertFalse(gcs_object.exists())
+        self.assertTrue(gcs_object_renamed.exists())
+        self.assertEqual(gcs_object_renamed.size(), len('content'))

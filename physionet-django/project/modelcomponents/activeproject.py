@@ -85,7 +85,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     INDIVIDUAL_FILE_SIZE_LIMIT = 10 * 1024**3
     # Where all the active project files are kept
 
-    # TODO: move to projectfiles
     FILE_ROOT = os.path.join(
         (settings.MEDIA_ROOT if settings.STORAGE_TYPE == StorageTypes.LOCAL else settings.GCP_STORAGE_BUCKET_NAME),
         'active-projects'

@@ -1,4 +1,3 @@
-import hashlib
 import os
 import shutil
 from distutils.version import StrictVersion
@@ -8,7 +7,6 @@ from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
 
-from physionet.utility import sorted_tree_files, zip_dir
 from project.modelcomponents.access import DataAccessRequest, DataAccessRequestReviewer, DUASignature
 from project.modelcomponents.fields import SafeHTMLField
 from project.modelcomponents.metadata import Metadata, PublishedTopic
@@ -121,19 +119,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         Make a (new) zip file of the main files.
         """
-        if settings.STORAGE_TYPE != 'LOCAL':
-            # creating a non-local zip is currently not supported
-            return
-
-        fname = self.zip_name(full=True)
-        if os.path.isfile(fname):
-            os.remove(fname)
-
-        zip_dir(zip_name=fname, target_dir=self.file_root(),
-            enclosing_folder=self.slugged_label())
-
-        self.compressed_storage_size = os.path.getsize(fname)
-        self.save()
+        return ProjectFiles().make_zip(project=self)
 
     def remove_zip(self):
         fname = self.zip_name(full=True)
@@ -156,26 +142,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         Make the checksums file for the main files
         """
-        if settings.STORAGE_TYPE != 'LOCAL':
-            # creating non-local checksums is currently not supported
-            return
-
-        fname = os.path.join(self.file_root(), 'SHA256SUMS.txt')
-        if os.path.isfile(fname):
-            os.remove(fname)
-
-        with open(fname, 'w') as outfile:
-            for f in sorted_tree_files(self.file_root()):
-                if f != 'SHA256SUMS.txt':
-                    h = hashlib.sha256()
-                    with open(os.path.join(self.file_root(), f), 'rb') as fp:
-                        block = fp.read(h.block_size)
-                        while block:
-                            h.update(block)
-                            block = fp.read(h.block_size)
-                    outfile.write('{} {}\n'.format(h.hexdigest(), f))
-
-        self.set_storage_info()
+        return ProjectFiles().make_checksum_file(self)
 
     def remove_files(self):
         """

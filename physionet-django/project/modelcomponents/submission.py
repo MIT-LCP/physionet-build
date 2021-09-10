@@ -1,9 +1,7 @@
-from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
-from physionet.settings.base import StorageTypes
 from project.quota import DemoQuotaManager
 
 

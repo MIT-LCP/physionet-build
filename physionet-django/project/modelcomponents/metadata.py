@@ -79,8 +79,6 @@ class Metadata(models.Model):
     class Meta:
         abstract = True
 
-    # TODO: Add abstractmethod is_published
-
     def author_contact_info(self, only_submitting=False):
         """
         Get the names and emails of the project's authors.

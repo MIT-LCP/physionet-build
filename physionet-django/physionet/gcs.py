@@ -133,35 +133,50 @@ class GCSObject:
 
     def rename(self, gcs_obj):
         if self.is_dir():
-            self._cp_dir(gcs_obj, ignored_files=None)
+            self.cp_dir_content(gcs_obj, ignored_files=None)
+            self.rm()
         else:
-            self.bucket.copy_blob(self.blob, gcs_obj.bucket, new_name=gcs_obj.name)
-        self.rm()
+            self.bucket.rename_blob(self.blob, new_name=gcs_obj.name)
+
+    def is_dir(self):
+        """Check if the object is a directory"""
+        return self.name.endswith('/')
+
+    def get_filename(self):
+        if self.is_dir():
+            return self.name.split('/')[-2] + '/'
+        return self.name.split('/')[-1]
 
     def _cp_file(self, gcs_obj):
-        self.bucket.copy_blob(self.blob, gcs_obj.bucket, new_name=gcs_obj.name + self.blob.name.split('/')[-1])
+        self.bucket.copy_blob(self.blob, gcs_obj.bucket, new_name=gcs_obj.name + self.get_filename())
 
-    def _cp_dir(self, gcs_obj, ignored_files):
+    def cp_dir_content(self, gcs_obj, ignored_files):
+        """Copies only the content of the directory."""
+        self._cp_dir(gcs_obj, ignored_files, True)
+
+    def _cp_dir(self, gcs_obj, ignored_files, copy_content_only=False):
+        """
+        Copies a directory with its files.
+        If 'copy_content_only' is True - the contents of the directory are copied rather than the directory itself.
+        """
         if ignored_files is None:
             ignored_files = []
         else:
             ignored_files = [os.path.join(self.name, f) for f in ignored_files]
 
+        relative_dir = '' if copy_content_only else self.get_filename()
         try:
-            for blob in self.ls(delimiter='/'):
+            for blob in self.ls():
                 if blob.name in ignored_files:
                     continue
+
                 self.bucket.copy_blob(
                     blob,
                     gcs_obj.bucket,
-                    new_name=gcs_obj.name + ''.join(blob.name.split('/', 2)[2:]),
+                    new_name=gcs_obj.name + relative_dir + blob.name.replace(os.path.commonprefix([self.name, blob.name]), ''),
                 )
         except ValueError:
             pass
-
-    def is_dir(self):
-        """Check if the object is a directory"""
-        return True if self.name[-1] == '/' else False
 
     def _retrieve_data_from_path(self, path, storage_klass):
         """
@@ -172,7 +187,7 @@ class GCSObject:
         if storage_klass is None:
             storage_klass = settings.DEFAULT_FILE_STORAGE
 
-        add_slash = True if path[-1] == '/' else False
+        add_slash = path.endswith('/')
         path = os.path.normpath(path).split('/', 1)
         try:
             bucket_name, object_name = path

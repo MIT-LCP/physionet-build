@@ -78,7 +78,7 @@ class GCSProjectFiles(BaseProjectFiles):
         source_path = self._dir_path(source_path)
         target_path = self._dir_path(target_path)
 
-        GCSObject(source_path).cp(target_path, ignored_files=ignored_files)
+        GCSObject(source_path).cp(GCSObject(target_path), ignored_files=ignored_files)
 
     def raw_url(self, project, path):
         return self._url(os.path.join(project.file_root(), path))
@@ -92,7 +92,7 @@ class GCSProjectFiles(BaseProjectFiles):
         return self.raw_url(project, path)
 
     def publish(self, active_project, published_project):
-        bucket_name, _ = self._local_filesystem_path_to_gcs_path(published_project.project_file_root())
+        bucket_name = published_project.project_file_root()
         try:
             create_bucket(bucket_name)
         except Conflict:
@@ -101,7 +101,7 @@ class GCSProjectFiles(BaseProjectFiles):
         active_project_path = self._dir_path(active_project.file_root())
         published_project_path = self._dir_path(published_project.file_root())
 
-        GCSObject(active_project_path).cp(GCSObject(published_project_path))
+        GCSObject(active_project_path).cp_dir_content(GCSObject(published_project_path), None)
 
     def get_project_file_root(self, slug, access_policy, klass):
         # the bucket name should be shorter than 63 characters
@@ -109,6 +109,14 @@ class GCSProjectFiles(BaseProjectFiles):
 
     def storage_used(self, path, zip_name):
         return GCSObject(self._dir_path(path)).size(), 0
+
+    def make_zip(self, project):
+        """Not implemented for GCS storage backend."""
+        return None
+
+    def make_checksum_file(self, project):
+        """Not implemented for GCS storage backend."""
+        return None
 
     def _url(self, path):
         return GCSObject(path).url
@@ -143,7 +151,7 @@ class GCSProjectFiles(BaseProjectFiles):
         return files, dirs
 
     def _dir_path(self, path):
-        return path + '/' if path[-1] != '/' else path
+        return path if path.endswith('/') else path + '/'
 
     def _local_filesystem_path_to_gcs_path(self, path):
         bucket_name, object_name = os.path.normpath(path).split('/', 1)
