@@ -1,4 +1,5 @@
 import os
+from unittest import skipIf
 
 from django.test import TestCase
 from django.test import override_settings
@@ -11,6 +12,10 @@ from physionet.gcs import GCSObject, GCSObjectException
 from physionet.settings.base import StorageTypes
 
 
+SKIP__GCS_INTEGRATION = os.environ.get('TEST_GCS_INTEGRATION') == 'false'
+
+
+@skipIf(SKIP__GCS_INTEGRATION, 'Test GCS-backend integration only on dockerized CI/CD pipeline.')
 @override_settings(
     STORAGE_TYPE=StorageTypes.GCP,
     DEFAULT_FILE_STORAGE='physionet.storage.MediaStorage',
@@ -23,7 +28,7 @@ from physionet.settings.base import StorageTypes
 class TestGCSObject(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.gcs_server_endpoint = os.environ.get('TEST_GCS_ENDPOINT', "http://gcs:4443")
+        cls.gcs_server_endpoint = "http://gcs:4443"
         cls.bucket_name = 'test'
         cls.path = 'physionet/users/admin/profile.jpg'
 
