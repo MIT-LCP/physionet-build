@@ -1,10 +1,6 @@
 import datetime as dt
 import logging
 import os
-import pdb
-import re
-from ast import literal_eval
-from urllib.parse import quote_plus
 
 import notification.utility as notification
 from dal import autocomplete
@@ -18,8 +14,8 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.db import transaction
 from django.db.models import Q
-from django.forms import formset_factory, inlineformset_factory, modelformset_factory
-from django.http import Http404, HttpResponse, HttpResponseForbidden, HttpResponseRedirect, JsonResponse
+from django.forms import inlineformset_factory, modelformset_factory
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template import loader
 from django.urls import reverse
@@ -33,7 +29,6 @@ from physionet.utility import serve_file
 from project import forms, utility
 from project.fileviews import display_project_file
 from project.models import (
-    GCP,
     AccessPolicy,
     ActiveProject,
     Affiliation,
@@ -41,16 +36,11 @@ from project.models import (
     ArchivedProject,
     Author,
     AuthorInvitation,
-    Contact,
-    CopyeditLog,
-    CoreProject,
     DataAccess,
     DataAccessRequest,
     DataAccessRequestReviewer,
     DUASignature,
-    EditLog,
     License,
-    ProgrammingLanguage,
     Publication,
     PublishedAuthor,
     PublishedProject,
@@ -61,7 +51,7 @@ from project.models import (
 )
 from project.projectfiles import ProjectFiles
 from project.validators import validate_filename
-from user.forms import AssociatedEmailChoiceForm, ProfileForm
+from user.forms import AssociatedEmailChoiceForm
 from user.models import CloudInformation, CredentialApplication, LegacyCredential, User
 
 LOGGER = logging.getLogger(__name__)
