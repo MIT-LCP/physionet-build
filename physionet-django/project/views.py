@@ -9,7 +9,6 @@ import notification.utility as notification
 from dal import autocomplete
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import redirect_to_login
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
@@ -26,6 +25,7 @@ from django.utils import timezone
 from django.utils.html import format_html, format_html_join
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
+from physionet.storage import MediaStorage
 from physionet.utility import serve_file
 from project import forms, utility
 from project.fileviews import display_project_file
@@ -2116,3 +2116,27 @@ def anonymous_login(request, anonymous_url):
 
     return render(request, 'project/anonymous_login.html', {'anonymous_url': anonymous_url,
                   'form': form, 'license': license})
+
+
+@login_required
+def generate_signed_url(request, project_slug, filename):
+    """
+    API endpoint to generate a signed URL to access project files on GCS.
+    """
+    try:
+        project = ActiveProject.objects.get(slug=project_slug)
+    except ActiveProject.DoesNotExist:
+        raise Http404()
+
+    storage = MediaStorage()
+
+    expiration = dt.datetime.now() + dt.timedelta(days=1)
+    canonical_resource = '/' + storage.bucket.name + f'/active-projects/{project_slug}/' + filename
+    url = generate_signed_url_v4(
+        storage.client._credentials,
+        resource=canonical_resource,
+        api_access_endpoint='https://storage.googleapis.com',
+        expiration=expiration,
+        method='PUT',
+    )
+    return JsonResponse({'url': url})

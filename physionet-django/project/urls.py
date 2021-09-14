@@ -85,4 +85,7 @@ urlpatterns = [
     re_path('^(?P<project_slug>\w+)/download/(?P<full_file_name>.*)$',
         views.serve_active_project_file_editor,
         name='serve_active_project_file_editor'),
+
+    path('<project_slug>/signed_url/<filename>/', views.generate_signed_url,
+         name='generate_signed_url'),
 ]
