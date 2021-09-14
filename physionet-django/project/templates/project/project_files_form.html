@@ -36,7 +36,9 @@
         </div>
           <div class="modal-body">
             <p>Individual file size limit: {{ individual_size_limit }}.</p>
-            {{ upload_files_form.file_field }}
+{#            {{ upload_files_form.file_field }}#}
+              <div class="dropzone" id="myDropzone">
+            </div>
             <br>
             <div id='error_data_size' style="display:none" class="alert alert-danger">
               <p>The selected files are larger than your remaining storage allowance for this project.

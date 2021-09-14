@@ -81,7 +81,49 @@
   </form>
 
 </div>
+
 <script>
+
+    Dropzone.autoDiscover = false;
+   $(document).ready(function () {
+        $("#myDropzone").dropzone({
+            method: 'PUT',
+            createImageThumbnails: false,
+            maxFiles: 2000,
+            maxFilesize: 10000,
+            timeout: null,
+            headers: {
+                'Cache-Control': null,
+                'X-Requested-With': null,
+                'Accept': null
+            },
+            url: function (files) {
+                console.log(files[0].dynamicUploadUrl);
+                return files[0].dynamicUploadUrl
+            },
+            init: function () {
+                console.log('init');
+            },
+            sending: function (file, xhr) {
+                let _send = xhr.send;
+                xhr.send = function () {
+                    _send.call(xhr, file);
+                };
+            },
+            success: function (file, response) {
+                console.log(file);
+                console.log(response);
+            },
+            accept: function (file, done) {
+                $.getJSON(`http://localhost:8000/projects/{{ project.slug }}/signed_url/${file.upload.filename}/`, function(data) {
+                    file.dynamicUploadUrl = data['url'];
+                    done();
+                });
+            }
+        })
+        $("#myDropzone").addClass("dropzone");
+});
+
   // Navigate to another file directory and reload the file panel
   // subdir is the full subdirectory
   function navigateDir(subdir){
