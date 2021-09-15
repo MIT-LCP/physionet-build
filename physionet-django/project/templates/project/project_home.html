@@ -24,7 +24,7 @@
   </div>
 
 <!-- Outstanding tasks -->
-{% if invitation_response_formset|length or pending_author_approvals|length or missing_affiliations|length or data_access_requests|length %}
+{% if pending_revisions|length or invitation_response_formset|length or pending_author_approvals|length or missing_affiliations|length or data_access_requests|length %}
   <div class="card" >
     <div class="card-header">
       <h2>Outstanding Tasks</h2>
@@ -38,7 +38,7 @@
           <div class="col-md-2"><strong>Date</strong></div>
           <div class="col-md-2"></div>
         </div>
-      </li>
+      </li>    
     {% if invitation_response_formset|length %}
       <form action="" method="post">
         {{ invitation_response_formset.management_form }}
@@ -94,6 +94,20 @@
             <div class="col-md-2">{{ project.1|date }}</div>
             <div class="col-md-2">
               <a href="{% url 'project_authors' project.0.slug %}" class="btn btn-sm btn-primary">Add affiliations</a>
+            </div>
+          </div>
+        </li>
+      {% endfor %}
+    {% endif %}
+    {% if pending_revisions|length %}
+      {% for project in pending_revisions %}
+        <li class="list-group-item">
+          <div class="row">
+            <div class="col-md-5"><a href="{% url 'project_overview' project.slug %}">{{ project.title }}</a></div>
+            <div class="col-md-3">Revisions requested</div>
+            <div class="col-md-2">{{ project.revision_request_datetime|date }}</div>
+            <div class="col-md-2">
+              <a href="{% url 'project_submission' project.slug %}" class="btn btn-sm btn-primary">Resubmit project</a>
             </div>
           </div>
         </li>

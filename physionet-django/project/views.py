@@ -210,10 +210,14 @@ def project_home(request):
 
     pending_author_approvals = []
     missing_affiliations = []
+    pending_revisions = []
     for p in projects:
         if (p.submission_status == 50
                 and not p.authors.get(user=user).approval_datetime):
             pending_author_approvals.append(p)
+        if (p.submission_status == 30
+                and p.authors.get(user=user).is_submitting):
+            pending_revisions.append(p)
         if (p.submission_status == 0
                 and p.authors.get(user=user).affiliations.count() == 0):
             missing_affiliations.append(
@@ -233,7 +237,8 @@ def project_home(request):
         'missing_affiliations': missing_affiliations,
         'pending_author_approvals': pending_author_approvals,
         'invitation_response_formset': invitation_response_formset,
-        'data_access_requests': data_access_requests
+        'data_access_requests': data_access_requests,
+        'pending_revisions': pending_revisions
     })
 
 @login_required
