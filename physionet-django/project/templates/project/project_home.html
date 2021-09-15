@@ -38,8 +38,7 @@
           <div class="col-md-2"><strong>Date</strong></div>
           <div class="col-md-2"></div>
         </div>
-      </li>
-    
+      </li>    
     {% if invitation_response_formset|length %}
       <form action="" method="post">
         {{ invitation_response_formset.management_form }}
@@ -101,18 +100,18 @@
       {% endfor %}
     {% endif %}
     {% if pending_revisions|length %}
-    {% for project in pending_revisions %}
-      <li class="list-group-item">
-        <div class="row">
-          <div class="col-md-5"><a href="{% url 'project_overview' project.slug %}">{{ project.title  }}</a></div>
-          <div class="col-md-3">Revisions requested</div>
-          <div class="col-md-2">{{ project.revision_request_datetime|date }}</div>
-          <div class="col-md-2">
-            <a href="{% url 'project_submission' project.slug %}" class="btn btn-sm btn-primary">Resubmit project</a>
+      {% for project in pending_revisions %}
+        <li class="list-group-item">
+          <div class="row">
+            <div class="col-md-5"><a href="{% url 'project_overview' project.slug %}">{{ project.title }}</a></div>
+            <div class="col-md-3">Revisions requested</div>
+            <div class="col-md-2">{{ project.revision_request_datetime|date }}</div>
+            <div class="col-md-2">
+              <a href="{% url 'project_submission' project.slug %}" class="btn btn-sm btn-primary">Resubmit project</a>
+            </div>
           </div>
-        </div>
-      </li>
-    {% endfor %}
+        </li>
+      {% endfor %}
     {% endif %}
     {% if pending_author_approvals|length %}
       {% for project in pending_author_approvals %}
