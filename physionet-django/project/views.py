@@ -210,14 +210,30 @@ def project_home(request):
 
     pending_author_approvals = []
     missing_affiliations = []
-    for p in projects:
-        if (p.submission_status == 50
-                and not p.authors.get(user=user).approval_datetime):
-            pending_author_approvals.append(p)
-        if (p.submission_status == 0
-                and p.authors.get(user=user).affiliations.count() == 0):
-            missing_affiliations.append(
-                [p, p.authors.get(user=user).creation_date])
+    
+    if (p.authors.get(user=user).is_submitting):
+        for p in projects:
+            if (p.submission_status == 50):
+                num_not_approval = 0
+                for u in p.authors.all():
+                    if(not u.approval_datetime):
+                        num_not_approval +=1
+                if (num_not_approval != 0):
+                    pending_author_approvals.append(p)
+            if (p.submission_status == 0
+                    and p.authors.get(user=user).affiliations.count() == 0):
+                missing_affiliations.append(
+                    [p, p.authors.get(user=user).creation_date])
+
+    else:
+        for p in projects:
+            if (p.submission_status == 50
+                    and not p.authors.get(user=user).approval_datetime):
+                pending_author_approvals.append(p)
+            if (p.submission_status == 0
+                    and p.authors.get(user=user).affiliations.count() == 0):
+                missing_affiliations.append(
+                    [p, p.authors.get(user=user).creation_date])
     rejected_projects = [a.project for a in archived_authors if a.project.archive_reason == 3]
 
     invitation_response_formset = InvitationResponseFormSet(
