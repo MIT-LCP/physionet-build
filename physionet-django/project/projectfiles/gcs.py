@@ -78,7 +78,7 @@ class GCSProjectFiles(BaseProjectFiles):
         source_path = self._dir_path(source_path)
         target_path = self._dir_path(target_path)
 
-        GCSObject(source_path).cp(GCSObject(target_path), ignored_files=ignored_files)
+        GCSObject(source_path).cp_dir_content(GCSObject(target_path), ignored_files=ignored_files)
 
     def raw_url(self, project, path):
         return self._url(os.path.join(project.file_root(), path))
