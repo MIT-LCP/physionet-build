@@ -3,7 +3,7 @@ from os import path
 from re import fullmatch
 
 from django.contrib import messages
-from django.http import Http404
+from django.http import HttpResponse, Http404
 from django.shortcuts import render
 from django.db.models.functions import Lower
 
@@ -27,6 +27,13 @@ def home(request):
                                          'latest': latest,
                                          'news_pieces': news_pieces,
                                          'front_page_banner': front_page_banner})
+
+
+def ping(request):
+    """
+    Healthcheck
+    """
+    return HttpResponse(status=200)
 
 
 def about_publish(request):

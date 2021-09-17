@@ -36,6 +36,7 @@ urlpatterns = [
     path('cgi-bin/lightwave', lightwave_views.lightwave_server),
 
     path('', views.home, name='home'),
+    path('ping/', views.ping),
 
     # about pages
     path('about/publish/', views.about_publish,
