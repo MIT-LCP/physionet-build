@@ -137,7 +137,10 @@ MAX_ATTEMPTS = 5
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR,'static')]
 # Google Storge service account credentials
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(BASE_DIR, 'PhysioNet-Data-credentials.json')
+if config('GOOGLE_APPLICATION_CREDENTIALS', default=None):
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(
+        BASE_DIR,
+        config('GOOGLE_APPLICATION_CREDENTIALS'))
 
 # Maintenance mode
 
