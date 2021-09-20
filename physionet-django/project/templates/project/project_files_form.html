@@ -36,9 +36,11 @@
         </div>
           <div class="modal-body">
             <p>Individual file size limit: {{ individual_size_limit }}.</p>
-{#            {{ upload_files_form.file_field }}#}
-              <div class="dropzone" id="myDropzone">
-            </div>
+              {% if storage_type == "GCP" %}
+                <div class="dropzone" id="myDropzone"></div>
+              {% else %}
+                {{ upload_files_form.file_field }}
+              {% endif %}
             <br>
             <div id='error_data_size' style="display:none" class="alert alert-danger">
               <p>The selected files are larger than your remaining storage allowance for this project.

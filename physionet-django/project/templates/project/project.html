@@ -7,13 +7,12 @@
 {% block local_css %}
   <link rel="stylesheet" type="text/css" href="{% static 'custom/css/settings.css' %}"/>
   <link rel="stylesheet" type="text/css" href="{% static 'project/css/project-content.css' %}">
-  <link rel="stylsheet" type="text/css" href="{% static 'custom/css/dropzone.css' %}">
 {% endblock %}
 
 
 {% block content %}
 <div class="container">
-  <div class="row row-offcanvas row-offcanvas-right">
+  <div class="row row-offcanvas row-offcanvas-right">    
     <div class="col-6 col-md-2 sidebar-offcanvas" id="sidebar">
       {# Overview box is separate from preparation steps #}
       <div class="list-group">

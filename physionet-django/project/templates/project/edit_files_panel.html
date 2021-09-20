@@ -90,7 +90,6 @@
 
     Dropzone.autoDiscover = false;
 
-
    $(document).ready(function () {
       const dropzoneObj = {
             method: 'PUT',
@@ -103,26 +102,18 @@
                 'X-Requested-With': null,
                 'Accept': null,
             },
-            url: function (files) {
-                console.log(files[0].dynamicUploadUrl);
-                return files[0].dynamicUploadUrl
-            },
-            sending: function (file, xhr) {
+            url: files => files[0].dynamicUploadUrl,
+            sending: (file, xhr) => {
                 xhr.setRequestHeader('X-Upload-Content-Length', file.size)
+                xhr.send(file)
+            },
+            accept: async (file, done) => {
+                const data = {"size": file.size, "filename": file.upload.filename, "csrfmiddlewaretoken": "{{ csrf_token }}"};
+                await $.post("{% url 'generate_signed_url' project_slug=project.slug %}", data, data => {
+                    file.dynamicUploadUrl = data["url"];
+                }, "json");
+                return file.dynamicUploadUrl === undefined ? done("Cannot generate a signed url.") : done();
 
-                let _send = xhr.send;
-                xhr.send = function () {
-                    _send.call(xhr, file);
-                };
-            },
-            success: function (file, response) {
-            },
-            accept: function (file, done) {
-                data = {"size": file.size, "filename": file.upload.filename, "csrfmiddlewaretoken": "{{ csrf_token }}"};
-                $.post(`http://localhost:8000/projects/{{ project.slug }}/signed_url/`, data, function(data) {
-                    file.dynamicUploadUrl = data['url'];
-                    done();
-                }, 'json');
             }
         }
         $("#myDropzone").dropzone(dropzoneObj)
