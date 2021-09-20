@@ -427,7 +427,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
     if 'subdir' not in vars():
         subdir = ''
 
-    authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
+    authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card(force_calculate=True)
 
     (display_files, display_dirs, dir_breadcrumbs, _,
      file_error) = get_project_file_info(project=project, subdir=subdir)
@@ -446,6 +446,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
         'access_form': access_form, 'reference_formset':reference_formset,
         'publication_formset': publication_formset,
         'topic_formset': topic_formset,
+        'storage_type': settings.STORAGE_TYPE,
         'storage_info': storage_info, 'upload_files_form':upload_files_form,
         'create_folder_form': create_folder_form,
         'rename_item_form': rename_item_form,
@@ -456,8 +457,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
         'file_error': file_error, 'editor_home': True,
         'is_editor': True, 'files_editable': True,
         'copyedit_form': copyedit_form,
-        'authors': authors, 'author_emails': author_emails,
-        'storage_info': storage_info, 'edit_logs': edit_logs,
+        'authors': authors, 'author_emails': author_emails, 'edit_logs': edit_logs,
         'copyedit_logs': copyedit_logs, 'latest_version': latest_version,
         'add_item_url': edit_url, 'remove_item_url': edit_url,
         'discovery_form': discovery_form, 'url_prefix': url_prefix,

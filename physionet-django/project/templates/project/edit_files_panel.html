@@ -1,5 +1,14 @@
 {% load static %}
 
+{% block local_js_top %}
+<script src="{% static 'dropzone/dropzone.min.js' %}"></script>
+{% endblock %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'dropzone/dropzone.min.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'dropzone/basic.min.css' %}">
+{% endblock %}
+
 <div id="forms-and-panel">
   {% if storage_type  != "GCP" %}
   <form method="post" enctype="multipart/form-data" onsubmit="check_upload_size_limit('submit')">

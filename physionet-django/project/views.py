@@ -2127,15 +2127,19 @@ def generate_signed_url(request, project_slug):
     size = request.POST['size']
 
     if not filename or not size:
-        raise HttpResponseBadRequest("You must provide the filename and the size.")
+        raise HttpResponseBadRequest('You must provide the filename and the size.')
 
     if not size.isnumeric():
-        return HttpResponseBadRequest("The file size must be a numeric value.")
+        return HttpResponseBadRequest('The file size must be a numeric value.')
 
-    project = get_object_or_404(ActiveProject, slug=project_slug, authors__user=request.user)
+    queryset = ActiveProject.objects.all()
+    if not request.user.is_admin:
+        queryset.objects.filter(Q(authors__user=request.user) | Q(editor=request.user))
+        
+    project = get_object_or_404(queryset, slug=project_slug)
 
     if int(size) > project.get_storage_info().remaining:
-        return HttpResponseBadRequest("The file size cannot be greater than the remaining space.")
+        return HttpResponseBadRequest('The file size cannot be greater than the remaining space.')
 
     storage = MediaStorage()
 
