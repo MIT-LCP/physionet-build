@@ -48,8 +48,12 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button id="upload-files-button-submit" class="btn btn-success" name="upload_files" value="{{ subdir }}" type="submit"><i class="fa fa-arrow-circle-up"></i> Upload Files</button>
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            {% if storage_type == "GCP" %}
+              <button id="upload-files-finish" type="button" class="btn btn-secondary" onclick="window.location.reload()">Finish</button>
+            {% else %}
+              <button id="upload-files-button-submit" class="btn btn-success" name="upload_files" value="{{ subdir }}" type="submit"><i class="fa fa-arrow-circle-up"></i> Upload Files</button>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            {% endif %}
           </div>
       </div>
     </div>

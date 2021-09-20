@@ -2119,24 +2119,34 @@ def anonymous_login(request, anonymous_url):
 
 
 @login_required
-def generate_signed_url(request, project_slug, filename):
+def generate_signed_url(request, project_slug):
     """
     API endpoint to generate a signed URL to access project files on GCS.
     """
-    try:
-        project = ActiveProject.objects.get(slug=project_slug)
-    except ActiveProject.DoesNotExist:
-        raise Http404()
+    filename = request.POST['filename']
+    size = request.POST['size']
+
+    if not filename or not size:
+        raise HttpResponseBadRequest("You must provide the filename and the size.")
+
+    if not size.isnumeric():
+        return HttpResponseBadRequest("The file size must be a numeric value.")
+
+    project = get_object_or_404(ActiveProject, slug=project_slug, authors__user=request.user)
+
+    if int(size) > project.get_storage_info().remaining:
+        return HttpResponseBadRequest("The file size cannot be greater than the remaining space.")
 
     storage = MediaStorage()
 
-    expiration = dt.datetime.now() + dt.timedelta(days=1)
     canonical_resource = '/' + storage.bucket.name + f'/active-projects/{project_slug}/' + filename
     url = generate_signed_url_v4(
         storage.client._credentials,
         resource=canonical_resource,
         api_access_endpoint='https://storage.googleapis.com',
-        expiration=expiration,
+        expiration=dt.timedelta(days=1),
         method='PUT',
+        headers={'X-Upload-Content-Length': size}
     )
+
     return JsonResponse({'url': url})
