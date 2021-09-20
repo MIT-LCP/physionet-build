@@ -434,7 +434,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
     if 'subdir' not in vars():
         subdir = ''
 
-    authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
+    authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card(force_calculate=True)
 
     (display_files, display_dirs, dir_breadcrumbs, _,
      file_error) = get_project_file_info(project=project, subdir=subdir)
