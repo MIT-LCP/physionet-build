@@ -213,8 +213,11 @@ def project_home(request):
     pending_revisions = []
     for p in projects:
         if (p.submission_status == 50
-                and not p.authors.get(user=user).approval_datetime):
-            pending_author_approvals.append(p)
+                and not p.all_authors_approved()):
+            if p.authors.get(user=user).is_submitting:
+                pending_author_approvals.append(p)
+            elif not p.authors.get(user=user).approval_datetime:
+                pending_author_approvals.append(p)
         if (p.submission_status == 30
                 and p.authors.get(user=user).is_submitting):
             pending_revisions.append(p)
