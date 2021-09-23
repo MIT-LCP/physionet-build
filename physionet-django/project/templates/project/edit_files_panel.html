@@ -6,7 +6,6 @@
 
 {% block local_css %}
 <link rel="stylesheet" type="text/css" href="{% static 'dropzone/dropzone.min.css' %}">
-<link rel="stylesheet" type="text/css" href="{% static 'dropzone/basic.min.css' %}">
 {% endblock %}
 
 <div id="forms-and-panel">
@@ -105,6 +104,7 @@
             createImageThumbnails: false,
             maxFiles: 2000,
             maxFilesize: 10000,
+            parallelUploads: 1,
             timeout: null,
             headers: {
                 'Cache-Control': null,
@@ -113,16 +113,19 @@
             },
             url: files => files[0].dynamicUploadUrl,
             sending: (file, xhr) => {
-                xhr.setRequestHeader('X-Upload-Content-Length', file.size)
-                xhr.send(file)
+                xhr.setRequestHeader("X-Upload-Content-Length", file.size);
+                xhr.send(file);
             },
-            accept: async (file, done) => {
-                const data = {"size": file.size, "filename": file.upload.filename, "csrfmiddlewaretoken": "{{ csrf_token }}"};
-                await $.post("{% url 'generate_signed_url' project_slug=project.slug %}", data, data => {
-                    file.dynamicUploadUrl = data["url"];
-                }, "json");
-                return file.dynamicUploadUrl === undefined ? done("Cannot generate a signed url.") : done();
+            accept: (file, done) => {
+                const payload = {size: file.size, filename: file.upload.filename, csrfmiddlewaretoken: "{{ csrf_token }}"};
 
+                $.post("{% url 'generate_signed_url' project_slug=project.slug %}", payload, "json")
+                .done(data => {
+                  file.dynamicUploadUrl = data.url;
+                  done();
+                }).fail(data => {
+                  done(data.responseJSON.detail);
+                });
             }
         }
         $("#myDropzone").dropzone(dropzoneObj)

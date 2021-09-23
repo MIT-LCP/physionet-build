@@ -938,6 +938,7 @@ def project_files_panel(request, project_slug, **kwargs):
          'dir_breadcrumbs':dir_breadcrumbs, 'parent_dir':parent_dir,
          'display_files':display_files, 'display_dirs':display_dirs,
          'file_warning':file_warning,
+         'storage_type':settings.STORAGE_TYPE,
          'upload_files_form':upload_files_form,
          'create_folder_form':create_folder_form,
          'rename_item_form':rename_item_form,
@@ -2127,10 +2128,16 @@ def generate_signed_url(request, project_slug):
     size = request.POST['size']
 
     if not filename or not size:
-        raise HttpResponseBadRequest('You must provide the filename and the size.')
+        return JsonResponse({'detail': 'You must provide the filename and the size.'}, status=400)
 
     if not size.isnumeric():
-        return HttpResponseBadRequest('The file size must be a numeric value.')
+        return JsonResponse({'detail': 'The file size must be a numeric value.'}, status=400)
+
+    if not filename.isascii():
+        return JsonResponse({'detail': 'The filename contains non-ascii characters.'}, status=400)
+
+    if ' ' in filename:
+        return JsonResponse({'detail': 'The filename contains whitespaces.'}, status=400)
 
     queryset = ActiveProject.objects.all()
     if not request.user.is_admin:
@@ -2139,11 +2146,11 @@ def generate_signed_url(request, project_slug):
     project = get_object_or_404(queryset, slug=project_slug)
 
     if int(size) > project.get_storage_info().remaining:
-        return HttpResponseBadRequest('The file size cannot be greater than the remaining space.')
+        return JsonResponse({'detail': 'The file size cannot be greater than the remaining space.'}, status=400)
 
     storage = MediaStorage()
+    canonical_resource = f'/{storage.bucket.name}/active-projects/{project_slug}/{filename}'
 
-    canonical_resource = '/' + storage.bucket.name + f'/active-projects/{project_slug}/' + filename
     url = generate_signed_url_v4(
         storage.client._credentials,
         resource=canonical_resource,
