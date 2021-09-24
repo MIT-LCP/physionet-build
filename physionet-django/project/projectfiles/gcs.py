@@ -112,9 +112,9 @@ class GCSProjectFiles(BaseProjectFiles):
     def publish_rollback(self, active_project, published_project):
         self.rm_dir(published_project.file_root())
 
-    def get_project_file_root(self, slug, access_policy, klass):
-        # the bucket name should be shorter than 63 characters
-        return f'physionet-{slug}'[:63]
+    def get_project_file_root(self, slug, version, access_policy, klass):
+        name = f'{slug}-{version.replace(".", "_")}'[:63]
+        return f'{name}.{settings.DOMAIN_NAME}'
 
     def active_project_storage_used(self, project):
         return self._storage_used(project)

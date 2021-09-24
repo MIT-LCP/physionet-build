@@ -119,7 +119,7 @@ class LocalProjectFiles(BaseProjectFiles):
     def publish_complete(self, active_project, published_project):
         pass
 
-    def get_project_file_root(self, slug, access_policy, klass):
+    def get_project_file_root(self, slug, version, access_policy, klass):
         if access_policy:
             return os.path.join(klass.PROTECTED_FILE_ROOT, slug)
         else:

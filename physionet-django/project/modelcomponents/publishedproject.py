@@ -77,7 +77,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         This is the parent directory of the main and special file
         directories.
         """
-        return ProjectFiles().get_project_file_root(self.slug, self.access_policy, PublishedProject)
+        return ProjectFiles().get_project_file_root(self.slug, self.version, self.access_policy, PublishedProject)
 
     def file_root(self):
         """
