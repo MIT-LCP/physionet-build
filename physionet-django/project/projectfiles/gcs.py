@@ -114,7 +114,7 @@ class GCSProjectFiles(BaseProjectFiles):
 
     def get_project_file_root(self, slug, version, access_policy, klass):
         name = f'{slug}-{version.replace(".", "_")}'[:63]
-        return f'{name}.{settings.DOMAIN_NAME}'
+        return f'{name}.{settings.GCP_DOMAIN}'
 
     def active_project_storage_used(self, project):
         return self._storage_used(project)
