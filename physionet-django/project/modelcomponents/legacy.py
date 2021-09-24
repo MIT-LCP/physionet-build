@@ -32,7 +32,7 @@ class LegacyProject(models.Model):
 
     contact_name = models.CharField(max_length=120, default='PhysioNet Support')
     contact_affiliations = models.CharField(max_length=150, default='MIT')
-    contact_email = models.EmailField(max_length=255, default='webmaster@physionet.org')
+    contact_email = models.EmailField(max_length=255, default='contact@physionet.org')
 
     # Put the references as part of the full description
 
