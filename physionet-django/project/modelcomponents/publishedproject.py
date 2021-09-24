@@ -19,7 +19,6 @@ from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_slug, validate_
 class PublishedProject(Metadata, SubmissionInfo):
     """
     A published project. Immutable snapshot.
-
     """
     # File storage sizes in bytes
     main_storage_size = models.BigIntegerField(default=0)
