@@ -92,9 +92,7 @@
     </div>
   </form>
 
-</div>
-
-<script>
+  <script>
 
     Dropzone.autoDiscover = false;
 
@@ -117,7 +115,7 @@
                 xhr.send(file);
             },
             accept: (file, done) => {
-                const payload = {size: file.size, filename: file.upload.filename, csrfmiddlewaretoken: "{{ csrf_token }}"};
+                const payload = {size: file.size, filename: `{{ subdir }}/${file.upload.filename}`, csrfmiddlewaretoken: "{{ csrf_token }}"};
 
                 $.post("{% url 'generate_signed_url' project_slug=project.slug %}", payload, "json")
                 .done(data => {
@@ -131,6 +129,12 @@
         $("#myDropzone").dropzone(dropzoneObj)
         $("#myDropzone").addClass("dropzone");
 });
+</script>
+
+</div>
+  <script>
+
+
 
   // Navigate to another file directory and reload the file panel
   // subdir is the full subdirectory

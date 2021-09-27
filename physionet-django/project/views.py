@@ -2149,7 +2149,7 @@ def generate_signed_url(request, project_slug):
         return JsonResponse({'detail': 'The file size cannot be greater than the remaining space.'}, status=400)
 
     storage = MediaStorage()
-    canonical_resource = f'/{storage.bucket.name}/active-projects/{project_slug}/{filename}'
+    canonical_resource = f'/{storage.bucket.name}/active-projects/{project_slug}/{filename.strip("/")}'
 
     url = generate_signed_url_v4(
         storage.client._credentials,
