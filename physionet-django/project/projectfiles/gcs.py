@@ -158,7 +158,6 @@ class GCSProjectFiles(BaseProjectFiles):
         path = self._dir_path(path)
 
         iterator = GCSObject(path).ls(delimiter='/')
-
         _, object_name = self._local_filesystem_path_to_gcs_path(path)
         object_name = self._dir_path(object_name)
 
@@ -187,5 +186,8 @@ class GCSProjectFiles(BaseProjectFiles):
         return path if path.endswith('/') else path + '/'
 
     def _local_filesystem_path_to_gcs_path(self, path):
-        bucket_name, object_name = os.path.normpath(path).split('/', 1)
+        bucket_name, *object_name = os.path.normpath(path).split('/', 1)
+
+        object_name = object_name[0] if object_name else '/'
+
         return bucket_name, object_name
