@@ -1,5 +1,6 @@
 import os
 
+from django.conf import settings
 from google.cloud.exceptions import NotFound, Conflict
 
 from physionet.gcs import GCSObject, GCSObjectException, create_bucket
@@ -8,6 +9,10 @@ from project.utility import readable_size, FileInfo, DirectoryInfo
 
 
 class GCSProjectFiles(BaseProjectFiles):
+    @property
+    def file_root(self):
+        return settings.GCP_STORAGE_BUCKET_NAME
+
     def mkdir(self, path):
         path = self._dir_path(path)
 

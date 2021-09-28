@@ -4,6 +4,11 @@ import abc
 class BaseProjectFiles(abc.ABC):
     """Base class that defines project file operations."""
 
+    @abc.abstractproperty
+    def file_root(self):
+        """Default file root"""
+        raise NotImplementedError
+
     @abc.abstractmethod
     def mkdir(self, path):
         """Make a directory."""

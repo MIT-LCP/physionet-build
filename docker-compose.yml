@@ -58,6 +58,8 @@ services:
       - test_data:/data:rw
     networks:
       - test
+    depends_on:
+      - gcs
   db:
     image: postgres:13-alpine
     environment:

@@ -1,6 +1,7 @@
 import os
 from unittest import skipIf
 
+from decouple import config
 from django.test import TestCase
 from django.test import override_settings
 from google.api_core.client_options import ClientOptions
@@ -12,10 +13,10 @@ from physionet.gcs import GCSObject, GCSObjectException
 from physionet.settings.base import StorageTypes
 
 
-SKIP__GCS_INTEGRATION = os.environ.get('TEST_GCS_INTEGRATION') == 'false'
+SKIP_GCS_INTEGRATION = config('TEST_GCS_INTEGRATION', default=False, cast=bool)
 
 
-@skipIf(SKIP__GCS_INTEGRATION, 'Test GCS-backend integration only on dockerized CI/CD pipeline.')
+@skipIf(SKIP_GCS_INTEGRATION, 'Test GCS-backend integration only on dockerized CI/CD pipeline.')
 @override_settings(
     STORAGE_TYPE=StorageTypes.GCP,
     DEFAULT_FILE_STORAGE='physionet.storage.MediaStorage',

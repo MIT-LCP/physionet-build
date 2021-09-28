@@ -2,6 +2,8 @@ import hashlib
 import os
 import shutil
 
+from django.conf import settings
+
 from physionet.utility import zip_dir, sorted_tree_files
 from project.projectfiles.base import BaseProjectFiles
 from project.utility import remove_items, write_uploaded_file, rename_file, move_items, list_items, get_file_info, \
@@ -9,6 +11,10 @@ from project.utility import remove_items, write_uploaded_file, rename_file, move
 
 
 class LocalProjectFiles(BaseProjectFiles):
+    @property
+    def file_root(self):
+        return settings.MEDIA_ROOT
+
     def mkdir(self, path):
         os.mkdir(path)
 
