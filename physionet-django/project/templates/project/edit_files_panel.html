@@ -93,10 +93,9 @@
   </form>
 
   <script>
-
     Dropzone.autoDiscover = false;
 
-   $(document).ready(function () {
+    $(document).ready(() => {
       const dropzoneObj = {
             method: 'PUT',
             createImageThumbnails: false,
@@ -110,9 +109,14 @@
                 'Accept': null,
             },
             url: files => files[0].dynamicUploadUrl,
-            sending: (file, xhr) => {
+            sending: (file, xhr, formData) => {
                 xhr.setRequestHeader("X-Upload-Content-Length", file.size);
-                xhr.send(file);
+                xhr.setRequestHeader("Content-Type", file.type);
+
+                let _send = xhr.send;
+                xhr.send = function () {
+                    _send.call(xhr, file);
+                };
             },
             accept: (file, done) => {
                 const payload = {size: file.size, filename: `{{ subdir }}/${file.upload.filename}`, csrfmiddlewaretoken: "{{ csrf_token }}"};
@@ -125,30 +129,25 @@
                   done(data.responseJSON.detail);
                 });
             }
-        }
-        $("#myDropzone").dropzone(dropzoneObj)
+        };
+        $("#myDropzone").dropzone(dropzoneObj);
         $("#myDropzone").addClass("dropzone");
-});
+    });
 </script>
 
 </div>
   <script>
-
-
-
   // Navigate to another file directory and reload the file panel
   // subdir is the full subdirectory
-  function navigateDir(subdir){
+  function navigateDir(subdir) {
     $.ajax({
-            type: "GET",
             url: "{% url 'project_files_panel' project.slug %}",
-            data: {'subdir':subdir
-            },
-            success: function reloadSection(result){
+            data: {'subdir': subdir},
+            success: result => {
                 $("#forms-and-panel").html(result);
-            },
+            }
     });
-    return false
+    return false;
   }
 
   // Selected checkboxes
@@ -286,5 +285,4 @@ function readableBytes(bytes) {
     sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
     return (bytes / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + sizes[i];
 }
-
 </script>

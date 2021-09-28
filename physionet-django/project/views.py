@@ -929,6 +929,8 @@ def project_files_panel(request, project_slug, **kwargs):
     file_warning = get_project_file_warning(display_files, display_dirs,
                                               subdir)
 
+    storage_info = project.get_storage_info()
+
     (upload_files_form, create_folder_form, rename_item_form,
      move_items_form, delete_items_form) = get_file_forms(
          project=project, subdir=subdir, display_dirs=display_dirs)
@@ -939,6 +941,7 @@ def project_files_panel(request, project_slug, **kwargs):
          'display_files':display_files, 'display_dirs':display_dirs,
          'file_warning':file_warning,
          'storage_type':settings.STORAGE_TYPE,
+         'storage_info': storage_info,
          'upload_files_form':upload_files_form,
          'create_folder_form':create_folder_form,
          'rename_item_form':rename_item_form,
