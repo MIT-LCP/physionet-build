@@ -1,5 +1,6 @@
 import base64
 import os
+from http import HTTPStatus
 
 from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -1125,3 +1126,52 @@ class TestInviteDataAccessReviewer(TestMixin):
                                'invite_reviewer' : ['']})
 
         self.assertContains(response, "is already allowed to review requests!")
+
+
+class TestGenerateSignedUrl(TestMixin):
+    @classmethod
+    def setUpTestData(cls):
+        cls.url = reverse('generate_signed_url', kwargs={"project_slug": ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database').slug})
+        cls.user_credentials = {'username': 'rgmark@mit.edu', 'password': 'Tester11!'}
+        cls.invalid_size_data_1 = {'size': -10, 'filename': 'random.txt'}
+        cls.invalid_size_data_2 = {'size': 'file_size', 'filename': 'random.txt'}
+        cls.invalid_size_data_3 = {'filename': 'random.txt'}
+        cls.invalid_filename_data_1 = {'size': 250000, 'filename': 'ran dom.txt'}
+        cls.invalid_filename_data_2 = {'size': 250000, 'filename': 'random§.txt'}
+        cls.valid_data = {'size': 250000, 'filename': 'random.txt'}
+
+    def test_invalid_size(self):
+        self.client.login(**self.user_credentials)
+
+        with self.subTest('A negative file size returns a bad request.'):
+            response = self.client.post(self.url, self.invalid_size_data_1, format='json')
+
+            self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        
+        with self.subTest('A non-numeric file size returns a bad request.'):
+            response = self.client.post(self.url, self.invalid_size_data_2, format='json')
+
+            self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+
+        with self.subTest('Missing file size returns a bad request.'):
+            response = self.client.post(self.url, self.invalid_size_data_3, format='json')
+
+            self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+
+    def test_invalid_filename(self):
+        self.client.login(**self.user_credentials)
+
+        with self.subTest('A filename containing whitespaces returns a bad request.'):
+            response = self.client.post(self.url, self.invalid_filename_data_1, format='json')
+
+            self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        
+        with self.subTest('A filename containing non-ascii characters returns a bad request.'):
+            response = self.client.post(self.url, self.invalid_filename_data_2, format='json')
+
+            self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        
+        with self.subTest('Non-numeric file size returns a bad request.'):
+            response = self.client.post(self.url, self.invalid_size_data_2, format='json')
+
+            self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)

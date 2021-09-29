@@ -2127,8 +2127,8 @@ def generate_signed_url(request, project_slug):
     """
     API endpoint to generate a signed URL to access project files on GCS.
     """
-    filename = request.POST['filename']
-    size = request.POST['size']
+    filename = request.POST.get('filename')
+    size = request.POST.get('size')
 
     if not filename or not size:
         return JsonResponse({'detail': 'You must provide the filename and the size.'}, status=400)
@@ -2136,6 +2136,10 @@ def generate_signed_url(request, project_slug):
     if not size.isnumeric():
         return JsonResponse({'detail': 'The file size must be a numeric value.'}, status=400)
 
+    size = int(size)
+    if size <= 0:
+        return JsonResponse({'detail': 'The file size cannot be a negative value.'}, status=400)
+        
     if not filename.isascii():
         return JsonResponse({'detail': 'The filename contains non-ascii characters.'}, status=400)
 
@@ -2148,7 +2152,7 @@ def generate_signed_url(request, project_slug):
         
     project = get_object_or_404(queryset, slug=project_slug)
 
-    if int(size) > project.get_storage_info().remaining:
+    if size > project.get_storage_info().remaining:
         return JsonResponse({'detail': 'The file size cannot be greater than the remaining space.'}, status=400)
 
     storage = MediaStorage()
