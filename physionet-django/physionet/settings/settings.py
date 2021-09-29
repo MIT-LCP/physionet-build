@@ -39,6 +39,7 @@ EMAIL_FROM_DOMAINS = ['physionet.org']
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='PhysioNet Automated System <noreply@physionet.org>')
 CONTACT_EMAIL = config('CONTACT_EMAIL', default='PhysioNet Contact <contact@physionet.org>')
 SERVER_EMAIL = config('SERVER_EMAIL', default='PhysioNet System <root@physionet.org>')
+CREDENTIAL_EMAIL = config('CREDENTIAL_EMAIL', default='PhysioNet Credentialing <credentialing@physionet.org>')
 
 ADMINS = [(config('ADMINS_NAME', default='PhysioNet Technical'),
            config('ADMINS_MAIL', default='technical@dev.physionet.org'))]
