@@ -53,6 +53,9 @@ pyOpenSSL==19.0.0 \
  --hash=sha256:c727930ad54b10fc157015014b666f2d8b41f70c0d03e83ab67624fd3dd5d1e6
 google-api-python-client==1.7.9 \
  --hash=sha256:5def5a485b1cbc998b8f869456c7bde0c0e6d3d0a5ea1f300b5ef57cb4b1ce8f
+sentry-sdk==1.4.3 \
+ --hash=sha256:b9844751e40710e84a457c5bc29b21c383ccb2b63d76eeaad72f7f1c808c8828\
+ --hash=sha256:c091cc7115ff25fe3a0e410dbecd7a996f81a3f6137d2272daef32d6c3cfa6dc
 
 #### Required for postgresql database backend ####
 
