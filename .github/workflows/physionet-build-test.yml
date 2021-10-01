@@ -18,6 +18,7 @@ jobs:
     env:
       DJANGO_SETTINGS_MODULE: physionet.settings.settings
       TEST_GCS_INTEGRATION: false
+      TEST_GCS_ENDPOINT: http://localhost:4443
     defaults:
       run:
         shell: bash
