@@ -439,6 +439,17 @@ logging.config.dictConfig({
     },
 })
 
+if config('SENTRY_DSN', default=None):
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+
+    sentry_sdk.init(
+        dsn=config('SENTRY_DSN'),
+        integrations=[DjangoIntegration()],
+        traces_sample_rate=config('SENTRY_SAMPLE_RATE', default=1.0, cast=float),
+        send_default_pii=False
+    )
+
 # If this environment variable is set, acquire a shared lock on the
 # named file.  The file descriptor is left open, but is
 # non-inheritable (close-on-exec), so the lock will be inherited by
