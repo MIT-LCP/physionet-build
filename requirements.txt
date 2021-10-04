@@ -126,10 +126,10 @@ google-resumable-media==1.3.1 \
  --hash=sha256:2dae98ee716efe799db3578a7b902fbf5592fc5c77d3c0906fc4ef9b1b930861
 
 # required by google-api-core 1.13.0
-protobuf==3.9.0 \
- --hash=sha256:05c36022fef3c7d3562ac22402965c0c2b9fe8421f459bb377323598996e407f\
- --hash=sha256:72edcbacd0c73eef507d2ff1af99a6c27df18e66a3ff4351e401182e4de62b03\
- --hash=sha256:d86ee389c2c4fc3cebabb8ce83a8e97b6b3b5dc727b7419c1ccdc7b6e545a233
+protobuf==3.17.3 \
+ --hash=sha256:ab6bb0e270c6c58e7ff4345b3a803cc59dbee19ddf77a4719c5b635f1d547aa8 \
+ --hash=sha256:13ee7be3c2d9a5d2b42a1030976f760f28755fcf5863c55b1460fd205e6cd637 \
+ --hash=sha256:1556a1049ccec58c7855a78d27e5c6e70e95103b32de9142bae0576e9200a1b0
 google-auth==1.25.0 \
  --hash=sha256:008e23ed080674f69f9d2d7d80db4c2591b9bb307d136cea7b3bc129771d211d
 googleapis-common-protos==1.6.0 \
