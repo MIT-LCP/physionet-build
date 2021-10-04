@@ -159,13 +159,7 @@ PAUSE_CREDENTIALING_MESSAGE = config('PAUSE_CREDENTIALING_MESSAGE',
 # Set the credentialing email address
 CREDENTIAL_EMAIL = 'PhysioNet Credentialing <credentialing@physionet.org>'
 
-# Google G suite Groups service account and Private Key file
-SERVICE_ACCOUNT_EMAIL = 'gcp-physionet-groups@physionet-data.iam.gserviceaccount.com'
-
-SERVICE_ACCOUNT_PKCS12_FILE_PATH = os.path.join(BASE_DIR, 'PhysioNet-Data-credentials.p12')
-
 GCP_DELEGATION_EMAIL = config('GCP_DELEGATION_EMAIL', default=False)
-GCP_SECRET_KEY = config('GCP_SECRET_KEY', default=False)
 
 GCP_BUCKET_PREFIX = "testing-delete."
 GCP_DOMAIN = "physionet.org"
