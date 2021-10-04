@@ -336,9 +336,11 @@ class CreateProjectForm(forms.ModelForm):
         self.user = user
         self.fields['resource_type'].label_from_instance = lambda obj: obj.name
 
+        if settings.STORAGE_TYPE != StorageTypes.GCP:
+            del self.fields['allow_file_downloads']
     class Meta:
         model = ActiveProject
-        fields = ('resource_type', 'title', 'abstract',)
+        fields = ['resource_type', 'title', 'abstract', 'allow_file_downloads']
 
     def save(self):
         project = super().save(commit=False)
@@ -440,7 +442,8 @@ class NewProjectVersionForm(forms.ModelForm):
 
         ignored_files = ('SHA256SUMS.txt', 'LICENSE.txt')
 
-        ProjectFiles().cp_dir(older_file_root, current_file_root, ignored_files=ignored_files)
+        if settings.STORAGE_TYPE == StorageTypes.GCP and project.allow_file_downloads:
+            ProjectFiles().cp_dir(older_file_root, current_file_root, ignored_files=ignored_files)
         return project
 
 

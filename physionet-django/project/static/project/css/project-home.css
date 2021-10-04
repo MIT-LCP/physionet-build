@@ -37,6 +37,11 @@ input, select, django-ckeditor-widget textarea {
   transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
 }
 
+input[type="checkbox"] {
+  width: auto;
+  margin-top: 6px;
+}
+
 input::-ms-expand {
   background-color: transparent;
   border: 0;

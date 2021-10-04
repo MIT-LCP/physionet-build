@@ -73,6 +73,7 @@ class Metadata(models.Model):
     core_project = models.ForeignKey('project.CoreProject',
                                      related_name='%(class)ss',
                                      on_delete=models.CASCADE)
+    allow_file_downloads = models.BooleanField(default=True)
 
     class Meta:
         abstract = True
