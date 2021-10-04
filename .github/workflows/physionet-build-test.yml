@@ -17,7 +17,6 @@ jobs:
     container: debian:10
     env:
       DJANGO_SETTINGS_MODULE: physionet.settings.settings
-      TEST_GCS_INTEGRATION: false
       GCS_HOST: http://localhost:4443
     defaults:
       run:

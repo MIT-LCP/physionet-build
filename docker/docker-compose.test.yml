@@ -13,7 +13,7 @@ services:
       DB_NAME: physionet_test
       MEDIA_ROOT: /data/pn-media
       STATIC_ROOT: /data/pn-static
-      GCS_HOST: gcs
+      GCS_HOST: http://gcs:4443
     env_file: ../.env.example
     entrypoint: ./docker/test-entrypoint.sh
   db:

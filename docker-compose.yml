@@ -47,7 +47,7 @@ services:
     environment:
       <<: *default-env
       DB_NAME: physionet_test
-      GCS_HOST: gcs
+      GCS_HOST: http://gcs:4443
     env_file: .env.example
     command: ['sleep']
     volumes:

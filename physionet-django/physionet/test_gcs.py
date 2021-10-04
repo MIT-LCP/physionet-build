@@ -13,10 +13,6 @@ from physionet.gcs import GCSObject, GCSObjectException
 from physionet.settings.base import StorageTypes
 
 
-SKIP_GCS_INTEGRATION = not config('TEST_GCS_INTEGRATION', default=False, cast=bool)
-
-
-@skipIf(SKIP_GCS_INTEGRATION, 'Test GCS-backend integration only on dockerized CI/CD pipeline.')
 @override_settings(
     STORAGE_TYPE=StorageTypes.GCP,
     DEFAULT_FILE_STORAGE='physionet.storage.MediaStorage',
