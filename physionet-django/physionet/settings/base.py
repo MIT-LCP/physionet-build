@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'notification',
     'search',
     'lightwave',
+    'graphene_django'
 ]
 
 MIDDLEWARE = [
