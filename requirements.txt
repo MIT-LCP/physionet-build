@@ -17,8 +17,9 @@ django-ckeditor==5.7.1 \
 djangorestframework==3.11.2 \
  --hash=sha256:5cc724dc4b076463497837269107e1995b1fbc917468d1b92d188fd1af9ea789 \
  --hash=sha256:a5967b68a04e0d97d10f4df228e30f5a2d82ba63b9d03e1759f84993b7bf1b53
-google-cloud-storage==1.14.0 \
- --hash=sha256:a3115c22a71e2f172fade72c7b7b797a071f3ac9b66043191fc84c214ba0c671
+google-cloud-storage==1.42.3 \
+ --hash=sha256:7754d4dcaa45975514b404ece0da2bb4292acbc67ca559a69e12a19d54fcdb06 \
+ --hash=sha256:71ee3a0dcf2c139f034a054181cd7658f1ec8f12837d2769c450a8a00fcd4c6d
 html2text==2018.1.9 \
  --hash=sha256:490db40fe5b2cd79c461cf56be4d39eb8ca68191ae41ba3ba79f6cb05b7dd662
 Pillow==8.3.2 \
@@ -129,8 +130,8 @@ protobuf==3.9.0 \
  --hash=sha256:05c36022fef3c7d3562ac22402965c0c2b9fe8421f459bb377323598996e407f\
  --hash=sha256:72edcbacd0c73eef507d2ff1af99a6c27df18e66a3ff4351e401182e4de62b03\
  --hash=sha256:d86ee389c2c4fc3cebabb8ce83a8e97b6b3b5dc727b7419c1ccdc7b6e545a233
-google-auth==1.6.3 \
- --hash=sha256:20705f6803fd2c4d1cc2dcb0df09d4dfcb9a7d51fd59e94a3a28231fd93119ed
+google-auth==1.25.0 \
+ --hash=sha256:008e23ed080674f69f9d2d7d80db4c2591b9bb307d136cea7b3bc129771d211d
 googleapis-common-protos==1.6.0 \
  --hash=sha256:e61b8ed5e36b976b487c6e7b15f31bb10c7a0ca7bd5c0e837f4afab64b53a0c6
 setuptools==41.0.1 \
