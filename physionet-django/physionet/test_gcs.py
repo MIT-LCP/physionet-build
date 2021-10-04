@@ -29,7 +29,7 @@ SKIP_GCS_INTEGRATION = config('TEST_GCS_INTEGRATION', default=False, cast=bool)
 class TestGCSObject(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.gcs_server_endpoint = "http://gcs:4443"
+        cls.gcs_server_endpoint = config('GCS_HOST', default='http://gcs:4443')
         cls.bucket_name = 'test'
         cls.path = 'physionet/users/admin/profile.jpg'
 
