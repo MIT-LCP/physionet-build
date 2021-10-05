@@ -6,6 +6,7 @@ from django.conf import settings
 from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
+from physionet.settings.base import StorageTypes
 from project.modelcomponents.access import DataAccessRequest, DataAccessRequestReviewer, DUASignature
 from project.modelcomponents.fields import SafeHTMLField
 from project.modelcomponents.metadata import Metadata, PublishedTopic
@@ -83,7 +84,8 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         Root directory where the main user uploaded files are located
         """
-        return os.path.join(self.project_file_root(), self.version)
+        suffix = '' if settings.STORAGE_TYPE == StorageTypes.GCP else self.version
+        return os.path.join(self.project_file_root(), suffix)
 
     def storage_used(self):
         """
