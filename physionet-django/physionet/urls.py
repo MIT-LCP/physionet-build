@@ -70,7 +70,7 @@ urlpatterns = [
 ]
 
 if settings.STORAGE_TYPE != StorageTypes.GCP:
-    urlpatterns.append('lightwave/', include('lightwave.urls'))
+    urlpatterns.append(path('lightwave/', include('lightwave.urls')))
 
 if settings.DEBUG:
     import debug_toolbar
