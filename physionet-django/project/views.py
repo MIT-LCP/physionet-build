@@ -1619,7 +1619,8 @@ def published_project(request, project_slug, version, subdir=''):
             'files_panel_url': files_panel_url, 'subdir': subdir,
             'parent_dir': parent_dir, 'file_error': file_error,
             'current_site': get_current_site(request),
-            'data_access': data_access, }}
+            'data_access': data_access,
+            'storage_type': settings.STORAGE_TYPE}}
     elif subdir:
         status = 403
     else:

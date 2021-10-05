@@ -321,7 +321,7 @@
   {% else %}
     {% if project.access_policy %}
       {% if has_access %}
-        <p>Total uncompressed size: {{ main_size }}.</p>
+        <p>Total uncompressed size: {{ storage_info }}.</p>
 
 {# ZIP START #}
           <h5>Access the files</h5>
@@ -348,7 +348,9 @@
               {% endif %}
             {% endfor %}
           {% endif %}
-          <li>Download the files using your terminal: <pre class="shell-command">wget -r -N -c -np --user {{ user }} --ask-password {{ url_prefix }}{% url 'serve_published_project_file' project.slug project.version '' %}</pre></li>
+          {% if storage_type != 'GCP' %}
+            <li>Download the files using your terminal: <pre class="shell-command">wget -r -N -c -np --user {{ user }} --ask-password {{ url_prefix }}{% url 'serve_published_project_file' project.slug project.version '' %}</pre></li>
+          {% endif %}
           </ul>
 {# ZIP END #}
         <div id="files-panel" class="card">
@@ -391,7 +393,9 @@
             {% endif %}
           {% endfor %}
         {% endif %}
-          <li>Download the files using your terminal: <pre class="shell-command">wget -r -N -c -np {{ url_prefix }}{% url 'serve_published_project_file' project.slug project.version '' %}</pre></li>
+          {% if storage_type != 'GCP' %}
+            <li>Download the files using your terminal: <pre class="shell-command">wget -r -N -c -np {{ url_prefix }}{% url 'serve_published_project_file' project.slug project.version '' %}</pre></li>
+          {% endif %}
         </ul>
 {# ZIP END #}
       </p>

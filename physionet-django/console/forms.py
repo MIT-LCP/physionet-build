@@ -10,6 +10,7 @@ from django.conf import settings
 from dal import autocomplete
 
 from notification.models import News
+from physionet.settings.base import StorageTypes
 from project.models import (ActiveProject, EditLog, CopyeditLog, Contact,
                             PublishedProject, exists_project_slug, DataAccess,
                             PublishedAffiliation, PublishedAuthor)
@@ -273,6 +274,9 @@ class PublishForm(forms.Form):
             del(self.fields['slug'])
         else:
             self.fields['slug'].initial = project.slug
+
+        if settings.STORAGE_TYPE == StorageTypes.GCP:
+            del self.fields['make_zip']
 
     def clean_slug(self):
         """

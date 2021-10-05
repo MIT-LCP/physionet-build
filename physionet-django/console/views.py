@@ -29,6 +29,7 @@ from notification.models import News
 import notification.utility as notification
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
+from physionet.settings.base import StorageTypes
 from physionet.utility import paginate
 import project.forms as project_forms
 from project.models import (ActiveProject, ArchivedProject, StorageRequest,
@@ -531,8 +532,11 @@ def publish_submission(request, project_slug, *args, **kwargs):
                 slug = project.get_previous_slug()
             else:
                 slug = publish_form.cleaned_data['slug']
-            published_project = project.publish(slug=slug,
-                make_zip=int(publish_form.cleaned_data['make_zip']))
+            
+            make_zip = publish_form.cleaned_data.get('make_zip')
+            make_zip = int(make_zip) if make_zip else False
+
+            published_project = project.publish(slug=slug, make_zip=make_zip)
             notification.publish_notify(request, published_project)
 
             # update the core and project DOIs with latest metadata
@@ -746,7 +750,7 @@ def manage_published_project(request, project_slug, version):
                 messages.success(request, 'The topics have been set')
             else:
                 messages.error(request, 'Invalid submission. See form below.')
-        elif 'make_checksum_file' in request.POST:
+        elif 'make_checksum_file' in request.POST and settings.STORAGE_TYPE != StorageTypes.GCP:
             if any(get_associated_tasks(project)):
                 messages.error(request, 'Project has tasks pending.')
             elif settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
@@ -757,7 +761,7 @@ def manage_published_project(request, project_slug, version):
                     verbose_name='Making checksum file - {}'.format(project))
                 messages.success(
                     request, 'The files checksum list has been scheduled.')
-        elif 'make_zip' in request.POST:
+        elif 'make_zip' in request.POST and settings.STORAGE_TYPE != StorageTypes.GCP:
             if any(get_associated_tasks(project)):
                 messages.error(request, 'Project has tasks pending.')
             elif settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
@@ -831,7 +835,8 @@ def manage_published_project(request, project_slug, version):
          'anonymous_url': anonymous_url, 'passphrase': passphrase,
          'published_projects_nav': True, 'url_prefix': url_prefix,
          'contact_form': contact_form,
-         'legacy_author_form': legacy_author_form})
+         'legacy_author_form': legacy_author_form,
+         'storage_type': settings.STORAGE_TYPE})
 
 
 def gcp_bucket_management(request, project, user):

@@ -5,9 +5,10 @@ from django.urls import path
 from django.http import HttpResponse
 from django.conf.urls import handler404, handler500
 
-from physionet import views
 import lightwave.views as lightwave_views
 import project.views as project_views
+from physionet import views
+from physionet.settings.base import StorageTypes
 
 
 handler403 = 'physionet.views.error_403'
@@ -31,7 +32,6 @@ urlpatterns = [
     # export app
     path('', include('export.urls')),
 
-    path('lightwave/', include('lightwave.urls')),
     # backward compatibility for LightWAVE
     path('cgi-bin/lightwave', lightwave_views.lightwave_server),
 
@@ -68,6 +68,9 @@ urlpatterns = [
     path('robots.txt', lambda x: HttpResponse("User-Agent: *\Allow: /", 
         content_type="text/plain"), name="robots_file"),
 ]
+
+if settings.STORAGE_TYPE != StorageTypes.GCP:
+    urlpatterns.append('lightwave/', include('lightwave.urls'))
 
 if settings.DEBUG:
     import debug_toolbar
