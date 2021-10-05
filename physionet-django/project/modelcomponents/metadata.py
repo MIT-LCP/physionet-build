@@ -699,3 +699,15 @@ class PublishedPublication(BasePublication):
     """
     project = models.ForeignKey('project.PublishedProject',
         db_index=True, related_name='publications', on_delete=models.CASCADE)
+
+class Metrics(models.Model):
+    '''
+    Stores the daily and running total view counts for each project, as well
+    as date recorded.
+    '''
+    core_project = models.ForeignKey('project.CoreProject', 
+                                     on_delete=models.DO_NOTHING, 
+                                     default=None)
+    viewcount = models.PositiveIntegerField(default=0)
+    running_viewcount = models.PositiveIntegerField(default=0)
+    date = models.DateField(default=None)

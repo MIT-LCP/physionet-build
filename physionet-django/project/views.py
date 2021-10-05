@@ -31,7 +31,7 @@ from project.models import (Affiliation, Author, AuthorInvitation, License,
                             ActiveProject, PublishedProject, StorageRequest, Reference, DataAccess,
                             ArchivedProject, ProgrammingLanguage, Topic, Contact, Publication,
                             PublishedAuthor, EditLog, CopyeditLog, DUASignature, CoreProject, GCP,
-                            AnonymousAccess, DataAccessRequest, DataAccessRequestReviewer)
+                            AnonymousAccess, DataAccessRequest, DataAccessRequestReviewer, Metrics)
 from project import utility
 from project.validators import validate_filename
 import notification.utility as notification
@@ -1564,7 +1564,10 @@ def published_project(request, project_slug, version, subdir=''):
                                                version=version)
     except ObjectDoesNotExist:
         raise Http404()
-
+    try:
+        metrics = Metrics.objects.filter(core_project=project.core_project).latest('date')
+    except ObjectDoesNotExist:
+        metrics = None
     authors = project.authors.all().order_by('display_order')
     for a in authors:
         a.set_display_info()
@@ -1598,7 +1601,8 @@ def published_project(request, project_slug, version, subdir=''):
                'all_project_versions': all_project_versions,
                'parent_projects':parent_projects, 'data_access':data_access,
                'messages':messages.get_messages(request), 
-               'platform_citations': platform_citations}
+               'platform_citations': platform_citations, 'metrics': metrics}
+               
     # The file and directory contents
     if has_access:
         (display_files, display_dirs, dir_breadcrumbs, parent_dir,
