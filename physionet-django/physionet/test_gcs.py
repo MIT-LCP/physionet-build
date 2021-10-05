@@ -25,7 +25,7 @@ from physionet.settings.base import StorageTypes
 class TestGCSObject(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.gcs_server_endpoint = config('GCS_HOST', default='http://gcs:4443')
+        cls.gcs_server_endpoint = f'http://{config("GCS_HOST", default="gcs")}:4443'
         cls.bucket_name = 'test'
         cls.path = 'physionet/users/admin/profile.jpg'
 
