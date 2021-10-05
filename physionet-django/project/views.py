@@ -2164,7 +2164,7 @@ def generate_signed_url(request, project_slug):
         api_access_endpoint='https://storage.googleapis.com',
         expiration=dt.timedelta(days=1),
         method='PUT',
-        headers={'X-Upload-Content-Length': size}
+        headers={'X-Upload-Content-Length': str(size)}
     )
 
     return JsonResponse({'url': url})

@@ -33,16 +33,8 @@ from project.models import (
     Topic,
     exists_project_slug,
 )
-from physionet.gcs import GCSObject
-from physionet.settings.base import StorageTypes
 from project import utility
 from project import validators
-from project.models import (Affiliation, Author, AuthorInvitation, ActiveProject,
-                            CoreProject, StorageRequest, ProgrammingLanguage,
-                            License, Metadata, Reference, Publication, ACCESS_POLICIES,
-                            PublishedProject, Topic, exists_project_slug,
-                            AnonymousAccess, DataAccessRequest,
-                            DataAccessRequestReviewer)
 from project.projectfiles import ProjectFiles
 from user.models import User
 
