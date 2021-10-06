@@ -1,15 +1,6 @@
 import os
 from errno import ENAMETOOLONG
 
-<<<<<<< HEAD
-from physionet import aws
-from django.conf import settings
-import botocore
-=======
-from physionet.gcp import ObjectPath
->>>>>>> Add creating license files
-
-from django.conf import settings
 from django.http import Http404
 from django.shortcuts import redirect
 from project.fileviews.base import RawFileView
@@ -47,7 +38,7 @@ def display_project_file(request, project, file_path):
         infile = ProjectFiles().open(abs_path)
     except IsADirectoryError:
         return redirect(request.path + '/')
-    except (FileNotFoundError, NotADirectoryError, botocore.exceptions.ClientError):
+    except (FileNotFoundError, NotADirectoryError):
         raise Http404()
     except (IOError, OSError) as err:
         raise (Http404() if err.errno == ENAMETOOLONG else err)
