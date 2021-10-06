@@ -2,6 +2,7 @@ from collections import OrderedDict
 from os import path
 from re import fullmatch
 
+from django.conf import settings
 from django.contrib import messages
 from django.http import HttpResponse, Http404
 from django.shortcuts import render
@@ -26,7 +27,8 @@ def home(request):
     return render(request, 'home.html', {'featured': featured,
                                          'latest': latest,
                                          'news_pieces': news_pieces,
-                                         'front_page_banner': front_page_banner})
+                                         'front_page_banner': front_page_banner,
+                                         'storage_type': settings.STORAGE_TYPE})
 
 
 def ping(request):

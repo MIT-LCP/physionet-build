@@ -241,7 +241,8 @@ def project_home(request):
         'pending_author_approvals': pending_author_approvals,
         'invitation_response_formset': invitation_response_formset,
         'data_access_requests': data_access_requests,
-        'pending_revisions': pending_revisions
+        'pending_revisions': pending_revisions,
+        'storage_type': settings.STORAGE_TYPE,
     })
 
 @login_required

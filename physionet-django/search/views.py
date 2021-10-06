@@ -3,6 +3,7 @@ import re
 import operator
 from functools import reduce
 
+from django.conf import settings
 from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.shortcuts import render, redirect, reverse
 from django.db.models import Q, Count, Case, When, Value, IntegerField, Sum
@@ -168,7 +169,8 @@ def content_index(request, resource_type=None):
                    'projects': projects,
                    'form_type': form_type,
                    'form_topic': form_topic,
-                   'querystring': querystring})
+                   'querystring': querystring,
+                   'storage_type': settings.STORAGE_TYPE})
 
 
 def database_index(request):
