@@ -1046,3 +1046,9 @@ class InviteDataAccessReviewerForm(forms.ModelForm):
         invitation.added_date = timezone.now()
         invitation.save()
         return invitation
+
+
+class AllowFileDownloadsForm(forms.ModelForm):
+    class Meta:
+        model = ActiveProject
+        fields = ['allow_file_downloads',]
