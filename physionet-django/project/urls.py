@@ -117,7 +117,7 @@ urlpatterns = [
         name='serve_active_project_file_editor',
     ),
     path(
-        '<project_slug>/signed_url/',
+        '<project_slug>/generate-signed-url/',
         views.generate_signed_url,
         name='generate_signed_url',
     ),
