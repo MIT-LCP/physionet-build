@@ -16,7 +16,7 @@ from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.db import IntegrityError
 from django.forms import inlineformset_factory, HiddenInput, CheckboxInput
 from django.http import HttpResponse, Http404, HttpResponseRedirect
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from django.template import loader
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
@@ -576,12 +576,19 @@ def edit_credentialing(request):
 
 
 @login_required
-def user_credential_applications(request):
+def user_credential_applications(request, username=None):
     """
     All the credential applications made by a user
     """
+    if username:
+        if request.user.is_admin or (request.user == username):
+            request_user = get_object_or_404(User, username__iexact=username)
+        else:
+            raise Http404()
+    else:
+        request_user = request.user
     applications = CredentialApplication.objects.filter(
-        user=request.user).order_by('-application_datetime')
+        user=request_user).order_by('-application_datetime')
 
     return render(request, 'user/user_credential_applications.html',
         {'applications':applications})

@@ -3,7 +3,9 @@
 {% load console_templatetags %}
 
 <p>Username: <a href="{% url 'user_management' application.user.username %}">{{ application.user.username }}</a></br>
-Applied: {{ application.application_datetime|date }}</p>
+  Applied: {{ application.application_datetime|date }}</br>
+[<a href="{% url 'user_credential_applications' application.user %}" target="_blank">View previous applications.</a>]</br>
+[<a href="https://www.google.com/search?q={{ application.first_names }} {{ application.last_name }} {{ application.organization_name }}" target="_blank">Search for name and affiliation.</a>]</p>
 
 {% if application.reference_contact_datetime %}
   Reference contact date: {{ application.reference_contact_datetime|date }}<br />
