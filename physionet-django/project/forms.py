@@ -335,12 +335,9 @@ class CreateProjectForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.user = user
         self.fields['resource_type'].label_from_instance = lambda obj: obj.name
-
-        if settings.STORAGE_TYPE != StorageTypes.GCP:
-            del self.fields['allow_file_downloads']
     class Meta:
         model = ActiveProject
-        fields = ['resource_type', 'title', 'abstract', 'allow_file_downloads']
+        fields = ['resource_type', 'title', 'abstract']
 
     def save(self):
         project = super().save(commit=False)
@@ -753,9 +750,10 @@ class AccessMetadataForm(forms.ModelForm):
     """
     class Meta:
         model = ActiveProject
-        fields = ('access_policy', 'license')
+        fields = ('access_policy', 'license', 'allow_file_downloads')
         help_texts = {'access_policy': '* Access policy for files.',
-                      'license': "* License for usage. <a href='/about/publish/#licenses' target='_blank'>View available.</a>"}
+                      'license': "* License for usage. <a href='/about/publish/#licenses' target='_blank'>View available.</a>",
+                      'allow_file_downloads': '* This option allow to enable/disable direct files downloads from the platform. It cannot be changed after publication of the project!'}
 
     def __init__(self, editable=True, **kwargs):
         """
@@ -776,6 +774,9 @@ class AccessMetadataForm(forms.ModelForm):
             (val, label) for (val, label) in AccessPolicy.choices() if licenses.filter(access_policy=val).exists()
         )
         self.fields['access_policy'].choices = available_policies
+
+        if settings.STORAGE_TYPE != StorageTypes.GCP:
+            del self.fields['allow_file_downloads']
 
         if not editable:
             for f in self.fields.values():

@@ -14,6 +14,11 @@ blockquote {
   background: #F0F0F0;
 }
 
+input[type="checkbox"] {
+  width: auto;
+  margin-top: 6px;
+}
+
 @media (min-width: 768px){
   .btn-right{
     float: right;
