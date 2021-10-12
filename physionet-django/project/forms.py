@@ -439,8 +439,9 @@ class NewProjectVersionForm(forms.ModelForm):
 
         ignored_files = ('SHA256SUMS.txt', 'LICENSE.txt')
 
-        if settings.STORAGE_TYPE == StorageTypes.GCP and project.allow_file_downloads:
+        if project.allow_file_downloads:
             ProjectFiles().cp_dir(older_file_root, current_file_root, ignored_files=ignored_files)
+            
         return project
 
 
@@ -1047,9 +1048,3 @@ class InviteDataAccessReviewerForm(forms.ModelForm):
         invitation.added_date = timezone.now()
         invitation.save()
         return invitation
-
-
-class AllowFileDownloadsForm(forms.ModelForm):
-    class Meta:
-        model = ActiveProject
-        fields = ['allow_file_downloads',]
