@@ -77,7 +77,6 @@ def find_demo_fixtures(project_apps):
     return demo_fixtures
 
 
-# TODO: S3
 def copy_demo_media():
     """
     Copy the demo media files into the media root.
@@ -107,7 +106,6 @@ def copy_demo_media():
                 os.chmod(os.path.join(dirpath, d), 0o555)
 
 
-# TODO: S3
 def copy_demo_static():
     """
     Copy the demo static files into the effective static root.

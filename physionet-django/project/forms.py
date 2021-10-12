@@ -754,7 +754,7 @@ class AccessMetadataForm(forms.ModelForm):
         fields = ('access_policy', 'license', 'allow_file_downloads')
         help_texts = {'access_policy': '* Access policy for files.',
                       'license': "* License for usage. <a href='/about/publish/#licenses' target='_blank'>View available.</a>",
-                      'allow_file_downloads': '* This option allow to enable/disable direct files downloads from the platform. It cannot be changed after publication of the project!'}
+                      'allow_file_downloads': '* This option allows to enable/disable direct files downloads from the platform. It cannot be changed after the publication of the project!'}
 
     def __init__(self, editable=True, **kwargs):
         """
