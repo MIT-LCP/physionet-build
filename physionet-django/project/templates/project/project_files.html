@@ -98,13 +98,6 @@
         </div>
       {% endif %}
     {% endif %}
-    {% if allow_file_downloads_form %}
-      <hr>
-      <form method="post" action-="{% url 'project_files' project_slug=project.slug %}">
-        {% include "inline_form_snippet.html" with form=allow_file_downloads_form col_1_size=4 col_2_size=8%}
-        <button class="btn btn-primary"type="submit" name="files_access">Save Information</button>
-      </form>
-    {% endif %}
   </div>
 </div>
 <br>

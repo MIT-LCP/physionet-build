@@ -1031,13 +1031,6 @@ def project_files(request, project_slug, subdir='', **kwargs):
             if storage_request:
                 storage_request.get().delete()
                 messages.success(request, 'Your storage request has been cancelled.')
-        elif 'files_access' in request.POST and settings.STORAGE_TYPE == StorageTypes.GCP:
-            allow_file_downloads_form = forms.AllowFileDownloadsForm(instance=project, data=request.POST)
-            if allow_file_downloads_form.is_valid():
-                allow_file_downloads_form.save()
-                messages.success(request, 'Your file downloads access has been updated.')
-            else:
-                messages.error(request, utility.get_form_errors(allow_file_downloads_form))
         else:
             # process the file manipulation post
             subdir = process_files_post(request, project)
