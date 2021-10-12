@@ -1787,6 +1787,7 @@ def published_project(request, project_slug, version, subdir=''):
     }
     # The file and directory contents
     if has_access:
+
         (display_files, display_dirs, dir_breadcrumbs, parent_dir,
          file_error) = get_project_file_info(project=project, subdir=subdir)
         if file_error:

@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
             name='Log',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('category', models.CharField(choices=[('ACCESS', 'Access'), ('GCP', 'GCP')], max_length=64)),
+                ('category', models.CharField(choices=[('ACCESS', 'Access'), ('GCP', 'GCP')], max_length=64, editable=False)),
                 ('data', models.TextField(max_length=512)),
                 ('count', models.PositiveIntegerField(default=1)),
                 ('creation_datetime', models.DateTimeField(auto_now_add=True)),

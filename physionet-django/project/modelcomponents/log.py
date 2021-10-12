@@ -8,7 +8,7 @@ from user.models import User
 
 class Log(models.Model):
     """Base model for different log types"""
-    category = models.CharField(max_length=64, choices=LogCategory.choices())
+    category = models.CharField(max_length=64, choices=LogCategory.choices(), editable=False)
     project = models.ForeignKey(PublishedProject, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     data = models.TextField(max_length=512)
