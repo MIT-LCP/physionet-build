@@ -69,7 +69,7 @@ urlpatterns = [
         content_type="text/plain"), name="robots_file"),
 ]
 
-if settings.STORAGE_TYPE != StorageTypes.GCP:
+if settings.STORAGE_TYPE == StorageTypes.LOCAL:
     urlpatterns.append(path('lightwave/', include('lightwave.urls')))
 
 if settings.DEBUG:

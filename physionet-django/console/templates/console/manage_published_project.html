@@ -200,7 +200,7 @@
   </div>
   <div class="card-body mb-2">
     <ul class="list-group list-group-flush">
-      {% if storage_type != 'GCP' %}
+      {% if storage_type == 'local' %}
         <li class="list-group-item">
         <h5 class="card-title mb-1">Generate special files</h5>
         <p>Generate (or regenerate) the project checksum file and zip file. If you regenerate these files, they will need to be resent to the cloud servers.</p>

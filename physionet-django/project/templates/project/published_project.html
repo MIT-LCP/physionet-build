@@ -348,7 +348,7 @@
               {% endif %}
             {% endfor %}
           {% endif %}
-          {% if storage_type != 'GCP' %}
+          {% if storage_type == 'local' %}
             <li>Download the files using your terminal: <pre class="shell-command">wget -r -N -c -np --user {{ user }} --ask-password {{ url_prefix }}{% url 'serve_published_project_file' project.slug project.version '' %}</pre></li>
           {% endif %}
           </ul>
@@ -393,13 +393,13 @@
             {% endif %}
           {% endfor %}
         {% endif %}
-          {% if storage_type != 'GCP' %}
+          {% if storage_type == 'local' %}
             <li>Download the files using your terminal: <pre class="shell-command">wget -r -N -c -np {{ url_prefix }}{% url 'serve_published_project_file' project.slug project.version '' %}</pre></li>
           {% endif %}
         </ul>
 {# ZIP END #}
       </p>
-      {% if storage_type != 'GCP' %}
+      {% if storage_type == 'local' %}
         {% if project.has_wfdb %}
           <p><a href="{% url 'lightwave_home' %}?db={{ project.slug }}/{{ project.version }}"><i class="fas fa-chart-line"></i> Visualize waveforms</a></p>
         {% endif %}

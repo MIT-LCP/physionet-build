@@ -750,7 +750,7 @@ def manage_published_project(request, project_slug, version):
                 messages.success(request, 'The topics have been set')
             else:
                 messages.error(request, 'Invalid submission. See form below.')
-        elif 'make_checksum_file' in request.POST and settings.STORAGE_TYPE != StorageTypes.GCP:
+        elif 'make_checksum_file' in request.POST and settings.STORAGE_TYPE == StorageTypes.LOCAL:
             if any(get_associated_tasks(project)):
                 messages.error(request, 'Project has tasks pending.')
             elif settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
@@ -761,7 +761,7 @@ def manage_published_project(request, project_slug, version):
                     verbose_name='Making checksum file - {}'.format(project))
                 messages.success(
                     request, 'The files checksum list has been scheduled.')
-        elif 'make_zip' in request.POST and settings.STORAGE_TYPE != StorageTypes.GCP:
+        elif 'make_zip' in request.POST and settings.STORAGE_TYPE == StorageTypes.LOCAL:
             if any(get_associated_tasks(project)):
                 messages.error(request, 'Project has tasks pending.')
             elif settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
