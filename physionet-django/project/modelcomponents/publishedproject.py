@@ -84,8 +84,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         Root directory where the main user uploaded files are located
         """
-        suffix = '' if settings.STORAGE_TYPE == StorageTypes.GCP else self.version
-        return os.path.join(self.project_file_root(), suffix)
+        return os.path.join(self.project_file_root(), self.version)
 
     def storage_used(self):
         """
