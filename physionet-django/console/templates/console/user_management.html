@@ -76,8 +76,9 @@
   {% endif %}
 
   <br />
+  <h3>Projects</h3>
   {% for status, group in projects.items %}
-  <h3>{{ status }} projects</h3>
+  <h4>{{ status }} projects</h4>
     <ul>
       {% for project in group %}
         {% if status == "Unsubmitted" %}
@@ -99,5 +100,23 @@
     </ul>
   {% endfor %}
 
+  <h3>Credentialing history</h3>
+  <ul>
+  {% for cred_app in credentialing_app %}
+    <li><strong> Application {{ forloop.counter }}</strong><br />
+    Date: {{ cred_app.application_datetime }}<br />
+    {% if cred_app.status == 0 %} 
+      Status: Pending<br />
+    {% else %}
+      Status: {{ cred_app.get_status_display }}<br />
+    {% endif %}
+    Reviewer: {{ cred_app.responder }}<br />
+    Reviewer comments: {{ cred_app.responder_comments }}
+    </li>
+  {% empty %}
+    <li>No applications found.</li>
+  {% endfor %}
+  </ul>
+  
 </div>
 {% endblock %}
