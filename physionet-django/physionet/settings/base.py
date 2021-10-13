@@ -167,7 +167,7 @@ CREDENTIAL_EMAIL = 'PhysioNet Credentialing <credentialing@physionet.org>'
 GCP_DELEGATION_EMAIL = config('GCP_DELEGATION_EMAIL', default=False)
 
 GCP_BUCKET_PREFIX = 'testing-delete.'
-GCP_DOMAIN = config('GCP_DOMAIN', '')
+GCP_DOMAIN = config('GCP_DOMAIN', default='')
 
 # Alternate hostname to be used in example download commands
 BULK_DOWNLOAD_HOSTNAME = config('BULK_DOWNLOAD_HOSTNAME', default=None)
