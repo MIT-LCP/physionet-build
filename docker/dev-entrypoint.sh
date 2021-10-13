@@ -6,6 +6,7 @@ mkdir -p $STATIC_ROOT/published-projects
 mkdir -p $MEDIA_ROOT/{active-projects,archived-projects,credential-applications,published-projects,users}
 
 ./docker/wait-for-it.sh $DB_HOST:5432
+./docker/wait-for-it.sh $DB_HOST:4443
 
 python physionet-django/manage.py migrate
 
