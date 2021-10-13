@@ -33,7 +33,6 @@ from project.validators import validate_subdir
 LOGGER = logging.getLogger(__name__)
 
 
-# TODO: S3 - This should probably be a noop
 @background()
 def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
     """
