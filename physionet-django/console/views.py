@@ -938,12 +938,13 @@ def user_management(request, username):
     projects['Archived'] = ArchivedProject.objects.filter(authors__user=user).order_by('-archive_datetime')
     projects['Published'] = PublishedProject.objects.filter(authors__user=user).order_by('-publish_datetime')
 
-
+    credentialing_app = CredentialApplication.objects.filter(user=user).order_by("application_datetime")
     return render(request, 'console/user_management.html', {'subject': user,
                                                             'profile': user.profile,
                                                             'emails': emails,
-                                                            'projects': projects})
-
+                                                            'projects': projects,
+                                                            'credentialing_app': credentialing_app})
+    
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
