@@ -19,8 +19,7 @@ from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
 from django.db import DatabaseError, transaction
-from django.db.models import (Q, CharField, Value, IntegerField, F, functions,
-    DurationField)
+from django.db.models import Count, DurationField, F, Q
 from django.db.models.functions import Cast
 from background_task import background
 from django.contrib.sites.models import Site
@@ -1966,11 +1965,7 @@ def project_access(request):
     List all the people that has access to credentialed databases
     """
     c_projects = PublishedProject.objects.filter(access_policy=2).annotate(
-        member_count=Value(0, IntegerField()))
-
-    for project in c_projects:
-        project.member_count = DUASignature.objects.filter(
-            project__access_policy = 2, project=project).count()
+        member_count=Count('duasignature'))
 
     return render(request, 'console/project_access.html',
         {'c_projects': c_projects, 'project_access_nav': True})
@@ -1979,15 +1974,12 @@ def project_access(request):
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def project_access_manage(request, pid):
-    c_project = PublishedProject.objects.filter(id=pid)
-    if c_project:
-        c_project = c_project.get()
-        project_members = DUASignature.objects.filter(
-            project__access_policy = 2, project=c_project)
+    projects = PublishedProject.objects.prefetch_related('duasignature_set__user__profile')
+    c_project = get_object_or_404(projects, id=pid, access_policy=2)
 
-        return render(request, 'console/project_access_manage.html', {
-            'c_project': c_project, 'project_members': project_members,
-            'project_access_nav': True})
+    return render(request, 'console/project_access_manage.html', {
+        'c_project': c_project, 'project_members': c_project.duasignature_set.all(),
+        'project_access_nav': True})
 
 
 class UserAutocomplete(autocomplete.Select2QuerySetView):
