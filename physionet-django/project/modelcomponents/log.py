@@ -1,4 +1,6 @@
 from django.db import models
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 
 from physionet.enums import LogCategory
 from project.managers.log import AccessLogQuerySet, GCPLogQuerySet
@@ -9,7 +11,9 @@ from user.models import User
 class Log(models.Model):
     """Base model for different log types"""
     category = models.CharField(max_length=64, choices=LogCategory.choices(), editable=False)
-    project = models.ForeignKey(PublishedProject, on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    project = GenericForeignKey('content_type', 'object_id')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     data = models.TextField(max_length=512)
     count = models.PositiveIntegerField(default=1)

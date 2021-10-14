@@ -1940,6 +1940,19 @@ def project_access_manage(request, pid):
         'project_access_nav': True})
 
 
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def project_access_logs(request):
+    c_projects = PublishedProject.objects.filter(access_policy=2).annotate(
+        log_count=Count('logs', filter=Q(logs__category=LogCategory.ACCESS)))
+    c_projects = paginate(request, c_projects, 50)
+
+    return render(request, 'console/project_access_logs.html', {
+        'c_projects': c_projects, 'access_logs_nav': True
+    })
+
+
+
 class UserAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         """

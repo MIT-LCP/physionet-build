@@ -2,37 +2,42 @@
 
 {% load static %}
 
-{% block title %}View credentialed project members{% endblock %}
+{% block title %}Project Access{% endblock %}
+
+{% block local_css %}
+  <link rel="stylesheet" type="text/css" href="{% static 'custom/css/pagination.css' %}">
+{% endblock %}
 
 {% block content %}
-<p><a href="{% url 'protected_project_access' %}">Back to project access</a></p>
-<div class="card mb-3">
+ <div class="card mb-3">
   <div class="card-header">
-    {{ c_project }} <span class="badge badge-pill badge-info">{{ project_members|length }}</span>
+    Credentialed projects - logs<span class="badge badge-pill badge-info">{{ c_projects|length }}</span>
   </div>
   <div class="card-body">
-    <p>Published on {{ c_project.publish_datetime }}</p>
     <div class="table-responsive">
       <table class="table table-bordered">
         <thead>
           <tr>
-            <th>First access</th>
-            <th>Last access</th>
-            <th>Count</th>
+            <th>Project Name</th>
+            <th>Publish Datetime</th>
+            <th>Logs count</th>
+            <th>Logs</th>
           </tr>
         </thead>
         <tbody>
-          {% for log in project_logs %}
-          <tr>
-            <td>{{ log.creation_datetime }}</td>
-            <td>{{ log.last_access_datetime }}</td>
-            <td>{{ log.count }}</td>
-          </tr>
-          {% endfor %}
+            {% for project in c_projects %}
+            <tr>
+                <td><a href="{% url 'published_project' project.slug project.version %}">{{ project }}</a></a></td>
+                <td>{{ project.publish_datetime }}</td>
+                <td>{{ project.log_count }}</td>
+                <td><a href="#" class="btn btn-sm btn-primary" role="button">View</a></td>
+            </tr>
+            {% endfor %}
         </tbody>
       </table>
+      {% include "console/pagination.html" with pagination=c_projects %}
     </div>
   </div>
 </div>
-<br>
 {% endblock %}
+

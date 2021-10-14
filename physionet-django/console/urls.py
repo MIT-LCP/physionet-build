@@ -22,6 +22,10 @@ urlpatterns = [
     path('published-projects/<project_slug>/<version>/',
         views.manage_published_project, name='manage_published_project'),
 
+    # Logs
+    path('project-access-logs/', views.project_access_logs,
+        name='project_access_logs'),
+
     # Individual edit pages
     path('submitted-projects/<project_slug>/',
         views.submission_info_redirect, name='submission_info_redirect'),
