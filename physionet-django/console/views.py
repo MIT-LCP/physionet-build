@@ -19,7 +19,7 @@ from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
 from django.db import DatabaseError, transaction
-from django.db.models import Count, DurationField, F, Q
+from django.db.models import Q, Count, Value, IntegerField, F, DurationField, Case, When
 from django.db.models.functions import Cast
 from background_task import background
 from django.contrib.sites.models import Site
@@ -1082,22 +1082,29 @@ def complete_credential_applications(request):
 
     # Group applications and sort by application date
     # 1. reference not contacted, but with reference known
-    known_ref_no_contact = applications.filter(
-        reference_contact_datetime__isnull=True,
-        reference_email__lower__in=known_refs).order_by('application_datetime')
+    known_ref_no_contact = Q(reference_contact_datetime__isnull=True, reference_email__lower__in=known_refs)
 
     # 2. reference not contacted, but with reference unknown
-    unknown_ref_no_contact = applications.filter(
-        reference_contact_datetime__isnull=True).exclude(
-        reference_email__lower__in=known_refs).order_by('application_datetime')
+    unknown_ref_no_contact = Q(reference_contact_datetime__isnull=True) & ~Q(reference_email__lower__in=known_refs)
 
     # 3. reference contacted
-    contacted = applications.filter(
-        reference_contact_datetime__isnull=False).order_by('application_datetime')
+    contacted = Q(reference_contact_datetime__isnull=False)
 
-    applications = (list(known_ref_no_contact) +
-                    list(unknown_ref_no_contact) +
-                    list(contacted))
+    applications = (
+        applications
+        .filter(known_ref_no_contact | unknown_ref_no_contact | contacted)
+        .select_related('user')
+        .annotate(
+            search_type_ordering=Case(
+                When(known_ref_no_contact, then=Value(2)),
+                When(unknown_ref_no_contact, then=Value(1)),
+                When(contacted, then=Value(0)),
+                default=Value(-1),
+                output_field=IntegerField(),
+            )
+        )
+        .order_by('-search_type_ordering', 'application_datetime')
+    )
 
     return render(request, 'console/complete_credential_applications.html',
                   {'process_credential_form': process_credential_form,
