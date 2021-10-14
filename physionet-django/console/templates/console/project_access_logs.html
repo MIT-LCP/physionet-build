@@ -1,0 +1,38 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}View credentialed project members{% endblock %}
+
+{% block content %}
+<p><a href="{% url 'protected_project_access' %}">Back to project access</a></p>
+<div class="card mb-3">
+  <div class="card-header">
+    {{ c_project }} <span class="badge badge-pill badge-info">{{ project_members|length }}</span>
+  </div>
+  <div class="card-body">
+    <p>Published on {{ c_project.publish_datetime }}</p>
+    <div class="table-responsive">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>First access</th>
+            <th>Last access</th>
+            <th>Count</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in project_logs %}
+          <tr>
+            <td>{{ log.creation_datetime }}</td>
+            <td>{{ log.last_access_datetime }}</td>
+            <td>{{ log.count }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<br>
+{% endblock %}
