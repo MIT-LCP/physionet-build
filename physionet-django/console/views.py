@@ -1386,7 +1386,7 @@ def credential_processing(request):
 
     ref_contacted = Q(reference_contact_datetime__isnull=False)
 
-    applications = applications.exclude(review_not_underway, ref_contacted)
+    applications = applications.select_related('user__profile').exclude(review_not_underway, ref_contacted)
 
     # Awaiting initial review
     initial_1 = Q(credential_review__isnull=True)
@@ -2022,7 +2022,7 @@ def known_references(request):
         except CredentialApplication.DoesNotExist:
             pass
 
-    all_known_ref = CredentialApplication.objects.filter(
+    all_known_ref = CredentialApplication.objects.select_related('user__profile').filter(
         reference_contact_datetime__isnull=False).order_by(
         '-reference_contact_datetime')
 
