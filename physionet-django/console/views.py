@@ -1501,14 +1501,16 @@ def credential_applications(request, status):
                      'p_applications': pending_apps})
 
     legacy_apps = LegacyCredential.objects.filter(migrated=True,
-        migrated_user__is_credentialed=True).order_by('-migration_date')
+        migrated_user__is_credentialed=True).order_by('-migration_date').select_related('migrated_user__profile')
 
     successful_apps = CredentialApplication.objects.filter(status=2
-        ).order_by('-decision_datetime')
+        ).order_by('-decision_datetime').select_related('user__profile', 'responder__profile')
+
     unsuccessful_apps = CredentialApplication.objects.filter(
-        status__in=[1, 3, 4]).order_by('-decision_datetime')
+        status__in=[1, 3, 4]).order_by('-decision_datetime').select_related('user__profile', 'responder')
+
     pending_apps = CredentialApplication.objects.filter(status=0
-        ).order_by('-application_datetime')
+        ).order_by('-application_datetime').select_related('user__profile', 'credential_review')
 
     # Merge legacy applications and new applications
     all_successful_apps = list(chain(successful_apps, legacy_apps))
