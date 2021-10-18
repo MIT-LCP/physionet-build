@@ -31,8 +31,12 @@ class AccessLogQuerySet(QuerySet):
 
         created = False
         try:
-            instance = self.filter(user=user, object_id=project.id, content_type=ContentType.objects.get_for_model(project))[0]
-            if instance.last_access_datetime + dt.timedelta(minutes=settings.LOG_TIMEDELTA) > timezone.now():
+            instance = self.filter(
+                user=user,
+                object_id=project.id,
+                content_type=ContentType.objects.get_for_model(project),
+            ).order_by("-creation_datetime")[0]
+            if instance.last_access_datetime + dt.timedelta(settings.LOG_TIMEDELTA) > timezone.now():
                 instance.count += 1
                 instance.save(update_fields=['count'])
             else:
@@ -59,7 +63,12 @@ class GCPLogQuerySet(QuerySet):
 
         created = False
         try:
-            instance = self.filter(user=user, object_id=project.id, data=data, content_type=ContentType.objects.get_for_model(project))[0]
+            instance = self.filter(
+                user=user,
+                object_id=project.id,
+                data=data,
+                content_type=ContentType.objects.get_for_model(project),
+            ).order_by("-creation_datetime")[0]
             if instance.last_access_datetime + dt.timedelta(minutes=settings.LOG_TIMEDELTA) > timezone.now():
                 instance.count += 1
                 instance.save(update_fields=['count'])
