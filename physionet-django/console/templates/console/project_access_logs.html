@@ -9,12 +9,25 @@
 {% endblock %}
 
 {% block content %}
+ {% comment %} <script src="{% static 'console/js/generic-search.js' %}"></script> {% endcomment %}
+ <script>
+ const search = function () {
+    let timeout;
+    return (url, value, div= "#searchitems") => {
+        clearTimeout(timeout)
+        timeout = setTimeout(() => { 
+            $('#searchitems').load(url + "?&search=" + encodeURIComponent(value) + " " + div + ">"); 
+    }, 500);
+    }
+}()
+ </script>
  <div class="card mb-3">
   <div class="card-header">
     Credentialed projects - logs<span class="badge badge-pill badge-info">{{ c_projects|length }}</span>
   </div>
   <div class="card-body">
     <div class="table-responsive">
+      <input type="search" oninput="search('{% url 'project_access_logs' %}', value);"  placeholder="Search...">
       <table class="table table-bordered">
         <thead>
           <tr>
@@ -24,15 +37,8 @@
             <th>Logs</th>
           </tr>
         </thead>
-        <tbody>
-            {% for project in c_projects %}
-            <tr>
-                <td><a href="{% url 'published_project' project.slug project.version %}">{{ project }}</a></a></td>
-                <td>{{ project.publish_datetime }}</td>
-                <td>{{ project.log_count }}</td>
-                <td><a href="#" class="btn btn-sm btn-primary" role="button">View</a></td>
-            </tr>
-            {% endfor %}
+        <tbody id="searchitems">
+          {% include "console/access_logs_list.html" %}
         </tbody>
       </table>
       {% include "console/pagination.html" with pagination=c_projects %}

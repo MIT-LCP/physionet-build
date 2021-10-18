@@ -1945,12 +1945,31 @@ def project_access_manage(request, pid):
 def project_access_logs(request):
     c_projects = PublishedProject.objects.filter(access_policy=2).annotate(
         log_count=Count('logs', filter=Q(logs__category=LogCategory.ACCESS)))
+
+    search = request.GET.get('search')
+    if search is not None:
+        c_projects = c_projects.filter(title__icontains=search)
+
     c_projects = paginate(request, c_projects, 50)
 
     return render(request, 'console/project_access_logs.html', {
         'c_projects': c_projects, 'access_logs_nav': True
     })
 
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def project_access_logs_detail(request, pid):
+    c_project = get_object_or_404(PublishedProject, id=pid, access_policy=2)
+    logs = c_project.logs.order_by('-creation_datetime').select_related('user__profile').annotate(
+        duration=F('last_access_datetime')-F('creation_datetime'))
+
+    logs = paginate(request, logs, 50)
+
+    return render(request, 'console/project_access_logs_detail.html', {
+        'c_project': c_project, 'logs': logs,
+        'access_logs_nav': True
+    })
 
 
 class UserAutocomplete(autocomplete.Select2QuerySetView):

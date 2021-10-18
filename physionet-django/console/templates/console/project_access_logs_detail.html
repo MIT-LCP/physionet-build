@@ -1,0 +1,45 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}Project Access{% endblock %}
+
+{% block local_css %}
+  <link rel="stylesheet" type="text/css" href="{% static 'custom/css/pagination.css' %}">
+{% endblock %}
+
+{% block content %}
+ <div class="card mb-3">
+  <div class="card-header">
+    Credentialed projects - logs<span class="badge badge-pill badge-info">{{ c_projects|length }}</span>
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>First access</th>
+            <th>Last access</th>
+            <th>Duration</th>
+            <th>Count</th>
+          </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+              <tr>
+                <td><a href="{% url 'public_profile' log.user.username %}">{{ log.user.get_full_name }}</a></td>
+                <td>{{ log.creation_datetime }}</td>
+                <td>{{ log.last_access_datetime }}</td>
+                <td>{{ log.duration }}</td>
+                <td>{{ log.count }}</td>
+              </tr>
+            {% endfor %}
+        </tbody>
+      </table>
+      {% include "console/pagination.html" with pagination=logs %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+

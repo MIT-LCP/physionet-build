@@ -25,6 +25,8 @@ urlpatterns = [
     # Logs
     path('project-access-logs/', views.project_access_logs,
         name='project_access_logs'),
+    path('project-access-logs/<pid>/', views.project_access_logs_detail,
+        name='project_access_logs_detail'),
 
     # Individual edit pages
     path('submitted-projects/<project_slug>/',
