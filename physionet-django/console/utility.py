@@ -248,14 +248,13 @@ def create_directory_service(user_email, group=False):
         Admin SDK Directory Service object.
     """
     logging.getLogger('googleapiclient.discovery_cache').setLevel(logging.ERROR)
-    scopes = [
+    credentials, _  = google.auth.default(scopes=[
         'https://www.googleapis.com/auth/admin.directory.group',
-        'https://www.googleapis.com/auth/apps.groups.settings']
-    credentials, _  = google.auth.default(scopes=scopes)
+        'https://www.googleapis.com/auth/apps.groups.settings',
+    ])
 
     # The email for delegating credentials to the service account is required.
-    credentials = google.auth.impersonated_credentials.Credentials(credentials,
-        target_principal=user_email, target_scopes=scopes)
+    credentials = credentials.with_claims({'sub': user_email})
 
     if group:
         return build('groupssettings', 'v1', credentials=credentials)
