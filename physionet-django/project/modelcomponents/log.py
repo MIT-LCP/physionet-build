@@ -3,8 +3,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 
 from physionet.enums import LogCategory
-from project.managers.log import AccessLogQuerySet, GCPLogQuerySet
-from project.modelcomponents.publishedproject import PublishedProject
+from project.managers.log import AccessLogQuerySet, GCPLogQuerySet, AccessLogManager, GCPLogManager
 from user.models import User
 
 
@@ -26,7 +25,7 @@ class Log(models.Model):
 
 class AccessLog(Log):
     """Proxy model for access logs""" 
-    objects = AccessLogQuerySet.as_manager()
+    objects = AccessLogManager.from_queryset(AccessLogQuerySet)()
 
     class Meta:
         proxy = True
@@ -34,7 +33,7 @@ class AccessLog(Log):
 
 class GCPLog(Log):
     """Proxy model for GCP logs"""
-    objects = GCPLogQuerySet.as_manager()
+    objects = GCPLogManager.from_queryset(GCPLogQuerySet)()
 
     class Meta:
         proxy = True

@@ -2283,4 +2283,7 @@ def generate_signed_url(request, project_slug):
         headers={'X-Upload-Content-Length': str(size)},
     )
 
+    data = f'filename: {filename};size: {size}'
+    GCPLog.objects.update_or_create(project=project, user=request.user, data=data)
+
     return JsonResponse({'url': url})
