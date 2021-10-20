@@ -38,7 +38,7 @@ class AccessLogQuerySet(QuerySet):
             ).order_by("-creation_datetime")[0]
             if instance.last_access_datetime + dt.timedelta(settings.LOG_TIMEDELTA) > timezone.now():
                 instance.count += 1
-                instance.save(update_fields=['count'])
+                instance.save()
             else:
                 instance = self.create(**kwargs)
                 created = True
@@ -71,7 +71,7 @@ class GCPLogQuerySet(QuerySet):
             ).order_by("-creation_datetime")[0]
             if instance.last_access_datetime + dt.timedelta(minutes=settings.LOG_TIMEDELTA) > timezone.now():
                 instance.count += 1
-                instance.save(update_fields=['count'])
+                instance.save()
             else:
                 instance = self.create(**kwargs)
                 created = True

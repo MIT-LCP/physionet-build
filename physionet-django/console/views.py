@@ -1964,6 +1964,11 @@ def project_access_logs_detail(request, pid):
     logs = c_project.logs.order_by('-creation_datetime').select_related('user__profile').annotate(
         duration=F('last_access_datetime')-F('creation_datetime'))
 
+    search = request.GET.get('search')
+    if search is not None:
+        for query in search.split():
+            logs = logs.filter(Q(user__username__icontains=query) | Q(user__profile__first_names__icontains=query) | Q(user__profile__last_name__icontains=query))
+
     logs = paginate(request, logs, 50)
 
     return render(request, 'console/project_access_logs_detail.html', {

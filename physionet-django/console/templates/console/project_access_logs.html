@@ -9,18 +9,7 @@
 {% endblock %}
 
 {% block content %}
- {% comment %} <script src="{% static 'console/js/generic-search.js' %}"></script> {% endcomment %}
- <script>
- const search = function () {
-    let timeout;
-    return (url, value, div= "#searchitems") => {
-        clearTimeout(timeout)
-        timeout = setTimeout(() => { 
-            $('#searchitems').load(url + "?&search=" + encodeURIComponent(value) + " " + div + ">"); 
-    }, 500);
-    }
-}()
- </script>
+ <script src="{% static 'console/js/generic-search.js' %}"></script>
  <div class="card mb-3">
   <div class="card-header">
     Credentialed projects - logs<span class="badge badge-pill badge-info">{{ c_projects|length }}</span>
