@@ -9,8 +9,11 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model, signals
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.core.validators import EmailValidator, FileExtensionValidator, integer_validator, validate_integer
+from django.core.validators import EmailValidator, FileExtensionValidator
 from django.db import DatabaseError, models, transaction
+from django.contrib.contenttypes.fields import GenericRelation
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.db.models import CharField
 from django.db.models.functions import Lower
 from django.db.models.signals import post_save
@@ -340,6 +343,8 @@ class User(AbstractBaseUser):
 
     is_credentialed = models.BooleanField(default=False)
     credential_datetime = models.DateTimeField(blank=True, null=True)
+
+    logs = GenericRelation('project.Log')
 
     USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'email'

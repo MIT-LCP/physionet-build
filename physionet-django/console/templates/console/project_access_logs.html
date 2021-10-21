@@ -14,29 +14,29 @@
   <div class="card-header">
     Credentialed projects - logs<span class="badge badge-pill badge-info">{{ c_projects|length }}</span>
   </div>
-  <div class="card-body">
-    <div class="table-responsive">
-      <div class="row">
-        <div class="col-sm-8">
-          <label class="font-weight-bold" for="searchbox">Search for project:</label>
-        </div>
-        <div class="col-sm-4">
-          <label class="font-weight-bold" for="accesspolicy">Filter by access policy:</label>
-        </div>
+  <div class="card-body" >
+    <div class="row">
+      <div class="col-sm-8">
+        <label class="font-weight-bold" for="searchbox">Search for project:</label>
       </div>
-      <div class="row">
-        <div class="col-sm-8">
-          <input id="searchbox" type="search" oninput="search();"  placeholder="Search...">
-        </div>
-        <div class="col-sm-4">
-          <select id="accesspolicy" style="cursor: pointer;" class="form-select text-dark" aria-label="Access policy">
-              <option value="-1" selected>All</option>
-              {% for policy in access_policies %}
-                <option value="{{ policy.0 }}">{{ policy.1 }}</option>
-              {% endfor %}
-          </select>
-        </div>
-      </form>
+      <div class="col-sm-4">
+        <label class="font-weight-bold" for="accesspolicy">Filter by access policy:</label>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-8">
+        <input id="searchbox" type="search" oninput="search();"  placeholder="Search...">
+      </div>
+      <div class="col-sm-4">
+        <select id="accesspolicy" style="cursor: pointer;" class="form-select text-dark" aria-label="Access policy">
+            <option value="-1" selected>All</option>
+            {% for policy in access_policies %}
+              <option value="{{ policy.0 }}">{{ policy.1 }}</option>
+            {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="table-responsive" id="searchitems">
       <table class="table table-bordered">
         <thead>
           <tr>
@@ -46,8 +46,8 @@
             <th>Logs</th>
           </tr>
         </thead>
-        <tbody id="searchitems">
-          {% include "console/access_logs_list.html" %}
+        <tbody>
+          {% include "console/project_access_logs_list.html" %}
         </tbody> 
       </table>
       {% include "console/pagination.html" with pagination=c_projects %}

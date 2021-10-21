@@ -1956,7 +1956,7 @@ def project_access_logs(request):
     c_projects = paginate(request, c_projects, 50)
 
     return render(request, 'console/project_access_logs.html', {
-        'c_projects': c_projects, 'access_logs_nav': True,
+        'c_projects': c_projects, 'project_access_logs_nav': True,
         'access_policies': ACCESS_POLICIES
     })
 
@@ -1983,8 +1983,30 @@ def project_access_logs_detail(request, pid):
 
     return render(request, 'console/project_access_logs_detail.html', {
         'c_project': c_project, 'logs': logs,
-        'access_logs_nav': True, 'user_filter_form': user_filter_form
+        'project_access_logs_nav': True, 'user_filter_form': user_filter_form
     })
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def user_access_logs(request):
+    users = User.objects.filter(is_active=True).select_related('profile').annotate(logs_count=Count('logs'))
+
+    q = request.GET.get('q')
+    if q:
+        for query in q.split('+'):
+            users = users.filter(
+                Q(username__icontains=query)
+                | Q(profile__first_names__icontains=query)
+                | Q(profile__last_name__icontains=query)
+            )
+
+    users = paginate(request, users, 50)
+
+    return render(request, 'console/user_access_logs.html', {
+        'users': users, 'user_access_logs_nav': True,
+    })
+
 
 
 class UserAutocomplete(autocomplete.Select2QuerySetView):

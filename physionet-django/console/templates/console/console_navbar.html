@@ -93,7 +93,7 @@
       </li>
       <!-- logs -->
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
-      {% if access_logs_nav or gcp_logs_nav %}
+      {% if project_access_logs_nav or user_access_logs_nav or gcp_logs_nav %}
         <a id="nav_projects_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#logsComponent" data-parent="#sideAccordion" aria-expanded="true">
       {% else %}
         <a id="nav_projects_dropdown" class="nav-link nav-link-collapse drop collapsed" data-toggle="collapse" href="#logsComponent" data-parent="#sideAccordion" aria-expanded="false">
@@ -107,8 +107,11 @@
       {% else %}
         <ul class="sidenav-second-level collapse" id="logsComponent">
       {% endif %}
-          <li class="nav-item {% if access_logs_nav %}active{% endif %}">
+          <li class="nav-item {% if project_access_logs_nav %}active{% endif %}">
             <a id="nav_unsubmitted_projects" class="nav-link" href="{% url 'project_access_logs' %}">Project accesses</a>
+          </li>
+          <li class="nav-item {% if user_access_logs_nav %}active{% endif %}">
+            <a id="nav_unsubmitted_projects" class="nav-link" href="{% url 'user_access_logs' %}">User accesses</a>
           </li>
           <li class="nav-item {% if gcp_logs_nav %}active{% endif %}">
             <a id="nav_submitted_projects" class="nav-link" href="#">GCP signed urls</a>
