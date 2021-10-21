@@ -1946,9 +1946,9 @@ def project_access_logs(request):
     c_projects = PublishedProject.objects.filter(access_policy=2).annotate(
         log_count=Count('logs', filter=Q(logs__category=LogCategory.ACCESS)))
 
-    search = request.GET.get('search')
-    if search is not None:
-        c_projects = c_projects.filter(title__icontains=search)
+    q = request.GET.get('q')
+    if q is not None:
+        c_projects = c_projects.filter(title__icontains=q)
 
     c_projects = paginate(request, c_projects, 50)
 
@@ -1964,10 +1964,19 @@ def project_access_logs_detail(request, pid):
     logs = c_project.logs.order_by('-creation_datetime').select_related('user__profile').annotate(
         duration=F('last_access_datetime')-F('creation_datetime'))
 
-    search = request.GET.get('search')
-    if search is not None:
-        for query in search.split():
-            logs = logs.filter(Q(user__username__icontains=query) | Q(user__profile__first_names__icontains=query) | Q(user__profile__last_name__icontains=query))
+    q = request.GET.get('q')
+    if q is not None:
+        for query in q.split('+'):
+            logs = logs.filter(
+                Q(user__username__icontains=query)
+                | Q(user__profile__first_names__icontains=query)
+                | Q(user__profile__last_name__icontains=query)
+            )
+
+    start_date = request.GET.get('startDate')
+    end_date = request.GET.get('endDate')
+    if start_date and end_date:
+        logs = logs.filter(creation_datetime__gte=start_date, creation_datetime__lte=end_date)
 
     logs = paginate(request, logs, 50)
 

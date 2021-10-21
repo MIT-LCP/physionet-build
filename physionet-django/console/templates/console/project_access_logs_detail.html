@@ -4,18 +4,38 @@
 {% load console_templatetags %}
 
 {% block title %}Project Access{% endblock %}
+
+{% block local_js_top %}
+  <script src="{% static 'daterangepicker/js/moment.min.js' %}"></script> 
+  <script src="{% static 'daterangepicker/js/daterangepicker.min.js' %}"></script>
+  <script src="{% static 'console/js/generic-filter.js' %}"></script>
+{% endblock %}
+
 {% block local_css %}
   <link rel="stylesheet" type="text/css" href="{% static 'custom/css/pagination.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static 'daterangepicker/css/daterangepicker.css' %}">
+  <style>
+    .datefilter {
+      padding: 5px 10px;
+      cursor: pointer;
+      border: 1px solid black;
+    }
+  </style>
 {% endblock %}
 
 {% block content %}
- <script src="{% static 'console/js/generic-search.js' %}"></script>
  <div class="card mb-3">
   <div class="card-header">
     Credentialed projects - logs<span class="badge badge-pill badge-info">{{ c_projects|length }}</span>
   </div>
   <div class="card-body">
-    <input type="search" oninput="search('{% url 'project_access_logs_detail' c_project.id %}', value);"  placeholder="Search...">
+    <div class="d-flex justify-content-end">
+      <div id="datefilter" style="cursor: pointer;" class="border py-1 px-2">
+        <i class="fa fa-calendar"></i>
+        <span>Select period</span>
+        <i class="fa fa-caret-down"></i>
+      </div>
+    </div>
     <div class="table-responsive" id="searchitems">
       <table class="table table-bordered">
         <thead>
@@ -45,3 +65,40 @@
 </div>
 {% endblock %}
 
+{% block local_js_bottom %}
+<script>
+const search = () => {
+  const picker = $('#datefilter').data().daterangepicker
+  const startDate = picker.startDate !== '' ? picker.startDate.format('YYYY-MM-DD hh:mm:ss') : ''
+  const endDate = picker.endDate !== '' ? picker.endDate.format('YYYY-MM-DD hh:mm:ss') : ''
+
+  filter('{% url 'project_access_logs_detail' c_project.id %}', {
+    startDate, endDate
+  });
+}
+
+$(() => {
+  $('#datefilter').daterangepicker({
+    autoUpdateInput: false,
+    timePicker: true,
+    locale: {
+      cancelLabel: 'Clear'
+    }
+  });
+
+  $('#datefilter').on('apply.daterangepicker', function(ev, picker) {
+      $('#datefilter span').html(picker.startDate.format('M/DD hh:mm A') + ' - ' + picker.endDate.format('M/DD hh:mm A'));
+      search();
+  });
+
+  $('#datefilter').on('cancel.daterangepicker', function(ev, picker) {
+      $('#datefilter span').html('Select period')
+      picker.startDate = Date.parse('')
+      picker.endDate = Date.pasrse('')
+
+  });
+
+  console.log($('#datefilter').data().daterangepicker.startDate)
+});
+</script>
+{% endblock %}
