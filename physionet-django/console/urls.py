@@ -29,6 +29,8 @@ urlpatterns = [
         name='project_access_logs_detail'),
     path('user-access-logs/', views.user_access_logs,
         name='user_access_logs'),
+    path('user-access-logs/<pid>/', views.user_access_logs_detail,
+        name='user_access_logs_detail'),
 
     # Individual edit pages
     path('submitted-projects/<project_slug>/',
@@ -93,7 +95,9 @@ urlpatterns = [
     path('guidelines/review/', views.guidelines_review, name='guidelines_review'),
 
     path('user-autocomplete/', views.UserAutocomplete.as_view(),
-    name='user-autocomplete'),
+        name='user-autocomplete'),
+    path('project-autocomplete/', views.ProjectAutocomplete.as_view(),
+        name='project-autocomplete'),
 
     # editorial stats
     path('usage/editorial/stats/', views.editorial_stats, name='editorial_stats'),

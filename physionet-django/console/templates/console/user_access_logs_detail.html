@@ -19,12 +19,12 @@
 {% block content %}
  <div class="card mb-3">
   <div class="card-header">
-    {{ c_project }} - logs<span class="badge badge-pill badge-info">{{ logs.paginator.count }}</span>
+    {{ user.get_full_name }} - logs<span class="badge badge-pill badge-info">{{ logs|length }}</span>
   </div>
   <div class="card-body">
     <div class="row">
       <div class="col-sm-6">
-        <label class="font-weight-bold" for="username">Filter by username:</label>
+        <label class="font-weight-bold" for="username">Filter by title:</label>
       </div>
       <div class="col-sm-6">
         <label class="font-weight-bold" for="datefilter">Filter by time period:</label>
@@ -32,8 +32,8 @@
     </div>
     <div class="row">
       <div class="col-sm-6">
-        {{ user_filter_form.media }}
-        {{ user_filter_form.username }}
+        {{ project_filter_form.media }}
+        {{ project_filter_form.title }}
       </div>
       <div class="col-sm-6">
         <div id="datefilter" style="cursor: pointer;" class="border py-1 px-2 text-dark">
@@ -47,7 +47,7 @@
       <table class="table table-bordered">
         <thead>
           <tr>
-            <th>User</th>
+            <th>Project name</th>
             <th>First access</th>
             <th>Last access</th>
             <th>Duration</th>
@@ -57,7 +57,7 @@
         <tbody>
             {% for log in logs %}
               <tr>
-                <td><a href="{% url 'public_profile' user.username %}">{{ user.get_full_name }}</a></td>
+                <td><a href="{% url 'published_project' log.project.slug log.project.version %}">{{ log.project }}</a></td>
                 <td>{{ log.creation_datetime }}</td>
                 <td>{{ log.last_access_datetime }}</td>
                 <td>{{ log.duration|smooth_timedelta }}</td>
@@ -80,16 +80,17 @@
   const search = () => {
     const start = startDate !== null ? startDate : '';
     const end = endDate !== null ? endDate : '';
-    const user = $('#id_username').val() !== null ? $('#id_username').val() : '';
-  
-    filter('{% url 'project_access_logs_detail' c_project.id %}', {
+    const project = $('#id_title').val() !== null ? $('#id_title').val() : '';
+
+
+    filter('{% url 'user_access_logs_detail' user.id %}', {
       startDate: start,
       endDate: end,
-      user: user
+      project: project
     });
   }
 
-  $('#id_username').change(() => search());
+  $('#id_title').change(() => search());
 
 $(() => {
   $('#datefilter').daterangepicker({

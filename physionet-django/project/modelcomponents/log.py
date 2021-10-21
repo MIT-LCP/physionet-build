@@ -13,7 +13,7 @@ class Log(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     project = GenericForeignKey('content_type', 'object_id')
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='logs')
     data = models.TextField(max_length=512)
     count = models.PositiveIntegerField(default=1)
     creation_datetime = models.DateTimeField(auto_now_add=True)

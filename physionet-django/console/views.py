@@ -18,6 +18,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import Case, Count, DurationField, F, IntegerField, Q, Value, When
 from django.db.models.functions import Cast
 from django.forms import Select, Textarea, modelformset_factory
@@ -2008,6 +2009,33 @@ def user_access_logs(request):
     })
 
 
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def user_access_logs_detail(request, pid):
+    user = get_object_or_404(User, id=pid, is_active=True)
+    logs = user.logs.order_by('-creation_datetime').prefetch_related('project').annotate(
+        duration=F('last_access_datetime')-F('creation_datetime')) 
+
+    project = request.GET.get('project')
+    if project:
+        logs = logs.filter(object_id=project, content_type=ContentType.objects.get_for_model(PublishedProject))
+
+    start_date = request.GET.get('startDate')
+    end_date = request.GET.get('endDate')
+    if start_date and end_date:
+        logs = logs.filter(creation_datetime__gte=start_date, creation_datetime__lte=end_date)
+
+
+    logs = paginate(request, logs, 50)
+
+    project_filter_form = ProjectFilterForm()
+
+    return render(request, 'console/user_access_logs_detail.html', {
+        'user': user, 'logs': logs, 'user_access_logs_nav': True,
+        'project_filter_form': project_filter_form
+    })
+
+
 
 class UserAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
@@ -2026,6 +2054,21 @@ class UserAutocomplete(autocomplete.Select2QuerySetView):
                 )
 
         return qs
+
+
+class ProjectAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        """
+        Get all active users with usernames that match the request string,
+        excluding the user who is doing the search.
+        """
+        qs = PublishedProejct.objects.all()
+
+        if self.q:
+            qs = qs.filter(title__icontains=self.q)
+
+        return qs
+
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')

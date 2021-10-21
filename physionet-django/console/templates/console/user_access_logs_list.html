@@ -2,6 +2,6 @@
     <tr>
         <td><a href="{% url 'public_profile' user.username %}">{{ user.get_full_name }}</a></td>
         <td>{{ user.logs_count }}</td>
-        <td><a href="#" class="btn btn-sm btn-primary" role="button">View</a></td>
+        <td><a href="{% url 'user_access_logs_detail' user.id %}" class="btn btn-sm btn-primary" role="button">View</a></td>
     </tr>
 {% endfor %}

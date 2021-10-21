@@ -344,8 +344,6 @@ class User(AbstractBaseUser):
     is_credentialed = models.BooleanField(default=False)
     credential_datetime = models.DateTimeField(blank=True, null=True)
 
-    logs = GenericRelation('project.Log')
-
     USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'email'
 
