@@ -18,10 +18,6 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
-from django.contrib.sites.models import Site
-from django.core.exceptions import ObjectDoesNotExist
-from django.core.validators import validate_email
-from django.db import DatabaseError, transaction
 from django.db.models import Case, Count, DurationField, F, IntegerField, Q, Value, When
 from django.db.models.functions import Cast
 from django.forms import Select, Textarea, modelformset_factory
@@ -33,7 +29,6 @@ from notification.models import News
 from physionet.enums import Page
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
-from physionet.settings.base import StorageTypes
 from physionet.utility import paginate
 from physionet.models import Section
 from project.models import (
@@ -56,7 +51,11 @@ from project.projectfiles import ProjectFiles
 from project.utility import readable_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH
 from project.views import get_file_forms, get_project_file_info, process_files_post
-from user.models import AssociatedEmail, CredentialApplication, CredentialReview, LegacyCredential, User
+from user.models import (User, CredentialApplication, LegacyCredential,
+                         AssociatedEmail, CredentialReview)
+from console import forms, utility
+from console.forms import UserFilterForm
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -1965,18 +1964,13 @@ def project_access_logs(request):
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def project_access_logs_detail(request, pid):
-    c_project = get_object_or_404(PublishedProject, id=pid, access_policy=2)
+    c_project = get_object_or_404(PublishedProject, id=pid)
     logs = c_project.logs.order_by('-creation_datetime').select_related('user__profile').annotate(
         duration=F('last_access_datetime')-F('creation_datetime'))
 
-    q = request.GET.get('q')
-    if q is not None:
-        for query in q.split('+'):
-            logs = logs.filter(
-                Q(user__username__icontains=query)
-                | Q(user__profile__first_names__icontains=query)
-                | Q(user__profile__last_name__icontains=query)
-            )
+    user = request.GET.get('user')
+    if user:
+        logs = logs.filter(user=user)
 
     start_date = request.GET.get('startDate')
     end_date = request.GET.get('endDate')
@@ -1985,9 +1979,11 @@ def project_access_logs_detail(request, pid):
 
     logs = paginate(request, logs, 50)
 
+    user_filter_form = UserFilterForm()
+
     return render(request, 'console/project_access_logs_detail.html', {
         'c_project': c_project, 'logs': logs,
-        'access_logs_nav': True
+        'access_logs_nav': True, 'user_filter_form': user_filter_form
     })
 
 
@@ -2000,7 +1996,12 @@ class UserAutocomplete(autocomplete.Select2QuerySetView):
         qs = User.objects.filter(is_active=True)
 
         if self.q:
-            qs = qs.filter(username__icontains=self.q)
+            for query in self.q.split('+'):
+                qs = qs.filter(
+                    Q(username__icontains=query)
+                    | Q(profile__first_names__icontains=query)
+                    | Q(profile__last_name__icontains=query)
+                )
 
         return qs
 

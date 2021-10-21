@@ -29,10 +29,26 @@
     Credentialed projects - logs<span class="badge badge-pill badge-info">{{ c_projects|length }}</span>
   </div>
   <div class="card-body">
-    <div id="datefilter" style="cursor: pointer;" class="border py-1 px-2 text-dark">
-      <i class="far fa-calendar"></i>
-      <span>Select period</span>
-      <i class="fa fa-angle-down"></i>
+    <div class="row">
+      <div class="col-sm-6">
+        <label class="font-weight-bold" for="username">Filter by username:</label>
+      </div>
+      <div class="col-sm-6">
+        <label class="font-weight-bold" for="datefilter">Filter by time period:</label>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-6">
+        {{ user_filter_form.media }}
+        {{ user_filter_form.username }}
+      </div>
+      <div class="col-sm-6">
+        <div id="datefilter" style="cursor: pointer;" class="border py-1 px-2 text-dark">
+          <i class="far fa-calendar"></i>
+          <span>Select period</span>
+          <i class="fa fa-angle-down"></i>
+        </div>
+      </div>
     </div>
     <div class="table-responsive" id="searchitems">
       <table class="table table-bordered">
@@ -65,19 +81,22 @@
 
 {% block local_js_bottom %}
 <script>
-let startDate = null;
-let endDate = null;
+  let startDate = null;
+  let endDate = null;
+  
+  const search = () => {
+    const start = startDate !== null ? startDate : '';
+    const end = endDate !== null ? endDate : '';
+    const user = $('#id_username').val() !== null ? $('#id_username').val() : '';
+  
+    filter('{% url 'project_access_logs_detail' c_project.id %}', {
+      startDate: start,
+      endDate: end,
+      user: user
+    });
+  }
 
-const search = () => {
-  const start = startDate !== null ? startDate : ''
-  const end = endDate !== null ? endDate : ''
-
-  console.log(startDate)
-
-  filter('{% url 'project_access_logs_detail' c_project.id %}', {
-    startDate: start, endDate: end
-  });
-}
+  $('#id_username').change(() => search());
 
 $(() => {
   $('#datefilter').daterangepicker({

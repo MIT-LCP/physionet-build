@@ -36,7 +36,7 @@ class AccessLogQuerySet(QuerySet):
                 object_id=project.id,
                 content_type=ContentType.objects.get_for_model(project),
             ).order_by("-creation_datetime")[0]
-            if instance.last_access_datetime + dt.timedelta(settings.LOG_TIMEDELTA) > timezone.now():
+            if instance.last_access_datetime + dt.timedelta(minutes=settings.LOG_TIMEDELTA) > timezone.now():
                 instance.count += 1
                 instance.save()
             else:
