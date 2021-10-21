@@ -108,10 +108,10 @@
         <ul class="sidenav-second-level collapse" id="logsComponent">
       {% endif %}
           <li class="nav-item {% if access_logs_nav %}active{% endif %}">
-            <a id="nav_unsubmitted_projects" class="nav-link" href="{% url 'project_access_logs' %}">Access</a>
+            <a id="nav_unsubmitted_projects" class="nav-link" href="{% url 'project_access_logs' %}">Project accesses</a>
           </li>
           <li class="nav-item {% if gcp_logs_nav %}active{% endif %}">
-            <a id="nav_submitted_projects" class="nav-link" href="#">GCP</a>
+            <a id="nav_submitted_projects" class="nav-link" href="#">GCP signed urls</a>
           </li>
         </ul>
       </li>
