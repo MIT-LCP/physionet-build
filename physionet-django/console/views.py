@@ -1943,8 +1943,12 @@ def project_access_manage(request, pid):
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def project_access_logs(request):
-    c_projects = PublishedProject.objects.filter(access_policy=2).annotate(
+    c_projects = PublishedProject.objects.annotate(
         log_count=Count('logs', filter=Q(logs__category=LogCategory.ACCESS)))
+
+    access_policy = request.GET.get('accessPolicy')
+    if access_policy:
+        c_projects = c_projects.filter(access_policy=access_policy)
 
     q = request.GET.get('q')
     if q is not None:
@@ -1953,7 +1957,8 @@ def project_access_logs(request):
     c_projects = paginate(request, c_projects, 50)
 
     return render(request, 'console/project_access_logs.html', {
-        'c_projects': c_projects, 'access_logs_nav': True
+        'c_projects': c_projects, 'access_logs_nav': True,
+        'access_policies': ACCESS_POLICIES
     })
 
 

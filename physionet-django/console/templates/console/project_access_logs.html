@@ -16,7 +16,27 @@
   </div>
   <div class="card-body">
     <div class="table-responsive">
-      <input type="search" oninput="filter('{% url 'project_access_logs' %}', {q: value});"  placeholder="Search...">
+      <div class="row">
+        <div class="col-sm-8">
+          <label class="font-weight-bold" for="searchbox">Search for project:</label>
+        </div>
+        <div class="col-sm-4">
+          <label class="font-weight-bold" for="accesspolicy">Filter by access policy:</label>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-8">
+          <input id="searchbox" type="search" oninput="search();"  placeholder="Search...">
+        </div>
+        <div class="col-sm-4">
+          <select id="accesspolicy" style="cursor: pointer;" class="form-select text-dark" aria-label="Access policy">
+              <option value="-1" selected>All</option>
+              {% for policy in access_policies %}
+                <option value="{{ policy.0 }}">{{ policy.1 }}</option>
+              {% endfor %}
+          </select>
+        </div>
+      </form>
       <table class="table table-bordered">
         <thead>
           <tr>
@@ -28,7 +48,7 @@
         </thead>
         <tbody id="searchitems">
           {% include "console/access_logs_list.html" %}
-        </tbody>
+        </tbody> 
       </table>
       {% include "console/pagination.html" with pagination=c_projects %}
     </div>
@@ -36,3 +56,17 @@
 </div>
 {% endblock %}
 
+{% block local_js_bottom %}
+  <script>
+    const search = () => {
+      const accessPolicy = $('#accesspolicy').val()
+      
+      const filters = {
+        accessPolicy: accessPolicy !== '-1' ? accessPolicy : '',
+        q: $('#searchbox').val()
+      }
+      filter('{% url 'project_access_logs' %}', filters)
+    }
+    $('#accesspolicy').on('change', e => search())
+  </script>
+{% endblock %}
