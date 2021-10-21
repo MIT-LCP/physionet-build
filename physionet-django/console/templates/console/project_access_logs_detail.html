@@ -67,13 +67,17 @@
 
 {% block local_js_bottom %}
 <script>
+let startDate = null;
+let endDate = null;
+
 const search = () => {
-  const picker = $('#datefilter').data().daterangepicker
-  const startDate = picker.startDate !== '' ? picker.startDate.format('YYYY-MM-DD hh:mm:ss') : ''
-  const endDate = picker.endDate !== '' ? picker.endDate.format('YYYY-MM-DD hh:mm:ss') : ''
+  const start = startDate !== null ? startDate : ''
+  const end = endDate !== null ? endDate : ''
+
+  console.log(startDate)
 
   filter('{% url 'project_access_logs_detail' c_project.id %}', {
-    startDate, endDate
+    startDate: start, endDate: end
   });
 }
 
@@ -87,18 +91,21 @@ $(() => {
   });
 
   $('#datefilter').on('apply.daterangepicker', function(ev, picker) {
-      $('#datefilter span').html(picker.startDate.format('M/DD hh:mm A') + ' - ' + picker.endDate.format('M/DD hh:mm A'));
-      search();
+    startDate = picker.startDate.format('YYYY-MM-DD hh:mm');
+    endDate = picker.endDate.format('YYYY-MM-DD hh:mm');
+    $('#datefilter span').html(picker.startDate.format('M/DD hh:mm A') + ' - ' + picker.endDate.format('M/DD hh:mm A'));
+    search();
   });
 
   $('#datefilter').on('cancel.daterangepicker', function(ev, picker) {
-      $('#datefilter span').html('Select period')
-      picker.startDate = Date.parse('')
-      picker.endDate = Date.pasrse('')
-
+    $('#datefilter span').html('Select period');
+    picker.setStartDate(moment().startOf('day'))
+    picker.setEndDate(moment().endOf('day'))
+    startDate = null;
+    endDate = null;
+    search()
   });
 
-  console.log($('#datefilter').data().daterangepicker.startDate)
 });
 </script>
 {% endblock %}
