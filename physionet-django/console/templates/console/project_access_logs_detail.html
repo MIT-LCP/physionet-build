@@ -9,11 +9,13 @@
   <script src="{% static 'daterangepicker/js/moment.min.js' %}"></script> 
   <script src="{% static 'daterangepicker/js/daterangepicker.min.js' %}"></script>
   <script src="{% static 'console/js/generic-filter.js' %}"></script>
+  {{ user_filter_form.media.js }}
 {% endblock %}
 
 {% block local_css %}
   <link rel="stylesheet" type="text/css" href="{% static 'custom/css/pagination.css' %}">
   <link rel="stylesheet" type="text/css" href="{% static 'daterangepicker/css/daterangepicker.css' %}">
+  {{ user_filter_form.media.css }}
 {% endblock %}
 
 {% block content %}
@@ -34,7 +36,6 @@
     </div>
     <div class="row">
       <div class="col-sm-6">
-        {{ user_filter_form.media }}
         {{ user_filter_form.username }}
       </div>
       <div class="col-sm-6">
@@ -117,9 +118,8 @@ $(() => {
     picker.setEndDate(moment().endOf('day'))
     startDate = null;
     endDate = null;
-    search()
+    search();
   });
-
 });
 </script>
 {% endblock %}
