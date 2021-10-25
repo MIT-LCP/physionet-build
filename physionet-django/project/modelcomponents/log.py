@@ -22,7 +22,10 @@ class Log(models.Model):
     def __str__(self):
         return f'[{self.category}] {self.project} - {self.user}'
 
+    def get_data(self):
+        return self.data.split(';')
 
+        
 class AccessLog(Log):
     """Proxy model for access logs""" 
     objects = AccessLogManager.from_queryset(AccessLogQuerySet)()
@@ -37,8 +40,3 @@ class GCPLog(Log):
 
     class Meta:
         proxy = True
-
-    def get_data(self):
-        return self.data.split(';')
-
-

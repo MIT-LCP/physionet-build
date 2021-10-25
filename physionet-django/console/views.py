@@ -2114,6 +2114,19 @@ def gcp_signed_urls_logs(request):
     })
 
 
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def gcp_signed_urls_logs_detail(request, pk):
+    project = get_object_or_404(ActiveProject, pk=pk)
+    logs = project.logs.order_by('-creation_datetime').prefetch_related('project').annotate(
+        duration=F('last_access_datetime')-F('creation_datetime'))
+
+    logs = paginate(request, logs, 50)
+
+    return render(request, 'console/gcp_logs_detail.html', {
+        'project': project, 'logs': logs,
+        'gcp_logs_nav': True,
+    })
 
 
 class UserAutocomplete(autocomplete.Select2QuerySetView):

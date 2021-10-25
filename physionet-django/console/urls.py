@@ -37,6 +37,8 @@ urlpatterns = [
         name='download_user_accesses'),
     path('gcp-signed-urls-logs/', views.gcp_signed_urls_logs,
         name='gcp_signed_urls_logs'),
+    path('gcp-signed-urls-logs/<int:pk>/', views.gcp_signed_urls_logs_detail,
+        name='gcp_signed_urls_logs_detail'),
 
     # Individual edit pages
     path('submitted-projects/<project_slug>/',
