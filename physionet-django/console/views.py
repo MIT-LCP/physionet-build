@@ -1999,7 +1999,7 @@ def download_project_accesses(request, pk):
     )
     
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="credentialed_users.csv"'
+    response['Content-Disposition'] = f'attachment; filename="project_{pk}_accesses.csv"'
 
     writer = csv.writer(response)
     writer.writerow(headers)
@@ -2063,6 +2063,34 @@ def user_access_logs_detail(request, pid):
         'user': user, 'logs': logs, 'user_access_logs_nav': True,
         'project_filter_form': project_filter_form
     })
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def download_user_accesses(request, pk):
+    headers = ['Project name', 'First access', 'Last access', 'Duration', 'Count']
+
+    data = (
+        AccessLog.objects.filter(user=pk).select_related('user__profile')
+        .annotate(duration=F('last_access_datetime') - F('creation_datetime'))
+    )
+    
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="user_{pk}_logs.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(headers)
+
+    for row in data:
+        writer.writerow([
+            row.project,
+            row.creation_datetime.strftime('%m/%d/%Y, %I:%M:%S %p'),
+            row.last_access_datetime.strftime('%m/%d/%Y, %I:%M:%S %p'),
+            str(row.duration).split('.')[0],
+            row.count
+        ])
+
+    return response
 
 
 

@@ -22,6 +22,8 @@
     {{ user.get_full_name }} - logs<span class="badge badge-pill badge-info">{{ logs|length }}</span>
   </div>
   <div class="card-body">
+    <a href="{% url 'download_user_accesses' user.id %}" class="btn btn-md btn-success">Download CSV</a>
+    <hr>
     <div class="row">
       <div class="col-sm-6">
         <label class="font-weight-bold" for="username">Filter by title:</label>
