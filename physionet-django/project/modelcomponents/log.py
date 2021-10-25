@@ -38,4 +38,7 @@ class GCPLog(Log):
     class Meta:
         proxy = True
 
+    def get_data(self):
+        return self.data.split(';')
+
 

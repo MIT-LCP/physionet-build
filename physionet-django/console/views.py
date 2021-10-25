@@ -34,6 +34,8 @@ from physionet.utility import paginate
 from physionet.models import Section
 from project.models import (
     GCP,
+    GCPLog,
+    AccessLog,
     AccessPolicy,
     ActiveProject,
     ArchivedProject,
@@ -49,6 +51,8 @@ from project.models import (
     exists_project_slug,
 )
 from project.projectfiles import ProjectFiles
+import project.forms as project_forms
+from project.modelcomponents.access import ACCESS_POLICIES
 from project.utility import readable_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH
 from project.views import get_file_forms, get_project_file_info, process_files_post
@@ -2091,6 +2095,24 @@ def download_user_accesses(request, pk):
         ])
 
     return response
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def gcp_signed_urls_logs(request):
+    projects = ActiveProject.objects.annotate(
+        log_count=Count('logs', filter=Q(logs__category=LogCategory.GCP)))
+
+    q = request.GET.get('q')
+    if q:
+        projects = projects.filter(title__icontains=q)
+
+    projects = paginate(request, projects, 50)
+
+    return render(request, 'console/gcp_logs.html', {
+        'projects': projects, 'gcp_logs_nav': True,
+    })
+
 
 
 
