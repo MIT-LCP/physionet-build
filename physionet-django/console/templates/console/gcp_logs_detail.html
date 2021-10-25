@@ -24,7 +24,7 @@
     {{ project }} - logs<span class="badge badge-pill badge-info">{{ logs.paginator.count }}</span>
   </div>
   <div class="card-body">
-    <a href="#" class="btn btn-md btn-success">Download CSV</a>
+    <a href="{% url 'download_signed_urls_logs' project.id %}" class="btn btn-md btn-success">Download CSV</a>
     <hr>
     <div class="table-responsive" id="searchitems">
       <table class="table table-bordered">

@@ -2012,9 +2012,9 @@ def download_project_accesses(request, pk):
         writer.writerow([
             row.user.get_full_name(),
             row.user.email,
-            row.creation_datetime,
-            row.last_access_datetime,
-            row.duration,
+            row.creation_datetime.strftime('%m/%d/%Y, %I:%M:%S %p'),
+            row.last_access_datetime.strftime('%m/%d/%Y, %I:%M:%S %p'),
+            str(row.duration).split('.')[0],
             row.count
         ])
 
@@ -2127,6 +2127,36 @@ def gcp_signed_urls_logs_detail(request, pk):
         'project': project, 'logs': logs,
         'gcp_logs_nav': True,
     })
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def download_signed_urls_logs(request, pk):
+    headers = ['User', 'Email address', 'First access', 'Last access', 'Duration', 'Data', 'Count']
+
+    data = (
+        GCPLog.objects.filter(content_type=ContentType.objects.get_for_model(ActiveProject), object_id=pk).select_related('user__profile')
+        .annotate(duration=F('last_access_datetime') - F('creation_datetime'))
+    )
+    
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="project_{pk}_signed_urls.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(headers)
+
+    for row in data:
+        writer.writerow([
+            row.user.get_full_name(),
+            row.user.email,
+            row.creation_datetime.strftime('%m/%d/%Y, %I:%M:%S %p'),
+            row.last_access_datetime.strftime('%m/%d/%Y, %I:%M:%S %p'),
+            str(row.duration).split('.')[0],
+            row.data,
+            row.count
+        ])
+
+    return response
 
 
 class UserAutocomplete(autocomplete.Select2QuerySetView):
