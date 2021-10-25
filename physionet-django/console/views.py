@@ -1990,6 +1990,35 @@ def project_access_logs_detail(request, pid):
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
+def download_project_accesses(request, pk):
+    headers = ['User', 'Email address', 'First access', 'Last access', 'Duration', 'Count']
+
+    data = (
+        AccessLog.objects.filter(content_type=ContentType.objects.get_for_model(PublishedProject), object_id=pk).select_related('user__profile')
+        .annotate(duration=F('last_access_datetime') - F('creation_datetime'))
+    )
+    
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="credentialed_users.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(headers)
+
+    for row in data:
+        writer.writerow([
+            row.user.get_full_name(),
+            row.user.email,
+            row.creation_datetime,
+            row.last_access_datetime,
+            row.duration,
+            row.count
+        ])
+
+    return response
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
 def user_access_logs(request):
     users = User.objects.filter(is_active=True).select_related('profile').annotate(logs_count=Count('logs'))
 
@@ -2062,7 +2091,7 @@ class ProjectAutocomplete(autocomplete.Select2QuerySetView):
         Get all active users with usernames that match the request string,
         excluding the user who is doing the search.
         """
-        qs = PublishedProejct.objects.all()
+        qs = PublishedProject.objects.all()
 
         if self.q:
             qs = qs.filter(title__icontains=self.q)

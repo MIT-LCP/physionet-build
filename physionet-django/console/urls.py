@@ -31,6 +31,8 @@ urlpatterns = [
         name='user_access_logs'),
     path('user-access-logs/<pid>/', views.user_access_logs_detail,
         name='user_access_logs_detail'),
+    path('download-project-accesses/<int:pk>/', views.download_project_accesses,
+        name='download_project_accesses'),
 
     # Individual edit pages
     path('submitted-projects/<project_slug>/',
