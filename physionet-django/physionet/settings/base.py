@@ -440,7 +440,8 @@ if config('SENTRY_DSN', default=None):
     sentry_sdk.init(
         dsn=config('SENTRY_DSN'),
         integrations=[DjangoIntegration()],
-        traces_sample_rate=config('SENTRY_SAMPLE_RATE', default=1.0, cast=float),
+        sample_rate=config('SENTRY_SAMPLE_RATE', default=1.0, cast=float),
+        traces_sample_rate=config('SENTRY_TRACES_SAMPLE_RATE', default=0.0, cast=float),
         send_default_pii=False
     )
 
