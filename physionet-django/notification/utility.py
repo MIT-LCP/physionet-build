@@ -185,7 +185,10 @@ def submit_notify(project):
                   [email], fail_silently=False)
 
     # notify editorial team
-    subject = 'A new project has been submitted: {0}'.format(project.title)
+    if project.core_project.publishedprojects.exists():
+        subject = 'A new version has been submitted: {0}'.format(project.title)
+    else:
+        subject = 'A new project has been submitted: {0}'.format(project.title)
     email_context['name'] = "Colleague"
     body = loader.render_to_string(
         'notification/email/submit_notify_team.html', email_context)
