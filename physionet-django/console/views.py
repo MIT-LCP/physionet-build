@@ -1970,8 +1970,12 @@ def project_access_logs(request):
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def project_access_logs_detail(request, pid):
     c_project = get_object_or_404(PublishedProject, id=pid)
-    logs = c_project.logs.order_by('-creation_datetime').select_related('user__profile').annotate(
-        duration=F('last_access_datetime')-F('creation_datetime'))
+    logs = (
+        c_project.logs.filter(category=LogCategory.ACCESS)
+        .order_by("-creation_datetime")
+        .select_related("user__profile")
+        .annotate(duration=F("last_access_datetime") - F("creation_datetime"))
+    )
 
     user = request.GET.get('user')
     if user:
@@ -1998,8 +2002,11 @@ def download_project_accesses(request, pk):
     headers = ['User', 'Email address', 'First access', 'Last access', 'Duration', 'Count']
 
     data = (
-        AccessLog.objects.filter(content_type=ContentType.objects.get_for_model(PublishedProject), object_id=pk).select_related('user__profile')
-        .annotate(duration=F('last_access_datetime') - F('creation_datetime'))
+        AccessLog.objects.filter(
+            content_type=ContentType.objects.get_for_model(PublishedProject), object_id=pk
+        )
+        .select_related("user__profile")
+        .annotate(duration=F("last_access_datetime") - F("creation_datetime"))
     )
     
     response = HttpResponse(content_type='text/csv')
@@ -2024,7 +2031,11 @@ def download_project_accesses(request, pk):
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def user_access_logs(request):
-    users = User.objects.filter(is_active=True).select_related('profile').annotate(logs_count=Count('logs'))
+    users = (
+        User.objects.filter(is_active=True)
+        .select_related("profile")
+        .annotate(logs_count=Count("logs", filter=Q(logs__category=LogCategory.ACCESS)))
+    )
 
     q = request.GET.get('q')
     if q:
@@ -2046,8 +2057,12 @@ def user_access_logs(request):
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def user_access_logs_detail(request, pid):
     user = get_object_or_404(User, id=pid, is_active=True)
-    logs = user.logs.order_by('-creation_datetime').prefetch_related('project').annotate(
-        duration=F('last_access_datetime')-F('creation_datetime')) 
+    logs = (
+        user.logs.filter(category=LogCategory.ACCESS)
+        .order_by("-creation_datetime")
+        .prefetch_related("project")
+        .annotate(duration=F("last_access_datetime") - F("creation_datetime"))
+    )
 
     project = request.GET.get('project')
     if project:
@@ -2076,7 +2091,7 @@ def download_user_accesses(request, pk):
 
     data = (
         AccessLog.objects.filter(user=pk).select_related('user__profile')
-        .annotate(duration=F('last_access_datetime') - F('creation_datetime'))
+        .annotate(duration=F('last_access_datetime')-F('creation_datetime'))
     )
     
     response = HttpResponse(content_type='text/csv')
