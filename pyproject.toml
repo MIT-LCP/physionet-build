@@ -33,6 +33,7 @@ django-debug-toolbar = "^1.11.1"
 requests = "^2.21.0"
 requests-mock = "^1.7.0"
 selenium = "^3.141.0"
+flake8 = "^4.0.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

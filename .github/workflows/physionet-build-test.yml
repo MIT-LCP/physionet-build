@@ -83,3 +83,7 @@ jobs:
           python manage.py loaddemo
           coverage run --source='.' manage.py test --verbosity=3 --keepdb
           coverage report -m
+
+      - name: Run code style check
+        run: |
+          git diff -u | flake8 --diff
