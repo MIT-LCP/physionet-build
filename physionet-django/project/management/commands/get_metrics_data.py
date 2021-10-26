@@ -14,8 +14,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils.timezone import make_aware
 from django.db import transaction
 
-from project.models import (CoreProject, PublishedProject, Metrics,
-                            MetricsLogData)
+from project.modelcomponents.coreproject import CoreProject
+from project.modelcomponents.publishedproject import PublishedProject
+from project.modelcomponents.metadata import Metrics, MetricsLogData
 
 
 class Command(BaseCommand):
