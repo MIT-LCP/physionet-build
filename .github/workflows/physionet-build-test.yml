@@ -34,7 +34,7 @@ jobs:
 
       - name: Install and configure needed software
         run: |
-          apt-get install sudo python3-dev python3-pip build-essential libpq-dev postgresql zip wget python-virtualenv --yes
+          apt-get install sudo git python3-dev python3-pip build-essential libpq-dev postgresql zip wget python-virtualenv --yes
           ln -sT .env.example .env
 
       - name: Install repo dependencies
@@ -85,9 +85,6 @@ jobs:
           coverage run --source='.' manage.py test --verbosity=3 --keepdb
           coverage report -m
 
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
       - name: Run code style check on changed files from dev branch
         run: |
           git diff origin/dev HEAD | flake8 --diff
