@@ -85,6 +85,9 @@ jobs:
           coverage run --source='.' manage.py test --verbosity=3 --keepdb
           coverage report -m
 
-      - name: Run code style check
+      - name: Run code style check on changed files from dev branch
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
         run: |
-          git diff -u | flake8 --diff
+          git diff origin/dev HEAD | flake8 --diff
