@@ -95,5 +95,5 @@ jobs:
 
       - name: Run code style check on changed files from dev branch
         run: |
-          git fetch --all
+          git fetch origin dev
           git diff HEAD..origin/dev | flake8 --diff

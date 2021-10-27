@@ -11,3 +11,6 @@ urlpatterns = [
     path('projects/<project_slug>/server', views.lightwave_project_server,
          name='lightwave_project_server'),
 ]
+
+
+
