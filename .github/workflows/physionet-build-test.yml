@@ -28,8 +28,6 @@ jobs:
     steps:
       - name: Checkout physionet-build repo
         uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
 
       - name: Update packages
         run: apt-get update --yes
@@ -87,6 +85,9 @@ jobs:
           coverage run --source='.' manage.py test --verbosity=3 --keepdb
           coverage report -m
 
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: Run code style check on changed files from dev branch
         run: |
           git diff origin/dev HEAD | flake8 --diff
