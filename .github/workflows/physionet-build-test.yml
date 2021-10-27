@@ -89,4 +89,4 @@ jobs:
 
       - name: Run code style check on changed files from dev branch
         run: |
-          git diff dev...HEAD | flake8 --diff
+          git diff dev HEAD | flake8 --diff
