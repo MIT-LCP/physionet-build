@@ -12,6 +12,7 @@ from django.http import Http404
 
 from search import forms
 from project.models import PublishedProject, PublishedTopic
+from project.projectfiles import ProjectFiles
 from physionet.utility import paginate
 
 def topic_search(request):
@@ -170,7 +171,7 @@ def content_index(request, resource_type=None):
                    'form_type': form_type,
                    'form_topic': form_topic,
                    'querystring': querystring,
-                   'storage_type': settings.STORAGE_TYPE})
+                   'is_lightwave_supported': ProjectFiles().is_lightwave_supported()})
 
 
 def database_index(request):

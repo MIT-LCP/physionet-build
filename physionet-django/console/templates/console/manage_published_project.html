@@ -200,7 +200,7 @@
   </div>
   <div class="card-body mb-2">
     <ul class="list-group list-group-flush">
-      {% if storage_type == 'local' %}
+      {% if can_make_zip or can_make_checksum %}
         <li class="list-group-item">
         <h5 class="card-title mb-1">Generate special files</h5>
         <p>Generate (or regenerate) the project checksum file and zip file. If you regenerate these files, they will need to be resent to the cloud servers.</p>
@@ -222,12 +222,16 @@
         {% else %}
           <form action="" method="post">
             {% csrf_token %}
+            {% if can_make_checksum %}
             <button class="btn btn-primary btn-fixed" name="make_checksum_file"
                     {% if rw_tasks or ro_tasks %} disabled="disabled" {% endif %}
                     type="submit">Make checksum</button>
+            {% endif %}
+            {% if can_make_zip %}
             <button class="btn btn-primary btn-fixed" name="make_zip"
                     {% if rw_tasks or ro_tasks %} disabled="disabled" {% endif %}
                     type="submit">Make zip</button>
+            {% endif %}
           </form>
         {% endif %}
         </li>

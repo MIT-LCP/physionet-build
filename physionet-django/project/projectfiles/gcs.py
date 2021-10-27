@@ -123,6 +123,15 @@ class GCSProjectFiles(BaseProjectFiles):
         """Not implemented for GCS storage backend."""
         return None
 
+    def can_make_zip(self):
+        return False
+    
+    def can_make_checksum(self):
+        return False
+    
+    def is_lightwave_supported(self):
+        return False
+
     def _url(self, path):
         return GCSObject(path).url
 

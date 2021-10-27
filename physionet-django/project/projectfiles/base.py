@@ -101,3 +101,18 @@ class BaseProjectFiles(abc.ABC):
     def make_checksum_file(self, project):
         """Make the checksums file for the main files."""
         raise NotImplementedError
+    
+    @abc.abstractmethod
+    def can_make_zip(self):
+        """Check if zip file is supported."""
+        raise NotImplementedError
+    
+    @abc.abstractmethod
+    def can_make_checksum(self):
+        """Check if zip file is supported."""
+        raise NotImplementedError
+    
+    @abc.abstractmethod
+    def is_lightwave_supported(self):
+        """Check if lightwave is supported."""
+        raise NotImplementedError

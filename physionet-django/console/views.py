@@ -35,6 +35,7 @@ import project.forms as project_forms
 from project.models import (ActiveProject, ArchivedProject, StorageRequest,
     Reference, Topic, Publication, PublishedProject, EditLog,
     exists_project_slug, GCP, DUASignature, DataAccess, SubmissionInfo)
+from project.projectfiles import ProjectFiles
 from project.utility import readable_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH
 from project.views import (get_file_forms, get_project_file_info,
@@ -750,7 +751,7 @@ def manage_published_project(request, project_slug, version):
                 messages.success(request, 'The topics have been set')
             else:
                 messages.error(request, 'Invalid submission. See form below.')
-        elif 'make_checksum_file' in request.POST and settings.STORAGE_TYPE == StorageTypes.LOCAL:
+        elif 'make_checksum_file' in request.POST:
             if any(get_associated_tasks(project)):
                 messages.error(request, 'Project has tasks pending.')
             elif settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
@@ -761,7 +762,7 @@ def manage_published_project(request, project_slug, version):
                     verbose_name='Making checksum file - {}'.format(project))
                 messages.success(
                     request, 'The files checksum list has been scheduled.')
-        elif 'make_zip' in request.POST and settings.STORAGE_TYPE == StorageTypes.LOCAL:
+        elif 'make_zip' in request.POST:
             if any(get_associated_tasks(project)):
                 messages.error(request, 'Project has tasks pending.')
             elif settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
@@ -836,7 +837,8 @@ def manage_published_project(request, project_slug, version):
          'published_projects_nav': True, 'url_prefix': url_prefix,
          'contact_form': contact_form,
          'legacy_author_form': legacy_author_form,
-         'storage_type': settings.STORAGE_TYPE})
+         'can_make_zip': ProjectFiles().can_make_zip(),
+         'can_make_checksum': ProjectFiles().can_make_checksum()})
 
 
 def gcp_bucket_management(request, project, user):

@@ -399,7 +399,7 @@
         </ul>
 {# ZIP END #}
       </p>
-      {% if storage_type == 'local' %}
+      {% if is_lightwave_supported %}
         {% if project.has_wfdb %}
           <p><a href="{% url 'lightwave_home' %}?db={{ project.slug }}/{{ project.version }}"><i class="fas fa-chart-line"></i> Visualize waveforms</a></p>
         {% endif %}

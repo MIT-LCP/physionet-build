@@ -141,3 +141,12 @@ class LocalProjectFiles(BaseProjectFiles):
                     outfile.write('{} {}\n'.format(h.hexdigest(), f))
 
         project.set_storage_info()
+    
+    def can_make_zip(self):
+        return True
+
+    def can_make_checksum(self):
+        return True
+    
+    def is_lightwave_supported(self):
+        return True

@@ -34,6 +34,7 @@ from project.models import (Affiliation, Author, AuthorInvitation, License,
                             AnonymousAccess, DataAccessRequest, DataAccessRequestReviewer)
 from project import utility
 from project.validators import validate_filename
+from project.projectfiles import ProjectFiles
 import notification.utility as notification
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
@@ -1052,7 +1053,8 @@ def project_files(request, project_slug, subdir='', **kwargs):
         'delete_items_form':delete_items_form, 'is_submitting':is_submitting,
         'dir_breadcrumbs':dir_breadcrumbs, 'file_error':file_error,
         'file_warning':file_warning, 'files_editable':files_editable,
-        'maintenance_message':maintenance_message})
+        'maintenance_message':maintenance_message,
+        'is_lightwave_supported': ProjectFiles().is_lightwave_supported()})
 
 
 @project_auth(auth_mode=3)
@@ -1161,7 +1163,8 @@ def project_preview(request, project_slug, subdir='', **kwargs):
         'files_panel_url':files_panel_url, 'citations': citations,
         'subdir':subdir, 'parent_dir':parent_dir, 'file_error':file_error, 
         'file_warning':file_warning, 'platform_citations': platform_citations,
-        'parent_projects':parent_projects, 'has_passphrase':has_passphrase})
+        'parent_projects':parent_projects, 'has_passphrase':has_passphrase,
+        'is_lightwave_supported': ProjectFiles().is_lightwave_supported()})
 
 
 @project_auth(auth_mode=3)
@@ -1599,7 +1602,8 @@ def published_project(request, project_slug, version, subdir=''):
                'all_project_versions': all_project_versions,
                'parent_projects':parent_projects, 'data_access':data_access,
                'messages':messages.get_messages(request), 
-               'platform_citations': platform_citations}
+               'platform_citations': platform_citations,
+               'is_lightwave_supported': ProjectFiles().is_lightwave_supported()}
     # The file and directory contents
     if has_access:
         (display_files, display_dirs, dir_breadcrumbs, parent_dir,
@@ -1620,8 +1624,7 @@ def published_project(request, project_slug, version, subdir=''):
             'files_panel_url': files_panel_url, 'subdir': subdir,
             'parent_dir': parent_dir, 'file_error': file_error,
             'current_site': get_current_site(request),
-            'data_access': data_access,
-            'storage_type': settings.STORAGE_TYPE}}
+            'data_access': data_access}}
     elif subdir:
         status = 403
     else:
