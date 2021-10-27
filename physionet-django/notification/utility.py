@@ -14,7 +14,24 @@ from django.utils import timezone
 from project.models import DataAccessRequest, License
 
 RESPONSE_ACTIONS = {0:'rejected', 1:'accepted'}
-
+RESPONSE_COMMENTS = {
+    15: 'It looks like you did not complete the correct CITI course. The correct course is "Data or Specimens Only Research". Please resubmit with the correct information.',
+    14: 'You submitted the CITI Certificate instead of the Completion Report (it should include a list of courses and scores). Please resubmit with the correct report.',
+    13: 'The HIPAA module is missing from your CITI completion report.',
+    12: 'Please retake the CITI course paying particular attention to the section on HIPAA Privacy Protections.',
+    11: 'The email on your CITI report does not match your application email. You can not share CITI training reports.',
+    10: 'Access is provided to individuals. Your research summary suggests that data may be shared within the group. Please resubmit your application, making it clear that the Data Use Agreement will be followed. If your colleagues plan to access the data, then they will need to apply for access independently.',
+    9: 'Some of the information on your application does not make sense. Please resubmit with the correct information.',
+    8: 'We cannot identify you or your reference in our web search. Can you resubmit and provide references to your publications, personal webpage, or associations with known organizations?',
+    7: 'You list your research category as Industry Researcher but did not list an institution. Please update your institution or if you are not associated with an institution or select Independent Researcher as your research category.',
+    6: 'You listed yourself as a Hospital Researcher but did not list an institution. Please resubmit with the correct information.',
+    5: 'You listed yourself as a Student but did not list an institution. Please resubmit with the correct information.',
+    4: '"Massachusetts Institute of Technology Affiliates" should not be listed as your institution. This is for the CITI course step only. Please resubmit with the correct information.',
+    3: 'The name for your reference does not seem correct. Please resubmit with the correct information.',
+    2: 'You listed yourself as a reference. Please resubmit with another valid reference.',
+    1: 'The email address listed for your reference is not active (emails sent to this address are undelivered).',
+    0: ''
+}
 
 def mailto_url(*recipients, **params):
     """
@@ -634,23 +651,36 @@ def mailto_administrators(project, error):
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [settings.CONTACT_EMAIL], fail_silently=False)
 
-def process_credential_complete(request, application, comments=True):
+def process_credential_complete(request, application, send=True, comments=True,
+                                response_choice=-1, subject='', body=''):
     """
     Notify user of credentialing decision
     """
     applicant_name = application.get_full_name()
     response = 'rejected' if application.status == 1 else 'accepted'
-    subject = 'Your application for PhysioNet credentialing'
-    body = loader.render_to_string(
-        'notification/email/process_credential_complete.html', {
-            'application': application,
-            'applicant_name': applicant_name,
-            'domain': get_current_site(request),
-            'url_prefix': get_url_prefix(request),
-            'comments': comments,
-            'signature': email_signature(),
-            'footer': email_footer()
-        })
+    if not subject:
+        subject = 'Your application for PhysioNet credentialing'
+    if (comments == True) and (response_choice >= 0):
+        response = 'rejected'
+        application.status = 1
+        application.responder_comments = RESPONSE_COMMENTS[response_choice]
+        application.save()
+
+    if not body:
+        body = loader.render_to_string(
+            'notification/email/process_credential_complete.html', {
+                'application': application,
+                'applicant_name': applicant_name,
+                'domain': get_current_site(request),
+                'url_prefix': get_url_prefix(request),
+                'comments': comments,
+                'signature': email_signature(),
+                'footer': email_footer()
+            })
+
+    if (comments == True) and (response_choice >= 0) and (not send):
+        application.status = 0
+        application.save()
 
     message = EmailMessage(
         subject=subject,
@@ -659,7 +689,11 @@ def process_credential_complete(request, application, comments=True):
         to=[application.user.email],
         bcc=[settings.CREDENTIAL_EMAIL]
         )
-    message.send(fail_silently=False)
+
+    if send:
+        message.send(fail_silently=False)
+
+    return {'subject': subject, 'body': body}
 
 def credential_application_request(request, application):
     """
