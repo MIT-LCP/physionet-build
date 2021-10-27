@@ -1,4 +1,5 @@
 from copy import copy
+from pythonjsonlogger import jsonlogger
 import logging
 
 from django.views import debug
@@ -173,3 +174,13 @@ class VerboseStreamHandler(logging.StreamHandler):
         reporter = debug.ExceptionReporter(request, is_email=True, *exc_info)
         message = "%s\n\n%s" % (self.format(no_exc_record), reporter.get_traceback_text())
         self.stream.write(message)
+
+
+class UwsgiJsonFormatter(jsonlogger.JsonFormatter):
+    def add_fields(self, log_record, record, message_dict):
+        super(UwsgiJsonFormatter, self).add_fields(log_record, record, message_dict)
+        log_record['source'] = 'django'
+        log_record['level'] = log_record.pop('levelname')
+        log_record['time'] = int(log_record.pop('created'))
+        if log_record['sinfo'] is None:
+            log_record.pop('sinfo')

@@ -137,7 +137,10 @@ MAX_ATTEMPTS = 5
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR,'static')]
 # Google Storge service account credentials
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(BASE_DIR, 'PhysioNet-Data-credentials.json')
+if config('GOOGLE_APPLICATION_CREDENTIALS', default=None):
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(
+        BASE_DIR,
+        config('GOOGLE_APPLICATION_CREDENTIALS'))
 
 # Maintenance mode
 
@@ -358,16 +361,29 @@ CKEDITOR_CONFIGS = {
 
 # True if the program is invoked as 'manage.py test'
 RUNNING_TEST_SUITE = (len(sys.argv) > 1 and sys.argv[1] == 'test')
-
-LOGGING_CONFIG = None
-LOGLEVEL = os.environ.get('LOGLEVEL', 'info').upper()
+JSON_LOGGING = config('JSON_LOGGING', default=False, cast=bool)
 
 if RUNNING_TEST_SUITE:
     _logfile = open(os.path.join(BASE_DIR, 'test.log'), 'w')
+elif JSON_LOGGING:
+    _logfile = sys.stdout
 else:
     _logfile = sys.stderr
 
-logging.config.dictConfig({
+if JSON_LOGGING:
+    _formatter = 'json'
+    _simple_formatter = _formatter
+    _class = 'logging.StreamHandler'
+    _verbose_class = _class
+else:
+    _formatter = 'console'
+    _simple_formatter = 'simple'
+    _class = 'logging.StreamHandler'
+    _verbose_class = 'physionet.log.VerboseStreamHandler'
+
+LOGLEVEL = os.environ.get('LOGLEVEL', 'info').upper()
+
+LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'filters': {
@@ -380,24 +396,28 @@ logging.config.dictConfig({
             'format': '%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
         },
         'simple': {
-            'format': '%(levelname)s %(asctime)-15s %(message)s'
+            'format': '%(levelname)s %(asctime)-15s %(message)s',
+        },
+        'json': {
+            'format': '%(created)s %(name)s %(levelname)s %(message)s %(sinfo)s',
+            '()': 'physionet.log.UwsgiJsonFormatter',
         },
     },
     'handlers': {
         'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'console',
+            'class': _class,
+            'formatter': _formatter,
             'stream': _logfile,
         },
-        'Custom_Logging': {
+        'custom_logging': {
             'level': 'INFO',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple',
+            'class': _class,
+            'formatter': _simple_formatter,
             'stream': _logfile,
         },
         'verbose_console': {
-            'class': 'physionet.log.VerboseStreamHandler',
-            'formatter': 'console',
+            'class': _verbose_class,
+            'formatter': _formatter,
             'stream': _logfile,
         },
         'mail_admins': {
@@ -408,17 +428,12 @@ logging.config.dictConfig({
     },
     'loggers': {
         '': {
-            'level': 'INFO',
+            'level': LOGLEVEL,
             'handlers': ['console'],
         },
         'user': {
             'level': 'INFO',
-            'handlers': ['Custom_Logging'],
-            'propagate': False,
-        },
-        'django.security.DisallowedHost': {
-            'handlers': ['mail_admins'],
-            'level': 'CRITICAL',
+            'handlers': ['custom_logging'],
             'propagate': False,
         },
        'django.request': {
@@ -427,11 +442,12 @@ logging.config.dictConfig({
             'propagate': False,
         },
         'physionet.error': {
-            'handlers': ['console', 'mail_admins', 'Custom_Logging'],
+            'handlers': ['console', 'mail_admins', 'custom_logging'],
             'level': 'ERROR',
-        }
+            'propagate': False,
+        },
     },
-})
+}
 
 if config('SENTRY_DSN', default=None):
     import sentry_sdk
