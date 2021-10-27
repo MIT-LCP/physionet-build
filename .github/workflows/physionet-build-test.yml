@@ -28,6 +28,8 @@ jobs:
     steps:
       - name: Checkout physionet-build repo
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       - name: Update packages
         run: apt-get update --yes
@@ -86,8 +88,5 @@ jobs:
           coverage report -m
 
       - name: Run code style check on changed files from dev branch
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
         run: |
           git diff origin/dev HEAD | flake8 --diff
