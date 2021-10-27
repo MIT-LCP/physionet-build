@@ -95,8 +95,9 @@ jobs:
       - name: Run code style check on changed files relative to PR base branch
         if: github.event_name == 'pull_request'
         run: |
-          echo ${{ github.event.pull_request.base.repo.full_name }}
-          git diff ${{ github.event.pull_request.base.ref }} HEAD | flake8 --diff
+          git remote add upstream https://github.com/${{ github.event.pull_request.base.repo.full_name }}
+          git fetch upstream ${{ github.event.pull_request.base.ref }}
+          git diff upstream/${{ github.event.pull_request.base.ref }} HEAD | flake8 --diff
 
       - name: Run code style check relative to local dev branch
         if: github.event_name != 'pull_request'
