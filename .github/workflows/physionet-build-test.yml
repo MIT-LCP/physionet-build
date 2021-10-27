@@ -92,7 +92,13 @@ jobs:
           coverage run --source='.' manage.py test --verbosity=3 --keepdb
           coverage report -m
 
-      - name: Run code style check on changed files from dev branch
+      - name: Run code style check on changed files relative to PR base branch
+        if: github.event_name == 'pull_request'
+        run: |
+          git diff ${{ github.event.pull_request.base.ref }} HEAD | flake8 --diff
+
+      - name: Run code style check relative to local dev branch
+        if: github.event_name != 'pull_request'
         run: |
           git fetch origin dev
           git diff origin/dev HEAD | flake8 --diff
