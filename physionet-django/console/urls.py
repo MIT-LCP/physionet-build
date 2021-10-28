@@ -102,5 +102,7 @@ urlpatterns = [
     path('static-pages/<str:page>/', views.static_page_sections,
         name='static_page_sections'),
     path('static-pages/<str:page>/<int:pk>/delete/', views.static_page_sections_delete,
-        name='static_page_sections_delete')
+        name='static_page_sections_delete'),
+    path('static-pages/<str:page>/<int:pk>/edit/', views.static_page_sections_edit,
+        name='static_page_sections_edit')
 ]

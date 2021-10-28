@@ -16,6 +16,7 @@
             <tr>
                 <th>Title</th>
                 <th>Order</th>
+                <th>Edit</th>
                 <th>Remove</th>
             </tr>
             </thead>
@@ -33,6 +34,9 @@
                                 <button class="btn btn-sm" name="down" value="{{ section.id }}" title="Move section down" style="background:none"><i class="fas fa-arrow-down"></i></button>
                             {% endif %}
                         </form>
+                    </td>
+                    <td>
+                        <a href="{% url 'static_page_sections_edit' page section.id %}" class="btn btn-sm btn-primary" role="button">Edit</a>
                     </td>
                     <td>
                         <form method="post" action="{% url 'static_page_sections_delete' page section.id %}">

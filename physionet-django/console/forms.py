@@ -953,7 +953,8 @@ class SectionForm(forms.ModelForm):
     def save(self):
         section = super().save(commit=False)
         section.page = self.page
-        section.order = Section.objects.filter(page=self.page).count() + 1
+        if not section.order:
+            section.order = Section.objects.filter(page=self.page).count() + 1
         section.save()
         return section
 

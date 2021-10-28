@@ -2133,3 +2133,21 @@ def static_page_sections_delete(request, page, pk):
         Section.objects.filter(page=page, order__gt=section.order).update(order=F('order') - 1)
 
     return redirect('static_page_sections', page=page)
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def static_page_sections_edit(request, page, pk):
+    section = get_object_or_404(Section, page=Page(page), pk=pk)
+    if request.method == 'POST':
+        section_form = forms.SectionForm(instance=section, data=request.POST, page=Page(page))
+        if section_form.is_valid():
+            section_form.save()
+            return redirect('static_page_sections', page=page)
+    else:
+        section_form = forms.SectionForm(instance=section, page=Page(page))
+
+    return render(request, 'console/static_page_sections_edit.html', {
+        'section_form': section_form, 'static_pages_nav': True, 'page': page,
+        'section': section
+    })
