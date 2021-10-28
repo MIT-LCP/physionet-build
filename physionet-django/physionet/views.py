@@ -12,6 +12,7 @@ from notification.models import News
 from physionet.middleware.maintenance import allow_post_during_maintenance
 from project.models import AccessPolicy, License, ProjectType, PublishedProject
 from project.projectfiles import ProjectFiles
+from physionet.enums import Page
 from user.forms import ContactForm
 
 
@@ -54,9 +55,11 @@ def about_publish(request):
         descriptions[resource_type.name] = resource_type.description
         licenses[resource_type.name] = License.objects.filter(
             resource_types__contains=str(resource_type.id)).order_by('access_policy')
+    
+    sections = Section.objects.filter(page=Page.SHARE)
 
     return render(request, 'about/publish.html', {'licenses': licenses,
-                  'descriptions': descriptions})
+                  'descriptions': descriptions, 'sections': sections})
 
 
 def license_content(request, license_slug):
@@ -86,8 +89,12 @@ def about(request):
             messages.error(request, 'Invalid submission. See form below.')
     else:
         contact_form = ContactForm()
+    
+    sections = Section.objects.filter(page=Page.ABOUT)
 
-    return render(request, 'about/about.html', {'contact_form': contact_form})
+    return render(request, 'about/about.html', {
+        'contact_form': contact_form, 'sections': sections
+    })
 
 
 def timeline(request):
